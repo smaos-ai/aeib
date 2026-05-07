@@ -1,1 +1,65 @@
-// Implemented in Task 6
+pub mod validate;
+pub mod rebac;
+pub mod ap2;
+pub mod governance;
+pub mod commit;
+
+use sqlx::PgPool;
+
+use crate::signer::Signer;
+use crate::types::{AuthorizationRequest, AuthorizationResult, GatekeeperError};
+
+/// The sole entry point for task authorization.
+/// Runs the full pipeline: validate → ReBAC → AP2 → governance → sign+commit.
+///
+/// The entire operation should be called within a database transaction by the caller.
+/// If any step fails, the caller should roll back.
+pub async fn authorize_task(
+    pool: &PgPool,
+    signer: &dyn Signer,
+    request: &AuthorizationRequest,
+) -> Result<AuthorizationResult, GatekeeperError> {
+    let task_id = request.task_id.0;
+    let persona_id = request.persona_id.0;
+    let intent_mandate_id = request.intent_mandate_id.0;
+    let tenant_id = request.tenant_id.0;
+    let tool_ids: Vec<uuid::Uuid> = request.requested_tools.iter().map(|n| n.0).collect();
+
+    // Step 1: Validate
+    validate::validate(pool, task_id, persona_id, tenant_id).await?;
+
+    // Step 2: ReBAC
+    rebac::check_tool_access(pool, persona_id, &tool_ids, tenant_id).await?;
+
+    // Step 3: AP2
+    let (risk_class, budget_remaining) =
+        ap2::check_and_debit(pool, intent_mandate_id, &tool_ids, request.estimated_cost).await?;
+
+    // Step 4: Governance
+    governance::evaluate_rules(
+        pool,
+        tenant_id,
+        task_id,
+        persona_id,
+        tenant_id,    // task_tenant_id (validated to match in step 1)
+        tenant_id,    // persona_tenant_id (validated to match in step 1)
+        budget_remaining,
+        request.estimated_cost,
+    )
+    .await?;
+
+    // Step 5: Sign + Commit
+    let result = commit::sign_and_commit(
+        pool,
+        signer,
+        task_id,
+        persona_id,
+        intent_mandate_id,
+        request.estimated_cost,
+        &risk_class,
+        tenant_id,
+    )
+    .await?;
+
+    Ok(result)
+}

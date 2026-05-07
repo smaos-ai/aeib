@@ -1,5 +1,8 @@
 pub mod mock;
 
+use std::future::Future;
+use std::pin::Pin;
+
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use uuid::Uuid;
@@ -26,5 +29,5 @@ pub struct ExecutionError {
 
 /// Trait for executing tasks on a hardware backend.
 pub trait Executor: Send + Sync {
-    fn execute(&self, context: TaskContext) -> impl std::future::Future<Output = Result<ExecutionResult, ExecutionError>> + Send;
+    fn execute(&self, context: TaskContext) -> Pin<Box<dyn Future<Output = Result<ExecutionResult, ExecutionError>> + Send + '_>>;
 }

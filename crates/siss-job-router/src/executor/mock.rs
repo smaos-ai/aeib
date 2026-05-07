@@ -1,19 +1,23 @@
+use std::pin::Pin;
+use std::future::Future;
+
 use super::{Executor, ExecutionError, TaskContext};
 use crate::types::ExecutionResult;
 
 /// A deterministic mock executor for tests.
-/// Returns: output={"status":"mock_completed","task_id":"..."}, token_cost=100, duration_ms=10
 pub struct MockExecutor;
 
 impl Executor for MockExecutor {
-    async fn execute(&self, context: TaskContext) -> Result<ExecutionResult, ExecutionError> {
-        Ok(ExecutionResult {
-            output: serde_json::json!({
-                "status": "mock_completed",
-                "task_id": context.task_id.to_string(),
-            }),
-            token_cost: 100,
-            duration_ms: 10,
+    fn execute(&self, context: TaskContext) -> Pin<Box<dyn Future<Output = Result<ExecutionResult, ExecutionError>> + Send + '_>> {
+        Box::pin(async move {
+            Ok(ExecutionResult {
+                output: serde_json::json!({
+                    "status": "mock_completed",
+                    "task_id": context.task_id.to_string(),
+                }),
+                token_cost: 100,
+                duration_ms: 10,
+            })
         })
     }
 }
@@ -24,9 +28,11 @@ pub struct FailingExecutor {
 }
 
 impl Executor for FailingExecutor {
-    async fn execute(&self, _context: TaskContext) -> Result<ExecutionResult, ExecutionError> {
-        Err(ExecutionError {
-            message: self.error_message.clone(),
+    fn execute(&self, _context: TaskContext) -> Pin<Box<dyn Future<Output = Result<ExecutionResult, ExecutionError>> + Send + '_>> {
+        Box::pin(async move {
+            Err(ExecutionError {
+                message: self.error_message.clone(),
+            })
         })
     }
 }

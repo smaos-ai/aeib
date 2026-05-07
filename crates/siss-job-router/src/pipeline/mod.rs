@@ -34,6 +34,7 @@ pub async fn route_task(
         complexity_class: validated.complexity_class,
         hardware_target,
         tenant_id,
+        visible_field: None, // Populated by caller when Context Cartography is integrated
     };
     let execution = execute::dispatch_and_execute(pool, executor, context).await?;
 

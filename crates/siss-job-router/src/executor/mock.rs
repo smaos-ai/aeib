@@ -49,6 +49,7 @@ mod tests {
             complexity_class: ComplexityClass::Simple,
             hardware_target: HardwareTarget::LocalMlx,
             tenant_id: uuid::Uuid::nil(),
+            visible_field: None,
         }
     }
 

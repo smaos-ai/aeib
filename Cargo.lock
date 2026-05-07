@@ -1819,6 +1819,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "siss-context-cartography"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_json",
+ "siss-graph-core",
+ "siss-graph-db",
+ "sqlx",
+ "thiserror",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "siss-gatekeeper"
 version = "0.1.0"
 dependencies = [

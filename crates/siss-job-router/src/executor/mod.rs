@@ -19,6 +19,7 @@ pub struct TaskContext {
     pub complexity_class: ComplexityClass,
     pub hardware_target: HardwareTarget,
     pub tenant_id: Uuid,
+    pub visible_field: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Error)]

@@ -1,3 +1,4 @@
+use chrono::Utc;
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -14,6 +15,7 @@ use siss_feedback_router::scorer::Scorer;
 use siss_feedback_router::crystallizer::Crystallizer;
 use siss_feedback_router::types::CompletionRequest;
 
+use crate::events::{AgentEvent, emitter::EventEmitter};
 use crate::types::{AgentShellError, IntentResult};
 
 /// Run the full value loop for a single intent.
@@ -36,6 +38,7 @@ pub async fn run_intent_pipeline(
     checkers: &[&dyn FirewallChecker],
     scorer: &dyn Scorer,
     crystallizer: &dyn Crystallizer,
+    emitter: &dyn EventEmitter,
 ) -> Result<IntentResult, AgentShellError> {
     // 1. Create Task
     let task_id_uuid = Uuid::new_v4();
@@ -52,6 +55,12 @@ pub async fn run_intent_pipeline(
     let task_id = NodeId(task_id_uuid);
     let tool_uuids: Vec<Uuid> = requested_tools.iter().map(|n| n.0).collect();
 
+    emitter.emit(AgentEvent::TaskCreated {
+        task_id: task_id.0,
+        intent: intent.to_string(),
+        timestamp: Utc::now(),
+    });
+
     // 2. Gatekeeper: authorize
     let auth_request = AuthorizationRequest {
         task_id,
@@ -63,6 +72,12 @@ pub async fn run_intent_pipeline(
     };
     let _auth_result = siss_gatekeeper::pipeline::authorize_task(pool, signer, &auth_request).await?;
 
+    emitter.emit(AgentEvent::Authorized {
+        task_id: task_id.0,
+        mandate_id: intent_mandate_id.0,
+        timestamp: Utc::now(),
+    });
+
     // 3. Router: route + execute
     let routing_request = RoutingRequest {
         task_id,
@@ -72,6 +87,24 @@ pub async fn run_intent_pipeline(
     let routing_result = siss_job_router::pipeline::route_task(
         pool, strategy, executor, &routing_request,
     ).await?;
+
+    emitter.emit(AgentEvent::Routed {
+        task_id: task_id.0,
+        hardware_target: routing_result.hardware_target,
+        timestamp: Utc::now(),
+    });
+    emitter.emit(AgentEvent::Executing {
+        task_id: task_id.0,
+        token_cost: routing_result.execution.token_cost,
+        duration_ms: routing_result.execution.duration_ms,
+        timestamp: Utc::now(),
+    });
+    emitter.emit(AgentEvent::OutputChunk {
+        task_id: task_id.0,
+        chunk: routing_result.execution.output.clone(),
+        index: 0,
+        timestamp: Utc::now(),
+    });
 
     // 4. Firewall: inspect
     let inspection_request = InspectionRequest {
@@ -87,8 +120,19 @@ pub async fn run_intent_pipeline(
         pool, checkers, &inspection_request,
     ).await.map_err(|e| AgentShellError::DatabaseError { message: e.to_string() })?;
 
+    emitter.emit(AgentEvent::FirewallInspected {
+        task_id: task_id.0,
+        verdict: inspection_result.verdict,
+        violation_count: inspection_result.violations.len(),
+        timestamp: Utc::now(),
+    });
+
     // Check if firewall blocked
     if matches!(inspection_result.verdict, Verdict::CriticalBlocked | Verdict::Blocked) {
+        emitter.emit(AgentEvent::Error {
+            message: format!("firewall blocked: verdict={:?}", inspection_result.verdict),
+            timestamp: Utc::now(),
+        });
         return Err(AgentShellError::FirewallBlocked {
             verdict: inspection_result.verdict,
             violations: inspection_result.violations,
@@ -109,6 +153,22 @@ pub async fn run_intent_pipeline(
     let completion_result = siss_feedback_router::pipeline::complete_task(
         pool, scorer, crystallizer, &completion_request,
     ).await?;
+
+    emitter.emit(AgentEvent::Scored {
+        task_id: task_id.0,
+        quality_score: completion_result.quality_score,
+        timestamp: Utc::now(),
+    });
+    emitter.emit(AgentEvent::Crystallized {
+        task_id: task_id.0,
+        memory_count: completion_result.crystallized_memories.len(),
+        timestamp: Utc::now(),
+    });
+    emitter.emit(AgentEvent::IntentCompleted {
+        task_id: task_id.0,
+        quality_score: completion_result.quality_score,
+        timestamp: Utc::now(),
+    });
 
     Ok(IntentResult {
         task_id,

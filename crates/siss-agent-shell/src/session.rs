@@ -1,3 +1,6 @@
+use std::sync::Arc;
+
+use chrono::Utc;
 use sqlx::PgPool;
 
 use siss_graph_core::node::NodeId;
@@ -10,6 +13,7 @@ use siss_behavioral_firewall::checker::FirewallChecker;
 use siss_feedback_router::scorer::Scorer;
 use siss_feedback_router::crystallizer::Crystallizer;
 
+use crate::events::{AgentEvent, emitter::{EventEmitter, NoOpEmitter}};
 use crate::hooks::{
     ExecutionContext, HookResult, LifecycleHook, SessionContext,
     runner::{run_session_hooks, run_execution_hooks},
@@ -27,7 +31,7 @@ pub struct AgentSession {
     tenant_id: NodeId,
     session_id: NodeId,
     intent_mandate_id: NodeId,
-    #[allow(dead_code)] // Used in Phase 2 (AG-UI streaming)
+    #[allow(dead_code)]
     visible_field: Option<VisibleField>,
     hooks: Vec<Box<dyn LifecycleHook>>,
     signer: Box<dyn Signer>,
@@ -36,6 +40,7 @@ pub struct AgentSession {
     checkers: Vec<Box<dyn FirewallChecker>>,
     scorer: Box<dyn Scorer>,
     crystallizer: Box<dyn Crystallizer>,
+    emitter: Arc<dyn EventEmitter>,
     budget_remaining: i64,
 }
 
@@ -51,6 +56,7 @@ impl AgentSession {
         checkers: Vec<Box<dyn FirewallChecker>>,
         scorer: Box<dyn Scorer>,
         crystallizer: Box<dyn Crystallizer>,
+        emitter: Option<Arc<dyn EventEmitter>>,
     ) -> Result<Self, AgentShellError> {
         // 1. Validate persona
         let persona_row = siss_graph_db::repo::node_repo::fetch_persona(&pool, config.persona_id.0)
@@ -100,6 +106,8 @@ impl AgentSession {
             Box::new(AuditLogHook::new()),
         ];
 
+        let emitter: Arc<dyn EventEmitter> = emitter.unwrap_or_else(|| Arc::new(NoOpEmitter));
+
         // 5. Fire SessionStart hooks
         let session_ctx = SessionContext {
             session_id,
@@ -110,6 +118,12 @@ impl AgentSession {
         if let HookResult::Deny { reason } = result {
             return Err(AgentShellError::SessionStartDenied { reason });
         }
+
+        emitter.emit(AgentEvent::SessionStarted {
+            session_id: session_id.0,
+            persona_id: config.persona_id.0,
+            timestamp: Utc::now(),
+        });
 
         Ok(Self {
             pool,
@@ -125,6 +139,7 @@ impl AgentSession {
             checkers,
             scorer,
             crystallizer,
+            emitter,
             budget_remaining: config.budget_limit,
         })
     }
@@ -162,6 +177,7 @@ impl AgentSession {
             &checker_refs,
             &*self.scorer,
             &*self.crystallizer,
+            &*self.emitter,
         )
         .await?;
 
@@ -200,6 +216,12 @@ impl AgentSession {
             )
             .await;
         }
+
+        // 3. Emit close event
+        self.emitter.emit(AgentEvent::SessionClosed {
+            session_id: self.session_id.0,
+            timestamp: Utc::now(),
+        });
 
         Ok(())
     }

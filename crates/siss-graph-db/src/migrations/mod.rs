@@ -5,6 +5,7 @@ const MIGRATIONS: &[(&str, &str)] = &[
     ("002_create_edges", include_str!("002_create_edges.sql")),
     ("003_create_age_graph", include_str!("003_create_age_graph.sql")),
     ("004_seed_governance", include_str!("004_seed_governance.sql")),
+    ("005_create_agent_cards", include_str!("005_create_agent_cards.sql")),
 ];
 
 /// Run all migrations in order. Idempotent — tracks applied migrations in a metadata table.

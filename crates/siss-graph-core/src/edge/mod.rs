@@ -46,6 +46,8 @@ pub enum EdgeType {
     Supersedes,
     // Swarm
     A2aDelegates,
+    // A2A Discovery
+    HasAgentCard,
 }
 
 /// A concrete edge record stored in the database.
@@ -115,5 +117,16 @@ mod tests {
         let edge = EdgeRecord::new(NodeId::new(), NodeId::new(), EdgeType::MemberOf, t1);
         assert_eq!(edge.tenant_id, t1);
         assert_ne!(edge.tenant_id, t2);
+    }
+
+    #[test]
+    fn test_has_agent_card_edge_type_exists() {
+        let edge = EdgeRecord::new(
+            NodeId::new(),
+            NodeId::new(),
+            EdgeType::HasAgentCard,
+            NodeId::new(),
+        );
+        assert_eq!(edge.edge_type, EdgeType::HasAgentCard);
     }
 }

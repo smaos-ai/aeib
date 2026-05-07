@@ -225,7 +225,13 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(response.status(), StatusCode::NOT_FOUND);
+        let status = response.status();
+        let json = body_json(response.into_body()).await;
+        assert_eq!(status, StatusCode::NOT_FOUND);
+        assert!(
+            json["error"].as_str().unwrap_or("").contains("persona not found"),
+            "expected error message, got: {json}"
+        );
     }
 
     #[tokio::test]

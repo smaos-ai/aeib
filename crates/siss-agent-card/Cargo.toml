@@ -18,12 +18,12 @@ thiserror.workspace = true
 tokio.workspace = true
 sqlx.workspace = true
 axum            = { version = "0.7", optional = true }
-tower           = { version = "0.4", optional = true }
-http-body-util  = { version = "0.1", optional = true }
+tower           = { workspace = true, optional = true }
+http-body-util  = { workspace = true, optional = true }
 
 [dev-dependencies]
 testcontainers  = { workspace = true }
 tokio           = { workspace = true, features = ["full", "test-util"] }
-tower           = "0.4"
-http-body-util  = "0.1"
+tower.workspace = true
+http-body-util.workspace = true
 axum            = "0.7"

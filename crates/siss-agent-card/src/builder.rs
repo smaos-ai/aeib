@@ -24,7 +24,7 @@ impl<'a> AgentCardBuilder<'a> {
         &self,
         persona_id: NodeId,
         tenant_id: NodeId,
-        _base_url: &str,
+        _base_url: &str, // reserved: Phase 4 will use this to set node.url at runtime
     ) -> Result<AgentCard, AgentCardError> {
         // 1. Validate persona
         let persona_row = siss_graph_db::repo::node_repo::fetch_persona(self.pool, persona_id.0)
@@ -169,6 +169,24 @@ mod tests {
         let builder = AgentCardBuilder::new(&pool);
         let err = builder
             .build(NodeId(Uuid::new_v4()), NodeId(Uuid::new_v4()), "https://example.com")
+            .await
+            .unwrap_err();
+        assert!(matches!(err, AgentCardError::PersonaNotFound { .. }));
+    }
+
+    #[tokio::test]
+    async fn test_build_returns_persona_not_found_when_frozen() {
+        let (_container, pool) = start_postgres().await;
+        let (tenant_id, persona_id) = make_tenant_and_persona(&pool).await;
+
+        // Freeze the persona
+        siss_graph_db::repo::node_repo::freeze_persona(&pool, persona_id)
+            .await
+            .expect("freeze persona");
+
+        let builder = AgentCardBuilder::new(&pool);
+        let err = builder
+            .build(NodeId(persona_id), NodeId(tenant_id), "https://example.com")
             .await
             .unwrap_err();
         assert!(matches!(err, AgentCardError::PersonaNotFound { .. }));

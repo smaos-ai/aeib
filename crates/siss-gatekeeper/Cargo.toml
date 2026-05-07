@@ -14,6 +14,7 @@ thiserror.workspace = true
 tokio.workspace = true
 sqlx.workspace = true
 ed25519-dalek.workspace = true
+rand = "0.8"
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["full", "test-util"] }

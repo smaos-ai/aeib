@@ -3,7 +3,10 @@
     "allow": [
       "Bash(uv --version)",
       "mcp__notebooklm__notebook_get",
-      "mcp__notebooklm__notebook_query"
+      "mcp__notebooklm__notebook_query",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(git commit:*)"
     ]
   }
 }

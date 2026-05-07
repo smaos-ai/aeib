@@ -124,3 +124,28 @@ pub async fn fetch_accessible_memory_ids(
     .await?;
     Ok(ids)
 }
+
+/// Insert a new memory node. Returns its ID.
+pub async fn insert_memory(
+    pool: &PgPool,
+    content: &str,
+    tier: &str,
+    confidence_score: f64,
+    quality_score: f64,
+    tenant_id: Uuid,
+) -> Result<Uuid, sqlx::Error> {
+    let id = Uuid::new_v4();
+    sqlx::query(
+        "INSERT INTO memories (id, tenant_id, content, consolidation_tier, confidence_score, quality_score) \
+         VALUES ($1, $2, $3, $4::consolidation_tier, $5, $6)"
+    )
+    .bind(id)
+    .bind(tenant_id)
+    .bind(content)
+    .bind(tier)
+    .bind(confidence_score)
+    .bind(quality_score)
+    .execute(pool)
+    .await?;
+    Ok(id)
+}

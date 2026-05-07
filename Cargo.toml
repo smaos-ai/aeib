@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "crates/siss-graph-core",
     "crates/siss-graph-db",
+    "crates/siss-gatekeeper",
 ]
 
 [workspace.package]

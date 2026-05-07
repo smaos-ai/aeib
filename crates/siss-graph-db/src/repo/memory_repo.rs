@@ -59,3 +59,68 @@ pub async fn reinforce_memory(
     .await?;
     Ok(())
 }
+
+/// Fetch memories of a given tier for a tenant, above the confidence threshold.
+/// For procedural/semantic: sorted by confidence descending.
+/// For episodic: sorted by created_at descending (most recent first).
+pub async fn fetch_memories_by_tier(
+    pool: &PgPool,
+    tier: &str,
+    tenant_id: Uuid,
+    confidence_threshold: f64,
+    limit: i64,
+) -> Result<Vec<(Uuid, String, f64, String)>, sqlx::Error> {
+    let order_clause = if tier == "episodic" {
+        "ORDER BY created_at DESC"
+    } else {
+        "ORDER BY confidence_score DESC"
+    };
+
+    let query = format!(
+        "SELECT id, content, confidence_score, consolidation_tier::text \
+         FROM memories \
+         WHERE tenant_id = $1 \
+         AND consolidation_tier = $2::consolidation_tier \
+         AND confidence_score * EXP( \
+             -EXTRACT(EPOCH FROM (NOW() - last_reinforced_at)) / 3600.0 / \
+             CASE consolidation_tier \
+                 WHEN 'episodic' THEN 48.0 \
+                 WHEN 'semantic' THEN 168.0 \
+                 WHEN 'procedural' THEN 720.0 \
+                 ELSE 1.0 \
+             END \
+         ) >= $3 \
+         {} \
+         LIMIT $4",
+        order_clause
+    );
+
+    let rows: Vec<(Uuid, String, f64, String)> = sqlx::query_as(&query)
+        .bind(tenant_id)
+        .bind(tier)
+        .bind(confidence_threshold)
+        .bind(limit)
+        .fetch_all(pool)
+        .await?;
+
+    Ok(rows)
+}
+
+/// Get all memory IDs that a Persona can read (via direct CAN_READ edges).
+pub async fn fetch_accessible_memory_ids(
+    pool: &PgPool,
+    persona_id: Uuid,
+    tenant_id: Uuid,
+) -> Result<Vec<Uuid>, sqlx::Error> {
+    let ids: Vec<Uuid> = sqlx::query_scalar(
+        "SELECT target_id FROM edges \
+         WHERE source_id = $1 \
+         AND edge_type = 'can_read' \
+         AND tenant_id = $2"
+    )
+    .bind(persona_id)
+    .bind(tenant_id)
+    .fetch_all(pool)
+    .await?;
+    Ok(ids)
+}

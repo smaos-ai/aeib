@@ -240,3 +240,40 @@ pub async fn update_task_token_cost(
     .await?;
     Ok(result.rows_affected() > 0)
 }
+
+/// Insert a new Session node. Returns its ID.
+pub async fn insert_session(
+    pool: &PgPool,
+    token_budget: i64,
+    persona_id: Uuid,
+    tenant_id: Uuid,
+) -> Result<Uuid, sqlx::Error> {
+    let id = Uuid::new_v4();
+    sqlx::query(
+        "INSERT INTO sessions (id, tenant_id, token_budget, active_persona_id, visible_field_snapshot, status) \
+         VALUES ($1, $2, $3, $4, 'null'::jsonb, 'active'::session_status)"
+    )
+    .bind(id)
+    .bind(tenant_id)
+    .bind(token_budget)
+    .bind(persona_id)
+    .execute(pool)
+    .await?;
+    Ok(id)
+}
+
+/// Update a Session's visible_field_snapshot.
+pub async fn update_session_snapshot(
+    pool: &PgPool,
+    session_id: Uuid,
+    snapshot: serde_json::Value,
+) -> Result<bool, sqlx::Error> {
+    let result = sqlx::query(
+        "UPDATE sessions SET visible_field_snapshot = $2 WHERE id = $1"
+    )
+    .bind(session_id)
+    .bind(snapshot)
+    .execute(pool)
+    .await?;
+    Ok(result.rows_affected() > 0)
+}

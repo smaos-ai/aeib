@@ -1819,6 +1819,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "siss-agent-shell"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_json",
+ "siss-behavioral-firewall",
+ "siss-context-cartography",
+ "siss-feedback-router",
+ "siss-gatekeeper",
+ "siss-graph-core",
+ "siss-graph-db",
+ "siss-job-router",
+ "sqlx",
+ "thiserror",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "siss-behavioral-firewall"
 version = "0.1.0"
 dependencies = [

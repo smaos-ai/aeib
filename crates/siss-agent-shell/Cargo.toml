@@ -1,0 +1,23 @@
+[package]
+name = "siss-agent-shell"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+siss-graph-core = { path = "../siss-graph-core" }
+siss-graph-db = { path = "../siss-graph-db" }
+siss-gatekeeper = { path = "../siss-gatekeeper" }
+siss-job-router = { path = "../siss-job-router" }
+siss-context-cartography = { path = "../siss-context-cartography" }
+siss-behavioral-firewall = { path = "../siss-behavioral-firewall" }
+siss-feedback-router = { path = "../siss-feedback-router" }
+uuid.workspace = true
+chrono.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+sqlx.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full", "test-util"] }

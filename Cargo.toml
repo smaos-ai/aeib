@@ -8,6 +8,7 @@ members = [
     "crates/siss-context-cartography",
     "crates/siss-behavioral-firewall",
     "crates/siss-feedback-router",
+    "crates/siss-agent-shell",
 ]
 
 [workspace.package]

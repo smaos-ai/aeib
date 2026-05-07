@@ -5,6 +5,7 @@ members = [
     "crates/siss-graph-db",
     "crates/siss-gatekeeper",
     "crates/siss-job-router",
+    "crates/siss-context-cartography",
 ]
 
 [workspace.package]

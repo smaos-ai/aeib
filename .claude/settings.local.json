@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv --version)",
+      "mcp__notebooklm__notebook_get",
+      "mcp__notebooklm__notebook_query"
+    ]
+  }
+}

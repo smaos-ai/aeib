@@ -1,0 +1,29 @@
+[package]
+name = "siss-agent-card"
+edition.workspace = true
+version.workspace = true
+
+[features]
+default = []
+axum = ["dep:axum", "dep:tower", "dep:http-body-util"]
+
+[dependencies]
+siss-graph-core = { path = "../siss-graph-core" }
+siss-graph-db   = { path = "../siss-graph-db" }
+uuid.workspace = true
+chrono.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+sqlx.workspace = true
+axum            = { version = "0.7", optional = true }
+tower           = { version = "0.4", optional = true }
+http-body-util  = { version = "0.1", optional = true }
+
+[dev-dependencies]
+testcontainers  = { workspace = true }
+tokio           = { workspace = true, features = ["full", "test-util"] }
+tower           = "0.4"
+http-body-util  = "0.1"
+axum            = "0.7"

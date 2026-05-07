@@ -9,6 +9,7 @@ members = [
     "crates/siss-behavioral-firewall",
     "crates/siss-feedback-router",
     "crates/siss-agent-shell",
+    "crates/siss-agent-card",
 ]
 
 [workspace.package]

@@ -208,3 +208,35 @@ pub async fn insert_payment_mandate(
     .await?;
     Ok(id)
 }
+
+/// Update a Task's hardware_target field.
+pub async fn update_task_hardware_target(
+    pool: &PgPool,
+    task_id: Uuid,
+    hardware_target: &str,
+) -> Result<bool, sqlx::Error> {
+    let result = sqlx::query(
+        "UPDATE tasks SET hardware_target = $2::hardware_target WHERE id = $1"
+    )
+    .bind(task_id)
+    .bind(hardware_target)
+    .execute(pool)
+    .await?;
+    Ok(result.rows_affected() > 0)
+}
+
+/// Update a Task's token_cost field.
+pub async fn update_task_token_cost(
+    pool: &PgPool,
+    task_id: Uuid,
+    token_cost: i64,
+) -> Result<bool, sqlx::Error> {
+    let result = sqlx::query(
+        "UPDATE tasks SET token_cost = $2 WHERE id = $1"
+    )
+    .bind(task_id)
+    .bind(token_cost)
+    .execute(pool)
+    .await?;
+    Ok(result.rows_affected() > 0)
+}

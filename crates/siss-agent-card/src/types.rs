@@ -27,7 +27,7 @@ pub struct AgentCardNode {
 
 // ── AgentCard (in-memory working type) ────────────────────────────────────────
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentCard {
     pub node: AgentCardNode,
     pub skills: Vec<Skill>,
@@ -38,7 +38,7 @@ pub struct AgentCard {
 // ── Supporting types ──────────────────────────────────────────────────────────
 
 /// A single A2A skill — corresponds to one tool the persona can execute.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Skill {
     /// snake_case identifier, e.g. "mcp_filesystem"
     pub id: String,
@@ -47,7 +47,7 @@ pub struct Skill {
     pub tags: Vec<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Capability {
     /// true because siss-agent-shell emits AG-UI events
     pub streaming: bool,
@@ -55,13 +55,13 @@ pub struct Capability {
     pub push_notifications: bool,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Authentication {
     /// e.g. ["Bearer"]
     pub schemes: Vec<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct SerializeOptions {
     /// When true, include the `x-siss` extension block in the JSON output.
     pub extended: bool,

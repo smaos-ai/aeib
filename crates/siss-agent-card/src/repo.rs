@@ -17,12 +17,14 @@ fn hardware_target_str(h: HardwareTarget) -> &'static str {
     }
 }
 
-fn parse_hardware_target(s: &str) -> HardwareTarget {
+fn parse_hardware_target(s: &str) -> Result<HardwareTarget, AgentCardError> {
     match s {
-        "local_mlx" => HardwareTarget::LocalMlx,
-        "remote_frontier" => HardwareTarget::RemoteFrontier,
-        "hybrid" => HardwareTarget::Hybrid,
-        _ => HardwareTarget::LocalMlx,
+        "local_mlx" => Ok(HardwareTarget::LocalMlx),
+        "remote_frontier" => Ok(HardwareTarget::RemoteFrontier),
+        "hybrid" => Ok(HardwareTarget::Hybrid),
+        other => Err(AgentCardError::DatabaseError {
+            message: format!("unknown hardware_affinity value: {other}"),
+        }),
     }
 }
 
@@ -86,8 +88,8 @@ pub async fn fetch_agent_card_node(
         .fetch_optional(pool)
         .await?;
 
-    Ok(row.map(|(id, tenant_id, persona_id, name, description, version, url, hw, budget_cap, created_at)| {
-        AgentCardNode {
+    row.map(|(id, tenant_id, persona_id, name, description, version, url, hw, budget_cap, created_at)| {
+        Ok(AgentCardNode {
             id: NodeId(id),
             tenant_id: NodeId(tenant_id),
             persona_id: NodeId(persona_id),
@@ -95,12 +97,13 @@ pub async fn fetch_agent_card_node(
             description,
             version,
             url,
-            hardware_affinity: parse_hardware_target(&hw),
+            hardware_affinity: parse_hardware_target(&hw)?,
             budget_cap,
             allowed_tools: vec![],
             created_at,
-        }
-    }))
+        })
+    })
+    .transpose()
 }
 
 #[cfg(test)]
@@ -218,7 +221,7 @@ mod tests {
             (HardwareTarget::Hybrid, "hybrid"),
         ] {
             assert_eq!(hardware_target_str(variant), s);
-            assert_eq!(parse_hardware_target(s), variant);
+            assert_eq!(parse_hardware_target(s).unwrap(), variant);
         }
     }
 }

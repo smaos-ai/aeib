@@ -6,6 +6,7 @@ const MIGRATIONS: &[(&str, &str)] = &[
     ("003_create_age_graph", include_str!("003_create_age_graph.sql")),
     ("004_seed_governance", include_str!("004_seed_governance.sql")),
     ("005_create_agent_cards", include_str!("005_create_agent_cards.sql")),
+    ("006_create_trust_policy_nodes", include_str!("006_create_trust_policy_nodes.sql")),
 ];
 
 /// Run all migrations in order. Idempotent — tracks applied migrations in a metadata table.
@@ -37,4 +38,57 @@ pub async fn run_all(pool: &PgPool) -> Result<(), sqlx::Error> {
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use testcontainers::runners::AsyncRunner;
+    use testcontainers::{core::WaitFor, GenericImage, ImageExt};
+
+    async fn setup_postgres() -> (testcontainers::ContainerAsync<GenericImage>, PgPool) {
+        let container = GenericImage::new("postgres", "16")
+            .with_wait_for(WaitFor::message_on_stderr(
+                "database system is ready to accept connections",
+            ))
+            .with_env_var("POSTGRES_PASSWORD", "postgres")
+            .with_env_var("POSTGRES_DB", "siss_test")
+            .start()
+            .await
+            .expect("postgres started");
+
+        let port = container.get_host_port_ipv4(5432).await.unwrap();
+        let url = format!("postgres://postgres:postgres@127.0.0.1:{port}/siss_test");
+        let pool = PgPool::connect(&url).await.expect("pool connect");
+        run_all(&pool).await.expect("migrations");
+        (container, pool)
+    }
+
+    #[tokio::test]
+    async fn test_trust_policy_nodes_table_exists() {
+        let (_container, pool) = setup_postgres().await;
+
+        let result: (i64,) = sqlx::query_as(
+            "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'trust_policy_nodes'"
+        )
+        .fetch_one(&pool)
+        .await
+        .expect("query");
+
+        assert_eq!(result.0, 1, "trust_policy_nodes table should exist");
+    }
+
+    #[tokio::test]
+    async fn test_has_trust_policy_edge_type_exists() {
+        let (_container, pool) = setup_postgres().await;
+
+        let result: (String,) = sqlx::query_as(
+            "SELECT 'has_trust_policy'::edge_type"
+        )
+        .fetch_one(&pool)
+        .await
+        .expect("query");
+
+        assert_eq!(result.0, "has_trust_policy");
+    }
 }

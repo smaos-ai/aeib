@@ -48,6 +48,8 @@ pub enum EdgeType {
     A2aDelegates,
     // A2A Discovery
     HasAgentCard,
+    // Trust & Policy
+    HasTrustPolicy,
 }
 
 /// A concrete edge record stored in the database.

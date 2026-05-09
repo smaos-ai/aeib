@@ -178,4 +178,46 @@ mod tests {
         assert_eq!(vector.data_sensitivity_allowed, super::super::DataSensitivityLevel::Confidential);
         assert_eq!(vector.max_concurrency, 5);
     }
+
+    #[test]
+    fn test_build_attestation_vector_sovereign_origin() {
+        let now = Utc::now();
+        let attestation = Attestation {
+            attestation_type: super::super::AttestationType::SovereignOrigin,
+            format: "jurisdiction_cert".to_string(),
+            payload: "cert".to_string(),
+            signature: "sig".to_string(),
+            issuer: "eu-authority".to_string(),
+            issued_at: now,
+            valid_until: now + chrono::Duration::days(365),
+        };
+
+        let vector = build_attestation_vector(&attestation);
+
+        assert_eq!(vector.attestation_type, super::super::AttestationType::SovereignOrigin);
+        assert_eq!(vector.score_contribution, 20);
+        assert_eq!(vector.data_sensitivity_allowed, super::super::DataSensitivityLevel::Internal);
+        assert_eq!(vector.max_concurrency, 5);
+    }
+
+    #[test]
+    fn test_build_attestation_vector_runtime_integrity() {
+        let now = Utc::now();
+        let attestation = Attestation {
+            attestation_type: super::super::AttestationType::RuntimeIntegrity,
+            format: "container_manifest".to_string(),
+            payload: "manifest".to_string(),
+            signature: "sig".to_string(),
+            issuer: "container-platform".to_string(),
+            issued_at: now,
+            valid_until: now + chrono::Duration::days(7),
+        };
+
+        let vector = build_attestation_vector(&attestation);
+
+        assert_eq!(vector.attestation_type, super::super::AttestationType::RuntimeIntegrity);
+        assert_eq!(vector.score_contribution, 20);
+        assert_eq!(vector.data_sensitivity_allowed, super::super::DataSensitivityLevel::Confidential);
+        assert_eq!(vector.max_concurrency, 3);
+    }
 }

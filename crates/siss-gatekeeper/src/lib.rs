@@ -4,3 +4,4 @@ pub mod pipeline;
 pub mod evaluator;
 pub mod payload;
 pub mod policy;
+pub mod attestation;

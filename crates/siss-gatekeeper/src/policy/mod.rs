@@ -48,7 +48,7 @@ pub enum CapabilityGrant {
 }
 
 /// Action to take on a capability
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(tag = "type")]
 pub enum CapabilityAction {
     /// Grant a capability
@@ -60,7 +60,7 @@ pub enum CapabilityAction {
     /// Grant with constraints
     Constrain {
         capability: CapabilityGrant,
-        rate_limit_rpm: Option<u32>,
+        rate_limit_per_minute: Option<u32>,
         max_duration_seconds: Option<u64>,
         allowed_resources: Option<Vec<String>>,
     },
@@ -78,38 +78,53 @@ pub struct CapabilityRule {
 /// TrustPolicyNode: defines trust requirements and capability grants for a Persona
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TrustPolicyNode {
+    /// Unique identifier for this policy node
     pub id: NodeId,
+    /// Reference to the Persona this policy is associated with
     pub persona_id: NodeId,
+    /// Reference to the Tenant that owns this policy
     pub tenant_id: NodeId,
+    /// Policy version for migration and compatibility tracking
     pub policy_version: u32,
 
-    // Agent classification rules
-    pub allowed_agent_types: Vec<String>,       // ["ai_agent", "service"]
-    pub denied_agents_by_id: Vec<String>,       // agent UUIDs to blacklist
-    pub allowed_organizations: Vec<String>,     // ["anthropic", "openai"]
+    /// Allowed agent types (e.g., "ai_agent", "service") - agents not in this list are denied
+    pub allowed_agent_types: Vec<String>,
+    /// Agent IDs to explicitly blacklist, regardless of type
+    pub denied_agents_by_id: Vec<String>,
+    /// Allowed organizations (e.g., "anthropic", "openai") - agents from other orgs are denied
+    pub allowed_organizations: Vec<String>,
 
-    // Attestation requirements
+    /// Whether hardware enclave attestation is required for all capability grants
     pub hardware_enclave_required: bool,
+    /// Whether model integrity attestation is required for all capability grants
     pub model_integrity_required: bool,
+    /// Maximum number of failed attestations before access is revoked
     pub max_failed_attestations: u32,
 
-    // Security tier thresholds
+    /// Minimum attestation score (out of 100) required for unrestricted access at Tier 1 (highest trust)
     pub tier_1_score_threshold: u32,
+    /// Minimum attestation score (out of 100) required for Tier 2 (elevated trust) capabilities
     pub tier_2_score_threshold: u32,
+    /// Minimum attestation score (out of 100) required for Tier 3 (baseline trust) capabilities
     pub tier_3_score_threshold: u32,
 
-    // Capability override rules (decision tree)
+    /// Decision tree rules for capability overrides - evaluated in priority order
     pub capability_overrides: Vec<CapabilityRule>,
 
-    // Token expiry
+    /// Session token expiry duration in seconds
     pub session_token_expiry_seconds: u64,
+    /// Capability token expiry duration in seconds
     pub capability_token_expiry_seconds: u64,
 
-    // Metadata
-    pub enforcement_mode: String,  // "strict" or "permissive"
+    /// Policy enforcement level: "strict" blocks at first security issue, "permissive" allows more flexibility
+    pub enforcement_mode: String,
+    /// Whether audit logging is required for all capability exercises under this policy
     pub audit_required: bool,
+    /// Timestamp when this policy was created
     pub created_at: DateTime<Utc>,
+    /// Timestamp of the last modification to this policy
     pub last_modified: DateTime<Utc>,
+    /// User ID or agent ID that last modified this policy
     pub last_modified_by: Uuid,
 }
 

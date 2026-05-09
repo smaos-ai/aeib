@@ -62,3 +62,120 @@ pub fn build_attestation_vector(attestation: &Attestation) -> AttestationVector 
         valid_until: attestation.valid_until,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::Utc;
+
+    #[test]
+    fn test_validate_attestation_success() {
+        let now = Utc::now();
+        let attestation = Attestation {
+            attestation_type: super::super::AttestationType::HardwareEnclave,
+            format: "sgx_quote".to_string(),
+            payload: "payload".to_string(),
+            signature: "sig".to_string(),
+            issuer: "intel".to_string(),
+            issued_at: now,
+            valid_until: now + chrono::Duration::hours(1),
+        };
+
+        let result = validate_attestation(&attestation, 3600, &["intel".to_string()]);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_validate_attestation_issuer_not_trusted() {
+        let now = Utc::now();
+        let attestation = Attestation {
+            attestation_type: super::super::AttestationType::HardwareEnclave,
+            format: "sgx_quote".to_string(),
+            payload: "payload".to_string(),
+            signature: "sig".to_string(),
+            issuer: "untrusted".to_string(),
+            issued_at: now,
+            valid_until: now + chrono::Duration::hours(1),
+        };
+
+        let result = validate_attestation(&attestation, 3600, &["intel".to_string()]);
+        assert!(matches!(result, Err(AttestationValidationError::IssuerNotTrusted)));
+    }
+
+    #[test]
+    fn test_validate_attestation_expired() {
+        let now = Utc::now();
+        let attestation = Attestation {
+            attestation_type: super::super::AttestationType::HardwareEnclave,
+            format: "sgx_quote".to_string(),
+            payload: "payload".to_string(),
+            signature: "sig".to_string(),
+            issuer: "intel".to_string(),
+            issued_at: now - chrono::Duration::hours(2),
+            valid_until: now - chrono::Duration::hours(1),
+        };
+
+        let result = validate_attestation(&attestation, 3600, &["intel".to_string()]);
+        assert!(matches!(result, Err(AttestationValidationError::Expired)));
+    }
+
+    #[test]
+    fn test_validate_attestation_too_old() {
+        let now = Utc::now();
+        let attestation = Attestation {
+            attestation_type: super::super::AttestationType::HardwareEnclave,
+            format: "sgx_quote".to_string(),
+            payload: "payload".to_string(),
+            signature: "sig".to_string(),
+            issuer: "intel".to_string(),
+            issued_at: now - chrono::Duration::hours(2),
+            valid_until: now + chrono::Duration::hours(1),
+        };
+
+        let result = validate_attestation(&attestation, 60, &["intel".to_string()]);
+        assert!(matches!(result, Err(AttestationValidationError::TooOld)));
+    }
+
+    #[test]
+    fn test_build_attestation_vector_hardware_enclave() {
+        let now = Utc::now();
+        let attestation = Attestation {
+            attestation_type: super::super::AttestationType::HardwareEnclave,
+            format: "sgx_quote".to_string(),
+            payload: "payload".to_string(),
+            signature: "sig".to_string(),
+            issuer: "intel".to_string(),
+            issued_at: now,
+            valid_until: now + chrono::Duration::hours(1),
+        };
+
+        let vector = build_attestation_vector(&attestation);
+
+        assert_eq!(vector.attestation_type, super::super::AttestationType::HardwareEnclave);
+        assert_eq!(vector.score_contribution, 50);
+        assert_eq!(vector.data_sensitivity_allowed, super::super::DataSensitivityLevel::Secret);
+        assert_eq!(vector.max_concurrency, 10);
+        assert!(vector.hardware_classes_allowed.contains(&"LocalMlx".to_string()));
+    }
+
+    #[test]
+    fn test_build_attestation_vector_model_integrity() {
+        let now = Utc::now();
+        let attestation = Attestation {
+            attestation_type: super::super::AttestationType::ModelIntegrity,
+            format: "signed_manifest".to_string(),
+            payload: "manifest".to_string(),
+            signature: "sig".to_string(),
+            issuer: "anthropic".to_string(),
+            issued_at: now,
+            valid_until: now + chrono::Duration::days(30),
+        };
+
+        let vector = build_attestation_vector(&attestation);
+
+        assert_eq!(vector.attestation_type, super::super::AttestationType::ModelIntegrity);
+        assert_eq!(vector.score_contribution, 30);
+        assert_eq!(vector.data_sensitivity_allowed, super::super::DataSensitivityLevel::Confidential);
+        assert_eq!(vector.max_concurrency, 5);
+    }
+}

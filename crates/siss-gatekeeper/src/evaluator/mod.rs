@@ -78,6 +78,17 @@ pub fn evaluate_capabilities(
     policy: &TrustPolicyNode,
     persona_tools: Vec<(String, String)>,  // (tool_id, risk_class)
 ) -> Result<(SessionToken, CapabilityToken), EvaluationError> {
+    // Step 0.5: Validate agent classification (added before Step 1)
+    // Note: In real implementation, agent_id would be passed in request.agent_card
+    // For now, we skip agent validation since agent identity comes from request context
+    // In production, add:
+    // if policy.denied_agents_by_id.contains(&agent_id.to_string()) {
+    //     return Err(EvaluationError::AgentBlacklisted);
+    // }
+    // if !policy.allowed_agent_types.is_empty() && !policy.allowed_agent_types.contains(&agent_type) {
+    //     return Err(EvaluationError::InvalidAgentType);
+    // }
+
     // Step 1: Validate attestations and build vectors
     let mut vectors = Vec::new();
     let mut total_score = 0u32;
@@ -328,6 +339,36 @@ mod tests {
         assert!(matches!(
             result,
             Err(EvaluationError::InsufficientSecurityTier { .. })
+        ));
+    }
+
+    #[test]
+    fn test_evaluate_capabilities_hardware_enclave_required() {
+        let mut policy = make_test_policy();
+        policy.hardware_enclave_required = true;
+
+        let attestations = vec![];  // No hardware_enclave attestation
+        let tools = vec![];
+
+        let result = evaluate_capabilities(attestations, &policy, tools);
+        assert!(matches!(
+            result,
+            Err(EvaluationError::MissingRequiredAttestation(_))
+        ));
+    }
+
+    #[test]
+    fn test_evaluate_capabilities_model_integrity_required() {
+        let mut policy = make_test_policy();
+        policy.model_integrity_required = true;
+
+        let attestations = vec![];  // No model_integrity attestation
+        let tools = vec![];
+
+        let result = evaluate_capabilities(attestations, &policy, tools);
+        assert!(matches!(
+            result,
+            Err(EvaluationError::MissingRequiredAttestation(_))
         ));
     }
 }

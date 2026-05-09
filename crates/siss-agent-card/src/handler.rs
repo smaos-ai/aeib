@@ -67,7 +67,7 @@ mod tests {
     };
     use uuid::Uuid;
 
-    use crate::repo::insert_agent_card;
+    use crate::repo::insert_agent_card_node;
     use crate::types::AgentCardNode;
     use siss_graph_core::node::execution::HardwareTarget;
 
@@ -124,7 +124,7 @@ mod tests {
             allowed_tools: vec![],
             created_at: Utc::now(),
         };
-        insert_agent_card(&pool, &node).await.unwrap();
+        insert_agent_card_node(&pool, &node).await.unwrap();
 
         let state = AgentCardState {
             pool,
@@ -174,7 +174,7 @@ mod tests {
             allowed_tools: vec![],
             created_at: Utc::now(),
         };
-        insert_agent_card(&pool, &node).await.unwrap();
+        insert_agent_card_node(&pool, &node).await.unwrap();
 
         let state = AgentCardState {
             pool,
@@ -257,7 +257,7 @@ mod tests {
             allowed_tools: vec![],
             created_at: Utc::now(),
         };
-        insert_agent_card(&pool, &node).await.unwrap();
+        insert_agent_card_node(&pool, &node).await.unwrap();
 
         let state = AgentCardState {
             pool,

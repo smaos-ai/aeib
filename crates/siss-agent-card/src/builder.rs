@@ -56,20 +56,20 @@ impl<'a> AgentCardBuilder<'a> {
         // 4. Build skills from tool rows
         let mut skills = Vec::new();
         for tool_id in &tool_ids {
-            let row: Option<(String, String)> = sqlx::query_as(
-                "SELECT name, tool_uri FROM tools WHERE id = $1"
+            let row: Option<(String, String, String)> = sqlx::query_as(
+                "SELECT name, tool_uri, risk_class::text FROM tools WHERE id = $1"
             )
             .bind(tool_id)
             .fetch_optional(self.pool)
             .await?;
 
-            if let Some((name, uri)) = row {
+            if let Some((name, uri, risk_class)) = row {
                 let id = name.to_lowercase().replace(['-', ' '], "_");
                 skills.push(Skill {
                     id,
                     name,
                     description: uri,
-                    tags: vec![],
+                    tags: vec![risk_class],
                 });
             }
         }
@@ -86,7 +86,7 @@ impl<'a> AgentCardBuilder<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::repo::insert_agent_card;
+    use crate::repo::insert_agent_card_node;
     use chrono::Utc;
     use testcontainers::{
         core::WaitFor,
@@ -148,7 +148,7 @@ mod tests {
         let (_container, pool) = start_postgres().await;
         let (tenant_id, persona_id) = make_tenant_and_persona(&pool).await;
         let node = make_card_node(tenant_id, persona_id);
-        insert_agent_card(&pool, &node).await.expect("insert card");
+        insert_agent_card_node(&pool, &node).await.expect("insert card");
 
         let builder = AgentCardBuilder::new(&pool);
         let card = builder
@@ -227,7 +227,7 @@ mod tests {
         .expect("insert edge");
 
         let node = make_card_node(tenant_id, persona_id);
-        insert_agent_card(&pool, &node).await.expect("insert card");
+        insert_agent_card_node(&pool, &node).await.expect("insert card");
 
         let builder = AgentCardBuilder::new(&pool);
         let card = builder
@@ -238,6 +238,7 @@ mod tests {
         assert_eq!(card.skills.len(), 1);
         assert_eq!(card.skills[0].id, "mcp_filesystem");
         assert_eq!(card.skills[0].name, "mcp-filesystem");
+        assert_eq!(card.skills[0].tags, vec!["medium"]); // risk_class = "medium"
         assert_eq!(card.node.allowed_tools.len(), 1);
         assert_eq!(card.node.allowed_tools[0].0, tool_id);
     }

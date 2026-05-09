@@ -32,7 +32,7 @@ fn parse_hardware_target(s: &str) -> Result<HardwareTarget, AgentCardError> {
 
 /// Insert an AgentCardNode and a `has_agent_card` edge from persona → card,
 /// in a single transaction. Returns the new card's UUID.
-pub async fn insert_agent_card(
+pub async fn insert_agent_card_node(
     pool: &PgPool,
     node: &AgentCardNode,
 ) -> Result<Uuid, AgentCardError> {

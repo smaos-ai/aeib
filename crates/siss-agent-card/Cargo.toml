@@ -5,7 +5,7 @@ version.workspace = true
 
 [features]
 default = []
-axum = ["dep:axum", "dep:tower", "dep:http-body-util"]
+axum = ["dep:axum"]
 
 [dependencies]
 siss-graph-core = { path = "../siss-graph-core" }
@@ -18,8 +18,6 @@ thiserror.workspace = true
 tokio.workspace = true
 sqlx.workspace = true
 axum            = { version = "0.7", optional = true }
-tower           = { workspace = true, optional = true }
-http-body-util  = { workspace = true, optional = true }
 
 [dev-dependencies]
 testcontainers  = { workspace = true }

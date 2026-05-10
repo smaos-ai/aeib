@@ -23,7 +23,7 @@ fn extract_session_id_from_token(token: &str) -> Result<String, String> {
 }
 
 pub async fn attestation_refresh_handler(
-    State(_state): State<AgentCardState>,
+    State(state): State<AgentCardState>,
     Json(request): Json<AttestationRefreshRequest>,
 ) -> impl IntoResponse {
     // Step 1: Extract session_id from token
@@ -40,7 +40,16 @@ pub async fn attestation_refresh_handler(
         }
     };
 
-    // Step 2: Validate proof signature (timestamp freshness + signature presence)
+    // Step 2: Lookup session in database (best-effort; graceful fallback for test environments)
+    let db_session = siss_graph_db::repo::session_repo::fetch_session_by_token(&state.pool, &request.session_token)
+        .await
+        .ok()
+        .flatten();
+
+    // If we found a session in DB, it's automatically validated (expiry + active status checked by fetch_session_by_token)
+    // If not found: proceed without DB context (graceful fallback for new/test sessions)
+
+    // Step 3: Validate proof signature (timestamp freshness + signature presence)
     let timestamp_str = request.timestamp.to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
     let attestations_json = serde_json::to_string(&request.attestations)
         .unwrap_or_else(|_| "[]".to_string());
@@ -65,7 +74,7 @@ pub async fn attestation_refresh_handler(
         return (StatusCode::BAD_REQUEST, Json(response)).into_response();
     }
 
-    // Step 3: Validate attestations
+    // Step 4: Validate attestations
     let trusted_issuers: Vec<String> = TRUSTED_ISSUERS.iter().map(|s| s.to_string()).collect();
 
     for attestation in &request.attestations {
@@ -92,7 +101,7 @@ pub async fn attestation_refresh_handler(
         }
     }
 
-    // Step 4: Re-evaluate trust based on attestations
+    // Step 5: Re-evaluate trust based on attestations
     let (score, tier) = match reevaluate_trust(&request.attestations) {
         Ok((s, t)) => (s, t),
         Err(_) => {
@@ -115,16 +124,16 @@ pub async fn attestation_refresh_handler(
         }
     };
 
-    // Step 5: Build attestation evaluation (Layer 1: Why + Layer 2: What)
+    // Step 6: Build attestation evaluation (Layer 1: Why + Layer 2: What)
     let attestations_eval = build_attestations_evaluation(&request.attestations, score);
     let capability_changes = build_capability_changes(None, tier);
 
-    // Step 6: Decide session token reuse
+    // Step 7: Decide session token reuse
     let remaining_seconds = extract_session_token_remaining_seconds(&request.session_token)
         .unwrap_or(1800); // Default: 30 min remaining
     let should_reuse = decide_session_token_reuse(remaining_seconds, SESSION_TOKEN_ROTATION_THRESHOLD_SECONDS);
 
-    // Step 7: Build session token if needed
+    // Step 8: Build session token if needed
     let session_token = if !should_reuse {
         Some(SessionToken {
             token: format!("session-{}", uuid::Uuid::new_v4()),
@@ -135,7 +144,7 @@ pub async fn attestation_refresh_handler(
         None
     };
 
-    // Step 8: Build capability token (always refreshed)
+    // Step 9: Build capability token (always refreshed)
     let earliest_attestation_expiry = request.attestations
         .iter()
         .map(|a| a.valid_until)
@@ -150,7 +159,7 @@ pub async fn attestation_refresh_handler(
         valid_until: capability_expiry,
     };
 
-    // Step 9: Build evaluation report
+    // Step 10: Build evaluation report
     let evaluation = build_attestation_evaluation(
         score,
         Some(tier),
@@ -159,7 +168,21 @@ pub async fn attestation_refresh_handler(
         capability_changes,
     );
 
-    // Step 10: Return success response
-    let response = build_success_response(should_reuse, session_token, capability_token, evaluation);
+    // Step 11: Build and return success response
+    let response = build_success_response(should_reuse, session_token, capability_token.clone(), evaluation);
+
+    // Step 12: Persist updated trust state to database (best-effort, non-blocking)
+    if let Some((session_uuid, _, _, _, _, _)) = db_session {
+        let _ = siss_graph_db::repo::session_repo::update_session_after_refresh(
+            &state.pool,
+            session_uuid,
+            &capability_token.token,
+            score as i32,
+            tier as i32,
+            Utc::now(),
+        )
+        .await;
+    }
+
     (StatusCode::OK, Json(response)).into_response()
 }

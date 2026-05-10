@@ -129,6 +129,41 @@ pub struct AttestationRefreshResponseError {
     pub attestation_evaluation: Option<AttestationEvaluation>,
 }
 
+/// Phase 7: Rate Limit Constraints (inherited from delegation ceiling)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RateLimitConstraints {
+    /// Rate limit format: "1000/min", "10000/hour", "500000/day"
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rate_limit: Option<String>,
+
+    /// Maximum tokens allowed in a burst
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub burst_size: Option<u64>,
+
+    /// Minimum milliseconds between consecutive requests
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub min_interval_ms: Option<u64>,
+
+    /// Maximum concurrent child sessions
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub concurrent_sessions: Option<u32>,
+}
+
+/// Phase 7: Token Cost Calculation Result
+#[derive(Debug, Clone, Copy)]
+pub struct TokenCost {
+    /// Total cost in tokens
+    pub total_cost: u64,
+    /// Breakdown: base cost (always 100)
+    pub base_cost: u64,
+    /// Breakdown: tier penalty/bonus
+    pub tier_cost: i64,
+    /// Breakdown: attestation cost (10 per attestation)
+    pub attestation_cost: u64,
+    /// Breakdown: delegation cost (50 if delegated, 0 otherwise)
+    pub delegation_cost: u64,
+}
+
 /// Compute SHA256 hash of input data and return as hex string
 fn sha256_hex(data: &str) -> String {
     let mut hasher = Sha256::new();
@@ -630,6 +665,149 @@ pub fn is_ancestor_revoked(_ancestor_session_ids: &[uuid::Uuid]) -> bool {
     // This stub returns false (optimistic, non-fail-closed)
     // Do not rely on this for security-critical checks!
     false
+}
+
+// ====== Phase 7: Token Budget & Rate Limiting ======
+
+/// Compute token cost for attestation refresh request
+///
+/// Formula: base(100) + tier_penalty(±50 per tier distance from 3) + attestation_cost(10×count) + delegation_cost(+50 if delegated)
+/// Minimum cost floor: 50 tokens
+///
+/// Tier penalty:
+/// - Tier 1 (FULL): base + 100 (50 × 2 levels above tier 3)
+/// - Tier 2 (STANDARD): base + 50 (50 × 1 level above tier 3)
+/// - Tier 3 (MINIMAL): base + 0 (reference tier)
+/// - Tier 4+: base - 50 (50 per level below tier 3) [security penalty]
+pub fn compute_token_cost(tier: u32, attestation_count: usize, is_delegated: bool) -> TokenCost {
+    let base_cost = 100u64;
+
+    // Compute tier penalty: tier 3 is reference (0), higher tiers get bonus, lower tiers get penalty
+    let tier_penalty = match tier {
+        1 => 100i64,  // FULL: +100 (2 levels × 50)
+        2 => 50i64,   // STANDARD: +50 (1 level × 50)
+        3 => 0i64,    // MINIMAL: 0 (reference)
+        _ => -50i64 * (tier as i64 - 3i64),  // Below tier 3: -50 per level
+    };
+
+    // Attestation cost: 10 tokens per attestation type
+    let attestation_cost = (attestation_count as u64) * 10;
+
+    // Delegation cost: +50 if delegated, 0 otherwise
+    let delegation_cost = if is_delegated { 50u64 } else { 0u64 };
+
+    // Compute total with floor enforcement
+    let total_without_floor = (base_cost as i64 + tier_penalty + attestation_cost as i64 + delegation_cost as i64).max(50i64) as u64;
+
+    TokenCost {
+        total_cost: total_without_floor,
+        base_cost,
+        tier_cost: tier_penalty,
+        attestation_cost,
+        delegation_cost,
+    }
+}
+
+/// Parse rate limit constraints from JSONB string
+///
+/// Expected JSON format: {"rate_limit": "1000/min", "burst_size": 5000, "min_interval_ms": 100, "concurrent_sessions": 10}
+/// All fields are optional. Returns error if JSON is malformed.
+pub fn parse_rate_limit(rate_limit_json: &str) -> Result<RateLimitConstraints, String> {
+    if rate_limit_json.is_empty() || rate_limit_json == "null" {
+        // Empty or null is valid (no rate limit constraints)
+        return Ok(RateLimitConstraints {
+            rate_limit: None,
+            burst_size: None,
+            min_interval_ms: None,
+            concurrent_sessions: None,
+        });
+    }
+
+    let value: serde_json::Value = serde_json::from_str(rate_limit_json)
+        .map_err(|e| format!("rate_limits_json_parse_error: {}", e))?;
+
+    let obj = value.as_object()
+        .ok_or_else(|| "rate_limits_json_not_object".to_string())?;
+
+    let rate_limit = obj.get("rate_limit")
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string());
+
+    let burst_size = obj.get("burst_size")
+        .and_then(|v| v.as_u64());
+
+    let min_interval_ms = obj.get("min_interval_ms")
+        .and_then(|v| v.as_u64());
+
+    let concurrent_sessions = obj.get("concurrent_sessions")
+        .and_then(|v| v.as_u64())
+        .map(|v| v as u32);
+
+    Ok(RateLimitConstraints {
+        rate_limit,
+        burst_size,
+        min_interval_ms,
+        concurrent_sessions,
+    })
+}
+
+/// Error response for rate limit exceeded
+/// Indicates the agent has exceeded their allowed request rate
+pub fn error_rate_limit_exceeded(limit: &str) -> AttestationRefreshResponse {
+    build_error_response(
+        "rate_limit_exceeded".to_string(),
+        format!("Request rate limit exceeded: {}", limit),
+        vec![
+            "Reduce request frequency".to_string(),
+            "Wait before retrying the refresh".to_string(),
+        ],
+        None,
+    )
+}
+
+/// Error response for budget exhausted
+/// Indicates the agent has consumed all available token budget for this session
+pub fn error_budget_exhausted(initial: u64, remaining: u64) -> AttestationRefreshResponse {
+    build_error_response(
+        "budget_exhausted".to_string(),
+        format!(
+            "Session token budget exhausted: initial={}, remaining={}",
+            initial, remaining
+        ),
+        vec![
+            "Request new session with fresh budget via Phase 4 handshake".to_string(),
+            "Contact administrator to increase budget ceiling".to_string(),
+        ],
+        None,
+    )
+}
+
+/// Error response for concurrent limit exceeded
+/// Indicates the agent has exceeded their concurrent session ceiling
+pub fn error_concurrent_limit_exceeded(limit: u32) -> AttestationRefreshResponse {
+    build_error_response(
+        "concurrent_limit_exceeded".to_string(),
+        format!("Maximum concurrent sessions ({}) reached; close a child session and retry", limit),
+        vec![
+            "Revoke or close unnecessary child sessions".to_string(),
+            "Retry refresh after reducing active delegations".to_string(),
+        ],
+        None,
+    )
+}
+
+/// Error response for rate limit parsing failure
+/// Indicates the stored rate_limits JSONB field is malformed
+pub fn error_rate_limit_parsing_failed(detail: String) -> AttestationRefreshResponse {
+    build_error_response(
+        "rate_limit_parsing_failed".to_string(),
+        format!("Failed to parse rate limit constraints: {}", detail),
+        vec![
+            "Contact administrator to fix rate limit configuration".to_string(),
+            "System error; may retry after delay".to_string(),
+        ],
+        None,
+    )
 }
 
 #[cfg(test)]
@@ -1404,5 +1582,164 @@ mod tests {
         let (score, tier) = result.unwrap();
         assert_eq!(score, 100);
         assert_eq!(tier, 1);
+    }
+
+    // ====== Phase 7: Token Cost & Rate Limiting Tests ======
+
+    #[test]
+    fn test_compute_token_cost_tier1_no_attestations_no_delegation() {
+        // Tier 1 (FULL): base(100) + tier_bonus(100) + attestations(0) + delegation(0) = 200
+        let cost = compute_token_cost(1, 0, false);
+        assert_eq!(cost.total_cost, 200);
+        assert_eq!(cost.base_cost, 100);
+        assert_eq!(cost.tier_cost, 100);
+        assert_eq!(cost.attestation_cost, 0);
+        assert_eq!(cost.delegation_cost, 0);
+    }
+
+    #[test]
+    fn test_compute_token_cost_tier2_with_attestations() {
+        // Tier 2 (STANDARD): base(100) + tier_bonus(50) + attestations(40 = 4×10) + delegation(0) = 190
+        let cost = compute_token_cost(2, 4, false);
+        assert_eq!(cost.total_cost, 190);
+        assert_eq!(cost.base_cost, 100);
+        assert_eq!(cost.tier_cost, 50);
+        assert_eq!(cost.attestation_cost, 40);
+        assert_eq!(cost.delegation_cost, 0);
+    }
+
+    #[test]
+    fn test_compute_token_cost_tier3_with_delegation() {
+        // Tier 3 (MINIMAL): base(100) + tier_bonus(0) + attestations(20 = 2×10) + delegation(50) = 170
+        let cost = compute_token_cost(3, 2, true);
+        assert_eq!(cost.total_cost, 170);
+        assert_eq!(cost.base_cost, 100);
+        assert_eq!(cost.tier_cost, 0);
+        assert_eq!(cost.attestation_cost, 20);
+        assert_eq!(cost.delegation_cost, 50);
+    }
+
+    #[test]
+    fn test_compute_token_cost_tier4_penalty() {
+        // Tier 4: base(100) + tier_penalty(-50) + attestations(10 = 1×10) + delegation(0) = 60
+        let cost = compute_token_cost(4, 1, false);
+        assert_eq!(cost.total_cost, 60);
+        assert_eq!(cost.tier_cost, -50);
+    }
+
+    #[test]
+    fn test_compute_token_cost_floor_enforcement() {
+        // Very low tier with no attestations: base(100) + tier_penalty(-500) + attestations(0) + delegation(0)
+        // Without floor: 100 - 500 = -400, but floor is 50
+        let cost = compute_token_cost(13, 0, false);
+        assert_eq!(cost.total_cost, 50); // Enforced by floor
+        assert!(cost.total_cost >= 50, "Cost should never be below 50");
+    }
+
+    #[test]
+    fn test_parse_rate_limit_valid_json() {
+        let json = r#"{"rate_limit": "1000/min", "burst_size": 5000, "min_interval_ms": 100, "concurrent_sessions": 10}"#;
+        let result = parse_rate_limit(json);
+
+        assert!(result.is_ok());
+        let constraints = result.unwrap();
+        assert_eq!(constraints.rate_limit, Some("1000/min".to_string()));
+        assert_eq!(constraints.burst_size, Some(5000));
+        assert_eq!(constraints.min_interval_ms, Some(100));
+        assert_eq!(constraints.concurrent_sessions, Some(10));
+    }
+
+    #[test]
+    fn test_parse_rate_limit_partial_fields() {
+        let json = r#"{"rate_limit": "500/hour", "burst_size": 2500}"#;
+        let result = parse_rate_limit(json);
+
+        assert!(result.is_ok());
+        let constraints = result.unwrap();
+        assert_eq!(constraints.rate_limit, Some("500/hour".to_string()));
+        assert_eq!(constraints.burst_size, Some(2500));
+        assert!(constraints.min_interval_ms.is_none());
+        assert!(constraints.concurrent_sessions.is_none());
+    }
+
+    #[test]
+    fn test_parse_rate_limit_empty_string() {
+        let result = parse_rate_limit("");
+
+        assert!(result.is_ok());
+        let constraints = result.unwrap();
+        assert!(constraints.rate_limit.is_none());
+        assert!(constraints.burst_size.is_none());
+        assert!(constraints.min_interval_ms.is_none());
+        assert!(constraints.concurrent_sessions.is_none());
+    }
+
+    #[test]
+    fn test_parse_rate_limit_invalid_json() {
+        let json = r#"{"rate_limit": "invalid json""#;
+        let result = parse_rate_limit(json);
+
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("rate_limits_json_parse_error"));
+    }
+
+    #[test]
+    fn test_error_rate_limit_exceeded() {
+        let response = error_rate_limit_exceeded("1000/min");
+
+        match response {
+            AttestationRefreshResponse::Error(err) => {
+                assert_eq!(err.status, "denied");
+                assert_eq!(err.reason, "rate_limit_exceeded");
+                assert!(err.detail.contains("1000/min"));
+                assert_eq!(err.remediation.len(), 2);
+            }
+            _ => panic!("Expected error response"),
+        }
+    }
+
+    #[test]
+    fn test_error_budget_exhausted() {
+        let response = error_budget_exhausted(1000000, 0);
+
+        match response {
+            AttestationRefreshResponse::Error(err) => {
+                assert_eq!(err.status, "denied");
+                assert_eq!(err.reason, "budget_exhausted");
+                assert!(err.detail.contains("1000000"));
+                assert_eq!(err.remediation.len(), 2);
+            }
+            _ => panic!("Expected error response"),
+        }
+    }
+
+    #[test]
+    fn test_error_concurrent_limit_exceeded() {
+        let response = error_concurrent_limit_exceeded(5);
+
+        match response {
+            AttestationRefreshResponse::Error(err) => {
+                assert_eq!(err.status, "denied");
+                assert_eq!(err.reason, "concurrent_limit_exceeded");
+                assert!(err.detail.contains("5"));
+                assert_eq!(err.remediation.len(), 2);
+            }
+            _ => panic!("Expected error response"),
+        }
+    }
+
+    #[test]
+    fn test_error_rate_limit_parsing_failed() {
+        let response = error_rate_limit_parsing_failed("malformed JSONB".to_string());
+
+        match response {
+            AttestationRefreshResponse::Error(err) => {
+                assert_eq!(err.status, "denied");
+                assert_eq!(err.reason, "rate_limit_parsing_failed");
+                assert!(err.detail.contains("malformed JSONB"));
+                assert_eq!(err.remediation.len(), 2);
+            }
+            _ => panic!("Expected error response"),
+        }
     }
 }

@@ -16,6 +16,20 @@ Never engage in unstructured "vibe coding". Follow the Plan-Implement-Verify loo
 - Do not run commands that delete or truncate databases without explicit human approval.
 - Always read a file before editing it.
 
+## 3a. Git Branch / Worktree / Fork — Suggest Only
+**Never auto-execute the following. Always propose the command and wait for explicit approval:**
+- `git checkout -b` (new branch)
+- `git branch` (create/delete branch)
+- `git worktree add` (new worktree)
+- `git fork` / any fork operation
+- `git reset --hard` / `git clean` / any destructive git operation
+
+**Format for suggestions:**
+> I would run: `git checkout -b feat/my-feature`
+> Shall I proceed?
+
+This applies even when the user's request implies branching. State the intent, show the command, wait.
+
 ## 4. Core Commands (Rust/Cargo — this is a Cargo workspace)
 - **Test:** `cargo test`
 - **Lint:** `cargo clippy`

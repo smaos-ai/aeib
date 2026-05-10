@@ -19,6 +19,8 @@ thiserror.workspace = true
 tokio.workspace = true
 sqlx.workspace = true
 axum            = { version = "0.7", optional = true }
+rand.workspace = true
+hex.workspace = true
 
 [dev-dependencies]
 testcontainers  = { workspace = true }

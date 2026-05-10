@@ -277,3 +277,28 @@ pub async fn update_session_snapshot(
     .await?;
     Ok(result.rows_affected() > 0)
 }
+
+/// Insert a shadow persona (foreign agent from another sovereign). Returns its ID.
+/// Shadow personas have origin_sovereign_id set and delegation_ceiling_tier capped at bilateral limit.
+pub async fn insert_shadow_persona(
+    pool: &PgPool,
+    name: &str,
+    tenant_id: Uuid,
+    origin_sovereign_id: Uuid,
+    delegation_ceiling_tier: i32,
+) -> Result<Uuid, sqlx::Error> {
+    let id = Uuid::new_v4();
+    sqlx::query(
+        "INSERT INTO personas (id, tenant_id, name, kind, origin_sovereign_id, delegation_ceiling_tier) \
+         VALUES ($1, $2, $3, $4, $5, $6)"
+    )
+    .bind(id)
+    .bind(tenant_id)
+    .bind(name)
+    .bind("ai_agent")
+    .bind(origin_sovereign_id)
+    .bind(delegation_ceiling_tier)
+    .execute(pool)
+    .await?;
+    Ok(id)
+}

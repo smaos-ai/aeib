@@ -235,4 +235,106 @@ mod tests {
         // 10 + 20 would be 30, clamped to TIER_MAX (13)
         assert_eq!(tier_after, TIER_MAX, "Tier should never go above 13");
     }
+
+    // Task 41: Poison Pill Defense — Verify lineage_safe immutability
+    //
+    // These tests enforce the mathematical guarantee that cross-sovereign operations
+    // cannot poison the behavior score of local agents through reputation manipulation.
+
+    #[test]
+    fn test_lineage_unsafe_contributes_zero_to_delta() {
+        let now = Utc::now();
+
+        // Scenario: Foreign agent injects +10 unsafe event; local agent has -3 safe event
+        let events = vec![
+            make_event("cross_sovereign_attempt", 10, 0.0, false), // foreign, unsafe
+            make_event("refresh_success", -3, 0.0, true),           // local, safe
+        ];
+
+        let scorer = BehaviorScorer::new(events, now);
+        let delta = scorer.compute_tier_delta();
+
+        // Should only count the -3, completely ignoring the +10 from foreign source
+        assert_eq!(delta, -3, "Unsafe events must contribute exactly zero");
+    }
+
+    #[test]
+    fn test_all_unsafe_events_produce_zero_delta() {
+        let now = Utc::now();
+
+        // Extreme case: Only unsafe cross-sovereign events
+        let events = vec![
+            make_event("delegation_hijack_attempt", 8, 0.0, false),
+            make_event("tier_boost_fraud", 7, 0.5, false),
+            make_event("budget_overflow_attack", 6, 1.0, false),
+        ];
+
+        let scorer = BehaviorScorer::new(events, now);
+        let delta = scorer.compute_tier_delta();
+
+        // Pure poison attempt should have zero effect
+        assert_eq!(delta, 0, "All unsafe events must produce zero delta (poison pill)");
+    }
+
+    #[test]
+    fn test_mixed_safe_unsafe_only_safe_counted() {
+        let now = Utc::now();
+
+        // Mix of safe and unsafe: only safe should be scored
+        let events = vec![
+            make_event("refresh_success", 2, 0.0, true),             // safe: counted
+            make_event("malicious_boost", 10, 0.0, false),           // unsafe: ignored
+            make_event("refresh_success", 3, 1.0, true),             // safe: counted (decayed)
+            make_event("cross_sovereign_inject", 9, 1.5, false),     // unsafe: ignored
+        ];
+
+        let scorer = BehaviorScorer::new(events, now);
+        let delta = scorer.compute_tier_delta();
+
+        // Should only count: 2 + 3*decay(1 day)
+        // 3.5-day half-life: decay(1) ≈ 0.822
+        // Expected: 2 + 2.466 ≈ 4 (after rounding and decay)
+        assert!(delta >= 4 && delta <= 5, "Should count only safe events; got {}", delta);
+    }
+
+    #[test]
+    fn test_lineage_safe_flag_immutable_semantics() {
+        let now = Utc::now();
+
+        // Verify that once lineage_safe is set, it never changes behavior contribution
+        // Same event with different lineage_safe values should have opposite effects
+
+        let safe_events = vec![make_event("refresh_success", 5, 0.0, true)];
+        let unsafe_events = vec![make_event("refresh_success", 5, 0.0, false)];
+
+        let safe_scorer = BehaviorScorer::new(safe_events, now);
+        let unsafe_scorer = BehaviorScorer::new(unsafe_events, now);
+
+        let safe_delta = safe_scorer.compute_tier_delta();
+        let unsafe_delta = unsafe_scorer.compute_tier_delta();
+
+        // Same event: safe → +5, unsafe → 0 (immutable separation)
+        assert_eq!(safe_delta, 5);
+        assert_eq!(unsafe_delta, 0);
+        assert_ne!(safe_delta, unsafe_delta, "lineage_safe must immutably determine inclusion");
+    }
+
+    #[test]
+    fn test_cross_sovereign_cannot_degrade_local_tier() {
+        let now = Utc::now();
+
+        // Poison pill test: Foreign agent tries to degrade local agent's tier
+        // Even with extreme unsafe events, local tier changes only by local safe events
+        let events = vec![
+            make_event("cross_sovereign_tier_attack", -10, 0.0, false),  // foreign attack: -10
+            make_event("local_refresh", 2, 0.0, true),                    // local success: +2
+        ];
+
+        let scorer = BehaviorScorer::new(events, now);
+        let initial_tier = 5u32;
+        let final_tier = scorer.apply_tier_delta(initial_tier);
+
+        // Should apply only +2, resulting in tier 7 (not degraded by -10)
+        assert_eq!(final_tier, 7, "Cross-sovereign unsafe events cannot degrade tier");
+    }
 }

@@ -9,3 +9,4 @@ pub mod tokens;
 pub mod refresh;
 pub mod constraint_resolver;
 pub mod behavior_scorer;
+pub mod federation_resolver;

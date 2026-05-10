@@ -7,3 +7,4 @@ pub mod memory_repo;
 pub mod session_repo;
 pub mod challenge_repo;
 pub mod delegation_repo;
+pub mod federation_repo;

@@ -14,6 +14,9 @@ const MIGRATIONS: &[(&str, &str)] = &[
     ("011_create_delegation_edges", include_str!("011_create_delegation_edges.sql")),
     ("012_add_phase7_budget_fields", include_str!("012_add_phase7_budget_fields.sql")),
     ("013_add_phase8_behavior_events", include_str!("013_add_phase8_behavior_events.sql")),
+    ("014_add_phase9_sovereign_identity", include_str!("014_add_phase9_sovereign_identity.sql")),
+    ("015_add_phase9_federation_peers", include_str!("015_add_phase9_federation_peers.sql")),
+    ("016_add_phase9_settlement_ledger", include_str!("016_add_phase9_settlement_ledger.sql")),
 ];
 
 /// Run all migrations in order. Idempotent — tracks applied migrations in a metadata table.

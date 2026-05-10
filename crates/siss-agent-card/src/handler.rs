@@ -22,6 +22,7 @@ pub struct AgentCardState {
     pub tenant_id: NodeId,
     pub base_url: String,
     pub extended: bool,
+    pub sovereign_id: uuid::Uuid,  // Phase 9: home sovereign identity (set at deploy time)
 }
 
 /// GET `/.well-known/agent.json`
@@ -180,6 +181,7 @@ mod tests {
             tenant_id: NodeId(tenant_id),
             base_url: "https://example.com".into(),
             extended: false,
+            sovereign_id: uuid::Uuid::nil(),  // Test placeholder
         };
         let app = make_router(state);
 
@@ -230,6 +232,7 @@ mod tests {
             tenant_id: NodeId(tenant_id),
             base_url: "https://example.com".into(),
             extended: true,
+            sovereign_id: uuid::Uuid::nil(),  // Test placeholder
         };
         let app = make_router(state);
 
@@ -260,6 +263,7 @@ mod tests {
             tenant_id: NodeId(Uuid::new_v4()),
             base_url: "https://example.com".into(),
             extended: false,
+                sovereign_id: uuid::Uuid::nil(),
         };
         let app = make_router(state);
 
@@ -313,6 +317,7 @@ mod tests {
             tenant_id: NodeId(tenant_id),
             base_url: "https://example.com".into(),
             extended: false,
+            sovereign_id: uuid::Uuid::nil(),  // Test placeholder
         };
         let app = make_router(state);
 
@@ -405,6 +410,7 @@ mod tests {
                 tenant_id: NodeId(tenant_id),
                 base_url: "https://example.com".into(),
                 extended: false,
+                    sovereign_id: uuid::Uuid::nil(),
             };
             let app = make_router(state);
 
@@ -464,6 +470,7 @@ mod tests {
                 tenant_id: NodeId(tenant_id),
                 base_url: "https://example.com".into(),
                 extended: false,
+                    sovereign_id: uuid::Uuid::nil(),
             };
             let app = make_router(state);
 
@@ -548,6 +555,7 @@ mod tests {
                 tenant_id: NodeId(tenant_id),
                 base_url: "https://example.com".into(),
                 extended: false,
+                    sovereign_id: uuid::Uuid::nil(),
             };
             let app = make_router(state);
 
@@ -608,6 +616,7 @@ mod tests {
                 tenant_id: NodeId(tenant_id),
                 base_url: "https://example.com".into(),
                 extended: false,
+                    sovereign_id: uuid::Uuid::nil(),
             };
             let app = make_router(state);
 
@@ -672,6 +681,7 @@ mod tests {
                 tenant_id: NodeId(tenant_id),
                 base_url: "https://example.com".into(),
                 extended: false,
+                    sovereign_id: uuid::Uuid::nil(),
             };
             let app = make_router(state);
 
@@ -743,6 +753,7 @@ mod tests {
                 tenant_id: NodeId(tenant_id),
                 base_url: "https://example.com".into(),
                 extended: false,
+                    sovereign_id: uuid::Uuid::nil(),
             };
             let app = make_router(state);
 

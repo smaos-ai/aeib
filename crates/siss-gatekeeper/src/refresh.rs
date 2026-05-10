@@ -614,6 +614,24 @@ pub fn error_ancestor_revoked_subtree() -> AttestationRefreshResponse {
     )
 }
 
+/// Phase 9: Cross-sovereign operation failed verification
+/// Returned when SovereignOrigin attestation is present but no bilateral agreement exists,
+/// or when sovereign_id is malformed.
+pub fn error_cross_sovereign_verification_failed() -> AttestationRefreshResponse {
+    build_error_response(
+        "cross_sovereign_verification_failed".to_string(),
+        "Cross-sovereign operation failed: no active bilateral agreement or invalid sovereign identity."
+            .to_string(),
+        vec![
+            "Verify that a bilateral federation agreement exists between the two sovereigns"
+                .to_string(),
+            "Contact your sovereignty administrator to establish or renew the agreement"
+                .to_string(),
+        ],
+        None,
+    )
+}
+
 /// Phase 6.1: Error enum for ancestor revocation validation
 #[derive(Debug, Clone)]
 pub enum AncestorRevocationError {

@@ -139,6 +139,7 @@ mod tests {
         Router::new()
             .route("/.well-known/agent.json", get(well_known_agent_handler))
             .route("/.well-known/a2a/handshake", post(a2a_handshake_handler))
+            .route("/.well-known/a2a/refresh", post(refresh_handler::attestation_refresh_handler))
             .with_state(state)
     }
 
@@ -430,6 +431,69 @@ mod tests {
             assert_eq!(json["status"], "authenticated");
             assert!(json["session_token"]["token"].is_string());
             assert!(json["capability_token"]["token"].is_string());
+        }
+
+        #[tokio::test]
+        async fn test_refresh_endpoint_returns_200() {
+            let (_container, pool) = start_postgres().await;
+
+            let tenant_id = siss_graph_db::repo::node_repo::insert_tenant(&pool, "RefreshCorp")
+                .await.unwrap();
+            let persona_id = siss_graph_db::repo::node_repo::insert_persona(
+                &pool, "RefreshAgent", "ai_agent", tenant_id,
+            ).await.unwrap();
+
+            let node = AgentCardNode {
+                id: NodeId::new(),
+                tenant_id: NodeId(tenant_id),
+                persona_id: NodeId(persona_id),
+                name: "RefreshAgent".into(),
+                description: "test".into(),
+                version: "0.1.0".into(),
+                url: "https://example.com/refresh".into(),
+                hardware_affinity: HardwareTarget::LocalMlx,
+                budget_cap: 50_000,
+                allowed_tools: vec![],
+                created_at: Utc::now(),
+            };
+            insert_agent_card_node(&pool, &node).await.unwrap();
+
+            let state = AgentCardState {
+                pool,
+                persona_id: NodeId(persona_id),
+                tenant_id: NodeId(tenant_id),
+                base_url: "https://example.com".into(),
+                extended: false,
+            };
+            let app = make_router(state);
+
+            let refresh_payload = serde_json::json!({
+                "session_token": "token-abc123",
+                "attestations": [],
+                "ephemeral_nonce": "a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0",
+                "timestamp": chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+                "proof_signature": "test-sig"
+            });
+
+            let response = app
+                .oneshot(
+                    Request::builder()
+                        .method("POST")
+                        .uri("/.well-known/a2a/refresh")
+                        .header("content-type", "application/json")
+                        .body(Body::from(serde_json::to_string(&refresh_payload).unwrap()))
+                        .unwrap(),
+                )
+                .await
+                .unwrap();
+
+            assert_eq!(response.status(), StatusCode::OK);
+            let json = body_json(response.into_body()).await;
+            assert_eq!(json["status"], "refreshed");
+            assert!(json["session_token_reused"].as_bool().unwrap());
+            assert!(json["capability_token"]["token"].is_string());
+            assert_eq!(json["attestation_evaluation"]["score"], 80);
+            assert_eq!(json["attestation_evaluation"]["tier"], 2);
         }
     }
 }

@@ -5,7 +5,9 @@ use siss_gatekeeper::{
     constraint_resolver::ConstraintResolver,
     refresh::*,
     tokens::{CapabilityToken, SessionToken},
+    behavior_scorer::{BehaviorScorer, BehaviorEvent as ScorerBehaviorEvent, WINDOW_DAYS},
 };
+use siss_graph_db::repo::session_repo::{fetch_behavior_window, update_session_tier_and_event};
 use crate::handler::AgentCardState;
 use rand::RngCore;
 
@@ -257,6 +259,9 @@ pub async fn attestation_refresh_handler(
         }
     };
 
+    // Step 5.5: Capture tier before behavioral scoring (Phase 8)
+    let tier_before_scoring = tier as i16;
+
     // Step 3.5: Compute token cost and validate economic constraints — most-restrictive-wins (Phase 7)
     let token_cost = compute_token_cost(tier, request.attestations.len(), is_delegated_for_cost);
     if let Some(ref resolver) = constraint_resolver {
@@ -366,6 +371,24 @@ pub async fn attestation_refresh_handler(
             (false, tier, None, None)
         };
 
+    // Step 6.5: Score behavior window and adjust tier (Phase 8)
+    let tier = {
+        let window_rows = fetch_behavior_window(&state.pool, session_id, WINDOW_DAYS)
+            .await
+            .unwrap_or_default();  // fail-open: empty window = no adjustment
+        let events: Vec<ScorerBehaviorEvent> = window_rows
+            .into_iter()
+            .map(|(et, _tb, td, _ci, ls, sa)| ScorerBehaviorEvent {
+                event_type: et,
+                tier_delta: td,
+                scored_at: sa,
+                lineage_safe: ls,
+            })
+            .collect();
+        BehaviorScorer::new(events, Utc::now()).apply_tier_delta(tier as u32) as i32
+    };
+    let tier_delta = tier as i16 - tier_before_scoring;
+
     // Step 7: Decide session token reuse
     let remaining_seconds = extract_session_token_remaining_seconds(&request.session_token)
         .unwrap_or(1800); // Default: 30 min remaining
@@ -437,6 +460,22 @@ pub async fn attestation_refresh_handler(
             score as i32,
             persistence_tier,
             Utc::now(),
+        )
+        .await;
+    }
+
+    // Step 13: Persist tier adjustment + behavior event atomically (best-effort, never blocks)
+    if let Some((session_uuid, _, _, _, _, _, _, _, _, _, _)) = db_session {
+        let _ = update_session_tier_and_event(
+            &state.pool,
+            session_uuid,
+            tier as i16,
+            "refresh_success",
+            tier_before_scoring,
+            tier_delta,
+            token_cost.total_cost as i64,
+            request.attestations.len() as i16,
+            true, // lineage_safe: root refresh is always safe
         )
         .await;
     }

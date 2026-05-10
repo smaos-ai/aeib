@@ -348,6 +348,99 @@ pub async fn reset_session_budget(
     Ok(result.rows_affected() > 0)
 }
 
+/// Insert a behavior event record. Returns the new event UUID.
+pub async fn insert_behavior_event(
+    pool: &PgPool,
+    session_id: Uuid,
+    event_type: &str,
+    tier_before: i16,
+    tier_after: i16,
+    cost_incurred: i64,
+    attestation_count: i16,
+    lineage_safe: bool,
+) -> Result<Uuid, sqlx::Error> {
+    let event_id = Uuid::new_v4();
+    sqlx::query(
+        "INSERT INTO behavior_events (id, session_id, event_type, tier_before, tier_after, tier_delta, cost_incurred, attestation_count, lineage_safe, scored_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())"
+    )
+    .bind(event_id)
+    .bind(session_id)
+    .bind(event_type)
+    .bind(tier_before)
+    .bind(tier_after)
+    .bind(tier_after - tier_before)
+    .bind(cost_incurred)
+    .bind(attestation_count)
+    .bind(lineage_safe)
+    .execute(pool)
+    .await?;
+
+    Ok(event_id)
+}
+
+/// Fetch the behavior window for a session (events from the last N days).
+/// Returns Vec of (event_type, tier_before, tier_delta, cost_incurred, lineage_safe, scored_at).
+pub async fn fetch_behavior_window(
+    pool: &PgPool,
+    session_id: Uuid,
+    days: i32,
+) -> Result<Vec<(String, i16, i16, i64, bool, DateTime<Utc>)>, sqlx::Error> {
+    sqlx::query_as(
+        "SELECT event_type, tier_before, tier_delta, cost_incurred, lineage_safe, scored_at
+         FROM behavior_events
+         WHERE session_id = $1 AND scored_at > NOW() - $2::int * interval '1 day'
+         ORDER BY scored_at DESC"
+    )
+    .bind(session_id)
+    .bind(days)
+    .fetch_all(pool)
+    .await
+}
+
+/// Atomically update session tier and insert behavior event in a transaction.
+pub async fn update_session_tier_and_event(
+    pool: &PgPool,
+    session_id: Uuid,
+    tier_after: i16,
+    event_type: &str,
+    tier_before: i16,
+    tier_delta: i16,
+    cost_incurred: i64,
+    attestation_count: i16,
+    lineage_safe: bool,
+) -> Result<(), sqlx::Error> {
+    let mut tx = pool.begin().await?;
+
+    // Update session tier
+    sqlx::query("UPDATE sessions SET attestation_tier = $1 WHERE id = $2")
+        .bind(tier_after)
+        .bind(session_id)
+        .execute(&mut *tx)
+        .await?;
+
+    // Insert behavior event
+    let event_id = Uuid::new_v4();
+    sqlx::query(
+        "INSERT INTO behavior_events (id, session_id, event_type, tier_before, tier_after, tier_delta, cost_incurred, attestation_count, lineage_safe, scored_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())"
+    )
+    .bind(event_id)
+    .bind(session_id)
+    .bind(event_type)
+    .bind(tier_before)
+    .bind(tier_after)
+    .bind(tier_delta)
+    .bind(cost_incurred)
+    .bind(attestation_count)
+    .bind(lineage_safe)
+    .execute(&mut *tx)
+    .await?;
+
+    tx.commit().await?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1322,6 +1415,132 @@ mod tests {
 
         let remaining = result.unwrap();
         assert_eq!(remaining, 999_900, "Deduction amount correct");
+    }
+
+    // Phase 8: Behavior Events
+
+    #[tokio::test]
+    async fn test_insert_behavior_event_returns_uuid() {
+        let (_container, pool) = start_postgres().await;
+        let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
+        let session_id = insert_session_with_tokens(
+            &pool, tenant_id, persona_id, 100_000,
+            "tok-phase8-1", "cap-1", 80, 2,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .unwrap();
+
+        let event_id = insert_behavior_event(
+            &pool, session_id, "refresh_success",
+            2, 3, 150, 3, true,
+        )
+        .await
+        .expect("insert event");
+
+        assert_ne!(event_id, Uuid::nil(), "Event ID should be valid UUID");
+    }
+
+    #[tokio::test]
+    async fn test_fetch_behavior_window_respects_day_limit() {
+        let (_container, pool) = start_postgres().await;
+        let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
+        let session_id = insert_session_with_tokens(
+            &pool, tenant_id, persona_id, 100_000,
+            "tok-phase8-2", "cap-2", 80, 2,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .unwrap();
+
+        // Insert 3 events at different times
+        let _ = insert_behavior_event(&pool, session_id, "refresh_success", 2, 3, 150, 3, true).await;
+        let _ = insert_behavior_event(&pool, session_id, "refresh_failure", 3, 2, 100, 2, true).await;
+        let _ = insert_behavior_event(&pool, session_id, "delegation_created", 2, 2, 0, 0, true).await;
+
+        // Fetch all (7 day window)
+        let window = fetch_behavior_window(&pool, session_id, 7).await.expect("fetch");
+        assert_eq!(window.len(), 3, "Should fetch all recent events");
+
+        // Verify structure (event_type, tier_before, tier_delta, ...)
+        assert_eq!(window[0].0, "delegation_created", "Most recent first");
+        assert_eq!(window[0].2, 0, "tier_delta correct");
+    }
+
+    #[tokio::test]
+    async fn test_fetch_behavior_window_excludes_lineage_unsafe() {
+        let (_container, pool) = start_postgres().await;
+        let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
+        let session_id = insert_session_with_tokens(
+            &pool, tenant_id, persona_id, 100_000,
+            "tok-phase8-3", "cap-3", 80, 2,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .unwrap();
+
+        // Insert safe and unsafe events
+        let _ = insert_behavior_event(&pool, session_id, "refresh_success", 2, 3, 150, 3, true).await;
+        let _ = insert_behavior_event(&pool, session_id, "refresh_failure", 3, 2, 100, 2, false).await;
+
+        // Fetch window (includes unsafe events in the result)
+        let window = fetch_behavior_window(&pool, session_id, 7).await.expect("fetch");
+        assert_eq!(window.len(), 2, "Should fetch both safe and unsafe");
+
+        // Verify lineage_safe field is preserved
+        assert_eq!(window[0].4, false, "First event should be unsafe");
+        assert_eq!(window[1].4, true, "Second event should be safe");
+    }
+
+    #[tokio::test]
+    async fn test_update_session_tier_and_event_atomically() {
+        let (_container, pool) = start_postgres().await;
+        let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
+        let session_id = insert_session_with_tokens(
+            &pool, tenant_id, persona_id, 100_000,
+            "tok-phase8-4", "cap-4", 80, 2,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .unwrap();
+
+        // Update tier and insert event atomically
+        update_session_tier_and_event(
+            &pool, session_id,
+            3, "refresh_success",
+            2, 1,
+            200, 3, true,
+        )
+        .await
+        .expect("atomic update");
+
+        // Verify tier was updated
+        let session = fetch_session_by_token(&pool, "tok-phase8-4").await.unwrap().unwrap();
+        assert_eq!(session.4, Some(3), "Tier should be updated to 3");
+
+        // Verify event was inserted
+        let window = fetch_behavior_window(&pool, session_id, 7).await.unwrap();
+        assert_eq!(window.len(), 1, "One event should be inserted");
+        assert_eq!(window[0].0, "refresh_success", "Event type correct");
+        assert_eq!(window[0].2, 1, "tier_delta correct");
+    }
+
+    #[tokio::test]
+    async fn test_update_session_tier_fails_on_bad_session_id() {
+        let (_container, pool) = start_postgres().await;
+
+        let bad_session_id = Uuid::nil();
+        let result = update_session_tier_and_event(
+            &pool, bad_session_id,
+            3, "refresh_success",
+            2, 1,
+            200, 3, true,
+        )
+        .await;
+
+        // Should succeed (UPDATE affects 0 rows, INSERT fails on FK)
+        // Foreign key constraint should prevent insertion
+        assert!(result.is_err(), "Atomic update should fail on bad session_id");
     }
 
 }

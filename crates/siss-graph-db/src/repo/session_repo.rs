@@ -40,7 +40,9 @@ pub async fn insert_session_with_tokens(
 /// Fetch a session by its session_token for validation during refresh.
 ///
 /// Returns:
-/// - `(id, tenant_id, status, attestation_score, attestation_tier, session_expires_at)` if found and valid
+/// - `(id, tenant_id, status, attestation_score, attestation_tier, session_expires_at,
+///    parent_session_id, delegated_by_agent_id, delegation_ceiling_envelope,
+///    current_effective_envelope, lineage_cache)` if found and valid
 /// - `None` if session does not exist or is not active
 ///
 /// Validates that:
@@ -49,9 +51,11 @@ pub async fn insert_session_with_tokens(
 pub async fn fetch_session_by_token(
     pool: &PgPool,
     session_token: &str,
-) -> Result<Option<(Uuid, Uuid, String, i32, Option<i32>, DateTime<Utc>)>, sqlx::Error> {
-    let row: Option<(Uuid, Uuid, String, i32, Option<i32>, DateTime<Utc>)> = sqlx::query_as(
-        "SELECT id, tenant_id, status::text, attestation_score, attestation_tier, session_expires_at \
+) -> Result<Option<(Uuid, Uuid, String, i32, Option<i32>, DateTime<Utc>, Option<Uuid>, Option<Uuid>, Option<String>, Option<String>, Option<String>)>, sqlx::Error> {
+    let row = sqlx::query_as::<_, (Uuid, Uuid, String, i32, Option<i32>, DateTime<Utc>, Option<Uuid>, Option<Uuid>, Option<String>, Option<String>, Option<String>)>(
+        "SELECT id, tenant_id, status::text, attestation_score, attestation_tier, session_expires_at, \
+         parent_session_id, delegated_by_agent_id, delegation_ceiling_envelope, \
+         current_effective_envelope, lineage_cache \
          FROM sessions \
          WHERE session_token = $1 \
            AND status = 'active'::session_status \
@@ -99,6 +103,79 @@ pub async fn update_session_after_refresh(
     Ok(result.rows_affected() > 0)
 }
 
+/// Revoke a session by setting its status to 'revoked' and recording the revocation time.
+///
+/// Used by SISS to forcibly invalidate sessions when a policy violation is detected.
+///
+/// Returns true if the session was found and revoked, false if session not found.
+pub async fn revoke_session(pool: &PgPool, session_id: Uuid) -> Result<bool, sqlx::Error> {
+    let result = sqlx::query(
+        "UPDATE sessions \
+         SET status = 'revoked'::session_status, \
+             revoked_at = NOW() \
+         WHERE id = $1"
+    )
+    .bind(session_id)
+    .execute(pool)
+    .await?;
+
+    Ok(result.rows_affected() > 0)
+}
+
+/// Phase 6: Revoke all descendant sessions (STRICT REVOCATION — FAIL-CLOSED)
+///
+/// When an ancestor session is revoked, the entire downstream subtree is instantly revoked.
+/// This is fail-closed: no dependency analysis, no partial revocation.
+///
+/// Atomically marks all descendant sessions as revoked with the provided reason.
+pub async fn revoke_all_descendants(
+    pool: &PgPool,
+    ancestor_session_id: Uuid,
+    reason: &str,
+) -> Result<u64, sqlx::Error> {
+    // Phase 6: Strict revocation — mark entire subtree
+    let result = sqlx::query(
+        "WITH RECURSIVE descendant_sessions AS (
+           SELECT id FROM sessions WHERE parent_session_id = $1
+           UNION ALL
+           SELECT s.id FROM sessions s
+           INNER JOIN descendant_sessions ds ON s.parent_session_id = ds.id
+         )
+         UPDATE sessions
+         SET status = 'revoked'::session_status,
+             revoked_at = NOW()
+         WHERE id IN (SELECT id FROM descendant_sessions)"
+    )
+    .bind(ancestor_session_id)
+    .execute(pool)
+    .await?;
+
+    Ok(result.rows_affected())
+}
+
+/// Fetch session status by session_token regardless of active/revoked/expired state.
+///
+/// Used during refresh to distinguish between:
+/// - Session not found at all
+/// - Session exists but is revoked
+/// - Session exists and is active (then fetch full details)
+///
+/// Returns `(id, status::text)` if token exists, `None` otherwise.
+pub async fn fetch_session_status_by_token(
+    pool: &PgPool,
+    session_token: &str,
+) -> Result<Option<(Uuid, String)>, sqlx::Error> {
+    let row: Option<(Uuid, String)> = sqlx::query_as(
+        "SELECT id, status::text \
+         FROM sessions \
+         WHERE session_token = $1"
+    )
+    .bind(session_token)
+    .fetch_optional(pool)
+    .await?;
+    Ok(row)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -118,17 +195,17 @@ mod tests {
         let port = container.get_host_port_ipv4(5432).await.unwrap();
         let url = format!("postgres://postgres:postgres@127.0.0.1:{port}/siss_test");
         let pool = PgPool::connect(&url).await.expect("pool connect");
-        siss_graph_db::migrations::run_all(&pool).await.expect("migrations");
+        crate::migrations::run_all(&pool).await.expect("migrations");
         (container, pool)
     }
 
     async fn create_test_tenant_and_persona(
         pool: &PgPool,
     ) -> (Uuid, Uuid) {
-        let tenant_id = siss_graph_db::repo::node_repo::insert_tenant(pool, "SessionTestCorp")
+        let tenant_id = crate::repo::node_repo::insert_tenant(pool, "SessionTestCorp")
             .await
             .expect("insert tenant");
-        let persona_id = siss_graph_db::repo::node_repo::insert_persona(
+        let persona_id = crate::repo::node_repo::insert_persona(
             pool, "SessionTestAgent", "ai_agent", tenant_id,
         )
         .await

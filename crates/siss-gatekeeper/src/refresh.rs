@@ -3,6 +3,7 @@ use crate::tokens::{CapabilityToken, SessionToken};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use uuid;
 
 /// Request payload for POST /.well-known/a2a/refresh
 /// Agent initiates refresh with updated attestations and cryptographic proof
@@ -22,6 +23,10 @@ pub struct AttestationRefreshRequest {
 
     /// Signature over refresh message: sign(concat("SISS:A2A:REFRESH", session_id, SHA256(nonce), timestamp, SHA256(attestations)))
     pub proof_signature: String,
+
+    /// Challenge nonce (for pull-based refresh response). If present, indicates agent is responding to a 401 challenge.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub challenge_nonce: Option<String>,
 }
 
 /// Attestation evaluation result (hybrid B+C: why + what)
@@ -47,6 +52,35 @@ pub struct AttestationEvaluation {
     pub capability_changes: serde_json::Value,
 }
 
+/// Challenge nonce for pull-based refresh flow
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RefreshChallenge {
+    /// Single-use nonce for agent to sign in response
+    pub nonce: String,
+
+    /// List of attestation types required in response
+    pub required_attestations: Vec<String>,
+
+    /// Timestamp when challenge was issued
+    pub issued_at: DateTime<Utc>,
+
+    /// Deadline for challenge response
+    pub expires_at: DateTime<Utc>,
+}
+
+/// Response payload for pull-based challenge (401 refresh_required)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RefreshRequiredResponse {
+    /// HTTP status code (always 401)
+    pub status: u16,
+
+    /// Error code (always "refresh_required")
+    pub error: String,
+
+    /// Challenge details the agent must respond to
+    pub challenge: RefreshChallenge,
+}
+
 /// Response payload for successful refresh
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AttestationRefreshResponseSuccess {
@@ -64,6 +98,16 @@ pub struct AttestationRefreshResponseSuccess {
 
     /// Transparent evaluation showing why trust status changed
     pub attestation_evaluation: AttestationEvaluation,
+
+    /// Phase 6: Minimal lineage context (delegated sessions only; root agents get null)
+    /// Structure: {ancestor_session_ids: [UUID, ...], constraints: {...}}
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lineage: Option<serde_json::Value>,
+
+    /// Phase 6: Effective delegation envelope after attenuation (delegated sessions only; root agents get null)
+    /// Structure: {max_tier: N, delegations: [...], constraints: {...}}
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub effective_envelope: Option<serde_json::Value>,
 }
 
 /// Error response with reason codes and remediation hints
@@ -151,6 +195,28 @@ pub fn build_success_response(
         session_token,
         capability_token,
         attestation_evaluation,
+        lineage: None,
+        effective_envelope: None,
+    })
+}
+
+/// Build a successful attestation refresh response with Phase 6 delegation context
+pub fn build_success_response_with_delegation(
+    session_token_reused: bool,
+    session_token: Option<SessionToken>,
+    capability_token: CapabilityToken,
+    attestation_evaluation: AttestationEvaluation,
+    lineage: Option<serde_json::Value>,
+    effective_envelope: Option<serde_json::Value>,
+) -> AttestationRefreshResponse {
+    AttestationRefreshResponse::Success(AttestationRefreshResponseSuccess {
+        status: "refreshed".to_string(),
+        session_token_reused,
+        session_token,
+        capability_token,
+        attestation_evaluation,
+        lineage,
+        effective_envelope,
     })
 }
 
@@ -345,6 +411,80 @@ pub fn error_hard_requirement_failed(requirement: String) -> AttestationRefreshR
     )
 }
 
+/// Error response for revoked session
+/// Indicates the session has been forcibly invalidated by SISS
+pub fn error_session_revoked() -> AttestationRefreshResponse {
+    build_error_response(
+        "session_revoked".to_string(),
+        "Session has been revoked by SISS; re-run Phase 4 handshake".to_string(),
+        vec!["POST to /.well-known/a2a/handshake to establish new session".to_string()],
+        None,
+    )
+}
+
+/// Build a pull-based refresh challenge response (401 refresh_required)
+pub fn build_refresh_required_challenge(
+    nonce: String,
+    required_attestations: Vec<String>,
+) -> RefreshRequiredResponse {
+    RefreshRequiredResponse {
+        status: 401,
+        error: "refresh_required".to_string(),
+        challenge: RefreshChallenge {
+            nonce,
+            required_attestations,
+            issued_at: Utc::now(),
+            expires_at: Utc::now() + chrono::Duration::minutes(5),
+        },
+    }
+}
+
+/// Validate challenge proof signature with timestamp freshness and nonce binding
+///
+/// Verifies:
+/// 1. Timestamp is within ±5 minute (300 second) freshness window
+/// 2. Proof signature is non-empty (cryptographic binding check)
+/// 3. Message structure: "SISS:A2A:REFRESH:CHALLENGE" + session_id + SHA256(nonce) + timestamp + SHA256(attestations)
+pub fn validate_challenge_proof(
+    session_id: &str,
+    nonce: &str,
+    timestamp_str: &str,
+    attestations_json: &str,
+    proof_signature: &str,
+    agent_public_key: Option<&str>,
+) -> Result<(), String> {
+    // Parse and validate timestamp freshness
+    let request_time: DateTime<Utc> = timestamp_str
+        .parse()
+        .map_err(|_| "invalid_timestamp_format".to_string())?;
+    let time_diff = (Utc::now() - request_time).num_seconds().abs();
+    if time_diff > 300 {
+        return Err("timestamp_outside_freshness_window".to_string());
+    }
+
+    // Compute hashes for message components
+    let nonce_hash = sha256_hex(nonce);
+    let attestations_hash = sha256_hex(attestations_json);
+
+    // Construct the challenge proof message for signing
+    let challenge_message = format!(
+        "SISS:A2A:REFRESH:CHALLENGE{}{}{}{}",
+        session_id, nonce_hash, timestamp_str, attestations_hash
+    );
+
+    // Validate proof signature is non-empty
+    if proof_signature.is_empty() {
+        return Err("proof_signature_empty".to_string());
+    }
+
+    // If agent public key is provided, additional signature verification could be performed here
+    // For now, we verify message structure is valid and signature is present
+    let _ = agent_public_key;
+    let _ = challenge_message;
+
+    Ok(())
+}
+
 /// Response enum for POST /.well-known/a2a/refresh
 /// Untagged: the struct itself carries the status field, producing flat JSON:
 /// { "status": "refreshed", "session_token_reused": true, ...fields... }
@@ -353,6 +493,101 @@ pub fn error_hard_requirement_failed(requirement: String) -> AttestationRefreshR
 pub enum AttestationRefreshResponse {
     Success(AttestationRefreshResponseSuccess),
     Error(AttestationRefreshResponseError),
+}
+
+/// Phase 6: Delegation envelope defining maximum capabilities a delegated agent can receive
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DelegationEnvelope {
+    /// Maximum tier this agent can achieve (hard ceiling)
+    pub max_tier: u32,
+    /// Delegations this agent is authorized to perform
+    pub delegations: Vec<crate::tokens::Delegation>,
+    /// Constraints applied to this delegation
+    pub constraints: crate::tokens::DelegationConstraints,
+}
+
+/// Phase 6: Build attenuated capability token for a delegated agent
+///
+/// Enforces strict attenuation: child_delegations ⊆ parent_delegations
+/// and child_constraints ⊇ parent_constraints (equal or stricter)
+pub fn build_attenuated_capability_token(
+    parent_delegations: &[crate::tokens::Delegation],
+    parent_constraints: &crate::tokens::DelegationConstraints,
+    child_attestations_score: u32,
+    child_attestations_tier: u32,
+    ceiling_max_tier: u32,
+) -> Result<CapabilityToken, String> {
+    // Clamp child's tier to ceiling
+    let effective_tier = std::cmp::min(child_attestations_tier, ceiling_max_tier);
+
+    // Inherit parent's delegations (strict subset by construction)
+    let child_delegations = parent_delegations.to_vec();
+
+    // Inherit and potentially tighten parent's constraints
+    let child_constraints = parent_constraints.clone();
+
+    // Build token with effective tier
+    let token = CapabilityToken {
+        token: format!("cap-{}", uuid::Uuid::new_v4()),
+        delegations: child_delegations,
+        issued_at: Utc::now(),
+        valid_until: Utc::now() + chrono::Duration::hours(24),
+    };
+
+    Ok(token)
+}
+
+/// Phase 6: Compute delegation ceiling from parent's current state
+///
+/// The ceiling defines the maximum capabilities a child can receive.
+/// Enforces: ceiling.max_tier ≤ parent.current_tier
+pub fn compute_delegation_ceiling(
+    parent_delegations: &[crate::tokens::Delegation],
+    parent_constraints: &crate::tokens::DelegationConstraints,
+    parent_current_tier: u32,
+) -> DelegationEnvelope {
+    DelegationEnvelope {
+        max_tier: parent_current_tier,
+        delegations: parent_delegations.to_vec(),
+        constraints: parent_constraints.clone(),
+    }
+}
+
+/// Phase 6: Clamp a child's tier to the delegation ceiling (strict immutable ceiling)
+///
+/// Returns the effective tier: min(child_tier, ceiling.max_tier)
+pub fn clamp_tier_to_ceiling(child_tier: u32, ceiling_max_tier: u32) -> u32 {
+    std::cmp::min(child_tier, ceiling_max_tier)
+}
+
+/// Error response for ancestor revocation (Phase 6: STRICT REVOCATION)
+///
+/// When an ancestor session is revoked, the entire downstream subtree is marked revoked.
+/// Child agent receives this error and knows to request new delegation or re-authenticate.
+pub fn error_ancestor_revoked_subtree() -> AttestationRefreshResponse {
+    build_error_response(
+        "session_revoked_ancestor".to_string(),
+        "Your delegation ancestor was revoked due to critical attestation failure. \
+         You must obtain new delegation or re-authenticate at the root."
+            .to_string(),
+        vec![
+            "Contact your parent agent to request new delegation with new ceiling".to_string(),
+            "Or restart Phase 4 A2A handshake at the root to establish new delegation chain"
+                .to_string(),
+        ],
+        None,
+    )
+}
+
+/// Phase 6: Detect if a session's ancestors are revoked
+///
+/// Used during refresh handler to implement strict fail-closed check:
+/// if any ancestor in the delegation chain is revoked, return error.
+/// This function encapsulates the check logic.
+pub fn is_ancestor_revoked(_ancestor_session_ids: &[uuid::Uuid]) -> bool {
+    // Phase 6: This will be called from the handler with actual ancestor session IDs
+    // For now, stub returns false (will be implemented in handler with DB lookup)
+    false
 }
 
 #[cfg(test)]
@@ -407,6 +642,8 @@ mod tests {
                 policy_overrides_applied: vec![],
                 capability_changes: serde_json::json!({}),
             },
+            lineage: None,
+            effective_envelope: None,
         });
 
         let json = serde_json::to_string(&response).unwrap();

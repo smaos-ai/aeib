@@ -5,3 +5,5 @@ pub mod ap2_repo;
 pub mod governance_repo;
 pub mod memory_repo;
 pub mod session_repo;
+pub mod challenge_repo;
+pub mod delegation_repo;

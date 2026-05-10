@@ -38,6 +38,58 @@ pub fn is_sovereign_origin_present(attestations: &[Attestation]) -> Option<Strin
         })
 }
 
+/// Build canonical agreement payload for deterministic Ed25519 signing.
+///
+/// Uses BTreeMap to ensure alphabetical key ordering, guaranteeing consistent
+/// byte sequences across all verifiers. Same pattern as canonical attestation payloads.
+pub fn build_canonical_agreement_payload(
+    sovereign_a_id: &str,
+    sovereign_b_id: &str,
+    max_admitted_tier: u16,
+    granted_attestation_types: &[String],
+    foreign_agent_budget_cap: i64,
+    effective_at: &str,  // RFC3339 timestamp
+) -> String {
+    use std::collections::BTreeMap;
+
+    let mut map = BTreeMap::new();
+    map.insert("effective_at", serde_json::Value::String(effective_at.to_string()));
+    map.insert("foreign_agent_budget_cap", serde_json::Value::Number(foreign_agent_budget_cap.into()));
+    map.insert("granted_attestation_types", serde_json::to_value(granted_attestation_types).unwrap_or(serde_json::Value::Array(vec![])));
+    map.insert("max_admitted_tier", serde_json::Value::Number(max_admitted_tier.into()));
+    map.insert("sovereign_a_id", serde_json::Value::String(sovereign_a_id.to_string()));
+    map.insert("sovereign_b_id", serde_json::Value::String(sovereign_b_id.to_string()));
+
+    serde_json::to_string(&map).unwrap_or_default()
+}
+
+/// Build canonical invoice payload for deterministic Ed25519 signing.
+///
+/// Uses BTreeMap for alphabetical key ordering, enabling forensic verification
+/// of settlement invoices across bilateral peers.
+pub fn build_canonical_invoice_payload(
+    invoice_id: &str,
+    creditor_sovereign_id: &str,
+    debtor_sovereign_id: &str,
+    period_start: &str,  // RFC3339 timestamp
+    period_end: &str,    // RFC3339 timestamp
+    total_tokens: i64,
+    entry_count: i32,
+) -> String {
+    use std::collections::BTreeMap;
+
+    let mut map = BTreeMap::new();
+    map.insert("creditor_sovereign_id", serde_json::Value::String(creditor_sovereign_id.to_string()));
+    map.insert("debtor_sovereign_id", serde_json::Value::String(debtor_sovereign_id.to_string()));
+    map.insert("entry_count", serde_json::Value::Number(entry_count.into()));
+    map.insert("invoice_id", serde_json::Value::String(invoice_id.to_string()));
+    map.insert("period_end", serde_json::Value::String(period_end.to_string()));
+    map.insert("period_start", serde_json::Value::String(period_start.to_string()));
+    map.insert("total_tokens", serde_json::Value::Number(total_tokens.into()));
+
+    serde_json::to_string(&map).unwrap_or_default()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -116,5 +168,104 @@ mod tests {
 
         let result = is_sovereign_origin_present(&attestations);
         assert_eq!(result, None);
+    }
+
+    #[test]
+    fn test_build_canonical_agreement_payload_alphabetical_keys() {
+        let payload = build_canonical_agreement_payload(
+            "sovereign-a",
+            "sovereign-b",
+            10,
+            &["attestation_type_1".to_string(), "attestation_type_2".to_string()],
+            500000,
+            "2026-05-10T10:00:00Z",
+        );
+
+        // Parse and verify keys are alphabetically ordered
+        let json: serde_json::Value = serde_json::from_str(&payload).unwrap();
+        let obj = json.as_object().unwrap();
+        let keys: Vec<&String> = obj.keys().collect();
+
+        // Verify alphabetical order
+        assert_eq!(keys[0], "effective_at");
+        assert_eq!(keys[1], "foreign_agent_budget_cap");
+        assert_eq!(keys[2], "granted_attestation_types");
+        assert_eq!(keys[3], "max_admitted_tier");
+        assert_eq!(keys[4], "sovereign_a_id");
+        assert_eq!(keys[5], "sovereign_b_id");
+    }
+
+    #[test]
+    fn test_build_canonical_agreement_payload_deterministic() {
+        let payload1 = build_canonical_agreement_payload(
+            "sovereign-a",
+            "sovereign-b",
+            10,
+            &["type1".to_string(), "type2".to_string()],
+            500000,
+            "2026-05-10T10:00:00Z",
+        );
+
+        let payload2 = build_canonical_agreement_payload(
+            "sovereign-a",
+            "sovereign-b",
+            10,
+            &["type1".to_string(), "type2".to_string()],
+            500000,
+            "2026-05-10T10:00:00Z",
+        );
+
+        assert_eq!(payload1, payload2, "Same inputs must produce identical canonical payloads");
+    }
+
+    #[test]
+    fn test_build_canonical_invoice_payload_alphabetical_keys() {
+        let payload = build_canonical_invoice_payload(
+            "invoice-uuid",
+            "creditor-uuid",
+            "debtor-uuid",
+            "2026-05-01T00:00:00Z",
+            "2026-05-31T23:59:59Z",
+            1000000,
+            42,
+        );
+
+        let json: serde_json::Value = serde_json::from_str(&payload).unwrap();
+        let obj = json.as_object().unwrap();
+        let keys: Vec<&String> = obj.keys().collect();
+
+        // Verify alphabetical order
+        assert_eq!(keys[0], "creditor_sovereign_id");
+        assert_eq!(keys[1], "debtor_sovereign_id");
+        assert_eq!(keys[2], "entry_count");
+        assert_eq!(keys[3], "invoice_id");
+        assert_eq!(keys[4], "period_end");
+        assert_eq!(keys[5], "period_start");
+        assert_eq!(keys[6], "total_tokens");
+    }
+
+    #[test]
+    fn test_build_canonical_invoice_payload_deterministic() {
+        let payload1 = build_canonical_invoice_payload(
+            "inv-1",
+            "cred-1",
+            "deb-1",
+            "2026-05-01T00:00:00Z",
+            "2026-05-31T23:59:59Z",
+            1000000,
+            42,
+        );
+
+        let payload2 = build_canonical_invoice_payload(
+            "inv-1",
+            "cred-1",
+            "deb-1",
+            "2026-05-01T00:00:00Z",
+            "2026-05-31T23:59:59Z",
+            1000000,
+            42,
+        );
+
+        assert_eq!(payload1, payload2, "Same invoice inputs must produce identical canonical payloads");
     }
 }

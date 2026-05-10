@@ -12,6 +12,8 @@ serde_json.workspace = true
 thiserror.workspace = true
 tokio.workspace = true
 sqlx.workspace = true
+sha2.workspace = true
+hex.workspace = true
 
 [dev-dependencies]
 testcontainers.workspace = true

@@ -141,6 +141,10 @@ mod tests {
             .route("/.well-known/agent.json", get(well_known_agent_handler))
             .route("/.well-known/a2a/handshake", post(a2a_handshake_handler))
             .route("/.well-known/a2a/refresh", post(refresh_handler::attestation_refresh_handler))
+            .route("/.well-known/a2a/federation/renegotiate", post(federation_handler::renegotiate_handler))
+            .route("/.well-known/a2a/federation/invoice/generate", post(federation_handler::generate_invoice_handler))
+            .route("/.well-known/a2a/federation/invoice/settle", post(federation_handler::settle_invoice_handler))
+            .route("/.well-known/a2a/federation/gossip", post(federation_handler::gossip_receive_handler))
             .with_state(state)
     }
 

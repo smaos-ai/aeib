@@ -21,6 +21,7 @@ sqlx.workspace = true
 axum            = { version = "0.7", optional = true }
 rand.workspace = true
 hex.workspace = true
+ed25519-dalek.workspace = true
 
 [dev-dependencies]
 testcontainers  = { workspace = true }

@@ -1922,6 +1922,7 @@ version = "0.1.0"
 dependencies = [
  "axum",
  "chrono",
+ "ed25519-dalek",
  "hex",
  "http",
  "http-body-util",
@@ -2043,8 +2044,10 @@ name = "siss-graph-db"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "hex",
  "serde",
  "serde_json",
+ "sha2",
  "siss-graph-core",
  "sqlx",
  "testcontainers",

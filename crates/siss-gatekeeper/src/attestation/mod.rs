@@ -3,6 +3,9 @@ use serde::{Deserialize, Serialize};
 
 pub mod validators;
 
+// Re-export for federation use
+pub use validators::parse_ed25519_pem;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum AttestationType {
     #[serde(rename = "hardware_enclave")]

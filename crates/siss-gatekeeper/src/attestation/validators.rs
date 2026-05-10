@@ -138,7 +138,7 @@ fn build_canonical_attestation_payload(attestation: &Attestation) -> Result<Stri
 
 /// Parse Ed25519 public key from PEM format (PKCS#8 or raw).
 /// Extracts the 32-byte public key bytes.
-fn parse_ed25519_pem(pem_str: &str) -> Result<[u8; 32], ()> {
+pub fn parse_ed25519_pem(pem_str: &str) -> Result<[u8; 32], ()> {
     use base64::Engine as _;
 
     // Simple PEM parsing: extract base64 between BEGIN/END markers

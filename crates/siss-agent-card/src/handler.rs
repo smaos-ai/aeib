@@ -434,7 +434,7 @@ mod tests {
         }
 
         #[tokio::test]
-        async fn test_refresh_endpoint_returns_200() {
+        async fn test_refresh_endpoint_returns_200_with_valid_attestations() {
             let (_container, pool) = start_postgres().await;
 
             let tenant_id = siss_graph_db::repo::node_repo::insert_tenant(&pool, "RefreshCorp")
@@ -467,12 +467,33 @@ mod tests {
             };
             let app = make_router(state);
 
+            // Valid attestations: hardware_enclave (50) + model_integrity (30) = 80 -> Tier 2
+            let now = Utc::now();
             let refresh_payload = serde_json::json!({
-                "session_token": "token-abc123",
-                "attestations": [],
+                "session_token": "header.payload.signature",
+                "attestations": [
+                    {
+                        "type": "hardware_enclave",
+                        "format": "sgx_quote",
+                        "payload": "payload",
+                        "signature": "sig",
+                        "issuer": "intel-sgx",
+                        "issued_at": now.to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+                        "valid_until": (now + chrono::Duration::hours(1)).to_rfc3339_opts(chrono::SecondsFormat::Secs, true)
+                    },
+                    {
+                        "type": "model_integrity",
+                        "format": "signed_manifest",
+                        "payload": "payload",
+                        "signature": "sig",
+                        "issuer": "anthropic",
+                        "issued_at": now.to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+                        "valid_until": (now + chrono::Duration::hours(1)).to_rfc3339_opts(chrono::SecondsFormat::Secs, true)
+                    }
+                ],
                 "ephemeral_nonce": "a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0",
-                "timestamp": chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
-                "proof_signature": "test-sig"
+                "timestamp": now.to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+                "proof_signature": "valid-sig"
             });
 
             let response = app
@@ -494,6 +515,273 @@ mod tests {
             assert!(json["capability_token"]["token"].is_string());
             assert_eq!(json["attestation_evaluation"]["score"], 80);
             assert_eq!(json["attestation_evaluation"]["tier"], 2);
+        }
+
+        #[tokio::test]
+        async fn test_refresh_endpoint_rejects_invalid_session_token() {
+            let (_container, pool) = start_postgres().await;
+
+            let tenant_id = siss_graph_db::repo::node_repo::insert_tenant(&pool, "RefreshCorp2")
+                .await.unwrap();
+            let persona_id = siss_graph_db::repo::node_repo::insert_persona(
+                &pool, "RefreshAgent2", "ai_agent", tenant_id,
+            ).await.unwrap();
+
+            let node = AgentCardNode {
+                id: NodeId::new(),
+                tenant_id: NodeId(tenant_id),
+                persona_id: NodeId(persona_id),
+                name: "RefreshAgent2".into(),
+                description: "test".into(),
+                version: "0.1.0".into(),
+                url: "https://example.com/refresh".into(),
+                hardware_affinity: HardwareTarget::LocalMlx,
+                budget_cap: 50_000,
+                allowed_tools: vec![],
+                created_at: Utc::now(),
+            };
+            insert_agent_card_node(&pool, &node).await.unwrap();
+
+            let state = AgentCardState {
+                pool,
+                persona_id: NodeId(persona_id),
+                tenant_id: NodeId(tenant_id),
+                base_url: "https://example.com".into(),
+                extended: false,
+            };
+            let app = make_router(state);
+
+            let refresh_payload = serde_json::json!({
+                "session_token": "invalid-token-format",
+                "attestations": [],
+                "ephemeral_nonce": "a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0",
+                "timestamp": Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+                "proof_signature": "sig"
+            });
+
+            let response = app
+                .oneshot(
+                    Request::builder()
+                        .method("POST")
+                        .uri("/.well-known/a2a/refresh")
+                        .header("content-type", "application/json")
+                        .body(Body::from(serde_json::to_string(&refresh_payload).unwrap()))
+                        .unwrap(),
+                )
+                .await
+                .unwrap();
+
+            assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+            let json = body_json(response.into_body()).await;
+            assert_eq!(json["status"], "denied");
+            assert_eq!(json["reason"], "session_token_invalid");
+        }
+
+        #[tokio::test]
+        async fn test_refresh_endpoint_rejects_stale_timestamp() {
+            let (_container, pool) = start_postgres().await;
+
+            let tenant_id = siss_graph_db::repo::node_repo::insert_tenant(&pool, "RefreshCorp3")
+                .await.unwrap();
+            let persona_id = siss_graph_db::repo::node_repo::insert_persona(
+                &pool, "RefreshAgent3", "ai_agent", tenant_id,
+            ).await.unwrap();
+
+            let node = AgentCardNode {
+                id: NodeId::new(),
+                tenant_id: NodeId(tenant_id),
+                persona_id: NodeId(persona_id),
+                name: "RefreshAgent3".into(),
+                description: "test".into(),
+                version: "0.1.0".into(),
+                url: "https://example.com/refresh".into(),
+                hardware_affinity: HardwareTarget::LocalMlx,
+                budget_cap: 50_000,
+                allowed_tools: vec![],
+                created_at: Utc::now(),
+            };
+            insert_agent_card_node(&pool, &node).await.unwrap();
+
+            let state = AgentCardState {
+                pool,
+                persona_id: NodeId(persona_id),
+                tenant_id: NodeId(tenant_id),
+                base_url: "https://example.com".into(),
+                extended: false,
+            };
+            let app = make_router(state);
+
+            // Timestamp 10 minutes old (outside 5 min window)
+            let old_timestamp = (Utc::now() - chrono::Duration::minutes(10))
+                .to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
+
+            let refresh_payload = serde_json::json!({
+                "session_token": "header.payload.signature",
+                "attestations": [],
+                "ephemeral_nonce": "a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0",
+                "timestamp": old_timestamp,
+                "proof_signature": "sig"
+            });
+
+            let response = app
+                .oneshot(
+                    Request::builder()
+                        .method("POST")
+                        .uri("/.well-known/a2a/refresh")
+                        .header("content-type", "application/json")
+                        .body(Body::from(serde_json::to_string(&refresh_payload).unwrap()))
+                        .unwrap(),
+                )
+                .await
+                .unwrap();
+
+            assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+            let json = body_json(response.into_body()).await;
+            assert_eq!(json["status"], "denied");
+            assert_eq!(json["reason"], "timestamp_outside_freshness_window");
+        }
+
+        #[tokio::test]
+        async fn test_refresh_endpoint_rejects_untrusted_issuer() {
+            let (_container, pool) = start_postgres().await;
+
+            let tenant_id = siss_graph_db::repo::node_repo::insert_tenant(&pool, "RefreshCorp4")
+                .await.unwrap();
+            let persona_id = siss_graph_db::repo::node_repo::insert_persona(
+                &pool, "RefreshAgent4", "ai_agent", tenant_id,
+            ).await.unwrap();
+
+            let node = AgentCardNode {
+                id: NodeId::new(),
+                tenant_id: NodeId(tenant_id),
+                persona_id: NodeId(persona_id),
+                name: "RefreshAgent4".into(),
+                description: "test".into(),
+                version: "0.1.0".into(),
+                url: "https://example.com/refresh".into(),
+                hardware_affinity: HardwareTarget::LocalMlx,
+                budget_cap: 50_000,
+                allowed_tools: vec![],
+                created_at: Utc::now(),
+            };
+            insert_agent_card_node(&pool, &node).await.unwrap();
+
+            let state = AgentCardState {
+                pool,
+                persona_id: NodeId(persona_id),
+                tenant_id: NodeId(tenant_id),
+                base_url: "https://example.com".into(),
+                extended: false,
+            };
+            let app = make_router(state);
+
+            let now = Utc::now();
+            let refresh_payload = serde_json::json!({
+                "session_token": "header.payload.signature",
+                "attestations": [
+                    {
+                        "type": "hardware_enclave",
+                        "format": "sgx_quote",
+                        "payload": "payload",
+                        "signature": "sig",
+                        "issuer": "untrusted-issuer",
+                        "issued_at": now.to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+                        "valid_until": (now + chrono::Duration::hours(1)).to_rfc3339_opts(chrono::SecondsFormat::Secs, true)
+                    }
+                ],
+                "ephemeral_nonce": "a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0",
+                "timestamp": now.to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+                "proof_signature": "sig"
+            });
+
+            let response = app
+                .oneshot(
+                    Request::builder()
+                        .method("POST")
+                        .uri("/.well-known/a2a/refresh")
+                        .header("content-type", "application/json")
+                        .body(Body::from(serde_json::to_string(&refresh_payload).unwrap()))
+                        .unwrap(),
+                )
+                .await
+                .unwrap();
+
+            assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+            let json = body_json(response.into_body()).await;
+            assert_eq!(json["status"], "denied");
+            assert_eq!(json["reason"], "attestation_validation_failed");
+        }
+
+        #[tokio::test]
+        async fn test_refresh_endpoint_returns_insufficient_trust_error() {
+            let (_container, pool) = start_postgres().await;
+
+            let tenant_id = siss_graph_db::repo::node_repo::insert_tenant(&pool, "RefreshCorp5")
+                .await.unwrap();
+            let persona_id = siss_graph_db::repo::node_repo::insert_persona(
+                &pool, "RefreshAgent5", "ai_agent", tenant_id,
+            ).await.unwrap();
+
+            let node = AgentCardNode {
+                id: NodeId::new(),
+                tenant_id: NodeId(tenant_id),
+                persona_id: NodeId(persona_id),
+                name: "RefreshAgent5".into(),
+                description: "test".into(),
+                version: "0.1.0".into(),
+                url: "https://example.com/refresh".into(),
+                hardware_affinity: HardwareTarget::LocalMlx,
+                budget_cap: 50_000,
+                allowed_tools: vec![],
+                created_at: Utc::now(),
+            };
+            insert_agent_card_node(&pool, &node).await.unwrap();
+
+            let state = AgentCardState {
+                pool,
+                persona_id: NodeId(persona_id),
+                tenant_id: NodeId(tenant_id),
+                base_url: "https://example.com".into(),
+                extended: false,
+            };
+            let app = make_router(state);
+
+            // Only runtime_integrity attestation (20 points, < 40 min for any tier)
+            let now = Utc::now();
+            let refresh_payload = serde_json::json!({
+                "session_token": "header.payload.signature",
+                "attestations": [
+                    {
+                        "type": "runtime_integrity",
+                        "format": "signed_manifest",
+                        "payload": "payload",
+                        "signature": "sig",
+                        "issuer": "runtime",
+                        "issued_at": now.to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+                        "valid_until": (now + chrono::Duration::hours(1)).to_rfc3339_opts(chrono::SecondsFormat::Secs, true)
+                    }
+                ],
+                "ephemeral_nonce": "a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0",
+                "timestamp": now.to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+                "proof_signature": "sig"
+            });
+
+            let response = app
+                .oneshot(
+                    Request::builder()
+                        .method("POST")
+                        .uri("/.well-known/a2a/refresh")
+                        .header("content-type", "application/json")
+                        .body(Body::from(serde_json::to_string(&refresh_payload).unwrap()))
+                        .unwrap(),
+                )
+                .await
+                .unwrap();
+
+            assert_eq!(response.status(), StatusCode::FORBIDDEN);
+            let json = body_json(response.into_body()).await;
+            assert_eq!(json["status"], "denied");
+            assert_eq!(json["reason"], "insufficient_trust");
         }
     }
 }

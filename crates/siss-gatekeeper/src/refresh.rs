@@ -632,6 +632,40 @@ pub fn error_cross_sovereign_verification_failed() -> AttestationRefreshResponse
     )
 }
 
+/// Phase 10: No bilateral agreement exists for cross-sovereign operation
+/// Returned when a foreign agent requests access but no active federation_peers agreement exists.
+pub fn error_missing_bilateral_agreement() -> AttestationRefreshResponse {
+    build_error_response(
+        "no_bilateral_agreement".to_string(),
+        "No active bilateral federation agreement exists between the source and destination sovereigns."
+            .to_string(),
+        vec![
+            "Contact your sovereignty administrator to establish a bilateral agreement"
+                .to_string(),
+            "Verify that both sovereigns have exchanged and signed bilateral trust documents"
+                .to_string(),
+        ],
+        None,
+    )
+}
+
+/// Phase 10: Agent revoked by source sovereign
+/// Returned when a foreign agent has been revoked by their home sovereign via revocation certificate.
+pub fn error_agent_revoked_by_sovereign() -> AttestationRefreshResponse {
+    build_error_response(
+        "agent_revoked_by_sovereign".to_string(),
+        "This agent has been revoked by their home sovereign and is no longer trusted."
+            .to_string(),
+        vec![
+            "Contact your home sovereignty administrator for revocation reason and remediation"
+                .to_string(),
+            "Request re-attestation or new agent credentials after remediation"
+                .to_string(),
+        ],
+        None,
+    )
+}
+
 /// Phase 6.1: Error enum for ancestor revocation validation
 #[derive(Debug, Clone)]
 pub enum AncestorRevocationError {

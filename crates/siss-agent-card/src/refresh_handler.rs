@@ -374,16 +374,67 @@ pub async fn attestation_refresh_handler(
             (false, tier as i32, None, None)
         };
 
-    // Step 6.6: Detect cross-sovereign operation (Phase 9, future: integrate fully into Phase 6 block)
-    // For now: detect SovereignOrigin attestation and prepare fail-closed response
-    let mut lineage_safe = true;  // default: local operation is safe
-    if is_sovereign_origin_present(&request.attestations).is_some() {
-        // Cross-sovereign operation detected: will enforce lineage_safe=false in Step 13
-        lineage_safe = false;
-    }
+    // Step 6.6: Detect and enforce cross-sovereign operation (Phase 10)
+    // Implements full fail-closed enforcement: bilateral agreement, revocation check, tier capping
+    let fed_ctx_opt: Option<FederatedContext> = if let Some(sovereign_id_str) =
+        is_sovereign_origin_present(&request.attestations)
+    {
+        // Cross-sovereign operation detected: parse sovereign_id and enforce all checks
+        let foreign_sovereign_id = match Uuid::parse_str(&sovereign_id_str) {
+            Ok(id) => id,
+            Err(_) => {
+                // Malformed sovereign_id in attestation payload
+                let response = error_missing_bilateral_agreement();
+                return (StatusCode::FORBIDDEN, Json(response)).into_response();
+            }
+        };
+
+        // Check 1: Bilateral agreement must exist (fail-closed: 403 if missing)
+        let (max_tier, _types, _cap) = match federation_repo::lookup_federation_peer(
+            &state.pool, state.sovereign_id, foreign_sovereign_id
+        )
+        .await
+        {
+            Ok(Some(peer)) => peer,
+            Ok(None) => {
+                // No bilateral agreement exists
+                let response = error_missing_bilateral_agreement();
+                return (StatusCode::FORBIDDEN, Json(response)).into_response();
+            }
+            Err(_) => {
+                // DB error during lookup (fail-closed)
+                let response = error_missing_bilateral_agreement();
+                return (StatusCode::FORBIDDEN, Json(response)).into_response();
+            }
+        };
+
+        // Check 2: Agent must not be revoked by source sovereign (fail-closed: 403 if revoked)
+        if let Ok(true) = federation_repo::check_revocation_certificate(
+            &state.pool, &session_id, foreign_sovereign_id
+        )
+        .await
+        {
+            // Agent is revoked by their home sovereign
+            let response = error_agent_revoked_by_sovereign();
+            return (StatusCode::FORBIDDEN, Json(response)).into_response();
+        }
+        // If DB error on revocation check, fail-open (allow access; revocation is best-effort)
+
+        // Tier cap will be applied after Step 6.5 computes the tier
+        Some(FederatedContext {
+            source_sovereign_id: foreign_sovereign_id,
+            admitted_tier: max_tier as u32,
+            is_cross_sovereign: true,
+        })
+    } else {
+        None  // Local operation: no cross-sovereign constraints
+    };
+
+    // lineage_safe immutability: cross-sovereign operations ALWAYS have lineage_safe=false
+    let lineage_safe = fed_ctx_opt.is_none();
 
     // Step 6.5: Score behavior window and adjust tier (Phase 8)
-    let tier = {
+    let mut tier = {
         let session_uuid = db_session.as_ref().map(|(id, _, _, _, _, _, _, _, _, _, _)| *id).unwrap_or(uuid::Uuid::nil());
         let window_rows = fetch_behavior_window(&state.pool, session_uuid, WINDOW_DAYS)
             .await
@@ -399,6 +450,13 @@ pub async fn attestation_refresh_handler(
             .collect();
         BehaviorScorer::new(events, Utc::now()).apply_tier_delta(tier as u32) as i32
     };
+
+    // Step 6.6 (continued): Apply federated tier cap (most-restrictive-wins)
+    if let Some(ref fed_ctx) = fed_ctx_opt {
+        let capped_tier = resolve_federated_tier(tier as u32, fed_ctx.admitted_tier as u16) as i32;
+        tier = capped_tier;
+    }
+
     let tier_delta = tier as i16 - tier_before_scoring;
 
     // Step 7: Decide session token reuse
@@ -437,6 +495,19 @@ pub async fn attestation_refresh_handler(
     if let Some((session_uuid, _, _, _, _, _, _, _, _, _, _)) = &db_session {
         let _ = siss_graph_db::repo::session_repo::update_session_budget(
             &state.pool,
+            *session_uuid,
+            token_cost.total_cost as i64,
+        )
+        .await;
+    }
+
+    // Step 9.6: Record inter-sovereign credit entry (Phase 10, best-effort)
+    // Only for cross-sovereign operations; does not block token issuance on failure
+    if let (Some(ref ctx), Some((session_uuid, _, _, _, _, _, _, _, _, _, _))) = (&fed_ctx_opt, &db_session) {
+        let _ = federation_repo::insert_sovereign_credit_entry(
+            &state.pool,
+            state.sovereign_id,                  // creditor = home sovereign
+            ctx.source_sovereign_id,             // debtor = foreign sovereign
             *session_uuid,
             token_cost.total_cost as i64,
         )

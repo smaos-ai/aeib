@@ -15,6 +15,7 @@ pub async fn lookup_federation_peer(
         "SELECT max_admitted_tier, granted_attestation_types, foreign_agent_budget_cap \
          FROM federation_peers \
          WHERE sovereign_a_id = $1 AND sovereign_b_id = $2 AND status = 'active' \
+         AND (expires_at IS NULL OR expires_at > NOW()) \
          ORDER BY granted_at DESC \
          LIMIT 1"
     )

@@ -52,6 +52,9 @@ mod tests {
     #[test]
     fn test_frozen_denies() {
         let hook = GatekeeperHook::new(true);
-        assert!(matches!(hook.on_pre_execution(&make_ctx()), HookResult::Deny { .. }));
+        assert!(matches!(
+            hook.on_pre_execution(&make_ctx()),
+            HookResult::Deny { .. }
+        ));
     }
 }

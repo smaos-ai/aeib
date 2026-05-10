@@ -13,7 +13,7 @@ pub async fn insert_edge(
     let id = Uuid::new_v4();
     sqlx::query(
         "INSERT INTO edges (id, source_id, target_id, edge_type, tenant_id, metadata) \
-         VALUES ($1, $2, $3, $4::edge_type, $5, $6)"
+         VALUES ($1, $2, $3, $4::edge_type, $5, $6)",
     )
     .bind(id)
     .bind(source_id)
@@ -35,7 +35,7 @@ pub async fn find_edges_from(
 ) -> Result<Vec<(Uuid, Uuid, Uuid)>, sqlx::Error> {
     let rows: Vec<(Uuid, Uuid, Uuid)> = sqlx::query_as(
         "SELECT id, source_id, target_id FROM edges \
-         WHERE source_id = $1 AND edge_type = $2::edge_type AND tenant_id = $3"
+         WHERE source_id = $1 AND edge_type = $2::edge_type AND tenant_id = $3",
     )
     .bind(source_id)
     .bind(edge_type)
@@ -54,7 +54,7 @@ pub async fn find_edges_to(
 ) -> Result<Vec<(Uuid, Uuid, Uuid)>, sqlx::Error> {
     let rows: Vec<(Uuid, Uuid, Uuid)> = sqlx::query_as(
         "SELECT id, source_id, target_id FROM edges \
-         WHERE target_id = $1 AND edge_type = $2::edge_type AND tenant_id = $3"
+         WHERE target_id = $1 AND edge_type = $2::edge_type AND tenant_id = $3",
     )
     .bind(target_id)
     .bind(edge_type)

@@ -44,10 +44,16 @@ pub enum FirewallError {
     TaskNotFound { task_id: Uuid },
 
     #[error("invalid task status: current={current:?}, expected={expected:?}")]
-    InvalidTaskStatus { current: TaskStatus, expected: TaskStatus },
+    InvalidTaskStatus {
+        current: TaskStatus,
+        expected: TaskStatus,
+    },
 
     #[error("cross-tenant violation: source {source_tenant} != target {target_tenant}")]
-    TenantViolation { source_tenant: Uuid, target_tenant: Uuid },
+    TenantViolation {
+        source_tenant: Uuid,
+        target_tenant: Uuid,
+    },
 
     #[error("database error: {message}")]
     DatabaseError { message: String },
@@ -55,7 +61,9 @@ pub enum FirewallError {
 
 impl From<sqlx::Error> for FirewallError {
     fn from(e: sqlx::Error) -> Self {
-        Self::DatabaseError { message: e.to_string() }
+        Self::DatabaseError {
+            message: e.to_string(),
+        }
     }
 }
 

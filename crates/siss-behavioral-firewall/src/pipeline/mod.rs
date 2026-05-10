@@ -1,6 +1,6 @@
-pub mod validate;
-pub mod inspect;
 pub mod act;
+pub mod inspect;
+pub mod validate;
 
 use sqlx::PgPool;
 

@@ -1,13 +1,13 @@
-pub mod runner;
-pub mod gatekeeper;
-pub mod budget;
 pub mod audit;
+pub mod budget;
+pub mod gatekeeper;
+pub mod runner;
 
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use siss_graph_core::node::NodeId;
 use siss_behavioral_firewall::types::Verdict;
+use siss_graph_core::node::NodeId;
 
 /// Result of a lifecycle hook invocation.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -47,12 +47,24 @@ pub struct ToolUseContext {
 /// All methods have default implementations that return Continue.
 pub trait LifecycleHook: Send + Sync {
     fn name(&self) -> &str;
-    fn on_session_start(&self, _ctx: &SessionContext) -> HookResult { HookResult::Continue }
-    fn on_pre_execution(&self, _ctx: &ExecutionContext) -> HookResult { HookResult::Continue }
-    fn on_post_execution(&self, _ctx: &ExecutionContext) -> HookResult { HookResult::Continue }
-    fn on_pre_tool_use(&self, _ctx: &ToolUseContext) -> HookResult { HookResult::Continue }
-    fn on_post_tool_use(&self, _ctx: &ToolUseContext) -> HookResult { HookResult::Continue }
-    fn on_stop(&self, _ctx: &SessionContext) -> HookResult { HookResult::Continue }
+    fn on_session_start(&self, _ctx: &SessionContext) -> HookResult {
+        HookResult::Continue
+    }
+    fn on_pre_execution(&self, _ctx: &ExecutionContext) -> HookResult {
+        HookResult::Continue
+    }
+    fn on_post_execution(&self, _ctx: &ExecutionContext) -> HookResult {
+        HookResult::Continue
+    }
+    fn on_pre_tool_use(&self, _ctx: &ToolUseContext) -> HookResult {
+        HookResult::Continue
+    }
+    fn on_post_tool_use(&self, _ctx: &ToolUseContext) -> HookResult {
+        HookResult::Continue
+    }
+    fn on_stop(&self, _ctx: &SessionContext) -> HookResult {
+        HookResult::Continue
+    }
 }
 
 #[cfg(test)]
@@ -62,7 +74,10 @@ mod tests {
     #[test]
     fn test_hook_result_equality() {
         assert_eq!(HookResult::Continue, HookResult::Continue);
-        assert_ne!(HookResult::Continue, HookResult::Halt { reason: "x".into() });
+        assert_ne!(
+            HookResult::Continue,
+            HookResult::Halt { reason: "x".into() }
+        );
         assert_ne!(
             HookResult::Halt { reason: "x".into() },
             HookResult::Deny { reason: "x".into() }

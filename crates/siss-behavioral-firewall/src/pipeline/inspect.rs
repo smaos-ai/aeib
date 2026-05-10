@@ -16,7 +16,9 @@ pub async fn run_checkers(
 ) -> Result<Vec<Violation>, FirewallError> {
     let mandate_row = siss_graph_db::repo::node_repo::fetch_intent_mandate(pool, intent_mandate_id)
         .await?
-        .ok_or(FirewallError::TaskNotFound { task_id: intent_mandate_id })?;
+        .ok_or(FirewallError::TaskNotFound {
+            task_id: intent_mandate_id,
+        })?;
 
     let (_id, _tenant, budget_limit, budget_spent, _risk_class, _allowed_tools) = mandate_row;
     let budget_remaining = budget_limit - budget_spent;

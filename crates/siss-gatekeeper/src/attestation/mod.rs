@@ -67,7 +67,7 @@ pub struct AttestationVector {
     pub attestation_type: AttestationType,
     pub score_contribution: u32,
     pub data_sensitivity_allowed: DataSensitivityLevel,
-    pub hardware_classes_allowed: Vec<String>,  // ["LocalMlx", "Hybrid"]
+    pub hardware_classes_allowed: Vec<String>, // ["LocalMlx", "Hybrid"]
     pub max_concurrency: u32,
     pub max_session_ttl_seconds: Option<u64>,
     pub jurisdiction: Option<String>,
@@ -80,7 +80,7 @@ pub struct AttestationVector {
 pub struct Attestation {
     pub attestation_type: AttestationType,
     pub format: String,  // "sgx_quote", "tpm2", "signed_manifest", etc.
-    pub payload: String,  // base64-encoded
+    pub payload: String, // base64-encoded
     pub signature: String,
     pub issuer: String,
     pub issued_at: DateTime<Utc>,

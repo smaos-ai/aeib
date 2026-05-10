@@ -1,6 +1,5 @@
 /// Phase 11: Transitive Trust Resolution
 /// Cross-sovereign delegation context and depth tracking
-
 use uuid::Uuid;
 
 /// Context for a federated operation with transitive delegation support.
@@ -62,8 +61,7 @@ mod tests {
     fn test_transitive_federated_context_with_grant() {
         let sovereign_id = Uuid::new_v4();
         let grant_id = Uuid::new_v4();
-        let ctx = TransitiveFederatedContext::new(sovereign_id, 50)
-            .with_grant(grant_id, 2, 40);
+        let ctx = TransitiveFederatedContext::new(sovereign_id, 50).with_grant(grant_id, 2, 40);
 
         assert_eq!(ctx.grant_id, Some(grant_id));
         assert_eq!(ctx.transitivity_depth, Some(2));

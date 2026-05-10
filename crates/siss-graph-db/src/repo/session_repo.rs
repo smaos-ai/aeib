@@ -21,7 +21,7 @@ pub async fn insert_session_with_tokens(
     sqlx::query(
         "INSERT INTO sessions (id, tenant_id, active_persona_id, token_budget, session_token, \
          capability_token, attestation_score, attestation_tier, session_expires_at) \
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)"
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
     )
     .bind(id)
     .bind(tenant_id)
@@ -35,6 +35,28 @@ pub async fn insert_session_with_tokens(
     .execute(pool)
     .await?;
     Ok(id)
+}
+
+/// Phase 15: Check if the tenant's associated sovereign is quarantined.
+///
+/// Returns true if the sovereign is quarantined, false otherwise.
+/// Returns false if the tenant has no sovereign association.
+///
+/// Used by siss-gatekeeper to fail-closed on session creation from quarantined sovereigns.
+pub async fn is_tenant_sovereign_quarantined(
+    pool: &PgPool,
+    tenant_id: Uuid,
+) -> Result<bool, sqlx::Error> {
+    sqlx::query_scalar::<_, bool>(
+        "SELECT EXISTS(
+            SELECT 1 FROM sovereigns s
+            JOIN tenants t ON t.sovereign_id = s.id
+            WHERE t.id = $1 AND s.status = 'quarantined'
+        )",
+    )
+    .bind(tenant_id)
+    .fetch_one(pool)
+    .await
 }
 
 /// Fetch a session by its session_token for validation during refresh.
@@ -51,7 +73,22 @@ pub async fn insert_session_with_tokens(
 pub async fn fetch_session_by_token(
     pool: &PgPool,
     session_token: &str,
-) -> Result<Option<(Uuid, Uuid, String, i32, Option<i32>, DateTime<Utc>, Option<Uuid>, Option<Uuid>, Option<String>, Option<String>, Option<String>)>, sqlx::Error> {
+) -> Result<
+    Option<(
+        Uuid,
+        Uuid,
+        String,
+        i32,
+        Option<i32>,
+        DateTime<Utc>,
+        Option<Uuid>,
+        Option<Uuid>,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+    )>,
+    sqlx::Error,
+> {
     let row = sqlx::query_as::<_, (Uuid, Uuid, String, i32, Option<i32>, DateTime<Utc>, Option<Uuid>, Option<Uuid>, Option<String>, Option<String>, Option<String>)>(
         "SELECT id, tenant_id, status::text, attestation_score, attestation_tier, session_expires_at, \
          parent_session_id, delegated_by_agent_id, delegation_ceiling_envelope, \
@@ -90,7 +127,7 @@ pub async fn update_session_after_refresh(
              attestation_score = $3, \
              attestation_tier = $4, \
              last_refreshed_at = $5 \
-         WHERE id = $1"
+         WHERE id = $1",
     )
     .bind(session_id)
     .bind(capability_token)
@@ -113,7 +150,7 @@ pub async fn revoke_session(pool: &PgPool, session_id: Uuid) -> Result<bool, sql
         "UPDATE sessions \
          SET status = 'revoked'::session_status, \
              revoked_at = NOW() \
-         WHERE id = $1"
+         WHERE id = $1",
     )
     .bind(session_id)
     .execute(pool)
@@ -144,7 +181,7 @@ pub async fn revoke_all_descendants(
          UPDATE sessions
          SET status = 'revoked'::session_status,
              revoked_at = NOW()
-         WHERE id IN (SELECT id FROM descendant_sessions)"
+         WHERE id IN (SELECT id FROM descendant_sessions)",
     )
     .bind(ancestor_session_id)
     .execute(pool)
@@ -168,7 +205,7 @@ pub async fn fetch_session_status_by_token(
     let row: Option<(Uuid, String)> = sqlx::query_as(
         "SELECT id, status::text \
          FROM sessions \
-         WHERE session_token = $1"
+         WHERE session_token = $1",
     )
     .bind(session_token)
     .fetch_optional(pool)
@@ -189,12 +226,10 @@ pub async fn fetch_ancestor_session_ids(
     session_id: Uuid,
 ) -> Result<Option<Vec<Uuid>>, sqlx::Error> {
     // First verify session exists
-    let exists: (bool,) = sqlx::query_as(
-        "SELECT EXISTS(SELECT 1 FROM sessions WHERE id = $1)"
-    )
-    .bind(session_id)
-    .fetch_one(pool)
-    .await?;
+    let exists: (bool,) = sqlx::query_as("SELECT EXISTS(SELECT 1 FROM sessions WHERE id = $1)")
+        .bind(session_id)
+        .fetch_one(pool)
+        .await?;
 
     if !exists.0 {
         return Ok(None);
@@ -210,7 +245,7 @@ pub async fn fetch_ancestor_session_ids(
            WHERE parent_session_id IS NOT NULL
          )
          SELECT parent_session_id FROM ancestor_chain WHERE parent_session_id IS NOT NULL
-         ORDER BY parent_session_id"
+         ORDER BY parent_session_id",
     )
     .bind(session_id)
     .fetch_all(pool)
@@ -228,33 +263,29 @@ pub async fn fetch_ancestor_session_ids(
 /// - `Ok(())` if no ancestors exist (root session) or none are revoked
 /// - `Err(revoked_ancestor_id)` if at least one ancestor is revoked
 /// - Database errors propagate
-pub async fn check_ancestors_revoked(
-    pool: &PgPool,
-    session_id: Uuid,
-) -> Result<(), Uuid> {
+pub async fn check_ancestors_revoked(pool: &PgPool, session_id: Uuid) -> Result<(), Uuid> {
     // Fetch ancestor chain
     let ancestors = crate::repo::session_repo::fetch_ancestor_session_ids(pool, session_id)
         .await
-        .map_err(|_| Uuid::nil())?  // DB error: return nil as sentinel
-        .unwrap_or_default();  // Root session: no ancestors
+        .map_err(|_| Uuid::nil())? // DB error: return nil as sentinel
+        .unwrap_or_default(); // Root session: no ancestors
 
     if ancestors.is_empty() {
-        return Ok(());  // Root session: no ancestors to revoke
+        return Ok(()); // Root session: no ancestors to revoke
     }
 
     // Check if ANY ancestor is revoked
     for ancestor_id in ancestors {
-        let status_row: Option<(String,)> = sqlx::query_as::<_, (String,)>(
-            "SELECT status::text FROM sessions WHERE id = $1"
-        )
-        .bind(ancestor_id)
-        .fetch_optional(pool)
-        .await
-        .map_err(|_| ancestor_id)?;  // DB error: return ancestor_id as sentinel
+        let status_row: Option<(String,)> =
+            sqlx::query_as::<_, (String,)>("SELECT status::text FROM sessions WHERE id = $1")
+                .bind(ancestor_id)
+                .fetch_optional(pool)
+                .await
+                .map_err(|_| ancestor_id)?; // DB error: return ancestor_id as sentinel
 
         if let Some((ancestor_status,)) = status_row {
             if ancestor_status == "revoked" {
-                return Err(ancestor_id);  // Ancestor revoked: fail-closed
+                return Err(ancestor_id); // Ancestor revoked: fail-closed
             }
         }
     }
@@ -289,7 +320,7 @@ pub async fn update_session_budget(
              last_refresh_at = NOW() \
          WHERE id = $1 \
            AND token_budget_remaining >= $2 \
-         RETURNING token_budget_remaining"
+         RETURNING token_budget_remaining",
     )
     .bind(session_id)
     .bind(token_cost)
@@ -298,7 +329,7 @@ pub async fn update_session_budget(
 
     match result {
         Some((remaining,)) => Ok(remaining),
-        None => Err(sqlx::Error::RowNotFound),  // Not found or insufficient budget
+        None => Err(sqlx::Error::RowNotFound), // Not found or insufficient budget
     }
 }
 
@@ -330,16 +361,13 @@ pub async fn fetch_session_budget(
 /// - Updates token_budget_reset_at to NOW()
 ///
 /// Returns true if update succeeded, false if session not found.
-pub async fn reset_session_budget(
-    pool: &PgPool,
-    session_id: Uuid,
-) -> Result<bool, sqlx::Error> {
+pub async fn reset_session_budget(pool: &PgPool, session_id: Uuid) -> Result<bool, sqlx::Error> {
     let result = sqlx::query(
         "UPDATE sessions \
          SET token_budget_remaining = token_budget_initial, \
              token_budget_consumed = 0, \
              token_budget_reset_at = NOW() \
-         WHERE id = $1"
+         WHERE id = $1",
     )
     .bind(session_id)
     .execute(pool)
@@ -390,7 +418,7 @@ pub async fn fetch_behavior_window(
         "SELECT event_type, tier_before, tier_delta, cost_incurred, lineage_safe, scored_at
          FROM behavior_events
          WHERE session_id = $1 AND scored_at > NOW() - $2::int * interval '1 day'
-         ORDER BY scored_at DESC"
+         ORDER BY scored_at DESC",
     )
     .bind(session_id)
     .bind(days)
@@ -444,7 +472,7 @@ pub async fn update_session_tier_and_event(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use testcontainers::{core::WaitFor, runners::AsyncRunner, GenericImage, ImageExt};
+    use testcontainers::{GenericImage, ImageExt, core::WaitFor, runners::AsyncRunner};
 
     async fn start_postgres() -> (testcontainers::ContainerAsync<GenericImage>, PgPool) {
         let container = GenericImage::new("postgres", "16")
@@ -464,17 +492,14 @@ mod tests {
         (container, pool)
     }
 
-    async fn create_test_tenant_and_persona(
-        pool: &PgPool,
-    ) -> (Uuid, Uuid) {
+    async fn create_test_tenant_and_persona(pool: &PgPool) -> (Uuid, Uuid) {
         let tenant_id = crate::repo::node_repo::insert_tenant(pool, "SessionTestCorp")
             .await
             .expect("insert tenant");
-        let persona_id = crate::repo::node_repo::insert_persona(
-            pool, "SessionTestAgent", "ai_agent", tenant_id,
-        )
-        .await
-        .expect("insert persona");
+        let persona_id =
+            crate::repo::node_repo::insert_persona(pool, "SessionTestAgent", "ai_agent", tenant_id)
+                .await
+                .expect("insert persona");
         (tenant_id, persona_id)
     }
 
@@ -615,16 +640,10 @@ mod tests {
 
         // Refresh: improve trust from 50→100 and Tier 3→1
         let refresh_time = Utc::now();
-        let updated = update_session_after_refresh(
-            &pool,
-            session_id,
-            "new-cap-token",
-            100,
-            1,
-            refresh_time,
-        )
-        .await
-        .expect("update");
+        let updated =
+            update_session_after_refresh(&pool, session_id, "new-cap-token", 100, 1, refresh_time)
+                .await
+                .expect("update");
 
         assert!(updated);
 
@@ -642,16 +661,10 @@ mod tests {
     async fn test_update_session_after_refresh_not_found() {
         let (_container, pool) = start_postgres().await;
 
-        let updated = update_session_after_refresh(
-            &pool,
-            Uuid::new_v4(),
-            "token",
-            80,
-            2,
-            Utc::now(),
-        )
-        .await
-        .expect("update");
+        let updated =
+            update_session_after_refresh(&pool, Uuid::new_v4(), "token", 80, 2, Utc::now())
+                .await
+                .expect("update");
 
         assert!(!updated);
     }
@@ -835,10 +848,12 @@ mod tests {
         .expect("insert root");
 
         // Check ancestors of root (should be ok: no ancestors)
-        let result = check_ancestors_revoked(&pool, root_id)
-            .await;
+        let result = check_ancestors_revoked(&pool, root_id).await;
 
-        assert!(result.is_ok(), "Root session should have no revoked ancestors");
+        assert!(
+            result.is_ok(),
+            "Root session should have no revoked ancestors"
+        );
     }
 
     #[tokio::test]
@@ -883,8 +898,7 @@ mod tests {
             .await;
 
         // Check ancestors (should be ok: parent is not revoked)
-        let result = check_ancestors_revoked(&pool, child_id)
-            .await;
+        let result = check_ancestors_revoked(&pool, child_id).await;
 
         assert!(result.is_ok(), "Benign ancestor should pass check");
     }
@@ -931,13 +945,10 @@ mod tests {
             .await;
 
         // Revoke parent
-        let _ = revoke_session(&pool, root_id)
-            .await
-            .expect("revoke");
+        let _ = revoke_session(&pool, root_id).await.expect("revoke");
 
         // Check ancestors (should fail: parent is revoked)
-        let result = check_ancestors_revoked(&pool, child_id)
-            .await;
+        let result = check_ancestors_revoked(&pool, child_id).await;
 
         assert!(result.is_err(), "Revoked parent should block child");
         if let Err(revoked_id) = result {
@@ -1008,17 +1019,20 @@ mod tests {
             .await;
 
         // Revoke root (grandparent)
-        let _ = revoke_session(&pool, root_id)
-            .await
-            .expect("revoke");
+        let _ = revoke_session(&pool, root_id).await.expect("revoke");
 
         // Check ancestors of child (should fail: grandparent is revoked)
-        let result = check_ancestors_revoked(&pool, child_id)
-            .await;
+        let result = check_ancestors_revoked(&pool, child_id).await;
 
-        assert!(result.is_err(), "Revoked grandparent should block grandchild");
+        assert!(
+            result.is_err(),
+            "Revoked grandparent should block grandchild"
+        );
         if let Err(revoked_id) = result {
-            assert_eq!(revoked_id, root_id, "Error should identify revoked grandparent");
+            assert_eq!(
+                revoked_id, root_id,
+                "Error should identify revoked grandparent"
+            );
         }
     }
 
@@ -1049,7 +1063,11 @@ mod tests {
             .await
             .expect("update");
 
-        assert_eq!(remaining, 1_000_000 - 100, "Remaining should be initial - cost");
+        assert_eq!(
+            remaining,
+            1_000_000 - 100,
+            "Remaining should be initial - cost"
+        );
 
         // Verify budget state
         let budget = fetch_session_budget(&pool, session_id)
@@ -1104,7 +1122,11 @@ mod tests {
             remaining + consumed,
             "Conservation invariant: initial = remaining + consumed"
         );
-        assert_eq!(remaining + consumed, 1_000_000, "Total should equal initial");
+        assert_eq!(
+            remaining + consumed,
+            1_000_000,
+            "Total should equal initial"
+        );
     }
 
     #[tokio::test]
@@ -1132,8 +1154,7 @@ mod tests {
             .expect("update");
 
         // Try to consume 100 more (should fail: only 1 remaining)
-        let result = update_session_budget(&pool, session_id, 100)
-            .await;
+        let result = update_session_budget(&pool, session_id, 100).await;
 
         assert!(result.is_err(), "Insufficient budget should fail");
     }
@@ -1179,7 +1200,10 @@ mod tests {
             .expect("fetch")
             .expect("budget found");
 
-        assert_eq!(before_reset.1, 500_000, "Remaining should be 500k after consuming");
+        assert_eq!(
+            before_reset.1, 500_000,
+            "Remaining should be 500k after consuming"
+        );
         assert_eq!(before_reset.2, 500_000, "Consumed should be 500k");
 
         // Reset budget
@@ -1207,8 +1231,14 @@ mod tests {
         let (_container, pool) = start_postgres().await;
         let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
         let session_id = insert_session_with_tokens(
-            &pool, tenant_id, persona_id, 100_000,
-            "tok-phase7-1", "cap-1", 80, 2,
+            &pool,
+            tenant_id,
+            persona_id,
+            100_000,
+            "tok-phase7-1",
+            "cap-1",
+            80,
+            2,
             Utc::now() + chrono::Duration::hours(1),
         )
         .await
@@ -1216,10 +1246,16 @@ mod tests {
 
         // Deduct 100 tokens
         let remaining = update_session_budget(&pool, session_id, 100).await.unwrap();
-        assert_eq!(remaining, 999_900, "Remaining should be 999,900 after deducting 100");
+        assert_eq!(
+            remaining, 999_900,
+            "Remaining should be 999,900 after deducting 100"
+        );
 
         // Fetch and verify consistency
-        let budget = fetch_session_budget(&pool, session_id).await.unwrap().unwrap();
+        let budget = fetch_session_budget(&pool, session_id)
+            .await
+            .unwrap()
+            .unwrap();
         assert_eq!(budget.0, 1_000_000, "Initial unchanged");
         assert_eq!(budget.1, 999_900, "Remaining reflects deduction");
         assert_eq!(budget.2, 100, "Consumed equals deducted amount");
@@ -1230,19 +1266,33 @@ mod tests {
         let (_container, pool) = start_postgres().await;
         let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
         let session_id = insert_session_with_tokens(
-            &pool, tenant_id, persona_id, 100_000,
-            "tok-phase7-2", "cap-2", 80, 2,
+            &pool,
+            tenant_id,
+            persona_id,
+            100_000,
+            "tok-phase7-2",
+            "cap-2",
+            80,
+            2,
             Utc::now() + chrono::Duration::hours(1),
         )
         .await
         .unwrap();
 
         // Deduct exactly the full budget
-        let remaining = update_session_budget(&pool, session_id, 1_000_000).await.unwrap();
-        assert_eq!(remaining, 0, "Remaining should be 0 after depleting full budget");
+        let remaining = update_session_budget(&pool, session_id, 1_000_000)
+            .await
+            .unwrap();
+        assert_eq!(
+            remaining, 0,
+            "Remaining should be 0 after depleting full budget"
+        );
 
         // Verify state
-        let budget = fetch_session_budget(&pool, session_id).await.unwrap().unwrap();
+        let budget = fetch_session_budget(&pool, session_id)
+            .await
+            .unwrap()
+            .unwrap();
         assert_eq!(budget.1, 0, "Remaining is zero");
         assert_eq!(budget.2, 1_000_000, "Consumed equals initial");
     }
@@ -1252,8 +1302,14 @@ mod tests {
         let (_container, pool) = start_postgres().await;
         let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
         let session_id = insert_session_with_tokens(
-            &pool, tenant_id, persona_id, 100_000,
-            "tok-phase7-3", "cap-3", 80, 2,
+            &pool,
+            tenant_id,
+            persona_id,
+            100_000,
+            "tok-phase7-3",
+            "cap-3",
+            80,
+            2,
             Utc::now() + chrono::Duration::hours(1),
         )
         .await
@@ -1261,18 +1317,27 @@ mod tests {
 
         // First deduction
         let _ = update_session_budget(&pool, session_id, 100).await.unwrap();
-        let b1 = fetch_session_budget(&pool, session_id).await.unwrap().unwrap();
+        let b1 = fetch_session_budget(&pool, session_id)
+            .await
+            .unwrap()
+            .unwrap();
         assert_eq!(b1.0, b1.1 + b1.2, "Conservation after deduction 1");
 
         // Second deduction
         let _ = update_session_budget(&pool, session_id, 200).await.unwrap();
-        let b2 = fetch_session_budget(&pool, session_id).await.unwrap().unwrap();
+        let b2 = fetch_session_budget(&pool, session_id)
+            .await
+            .unwrap()
+            .unwrap();
         assert_eq!(b2.0, b2.1 + b2.2, "Conservation after deduction 2");
         assert_eq!(b2.2, 300, "Total consumed = 100+200");
 
         // Third deduction
         let _ = update_session_budget(&pool, session_id, 300).await.unwrap();
-        let b3 = fetch_session_budget(&pool, session_id).await.unwrap().unwrap();
+        let b3 = fetch_session_budget(&pool, session_id)
+            .await
+            .unwrap()
+            .unwrap();
         assert_eq!(b3.0, b3.1 + b3.2, "Conservation after deduction 3");
         assert_eq!(b3.2, 600, "Total consumed = 100+200+300");
     }
@@ -1283,27 +1348,47 @@ mod tests {
         let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
 
         let session_1 = insert_session_with_tokens(
-            &pool, tenant_id, persona_id, 100_000,
-            "tok-phase7-s1", "cap-s1", 80, 2,
+            &pool,
+            tenant_id,
+            persona_id,
+            100_000,
+            "tok-phase7-s1",
+            "cap-s1",
+            80,
+            2,
             Utc::now() + chrono::Duration::hours(1),
         )
         .await
         .unwrap();
 
         let session_2 = insert_session_with_tokens(
-            &pool, tenant_id, persona_id, 100_000,
-            "tok-phase7-s2", "cap-s2", 80, 2,
+            &pool,
+            tenant_id,
+            persona_id,
+            100_000,
+            "tok-phase7-s2",
+            "cap-s2",
+            80,
+            2,
             Utc::now() + chrono::Duration::hours(1),
         )
         .await
         .unwrap();
 
         // Deduct from session 1 only
-        let _ = update_session_budget(&pool, session_1, 500_000).await.unwrap();
+        let _ = update_session_budget(&pool, session_1, 500_000)
+            .await
+            .unwrap();
 
         // Verify session 1 is depleted, session 2 is full
-        let b1 = fetch_session_budget(&pool, session_1).await.unwrap().unwrap();
-        let b2 = fetch_session_budget(&pool, session_2).await.unwrap().unwrap();
+        let b1 = fetch_session_budget(&pool, session_1)
+            .await
+            .unwrap()
+            .unwrap();
+        let b2 = fetch_session_budget(&pool, session_2)
+            .await
+            .unwrap()
+            .unwrap();
 
         assert_eq!(b1.1, 500_000, "Session 1 remaining after deduction");
         assert_eq!(b2.1, 1_000_000, "Session 2 unaffected, still full");
@@ -1314,16 +1399,27 @@ mod tests {
         let (_container, pool) = start_postgres().await;
         let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
         let session_id = insert_session_with_tokens(
-            &pool, tenant_id, persona_id, 100_000,
-            "tok-phase7-5", "cap-5", 80, 2,
+            &pool,
+            tenant_id,
+            persona_id,
+            100_000,
+            "tok-phase7-5",
+            "cap-5",
+            80,
+            2,
             Utc::now() + chrono::Duration::hours(1),
         )
         .await
         .unwrap();
 
         // Partially deplete
-        let _ = update_session_budget(&pool, session_id, 500_000).await.unwrap();
-        let before = fetch_session_budget(&pool, session_id).await.unwrap().unwrap();
+        let _ = update_session_budget(&pool, session_id, 500_000)
+            .await
+            .unwrap();
+        let before = fetch_session_budget(&pool, session_id)
+            .await
+            .unwrap()
+            .unwrap();
         assert_eq!(before.1, 500_000, "Remaining is 500k before reset");
 
         // Reset
@@ -1331,7 +1427,10 @@ mod tests {
         assert!(reset_ok, "Reset should succeed");
 
         // Verify full restoration
-        let after = fetch_session_budget(&pool, session_id).await.unwrap().unwrap();
+        let after = fetch_session_budget(&pool, session_id)
+            .await
+            .unwrap()
+            .unwrap();
         assert_eq!(after.1, 1_000_000, "Remaining restored to initial");
         assert_eq!(after.2, 0, "Consumed reset to 0");
     }
@@ -1342,7 +1441,10 @@ mod tests {
         let fake_session_id = uuid::Uuid::new_v4();
 
         let result = update_session_budget(&pool, fake_session_id, 100).await;
-        assert!(result.is_err(), "Deduction from unknown session should fail");
+        assert!(
+            result.is_err(),
+            "Deduction from unknown session should fail"
+        );
     }
 
     #[tokio::test]
@@ -1350,8 +1452,14 @@ mod tests {
         let (_container, pool) = start_postgres().await;
         let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
         let session_id = insert_session_with_tokens(
-            &pool, tenant_id, persona_id, 100_000,
-            "tok-phase7-7", "cap-7", 80, 2,
+            &pool,
+            tenant_id,
+            persona_id,
+            100_000,
+            "tok-phase7-7",
+            "cap-7",
+            80,
+            2,
             Utc::now() + chrono::Duration::hours(1),
         )
         .await
@@ -1375,23 +1483,37 @@ mod tests {
         let (_container, pool) = start_postgres().await;
         let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
         let session_id = insert_session_with_tokens(
-            &pool, tenant_id, persona_id, 100_000,
-            "tok-phase7-9", "cap-9", 80, 2,
+            &pool,
+            tenant_id,
+            persona_id,
+            100_000,
+            "tok-phase7-9",
+            "cap-9",
+            80,
+            2,
             Utc::now() + chrono::Duration::hours(1),
         )
         .await
         .unwrap();
 
         // Deduct 500k
-        let _ = update_session_budget(&pool, session_id, 500_000).await.unwrap();
+        let _ = update_session_budget(&pool, session_id, 500_000)
+            .await
+            .unwrap();
 
         // Try to deduct 1 more than remaining (should fail with WHERE clause)
         let result = update_session_budget(&pool, session_id, 500_001).await;
         assert!(result.is_err(), "Deduction exceeding remaining should fail");
 
         // Verify remaining unchanged
-        let budget = fetch_session_budget(&pool, session_id).await.unwrap().unwrap();
-        assert_eq!(budget.1, 500_000, "Remaining unchanged after failed deduction");
+        let budget = fetch_session_budget(&pool, session_id)
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            budget.1, 500_000,
+            "Remaining unchanged after failed deduction"
+        );
     }
 
     #[tokio::test]
@@ -1399,8 +1521,14 @@ mod tests {
         let (_container, pool) = start_postgres().await;
         let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
         let session_id = insert_session_with_tokens(
-            &pool, tenant_id, persona_id, 100_000,
-            "tok-phase7-10", "cap-10", 80, 2,
+            &pool,
+            tenant_id,
+            persona_id,
+            100_000,
+            "tok-phase7-10",
+            "cap-10",
+            80,
+            2,
             Utc::now() + chrono::Duration::hours(1),
         )
         .await
@@ -1411,7 +1539,10 @@ mod tests {
 
         // Budget deduction should still succeed (revocation is handler-level check, not DB budget)
         let result = update_session_budget(&pool, session_id, 100).await;
-        assert!(result.is_ok(), "Budget deduction succeeds even for revoked session (architectural: revocation is handler check)");
+        assert!(
+            result.is_ok(),
+            "Budget deduction succeeds even for revoked session (architectural: revocation is handler check)"
+        );
 
         let remaining = result.unwrap();
         assert_eq!(remaining, 999_900, "Deduction amount correct");
@@ -1424,19 +1555,23 @@ mod tests {
         let (_container, pool) = start_postgres().await;
         let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
         let session_id = insert_session_with_tokens(
-            &pool, tenant_id, persona_id, 100_000,
-            "tok-phase8-1", "cap-1", 80, 2,
+            &pool,
+            tenant_id,
+            persona_id,
+            100_000,
+            "tok-phase8-1",
+            "cap-1",
+            80,
+            2,
             Utc::now() + chrono::Duration::hours(1),
         )
         .await
         .unwrap();
 
-        let event_id = insert_behavior_event(
-            &pool, session_id, "refresh_success",
-            2, 3, 150, 3, true,
-        )
-        .await
-        .expect("insert event");
+        let event_id =
+            insert_behavior_event(&pool, session_id, "refresh_success", 2, 3, 150, 3, true)
+                .await
+                .expect("insert event");
 
         assert_ne!(event_id, Uuid::nil(), "Event ID should be valid UUID");
     }
@@ -1446,20 +1581,31 @@ mod tests {
         let (_container, pool) = start_postgres().await;
         let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
         let session_id = insert_session_with_tokens(
-            &pool, tenant_id, persona_id, 100_000,
-            "tok-phase8-2", "cap-2", 80, 2,
+            &pool,
+            tenant_id,
+            persona_id,
+            100_000,
+            "tok-phase8-2",
+            "cap-2",
+            80,
+            2,
             Utc::now() + chrono::Duration::hours(1),
         )
         .await
         .unwrap();
 
         // Insert 3 events at different times
-        let _ = insert_behavior_event(&pool, session_id, "refresh_success", 2, 3, 150, 3, true).await;
-        let _ = insert_behavior_event(&pool, session_id, "refresh_failure", 3, 2, 100, 2, true).await;
-        let _ = insert_behavior_event(&pool, session_id, "delegation_created", 2, 2, 0, 0, true).await;
+        let _ =
+            insert_behavior_event(&pool, session_id, "refresh_success", 2, 3, 150, 3, true).await;
+        let _ =
+            insert_behavior_event(&pool, session_id, "refresh_failure", 3, 2, 100, 2, true).await;
+        let _ =
+            insert_behavior_event(&pool, session_id, "delegation_created", 2, 2, 0, 0, true).await;
 
         // Fetch all (7 day window)
-        let window = fetch_behavior_window(&pool, session_id, 7).await.expect("fetch");
+        let window = fetch_behavior_window(&pool, session_id, 7)
+            .await
+            .expect("fetch");
         assert_eq!(window.len(), 3, "Should fetch all recent events");
 
         // Verify structure (event_type, tier_before, tier_delta, ...)
@@ -1472,19 +1618,29 @@ mod tests {
         let (_container, pool) = start_postgres().await;
         let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
         let session_id = insert_session_with_tokens(
-            &pool, tenant_id, persona_id, 100_000,
-            "tok-phase8-3", "cap-3", 80, 2,
+            &pool,
+            tenant_id,
+            persona_id,
+            100_000,
+            "tok-phase8-3",
+            "cap-3",
+            80,
+            2,
             Utc::now() + chrono::Duration::hours(1),
         )
         .await
         .unwrap();
 
         // Insert safe and unsafe events
-        let _ = insert_behavior_event(&pool, session_id, "refresh_success", 2, 3, 150, 3, true).await;
-        let _ = insert_behavior_event(&pool, session_id, "refresh_failure", 3, 2, 100, 2, false).await;
+        let _ =
+            insert_behavior_event(&pool, session_id, "refresh_success", 2, 3, 150, 3, true).await;
+        let _ =
+            insert_behavior_event(&pool, session_id, "refresh_failure", 3, 2, 100, 2, false).await;
 
         // Fetch window (includes unsafe events in the result)
-        let window = fetch_behavior_window(&pool, session_id, 7).await.expect("fetch");
+        let window = fetch_behavior_window(&pool, session_id, 7)
+            .await
+            .expect("fetch");
         assert_eq!(window.len(), 2, "Should fetch both safe and unsafe");
 
         // Verify lineage_safe field is preserved
@@ -1497,25 +1653,29 @@ mod tests {
         let (_container, pool) = start_postgres().await;
         let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
         let session_id = insert_session_with_tokens(
-            &pool, tenant_id, persona_id, 100_000,
-            "tok-phase8-4", "cap-4", 80, 2,
+            &pool,
+            tenant_id,
+            persona_id,
+            100_000,
+            "tok-phase8-4",
+            "cap-4",
+            80,
+            2,
             Utc::now() + chrono::Duration::hours(1),
         )
         .await
         .unwrap();
 
         // Update tier and insert event atomically
-        update_session_tier_and_event(
-            &pool, session_id,
-            3, "refresh_success",
-            2, 1,
-            200, 3, true,
-        )
-        .await
-        .expect("atomic update");
+        update_session_tier_and_event(&pool, session_id, 3, "refresh_success", 2, 1, 200, 3, true)
+            .await
+            .expect("atomic update");
 
         // Verify tier was updated
-        let session = fetch_session_by_token(&pool, "tok-phase8-4").await.unwrap().unwrap();
+        let session = fetch_session_by_token(&pool, "tok-phase8-4")
+            .await
+            .unwrap()
+            .unwrap();
         assert_eq!(session.4, Some(3), "Tier should be updated to 3");
 
         // Verify event was inserted
@@ -1531,16 +1691,23 @@ mod tests {
 
         let bad_session_id = Uuid::nil();
         let result = update_session_tier_and_event(
-            &pool, bad_session_id,
-            3, "refresh_success",
-            2, 1,
-            200, 3, true,
+            &pool,
+            bad_session_id,
+            3,
+            "refresh_success",
+            2,
+            1,
+            200,
+            3,
+            true,
         )
         .await;
 
         // Should succeed (UPDATE affects 0 rows, INSERT fails on FK)
         // Foreign key constraint should prevent insertion
-        assert!(result.is_err(), "Atomic update should fail on bad session_id");
+        assert!(
+            result.is_err(),
+            "Atomic update should fail on bad session_id"
+        );
     }
-
 }

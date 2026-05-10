@@ -1,9 +1,8 @@
 /// Phase 8: Behavior Scoring Integration Tests
 /// Tests for BehaviorScorer determinism, tier coupling, and edge cases.
 /// All tests are pure (no DB) and test the scorer directly.
-
 use chrono::Utc;
-use siss_gatekeeper::behavior_scorer::{BehaviorScorer, BehaviorEvent};
+use siss_gatekeeper::behavior_scorer::{BehaviorEvent, BehaviorScorer};
 
 fn make_event(
     event_type: &str,
@@ -52,7 +51,10 @@ fn test_all_successes_tier_improves() {
     //
     // Looking at the plan, it says "test_all_successes_tier_improves" with no assertion.
     // Let me just assert that the tier is different and positive delta was applied.
-    assert!(tier_after > 5, "Positive events should increase tier number");
+    assert!(
+        tier_after > 5,
+        "Positive events should increase tier number"
+    );
 }
 
 #[test]
@@ -66,7 +68,10 @@ fn test_all_failures_tier_degrades() {
     let scorer = BehaviorScorer::new(events, now);
     let tier_after = scorer.apply_tier_delta(5);
 
-    assert!(tier_after < 5, "Negative events should decrease tier number");
+    assert!(
+        tier_after < 5,
+        "Negative events should decrease tier number"
+    );
 }
 
 #[test]
@@ -74,17 +79,11 @@ fn test_old_events_less_impact_than_recent() {
     let now = Utc::now();
 
     // Recent success (0 days ago)
-    let recent = BehaviorScorer::new(
-        vec![make_event("refresh_success", 10, 0.0, true)],
-        now,
-    );
+    let recent = BehaviorScorer::new(vec![make_event("refresh_success", 10, 0.0, true)], now);
     let recent_result = recent.apply_tier_delta(5);
 
     // Old success (6 days ago, significantly decayed)
-    let old = BehaviorScorer::new(
-        vec![make_event("refresh_success", 10, 6.0, true)],
-        now,
-    );
+    let old = BehaviorScorer::new(vec![make_event("refresh_success", 10, 6.0, true)], now);
     let old_result = old.apply_tier_delta(5);
 
     // Recent event should push tier further than old event
@@ -98,7 +97,7 @@ fn test_old_events_less_impact_than_recent() {
 fn test_lineage_unsafe_excluded() {
     let now = Utc::now();
     let events = vec![
-        make_event("refresh_success", 5, 0.0, true),   // Safe: count this
+        make_event("refresh_success", 5, 0.0, true), // Safe: count this
         make_event("refresh_failure", -10, 0.0, false), // Unsafe: ignore this
     ];
     let scorer = BehaviorScorer::new(events, now);
@@ -106,7 +105,10 @@ fn test_lineage_unsafe_excluded() {
 
     // Should only count the +5, giving tier 10
     // (If -10 was counted, we'd get 5 + 5 - 10 = 0, clamped to 1)
-    assert_eq!(tier_after, 10, "Unsafe events should be excluded from scoring");
+    assert_eq!(
+        tier_after, 10,
+        "Unsafe events should be excluded from scoring"
+    );
 }
 
 #[test]
@@ -156,32 +158,38 @@ fn test_determinism_across_multiple_calls() {
 fn test_net_positive_mixed_window() {
     let now = Utc::now();
     let events = vec![
-        make_event("refresh_success", 3, 0.0, true),   // +3
-        make_event("refresh_success", 2, 0.5, true),   // +2
-        make_event("refresh_failure", -1, 1.0, true),  // -1
-        make_event("refresh_success", 1, 1.5, true),   // +1
+        make_event("refresh_success", 3, 0.0, true),  // +3
+        make_event("refresh_success", 2, 0.5, true),  // +2
+        make_event("refresh_failure", -1, 1.0, true), // -1
+        make_event("refresh_success", 1, 1.5, true),  // +1
     ];
     // Approximate sum with decay: 3 + 1.96 - 0.71 + 0.98 ≈ 5.2 → +5
 
     let scorer = BehaviorScorer::new(events, now);
     let tier_after = scorer.apply_tier_delta(5);
 
-    assert!(tier_after > 5, "Net positive window should improve tier number");
+    assert!(
+        tier_after > 5,
+        "Net positive window should improve tier number"
+    );
 }
 
 #[test]
 fn test_net_negative_mixed_window() {
     let now = Utc::now();
     let events = vec![
-        make_event("refresh_success", 1, 0.0, true),    // +1
-        make_event("refresh_failure", -2, 0.5, true),   // -2
-        make_event("refresh_failure", -3, 1.0, true),   // -3
-        make_event("refresh_failure", -1, 1.5, true),   // -1
+        make_event("refresh_success", 1, 0.0, true),  // +1
+        make_event("refresh_failure", -2, 0.5, true), // -2
+        make_event("refresh_failure", -3, 1.0, true), // -3
+        make_event("refresh_failure", -1, 1.5, true), // -1
     ];
     // Approximate sum with decay: 1 - 1.96 - 2.14 - 0.98 ≈ -4.1 → -4
 
     let scorer = BehaviorScorer::new(events, now);
     let tier_after = scorer.apply_tier_delta(5);
 
-    assert!(tier_after < 5, "Net negative window should degrade tier number");
+    assert!(
+        tier_after < 5,
+        "Net negative window should degrade tier number"
+    );
 }

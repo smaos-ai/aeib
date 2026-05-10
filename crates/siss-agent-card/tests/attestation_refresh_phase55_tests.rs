@@ -1,6 +1,5 @@
 /// Integration tests for Phase 5.5: Revocation & Pull-Based Refresh
 /// Tests session revocation and challenge-based refresh flows
-
 use chrono::{Duration, Utc};
 use siss_gatekeeper::{
     attestation::{Attestation, AttestationType},
@@ -54,10 +53,8 @@ fn test_build_refresh_required_challenge_structure() {
 
 #[test]
 fn test_refresh_required_response_serialization() {
-    let response = build_refresh_required_challenge(
-        "nonce-xyz".to_string(),
-        vec!["hardware".to_string()],
-    );
+    let response =
+        build_refresh_required_challenge("nonce-xyz".to_string(), vec!["hardware".to_string()]);
 
     let json_str = serde_json::to_string(&response).expect("serialize");
     assert!(json_str.contains("401"));
@@ -78,14 +75,8 @@ fn test_validate_challenge_proof_valid() {
     let attestations = r#"[{"type":"hardware"}]"#;
     let signature = "challenge-sig-valid";
 
-    let result = validate_challenge_proof(
-        session_id,
-        nonce,
-        &timestamp,
-        attestations,
-        signature,
-        None,
-    );
+    let result =
+        validate_challenge_proof(session_id, nonce, &timestamp, attestations, signature, None);
 
     assert!(result.is_ok());
 }
@@ -94,19 +85,13 @@ fn test_validate_challenge_proof_valid() {
 fn test_validate_challenge_proof_stale_timestamp() {
     let session_id = "session-456";
     let nonce = "challenge-nonce-def";
-    let old_time = (Utc::now() - Duration::minutes(10))
-        .to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
+    let old_time =
+        (Utc::now() - Duration::minutes(10)).to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
     let attestations = r#"[]"#;
     let signature = "sig";
 
-    let result = validate_challenge_proof(
-        session_id,
-        nonce,
-        &old_time,
-        attestations,
-        signature,
-        None,
-    );
+    let result =
+        validate_challenge_proof(session_id, nonce, &old_time, attestations, signature, None);
 
     assert!(result.is_err());
     assert!(result.unwrap_err().contains("freshness"));
@@ -127,14 +112,7 @@ fn test_validate_challenge_proof_empty_signature() {
 
 #[test]
 fn test_validate_challenge_proof_invalid_timestamp_format() {
-    let result = validate_challenge_proof(
-        "sess",
-        "nonce",
-        "not-a-timestamp",
-        "[]",
-        "sig",
-        None,
-    );
+    let result = validate_challenge_proof("sess", "nonce", "not-a-timestamp", "[]", "sig", None);
 
     assert!(result.is_err());
     assert!(result.unwrap_err().contains("timestamp"));
@@ -154,8 +132,10 @@ fn test_challenge_proof_message_includes_challenge_marker() {
     let sig = "sig";
 
     // Both should validate successfully (we don't verify actual crypto in Phase 5)
-    let challenge_result = validate_challenge_proof(session_id, nonce, &timestamp, attestations, sig, None);
-    let push_result = validate_refresh_proof(session_id, nonce, &timestamp, attestations, sig, None);
+    let challenge_result =
+        validate_challenge_proof(session_id, nonce, &timestamp, attestations, sig, None);
+    let push_result =
+        validate_refresh_proof(session_id, nonce, &timestamp, attestations, sig, None);
 
     assert!(challenge_result.is_ok());
     assert!(push_result.is_ok());
@@ -293,7 +273,9 @@ fn test_challenge_response_flow_with_attestations() {
     assert!(!request.attestations.is_empty());
 
     // Step 2: Validate challenge proof
-    let timestamp_str = request.timestamp.to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
+    let timestamp_str = request
+        .timestamp
+        .to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
     let attestations_json = serde_json::to_string(&request.attestations).unwrap();
     let proof_result = validate_challenge_proof(
         "session-uuid",
@@ -372,10 +354,8 @@ fn test_both_empty_attestations_and_challenge_nonce() {
 #[test]
 fn test_challenge_expiry_boundary() {
     let now = Utc::now();
-    let response = build_refresh_required_challenge(
-        "nonce".to_string(),
-        vec!["hardware".to_string()],
-    );
+    let response =
+        build_refresh_required_challenge("nonce".to_string(), vec!["hardware".to_string()]);
 
     let expiry = response.challenge.expires_at;
     let diff_seconds = (expiry - now).num_seconds();

@@ -1,4 +1,4 @@
-use super::{HookResult, LifecycleHook, SessionContext, ExecutionContext};
+use super::{ExecutionContext, HookResult, LifecycleHook, SessionContext};
 
 /// Run a session-context hook across all registered hooks.
 /// First Deny wins. Halt stops execution but isn't a violation.
@@ -45,25 +45,37 @@ mod tests {
 
     struct AlwaysContinue;
     impl LifecycleHook for AlwaysContinue {
-        fn name(&self) -> &str { "always_continue" }
+        fn name(&self) -> &str {
+            "always_continue"
+        }
     }
 
     struct AlwaysDeny;
     impl LifecycleHook for AlwaysDeny {
-        fn name(&self) -> &str { "always_deny" }
+        fn name(&self) -> &str {
+            "always_deny"
+        }
         fn on_session_start(&self, _ctx: &SessionContext) -> HookResult {
-            HookResult::Deny { reason: "denied".into() }
+            HookResult::Deny {
+                reason: "denied".into(),
+            }
         }
         fn on_pre_execution(&self, _ctx: &ExecutionContext) -> HookResult {
-            HookResult::Deny { reason: "denied".into() }
+            HookResult::Deny {
+                reason: "denied".into(),
+            }
         }
     }
 
     struct AlwaysHalt;
     impl LifecycleHook for AlwaysHalt {
-        fn name(&self) -> &str { "always_halt" }
+        fn name(&self) -> &str {
+            "always_halt"
+        }
         fn on_pre_execution(&self, _ctx: &ExecutionContext) -> HookResult {
-            HookResult::Halt { reason: "halted".into() }
+            HookResult::Halt {
+                reason: "halted".into(),
+            }
         }
     }
 
@@ -87,10 +99,8 @@ mod tests {
 
     #[test]
     fn test_all_continue() {
-        let hooks: Vec<Box<dyn LifecycleHook>> = vec![
-            Box::new(AlwaysContinue),
-            Box::new(AlwaysContinue),
-        ];
+        let hooks: Vec<Box<dyn LifecycleHook>> =
+            vec![Box::new(AlwaysContinue), Box::new(AlwaysContinue)];
         let result = run_session_hooks(&hooks, &make_session_ctx(), |h, c| h.on_session_start(c));
         assert_eq!(result, HookResult::Continue);
     }
@@ -108,11 +118,9 @@ mod tests {
 
     #[test]
     fn test_halt_stops_execution() {
-        let hooks: Vec<Box<dyn LifecycleHook>> = vec![
-            Box::new(AlwaysHalt),
-            Box::new(AlwaysDeny),
-        ];
-        let result = run_execution_hooks(&hooks, &make_execution_ctx(), |h, c| h.on_pre_execution(c));
+        let hooks: Vec<Box<dyn LifecycleHook>> = vec![Box::new(AlwaysHalt), Box::new(AlwaysDeny)];
+        let result =
+            run_execution_hooks(&hooks, &make_execution_ctx(), |h, c| h.on_pre_execution(c));
         assert!(matches!(result, HookResult::Halt { .. }));
     }
 
@@ -125,11 +133,10 @@ mod tests {
 
     #[test]
     fn test_deny_before_continue() {
-        let hooks: Vec<Box<dyn LifecycleHook>> = vec![
-            Box::new(AlwaysDeny),
-            Box::new(AlwaysContinue),
-        ];
-        let result = run_execution_hooks(&hooks, &make_execution_ctx(), |h, c| h.on_pre_execution(c));
+        let hooks: Vec<Box<dyn LifecycleHook>> =
+            vec![Box::new(AlwaysDeny), Box::new(AlwaysContinue)];
+        let result =
+            run_execution_hooks(&hooks, &make_execution_ctx(), |h, c| h.on_pre_execution(c));
         assert!(matches!(result, HookResult::Deny { .. }));
     }
 }

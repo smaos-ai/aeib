@@ -85,9 +85,10 @@ mod tests {
 
     #[test]
     fn test_trim_none_fit() {
-        let entries = vec![
-            make_entry("a very long content string that exceeds the budget", ConsolidationTier::Semantic),
-        ];
+        let entries = vec![make_entry(
+            "a very long content string that exceeds the budget",
+            ConsolidationTier::Semantic,
+        )];
         let (kept, total) = trim_to_budget(entries, 1, 0.25);
         assert_eq!(kept.len(), 0);
         assert_eq!(total, 0);
@@ -121,9 +122,10 @@ mod tests {
 
     #[test]
     fn test_apply_budget_semantic_and_episodic_trimmed() {
-        let proc = vec![
-            make_entry("procedural workflow step one", ConsolidationTier::Procedural),
-        ];
+        let proc = vec![make_entry(
+            "procedural workflow step one",
+            ConsolidationTier::Procedural,
+        )];
         let sem = vec![make_entry("sem", ConsolidationTier::Semantic)];
         let epi = vec![make_entry("epi", ConsolidationTier::Episodic)];
 

@@ -1,8 +1,8 @@
 use siss_graph_core::node::governance::Severity;
 
+use super::FirewallChecker;
 use crate::context::InspectionContext;
 use crate::types::Violation;
-use super::FirewallChecker;
 
 pub struct BudgetComplianceChecker;
 

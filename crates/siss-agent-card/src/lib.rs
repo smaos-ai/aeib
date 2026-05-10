@@ -1,7 +1,7 @@
-pub mod types;
+pub mod builder;
 pub mod repo;
 pub mod serializer;
-pub mod builder;
+pub mod types;
 
 #[cfg(feature = "axum")]
 pub mod handler;
@@ -13,6 +13,5 @@ pub mod refresh_handler;
 pub mod federation_handler;
 
 pub use types::{
-    AgentCard, AgentCardError, AgentCardNode,
-    Authentication, Capability, SerializeOptions, Skill,
+    AgentCard, AgentCardError, AgentCardNode, Authentication, Capability, SerializeOptions, Skill,
 };

@@ -1,13 +1,13 @@
-pub mod emitter;
-pub mod collecting;
 pub mod callback;
+pub mod collecting;
+pub mod emitter;
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use siss_graph_core::node::execution::HardwareTarget;
 use siss_behavioral_firewall::types::Verdict;
+use siss_graph_core::node::execution::HardwareTarget;
 
 /// All event types emitted by the AG-UI protocol.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -150,19 +150,73 @@ mod tests {
     fn test_all_13_event_types() {
         let now = Utc::now();
         let events = vec![
-            AgentEvent::SessionStarted { session_id: Uuid::nil(), persona_id: Uuid::nil(), timestamp: now },
-            AgentEvent::SessionClosed { session_id: Uuid::nil(), timestamp: now },
-            AgentEvent::HookFired { hook_name: "test".into(), hook_point: HookPoint::PreExecution, result: HookResultSummary::Continue, timestamp: now },
-            AgentEvent::TaskCreated { task_id: Uuid::nil(), intent: "x".into(), timestamp: now },
-            AgentEvent::Authorized { task_id: Uuid::nil(), mandate_id: Uuid::nil(), timestamp: now },
-            AgentEvent::Routed { task_id: Uuid::nil(), hardware_target: HardwareTarget::LocalMlx, timestamp: now },
-            AgentEvent::OutputChunk { task_id: Uuid::nil(), chunk: serde_json::json!("hi"), index: 0, timestamp: now },
-            AgentEvent::Executing { task_id: Uuid::nil(), token_cost: 100, duration_ms: 10, timestamp: now },
-            AgentEvent::FirewallInspected { task_id: Uuid::nil(), verdict: Verdict::Clear, violation_count: 0, timestamp: now },
-            AgentEvent::Scored { task_id: Uuid::nil(), quality_score: 0.75, timestamp: now },
-            AgentEvent::Crystallized { task_id: Uuid::nil(), memory_count: 1, timestamp: now },
-            AgentEvent::IntentCompleted { task_id: Uuid::nil(), quality_score: 0.75, timestamp: now },
-            AgentEvent::Error { message: "fail".into(), timestamp: now },
+            AgentEvent::SessionStarted {
+                session_id: Uuid::nil(),
+                persona_id: Uuid::nil(),
+                timestamp: now,
+            },
+            AgentEvent::SessionClosed {
+                session_id: Uuid::nil(),
+                timestamp: now,
+            },
+            AgentEvent::HookFired {
+                hook_name: "test".into(),
+                hook_point: HookPoint::PreExecution,
+                result: HookResultSummary::Continue,
+                timestamp: now,
+            },
+            AgentEvent::TaskCreated {
+                task_id: Uuid::nil(),
+                intent: "x".into(),
+                timestamp: now,
+            },
+            AgentEvent::Authorized {
+                task_id: Uuid::nil(),
+                mandate_id: Uuid::nil(),
+                timestamp: now,
+            },
+            AgentEvent::Routed {
+                task_id: Uuid::nil(),
+                hardware_target: HardwareTarget::LocalMlx,
+                timestamp: now,
+            },
+            AgentEvent::OutputChunk {
+                task_id: Uuid::nil(),
+                chunk: serde_json::json!("hi"),
+                index: 0,
+                timestamp: now,
+            },
+            AgentEvent::Executing {
+                task_id: Uuid::nil(),
+                token_cost: 100,
+                duration_ms: 10,
+                timestamp: now,
+            },
+            AgentEvent::FirewallInspected {
+                task_id: Uuid::nil(),
+                verdict: Verdict::Clear,
+                violation_count: 0,
+                timestamp: now,
+            },
+            AgentEvent::Scored {
+                task_id: Uuid::nil(),
+                quality_score: 0.75,
+                timestamp: now,
+            },
+            AgentEvent::Crystallized {
+                task_id: Uuid::nil(),
+                memory_count: 1,
+                timestamp: now,
+            },
+            AgentEvent::IntentCompleted {
+                task_id: Uuid::nil(),
+                quality_score: 0.75,
+                timestamp: now,
+            },
+            AgentEvent::Error {
+                message: "fail".into(),
+                timestamp: now,
+            },
         ];
         assert_eq!(events.len(), 13);
     }

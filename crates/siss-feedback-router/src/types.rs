@@ -2,10 +2,10 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use uuid::Uuid;
 
+use siss_behavioral_firewall::types::Verdict;
 use siss_graph_core::node::NodeId;
 use siss_graph_core::node::execution::TaskStatus;
 use siss_graph_core::node::memory::ConsolidationTier;
-use siss_behavioral_firewall::types::Verdict;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CompletionRequest {
@@ -39,10 +39,16 @@ pub enum FeedbackError {
     TaskNotFound { task_id: Uuid },
 
     #[error("invalid task status: current={current:?}, expected={expected:?}")]
-    InvalidTaskStatus { current: TaskStatus, expected: TaskStatus },
+    InvalidTaskStatus {
+        current: TaskStatus,
+        expected: TaskStatus,
+    },
 
     #[error("cross-tenant violation: source {source_tenant} != target {target_tenant}")]
-    TenantViolation { source_tenant: Uuid, target_tenant: Uuid },
+    TenantViolation {
+        source_tenant: Uuid,
+        target_tenant: Uuid,
+    },
 
     #[error("database error: {message}")]
     DatabaseError { message: String },
@@ -50,7 +56,9 @@ pub enum FeedbackError {
 
 impl From<sqlx::Error> for FeedbackError {
     fn from(e: sqlx::Error) -> Self {
-        Self::DatabaseError { message: e.to_string() }
+        Self::DatabaseError {
+            message: e.to_string(),
+        }
     }
 }
 

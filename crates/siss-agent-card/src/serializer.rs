@@ -1,4 +1,4 @@
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 use crate::types::{AgentCard, SerializeOptions};
 
@@ -7,14 +7,18 @@ use crate::types::{AgentCard, SerializeOptions};
 /// Standard fields are always emitted. When `opts.extended` is true, an
 /// `x-siss` block is added with SISS-native fields.
 pub fn to_a2a_json(card: &AgentCard, opts: &SerializeOptions) -> Value {
-    let skills: Vec<Value> = card.skills.iter().map(|s| {
-        json!({
-            "id": s.id,
-            "name": s.name,
-            "description": s.description,
-            "tags": s.tags,
+    let skills: Vec<Value> = card
+        .skills
+        .iter()
+        .map(|s| {
+            json!({
+                "id": s.id,
+                "name": s.name,
+                "description": s.description,
+                "tags": s.tags,
+            })
         })
-    }).collect();
+        .collect();
 
     let mut obj = json!({
         "name": card.node.name,
@@ -56,7 +60,7 @@ mod tests {
     use siss_graph_core::node::execution::HardwareTarget;
     use uuid::Uuid;
 
-    use crate::types::{AgentCardNode, AgentCard, Authentication, Capability, Skill};
+    use crate::types::{AgentCard, AgentCardNode, Authentication, Capability, Skill};
 
     fn make_card() -> AgentCard {
         let node = AgentCardNode {
@@ -74,16 +78,19 @@ mod tests {
         };
         AgentCard {
             node,
-            skills: vec![
-                Skill {
-                    id: "mcp_filesystem".into(),
-                    name: "MCP Filesystem".into(),
-                    description: "Read and write files".into(),
-                    tags: vec!["filesystem".into()],
-                },
-            ],
-            capabilities: Capability { streaming: true, push_notifications: false },
-            authentication: Authentication { schemes: vec!["Bearer".into()] },
+            skills: vec![Skill {
+                id: "mcp_filesystem".into(),
+                name: "MCP Filesystem".into(),
+                description: "Read and write files".into(),
+                tags: vec!["filesystem".into()],
+            }],
+            capabilities: Capability {
+                streaming: true,
+                push_notifications: false,
+            },
+            authentication: Authentication {
+                schemes: vec!["Bearer".into()],
+            },
         }
     }
 

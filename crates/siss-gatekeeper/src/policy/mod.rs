@@ -9,7 +9,7 @@ use siss_graph_core::node::NodeId;
 #[serde(tag = "type", content = "data")]
 pub enum PolicyCondition {
     /// Attestation is present
-    HasAttestationType(String),  // "hardware_enclave", "model_integrity", etc.
+    HasAttestationType(String), // "hardware_enclave", "model_integrity", etc.
 
     /// Attestation is missing
     MissingAttestationType(String),
@@ -21,7 +21,7 @@ pub enum PolicyCondition {
     JurisdictionIs(String),
 
     /// Tool's risk_class is specific value
-    ToolRiskClassIs(String),  // "low", "medium", "high"
+    ToolRiskClassIs(String), // "low", "medium", "high"
 
     /// Tool requires a specific capability
     ToolRequiresCapability(String),
@@ -72,7 +72,7 @@ pub struct CapabilityRule {
     pub id: Uuid,
     pub condition: PolicyCondition,
     pub action: CapabilityAction,
-    pub priority: u32,  // Higher priority = evaluated first
+    pub priority: u32, // Higher priority = evaluated first
 }
 
 /// TrustPolicyNode: defines trust requirements and capability grants for a Persona

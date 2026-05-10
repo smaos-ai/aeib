@@ -1,11 +1,10 @@
 /// Phase 11: Cross-Sovereign Delegation Grants
 /// Transitive delegation within bilateral federation agreements with depth limits
-
 use chrono::{DateTime, Utc};
-use sqlx::PgPool;
-use uuid::Uuid;
-use std::collections::BTreeMap;
 use serde_json::json;
+use sqlx::PgPool;
+use std::collections::BTreeMap;
+use uuid::Uuid;
 
 pub const TRANSITIVITY_DEPTH_MAX: i16 = 3;
 
@@ -51,14 +50,17 @@ pub async fn insert_cross_sovereign_grant(
     }
 
     let id = Uuid::new_v4();
-    let attestation_types_array: Vec<&str> = ceiling_attestation_types.iter().map(|s| s.as_str()).collect();
+    let attestation_types_array: Vec<&str> = ceiling_attestation_types
+        .iter()
+        .map(|s| s.as_str())
+        .collect();
 
     sqlx::query(
         "INSERT INTO cross_sovereign_delegation_grants \
          (id, grantor_agent_id, grantor_sovereign_id, grantee_agent_id, grantee_sovereign_id, \
           federation_peer_id, ceiling_tier, ceiling_attestation_types, transitivity_depth, \
           parent_grant_id, expires_at, status, grant_signature) \
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'active', $12)"
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'active', $12)",
     )
     .bind(id)
     .bind(grantor_agent_id)
@@ -111,7 +113,7 @@ pub async fn revoke_grant(
     // Check ownership before revocation
     let is_owned: bool = sqlx::query_scalar(
         "SELECT EXISTS(SELECT 1 FROM cross_sovereign_delegation_grants \
-         WHERE id = $1 AND grantor_sovereign_id = $2)"
+         WHERE id = $1 AND grantor_sovereign_id = $2)",
     )
     .bind(grant_id)
     .bind(revoking_sovereign_id)
@@ -127,7 +129,7 @@ pub async fn revoke_grant(
         "UPDATE cross_sovereign_delegation_grants \
          SET revoked_at = NOW(), status = 'revoked' \
          WHERE id = $1 \
-         RETURNING 1"
+         RETURNING 1",
     )
     .bind(grant_id)
     .fetch_optional(pool)
@@ -138,7 +140,7 @@ pub async fn revoke_grant(
         // Recursively revoke all children
         let mut tx = pool.begin().await?;
         let children: Vec<Uuid> = sqlx::query_scalar(
-            "SELECT id FROM cross_sovereign_delegation_grants WHERE parent_grant_id = $1"
+            "SELECT id FROM cross_sovereign_delegation_grants WHERE parent_grant_id = $1",
         )
         .bind(grant_id)
         .fetch_all(&mut *tx)
@@ -148,7 +150,7 @@ pub async fn revoke_grant(
             sqlx::query(
                 "UPDATE cross_sovereign_delegation_grants \
                  SET revoked_at = NOW(), status = 'revoked' \
-                 WHERE id = $1"
+                 WHERE id = $1",
             )
             .bind(child_id)
             .execute(&mut *tx)
@@ -170,7 +172,7 @@ pub async fn compute_chain_depth(
 
     loop {
         let parent: Option<Option<Uuid>> = sqlx::query_scalar(
-            "SELECT parent_grant_id FROM cross_sovereign_delegation_grants WHERE id = $1"
+            "SELECT parent_grant_id FROM cross_sovereign_delegation_grants WHERE id = $1",
         )
         .bind(current_id)
         .fetch_optional(pool)
@@ -207,7 +209,10 @@ pub fn build_canonical_grant_payload(
     granted_at: &str,
 ) -> String {
     let mut map = BTreeMap::new();
-    map.insert("ceiling_attestation_types", json!(ceiling_attestation_types));
+    map.insert(
+        "ceiling_attestation_types",
+        json!(ceiling_attestation_types),
+    );
     map.insert("ceiling_tier", json!(ceiling_tier));
     map.insert("grantee_agent_id", json!(grantee_agent_id));
     map.insert("grantee_sovereign_id", json!(grantee_sovereign_id));
@@ -223,7 +228,7 @@ pub fn build_canonical_grant_payload(
 mod tests {
     use super::*;
     use testcontainers::runners::AsyncRunner;
-    use testcontainers::{core::WaitFor, GenericImage, ImageExt};
+    use testcontainers::{GenericImage, ImageExt, core::WaitFor};
 
     async fn setup_postgres() -> (testcontainers::ContainerAsync<GenericImage>, PgPool) {
         let container = GenericImage::new("postgres", "16")
@@ -280,7 +285,7 @@ mod tests {
         sqlx::query(
             "INSERT INTO federation_peers (id, sovereign_a_id, sovereign_b_id, max_admitted_tier, \
              granted_attestation_types, foreign_agent_budget_cap, status) \
-             VALUES ($1, $2, $3, $4, $5, $6, 'active')"
+             VALUES ($1, $2, $3, $4, $5, $6, 'active')",
         )
         .bind(peer_id)
         .bind(sovereign_a)
@@ -471,7 +476,7 @@ mod tests {
 
         // Verify root is revoked
         let root_status: Option<String> = sqlx::query_scalar(
-            "SELECT status FROM cross_sovereign_delegation_grants WHERE id = $1"
+            "SELECT status FROM cross_sovereign_delegation_grants WHERE id = $1",
         )
         .bind(root)
         .fetch_one(&pool)
@@ -481,7 +486,7 @@ mod tests {
 
         // Verify child is also revoked (cascade)
         let child_status: Option<String> = sqlx::query_scalar(
-            "SELECT status FROM cross_sovereign_delegation_grants WHERE id = $1"
+            "SELECT status FROM cross_sovereign_delegation_grants WHERE id = $1",
         )
         .bind(child)
         .fetch_one(&pool)
@@ -529,7 +534,7 @@ mod tests {
         assert!(lookup.is_none());
     }
 
-    #[tokio::test]
+    #[test]
     fn test_canonical_grant_payload_alphabetical() {
         let payload = build_canonical_grant_payload(
             "agent_grantor",
@@ -537,7 +542,10 @@ mod tests {
             "agent_grantee",
             "00000000-0000-0000-0000-000000000002",
             50,
-            &vec!["attestation_type_1".to_string(), "attestation_type_2".to_string()],
+            &vec![
+                "attestation_type_1".to_string(),
+                "attestation_type_2".to_string(),
+            ],
             2,
             "2026-01-01T00:00:00Z",
         );
@@ -562,7 +570,7 @@ mod tests {
         assert!(grantor_sovereign_idx < transitivity_idx);
     }
 
-    #[tokio::test]
+    #[test]
     fn test_canonical_grant_payload_deterministic() {
         let payload1 = build_canonical_grant_payload(
             "agent_grantor",
@@ -586,6 +594,9 @@ mod tests {
             "2026-01-01T00:00:00Z",
         );
 
-        assert_eq!(payload1, payload2, "identical payloads should produce identical canonical strings");
+        assert_eq!(
+            payload1, payload2,
+            "identical payloads should produce identical canonical strings"
+        );
     }
 }

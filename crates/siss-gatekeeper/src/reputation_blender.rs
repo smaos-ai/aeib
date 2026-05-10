@@ -1,9 +1,8 @@
+use crate::behavior_scorer::{BehaviorEvent, BehaviorScorer};
 /// Phase 11: Reputation Blending Engine
 /// Blending home and foreign reputation signals with isolation guarantees
-
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
-use crate::behavior_scorer::{BehaviorEvent, BehaviorScorer};
 
 pub const REPUTATION_ISOLATION: &str = "foreign_signals_cannot_boost_local_tier";
 
@@ -30,7 +29,7 @@ pub fn reputation_signals_to_behavior_events(
                     "negative_reputation".to_string()
                 },
                 tier_delta: *strength,
-                lineage_safe: false,  // REPUTATION_ISOLATION: all foreign signals non-lineage-safe
+                lineage_safe: false, // REPUTATION_ISOLATION: all foreign signals non-lineage-safe
                 scored_at: *scored_at,
             }
         })
@@ -89,7 +88,12 @@ pub fn assert_foreign_events_not_lineage_safe(
 mod tests {
     use super::*;
 
-    fn make_event(event_type: &str, tier_delta: i16, scored_at: DateTime<Utc>, lineage_safe: bool) -> BehaviorEvent {
+    fn make_event(
+        event_type: &str,
+        tier_delta: i16,
+        scored_at: DateTime<Utc>,
+        lineage_safe: bool,
+    ) -> BehaviorEvent {
         BehaviorEvent {
             event_type: event_type.to_string(),
             tier_delta,
@@ -101,32 +105,44 @@ mod tests {
     #[test]
     fn test_blend_zero_weight_pure_home() {
         let now = Utc::now();
-        let home_events = vec![
-            make_event("positive", 1, now - chrono::Duration::hours(1), true),
-        ];
+        let home_events = vec![make_event(
+            "positive",
+            1,
+            now - chrono::Duration::hours(1),
+            true,
+        )];
         let foreign_events = vec![];
 
-        let result = blend_reputation_scores(50, &home_events, &foreign_events, 0.0, now)
-            .expect("blend");
+        let result =
+            blend_reputation_scores(10, &home_events, &foreign_events, 0.0, now).expect("blend");
 
         // With zero weight, foreign contributes nothing; result is home tier + home delta
-        assert_eq!(result, 51, "zero weight should produce home tier + home delta");
+        assert_eq!(
+            result, 11,
+            "zero weight should produce home tier + home delta"
+        );
     }
 
     #[test]
     fn test_reputation_isolation_foreign_cannot_raise_tier() {
         let now = Utc::now();
-        let home_events = vec![];  // No home events = no local reputation boost
-        let foreign_events = vec![
-            make_event("positive", 10, now - chrono::Duration::hours(1), false),
-        ];
+        let home_events = vec![]; // No home events = no local reputation boost
+        let foreign_events = vec![make_event(
+            "positive",
+            10,
+            now - chrono::Duration::hours(1),
+            false,
+        )];
 
-        let result = blend_reputation_scores(100, &home_events, &foreign_events, 1.0, now)
-            .expect("blend");
+        let result =
+            blend_reputation_scores(100, &home_events, &foreign_events, 1.0, now).expect("blend");
 
         // Even with 100% foreign weight and strong positive signals,
         // result cannot exceed home tier (100)
-        assert!(result <= 100, "REPUTATION_ISOLATION: foreign signals cannot raise tier above home");
+        assert!(
+            result <= 100,
+            "REPUTATION_ISOLATION: foreign signals cannot raise tier above home"
+        );
     }
 
     #[test]
@@ -141,59 +157,84 @@ mod tests {
         let events = reputation_signals_to_behavior_events(&signals, sovereign_id);
 
         assert_eq!(events.len(), 2);
-        assert!(events.iter().all(|e| !e.lineage_safe), "all converted events must have lineage_safe=false");
-        assert_eq!(events[0].tier_delta, 5, "positive signal should have positive tier_delta");
-        assert_eq!(events[1].tier_delta, -3, "negative signal should have negative tier_delta");
+        assert!(
+            events.iter().all(|e| !e.lineage_safe),
+            "all converted events must have lineage_safe=false"
+        );
+        assert_eq!(
+            events[0].tier_delta, 5,
+            "positive signal should have positive tier_delta"
+        );
+        assert_eq!(
+            events[1].tier_delta, -3,
+            "negative signal should have negative tier_delta"
+        );
     }
 
     #[test]
     fn test_assert_foreign_not_lineage_safe_rejects_true() {
         let now = Utc::now();
         let events = vec![
-            make_event("test", 1, now, true),  // BAD: should not happen
+            make_event("test", 1, now, true), // BAD: should not happen
         ];
 
         let result = assert_foreign_events_not_lineage_safe(&events);
-        assert!(matches!(result, Err(ReputationBlendError::ForeignEventLineageSafe)));
+        assert!(matches!(
+            result,
+            Err(ReputationBlendError::ForeignEventLineageSafe)
+        ));
     }
 
     #[test]
     fn test_blend_midpoint_lowers_tier() {
         let now = Utc::now();
-        let home_events = vec![
-            make_event("positive", 2, now - chrono::Duration::hours(1), true),
-        ];
-        let foreign_events = vec![
-            make_event("negative", -2, now - chrono::Duration::hours(1), false),
-        ];
+        let home_events = vec![make_event(
+            "positive",
+            2,
+            now - chrono::Duration::hours(1),
+            true,
+        )];
+        let foreign_events = vec![make_event(
+            "negative",
+            -2,
+            now - chrono::Duration::hours(1),
+            false,
+        )];
 
-        let result = blend_reputation_scores(100, &home_events, &foreign_events, 0.5, now)
-            .expect("blend");
+        let result =
+            blend_reputation_scores(100, &home_events, &foreign_events, 0.5, now).expect("blend");
 
         // With negative foreign signals at 50% weight, blended should be lower than home
-        assert!(result <= 100, "negative foreign signals with blending should not exceed home");
+        assert!(
+            result <= 100,
+            "negative foreign signals with blending should not exceed home"
+        );
     }
 
     #[test]
     fn test_decay_applied_to_foreign_signals() {
         let now = Utc::now();
-        let old_time = now - chrono::Duration::days(7);  // 7 days old (outside 3.5-day half-life)
+        let old_time = now - chrono::Duration::days(7); // 7 days old (outside 3.5-day half-life)
 
         let home_events = vec![];
-        let foreign_events = vec![
-            make_event("positive", 10, old_time, false),
-        ];
+        let foreign_events = vec![make_event("positive", 10, old_time, false)];
 
-        let result = blend_reputation_scores(50, &home_events, &foreign_events, 1.0, now)
-            .expect("blend");
+        let result =
+            blend_reputation_scores(50, &home_events, &foreign_events, 1.0, now).expect("blend");
 
         // Old signal should be heavily decayed, so result should be close to 50
-        assert!(result <= 55, "decayed old signals should have minimal impact");
+        assert!(
+            result <= 55,
+            "decayed old signals should have minimal impact"
+        );
     }
 
     #[test]
     fn test_invalid_blend_weight_rejected() {
         let result = blend_reputation_scores(50, &[], &[], 1.5, Utc::now());
-        assert!(matches!(result, Err(ReputationBlendError::InvalidBlendWeight(1.5))));
+        assert!(matches!(
+            result,
+            Err(ReputationBlendError::InvalidBlendWeight(1.5))
+        ));
     }
 }

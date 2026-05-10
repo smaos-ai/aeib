@@ -27,30 +27,45 @@ mod tests {
     #[test]
     fn test_trivial_routes_to_local_mlx() {
         let strategy = ComplexityBasedStrategy;
-        assert_eq!(strategy.decide(ComplexityClass::Trivial), HardwareTarget::LocalMlx);
+        assert_eq!(
+            strategy.decide(ComplexityClass::Trivial),
+            HardwareTarget::LocalMlx
+        );
     }
 
     #[test]
     fn test_simple_routes_to_local_mlx() {
         let strategy = ComplexityBasedStrategy;
-        assert_eq!(strategy.decide(ComplexityClass::Simple), HardwareTarget::LocalMlx);
+        assert_eq!(
+            strategy.decide(ComplexityClass::Simple),
+            HardwareTarget::LocalMlx
+        );
     }
 
     #[test]
     fn test_moderate_routes_to_local_mlx() {
         let strategy = ComplexityBasedStrategy;
-        assert_eq!(strategy.decide(ComplexityClass::Moderate), HardwareTarget::LocalMlx);
+        assert_eq!(
+            strategy.decide(ComplexityClass::Moderate),
+            HardwareTarget::LocalMlx
+        );
     }
 
     #[test]
     fn test_complex_routes_to_remote_frontier() {
         let strategy = ComplexityBasedStrategy;
-        assert_eq!(strategy.decide(ComplexityClass::Complex), HardwareTarget::RemoteFrontier);
+        assert_eq!(
+            strategy.decide(ComplexityClass::Complex),
+            HardwareTarget::RemoteFrontier
+        );
     }
 
     #[test]
     fn test_heavy_routes_to_hybrid() {
         let strategy = ComplexityBasedStrategy;
-        assert_eq!(strategy.decide(ComplexityClass::Heavy), HardwareTarget::Hybrid);
+        assert_eq!(
+            strategy.decide(ComplexityClass::Heavy),
+            HardwareTarget::Hybrid
+        );
     }
 }

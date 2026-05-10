@@ -1,10 +1,10 @@
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use siss_graph_core::node::NodeId;
 use siss_behavioral_firewall::types::{Verdict, Violation};
-use siss_feedback_router::types::CrystallizedMemory;
 use siss_context_cartography::config::RetrievalConfig;
+use siss_feedback_router::types::CrystallizedMemory;
+use siss_graph_core::node::NodeId;
 
 /// Configuration for creating an AgentSession.
 #[derive(Debug, Clone)]
@@ -52,7 +52,10 @@ pub enum AgentShellError {
     RouterError(#[from] siss_job_router::types::RouterError),
 
     #[error("firewall blocked: verdict={verdict:?}, violations={}", violations.len())]
-    FirewallBlocked { verdict: Verdict, violations: Vec<Violation> },
+    FirewallBlocked {
+        verdict: Verdict,
+        violations: Vec<Violation>,
+    },
 
     #[error("feedback error: {0}")]
     FeedbackError(#[from] siss_feedback_router::types::FeedbackError),
@@ -66,7 +69,9 @@ pub enum AgentShellError {
 
 impl From<sqlx::Error> for AgentShellError {
     fn from(e: sqlx::Error) -> Self {
-        Self::DatabaseError { message: e.to_string() }
+        Self::DatabaseError {
+            message: e.to_string(),
+        }
     }
 }
 

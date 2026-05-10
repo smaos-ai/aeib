@@ -36,8 +36,7 @@ pub async fn persist_and_complete(
     }
 
     // Transition: crystallizing → completed
-    siss_graph_db::repo::node_repo::update_task_status(pool, task_id, "completed")
-        .await?;
+    siss_graph_db::repo::node_repo::update_task_status(pool, task_id, "completed").await?;
 
     Ok(())
 }

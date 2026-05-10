@@ -1,11 +1,10 @@
 /// Phase 11: Reputation Signals
 /// Federated reputation signal storage with isolation enforcement
-
 use chrono::{DateTime, Utc};
-use sqlx::PgPool;
-use uuid::Uuid;
-use std::collections::BTreeMap;
 use serde_json::json;
+use sqlx::PgPool;
+use std::collections::BTreeMap;
+use uuid::Uuid;
 
 pub const REPUTATION_ISOLATION: &str = "foreign_signals_cannot_boost_local_tier";
 
@@ -26,7 +25,7 @@ pub async fn insert_reputation_signal(
         "INSERT INTO federated_reputation_signals \
          (id, source_sovereign_id, subject_agent_id, signal_type, signal_strength, \
           source_gossip_message_id, observed_at, signal_signature, lineage_safe) \
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, false)"
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, false)",
     )
     .bind(id)
     .bind(source_sovereign_id)
@@ -56,7 +55,7 @@ pub async fn fetch_reputation_signals_for_agent(
         "SELECT signal_strength, observed_at \
          FROM federated_reputation_signals \
          WHERE source_sovereign_id = $1 AND subject_agent_id = $2 AND observed_at >= $3 \
-         ORDER BY observed_at DESC"
+         ORDER BY observed_at DESC",
     )
     .bind(source_sovereign_id)
     .bind(subject_agent_id)
@@ -79,7 +78,7 @@ pub async fn update_reputation_blend_weight(
         "UPDATE federation_peers \
          SET reputation_blend_weight = $1 \
          WHERE id = $2 \
-         RETURNING 1"
+         RETURNING 1",
     )
     .bind(new_weight)
     .bind(federation_peer_id)
@@ -99,7 +98,7 @@ pub async fn get_reputation_blend_weight(
     sqlx::query_scalar::<_, f64>(
         "SELECT reputation_blend_weight FROM federation_peers \
          WHERE sovereign_a_id = $1 AND sovereign_b_id = $2 AND status = 'active' \
-         LIMIT 1"
+         LIMIT 1",
     )
     .bind(sovereign_a_id)
     .bind(sovereign_b_id)
@@ -129,7 +128,7 @@ pub fn build_canonical_signal_payload(
 mod tests {
     use super::*;
     use testcontainers::runners::AsyncRunner;
-    use testcontainers::{core::WaitFor, GenericImage, ImageExt};
+    use testcontainers::{GenericImage, ImageExt, core::WaitFor};
 
     async fn setup_postgres() -> (testcontainers::ContainerAsync<GenericImage>, PgPool) {
         let container = GenericImage::new("postgres", "16")
@@ -201,14 +200,17 @@ mod tests {
 
         // Verify lineage_safe is false
         let lineage_safe: bool = sqlx::query_scalar(
-            "SELECT lineage_safe FROM federated_reputation_signals WHERE id = $1"
+            "SELECT lineage_safe FROM federated_reputation_signals WHERE id = $1",
         )
         .bind(signal_id)
         .fetch_one(&pool)
         .await
         .expect("fetch");
 
-        assert!(!lineage_safe, "lineage_safe must be false for all foreign signals");
+        assert!(
+            !lineage_safe,
+            "lineage_safe must be false for all foreign signals"
+        );
     }
 
     #[tokio::test]
@@ -249,7 +251,11 @@ mod tests {
             .await
             .expect("fetch");
 
-        assert_eq!(signals.len(), 1, "should only return signal within 7-day window");
+        assert_eq!(
+            signals.len(),
+            1,
+            "should only return signal within 7-day window"
+        );
         assert_eq!(signals[0].0, 5, "signal strength should match");
     }
 
@@ -262,7 +268,7 @@ mod tests {
         sqlx::query(
             "INSERT INTO federation_peers (id, sovereign_a_id, sovereign_b_id, max_admitted_tier, \
              granted_attestation_types, foreign_agent_budget_cap, status) \
-             VALUES ($1, $2, $3, $4, $5, $6, 'active')"
+             VALUES ($1, $2, $3, $4, $5, $6, 'active')",
         )
         .bind(peer_id)
         .bind(sovereign_a)
@@ -274,11 +280,13 @@ mod tests {
         .await
         .expect("insert peer");
 
-        let result = update_reputation_blend_weight(&pool, peer_id, 0.5).await.expect("update");
+        let result = update_reputation_blend_weight(&pool, peer_id, 0.5)
+            .await
+            .expect("update");
         assert!(result, "update should succeed with valid weight");
 
         let weight: f64 = sqlx::query_scalar(
-            "SELECT reputation_blend_weight FROM federation_peers WHERE id = $1"
+            "SELECT reputation_blend_weight FROM federation_peers WHERE id = $1",
         )
         .bind(peer_id)
         .fetch_one(&pool)
@@ -297,7 +305,7 @@ mod tests {
         sqlx::query(
             "INSERT INTO federation_peers (id, sovereign_a_id, sovereign_b_id, max_admitted_tier, \
              granted_attestation_types, foreign_agent_budget_cap, status) \
-             VALUES ($1, $2, $3, $4, $5, $6, 'active')"
+             VALUES ($1, $2, $3, $4, $5, $6, 'active')",
         )
         .bind(peer_id)
         .bind(sovereign_a)
@@ -309,11 +317,13 @@ mod tests {
         .await
         .expect("insert peer");
 
-        let result = update_reputation_blend_weight(&pool, peer_id, 1.5).await.expect("update");
+        let result = update_reputation_blend_weight(&pool, peer_id, 1.5)
+            .await
+            .expect("update");
         assert!(!result, "update with weight > 1.0 should be rejected");
     }
 
-    #[tokio::test]
+    #[test]
     fn test_canonical_signal_payload_alphabetical() {
         let payload = build_canonical_signal_payload(
             "00000000-0000-0000-0000-000000000001",

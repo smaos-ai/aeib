@@ -4,10 +4,10 @@ use uuid::Uuid;
 
 use crate::node::NodeId;
 
-pub mod rebac;
 pub mod ap2;
-pub mod execution_edges;
 pub mod cognitive;
+pub mod execution_edges;
+pub mod rebac;
 
 /// Every edge type in the SISS graph.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

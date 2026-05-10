@@ -1,8 +1,8 @@
-pub mod validate;
-pub mod rebac;
 pub mod ap2;
-pub mod governance;
 pub mod commit;
+pub mod governance;
+pub mod rebac;
+pub mod validate;
 
 use sqlx::PgPool;
 
@@ -41,8 +41,8 @@ pub async fn authorize_task(
         tenant_id,
         task_id,
         persona_id,
-        tenant_id,    // task_tenant_id (validated to match in step 1)
-        tenant_id,    // persona_tenant_id (validated to match in step 1)
+        tenant_id, // task_tenant_id (validated to match in step 1)
+        tenant_id, // persona_tenant_id (validated to match in step 1)
         budget_remaining,
         request.estimated_cost,
     )

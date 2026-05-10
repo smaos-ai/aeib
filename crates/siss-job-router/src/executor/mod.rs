@@ -30,5 +30,8 @@ pub struct ExecutionError {
 
 /// Trait for executing tasks on a hardware backend.
 pub trait Executor: Send + Sync {
-    fn execute(&self, context: TaskContext) -> Pin<Box<dyn Future<Output = Result<ExecutionResult, ExecutionError>> + Send + '_>>;
+    fn execute(
+        &self,
+        context: TaskContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ExecutionResult, ExecutionError>> + Send + '_>>;
 }

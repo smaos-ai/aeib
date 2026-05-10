@@ -20,7 +20,7 @@ pub async fn find_gc_candidates(
                  WHEN 'procedural' THEN 720.0 \
                  ELSE 1.0 \
              END \
-         ) < $2"
+         ) < $2",
     )
     .bind(tenant_id)
     .bind(threshold)
@@ -51,7 +51,7 @@ pub async fn reinforce_memory(
         "UPDATE memories \
          SET last_reinforced_at = NOW(), \
              confidence_score = LEAST(1.0, confidence_score + $2) \
-         WHERE id = $1"
+         WHERE id = $1",
     )
     .bind(memory_id)
     .bind(confidence_boost)
@@ -116,7 +116,7 @@ pub async fn fetch_accessible_memory_ids(
         "SELECT target_id FROM edges \
          WHERE source_id = $1 \
          AND edge_type = 'can_read' \
-         AND tenant_id = $2"
+         AND tenant_id = $2",
     )
     .bind(persona_id)
     .bind(tenant_id)

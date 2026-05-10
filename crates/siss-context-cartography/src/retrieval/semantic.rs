@@ -13,7 +13,11 @@ pub async fn fetch(
     config: &RetrievalConfig,
 ) -> Result<Vec<MemoryEntry>, CartographyError> {
     let rows = siss_graph_db::repo::memory_repo::fetch_memories_by_tier(
-        pool, "semantic", tenant_id, config.confidence_threshold, config.max_semantic as i64,
+        pool,
+        "semantic",
+        tenant_id,
+        config.confidence_threshold,
+        config.max_semantic as i64,
     )
     .await?;
 
@@ -21,7 +25,10 @@ pub async fn fetch(
         .into_iter()
         .filter(|(id, _, _, _)| accessible_ids.is_empty() || accessible_ids.contains(id))
         .map(|(id, content, confidence, _tier)| MemoryEntry {
-            memory_id: id, content, confidence_score: confidence, tier: ConsolidationTier::Semantic,
+            memory_id: id,
+            content,
+            confidence_score: confidence,
+            tier: ConsolidationTier::Semantic,
         })
         .collect();
 

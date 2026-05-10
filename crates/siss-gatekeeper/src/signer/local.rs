@@ -1,5 +1,5 @@
-use ed25519_dalek::{Signer as DalekSigner, SigningKey, Verifier, VerifyingKey};
 use super::{Signer, SigningError};
+use ed25519_dalek::{Signer as DalekSigner, SigningKey, Verifier, VerifyingKey};
 
 pub struct LocalEd25519Signer {
     signing_key: SigningKey,
@@ -10,13 +10,19 @@ impl LocalEd25519Signer {
     pub fn generate() -> Self {
         let signing_key = SigningKey::generate(&mut rand::thread_rng());
         let verifying_key = signing_key.verifying_key();
-        Self { signing_key, verifying_key }
+        Self {
+            signing_key,
+            verifying_key,
+        }
     }
 
     pub fn from_key_bytes(bytes: &[u8; 32]) -> Result<Self, SigningError> {
         let signing_key = SigningKey::from_bytes(bytes);
         let verifying_key = signing_key.verifying_key();
-        Ok(Self { signing_key, verifying_key })
+        Ok(Self {
+            signing_key,
+            verifying_key,
+        })
     }
 
     pub fn signing_key_bytes(&self) -> [u8; 32] {

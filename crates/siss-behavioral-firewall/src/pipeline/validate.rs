@@ -30,8 +30,7 @@ pub async fn validate_and_transition(
         });
     }
 
-    siss_graph_db::repo::node_repo::update_task_status(pool, task_id, "guarding")
-        .await?;
+    siss_graph_db::repo::node_repo::update_task_status(pool, task_id, "guarding").await?;
 
     Ok(())
 }

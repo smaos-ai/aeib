@@ -16,8 +16,7 @@ CREATE TABLE federation_peers (
 
 CREATE UNIQUE INDEX idx_federation_peers_bilateral ON federation_peers(sovereign_a_id, sovereign_b_id, granted_at);
 CREATE INDEX idx_federation_peers_active ON federation_peers(sovereign_a_id, sovereign_b_id)
-  WHERE status = 'active'
-  ORDER BY granted_at DESC;
+  WHERE status = 'active';
 
 CREATE TABLE revocation_certificates (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

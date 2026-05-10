@@ -1,6 +1,6 @@
+pub mod episodic;
 pub mod procedural;
 pub mod semantic;
-pub mod episodic;
 
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -15,10 +15,9 @@ pub async fn retrieve_all_tiers(
     tenant_id: Uuid,
     config: &RetrievalConfig,
 ) -> Result<(Vec<MemoryEntry>, Vec<MemoryEntry>, Vec<MemoryEntry>), CartographyError> {
-    let accessible_ids = siss_graph_db::repo::memory_repo::fetch_accessible_memory_ids(
-        pool, persona_id, tenant_id,
-    )
-    .await?;
+    let accessible_ids =
+        siss_graph_db::repo::memory_repo::fetch_accessible_memory_ids(pool, persona_id, tenant_id)
+            .await?;
 
     let proc = procedural::fetch(pool, tenant_id, &accessible_ids, config).await?;
     let sem = semantic::fetch(pool, tenant_id, &accessible_ids, config).await?;

@@ -1,6 +1,5 @@
 /// Phase 10: Gossip Protocol Repository
 /// Manages idempotent peer-to-peer message delivery for revocation, renegotiation, and heartbeat propagation
-
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -35,13 +34,12 @@ pub async fn mark_gossip_message_processed(
     pool: &PgPool,
     message_id: Uuid,
 ) -> Result<bool, sqlx::Error> {
-    let rows_affected = sqlx::query(
-        "UPDATE gossip_messages SET processed_at = NOW() WHERE id = $1"
-    )
-    .bind(message_id)
-    .execute(pool)
-    .await?
-    .rows_affected();
+    let rows_affected =
+        sqlx::query("UPDATE gossip_messages SET processed_at = NOW() WHERE id = $1")
+            .bind(message_id)
+            .execute(pool)
+            .await?
+            .rows_affected();
 
     Ok(rows_affected > 0)
 }
@@ -58,7 +56,7 @@ pub async fn fetch_unprocessed_gossip_messages(
          FROM gossip_messages \
          WHERE message_type = $1 AND processed_at IS NULL \
          ORDER BY gossip_seq ASC \
-         LIMIT $2"
+         LIMIT $2",
     )
     .bind(message_type)
     .bind(limit)
@@ -105,7 +103,7 @@ pub async fn process_peer_announcement_batch(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use testcontainers::{core::WaitFor, runners::AsyncRunner, GenericImage, ImageExt};
+    use testcontainers::{GenericImage, ImageExt, core::WaitFor, runners::AsyncRunner};
 
     async fn setup_postgres() -> (testcontainers::ContainerAsync<GenericImage>, PgPool) {
         let container = GenericImage::new("postgres", "16")
@@ -162,7 +160,7 @@ mod tests {
 
         // Verify only one row in DB
         let count: i64 = sqlx::query_scalar(
-            "SELECT COUNT(*) FROM gossip_messages WHERE source_sovereign_id = $1"
+            "SELECT COUNT(*) FROM gossip_messages WHERE source_sovereign_id = $1",
         )
         .bind(source_sovereign_id)
         .fetch_one(&pool)
@@ -203,11 +201,14 @@ mod tests {
         .unwrap();
 
         assert!(result1.is_some(), "First insert should succeed");
-        assert!(result2.is_some(), "Second insert with different seq should succeed");
+        assert!(
+            result2.is_some(),
+            "Second insert with different seq should succeed"
+        );
 
         // Verify both rows in DB
         let count: i64 = sqlx::query_scalar(
-            "SELECT COUNT(*) FROM gossip_messages WHERE source_sovereign_id = $1"
+            "SELECT COUNT(*) FROM gossip_messages WHERE source_sovereign_id = $1",
         )
         .bind(source_sovereign_id)
         .fetch_one(&pool)
@@ -238,15 +239,17 @@ mod tests {
         .unwrap();
 
         // Verify initially processed_at is NULL
-        let processed_at_before: Option<String> = sqlx::query_scalar(
-            "SELECT processed_at::text FROM gossip_messages WHERE id = $1"
-        )
-        .bind(message_id)
-        .fetch_one(&pool)
-        .await
-        .unwrap();
+        let processed_at_before: Option<String> =
+            sqlx::query_scalar("SELECT processed_at::text FROM gossip_messages WHERE id = $1")
+                .bind(message_id)
+                .fetch_one(&pool)
+                .await
+                .unwrap();
 
-        assert!(processed_at_before.is_none(), "processed_at should initially be NULL");
+        assert!(
+            processed_at_before.is_none(),
+            "processed_at should initially be NULL"
+        );
 
         // Mark as processed
         let result = mark_gossip_message_processed(&pool, message_id)
@@ -256,15 +259,17 @@ mod tests {
         assert!(result, "mark_gossip_message_processed should return true");
 
         // Verify processed_at is now set
-        let processed_at_after: Option<String> = sqlx::query_scalar(
-            "SELECT processed_at::text FROM gossip_messages WHERE id = $1"
-        )
-        .bind(message_id)
-        .fetch_one(&pool)
-        .await
-        .unwrap();
+        let processed_at_after: Option<String> =
+            sqlx::query_scalar("SELECT processed_at::text FROM gossip_messages WHERE id = $1")
+                .bind(message_id)
+                .fetch_one(&pool)
+                .await
+                .unwrap();
 
-        assert!(processed_at_after.is_some(), "processed_at should be set after marking");
+        assert!(
+            processed_at_after.is_some(),
+            "processed_at should be set after marking"
+        );
     }
 
     #[tokio::test]
@@ -301,13 +306,19 @@ mod tests {
         assert_eq!(messages[2].2, 3, "Third message should have gossip_seq=3");
 
         // Mark first message as processed
-        let _ = mark_gossip_message_processed(&pool, messages[0].0).await.unwrap();
+        let _ = mark_gossip_message_processed(&pool, messages[0].0)
+            .await
+            .unwrap();
 
         // Fetch again
         let messages_after = fetch_unprocessed_gossip_messages(&pool, "revocation", 10)
             .await
             .unwrap();
 
-        assert_eq!(messages_after.len(), 2, "Should fetch 2 unprocessed messages after marking one");
+        assert_eq!(
+            messages_after.len(),
+            2,
+            "Should fetch 2 unprocessed messages after marking one"
+        );
     }
 }

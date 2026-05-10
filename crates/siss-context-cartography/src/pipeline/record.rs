@@ -9,7 +9,9 @@ pub async fn record_visible_field(
     tenant_id: Uuid,
     field: &VisibleField,
 ) -> Result<(), CartographyError> {
-    let all_entries: Vec<&MemoryEntry> = field.procedural.iter()
+    let all_entries: Vec<&MemoryEntry> = field
+        .procedural
+        .iter()
         .chain(field.semantic.iter())
         .chain(field.episodic.iter())
         .collect();
@@ -26,11 +28,9 @@ pub async fn record_visible_field(
         .await?;
     }
 
-    let snapshot = serde_json::to_value(field)
-        .unwrap_or(serde_json::Value::Null);
+    let snapshot = serde_json::to_value(field).unwrap_or(serde_json::Value::Null);
 
-    siss_graph_db::repo::node_repo::update_session_snapshot(pool, session_id, snapshot)
-        .await?;
+    siss_graph_db::repo::node_repo::update_session_snapshot(pool, session_id, snapshot).await?;
 
     Ok(())
 }

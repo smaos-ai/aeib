@@ -142,7 +142,11 @@ mod tests {
     #[test]
     fn test_create_task() {
         let tenant_id = NodeId::new();
-        let task = Task::new("Summarize this document".into(), ComplexityClass::Simple, tenant_id);
+        let task = Task::new(
+            "Summarize this document".into(),
+            ComplexityClass::Simple,
+            tenant_id,
+        );
         assert_eq!(task.intent, "Summarize this document");
         assert_eq!(task.complexity_class, ComplexityClass::Simple);
         assert_eq!(task.status, TaskStatus::Pending);

@@ -1,6 +1,6 @@
-pub mod validate;
-pub mod session;
 pub mod record;
+pub mod session;
+pub mod validate;
 
 use sqlx::PgPool;
 
@@ -25,20 +25,20 @@ pub async fn build_context(
     validate::validate(pool, task_id, persona_id, tenant_id).await?;
 
     // Step 2: Create Session
-    let session_id = session::create_session(
-        pool, task_id, persona_id, tenant_id, request.token_budget,
-    )
-    .await?;
+    let session_id =
+        session::create_session(pool, task_id, persona_id, tenant_id, request.token_budget).await?;
 
     // Step 3: Retrieve memories
-    let (procedural, semantic, episodic) = retrieval::retrieve_all_tiers(
-        pool, persona_id, tenant_id, config,
-    )
-    .await?;
+    let (procedural, semantic, episodic) =
+        retrieval::retrieve_all_tiers(pool, persona_id, tenant_id, config).await?;
 
     // Step 4: Apply token budget
     let (proc_trimmed, sem_trimmed, epi_trimmed, total_tokens) = apply_budget(
-        procedural, semantic, episodic, request.token_budget, config.tokens_per_char,
+        procedural,
+        semantic,
+        episodic,
+        request.token_budget,
+        config.tokens_per_char,
     );
 
     // Build VisibleField

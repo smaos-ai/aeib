@@ -1,9 +1,9 @@
 use regex::Regex;
 use siss_graph_core::node::governance::Severity;
 
+use super::FirewallChecker;
 use crate::context::InspectionContext;
 use crate::types::Violation;
-use super::FirewallChecker;
 
 #[derive(Debug, Clone)]
 pub struct ForbiddenPattern {
@@ -97,7 +97,11 @@ mod tests {
     #[test]
     fn test_clean_output_no_violations() {
         let checker = ContentSafetyChecker::with_defaults();
-        assert!(checker.check(&make_context(serde_json::json!({"result": "hello"}))).is_empty());
+        assert!(
+            checker
+                .check(&make_context(serde_json::json!({"result": "hello"})))
+                .is_empty()
+        );
     }
 
     #[test]
@@ -111,7 +115,9 @@ mod tests {
     #[test]
     fn test_sudo_critical() {
         let checker = ContentSafetyChecker::with_defaults();
-        let v = checker.check(&make_context(serde_json::json!({"cmd": "sudo apt install"})));
+        let v = checker.check(&make_context(
+            serde_json::json!({"cmd": "sudo apt install"}),
+        ));
         assert_eq!(v.len(), 1);
         assert_eq!(v[0].severity, Severity::Critical);
     }
@@ -127,7 +133,9 @@ mod tests {
     #[test]
     fn test_drop_table_enforced() {
         let checker = ContentSafetyChecker::with_defaults();
-        let v = checker.check(&make_context(serde_json::json!({"sql": "DROP TABLE users"})));
+        let v = checker.check(&make_context(
+            serde_json::json!({"sql": "DROP TABLE users"}),
+        ));
         assert_eq!(v.len(), 1);
         assert_eq!(v[0].severity, Severity::Enforced);
     }
@@ -135,7 +143,9 @@ mod tests {
     #[test]
     fn test_multiple_patterns() {
         let checker = ContentSafetyChecker::with_defaults();
-        let v = checker.check(&make_context(serde_json::json!({"cmd": "sudo rm -rf / && eval('x')"})));
+        let v = checker.check(&make_context(
+            serde_json::json!({"cmd": "sudo rm -rf / && eval('x')"}),
+        ));
         assert!(v.len() >= 2);
     }
 

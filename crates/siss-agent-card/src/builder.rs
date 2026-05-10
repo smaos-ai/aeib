@@ -29,17 +29,23 @@ impl<'a> AgentCardBuilder<'a> {
         // 1. Validate persona
         let persona_row = siss_graph_db::repo::node_repo::fetch_persona(self.pool, persona_id.0)
             .await?
-            .ok_or(AgentCardError::PersonaNotFound { persona_id: persona_id.0 })?;
+            .ok_or(AgentCardError::PersonaNotFound {
+                persona_id: persona_id.0,
+            })?;
 
         let (_id, _tenant, _name, _kind, is_frozen) = persona_row;
         if is_frozen {
-            return Err(AgentCardError::PersonaNotFound { persona_id: persona_id.0 });
+            return Err(AgentCardError::PersonaNotFound {
+                persona_id: persona_id.0,
+            });
         }
 
         // 2. Fetch AgentCardNode
         let mut node = fetch_agent_card_node(self.pool, persona_id.0)
             .await?
-            .ok_or(AgentCardError::CardNotFound { persona_id: persona_id.0 })?;
+            .ok_or(AgentCardError::CardNotFound {
+                persona_id: persona_id.0,
+            })?;
 
         // 3. Enumerate tools from CAN_EXECUTE edges (persona → tool)
         let edges = siss_graph_db::repo::edge_repo::find_edges_from(
@@ -56,12 +62,11 @@ impl<'a> AgentCardBuilder<'a> {
         // 4. Build skills from tool rows
         let mut skills = Vec::new();
         for tool_id in &tool_ids {
-            let row: Option<(String, String, String)> = sqlx::query_as(
-                "SELECT name, tool_uri, risk_class::text FROM tools WHERE id = $1"
-            )
-            .bind(tool_id)
-            .fetch_optional(self.pool)
-            .await?;
+            let row: Option<(String, String, String)> =
+                sqlx::query_as("SELECT name, tool_uri, risk_class::text FROM tools WHERE id = $1")
+                    .bind(tool_id)
+                    .fetch_optional(self.pool)
+                    .await?;
 
             if let Some((name, uri, risk_class)) = row {
                 let id = name.to_lowercase().replace(['-', ' '], "_");
@@ -77,8 +82,13 @@ impl<'a> AgentCardBuilder<'a> {
         Ok(AgentCard {
             node,
             skills,
-            capabilities: Capability { streaming: true, push_notifications: false },
-            authentication: Authentication { schemes: vec!["Bearer".into()] },
+            capabilities: Capability {
+                streaming: true,
+                push_notifications: false,
+            },
+            authentication: Authentication {
+                schemes: vec!["Bearer".into()],
+            },
         })
     }
 }
@@ -88,11 +98,7 @@ mod tests {
     use super::*;
     use crate::repo::insert_agent_card_node;
     use chrono::Utc;
-    use testcontainers::{
-        core::WaitFor,
-        runners::AsyncRunner,
-        GenericImage, ImageExt,
-    };
+    use testcontainers::{GenericImage, ImageExt, core::WaitFor, runners::AsyncRunner};
 
     use crate::types::AgentCardNode;
     use siss_graph_core::node::execution::HardwareTarget;
@@ -111,7 +117,9 @@ mod tests {
         let port = container.get_host_port_ipv4(5432).await.unwrap();
         let url = format!("postgres://postgres:postgres@127.0.0.1:{port}/siss_test");
         let pool = PgPool::connect(&url).await.expect("pool connect");
-        siss_graph_db::migrations::run_all(&pool).await.expect("migrations");
+        siss_graph_db::migrations::run_all(&pool)
+            .await
+            .expect("migrations");
         (container, pool)
     }
 
@@ -119,11 +127,10 @@ mod tests {
         let tenant_id = siss_graph_db::repo::node_repo::insert_tenant(pool, "BuilderCorp")
             .await
             .expect("insert tenant");
-        let persona_id = siss_graph_db::repo::node_repo::insert_persona(
-            pool, "Aria", "ai_agent", tenant_id,
-        )
-        .await
-        .expect("insert persona");
+        let persona_id =
+            siss_graph_db::repo::node_repo::insert_persona(pool, "Aria", "ai_agent", tenant_id)
+                .await
+                .expect("insert persona");
         (tenant_id, persona_id)
     }
 
@@ -148,7 +155,9 @@ mod tests {
         let (_container, pool) = start_postgres().await;
         let (tenant_id, persona_id) = make_tenant_and_persona(&pool).await;
         let node = make_card_node(tenant_id, persona_id);
-        insert_agent_card_node(&pool, &node).await.expect("insert card");
+        insert_agent_card_node(&pool, &node)
+            .await
+            .expect("insert card");
 
         let builder = AgentCardBuilder::new(&pool);
         let card = builder
@@ -168,7 +177,11 @@ mod tests {
         let (_container, pool) = start_postgres().await;
         let builder = AgentCardBuilder::new(&pool);
         let err = builder
-            .build(NodeId(Uuid::new_v4()), NodeId(Uuid::new_v4()), "https://example.com")
+            .build(
+                NodeId(Uuid::new_v4()),
+                NodeId(Uuid::new_v4()),
+                "https://example.com",
+            )
             .await
             .unwrap_err();
         assert!(matches!(err, AgentCardError::PersonaNotFound { .. }));
@@ -210,7 +223,11 @@ mod tests {
         let (tenant_id, persona_id) = make_tenant_and_persona(&pool).await;
 
         let tool_id = siss_graph_db::repo::node_repo::insert_tool(
-            &pool, "mcp-filesystem", "mcp://localhost:3000/fs", "medium", tenant_id,
+            &pool,
+            "mcp-filesystem",
+            "mcp://localhost:3000/fs",
+            "medium",
+            tenant_id,
         )
         .await
         .expect("insert tool");
@@ -227,7 +244,9 @@ mod tests {
         .expect("insert edge");
 
         let node = make_card_node(tenant_id, persona_id);
-        insert_agent_card_node(&pool, &node).await.expect("insert card");
+        insert_agent_card_node(&pool, &node)
+            .await
+            .expect("insert card");
 
         let builder = AgentCardBuilder::new(&pool);
         let card = builder

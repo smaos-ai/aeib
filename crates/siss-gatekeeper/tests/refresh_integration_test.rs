@@ -1,6 +1,6 @@
 use chrono::Utc;
-use siss_gatekeeper::refresh::*;
 use siss_gatekeeper::attestation::{Attestation, AttestationType};
+use siss_gatekeeper::refresh::*;
 
 /// Helper function to evaluate attestations and compute trust score and tier
 fn reevaluate_trust(attestations: &[Attestation]) -> Result<(u32, u32), String> {
@@ -30,17 +30,15 @@ fn reevaluate_trust(attestations: &[Attestation]) -> Result<(u32, u32), String> 
 
 #[test]
 fn test_full_refresh_flow() {
-    let attestations = vec![
-        Attestation {
-            attestation_type: AttestationType::HardwareEnclave,
-            format: "sgx_quote".to_string(),
-            payload: "test".to_string(),
-            signature: "sig".to_string(),
-            issuer: "intel".to_string(),
-            issued_at: Utc::now(),
-            valid_until: Utc::now() + chrono::Duration::hours(1),
-        },
-    ];
+    let attestations = vec![Attestation {
+        attestation_type: AttestationType::HardwareEnclave,
+        format: "sgx_quote".to_string(),
+        payload: "test".to_string(),
+        signature: "sig".to_string(),
+        issuer: "intel".to_string(),
+        issued_at: Utc::now(),
+        valid_until: Utc::now() + chrono::Duration::hours(1),
+    }];
 
     let (score, tier) = reevaluate_trust(&attestations).unwrap();
     assert_eq!(score, 50);
@@ -195,7 +193,8 @@ fn test_error_session_token_expired_response() {
 
 #[test]
 fn test_error_attestation_validation_failed_response() {
-    let response = error_attestation_validation_failed("Hardware enclave validation failed".to_string());
+    let response =
+        error_attestation_validation_failed("Hardware enclave validation failed".to_string());
 
     match response {
         AttestationRefreshResponse::Error(e) => {

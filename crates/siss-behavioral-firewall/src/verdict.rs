@@ -34,7 +34,11 @@ mod tests {
     use super::*;
 
     fn make_violation(severity: Severity) -> Violation {
-        Violation { checker: "test".into(), severity, message: "test".into() }
+        Violation {
+            checker: "test".into(),
+            severity,
+            message: "test".into(),
+        }
     }
 
     #[test]
@@ -44,17 +48,26 @@ mod tests {
 
     #[test]
     fn test_advisory_only_clear() {
-        assert_eq!(render_verdict(&[make_violation(Severity::Advisory)]), Verdict::Clear);
+        assert_eq!(
+            render_verdict(&[make_violation(Severity::Advisory)]),
+            Verdict::Clear
+        );
     }
 
     #[test]
     fn test_enforced_blocked() {
-        assert_eq!(render_verdict(&[make_violation(Severity::Enforced)]), Verdict::Blocked);
+        assert_eq!(
+            render_verdict(&[make_violation(Severity::Enforced)]),
+            Verdict::Blocked
+        );
     }
 
     #[test]
     fn test_critical_critical_blocked() {
-        assert_eq!(render_verdict(&[make_violation(Severity::Critical)]), Verdict::CriticalBlocked);
+        assert_eq!(
+            render_verdict(&[make_violation(Severity::Critical)]),
+            Verdict::CriticalBlocked
+        );
     }
 
     #[test]
@@ -69,7 +82,10 @@ mod tests {
 
     #[test]
     fn test_advisory_and_enforced_blocked() {
-        let v = vec![make_violation(Severity::Advisory), make_violation(Severity::Enforced)];
+        let v = vec![
+            make_violation(Severity::Advisory),
+            make_violation(Severity::Enforced),
+        ];
         assert_eq!(render_verdict(&v), Verdict::Blocked);
     }
 }

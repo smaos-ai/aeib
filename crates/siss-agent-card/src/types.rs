@@ -81,7 +81,9 @@ pub enum AgentCardError {
 
 impl From<sqlx::Error> for AgentCardError {
     fn from(e: sqlx::Error) -> Self {
-        AgentCardError::DatabaseError { message: e.to_string() }
+        AgentCardError::DatabaseError {
+            message: e.to_string(),
+        }
     }
 }
 
@@ -111,7 +113,9 @@ mod tests {
 
     #[test]
     fn test_database_error_message() {
-        let err = AgentCardError::DatabaseError { message: "conn refused".into() };
+        let err = AgentCardError::DatabaseError {
+            message: "conn refused".into(),
+        };
         assert_eq!(err.to_string(), "database error: conn refused");
     }
 

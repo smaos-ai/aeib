@@ -24,7 +24,12 @@ pub struct IntentMandate {
 }
 
 impl IntentMandate {
-    pub fn new(budget_limit: i64, risk_class: RiskClass, allowed_tools: Vec<NodeId>, tenant_id: NodeId) -> Self {
+    pub fn new(
+        budget_limit: i64,
+        risk_class: RiskClass,
+        allowed_tools: Vec<NodeId>,
+        tenant_id: NodeId,
+    ) -> Self {
         Self {
             id: NodeId::new(),
             tenant_id,
@@ -58,7 +63,12 @@ pub struct PaymentMandate {
 }
 
 impl PaymentMandate {
-    pub fn new(amount: i64, risk_class: RiskClass, intent_mandate_id: NodeId, tenant_id: NodeId) -> Self {
+    pub fn new(
+        amount: i64,
+        risk_class: RiskClass,
+        intent_mandate_id: NodeId,
+        tenant_id: NodeId,
+    ) -> Self {
         Self {
             id: NodeId::new(),
             tenant_id,
@@ -83,7 +93,12 @@ pub struct PaymentReceipt {
 }
 
 impl PaymentReceipt {
-    pub fn new(amount: i64, payment_mandate_id: NodeId, cryptographic_signature: Vec<u8>, tenant_id: NodeId) -> Self {
+    pub fn new(
+        amount: i64,
+        payment_mandate_id: NodeId,
+        cryptographic_signature: Vec<u8>,
+        tenant_id: NodeId,
+    ) -> Self {
         Self {
             id: NodeId::new(),
             tenant_id,
@@ -103,12 +118,7 @@ mod tests {
     fn test_create_intent_mandate() {
         let tenant_id = NodeId::new();
         let tool_a = NodeId::new();
-        let mandate = IntentMandate::new(
-            1_000_000,
-            RiskClass::Medium,
-            vec![tool_a],
-            tenant_id,
-        );
+        let mandate = IntentMandate::new(1_000_000, RiskClass::Medium, vec![tool_a], tenant_id);
         assert_eq!(mandate.budget_limit, 1_000_000);
         assert_eq!(mandate.budget_spent, 0);
         assert_eq!(mandate.risk_class, RiskClass::Medium);

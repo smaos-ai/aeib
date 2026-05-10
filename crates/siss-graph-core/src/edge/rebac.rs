@@ -67,7 +67,13 @@ mod tests {
         let target = NodeId::new();
         let direct = vec![make_edge(target, EdgeType::DenyRead, tenant)];
         let team = vec![make_edge(target, EdgeType::CanRead, tenant)];
-        let result = evaluate_access(target, EdgeType::CanRead, EdgeType::DenyRead, &direct, &team);
+        let result = evaluate_access(
+            target,
+            EdgeType::CanRead,
+            EdgeType::DenyRead,
+            &direct,
+            &team,
+        );
         assert_eq!(result, AccessDecision::Deny);
     }
 
@@ -93,7 +99,13 @@ mod tests {
         let target = NodeId::new();
         let direct = vec![make_edge(target, EdgeType::CanRead, tenant)];
         let team = vec![make_edge(target, EdgeType::DenyRead, tenant)];
-        let result = evaluate_access(target, EdgeType::CanRead, EdgeType::DenyRead, &direct, &team);
+        let result = evaluate_access(
+            target,
+            EdgeType::CanRead,
+            EdgeType::DenyRead,
+            &direct,
+            &team,
+        );
         assert_eq!(result, AccessDecision::Deny);
     }
 }

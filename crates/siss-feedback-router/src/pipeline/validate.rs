@@ -32,8 +32,7 @@ pub async fn validate_and_transition(
     }
 
     // Transition: guarding → crystallizing
-    siss_graph_db::repo::node_repo::update_task_status(pool, task_id, "crystallizing")
-        .await?;
+    siss_graph_db::repo::node_repo::update_task_status(pool, task_id, "crystallizing").await?;
 
     Ok(intent)
 }

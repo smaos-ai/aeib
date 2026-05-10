@@ -28,13 +28,22 @@ pub struct AuthorizationResult {
 pub enum GatekeeperError {
     // Hard failures — Task transitions to failed
     #[error("cross-tenant violation: source {source_tenant} != target {target_tenant}")]
-    TenantViolation { source_tenant: Uuid, target_tenant: Uuid },
+    TenantViolation {
+        source_tenant: Uuid,
+        target_tenant: Uuid,
+    },
 
     #[error("persona {persona_id} is frozen")]
     PersonaFrozen { persona_id: Uuid },
 
+    #[error("sovereign associated with tenant {tenant_id} is quarantined")]
+    SovereignQuarantined { tenant_id: Uuid },
+
     #[error("critical rule '{rule_name}' violated, persona_frozen={persona_frozen}")]
-    CriticalRuleViolation { rule_name: String, persona_frozen: bool },
+    CriticalRuleViolation {
+        rule_name: String,
+        persona_frozen: bool,
+    },
 
     // Soft failures — Task stays pending
     #[error("access denied for tool {tool_id}")]
@@ -54,7 +63,10 @@ pub enum GatekeeperError {
     TaskNotFound { task_id: Uuid },
 
     #[error("invalid task status: current={current:?}, expected={expected:?}")]
-    InvalidTaskStatus { current: TaskStatus, expected: TaskStatus },
+    InvalidTaskStatus {
+        current: TaskStatus,
+        expected: TaskStatus,
+    },
 
     #[error("signing error: {message}")]
     SigningError { message: String },
@@ -69,6 +81,7 @@ impl GatekeeperError {
             self,
             Self::TenantViolation { .. }
                 | Self::PersonaFrozen { .. }
+                | Self::SovereignQuarantined { .. }
                 | Self::CriticalRuleViolation { .. }
         )
     }
@@ -76,7 +89,9 @@ impl GatekeeperError {
 
 impl From<sqlx::Error> for GatekeeperError {
     fn from(e: sqlx::Error) -> Self {
-        Self::DatabaseError { message: e.to_string() }
+        Self::DatabaseError {
+            message: e.to_string(),
+        }
     }
 }
 
@@ -101,27 +116,42 @@ mod tests {
 
     #[test]
     fn test_gatekeeper_error_is_hard_failure() {
-        assert!(GatekeeperError::TenantViolation {
-            source_tenant: uuid::Uuid::new_v4(),
-            target_tenant: uuid::Uuid::new_v4(),
-        }.is_hard_failure());
+        assert!(
+            GatekeeperError::TenantViolation {
+                source_tenant: uuid::Uuid::new_v4(),
+                target_tenant: uuid::Uuid::new_v4(),
+            }
+            .is_hard_failure()
+        );
 
-        assert!(GatekeeperError::PersonaFrozen {
-            persona_id: uuid::Uuid::new_v4(),
-        }.is_hard_failure());
+        assert!(
+            GatekeeperError::PersonaFrozen {
+                persona_id: uuid::Uuid::new_v4(),
+            }
+            .is_hard_failure()
+        );
 
-        assert!(GatekeeperError::CriticalRuleViolation {
-            rule_name: "test".into(),
-            persona_frozen: true,
-        }.is_hard_failure());
+        assert!(
+            GatekeeperError::CriticalRuleViolation {
+                rule_name: "test".into(),
+                persona_frozen: true,
+            }
+            .is_hard_failure()
+        );
 
-        assert!(!GatekeeperError::AccessDenied {
-            tool_id: uuid::Uuid::new_v4(),
-        }.is_hard_failure());
+        assert!(
+            !GatekeeperError::AccessDenied {
+                tool_id: uuid::Uuid::new_v4(),
+            }
+            .is_hard_failure()
+        );
 
-        assert!(!GatekeeperError::BudgetExceeded {
-            requested: 100,
-            remaining: 50,
-        }.is_hard_failure());
+        assert!(
+            !GatekeeperError::BudgetExceeded {
+                requested: 100,
+                remaining: 50,
+            }
+            .is_hard_failure()
+        );
     }
 }

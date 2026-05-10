@@ -1,5 +1,5 @@
-use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
+use sqlx::postgres::PgPoolOptions;
 
 /// Create a connection pool to the SISS PostgreSQL database.
 pub async fn create_pool(database_url: &str) -> Result<PgPool, sqlx::Error> {

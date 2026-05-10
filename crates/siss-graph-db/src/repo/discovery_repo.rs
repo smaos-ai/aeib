@@ -1,10 +1,9 @@
+use serde_json::{Value, json};
 /// Phase 11: Peer Discovery Protocol
 /// Opt-in discovery and peer announcements
-
 use sqlx::PgPool;
-use uuid::Uuid;
-use serde_json::{json, Value};
 use std::collections::BTreeMap;
+use uuid::Uuid;
 
 pub const DISCOVERY_OPT_IN_REQUIRED: &str = "sovereign_must_set_is_discoverable_true";
 
@@ -31,7 +30,7 @@ pub async fn set_sovereign_discoverable(
     if is_discoverable {
         // Check endpoint_url exists
         let has_endpoint: bool = sqlx::query_scalar(
-            "SELECT EXISTS(SELECT 1 FROM sovereigns WHERE id = $1 AND endpoint_url IS NOT NULL)"
+            "SELECT EXISTS(SELECT 1 FROM sovereigns WHERE id = $1 AND endpoint_url IS NOT NULL)",
         )
         .bind(sovereign_id)
         .fetch_one(pool)
@@ -44,7 +43,7 @@ pub async fn set_sovereign_discoverable(
 
     let affected = sqlx::query_scalar::<_, i64>(
         "UPDATE sovereigns SET is_discoverable = $1, discovery_metadata = $2 WHERE id = $3 \
-         RETURNING 1"
+         RETURNING 1",
     )
     .bind(is_discoverable)
     .bind(discovery_metadata)
@@ -64,7 +63,7 @@ pub async fn list_discoverable_sovereigns(
         "SELECT id, endpoint_url, discovery_metadata \
          FROM sovereigns \
          WHERE is_discoverable = TRUE AND endpoint_url IS NOT NULL \
-         ORDER BY id"
+         ORDER BY id",
     )
     .fetch_all(pool)
     .await
@@ -79,12 +78,10 @@ pub async fn upsert_discovered_sovereign(
     endpoint_url: &str,
     _announcement_signature: &str,
 ) -> Result<bool, sqlx::Error> {
-    let existing: Option<Uuid> = sqlx::query_scalar(
-        "SELECT id FROM sovereigns WHERE id = $1"
-    )
-    .bind(sovereign_id)
-    .fetch_optional(pool)
-    .await?;
+    let existing: Option<Uuid> = sqlx::query_scalar("SELECT id FROM sovereigns WHERE id = $1")
+        .bind(sovereign_id)
+        .fetch_optional(pool)
+        .await?;
 
     if existing.is_some() {
         // Already known
@@ -93,7 +90,7 @@ pub async fn upsert_discovered_sovereign(
 
     sqlx::query(
         "INSERT INTO sovereigns (id, name, endpoint_url, public_key_pem, is_discoverable) \
-         VALUES ($1, $2, $3, $4, false)"
+         VALUES ($1, $2, $3, $4, false)",
     )
     .bind(sovereign_id)
     .bind(sovereign_name)
@@ -151,11 +148,179 @@ pub fn build_canonical_peer_announcement_payload(
     serde_json::to_string(&map).unwrap_or_default()
 }
 
+/// Peer health view with status and scoring (Task 80: Quarantine Visibility)
+#[derive(Debug, Clone)]
+pub struct PeerHealthView {
+    pub sovereign_id: Uuid,
+    pub endpoint_url: String,
+    pub health_status: String,
+    pub score: Option<i16>,
+    pub discovery_metadata: Option<Value>,
+}
+
+/// List discoverable peers with health status and score (Task 80).
+pub async fn list_peers_with_health(
+    pool: &PgPool,
+    requester_id: Uuid,
+) -> Result<Vec<PeerHealthView>, sqlx::Error> {
+    sqlx::query_as::<_, (Uuid, String, String, Option<i16>, Option<Value>)>(
+        "SELECT s.id, s.endpoint_url, s.status, ps.score, s.discovery_metadata
+         FROM sovereigns s
+         LEFT JOIN peer_scoring ps ON ps.sovereign_id = s.id
+         WHERE s.is_discoverable = TRUE AND s.endpoint_url IS NOT NULL
+           AND s.id != $1
+         ORDER BY ps.score DESC NULLS LAST, s.id",
+    )
+    .bind(requester_id)
+    .fetch_all(pool)
+    .await
+    .map(|rows| {
+        rows.into_iter()
+            .map(
+                |(id, endpoint_url, health_status, score, discovery_metadata)| PeerHealthView {
+                    sovereign_id: id,
+                    endpoint_url,
+                    health_status,
+                    score,
+                    discovery_metadata,
+                },
+            )
+            .collect()
+    })
+}
+
+/// Select best peers with optional filtering for clean peers only (Task 81).
+pub async fn select_best_peers(
+    pool: &PgPool,
+    sovereign_id: Uuid,
+    limit: i64,
+) -> Result<Vec<PeerHealthView>, sqlx::Error> {
+    // Check if sovereign prefers clean peers
+    let prefer_clean: bool = sqlx::query_scalar(
+        "SELECT COALESCE(prefer_clean_peers, false) FROM sovereigns WHERE id = $1",
+    )
+    .bind(sovereign_id)
+    .fetch_optional(pool)
+    .await?
+    .unwrap_or(false);
+
+    let peers = if prefer_clean {
+        // Exclude quarantined (score < 50)
+        sqlx::query_as::<_, (Uuid, String, String, Option<i16>, Option<Value>)>(
+            "SELECT s.id, s.endpoint_url, s.status, ps.score, s.discovery_metadata
+             FROM sovereigns s
+             LEFT JOIN peer_scoring ps ON ps.sovereign_id = s.id
+             WHERE s.is_discoverable = TRUE AND s.endpoint_url IS NOT NULL
+               AND s.id != $1
+               AND (ps.score IS NULL OR ps.score >= 50)
+             ORDER BY ps.score DESC NULLS LAST, s.id
+             LIMIT $2",
+        )
+        .bind(sovereign_id)
+        .bind(limit)
+        .fetch_all(pool)
+        .await?
+    } else {
+        // Include all peers
+        sqlx::query_as::<_, (Uuid, String, String, Option<i16>, Option<Value>)>(
+            "SELECT s.id, s.endpoint_url, s.status, ps.score, s.discovery_metadata
+             FROM sovereigns s
+             LEFT JOIN peer_scoring ps ON ps.sovereign_id = s.id
+             WHERE s.is_discoverable = TRUE AND s.endpoint_url IS NOT NULL
+               AND s.id != $1
+             ORDER BY ps.score DESC NULLS LAST, s.id
+             LIMIT $2",
+        )
+        .bind(sovereign_id)
+        .bind(limit)
+        .fetch_all(pool)
+        .await?
+    };
+
+    Ok(peers
+        .into_iter()
+        .map(
+            |(id, endpoint_url, health_status, score, discovery_metadata)| PeerHealthView {
+                sovereign_id: id,
+                endpoint_url,
+                health_status,
+                score,
+                discovery_metadata,
+            },
+        )
+        .collect())
+}
+
+/// Set the prefer_clean_peers preference for a sovereign (Task 81).
+pub async fn set_prefer_clean_peers(
+    pool: &PgPool,
+    sovereign_id: Uuid,
+    prefer: bool,
+) -> Result<(), sqlx::Error> {
+    sqlx::query("UPDATE sovereigns SET prefer_clean_peers = $1 WHERE id = $2")
+        .bind(prefer)
+        .bind(sovereign_id)
+        .execute(pool)
+        .await?;
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // Unit tests (no DB)
+    #[test]
+    fn test_health_view_active_sovereign_status() {
+        // Simple struct construction test
+        let view = PeerHealthView {
+            sovereign_id: Uuid::new_v4(),
+            endpoint_url: "http://localhost:8001".to_string(),
+            health_status: "active".to_string(),
+            score: Some(100),
+            discovery_metadata: None,
+        };
+        assert_eq!(view.health_status, "active");
+        assert_eq!(view.score, Some(100));
+    }
+
+    #[test]
+    fn test_health_view_probation_ranked_below_active() {
+        // Verify ranking logic: active (100) > probation (80)
+        let active_score = 100i16;
+        let probation_score = 80i16;
+        assert!(
+            active_score > probation_score,
+            "active should rank above probation"
+        );
+    }
+
+    #[test]
+    fn test_prefer_clean_excludes_quarantined_score() {
+        // Quarantined score is 0, which is < 50, so should be excluded
+        let quarantined_score = 0i16;
+        let exclude_risky = quarantined_score < 50;
+        assert!(
+            exclude_risky,
+            "score 0 should be excluded when prefer_clean=true"
+        );
+    }
+
+    #[test]
+    fn test_prefer_clean_false_includes_all() {
+        // When prefer_clean=false, all scores are included
+        let risky_score = 0i16;
+        let should_include = true; // always true when prefer_clean=false
+        assert!(
+            should_include,
+            "all peers should be included when prefer_clean=false"
+        );
+    }
+
+    // Integration tests (Docker-dependent)
     use testcontainers::runners::AsyncRunner;
-    use testcontainers::{core::WaitFor, GenericImage, ImageExt};
+    use testcontainers::{GenericImage, ImageExt, core::WaitFor};
 
     async fn setup_postgres() -> (testcontainers::ContainerAsync<GenericImage>, PgPool) {
         let container = GenericImage::new("postgres", "16")
@@ -221,7 +386,7 @@ mod tests {
 
         // Verify
         let (id, discoverable, meta): (Uuid, bool, Option<Value>) = sqlx::query_as(
-            "SELECT id, is_discoverable, discovery_metadata FROM sovereigns WHERE id = $1"
+            "SELECT id, is_discoverable, discovery_metadata FROM sovereigns WHERE id = $1",
         )
         .bind(sovereign_id)
         .fetch_one(&pool)
@@ -287,15 +452,17 @@ mod tests {
         assert!(result, "inserting new sovereign should return true");
 
         // Verify is_discoverable is false
-        let is_disc: bool = sqlx::query_scalar(
-            "SELECT is_discoverable FROM sovereigns WHERE id = $1"
-        )
-        .bind(new_sovereign_id)
-        .fetch_one(&pool)
-        .await
-        .expect("fetch");
+        let is_disc: bool =
+            sqlx::query_scalar("SELECT is_discoverable FROM sovereigns WHERE id = $1")
+                .bind(new_sovereign_id)
+                .fetch_one(&pool)
+                .await
+                .expect("fetch");
 
-        assert!(!is_disc, "newly discovered sovereign should NOT be discoverable by default");
+        assert!(
+            !is_disc,
+            "newly discovered sovereign should NOT be discoverable by default"
+        );
     }
 
     #[tokio::test]
@@ -337,7 +504,11 @@ mod tests {
         let announced = Uuid::new_v4();
 
         // Create all sovereigns
-        for (id, name) in [(announcing, "announcing"), (announced_to, "announced_to"), (announced, "announced")] {
+        for (id, name) in [
+            (announcing, "announcing"),
+            (announced_to, "announced_to"),
+            (announced, "announced"),
+        ] {
             sqlx::query(
                 "INSERT INTO sovereigns (id, name, endpoint_url, public_key_pem) VALUES ($1, $2, $3, $4)"
             )

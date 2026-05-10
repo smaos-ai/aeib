@@ -3,7 +3,6 @@
 /// Deterministic behavior window scoring with exponential decay.
 /// Scores are pure: same events + same now = same output every time.
 /// No Utc::now() calls inside this module (anchor is passed at construction).
-
 use chrono::{DateTime, Utc};
 
 pub const DECAY_HALF_LIFE_DAYS: f64 = 3.5;
@@ -17,7 +16,7 @@ pub const MIN_TIER_DELTA: i32 = -10;
 #[derive(Debug, Clone)]
 pub struct BehaviorEvent {
     pub event_type: String,
-    pub tier_delta: i16,   // Raw delta when event was scored
+    pub tier_delta: i16, // Raw delta when event was scored
     pub scored_at: DateTime<Utc>,
     pub lineage_safe: bool,
 }
@@ -67,9 +66,7 @@ impl BehaviorScorer {
         }
 
         // Clamp to [MIN_TIER_DELTA, MAX_TIER_DELTA]
-        let delta = (sum.round() as i32)
-            .max(MIN_TIER_DELTA)
-            .min(MAX_TIER_DELTA);
+        let delta = (sum.round() as i32).max(MIN_TIER_DELTA).min(MAX_TIER_DELTA);
 
         delta
     }
@@ -88,7 +85,12 @@ impl BehaviorScorer {
 mod tests {
     use super::*;
 
-    fn make_event(event_type: &str, tier_delta: i16, days_ago: f64, lineage_safe: bool) -> BehaviorEvent {
+    fn make_event(
+        event_type: &str,
+        tier_delta: i16,
+        days_ago: f64,
+        lineage_safe: bool,
+    ) -> BehaviorEvent {
         let now = Utc::now();
         let ago_secs = (days_ago * 86400.0) as i64;
         let scored_at = now - chrono::Duration::seconds(ago_secs);
@@ -130,21 +132,18 @@ mod tests {
         let now = Utc::now();
 
         // Recent success
-        let recent = BehaviorScorer::new(
-            vec![make_event("refresh_success", 10, 0.0, true)],
-            now,
-        );
+        let recent = BehaviorScorer::new(vec![make_event("refresh_success", 10, 0.0, true)], now);
         let recent_delta = recent.compute_tier_delta();
 
         // Old success (6 days ago, decayed to ~3% of original)
-        let old = BehaviorScorer::new(
-            vec![make_event("refresh_success", 10, 6.0, true)],
-            now,
-        );
+        let old = BehaviorScorer::new(vec![make_event("refresh_success", 10, 6.0, true)], now);
         let old_delta = old.compute_tier_delta();
 
         // Old event should be much weaker
-        assert!(old_delta < recent_delta, "Old event should have less weight");
+        assert!(
+            old_delta < recent_delta,
+            "Old event should have less weight"
+        );
     }
 
     #[test]
@@ -248,7 +247,7 @@ mod tests {
         // Scenario: Foreign agent injects +10 unsafe event; local agent has -3 safe event
         let events = vec![
             make_event("cross_sovereign_attempt", 10, 0.0, false), // foreign, unsafe
-            make_event("refresh_success", -3, 0.0, true),           // local, safe
+            make_event("refresh_success", -3, 0.0, true),          // local, safe
         ];
 
         let scorer = BehaviorScorer::new(events, now);
@@ -273,7 +272,10 @@ mod tests {
         let delta = scorer.compute_tier_delta();
 
         // Pure poison attempt should have zero effect
-        assert_eq!(delta, 0, "All unsafe events must produce zero delta (poison pill)");
+        assert_eq!(
+            delta, 0,
+            "All unsafe events must produce zero delta (poison pill)"
+        );
     }
 
     #[test]
@@ -282,10 +284,10 @@ mod tests {
 
         // Mix of safe and unsafe: only safe should be scored
         let events = vec![
-            make_event("refresh_success", 2, 0.0, true),             // safe: counted
-            make_event("malicious_boost", 10, 0.0, false),           // unsafe: ignored
-            make_event("refresh_success", 3, 1.0, true),             // safe: counted (decayed)
-            make_event("cross_sovereign_inject", 9, 1.5, false),     // unsafe: ignored
+            make_event("refresh_success", 2, 0.0, true), // safe: counted
+            make_event("malicious_boost", 10, 0.0, false), // unsafe: ignored
+            make_event("refresh_success", 3, 1.0, true), // safe: counted (decayed)
+            make_event("cross_sovereign_inject", 9, 1.5, false), // unsafe: ignored
         ];
 
         let scorer = BehaviorScorer::new(events, now);
@@ -294,7 +296,11 @@ mod tests {
         // Should only count: 2 + 3*decay(1 day)
         // 3.5-day half-life: decay(1) ≈ 0.822
         // Expected: 2 + 2.466 ≈ 4 (after rounding and decay)
-        assert!(delta >= 4 && delta <= 5, "Should count only safe events; got {}", delta);
+        assert!(
+            delta >= 4 && delta <= 5,
+            "Should count only safe events; got {}",
+            delta
+        );
     }
 
     #[test]
@@ -316,7 +322,10 @@ mod tests {
         // Same event: safe → +5, unsafe → 0 (immutable separation)
         assert_eq!(safe_delta, 5);
         assert_eq!(unsafe_delta, 0);
-        assert_ne!(safe_delta, unsafe_delta, "lineage_safe must immutably determine inclusion");
+        assert_ne!(
+            safe_delta, unsafe_delta,
+            "lineage_safe must immutably determine inclusion"
+        );
     }
 
     #[test]
@@ -326,8 +335,8 @@ mod tests {
         // Poison pill test: Foreign agent tries to degrade local agent's tier
         // Even with extreme unsafe events, local tier changes only by local safe events
         let events = vec![
-            make_event("cross_sovereign_tier_attack", -10, 0.0, false),  // foreign attack: -10
-            make_event("local_refresh", 2, 0.0, true),                    // local success: +2
+            make_event("cross_sovereign_tier_attack", -10, 0.0, false), // foreign attack: -10
+            make_event("local_refresh", 2, 0.0, true),                  // local success: +2
         ];
 
         let scorer = BehaviorScorer::new(events, now);
@@ -335,6 +344,9 @@ mod tests {
         let final_tier = scorer.apply_tier_delta(initial_tier);
 
         // Should apply only +2, resulting in tier 7 (not degraded by -10)
-        assert_eq!(final_tier, 7, "Cross-sovereign unsafe events cannot degrade tier");
+        assert_eq!(
+            final_tier, 7,
+            "Cross-sovereign unsafe events cannot degrade tier"
+        );
     }
 }

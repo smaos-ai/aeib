@@ -143,11 +143,13 @@ pub async fn run_all(pool: &PgPool) -> Result<(), sqlx::Error> {
                 .await?;
 
         if !already_applied {
-            sqlx::raw_sql(sql).execute(pool).await?;
+            let mut tx = pool.begin().await?;
+            sqlx::raw_sql(sql).execute(&mut *tx).await?;
             sqlx::query("INSERT INTO _siss_migrations (name) VALUES ($1)")
                 .bind(name)
-                .execute(pool)
+                .execute(&mut *tx)
                 .await?;
+            tx.commit().await?;
         }
     }
 

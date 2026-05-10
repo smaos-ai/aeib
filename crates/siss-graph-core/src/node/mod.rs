@@ -1,5 +1,5 @@
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct NodeId(pub Uuid);
@@ -37,12 +37,12 @@ impl NodeType {
     }
 }
 
-pub mod identity;
-pub mod resource;
-pub mod memory;
-pub mod transaction;
-pub mod governance;
 pub mod execution;
+pub mod governance;
+pub mod identity;
+pub mod memory;
+pub mod resource;
+pub mod transaction;
 
 #[cfg(test)]
 mod tests {

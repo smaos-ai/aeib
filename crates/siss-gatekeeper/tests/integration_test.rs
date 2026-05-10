@@ -88,7 +88,7 @@ fn test_handshake_with_model_integrity_and_hardware_enclave() {
     assert!(result.is_ok());
 
     let (_session_token, capability_token) = result.unwrap();
-    let score = 50 + 30;  // HW + Model = 80 points
+    let score = 50 + 30; // HW + Model = 80 points
     assert!(score >= policy.tier_2_score_threshold);
     assert!(capability_token.delegations.len() > 0);
 }
@@ -98,7 +98,7 @@ fn test_handshake_with_required_enclave_but_none_provided() {
     let mut policy = make_test_policy();
     policy.hardware_enclave_required = true;
 
-    let attestations = vec![];  // No attestations
+    let attestations = vec![]; // No attestations
     let tools = vec![];
 
     let result = evaluate_capabilities(attestations, &policy, tools);
@@ -166,7 +166,7 @@ fn test_multiple_attestations_increase_score() {
     assert!(result.is_ok());
 
     let (_session_token, capability_token) = result.unwrap();
-    let score = 50 + 30 + 20;  // HW + Model + Sovereign = 100 points
+    let score = 50 + 30 + 20; // HW + Model + Sovereign = 100 points
     assert!(score >= policy.tier_1_score_threshold);
     // With tier 1, all high-risk tools should be delegated
     assert!(capability_token.delegations.len() > 0);

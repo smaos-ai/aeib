@@ -1,12 +1,12 @@
-pub mod validate;
-pub mod route;
 pub mod execute;
+pub mod route;
+pub mod validate;
 
 use sqlx::PgPool;
 
 use crate::executor::{Executor, TaskContext};
 use crate::strategy::RoutingStrategy;
-use crate::types::{RoutingRequest, RoutingResult, RouterError};
+use crate::types::{RouterError, RoutingRequest, RoutingResult};
 use siss_graph_core::node::NodeId;
 
 /// The sole entry point for task routing and dispatch.

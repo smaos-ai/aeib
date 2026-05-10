@@ -1,7 +1,6 @@
 /// Federated Trust Resolution (Phase 9)
 /// Pure functions for cross-sovereign tier capping and attestation analysis.
 /// No database access; these are deterministic validators.
-
 use super::attestation::Attestation;
 use uuid::Uuid;
 
@@ -18,10 +17,7 @@ pub struct FederatedContext {
 ///
 /// This is the tier capping rule: foreign agents are capped by the bilateral
 /// agreement, regardless of their local tier.
-pub fn resolve_federated_tier(
-    attestation_tier: u32,
-    bilateral_max_admitted_tier: u16,
-) -> u32 {
+pub fn resolve_federated_tier(attestation_tier: u32, bilateral_max_admitted_tier: u16) -> u32 {
     std::cmp::min(attestation_tier, bilateral_max_admitted_tier as u32)
 }
 
@@ -34,7 +30,12 @@ pub fn is_sovereign_origin_present(attestations: &[Attestation]) -> Option<Strin
         .and_then(|att| {
             serde_json::from_str::<serde_json::Value>(&att.payload)
                 .ok()
-                .and_then(|payload| payload.get("sovereign_id").and_then(|v| v.as_str()).map(|s| s.to_string()))
+                .and_then(|payload| {
+                    payload
+                        .get("sovereign_id")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string())
+                })
         })
 }
 
@@ -48,17 +49,35 @@ pub fn build_canonical_agreement_payload(
     max_admitted_tier: u16,
     granted_attestation_types: &[String],
     foreign_agent_budget_cap: i64,
-    effective_at: &str,  // RFC3339 timestamp
+    effective_at: &str, // RFC3339 timestamp
 ) -> String {
     use std::collections::BTreeMap;
 
     let mut map = BTreeMap::new();
-    map.insert("effective_at", serde_json::Value::String(effective_at.to_string()));
-    map.insert("foreign_agent_budget_cap", serde_json::Value::Number(foreign_agent_budget_cap.into()));
-    map.insert("granted_attestation_types", serde_json::to_value(granted_attestation_types).unwrap_or(serde_json::Value::Array(vec![])));
-    map.insert("max_admitted_tier", serde_json::Value::Number(max_admitted_tier.into()));
-    map.insert("sovereign_a_id", serde_json::Value::String(sovereign_a_id.to_string()));
-    map.insert("sovereign_b_id", serde_json::Value::String(sovereign_b_id.to_string()));
+    map.insert(
+        "effective_at",
+        serde_json::Value::String(effective_at.to_string()),
+    );
+    map.insert(
+        "foreign_agent_budget_cap",
+        serde_json::Value::Number(foreign_agent_budget_cap.into()),
+    );
+    map.insert(
+        "granted_attestation_types",
+        serde_json::to_value(granted_attestation_types).unwrap_or(serde_json::Value::Array(vec![])),
+    );
+    map.insert(
+        "max_admitted_tier",
+        serde_json::Value::Number(max_admitted_tier.into()),
+    );
+    map.insert(
+        "sovereign_a_id",
+        serde_json::Value::String(sovereign_a_id.to_string()),
+    );
+    map.insert(
+        "sovereign_b_id",
+        serde_json::Value::String(sovereign_b_id.to_string()),
+    );
 
     serde_json::to_string(&map).unwrap_or_default()
 }
@@ -71,21 +90,39 @@ pub fn build_canonical_invoice_payload(
     invoice_id: &str,
     creditor_sovereign_id: &str,
     debtor_sovereign_id: &str,
-    period_start: &str,  // RFC3339 timestamp
-    period_end: &str,    // RFC3339 timestamp
+    period_start: &str, // RFC3339 timestamp
+    period_end: &str,   // RFC3339 timestamp
     total_tokens: i64,
     entry_count: i32,
 ) -> String {
     use std::collections::BTreeMap;
 
     let mut map = BTreeMap::new();
-    map.insert("creditor_sovereign_id", serde_json::Value::String(creditor_sovereign_id.to_string()));
-    map.insert("debtor_sovereign_id", serde_json::Value::String(debtor_sovereign_id.to_string()));
+    map.insert(
+        "creditor_sovereign_id",
+        serde_json::Value::String(creditor_sovereign_id.to_string()),
+    );
+    map.insert(
+        "debtor_sovereign_id",
+        serde_json::Value::String(debtor_sovereign_id.to_string()),
+    );
     map.insert("entry_count", serde_json::Value::Number(entry_count.into()));
-    map.insert("invoice_id", serde_json::Value::String(invoice_id.to_string()));
-    map.insert("period_end", serde_json::Value::String(period_end.to_string()));
-    map.insert("period_start", serde_json::Value::String(period_start.to_string()));
-    map.insert("total_tokens", serde_json::Value::Number(total_tokens.into()));
+    map.insert(
+        "invoice_id",
+        serde_json::Value::String(invoice_id.to_string()),
+    );
+    map.insert(
+        "period_end",
+        serde_json::Value::String(period_end.to_string()),
+    );
+    map.insert(
+        "period_start",
+        serde_json::Value::String(period_start.to_string()),
+    );
+    map.insert(
+        "total_tokens",
+        serde_json::Value::Number(total_tokens.into()),
+    );
 
     serde_json::to_string(&map).unwrap_or_default()
 }
@@ -194,7 +231,10 @@ mod tests {
             "sovereign-a",
             "sovereign-b",
             10,
-            &["attestation_type_1".to_string(), "attestation_type_2".to_string()],
+            &[
+                "attestation_type_1".to_string(),
+                "attestation_type_2".to_string(),
+            ],
             500000,
             "2026-05-10T10:00:00Z",
         );
@@ -233,7 +273,10 @@ mod tests {
             "2026-05-10T10:00:00Z",
         );
 
-        assert_eq!(payload1, payload2, "Same inputs must produce identical canonical payloads");
+        assert_eq!(
+            payload1, payload2,
+            "Same inputs must produce identical canonical payloads"
+        );
     }
 
     #[test]
@@ -284,7 +327,10 @@ mod tests {
             42,
         );
 
-        assert_eq!(payload1, payload2, "Same invoice inputs must produce identical canonical payloads");
+        assert_eq!(
+            payload1, payload2,
+            "Same invoice inputs must produce identical canonical payloads"
+        );
     }
 
     #[test]

@@ -16,8 +16,8 @@ pub async fn evaluate_rules(
     budget_remaining: i64,
     estimated_cost: i64,
 ) -> Result<(), GatekeeperError> {
-    let rules = siss_graph_db::repo::governance_repo::find_active_rules(pool, "Task", tenant_id)
-        .await?;
+    let rules =
+        siss_graph_db::repo::governance_repo::find_active_rules(pool, "Task", tenant_id).await?;
 
     let evaluator = RuleEvaluator::default();
     let ctx = EvaluationContext {

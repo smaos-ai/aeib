@@ -1,9 +1,7 @@
 use chrono::Utc;
-use siss_graph_db::repo::{
-    delegation_repo, node_repo, session_repo, challenge_repo,
-};
+use siss_graph_db::repo::{challenge_repo, delegation_repo, node_repo, session_repo};
 use sqlx::PgPool;
-use testcontainers::{core::WaitFor, runners::AsyncRunner, GenericImage, ImageExt};
+use testcontainers::{GenericImage, ImageExt, core::WaitFor, runners::AsyncRunner};
 use uuid::Uuid;
 
 /// Start a test Postgres container and run migrations
@@ -21,7 +19,9 @@ async fn start_postgres() -> (testcontainers::ContainerAsync<GenericImage>, PgPo
     let port = container.get_host_port_ipv4(5432).await.unwrap();
     let url = format!("postgres://postgres:postgres@127.0.0.1:{port}/siss_test");
     let pool = PgPool::connect(&url).await.expect("pool connect");
-    siss_graph_db::migrations::run_all(&pool).await.expect("migrations");
+    siss_graph_db::migrations::run_all(&pool)
+        .await
+        .expect("migrations");
     (container, pool)
 }
 
@@ -115,7 +115,10 @@ async fn test_delegated_session_refresh_with_tier_clamping() {
     // Tuple: (id, tenant_id, status, score, tier, expires_at, parent_session_id, delegated_by_agent_id, ceiling, current_envelope, lineage)
     assert_eq!(result.0, parent_session_id);
     assert!(result.6.is_some(), "parent_session_id should be set");
-    assert!(result.8.is_some(), "delegation_ceiling_envelope should be set");
+    assert!(
+        result.8.is_some(),
+        "delegation_ceiling_envelope should be set"
+    );
 }
 
 #[tokio::test]
@@ -222,7 +225,10 @@ async fn test_revoke_session_marks_status() {
     let result = session_repo::fetch_session_by_token(&pool, "revoke-test-token")
         .await
         .expect("fetch");
-    assert!(result.is_none(), "Revoked session should not be found as active");
+    assert!(
+        result.is_none(),
+        "Revoked session should not be found as active"
+    );
 
     // Verify status is 'revoked' via fetch_session_status_by_token
     let status_result = session_repo::fetch_session_status_by_token(&pool, "revoke-test-token")
@@ -303,12 +309,16 @@ async fn test_revoke_all_descendants_strict_propagation() {
         .expect("revoke root");
 
     // Revoke all descendants of root (parent and child should be revoked)
-    let revoked_count = session_repo::revoke_all_descendants(&pool, root_session_id, "ancestor_revoked")
-        .await
-        .expect("revoke descendants");
+    let revoked_count =
+        session_repo::revoke_all_descendants(&pool, root_session_id, "ancestor_revoked")
+            .await
+            .expect("revoke descendants");
 
     // Verify descendants were revoked (count should be >= 2: parent + child)
-    assert!(revoked_count >= 2, "Should revoke at least parent and child");
+    assert!(
+        revoked_count >= 2,
+        "Should revoke at least parent and child"
+    );
 
     // Verify parent session is now revoked
     let parent_status = session_repo::fetch_session_status_by_token(&pool, "parent-token")
@@ -352,15 +362,10 @@ async fn test_challenge_issued_on_pull_trigger() {
     let required_attestations = vec!["hardware".to_string(), "model".to_string()];
     let expiry = Utc::now() + chrono::Duration::minutes(5);
 
-    let challenge_id = challenge_repo::insert_challenge(
-        &pool,
-        session_id,
-        nonce,
-        &required_attestations,
-        expiry,
-    )
-    .await
-    .expect("insert challenge");
+    let challenge_id =
+        challenge_repo::insert_challenge(&pool, session_id, nonce, &required_attestations, expiry)
+            .await
+            .expect("insert challenge");
 
     assert_ne!(challenge_id, Uuid::nil());
 }
@@ -408,7 +413,10 @@ async fn test_challenge_consumed_atomically() {
     let result2 = challenge_repo::fetch_and_consume_challenge(&pool, session_id, nonce)
         .await
         .expect("consume 2");
-    assert!(result2.is_none(), "Second consumption should fail (already consumed)");
+    assert!(
+        result2.is_none(),
+        "Second consumption should fail (already consumed)"
+    );
 }
 
 #[tokio::test]
@@ -450,7 +458,10 @@ async fn test_challenge_expiry_enforcement() {
         .await
         .expect("fetch");
 
-    assert!(result.is_none(), "Expired challenge should not be consumable");
+    assert!(
+        result.is_none(),
+        "Expired challenge should not be consumable"
+    );
 }
 
 // ====== Phase 6: Response Field Tests ======
@@ -459,7 +470,7 @@ async fn test_challenge_expiry_enforcement() {
 async fn test_success_response_includes_lineage_for_delegated_sessions() {
     // Unit test: verify response structure includes lineage and effective_envelope fields
     use siss_gatekeeper::refresh::{
-        AttestationRefreshResponseSuccess, AttestationEvaluation, AttestationRefreshResponse,
+        AttestationEvaluation, AttestationRefreshResponse, AttestationRefreshResponseSuccess,
     };
     use siss_gatekeeper::tokens::CapabilityToken;
 
@@ -500,9 +511,7 @@ async fn test_success_response_includes_lineage_for_delegated_sessions() {
 #[tokio::test]
 async fn test_success_response_omits_lineage_for_root_sessions() {
     // Unit test: verify root sessions (lineage: null) are serialized correctly
-    use siss_gatekeeper::refresh::{
-        AttestationRefreshResponseSuccess, AttestationEvaluation,
-    };
+    use siss_gatekeeper::refresh::{AttestationEvaluation, AttestationRefreshResponseSuccess};
     use siss_gatekeeper::tokens::CapabilityToken;
 
     let response = AttestationRefreshResponseSuccess {
@@ -539,8 +548,16 @@ async fn test_clamp_tier_to_ceiling() {
     // Unit test: verify tier clamping enforces immutable ceiling
     use siss_gatekeeper::refresh::clamp_tier_to_ceiling;
 
-    assert_eq!(clamp_tier_to_ceiling(1, 2), 1, "Child tier 1 under ceiling 2 unchanged");
-    assert_eq!(clamp_tier_to_ceiling(2, 2), 2, "Child tier 2 at ceiling 2 unchanged");
+    assert_eq!(
+        clamp_tier_to_ceiling(1, 2),
+        1,
+        "Child tier 1 under ceiling 2 unchanged"
+    );
+    assert_eq!(
+        clamp_tier_to_ceiling(2, 2),
+        2,
+        "Child tier 2 at ceiling 2 unchanged"
+    );
     assert_eq!(
         clamp_tier_to_ceiling(1, 3),
         1,

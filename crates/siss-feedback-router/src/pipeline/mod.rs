@@ -1,11 +1,11 @@
-pub mod validate;
 pub mod persist;
+pub mod validate;
 
 use sqlx::PgPool;
 
 use siss_graph_core::node::NodeId;
 
-use crate::crystallizer::{Crystallizer, CrystallizationContext};
+use crate::crystallizer::{CrystallizationContext, Crystallizer};
 use crate::scorer::{Scorer, ScoringContext};
 use crate::types::{CompletionRequest, CompletionResult, FeedbackError};
 

@@ -45,7 +45,10 @@ pub enum CartographyError {
     PersonaNotFound { persona_id: Uuid },
 
     #[error("cross-tenant violation: source {source_tenant} != target {target_tenant}")]
-    TenantViolation { source_tenant: Uuid, target_tenant: Uuid },
+    TenantViolation {
+        source_tenant: Uuid,
+        target_tenant: Uuid,
+    },
 
     #[error("no memories available for persona")]
     NoMemoriesAvailable,
@@ -56,7 +59,9 @@ pub enum CartographyError {
 
 impl From<sqlx::Error> for CartographyError {
     fn from(e: sqlx::Error) -> Self {
-        Self::DatabaseError { message: e.to_string() }
+        Self::DatabaseError {
+            message: e.to_string(),
+        }
     }
 }
 

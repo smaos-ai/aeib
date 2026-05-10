@@ -385,10 +385,7 @@ pub fn build_attestations_evaluation(
 ///
 /// Currently a placeholder that returns an empty object.
 /// Phase 5.1 will integrate with TrustPolicyNode to generate actual capability changes.
-pub fn build_capability_changes(
-    _before_tier: Option<u32>,
-    _after_tier: u32,
-) -> serde_json::Value {
+pub fn build_capability_changes(_before_tier: Option<u32>, _after_tier: u32) -> serde_json::Value {
     serde_json::json!({})
 }
 
@@ -654,13 +651,11 @@ pub fn error_missing_bilateral_agreement() -> AttestationRefreshResponse {
 pub fn error_agent_revoked_by_sovereign() -> AttestationRefreshResponse {
     build_error_response(
         "agent_revoked_by_sovereign".to_string(),
-        "This agent has been revoked by their home sovereign and is no longer trusted."
-            .to_string(),
+        "This agent has been revoked by their home sovereign and is no longer trusted.".to_string(),
         vec![
             "Contact your home sovereignty administrator for revocation reason and remediation"
                 .to_string(),
-            "Request re-attestation or new agent credentials after remediation"
-                .to_string(),
+            "Request re-attestation or new agent credentials after remediation".to_string(),
         ],
         None,
     )
@@ -698,7 +693,7 @@ impl std::fmt::Display for AncestorRevocationError {
 /// - `Ok(())` if all ancestors are safe (active/not revoked)
 /// - `Err(AncestorRevocationError::AncestorRevoked(id))` if revoked ancestor found
 pub fn validate_ancestor_not_revoked(
-    ancestor_status_checks: &[(uuid::Uuid, String)],  // [(ancestor_id, status)]
+    ancestor_status_checks: &[(uuid::Uuid, String)], // [(ancestor_id, status)]
 ) -> Result<(), AncestorRevocationError> {
     for (ancestor_id, status) in ancestor_status_checks {
         if status == "revoked" {
@@ -736,10 +731,10 @@ pub fn compute_token_cost(tier: u32, attestation_count: usize, is_delegated: boo
 
     // Compute tier penalty: tier 3 is reference (0), higher tiers get bonus, lower tiers get penalty
     let tier_penalty = match tier {
-        1 => 100i64,  // FULL: +100 (2 levels × 50)
-        2 => 50i64,   // STANDARD: +50 (1 level × 50)
-        3 => 0i64,    // MINIMAL: 0 (reference)
-        _ => -50i64 * (tier as i64 - 3i64),  // Below tier 3: -50 per level
+        1 => 100i64,                        // FULL: +100 (2 levels × 50)
+        2 => 50i64,                         // STANDARD: +50 (1 level × 50)
+        3 => 0i64,                          // MINIMAL: 0 (reference)
+        _ => -50i64 * (tier as i64 - 3i64), // Below tier 3: -50 per level
     };
 
     // Attestation cost: 10 tokens per attestation type
@@ -749,7 +744,9 @@ pub fn compute_token_cost(tier: u32, attestation_count: usize, is_delegated: boo
     let delegation_cost = if is_delegated { 50u64 } else { 0u64 };
 
     // Compute total with floor enforcement
-    let total_without_floor = (base_cost as i64 + tier_penalty + attestation_cost as i64 + delegation_cost as i64).max(50i64) as u64;
+    let total_without_floor =
+        (base_cost as i64 + tier_penalty + attestation_cost as i64 + delegation_cost as i64)
+            .max(50i64) as u64;
 
     TokenCost {
         total_cost: total_without_floor,
@@ -778,20 +775,21 @@ pub fn parse_rate_limit(rate_limit_json: &str) -> Result<RateLimitConstraints, S
     let value: serde_json::Value = serde_json::from_str(rate_limit_json)
         .map_err(|e| format!("rate_limits_json_parse_error: {}", e))?;
 
-    let obj = value.as_object()
+    let obj = value
+        .as_object()
         .ok_or_else(|| "rate_limits_json_not_object".to_string())?;
 
-    let rate_limit = obj.get("rate_limit")
+    let rate_limit = obj
+        .get("rate_limit")
         .and_then(|v| v.as_str())
         .map(|s| s.to_string());
 
-    let burst_size = obj.get("burst_size")
-        .and_then(|v| v.as_u64());
+    let burst_size = obj.get("burst_size").and_then(|v| v.as_u64());
 
-    let min_interval_ms = obj.get("min_interval_ms")
-        .and_then(|v| v.as_u64());
+    let min_interval_ms = obj.get("min_interval_ms").and_then(|v| v.as_u64());
 
-    let concurrent_sessions = obj.get("concurrent_sessions")
+    let concurrent_sessions = obj
+        .get("concurrent_sessions")
         .and_then(|v| v.as_u64())
         .map(|v| v as u32);
 
@@ -839,7 +837,10 @@ pub fn error_budget_exhausted(initial: u64, remaining: u64) -> AttestationRefres
 pub fn error_concurrent_limit_exceeded(limit: u32) -> AttestationRefreshResponse {
     build_error_response(
         "concurrent_limit_exceeded".to_string(),
-        format!("Maximum concurrent sessions ({}) reached; close a child session and retry", limit),
+        format!(
+            "Maximum concurrent sessions ({}) reached; close a child session and retry",
+            limit
+        ),
         vec![
             "Revoke or close unnecessary child sessions".to_string(),
             "Retry refresh after reducing active delegations".to_string(),
@@ -931,8 +932,14 @@ mod tests {
         let ancestor_id = uuid::Uuid::new_v4();
         let error = AncestorRevocationError::AncestorRevoked(ancestor_id);
         let msg = format!("{}", error);
-        assert!(msg.contains("revoked"), "Error message should mention revocation");
-        assert!(msg.contains(&ancestor_id.to_string()), "Error should include ancestor ID");
+        assert!(
+            msg.contains("revoked"),
+            "Error message should mention revocation"
+        );
+        assert!(
+            msg.contains(&ancestor_id.to_string()),
+            "Error should include ancestor ID"
+        );
     }
 
     #[test]
@@ -1460,8 +1467,16 @@ mod tests {
         let report = build_attestations_evaluation(&attestations, 50);
 
         assert!(report["hardware_enclave"]["passed"].as_bool().unwrap());
-        assert_eq!(report["hardware_enclave"]["score_contribution"].as_u64().unwrap(), 50);
-        assert_eq!(report["hardware_enclave"]["issuer"].as_str().unwrap(), "intel");
+        assert_eq!(
+            report["hardware_enclave"]["score_contribution"]
+                .as_u64()
+                .unwrap(),
+            50
+        );
+        assert_eq!(
+            report["hardware_enclave"]["issuer"].as_str().unwrap(),
+            "intel"
+        );
     }
 
     #[test]
@@ -1490,12 +1505,28 @@ mod tests {
         let report = build_attestations_evaluation(&attestations, 80);
 
         assert!(report["hardware_enclave"]["passed"].as_bool().unwrap());
-        assert_eq!(report["hardware_enclave"]["score_contribution"].as_u64().unwrap(), 50);
-        assert_eq!(report["hardware_enclave"]["issuer"].as_str().unwrap(), "intel");
+        assert_eq!(
+            report["hardware_enclave"]["score_contribution"]
+                .as_u64()
+                .unwrap(),
+            50
+        );
+        assert_eq!(
+            report["hardware_enclave"]["issuer"].as_str().unwrap(),
+            "intel"
+        );
 
         assert!(report["model_integrity"]["passed"].as_bool().unwrap());
-        assert_eq!(report["model_integrity"]["score_contribution"].as_u64().unwrap(), 30);
-        assert_eq!(report["model_integrity"]["issuer"].as_str().unwrap(), "sovereign");
+        assert_eq!(
+            report["model_integrity"]["score_contribution"]
+                .as_u64()
+                .unwrap(),
+            30
+        );
+        assert_eq!(
+            report["model_integrity"]["issuer"].as_str().unwrap(),
+            "sovereign"
+        );
     }
 
     #[test]

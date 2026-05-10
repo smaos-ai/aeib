@@ -76,7 +76,7 @@ pub enum EvaluationError {
 pub fn evaluate_capabilities(
     attestations: Vec<Attestation>,
     policy: &TrustPolicyNode,
-    persona_tools: Vec<(String, String)>,  // (tool_id, risk_class)
+    persona_tools: Vec<(String, String)>, // (tool_id, risk_class)
 ) -> Result<(SessionToken, CapabilityToken), EvaluationError> {
     // Step 0.5: Validate agent classification (added before Step 1)
     // Note: In real implementation, agent_id would be passed in request.agent_card
@@ -100,10 +100,18 @@ pub fn evaluate_capabilities(
             attestation_type: attestation.attestation_type,
             score_contribution: attestation.attestation_type.score_contribution(),
             data_sensitivity_allowed: match attestation.attestation_type {
-                AttestationType::HardwareEnclave => crate::attestation::DataSensitivityLevel::Secret,
-                AttestationType::ModelIntegrity => crate::attestation::DataSensitivityLevel::Confidential,
-                AttestationType::SovereignOrigin => crate::attestation::DataSensitivityLevel::Internal,
-                AttestationType::RuntimeIntegrity => crate::attestation::DataSensitivityLevel::Confidential,
+                AttestationType::HardwareEnclave => {
+                    crate::attestation::DataSensitivityLevel::Secret
+                }
+                AttestationType::ModelIntegrity => {
+                    crate::attestation::DataSensitivityLevel::Confidential
+                }
+                AttestationType::SovereignOrigin => {
+                    crate::attestation::DataSensitivityLevel::Internal
+                }
+                AttestationType::RuntimeIntegrity => {
+                    crate::attestation::DataSensitivityLevel::Confidential
+                }
             },
             hardware_classes_allowed: vec!["LocalMlx".to_string(), "Hybrid".to_string()],
             max_concurrency: 5,
@@ -118,7 +126,9 @@ pub fn evaluate_capabilities(
 
     // Step 2: Check hard requirements
     if policy.hardware_enclave_required
-        && !vectors.iter().any(|v| v.attestation_type == AttestationType::HardwareEnclave)
+        && !vectors
+            .iter()
+            .any(|v| v.attestation_type == AttestationType::HardwareEnclave)
     {
         return Err(EvaluationError::MissingRequiredAttestation(
             "hardware_enclave".to_string(),
@@ -126,13 +136,14 @@ pub fn evaluate_capabilities(
     }
 
     if policy.model_integrity_required
-        && !vectors.iter().any(|v| v.attestation_type == AttestationType::ModelIntegrity)
+        && !vectors
+            .iter()
+            .any(|v| v.attestation_type == AttestationType::ModelIntegrity)
     {
         return Err(EvaluationError::MissingRequiredAttestation(
             "model_integrity".to_string(),
         ));
     }
-
 
     // Step 3: Assign tier from score
     let _tier = if total_score >= policy.tier_1_score_threshold {
@@ -160,13 +171,13 @@ pub fn evaluate_capabilities(
     for rule in policy.capability_overrides.iter().rev() {
         // Evaluate condition (simplified: only checks presence/absence for now)
         let condition_met = match &rule.condition {
-            PolicyCondition::HasAttestationType(att_type) => {
-                vectors.iter().any(|v| v.attestation_type.as_str() == att_type)
-            }
+            PolicyCondition::HasAttestationType(att_type) => vectors
+                .iter()
+                .any(|v| v.attestation_type.as_str() == att_type),
             PolicyCondition::AttestationScoreRange { min, max } => {
                 total_score >= *min && total_score <= *max
             }
-            _ => false,  // Simplified: other conditions not evaluated in this demo
+            _ => false, // Simplified: other conditions not evaluated in this demo
         };
 
         if condition_met {
@@ -225,8 +236,7 @@ pub fn evaluate_capabilities(
         token: format!("capability-token-{}", uuid::Uuid::new_v4()),
         delegations,
         issued_at: now,
-        valid_until: now
-            + chrono::Duration::seconds(policy.capability_token_expiry_seconds as i64),
+        valid_until: now + chrono::Duration::seconds(policy.capability_token_expiry_seconds as i64),
     };
 
     Ok((session_token, capability_token))
@@ -330,9 +340,9 @@ mod tests {
     #[test]
     fn test_evaluate_capabilities_insufficient_score() {
         let mut policy = make_test_policy();
-        policy.tier_3_score_threshold = 100;  // Require score >= 100
+        policy.tier_3_score_threshold = 100; // Require score >= 100
 
-        let attestations = vec![];  // No attestations = score 0
+        let attestations = vec![]; // No attestations = score 0
         let tools = vec![];
 
         let result = evaluate_capabilities(attestations, &policy, tools);
@@ -347,7 +357,7 @@ mod tests {
         let mut policy = make_test_policy();
         policy.hardware_enclave_required = true;
 
-        let attestations = vec![];  // No hardware_enclave attestation
+        let attestations = vec![]; // No hardware_enclave attestation
         let tools = vec![];
 
         let result = evaluate_capabilities(attestations, &policy, tools);
@@ -362,7 +372,7 @@ mod tests {
         let mut policy = make_test_policy();
         policy.model_integrity_required = true;
 
-        let attestations = vec![];  // No model_integrity attestation
+        let attestations = vec![]; // No model_integrity attestation
         let tools = vec![];
 
         let result = evaluate_capabilities(attestations, &policy, tools);

@@ -16,9 +16,9 @@ pub enum ConsolidationTier {
 impl ConsolidationTier {
     pub fn stability_hours(&self) -> f64 {
         match self {
-            Self::Working => 1.0,      // Ephemeral — TTL-based, but defined for completeness
-            Self::Episodic => 48.0,    // 2 days
-            Self::Semantic => 168.0,   // 7 days
+            Self::Working => 1.0,    // Ephemeral — TTL-based, but defined for completeness
+            Self::Episodic => 48.0,  // 2 days
+            Self::Semantic => 168.0, // 7 days
             Self::Procedural => 720.0, // 30 days
         }
     }

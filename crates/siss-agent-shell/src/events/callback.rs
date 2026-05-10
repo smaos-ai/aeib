@@ -36,7 +36,10 @@ mod tests {
         let received = Arc::new(Mutex::new(Vec::new()));
         let received_clone = Arc::clone(&received);
         let emitter = CallbackEmitter::new(move |event| {
-            received_clone.lock().unwrap().push(event.event_type().to_string());
+            received_clone
+                .lock()
+                .unwrap()
+                .push(event.event_type().to_string());
         });
 
         emitter.emit(AgentEvent::SessionStarted {

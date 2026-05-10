@@ -1,8 +1,8 @@
 use siss_graph_core::node::memory::ConsolidationTier;
 use uuid::Uuid;
 
+use super::{CrystallizationContext, Crystallizer};
 use crate::types::CrystallizedMemory;
-use super::{Crystallizer, CrystallizationContext};
 
 /// Default crystallizer: produces one Episodic memory per completed task.
 pub struct EpisodicCrystallizer;

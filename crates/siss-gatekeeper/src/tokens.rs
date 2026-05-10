@@ -4,29 +4,29 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SessionToken {
     pub token: String,
-    pub expires_in: u64,  // seconds
-    pub token_type: String,  // "Bearer"
+    pub expires_in: u64,    // seconds
+    pub token_type: String, // "Bearer"
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Delegation {
-    pub permission: String,  // "can_execute"
-    pub resource_type: String,  // "tool"
-    pub resource_ids: Vec<String>,  // tool UUIDs
+    pub permission: String,        // "can_execute"
+    pub resource_type: String,     // "tool"
+    pub resource_ids: Vec<String>, // tool UUIDs
     pub constraints: DelegationConstraints,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DelegationConstraints {
-    pub rate_limit: Option<String>,  // "1000/minute"
+    pub rate_limit: Option<String>, // "1000/minute"
     pub max_concurrent: Option<u32>,
-    pub allowed_hardware: Option<Vec<String>>,  // ["LocalMlx", "Hybrid"]
+    pub allowed_hardware: Option<Vec<String>>, // ["LocalMlx", "Hybrid"]
     pub max_duration_seconds: Option<u64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CapabilityToken {
-    pub token: String,  // Signed envelope
+    pub token: String, // Signed envelope
     pub delegations: Vec<Delegation>,
     pub issued_at: DateTime<Utc>,
     pub valid_until: DateTime<Utc>,
@@ -34,12 +34,12 @@ pub struct CapabilityToken {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct HandshakeResponse {
-    pub status: String,  // "authenticated" or "denied"
+    pub status: String, // "authenticated" or "denied"
     pub selected_scheme: Option<String>,
     pub session_token: Option<SessionToken>,
     pub capability_token: Option<CapabilityToken>,
     pub trust_policy_requirements: Option<TrustPolicyRequirements>,
-    pub reason: Option<String>,  // For denied responses
+    pub reason: Option<String>, // For denied responses
     pub detail: Option<String>,
 }
 

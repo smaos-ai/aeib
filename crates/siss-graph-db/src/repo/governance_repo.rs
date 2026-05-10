@@ -21,21 +21,24 @@ pub async fn find_active_rules(
     let rows = sqlx::query(
         "SELECT id, name, rule_type::text, expression, severity::text, applies_to \
          FROM governance_rules \
-         WHERE is_active = TRUE AND tenant_id = $1 AND $2 = ANY(applies_to)"
+         WHERE is_active = TRUE AND tenant_id = $1 AND $2 = ANY(applies_to)",
     )
     .bind(tenant_id)
     .bind(node_type)
     .fetch_all(pool)
     .await?;
 
-    Ok(rows.into_iter().map(|row| GovernanceRuleRow {
-        id: row.get("id"),
-        name: row.get("name"),
-        rule_type: row.get("rule_type"),
-        expression: row.get("expression"),
-        severity: row.get("severity"),
-        applies_to: row.get("applies_to"),
-    }).collect())
+    Ok(rows
+        .into_iter()
+        .map(|row| GovernanceRuleRow {
+            id: row.get("id"),
+            name: row.get("name"),
+            rule_type: row.get("rule_type"),
+            expression: row.get("expression"),
+            severity: row.get("severity"),
+            applies_to: row.get("applies_to"),
+        })
+        .collect())
 }
 
 /// Log a governance rule violation by creating a VIOLATED_BY edge.
@@ -48,7 +51,7 @@ pub async fn log_violation(
     let edge_id = Uuid::new_v4();
     sqlx::query(
         "INSERT INTO edges (id, source_id, target_id, edge_type, tenant_id, metadata) \
-         VALUES ($1, $2, $3, 'violated_by'::edge_type, $4, $5)"
+         VALUES ($1, $2, $3, 'violated_by'::edge_type, $4, $5)",
     )
     .bind(edge_id)
     .bind(rule_id)

@@ -6,6 +6,14 @@ Never engage in unstructured "vibe coding". Follow the Plan-Implement-Verify loo
 2. **Goal-Driven Execution:** Transform imperative tasks into verifiable goals (e.g., instead of "add validation", do "write tests for invalid inputs, then make them pass").
 3. **Verify:** Run the test suite after every change. Fix all failures before calling the task done.
 
+## 1a. Inversion Development — Test First, Always
+Before writing any implementation code:
+1. Create the test file (e.g., `crates/<name>/src/tests/`) with failing tests that define the expected behavior.
+2. Confirm the tests fail (`cargo test` → red).
+3. Only then write the implementation to make them pass (`cargo test` → green).
+
+Never write implementation code for a feature that has no failing test. If a task cannot be expressed as a test, write a spec first (see `.claude/SPEC_TEMPLATE.md`).
+
 ## 2. Karpathy Coding Guidelines: Simplicity over Cleverness
 - **No over-engineering.** Do not add abstractions or implement 1,000 lines when 100 will do.
 - **No drive-by refactoring.** Only modify code directly related to the user's explicit request. Do not clean up adjacent code unless instructed.
@@ -58,5 +66,8 @@ crates/
 
 ## 7. Extended Context (load only when relevant)
 - **Architecture:** `docs/architecture/`
-- **Multi-Agent Setup:** `AGENTS.md` *(not yet created)*
+- **Multi-Agent Setup:** `AGENTS.md`
+- **Spec Template:** `.claude/SPEC_TEMPLATE.md` — fill before any feature
+- **Model Routing:** `.claude/MODEL_ROUTING.md`
+- **Wiki (semantic memory):** `docs/wiki/` — query this, not raw chat history
 - **Custom Skills:** `.claude/skills/` *(not yet created)*

@@ -1,6 +1,6 @@
 pub mod budget;
-pub mod tools;
 pub mod content;
+pub mod tools;
 
 use crate::context::InspectionContext;
 use crate::types::Violation;

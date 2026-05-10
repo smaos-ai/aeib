@@ -37,13 +37,34 @@ pub async fn validate(
     // Fetch persona
     let persona_row = siss_graph_db::repo::node_repo::fetch_persona(pool, persona_id)
         .await?
-        .ok_or(GatekeeperError::TaskNotFound { task_id: persona_id })?;
+        .ok_or(GatekeeperError::TaskNotFound {
+            task_id: persona_id,
+        })?;
 
     let (_id, persona_tenant, _name, _kind, is_frozen) = persona_row;
 
     // Verify persona is not frozen
     if is_frozen {
         return Err(GatekeeperError::PersonaFrozen { persona_id });
+    }
+
+    // Phase 15: Check if the sovereign associated with this tenant is quarantined
+    // Fail-closed: reject session creation from quarantined sovereigns
+    if siss_graph_db::repo::session_repo::is_tenant_sovereign_quarantined(pool, tenant_id)
+        .await
+        .unwrap_or(false)
+    {
+        return Err(GatekeeperError::SovereignQuarantined { tenant_id });
+    }
+
+    // Phase 16: Check probation and enforce violation if threshold breached
+    // This is best-effort: DB errors treated as no violation (fail-open on errors)
+    if siss_graph_db::repo::probation_repo::check_and_enforce_violation(pool, tenant_id)
+        .await
+        .unwrap_or(false)
+    {
+        // Violation was detected and sovereign re-quarantined — block session
+        return Err(GatekeeperError::SovereignQuarantined { tenant_id });
     }
 
     // Verify tenant isolation: persona tenant == request tenant
@@ -83,7 +104,10 @@ mod tests {
         assert_eq!(parse_task_status("routing"), TaskStatus::Routing);
         assert_eq!(parse_task_status("executing"), TaskStatus::Executing);
         assert_eq!(parse_task_status("guarding"), TaskStatus::Guarding);
-        assert_eq!(parse_task_status("crystallizing"), TaskStatus::Crystallizing);
+        assert_eq!(
+            parse_task_status("crystallizing"),
+            TaskStatus::Crystallizing
+        );
         assert_eq!(parse_task_status("completed"), TaskStatus::Completed);
         assert_eq!(parse_task_status("failed"), TaskStatus::Failed);
         assert_eq!(parse_task_status("unknown"), TaskStatus::Failed);

@@ -5,22 +5,25 @@ use sqlx::PgPool;
 
 use siss_graph_core::node::NodeId;
 
-use siss_context_cartography::types::{CartographyRequest, VisibleField};
-use siss_gatekeeper::signer::Signer;
-use siss_job_router::strategy::RoutingStrategy;
-use siss_job_router::executor::Executor;
 use siss_behavioral_firewall::checker::FirewallChecker;
-use siss_feedback_router::scorer::Scorer;
+use siss_context_cartography::types::{CartographyRequest, VisibleField};
 use siss_feedback_router::crystallizer::Crystallizer;
+use siss_feedback_router::scorer::Scorer;
+use siss_gatekeeper::signer::Signer;
+use siss_job_router::executor::Executor;
+use siss_job_router::strategy::RoutingStrategy;
 
-use crate::events::{AgentEvent, emitter::{EventEmitter, NoOpEmitter}};
+use crate::events::{
+    AgentEvent,
+    emitter::{EventEmitter, NoOpEmitter},
+};
+use crate::hooks::audit::AuditLogHook;
+use crate::hooks::budget::BudgetGuardHook;
+use crate::hooks::gatekeeper::GatekeeperHook;
 use crate::hooks::{
     ExecutionContext, HookResult, LifecycleHook, SessionContext,
-    runner::{run_session_hooks, run_execution_hooks},
+    runner::{run_execution_hooks, run_session_hooks},
 };
-use crate::hooks::gatekeeper::GatekeeperHook;
-use crate::hooks::budget::BudgetGuardHook;
-use crate::hooks::audit::AuditLogHook;
 use crate::pipeline;
 use crate::types::{AgentShellError, IntentParams, IntentResult, SessionConfig};
 
@@ -90,12 +93,15 @@ impl AgentSession {
         };
         // Cartography may fail if persona has no task — we handle gracefully
         let visible_field = siss_context_cartography::pipeline::build_context(
-            &pool, &cartography_request, &config.retrieval_config,
+            &pool,
+            &cartography_request,
+            &config.retrieval_config,
         )
         .await
         .ok();
 
-        let session_id = visible_field.as_ref()
+        let session_id = visible_field
+            .as_ref()
             .map(|vf| vf.session_id)
             .unwrap_or(NodeId(uuid::Uuid::nil()));
 
@@ -145,7 +151,10 @@ impl AgentSession {
     }
 
     /// Submit an intent for execution through the full value loop.
-    pub async fn submit_intent(&mut self, params: IntentParams) -> Result<IntentResult, AgentShellError> {
+    pub async fn submit_intent(
+        &mut self,
+        params: IntentParams,
+    ) -> Result<IntentResult, AgentShellError> {
         // 1. Fire PreExecution hooks
         let exec_ctx = ExecutionContext {
             task_id: None,

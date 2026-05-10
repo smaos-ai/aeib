@@ -21,12 +21,8 @@ CREATE INDEX idx_delegation_edges_tenant ON delegation_edges(tenant_id);
 ALTER TABLE delegation_edges
   ADD CONSTRAINT check_no_self_delegation CHECK (source_persona_id != target_persona_id);
 
--- Constraint: Ensure tenant consistency between source and target personas
-ALTER TABLE delegation_edges
-  ADD CONSTRAINT check_delegation_tenant_consistency CHECK (
-    (SELECT tenant_id FROM personas WHERE id = source_persona_id) = tenant_id AND
-    (SELECT tenant_id FROM personas WHERE id = target_persona_id) = tenant_id
-  );
+-- NOTE: Tenant consistency is enforced at application layer, not via CHECK constraints
+-- (PostgreSQL CHECK constraints cannot use subqueries)
 
 -- Constraint: Prevent duplicate delegation edges (one active delegation per source-target pair)
 CREATE UNIQUE INDEX idx_delegation_edges_unique ON delegation_edges(source_persona_id, target_persona_id) WHERE delegated_at IS NOT NULL;

@@ -20,7 +20,10 @@ impl TenantViolation {
 
 /// Verify that two entities belong to the same tenant.
 /// Returns Ok(()) if they match, Err(TenantViolation) if they don't.
-pub fn check_tenant_isolation(source_tenant: NodeId, target_tenant: NodeId) -> Result<(), TenantViolation> {
+pub fn check_tenant_isolation(
+    source_tenant: NodeId,
+    target_tenant: NodeId,
+) -> Result<(), TenantViolation> {
     if source_tenant == target_tenant {
         Ok(())
     } else {

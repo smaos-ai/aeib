@@ -22,9 +22,5 @@ ALTER TABLE sessions
 CREATE INDEX idx_sessions_parent ON sessions(parent_session_id) WHERE parent_session_id IS NOT NULL;
 CREATE INDEX idx_sessions_delegated_by ON sessions(delegated_by_agent_id) WHERE delegated_by_agent_id IS NOT NULL;
 
--- Constraint: Ensure tenant_id consistency (parent and child sessions in same tenant)
-ALTER TABLE sessions
-  ADD CONSTRAINT check_delegation_tenant_consistency CHECK (
-    parent_session_id IS NULL OR
-    (SELECT tenant_id FROM sessions ps WHERE ps.id = parent_session_id) = tenant_id
-  );
+-- NOTE: Tenant consistency is enforced at application layer, not via CHECK constraints
+-- (PostgreSQL CHECK constraints cannot use subqueries)

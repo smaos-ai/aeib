@@ -1,9 +1,9 @@
 use siss_graph_core::node::governance::Severity;
 use uuid::Uuid;
 
+use super::FirewallChecker;
 use crate::context::InspectionContext;
 use crate::types::Violation;
-use super::FirewallChecker;
 
 pub struct ToolComplianceChecker;
 
@@ -62,10 +62,14 @@ fn is_uuid_format(s: &str) -> bool {
     for (i, &b) in bytes.iter().enumerate() {
         match i {
             8 | 13 | 18 | 23 => {
-                if b != b'-' { return false; }
+                if b != b'-' {
+                    return false;
+                }
             }
             _ => {
-                if !b.is_ascii_hexdigit() { return false; }
+                if !b.is_ascii_hexdigit() {
+                    return false;
+                }
             }
         }
     }
@@ -89,7 +93,8 @@ mod tests {
     #[test]
     fn test_no_uuids_in_output_no_violation() {
         let checker = ToolComplianceChecker;
-        let ctx = make_context_with_output(serde_json::json!({"result": "hello"}), vec![Uuid::new_v4()]);
+        let ctx =
+            make_context_with_output(serde_json::json!({"result": "hello"}), vec![Uuid::new_v4()]);
         assert!(checker.check(&ctx).is_empty());
     }
 
@@ -97,7 +102,10 @@ mod tests {
     fn test_authorized_uuid_no_violation() {
         let tool_id = Uuid::new_v4();
         let checker = ToolComplianceChecker;
-        let ctx = make_context_with_output(serde_json::json!({"tool": tool_id.to_string()}), vec![tool_id]);
+        let ctx = make_context_with_output(
+            serde_json::json!({"tool": tool_id.to_string()}),
+            vec![tool_id],
+        );
         assert!(checker.check(&ctx).is_empty());
     }
 
@@ -106,7 +114,10 @@ mod tests {
         let authorized = Uuid::new_v4();
         let unauthorized = Uuid::new_v4();
         let checker = ToolComplianceChecker;
-        let ctx = make_context_with_output(serde_json::json!({"tool": unauthorized.to_string()}), vec![authorized]);
+        let ctx = make_context_with_output(
+            serde_json::json!({"tool": unauthorized.to_string()}),
+            vec![authorized],
+        );
         let violations = checker.check(&ctx);
         assert_eq!(violations.len(), 1);
         assert_eq!(violations[0].severity, Severity::Enforced);
@@ -115,7 +126,10 @@ mod tests {
     #[test]
     fn test_empty_authorized_tools_skips() {
         let checker = ToolComplianceChecker;
-        let ctx = make_context_with_output(serde_json::json!({"tool": Uuid::new_v4().to_string()}), vec![]);
+        let ctx = make_context_with_output(
+            serde_json::json!({"tool": Uuid::new_v4().to_string()}),
+            vec![],
+        );
         assert!(checker.check(&ctx).is_empty());
     }
 

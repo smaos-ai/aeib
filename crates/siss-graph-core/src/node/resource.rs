@@ -48,7 +48,12 @@ pub struct Skill {
 }
 
 impl Skill {
-    pub fn new(name: String, definition: String, required_tools: Vec<NodeId>, tenant_id: NodeId) -> Self {
+    pub fn new(
+        name: String,
+        definition: String,
+        required_tools: Vec<NodeId>,
+        tenant_id: NodeId,
+    ) -> Self {
         Self {
             id: NodeId::new(),
             tenant_id,

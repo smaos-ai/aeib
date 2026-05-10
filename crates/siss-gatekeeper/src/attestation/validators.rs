@@ -45,7 +45,12 @@ pub fn build_attestation_vector(attestation: &Attestation) -> AttestationVector 
     let jurisdiction = if attestation.attestation_type == super::AttestationType::SovereignOrigin {
         serde_json::from_str::<serde_json::Value>(&attestation.payload)
             .ok()
-            .and_then(|payload| payload.get("sovereign_id").and_then(|v| v.as_str()).map(|s| s.to_string()))
+            .and_then(|payload| {
+                payload
+                    .get("sovereign_id")
+                    .and_then(|v| v.as_str())
+                    .map(|s| s.to_string())
+            })
     } else {
         None
     };
@@ -66,7 +71,7 @@ pub fn build_attestation_vector(attestation: &Attestation) -> AttestationVector 
             super::AttestationType::SovereignOrigin => 5,
             super::AttestationType::RuntimeIntegrity => 3,
         },
-        max_session_ttl_seconds: Some(86400),  // 24 hours default
+        max_session_ttl_seconds: Some(86400), // 24 hours default
         jurisdiction,
         verified_at: Utc::now(),
         valid_until: attestation.valid_until,
@@ -82,7 +87,8 @@ pub fn verify_sovereign_origin_signature(
     // 1. Decode signature from hex to 64-byte array
     let sig_bytes = hex::decode(&attestation.signature)
         .map_err(|_| AttestationValidationError::SignatureInvalid)?;
-    let sig_array: [u8; 64] = sig_bytes.try_into()
+    let sig_array: [u8; 64] = sig_bytes
+        .try_into()
         .map_err(|_| AttestationValidationError::SignatureInvalid)?;
     let signature = ed25519_dalek::Signature::from_bytes(&sig_array);
 
@@ -97,7 +103,8 @@ pub fn verify_sovereign_origin_signature(
         .map_err(|_| AttestationValidationError::PayloadMalformed)?;
 
     // 4. Verify signature in strict mode
-    verifying_key.verify_strict(canonical.as_bytes(), &signature)
+    verifying_key
+        .verify_strict(canonical.as_bytes(), &signature)
         .map_err(|_| AttestationValidationError::SignatureInvalid)
 }
 
@@ -145,16 +152,16 @@ pub fn parse_ed25519_pem(pem_str: &str) -> Result<[u8; 32], ()> {
     let begin_marker = "-----BEGIN PUBLIC KEY-----";
     let end_marker = "-----END PUBLIC KEY-----";
 
-    let start = pem_str.find(begin_marker)
+    let start = pem_str
+        .find(begin_marker)
         .ok_or(())?
         .saturating_add(begin_marker.len());
-    let end = pem_str[start..].find(end_marker)
+    let end = pem_str[start..]
+        .find(end_marker)
         .ok_or(())?
         .saturating_add(start);
 
-    let b64_str = pem_str[start..end]
-        .split_whitespace()
-        .collect::<String>();
+    let b64_str = pem_str[start..end].split_whitespace().collect::<String>();
 
     let engine = base64::engine::general_purpose::STANDARD;
     let der = engine.decode(&b64_str).map_err(|_| ())?;
@@ -206,7 +213,10 @@ mod tests {
         };
 
         let result = validate_attestation(&attestation, 3600, &["intel".to_string()]);
-        assert!(matches!(result, Err(AttestationValidationError::IssuerNotTrusted)));
+        assert!(matches!(
+            result,
+            Err(AttestationValidationError::IssuerNotTrusted)
+        ));
     }
 
     #[test]
@@ -258,11 +268,21 @@ mod tests {
 
         let vector = build_attestation_vector(&attestation);
 
-        assert_eq!(vector.attestation_type, super::super::AttestationType::HardwareEnclave);
+        assert_eq!(
+            vector.attestation_type,
+            super::super::AttestationType::HardwareEnclave
+        );
         assert_eq!(vector.score_contribution, 50);
-        assert_eq!(vector.data_sensitivity_allowed, super::super::DataSensitivityLevel::Secret);
+        assert_eq!(
+            vector.data_sensitivity_allowed,
+            super::super::DataSensitivityLevel::Secret
+        );
         assert_eq!(vector.max_concurrency, 10);
-        assert!(vector.hardware_classes_allowed.contains(&"LocalMlx".to_string()));
+        assert!(
+            vector
+                .hardware_classes_allowed
+                .contains(&"LocalMlx".to_string())
+        );
     }
 
     #[test]
@@ -280,9 +300,15 @@ mod tests {
 
         let vector = build_attestation_vector(&attestation);
 
-        assert_eq!(vector.attestation_type, super::super::AttestationType::ModelIntegrity);
+        assert_eq!(
+            vector.attestation_type,
+            super::super::AttestationType::ModelIntegrity
+        );
         assert_eq!(vector.score_contribution, 30);
-        assert_eq!(vector.data_sensitivity_allowed, super::super::DataSensitivityLevel::Confidential);
+        assert_eq!(
+            vector.data_sensitivity_allowed,
+            super::super::DataSensitivityLevel::Confidential
+        );
         assert_eq!(vector.max_concurrency, 5);
     }
 
@@ -301,9 +327,15 @@ mod tests {
 
         let vector = build_attestation_vector(&attestation);
 
-        assert_eq!(vector.attestation_type, super::super::AttestationType::SovereignOrigin);
+        assert_eq!(
+            vector.attestation_type,
+            super::super::AttestationType::SovereignOrigin
+        );
         assert_eq!(vector.score_contribution, 20);
-        assert_eq!(vector.data_sensitivity_allowed, super::super::DataSensitivityLevel::Internal);
+        assert_eq!(
+            vector.data_sensitivity_allowed,
+            super::super::DataSensitivityLevel::Internal
+        );
         assert_eq!(vector.max_concurrency, 5);
     }
 
@@ -322,9 +354,15 @@ mod tests {
 
         let vector = build_attestation_vector(&attestation);
 
-        assert_eq!(vector.attestation_type, super::super::AttestationType::RuntimeIntegrity);
+        assert_eq!(
+            vector.attestation_type,
+            super::super::AttestationType::RuntimeIntegrity
+        );
         assert_eq!(vector.score_contribution, 20);
-        assert_eq!(vector.data_sensitivity_allowed, super::super::DataSensitivityLevel::Confidential);
+        assert_eq!(
+            vector.data_sensitivity_allowed,
+            super::super::DataSensitivityLevel::Confidential
+        );
         assert_eq!(vector.max_concurrency, 3);
     }
 
@@ -378,7 +416,8 @@ mod tests {
             format: "jurisdiction_cert".to_string(),
             payload: r#"{"sovereign_id":"eu-001"}"#.to_string(),
             signature: "0000000000000000000000000000000000000000000000000000000000000000\
-                       0000000000000000000000000000000000000000000000000000000000000000".to_string(),
+                       0000000000000000000000000000000000000000000000000000000000000000"
+                .to_string(),
             issuer: "eu-authority".to_string(),
             issued_at: now,
             valid_until: now + chrono::Duration::days(365),
@@ -396,7 +435,10 @@ mod tests {
         );
 
         let result = verify_sovereign_origin_signature(&attestation, &pem);
-        assert!(matches!(result, Err(AttestationValidationError::SignatureInvalid)));
+        assert!(matches!(
+            result,
+            Err(AttestationValidationError::SignatureInvalid)
+        ));
     }
 
     #[test]
@@ -414,7 +456,10 @@ mod tests {
 
         let malformed_pem = "not a valid pem string";
         let result = verify_sovereign_origin_signature(&attestation, malformed_pem);
-        assert!(matches!(result, Err(AttestationValidationError::SignatureInvalid)));
+        assert!(matches!(
+            result,
+            Err(AttestationValidationError::SignatureInvalid)
+        ));
     }
 
     #[test]
@@ -463,8 +508,12 @@ mod tests {
             canonical1.find("\"payload\""),
             canonical1.find("\"valid_until\""),
         ];
-        assert!(keys_pos[0] < keys_pos[1] && keys_pos[1] < keys_pos[2] &&
-                keys_pos[2] < keys_pos[3] && keys_pos[3] < keys_pos[4] &&
-                keys_pos[4] < keys_pos[5]);
+        assert!(
+            keys_pos[0] < keys_pos[1]
+                && keys_pos[1] < keys_pos[2]
+                && keys_pos[2] < keys_pos[3]
+                && keys_pos[3] < keys_pos[4]
+                && keys_pos[4] < keys_pos[5]
+        );
     }
 }

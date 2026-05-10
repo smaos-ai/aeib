@@ -1,6 +1,4 @@
-use super::{
-    ExecutionContext, HookResult, LifecycleHook, SessionContext, ToolUseContext,
-};
+use super::{ExecutionContext, HookResult, LifecycleHook, SessionContext, ToolUseContext};
 
 /// Logs all lifecycle events. In the future this will write to the knowledge graph.
 /// For now it collects events in memory for testing/debugging.

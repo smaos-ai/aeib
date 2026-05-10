@@ -1,14 +1,17 @@
-use std::pin::Pin;
 use std::future::Future;
+use std::pin::Pin;
 
-use super::{Executor, ExecutionError, TaskContext};
+use super::{ExecutionError, Executor, TaskContext};
 use crate::types::ExecutionResult;
 
 /// A deterministic mock executor for tests.
 pub struct MockExecutor;
 
 impl Executor for MockExecutor {
-    fn execute(&self, context: TaskContext) -> Pin<Box<dyn Future<Output = Result<ExecutionResult, ExecutionError>> + Send + '_>> {
+    fn execute(
+        &self,
+        context: TaskContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ExecutionResult, ExecutionError>> + Send + '_>> {
         Box::pin(async move {
             Ok(ExecutionResult {
                 output: serde_json::json!({
@@ -28,7 +31,10 @@ pub struct FailingExecutor {
 }
 
 impl Executor for FailingExecutor {
-    fn execute(&self, _context: TaskContext) -> Pin<Box<dyn Future<Output = Result<ExecutionResult, ExecutionError>> + Send + '_>> {
+    fn execute(
+        &self,
+        _context: TaskContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ExecutionResult, ExecutionError>> + Send + '_>> {
         Box::pin(async move {
             Err(ExecutionError {
                 message: self.error_message.clone(),

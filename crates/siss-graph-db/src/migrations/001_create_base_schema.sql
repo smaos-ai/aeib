@@ -11,7 +11,7 @@ CREATE TYPE mandate_status AS ENUM ('pending', 'approved', 'rejected', 'expired'
 CREATE TYPE task_status AS ENUM ('pending', 'authorized', 'routing', 'executing', 'guarding', 'crystallizing', 'completed', 'failed');
 CREATE TYPE hardware_target AS ENUM ('local_mlx', 'remote_frontier', 'hybrid');
 CREATE TYPE complexity_class AS ENUM ('trivial', 'simple', 'moderate', 'complex', 'heavy');
-CREATE TYPE session_status AS ENUM ('active', 'suspended', 'completed', 'evicted');
+CREATE TYPE session_status AS ENUM ('active', 'suspended', 'completed', 'evicted', 'revoked');
 CREATE TYPE rule_type AS ENUM ('rebac', 'ap2', 'memory_lifecycle', 'task_fsm', 'context', 'custom');
 CREATE TYPE severity AS ENUM ('advisory', 'enforced', 'critical');
 

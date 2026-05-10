@@ -58,7 +58,7 @@ pub async fn insert_agent_card_node(
     let edge_id = Uuid::new_v4();
     sqlx::query(
         "INSERT INTO edges (id, source_id, target_id, edge_type, tenant_id, metadata) \
-         VALUES ($1, $2, $3, 'has_agent_card'::edge_type, $4, '{}'::jsonb)"
+         VALUES ($1, $2, $3, 'has_agent_card'::edge_type, $4, '{}'::jsonb)",
     )
     .bind(edge_id)
     .bind(node.persona_id.0)
@@ -78,42 +78,61 @@ pub async fn fetch_agent_card_node(
     persona_id: Uuid,
 ) -> Result<Option<AgentCardNode>, AgentCardError> {
     #[allow(clippy::type_complexity)]
-    let row: Option<(Uuid, Uuid, Uuid, String, String, String, String, String, i64, chrono::DateTime<Utc>)> =
-        sqlx::query_as(
-            "SELECT id, tenant_id, persona_id, name, description, version, url, \
+    let row: Option<(
+        Uuid,
+        Uuid,
+        Uuid,
+        String,
+        String,
+        String,
+        String,
+        String,
+        i64,
+        chrono::DateTime<Utc>,
+    )> = sqlx::query_as(
+        "SELECT id, tenant_id, persona_id, name, description, version, url, \
              hardware_affinity::text, budget_cap, created_at \
-             FROM agent_cards WHERE persona_id = $1"
-        )
-        .bind(persona_id)
-        .fetch_optional(pool)
-        .await?;
+             FROM agent_cards WHERE persona_id = $1",
+    )
+    .bind(persona_id)
+    .fetch_optional(pool)
+    .await?;
 
-    row.map(|(id, tenant_id, persona_id, name, description, version, url, hw, budget_cap, created_at)| {
-        Ok(AgentCardNode {
-            id: NodeId(id),
-            tenant_id: NodeId(tenant_id),
-            persona_id: NodeId(persona_id),
+    row.map(
+        |(
+            id,
+            tenant_id,
+            persona_id,
             name,
             description,
             version,
             url,
-            hardware_affinity: parse_hardware_target(&hw)?,
+            hw,
             budget_cap,
-            allowed_tools: vec![],
             created_at,
-        })
-    })
+        )| {
+            Ok(AgentCardNode {
+                id: NodeId(id),
+                tenant_id: NodeId(tenant_id),
+                persona_id: NodeId(persona_id),
+                name,
+                description,
+                version,
+                url,
+                hardware_affinity: parse_hardware_target(&hw)?,
+                budget_cap,
+                allowed_tools: vec![],
+                created_at,
+            })
+        },
+    )
     .transpose()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use testcontainers::{
-        core::WaitFor,
-        runners::AsyncRunner,
-        GenericImage, ImageExt,
-    };
+    use testcontainers::{GenericImage, ImageExt, core::WaitFor, runners::AsyncRunner};
 
     async fn start_postgres() -> (testcontainers::ContainerAsync<GenericImage>, PgPool) {
         let container = GenericImage::new("postgres", "16")
@@ -129,7 +148,9 @@ mod tests {
         let port = container.get_host_port_ipv4(5432).await.unwrap();
         let url = format!("postgres://postgres:postgres@127.0.0.1:{port}/siss_test");
         let pool = PgPool::connect(&url).await.expect("pool connect");
-        siss_graph_db::migrations::run_all(&pool).await.expect("migrations");
+        siss_graph_db::migrations::run_all(&pool)
+            .await
+            .expect("migrations");
         (container, pool)
     }
 
@@ -137,11 +158,10 @@ mod tests {
         let tenant_id = siss_graph_db::repo::node_repo::insert_tenant(pool, "TestCorp")
             .await
             .expect("insert tenant");
-        let persona_id = siss_graph_db::repo::node_repo::insert_persona(
-            pool, "Aria", "ai_agent", tenant_id,
-        )
-        .await
-        .expect("insert persona");
+        let persona_id =
+            siss_graph_db::repo::node_repo::insert_persona(pool, "Aria", "ai_agent", tenant_id)
+                .await
+                .expect("insert persona");
         (tenant_id, persona_id)
     }
 

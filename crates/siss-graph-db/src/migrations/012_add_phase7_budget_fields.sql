@@ -3,9 +3,9 @@
 
 -- Add budget fields to sessions table
 ALTER TABLE sessions
-  ADD COLUMN token_budget_initial i64 NOT NULL DEFAULT 1000000,
-  ADD COLUMN token_budget_remaining i64 NOT NULL DEFAULT 1000000,
-  ADD COLUMN token_budget_consumed i64 NOT NULL DEFAULT 0,
+  ADD COLUMN token_budget_initial BIGINT NOT NULL DEFAULT 1000000,
+  ADD COLUMN token_budget_remaining BIGINT NOT NULL DEFAULT 1000000,
+  ADD COLUMN token_budget_consumed BIGINT NOT NULL DEFAULT 0,
   ADD COLUMN token_budget_reset_at TIMESTAMPTZ DEFAULT NOW(),
   ADD COLUMN rate_limits JSONB,
   ADD COLUMN last_refresh_at TIMESTAMPTZ;

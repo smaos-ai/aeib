@@ -14,7 +14,9 @@ pub async fn check_and_debit(
     // Fetch mandate
     let mandate_row = siss_graph_db::repo::node_repo::fetch_intent_mandate(pool, intent_mandate_id)
         .await?
-        .ok_or(GatekeeperError::TaskNotFound { task_id: intent_mandate_id })?;
+        .ok_or(GatekeeperError::TaskNotFound {
+            task_id: intent_mandate_id,
+        })?;
 
     let (_id, _tenant_id, budget_limit, budget_spent, risk_class, allowed_tools) = mandate_row;
     let remaining = budget_limit - budget_spent;
@@ -38,8 +40,7 @@ pub async fn check_and_debit(
     }
 
     // Atomically debit
-    siss_graph_db::repo::ap2_repo::debit_mandate(pool, intent_mandate_id, estimated_cost)
-        .await?;
+    siss_graph_db::repo::ap2_repo::debit_mandate(pool, intent_mandate_id, estimated_cost).await?;
 
     Ok((risk_class, remaining))
 }

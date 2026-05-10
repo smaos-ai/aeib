@@ -1,6 +1,5 @@
 /// Phase 10: Federation protocol handlers
 /// Dynamic renegotiation, settlement, and gossip endpoints
-
 use axum::{
     extract::State,
     http::StatusCode,
@@ -11,9 +10,9 @@ use ed25519_dalek::{Signature, Verifier, VerifyingKey};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use siss_graph_db::repo::federation_repo;
-use siss_gatekeeper::federation_resolver;
 use siss_gatekeeper::attestation::validators::parse_ed25519_pem;
+use siss_gatekeeper::federation_resolver;
+use siss_graph_db::repo::federation_repo;
 
 use crate::handler::AgentCardState;
 
@@ -25,7 +24,7 @@ pub struct RenegotiateAgreementRequest {
     pub new_granted_attestation_types: Vec<String>,
     pub new_foreign_agent_budget_cap: i64,
     pub new_expires_at: Option<DateTime<Utc>>,
-    pub effective_at: String, // RFC3339 timestamp
+    pub effective_at: String,        // RFC3339 timestamp
     pub agreement_signature: String, // Hex-encoded Ed25519 signature
 }
 
@@ -43,7 +42,7 @@ pub struct GenerateInvoiceRequest {
     pub period_start: DateTime<Utc>,
     pub period_end: DateTime<Utc>,
     pub canonical_invoice_payload: String, // Canonical JSON for hashing
-    pub invoice_signature: String, // Hex-encoded Ed25519 signature over invoice_hash
+    pub invoice_signature: String,         // Hex-encoded Ed25519 signature over invoice_hash
 }
 
 /// Response body for invoice generation
@@ -94,26 +93,29 @@ pub async fn renegotiate_handler(
     Json(request): Json<RenegotiateAgreementRequest>,
 ) -> impl IntoResponse {
     // Step 1: Lookup the peer's public key (fail-closed: unknown sovereign → 404)
-    let peer_pubkey_pem = match federation_repo::lookup_sovereign_public_key(&state.pool, request.sovereign_b_id).await {
-        Ok(Some(key)) => key,
-        Ok(None) => {
-            return (
-                StatusCode::NOT_FOUND,
-                Json(serde_json::json!({
-                    "error": "unknown_sovereign",
-                    "sovereign_id": request.sovereign_b_id.to_string()
-                })),
-            )
-                .into_response()
-        }
-        Err(_) => {
-            return (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(serde_json::json!({ "error": "database_error" })),
-            )
-                .into_response()
-        }
-    };
+    let peer_pubkey_pem =
+        match federation_repo::lookup_sovereign_public_key(&state.pool, request.sovereign_b_id)
+            .await
+        {
+            Ok(Some(key)) => key,
+            Ok(None) => {
+                return (
+                    StatusCode::NOT_FOUND,
+                    Json(serde_json::json!({
+                        "error": "unknown_sovereign",
+                        "sovereign_id": request.sovereign_b_id.to_string()
+                    })),
+                )
+                    .into_response();
+            }
+            Err(_) => {
+                return (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(serde_json::json!({ "error": "database_error" })),
+                )
+                    .into_response();
+            }
+        };
 
     // Step 2: Build canonical agreement payload for verification
     let canonical_payload = federation_resolver::build_canonical_agreement_payload(
@@ -138,7 +140,7 @@ pub async fn renegotiate_handler(
                 StatusCode::FORBIDDEN,
                 Json(serde_json::json!({ "error": "invalid_signature_encoding" })),
             )
-                .into_response()
+                .into_response();
         }
     };
 
@@ -150,7 +152,7 @@ pub async fn renegotiate_handler(
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json(serde_json::json!({ "error": "invalid_peer_public_key" })),
             )
-                .into_response()
+                .into_response();
         }
     };
 
@@ -162,7 +164,7 @@ pub async fn renegotiate_handler(
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json(serde_json::json!({ "error": "invalid_peer_public_key" })),
             )
-                .into_response()
+                .into_response();
         }
     };
 
@@ -248,7 +250,9 @@ pub async fn settle_invoice_handler(
     State(state): State<AgentCardState>,
     Json(request): Json<SettleInvoiceRequest>,
 ) -> impl IntoResponse {
-    match federation_repo::mark_invoice_settled(&state.pool, request.invoice_id, state.sovereign_id).await {
+    match federation_repo::mark_invoice_settled(&state.pool, request.invoice_id, state.sovereign_id)
+        .await
+    {
         Ok(settled) => {
             if settled {
                 (
@@ -288,7 +292,12 @@ pub async fn gossip_receive_handler(
     use siss_graph_db::repo::gossip_repo;
 
     // Step 1: Lookup peer's public key (fail-closed: unknown sovereign → 403)
-    let peer_pubkey_pem = match federation_repo::lookup_sovereign_public_key(&state.pool, request.source_sovereign_id).await {
+    let peer_pubkey_pem = match federation_repo::lookup_sovereign_public_key(
+        &state.pool,
+        request.source_sovereign_id,
+    )
+    .await
+    {
         Ok(Some(key)) => key,
         Ok(None) => {
             return (
@@ -298,14 +307,14 @@ pub async fn gossip_receive_handler(
                     "source_sovereign_id": request.source_sovereign_id.to_string()
                 })),
             )
-                .into_response()
+                .into_response();
         }
         Err(_) => {
             return (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json(serde_json::json!({ "error": "database_error" })),
             )
-                .into_response()
+                .into_response();
         }
     };
 
@@ -321,7 +330,7 @@ pub async fn gossip_receive_handler(
                 StatusCode::FORBIDDEN,
                 Json(serde_json::json!({ "error": "invalid_signature_encoding" })),
             )
-                .into_response()
+                .into_response();
         }
     };
 
@@ -332,7 +341,7 @@ pub async fn gossip_receive_handler(
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json(serde_json::json!({ "error": "invalid_peer_public_key" })),
             )
-                .into_response()
+                .into_response();
         }
     };
 
@@ -344,7 +353,7 @@ pub async fn gossip_receive_handler(
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json(serde_json::json!({ "error": "invalid_peer_public_key" })),
             )
-                .into_response()
+                .into_response();
         }
     };
 
@@ -386,7 +395,7 @@ pub async fn gossip_receive_handler(
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json(serde_json::json!({ "error": "database_error" })),
             )
-                .into_response()
+                .into_response();
         }
     };
 
@@ -395,7 +404,8 @@ pub async fn gossip_receive_handler(
         "revocation" => {
             // Extract agent_id and revoked_at from payload
             if let Some(agent_id) = request.payload.get("agent_id").and_then(|v| v.as_str()) {
-                let revoked_at = request.payload
+                let revoked_at = request
+                    .payload
                     .get("revoked_at")
                     .and_then(|v| v.as_str())
                     .and_then(|s| DateTime::parse_from_rfc3339(s).ok())

@@ -18,7 +18,7 @@ pub async fn insert_challenge(
     let id = Uuid::new_v4();
     sqlx::query(
         "INSERT INTO refresh_challenges (id, session_id, nonce, required_attestations, expires_at) \
-         VALUES ($1, $2, $3, $4, $5)"
+         VALUES ($1, $2, $3, $4, $5)",
     )
     .bind(id)
     .bind(session_id)
@@ -50,7 +50,7 @@ pub async fn fetch_and_consume_challenge(
            AND nonce = $2 \
            AND NOT consumed \
            AND expires_at > NOW() \
-         RETURNING id, expires_at"
+         RETURNING id, expires_at",
     )
     .bind(session_id)
     .bind(nonce)
@@ -63,7 +63,7 @@ pub async fn fetch_and_consume_challenge(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use testcontainers::{core::WaitFor, runners::AsyncRunner, GenericImage, ImageExt};
+    use testcontainers::{GenericImage, ImageExt, core::WaitFor, runners::AsyncRunner};
 
     async fn start_postgres() -> (testcontainers::ContainerAsync<GenericImage>, PgPool) {
         let container = GenericImage::new("postgres", "16")
@@ -87,9 +87,10 @@ mod tests {
         let tenant_id = crate::repo::node_repo::insert_tenant(pool, "ChallengeCorp")
             .await
             .expect("insert tenant");
-        let persona_id = crate::repo::node_repo::insert_persona(pool, "ChallengeAgent", "ai_agent", tenant_id)
-            .await
-            .expect("insert persona");
+        let persona_id =
+            crate::repo::node_repo::insert_persona(pool, "ChallengeAgent", "ai_agent", tenant_id)
+                .await
+                .expect("insert persona");
 
         let now = Utc::now();
         let expires_at = now + chrono::Duration::hours(1);

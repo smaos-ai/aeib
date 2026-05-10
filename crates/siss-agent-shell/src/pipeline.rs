@@ -2,18 +2,18 @@ use chrono::Utc;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use siss_graph_core::node::NodeId;
-use siss_behavioral_firewall::types::Verdict;
-use siss_gatekeeper::signer::Signer;
-use siss_gatekeeper::types::AuthorizationRequest;
-use siss_job_router::strategy::RoutingStrategy;
-use siss_job_router::executor::Executor;
-use siss_job_router::types::RoutingRequest;
 use siss_behavioral_firewall::checker::FirewallChecker;
 use siss_behavioral_firewall::types::InspectionRequest;
-use siss_feedback_router::scorer::Scorer;
+use siss_behavioral_firewall::types::Verdict;
 use siss_feedback_router::crystallizer::Crystallizer;
+use siss_feedback_router::scorer::Scorer;
 use siss_feedback_router::types::CompletionRequest;
+use siss_gatekeeper::signer::Signer;
+use siss_gatekeeper::types::AuthorizationRequest;
+use siss_graph_core::node::NodeId;
+use siss_job_router::executor::Executor;
+use siss_job_router::strategy::RoutingStrategy;
+use siss_job_router::types::RoutingRequest;
 
 use crate::events::{AgentEvent, emitter::EventEmitter};
 use crate::types::{AgentShellError, IntentResult};
@@ -70,7 +70,8 @@ pub async fn run_intent_pipeline(
         estimated_cost,
         tenant_id,
     };
-    let _auth_result = siss_gatekeeper::pipeline::authorize_task(pool, signer, &auth_request).await?;
+    let _auth_result =
+        siss_gatekeeper::pipeline::authorize_task(pool, signer, &auth_request).await?;
 
     emitter.emit(AgentEvent::Authorized {
         task_id: task_id.0,
@@ -84,9 +85,8 @@ pub async fn run_intent_pipeline(
         persona_id,
         tenant_id,
     };
-    let routing_result = siss_job_router::pipeline::route_task(
-        pool, strategy, executor, &routing_request,
-    ).await?;
+    let routing_result =
+        siss_job_router::pipeline::route_task(pool, strategy, executor, &routing_request).await?;
 
     emitter.emit(AgentEvent::Routed {
         task_id: task_id.0,
@@ -116,9 +116,12 @@ pub async fn run_intent_pipeline(
         token_cost: routing_result.execution.token_cost,
         authorized_tools: tool_uuids,
     };
-    let inspection_result = siss_behavioral_firewall::pipeline::inspect_output(
-        pool, checkers, &inspection_request,
-    ).await.map_err(|e| AgentShellError::DatabaseError { message: e.to_string() })?;
+    let inspection_result =
+        siss_behavioral_firewall::pipeline::inspect_output(pool, checkers, &inspection_request)
+            .await
+            .map_err(|e| AgentShellError::DatabaseError {
+                message: e.to_string(),
+            })?;
 
     emitter.emit(AgentEvent::FirewallInspected {
         task_id: task_id.0,
@@ -128,7 +131,10 @@ pub async fn run_intent_pipeline(
     });
 
     // Check if firewall blocked
-    if matches!(inspection_result.verdict, Verdict::CriticalBlocked | Verdict::Blocked) {
+    if matches!(
+        inspection_result.verdict,
+        Verdict::CriticalBlocked | Verdict::Blocked
+    ) {
         emitter.emit(AgentEvent::Error {
             message: format!("firewall blocked: verdict={:?}", inspection_result.verdict),
             timestamp: Utc::now(),
@@ -151,8 +157,12 @@ pub async fn run_intent_pipeline(
         estimated_cost,
     };
     let completion_result = siss_feedback_router::pipeline::complete_task(
-        pool, scorer, crystallizer, &completion_request,
-    ).await?;
+        pool,
+        scorer,
+        crystallizer,
+        &completion_request,
+    )
+    .await?;
 
     emitter.emit(AgentEvent::Scored {
         task_id: task_id.0,

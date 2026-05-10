@@ -59,6 +59,9 @@ mod tests {
     #[test]
     fn test_over_budget_denies() {
         let hook = BudgetGuardHook::new(500);
-        assert!(matches!(hook.on_pre_execution(&make_ctx(501)), HookResult::Deny { .. }));
+        assert!(matches!(
+            hook.on_pre_execution(&make_ctx(501)),
+            HookResult::Deny { .. }
+        ));
     }
 }

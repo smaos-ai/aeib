@@ -1,4 +1,4 @@
-use crate::node::memory::{compute_decay, is_gc_eligible, ConsolidationTier};
+use crate::node::memory::{ConsolidationTier, compute_decay, is_gc_eligible};
 
 /// Compute current confidence and determine if a memory node should be garbage collected.
 pub fn should_gc(

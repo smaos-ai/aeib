@@ -49,13 +49,15 @@ pub async fn validate(
     })
 }
 
-async fn fetch_task_complexity(pool: &PgPool, task_id: Uuid) -> Result<ComplexityClass, RouterError> {
-    let row: Option<(String,)> = sqlx::query_as(
-        "SELECT complexity_class::text FROM tasks WHERE id = $1"
-    )
-    .bind(task_id)
-    .fetch_optional(pool)
-    .await?;
+async fn fetch_task_complexity(
+    pool: &PgPool,
+    task_id: Uuid,
+) -> Result<ComplexityClass, RouterError> {
+    let row: Option<(String,)> =
+        sqlx::query_as("SELECT complexity_class::text FROM tasks WHERE id = $1")
+            .bind(task_id)
+            .fetch_optional(pool)
+            .await?;
 
     let (complexity_str,) = row.ok_or(RouterError::TaskNotFound { task_id })?;
     Ok(parse_complexity_class(&complexity_str))
@@ -105,7 +107,10 @@ mod tests {
     fn test_parse_complexity_class_all_variants() {
         assert_eq!(parse_complexity_class("trivial"), ComplexityClass::Trivial);
         assert_eq!(parse_complexity_class("simple"), ComplexityClass::Simple);
-        assert_eq!(parse_complexity_class("moderate"), ComplexityClass::Moderate);
+        assert_eq!(
+            parse_complexity_class("moderate"),
+            ComplexityClass::Moderate
+        );
         assert_eq!(parse_complexity_class("complex"), ComplexityClass::Complex);
         assert_eq!(parse_complexity_class("heavy"), ComplexityClass::Heavy);
         assert_eq!(parse_complexity_class("unknown"), ComplexityClass::Moderate);

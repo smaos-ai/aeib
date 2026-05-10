@@ -27,8 +27,7 @@ pub async fn apply_routing_decision(
     )
     .await?;
 
-    siss_graph_db::repo::node_repo::update_task_status(pool, task_id, "routing")
-        .await?;
+    siss_graph_db::repo::node_repo::update_task_status(pool, task_id, "routing").await?;
 
     Ok(())
 }
@@ -39,8 +38,14 @@ mod tests {
 
     #[test]
     fn test_hardware_target_to_str() {
-        assert_eq!(hardware_target_to_str(HardwareTarget::LocalMlx), "local_mlx");
-        assert_eq!(hardware_target_to_str(HardwareTarget::RemoteFrontier), "remote_frontier");
+        assert_eq!(
+            hardware_target_to_str(HardwareTarget::LocalMlx),
+            "local_mlx"
+        );
+        assert_eq!(
+            hardware_target_to_str(HardwareTarget::RemoteFrontier),
+            "remote_frontier"
+        );
         assert_eq!(hardware_target_to_str(HardwareTarget::Hybrid), "hybrid");
     }
 }

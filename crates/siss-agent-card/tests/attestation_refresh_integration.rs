@@ -1,13 +1,12 @@
 /// Integration tests for the attestation refresh flow
 /// Tests the complete POST /.well-known/a2a/refresh endpoint workflow
-
 use chrono::{Duration, Utc};
+use serde_json::json;
 use siss_gatekeeper::{
     attestation::{Attestation, AttestationType},
     refresh::*,
     tokens::CapabilityToken,
 };
-use serde_json::json;
 
 // ============================================================================
 // Test Scenario 1: Successful refresh with session token reuse
@@ -77,7 +76,10 @@ fn test_refresh_session_token_rotated_near_expiry() {
     let rotation_threshold = 600i64; // 10 minutes
 
     let should_reuse = decide_session_token_reuse(remaining_seconds, rotation_threshold);
-    assert!(!should_reuse, "Token with 5 min remaining should be rotated");
+    assert!(
+        !should_reuse,
+        "Token with 5 min remaining should be rotated"
+    );
 }
 
 #[test]
@@ -317,8 +319,14 @@ fn test_refresh_proof_validation_valid_timestamp() {
     let attestations_json = r#"[{"type":"hardware_enclave"}]"#;
     let proof_signature = "valid-sig";
 
-    let result =
-        validate_refresh_proof(session_id, nonce, &timestamp, attestations_json, proof_signature, None);
+    let result = validate_refresh_proof(
+        session_id,
+        nonce,
+        &timestamp,
+        attestations_json,
+        proof_signature,
+        None,
+    );
     assert!(
         result.is_ok(),
         "Fresh request within window should validate"
@@ -330,7 +338,8 @@ fn test_refresh_proof_validation_stale_timestamp() {
     // Request older than 5 minutes should be rejected
     let session_id = "session-abc123";
     let nonce = "a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0";
-    let old_timestamp = (Utc::now() - Duration::minutes(6)).to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
+    let old_timestamp =
+        (Utc::now() - Duration::minutes(6)).to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
     let attestations_json = r#"[{"type":"hardware_enclave"}]"#;
     let proof_signature = "valid-sig";
 
@@ -342,14 +351,8 @@ fn test_refresh_proof_validation_stale_timestamp() {
         proof_signature,
         None,
     );
-    assert!(
-        result.is_err(),
-        "Request older than 5 minutes should fail"
-    );
-    assert_eq!(
-        result.unwrap_err(),
-        "timestamp_outside_freshness_window"
-    );
+    assert!(result.is_err(), "Request older than 5 minutes should fail");
+    assert_eq!(result.unwrap_err(), "timestamp_outside_freshness_window");
 }
 
 #[test]
@@ -458,7 +461,9 @@ fn test_refresh_build_attestations_evaluation_detailed_report() {
     // Check hardware enclave
     assert!(report["hardware_enclave"]["passed"].as_bool().unwrap());
     assert_eq!(
-        report["hardware_enclave"]["score_contribution"].as_u64().unwrap(),
+        report["hardware_enclave"]["score_contribution"]
+            .as_u64()
+            .unwrap(),
         50
     );
     assert_eq!(
@@ -469,7 +474,9 @@ fn test_refresh_build_attestations_evaluation_detailed_report() {
     // Check model integrity
     assert!(report["model_integrity"]["passed"].as_bool().unwrap());
     assert_eq!(
-        report["model_integrity"]["score_contribution"].as_u64().unwrap(),
+        report["model_integrity"]["score_contribution"]
+            .as_u64()
+            .unwrap(),
         30
     );
     assert_eq!(
@@ -581,14 +588,8 @@ fn test_refresh_complete_flow_success() {
     let timestamp = Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
     let proof_sig = "proof-signature-here";
 
-    let validation_result = validate_refresh_proof(
-        session_id,
-        nonce,
-        &timestamp,
-        "[]",
-        proof_sig,
-        None,
-    );
+    let validation_result =
+        validate_refresh_proof(session_id, nonce, &timestamp, "[]", proof_sig, None);
     assert!(
         validation_result.is_ok(),
         "Request proof validation should pass"
@@ -624,8 +625,16 @@ fn test_refresh_complete_flow_success() {
 
     // 3. Build attestations evaluation
     let attestations_eval = build_attestations_evaluation(&attestations, score);
-    assert!(attestations_eval["hardware_enclave"]["passed"].as_bool().unwrap());
-    assert!(attestations_eval["model_integrity"]["passed"].as_bool().unwrap());
+    assert!(
+        attestations_eval["hardware_enclave"]["passed"]
+            .as_bool()
+            .unwrap()
+    );
+    assert!(
+        attestations_eval["model_integrity"]["passed"]
+            .as_bool()
+            .unwrap()
+    );
 
     // 4. Check session token reuse
     let remaining_secs = 1800i64;
@@ -671,14 +680,8 @@ fn test_refresh_complete_flow_error_insufficient_attestations() {
     let timestamp = Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
     let proof_sig = "valid-proof";
 
-    let validation_result = validate_refresh_proof(
-        session_id,
-        nonce,
-        &timestamp,
-        "[]",
-        proof_sig,
-        None,
-    );
+    let validation_result =
+        validate_refresh_proof(session_id, nonce, &timestamp, "[]", proof_sig, None);
     assert!(validation_result.is_ok());
 
     // 2. Re-evaluate trust with insufficient attestations

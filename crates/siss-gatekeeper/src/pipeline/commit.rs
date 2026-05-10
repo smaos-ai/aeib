@@ -24,9 +24,9 @@ pub async fn sign_and_commit(
 
     // Build and sign payload
     let payload = build_signing_payload(task_id, intent_mandate_id, estimated_cost, timestamp_secs);
-    let signature = signer.sign(&payload).map_err(|e| GatekeeperError::SigningError {
-        message: e.message,
-    })?;
+    let signature = signer
+        .sign(&payload)
+        .map_err(|e| GatekeeperError::SigningError { message: e.message })?;
 
     // Create signed PaymentMandate
     let pm_id = siss_graph_db::repo::node_repo::insert_payment_mandate(
@@ -42,25 +42,39 @@ pub async fn sign_and_commit(
     // Create edges
     // AUTHORIZED_BY: PaymentMandate → IntentMandate
     siss_graph_db::repo::edge_repo::insert_edge(
-        pool, pm_id, intent_mandate_id, "authorized_by", tenant_id, serde_json::json!({}),
+        pool,
+        pm_id,
+        intent_mandate_id,
+        "authorized_by",
+        tenant_id,
+        serde_json::json!({}),
     )
     .await?;
 
     // GOVERNED_BY: Task → IntentMandate
     siss_graph_db::repo::edge_repo::insert_edge(
-        pool, task_id, intent_mandate_id, "governed_by", tenant_id, serde_json::json!({}),
+        pool,
+        task_id,
+        intent_mandate_id,
+        "governed_by",
+        tenant_id,
+        serde_json::json!({}),
     )
     .await?;
 
     // INITIATED_BY: Task → Persona
     siss_graph_db::repo::edge_repo::insert_edge(
-        pool, task_id, persona_id, "initiated_by", tenant_id, serde_json::json!({}),
+        pool,
+        task_id,
+        persona_id,
+        "initiated_by",
+        tenant_id,
+        serde_json::json!({}),
     )
     .await?;
 
     // Transition Task: pending → authorized
-    siss_graph_db::repo::node_repo::update_task_status(pool, task_id, "authorized")
-        .await?;
+    siss_graph_db::repo::node_repo::update_task_status(pool, task_id, "authorized").await?;
 
     Ok(AuthorizationResult {
         task_id: NodeId(task_id),

@@ -13,7 +13,7 @@ pub async fn debit_mandate(
         "UPDATE intent_mandates \
          SET budget_spent = budget_spent + $2 \
          WHERE id = $1 \
-         RETURNING budget_spent"
+         RETURNING budget_spent",
     )
     .bind(mandate_id)
     .bind(amount)
@@ -33,7 +33,7 @@ pub async fn create_payment_mandate(
     let id = Uuid::new_v4();
     sqlx::query(
         "INSERT INTO payment_mandates (id, tenant_id, intent_mandate_id, amount, risk_class) \
-         VALUES ($1, $2, $3, $4, $5::risk_class)"
+         VALUES ($1, $2, $3, $4, $5::risk_class)",
     )
     .bind(id)
     .bind(tenant_id)

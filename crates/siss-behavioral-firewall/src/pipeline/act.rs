@@ -32,7 +32,8 @@ pub async fn act_on_verdict(
         Verdict::Blocked => {}
         Verdict::CriticalBlocked => {
             let _ = siss_graph_db::repo::node_repo::freeze_persona(pool, persona_id).await;
-            let _ = siss_graph_db::repo::node_repo::update_task_status(pool, task_id, "failed").await;
+            let _ =
+                siss_graph_db::repo::node_repo::update_task_status(pool, task_id, "failed").await;
         }
     }
 

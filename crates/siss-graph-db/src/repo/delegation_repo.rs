@@ -39,10 +39,7 @@ pub async fn insert_delegation_edge(
 ///
 /// Returns list of ancestor persona IDs from root to immediate parent.
 /// Used for lineage construction and ancestor-aware revocation.
-pub async fn fetch_ancestors(
-    pool: &PgPool,
-    persona_id: Uuid,
-) -> Result<Vec<Uuid>, sqlx::Error> {
+pub async fn fetch_ancestors(pool: &PgPool, persona_id: Uuid) -> Result<Vec<Uuid>, sqlx::Error> {
     let rows: Vec<(Uuid,)> = sqlx::query_as(
         "WITH RECURSIVE ancestor_chain AS (
            SELECT id, delegated_by FROM personas WHERE id = $1
@@ -50,7 +47,7 @@ pub async fn fetch_ancestors(
            SELECT p.id, p.delegated_by FROM personas p
            INNER JOIN ancestor_chain a ON p.id = a.delegated_by
          )
-         SELECT id FROM ancestor_chain WHERE id != $1 ORDER BY id"
+         SELECT id FROM ancestor_chain WHERE id != $1 ORDER BY id",
     )
     .bind(persona_id)
     .fetch_all(pool)
@@ -63,10 +60,7 @@ pub async fn fetch_ancestors(
 ///
 /// Returns list of all descendant persona IDs in the subtree.
 /// Used for strict revocation propagation (fail-closed).
-pub async fn fetch_descendants(
-    pool: &PgPool,
-    persona_id: Uuid,
-) -> Result<Vec<Uuid>, sqlx::Error> {
+pub async fn fetch_descendants(pool: &PgPool, persona_id: Uuid) -> Result<Vec<Uuid>, sqlx::Error> {
     let rows: Vec<(Uuid,)> = sqlx::query_as(
         "WITH RECURSIVE descendant_tree AS (
            SELECT id FROM personas WHERE delegated_by = $1
@@ -74,7 +68,7 @@ pub async fn fetch_descendants(
            SELECT p.id FROM personas p
            INNER JOIN descendant_tree d ON p.delegated_by = d.id
          )
-         SELECT id FROM descendant_tree"
+         SELECT id FROM descendant_tree",
     )
     .bind(persona_id)
     .fetch_all(pool)
@@ -98,7 +92,7 @@ pub async fn fetch_descendant_sessions(
            SELECT s.id, s.parent_session_id FROM sessions s
            INNER JOIN session_tree st ON s.parent_session_id = st.id
          )
-         SELECT id FROM session_tree"
+         SELECT id FROM session_tree",
     )
     .bind(parent_session_id)
     .fetch_all(pool)
@@ -119,7 +113,7 @@ pub async fn fetch_delegation_ceiling(
          FROM delegation_edges \
          WHERE target_persona_id = $1 \
          ORDER BY delegated_at DESC \
-         LIMIT 1"
+         LIMIT 1",
     )
     .bind(persona_id)
     .fetch_optional(pool)
@@ -145,7 +139,7 @@ pub async fn would_create_cycle(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use testcontainers::{core::WaitFor, runners::AsyncRunner, GenericImage, ImageExt};
+    use testcontainers::{GenericImage, ImageExt, core::WaitFor, runners::AsyncRunner};
 
     async fn start_postgres() -> (testcontainers::ContainerAsync<GenericImage>, PgPool) {
         let container = GenericImage::new("postgres", "16")
@@ -170,17 +164,20 @@ mod tests {
             .await
             .expect("insert tenant");
 
-        let root_persona = crate::repo::node_repo::insert_persona(pool, "RootAgent", "ai_agent", tenant_id)
-            .await
-            .expect("insert root");
+        let root_persona =
+            crate::repo::node_repo::insert_persona(pool, "RootAgent", "ai_agent", tenant_id)
+                .await
+                .expect("insert root");
 
-        let parent_persona = crate::repo::node_repo::insert_persona(pool, "ParentAgent", "ai_agent", tenant_id)
-            .await
-            .expect("insert parent");
+        let parent_persona =
+            crate::repo::node_repo::insert_persona(pool, "ParentAgent", "ai_agent", tenant_id)
+                .await
+                .expect("insert parent");
 
-        let child_persona = crate::repo::node_repo::insert_persona(pool, "ChildAgent", "ai_agent", tenant_id)
-            .await
-            .expect("insert child");
+        let child_persona =
+            crate::repo::node_repo::insert_persona(pool, "ChildAgent", "ai_agent", tenant_id)
+                .await
+                .expect("insert child");
 
         (tenant_id, root_persona, parent_persona, child_persona)
     }
@@ -193,9 +190,16 @@ mod tests {
         let ceiling_delegations = r#"[{"permission":"can_execute","resource_type":"tool"}]"#;
         let ceiling_constraints = r#"{"rate_limit":"1000/min"}"#;
 
-        let edge_id = insert_delegation_edge(&pool, root, parent, tenant_id, ceiling_delegations, ceiling_constraints)
-            .await
-            .expect("insert edge");
+        let edge_id = insert_delegation_edge(
+            &pool,
+            root,
+            parent,
+            tenant_id,
+            ceiling_delegations,
+            ceiling_constraints,
+        )
+        .await
+        .expect("insert edge");
 
         assert_ne!(edge_id, Uuid::nil());
     }
@@ -216,7 +220,9 @@ mod tests {
             .execute(&pool)
             .await;
 
-        let ancestors = fetch_ancestors(&pool, child).await.expect("fetch ancestors");
+        let ancestors = fetch_ancestors(&pool, child)
+            .await
+            .expect("fetch ancestors");
         assert!(ancestors.len() >= 1);
     }
 
@@ -229,7 +235,9 @@ mod tests {
         let _ = insert_delegation_edge(&pool, root, parent, tenant_id, "[]", "{}").await;
         let _ = insert_delegation_edge(&pool, parent, child, tenant_id, "[]", "{}").await;
 
-        let descendants = fetch_descendants(&pool, root).await.expect("fetch descendants");
+        let descendants = fetch_descendants(&pool, root)
+            .await
+            .expect("fetch descendants");
         assert!(descendants.len() >= 1);
     }
 
@@ -239,7 +247,9 @@ mod tests {
         let (_tenant_id, root, parent, _child) = create_test_delegation_personas(&pool).await;
 
         // root → parent; adding parent → root would create cycle
-        let is_cycle = would_create_cycle(&pool, parent, root).await.expect("check cycle");
+        let is_cycle = would_create_cycle(&pool, parent, root)
+            .await
+            .expect("check cycle");
         // Initially should be false because we haven't inserted descendants yet
         assert!(!is_cycle);
     }

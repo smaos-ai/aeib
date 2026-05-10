@@ -4,41 +4,35 @@ use uuid::Uuid;
 /// Insert a Tenant and return its ID.
 pub async fn insert_tenant(pool: &PgPool, name: &str) -> Result<Uuid, sqlx::Error> {
     let id = Uuid::new_v4();
-    sqlx::query(
-        "INSERT INTO tenants (id, tenant_id, name) VALUES ($1, $1, $2)"
-    )
-    .bind(id)
-    .bind(name)
-    .execute(pool)
-    .await?;
+    sqlx::query("INSERT INTO tenants (id, tenant_id, name) VALUES ($1, $1, $2)")
+        .bind(id)
+        .bind(name)
+        .execute(pool)
+        .await?;
     Ok(id)
 }
 
 /// Insert a User and return its ID.
 pub async fn insert_user(pool: &PgPool, email: &str, tenant_id: Uuid) -> Result<Uuid, sqlx::Error> {
     let id = Uuid::new_v4();
-    sqlx::query(
-        "INSERT INTO users (id, tenant_id, email) VALUES ($1, $2, $3)"
-    )
-    .bind(id)
-    .bind(tenant_id)
-    .bind(email)
-    .execute(pool)
-    .await?;
+    sqlx::query("INSERT INTO users (id, tenant_id, email) VALUES ($1, $2, $3)")
+        .bind(id)
+        .bind(tenant_id)
+        .bind(email)
+        .execute(pool)
+        .await?;
     Ok(id)
 }
 
 /// Insert a Team and return its ID.
 pub async fn insert_team(pool: &PgPool, name: &str, tenant_id: Uuid) -> Result<Uuid, sqlx::Error> {
     let id = Uuid::new_v4();
-    sqlx::query(
-        "INSERT INTO teams (id, tenant_id, name) VALUES ($1, $2, $3)"
-    )
-    .bind(id)
-    .bind(tenant_id)
-    .bind(name)
-    .execute(pool)
-    .await?;
+    sqlx::query("INSERT INTO teams (id, tenant_id, name) VALUES ($1, $2, $3)")
+        .bind(id)
+        .bind(tenant_id)
+        .bind(name)
+        .execute(pool)
+        .await?;
     Ok(id)
 }
 
@@ -51,7 +45,7 @@ pub async fn insert_persona(
 ) -> Result<Uuid, sqlx::Error> {
     let id = Uuid::new_v4();
     sqlx::query(
-        "INSERT INTO personas (id, tenant_id, name, kind) VALUES ($1, $2, $3, $4::persona_kind)"
+        "INSERT INTO personas (id, tenant_id, name, kind) VALUES ($1, $2, $3, $4::persona_kind)",
     )
     .bind(id)
     .bind(tenant_id)
@@ -95,7 +89,7 @@ pub async fn insert_intent_mandate(
     let id = Uuid::new_v4();
     sqlx::query(
         "INSERT INTO intent_mandates (id, tenant_id, budget_limit, risk_class, allowed_tools) \
-         VALUES ($1, $2, $3, $4::risk_class, $5)"
+         VALUES ($1, $2, $3, $4::risk_class, $5)",
     )
     .bind(id)
     .bind(tenant_id)
@@ -109,30 +103,34 @@ pub async fn insert_intent_mandate(
 
 /// Get the remaining budget for an IntentMandate.
 pub async fn get_mandate_remaining(pool: &PgPool, mandate_id: Uuid) -> Result<i64, sqlx::Error> {
-    let remaining: i64 = sqlx::query_scalar(
-        "SELECT budget_limit - budget_spent FROM intent_mandates WHERE id = $1"
-    )
-    .bind(mandate_id)
-    .fetch_one(pool)
-    .await?;
+    let remaining: i64 =
+        sqlx::query_scalar("SELECT budget_limit - budget_spent FROM intent_mandates WHERE id = $1")
+            .bind(mandate_id)
+            .fetch_one(pool)
+            .await?;
     Ok(remaining)
 }
 
 /// Fetch a Task row by ID. Returns (id, tenant_id, status, intent).
-pub async fn fetch_task(pool: &PgPool, task_id: Uuid) -> Result<Option<(Uuid, Uuid, String, String)>, sqlx::Error> {
-    let row: Option<(Uuid, Uuid, String, String)> = sqlx::query_as(
-        "SELECT id, tenant_id, status::text, intent FROM tasks WHERE id = $1"
-    )
-    .bind(task_id)
-    .fetch_optional(pool)
-    .await?;
+pub async fn fetch_task(
+    pool: &PgPool,
+    task_id: Uuid,
+) -> Result<Option<(Uuid, Uuid, String, String)>, sqlx::Error> {
+    let row: Option<(Uuid, Uuid, String, String)> =
+        sqlx::query_as("SELECT id, tenant_id, status::text, intent FROM tasks WHERE id = $1")
+            .bind(task_id)
+            .fetch_optional(pool)
+            .await?;
     Ok(row)
 }
 
 /// Fetch a Persona row by ID. Returns (id, tenant_id, name, kind, is_frozen).
-pub async fn fetch_persona(pool: &PgPool, persona_id: Uuid) -> Result<Option<(Uuid, Uuid, String, String, bool)>, sqlx::Error> {
+pub async fn fetch_persona(
+    pool: &PgPool,
+    persona_id: Uuid,
+) -> Result<Option<(Uuid, Uuid, String, String, bool)>, sqlx::Error> {
     let row: Option<(Uuid, Uuid, String, String, bool)> = sqlx::query_as(
-        "SELECT id, tenant_id, name, kind::text, is_frozen FROM personas WHERE id = $1"
+        "SELECT id, tenant_id, name, kind::text, is_frozen FROM personas WHERE id = $1",
     )
     .bind(persona_id)
     .fetch_optional(pool)
@@ -147,7 +145,7 @@ pub async fn fetch_intent_mandate(
 ) -> Result<Option<(Uuid, Uuid, i64, i64, String, Vec<Uuid>)>, sqlx::Error> {
     let row: Option<(Uuid, Uuid, i64, i64, String, Vec<Uuid>)> = sqlx::query_as(
         "SELECT id, tenant_id, budget_limit, budget_spent, risk_class::text, allowed_tools \
-         FROM intent_mandates WHERE id = $1"
+         FROM intent_mandates WHERE id = $1",
     )
     .bind(mandate_id)
     .fetch_optional(pool)
@@ -164,7 +162,7 @@ pub async fn update_task_status(
     let result = sqlx::query(
         "UPDATE tasks SET status = $2::task_status, \
          completed_at = CASE WHEN $2 IN ('completed', 'failed') THEN NOW() ELSE completed_at END \
-         WHERE id = $1"
+         WHERE id = $1",
     )
     .bind(task_id)
     .bind(new_status)
@@ -175,12 +173,10 @@ pub async fn update_task_status(
 
 /// Freeze a Persona by setting is_frozen = true.
 pub async fn freeze_persona(pool: &PgPool, persona_id: Uuid) -> Result<bool, sqlx::Error> {
-    let result = sqlx::query(
-        "UPDATE personas SET is_frozen = TRUE WHERE id = $1"
-    )
-    .bind(persona_id)
-    .execute(pool)
-    .await?;
+    let result = sqlx::query("UPDATE personas SET is_frozen = TRUE WHERE id = $1")
+        .bind(persona_id)
+        .execute(pool)
+        .await?;
     Ok(result.rows_affected() > 0)
 }
 
@@ -215,13 +211,12 @@ pub async fn update_task_hardware_target(
     task_id: Uuid,
     hardware_target: &str,
 ) -> Result<bool, sqlx::Error> {
-    let result = sqlx::query(
-        "UPDATE tasks SET hardware_target = $2::hardware_target WHERE id = $1"
-    )
-    .bind(task_id)
-    .bind(hardware_target)
-    .execute(pool)
-    .await?;
+    let result =
+        sqlx::query("UPDATE tasks SET hardware_target = $2::hardware_target WHERE id = $1")
+            .bind(task_id)
+            .bind(hardware_target)
+            .execute(pool)
+            .await?;
     Ok(result.rows_affected() > 0)
 }
 
@@ -231,13 +226,11 @@ pub async fn update_task_token_cost(
     task_id: Uuid,
     token_cost: i64,
 ) -> Result<bool, sqlx::Error> {
-    let result = sqlx::query(
-        "UPDATE tasks SET token_cost = $2 WHERE id = $1"
-    )
-    .bind(task_id)
-    .bind(token_cost)
-    .execute(pool)
-    .await?;
+    let result = sqlx::query("UPDATE tasks SET token_cost = $2 WHERE id = $1")
+        .bind(task_id)
+        .bind(token_cost)
+        .execute(pool)
+        .await?;
     Ok(result.rows_affected() > 0)
 }
 
@@ -268,13 +261,11 @@ pub async fn update_session_snapshot(
     session_id: Uuid,
     snapshot: serde_json::Value,
 ) -> Result<bool, sqlx::Error> {
-    let result = sqlx::query(
-        "UPDATE sessions SET visible_field_snapshot = $2 WHERE id = $1"
-    )
-    .bind(session_id)
-    .bind(snapshot)
-    .execute(pool)
-    .await?;
+    let result = sqlx::query("UPDATE sessions SET visible_field_snapshot = $2 WHERE id = $1")
+        .bind(session_id)
+        .bind(snapshot)
+        .execute(pool)
+        .await?;
     Ok(result.rows_affected() > 0)
 }
 

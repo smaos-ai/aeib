@@ -11,7 +11,9 @@ pub async fn validate(
 ) -> Result<(), CartographyError> {
     let task_row = siss_graph_db::repo::node_repo::fetch_task(pool, task_id)
         .await
-        .map_err(|e| CartographyError::DatabaseError { message: e.to_string() })?
+        .map_err(|e| CartographyError::DatabaseError {
+            message: e.to_string(),
+        })?
         .ok_or(CartographyError::TaskNotFound { task_id })?;
 
     let (_id, task_tenant, _status, _intent) = task_row;
@@ -24,7 +26,9 @@ pub async fn validate(
 
     let persona_row = siss_graph_db::repo::node_repo::fetch_persona(pool, persona_id)
         .await
-        .map_err(|e| CartographyError::DatabaseError { message: e.to_string() })?
+        .map_err(|e| CartographyError::DatabaseError {
+            message: e.to_string(),
+        })?
         .ok_or(CartographyError::PersonaNotFound { persona_id })?;
 
     let (_id, persona_tenant, _name, _kind, _is_frozen) = persona_row;

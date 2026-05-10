@@ -6,9 +6,9 @@ use axum::{
 use serde::Deserialize;
 use sqlx::PgPool;
 
-use siss_graph_core::node::NodeId;
 use siss_gatekeeper::attestation::Attestation;
 use siss_gatekeeper::tokens::HandshakeResponse;
+use siss_graph_core::node::NodeId;
 
 use crate::builder::AgentCardBuilder;
 use crate::serializer::to_a2a_json;
@@ -22,16 +22,14 @@ pub struct AgentCardState {
     pub tenant_id: NodeId,
     pub base_url: String,
     pub extended: bool,
-    pub sovereign_id: uuid::Uuid,  // Phase 9: home sovereign identity (set at deploy time)
+    pub sovereign_id: uuid::Uuid, // Phase 9: home sovereign identity (set at deploy time)
 }
 
 /// GET `/.well-known/agent.json`
 ///
 /// Returns the Google A2A Agent Card JSON for the configured persona.
 /// 200 on success, 404 when persona or card is not found, 500 on DB error.
-pub async fn well_known_agent_handler(
-    State(state): State<AgentCardState>,
-) -> impl IntoResponse {
+pub async fn well_known_agent_handler(State(state): State<AgentCardState>) -> impl IntoResponse {
     let builder = AgentCardBuilder::new(&state.pool);
     match builder.build(state.persona_id, state.tenant_id, &state.base_url).await {
         Ok(card) => {
@@ -103,15 +101,15 @@ pub async fn a2a_handshake_handler(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use axum::{body::Body, routing::{get, post}, Router};
+    use axum::{
+        Router,
+        body::Body,
+        routing::{get, post},
+    };
     use chrono::Utc;
     use http::{Request, StatusCode};
+    use testcontainers::{GenericImage, ImageExt, core::WaitFor, runners::AsyncRunner};
     use tower::ServiceExt; // for .oneshot()
-    use testcontainers::{
-        core::WaitFor,
-        runners::AsyncRunner,
-        GenericImage, ImageExt,
-    };
     use uuid::Uuid;
 
     use crate::repo::insert_agent_card_node;
@@ -132,7 +130,9 @@ mod tests {
         let port = container.get_host_port_ipv4(5432).await.unwrap();
         let url = format!("postgres://postgres:postgres@127.0.0.1:{port}/siss_test");
         let pool = PgPool::connect(&url).await.expect("pool connect");
-        siss_graph_db::migrations::run_all(&pool).await.expect("migrations");
+        siss_graph_db::migrations::run_all(&pool)
+            .await
+            .expect("migrations");
         (container, pool)
     }
 
@@ -140,11 +140,26 @@ mod tests {
         Router::new()
             .route("/.well-known/agent.json", get(well_known_agent_handler))
             .route("/.well-known/a2a/handshake", post(a2a_handshake_handler))
-            .route("/.well-known/a2a/refresh", post(refresh_handler::attestation_refresh_handler))
-            .route("/.well-known/a2a/federation/renegotiate", post(federation_handler::renegotiate_handler))
-            .route("/.well-known/a2a/federation/invoice/generate", post(federation_handler::generate_invoice_handler))
-            .route("/.well-known/a2a/federation/invoice/settle", post(federation_handler::settle_invoice_handler))
-            .route("/.well-known/a2a/federation/gossip", post(federation_handler::gossip_receive_handler))
+            .route(
+                "/.well-known/a2a/refresh",
+                post(refresh_handler::attestation_refresh_handler),
+            )
+            .route(
+                "/.well-known/a2a/federation/renegotiate",
+                post(federation_handler::renegotiate_handler),
+            )
+            .route(
+                "/.well-known/a2a/federation/invoice/generate",
+                post(federation_handler::generate_invoice_handler),
+            )
+            .route(
+                "/.well-known/a2a/federation/invoice/settle",
+                post(federation_handler::settle_invoice_handler),
+            )
+            .route(
+                "/.well-known/a2a/federation/gossip",
+                post(federation_handler::gossip_receive_handler),
+            )
             .with_state(state)
     }
 
@@ -159,10 +174,16 @@ mod tests {
         let (_container, pool) = start_postgres().await;
 
         let tenant_id = siss_graph_db::repo::node_repo::insert_tenant(&pool, "HandlerCorp")
-            .await.unwrap();
+            .await
+            .unwrap();
         let persona_id = siss_graph_db::repo::node_repo::insert_persona(
-            &pool, "HandlerAgent", "ai_agent", tenant_id,
-        ).await.unwrap();
+            &pool,
+            "HandlerAgent",
+            "ai_agent",
+            tenant_id,
+        )
+        .await
+        .unwrap();
 
         let node = AgentCardNode {
             id: NodeId::new(),
@@ -185,7 +206,7 @@ mod tests {
             tenant_id: NodeId(tenant_id),
             base_url: "https://example.com".into(),
             extended: false,
-            sovereign_id: uuid::Uuid::nil(),  // Test placeholder
+            sovereign_id: uuid::Uuid::nil(), // Test placeholder
         };
         let app = make_router(state);
 
@@ -210,10 +231,16 @@ mod tests {
         let (_container, pool) = start_postgres().await;
 
         let tenant_id = siss_graph_db::repo::node_repo::insert_tenant(&pool, "ExtendedCorp")
-            .await.unwrap();
+            .await
+            .unwrap();
         let persona_id = siss_graph_db::repo::node_repo::insert_persona(
-            &pool, "ExtendedAgent", "ai_agent", tenant_id,
-        ).await.unwrap();
+            &pool,
+            "ExtendedAgent",
+            "ai_agent",
+            tenant_id,
+        )
+        .await
+        .unwrap();
 
         let node = AgentCardNode {
             id: NodeId::new(),
@@ -236,7 +263,7 @@ mod tests {
             tenant_id: NodeId(tenant_id),
             base_url: "https://example.com".into(),
             extended: true,
-            sovereign_id: uuid::Uuid::nil(),  // Test placeholder
+            sovereign_id: uuid::Uuid::nil(), // Test placeholder
         };
         let app = make_router(state);
 
@@ -267,7 +294,7 @@ mod tests {
             tenant_id: NodeId(Uuid::new_v4()),
             base_url: "https://example.com".into(),
             extended: false,
-                sovereign_id: uuid::Uuid::nil(),
+            sovereign_id: uuid::Uuid::nil(),
         };
         let app = make_router(state);
 
@@ -285,7 +312,10 @@ mod tests {
         let json = body_json(response.into_body()).await;
         assert_eq!(status, StatusCode::NOT_FOUND);
         assert!(
-            json["error"].as_str().unwrap_or("").contains("persona not found"),
+            json["error"]
+                .as_str()
+                .unwrap_or("")
+                .contains("persona not found"),
             "expected error message, got: {json}"
         );
     }
@@ -295,10 +325,16 @@ mod tests {
         let (_container, pool) = start_postgres().await;
 
         let tenant_id = siss_graph_db::repo::node_repo::insert_tenant(&pool, "ContentCorp")
-            .await.unwrap();
+            .await
+            .unwrap();
         let persona_id = siss_graph_db::repo::node_repo::insert_persona(
-            &pool, "ContentAgent", "ai_agent", tenant_id,
-        ).await.unwrap();
+            &pool,
+            "ContentAgent",
+            "ai_agent",
+            tenant_id,
+        )
+        .await
+        .unwrap();
 
         let node = AgentCardNode {
             id: NodeId::new(),
@@ -321,7 +357,7 @@ mod tests {
             tenant_id: NodeId(tenant_id),
             base_url: "https://example.com".into(),
             extended: false,
-            sovereign_id: uuid::Uuid::nil(),  // Test placeholder
+            sovereign_id: uuid::Uuid::nil(), // Test placeholder
         };
         let app = make_router(state);
 
@@ -335,20 +371,24 @@ mod tests {
             .await
             .unwrap();
 
-        let content_type = response.headers()
+        let content_type = response
+            .headers()
             .get("content-type")
             .and_then(|v| v.to_str().ok())
             .unwrap_or("");
-        assert!(content_type.contains("application/json"), "got: {content_type}");
+        assert!(
+            content_type.contains("application/json"),
+            "got: {content_type}"
+        );
     }
 
     mod handshake_tests {
         use super::*;
+        use chrono::Utc;
         use siss_gatekeeper::attestation::{Attestation, AttestationType};
         use siss_graph_core::node::NodeId;
-        use uuid::Uuid;
-        use chrono::Utc;
         use tower::ServiceExt;
+        use uuid::Uuid;
 
         fn make_test_handshake_request() -> serde_json::Value {
             serde_json::json!({
@@ -388,10 +428,16 @@ mod tests {
             let (_container, pool) = start_postgres().await;
 
             let tenant_id = siss_graph_db::repo::node_repo::insert_tenant(&pool, "HandshakeCorp")
-                .await.unwrap();
+                .await
+                .unwrap();
             let persona_id = siss_graph_db::repo::node_repo::insert_persona(
-                &pool, "HandshakeAgent", "ai_agent", tenant_id,
-            ).await.unwrap();
+                &pool,
+                "HandshakeAgent",
+                "ai_agent",
+                tenant_id,
+            )
+            .await
+            .unwrap();
 
             let node = AgentCardNode {
                 id: NodeId::new(),
@@ -414,7 +460,7 @@ mod tests {
                 tenant_id: NodeId(tenant_id),
                 base_url: "https://example.com".into(),
                 extended: false,
-                    sovereign_id: uuid::Uuid::nil(),
+                sovereign_id: uuid::Uuid::nil(),
             };
             let app = make_router(state);
 
@@ -430,7 +476,9 @@ mod tests {
                         .method("POST")
                         .uri("/.well-known/a2a/handshake")
                         .header("content-type", "application/json")
-                        .body(Body::from(serde_json::to_string(&handshake_payload).unwrap()))
+                        .body(Body::from(
+                            serde_json::to_string(&handshake_payload).unwrap(),
+                        ))
                         .unwrap(),
                 )
                 .await
@@ -448,10 +496,16 @@ mod tests {
             let (_container, pool) = start_postgres().await;
 
             let tenant_id = siss_graph_db::repo::node_repo::insert_tenant(&pool, "RefreshCorp")
-                .await.unwrap();
+                .await
+                .unwrap();
             let persona_id = siss_graph_db::repo::node_repo::insert_persona(
-                &pool, "RefreshAgent", "ai_agent", tenant_id,
-            ).await.unwrap();
+                &pool,
+                "RefreshAgent",
+                "ai_agent",
+                tenant_id,
+            )
+            .await
+            .unwrap();
 
             let node = AgentCardNode {
                 id: NodeId::new(),
@@ -474,7 +528,7 @@ mod tests {
                 tenant_id: NodeId(tenant_id),
                 base_url: "https://example.com".into(),
                 extended: false,
-                    sovereign_id: uuid::Uuid::nil(),
+                sovereign_id: uuid::Uuid::nil(),
             };
             let app = make_router(state);
 
@@ -533,10 +587,16 @@ mod tests {
             let (_container, pool) = start_postgres().await;
 
             let tenant_id = siss_graph_db::repo::node_repo::insert_tenant(&pool, "RefreshCorp2")
-                .await.unwrap();
+                .await
+                .unwrap();
             let persona_id = siss_graph_db::repo::node_repo::insert_persona(
-                &pool, "RefreshAgent2", "ai_agent", tenant_id,
-            ).await.unwrap();
+                &pool,
+                "RefreshAgent2",
+                "ai_agent",
+                tenant_id,
+            )
+            .await
+            .unwrap();
 
             let node = AgentCardNode {
                 id: NodeId::new(),
@@ -559,7 +619,7 @@ mod tests {
                 tenant_id: NodeId(tenant_id),
                 base_url: "https://example.com".into(),
                 extended: false,
-                    sovereign_id: uuid::Uuid::nil(),
+                sovereign_id: uuid::Uuid::nil(),
             };
             let app = make_router(state);
 
@@ -594,10 +654,16 @@ mod tests {
             let (_container, pool) = start_postgres().await;
 
             let tenant_id = siss_graph_db::repo::node_repo::insert_tenant(&pool, "RefreshCorp3")
-                .await.unwrap();
+                .await
+                .unwrap();
             let persona_id = siss_graph_db::repo::node_repo::insert_persona(
-                &pool, "RefreshAgent3", "ai_agent", tenant_id,
-            ).await.unwrap();
+                &pool,
+                "RefreshAgent3",
+                "ai_agent",
+                tenant_id,
+            )
+            .await
+            .unwrap();
 
             let node = AgentCardNode {
                 id: NodeId::new(),
@@ -620,7 +686,7 @@ mod tests {
                 tenant_id: NodeId(tenant_id),
                 base_url: "https://example.com".into(),
                 extended: false,
-                    sovereign_id: uuid::Uuid::nil(),
+                sovereign_id: uuid::Uuid::nil(),
             };
             let app = make_router(state);
 
@@ -659,10 +725,16 @@ mod tests {
             let (_container, pool) = start_postgres().await;
 
             let tenant_id = siss_graph_db::repo::node_repo::insert_tenant(&pool, "RefreshCorp4")
-                .await.unwrap();
+                .await
+                .unwrap();
             let persona_id = siss_graph_db::repo::node_repo::insert_persona(
-                &pool, "RefreshAgent4", "ai_agent", tenant_id,
-            ).await.unwrap();
+                &pool,
+                "RefreshAgent4",
+                "ai_agent",
+                tenant_id,
+            )
+            .await
+            .unwrap();
 
             let node = AgentCardNode {
                 id: NodeId::new(),
@@ -685,7 +757,7 @@ mod tests {
                 tenant_id: NodeId(tenant_id),
                 base_url: "https://example.com".into(),
                 extended: false,
-                    sovereign_id: uuid::Uuid::nil(),
+                sovereign_id: uuid::Uuid::nil(),
             };
             let app = make_router(state);
 
@@ -731,10 +803,16 @@ mod tests {
             let (_container, pool) = start_postgres().await;
 
             let tenant_id = siss_graph_db::repo::node_repo::insert_tenant(&pool, "RefreshCorp5")
-                .await.unwrap();
+                .await
+                .unwrap();
             let persona_id = siss_graph_db::repo::node_repo::insert_persona(
-                &pool, "RefreshAgent5", "ai_agent", tenant_id,
-            ).await.unwrap();
+                &pool,
+                "RefreshAgent5",
+                "ai_agent",
+                tenant_id,
+            )
+            .await
+            .unwrap();
 
             let node = AgentCardNode {
                 id: NodeId::new(),
@@ -757,7 +835,7 @@ mod tests {
                 tenant_id: NodeId(tenant_id),
                 base_url: "https://example.com".into(),
                 extended: false,
-                    sovereign_id: uuid::Uuid::nil(),
+                sovereign_id: uuid::Uuid::nil(),
             };
             let app = make_router(state);
 

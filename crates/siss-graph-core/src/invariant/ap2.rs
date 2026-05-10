@@ -9,7 +9,10 @@ pub enum Ap2Error {
     BudgetExceeded { requested: i64, remaining: i64 },
 
     #[error("tool {tool_id} not authorized by mandate {mandate_id}")]
-    ToolNotAuthorized { tool_id: uuid::Uuid, mandate_id: uuid::Uuid },
+    ToolNotAuthorized {
+        tool_id: uuid::Uuid,
+        mandate_id: uuid::Uuid,
+    },
 }
 
 /// Attempt to debit `amount` from an IntentMandate's budget.

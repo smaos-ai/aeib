@@ -333,4 +333,224 @@ mod tests {
             _ => panic!("Expected rate_limit_exceeded error"),
         }
     }
+
+    // ====== Phase 7 Integration Unit Tests (Group B: 8 Additional Tests) ======
+
+    #[test]
+    fn test_effective_ceiling_budget_only_no_burst() {
+        // No burst_size configured → ceiling = remaining budget
+        let resolver = ConstraintResolver::new(
+            1000,
+            500,    // remaining budget
+            500,
+            RateLimitConstraints {
+                rate_limit: None,
+                burst_size: None,  // no burst configured
+                min_interval_ms: None,
+                concurrent_sessions: None,
+            },
+            0,
+        );
+
+        let ceiling = resolver.effective_ceiling();
+        assert_eq!(ceiling, 500, "Ceiling should equal remaining budget when no burst");
+    }
+
+    #[test]
+    fn test_effective_ceiling_burst_lower_than_budget() {
+        // burst_size (200) < remaining budget (500) → ceiling = burst
+        let resolver = ConstraintResolver::new(
+            1000,
+            500,    // remaining budget (higher)
+            500,
+            RateLimitConstraints {
+                rate_limit: Some("200/sec".to_string()),
+                burst_size: Some(200),  // lower than budget
+                min_interval_ms: None,
+                concurrent_sessions: None,
+            },
+            0,
+        );
+
+        let ceiling = resolver.effective_ceiling();
+        assert_eq!(ceiling, 200, "Ceiling should equal burst when burst < budget");
+    }
+
+    #[test]
+    fn test_effective_ceiling_budget_lower_than_burst() {
+        // burst_size (1000) > remaining budget (300) → ceiling = budget
+        let resolver = ConstraintResolver::new(
+            1000,
+            300,    // remaining budget (lower)
+            700,
+            RateLimitConstraints {
+                rate_limit: None,
+                burst_size: Some(1000),  // higher than budget
+                min_interval_ms: None,
+                concurrent_sessions: None,
+            },
+            0,
+        );
+
+        let ceiling = resolver.effective_ceiling();
+        assert_eq!(ceiling, 300, "Ceiling should equal budget when budget < burst");
+    }
+
+    #[test]
+    fn test_concurrent_sessions_one_below_max_passes() {
+        // current=9, max=10 → Ok (not at ceiling yet)
+        let resolver = ConstraintResolver::new(
+            1000,
+            500,
+            500,
+            RateLimitConstraints {
+                rate_limit: None,
+                burst_size: None,
+                min_interval_ms: None,
+                concurrent_sessions: Some(10),  // max 10
+            },
+            9,  // current: one below max
+        );
+
+        let result = resolver.enforce_concurrent_sessions();
+        assert!(result.is_ok(), "Should pass when below max");
+    }
+
+    #[test]
+    fn test_concurrent_sessions_at_max_fails() {
+        // current=10, max=10 → Err (at ceiling)
+        let resolver = ConstraintResolver::new(
+            1000,
+            500,
+            500,
+            RateLimitConstraints {
+                rate_limit: None,
+                burst_size: None,
+                min_interval_ms: None,
+                concurrent_sessions: Some(10),  // max 10
+            },
+            10,  // current: exactly at max (should fail with >=)
+        );
+
+        let result = resolver.enforce_concurrent_sessions();
+        assert!(result.is_err(), "Should fail when at max");
+
+        match result {
+            Err(AttestationRefreshResponse::Error(err)) => {
+                assert_eq!(err.reason, "concurrent_limit_exceeded");
+            }
+            _ => panic!("Expected concurrent_limit_exceeded error"),
+        }
+    }
+
+    #[test]
+    fn test_all_constraints_pass_simultaneously() {
+        // All three constraints satisfied: budget ok, rate ok, concurrent ok
+        let resolver = ConstraintResolver::new(
+            1000,
+            500,   // plenty of budget
+            500,
+            RateLimitConstraints {
+                rate_limit: Some("1000/min".to_string()),
+                burst_size: Some(200),  // allows our request
+                min_interval_ms: None,
+                concurrent_sessions: Some(10),  // far below limit
+            },
+            5,  // well below max
+        );
+
+        let result = resolver.validate_all_constraints(100);  // small request
+        assert!(result.is_ok(), "All constraints pass → should be Ok");
+    }
+
+    #[test]
+    fn test_validate_rate_limit_with_rate_limit_string_but_no_burst() {
+        // rate_limit="1000/min" but burst_size=None → no constraint (burst not configured)
+        let resolver = ConstraintResolver::new(
+            1000,
+            500,
+            500,
+            RateLimitConstraints {
+                rate_limit: Some("1000/min".to_string()),  // configured
+                burst_size: None,  // NOT configured
+                min_interval_ms: None,
+                concurrent_sessions: None,
+            },
+            0,
+        );
+
+        let result = resolver.validate_rate_limit(999_999);  // huge request
+        assert!(result.is_ok(), "No burst_size configured → rate limit check is no-op");
+    }
+
+    #[test]
+    fn test_effective_ceiling_zero_budget_zero_ceiling() {
+        // remaining=0 → ceiling=0, next enforce_budget(1) fails
+        let resolver = ConstraintResolver::new(
+            1000,
+            0,  // zero budget remaining
+            1000,
+            RateLimitConstraints {
+                rate_limit: None,
+                burst_size: None,
+                min_interval_ms: None,
+                concurrent_sessions: None,
+            },
+            0,
+        );
+
+        let ceiling = resolver.effective_ceiling();
+        assert_eq!(ceiling, 0, "Ceiling is zero when budget exhausted");
+
+        // Verify next check fails
+        let result = resolver.enforce_budget(1);
+        assert!(result.is_err(), "Any cost > 0 should fail with zero budget");
+
+        match result {
+            Err(AttestationRefreshResponse::Error(err)) => {
+                assert_eq!(err.reason, "budget_exhausted");
+            }
+            _ => panic!("Expected budget_exhausted error"),
+        }
+    }
+
+    #[test]
+    fn test_enforce_concurrent_sessions_zero_limit_no_ceiling() {
+        // concurrent_sessions=None (no limit) → always passes
+        let resolver = ConstraintResolver::new(
+            1000,
+            500,
+            500,
+            RateLimitConstraints {
+                rate_limit: None,
+                burst_size: None,
+                min_interval_ms: None,
+                concurrent_sessions: None,  // no limit
+            },
+            999,  // absurdly high current count
+        );
+
+        let result = resolver.enforce_concurrent_sessions();
+        assert!(result.is_ok(), "No concurrent limit → always passes regardless of current count");
+    }
+
+    #[test]
+    fn test_validate_rate_limit_exact_burst_match() {
+        // requested_cost == burst_size → should pass (not > burst)
+        let resolver = ConstraintResolver::new(
+            1000,
+            500,
+            500,
+            RateLimitConstraints {
+                rate_limit: Some("1000/min".to_string()),
+                burst_size: Some(100),  // exact match
+                min_interval_ms: None,
+                concurrent_sessions: None,
+            },
+            0,
+        );
+
+        let result = resolver.validate_rate_limit(100);  // exactly equal to burst
+        assert!(result.is_ok(), "Cost equal to burst_size should pass (not >)");
+    }
 }

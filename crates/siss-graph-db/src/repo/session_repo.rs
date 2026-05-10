@@ -1106,4 +1106,222 @@ mod tests {
         assert_eq!(after_reset.1, 1_000_000, "Remaining reset to initial");
         assert_eq!(after_reset.2, 0, "Consumed reset to 0");
     }
+
+    // ====== Phase 7 Integration Tests (Group A: 12 DB Tests) ======
+
+    #[tokio::test]
+    async fn test_phase7_budget_deduct_then_fetch_consistency() {
+        let (_container, pool) = start_postgres().await;
+        let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
+        let session_id = insert_session_with_tokens(
+            &pool, tenant_id, persona_id, 100_000,
+            "tok-phase7-1", "cap-1", 80, 2,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .unwrap();
+
+        // Deduct 100 tokens
+        let remaining = update_session_budget(&pool, session_id, 100).await.unwrap();
+        assert_eq!(remaining, 999_900, "Remaining should be 999,900 after deducting 100");
+
+        // Fetch and verify consistency
+        let budget = fetch_session_budget(&pool, session_id).await.unwrap().unwrap();
+        assert_eq!(budget.0, 1_000_000, "Initial unchanged");
+        assert_eq!(budget.1, 999_900, "Remaining reflects deduction");
+        assert_eq!(budget.2, 100, "Consumed equals deducted amount");
+    }
+
+    #[tokio::test]
+    async fn test_phase7_budget_exact_full_depletion() {
+        let (_container, pool) = start_postgres().await;
+        let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
+        let session_id = insert_session_with_tokens(
+            &pool, tenant_id, persona_id, 100_000,
+            "tok-phase7-2", "cap-2", 80, 2,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .unwrap();
+
+        // Deduct exactly the full budget
+        let remaining = update_session_budget(&pool, session_id, 1_000_000).await.unwrap();
+        assert_eq!(remaining, 0, "Remaining should be 0 after depleting full budget");
+
+        // Verify state
+        let budget = fetch_session_budget(&pool, session_id).await.unwrap().unwrap();
+        assert_eq!(budget.1, 0, "Remaining is zero");
+        assert_eq!(budget.2, 1_000_000, "Consumed equals initial");
+    }
+
+    #[tokio::test]
+    async fn test_phase7_budget_sequential_three_deductions_conservation() {
+        let (_container, pool) = start_postgres().await;
+        let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
+        let session_id = insert_session_with_tokens(
+            &pool, tenant_id, persona_id, 100_000,
+            "tok-phase7-3", "cap-3", 80, 2,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .unwrap();
+
+        // First deduction
+        let _ = update_session_budget(&pool, session_id, 100).await.unwrap();
+        let b1 = fetch_session_budget(&pool, session_id).await.unwrap().unwrap();
+        assert_eq!(b1.0, b1.1 + b1.2, "Conservation after deduction 1");
+
+        // Second deduction
+        let _ = update_session_budget(&pool, session_id, 200).await.unwrap();
+        let b2 = fetch_session_budget(&pool, session_id).await.unwrap().unwrap();
+        assert_eq!(b2.0, b2.1 + b2.2, "Conservation after deduction 2");
+        assert_eq!(b2.2, 300, "Total consumed = 100+200");
+
+        // Third deduction
+        let _ = update_session_budget(&pool, session_id, 300).await.unwrap();
+        let b3 = fetch_session_budget(&pool, session_id).await.unwrap().unwrap();
+        assert_eq!(b3.0, b3.1 + b3.2, "Conservation after deduction 3");
+        assert_eq!(b3.2, 600, "Total consumed = 100+200+300");
+    }
+
+    #[tokio::test]
+    async fn test_phase7_budget_two_sessions_independent() {
+        let (_container, pool) = start_postgres().await;
+        let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
+
+        let session_1 = insert_session_with_tokens(
+            &pool, tenant_id, persona_id, 100_000,
+            "tok-phase7-s1", "cap-s1", 80, 2,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .unwrap();
+
+        let session_2 = insert_session_with_tokens(
+            &pool, tenant_id, persona_id, 100_000,
+            "tok-phase7-s2", "cap-s2", 80, 2,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .unwrap();
+
+        // Deduct from session 1 only
+        let _ = update_session_budget(&pool, session_1, 500_000).await.unwrap();
+
+        // Verify session 1 is depleted, session 2 is full
+        let b1 = fetch_session_budget(&pool, session_1).await.unwrap().unwrap();
+        let b2 = fetch_session_budget(&pool, session_2).await.unwrap().unwrap();
+
+        assert_eq!(b1.1, 500_000, "Session 1 remaining after deduction");
+        assert_eq!(b2.1, 1_000_000, "Session 2 unaffected, still full");
+    }
+
+    #[tokio::test]
+    async fn test_phase7_budget_reset_after_partial_deduction() {
+        let (_container, pool) = start_postgres().await;
+        let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
+        let session_id = insert_session_with_tokens(
+            &pool, tenant_id, persona_id, 100_000,
+            "tok-phase7-5", "cap-5", 80, 2,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .unwrap();
+
+        // Partially deplete
+        let _ = update_session_budget(&pool, session_id, 500_000).await.unwrap();
+        let before = fetch_session_budget(&pool, session_id).await.unwrap().unwrap();
+        assert_eq!(before.1, 500_000, "Remaining is 500k before reset");
+
+        // Reset
+        let reset_ok = reset_session_budget(&pool, session_id).await.unwrap();
+        assert!(reset_ok, "Reset should succeed");
+
+        // Verify full restoration
+        let after = fetch_session_budget(&pool, session_id).await.unwrap().unwrap();
+        assert_eq!(after.1, 1_000_000, "Remaining restored to initial");
+        assert_eq!(after.2, 0, "Consumed reset to 0");
+    }
+
+    #[tokio::test]
+    async fn test_phase7_budget_deduction_unknown_session_is_err() {
+        let (_container, pool) = start_postgres().await;
+        let fake_session_id = uuid::Uuid::new_v4();
+
+        let result = update_session_budget(&pool, fake_session_id, 100).await;
+        assert!(result.is_err(), "Deduction from unknown session should fail");
+    }
+
+    #[tokio::test]
+    async fn test_phase7_budget_reset_true_for_existing_session() {
+        let (_container, pool) = start_postgres().await;
+        let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
+        let session_id = insert_session_with_tokens(
+            &pool, tenant_id, persona_id, 100_000,
+            "tok-phase7-7", "cap-7", 80, 2,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .unwrap();
+
+        let result = reset_session_budget(&pool, session_id).await.unwrap();
+        assert!(result, "Reset existing session should return true");
+    }
+
+    #[tokio::test]
+    async fn test_phase7_budget_reset_false_for_missing_session() {
+        let (_container, pool) = start_postgres().await;
+        let fake_session_id = uuid::Uuid::new_v4();
+
+        let result = reset_session_budget(&pool, fake_session_id).await.unwrap();
+        assert!(!result, "Reset missing session should return false");
+    }
+
+    #[tokio::test]
+    async fn test_phase7_budget_remaining_never_negative() {
+        let (_container, pool) = start_postgres().await;
+        let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
+        let session_id = insert_session_with_tokens(
+            &pool, tenant_id, persona_id, 100_000,
+            "tok-phase7-9", "cap-9", 80, 2,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .unwrap();
+
+        // Deduct 500k
+        let _ = update_session_budget(&pool, session_id, 500_000).await.unwrap();
+
+        // Try to deduct 1 more than remaining (should fail with WHERE clause)
+        let result = update_session_budget(&pool, session_id, 500_001).await;
+        assert!(result.is_err(), "Deduction exceeding remaining should fail");
+
+        // Verify remaining unchanged
+        let budget = fetch_session_budget(&pool, session_id).await.unwrap().unwrap();
+        assert_eq!(budget.1, 500_000, "Remaining unchanged after failed deduction");
+    }
+
+    #[tokio::test]
+    async fn test_phase7_budget_revoked_session_deduction_succeeds() {
+        let (_container, pool) = start_postgres().await;
+        let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
+        let session_id = insert_session_with_tokens(
+            &pool, tenant_id, persona_id, 100_000,
+            "tok-phase7-10", "cap-10", 80, 2,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .unwrap();
+
+        // Revoke the session
+        let _revoked = revoke_session(&pool, session_id).await.unwrap();
+
+        // Budget deduction should still succeed (revocation is handler-level check, not DB budget)
+        let result = update_session_budget(&pool, session_id, 100).await;
+        assert!(result.is_ok(), "Budget deduction succeeds even for revoked session (architectural: revocation is handler check)");
+
+        let remaining = result.unwrap();
+        assert_eq!(remaining, 999_900, "Deduction amount correct");
+    }
+
 }

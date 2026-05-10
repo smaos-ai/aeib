@@ -10,3 +10,5 @@ pub mod refresh;
 pub mod constraint_resolver;
 pub mod behavior_scorer;
 pub mod federation_resolver;
+pub mod transitive_resolver;
+pub mod reputation_blender;

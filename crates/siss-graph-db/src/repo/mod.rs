@@ -9,3 +9,6 @@ pub mod challenge_repo;
 pub mod delegation_repo;
 pub mod federation_repo;
 pub mod gossip_repo;
+pub mod cross_sovereign_delegation_repo;
+pub mod reputation_repo;
+pub mod discovery_repo;

@@ -288,6 +288,274 @@ pub async fn list_active_peer_endpoints(
     .await
 }
 
+// ============================================================================
+// Phase 11: Invoice Lifecycle (Task 55)
+// ============================================================================
+
+pub const INVOICE_STATUS_MONOTONIC: &str = "pending_to_acknowledged_to_settled_or_disputed";
+
+#[derive(Debug, Clone)]
+pub struct InvoiceLifecycle {
+    pub invoice_id: Uuid,
+    pub status: String,
+    pub total_tokens: i64,
+    pub issued_at: DateTime<Utc>,
+    pub acknowledged_at: Option<DateTime<Utc>>,
+    pub disputed_at: Option<DateTime<Utc>>,
+    pub dispute_reason: Option<String>,
+    pub dispute_resolution: Option<String>,
+    pub settled_at: Option<DateTime<Utc>>,
+}
+
+/// Acknowledge an invoice (pending → acknowledged). Idempotent per invoice_id.
+pub async fn acknowledge_invoice(
+    pool: &PgPool,
+    invoice_id: Uuid,
+    debtor_sovereign_id: Uuid,
+) -> Result<bool, sqlx::Error> {
+    let affected = sqlx::query_scalar::<_, i64>(
+        "UPDATE settlement_invoices \
+         SET status = 'acknowledged', acknowledged_at = NOW() \
+         WHERE id = $1 AND debtor_sovereign_id = $2 AND status = 'pending' \
+         RETURNING 1"
+    )
+    .bind(invoice_id)
+    .bind(debtor_sovereign_id)
+    .fetch_optional(pool)
+    .await?
+    .unwrap_or(0);
+
+    Ok(affected > 0)
+}
+
+/// Dispute an acknowledged invoice (acknowledged → disputed).
+pub async fn dispute_invoice(
+    pool: &PgPool,
+    invoice_id: Uuid,
+    debtor_sovereign_id: Uuid,
+    dispute_reason: &str,
+    dispute_evidence: serde_json::Value,
+) -> Result<bool, sqlx::Error> {
+    let affected = sqlx::query_scalar::<_, i64>(
+        "UPDATE settlement_invoices \
+         SET status = 'disputed', disputed_at = NOW(), dispute_reason = $1, dispute_evidence = $2 \
+         WHERE id = $3 AND debtor_sovereign_id = $4 AND status = 'acknowledged' \
+         RETURNING 1"
+    )
+    .bind(dispute_reason)
+    .bind(dispute_evidence)
+    .bind(invoice_id)
+    .bind(debtor_sovereign_id)
+    .fetch_optional(pool)
+    .await?
+    .unwrap_or(0);
+
+    Ok(affected > 0)
+}
+
+/// Resolve a dispute (sets resolution outcome, status stays 'disputed').
+pub async fn resolve_dispute(
+    pool: &PgPool,
+    invoice_id: Uuid,
+    creditor_sovereign_id: Uuid,
+    resolution: &str,
+) -> Result<bool, sqlx::Error> {
+    let affected = sqlx::query_scalar::<_, i64>(
+        "UPDATE settlement_invoices \
+         SET dispute_resolution = $1, dispute_resolved_at = NOW() \
+         WHERE id = $2 AND creditor_sovereign_id = $3 AND status = 'disputed' \
+         RETURNING 1"
+    )
+    .bind(resolution)
+    .bind(invoice_id)
+    .bind(creditor_sovereign_id)
+    .fetch_optional(pool)
+    .await?
+    .unwrap_or(0);
+
+    Ok(affected > 0)
+}
+
+/// Mark an invoice as settled (pending|acknowledged → settled). Fails if disputed.
+pub async fn mark_invoice_settled_v2(
+    pool: &PgPool,
+    invoice_id: Uuid,
+    debtor_sovereign_id: Uuid,
+) -> Result<bool, sqlx::Error> {
+    let affected = sqlx::query_scalar::<_, i64>(
+        "UPDATE settlement_invoices \
+         SET status = 'settled', settled_at = NOW() \
+         WHERE id = $1 AND debtor_sovereign_id = $2 AND status IN ('pending', 'acknowledged') \
+         RETURNING 1"
+    )
+    .bind(invoice_id)
+    .bind(debtor_sovereign_id)
+    .fetch_optional(pool)
+    .await?
+    .unwrap_or(0);
+
+    Ok(affected > 0)
+}
+
+/// Fetch full invoice lifecycle details.
+pub async fn fetch_invoice_lifecycle(
+    pool: &PgPool,
+    invoice_id: Uuid,
+) -> Result<Option<InvoiceLifecycle>, sqlx::Error> {
+    let result = sqlx::query_as::<_, (Uuid, String, i64, DateTime<Utc>, Option<DateTime<Utc>>, Option<DateTime<Utc>>, Option<String>, Option<String>, Option<DateTime<Utc>>)>(
+        "SELECT id, status, total_tokens, issued_at, acknowledged_at, disputed_at, dispute_reason, dispute_resolution, settled_at \
+         FROM settlement_invoices \
+         WHERE id = $1"
+    )
+    .bind(invoice_id)
+    .fetch_optional(pool)
+    .await?;
+
+    Ok(result.map(|(id, status, total_tokens, issued_at, acknowledged_at, disputed_at, dispute_reason, dispute_resolution, settled_at)| {
+        InvoiceLifecycle {
+            invoice_id: id,
+            status,
+            total_tokens,
+            issued_at,
+            acknowledged_at,
+            disputed_at,
+            dispute_reason,
+            dispute_resolution,
+            settled_at,
+        }
+    }))
+}
+
+// ============================================================================
+// Phase 11: Gap Fixes (Task 56)
+// ============================================================================
+
+#[derive(Debug, Clone)]
+pub enum ForeignBudgetError {
+    BudgetCapExceeded { cap: i64, consumed: i64, requested: i64 },
+    NoBilateralAgreement,
+    Database(String),
+}
+
+impl From<sqlx::Error> for ForeignBudgetError {
+    fn from(err: sqlx::Error) -> Self {
+        ForeignBudgetError::Database(err.to_string())
+    }
+}
+
+/// Gap 1 Fix: Monotonically advance gossip_seq after processing renegotiation gossip.
+/// Only updates if new_seq > current.
+pub async fn update_federation_peer_gossip_seq(
+    pool: &PgPool,
+    federation_peer_id: Uuid,
+    new_gossip_seq: i64,
+) -> Result<bool, sqlx::Error> {
+    let affected = sqlx::query_scalar::<_, i64>(
+        "UPDATE federation_peers \
+         SET gossip_seq = GREATEST(gossip_seq, $1) \
+         WHERE id = $2 \
+         RETURNING 1"
+    )
+    .bind(new_gossip_seq)
+    .bind(federation_peer_id)
+    .fetch_optional(pool)
+    .await?
+    .unwrap_or(0);
+
+    Ok(affected > 0)
+}
+
+/// Gap 2 Fix: Enforce foreign_agent_budget_cap atomically with consumption tracking.
+/// Returns new consumed total or error if budget exceeded.
+pub async fn consume_foreign_agent_budget(
+    pool: &PgPool,
+    sovereign_a_id: Uuid,
+    sovereign_b_id: Uuid,
+    tokens_to_consume: i64,
+) -> Result<i64, ForeignBudgetError> {
+    // Lookup current peer and check cap
+    let peer_info: Option<(i64, i64)> = sqlx::query_as(
+        "SELECT foreign_agent_budget_cap, foreign_agent_budget_consumed \
+         FROM federation_peers \
+         WHERE sovereign_a_id = $1 AND sovereign_b_id = $2 AND status = 'active'"
+    )
+    .bind(sovereign_a_id)
+    .bind(sovereign_b_id)
+    .fetch_optional(pool)
+    .await?;
+
+    let (cap, currently_consumed) = peer_info
+        .ok_or(ForeignBudgetError::NoBilateralAgreement)?;
+
+    let new_consumed = currently_consumed + tokens_to_consume;
+    if new_consumed > cap {
+        return Err(ForeignBudgetError::BudgetCapExceeded {
+            cap,
+            consumed: currently_consumed,
+            requested: tokens_to_consume,
+        });
+    }
+
+    // Atomically update consumed total
+    sqlx::query(
+        "UPDATE federation_peers \
+         SET foreign_agent_budget_consumed = $1 \
+         WHERE sovereign_a_id = $2 AND sovereign_b_id = $3"
+    )
+    .bind(new_consumed)
+    .bind(sovereign_a_id)
+    .bind(sovereign_b_id)
+    .execute(pool)
+    .await?;
+
+    Ok(new_consumed)
+}
+
+/// Gap 3 Fix: List active peer endpoints bidirectionally (both outbound and inbound).
+/// Returns (peer_sovereign_id, endpoint_url, direction="outbound"|"inbound").
+pub async fn list_active_peer_endpoints_bidirectional(
+    pool: &PgPool,
+    home_sovereign_id: Uuid,
+) -> Result<Vec<(Uuid, String, String)>, sqlx::Error> {
+    let mut results = vec![];
+
+    // Outbound: home_sovereign_id → peer
+    let outbound = sqlx::query_as::<_, (Uuid, String)>(
+        "SELECT fp.sovereign_b_id, s.endpoint_url \
+         FROM federation_peers fp \
+         JOIN sovereigns s ON s.id = fp.sovereign_b_id \
+         WHERE fp.sovereign_a_id = $1 AND fp.status = 'active' \
+         AND (fp.expires_at IS NULL OR fp.expires_at > NOW()) \
+         AND s.endpoint_url IS NOT NULL"
+    )
+    .bind(home_sovereign_id)
+    .fetch_all(pool)
+    .await?;
+
+    for (peer_id, endpoint) in outbound {
+        results.push((peer_id, endpoint, "outbound".to_string()));
+    }
+
+    // Inbound: peer → home_sovereign_id
+    let inbound = sqlx::query_as::<_, (Uuid, String)>(
+        "SELECT fp.sovereign_a_id, s.endpoint_url \
+         FROM federation_peers fp \
+         JOIN sovereigns s ON s.id = fp.sovereign_a_id \
+         WHERE fp.sovereign_b_id = $1 AND fp.status = 'active' \
+         AND (fp.expires_at IS NULL OR fp.expires_at > NOW()) \
+         AND s.endpoint_url IS NOT NULL"
+    )
+    .bind(home_sovereign_id)
+    .fetch_all(pool)
+    .await?;
+
+    for (peer_id, endpoint) in inbound {
+        results.push((peer_id, endpoint, "inbound".to_string()));
+    }
+
+    Ok(results)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

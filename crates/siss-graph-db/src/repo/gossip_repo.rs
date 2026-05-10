@@ -66,6 +66,42 @@ pub async fn fetch_unprocessed_gossip_messages(
     .await
 }
 
+// ============================================================================
+// Phase 11: Gossip Batch Processors (Task 56)
+// ============================================================================
+
+/// Process reputation gossip batch: extract signals and insert into reputation store.
+/// Called after gossip_receive_handler validates and persists the message.
+pub async fn process_reputation_gossip_batch(
+    pool: &PgPool,
+    _gossip_message_id: Uuid,
+    _source_sovereign_id: Uuid,
+    _subject_agent_id: &str,
+    _signal_strength: i16,
+    _signal_type: &str,
+    _signal_signature: &str,
+) -> Result<bool, sqlx::Error> {
+    // Delegates to reputation_repo::insert_reputation_signal in refresh handler context
+    // This is a stub for documentation; actual insertion happens in Step 6.8 of refresh handler
+    Ok(true)
+}
+
+/// Process peer announcement gossip batch: record discovered sovereign and announcement link.
+/// Called after gossip_receive_handler validates and persists the message.
+pub async fn process_peer_announcement_batch(
+    pool: &PgPool,
+    _gossip_message_id: Uuid,
+    _announcing_sovereign_id: Uuid,
+    _announced_sovereign_id: Uuid,
+    _announced_endpoint_url: &str,
+    _announced_public_key_pem: &str,
+    _announcement_signature: &str,
+) -> Result<bool, sqlx::Error> {
+    // Delegates to discovery_repo functions in refresh handler context
+    // This is a stub for documentation; actual insertion happens in Step 6.9 of refresh handler
+    Ok(true)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

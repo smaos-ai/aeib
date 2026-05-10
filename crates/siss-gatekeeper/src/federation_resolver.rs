@@ -90,6 +90,24 @@ pub fn build_canonical_invoice_payload(
     serde_json::to_string(&map).unwrap_or_default()
 }
 
+/// Phase 11: Resolve transitive federated tier with delegation grant ceiling.
+///
+/// Computes: min(attestation_tier, bilateral_max_admitted_tier, grant_ceiling_tier)
+///
+/// When a foreign agent holds a cross-sovereign delegation grant, the grant's
+/// ceiling_tier further caps their effective tier.
+pub fn resolve_transitive_federated_tier(
+    attestation_tier: u32,
+    bilateral_max_admitted_tier: u16,
+    grant_ceiling_tier: Option<u32>,
+) -> u32 {
+    let with_bilateral = std::cmp::min(attestation_tier, bilateral_max_admitted_tier as u32);
+    match grant_ceiling_tier {
+        Some(ceiling) => std::cmp::min(with_bilateral, ceiling),
+        None => with_bilateral,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -267,5 +285,33 @@ mod tests {
         );
 
         assert_eq!(payload1, payload2, "Same invoice inputs must produce identical canonical payloads");
+    }
+
+    #[test]
+    fn test_resolve_transitive_tier_no_grant() {
+        // Without grant, falls back to bilateral cap
+        let result = resolve_transitive_federated_tier(100, 50, None);
+        assert_eq!(result, 50, "should cap to bilateral max");
+    }
+
+    #[test]
+    fn test_resolve_transitive_tier_grant_more_restrictive() {
+        // Grant ceiling is tighter than bilateral max → grant wins
+        let result = resolve_transitive_federated_tier(100, 50, Some(30));
+        assert_eq!(result, 30, "grant ceiling should be the minimum");
+    }
+
+    #[test]
+    fn test_resolve_transitive_tier_grant_less_restrictive() {
+        // Grant ceiling is looser than bilateral max → bilateral wins
+        let result = resolve_transitive_federated_tier(100, 30, Some(50));
+        assert_eq!(result, 30, "bilateral max should be the minimum");
+    }
+
+    #[test]
+    fn test_resolve_transitive_tier_all_three_caps() {
+        // All three tiers apply: min(100, 80, 60) = 60
+        let result = resolve_transitive_federated_tier(100, 80, Some(60));
+        assert_eq!(result, 60, "minimum of all three should apply");
     }
 }

@@ -2,6 +2,7 @@ use axum::{extract::State, http::StatusCode, response::{IntoResponse, Json}};
 use chrono::Utc;
 use siss_gatekeeper::{
     attestation::validators::validate_attestation,
+    constraint_resolver::ConstraintResolver,
     refresh::*,
     tokens::{CapabilityToken, SessionToken},
 };
@@ -71,6 +72,34 @@ pub async fn attestation_refresh_handler(
             // Session not found or in other state; proceed with graceful fallback
             None
         }
+    };
+
+    // Step 2.5: Load token budget state and initialize ConstraintResolver (Phase 7)
+    // is_delegated_for_cost: detected early from parent_session_id for cost formula (before Phase 6 block)
+    let is_delegated_for_cost = db_session.as_ref()
+        .map(|(_, _, _, _, _, _, parent_id, _, _, _, _)| parent_id.is_some())
+        .unwrap_or(false);
+
+    let constraint_resolver: Option<ConstraintResolver> = if let Some((session_uuid, _, _, _, _, _, _, _, _, _, _)) = &db_session {
+        let budget = siss_graph_db::repo::session_repo::fetch_session_budget(&state.pool, *session_uuid).await;
+        if let Ok(Some((initial, remaining, consumed, _))) = budget {
+            Some(ConstraintResolver::new(
+                initial as u64,
+                remaining as u64,
+                consumed as u64,
+                RateLimitConstraints {
+                    rate_limit: None,
+                    burst_size: None,
+                    min_interval_ms: None,
+                    concurrent_sessions: None,
+                },
+                0, // current_child_sessions
+            ))
+        } else {
+            None  // Budget not available — proceed without enforcement (fail-open on DB errors)
+        }
+    } else {
+        None
     };
 
     // If we found a session in DB, it's automatically validated (expiry + active status checked by fetch_session_by_token)
@@ -228,6 +257,20 @@ pub async fn attestation_refresh_handler(
         }
     };
 
+    // Step 3.5: Compute token cost and validate economic constraints — most-restrictive-wins (Phase 7)
+    let token_cost = compute_token_cost(tier, request.attestations.len(), is_delegated_for_cost);
+    if let Some(ref resolver) = constraint_resolver {
+        if let Err(denial) = resolver.validate_all_constraints(token_cost.total_cost) {
+            let http_status = match &denial {
+                AttestationRefreshResponse::Error(e) if e.reason == "budget_exhausted" => {
+                    StatusCode::PAYMENT_REQUIRED  // 402: economic constraint
+                }
+                _ => StatusCode::TOO_MANY_REQUESTS,  // 429: rate limit / concurrent
+            };
+            return (http_status, Json(denial)).into_response();
+        }
+    }
+
     // Step 6: Build attestation evaluation (Layer 1: Why + Layer 2: What)
     let attestations_eval = build_attestations_evaluation(&request.attestations, score);
     let capability_changes = build_capability_changes(None, tier);
@@ -353,6 +396,17 @@ pub async fn attestation_refresh_handler(
         issued_at: Utc::now(),
         valid_until: capability_expiry,
     };
+
+    // Step 9.5: Atomically consume token budget (best-effort, non-blocking) (Phase 7)
+    // WHERE clause in update_session_budget enforces atomicity even with concurrent requests
+    if let Some((session_uuid, _, _, _, _, _, _, _, _, _, _)) = &db_session {
+        let _ = siss_graph_db::repo::session_repo::update_session_budget(
+            &state.pool,
+            *session_uuid,
+            token_cost.total_cost as i64,
+        )
+        .await;
+    }
 
     // Step 10: Build evaluation report
     // Use effective_tier if delegated (clamped to ceiling), otherwise use computed tier

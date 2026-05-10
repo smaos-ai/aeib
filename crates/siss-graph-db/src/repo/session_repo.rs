@@ -262,6 +262,92 @@ pub async fn check_ancestors_revoked(
     Ok(())
 }
 
+/// Phase 7: Update session budget after successful token issuance (atomic).
+///
+/// Atomically:
+/// - Decrements token_budget_remaining by token_cost
+/// - Increments token_budget_consumed by token_cost
+/// - Updates last_refresh_at to NOW()
+///
+/// Fails if:
+/// - Session not found
+/// - token_budget_remaining < token_cost (insufficient budget)
+///
+/// Returns:
+/// - `Ok(remaining_after)` if update succeeded
+/// - `Err(sqlx::Error)` if DB error or constraint violation
+pub async fn update_session_budget(
+    pool: &PgPool,
+    session_id: Uuid,
+    token_cost: i64,
+) -> Result<i64, sqlx::Error> {
+    // Atomic UPDATE with budget conservation check
+    let result: Option<(i64,)> = sqlx::query_as(
+        "UPDATE sessions \
+         SET token_budget_remaining = token_budget_remaining - $2, \
+             token_budget_consumed = token_budget_consumed + $2, \
+             last_refresh_at = NOW() \
+         WHERE id = $1 \
+           AND token_budget_remaining >= $2 \
+         RETURNING token_budget_remaining"
+    )
+    .bind(session_id)
+    .bind(token_cost)
+    .fetch_optional(pool)
+    .await?;
+
+    match result {
+        Some((remaining,)) => Ok(remaining),
+        None => Err(sqlx::Error::RowNotFound),  // Not found or insufficient budget
+    }
+}
+
+/// Phase 7: Fetch session budget state.
+///
+/// Returns:
+/// - `(initial, remaining, consumed, reset_at)` if session found
+/// - `None` if session not found
+pub async fn fetch_session_budget(
+    pool: &PgPool,
+    session_id: Uuid,
+) -> Result<Option<(i64, i64, i64, DateTime<Utc>)>, sqlx::Error> {
+    let row: Option<(i64, i64, i64, DateTime<Utc>)> = sqlx::query_as(
+        "SELECT token_budget_initial, token_budget_remaining, token_budget_consumed, token_budget_reset_at \
+         FROM sessions \
+         WHERE id = $1"
+    )
+    .bind(session_id)
+    .fetch_optional(pool)
+    .await?;
+    Ok(row)
+}
+
+/// Phase 7: Reset session budget on period boundary (daily/hourly).
+///
+/// Atomically:
+/// - Sets token_budget_remaining = token_budget_initial
+/// - Sets token_budget_consumed = 0
+/// - Updates token_budget_reset_at to NOW()
+///
+/// Returns true if update succeeded, false if session not found.
+pub async fn reset_session_budget(
+    pool: &PgPool,
+    session_id: Uuid,
+) -> Result<bool, sqlx::Error> {
+    let result = sqlx::query(
+        "UPDATE sessions \
+         SET token_budget_remaining = token_budget_initial, \
+             token_budget_consumed = 0, \
+             token_budget_reset_at = NOW() \
+         WHERE id = $1"
+    )
+    .bind(session_id)
+    .execute(pool)
+    .await?;
+
+    Ok(result.rows_affected() > 0)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -841,5 +927,183 @@ mod tests {
         if let Err(revoked_id) = result {
             assert_eq!(revoked_id, root_id, "Error should identify revoked grandparent");
         }
+    }
+
+    // ====== Phase 7: Token Budget Tests ======
+
+    #[tokio::test]
+    async fn test_update_session_budget_success() {
+        let (_container, pool) = start_postgres().await;
+        let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
+
+        let session_id = insert_session_with_tokens(
+            &pool,
+            tenant_id,
+            persona_id,
+            100_000,
+            "budget-test-token",
+            "cap-token",
+            80,
+            2,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .expect("insert");
+
+        // Initial budget: 1,000,000 (default)
+        // Consume 100 tokens
+        let remaining = update_session_budget(&pool, session_id, 100)
+            .await
+            .expect("update");
+
+        assert_eq!(remaining, 1_000_000 - 100, "Remaining should be initial - cost");
+
+        // Verify budget state
+        let budget = fetch_session_budget(&pool, session_id)
+            .await
+            .expect("fetch")
+            .expect("budget found");
+
+        assert_eq!(budget.0, 1_000_000, "Initial budget unchanged");
+        assert_eq!(budget.1, 999_900, "Remaining decreased by cost");
+        assert_eq!(budget.2, 100, "Consumed increased by cost");
+    }
+
+    #[tokio::test]
+    async fn test_update_session_budget_conservation_invariant() {
+        let (_container, pool) = start_postgres().await;
+        let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
+
+        let session_id = insert_session_with_tokens(
+            &pool,
+            tenant_id,
+            persona_id,
+            100_000,
+            "conservation-test",
+            "cap-token",
+            80,
+            2,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .expect("insert");
+
+        // Consume multiple tokens
+        let _ = update_session_budget(&pool, session_id, 250)
+            .await
+            .expect("update 1");
+        let _ = update_session_budget(&pool, session_id, 350)
+            .await
+            .expect("update 2");
+        let _ = update_session_budget(&pool, session_id, 150)
+            .await
+            .expect("update 3");
+
+        // Verify conservation: initial = remaining + consumed
+        let budget = fetch_session_budget(&pool, session_id)
+            .await
+            .expect("fetch")
+            .expect("budget found");
+
+        let (initial, remaining, consumed, _) = budget;
+        assert_eq!(
+            initial,
+            remaining + consumed,
+            "Conservation invariant: initial = remaining + consumed"
+        );
+        assert_eq!(remaining + consumed, 1_000_000, "Total should equal initial");
+    }
+
+    #[tokio::test]
+    async fn test_update_session_budget_insufficient() {
+        let (_container, pool) = start_postgres().await;
+        let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
+
+        let session_id = insert_session_with_tokens(
+            &pool,
+            tenant_id,
+            persona_id,
+            100_000,
+            "insufficient-test",
+            "cap-token",
+            80,
+            2,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .expect("insert");
+
+        // Consume 999,999 tokens (leave 1)
+        let _ = update_session_budget(&pool, session_id, 999_999)
+            .await
+            .expect("update");
+
+        // Try to consume 100 more (should fail: only 1 remaining)
+        let result = update_session_budget(&pool, session_id, 100)
+            .await;
+
+        assert!(result.is_err(), "Insufficient budget should fail");
+    }
+
+    #[tokio::test]
+    async fn test_fetch_session_budget_not_found() {
+        let (_container, pool) = start_postgres().await;
+
+        let result = fetch_session_budget(&pool, Uuid::new_v4())
+            .await
+            .expect("fetch");
+
+        assert!(result.is_none(), "Non-existent session should return None");
+    }
+
+    #[tokio::test]
+    async fn test_reset_session_budget() {
+        let (_container, pool) = start_postgres().await;
+        let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
+
+        let session_id = insert_session_with_tokens(
+            &pool,
+            tenant_id,
+            persona_id,
+            100_000,
+            "reset-test",
+            "cap-token",
+            80,
+            2,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .expect("insert");
+
+        // Consume some budget
+        let _ = update_session_budget(&pool, session_id, 500_000)
+            .await
+            .expect("consume");
+
+        // Verify consumed
+        let before_reset = fetch_session_budget(&pool, session_id)
+            .await
+            .expect("fetch")
+            .expect("budget found");
+
+        assert_eq!(before_reset.1, 500_000, "Remaining should be 500k after consuming");
+        assert_eq!(before_reset.2, 500_000, "Consumed should be 500k");
+
+        // Reset budget
+        let reset_ok = reset_session_budget(&pool, session_id)
+            .await
+            .expect("reset");
+
+        assert!(reset_ok, "Reset should succeed");
+
+        // Verify reset
+        let after_reset = fetch_session_budget(&pool, session_id)
+            .await
+            .expect("fetch")
+            .expect("budget found");
+
+        assert_eq!(after_reset.0, 1_000_000, "Initial unchanged");
+        assert_eq!(after_reset.1, 1_000_000, "Remaining reset to initial");
+        assert_eq!(after_reset.2, 0, "Consumed reset to 0");
     }
 }

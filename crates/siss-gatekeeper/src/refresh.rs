@@ -579,20 +579,146 @@ pub fn error_ancestor_revoked_subtree() -> AttestationRefreshResponse {
     )
 }
 
-/// Phase 6: Detect if a session's ancestors are revoked
+/// Phase 6.1: Error enum for ancestor revocation validation
+#[derive(Debug, Clone)]
+pub enum AncestorRevocationError {
+    /// At least one ancestor session is revoked (contains first revoked ancestor ID)
+    AncestorRevoked(uuid::Uuid),
+    /// Ancestor session not found in DB
+    AncestorNotFound,
+    /// Database error during check
+    DatabaseError,
+}
+
+impl std::fmt::Display for AncestorRevocationError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::AncestorRevoked(ancestor_id) => {
+                write!(f, "Ancestor session {} is revoked", ancestor_id)
+            }
+            Self::AncestorNotFound => write!(f, "Ancestor session not found"),
+            Self::DatabaseError => write!(f, "Database error during ancestor check"),
+        }
+    }
+}
+
+/// Phase 6.1: Validate that no ancestor in delegation chain is revoked (FAIL-CLOSED).
 ///
-/// Used during refresh handler to implement strict fail-closed check:
-/// if any ancestor in the delegation chain is revoked, return error.
-/// This function encapsulates the check logic.
+/// The handler should call this after fetching ancestor session IDs from the database.
+/// If ANY ancestor is marked as revoked, this returns an error.
+///
+/// Returns:
+/// - `Ok(())` if all ancestors are safe (active/not revoked)
+/// - `Err(AncestorRevocationError::AncestorRevoked(id))` if revoked ancestor found
+pub fn validate_ancestor_not_revoked(
+    ancestor_status_checks: &[(uuid::Uuid, String)],  // [(ancestor_id, status)]
+) -> Result<(), AncestorRevocationError> {
+    for (ancestor_id, status) in ancestor_status_checks {
+        if status == "revoked" {
+            return Err(AncestorRevocationError::AncestorRevoked(*ancestor_id));
+        }
+    }
+    Ok(())
+}
+
+/// Phase 6: Detect if a session's ancestors are revoked (STUB — use validate_ancestor_not_revoked instead)
+///
+/// This is a stub function kept for backward compatibility.
+/// New code should use validate_ancestor_not_revoked() which takes pre-fetched status tuples.
 pub fn is_ancestor_revoked(_ancestor_session_ids: &[uuid::Uuid]) -> bool {
-    // Phase 6: This will be called from the handler with actual ancestor session IDs
-    // For now, stub returns false (will be implemented in handler with DB lookup)
+    // Phase 6.1: Replaced by validate_ancestor_not_revoked() which requires actual DB lookups
+    // This stub returns false (optimistic, non-fail-closed)
+    // Do not rely on this for security-critical checks!
     false
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // ====== Phase 6.1: Ancestor Revocation Validation Tests ======
+
+    #[test]
+    fn test_validate_ancestor_not_revoked_no_ancestors() {
+        let result = validate_ancestor_not_revoked(&[]);
+        assert!(result.is_ok(), "No ancestors should pass validation");
+    }
+
+    #[test]
+    fn test_validate_ancestor_not_revoked_benign_ancestor() {
+        let ancestors = vec![(uuid::Uuid::new_v4(), "active".to_string())];
+        let result = validate_ancestor_not_revoked(&ancestors);
+        assert!(result.is_ok(), "Benign (active) ancestor should pass");
+    }
+
+    #[test]
+    fn test_validate_ancestor_not_revoked_multiple_benign_ancestors() {
+        let ancestors = vec![
+            (uuid::Uuid::new_v4(), "active".to_string()),
+            (uuid::Uuid::new_v4(), "active".to_string()),
+            (uuid::Uuid::new_v4(), "active".to_string()),
+        ];
+        let result = validate_ancestor_not_revoked(&ancestors);
+        assert!(result.is_ok(), "Multiple active ancestors should pass");
+    }
+
+    #[test]
+    fn test_validate_ancestor_not_revoked_direct_parent_revoked() {
+        let parent_id = uuid::Uuid::new_v4();
+        let ancestors = vec![(parent_id, "revoked".to_string())];
+        let result = validate_ancestor_not_revoked(&ancestors);
+
+        assert!(result.is_err(), "Revoked ancestor should fail");
+        match result {
+            Err(AncestorRevocationError::AncestorRevoked(id)) => {
+                assert_eq!(id, parent_id, "Error should identify revoked ancestor");
+            }
+            _ => panic!("Expected AncestorRevoked error"),
+        }
+    }
+
+    #[test]
+    fn test_validate_ancestor_not_revoked_transitive_revocation() {
+        let grandparent_id = uuid::Uuid::new_v4();
+        let parent_id = uuid::Uuid::new_v4();
+        let ancestors = vec![
+            (parent_id, "active".to_string()),
+            (grandparent_id, "revoked".to_string()),
+        ];
+        let result = validate_ancestor_not_revoked(&ancestors);
+
+        assert!(result.is_err(), "Revoked grandparent should fail");
+        match result {
+            Err(AncestorRevocationError::AncestorRevoked(id)) => {
+                assert_eq!(id, grandparent_id, "Should identify revoked grandparent");
+            }
+            _ => panic!("Expected AncestorRevoked error"),
+        }
+    }
+
+    #[test]
+    fn test_ancestor_revocation_error_display() {
+        let ancestor_id = uuid::Uuid::new_v4();
+        let error = AncestorRevocationError::AncestorRevoked(ancestor_id);
+        let msg = format!("{}", error);
+        assert!(msg.contains("revoked"), "Error message should mention revocation");
+        assert!(msg.contains(&ancestor_id.to_string()), "Error should include ancestor ID");
+    }
+
+    #[test]
+    fn test_error_ancestor_revoked_subtree_response() {
+        let response = error_ancestor_revoked_subtree();
+        match response {
+            AttestationRefreshResponse::Error(err) => {
+                assert_eq!(err.status, "denied");
+                assert_eq!(err.reason, "session_revoked_ancestor");
+                assert!(err.detail.contains("ancestor"));
+                assert_eq!(err.remediation.len(), 2);
+                assert!(err.attestation_evaluation.is_none());
+            }
+            _ => panic!("Expected error response"),
+        }
+    }
 
     #[test]
     fn test_validate_refresh_proof_with_valid_signature() {

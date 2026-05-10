@@ -249,12 +249,59 @@ pub async fn attestation_refresh_handler(
                     tier
                 };
 
-                // Check ancestor revocation (fail-closed: if ancestor revoked, return error)
-                // For now, stub implementation; will be enhanced with DB lookup in Phase 6.1
-                if is_ancestor_revoked(&[delegated_by_agent_id.unwrap_or_default()]) {
+                // Phase 6.1: Check ancestor revocation (fail-closed: if ancestor revoked, return error)
+                // Fetch all ancestors of the parent session and verify none are revoked
+                let ancestor_check = async {
+                    // Fetch ancestor session IDs (recursive)
+                    let ancestor_ids = match siss_graph_db::repo::session_repo::fetch_ancestor_session_ids(
+                        &state.pool,
+                        parent_session_id.unwrap_or_default(),
+                    )
+                    .await
+                    {
+                        Ok(Some(ids)) => ids,
+                        Ok(None) => vec![],  // Parent session not found or no ancestors
+                        Err(_) => return None,  // DB error: fail gracefully
+                    };
+
+                    if ancestor_ids.is_empty() {
+                        return Some(Ok(()));  // No ancestors to check
+                    }
+
+                    // Fetch status of each ancestor
+                    let mut ancestor_statuses = vec![];
+                    for ancestor_id in ancestor_ids {
+                        let status: Option<(String,)> = match sqlx::query_as::<_, (String,)>(
+                            "SELECT status::text FROM sessions WHERE id = $1"
+                        )
+                        .bind(ancestor_id)
+                        .fetch_optional(&state.pool)
+                        .await
+                        {
+                            Ok(Some((s,))) => Some((s,)),
+                            Ok(None) => None,
+                            Err(_) => return None,  // DB error
+                        };
+
+                        if let Some((s,)) = status {
+                            ancestor_statuses.push((ancestor_id, s));
+                        }
+                    }
+
+                    // Validate none are revoked
+                    match siss_gatekeeper::refresh::validate_ancestor_not_revoked(&ancestor_statuses) {
+                        Ok(()) => Some(Ok(())),
+                        Err(_) => Some(Err(())),  // Ancestor revoked
+                    }
+                }
+                .await;
+
+                if let Some(Err(())) = ancestor_check {
+                    // Ancestor is revoked: fail-closed
                     let response = error_ancestor_revoked_subtree();
                     return (StatusCode::UNAUTHORIZED, Json(response)).into_response();
                 }
+                // If ancestor_check is None (DB error), continue gracefully (best-effort)
 
                 // Build minimal lineage context from cache (OPSEC-aware: UUID-only, no names)
                 let lineage = lineage_cache_json

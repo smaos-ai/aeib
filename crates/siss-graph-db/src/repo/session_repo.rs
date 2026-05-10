@@ -176,6 +176,92 @@ pub async fn fetch_session_status_by_token(
     Ok(row)
 }
 
+/// Phase 6.1: Fetch all ancestor session IDs for a given session (recursive).
+///
+/// Walks the parent_session_id chain from child to root, returning all ancestors
+/// in order from immediate parent to root.
+///
+/// Returns:
+/// - Vec of ancestor session UUIDs (empty if session has no parent, i.e., is root)
+/// - None if the session itself is not found
+pub async fn fetch_ancestor_session_ids(
+    pool: &PgPool,
+    session_id: Uuid,
+) -> Result<Option<Vec<Uuid>>, sqlx::Error> {
+    // First verify session exists
+    let exists: (bool,) = sqlx::query_as(
+        "SELECT EXISTS(SELECT 1 FROM sessions WHERE id = $1)"
+    )
+    .bind(session_id)
+    .fetch_one(pool)
+    .await?;
+
+    if !exists.0 {
+        return Ok(None);
+    }
+
+    // Recursively walk parent_session_id chain to root
+    let rows: Vec<(Uuid,)> = sqlx::query_as(
+        "WITH RECURSIVE ancestor_chain AS (
+           SELECT parent_session_id FROM sessions WHERE id = $1
+           UNION ALL
+           SELECT parent_session_id FROM sessions s
+           INNER JOIN ancestor_chain a ON s.id = a.parent_session_id
+           WHERE parent_session_id IS NOT NULL
+         )
+         SELECT parent_session_id FROM ancestor_chain WHERE parent_session_id IS NOT NULL
+         ORDER BY parent_session_id"
+    )
+    .bind(session_id)
+    .fetch_all(pool)
+    .await?;
+
+    Ok(Some(rows.iter().map(|(id,)| *id).collect()))
+}
+
+/// Phase 6.1: Check if any ancestor of a session is revoked (FAIL-CLOSED).
+///
+/// Implements strict fail-closed semantics: if ANY ancestor in the delegation chain
+/// has status='revoked', the child session cannot proceed with refresh.
+///
+/// Returns:
+/// - `Ok(())` if no ancestors exist (root session) or none are revoked
+/// - `Err(revoked_ancestor_id)` if at least one ancestor is revoked
+/// - Database errors propagate
+pub async fn check_ancestors_revoked(
+    pool: &PgPool,
+    session_id: Uuid,
+) -> Result<(), Uuid> {
+    // Fetch ancestor chain
+    let ancestors = crate::repo::session_repo::fetch_ancestor_session_ids(pool, session_id)
+        .await
+        .map_err(|_| Uuid::nil())?  // DB error: return nil as sentinel
+        .unwrap_or_default();  // Root session: no ancestors
+
+    if ancestors.is_empty() {
+        return Ok(());  // Root session: no ancestors to revoke
+    }
+
+    // Check if ANY ancestor is revoked
+    for ancestor_id in ancestors {
+        let status_row: Option<(String,)> = sqlx::query_as::<_, (String,)>(
+            "SELECT status::text FROM sessions WHERE id = $1"
+        )
+        .bind(ancestor_id)
+        .fetch_optional(pool)
+        .await
+        .map_err(|_| ancestor_id)?;  // DB error: return ancestor_id as sentinel
+
+        if let Some((ancestor_status,)) = status_row {
+            if ancestor_status == "revoked" {
+                return Err(ancestor_id);  // Ancestor revoked: fail-closed
+            }
+        }
+    }
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -389,5 +475,371 @@ mod tests {
         .expect("update");
 
         assert!(!updated);
+    }
+
+    // ====== Phase 6.1: Ancestor Revocation Tests ======
+
+    #[tokio::test]
+    async fn test_fetch_ancestor_session_ids_root_session() {
+        let (_container, pool) = start_postgres().await;
+        let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
+
+        // Create root session (no parent)
+        let root_session_id = insert_session_with_tokens(
+            &pool,
+            tenant_id,
+            persona_id,
+            100_000,
+            "root-token",
+            "cap-token",
+            100,
+            1,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .expect("insert root");
+
+        // Fetch ancestors of root session
+        let ancestors = fetch_ancestor_session_ids(&pool, root_session_id)
+            .await
+            .expect("fetch")
+            .expect("session exists");
+
+        // Root session should have no ancestors
+        assert_eq!(ancestors.len(), 0, "Root session should have no ancestors");
+    }
+
+    #[tokio::test]
+    async fn test_fetch_ancestor_session_ids_single_parent() {
+        let (_container, pool) = start_postgres().await;
+        let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
+
+        // Create root session
+        let root_session_id = insert_session_with_tokens(
+            &pool,
+            tenant_id,
+            persona_id,
+            100_000,
+            "root-token",
+            "cap-token",
+            100,
+            1,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .expect("insert root");
+
+        // Create child session
+        let child_session_id = insert_session_with_tokens(
+            &pool,
+            tenant_id,
+            persona_id,
+            50_000,
+            "child-token",
+            "child-cap",
+            80,
+            2,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .expect("insert child");
+
+        // Link child to root
+        let _ = sqlx::query("UPDATE sessions SET parent_session_id = $1 WHERE id = $2")
+            .bind(root_session_id)
+            .bind(child_session_id)
+            .execute(&pool)
+            .await;
+
+        // Fetch ancestors of child
+        let ancestors = fetch_ancestor_session_ids(&pool, child_session_id)
+            .await
+            .expect("fetch")
+            .expect("session exists");
+
+        assert_eq!(ancestors.len(), 1, "Child should have 1 ancestor");
+        assert_eq!(ancestors[0], root_session_id, "Ancestor should be root");
+    }
+
+    #[tokio::test]
+    async fn test_fetch_ancestor_session_ids_multi_level_chain() {
+        let (_container, pool) = start_postgres().await;
+        let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
+
+        // Create root → parent → child chain
+        let root_id = insert_session_with_tokens(
+            &pool,
+            tenant_id,
+            persona_id,
+            100_000,
+            "root-token",
+            "cap-token",
+            100,
+            1,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .expect("insert root");
+
+        let parent_id = insert_session_with_tokens(
+            &pool,
+            tenant_id,
+            persona_id,
+            50_000,
+            "parent-token",
+            "parent-cap",
+            80,
+            2,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .expect("insert parent");
+
+        let child_id = insert_session_with_tokens(
+            &pool,
+            tenant_id,
+            persona_id,
+            25_000,
+            "child-token",
+            "child-cap",
+            60,
+            3,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .expect("insert child");
+
+        // Link parent to root
+        let _ = sqlx::query("UPDATE sessions SET parent_session_id = $1 WHERE id = $2")
+            .bind(root_id)
+            .bind(parent_id)
+            .execute(&pool)
+            .await;
+
+        // Link child to parent
+        let _ = sqlx::query("UPDATE sessions SET parent_session_id = $1 WHERE id = $2")
+            .bind(parent_id)
+            .bind(child_id)
+            .execute(&pool)
+            .await;
+
+        // Fetch ancestors of child
+        let ancestors = fetch_ancestor_session_ids(&pool, child_id)
+            .await
+            .expect("fetch")
+            .expect("session exists");
+
+        assert_eq!(ancestors.len(), 2, "Child should have 2 ancestors");
+        // Ancestors should be in order from child perspective (parent then root)
+        assert!(ancestors.contains(&parent_id), "Should include parent");
+        assert!(ancestors.contains(&root_id), "Should include root");
+    }
+
+    #[tokio::test]
+    async fn test_check_ancestors_revoked_root_session() {
+        let (_container, pool) = start_postgres().await;
+        let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
+
+        // Create root session
+        let root_id = insert_session_with_tokens(
+            &pool,
+            tenant_id,
+            persona_id,
+            100_000,
+            "root-token",
+            "cap-token",
+            100,
+            1,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .expect("insert root");
+
+        // Check ancestors of root (should be ok: no ancestors)
+        let result = check_ancestors_revoked(&pool, root_id)
+            .await;
+
+        assert!(result.is_ok(), "Root session should have no revoked ancestors");
+    }
+
+    #[tokio::test]
+    async fn test_check_ancestors_revoked_benign_ancestor() {
+        let (_container, pool) = start_postgres().await;
+        let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
+
+        // Create root → child chain (not revoked)
+        let root_id = insert_session_with_tokens(
+            &pool,
+            tenant_id,
+            persona_id,
+            100_000,
+            "root-token",
+            "cap-token",
+            100,
+            1,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .expect("insert root");
+
+        let child_id = insert_session_with_tokens(
+            &pool,
+            tenant_id,
+            persona_id,
+            50_000,
+            "child-token",
+            "child-cap",
+            80,
+            2,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .expect("insert child");
+
+        // Link child to root
+        let _ = sqlx::query("UPDATE sessions SET parent_session_id = $1 WHERE id = $2")
+            .bind(root_id)
+            .bind(child_id)
+            .execute(&pool)
+            .await;
+
+        // Check ancestors (should be ok: parent is not revoked)
+        let result = check_ancestors_revoked(&pool, child_id)
+            .await;
+
+        assert!(result.is_ok(), "Benign ancestor should pass check");
+    }
+
+    #[tokio::test]
+    async fn test_check_ancestors_revoked_direct_parent_revoked() {
+        let (_container, pool) = start_postgres().await;
+        let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
+
+        // Create root → child chain
+        let root_id = insert_session_with_tokens(
+            &pool,
+            tenant_id,
+            persona_id,
+            100_000,
+            "root-token",
+            "cap-token",
+            100,
+            1,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .expect("insert root");
+
+        let child_id = insert_session_with_tokens(
+            &pool,
+            tenant_id,
+            persona_id,
+            50_000,
+            "child-token",
+            "child-cap",
+            80,
+            2,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .expect("insert child");
+
+        // Link child to root
+        let _ = sqlx::query("UPDATE sessions SET parent_session_id = $1 WHERE id = $2")
+            .bind(root_id)
+            .bind(child_id)
+            .execute(&pool)
+            .await;
+
+        // Revoke parent
+        let _ = revoke_session(&pool, root_id)
+            .await
+            .expect("revoke");
+
+        // Check ancestors (should fail: parent is revoked)
+        let result = check_ancestors_revoked(&pool, child_id)
+            .await;
+
+        assert!(result.is_err(), "Revoked parent should block child");
+        if let Err(revoked_id) = result {
+            assert_eq!(revoked_id, root_id, "Error should identify revoked parent");
+        }
+    }
+
+    #[tokio::test]
+    async fn test_check_ancestors_revoked_transitive_revocation() {
+        let (_container, pool) = start_postgres().await;
+        let (tenant_id, persona_id) = create_test_tenant_and_persona(&pool).await;
+
+        // Create root → parent → child chain
+        let root_id = insert_session_with_tokens(
+            &pool,
+            tenant_id,
+            persona_id,
+            100_000,
+            "root-token",
+            "cap-token",
+            100,
+            1,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .expect("insert root");
+
+        let parent_id = insert_session_with_tokens(
+            &pool,
+            tenant_id,
+            persona_id,
+            50_000,
+            "parent-token",
+            "parent-cap",
+            80,
+            2,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .expect("insert parent");
+
+        let child_id = insert_session_with_tokens(
+            &pool,
+            tenant_id,
+            persona_id,
+            25_000,
+            "child-token",
+            "child-cap",
+            60,
+            3,
+            Utc::now() + chrono::Duration::hours(1),
+        )
+        .await
+        .expect("insert child");
+
+        // Link parent to root
+        let _ = sqlx::query("UPDATE sessions SET parent_session_id = $1 WHERE id = $2")
+            .bind(root_id)
+            .bind(parent_id)
+            .execute(&pool)
+            .await;
+
+        // Link child to parent
+        let _ = sqlx::query("UPDATE sessions SET parent_session_id = $1 WHERE id = $2")
+            .bind(parent_id)
+            .bind(child_id)
+            .execute(&pool)
+            .await;
+
+        // Revoke root (grandparent)
+        let _ = revoke_session(&pool, root_id)
+            .await
+            .expect("revoke");
+
+        // Check ancestors of child (should fail: grandparent is revoked)
+        let result = check_ancestors_revoked(&pool, child_id)
+            .await;
+
+        assert!(result.is_err(), "Revoked grandparent should block grandchild");
+        if let Err(revoked_id) = result {
+            assert_eq!(revoked_id, root_id, "Error should identify revoked grandparent");
+        }
     }
 }

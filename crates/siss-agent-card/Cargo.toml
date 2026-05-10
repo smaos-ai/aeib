@@ -10,6 +10,7 @@ axum = ["dep:axum"]
 [dependencies]
 siss-graph-core = { path = "../siss-graph-core" }
 siss-graph-db   = { path = "../siss-graph-db" }
+siss-gatekeeper = { path = "../siss-gatekeeper" }
 uuid.workspace = true
 chrono.workspace = true
 serde.workspace = true

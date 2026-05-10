@@ -1,13 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(uv --version)",
+      "Bash(*)",
+      "Read(*)",
+      "Edit(*)",
+      "Write(*)",
       "mcp__notebooklm__notebook_get",
-      "mcp__notebooklm__notebook_query",
-      "Bash(git add:*)",
-      "Bash(git commit -m ':*)",
-      "Bash(git commit:*)",
-      "Bash(ls -d /Users/andriileukhin/Documents/SovereignNexus/crates/*/)"
+      "mcp__notebooklm__notebook_query"
     ]
   }
 }

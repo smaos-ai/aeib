@@ -1,29 +1,127 @@
 use sqlx::PgPool;
 
 const MIGRATIONS: &[(&str, &str)] = &[
-    ("001_create_base_schema", include_str!("001_create_base_schema.sql")),
+    (
+        "001_create_base_schema",
+        include_str!("001_create_base_schema.sql"),
+    ),
     ("002_create_edges", include_str!("002_create_edges.sql")),
-    ("003_create_age_graph", include_str!("003_create_age_graph.sql")),
-    ("004_seed_governance", include_str!("004_seed_governance.sql")),
-    ("005_create_agent_cards", include_str!("005_create_agent_cards.sql")),
-    ("006_create_trust_policy_nodes", include_str!("006_create_trust_policy_nodes.sql")),
-    ("007_extend_sessions_phase5", include_str!("007_extend_sessions_phase5.sql")),
-    ("008_add_session_revocation", include_str!("008_add_session_revocation.sql")),
-    ("009_create_challenges", include_str!("009_create_challenges.sql")),
-    ("010_add_delegation_schema", include_str!("010_add_delegation_schema.sql")),
-    ("011_create_delegation_edges", include_str!("011_create_delegation_edges.sql")),
-    ("012_add_phase7_budget_fields", include_str!("012_add_phase7_budget_fields.sql")),
-    ("013_add_phase8_behavior_events", include_str!("013_add_phase8_behavior_events.sql")),
-    ("014_add_phase9_sovereign_identity", include_str!("014_add_phase9_sovereign_identity.sql")),
-    ("015_add_phase9_federation_peers", include_str!("015_add_phase9_federation_peers.sql")),
-    ("016_add_phase9_settlement_ledger", include_str!("016_add_phase9_settlement_ledger.sql")),
-    ("017_add_phase10_gossip", include_str!("017_add_phase10_gossip.sql")),
-    ("018_add_phase10_settlement_invoices", include_str!("018_add_phase10_settlement_invoices.sql")),
-    ("019_add_phase11_cross_sovereign_delegation", include_str!("019_add_phase11_cross_sovereign_delegation.sql")),
-    ("020_add_phase11_reputation_signals", include_str!("020_add_phase11_reputation_signals.sql")),
-    ("021_add_phase11_peer_discovery", include_str!("021_add_phase11_peer_discovery.sql")),
-    ("022_add_phase11_invoice_lifecycle", include_str!("022_add_phase11_invoice_lifecycle.sql")),
-    ("023_fix_phase11_gaps", include_str!("023_fix_phase11_gaps.sql")),
+    (
+        "003_create_age_graph",
+        include_str!("003_create_age_graph.sql"),
+    ),
+    (
+        "004_seed_governance",
+        include_str!("004_seed_governance.sql"),
+    ),
+    (
+        "005_create_agent_cards",
+        include_str!("005_create_agent_cards.sql"),
+    ),
+    (
+        "006_create_trust_policy_nodes",
+        include_str!("006_create_trust_policy_nodes.sql"),
+    ),
+    (
+        "007_extend_sessions_phase5",
+        include_str!("007_extend_sessions_phase5.sql"),
+    ),
+    (
+        "008_add_session_revocation",
+        include_str!("008_add_session_revocation.sql"),
+    ),
+    (
+        "009_create_challenges",
+        include_str!("009_create_challenges.sql"),
+    ),
+    (
+        "010_add_delegation_schema",
+        include_str!("010_add_delegation_schema.sql"),
+    ),
+    (
+        "011_create_delegation_edges",
+        include_str!("011_create_delegation_edges.sql"),
+    ),
+    (
+        "012_add_phase7_budget_fields",
+        include_str!("012_add_phase7_budget_fields.sql"),
+    ),
+    (
+        "013_add_phase8_behavior_events",
+        include_str!("013_add_phase8_behavior_events.sql"),
+    ),
+    (
+        "014_add_phase9_sovereign_identity",
+        include_str!("014_add_phase9_sovereign_identity.sql"),
+    ),
+    (
+        "015_add_phase9_federation_peers",
+        include_str!("015_add_phase9_federation_peers.sql"),
+    ),
+    (
+        "016_add_phase9_settlement_ledger",
+        include_str!("016_add_phase9_settlement_ledger.sql"),
+    ),
+    (
+        "017_add_phase10_gossip",
+        include_str!("017_add_phase10_gossip.sql"),
+    ),
+    (
+        "018_add_phase10_settlement_invoices",
+        include_str!("018_add_phase10_settlement_invoices.sql"),
+    ),
+    (
+        "019_add_phase11_cross_sovereign_delegation",
+        include_str!("019_add_phase11_cross_sovereign_delegation.sql"),
+    ),
+    (
+        "020_add_phase11_reputation_signals",
+        include_str!("020_add_phase11_reputation_signals.sql"),
+    ),
+    (
+        "021_add_phase11_peer_discovery",
+        include_str!("021_add_phase11_peer_discovery.sql"),
+    ),
+    (
+        "022_add_phase11_invoice_lifecycle",
+        include_str!("022_add_phase11_invoice_lifecycle.sql"),
+    ),
+    (
+        "023_fix_phase11_gaps",
+        include_str!("023_fix_phase11_gaps.sql"),
+    ),
+    (
+        "024_add_phase13_escrow_ledger",
+        include_str!("024_add_phase13_escrow_ledger.sql"),
+    ),
+    (
+        "025_add_phase13_consensus",
+        include_str!("025_add_phase13_consensus.sql"),
+    ),
+    (
+        "026_add_phase13_cycle_healing",
+        include_str!("026_add_phase13_cycle_healing.sql"),
+    ),
+    (
+        "027_add_phase14_dispute_resolved",
+        include_str!("027_add_phase14_dispute_resolved.sql"),
+    ),
+    (
+        "028_add_phase15_behavioral_anomalies",
+        include_str!("028_add_phase15_behavioral_anomalies.sql"),
+    ),
+    (
+        "029_add_phase16_appeal_probation",
+        include_str!("029_add_phase16_appeal_probation.sql"),
+    ),
+    (
+        "030_add_phase17_topology_defense",
+        include_str!("030_add_phase17_topology_defense.sql"),
+    ),
+    (
+        "031_add_phase18_slashing",
+        include_str!("031_add_phase18_slashing.sql"),
+    ),
 ];
 
 /// Run all migrations in order. Idempotent — tracks applied migrations in a metadata table.
@@ -32,18 +130,17 @@ pub async fn run_all(pool: &PgPool) -> Result<(), sqlx::Error> {
         "CREATE TABLE IF NOT EXISTS _siss_migrations (
             name TEXT PRIMARY KEY,
             applied_at TIMESTAMPTZ DEFAULT NOW()
-        )"
+        )",
     )
     .execute(pool)
     .await?;
 
     for (name, sql) in MIGRATIONS {
-        let already_applied: bool = sqlx::query_scalar(
-            "SELECT EXISTS(SELECT 1 FROM _siss_migrations WHERE name = $1)"
-        )
-        .bind(name)
-        .fetch_one(pool)
-        .await?;
+        let already_applied: bool =
+            sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM _siss_migrations WHERE name = $1)")
+                .bind(name)
+                .fetch_one(pool)
+                .await?;
 
         if !already_applied {
             sqlx::raw_sql(sql).execute(pool).await?;
@@ -61,7 +158,7 @@ pub async fn run_all(pool: &PgPool) -> Result<(), sqlx::Error> {
 mod tests {
     use super::*;
     use testcontainers::runners::AsyncRunner;
-    use testcontainers::{core::WaitFor, GenericImage, ImageExt};
+    use testcontainers::{GenericImage, ImageExt, core::WaitFor};
 
     async fn setup_postgres() -> (testcontainers::ContainerAsync<GenericImage>, PgPool) {
         let container = GenericImage::new("postgres", "16")
@@ -99,12 +196,10 @@ mod tests {
     async fn test_has_trust_policy_edge_type_exists() {
         let (_container, pool) = setup_postgres().await;
 
-        let result: (String,) = sqlx::query_as(
-            "SELECT 'has_trust_policy'::edge_type"
-        )
-        .fetch_one(&pool)
-        .await
-        .expect("query");
+        let result: (String,) = sqlx::query_as("SELECT 'has_trust_policy'::edge_type")
+            .fetch_one(&pool)
+            .await
+            .expect("query");
 
         assert_eq!(result.0, "has_trust_policy");
     }

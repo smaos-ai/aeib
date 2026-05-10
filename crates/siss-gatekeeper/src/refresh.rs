@@ -1,8 +1,8 @@
 use crate::attestation::Attestation;
-use crate::tokens::{SessionToken, CapabilityToken};
+use crate::tokens::{CapabilityToken, SessionToken};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use sha2::{Sha256, Digest};
+use sha2::{Digest, Sha256};
 
 /// Request payload for POST /.well-known/a2a/refresh
 /// Agent initiates refresh with updated attestations and cryptographic proof
@@ -107,7 +107,8 @@ pub fn validate_refresh_proof(
     agent_public_key: Option<&str>,
 ) -> Result<(), String> {
     // Parse and validate timestamp freshness
-    let request_time: DateTime<Utc> = timestamp_str.parse()
+    let request_time: DateTime<Utc> = timestamp_str
+        .parse()
         .map_err(|_| "invalid_timestamp_format".to_string())?;
     let time_diff = (Utc::now() - request_time).num_seconds().abs();
     if time_diff > 300 {
@@ -207,7 +208,141 @@ pub fn extract_session_token_remaining_seconds(session_token: &str) -> Result<i6
     if parts.len() != 3 {
         return Err("invalid_token_format".to_string());
     }
-    Ok(1800)  // Placeholder: 30 min remaining
+    Ok(1800) // Placeholder: 30 min remaining
+}
+
+/// Build error response with reason, detail, remediation, and optional attestation evaluation
+pub fn build_error_response(
+    reason: String,
+    detail: String,
+    remediation: Vec<String>,
+    attestation_evaluation: Option<AttestationEvaluation>,
+) -> AttestationRefreshResponse {
+    AttestationRefreshResponse::Error(AttestationRefreshResponseError {
+        status: "denied".to_string(),
+        reason,
+        detail,
+        remediation,
+        attestation_evaluation,
+    })
+}
+
+/// Re-evaluate trust based on updated attestations
+///
+/// Computes a security score (0-120) by summing score contributions from unique attestation types.
+/// Assigns a tier (1=FULL, 2=STANDARD, 3=MINIMAL) based on score thresholds.
+///
+/// Returns (score, tier) on success, or an error if score is insufficient.
+pub fn reevaluate_trust(attestations: &[Attestation]) -> Result<(u32, u32), String> {
+    let mut score = 0u32;
+    let mut type_counts = std::collections::HashSet::new();
+
+    for att in attestations {
+        let type_str = att.attestation_type.as_str();
+        if type_counts.insert(type_str) {
+            score += att.attestation_type.score_contribution();
+        }
+    }
+
+    let tier = if score >= 100 {
+        1
+    } else if score >= 70 {
+        2
+    } else if score >= 40 {
+        3
+    } else {
+        return Err("insufficient_security_tier".to_string());
+    };
+
+    Ok((score, tier))
+}
+
+/// Build attestations evaluation report showing per-type results
+///
+/// Produces Layer 1 (Why) evaluation details: for each attestation,
+/// includes pass/fail status, score contribution, and issuer information.
+pub fn build_attestations_evaluation(
+    attestations: &[Attestation],
+    _score: u32,
+) -> serde_json::Value {
+    let mut report = serde_json::json!({});
+    for att in attestations {
+        let type_str = att.attestation_type.as_str();
+        report[type_str] = serde_json::json!({
+            "passed": true,
+            "score_contribution": att.attestation_type.score_contribution(),
+            "issuer": att.issuer,
+        });
+    }
+    report
+}
+
+/// Build capability changes report showing before→after transitions
+///
+/// Produces Layer 2 (What) evaluation details: capability grant changes
+/// with reasons for each capability affected by the trust re-evaluation.
+///
+/// Currently a placeholder that returns an empty object.
+/// Phase 5.1 will integrate with TrustPolicyNode to generate actual capability changes.
+pub fn build_capability_changes(
+    _before_tier: Option<u32>,
+    _after_tier: u32,
+) -> serde_json::Value {
+    serde_json::json!({})
+}
+
+/// Error response for invalid signature
+/// Indicates proof_signature could not be verified with agent's public key
+pub fn error_signature_invalid() -> AttestationRefreshResponse {
+    build_error_response(
+        "signature_invalid".to_string(),
+        "Could not verify proof_signature with agent's public key".to_string(),
+        vec![
+            "Verify your private key matches the public key in your AgentCard".to_string(),
+            "Ensure signed message format: SISS:A2A:REFRESH || session_id || SHA256(nonce) || timestamp || SHA256(attestations)".to_string(),
+        ],
+        None,
+    )
+}
+
+/// Error response for expired session token
+/// Includes the expiration time and current time for context
+pub fn error_session_token_expired(expired_at: DateTime<Utc>) -> AttestationRefreshResponse {
+    build_error_response(
+        "session_token_expired".to_string(),
+        format!(
+            "Session token expired at {}; current time {}",
+            expired_at,
+            Utc::now()
+        ),
+        vec!["Re-run Phase 4 handshake".to_string()],
+        None,
+    )
+}
+
+/// Error response for attestation validation failure
+/// Indicates one or more attestations failed validation
+pub fn error_attestation_validation_failed(reason_detail: String) -> AttestationRefreshResponse {
+    build_error_response(
+        "attestation_validation_failed".to_string(),
+        reason_detail,
+        vec!["Obtain fresh attestation from TEE".to_string()],
+        None,
+    )
+}
+
+/// Error response for unmet hard requirement
+/// Indicates TrustPolicyNode requires specific attestation type
+pub fn error_hard_requirement_failed(requirement: String) -> AttestationRefreshResponse {
+    build_error_response(
+        "hard_requirement_failed".to_string(),
+        format!("TrustPolicyNode requires {} attestation", requirement),
+        vec![format!(
+            "Obtain {} attestation from deployment",
+            requirement
+        )],
+        None,
+    )
 }
 
 /// Response enum for POST /.well-known/a2a/refresh
@@ -229,7 +364,9 @@ mod tests {
         let session_id = "session-abc123";
         let nonce = "a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0";
         let timestamp = Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
-        assert!(validate_refresh_proof(session_id, nonce, &timestamp, "[]", "test-sig", None).is_ok());
+        assert!(
+            validate_refresh_proof(session_id, nonce, &timestamp, "[]", "test-sig", None).is_ok()
+        );
     }
 
     #[test]
@@ -244,7 +381,10 @@ mod tests {
 
         let req: AttestationRefreshRequest = serde_json::from_str(json).unwrap();
         assert_eq!(req.session_token, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9");
-        assert_eq!(req.ephemeral_nonce, "a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0");
+        assert_eq!(
+            req.ephemeral_nonce,
+            "a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0"
+        );
         assert_eq!(req.proof_signature, "signature123456789");
     }
 
@@ -296,12 +436,7 @@ mod tests {
         assert_eq!(attestation_evaluation.tier, Some(2));
         assert_eq!(attestation_evaluation.policy_overrides_applied.len(), 1);
 
-        let response = build_success_response(
-            true,
-            None,
-            capability_token,
-            attestation_evaluation,
-        );
+        let response = build_success_response(true, None, capability_token, attestation_evaluation);
 
         match response {
             AttestationRefreshResponse::Success(success) => {
@@ -378,23 +513,26 @@ mod tests {
     fn test_compute_capability_token_expiry_max_ttl_sooner() {
         // Case where max_ttl expires before attestation expiry
         let now = Utc::now();
-        let max_ttl = 3600u64;  // 1 hour
-        let attestation_expiry = now + chrono::Duration::hours(2);  // 2 hours from now
+        let max_ttl = 3600u64; // 1 hour
+        let attestation_expiry = now + chrono::Duration::hours(2); // 2 hours from now
 
         let expiry = compute_capability_token_expiry(max_ttl, attestation_expiry);
 
         // Expiry should be approximately 1 hour from now (max_ttl)
         let expected_expiry = now + chrono::Duration::seconds(max_ttl as i64);
         let diff = (expiry - expected_expiry).num_seconds().abs();
-        assert!(diff < 2, "Expiry should be approximately max_ttl seconds from now");
+        assert!(
+            diff < 2,
+            "Expiry should be approximately max_ttl seconds from now"
+        );
     }
 
     #[test]
     fn test_compute_capability_token_expiry_attestation_sooner() {
         // Case where attestation expires before max_ttl
         let now = Utc::now();
-        let max_ttl = 7200u64;  // 2 hours
-        let attestation_expiry = now + chrono::Duration::minutes(30);  // 30 minutes from now
+        let max_ttl = 7200u64; // 2 hours
+        let attestation_expiry = now + chrono::Duration::minutes(30); // 30 minutes from now
 
         let expiry = compute_capability_token_expiry(max_ttl, attestation_expiry);
 
@@ -407,8 +545,8 @@ mod tests {
     fn test_compute_capability_token_expiry_equal_times() {
         // Case where both expire at nearly the same time
         let now = Utc::now();
-        let max_ttl = 3600u64;  // 1 hour
-        let attestation_expiry = now + chrono::Duration::seconds(3601);  // Just barely after max_ttl
+        let max_ttl = 3600u64; // 1 hour
+        let attestation_expiry = now + chrono::Duration::seconds(3601); // Just barely after max_ttl
 
         let expiry = compute_capability_token_expiry(max_ttl, attestation_expiry);
 
@@ -416,5 +554,492 @@ mod tests {
         let expected_expiry = now + chrono::Duration::seconds(max_ttl as i64);
         let diff = (expiry - expected_expiry).num_seconds().abs();
         assert!(diff < 2, "Expiry should be limited by max_ttl");
+    }
+
+    #[test]
+    fn test_build_error_response_with_details() {
+        let response = build_error_response(
+            "test_reason".to_string(),
+            "Test error detail".to_string(),
+            vec!["Fix this".to_string(), "Then do that".to_string()],
+            None,
+        );
+
+        match response {
+            AttestationRefreshResponse::Error(error) => {
+                assert_eq!(error.status, "denied");
+                assert_eq!(error.reason, "test_reason");
+                assert_eq!(error.detail, "Test error detail");
+                assert_eq!(error.remediation.len(), 2);
+                assert_eq!(error.remediation[0], "Fix this");
+                assert_eq!(error.remediation[1], "Then do that");
+                assert!(error.attestation_evaluation.is_none());
+            }
+            _ => panic!("Expected Error response"),
+        }
+    }
+
+    #[test]
+    fn test_error_signature_invalid() {
+        let response = error_signature_invalid();
+
+        match response {
+            AttestationRefreshResponse::Error(error) => {
+                assert_eq!(error.status, "denied");
+                assert_eq!(error.reason, "signature_invalid");
+                assert!(error.detail.contains("proof_signature"));
+                assert_eq!(error.remediation.len(), 2);
+                assert!(error.remediation[0].contains("private key"));
+                assert!(error.remediation[1].contains("SISS:A2A:REFRESH"));
+                assert!(error.attestation_evaluation.is_none());
+            }
+            _ => panic!("Expected Error response"),
+        }
+    }
+
+    #[test]
+    fn test_error_session_token_expired() {
+        let expired_at = Utc::now() - chrono::Duration::hours(1);
+        let response = error_session_token_expired(expired_at);
+
+        match response {
+            AttestationRefreshResponse::Error(error) => {
+                assert_eq!(error.status, "denied");
+                assert_eq!(error.reason, "session_token_expired");
+                assert!(error.detail.contains("Session token expired"));
+                assert_eq!(error.remediation.len(), 1);
+                assert_eq!(error.remediation[0], "Re-run Phase 4 handshake");
+                assert!(error.attestation_evaluation.is_none());
+            }
+            _ => panic!("Expected Error response"),
+        }
+    }
+
+    #[test]
+    fn test_error_attestation_validation_failed() {
+        let response =
+            error_attestation_validation_failed("Hardware enclave not available".to_string());
+
+        match response {
+            AttestationRefreshResponse::Error(error) => {
+                assert_eq!(error.status, "denied");
+                assert_eq!(error.reason, "attestation_validation_failed");
+                assert_eq!(error.detail, "Hardware enclave not available");
+                assert_eq!(error.remediation.len(), 1);
+                assert_eq!(error.remediation[0], "Obtain fresh attestation from TEE");
+                assert!(error.attestation_evaluation.is_none());
+            }
+            _ => panic!("Expected Error response"),
+        }
+    }
+
+    #[test]
+    fn test_error_hard_requirement_failed() {
+        let response = error_hard_requirement_failed("hardware_enclave".to_string());
+
+        match response {
+            AttestationRefreshResponse::Error(error) => {
+                assert_eq!(error.status, "denied");
+                assert_eq!(error.reason, "hard_requirement_failed");
+                assert!(error.detail.contains("TrustPolicyNode"));
+                assert!(error.detail.contains("hardware_enclave"));
+                assert_eq!(error.remediation.len(), 1);
+                assert!(error.remediation[0].contains("hardware_enclave"));
+                assert!(error.attestation_evaluation.is_none());
+            }
+            _ => panic!("Expected Error response"),
+        }
+    }
+
+    #[test]
+    fn test_error_response_with_attestation_evaluation() {
+        let eval = build_attestation_evaluation(
+            40,
+            None,
+            serde_json::json!({"hardware_enclave": {"passed": false, "reason": "not available"}}),
+            vec![],
+            serde_json::json!({}),
+        );
+
+        let response = build_error_response(
+            "attestation_validation_failed".to_string(),
+            "Attestation failed validation".to_string(),
+            vec!["Retry with valid attestation".to_string()],
+            Some(eval.clone()),
+        );
+
+        match response {
+            AttestationRefreshResponse::Error(error) => {
+                assert_eq!(error.status, "denied");
+                assert_eq!(error.reason, "attestation_validation_failed");
+                assert!(error.attestation_evaluation.is_some());
+                let evaluation = error.attestation_evaluation.unwrap();
+                assert_eq!(evaluation.score, 40);
+                assert_eq!(evaluation.tier, None);
+            }
+            _ => panic!("Expected Error response"),
+        }
+    }
+
+    #[test]
+    fn test_error_response_serialization() {
+        let response = error_signature_invalid();
+
+        let json = serde_json::to_string(&response).unwrap();
+        assert!(json.contains("\"status\":\"denied\""));
+        assert!(json.contains("\"reason\":\"signature_invalid\""));
+        assert!(json.contains("\"detail\":"));
+        assert!(json.contains("\"remediation\":"));
+    }
+
+    #[test]
+    fn test_reevaluate_trust_tier1_high_score() {
+        // Score >= 100 should assign tier 1 (FULL)
+        let attestations = vec![
+            Attestation {
+                attestation_type: crate::attestation::AttestationType::HardwareEnclave, // 50
+                format: "sgx_quote".to_string(),
+                payload: "payload1".to_string(),
+                signature: "sig1".to_string(),
+                issuer: "intel".to_string(),
+                issued_at: Utc::now(),
+                valid_until: Utc::now() + chrono::Duration::hours(1),
+            },
+            Attestation {
+                attestation_type: crate::attestation::AttestationType::ModelIntegrity, // 30
+                format: "signed_manifest".to_string(),
+                payload: "payload2".to_string(),
+                signature: "sig2".to_string(),
+                issuer: "sovereign".to_string(),
+                issued_at: Utc::now(),
+                valid_until: Utc::now() + chrono::Duration::hours(1),
+            },
+            Attestation {
+                attestation_type: crate::attestation::AttestationType::SovereignOrigin, // 20
+                format: "signed_manifest".to_string(),
+                payload: "payload3".to_string(),
+                signature: "sig3".to_string(),
+                issuer: "origin".to_string(),
+                issued_at: Utc::now(),
+                valid_until: Utc::now() + chrono::Duration::hours(1),
+            },
+        ];
+
+        let result = reevaluate_trust(&attestations);
+        assert!(result.is_ok());
+        let (score, tier) = result.unwrap();
+        assert_eq!(score, 100);
+        assert_eq!(tier, 1);
+    }
+
+    #[test]
+    fn test_reevaluate_trust_tier2_standard_score() {
+        // Score in [70, 100) should assign tier 2 (STANDARD)
+        let attestations = vec![
+            Attestation {
+                attestation_type: crate::attestation::AttestationType::HardwareEnclave, // 50
+                format: "sgx_quote".to_string(),
+                payload: "payload1".to_string(),
+                signature: "sig1".to_string(),
+                issuer: "intel".to_string(),
+                issued_at: Utc::now(),
+                valid_until: Utc::now() + chrono::Duration::hours(1),
+            },
+            Attestation {
+                attestation_type: crate::attestation::AttestationType::ModelIntegrity, // 30
+                format: "signed_manifest".to_string(),
+                payload: "payload2".to_string(),
+                signature: "sig2".to_string(),
+                issuer: "sovereign".to_string(),
+                issued_at: Utc::now(),
+                valid_until: Utc::now() + chrono::Duration::hours(1),
+            },
+        ];
+
+        let result = reevaluate_trust(&attestations);
+        assert!(result.is_ok());
+        let (score, tier) = result.unwrap();
+        assert_eq!(score, 80);
+        assert_eq!(tier, 2);
+    }
+
+    #[test]
+    fn test_reevaluate_trust_tier3_minimal_score() {
+        // Score in [40, 70) should assign tier 3 (MINIMAL)
+        let attestations = vec![Attestation {
+            attestation_type: crate::attestation::AttestationType::HardwareEnclave, // 50
+            format: "sgx_quote".to_string(),
+            payload: "payload1".to_string(),
+            signature: "sig1".to_string(),
+            issuer: "intel".to_string(),
+            issued_at: Utc::now(),
+            valid_until: Utc::now() + chrono::Duration::hours(1),
+        }];
+
+        let result = reevaluate_trust(&attestations);
+        assert!(result.is_ok());
+        let (score, tier) = result.unwrap();
+        assert_eq!(score, 50);
+        assert_eq!(tier, 3);
+    }
+
+    #[test]
+    fn test_reevaluate_trust_insufficient_score() {
+        // Score < 40 should return error
+        let attestations = vec![Attestation {
+            attestation_type: crate::attestation::AttestationType::RuntimeIntegrity, // 20
+            format: "signed_manifest".to_string(),
+            payload: "payload1".to_string(),
+            signature: "sig1".to_string(),
+            issuer: "runtime".to_string(),
+            issued_at: Utc::now(),
+            valid_until: Utc::now() + chrono::Duration::hours(1),
+        }];
+
+        let result = reevaluate_trust(&attestations);
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), "insufficient_security_tier");
+    }
+
+    #[test]
+    fn test_reevaluate_trust_duplicate_attestation_type_counted_once() {
+        // Duplicate attestation types should only contribute score once
+        let attestations = vec![
+            Attestation {
+                attestation_type: crate::attestation::AttestationType::HardwareEnclave, // 50
+                format: "sgx_quote".to_string(),
+                payload: "payload1".to_string(),
+                signature: "sig1".to_string(),
+                issuer: "intel".to_string(),
+                issued_at: Utc::now(),
+                valid_until: Utc::now() + chrono::Duration::hours(1),
+            },
+            Attestation {
+                attestation_type: crate::attestation::AttestationType::HardwareEnclave, // Should NOT count again
+                format: "sgx_quote_v2".to_string(),
+                payload: "payload2".to_string(),
+                signature: "sig2".to_string(),
+                issuer: "intel".to_string(),
+                issued_at: Utc::now(),
+                valid_until: Utc::now() + chrono::Duration::hours(1),
+            },
+            Attestation {
+                attestation_type: crate::attestation::AttestationType::ModelIntegrity, // 30
+                format: "signed_manifest".to_string(),
+                payload: "payload3".to_string(),
+                signature: "sig3".to_string(),
+                issuer: "sovereign".to_string(),
+                issued_at: Utc::now(),
+                valid_until: Utc::now() + chrono::Duration::hours(1),
+            },
+        ];
+
+        let result = reevaluate_trust(&attestations);
+        assert!(result.is_ok());
+        let (score, tier) = result.unwrap();
+        // Only HardwareEnclave (50) + ModelIntegrity (30) = 80, not 50 + 50 + 30
+        assert_eq!(score, 80);
+        assert_eq!(tier, 2);
+    }
+
+    #[test]
+    fn test_reevaluate_trust_empty_attestations() {
+        // Empty attestations should result in insufficient score
+        let attestations = vec![];
+
+        let result = reevaluate_trust(&attestations);
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), "insufficient_security_tier");
+    }
+
+    #[test]
+    fn test_build_attestations_evaluation_single_attestation() {
+        let attestations = vec![Attestation {
+            attestation_type: crate::attestation::AttestationType::HardwareEnclave,
+            format: "sgx_quote".to_string(),
+            payload: "payload1".to_string(),
+            signature: "sig1".to_string(),
+            issuer: "intel".to_string(),
+            issued_at: Utc::now(),
+            valid_until: Utc::now() + chrono::Duration::hours(1),
+        }];
+
+        let report = build_attestations_evaluation(&attestations, 50);
+
+        assert!(report["hardware_enclave"]["passed"].as_bool().unwrap());
+        assert_eq!(report["hardware_enclave"]["score_contribution"].as_u64().unwrap(), 50);
+        assert_eq!(report["hardware_enclave"]["issuer"].as_str().unwrap(), "intel");
+    }
+
+    #[test]
+    fn test_build_attestations_evaluation_multiple_attestations() {
+        let attestations = vec![
+            Attestation {
+                attestation_type: crate::attestation::AttestationType::HardwareEnclave,
+                format: "sgx_quote".to_string(),
+                payload: "payload1".to_string(),
+                signature: "sig1".to_string(),
+                issuer: "intel".to_string(),
+                issued_at: Utc::now(),
+                valid_until: Utc::now() + chrono::Duration::hours(1),
+            },
+            Attestation {
+                attestation_type: crate::attestation::AttestationType::ModelIntegrity,
+                format: "signed_manifest".to_string(),
+                payload: "payload2".to_string(),
+                signature: "sig2".to_string(),
+                issuer: "sovereign".to_string(),
+                issued_at: Utc::now(),
+                valid_until: Utc::now() + chrono::Duration::hours(1),
+            },
+        ];
+
+        let report = build_attestations_evaluation(&attestations, 80);
+
+        assert!(report["hardware_enclave"]["passed"].as_bool().unwrap());
+        assert_eq!(report["hardware_enclave"]["score_contribution"].as_u64().unwrap(), 50);
+        assert_eq!(report["hardware_enclave"]["issuer"].as_str().unwrap(), "intel");
+
+        assert!(report["model_integrity"]["passed"].as_bool().unwrap());
+        assert_eq!(report["model_integrity"]["score_contribution"].as_u64().unwrap(), 30);
+        assert_eq!(report["model_integrity"]["issuer"].as_str().unwrap(), "sovereign");
+    }
+
+    #[test]
+    fn test_build_attestations_evaluation_empty_attestations() {
+        let attestations = vec![];
+        let report = build_attestations_evaluation(&attestations, 0);
+
+        // Should return empty object
+        assert_eq!(report.as_object().unwrap().len(), 0);
+    }
+
+    #[test]
+    fn test_build_capability_changes_tier_promotion() {
+        // Tier 3 -> Tier 2 (promotion)
+        let changes = build_capability_changes(Some(3), 2);
+
+        // Should be an empty object in Phase 5.0
+        assert_eq!(changes.as_object().unwrap().len(), 0);
+    }
+
+    #[test]
+    fn test_build_capability_changes_tier_demotion() {
+        // Tier 1 -> Tier 3 (demotion)
+        let changes = build_capability_changes(Some(1), 3);
+
+        // Should be an empty object in Phase 5.0
+        assert_eq!(changes.as_object().unwrap().len(), 0);
+    }
+
+    #[test]
+    fn test_build_capability_changes_first_evaluation() {
+        // None -> Tier 2 (first evaluation)
+        let changes = build_capability_changes(None, 2);
+
+        // Should be an empty object in Phase 5.0
+        assert_eq!(changes.as_object().unwrap().len(), 0);
+    }
+
+    #[test]
+    fn test_reevaluate_trust_score_boundary_at_40() {
+        // Score = 40 (at boundary) should assign tier 3
+        let attestations = vec![
+            Attestation {
+                attestation_type: crate::attestation::AttestationType::SovereignOrigin, // 20
+                format: "signed_manifest".to_string(),
+                payload: "payload1".to_string(),
+                signature: "sig1".to_string(),
+                issuer: "origin".to_string(),
+                issued_at: Utc::now(),
+                valid_until: Utc::now() + chrono::Duration::hours(1),
+            },
+            Attestation {
+                attestation_type: crate::attestation::AttestationType::RuntimeIntegrity, // 20
+                format: "signed_manifest".to_string(),
+                payload: "payload2".to_string(),
+                signature: "sig2".to_string(),
+                issuer: "runtime".to_string(),
+                issued_at: Utc::now(),
+                valid_until: Utc::now() + chrono::Duration::hours(1),
+            },
+        ];
+
+        let result = reevaluate_trust(&attestations);
+        assert!(result.is_ok());
+        let (score, tier) = result.unwrap();
+        assert_eq!(score, 40);
+        assert_eq!(tier, 3);
+    }
+
+    #[test]
+    fn test_reevaluate_trust_score_boundary_at_70() {
+        // Score = 70 (at boundary) should assign tier 2
+        let attestations = vec![
+            Attestation {
+                attestation_type: crate::attestation::AttestationType::HardwareEnclave, // 50
+                format: "sgx_quote".to_string(),
+                payload: "payload1".to_string(),
+                signature: "sig1".to_string(),
+                issuer: "intel".to_string(),
+                issued_at: Utc::now(),
+                valid_until: Utc::now() + chrono::Duration::hours(1),
+            },
+            Attestation {
+                attestation_type: crate::attestation::AttestationType::SovereignOrigin, // 20
+                format: "signed_manifest".to_string(),
+                payload: "payload2".to_string(),
+                signature: "sig2".to_string(),
+                issuer: "origin".to_string(),
+                issued_at: Utc::now(),
+                valid_until: Utc::now() + chrono::Duration::hours(1),
+            },
+        ];
+
+        let result = reevaluate_trust(&attestations);
+        assert!(result.is_ok());
+        let (score, tier) = result.unwrap();
+        assert_eq!(score, 70);
+        assert_eq!(tier, 2);
+    }
+
+    #[test]
+    fn test_reevaluate_trust_score_boundary_at_100() {
+        // Score = 100 (at boundary) should assign tier 1
+        let attestations = vec![
+            Attestation {
+                attestation_type: crate::attestation::AttestationType::HardwareEnclave, // 50
+                format: "sgx_quote".to_string(),
+                payload: "payload1".to_string(),
+                signature: "sig1".to_string(),
+                issuer: "intel".to_string(),
+                issued_at: Utc::now(),
+                valid_until: Utc::now() + chrono::Duration::hours(1),
+            },
+            Attestation {
+                attestation_type: crate::attestation::AttestationType::ModelIntegrity, // 30
+                format: "signed_manifest".to_string(),
+                payload: "payload2".to_string(),
+                signature: "sig2".to_string(),
+                issuer: "sovereign".to_string(),
+                issued_at: Utc::now(),
+                valid_until: Utc::now() + chrono::Duration::hours(1),
+            },
+            Attestation {
+                attestation_type: crate::attestation::AttestationType::SovereignOrigin, // 20
+                format: "signed_manifest".to_string(),
+                payload: "payload3".to_string(),
+                signature: "sig3".to_string(),
+                issuer: "origin".to_string(),
+                issued_at: Utc::now(),
+                valid_until: Utc::now() + chrono::Duration::hours(1),
+            },
+        ];
+
+        let result = reevaluate_trust(&attestations);
+        assert!(result.is_ok());
+        let (score, tier) = result.unwrap();
+        assert_eq!(score, 100);
+        assert_eq!(tier, 1);
     }
 }

@@ -634,19 +634,34 @@ Success (2xx):
   - ✅ Task 29: Documentation (completion summary, migration guide, monitoring queries)
   - ✅ Task 30: Verification & Hardening (full test suite, locked decisions audit)
 
-### In Progress (Phase 8)
+### ✅ COMPLETE & PRODUCTION-READY (Phase 8)
 
-- **Phase 8:** Behavioral Governance (runtime behavior → policy enforcement)
-  - Behavior scoring (actions, resource usage, anomalies)
-  - Dynamic tier adjustment (behavior ↔ trust feedback loop)
-  - Policy rule engine (if behavior matches rule → revoke/demote)
+- **Phase 8:** Behavioral Governance (runtime behavior → tier adjustment → cost feedback)
+  - ✅ Task 31: Migration 013 + Behavior Repo (5 DB integration tests)
+  - ✅ Task 32: BehaviorScorer (pure module, 10 unit tests, exponential decay 3.5 days)
+  - ✅ Task 33: Handler Integration (Steps 5.5/6.5/13, atomic tier+event persistence)
+  - ✅ Task 34: Integration Tests (10 pure unit tests, all passing, 119 total gatekeeper tests)
+  - **Spec:** `docs/phases/PHASE_8_FEEDBACK_LOOP_SPECIFICATION.md`
 
-### Future (Phase 9)
+### 🔵 SPECIFICATION LOCKED (Phase 9)
 
-- **Phase 9:** Federation (cross-tenant, cross-deployment)
-  - Federated trust (A's agent delegates to B's tenant)
-  - Cross-tenant settlement (budget accounting across orgs)
-  - Revocation broadcast (parent in Org A revokes child in Org B)
+- **Phase 9:** Federation (multi-sovereign coordination without surrendering autonomy)
+  - 🔒 **Four Constitutional Invariants (Locked):**
+    1. **Federated Identity:** 3-tuple (sovereign_id, tenant_id, persona_id), shadow personas, verified origin
+    2. **Cross-Sovereign Attestation Verification:** Bilateral trust (explicit, immutable, non-transitive), cryptographic Ed25519 signatures
+    3. **Federated Trust Resolution:** Tier capping at boundary (most-restrictive-wins), behavior isolation (lineage_safe=false), signed revocation certificates
+    4. **Inter-Sovereign Settlement:** Append-only credit ledger, immutable accounting, periodic settlement with signed invoices
+  - **Spec:** `docs/phases/PHASE_9_FEDERATION_SPECIFICATION.md` (~1200 lines, complete design)
+  - **Implementation Plan:** Tasks 35–42 (schema, crypto, handler integration, settlement ledger, tests)
+
+### Future (Phase 10+)
+
+- **Phase 10:** Advanced Federation & Governance
+  - Dynamic bilateral renegotiation (in-flight tier adjustment)
+  - Cross-sovereign delegation (with ceiling propagation)
+  - Reputation blending (home + destination behavior scoring)
+  - Federated settlement service (automated escrow + dispute resolution)
+  - Transitive trust paths (controlled A→B→C trust delegation)
 
 ---
 
@@ -666,15 +681,18 @@ Success (2xx):
 ## 10. References & Locked Specifications
 
 ### Locked Phase Specifications
-- `docs/superpowers/specs/2026-05-10-phase-5-attestation-refresh-design.md`
-- `docs/superpowers/specs/2026-05-10-phase-5-5-revocation-pull-based-refresh.md`
-- `docs/superpowers/specs/2026-05-10-phase-6-delegation-chains-design.md`
-- `docs/superpowers/specs/2026-05-10-phase-7-token-budget-rate-limiting-design.md`
+- **Phase 5:** `docs/phases/PHASE_5_COMPLETION_SUMMARY.md` (attestation + refresh)
+- **Phase 6:** Delegation chains (code: `crates/siss-agent-card/src/refresh_handler.rs`, immutable ceilings + transitive revocation)
+- **Phase 7:** `docs/phases/PHASE_7_COMPLETION_SUMMARY.md` (token budget, rate limiting, atomicity)
+- **Phase 8:** `docs/phases/PHASE_8_FEEDBACK_LOOP_SPECIFICATION.md` (behavior scoring, tier feedback loop)
+- **Phase 9:** `docs/phases/PHASE_9_FEDERATION_SPECIFICATION.md` (4 constitutional invariants, multi-sovereign coordination)
 
 ### Implementation Status
-- **Phases 5–6.1:** Code complete, tested, committed
-- **Phase 7:** Tasks 24–29 ready for implementation
-- **Phases 8–9:** Specification pending
+- **Phases 5–6.1:** ✅ Code complete, tested, committed (all tests passing)
+- **Phase 7:** ✅ Code complete, tested, committed (129 gatekeeper tests passing)
+- **Phase 8:** ✅ Code complete, tested, committed (119 gatekeeper tests, 20 integration tests)
+- **Phase 9:** 🔵 Specification locked, ready for implementation (Tasks 35–42)
+- **Phases 10+:** Future (federation enhancements, governance automation)
 
 ### Code Anchors
 - Entry point: `crates/siss-agent-card/src/refresh_handler.rs` (13-step orchestration)

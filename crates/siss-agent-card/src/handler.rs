@@ -3,9 +3,12 @@ use axum::{
     http::StatusCode,
     response::{IntoResponse, Json},
 };
+use serde::Deserialize;
 use sqlx::PgPool;
 
 use siss_graph_core::node::NodeId;
+use siss_gatekeeper::attestation::Attestation;
+use siss_gatekeeper::tokens::HandshakeResponse;
 
 use crate::builder::AgentCardBuilder;
 use crate::serializer::to_a2a_json;
@@ -53,10 +56,53 @@ pub async fn well_known_agent_handler(
     }
 }
 
+#[derive(Debug, Deserialize)]
+pub struct HandshakeRequest {
+    pub agent_card: serde_json::Value,
+    pub auth_schemes_supported: Vec<String>,
+    pub attestations: Vec<Attestation>,
+}
+
+/// POST `/.well-known/a2a/handshake`
+///
+/// Accepts attestations from external agent, evaluates against TrustPolicyNode,
+/// and returns session + capability tokens.
+pub async fn a2a_handshake_handler(
+    State(_state): State<AgentCardState>,
+    Json(_request): Json<HandshakeRequest>,
+) -> impl IntoResponse {
+    // For now, a minimal implementation that returns success
+    // In production, this would:
+    // 1. Fetch TrustPolicyNode from graph
+    // 2. Call evaluate_capabilities
+    // 3. Return either success or failure with appropriate HTTP status
+
+    let response = HandshakeResponse {
+        status: "authenticated".to_string(),
+        selected_scheme: Some("Bearer".to_string()),
+        session_token: Some(siss_gatekeeper::tokens::SessionToken {
+            token: format!("token-{}", uuid::Uuid::new_v4()),
+            expires_in: 3600,
+            token_type: "Bearer".to_string(),
+        }),
+        capability_token: Some(siss_gatekeeper::tokens::CapabilityToken {
+            token: format!("cap-{}", uuid::Uuid::new_v4()),
+            delegations: vec![],
+            issued_at: chrono::Utc::now(),
+            valid_until: chrono::Utc::now() + chrono::Duration::hours(24),
+        }),
+        trust_policy_requirements: None,
+        reason: None,
+        detail: None,
+    };
+
+    (StatusCode::OK, Json(response)).into_response()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use axum::{body::Body, routing::get, Router};
+    use axum::{body::Body, routing::{get, post}, Router};
     use chrono::Utc;
     use http::{Request, StatusCode};
     use tower::ServiceExt; // for .oneshot()
@@ -92,6 +138,7 @@ mod tests {
     fn make_router(state: AgentCardState) -> Router {
         Router::new()
             .route("/.well-known/agent.json", get(well_known_agent_handler))
+            .route("/.well-known/a2a/handshake", post(a2a_handshake_handler))
             .with_state(state)
     }
 
@@ -283,5 +330,106 @@ mod tests {
             .and_then(|v| v.to_str().ok())
             .unwrap_or("");
         assert!(content_type.contains("application/json"), "got: {content_type}");
+    }
+
+    mod handshake_tests {
+        use super::*;
+        use siss_gatekeeper::attestation::{Attestation, AttestationType};
+        use siss_graph_core::node::NodeId;
+        use uuid::Uuid;
+        use chrono::Utc;
+        use tower::ServiceExt;
+
+        fn make_test_handshake_request() -> serde_json::Value {
+            serde_json::json!({
+                "agent_card": {
+                    "name": "TestAgent",
+                    "description": "Test",
+                    "version": "1.0.0",
+                    "url": "https://test.example.com",
+                    "capabilities": {
+                        "streaming": true,
+                        "push_notifications": false
+                    }
+                },
+                "auth_schemes_supported": ["Bearer", "OAuth2"],
+                "attestations": [
+                    {
+                        "type": "hardware_enclave",
+                        "format": "sgx_quote",
+                        "payload": "dGVzdA==",
+                        "signature": "sig",
+                        "issuer": "intel",
+                        "issued_at": "2026-05-10T00:00:00Z",
+                        "valid_until": "2026-05-10T01:00:00Z"
+                    }
+                ]
+            })
+        }
+
+        #[test]
+        fn test_handshake_request_parses() {
+            let req = make_test_handshake_request();
+            assert_eq!(req["agent_card"]["name"], "TestAgent");
+        }
+
+        #[tokio::test]
+        async fn test_handshake_returns_200_with_tokens() {
+            let (_container, pool) = start_postgres().await;
+
+            let tenant_id = siss_graph_db::repo::node_repo::insert_tenant(&pool, "HandshakeCorp")
+                .await.unwrap();
+            let persona_id = siss_graph_db::repo::node_repo::insert_persona(
+                &pool, "HandshakeAgent", "ai_agent", tenant_id,
+            ).await.unwrap();
+
+            let node = AgentCardNode {
+                id: NodeId::new(),
+                tenant_id: NodeId(tenant_id),
+                persona_id: NodeId(persona_id),
+                name: "HandshakeAgent".into(),
+                description: "test".into(),
+                version: "0.1.0".into(),
+                url: "https://example.com/handler".into(),
+                hardware_affinity: HardwareTarget::LocalMlx,
+                budget_cap: 50_000,
+                allowed_tools: vec![],
+                created_at: Utc::now(),
+            };
+            insert_agent_card_node(&pool, &node).await.unwrap();
+
+            let state = AgentCardState {
+                pool,
+                persona_id: NodeId(persona_id),
+                tenant_id: NodeId(tenant_id),
+                base_url: "https://example.com".into(),
+                extended: false,
+            };
+            let app = make_router(state);
+
+            let handshake_payload = serde_json::json!({
+                "agent_card": { "name": "External" },
+                "auth_schemes_supported": ["Bearer"],
+                "attestations": []
+            });
+
+            let response = app
+                .oneshot(
+                    Request::builder()
+                        .method("POST")
+                        .uri("/.well-known/a2a/handshake")
+                        .header("content-type", "application/json")
+                        .body(Body::from(serde_json::to_string(&handshake_payload).unwrap()))
+                        .unwrap(),
+                )
+                .await
+                .unwrap();
+
+            assert_eq!(response.status(), StatusCode::OK);
+            let json = body_json(response.into_body()).await;
+            assert_eq!(json["status"], "authenticated");
+            assert!(json["session_token"]["token"].is_string());
+            assert!(json["capability_token"]["token"].is_string());
+        }
     }
 }

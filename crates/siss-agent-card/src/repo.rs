@@ -168,7 +168,7 @@ mod tests {
         let node = make_node(tenant_id, persona_id);
         let card_id = node.id.0;
 
-        insert_agent_card(&pool, &node).await.expect("insert");
+        insert_agent_card_node(&pool, &node).await.expect("insert");
 
         let fetched = fetch_agent_card_node(&pool, persona_id)
             .await
@@ -198,7 +198,7 @@ mod tests {
         let node = make_node(tenant_id, persona_id);
         let card_id = node.id.0;
 
-        insert_agent_card(&pool, &node).await.expect("insert");
+        insert_agent_card_node(&pool, &node).await.expect("insert");
 
         let edges = siss_graph_db::repo::edge_repo::find_edges_from(
             &pool,

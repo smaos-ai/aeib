@@ -625,23 +625,23 @@ Success (2xx):
 - **Phase 5.5:** Revocation & Pull-Based Refresh (strict fail-closed)
 - **Phase 6:** Delegation Chains (immutable ceilings, attenuation)
 - **Phase 6.1:** Enhanced Ancestor Checks (transitive revocation)
-
-### In Progress (Phase 7)
-
 - **Phase 7:** Token Budget & Rate Limiting (AP2 economics)
-  - Task 24: Repository (budget tracking)
-  - Task 25: Gatekeeper (cost calculation)
-  - Task 26: Constraint Resolver (rate limits)
-  - Task 27: Handler (budget + rate enforcement)
-  - Task 28: Integration Tests (20 test cases)
-  - Task 29: Documentation
+  - ✅ Task 24: Repository (budget tracking, atomic WHERE clauses)
+  - ✅ Task 25: Gatekeeper (token cost formula, error builders)
+  - ✅ Task 26: Constraint Resolver (most-restrictive-wins composition)
+  - ✅ Task 27: Handler (budget + rate enforcement, Steps 2.5/3.5/9.5)
+  - ✅ Task 28: Integration Tests (20 test cases, 109 total gatekeeper tests)
+  - ✅ Task 29: Documentation (completion summary, migration guide, monitoring queries)
+  - ✅ Task 30: Verification & Hardening (full test suite, locked decisions audit)
 
-### Future (Phases 8–9)
+### In Progress (Phase 8)
 
 - **Phase 8:** Behavioral Governance (runtime behavior → policy enforcement)
   - Behavior scoring (actions, resource usage, anomalies)
   - Dynamic tier adjustment (behavior ↔ trust feedback loop)
   - Policy rule engine (if behavior matches rule → revoke/demote)
+
+### Future (Phase 9)
 
 - **Phase 9:** Federation (cross-tenant, cross-deployment)
   - Federated trust (A's agent delegates to B's tenant)

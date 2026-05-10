@@ -24,6 +24,8 @@ pub struct AttestationRefreshRequest {
 }
 
 /// Attestation evaluation result (hybrid B+C: why + what)
+// TODO: Replace serde_json::Value with properly typed AttestationTypeEvaluation and CapabilityChange structs
+// For Phase 5.0, using Value for flexibility; Phase 5.1 should add type safety
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AttestationEvaluation {
     /// Computed security score (0-120)
@@ -47,6 +49,9 @@ pub struct AttestationEvaluation {
 /// Response payload for successful refresh
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AttestationRefreshResponseSuccess {
+    /// Response status (always "refreshed")
+    pub status: String,
+
     /// Whether existing session_token was reused (true) or new one issued (false)
     pub session_token_reused: bool,
 
@@ -54,7 +59,7 @@ pub struct AttestationRefreshResponseSuccess {
     pub session_token: Option<SessionToken>,
 
     /// Always-refreshed capability token with updated delegations
-    pub capability_token: Option<CapabilityToken>,
+    pub capability_token: CapabilityToken,
 
     /// Transparent evaluation showing why trust status changed
     pub attestation_evaluation: AttestationEvaluation,
@@ -63,6 +68,9 @@ pub struct AttestationRefreshResponseSuccess {
 /// Error response with reason codes and remediation hints
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AttestationRefreshResponseError {
+    /// Response status (always "denied")
+    pub status: String,
+
     /// Reason code: "signature_invalid", "session_token_expired", "attestation_validation_failed", "hard_requirement_failed"
     pub reason: String,
 
@@ -77,13 +85,12 @@ pub struct AttestationRefreshResponseError {
 }
 
 /// Response enum for POST /.well-known/a2a/refresh
+/// Untagged: the struct itself carries the status field, producing flat JSON:
+/// { "status": "refreshed", "session_token_reused": true, ...fields... }
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "status", content = "data")]
+#[serde(untagged)]
 pub enum AttestationRefreshResponse {
-    #[serde(rename = "refreshed")]
     Success(AttestationRefreshResponseSuccess),
-
-    #[serde(rename = "denied")]
     Error(AttestationRefreshResponseError),
 }
 
@@ -110,9 +117,15 @@ mod tests {
     #[test]
     fn test_serialize_attestation_refresh_response_success() {
         let response = AttestationRefreshResponse::Success(AttestationRefreshResponseSuccess {
+            status: "refreshed".to_string(),
             session_token_reused: true,
             session_token: None,
-            capability_token: None,
+            capability_token: crate::tokens::CapabilityToken {
+                token: "test_capability_token_123".to_string(),
+                delegations: vec![],
+                issued_at: chrono::Utc::now(),
+                valid_until: chrono::Utc::now() + chrono::Duration::hours(1),
+            },
             attestation_evaluation: AttestationEvaluation {
                 score: 80,
                 tier: Some(2),
@@ -123,6 +136,7 @@ mod tests {
         });
 
         let json = serde_json::to_string(&response).unwrap();
+        assert!(json.contains("\"status\":\"refreshed\""));
         assert!(json.contains("\"score\":80"));
         assert!(json.contains("\"tier\":2"));
     }

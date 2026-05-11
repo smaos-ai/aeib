@@ -1,4 +1,5 @@
 pub mod autoresearch_scheduler;
+pub mod metrics_aggregator;
 pub mod migrations;
 pub mod observability_watcher;
 pub mod pool;

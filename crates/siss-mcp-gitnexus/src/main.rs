@@ -1,7 +1,7 @@
 use serde_json::{json, Value};
+use std::collections::HashSet;
 use std::io::{self, BufRead};
 use std::process::Command;
-use std::collections::HashSet;
 
 #[derive(Debug)]
 struct BlastRadiusResult {
@@ -167,7 +167,8 @@ fn main() {
     for line in reader.lines() {
         if let Ok(line) = line {
             if let Ok(request) = serde_json::from_str::<Value>(&line) {
-                let response = if let Some(method) = request.get("method").and_then(|v| v.as_str()) {
+                let response = if let Some(method) = request.get("method").and_then(|v| v.as_str())
+                {
                     match method {
                         "initialize" => handle_initialize(),
                         "tools/list" => handle_list_tools(),

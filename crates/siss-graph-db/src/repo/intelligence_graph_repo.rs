@@ -1,7 +1,7 @@
+use chrono::{DateTime, Utc};
+use serde_json::json;
 use sqlx::PgPool;
 use uuid::Uuid;
-use serde_json::json;
-use chrono::{DateTime, Utc};
 
 #[derive(Debug, Clone, sqlx::FromRow)]
 pub struct GraphEntity {
@@ -43,7 +43,7 @@ pub async fn write_recovery_event(
 
     sqlx::query(
         "INSERT INTO graph_entities (id, label, properties)
-         VALUES ($1, $2, $3)"
+         VALUES ($1, $2, $3)",
     )
     .bind(entity_id)
     .bind("RecoveryNode")
@@ -94,7 +94,7 @@ pub async fn write_scoring_decision(
 
     sqlx::query(
         "INSERT INTO graph_entities (id, label, properties)
-         VALUES ($1, $2, $3)"
+         VALUES ($1, $2, $3)",
     )
     .bind(entity_id)
     .bind("ScoringNode")
@@ -124,7 +124,7 @@ pub async fn write_violation_quarantine(
 
     sqlx::query(
         "INSERT INTO graph_entities (id, label, properties)
-         VALUES ($1, $2, $3)"
+         VALUES ($1, $2, $3)",
     )
     .bind(entity_id)
     .bind("ViolationNode")
@@ -166,7 +166,7 @@ pub async fn query_entity_lineage(
            UNION
            SELECT target_entity_id FROM graph_relationships WHERE source_entity_id = $1
          )
-         ORDER BY created_at DESC"
+         ORDER BY created_at DESC",
     )
     .bind(sovereign_node_id)
     .fetch_all(pool)
@@ -214,7 +214,7 @@ async fn get_or_create_sovereign_node(
 
     sqlx::query(
         "INSERT INTO graph_entities (id, label, properties)
-         VALUES ($1, $2, $3)"
+         VALUES ($1, $2, $3)",
     )
     .bind(node_id)
     .bind("SovereignNode")

@@ -1,8 +1,8 @@
 use axum::response::sse::{Event, Sse};
 use futures::stream::Stream;
+use std::convert::Infallible;
 use std::sync::Arc;
 use tokio::sync::broadcast;
-use std::convert::Infallible;
 
 /// Phase 20 Recovery Events
 #[derive(Debug, Clone, serde::Serialize)]

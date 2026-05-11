@@ -8,12 +8,9 @@
 #[cfg(feature = "axum")]
 #[tokio::main]
 async fn main() {
-    use axum::{
-        routing::get,
-        Router,
-    };
-    use siss_agent_card::events::{EventBroadcaster, RecoveryEvent, events_stream};
+    use axum::{Router, routing::get};
     use siss_agent_card::cockpit::cockpit_handler;
+    use siss_agent_card::events::{EventBroadcaster, RecoveryEvent, events_stream};
     use std::sync::Arc;
 
     // Create event broadcaster (shared state)
@@ -73,9 +70,7 @@ async fn main() {
     });
 
     // Run server
-    axum::serve(listener, app)
-        .await
-        .unwrap();
+    axum::serve(listener, app).await.unwrap();
 }
 
 #[cfg(not(feature = "axum"))]

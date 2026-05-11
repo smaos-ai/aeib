@@ -1,6 +1,6 @@
+use crate::repo::reputation_recovery_repo;
 use sqlx::PgPool;
 use uuid::Uuid;
-use crate::repo::reputation_recovery_repo;
 
 /// Map sovereign status to health score (0–100)
 fn status_to_score(status: &str) -> i16 {
@@ -106,9 +106,16 @@ pub async fn compute_and_upsert_score(
     let score = match status.as_str() {
         "recovering" => {
             // Phase 20: Graduated recovery + Phase 19 signals
-            if let Ok(Some(recovery)) = reputation_recovery_repo::get_active_recovery(pool, sovereign_id).await {
+            if let Ok(Some(recovery)) =
+                reputation_recovery_repo::get_active_recovery(pool, sovereign_id).await
+            {
                 let weeks = reputation_recovery_repo::weeks_elapsed(recovery.recovery_started_at);
-                reputation_recovery_repo::compute_recovery_score(weeks, slash_count, anomaly_count, settled_count)
+                reputation_recovery_repo::compute_recovery_score(
+                    weeks,
+                    slash_count,
+                    anomaly_count,
+                    settled_count,
+                )
             } else {
                 // Stale status; shouldn't happen but fallback to unknown
                 50

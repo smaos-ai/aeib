@@ -222,4 +222,86 @@ mod tests {
 
         assert_eq!(count.0, 1, "Should have exactly one FeedbackNode");
     }
+
+    #[tokio::test]
+    async fn test_record_feedback_stale_prediction_not_matched() {
+        let (_container, pool) = setup_test_db().await;
+        let sovereign_id = Uuid::new_v4();
+
+        // Create a prediction from 25 hours ago (stale)
+        let now = Utc::now();
+        let stale_time = now - chrono::Duration::hours(25);
+
+        let prediction = crate::repo::prediction_repo::PredictionRecord {
+            sovereign_id,
+            predicted_anomaly_type: "timeout_spam".to_string(),
+            prediction_horizon_hours: 4,
+            risk_score: 0.65,
+            signal_breakdown: serde_json::json!({"chain": 0.6}),
+            evidence: serde_json::json!({"top_chain_type": "dispute_spam→timeout_spam"}),
+            last_computed_at: stale_time,
+        };
+        let _pred_id = crate::repo::prediction_repo::upsert_prediction(&pool, &prediction)
+            .await
+            .expect("upsert prediction");
+
+        // Create anomaly that matches type and falls within original 4h window
+        let anomaly = AnomalyEvent {
+            sovereign_id,
+            anomaly_type: "timeout_spam".to_string(),
+            detected_at: stale_time + chrono::Duration::hours(2),
+        };
+
+        // Should return None because prediction is stale (>24h old)
+        let feedback_id = record_feedback_for_anomaly(&pool, &anomaly)
+            .await
+            .expect("record feedback");
+
+        assert!(feedback_id.is_none(), "Stale predictions (>24h) should not match");
+    }
+
+    #[tokio::test]
+    async fn test_record_feedback_creates_edge() {
+        let (_container, pool) = setup_test_db().await;
+        let sovereign_id = Uuid::new_v4();
+
+        let now = Utc::now();
+        let prediction = crate::repo::prediction_repo::PredictionRecord {
+            sovereign_id,
+            predicted_anomaly_type: "timeout_spam".to_string(),
+            prediction_horizon_hours: 4,
+            risk_score: 0.65,
+            signal_breakdown: serde_json::json!({"chain": 0.6}),
+            evidence: serde_json::json!({"top_chain_type": "dispute_spam→timeout_spam"}),
+            last_computed_at: now,
+        };
+        let pred_id = crate::repo::prediction_repo::upsert_prediction(&pool, &prediction)
+            .await
+            .expect("upsert prediction");
+
+        let anomaly = AnomalyEvent {
+            sovereign_id,
+            anomaly_type: "timeout_spam".to_string(),
+            detected_at: now + chrono::Duration::hours(2),
+        };
+
+        let feedback_id = record_feedback_for_anomaly(&pool, &anomaly)
+            .await
+            .expect("record feedback");
+
+        assert!(feedback_id.is_some(), "Should create feedback");
+
+        // Verify FEEDBACK_FOR edge exists
+        let edge_count: (i64,) = sqlx::query_as(
+            "SELECT COUNT(*) FROM graph_relationships
+             WHERE source_id = $1 AND target_id = $2 AND rel_type = 'FEEDBACK_FOR'",
+        )
+        .bind(feedback_id.unwrap())
+        .bind(pred_id)
+        .fetch_one(&pool)
+        .await
+        .expect("query edges");
+
+        assert_eq!(edge_count.0, 1, "FEEDBACK_FOR edge should exist");
+    }
 }

@@ -1,6 +1,7 @@
 pub mod autoresearch_scheduler;
 pub mod causal_extractor;
 pub mod chain_extractor;
+pub mod forecast_engine;
 pub mod migrations;
 pub mod observability_watcher;
 pub mod pool;

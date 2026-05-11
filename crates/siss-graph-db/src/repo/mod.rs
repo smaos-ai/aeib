@@ -25,6 +25,8 @@ pub mod node_repo;
 pub mod observability_repo;
 pub mod peer_cluster_repo;
 pub mod peer_scoring_repo;
+pub mod prediction_query;
+pub mod prediction_repo;
 pub mod probation_repo;
 pub mod projection_repo;
 pub mod rebac_repo;

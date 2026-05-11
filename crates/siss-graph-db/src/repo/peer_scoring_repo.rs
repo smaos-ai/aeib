@@ -1,5 +1,6 @@
 use sqlx::PgPool;
 use uuid::Uuid;
+use crate::repo::reputation_recovery_repo;
 
 /// Map sovereign status to health score (0–100)
 fn status_to_score(status: &str) -> i16 {
@@ -57,11 +58,11 @@ pub fn compute_enriched_score(
 
 /// Compute score for a sovereign using multi-dimensional enriched scoring and upsert to peer_scoring.
 ///
-/// Base score from status is adjusted by three signal types:
-/// - Slash penalty: count of recent slash events (30 days) × 10, capped at 30
-/// - Anomaly penalty: count of recent high/critical anomalies (30 days) × 8, capped at 20
-/// - Settlement bonus: count of settled invoices (all-time) × 5, capped at 20
-/// Final score = clamp(base - slash_penalty - anomaly_penalty + settlement_bonus, 0, 100)
+/// Handles four statuses:
+/// - recovering: Phase 20 graduated base (85 + weeks/8*15) + Phase 19 signals
+/// - active: Phase 19 base (100) + signals
+/// - probation: Phase 19 base (80) + signals
+/// - quarantined: Always 0 (no enrichment)
 pub async fn compute_and_upsert_score(
     pool: &PgPool,
     sovereign_id: Uuid,
@@ -74,40 +75,61 @@ pub async fn compute_and_upsert_score(
         .flatten();
 
     let status = status.unwrap_or_else(|| "unknown".to_string());
-    let base = status_to_score(&status);
 
-    // If quarantined, skip enrichment (always 0)
-    let score = if base == 0 {
-        0
-    } else {
-        // Fetch signal counts from recent data
-        let slash_count: i64 = sqlx::query_scalar(
-            "SELECT COUNT(*) FROM slashing_events
-             WHERE sovereign_id = $1 AND slashed_at >= NOW() - INTERVAL '30 days'",
-        )
-        .bind(sovereign_id)
-        .fetch_one(pool)
-        .await?;
+    // Fetch signal counts (needed for all non-quarantined statuses)
+    let slash_count: i64 = sqlx::query_scalar(
+        "SELECT COUNT(*) FROM slashing_events
+         WHERE sovereign_id = $1 AND slashed_at >= NOW() - INTERVAL '30 days'",
+    )
+    .bind(sovereign_id)
+    .fetch_one(pool)
+    .await?;
 
-        let anomaly_count: i64 = sqlx::query_scalar(
-            "SELECT COUNT(*) FROM behavioral_anomalies
-             WHERE sovereign_id = $1 AND severity IN ('high', 'critical')
-             AND detected_at >= NOW() - INTERVAL '30 days'",
-        )
-        .bind(sovereign_id)
-        .fetch_one(pool)
-        .await?;
+    let anomaly_count: i64 = sqlx::query_scalar(
+        "SELECT COUNT(*) FROM behavioral_anomalies
+         WHERE sovereign_id = $1 AND severity IN ('high', 'critical')
+         AND detected_at >= NOW() - INTERVAL '30 days'",
+    )
+    .bind(sovereign_id)
+    .fetch_one(pool)
+    .await?;
 
-        let settled_count: i64 = sqlx::query_scalar(
-            "SELECT COUNT(*) FROM settlement_invoices
-             WHERE debtor_sovereign_id = $1 AND status = 'settled'",
-        )
-        .bind(sovereign_id)
-        .fetch_one(pool)
-        .await?;
+    let settled_count: i64 = sqlx::query_scalar(
+        "SELECT COUNT(*) FROM settlement_invoices
+         WHERE debtor_sovereign_id = $1 AND status = 'settled'",
+    )
+    .bind(sovereign_id)
+    .fetch_one(pool)
+    .await?;
 
-        // Compute enriched score
-        compute_enriched_score(base, slash_count, anomaly_count, settled_count)
+    // Compute score based on status
+    let score = match status.as_str() {
+        "recovering" => {
+            // Phase 20: Graduated recovery + Phase 19 signals
+            if let Ok(Some(recovery)) = reputation_recovery_repo::get_active_recovery(pool, sovereign_id).await {
+                let weeks = reputation_recovery_repo::weeks_elapsed(recovery.recovery_started_at);
+                reputation_recovery_repo::compute_recovery_score(weeks, slash_count, anomaly_count, settled_count)
+            } else {
+                // Stale status; shouldn't happen but fallback to unknown
+                50
+            }
+        }
+        "active" => {
+            // Phase 19: Active base (100) + signals
+            compute_enriched_score(100, slash_count, anomaly_count, settled_count)
+        }
+        "probation" => {
+            // Phase 19: Probation base (80) + signals
+            compute_enriched_score(80, slash_count, anomaly_count, settled_count)
+        }
+        "quarantined" => {
+            // Always 0; no enrichment
+            0
+        }
+        _ => {
+            // Unknown status
+            50
+        }
     };
 
     // Upsert peer_scoring

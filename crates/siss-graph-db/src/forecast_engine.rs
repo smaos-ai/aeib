@@ -74,15 +74,17 @@ fn compute_accuracy_weight(weight: Option<&AccuracyWeight>) -> f64 {
 }
 
 /// Apply exponential decay to a signal's confidence.
-/// Uses 7-day half-life: confidence × 0.5^(days_since_last_seen / 7)
+/// Uses 7-day half-life by default: confidence × 0.5^(days_since_last_seen / 7)
+/// Uses 2-day half-life if acceleration_mode: confidence × 0.5^(days_since_last_seen / 2)
 /// Returns original confidence if last_seen_at is in the future (clock skew protection).
-fn apply_decay(confidence: f64, last_seen_at: DateTime<Utc>) -> f64 {
+fn apply_decay(confidence: f64, last_seen_at: DateTime<Utc>, acceleration_mode: bool) -> f64 {
     let elapsed = Utc::now() - last_seen_at;
     let days_since_last_seen = elapsed.num_days() as f64;
     if days_since_last_seen < 0.0 {
         confidence // Clock skew: return original confidence
     } else {
-        confidence * 0.5_f64.powf(days_since_last_seen / 7.0)
+        let half_life = if acceleration_mode { 2.0 } else { 7.0 };
+        confidence * 0.5_f64.powf(days_since_last_seen / half_life)
     }
 }
 
@@ -116,7 +118,8 @@ pub async fn run_forecast_once(pool: &PgPool) -> Result<usize, sqlx::Error> {
 
     for row in signals {
         // Apply decay to this signal
-        let decayed_confidence = apply_decay(row.confidence, row.last_seen_at);
+        let decayed_confidence =
+            apply_decay(row.confidence, row.last_seen_at, row.acceleration_mode);
 
         // Skip signals below 0.05 floor
         if decayed_confidence < 0.05 {

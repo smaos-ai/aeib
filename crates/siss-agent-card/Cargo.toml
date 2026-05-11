@@ -19,6 +19,9 @@ thiserror.workspace = true
 tokio.workspace = true
 sqlx.workspace = true
 axum            = { version = "0.7", optional = true }
+tokio-stream    = "0.1"
+async-stream    = "0.3"
+futures         = "0.3"
 rand.workspace = true
 hex.workspace = true
 ed25519-dalek.workspace = true

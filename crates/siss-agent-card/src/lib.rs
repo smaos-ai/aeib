@@ -4,6 +4,12 @@ pub mod serializer;
 pub mod types;
 
 #[cfg(feature = "axum")]
+pub mod events;
+
+#[cfg(feature = "axum")]
+pub mod cockpit;
+
+#[cfg(feature = "axum")]
 pub mod handler;
 
 #[cfg(feature = "axum")]

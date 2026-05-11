@@ -53,11 +53,14 @@ pub async fn append_episodic_event(
 
 /// Synthesize a pattern when anomalies recur >= 3 times per source_id.
 /// Appends Markdown section to semantic file; idempotent (no duplicates).
+/// Also writes to intelligence graph if pool is Some (fire-and-forget; graph errors don't propagate).
 pub async fn synthesize_pattern(
     wiki_dir: PathBuf,
     source_id: Uuid,
     occurrence_count: usize,
     signal: TrustUpdateSignal,
+    pool: Option<std::sync::Arc<sqlx::PgPool>>,
+    first_detected: chrono::DateTime<chrono::Utc>,
 ) -> std::io::Result<()> {
     let semantic_path = wiki_dir.join("semantic").join("trust-anomalies.md");
 
@@ -112,6 +115,24 @@ pub async fn synthesize_pattern(
         .await?
         .write_all(pattern_section.as_bytes())
         .await?;
+
+    // Fire-and-forget graph write: don't propagate graph errors to io::Result
+    if let Some(pool) = pool {
+        if let Err(e) = crate::repo::intelligence_graph_repo::write_trust_anomaly_pattern(
+            &pool,
+            source_id,
+            signal.target_id,
+            signal.new_score,
+            dominant_cause,
+            occurrence_count,
+            first_detected,
+            signal.timestamp,
+        )
+        .await
+        {
+            eprintln!("[graph-dual-write] write_trust_anomaly_pattern failed: {e}");
+        }
+    }
 
     Ok(())
 }
@@ -262,7 +283,7 @@ mod tests {
             timestamp: Utc::now(),
         };
 
-        synthesize_pattern(wiki_dir.to_path_buf(), source_id, 3, signal)
+        synthesize_pattern(wiki_dir.to_path_buf(), source_id, 3, signal.clone(), None, signal.timestamp)
             .await
             .unwrap();
 
@@ -298,7 +319,7 @@ mod tests {
             timestamp: Utc::now(),
         };
 
-        synthesize_pattern(wiki_dir.to_path_buf(), source_id, 3, signal.clone())
+        synthesize_pattern(wiki_dir.to_path_buf(), source_id, 3, signal.clone(), None, signal.timestamp)
             .await
             .unwrap();
 
@@ -307,7 +328,7 @@ mod tests {
                 .await
                 .unwrap();
 
-        synthesize_pattern(wiki_dir.to_path_buf(), source_id, 4, signal)
+        synthesize_pattern(wiki_dir.to_path_buf(), source_id, 4, signal.clone(), None, signal.timestamp)
             .await
             .unwrap();
 
@@ -367,5 +388,60 @@ mod tests {
         assert!(parsed["score"].is_number());
         assert!(parsed["severity"].is_string());
         assert!(parsed["timestamp"].is_string());
+    }
+
+    #[tokio::test]
+    async fn test_synthesize_pattern_with_pool_none_writes_markdown_only() {
+        let temp_dir = TempDir::new().unwrap();
+        let wiki_dir = temp_dir.path();
+        tokio::fs::create_dir(wiki_dir.join("semantic"))
+            .await
+            .unwrap();
+
+        let source_id = Uuid::new_v4();
+        let signal = TrustUpdateSignal {
+            source_id,
+            target_id: Uuid::new_v4(),
+            new_score: 20,
+            explicit_component: 50,
+            implicit_component: -30,
+            decay_component: -40,
+            transitive_component: None,
+            timestamp: Utc::now(),
+        };
+
+        // Action: synthesize_pattern with pool = None (backward compat)
+        let result = synthesize_pattern(
+            wiki_dir.to_path_buf(),
+            source_id,
+            3,
+            signal.clone(),
+            None,
+            signal.timestamp,
+        )
+        .await;
+
+        // Assert: returns Ok
+        assert!(result.is_ok(), "synthesize_pattern should succeed with pool=None");
+
+        // Assert: markdown file was written
+        let semantic_path = wiki_dir.join("semantic").join("trust-anomalies.md");
+        assert!(
+            semantic_path.exists(),
+            "Semantic file should exist after synthesize_pattern"
+        );
+
+        let contents = tokio::fs::read_to_string(&semantic_path)
+            .await
+            .expect("Should read semantic file");
+
+        assert!(
+            contents.contains("## Anomaly Pattern:"),
+            "Markdown should contain pattern section"
+        );
+        assert!(
+            contents.contains(&source_id.to_string()[..8]),
+            "Markdown should contain source_id prefix"
+        );
     }
 }

@@ -12,15 +12,22 @@ pub fn is_severe_penalty(signal: &TrustUpdateSignal) -> bool {
     signal.new_score < 25 || signal.decay_component < -50 || signal.implicit_component < -30
 }
 
+/// State tracking for each source_id: occurrence count and first detection timestamp
+struct AnomalyState {
+    count: usize,
+    first_detected: chrono::DateTime<chrono::Utc>,
+}
+
 /// Start the AutoResearch watcher loop. Subscribes to trust signals, detects severe penalties,
 /// appends episodic events, and synthesizes patterns when threshold (≥3 occurrences) is reached.
 pub fn start_autoresearch_watcher(
     mut rx: broadcast::Receiver<TrustUpdateSignal>,
     wiki_dir: PathBuf,
+    pool: Option<Arc<sqlx::PgPool>>,
 ) -> tokio::task::JoinHandle<()> {
     tokio::spawn(async move {
         let wiki_dir = Arc::new(wiki_dir);
-        let mut occurrence_count: HashMap<Uuid, usize> = HashMap::new();
+        let mut occurrence_state: HashMap<Uuid, AnomalyState> = HashMap::new();
 
         loop {
             match rx.recv().await {
@@ -33,15 +40,20 @@ pub fn start_autoresearch_watcher(
                             eprintln!("Failed to write episodic event: {}", e);
                         }
 
-                        let count = occurrence_count.entry(signal.source_id).or_insert(0);
-                        *count += 1;
+                        let state = occurrence_state.entry(signal.source_id).or_insert(AnomalyState {
+                            count: 0,
+                            first_detected: signal.timestamp,
+                        });
+                        state.count += 1;
 
-                        if *count >= 3 {
+                        if state.count >= 3 {
                             if let Err(e) = wiki_writer::synthesize_pattern(
                                 (*wiki_dir).clone(),
                                 signal.source_id,
-                                *count,
-                                signal,
+                                state.count,
+                                signal.clone(),
+                                pool.clone(),
+                                state.first_detected,
                             )
                             .await
                             {

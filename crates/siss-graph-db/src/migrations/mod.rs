@@ -134,6 +134,10 @@ const MIGRATIONS: &[(&str, &str)] = &[
         "034_add_phase21_trust_topology",
         include_str!("034_add_phase21_trust_topology.sql"),
     ),
+    (
+        "035_add_phase22_trust_anomaly_index",
+        include_str!("035_add_phase22_trust_anomaly_index.sql"),
+    ),
 ];
 
 /// Run all migrations in order. Idempotent — tracks applied migrations in a metadata table.

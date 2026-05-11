@@ -586,9 +586,7 @@ mod tests {
         .expect("insert chain node");
 
         // Run forecast
-        let count = run_forecast_once(&pool)
-            .await
-            .expect("run forecast");
+        let count = run_forecast_once(&pool).await.expect("run forecast");
 
         assert!(count > 0, "Should create at least one prediction");
 
@@ -603,7 +601,10 @@ mod tests {
         .await
         .expect("query prediction");
 
-        assert!((risk.0 - 0.2).abs() < 0.01, "risk_score should be 0.5 * 0.4 = 0.2 (decayed confidence at 7 days)");
+        assert!(
+            (risk.0 - 0.2).abs() < 0.01,
+            "risk_score should be 0.5 * 0.4 = 0.2 (decayed confidence at 7 days)"
+        );
     }
 
     #[tokio::test]
@@ -639,12 +640,13 @@ mod tests {
         .expect("insert chain node");
 
         // Run forecast
-        let count = run_forecast_once(&pool)
-            .await
-            .expect("run forecast");
+        let count = run_forecast_once(&pool).await.expect("run forecast");
 
         // Should NOT create any predictions because signal is below floor
-        assert_eq!(count, 0, "Should not create prediction; signal below 0.05 floor");
+        assert_eq!(
+            count, 0,
+            "Should not create prediction; signal below 0.05 floor"
+        );
 
         // Verify no PredictionNode was created
         let pred_count: (i64,) = sqlx::query_as(
@@ -655,7 +657,10 @@ mod tests {
         .await
         .expect("query count");
 
-        assert_eq!(pred_count.0, 0, "No PredictionNode should exist for sovereign");
+        assert_eq!(
+            pred_count.0, 0,
+            "No PredictionNode should exist for sovereign"
+        );
     }
 
     #[tokio::test]
@@ -713,9 +718,7 @@ mod tests {
         .expect("insert correlation node");
 
         // Run forecast
-        let count = run_forecast_once(&pool)
-            .await
-            .expect("run forecast");
+        let count = run_forecast_once(&pool).await.expect("run forecast");
 
         assert!(count > 0, "Should create at least one prediction");
 
@@ -728,6 +731,9 @@ mod tests {
         .await
         .expect("query prediction");
 
-        assert!((risk.0 - 0.3375).abs() < 0.01, "risk_score should be 0.5*0.6 + 0.3*0.125 = 0.3375");
+        assert!(
+            (risk.0 - 0.3375).abs() < 0.01,
+            "risk_score should be 0.5*0.6 + 0.3*0.125 = 0.3375"
+        );
     }
 }

@@ -57,13 +57,16 @@ pub async fn validate(
         return Err(GatekeeperError::SovereignQuarantined { tenant_id });
     }
 
-    // Phase 16: Check probation and enforce violation if threshold breached
+    // Phase 16 & 20: Check probation/recovery violation and enforce
+    // Uses same Phase 16 thresholds (50% of Phase 15) for both states
     // This is best-effort: DB errors treated as no violation (fail-open on errors)
     if siss_graph_db::repo::probation_repo::check_and_enforce_violation(pool, tenant_id)
         .await
         .unwrap_or(false)
     {
         // Violation was detected and sovereign re-quarantined — block session
+        // Phase 16: probation violation → quarantine (via check_and_enforce_violation)
+        // Phase 20: recovery violation → quarantine (via recovery_repo call)
         return Err(GatekeeperError::SovereignQuarantined { tenant_id });
     }
 

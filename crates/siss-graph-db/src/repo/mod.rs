@@ -1,8 +1,10 @@
+pub mod anomaly_chain_repo;
 pub mod ap2_repo;
 pub mod appeal_repo;
 pub mod behavioral_anomaly_repo;
 pub mod behavioral_improvements_repo;
 pub mod causal_query;
+pub mod chain_query;
 pub mod challenge_repo;
 pub mod consensus_repo;
 pub mod correlation_pattern_repo;

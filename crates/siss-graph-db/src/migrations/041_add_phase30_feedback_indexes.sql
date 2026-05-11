@@ -27,6 +27,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_metrics_sovereign_anomaly_type
 CREATE INDEX IF NOT EXISTS idx_metrics_sovereign_updated
     ON graph_entities (
         (properties->>'sovereign_id') ASC,
-        (created_at) DESC
+        (updated_at) DESC
     )
     WHERE label = 'AccuracyMetricsNode';

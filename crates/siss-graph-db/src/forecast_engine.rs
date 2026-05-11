@@ -55,18 +55,26 @@ pub async fn run_forecast_once(pool: &PgPool) -> Result<usize, sqlx::Error> {
     let mut by_sovereign: HashMap<Uuid, SovereignSignals> = HashMap::new();
 
     for row in signals {
+        // Apply decay to this signal
+        let decayed_confidence = apply_decay(row.confidence, row.last_seen_at);
+
+        // Skip signals below 0.05 floor
+        if decayed_confidence < 0.05 {
+            continue;
+        }
+
         let entry = by_sovereign.entry(row.sovereign_id).or_default();
 
         match row.signal_type.as_str() {
-            "AnomalyChainNode" if row.confidence > entry.max_chain_confidence => {
-                entry.max_chain_confidence = row.confidence;
+            "AnomalyChainNode" if decayed_confidence > entry.max_chain_confidence => {
+                entry.max_chain_confidence = decayed_confidence;
                 entry.top_chain_type = row.chain_type;
             }
-            "CorrelationPatternNode" if row.confidence > entry.max_correlation_confidence => {
-                entry.max_correlation_confidence = row.confidence;
+            "CorrelationPatternNode" if decayed_confidence > entry.max_correlation_confidence => {
+                entry.max_correlation_confidence = decayed_confidence;
             }
-            "RecoveryCorrelationNode" if row.confidence > entry.max_recovery_confidence => {
-                entry.max_recovery_confidence = row.confidence;
+            "RecoveryCorrelationNode" if decayed_confidence > entry.max_recovery_confidence => {
+                entry.max_recovery_confidence = decayed_confidence;
                 entry.top_anomaly_type = row.anomaly_type;
             }
             _ => {}

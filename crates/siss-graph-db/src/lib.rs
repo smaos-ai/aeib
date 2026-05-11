@@ -5,6 +5,7 @@ pub mod migrations;
 pub mod observability_watcher;
 pub mod pool;
 pub mod recovery_event_broadcaster;
+pub mod recovery_extractor;
 pub mod recovery_sweep_scheduler;
 pub mod repo;
 pub mod sweep_scheduler;

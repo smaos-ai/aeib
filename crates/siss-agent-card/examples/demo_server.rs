@@ -1,20 +1,19 @@
 /// Demo server for Phase 20 + Phase 21 cockpit verification
 /// Runs at localhost:3000/cockpit
 /// Emits simulated recovery and trust events via GET /events
-
 use axum::{
+    Json, Router,
     extract::State,
     http::StatusCode,
-    response::{sse::Event, Sse, IntoResponse},
+    response::{IntoResponse, Sse, sse::Event},
     routing::{get, post},
-    Json, Router,
 };
+use chrono::Utc;
 use futures::stream::Stream;
 use serde_json::json;
 use std::convert::Infallible;
 use std::sync::Arc;
 use tokio::sync::broadcast;
-use chrono::Utc;
 use uuid::Uuid;
 
 #[derive(Debug, Clone, serde::Serialize)]
@@ -113,7 +112,10 @@ async fn emit_recovery_entered(
         score_at_entry: 82,
         timestamp: Utc::now().to_rfc3339(),
     });
-    (StatusCode::OK, Json(json!({ "sovereign_id": sovereign_id, "event": "RecoveryEntered" })))
+    (
+        StatusCode::OK,
+        Json(json!({ "sovereign_id": sovereign_id, "event": "RecoveryEntered" })),
+    )
 }
 
 /// POST /emit/slashing-penalty - Emit test slashing event (Phase 20 signal)
@@ -136,9 +138,7 @@ async fn emit_slashing_penalty(
 }
 
 /// POST /emit/trust-decay - Emit Phase 21 trust decay event
-async fn emit_trust_decay(
-    State(broadcaster): State<Arc<EventBroadcaster>>,
-) -> impl IntoResponse {
+async fn emit_trust_decay(State(broadcaster): State<Arc<EventBroadcaster>>) -> impl IntoResponse {
     let source_id = Uuid::new_v4().to_string();
     let target_id = Uuid::new_v4().to_string();
     broadcaster.emit(TestEvent::TrustScoreUpdated {

@@ -28,6 +28,8 @@ pub mod peer_scoring_repo;
 pub mod probation_repo;
 pub mod projection_repo;
 pub mod rebac_repo;
+pub mod recovery_preceded_repo;
+pub mod recovery_query;
 pub mod reputation_graph;
 pub mod reputation_recovery_repo;
 pub mod reputation_repo;

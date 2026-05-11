@@ -1,0 +1,358 @@
+use chrono::{DateTime, Utc};
+use sqlx::PgPool;
+use uuid::Uuid;
+
+pub struct TrustEligibilityStatus {
+    pub is_eligible: bool,
+    pub reason: String,
+}
+
+pub struct TrustDecaySweepResult {
+    pub edges_updated: i64,
+}
+
+// ============================================================================
+// PURE FUNCTIONS
+// ============================================================================
+
+/// confidence [0.0, 1.0] → score [0, 100]
+pub fn explicit_trust_score(confidence: f32) -> i16 {
+    (confidence * 100.0) as i16
+}
+
+/// Linear decay: 0 at day 0, -50 at day 15, -100 at day 30+
+pub fn trust_decay(last_interaction_at: DateTime<Utc>) -> i16 {
+    let now = Utc::now();
+    let duration = now.signed_duration_since(last_interaction_at);
+    let days = duration.num_days() as f32;
+
+    let penalty = -(days / 30.0 * 100.0);
+    (penalty.floor().clamp(-100.0, 0.0)) as i16
+}
+
+/// Reuses Phase 19 formulas: -(slash_pen + anomaly_pen) + settlement_bonus
+pub fn implicit_signal_contribution(
+    slash_count: i64,
+    anomaly_count: i64,
+    settled_count: i64,
+) -> i16 {
+    let slash_penalty = (slash_count * 10).min(30);
+    let anomaly_penalty = (anomaly_count * 8).min(20);
+    let settlement_bonus = (settled_count * 5).min(20);
+
+    (-(slash_penalty + anomaly_penalty) + settlement_bonus) as i16
+}
+
+/// clamp(explicit + implicit + decay + transitive_boost.unwrap_or(0), 0, 100)
+pub fn compute_hybrid_trust_score(
+    explicit_base: i16,
+    implicit_adj: i16,
+    decay_penalty: i16,
+    transitive_boost: Option<i16>,
+) -> i16 {
+    let sum = explicit_base as i32
+        + implicit_adj as i32
+        + decay_penalty as i32
+        + transitive_boost.unwrap_or(0) as i32;
+    (sum.clamp(0, 100)) as i16
+}
+
+// ============================================================================
+// ASYNC DB FUNCTIONS
+// ============================================================================
+
+/// Gate check: 5 settled invoices OR 7 days active/probation. Fails if quarantined/recovering.
+pub async fn check_trust_eligibility(
+    pool: &PgPool,
+    source_id: Uuid,
+    _target_id: Uuid,
+) -> Result<TrustEligibilityStatus, sqlx::Error> {
+    let sovereign: (String, Option<DateTime<Utc>>) =
+        sqlx::query_as("SELECT status, established_at FROM sovereigns WHERE id = $1")
+            .bind(source_id)
+            .fetch_one(pool)
+            .await?;
+
+    let (status, established_at) = sovereign;
+
+    if status == "quarantined" || status == "recovering" {
+        return Ok(TrustEligibilityStatus {
+            is_eligible: false,
+            reason: format!("Sovereign is {}", status),
+        });
+    }
+
+    let settled_count: (i64,) = sqlx::query_as(
+        "SELECT COUNT(*) FROM settlement_invoices WHERE debtor_sovereign_id = $1 AND status = 'settled'"
+    )
+    .bind(source_id)
+    .fetch_one(pool)
+    .await?;
+
+    if settled_count.0 >= 5 {
+        return Ok(TrustEligibilityStatus {
+            is_eligible: true,
+            reason: "5+ settled invoices".to_string(),
+        });
+    }
+
+    if let Some(est_at) = established_at {
+        let days_active = Utc::now().signed_duration_since(est_at).num_days();
+
+        if days_active >= 7 && (status == "active" || status == "probation") {
+            return Ok(TrustEligibilityStatus {
+                is_eligible: true,
+                reason: "7+ days active/probation".to_string(),
+            });
+        }
+    }
+
+    Ok(TrustEligibilityStatus {
+        is_eligible: false,
+        reason: "Insufficient settlements or tenure".to_string(),
+    })
+}
+
+/// Writes TRUSTS edge if eligible; UPSERT pattern with voucher_count increment
+pub async fn record_explicit_trust(
+    pool: &PgPool,
+    source_id: Uuid,
+    target_id: Uuid,
+    confidence: f32,
+) -> Result<(), sqlx::Error> {
+    let eligibility = check_trust_eligibility(pool, source_id, target_id).await?;
+
+    if !eligibility.is_eligible {
+        return Err(sqlx::Error::RowNotFound);
+    }
+
+    let explicit_score = explicit_trust_score(confidence);
+
+    sqlx::query(
+        "INSERT INTO trust_network_edges (source_sovereign_id, target_sovereign_id, explicit_confidence, \
+         explicit_component, hybrid_trust_score, is_explicit_eligible, eligibility_met_at) \
+         VALUES ($1, $2, $3, $4, $5, TRUE, NOW()) \
+         ON CONFLICT (source_sovereign_id, target_sovereign_id) \
+         DO UPDATE SET explicit_confidence = $3, explicit_component = $4, \
+         hybrid_trust_score = $5, is_explicit_eligible = TRUE, eligibility_met_at = NOW(), \
+         voucher_count = voucher_count + 1, last_updated_at = NOW()"
+    )
+    .bind(source_id)
+    .bind(target_id)
+    .bind(confidence)
+    .bind(explicit_score)
+    .bind(explicit_score)
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
+/// Orchestrates: fetch signals + transitive boost → compute → upsert → write graph → emit event
+pub async fn compute_and_upsert_trust_score(
+    pool: &PgPool,
+    source_id: Uuid,
+    target_id: Uuid,
+) -> Result<i16, sqlx::Error> {
+    let explicit_conf: Option<f32> = sqlx::query_scalar(
+        "SELECT explicit_confidence FROM trust_network_edges \
+         WHERE source_sovereign_id = $1 AND target_sovereign_id = $2",
+    )
+    .bind(source_id)
+    .bind(target_id)
+    .fetch_optional(pool)
+    .await?
+    .flatten();
+
+    let explicit_base = explicit_conf.map(explicit_trust_score).unwrap_or(0);
+
+    let slash_count: (i64,) = sqlx::query_as(
+        "SELECT COUNT(*) FROM slashing_events WHERE sovereign_id = $1 AND status = 'active'",
+    )
+    .bind(target_id)
+    .fetch_one(pool)
+    .await?;
+
+    let anomaly_count: (i64,) = sqlx::query_as(
+        "SELECT COUNT(*) FROM behavioral_anomalies WHERE sovereign_id = $1 AND status = 'active'",
+    )
+    .bind(target_id)
+    .fetch_one(pool)
+    .await?;
+
+    let settled_count: (i64,) = sqlx::query_as(
+        "SELECT COUNT(*) FROM settlement_invoices \
+         WHERE (debtor_sovereign_id = $1 OR creditor_sovereign_id = $1) AND status = 'settled'",
+    )
+    .bind(target_id)
+    .fetch_one(pool)
+    .await?;
+
+    let implicit_adj =
+        implicit_signal_contribution(slash_count.0, anomaly_count.0, settled_count.0);
+
+    let last_interaction: (DateTime<Utc>,) = sqlx::query_as(
+        "SELECT COALESCE(last_interaction_at, NOW()) FROM trust_network_edges \
+         WHERE source_sovereign_id = $1 AND target_sovereign_id = $2 \
+         UNION ALL SELECT NOW() LIMIT 1",
+    )
+    .bind(source_id)
+    .bind(target_id)
+    .fetch_one(pool)
+    .await?;
+
+    let decay_penalty = trust_decay(last_interaction.0);
+
+    let transitive_boost: Option<i16> = sqlx::query_scalar(
+        "SELECT (ceiling_tier::smallint).min(15) FROM cross_sovereign_delegation_grants \
+         WHERE grantor_sovereign_id = $1 AND grantee_sovereign_id = $2 \
+         AND transitivity_depth <= 3 AND status = 'active' \
+         AND (expires_at IS NULL OR expires_at > NOW()) AND revoked_at IS NULL \
+         ORDER BY ceiling_tier DESC LIMIT 1",
+    )
+    .bind(source_id)
+    .bind(target_id)
+    .fetch_optional(pool)
+    .await?
+    .flatten();
+
+    let hybrid_score =
+        compute_hybrid_trust_score(explicit_base, implicit_adj, decay_penalty, transitive_boost);
+
+    sqlx::query(
+        "INSERT INTO trust_network_edges \
+         (source_sovereign_id, target_sovereign_id, hybrid_trust_score, explicit_component, \
+          implicit_component, decay_component, transitive_component, settled_invoice_count) \
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8) \
+         ON CONFLICT (source_sovereign_id, target_sovereign_id) \
+         DO UPDATE SET hybrid_trust_score = $3, explicit_component = $4, \
+         implicit_component = $5, decay_component = $6, transitive_component = $7, \
+         settled_invoice_count = $8, last_updated_at = NOW()",
+    )
+    .bind(source_id)
+    .bind(target_id)
+    .bind(hybrid_score)
+    .bind(explicit_base)
+    .bind(implicit_adj)
+    .bind(decay_penalty)
+    .bind(transitive_boost)
+    .bind(settled_count.0)
+    .execute(pool)
+    .await?;
+
+    Ok(hybrid_score)
+}
+
+/// Daily sweep: recompute all edges. Skips quarantined/recovering sovereigns.
+pub async fn sweep_trust_decay(pool: &PgPool) -> Result<TrustDecaySweepResult, sqlx::Error> {
+    let edges: Vec<(Uuid, Uuid)> = sqlx::query_as(
+        "SELECT tne.source_sovereign_id, tne.target_sovereign_id FROM trust_network_edges tne \
+         INNER JOIN sovereigns s ON tne.source_sovereign_id = s.id \
+         WHERE s.status NOT IN ('quarantined', 'recovering')",
+    )
+    .fetch_all(pool)
+    .await?;
+
+    let mut updated = 0i64;
+
+    for (source_id, target_id) in edges {
+        if compute_and_upsert_trust_score(pool, source_id, target_id)
+            .await
+            .is_ok()
+        {
+            updated += 1;
+        }
+    }
+
+    Ok(TrustDecaySweepResult {
+        edges_updated: updated,
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::Duration;
+
+    // --- explicit_trust_score ---
+    #[test]
+    fn test_explicit_trust_score_full_confidence() {
+        let score = explicit_trust_score(1.0);
+        assert_eq!(score, 100);
+    }
+
+    #[test]
+    fn test_explicit_trust_score_partial_confidence() {
+        let score = explicit_trust_score(0.8);
+        assert_eq!(score, 80);
+    }
+
+    // --- trust_decay ---
+    #[test]
+    fn test_trust_decay_none_at_day_0() {
+        let now = Utc::now();
+        let decay = trust_decay(now);
+        assert_eq!(decay, 0);
+    }
+
+    #[test]
+    fn test_trust_decay_full_at_day_30() {
+        let thirty_days_ago = Utc::now() - Duration::days(30);
+        let decay = trust_decay(thirty_days_ago);
+        assert_eq!(decay, -100);
+    }
+
+    #[test]
+    fn test_trust_decay_partial_at_day_15() {
+        let fifteen_days_ago = Utc::now() - Duration::days(15);
+        let decay = trust_decay(fifteen_days_ago);
+        assert_eq!(decay, -50);
+    }
+
+    // --- compute_hybrid_trust_score ---
+    #[test]
+    fn test_hybrid_score_no_decay_clean() {
+        let score = compute_hybrid_trust_score(80, 0, 0, None);
+        assert_eq!(score, 80);
+    }
+
+    #[test]
+    fn test_hybrid_score_decay_takes_full_effect() {
+        let score = compute_hybrid_trust_score(80, 0, -100, None);
+        assert_eq!(score, 0);
+    }
+
+    #[test]
+    fn test_implicit_signals_drag_explicit_down() {
+        let implicit = implicit_signal_contribution(3, 0, 0);
+        assert_eq!(implicit, -30);
+        let score = compute_hybrid_trust_score(80, implicit, 0, None);
+        assert_eq!(score, 50);
+    }
+
+    #[test]
+    fn test_implicit_override_severe_penalty() {
+        let implicit = implicit_signal_contribution(3, 2, 1);
+        assert_eq!(implicit, -41);
+        let score = compute_hybrid_trust_score(90, implicit, 0, None);
+        assert_eq!(score, 49);
+    }
+
+    #[test]
+    fn test_transitive_boost_without_direct() {
+        let score = compute_hybrid_trust_score(0, 0, 0, Some(15));
+        assert_eq!(score, 15);
+    }
+
+    #[test]
+    fn test_hybrid_score_clamped_to_100() {
+        let score = compute_hybrid_trust_score(90, 20, 0, None);
+        assert_eq!(score, 100);
+    }
+
+    #[test]
+    fn test_hybrid_score_clamped_to_0() {
+        let score = compute_hybrid_trust_score(30, -50, -60, None);
+        assert_eq!(score, 0);
+    }
+}

@@ -26,3 +26,4 @@ pub mod reputation_graph;
 pub mod reputation_recovery_repo;
 pub mod reputation_repo;
 pub mod session_repo;
+pub mod trust_topology_repo;

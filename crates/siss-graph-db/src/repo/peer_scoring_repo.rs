@@ -59,13 +59,14 @@ pub fn compute_enriched_score(
 /// Compute score for a sovereign using multi-dimensional enriched scoring and upsert to peer_scoring.
 ///
 /// Handles four statuses:
-/// - recovering: Phase 20 graduated base (85 + weeks/8*15) + Phase 19 signals
-/// - active: Phase 19 base (100) + signals
+/// - recovering: Phase 20 graduated base (85 + weeks/8*15) + Phase 19 signals; trust_modifier never applied
+/// - active: Phase 19 base (100) + signals + optional trust_modifier (Phase 21)
 /// - probation: Phase 19 base (80) + signals
 /// - quarantined: Always 0 (no enrichment)
 pub async fn compute_and_upsert_score(
     pool: &PgPool,
     sovereign_id: Uuid,
+    trust_modifier: Option<i16>,
 ) -> Result<i16, sqlx::Error> {
     // Fetch sovereign's status
     let status: Option<String> = sqlx::query_scalar("SELECT status FROM sovereigns WHERE id = $1")
@@ -106,6 +107,7 @@ pub async fn compute_and_upsert_score(
     let score = match status.as_str() {
         "recovering" => {
             // Phase 20: Graduated recovery + Phase 19 signals
+            // CRITICAL: trust_modifier NEVER applied to recovering sovereigns
             if let Ok(Some(recovery)) =
                 reputation_recovery_repo::get_active_recovery(pool, sovereign_id).await
             {
@@ -122,8 +124,12 @@ pub async fn compute_and_upsert_score(
             }
         }
         "active" => {
-            // Phase 19: Active base (100) + signals
-            compute_enriched_score(100, slash_count, anomaly_count, settled_count)
+            // Phase 19: Active base (100) + signals + Phase 21 trust modifier
+            let base = compute_enriched_score(100, slash_count, anomaly_count, settled_count);
+            match trust_modifier {
+                Some(m) => (base as i32 + m as i32).clamp(0, 100) as i16,
+                None => base,
+            }
         }
         "probation" => {
             // Phase 19: Probation base (80) + signals
@@ -155,6 +161,14 @@ pub async fn compute_and_upsert_score(
     Ok(score)
 }
 
+/// Backward compatibility wrapper: compute score without trust modifier (Phase 19 behavior).
+pub async fn compute_and_upsert_score_default(
+    pool: &PgPool,
+    sovereign_id: Uuid,
+) -> Result<i16, sqlx::Error> {
+    compute_and_upsert_score(pool, sovereign_id, None).await
+}
+
 /// Run one sweep pass: compute scores for all sovereigns
 pub async fn run_scoring_pass(pool: &PgPool) -> Result<u64, sqlx::Error> {
     let sovereigns: Vec<Uuid> = sqlx::query_scalar("SELECT id FROM sovereigns")
@@ -163,7 +177,10 @@ pub async fn run_scoring_pass(pool: &PgPool) -> Result<u64, sqlx::Error> {
 
     let mut count = 0u64;
     for sovereign_id in sovereigns {
-        if compute_and_upsert_score(pool, sovereign_id).await.is_ok() {
+        if compute_and_upsert_score_default(pool, sovereign_id)
+            .await
+            .is_ok()
+        {
             count += 1;
         }
     }

@@ -1,6 +1,7 @@
 pub mod callback;
 pub mod collecting;
 pub mod emitter;
+pub mod trust_events;
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};

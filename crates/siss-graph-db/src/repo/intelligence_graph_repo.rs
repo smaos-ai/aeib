@@ -149,6 +149,67 @@ pub async fn write_violation_quarantine(
     Ok(entity_id)
 }
 
+/// Write a trust relationship to the intelligence graph.
+/// Creates a TrustNetworkNode and links source and target sovereigns.
+pub async fn write_trust_relationship(
+    pool: &PgPool,
+    source_id: Uuid,
+    target_id: Uuid,
+    trust_score: i16,
+    evidence: serde_json::Value,
+    confidence: f64,
+) -> Result<Uuid, sqlx::Error> {
+    let entity_id = Uuid::new_v4();
+
+    let properties = json!({
+        "trust_score": trust_score,
+        "confidence": confidence,
+        "source_sovereign_id": source_id.to_string(),
+        "target_sovereign_id": target_id.to_string(),
+        "evidence": evidence,
+        "timestamp": Utc::now().to_rfc3339()
+    });
+
+    sqlx::query(
+        "INSERT INTO graph_entities (id, label, properties)
+         VALUES ($1, $2, $3)",
+    )
+    .bind(entity_id)
+    .bind("TrustNetworkNode")
+    .bind(&properties)
+    .execute(pool)
+    .await?;
+
+    let source_node = get_or_create_sovereign_node(pool, source_id).await?;
+    let target_node = get_or_create_sovereign_node(pool, target_id).await?;
+
+    sqlx::query(
+        "INSERT INTO graph_relationships (source_entity_id, target_entity_id, relationship_type, confidence, evidence)
+         VALUES ($1, $2, $3, $4, $5)"
+    )
+    .bind(source_node)
+    .bind(entity_id)
+    .bind("TRUSTS")
+    .bind(confidence)
+    .bind(&evidence)
+    .execute(pool)
+    .await?;
+
+    sqlx::query(
+        "INSERT INTO graph_relationships (source_entity_id, target_entity_id, relationship_type, confidence, evidence)
+         VALUES ($1, $2, $3, $4, $5)"
+    )
+    .bind(entity_id)
+    .bind(target_node)
+    .bind("EXPLAINS")
+    .bind(confidence)
+    .bind(&evidence)
+    .execute(pool)
+    .await?;
+
+    Ok(entity_id)
+}
+
 /// Query the full decision lineage for a sovereign.
 /// Returns all entities and relationships related to their recovery/probation history.
 pub async fn query_entity_lineage(

@@ -190,6 +190,50 @@
         .scrollbar-hide::-webkit-scrollbar {
             display: none;
         }
+
+        .trust-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .trust-table th {
+            text-align: left;
+            padding: 8px;
+            background: #252a45;
+            border-bottom: 1px solid #2a2f4a;
+            color: #aaa;
+            font-weight: normal;
+        }
+
+        .trust-table td {
+            padding: 8px;
+            border-bottom: 1px solid #1a1f3a;
+        }
+
+        .trust-row {
+            border-left: 3px solid #666;
+        }
+
+        .trust-row.trust-high { border-left-color: #34c759; }
+        .trust-row.trust-mid { border-left-color: #ffcc00; }
+        .trust-row.trust-low { border-left-color: #ff3b30; }
+
+        .trust-score {
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        .trust-score.trust-high { background: rgba(52, 199, 89, 0.2); color: #34c759; }
+        .trust-score.trust-mid { background: rgba(255, 204, 0, 0.2); color: #ffcc00; }
+        .trust-score.trust-low { background: rgba(255, 59, 48, 0.2); color: #ff3b30; }
+
+        .trust-component {
+            color: #aaa;
+            font-size: 10px;
+        }
     </style>
 </head>
 <body>
@@ -220,6 +264,26 @@
                     <div style="color: #888; font-size: 12px;">Waiting for scoring events...</div>
                 </div>
             </div>
+
+            <!-- Trust Network Panel -->
+            <div class="panel">
+                <h2>Trust Network</h2>
+                <table class="trust-table" id="trust-network">
+                    <thead>
+                        <tr>
+                            <th>Source → Target</th>
+                            <th>Score</th>
+                            <th>Explicit</th>
+                            <th>Implicit</th>
+                            <th>Decay</th>
+                            <th>Trans</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trust-network-rows">
+                        <tr><td colspan="6" style="color: #888; padding: 20px; text-align: center;">No trust edges yet</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- Status Bar -->
@@ -236,6 +300,7 @@
         let recoveryStates = {};
         let transitions = [];
         let signals = [];
+        let trustEdges = {};
 
         function formatTime(iso) {
             try {
@@ -308,6 +373,31 @@
             `).slice(0, 4).join('');
         }
 
+        function updateTrustNetwork() {
+            const tbody = document.getElementById('trust-network-rows');
+            if (Object.keys(trustEdges).length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="color: #888; padding: 20px; text-align: center;">No trust edges yet</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = Object.entries(trustEdges)
+                .sort((a, b) => b[1].new_score - a[1].new_score)
+                .map(([key, edge]) => {
+                    const scoreClass = edge.new_score >= 70 ? 'trust-high' :
+                                      edge.new_score >= 30 ? 'trust-mid' : 'trust-low';
+                    return `
+                        <tr class="trust-row ${scoreClass}">
+                            <td>${key}</td>
+                            <td><span class="trust-score ${scoreClass}">${edge.new_score}</span></td>
+                            <td><span class="trust-component">${edge.explicit_component || 0}</span></td>
+                            <td><span class="trust-component">${edge.implicit_component || 0}</span></td>
+                            <td><span class="trust-component">${edge.decay_component || 0}</span></td>
+                            <td><span class="trust-component">${edge.transitive_component || '—'}</span></td>
+                        </tr>
+                    `;
+                }).join('');
+        }
+
         function handleEvent(event) {
             try {
                 const data = JSON.parse(event.data);
@@ -369,9 +459,40 @@
                     });
                 }
 
+                if (type === 'TrustEntered') {
+                    const key = `${payload.source_id.substring(0, 8)} → ${payload.target_id.substring(0, 8)}`;
+                    trustEdges[key] = {
+                        new_score: payload.initial_score,
+                        explicit_component: 0,
+                        implicit_component: 0,
+                        decay_component: 0,
+                        transitive_component: null
+                    };
+                }
+
+                if (type === 'TrustScoreUpdated') {
+                    const key = `${payload.source_id.substring(0, 8)} → ${payload.target_id.substring(0, 8)}`;
+                    trustEdges[key] = {
+                        new_score: payload.new_score,
+                        explicit_component: payload.explicit_component,
+                        implicit_component: payload.implicit_component,
+                        decay_component: payload.decay_component,
+                        transitive_component: payload.transitive_component
+                    };
+                }
+
+                if (type === 'TrustDecayed') {
+                    const key = `${payload.source_id.substring(0, 8)} → ${payload.target_id.substring(0, 8)}`;
+                    if (trustEdges[key]) {
+                        trustEdges[key].new_score = payload.final_score;
+                        trustEdges[key].decay_component = payload.decay_component || trustEdges[key].decay_component;
+                    }
+                }
+
                 updateRecoveryStatus();
                 updateTransitions();
                 updateSignals();
+                updateTrustNetwork();
 
             } catch (e) {
                 console.error('Parse error:', e);

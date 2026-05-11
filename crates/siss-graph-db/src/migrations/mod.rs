@@ -122,6 +122,18 @@ const MIGRATIONS: &[(&str, &str)] = &[
         "031_add_phase18_slashing",
         include_str!("031_add_phase18_slashing.sql"),
     ),
+    (
+        "032_add_smaos_intelligence_graph",
+        include_str!("032_add_smaos_intelligence_graph.sql"),
+    ),
+    (
+        "033_add_phase20_reputation_recovery",
+        include_str!("033_add_phase20_reputation_recovery.sql"),
+    ),
+    (
+        "034_add_phase21_trust_topology",
+        include_str!("034_add_phase21_trust_topology.sql"),
+    ),
 ];
 
 /// Run all migrations in order. Idempotent — tracks applied migrations in a metadata table.

@@ -16,7 +16,86 @@ pub async fn record_feedback_for_anomaly(
     pool: &PgPool,
     anomaly: &AnomalyEvent,
 ) -> Result<Option<Uuid>, sqlx::Error> {
-    todo!()
+    // Query active PredictionNodes for this sovereign (last_computed_at > 24h ago)
+    let cutoff = Utc::now() - chrono::Duration::hours(24);
+    let predictions: Vec<(Uuid, String, f64, DateTime<Utc>)> = sqlx::query_as(
+        "SELECT id, properties->>'predicted_anomaly_type', (properties->>'risk_score')::float, (properties->>'last_computed_at')::timestamptz
+         FROM graph_entities
+         WHERE label = 'PredictionNode'
+         AND properties->>'sovereign_id' = $1
+         AND (properties->>'last_computed_at')::timestamptz > $2
+         ORDER BY (properties->>'last_computed_at')::timestamptz DESC",
+    )
+    .bind(anomaly.sovereign_id.to_string())
+    .bind(cutoff)
+    .fetch_all(pool)
+    .await?;
+
+    // Try to find exact match
+    let mut matched = false;
+    let mut matched_prediction_id = None;
+    let mut risk_score = 0.0;
+
+    for (pred_id, predicted_type, score, last_computed_at) in &predictions {
+        // Check if anomaly type matches
+        if anomaly.anomaly_type == *predicted_type {
+            // Check if detected_at falls within [last_computed_at, last_computed_at + 4h]
+            let window_end = *last_computed_at + chrono::Duration::hours(4);
+            if anomaly.detected_at >= *last_computed_at && anomaly.detected_at <= window_end {
+                matched = true;
+                matched_prediction_id = Some(*pred_id);
+                risk_score = *score;
+                break;
+            }
+        }
+    }
+
+    // If no matching prediction found, use first prediction (or none)
+    if matched_prediction_id.is_none() && !predictions.is_empty() {
+        matched_prediction_id = Some(predictions[0].0);
+        risk_score = predictions[0].2;
+    }
+
+    // Create FeedbackNode if we have a prediction to evaluate
+    if let Some(pred_id) = matched_prediction_id {
+        let properties = serde_json::json!({
+            "prediction_node_id": pred_id.to_string(),
+            "sovereign_id": anomaly.sovereign_id.to_string(),
+            "predicted_anomaly_type": anomaly.anomaly_type,
+            "matched": matched,
+            "anomaly_detected_at": if matched { Some(anomaly.detected_at.to_rfc3339()) } else { None },
+            "prediction_risk_score": risk_score,
+            "created_at": Utc::now().to_rfc3339(),
+        });
+
+        let feedback_id: Uuid = sqlx::query_scalar(
+            "INSERT INTO graph_entities (label, properties, graph_id)
+             VALUES ('FeedbackNode', $1, 0)
+             ON CONFLICT ((properties->>'prediction_node_id'))
+             WHERE label = 'FeedbackNode'
+             DO UPDATE SET properties = EXCLUDED.properties, updated_at = NOW()
+             WHERE EXCLUDED.label = 'FeedbackNode'
+             RETURNING id",
+        )
+        .bind(properties)
+        .fetch_one(pool)
+        .await?;
+
+        // Create FEEDBACK_FOR edge
+        let _edge = sqlx::query(
+            "INSERT INTO graph_relationships (source_entity_id, target_entity_id, relationship_type)
+             VALUES ($1, $2, 'FEEDBACK_FOR')
+             ON CONFLICT (source_entity_id, target_entity_id, relationship_type) DO NOTHING",
+        )
+        .bind(feedback_id)
+        .bind(pred_id)
+        .execute(pool)
+        .await?;
+
+        Ok(Some(feedback_id))
+    } else {
+        Ok(None)
+    }
 }
 
 #[cfg(test)]
@@ -294,7 +373,7 @@ mod tests {
         // Verify FEEDBACK_FOR edge exists
         let edge_count: (i64,) = sqlx::query_as(
             "SELECT COUNT(*) FROM graph_relationships
-             WHERE source_id = $1 AND target_id = $2 AND rel_type = 'FEEDBACK_FOR'",
+             WHERE source_entity_id = $1 AND target_entity_id = $2 AND relationship_type = 'FEEDBACK_FOR'",
         )
         .bind(feedback_id.unwrap())
         .bind(pred_id)

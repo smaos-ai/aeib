@@ -6,5 +6,10 @@ pub mod recovery_event_broadcaster;
 pub mod recovery_sweep_scheduler;
 pub mod repo;
 pub mod sweep_scheduler;
+pub mod telemetry_handler;
+
+#[cfg(feature = "axum")]
+pub mod telemetry_axum_handlers;
+
 pub mod trust_event_broadcaster;
 pub mod wiki_writer;

@@ -135,7 +135,9 @@ pub async fn aggregate_metrics_once(pool: &PgPool) -> Result<usize, sqlx::Error>
 /// Start background ticker for periodic metric aggregation.
 pub fn start_metrics_aggregator(pool: Arc<PgPool>, interval: Duration) -> JoinHandle<()> {
     tokio::spawn(async move {
-        let mut interval = tokio::time::interval(std::time::Duration::from_millis(interval.num_milliseconds() as u64));
+        let mut interval = tokio::time::interval(std::time::Duration::from_millis(
+            interval.num_milliseconds() as u64,
+        ));
         loop {
             interval.tick().await;
             let _ = aggregate_metrics_once(&pool).await;
@@ -351,7 +353,10 @@ mod tests {
         tokio::time::sleep(tokio::time::Duration::from_millis(150)).await;
 
         // Verify it's running (no panics)
-        assert!(!aggregator.is_finished(), "Aggregator should still be running");
+        assert!(
+            !aggregator.is_finished(),
+            "Aggregator should still be running"
+        );
 
         // Clean up
         drop(aggregator);

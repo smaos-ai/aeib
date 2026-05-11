@@ -595,7 +595,10 @@ mod tests {
         .fetch_one(&pool)
         .await
         .expect("fetch");
-        assert_eq!(feedback_count.0, 1, "FeedbackNode should be created by feedback recording");
+        assert_eq!(
+            feedback_count.0, 1,
+            "FeedbackNode should be created by feedback recording"
+        );
 
         // Verify FEEDBACK_FOR edge was created
         let edge_count: (i64,) = sqlx::query_as(

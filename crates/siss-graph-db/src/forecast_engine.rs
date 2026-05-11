@@ -534,9 +534,7 @@ mod tests {
         .expect("insert chain node");
 
         // Run forecast
-        let count = run_forecast_once(&pool)
-            .await
-            .expect("run forecast");
+        let count = run_forecast_once(&pool).await.expect("run forecast");
 
         assert!(count > 0, "Should create at least one prediction");
 
@@ -550,6 +548,61 @@ mod tests {
         .await
         .expect("query prediction");
 
-        assert!((risk.0 - 0.4).abs() < 0.01, "risk_score should be 0.5 * 0.8 = 0.4 (no decay at time 0)");
+        assert!(
+            (risk.0 - 0.4).abs() < 0.01,
+            "risk_score should be 0.5 * 0.8 = 0.4 (no decay at time 0)"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_decay_at_seven_days_is_half() {
+        let (_container, pool) = setup_postgres().await;
+        let sovereign_id = Uuid::new_v4();
+        let _sov_node = insert_sovereign_node(&pool, sovereign_id).await;
+
+        // Insert chain signal with last_seen_at = 7 days ago, confidence = 0.8
+        let seven_days_ago = Utc::now() - Duration::from_secs(7 * 24 * 3600);
+        let node_id = Uuid::new_v4();
+        let props = json!({
+            "sovereign_id": sovereign_id.to_string(),
+            "chain_type": "dispute_spam→timeout_spam",
+            "chain_length": 2,
+            "start_anomaly_type": "dispute_spam",
+            "end_anomaly_type": "timeout_spam",
+            "occurrence_count": 1,
+            "avg_elapsed_hours": 2.5,
+            "confidence": 0.8,
+            "last_seen_at": seven_days_ago.to_rfc3339(),
+            "evidence": {},
+        });
+
+        sqlx::query(
+            "INSERT INTO graph_entities (id, label, properties, graph_id) VALUES ($1, 'AnomalyChainNode', $2, 0)",
+        )
+        .bind(node_id)
+        .bind(props)
+        .execute(&pool)
+        .await
+        .expect("insert chain node");
+
+        // Run forecast
+        let count = run_forecast_once(&pool)
+            .await
+            .expect("run forecast");
+
+        assert!(count > 0, "Should create at least one prediction");
+
+        // Verify risk_score reflects decayed confidence
+        // With only chain signal at 7-day decay: 0.8 * 0.5 = 0.4 (decayed confidence)
+        // Risk = 0.5 * 0.4 = 0.2
+        let risk: (f64,) = sqlx::query_as(
+            "SELECT (properties->>'risk_score')::float FROM graph_entities WHERE label = 'PredictionNode' AND properties->>'sovereign_id' = $1",
+        )
+        .bind(sovereign_id.to_string())
+        .fetch_one(&pool)
+        .await
+        .expect("query prediction");
+
+        assert!((risk.0 - 0.2).abs() < 0.01, "risk_score should be 0.5 * 0.4 = 0.2 (decayed confidence at 7 days)");
     }
 }

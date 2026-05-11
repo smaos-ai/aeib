@@ -605,4 +605,56 @@ mod tests {
 
         assert!((risk.0 - 0.2).abs() < 0.01, "risk_score should be 0.5 * 0.4 = 0.2 (decayed confidence at 7 days)");
     }
+
+    #[tokio::test]
+    async fn test_decay_below_floor_is_skipped() {
+        let (_container, pool) = setup_postgres().await;
+        let sovereign_id = Uuid::new_v4();
+        let _sov_node = insert_sovereign_node(&pool, sovereign_id).await;
+
+        // Insert chain signal with last_seen_at = 40 days ago, confidence = 0.8
+        // Decayed: 0.8 * 0.5^(40/7) ≈ 0.0283, which is < 0.05 (floor)
+        let forty_days_ago = Utc::now() - Duration::from_secs(40 * 24 * 3600);
+        let node_id = Uuid::new_v4();
+        let props = json!({
+            "sovereign_id": sovereign_id.to_string(),
+            "chain_type": "dispute_spam→timeout_spam",
+            "chain_length": 2,
+            "start_anomaly_type": "dispute_spam",
+            "end_anomaly_type": "timeout_spam",
+            "occurrence_count": 1,
+            "avg_elapsed_hours": 2.5,
+            "confidence": 0.8,
+            "last_seen_at": forty_days_ago.to_rfc3339(),
+            "evidence": {},
+        });
+
+        sqlx::query(
+            "INSERT INTO graph_entities (id, label, properties, graph_id) VALUES ($1, 'AnomalyChainNode', $2, 0)",
+        )
+        .bind(node_id)
+        .bind(props)
+        .execute(&pool)
+        .await
+        .expect("insert chain node");
+
+        // Run forecast
+        let count = run_forecast_once(&pool)
+            .await
+            .expect("run forecast");
+
+        // Should NOT create any predictions because signal is below floor
+        assert_eq!(count, 0, "Should not create prediction; signal below 0.05 floor");
+
+        // Verify no PredictionNode was created
+        let pred_count: (i64,) = sqlx::query_as(
+            "SELECT COUNT(*) FROM graph_entities WHERE label = 'PredictionNode' AND properties->>'sovereign_id' = $1",
+        )
+        .bind(sovereign_id.to_string())
+        .fetch_one(&pool)
+        .await
+        .expect("query count");
+
+        assert_eq!(pred_count.0, 0, "No PredictionNode should exist for sovereign");
+    }
 }

@@ -657,4 +657,77 @@ mod tests {
 
         assert_eq!(pred_count.0, 0, "No PredictionNode should exist for sovereign");
     }
+
+    #[tokio::test]
+    async fn test_forecast_with_decayed_signals_lowers_risk() {
+        let (_container, pool) = setup_postgres().await;
+        let sovereign_id = Uuid::new_v4();
+        let _sov_node = insert_sovereign_node(&pool, sovereign_id).await;
+
+        // Insert fresh chain signal (confidence 0.6, last_seen_at = now)
+        let now = Utc::now();
+        let chain_id = Uuid::new_v4();
+        let chain_props = json!({
+            "sovereign_id": sovereign_id.to_string(),
+            "chain_type": "dispute_spam→timeout_spam",
+            "chain_length": 2,
+            "start_anomaly_type": "dispute_spam",
+            "end_anomaly_type": "timeout_spam",
+            "occurrence_count": 1,
+            "avg_elapsed_hours": 2.5,
+            "confidence": 0.6,
+            "last_seen_at": now.to_rfc3339(),
+            "evidence": {},
+        });
+
+        sqlx::query(
+            "INSERT INTO graph_entities (id, label, properties, graph_id) VALUES ($1, 'AnomalyChainNode', $2, 0)",
+        )
+        .bind(chain_id)
+        .bind(chain_props)
+        .execute(&pool)
+        .await
+        .expect("insert chain node");
+
+        // Insert correlation signal at 14 days ago (confidence 0.5)
+        // Decayed: 0.5 * 0.5^(14/7) = 0.5 * 0.25 = 0.125
+        let fourteen_days_ago = Utc::now() - Duration::from_secs(14 * 24 * 3600);
+        let corr_id = Uuid::new_v4();
+        let corr_props = json!({
+            "sovereign_id": sovereign_id.to_string(),
+            "event_type": "some_event",
+            "anomaly_type": "timeout_spam",
+            "co_occurrence_count": 5,
+            "confidence": 0.5,
+            "last_seen_at": fourteen_days_ago.to_rfc3339(),
+            "evidence": {},
+        });
+
+        sqlx::query(
+            "INSERT INTO graph_entities (id, label, properties, graph_id) VALUES ($1, 'CorrelationPatternNode', $2, 0)",
+        )
+        .bind(corr_id)
+        .bind(corr_props)
+        .execute(&pool)
+        .await
+        .expect("insert correlation node");
+
+        // Run forecast
+        let count = run_forecast_once(&pool)
+            .await
+            .expect("run forecast");
+
+        assert!(count > 0, "Should create at least one prediction");
+
+        // Risk score: 0.5*0.6 + 0.3*0.125 + 0.2*0 = 0.3375
+        let risk: (f64,) = sqlx::query_as(
+            "SELECT (properties->>'risk_score')::float FROM graph_entities WHERE label = 'PredictionNode' AND properties->>'sovereign_id' = $1",
+        )
+        .bind(sovereign_id.to_string())
+        .fetch_one(&pool)
+        .await
+        .expect("query prediction");
+
+        assert!((risk.0 - 0.3375).abs() < 0.01, "risk_score should be 0.5*0.6 + 0.3*0.125 = 0.3375");
+    }
 }

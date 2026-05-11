@@ -1,10 +1,11 @@
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use tokio::sync::broadcast;
 use uuid::Uuid;
 
 /// Trust network update signal for AutoResearch anomaly detection.
 /// Lives in siss-graph-db (not siss-agent-shell) to avoid circular dependency.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TrustUpdateSignal {
     pub source_id: Uuid,
     pub target_id: Uuid,

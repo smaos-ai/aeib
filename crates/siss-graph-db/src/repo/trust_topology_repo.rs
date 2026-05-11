@@ -153,6 +153,7 @@ pub async fn compute_and_upsert_trust_score(
     pool: &PgPool,
     source_id: Uuid,
     target_id: Uuid,
+    broadcaster: Option<std::sync::Arc<crate::trust_event_broadcaster::TrustEventBroadcaster>>,
 ) -> Result<i16, sqlx::Error> {
     let explicit_conf: Option<f32> = sqlx::query_scalar(
         "SELECT explicit_confidence FROM trust_network_edges \
@@ -240,6 +241,19 @@ pub async fn compute_and_upsert_trust_score(
     .execute(pool)
     .await?;
 
+    if let Some(bc) = broadcaster {
+        bc.emit(crate::trust_event_broadcaster::TrustUpdateSignal {
+            source_id,
+            target_id,
+            new_score: hybrid_score,
+            explicit_component: explicit_base,
+            implicit_component: implicit_adj,
+            decay_component: decay_penalty,
+            transitive_component: transitive_boost,
+            timestamp: chrono::Utc::now(),
+        });
+    }
+
     Ok(hybrid_score)
 }
 
@@ -256,7 +270,7 @@ pub async fn sweep_trust_decay(pool: &PgPool) -> Result<TrustDecaySweepResult, s
     let mut updated = 0i64;
 
     for (source_id, target_id) in edges {
-        if compute_and_upsert_trust_score(pool, source_id, target_id)
+        if compute_and_upsert_trust_score(pool, source_id, target_id, None)
             .await
             .is_ok()
         {

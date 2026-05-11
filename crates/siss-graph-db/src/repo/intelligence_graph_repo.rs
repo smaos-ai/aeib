@@ -251,7 +251,7 @@ pub async fn query_entity_lineage(
 }
 
 /// Get or create a sovereign node in the intelligence graph.
-async fn get_or_create_sovereign_node(
+pub(crate) async fn get_or_create_sovereign_node(
     pool: &PgPool,
     sovereign_id: Uuid,
 ) -> Result<Uuid, sqlx::Error> {

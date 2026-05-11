@@ -554,7 +554,7 @@ pub async fn attestation_refresh_handler(
 
     // Step 9.6: Record inter-sovereign credit entry (Phase 10, best-effort)
     // Only for cross-sovereign operations; does not block token issuance on failure
-    if let (Some(ref ctx), Some((session_uuid, _, _, _, _, _, _, _, _, _, _))) =
+    if let (Some(ctx), Some((session_uuid, _, _, _, _, _, _, _, _, _, _))) =
         (&fed_ctx_opt, &db_session)
     {
         let _ = federation_repo::insert_sovereign_credit_entry(

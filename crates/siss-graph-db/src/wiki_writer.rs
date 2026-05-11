@@ -283,9 +283,16 @@ mod tests {
             timestamp: Utc::now(),
         };
 
-        synthesize_pattern(wiki_dir.to_path_buf(), source_id, 3, signal.clone(), None, signal.timestamp)
-            .await
-            .unwrap();
+        synthesize_pattern(
+            wiki_dir.to_path_buf(),
+            source_id,
+            3,
+            signal.clone(),
+            None,
+            signal.timestamp,
+        )
+        .await
+        .unwrap();
 
         let contents =
             tokio::fs::read_to_string(wiki_dir.join("semantic").join("trust-anomalies.md"))
@@ -319,18 +326,32 @@ mod tests {
             timestamp: Utc::now(),
         };
 
-        synthesize_pattern(wiki_dir.to_path_buf(), source_id, 3, signal.clone(), None, signal.timestamp)
-            .await
-            .unwrap();
+        synthesize_pattern(
+            wiki_dir.to_path_buf(),
+            source_id,
+            3,
+            signal.clone(),
+            None,
+            signal.timestamp,
+        )
+        .await
+        .unwrap();
 
         let contents_first =
             tokio::fs::read_to_string(wiki_dir.join("semantic").join("trust-anomalies.md"))
                 .await
                 .unwrap();
 
-        synthesize_pattern(wiki_dir.to_path_buf(), source_id, 4, signal.clone(), None, signal.timestamp)
-            .await
-            .unwrap();
+        synthesize_pattern(
+            wiki_dir.to_path_buf(),
+            source_id,
+            4,
+            signal.clone(),
+            None,
+            signal.timestamp,
+        )
+        .await
+        .unwrap();
 
         let contents_second =
             tokio::fs::read_to_string(wiki_dir.join("semantic").join("trust-anomalies.md"))
@@ -422,7 +443,10 @@ mod tests {
         .await;
 
         // Assert: returns Ok
-        assert!(result.is_ok(), "synthesize_pattern should succeed with pool=None");
+        assert!(
+            result.is_ok(),
+            "synthesize_pattern should succeed with pool=None"
+        );
 
         // Assert: markdown file was written
         let semantic_path = wiki_dir.join("semantic").join("trust-anomalies.md");

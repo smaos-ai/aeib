@@ -352,7 +352,10 @@ mod tests {
     }
 
     // Helper to set up test PostgreSQL container
-    async fn setup_test_postgres() -> (testcontainers::ContainerAsync<testcontainers::GenericImage>, sqlx::PgPool) {
+    async fn setup_test_postgres() -> (
+        testcontainers::ContainerAsync<testcontainers::GenericImage>,
+        sqlx::PgPool,
+    ) {
         use testcontainers::runners::AsyncRunner;
         use testcontainers::{GenericImage, ImageExt, core::WaitFor};
 
@@ -376,9 +379,7 @@ mod tests {
     async fn test_write_trust_anomaly_pattern_creates_entity() {
         // Setup: testcontainers postgres, run all migrations including 035
         let (_container, pool) = setup_test_postgres().await;
-        crate::migrations::run_all(&pool)
-            .await
-            .expect("migrations");
+        crate::migrations::run_all(&pool).await.expect("migrations");
 
         let source_id = uuid::Uuid::new_v4();
         let target_id = uuid::Uuid::new_v4();
@@ -415,17 +416,35 @@ mod tests {
     async fn test_write_trust_anomaly_pattern_idempotent() {
         // Setup
         let (_container, pool) = setup_test_postgres().await;
-        crate::migrations::run_all(&pool)
-            .await
-            .expect("migrations");
+        crate::migrations::run_all(&pool).await.expect("migrations");
 
         let source_id = uuid::Uuid::new_v4();
         let target_id = uuid::Uuid::new_v4();
         let now = chrono::Utc::now();
 
         // Action: call twice with same source_id, different occurrence_count
-        let _result1 = write_trust_anomaly_pattern(&pool, source_id, target_id, 42, "decay_collapse", 3, now, now).await;
-        let _result2 = write_trust_anomaly_pattern(&pool, source_id, target_id, 50, "decay_collapse", 5, now, now).await;
+        let _result1 = write_trust_anomaly_pattern(
+            &pool,
+            source_id,
+            target_id,
+            42,
+            "decay_collapse",
+            3,
+            now,
+            now,
+        )
+        .await;
+        let _result2 = write_trust_anomaly_pattern(
+            &pool,
+            source_id,
+            target_id,
+            50,
+            "decay_collapse",
+            5,
+            now,
+            now,
+        )
+        .await;
 
         // Assert: count still 1 (updated, not duplicated)
         let count: (i64,) = sqlx::query_as(
@@ -437,7 +456,10 @@ mod tests {
         .await
         .expect("query");
 
-        assert_eq!(count.0, 1, "Should still have exactly 1 node (updated, not duplicated)");
+        assert_eq!(
+            count.0, 1,
+            "Should still have exactly 1 node (updated, not duplicated)"
+        );
 
         // Assert: occurrence_count updated to 5
         let properties: serde_json::Value = sqlx::query_scalar(
@@ -460,9 +482,7 @@ mod tests {
     async fn test_write_trust_anomaly_pattern_creates_exhibits_edge() {
         // Setup
         let (_container, pool) = setup_test_postgres().await;
-        crate::migrations::run_all(&pool)
-            .await
-            .expect("migrations");
+        crate::migrations::run_all(&pool).await.expect("migrations");
 
         let source_id = uuid::Uuid::new_v4();
         let target_id = uuid::Uuid::new_v4();

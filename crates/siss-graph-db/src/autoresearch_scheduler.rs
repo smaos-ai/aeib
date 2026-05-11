@@ -40,10 +40,13 @@ pub fn start_autoresearch_watcher(
                             eprintln!("Failed to write episodic event: {}", e);
                         }
 
-                        let state = occurrence_state.entry(signal.source_id).or_insert(AnomalyState {
-                            count: 0,
-                            first_detected: signal.timestamp,
-                        });
+                        let state =
+                            occurrence_state
+                                .entry(signal.source_id)
+                                .or_insert(AnomalyState {
+                                    count: 0,
+                                    first_detected: signal.timestamp,
+                                });
                         state.count += 1;
 
                         if state.count >= 3 {

@@ -2,6 +2,8 @@ use chrono::{DateTime, Utc};
 use sqlx::PgPool;
 use uuid::Uuid;
 
+use super::feedback_recorder::{AnomalyEvent, record_feedback_for_anomaly};
+
 // ============================================================================
 // Ingestion Record Types
 // ============================================================================
@@ -145,6 +147,14 @@ pub async fn ingest_anomaly_event(
     .bind(sovereign_node_id)
     .execute(pool)
     .await?;
+
+    // Record feedback for anomaly (non-blocking; failures are ignored)
+    let anomaly = AnomalyEvent {
+        sovereign_id: record.sovereign_id,
+        anomaly_type: record.anomaly_type.clone(),
+        detected_at: record.detected_at,
+    };
+    let _ = record_feedback_for_anomaly(pool, &anomaly).await;
 
     Ok(node_id)
 }

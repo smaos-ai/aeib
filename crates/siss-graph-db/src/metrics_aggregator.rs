@@ -1,4 +1,4 @@
-use chrono::{Duration, Utc};
+use chrono::{DateTime, Duration, Utc};
 use sqlx::PgPool;
 use std::sync::Arc;
 use tokio::task::JoinHandle;
@@ -8,13 +8,134 @@ pub const DEFAULT_AGGREGATION_INTERVAL: Duration = Duration::hours(1);
 
 /// Aggregate metrics once: compute precision/recall for all active (sovereign, anomaly_type) pairs.
 pub async fn aggregate_metrics_once(pool: &PgPool) -> Result<usize, sqlx::Error> {
-    todo!()
+    // Query all unique (sovereign_id, anomaly_type) pairs from recent FeedbackNodes
+    let pairs: Vec<(String, String)> = sqlx::query_as(
+        "SELECT DISTINCT properties->>'sovereign_id', properties->>'predicted_anomaly_type'
+         FROM graph_entities
+         WHERE label = 'FeedbackNode'",
+    )
+    .fetch_all(pool)
+    .await?;
+
+    let mut count = 0;
+
+    for (sovereign_id_str, anomaly_type) in pairs {
+        // Count TP: matched=true
+        let tp_count: (i64,) = sqlx::query_as(
+            "SELECT COUNT(*) FROM graph_entities
+             WHERE label = 'FeedbackNode'
+             AND properties->>'sovereign_id' = $1
+             AND properties->>'predicted_anomaly_type' = $2
+             AND (properties->>'matched')::boolean = true",
+        )
+        .bind(&sovereign_id_str)
+        .bind(&anomaly_type)
+        .fetch_one(pool)
+        .await?;
+
+        // Count FP: matched=false
+        let fp_count: (i64,) = sqlx::query_as(
+            "SELECT COUNT(*) FROM graph_entities
+             WHERE label = 'FeedbackNode'
+             AND properties->>'sovereign_id' = $1
+             AND properties->>'predicted_anomaly_type' = $2
+             AND (properties->>'matched')::boolean = false",
+        )
+        .bind(&sovereign_id_str)
+        .bind(&anomaly_type)
+        .fetch_one(pool)
+        .await?;
+
+        let tp = tp_count.0;
+        let fp = fp_count.0;
+
+        // Count FN: anomalies with no matching feedback
+        let fn_count: (i64,) = sqlx::query_as(
+            "SELECT COUNT(DISTINCT ae.id) FROM graph_entities ae
+             WHERE ae.label = 'AnomalyEventNode'
+             AND ae.properties->>'sovereign_id' = $1
+             AND ae.properties->>'anomaly_type' = $2",
+        )
+        .bind(&sovereign_id_str)
+        .bind(&anomaly_type)
+        .fetch_one(pool)
+        .await?;
+
+        let fn_count = fn_count.0;
+
+        // Compute precision and recall
+        let precision = if tp + fp > 0 {
+            Some(tp as f64 / (tp + fp) as f64)
+        } else {
+            None
+        };
+
+        let recall = if tp + fn_count > 0 {
+            Some(tp as f64 / (tp + fn_count) as f64)
+        } else {
+            None
+        };
+
+        // Compute average risk scores
+        let avg_risk_correct: (Option<f64>,) = sqlx::query_as(
+            "SELECT AVG((properties->>'prediction_risk_score')::float) FROM graph_entities
+             WHERE label = 'FeedbackNode'
+             AND properties->>'sovereign_id' = $1
+             AND properties->>'predicted_anomaly_type' = $2
+             AND (properties->>'matched')::boolean = true",
+        )
+        .bind(&sovereign_id_str)
+        .bind(&anomaly_type)
+        .fetch_one(pool)
+        .await?;
+
+        let avg_risk_incorrect: (Option<f64>,) = sqlx::query_as(
+            "SELECT AVG((properties->>'prediction_risk_score')::float) FROM graph_entities
+             WHERE label = 'FeedbackNode'
+             AND properties->>'sovereign_id' = $1
+             AND properties->>'predicted_anomaly_type' = $2
+             AND (properties->>'matched')::boolean = false",
+        )
+        .bind(&sovereign_id_str)
+        .bind(&anomaly_type)
+        .fetch_one(pool)
+        .await?;
+
+        // Create/update AccuracyMetricsNode
+        let properties = serde_json::json!({
+            "sovereign_id": sovereign_id_str,
+            "anomaly_type": anomaly_type,
+            "true_positives": tp,
+            "false_positives": fp,
+            "false_negatives": fn_count,
+            "precision": precision,
+            "recall": recall,
+            "avg_risk_score_correct": avg_risk_correct.0,
+            "avg_risk_score_incorrect": avg_risk_incorrect.0,
+            "sample_count": tp + fp,
+            "last_updated_at": Utc::now().to_rfc3339(),
+        });
+
+        sqlx::query(
+            "INSERT INTO graph_entities (label, properties, graph_id) VALUES ('AccuracyMetricsNode', $1, 0)
+             ON CONFLICT ((properties->>'sovereign_id'), (properties->>'anomaly_type'))
+             WHERE label = 'AccuracyMetricsNode'
+             DO UPDATE SET properties = EXCLUDED.properties, updated_at = NOW()",
+        )
+        .bind(properties)
+        .execute(pool)
+        .await?;
+
+        count += 1;
+    }
+
+    Ok(count)
 }
 
 /// Start background ticker for periodic metric aggregation.
 pub fn start_metrics_aggregator(pool: Arc<PgPool>, interval: Duration) -> JoinHandle<()> {
     tokio::spawn(async move {
-        let mut interval = tokio::time::interval(std::time::Duration::from_secs(interval.num_seconds() as u64));
+        let mut interval = tokio::time::interval(std::time::Duration::from_millis(interval.num_milliseconds() as u64));
         loop {
             interval.tick().await;
             let _ = aggregate_metrics_once(&pool).await;
@@ -90,7 +211,7 @@ mod tests {
 
         // Verify AccuracyMetricsNode was created with correct precision
         let result: (f64, i64, i64) = sqlx::query_as(
-            "SELECT (properties->>'precision')::float, (properties->>'true_positives')::int, (properties->>'false_positives')::int
+            "SELECT (properties->>'precision')::float, (properties->>'true_positives')::bigint, (properties->>'false_positives')::bigint
              FROM graph_entities
              WHERE label = 'AccuracyMetricsNode'
              AND properties->>'sovereign_id' = $1
@@ -147,7 +268,7 @@ mod tests {
 
         // Verify recall
         let result: (f64, i64) = sqlx::query_as(
-            "SELECT (properties->>'recall')::float, (properties->>'false_negatives')::int
+            "SELECT (properties->>'recall')::float, (properties->>'false_negatives')::bigint
              FROM graph_entities
              WHERE label = 'AccuracyMetricsNode'
              AND properties->>'sovereign_id' = $1",

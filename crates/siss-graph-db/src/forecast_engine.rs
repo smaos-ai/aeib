@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde_json::json;
-use sqlx::PgPool;
+use sqlx::{FromRow, PgPool};
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
@@ -12,6 +12,66 @@ use crate::repo::prediction_query::fetch_sovereign_signals;
 use crate::repo::prediction_repo::{PredictionRecord, upsert_prediction};
 
 pub const DEFAULT_FORECAST_INTERVAL: Duration = Duration::from_secs(60);
+
+/// JSONB bulk query row for AccuracyMetricsNode
+#[derive(Debug, Clone, FromRow)]
+struct AccuracyMetricsRow {
+    sovereign_id: Uuid,
+    anomaly_type: String,
+    precision: Option<f64>,
+    sample_count: i64,
+}
+
+/// Lightweight wrapper for accuracy weight storage
+#[derive(Debug, Clone)]
+struct AccuracyWeight {
+    precision: Option<f64>,
+    sample_count: i64,
+}
+
+/// Load accuracy weights from graph_entities (AccuracyMetricsNode records).
+/// Returns a HashMap keyed by (sovereign_id, anomaly_type).
+async fn load_accuracy_weights(
+    pool: &PgPool,
+) -> Result<HashMap<(Uuid, String), AccuracyWeight>, sqlx::Error> {
+    let rows: Vec<AccuracyMetricsRow> = sqlx::query_as(
+        "SELECT
+            (properties->>'sovereign_id')::uuid AS sovereign_id,
+            properties->>'anomaly_type' AS anomaly_type,
+            (properties->>'precision')::float AS precision,
+            (properties->>'sample_count')::bigint AS sample_count
+        FROM graph_entities
+        WHERE label = 'AccuracyMetricsNode'",
+    )
+    .fetch_all(pool)
+    .await?;
+
+    let mut map = HashMap::new();
+    for row in rows {
+        map.insert(
+            (row.sovereign_id, row.anomaly_type),
+            AccuracyWeight {
+                precision: row.precision,
+                sample_count: row.sample_count,
+            },
+        );
+    }
+    Ok(map)
+}
+
+/// Compute accuracy weight from AccuracyWeight record.
+/// Returns 1.0 (no adjustment) if no data, sample_count < 5, or precision is None.
+/// Otherwise returns (precision / 0.5).min(1.0).
+fn compute_accuracy_weight(weight: Option<&AccuracyWeight>) -> f64 {
+    match weight {
+        None => 1.0,
+        Some(w) if w.sample_count < 5 => 1.0,
+        Some(w) => match w.precision {
+            None => 1.0,
+            Some(p) => (p / 0.5_f64).min(1.0),
+        },
+    }
+}
 
 /// Apply exponential decay to a signal's confidence.
 /// Uses 7-day half-life: confidence × 0.5^(days_since_last_seen / 7)
@@ -84,6 +144,8 @@ pub async fn run_forecast_once(pool: &PgPool) -> Result<usize, sqlx::Error> {
     // Process each sovereign with signals
     let mut count = 0;
 
+    let accuracy_weights = load_accuracy_weights(pool).await?;
+
     for (sovereign_id, signals) in by_sovereign {
         // Skip if no signals
         if signals.max_chain_confidence == 0.0
@@ -118,17 +180,26 @@ pub async fn run_forecast_once(pool: &PgPool) -> Result<usize, sqlx::Error> {
                 .unwrap_or_else(|| "unknown".to_string())
         };
 
-        // Calculate risk score: 0.5*chain + 0.3*correlation + 0.2*recovery
-        let risk_score = (0.5 * signals.max_chain_confidence
+        // Calculate raw risk score: 0.5*chain + 0.3*correlation + 0.2*recovery
+        let raw_risk_score = (0.5 * signals.max_chain_confidence
             + 0.3 * signals.max_correlation_confidence
             + 0.2 * signals.max_recovery_confidence)
             .min(1.0);
+
+        let accuracy_weight = compute_accuracy_weight(
+            accuracy_weights.get(&(sovereign_id, predicted_anomaly_type.clone())),
+        );
+        let risk_score = raw_risk_score * accuracy_weight;
 
         // Create signal breakdown
         let signal_breakdown = json!({
             "chain": signals.max_chain_confidence,
             "correlation": signals.max_correlation_confidence,
             "recovery": signals.max_recovery_confidence,
+            "raw_risk_score": raw_risk_score,
+            "accuracy_weight": accuracy_weight,
+            "adjusted_risk_score": risk_score,
+            "accuracy_sample_count": accuracy_weights.get(&(sovereign_id, predicted_anomaly_type.clone())).map(|w| w.sample_count),
         });
 
         // Create evidence
@@ -183,6 +254,7 @@ pub fn start_forecast_engine(pool: Arc<PgPool>, interval: Duration) -> JoinHandl
 mod tests {
     use super::*;
     use serde_json::json;
+    use sqlx::Row;
     use testcontainers::runners::AsyncRunner;
     use testcontainers::{GenericImage, ImageExt, core::WaitFor};
 
@@ -314,6 +386,44 @@ mod tests {
         .execute(pool)
         .await
         .expect("insert sovereign node");
+
+        node_id
+    }
+
+    /// Helper: insert an AccuracyMetricsNode
+    async fn insert_accuracy_metrics_node(
+        pool: &PgPool,
+        sovereign_id: Uuid,
+        anomaly_type: &str,
+        precision: Option<f64>,
+        sample_count: i64,
+    ) -> Uuid {
+        let node_id = Uuid::new_v4();
+        let properties = json!({
+            "sovereign_id": sovereign_id.to_string(),
+            "anomaly_type": anomaly_type,
+            "precision": precision,
+            "sample_count": sample_count,
+            "true_positives": 0,
+            "false_positives": 0,
+            "false_negatives": 0,
+            "recall": serde_json::Value::Null,
+            "avg_risk_score_correct": serde_json::Value::Null,
+            "avg_risk_score_incorrect": serde_json::Value::Null,
+            "last_updated_at": Utc::now().to_rfc3339(),
+        });
+
+        sqlx::query(
+            "INSERT INTO graph_entities (id, label, properties)
+             VALUES ($1, $2, $3)
+             ON CONFLICT (id) DO UPDATE SET properties = $3",
+        )
+        .bind(node_id)
+        .bind("AccuracyMetricsNode")
+        .bind(properties)
+        .execute(pool)
+        .await
+        .expect("Failed to insert test AccuracyMetricsNode");
 
         node_id
     }
@@ -734,6 +844,215 @@ mod tests {
         assert!(
             (risk.0 - 0.3375).abs() < 0.01,
             "risk_score should be 0.5*0.6 + 0.3*0.125 = 0.3375"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_accuracy_weight_reduces_risk_when_low_precision() {
+        let (_container, pool) = setup_postgres().await;
+        let sovereign_id = Uuid::new_v4();
+        let _sov_node = insert_sovereign_node(&pool, sovereign_id).await;
+
+        // Create a chain signal with confidence 1.0 (would give raw_risk = 0.5)
+        insert_anomaly_chain_node(&pool, sovereign_id, "dispute_spam→timeout_spam", 1.0).await;
+
+        // Create AccuracyMetricsNode with precision 0.3, sample_count 10
+        // Expected: accuracy_weight = min(1.0, 0.3/0.5) = 0.6
+        // Expected final risk_score = 0.5 * 0.6 = 0.3
+        insert_accuracy_metrics_node(&pool, sovereign_id, "timeout_spam", Some(0.3), 10).await;
+
+        run_forecast_once(&pool).await.expect("forecast failed");
+
+        let prediction = sqlx::query(
+            "SELECT properties FROM graph_entities WHERE label = 'PredictionNode' AND (properties->>'sovereign_id')::uuid = $1"
+        )
+        .bind(sovereign_id)
+        .fetch_one(&pool)
+        .await
+        .expect("No prediction found");
+
+        let props = prediction.get::<serde_json::Value, _>(0);
+        let risk_score: f64 = props["risk_score"].as_f64().unwrap();
+        let signal_breakdown = &props["signal_breakdown"];
+        let accuracy_weight: f64 = signal_breakdown["accuracy_weight"].as_f64().unwrap();
+        let raw_risk_score: f64 = signal_breakdown["raw_risk_score"].as_f64().unwrap();
+
+        // Assertions
+        assert!(
+            (raw_risk_score - 0.5).abs() < 0.01,
+            "raw_risk_score should be 0.5"
+        );
+        assert!(
+            (accuracy_weight - 0.6).abs() < 0.001,
+            "accuracy_weight should be 0.6"
+        );
+        assert!(
+            (risk_score - 0.3).abs() < 0.01,
+            "risk_score should be 0.3 (0.5 * 0.6)"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_accuracy_weight_no_reduction_at_precision_threshold() {
+        let (_container, pool) = setup_postgres().await;
+        let sovereign_id = Uuid::new_v4();
+        let _sov_node = insert_sovereign_node(&pool, sovereign_id).await;
+
+        insert_anomaly_chain_node(&pool, sovereign_id, "dispute_spam→timeout_spam", 1.0).await;
+
+        // Precision = 0.5 (threshold)
+        // Expected: accuracy_weight = min(1.0, 0.5/0.5) = 1.0
+        // Expected final risk_score = 0.5 * 1.0 = 0.5 (no change)
+        insert_accuracy_metrics_node(&pool, sovereign_id, "timeout_spam", Some(0.5), 10).await;
+
+        run_forecast_once(&pool).await.expect("forecast failed");
+
+        let prediction = sqlx::query(
+            "SELECT properties FROM graph_entities WHERE label = 'PredictionNode' AND (properties->>'sovereign_id')::uuid = $1"
+        )
+        .bind(sovereign_id)
+        .fetch_one(&pool)
+        .await
+        .expect("No prediction found");
+
+        let props = prediction.get::<serde_json::Value, _>(0);
+        let risk_score: f64 = props["risk_score"].as_f64().unwrap();
+        let signal_breakdown = &props["signal_breakdown"];
+        let accuracy_weight: f64 = signal_breakdown["accuracy_weight"].as_f64().unwrap();
+        let raw_risk_score: f64 = signal_breakdown["raw_risk_score"].as_f64().unwrap();
+
+        assert!(
+            (raw_risk_score - 0.5).abs() < 0.01,
+            "raw_risk_score should be 0.5"
+        );
+        assert!(
+            (accuracy_weight - 1.0).abs() < 0.001,
+            "accuracy_weight should be 1.0 at threshold"
+        );
+        assert!(
+            (risk_score - 0.5).abs() < 0.01,
+            "risk_score should be 0.5 (no change at threshold)"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_accuracy_weight_no_amplification_above_threshold() {
+        let (_container, pool) = setup_postgres().await;
+        let sovereign_id = Uuid::new_v4();
+        let _sov_node = insert_sovereign_node(&pool, sovereign_id).await;
+
+        insert_anomaly_chain_node(&pool, sovereign_id, "dispute_spam→timeout_spam", 1.0).await;
+
+        // Precision = 0.8 (above threshold)
+        // Expected: accuracy_weight = min(1.0, 0.8/0.5) = min(1.0, 1.6) = 1.0 (capped)
+        // Expected final risk_score = 0.5 * 1.0 = 0.5 (no amplification)
+        insert_accuracy_metrics_node(&pool, sovereign_id, "timeout_spam", Some(0.8), 10).await;
+
+        run_forecast_once(&pool).await.expect("forecast failed");
+
+        let prediction = sqlx::query(
+            "SELECT properties FROM graph_entities WHERE label = 'PredictionNode' AND (properties->>'sovereign_id')::uuid = $1"
+        )
+        .bind(sovereign_id)
+        .fetch_one(&pool)
+        .await
+        .expect("No prediction found");
+
+        let props = prediction.get::<serde_json::Value, _>(0);
+        let risk_score: f64 = props["risk_score"].as_f64().unwrap();
+        let signal_breakdown = &props["signal_breakdown"];
+        let accuracy_weight: f64 = signal_breakdown["accuracy_weight"].as_f64().unwrap();
+
+        assert!(
+            (accuracy_weight - 1.0).abs() < 0.001,
+            "accuracy_weight should be 1.0 (capped)"
+        );
+        assert!(
+            (risk_score - 0.5).abs() < 0.01,
+            "risk_score should be 0.5 (no amplification)"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_accuracy_weight_defaults_to_one_when_no_metrics_node() {
+        let (_container, pool) = setup_postgres().await;
+        let sovereign_id = Uuid::new_v4();
+        let _sov_node = insert_sovereign_node(&pool, sovereign_id).await;
+
+        insert_anomaly_chain_node(&pool, sovereign_id, "dispute_spam→timeout_spam", 1.0).await;
+
+        // NO AccuracyMetricsNode inserted
+        // Expected: accuracy_weight = 1.0 (default)
+        // Expected final risk_score = 0.5 * 1.0 = 0.5
+
+        run_forecast_once(&pool).await.expect("forecast failed");
+
+        let prediction = sqlx::query(
+            "SELECT properties FROM graph_entities WHERE label = 'PredictionNode' AND (properties->>'sovereign_id')::uuid = $1"
+        )
+        .bind(sovereign_id)
+        .fetch_one(&pool)
+        .await
+        .expect("No prediction found");
+
+        let props = prediction.get::<serde_json::Value, _>(0);
+        let risk_score: f64 = props["risk_score"].as_f64().unwrap();
+        let signal_breakdown = &props["signal_breakdown"];
+        let accuracy_weight: f64 = signal_breakdown["accuracy_weight"].as_f64().unwrap();
+        let accuracy_sample_count = &signal_breakdown["accuracy_sample_count"];
+
+        assert!((risk_score - 0.5).abs() < 0.01, "risk_score should be 0.5");
+        assert!(
+            (accuracy_weight - 1.0).abs() < 0.001,
+            "accuracy_weight should be 1.0"
+        );
+        assert!(
+            accuracy_sample_count.is_null(),
+            "accuracy_sample_count should be null when no metrics node"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_accuracy_weight_defaults_to_one_when_sample_count_below_five() {
+        let (_container, pool) = setup_postgres().await;
+        let sovereign_id = Uuid::new_v4();
+        let _sov_node = insert_sovereign_node(&pool, sovereign_id).await;
+
+        insert_anomaly_chain_node(&pool, sovereign_id, "dispute_spam→timeout_spam", 1.0).await;
+
+        // AccuracyMetricsNode with precision 0.1 (would give weight 0.2), but sample_count = 3
+        // Expected: accuracy_weight = 1.0 (insufficient samples, no penalty applied)
+        // Expected final risk_score = 0.5 * 1.0 = 0.5
+        insert_accuracy_metrics_node(&pool, sovereign_id, "timeout_spam", Some(0.1), 3).await;
+
+        run_forecast_once(&pool).await.expect("forecast failed");
+
+        let prediction = sqlx::query(
+            "SELECT properties FROM graph_entities WHERE label = 'PredictionNode' AND (properties->>'sovereign_id')::uuid = $1"
+        )
+        .bind(sovereign_id)
+        .fetch_one(&pool)
+        .await
+        .expect("No prediction found");
+
+        let props = prediction.get::<serde_json::Value, _>(0);
+        let risk_score: f64 = props["risk_score"].as_f64().unwrap();
+        let signal_breakdown = &props["signal_breakdown"];
+        let accuracy_weight: f64 = signal_breakdown["accuracy_weight"].as_f64().unwrap();
+        let accuracy_sample_count: i64 =
+            signal_breakdown["accuracy_sample_count"].as_i64().unwrap();
+
+        assert!(
+            (risk_score - 0.5).abs() < 0.01,
+            "risk_score should be 0.5 (no penalty for low sample count)"
+        );
+        assert!(
+            (accuracy_weight - 1.0).abs() < 0.001,
+            "accuracy_weight should be 1.0 (insufficient samples)"
+        );
+        assert_eq!(
+            accuracy_sample_count, 3,
+            "accuracy_sample_count should record the actual count (3)"
         );
     }
 }

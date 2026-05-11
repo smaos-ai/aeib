@@ -3,8 +3,15 @@
 -- Enables decision lineage, explainability, and blast-radius propagation
 -- Every Phase 20 state transition writes to both DB tables AND this graph
 
--- Create AGE graph if not exists
-SELECT create_graph('smaos_graph');
+-- Create AGE graph if not exists (graceful fallback if AGE not installed)
+DO $$
+BEGIN
+    SELECT create_graph('smaos_graph');
+EXCEPTION
+    WHEN undefined_function THEN
+        RAISE NOTICE 'Apache AGE not available — using relational graph tables only.';
+END;
+$$;
 
 -- Node labels (entities in the intelligence graph)
 -- These are not explicit tables but logical node types in the AGE graph

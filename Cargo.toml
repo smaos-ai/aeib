@@ -10,6 +10,7 @@ members = [
     "crates/siss-feedback-router",
     "crates/siss-agent-shell",
     "crates/siss-agent-card",
+    "crates/siss-mcp-gitnexus",
 ]
 
 [workspace.package]

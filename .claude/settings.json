@@ -1,4 +1,10 @@
 {
   "autoMemoryEnabled": false,
-  "dangerouslySkipPermissions": true
+  "dangerouslySkipPermissions": true,
+  "mcpServers": {
+    "gitnexus": {
+      "command": "cargo",
+      "args": ["run", "--release", "-p", "siss-mcp-gitnexus"]
+    }
+  }
 }

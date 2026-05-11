@@ -1,8 +1,66 @@
+use std::collections::HashMap;
+use std::path::PathBuf;
+use std::sync::Arc;
+use tokio::sync::broadcast;
+use uuid::Uuid;
+
 use crate::trust_event_broadcaster::TrustUpdateSignal;
+use crate::wiki_writer;
 
 /// Determine if a trust update signal represents a severe penalty.
 pub fn is_severe_penalty(signal: &TrustUpdateSignal) -> bool {
     signal.new_score < 25 || signal.decay_component < -50 || signal.implicit_component < -30
+}
+
+/// Start the AutoResearch watcher loop. Subscribes to trust signals, detects severe penalties,
+/// appends episodic events, and synthesizes patterns when threshold (≥3 occurrences) is reached.
+pub fn start_autoresearch_watcher(
+    mut rx: broadcast::Receiver<TrustUpdateSignal>,
+    wiki_dir: PathBuf,
+) -> tokio::task::JoinHandle<()> {
+    tokio::spawn(async move {
+        let wiki_dir = Arc::new(wiki_dir);
+        let mut occurrence_count: HashMap<Uuid, usize> = HashMap::new();
+
+        loop {
+            match rx.recv().await {
+                Ok(signal) => {
+                    if is_severe_penalty(&signal) {
+                        if let Err(e) =
+                            wiki_writer::append_episodic_event((*wiki_dir).clone(), signal.clone())
+                                .await
+                        {
+                            eprintln!("Failed to write episodic event: {}", e);
+                        }
+
+                        let count = occurrence_count.entry(signal.source_id).or_insert(0);
+                        *count += 1;
+
+                        if *count >= 3 {
+                            if let Err(e) = wiki_writer::synthesize_pattern(
+                                (*wiki_dir).clone(),
+                                signal.source_id,
+                                *count,
+                                signal,
+                            )
+                            .await
+                            {
+                                eprintln!("Failed to synthesize pattern: {}", e);
+                            }
+                        }
+                    }
+                }
+                Err(broadcast::error::RecvError::Lagged(_)) => {
+                    // Missed events due to subscriber lag; continue
+                    continue;
+                }
+                Err(broadcast::error::RecvError::Closed) => {
+                    // Broadcaster closed; exit watcher
+                    break;
+                }
+            }
+        }
+    })
 }
 
 #[cfg(test)]

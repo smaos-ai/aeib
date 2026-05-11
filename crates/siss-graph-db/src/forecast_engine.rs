@@ -1,4 +1,4 @@
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use serde_json::json;
 use sqlx::PgPool;
 use std::collections::HashMap;
@@ -12,6 +12,19 @@ use crate::repo::prediction_query::fetch_sovereign_signals;
 use crate::repo::prediction_repo::{PredictionRecord, upsert_prediction};
 
 pub const DEFAULT_FORECAST_INTERVAL: Duration = Duration::from_secs(60);
+
+/// Apply exponential decay to a signal's confidence.
+/// Uses 7-day half-life: confidence × 0.5^(days_since_last_seen / 7)
+/// Returns original confidence if last_seen_at is in the future (clock skew protection).
+fn apply_decay(confidence: f64, last_seen_at: DateTime<Utc>) -> f64 {
+    let elapsed = Utc::now() - last_seen_at;
+    let days_since_last_seen = elapsed.num_days() as f64;
+    if days_since_last_seen < 0.0 {
+        confidence // Clock skew: return original confidence
+    } else {
+        confidence * 0.5_f64.powf(days_since_last_seen / 7.0)
+    }
+}
 
 /// Run forecast once: aggregate all signals per sovereign, compute risk scores, and upsert predictions.
 /// Returns count of PredictionNodes created or updated.

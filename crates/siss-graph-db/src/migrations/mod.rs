@@ -142,6 +142,26 @@ const MIGRATIONS: &[(&str, &str)] = &[
         "036_add_phase23_observability_indexes",
         include_str!("036_add_phase23_observability_indexes.sql"),
     ),
+    (
+        "037_add_phase25_correlation_indexes",
+        include_str!("037_add_phase25_correlation_indexes.sql"),
+    ),
+    (
+        "038_add_phase26_chain_indexes",
+        include_str!("038_add_phase26_chain_indexes.sql"),
+    ),
+    (
+        "039_add_phase27_recovery_indexes",
+        include_str!("039_add_phase27_recovery_indexes.sql"),
+    ),
+    (
+        "040_add_phase28_prediction_indexes",
+        include_str!("040_add_phase28_prediction_indexes.sql"),
+    ),
+    (
+        "041_add_phase30_feedback_indexes",
+        include_str!("041_add_phase30_feedback_indexes.sql"),
+    ),
 ];
 
 /// Run all migrations in order. Idempotent — tracks applied migrations in a metadata table.

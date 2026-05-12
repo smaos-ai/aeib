@@ -539,4 +539,74 @@ mod tests {
             "Should have exactly one SystemMetricNode per snapshot"
         );
     }
+
+    #[tokio::test]
+    async fn test_ingest_anomaly_event_triggers_feedback_recording() {
+        let (_container, pool) = setup_postgres().await;
+
+        let sovereign_id = Uuid::new_v4();
+        let now = Utc::now();
+
+        // Create a prediction first for feedback to match against
+        let prediction = crate::repo::prediction_repo::PredictionRecord {
+            sovereign_id,
+            predicted_anomaly_type: "timeout_spam".to_string(),
+            prediction_horizon_hours: 4,
+            risk_score: 0.65,
+            signal_breakdown: serde_json::json!({"chain": 0.6}),
+            evidence: serde_json::json!({"top_chain_type": "dispute_spam→timeout_spam"}),
+            last_computed_at: now,
+        };
+        let _pred_id = crate::repo::prediction_repo::upsert_prediction(&pool, &prediction)
+            .await
+            .expect("upsert prediction");
+
+        // Ingest an anomaly event that matches the prediction
+        let record = AnomalyIngestionRecord {
+            anomaly_db_id: Uuid::new_v4(),
+            sovereign_id,
+            anomaly_type: "timeout_spam".to_string(),
+            severity: "medium".to_string(),
+            event_count: 3,
+            window_hours: 2,
+            evidence: serde_json::json!({ "timeouts": 3 }),
+            detected_at: now + chrono::Duration::hours(1),
+        };
+
+        let anomaly_node_id = ingest_anomaly_event(&pool, &record)
+            .await
+            .expect("ingest anomaly");
+
+        // Verify AnomalyEventNode was created
+        let anomaly_count: (i64,) = sqlx::query_as(
+            "SELECT COUNT(*) FROM graph_entities WHERE id = $1 AND label = 'AnomalyEventNode'",
+        )
+        .bind(anomaly_node_id)
+        .fetch_one(&pool)
+        .await
+        .expect("fetch");
+        assert_eq!(anomaly_count.0, 1, "AnomalyEventNode should exist");
+
+        // Verify FeedbackNode was created by feedback_recording flow
+        let feedback_count: (i64,) = sqlx::query_as(
+            "SELECT COUNT(*) FROM graph_entities WHERE label = 'FeedbackNode' AND properties->>'sovereign_id' = $1",
+        )
+        .bind(sovereign_id.to_string())
+        .fetch_one(&pool)
+        .await
+        .expect("fetch");
+        assert_eq!(
+            feedback_count.0, 1,
+            "FeedbackNode should be created by feedback recording"
+        );
+
+        // Verify FEEDBACK_FOR edge was created
+        let edge_count: (i64,) = sqlx::query_as(
+            "SELECT COUNT(*) FROM graph_relationships WHERE relationship_type = 'FEEDBACK_FOR'",
+        )
+        .fetch_one(&pool)
+        .await
+        .expect("fetch");
+        assert!(edge_count.0 > 0, "FEEDBACK_FOR edge should exist");
+    }
 }

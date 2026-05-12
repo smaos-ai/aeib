@@ -92,6 +92,12 @@ pub async fn record_feedback_for_anomaly(
         .execute(pool)
         .await?;
 
+        // If feedback matched (true positive), reinforce the signals
+        if matched {
+            let _ = crate::signal_reinforcement::reinforce_signals_for_feedback(pool, feedback_id)
+                .await?;
+        }
+
         Ok(Some(feedback_id))
     } else {
         Ok(None)
@@ -101,6 +107,7 @@ pub async fn record_feedback_for_anomaly(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use sqlx::Row;
     use testcontainers::runners::AsyncRunner;
     use testcontainers::{GenericImage, ImageExt, core::WaitFor};
 
@@ -153,7 +160,10 @@ mod tests {
             .await
             .expect("record feedback");
 
-        assert!(feedback_id.is_some(), "Should create feedback for exact match");
+        assert!(
+            feedback_id.is_some(),
+            "Should create feedback for exact match"
+        );
 
         // Verify FeedbackNode was created with matched=true
         let result: (bool,) = sqlx::query_as(
@@ -197,7 +207,10 @@ mod tests {
             .await
             .expect("record feedback");
 
-        assert!(feedback_id.is_some(), "Should create feedback even with no match");
+        assert!(
+            feedback_id.is_some(),
+            "Should create feedback even with no match"
+        );
 
         let result: (bool,) = sqlx::query_as(
             "SELECT (properties->>'matched')::boolean FROM graph_entities WHERE id = $1 AND label = 'FeedbackNode'",
@@ -250,7 +263,10 @@ mod tests {
         .await
         .expect("query feedback");
 
-        assert_eq!(result.0, false, "matched should be false for outside window");
+        assert_eq!(
+            result.0, false,
+            "matched should be false for outside window"
+        );
     }
 
     #[tokio::test]
@@ -288,7 +304,10 @@ mod tests {
             .expect("record feedback second");
 
         // Should be the same UUID (idempotent)
-        assert_eq!(feedback_id_1, feedback_id_2, "Should return same UUID on re-record");
+        assert_eq!(
+            feedback_id_1, feedback_id_2,
+            "Should return same UUID on re-record"
+        );
 
         // Verify no duplicate FeedbackNodes were created
         let count: (i64,) = sqlx::query_as(
@@ -336,7 +355,10 @@ mod tests {
             .await
             .expect("record feedback");
 
-        assert!(feedback_id.is_none(), "Stale predictions (>24h) should not match");
+        assert!(
+            feedback_id.is_none(),
+            "Stale predictions (>24h) should not match"
+        );
     }
 
     #[tokio::test]
@@ -382,5 +404,183 @@ mod tests {
         .expect("query edges");
 
         assert_eq!(edge_count.0, 1, "FEEDBACK_FOR edge should exist");
+    }
+
+    #[tokio::test]
+    async fn test_record_feedback_triggers_reinforcement_on_match() {
+        let (_container, pool) = setup_test_db().await;
+        let sovereign_id = Uuid::new_v4();
+
+        // Create signal with confidence 0.5
+        let signal_id = Uuid::new_v4();
+        sqlx::query("INSERT INTO graph_entities (id, label, properties) VALUES ($1, $2, $3)")
+            .bind(signal_id)
+            .bind("AnomalyChainNode")
+            .bind(serde_json::json!({
+                "sovereign_id": sovereign_id.to_string(),
+                "chain_type": "dispute_spam→timeout_spam",
+                "confidence": 0.5,
+                "last_seen_at": chrono::Utc::now().to_rfc3339(),
+            }))
+            .execute(&pool)
+            .await
+            .expect("Failed to insert signal");
+
+        // Create prediction
+        let now = Utc::now();
+        let prediction = crate::repo::prediction_repo::PredictionRecord {
+            sovereign_id,
+            predicted_anomaly_type: "timeout_spam".to_string(),
+            prediction_horizon_hours: 4,
+            risk_score: 0.25,
+            signal_breakdown: serde_json::json!({
+                "chain": 0.5,
+                "correlation": 0.0,
+                "recovery": 0.0,
+                "raw_risk_score": 0.25,
+                "accuracy_weight": 1.0,
+                "adjusted_risk_score": 0.25,
+                "accuracy_sample_count": serde_json::Value::Null,
+                "evidence": [
+                    {
+                        "signal_type": "AnomalyChainNode",
+                        "signal_id": signal_id.to_string(),
+                        "confidence": 0.5
+                    }
+                ]
+            }),
+            evidence: serde_json::json!({"top_chain_type": "dispute_spam→timeout_spam"}),
+            last_computed_at: now,
+        };
+        let _pred_id = crate::repo::prediction_repo::upsert_prediction(&pool, &prediction)
+            .await
+            .expect("upsert prediction");
+
+        // Record anomaly (should match and trigger reinforcement)
+        let anomaly = AnomalyEvent {
+            sovereign_id,
+            anomaly_type: "timeout_spam".to_string(),
+            detected_at: now + chrono::Duration::hours(2),
+        };
+
+        let feedback_id = record_feedback_for_anomaly(&pool, &anomaly)
+            .await
+            .expect("record_feedback failed")
+            .expect("Should create feedback");
+
+        // Verify feedback was created with matched=true
+        let feedback = sqlx::query("SELECT properties FROM graph_entities WHERE id = $1")
+            .bind(feedback_id)
+            .fetch_one(&pool)
+            .await
+            .expect("Feedback not found");
+
+        let feedback_props = feedback.get::<serde_json::Value, _>(0);
+        let matched = feedback_props["matched"].as_bool().unwrap();
+        assert!(matched, "Feedback should be matched=true");
+
+        // Verify signal confidence was boosted (0.5 + 0.025 = 0.525)
+        let signal = sqlx::query("SELECT properties FROM graph_entities WHERE id = $1")
+            .bind(signal_id)
+            .fetch_one(&pool)
+            .await
+            .expect("Signal not found");
+
+        let signal_props = signal.get::<serde_json::Value, _>(0);
+        let confidence: f64 = signal_props["confidence"].as_f64().unwrap();
+        assert!(
+            (confidence - 0.525).abs() < 0.001,
+            "Signal should be boosted to 0.525, got {}",
+            confidence
+        );
+    }
+
+    #[tokio::test]
+    async fn test_record_feedback_no_reinforcement_on_no_match() {
+        let (_container, pool) = setup_test_db().await;
+        let sovereign_id = Uuid::new_v4();
+
+        // Create signal with confidence 0.6
+        let signal_id = Uuid::new_v4();
+        let old_confidence = 0.6;
+        sqlx::query("INSERT INTO graph_entities (id, label, properties) VALUES ($1, $2, $3)")
+            .bind(signal_id)
+            .bind("AnomalyChainNode")
+            .bind(serde_json::json!({
+                "sovereign_id": sovereign_id.to_string(),
+                "chain_type": "dispute_spam→timeout_spam",
+                "confidence": old_confidence,
+                "last_seen_at": chrono::Utc::now().to_rfc3339(),
+            }))
+            .execute(&pool)
+            .await
+            .expect("Failed to insert signal");
+
+        // Create prediction
+        let now = Utc::now();
+        let prediction = crate::repo::prediction_repo::PredictionRecord {
+            sovereign_id,
+            predicted_anomaly_type: "timeout_spam".to_string(),
+            prediction_horizon_hours: 4,
+            risk_score: 0.3,
+            signal_breakdown: serde_json::json!({
+                "chain": 0.6,
+                "correlation": 0.0,
+                "recovery": 0.0,
+                "raw_risk_score": 0.3,
+                "accuracy_weight": 1.0,
+                "adjusted_risk_score": 0.3,
+                "accuracy_sample_count": serde_json::Value::Null,
+                "evidence": [
+                    {
+                        "signal_type": "AnomalyChainNode",
+                        "signal_id": signal_id.to_string(),
+                        "confidence": 0.6
+                    }
+                ]
+            }),
+            evidence: serde_json::json!({"top_chain_type": "dispute_spam→timeout_spam"}),
+            last_computed_at: now,
+        };
+        let _pred_id = crate::repo::prediction_repo::upsert_prediction(&pool, &prediction)
+            .await
+            .expect("upsert prediction");
+
+        // Record anomaly of DIFFERENT type (no match)
+        let anomaly = AnomalyEvent {
+            sovereign_id,
+            anomaly_type: "dispute_spam".to_string(),
+            detected_at: now + chrono::Duration::hours(2),
+        };
+
+        let feedback_id = record_feedback_for_anomaly(&pool, &anomaly)
+            .await
+            .expect("record_feedback failed")
+            .expect("Should create feedback");
+
+        // Verify feedback was created with matched=false
+        let feedback = sqlx::query("SELECT properties FROM graph_entities WHERE id = $1")
+            .bind(feedback_id)
+            .fetch_one(&pool)
+            .await
+            .expect("Feedback not found");
+
+        let feedback_props = feedback.get::<serde_json::Value, _>(0);
+        let matched = feedback_props["matched"].as_bool().unwrap();
+        assert!(!matched, "Feedback should be matched=false");
+
+        // Verify signal confidence was NOT boosted
+        let signal = sqlx::query("SELECT properties FROM graph_entities WHERE id = $1")
+            .bind(signal_id)
+            .fetch_one(&pool)
+            .await
+            .expect("Signal not found");
+
+        let signal_props = signal.get::<serde_json::Value, _>(0);
+        let confidence: f64 = signal_props["confidence"].as_f64().unwrap();
+        assert_eq!(
+            confidence, old_confidence,
+            "Signal confidence should remain unchanged on no-match"
+        );
     }
 }

@@ -114,6 +114,7 @@ mod tests {
 
     use crate::repo::insert_agent_card_node;
     use crate::types::AgentCardNode;
+    use crate::{federation_handler, refresh_handler};
     use siss_graph_core::node::execution::HardwareTarget;
 
     async fn start_postgres() -> (testcontainers::ContainerAsync<GenericImage>, PgPool) {

@@ -1,8 +1,8 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
-use uuid::Uuid;
-use chrono::{DateTime, Utc};
 use std::sync::Arc;
+use uuid::Uuid;
 
 // ============================================================================
 // OpenTelemetry Trace Schema
@@ -17,14 +17,14 @@ pub struct OtelTraceEvent {
     pub session_id: Uuid,
     pub sovereign_id: Uuid,
     pub attributes: OtelAttributes,
-    pub start_time: String,        // RFC3339
-    pub end_time: String,          // RFC3339
-    pub status: String,            // ok | error
+    pub start_time: String, // RFC3339
+    pub end_time: String,   // RFC3339
+    pub status: String,     // ok | error
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OtelAttributes {
-    pub event_type: String,        // refresh_success | delegation_created | ...
+    pub event_type: String, // refresh_success | delegation_created | ...
     pub tier_before: i16,
     pub tier_after: i16,
     pub cost_incurred: i64,
@@ -39,18 +39,18 @@ pub struct OtelAttributes {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgUiEvent {
     pub event_id: Uuid,
-    pub event_type: String,        // action | anomaly | metric
+    pub event_type: String, // action | anomaly | metric
     pub session_id: Uuid,
     pub sovereign_id: Uuid,
     pub payload: serde_json::Value,
-    pub timestamp: String,         // RFC3339
+    pub timestamp: String, // RFC3339
 }
 
 /// AG-UI anomaly event payload
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgUiAnomalyPayload {
-    pub anomaly_type: String,      // dispute_spam | timeout_spam | revocation_pattern
-    pub severity: String,          // low | medium | high | critical
+    pub anomaly_type: String, // dispute_spam | timeout_spam | revocation_pattern
+    pub severity: String,     // low | medium | high | critical
     pub event_count: i64,
     pub window_hours: i64,
     pub evidence: serde_json::Value,
@@ -73,14 +73,13 @@ impl TelemetryIngestor {
     /// Ingest OpenTelemetry trace (synchronous; fire-and-forget wrapper comes later).
     pub async fn ingest_otel_trace(&self, event: OtelTraceEvent) -> Result<Uuid, TelemetryError> {
         // Look up persona_id from session
-        let persona_id = sqlx::query_scalar::<_, Uuid>(
-            "SELECT active_persona_id FROM sessions WHERE id = $1"
-        )
-        .bind(event.session_id)
-        .fetch_optional(self.pool.as_ref())
-        .await
-        .map_err(|e| TelemetryError::DatabaseError(e.to_string()))?
-        .unwrap_or_else(Uuid::nil);
+        let persona_id =
+            sqlx::query_scalar::<_, Uuid>("SELECT active_persona_id FROM sessions WHERE id = $1")
+                .bind(event.session_id)
+                .fetch_optional(self.pool.as_ref())
+                .await
+                .map_err(|e| TelemetryError::DatabaseError(e.to_string()))?
+                .unwrap_or_else(Uuid::nil);
 
         let record = crate::repo::observability_repo::AgentActionIngestionRecord {
             behavior_event_id: Uuid::new_v4(),
@@ -124,15 +123,16 @@ impl TelemetryIngestor {
                     .unwrap_or_else(|_| Utc::now()),
             };
 
-            let node_id = crate::repo::observability_repo::ingest_anomaly_event(&self.pool, &record)
-                .await
-                .map_err(|e| TelemetryError::DatabaseError(e.to_string()))?;
+            let node_id =
+                crate::repo::observability_repo::ingest_anomaly_event(&self.pool, &record)
+                    .await
+                    .map_err(|e| TelemetryError::DatabaseError(e.to_string()))?;
 
             Ok(node_id)
         } else if event.event_type == "action" {
             // Look up persona_id from session
             let persona_id = sqlx::query_scalar::<_, Uuid>(
-                "SELECT active_persona_id FROM sessions WHERE id = $1"
+                "SELECT active_persona_id FROM sessions WHERE id = $1",
             )
             .bind(event.session_id)
             .fetch_optional(self.pool.as_ref())
@@ -140,7 +140,8 @@ impl TelemetryIngestor {
             .map_err(|e| TelemetryError::DatabaseError(e.to_string()))?
             .unwrap_or_else(Uuid::nil);
 
-            let event_type = event.payload
+            let event_type = event
+                .payload
                 .get("action")
                 .and_then(|v| v.as_str())
                 .unwrap_or("unknown")
@@ -167,9 +168,10 @@ impl TelemetryIngestor {
 
             Ok(node_id)
         } else {
-            Err(TelemetryError::ValidationFailed(
-                format!("Unknown event_type: {}", event.event_type)
-            ))
+            Err(TelemetryError::ValidationFailed(format!(
+                "Unknown event_type: {}",
+                event.event_type
+            )))
         }
     }
 }
@@ -226,14 +228,13 @@ mod tests {
     async fn wait_for_entity(pool: &PgPool, id: Uuid, label: &str, max_wait_ms: u64) {
         let mut elapsed = 0;
         loop {
-            let count: (i64,) = sqlx::query_as(
-                "SELECT COUNT(*) FROM graph_entities WHERE id = $1 AND label = $2"
-            )
-            .bind(id)
-            .bind(label)
-            .fetch_one(pool)
-            .await
-            .unwrap_or((0,));
+            let count: (i64,) =
+                sqlx::query_as("SELECT COUNT(*) FROM graph_entities WHERE id = $1 AND label = $2")
+                    .bind(id)
+                    .bind(label)
+                    .fetch_one(pool)
+                    .await
+                    .unwrap_or((0,));
 
             if count.0 > 0 {
                 return;
@@ -319,12 +320,13 @@ mod tests {
         let tenant_id = crate::repo::node_repo::insert_tenant(&pool, "TestCorp")
             .await
             .expect("insert tenant");
-        let persona_id = crate::repo::node_repo::insert_persona(&pool, "TestAgent", "ai_agent", tenant_id)
-            .await
-            .expect("insert persona");
+        let persona_id =
+            crate::repo::node_repo::insert_persona(&pool, "TestAgent", "ai_agent", tenant_id)
+                .await
+                .expect("insert persona");
         let sovereign_id = Uuid::new_v4();
         sqlx::query(
-            "INSERT INTO sovereigns (id, name, public_key_pem, status) VALUES ($1, $2, $3, $4)"
+            "INSERT INTO sovereigns (id, name, public_key_pem, status) VALUES ($1, $2, $3, $4)",
         )
         .bind(sovereign_id)
         .bind("TestSovereign")
@@ -374,7 +376,7 @@ mod tests {
 
         // Verify AgentActionNode was created
         let count: (i64,) = sqlx::query_as(
-            "SELECT COUNT(*) FROM graph_entities WHERE id = $1 AND label = 'AgentActionNode'"
+            "SELECT COUNT(*) FROM graph_entities WHERE id = $1 AND label = 'AgentActionNode'",
         )
         .bind(node_id)
         .fetch_one(&pool)
@@ -391,7 +393,7 @@ mod tests {
         // Setup: Create sovereign
         let sovereign_id = Uuid::new_v4();
         sqlx::query(
-            "INSERT INTO sovereigns (id, name, public_key_pem, status) VALUES ($1, $2, $3, $4)"
+            "INSERT INTO sovereigns (id, name, public_key_pem, status) VALUES ($1, $2, $3, $4)",
         )
         .bind(sovereign_id)
         .bind("TestSovereign2")
@@ -414,7 +416,8 @@ mod tests {
                 event_count: 10,
                 window_hours: 1,
                 evidence: serde_json::json!({ "timeouts": 10 }),
-            }).expect("serialize"),
+            })
+            .expect("serialize"),
             timestamp: Utc::now().to_rfc3339(),
         };
 
@@ -425,7 +428,7 @@ mod tests {
 
         // Verify AnomalyEventNode was created
         let count: (i64,) = sqlx::query_as(
-            "SELECT COUNT(*) FROM graph_entities WHERE id = $1 AND label = 'AnomalyEventNode'"
+            "SELECT COUNT(*) FROM graph_entities WHERE id = $1 AND label = 'AnomalyEventNode'",
         )
         .bind(node_id)
         .fetch_one(&pool)
@@ -443,12 +446,13 @@ mod tests {
         let tenant_id = crate::repo::node_repo::insert_tenant(&pool, "TestCorp")
             .await
             .expect("insert tenant");
-        let persona_id = crate::repo::node_repo::insert_persona(&pool, "TestAgent", "ai_agent", tenant_id)
-            .await
-            .expect("insert persona");
+        let persona_id =
+            crate::repo::node_repo::insert_persona(&pool, "TestAgent", "ai_agent", tenant_id)
+                .await
+                .expect("insert persona");
         let sovereign_id = Uuid::new_v4();
         sqlx::query(
-            "INSERT INTO sovereigns (id, name, public_key_pem, status) VALUES ($1, $2, $3, $4)"
+            "INSERT INTO sovereigns (id, name, public_key_pem, status) VALUES ($1, $2, $3, $4)",
         )
         .bind(sovereign_id)
         .bind("TestSovereign3")
@@ -514,7 +518,7 @@ mod tests {
 
         let sovereign_id = Uuid::new_v4();
         sqlx::query(
-            "INSERT INTO sovereigns (id, name, public_key_pem, status) VALUES ($1, $2, $3, $4)"
+            "INSERT INTO sovereigns (id, name, public_key_pem, status) VALUES ($1, $2, $3, $4)",
         )
         .bind(sovereign_id)
         .bind("TestSovereign4")
@@ -537,7 +541,8 @@ mod tests {
                 event_count: 7,
                 window_hours: 2,
                 evidence: serde_json::json!({ "revocations": 7 }),
-            }).expect("serialize"),
+            })
+            .expect("serialize"),
             timestamp: Utc::now().to_rfc3339(),
         };
 
@@ -590,6 +595,9 @@ mod tests {
 
         // Should complete quickly (fire-and-forget semantics)
         // Even if sovereign is missing, should not block on database
-        assert!(elapsed.as_millis() < 5000, "Ingestion should be non-blocking");
+        assert!(
+            elapsed.as_millis() < 5000,
+            "Ingestion should be non-blocking"
+        );
     }
 }

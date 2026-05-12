@@ -21,7 +21,13 @@ pub fn apply_decay_with_tier(
 
     let half_life = match tier {
         "semantic" => 30.0, // Semantic tier always uses 30-day half-life
-        _ => if acceleration_mode { 2.0 } else { 7.0 }, // Episodic (or unknown) respects acceleration_mode
+        _ => {
+            if acceleration_mode {
+                2.0
+            } else {
+                7.0
+            }
+        } // Episodic (or unknown) respects acceleration_mode
     };
 
     let decayed = confidence * 0.5_f64.powf(days_since_last_seen / half_life);

@@ -18,6 +18,9 @@ pub mod refresh_handler;
 #[cfg(feature = "axum")]
 pub mod federation_handler;
 
+#[cfg(feature = "axum")]
+pub mod projection_handler;
+
 pub use types::{
     AgentCard, AgentCardError, AgentCardNode, Authentication, Capability, SerializeOptions, Skill,
 };

@@ -1,15 +1,15 @@
 use axum::{
-    extract::{State, Json},
+    Router,
+    extract::{Json, State},
     http::StatusCode,
     response::IntoResponse,
     routing::post,
-    Router,
 };
 use serde_json::json;
-use std::sync::Arc;
 use sqlx::PgPool;
+use std::sync::Arc;
 
-use crate::telemetry_handler::{OtelTraceEvent, AgUiEvent, TelemetryError, TelemetryIngestor};
+use crate::telemetry_handler::{AgUiEvent, OtelTraceEvent, TelemetryError, TelemetryIngestor};
 
 /// Axum state for telemetry handlers
 #[derive(Clone)]
@@ -127,9 +127,9 @@ mod tests {
     use super::*;
     use axum::body::Body;
     use axum::http::{Request, StatusCode};
+    use chrono::Utc;
     use tower::ServiceExt;
     use uuid::Uuid;
-    use chrono::Utc;
 
     #[tokio::test]
     async fn test_ingest_otel_trace_handler_success() {

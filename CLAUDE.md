@@ -64,6 +64,35 @@ crates/
 - **Sonnet:** Code reviews, medium-complexity logic, `siss-behavioral-firewall`
 - **Haiku:** Code writing, test generation, boilerplate — default for execution
 
+## 8. Token Efficiency — Enforced Communication Style
+These rules apply to ALL responses and specs in this project. Never violate them for the sake of completeness.
+
+**Specs and plans:**
+- Use delta specs: describe only what changes from the previous phase, not the full context
+- Format: `Phase N delta: adds X, modifies Y, removes Z`
+- Never re-list unchanged files, migrations, or repos
+- Reference earlier phases instead of re-describing them: `follows pattern from Phase 25`
+
+**File references:**
+- Short form only: `repo/recovery_repo.rs — ingest()` not the full crate path
+- Full paths only when introducing a file for the first time
+
+**Test descriptions:**
+- One line: `test_X: ensures Y under condition Z`
+- No multi-line walkthroughs, no repeated setup descriptions
+
+**Patterns — define once, reference forever:**
+- `standard extractor pattern` (Phase 25)
+- `standard repo pattern`
+- `standard test suite pattern`
+- When a file follows one of these, say so and stop describing it
+
+**Responses:**
+- No preamble ("Great question!", "Sure, I can help with that")
+- No restating what the user just said
+- No explaining what you're about to do — just do it
+- Summaries at the end, not the beginning
+
 ## 7. Extended Context (load only when relevant)
 - **Architecture:** `docs/architecture/`
 - **Multi-Agent Setup:** `AGENTS.md`

@@ -2,6 +2,8 @@ use chrono::Utc;
 use sqlx::{PgPool, Row};
 use uuid::Uuid;
 
+use crate::signal_tier_promotion::promote_signal_to_semantic_on_validation;
+
 /// Reinforce signal nodes that contributed to a validated prediction.
 /// When a FeedbackNode matches (true positive), the contributing signals
 /// get a confidence boost: new = current + ((1.0 - current) * 0.05)
@@ -118,6 +120,11 @@ pub async fn reinforce_signals_for_feedback(
         .bind(signal_props)
         .execute(pool)
         .await?;
+
+        // Phase 34: Promote to Semantic tier if confidence now > 0.90
+        let _ =
+            promote_signal_to_semantic_on_validation(pool, signal_id, signal_type, new_confidence)
+                .await;
 
         reinforced_count += 1;
     }

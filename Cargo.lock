@@ -2074,6 +2074,7 @@ dependencies = [
 name = "siss-graph-db"
 version = "0.1.0"
 dependencies = [
+ "axum",
  "base64",
  "chrono",
  "ed25519-dalek",

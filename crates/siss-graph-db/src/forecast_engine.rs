@@ -10,6 +10,7 @@ use uuid::Uuid;
 use crate::repo::intelligence_graph_repo::get_or_create_sovereign_node;
 use crate::repo::prediction_query::fetch_sovereign_signals;
 use crate::repo::prediction_repo::{PredictionRecord, upsert_prediction};
+use crate::signal_tier_promotion::apply_decay_with_tier;
 
 pub const DEFAULT_FORECAST_INTERVAL: Duration = Duration::from_secs(60);
 
@@ -73,21 +74,6 @@ fn compute_accuracy_weight(weight: Option<&AccuracyWeight>) -> f64 {
     }
 }
 
-/// Apply exponential decay to a signal's confidence.
-/// Uses 7-day half-life by default: confidence × 0.5^(days_since_last_seen / 7)
-/// Uses 2-day half-life if acceleration_mode: confidence × 0.5^(days_since_last_seen / 2)
-/// Returns original confidence if last_seen_at is in the future (clock skew protection).
-fn apply_decay(confidence: f64, last_seen_at: DateTime<Utc>, acceleration_mode: bool) -> f64 {
-    let elapsed = Utc::now() - last_seen_at;
-    let days_since_last_seen = elapsed.num_days() as f64;
-    if days_since_last_seen < 0.0 {
-        confidence // Clock skew: return original confidence
-    } else {
-        let half_life = if acceleration_mode { 2.0 } else { 7.0 };
-        confidence * 0.5_f64.powf(days_since_last_seen / half_life)
-    }
-}
-
 /// Run forecast once: aggregate all signals per sovereign, compute risk scores, and upsert predictions.
 /// Returns count of PredictionNodes created or updated.
 pub async fn run_forecast_once(pool: &PgPool) -> Result<usize, sqlx::Error> {
@@ -117,12 +103,16 @@ pub async fn run_forecast_once(pool: &PgPool) -> Result<usize, sqlx::Error> {
     let mut by_sovereign: HashMap<Uuid, SovereignSignals> = HashMap::new();
 
     for row in signals {
-        // Apply decay to this signal
-        let decayed_confidence =
-            apply_decay(row.confidence, row.last_seen_at, row.acceleration_mode);
+        // Apply decay to this signal, respecting tier (Phase 34 tier promotion)
+        let decayed_confidence = apply_decay_with_tier(
+            row.confidence,
+            row.last_seen_at,
+            &row.tier,
+            row.acceleration_mode,
+        );
 
-        // Skip signals below 0.05 floor
-        if decayed_confidence < 0.05 {
+        // Skip signals at or below 0.05 floor (floored signals are discarded)
+        if decayed_confidence <= 0.05 {
             continue;
         }
 

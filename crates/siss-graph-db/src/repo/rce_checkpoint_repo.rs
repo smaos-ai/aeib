@@ -143,3 +143,41 @@ pub async fn fetch_audit_trail(
     .fetch_all(pool)
     .await
 }
+
+// =====================================================================
+// OPTIMISTIC CONCURRENCY CONTROL (OCC)
+// =====================================================================
+
+/// OCC update: only succeeds if current version == expected_version.
+/// Returns true on success, false on optimistic lock failure (version mismatch).
+/// Caller must increment new_version = expected_version + 1.
+pub async fn update_checkpoint_occ(
+    pool: &PgPool,
+    workflow_id: Uuid,
+    expected_version: i32,
+    step_index: i32,
+    state: &JsonValue,
+    checksum: &str,
+    new_version: i32,
+    reason: &str,
+    severity: &str,
+) -> Result<bool, sqlx::Error> {
+    let result = sqlx::query(
+        "UPDATE rce_checkpoints
+         SET step_index=$3, state=$4, checksum=$5, version=$6,
+             reason=$7, severity=$8, created_at=now()
+         WHERE workflow_id=$1 AND version=$2",
+    )
+    .bind(workflow_id)
+    .bind(expected_version)
+    .bind(step_index)
+    .bind(state)
+    .bind(checksum)
+    .bind(new_version)
+    .bind(reason)
+    .bind(severity)
+    .execute(pool)
+    .await?;
+
+    Ok(result.rows_affected() == 1)
+}

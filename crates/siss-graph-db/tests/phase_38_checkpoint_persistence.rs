@@ -407,3 +407,105 @@ async fn test_checkpoint_version_persisted() {
 
     assert_eq!(loaded.4, version);
 }
+
+#[tokio::test]
+async fn test_occ_update_succeeds_when_version_matches() {
+    let (_container, pool) = setup_postgres().await;
+    let workflow_id = Uuid::new_v4();
+
+    // Initial save via blind upsert
+    rce_checkpoint_repo::save_checkpoint(
+        &pool,
+        workflow_id,
+        0,
+        &json!({"v": 1}),
+        "cs1",
+        1,
+        "reason",
+        "High",
+    )
+    .await
+    .unwrap();
+
+    // OCC update with correct expected_version=1 → new_version=2
+    let ok = rce_checkpoint_repo::update_checkpoint_occ(
+        &pool,
+        workflow_id,
+        1,
+        1,
+        &json!({"v": 2}),
+        "cs2",
+        2,
+        "reason",
+        "High",
+    )
+    .await
+    .unwrap();
+
+    assert!(ok); // succeeded
+    let loaded = rce_checkpoint_repo::load_checkpoint(&pool, workflow_id)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(loaded.4, 2); // version advanced
+    assert_eq!(loaded.2, json!({"v": 2}));
+}
+
+#[tokio::test]
+async fn test_occ_update_fails_when_version_mismatch() {
+    let (_container, pool) = setup_postgres().await;
+    let workflow_id = Uuid::new_v4();
+
+    // Initial save — version=1
+    rce_checkpoint_repo::save_checkpoint(
+        &pool,
+        workflow_id,
+        0,
+        &json!({}),
+        "cs1",
+        1,
+        "reason",
+        "High",
+    )
+    .await
+    .unwrap();
+
+    // Simulate concurrent writer: bump version to 2
+    rce_checkpoint_repo::update_checkpoint_occ(
+        &pool,
+        workflow_id,
+        1,
+        1,
+        &json!({"concurrent": true}),
+        "cs2",
+        2,
+        "r",
+        "High",
+    )
+    .await
+    .unwrap();
+
+    // Late writer still holds expected_version=1 → must fail
+    let ok = rce_checkpoint_repo::update_checkpoint_occ(
+        &pool,
+        workflow_id,
+        1,
+        2,
+        &json!({"stale": true}),
+        "cs3",
+        2,
+        "r",
+        "High",
+    )
+    .await
+    .unwrap();
+
+    assert!(!ok); // rejected — stale version
+                 // State must still reflect the concurrent writer's update
+    let loaded = rce_checkpoint_repo::load_checkpoint(&pool, workflow_id)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(loaded.4, 2);
+    assert_eq!(loaded.2, json!({"concurrent": true}));
+}

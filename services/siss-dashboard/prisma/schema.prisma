@@ -1,0 +1,56 @@
+// Prisma schema for SISS Knowledge Dashboard
+// Based on code-ingestion-service PostgreSQL schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model CodeRepository {
+  id        String      @id @default(uuid()) @db.Uuid
+  name      String      @unique
+  url       String?
+  description String?
+  language  String?
+  stars     Int?
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+
+  document  Document[]
+
+  @@map("repository")
+}
+
+model Document {
+  id            String      @id @default(uuid()) @db.Uuid
+  repositoryId  String      @map("repository_id") @db.Uuid
+  path          String      @db.VarChar(1000)
+  type          String
+  language      String?
+  content       String      @db.Text
+  ingestedAt    DateTime    @default(now()) @map("ingested_at")
+
+  repository    CodeRepository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  chunk         Chunk[]
+
+  @@index([repositoryId])
+  @@index([path])
+  @@map("document")
+}
+
+model Chunk {
+  id           String      @id @default(uuid()) @db.Uuid
+  documentId   String      @map("document_id") @db.Uuid
+  chunkIndex   Int         @map("chunk_index")
+  content      String      @db.Text
+  tokenCount   Int         @map("token_count")
+
+  document     Document    @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+  @@map("chunk")
+}

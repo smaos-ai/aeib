@@ -16,6 +16,7 @@ thiserror = "1"
 tracing = "0.1"
 parking_lot = "0.12"
 atomic = "0.1"
+async-trait = "0.1"
 
 siss-graph-db = { path = "../siss-graph-db" }
 siss-agent-card = { path = "../siss-agent-card" }

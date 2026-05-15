@@ -3,6 +3,7 @@ use tracing::{info, warn};
 
 use crate::events::sse_emitter::{SseEmitter, SseEvent};
 use crate::model::modality::Modality;
+use crate::routing::omni_router::OmniRoute;
 
 #[async_trait::async_trait]
 pub trait Judge: Send + Sync {
@@ -42,6 +43,29 @@ impl EvolutionGate {
         self.rce.pause_workflow_with_persistence().await?;
 
         let verdict = self.judge.evaluate_next().await?;
+
+        // Compute per-modality routing decisions
+        let omni = OmniRoute::new();
+        let decisions = omni.route(&verdict);
+        let decision_vec: Vec<(String, String)> = decisions
+            .iter()
+            .map(|(modality, target)| {
+                let modality_str = match modality {
+                    Modality::Text => "Text".to_string(),
+                    Modality::Vision => "Vision".to_string(),
+                    Modality::Audio => "Audio".to_string(),
+                };
+                let target_str = match target {
+                    crate::routing::omni_router::RouteTarget::Shadow => "shadow".to_string(),
+                    crate::routing::omni_router::RouteTarget::Baseline => "baseline".to_string(),
+                };
+                (modality_str, target_str)
+            })
+            .collect();
+        self.emitter.broadcast(SseEvent::ModalityRouted {
+            version,
+            decisions: decision_vec,
+        })?;
 
         if verdict.pass {
             // CRITICAL BARRIER: Swap -> Persist -> SSE (fire-and-forget)

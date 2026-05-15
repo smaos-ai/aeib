@@ -5,8 +5,17 @@ use tokio::sync::mpsc;
 
 #[derive(Debug, Clone)]
 pub enum SseEvent {
-    CanaryFail { version: u64, reason: String },
-    LedgerCommit { version: u64 },
+    CanaryFail {
+        version: u64,
+        reason: String,
+    },
+    LedgerCommit {
+        version: u64,
+    },
+    ModalityRouted {
+        version: u64,
+        decisions: Vec<(String, String)>,
+    },
 }
 
 #[derive(Clone)]
@@ -27,6 +36,15 @@ impl SseEmitter {
             SseEvent::LedgerCommit { version } => Event::default()
                 .event("LEDGER_COMMIT")
                 .json_data(&json!({ "version": version }))?,
+            SseEvent::ModalityRouted { version, decisions } => {
+                let decision_objects: Vec<_> = decisions
+                    .into_iter()
+                    .map(|(modality, target)| json!({ "modality": modality, "target": target }))
+                    .collect();
+                Event::default()
+                    .event("MODALITY_ROUTED")
+                    .json_data(&json!({ "version": version, "decisions": decision_objects }))?
+            }
         };
         // Fire-and-forget: ignore send errors (channel closed/no subscribers)
         let _ = self.tx.send(sse_event);

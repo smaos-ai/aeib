@@ -1,5 +1,10 @@
+use anyhow::Result;
+use async_trait::async_trait;
 use std::time::Duration;
 use tokio::sync::mpsc;
+use tokio::sync::Mutex;
+
+use crate::orchestrator::evolution_gate::{Judge, Verdict};
 
 const DIVERGENCE_THRESHOLD: f64 = 0.15;
 const F1_SCORE_THRESHOLD: f64 = 0.85;
@@ -18,20 +23,23 @@ pub struct JudgeResult {
 }
 
 pub struct AgentJudge {
-    receiver: mpsc::Receiver<EvaluationRequest>,
+    receiver: Mutex<mpsc::Receiver<EvaluationRequest>>,
     timeout: Duration,
 }
 
 impl AgentJudge {
     pub fn new(receiver: mpsc::Receiver<EvaluationRequest>, timeout: Duration) -> Self {
-        Self { receiver, timeout }
+        Self {
+            receiver: Mutex::new(receiver),
+            timeout,
+        }
     }
 
     /// Evaluates the next shadow result from the channel, returning a fail-closed
     /// JudgeResult if the timeout is breached or thresholds are not met.
-    pub async fn evaluate_next(&mut self) -> Result<JudgeResult, String> {
+    pub async fn evaluate_next(&self) -> Result<JudgeResult, String> {
         // Wrap recv() in timeout for Fail-Closed semantics
-        let result = tokio::time::timeout(self.timeout, self.receiver.recv()).await;
+        let result = tokio::time::timeout(self.timeout, self.receiver.lock().await.recv()).await;
 
         match result {
             Ok(Some(req)) => {
@@ -91,5 +99,19 @@ impl AgentJudge {
 
         // Both thresholds passed
         (true, "Approved by Agent-as-Judge".to_string())
+    }
+}
+
+#[async_trait]
+impl Judge for AgentJudge {
+    async fn evaluate_next(&self) -> Result<Verdict> {
+        let result = self
+            .evaluate_next()
+            .await
+            .map_err(|e| anyhow::anyhow!("{}", e))?;
+        Ok(Verdict {
+            pass: result.accepted,
+            reason: result.reason,
+        })
     }
 }

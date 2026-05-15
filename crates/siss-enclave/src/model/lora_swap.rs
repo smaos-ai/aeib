@@ -1,3 +1,5 @@
+use anyhow::Result;
+use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 /// Double-Buffered LoRA Adapter Swap with Atomic CAS
@@ -222,6 +224,21 @@ impl DoubleBufferedSwap {
             total_capacity_bytes: self.unified_memory_bytes,
             utilization_percent: utilization * 100.0,
         }
+    }
+}
+
+#[async_trait]
+impl crate::orchestrator::evolution_gate::DoubleBufferedSwap for DoubleBufferedSwap {
+    async fn execute_swap(&self, version: u64) -> Result<()> {
+        self.swap_primary_atomic(version)
+            .map(|_| ())
+            .map_err(|e| anyhow::anyhow!("{}", e))
+    }
+
+    async fn discard(&self, _version: u64) -> Result<()> {
+        self.secondary
+            .store(std::ptr::null_mut(), Ordering::Release);
+        Ok(())
     }
 }
 

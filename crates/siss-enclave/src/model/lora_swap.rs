@@ -1,3 +1,5 @@
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 /// Double-Buffered LoRA Adapter Swap with Atomic CAS
 ///
 /// Implements zero-KV-cache-flush model evolution by maintaining two LoRA adapters
@@ -9,11 +11,8 @@
 /// - Secondary adapter: Staged weights (new Policy Ledger delta) in unified memory
 /// - Atomic pointer: Points to primary; CAS swaps to secondary on approval
 /// - KV cache: Unchanged; only the projection matrix (LoRA weights) updates
-
 use std::sync::atomic::{AtomicPtr, AtomicU64, Ordering};
 use std::sync::Arc;
-use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 // =====================================================================
@@ -144,11 +143,13 @@ impl DoubleBufferedSwap {
             Ok(_) => {
                 // Success: CAS succeeded, primary now points to secondary
                 // Clear secondary slot
-                self.secondary.store(std::ptr::null_mut(), Ordering::Release);
+                self.secondary
+                    .store(std::ptr::null_mut(), Ordering::Release);
 
                 // Record swap latency
                 let latency_us = start_time.elapsed().as_micros() as u64;
-                self.last_swap_latency_us.store(latency_us, Ordering::Release);
+                self.last_swap_latency_us
+                    .store(latency_us, Ordering::Release);
 
                 // Increment swap counter
                 self.swap_counter.fetch_add(1, Ordering::Release);
@@ -185,15 +186,9 @@ impl DoubleBufferedSwap {
 
     /// Check memory pressure: verify we have capacity for the staged adapter
     pub fn check_memory_pressure(&self, enclave_max_utilization: f64) -> Result<(), String> {
-        let primary_mem = self
-            .get_primary()
-            .map(|a| a.memory_bytes)
-            .unwrap_or(0);
+        let primary_mem = self.get_primary().map(|a| a.memory_bytes).unwrap_or(0);
 
-        let secondary_mem = self
-            .get_secondary()
-            .map(|a| a.memory_bytes)
-            .unwrap_or(0);
+        let secondary_mem = self.get_secondary().map(|a| a.memory_bytes).unwrap_or(0);
 
         let total_used = primary_mem + secondary_mem;
         let max_allowed = (self.unified_memory_bytes as f64 * enclave_max_utilization) as u64;
@@ -213,15 +208,9 @@ impl DoubleBufferedSwap {
 
     /// Get detailed memory stats
     pub fn memory_stats(&self) -> MemoryStats {
-        let primary_mem = self
-            .get_primary()
-            .map(|a| a.memory_bytes)
-            .unwrap_or(0);
+        let primary_mem = self.get_primary().map(|a| a.memory_bytes).unwrap_or(0);
 
-        let secondary_mem = self
-            .get_secondary()
-            .map(|a| a.memory_bytes)
-            .unwrap_or(0);
+        let secondary_mem = self.get_secondary().map(|a| a.memory_bytes).unwrap_or(0);
 
         let total_used = primary_mem + secondary_mem;
         let utilization = total_used as f64 / self.unified_memory_bytes as f64;
@@ -326,8 +315,7 @@ mod tests {
             deployed_at: Utc::now(),
         };
 
-        swap.stage_adapter(Box::new(adapter))
-            .expect("stage");
+        swap.stage_adapter(Box::new(adapter)).expect("stage");
 
         // Check pressure at 0.25 utilization cap (256KB for 1MB)
         let result = swap.check_memory_pressure(0.25);

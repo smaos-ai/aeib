@@ -2,8 +2,11 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use tokio::sync::mpsc;
 
-#[derive(Default, Clone)]
-pub struct Payload {}
+#[derive(Clone)]
+pub struct Payload {
+    pub baseline_logprobs: Vec<f64>,
+    pub baseline_tools: serde_json::Value,
+}
 
 #[derive(Debug, Clone)]
 pub struct ShadowInferenceResult {

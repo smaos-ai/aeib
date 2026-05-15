@@ -48,11 +48,26 @@ async fn test_live_thread_drops_shadows_under_queue_pressure_without_blocking() 
     let start = Instant::now();
 
     // Rapid-fire send 5 requests while worker processes first one (100ms)
-    let dropped_1 = router.route_request(Arc::new(Payload::default()));
-    let dropped_2 = router.route_request(Arc::new(Payload::default()));
-    let dropped_3 = router.route_request(Arc::new(Payload::default()));
-    let dropped_4 = router.route_request(Arc::new(Payload::default()));
-    let dropped_5 = router.route_request(Arc::new(Payload::default()));
+    let dropped_1 = router.route_request(Arc::new(Payload {
+        baseline_logprobs: vec![],
+        baseline_tools: serde_json::json!({}),
+    }));
+    let dropped_2 = router.route_request(Arc::new(Payload {
+        baseline_logprobs: vec![],
+        baseline_tools: serde_json::json!({}),
+    }));
+    let dropped_3 = router.route_request(Arc::new(Payload {
+        baseline_logprobs: vec![],
+        baseline_tools: serde_json::json!({}),
+    }));
+    let dropped_4 = router.route_request(Arc::new(Payload {
+        baseline_logprobs: vec![],
+        baseline_tools: serde_json::json!({}),
+    }));
+    let dropped_5 = router.route_request(Arc::new(Payload {
+        baseline_logprobs: vec![],
+        baseline_tools: serde_json::json!({}),
+    }));
 
     let elapsed = start.elapsed();
 
@@ -90,7 +105,10 @@ async fn test_worker_respects_timeout_and_recovers() {
     // 2. Set an aggressive 50ms timeout for the test to keep the suite fast
     let router = CanaryRouter::new(mock, 5, 50);
 
-    router.route_request(Arc::new(Payload::default()));
+    router.route_request(Arc::new(Payload {
+        baseline_logprobs: vec![],
+        baseline_tools: serde_json::json!({}),
+    }));
 
     // Wait enough time for the 50ms timeout to trip inside the worker
     tokio::time::sleep(Duration::from_millis(75)).await;

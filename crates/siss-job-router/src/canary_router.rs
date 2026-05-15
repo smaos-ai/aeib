@@ -406,6 +406,3 @@ mod mock_adapter {
         }
     }
 }
-
-// Re-export for tests
-use mock_adapter::MockAdapter;

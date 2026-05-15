@@ -17,7 +17,11 @@ impl RapidMLXAdapter {
         }
     }
 
-    pub fn compute_divergence_for_test(&self, shadow_logprobs: &[f64], baseline_logprobs: &[f64]) -> f64 {
+    pub fn compute_divergence_for_test(
+        &self,
+        shadow_logprobs: &[f64],
+        baseline_logprobs: &[f64],
+    ) -> f64 {
         self.compute_divergence(shadow_logprobs, baseline_logprobs)
     }
 
@@ -92,10 +96,7 @@ impl RapidMLXAdapter {
 
 #[async_trait]
 impl ShadowAdapter for RapidMLXAdapter {
-    async fn evaluate(
-        &self,
-        payload: Arc<Payload>,
-    ) -> Result<ShadowInferenceResult, String> {
+    async fn evaluate(&self, payload: Arc<Payload>) -> Result<ShadowInferenceResult, String> {
         let request_body = serde_json::json!({
             "model": "mlx-community/Mistral-7B-Instruct-v0.1",
             "messages": [{"role": "user", "content": "test"}],

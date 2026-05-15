@@ -10,7 +10,10 @@ fn test_rapid_mlx_adapter_compute_divergence_identical_logprobs() {
     let baseline = vec![1.0, 0.5, 0.2];
 
     let divergence = adapter.compute_divergence_for_test(&shadow, &baseline);
-    assert_eq!(divergence, 0.0, "identical logprobs should have 0 divergence");
+    assert_eq!(
+        divergence, 0.0,
+        "identical logprobs should have 0 divergence"
+    );
 }
 
 #[test]
@@ -21,7 +24,10 @@ fn test_rapid_mlx_adapter_compute_divergence_different_logprobs() {
     let baseline = vec![2.0, 1.5, 1.2];
 
     let divergence = adapter.compute_divergence_for_test(&shadow, &baseline);
-    assert!(divergence > 0.0, "different logprobs should have positive divergence");
+    assert!(
+        divergence > 0.0,
+        "different logprobs should have positive divergence"
+    );
     assert!(divergence <= 1.0, "divergence should be in [0, 1]");
 }
 
@@ -66,5 +72,8 @@ async fn test_rapid_mlx_adapter_handles_network_errors_gracefully() {
     // Should fail gracefully with error message, not panic
     assert!(result.is_err(), "Network error should return Err");
     let err = result.unwrap_err();
-    assert!(err.contains("HTTP") || err.contains("error"), "Error message should indicate HTTP issue");
+    assert!(
+        err.contains("HTTP") || err.contains("error"),
+        "Error message should indicate HTTP issue"
+    );
 }

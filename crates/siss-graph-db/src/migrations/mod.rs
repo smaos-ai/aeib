@@ -162,6 +162,10 @@ const MIGRATIONS: &[(&str, &str)] = &[
         "041_add_phase30_feedback_indexes",
         include_str!("041_add_phase30_feedback_indexes.sql"),
     ),
+    (
+        "042_add_rce_checkpoints",
+        include_str!("042_add_rce_checkpoints.sql"),
+    ),
 ];
 
 /// Run all migrations in order. Idempotent — tracks applied migrations in a metadata table.

@@ -1,3 +1,9 @@
+pub mod eval;
+pub mod events;
+pub mod model;
+pub mod orchestrator;
+pub mod routing;
+
 /// Enclave v2.1: Safe Model Evolution with Chaos Petri Validation Gate
 ///
 /// Teacher-Forcing enclave implements safe LoRA policy evolution via:
@@ -5,12 +11,6 @@
 /// - Agent-as-a-Judge: Evaluate logprob divergence, tool-call F1, golden trajectories
 /// - Double-buffered LoRA swap: Atomic pointer swap without KV cache flush
 /// - RCE integration: Pause evolution workflows during evaluation, resume on approval
-
-pub mod model;
-pub mod routing;
-pub mod eval;
-pub mod events;
-
 pub use model::lora_swap;
 
 #[derive(Debug, Clone)]

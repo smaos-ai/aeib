@@ -3,6 +3,7 @@ package ai.sovereign.code.service;
 import ai.sovereign.code.entity.Chunk;
 import ai.sovereign.code.entity.CodeRepository;
 import ai.sovereign.code.entity.Document;
+import ai.sovereign.code.exception.ArxivIngestionException;
 import ai.sovereign.code.repository.ChunkRepository;
 import ai.sovereign.code.repository.CodeRepositoryRepository;
 import ai.sovereign.code.repository.DocumentRepository;
@@ -134,7 +135,7 @@ public class ArxivIngestionService {
             }
         } catch (Exception e) {
             log.error("Failed to parse and upsert arXiv response", e);
-            throw new RuntimeException("arXiv XML parsing failed", e);
+            throw new ArxivIngestionException("arXiv XML parsing failed", e);
         }
 
         log.info("Successfully ingested {} new papers from arXiv.", ingestedCount);

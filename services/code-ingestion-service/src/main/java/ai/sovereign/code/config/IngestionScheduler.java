@@ -1,5 +1,6 @@
 package ai.sovereign.code.config;
 
+import ai.sovereign.code.exception.ArxivIngestionException;
 import ai.sovereign.code.service.ArxivIngestionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +23,10 @@ public class IngestionScheduler {
         try {
             int ingested = arxivIngestionService.syncLatest(500);
             log.info("Scheduled arXiv sync completed successfully. Added {} new papers.", ingested);
-        } catch (Exception e) {
-            log.error("Scheduled arXiv sync failed", e);
+        } catch (ArxivIngestionException e) {
+            log.error("Scheduled arXiv sync failed — bad feed data: {}", e.getMessage(), e);
+        } catch (RuntimeException e) {
+            log.error("Scheduled arXiv sync failed — unexpected error", e);
         }
     }
 }

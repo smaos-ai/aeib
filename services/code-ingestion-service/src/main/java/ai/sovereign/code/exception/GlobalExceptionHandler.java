@@ -28,6 +28,19 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(ArxivIngestionException.class)
+    public ResponseEntity<ErrorResponse> handleArxivIngestionException(
+            ArxivIngestionException ex, WebRequest request) {
+        ErrorResponse error = ErrorResponse.builder()
+            .timestamp(LocalDateTime.now())
+            .status(HttpStatus.BAD_REQUEST.value())
+            .error("Ingestion Error")
+            .message(ex.getMessage())
+            .path(request.getDescription(false).replace("uri=", ""))
+            .build();
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(
             Exception ex, WebRequest request) {

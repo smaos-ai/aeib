@@ -4,14 +4,13 @@
 /// Byzantine failure scenarios, network partitions, and adversarial conditions.
 ///
 /// Expected: All 12 tests FAIL until Chaos Petri resilience is implemented.
-
 use chrono::Utc;
 use serde_json::json;
+use siss_graph_db::rce::{ExecutionState, InterruptSignal, ResumableCognitiveExecution, Step};
 use siss_graph_db::repo::rce_checkpoint_repo;
-use siss_graph_db::rce::{ResumableCognitiveExecution, Step, InterruptSignal, ExecutionState};
 use sqlx::PgPool;
 use testcontainers::runners::AsyncRunner;
-use testcontainers::{core::WaitFor, GenericImage, ImageExt};
+use testcontainers::{GenericImage, ImageExt, core::WaitFor};
 use uuid::Uuid;
 
 // =====================================================================
@@ -108,26 +107,28 @@ async fn chaos_petri_node_crash_recovery_with_checkpoint() {
 
     // RECOVERY: Boot new node, load workflow from checkpoint
     let mut recovered_rce = ResumableCognitiveExecution::new(workflow_id);
-    recovered_rce.start_workflow(vec![
-        Step {
-            id: Uuid::new_v4(),
-            name: "step_1".to_string(),
-            timeout_ms: 5000,
-            idempotent: true,
-        },
-        Step {
-            id: Uuid::new_v4(),
-            name: "step_2".to_string(),
-            timeout_ms: 5000,
-            idempotent: true,
-        },
-        Step {
-            id: Uuid::new_v4(),
-            name: "step_3".to_string(),
-            timeout_ms: 5000,
-            idempotent: false,
-        },
-    ]).expect("restart workflow");
+    recovered_rce
+        .start_workflow(vec![
+            Step {
+                id: Uuid::new_v4(),
+                name: "step_1".to_string(),
+                timeout_ms: 5000,
+                idempotent: true,
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "step_2".to_string(),
+                timeout_ms: 5000,
+                idempotent: true,
+            },
+            Step {
+                id: Uuid::new_v4(),
+                name: "step_3".to_string(),
+                timeout_ms: 5000,
+                idempotent: false,
+            },
+        ])
+        .expect("restart workflow");
 
     // Must manually transition to Paused state before resuming
     let interrupt_recovery = InterruptSignal {
@@ -138,7 +139,8 @@ async fn chaos_petri_node_crash_recovery_with_checkpoint() {
         timestamp: Utc::now(),
     };
 
-    recovered_rce.pause_workflow(interrupt_recovery, vec![])
+    recovered_rce
+        .pause_workflow(interrupt_recovery, vec![])
         .expect("transition to paused");
 
     // Verify checkpoint was persisted
@@ -147,7 +149,10 @@ async fn chaos_petri_node_crash_recovery_with_checkpoint() {
         .expect("load")
         .expect("checkpoint persisted");
 
-    assert_eq!(persisted.1, 2, "Checkpoint persisted with correct step_index");
+    assert_eq!(
+        persisted.1, 2,
+        "Checkpoint persisted with correct step_index"
+    );
 
     // ASSERTION: Recovered RCE can load checkpoint metadata
     // Note: Full state restoration requires state_snapshot in DB (future enhancement)
@@ -218,8 +223,16 @@ async fn chaos_petri_concurrent_operator_decisions() {
         .expect("fetch trail");
 
     assert_eq!(trail.len(), 2, "Both decisions in audit trail");
-    assert_eq!(trail[0].2, Some("Approve".to_string()), "First decision is approve");
-    assert_eq!(trail[1].2, Some("Reject".to_string()), "Second decision is reject");
+    assert_eq!(
+        trail[0].2,
+        Some("Approve".to_string()),
+        "First decision is approve"
+    );
+    assert_eq!(
+        trail[1].2,
+        Some("Reject".to_string()),
+        "Second decision is reject"
+    );
 }
 
 #[tokio::test]
@@ -305,7 +318,10 @@ async fn chaos_petri_database_connection_exhaustion() {
     // ASSERTION: All saves succeed despite connection pool pressure
     let results = futures::future::join_all(futures).await;
     let success_count = results.iter().filter(|r| r.is_ok()).count();
-    assert!(success_count > 0, "At least some checkpoint saves succeeded under connection pressure");
+    assert!(
+        success_count > 0,
+        "At least some checkpoint saves succeeded under connection pressure"
+    );
 
     // ASSERTION: Final checkpoint reflects a successful save (upsert semantics)
     let final_checkpoint = rce_checkpoint_repo::load_checkpoint(&pool, workflow_id)
@@ -314,7 +330,10 @@ async fn chaos_petri_database_connection_exhaustion() {
         .expect("checkpoint exists");
 
     // With concurrent upserts, final version should be >= 1 (at least one save succeeded)
-    assert!(final_checkpoint.1 >= 1, "Final checkpoint exists at step >= 1");
+    assert!(
+        final_checkpoint.1 >= 1,
+        "Final checkpoint exists at step >= 1"
+    );
     assert!(final_checkpoint.4 >= 1, "Final checkpoint version >= 1");
 }
 
@@ -381,7 +400,8 @@ async fn chaos_petri_operator_cockpit_timeout_recovery() {
         timestamp: Utc::now(),
     };
 
-    new_session_rce.pause_workflow(interrupt_recovery, vec![])
+    new_session_rce
+        .pause_workflow(interrupt_recovery, vec![])
         .expect("transition to paused");
 
     // ASSERTION: New session can recover and resume without loss
@@ -470,7 +490,11 @@ async fn chaos_petri_audit_trail_immutability_under_deletion_attempt() {
         .await
         .expect("fetch");
 
-    assert_eq!(trail_before.len(), trail_after.len(), "Audit trail immutable");
+    assert_eq!(
+        trail_before.len(),
+        trail_after.len(),
+        "Audit trail immutable"
+    );
     assert_eq!(trail_after[0].0, event_id, "Event ID unchanged");
 }
 
@@ -523,7 +547,10 @@ async fn chaos_petri_multiple_pauses_overwrite_semantics() {
         .expect("load 2")
         .expect("exists 2");
 
-    assert_eq!(checkpoint2.1, 2, "Second checkpoint at step 2 (overwrote first)");
+    assert_eq!(
+        checkpoint2.1, 2,
+        "Second checkpoint at step 2 (overwrote first)"
+    );
     assert_eq!(checkpoint2.4, 2, "Second checkpoint version 2");
     assert_eq!(checkpoint2.3, "checksum_2", "Checksum updated");
 }

@@ -2,12 +2,11 @@
 ///
 /// Tests empirically verify OCC and checkpoint durability under Byzantine, network,
 /// and concurrent failure scenarios. All tests use testcontainers Postgres 16.
-
 use serde_json::json;
 use siss_graph_db::{rce::*, repo::rce_checkpoint_repo};
 use sqlx::PgPool;
 use testcontainers::runners::AsyncRunner;
-use testcontainers::{core::WaitFor, GenericImage, ImageExt};
+use testcontainers::{GenericImage, ImageExt, core::WaitFor};
 use uuid::Uuid;
 
 // =====================================================================

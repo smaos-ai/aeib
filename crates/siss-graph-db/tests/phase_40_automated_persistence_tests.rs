@@ -5,14 +5,13 @@
 /// hydrates state from the database without manual intervention.
 ///
 /// Expected: All 3 tests FAIL until Phase 40 implementation is complete.
-
 use chrono::Utc;
 use serde_json::json;
+use siss_graph_db::rce::{ExecutionState, InterruptSignal, ResumableCognitiveExecution, Step};
 use siss_graph_db::repo::rce_checkpoint_repo;
-use siss_graph_db::rce::{ResumableCognitiveExecution, Step, InterruptSignal, ExecutionState};
 use sqlx::PgPool;
 use testcontainers::runners::AsyncRunner;
-use testcontainers::{core::WaitFor, GenericImage, ImageExt};
+use testcontainers::{GenericImage, ImageExt, core::WaitFor};
 use uuid::Uuid;
 
 // =====================================================================
@@ -103,7 +102,9 @@ async fn test_auto_persistence_on_pause_transition() {
         "workflow_id": workflow_id,
         "step_index": 1,
         "plan_size": 3
-    }).to_string().into_bytes();
+    })
+    .to_string()
+    .into_bytes();
 
     rce.pause_workflow_with_persistence(interrupt, state_snapshot.clone(), &pool)
         .await
@@ -142,7 +143,9 @@ async fn test_rce_state_restoration_from_db_on_resume() {
         "workflow_id": workflow_id,
         "step_index": 1,
         "plan_size": 3
-    }).to_string().into_bytes();
+    })
+    .to_string()
+    .into_bytes();
 
     // Use Phase 40 async pause with persistence
     rce.pause_workflow_with_persistence(interrupt, state_snapshot.clone(), &pool)
@@ -192,7 +195,9 @@ async fn test_db_failure_triggers_safe_rollback() {
         "workflow_id": workflow_id,
         "step_index": original_step_index,
         "plan_size": rce.plan.len(),
-    }).to_string().into_bytes();
+    })
+    .to_string()
+    .into_bytes();
 
     // Create an invalid pool to simulate DB connection failure
     let invalid_pool_url = "postgres://invalid:invalid@127.0.0.1:9999/nonexistent";
@@ -217,7 +222,9 @@ async fn test_db_failure_triggers_safe_rollback() {
     // the RCE execution state should safely roll back without corruption
     // Phase 40: pause_workflow_with_persistence with DB failure should not corrupt in-memory state
 
-    let result = rce.pause_workflow_with_persistence(interrupt, state_snapshot, &invalid_pool).await;
+    let result = rce
+        .pause_workflow_with_persistence(interrupt, state_snapshot, &invalid_pool)
+        .await;
 
     // Phase 40: If checkpoint persistence fails, the state machine should:
     // 1. Detect the DB failure
@@ -227,11 +234,18 @@ async fn test_db_failure_triggers_safe_rollback() {
 
     // VERIFICATION:
     assert!(result.is_err(), "Expected DB error to be propagated");
-    assert_eq!(rce.get_state(), original_state, "State should be rolled back to original");
+    assert_eq!(
+        rce.get_state(),
+        original_state,
+        "State should be rolled back to original"
+    );
     assert_eq!(
         rce.get_current_step_index(),
         original_step_index,
         "Step index should be preserved"
     );
-    assert!(rce.checkpoint.is_none(), "Checkpoint should be cleared on rollback");
+    assert!(
+        rce.checkpoint.is_none(),
+        "Checkpoint should be cleared on rollback"
+    );
 }

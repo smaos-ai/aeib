@@ -5,12 +5,11 @@
 /// against concurrent writes and checksum-verified state restoration.
 ///
 /// All tests use testcontainers Postgres 16 with Phase 38 migrations applied.
-
 use serde_json::json;
 use siss_graph_db::{rce::*, repo::rce_checkpoint_repo};
 use sqlx::PgPool;
 use testcontainers::runners::AsyncRunner;
-use testcontainers::{core::WaitFor, GenericImage, ImageExt};
+use testcontainers::{GenericImage, ImageExt, core::WaitFor};
 use uuid::Uuid;
 
 async fn setup_postgres() -> (testcontainers::ContainerAsync<GenericImage>, PgPool) {
@@ -178,9 +177,7 @@ async fn test_resume_fails_closed_on_corrupted_db_checksum() {
 
     let result = rce2.resume_workflow_approve_with_persistence(&pool).await;
     assert!(result.is_err());
-    assert!(result
-        .unwrap_err()
-        .contains("checksum mismatch"));
+    assert!(result.unwrap_err().contains("checksum mismatch"));
 }
 
 #[tokio::test]
@@ -292,7 +289,8 @@ async fn test_full_durable_lifecycle_pause_approve_resume() {
     // Simulate operator approval and resume
     let mut rce_resumed = ResumableCognitiveExecution::new(rce.workflow_id);
     // Hydrate from DB
-    rce_resumed.resume_workflow_approve_with_persistence(&pool)
+    rce_resumed
+        .resume_workflow_approve_with_persistence(&pool)
         .await
         .expect("resume");
 

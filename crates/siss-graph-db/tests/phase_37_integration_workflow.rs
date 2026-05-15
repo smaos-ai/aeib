@@ -9,9 +9,8 @@
 /// - Projection data retrieval
 /// - Decision webhook processing
 /// - Checkpoint integrity
-
 use chrono::Utc;
-use siss_graph_db::rce::{ExecutionState, ResumableCognitiveExecution, Step, InterruptSignal};
+use siss_graph_db::rce::{ExecutionState, InterruptSignal, ResumableCognitiveExecution, Step};
 use siss_graph_db::rce_event_broadcaster::{RceEvent, RceEventBroadcaster};
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -70,7 +69,11 @@ async fn test_full_rce_workflow_start_pause_resume_approve() {
         };
 
         let checkpoint_snapshot = vec![1, 2, 3, 4, 5];
-        assert!(rce_guard.pause_workflow(interrupt_signal, checkpoint_snapshot).is_ok());
+        assert!(
+            rce_guard
+                .pause_workflow(interrupt_signal, checkpoint_snapshot)
+                .is_ok()
+        );
         assert_eq!(rce_guard.get_state(), ExecutionState::Paused);
         assert!(rce_guard.has_checkpoint());
 
@@ -80,7 +83,9 @@ async fn test_full_rce_workflow_start_pause_resume_approve() {
             timestamp: Utc::now(),
             step_index: rce_guard.get_current_step_index(),
             step_id: rce_guard.plan[rce_guard.get_current_step_index()].id,
-            step_name: rce_guard.plan[rce_guard.get_current_step_index()].name.clone(),
+            step_name: rce_guard.plan[rce_guard.get_current_step_index()]
+                .name
+                .clone(),
             interrupt_reason: "threat_anticipation_blast_radius_high".to_string(),
             interrupt_severity: "High".to_string(),
         });
@@ -103,9 +108,7 @@ async fn test_full_rce_workflow_start_pause_resume_approve() {
         let checkpoint = rce_guard.checkpoint.as_ref().expect("No checkpoint");
 
         // Verify checksum is valid
-        assert!(rce_guard
-            .verify_checkpoint_integrity(checkpoint, 1)
-            .is_ok());
+        assert!(rce_guard.verify_checkpoint_integrity(checkpoint, 1).is_ok());
     }
 
     // Step 5: Human operator decision - APPROVE
@@ -199,9 +202,11 @@ async fn test_full_rce_workflow_reject_path() {
     // Reject the workflow
     {
         let mut rce_guard = rce.write().await;
-        assert!(rce_guard
-            .resume_workflow_reject("operator_manual_override".to_string())
-            .is_ok());
+        assert!(
+            rce_guard
+                .resume_workflow_reject("operator_manual_override".to_string())
+                .is_ok()
+        );
         assert_eq!(rce_guard.get_state(), ExecutionState::Idle);
         assert!(!rce_guard.has_checkpoint());
 
@@ -437,16 +442,16 @@ async fn test_serialization_roundtrip_preserves_state() {
     assert!(!serialized.is_empty());
 
     // Deserialize
-    let deserialized =
-        ResumableCognitiveExecution::deserialize_state(&serialized).expect("Deserialization failed");
+    let deserialized = ResumableCognitiveExecution::deserialize_state(&serialized)
+        .expect("Deserialization failed");
 
     // Verify roundtrip preserves state
     assert_eq!(deserialized.workflow_id, original.workflow_id);
     assert_eq!(deserialized.state, original.state);
-    assert_eq!(
-        deserialized.current_step_index,
-        original.current_step_index
-    );
+    assert_eq!(deserialized.current_step_index, original.current_step_index);
     assert_eq!(deserialized.plan.len(), original.plan.len());
-    assert_eq!(deserialized.get_history().len(), original.get_history().len());
+    assert_eq!(
+        deserialized.get_history().len(),
+        original.get_history().len()
+    );
 }

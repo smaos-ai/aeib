@@ -2,7 +2,6 @@
 ///
 /// Broadcast RCE state transitions and interrupt signals via tokio::sync::broadcast.
 /// Consumed by SSE handler to stream events to clients.
-
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use tokio::sync::broadcast;

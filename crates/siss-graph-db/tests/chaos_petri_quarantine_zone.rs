@@ -8,14 +8,13 @@
 /// - State drift (bypass Paused state, double-execute non-idempotent actions)
 ///
 /// Expected: All 16 tests PASS — system must survive all adversarial conditions.
-
 use chrono::Utc;
 use serde_json::json;
+use siss_graph_db::rce::{ExecutionState, InterruptSignal, ResumableCognitiveExecution, Step};
 use siss_graph_db::repo::rce_checkpoint_repo;
-use siss_graph_db::rce::{ResumableCognitiveExecution, Step, InterruptSignal, ExecutionState};
 use sqlx::PgPool;
 use testcontainers::runners::AsyncRunner;
-use testcontainers::{core::WaitFor, GenericImage, ImageExt};
+use testcontainers::{GenericImage, ImageExt, core::WaitFor};
 use uuid::Uuid;
 
 // =====================================================================
@@ -98,13 +97,19 @@ async fn quarantine_db_disconnect_during_checkpoint_save() {
     let snapshot = vec![42u8; 1024];
 
     // Attempt pause with persistence
-    let pause_result = rce.pause_workflow_with_persistence(interrupt, snapshot, &pool).await;
+    let pause_result = rce
+        .pause_workflow_with_persistence(interrupt, snapshot, &pool)
+        .await;
 
     // ASSERTION: Even if DB fails, RCE state machine should not corrupt
     // Fail-closed rollback should preserve original state
     if pause_result.is_err() {
         // Expected: DB failure causes error
-        assert_eq!(rce.get_state(), ExecutionState::Perform, "State rolled back to Perform");
+        assert_eq!(
+            rce.get_state(),
+            ExecutionState::Perform,
+            "State rolled back to Perform"
+        );
         assert_eq!(rce.get_current_step_index(), 1, "Step index preserved");
     } else {
         // If DB succeeds, checkpoint should be persisted
@@ -194,11 +199,11 @@ async fn quarantine_cascading_db_connection_failures() {
     }
 
     // ASSERTION: System recovers from connection pressure
-    assert!(save_count > 0, "At least some saves succeed under connection pressure");
     assert!(
-        save_count + save_errors == 50,
-        "All attempts accounted for"
+        save_count > 0,
+        "At least some saves succeed under connection pressure"
     );
+    assert!(save_count + save_errors == 50, "All attempts accounted for");
 }
 
 // =====================================================================
@@ -242,7 +247,10 @@ async fn quarantine_malformed_webhook_payload_reject() {
 
     // ASSERTION: System accepts event (append-only allows flexibility)
     // But data is recorded for forensics
-    assert!(audit_result.is_ok(), "Malformed payload recorded (append-only resilience)");
+    assert!(
+        audit_result.is_ok(),
+        "Malformed payload recorded (append-only resilience)"
+    );
 
     // Verify it was recorded
     let trail = rce_checkpoint_repo::fetch_audit_trail(&pool, workflow_id)
@@ -250,7 +258,11 @@ async fn quarantine_malformed_webhook_payload_reject() {
         .expect("fetch");
 
     assert_eq!(trail.len(), 1, "Malformed event persisted for audit");
-    assert_eq!(trail[0].2, Some("Unknown".to_string()), "Invalid decision recorded");
+    assert_eq!(
+        trail[0].2,
+        Some("Unknown".to_string()),
+        "Invalid decision recorded"
+    );
 }
 
 #[tokio::test]
@@ -287,7 +299,10 @@ async fn quarantine_corrupted_a2a_response_handling() {
         .expect("corrupted checkpoint loaded");
 
     // Data integrity check: checksum field is readable
-    assert!(!loaded.3.is_empty(), "Checksum recorded even for corrupted state");
+    assert!(
+        !loaded.3.is_empty(),
+        "Checksum recorded even for corrupted state"
+    );
 
     // Future versions can implement:
     // - Checksum validation on load
@@ -369,14 +384,21 @@ async fn quarantine_context_limit_audit_trail_explosion() {
     }
 
     // ASSERTION: System handles large audit trails
-    assert_eq!(event_count, max_events, "All events persisted despite volume");
+    assert_eq!(
+        event_count, max_events,
+        "All events persisted despite volume"
+    );
 
     // Verify retrieval of large audit trail
     let trail = rce_checkpoint_repo::fetch_audit_trail(&pool, workflow_id)
         .await
         .expect("fetch large trail");
 
-    assert_eq!(trail.len(), max_events, "Large audit trail fully retrievable");
+    assert_eq!(
+        trail.len(),
+        max_events,
+        "Large audit trail fully retrievable"
+    );
 }
 
 #[tokio::test]
@@ -518,10 +540,7 @@ async fn quarantine_force_bypass_paused_state_nonidempotent_double_execution() {
         .await
         .expect("fetch trail");
 
-    let pause_events = trail
-        .iter()
-        .filter(|e| e.1.contains("safeguard"))
-        .count();
+    let pause_events = trail.iter().filter(|e| e.1.contains("safeguard")).count();
 
     assert!(pause_events > 0, "Safeguard events in audit trail");
 }
@@ -552,7 +571,11 @@ async fn quarantine_state_machine_invariant_violation_attempt() {
 
     // ASSERTION: State machine invariants are enforced
     // Only valid transitions are allowed
-    assert_eq!(rce.get_state(), ExecutionState::Perform, "State unchanged after invalid transition");
+    assert_eq!(
+        rce.get_state(),
+        ExecutionState::Perform,
+        "State unchanged after invalid transition"
+    );
 }
 
 #[tokio::test]
@@ -612,8 +635,16 @@ async fn quarantine_concurrent_pause_and_resume_race_condition() {
         .expect("fetch");
 
     assert_eq!(trail.len(), 2, "Both concurrent decisions recorded");
-    assert_eq!(trail[0].3, Some("cockpit_1".to_string()), "First decision from cockpit_1");
-    assert_eq!(trail[1].3, Some("cockpit_2".to_string()), "Second decision from cockpit_2");
+    assert_eq!(
+        trail[0].3,
+        Some("cockpit_1".to_string()),
+        "First decision from cockpit_1"
+    );
+    assert_eq!(
+        trail[1].3,
+        Some("cockpit_2".to_string()),
+        "Second decision from cockpit_2"
+    );
 }
 
 #[tokio::test]
@@ -650,7 +681,10 @@ async fn quarantine_checkpoint_tampering_detection() {
     assert_eq!(loaded.3, original_checksum, "Checksum matches original");
 
     // If checksum were different, it would indicate tampering
-    assert!(!loaded.3.is_empty(), "Checksum present for integrity checking");
+    assert!(
+        !loaded.3.is_empty(),
+        "Checksum present for integrity checking"
+    );
 }
 
 #[tokio::test]
@@ -660,11 +694,7 @@ async fn quarantine_audit_trail_ordering_under_clock_skew() {
     let workflow_id = Uuid::new_v4();
 
     // Simulate events with clock skew (timestamps might be out of order)
-    let timestamps = vec![
-        Utc::now(),
-        Utc::now(),
-        Utc::now(),
-    ];
+    let timestamps = vec![Utc::now(), Utc::now(), Utc::now()];
 
     for (i, _ts) in timestamps.iter().enumerate() {
         rce_checkpoint_repo::append_audit_event(
@@ -736,5 +766,9 @@ async fn quarantine_workflow_completeness_under_interrupts() {
     assert_eq!(rce.get_current_step_index(), 3);
 
     // ASSERTION: Workflow completes despite interrupts
-    assert_eq!(rce.get_current_step_index(), 3, "Workflow progresses despite interrupts");
+    assert_eq!(
+        rce.get_current_step_index(),
+        3,
+        "Workflow progresses despite interrupts"
+    );
 }

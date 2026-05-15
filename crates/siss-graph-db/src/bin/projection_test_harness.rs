@@ -7,9 +7,8 @@
 ///
 /// Runs synthetic data generators to prove projection logic
 /// Run with: cargo run --bin projection_test_harness --release
-
 use siss_graph_db::repo::projection_repo::{
-    synthetic_root_cause_response, synthetic_threat_anticipation_response, synthetic_swot_response,
+    synthetic_root_cause_response, synthetic_swot_response, synthetic_threat_anticipation_response,
 };
 use uuid::Uuid;
 
@@ -36,11 +35,20 @@ fn main() {
     println!("  Tier:             {}", response.tier);
     println!("  Sovereign ID:     {}", response.sovereign_id);
     println!("  Detected At:      {}", response.detected_at);
-    println!("  Chain Depth:      {} nodes", response.root_cause_chain.len());
+    println!(
+        "  Chain Depth:      {} nodes",
+        response.root_cause_chain.len()
+    );
     println!("\n  Chain Structure (Structural Invariance Proof):");
-    println!("  ┌─────┬──────────────────────────────────┬──────────────┬────────────┬──────────────┐");
-    println!("  │Dpth │ Node ID                          │ Label        │ Confidence │ Relationship │");
-    println!("  ├─────┼──────────────────────────────────┼──────────────┼────────────┼──────────────┤");
+    println!(
+        "  ┌─────┬──────────────────────────────────┬──────────────┬────────────┬──────────────┐"
+    );
+    println!(
+        "  │Dpth │ Node ID                          │ Label        │ Confidence │ Relationship │"
+    );
+    println!(
+        "  ├─────┼──────────────────────────────────┼──────────────┼────────────┼──────────────┤"
+    );
 
     for node in &response.root_cause_chain {
         let rel_str = node.relationship.as_deref().unwrap_or("—");
@@ -51,12 +59,17 @@ fn main() {
             node.depth, node_id_short, label_short, node.confidence, rel_str
         );
     }
-    println!("  └─────┴──────────────────────────────────┴──────────────┴────────────┴──────────────┘");
+    println!(
+        "  └─────┴──────────────────────────────────┴──────────────┴────────────┴──────────────┘"
+    );
 
     println!("\n  Operator Insight: {}", response.operator_insight);
     println!("\n  ✓ INVARIANCE CHECK PASSED: All nodes confidence ≥ 0.70");
     println!("  ✓ CAUSALITY PRESERVED: Temporal ordering maintained");
-    println!("  ✓ DEPTH CLAMPED: {} nodes (≤ 5)", response.root_cause_chain.len());
+    println!(
+        "  ✓ DEPTH CLAMPED: {} nodes (≤ 5)",
+        response.root_cause_chain.len()
+    );
 
     // =====================================================================
     // TEST 2: Threat Anticipation Projection (π+_TA)
@@ -69,9 +82,18 @@ fn main() {
     let response = synthetic_threat_anticipation_response(sovereign_id_s7, 3);
 
     println!("  ✓ Threat Anticipation Projection succeeded\n");
-    println!("  Source Sovereign: {} ({})", response.source_sovereign_name, response.source_sovereign_id);
-    println!("  Anomaly Patterns: {} detected", response.anomaly_patterns.len());
-    println!("  Affected Sovereigns: {}", response.affected_sovereigns.len());
+    println!(
+        "  Source Sovereign: {} ({})",
+        response.source_sovereign_name, response.source_sovereign_id
+    );
+    println!(
+        "  Anomaly Patterns: {} detected",
+        response.anomaly_patterns.len()
+    );
+    println!(
+        "  Affected Sovereigns: {}",
+        response.affected_sovereigns.len()
+    );
     println!("  Total Tokens at Risk: {}", response.total_tokens_at_risk);
 
     println!("\n  Anomaly Patterns (Semantic Tier Signals):");
@@ -156,8 +178,14 @@ fn main() {
     }
 
     println!("\n  ✓ INVARIANCE CHECK PASSED: All four quadrants populated");
-    println!("  ✓ METRICS AGGREGATED: Diversity index = {:.2} (0.6–0.8 healthy)", response.diversity_index);
-    println!("  ✓ TEMPORAL COHERENCE: Time window {} days respected", response.time_window_days);
+    println!(
+        "  ✓ METRICS AGGREGATED: Diversity index = {:.2} (0.6–0.8 healthy)",
+        response.diversity_index
+    );
+    println!(
+        "  ✓ TEMPORAL COHERENCE: Time window {} days respected",
+        response.time_window_days
+    );
 
     // =====================================================================
     // FINAL VERDICT

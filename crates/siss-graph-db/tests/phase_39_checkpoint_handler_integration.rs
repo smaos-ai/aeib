@@ -4,13 +4,12 @@
 /// Verifies that decision webhook persists audit trail and deletes checkpoints on reject.
 ///
 /// Expected: All 5 tests PASS after Phase 38 implementation + Phase 39 handler integration.
-
 use chrono::Utc;
 use serde_json::json;
 use siss_graph_db::repo::rce_checkpoint_repo;
 use sqlx::PgPool;
 use testcontainers::runners::AsyncRunner;
-use testcontainers::{core::WaitFor, GenericImage, ImageExt};
+use testcontainers::{GenericImage, ImageExt, core::WaitFor};
 use uuid::Uuid;
 
 // =====================================================================

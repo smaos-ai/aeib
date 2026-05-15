@@ -5,6 +5,7 @@ ai/sovereign/code/exception/GlobalExceptionHandler.class
 ai/sovereign/code/service/ArxivIngestionService.class
 ai/sovereign/code/entity/CodeRepository.class
 ai/sovereign/code/controller/RepositoryController.class
+ai/sovereign/code/exception/ArxivIngestionException.class
 ai/sovereign/code/entity/IngestionJob.class
 ai/sovereign/code/repository/DocumentRepository.class
 ai/sovereign/code/controller/ChunkController.class

@@ -3,7 +3,6 @@
 /// Core state machine for human-in-the-loop agentic orchestration.
 /// Enables agents to pause on critical intelligence projections, await
 /// human approval, and resume with preserved context.
-
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -166,10 +165,7 @@ impl ResumableCognitiveExecution {
         state_snapshot: Vec<u8>,
     ) -> Result<(), String> {
         if self.state != ExecutionState::Perform {
-            return Err(format!(
-                "Cannot pause workflow in {:?} state",
-                self.state
-            ));
+            return Err(format!("Cannot pause workflow in {:?} state", self.state));
         }
 
         // Compute checksum
@@ -210,10 +206,7 @@ impl ResumableCognitiveExecution {
     /// Resume workflow: Paused → Resumed (Approve path)
     pub fn resume_workflow_approve(&mut self) -> Result<(), String> {
         if self.state != ExecutionState::Paused {
-            return Err(format!(
-                "Cannot resume workflow in {:?} state",
-                self.state
-            ));
+            return Err(format!("Cannot resume workflow in {:?} state", self.state));
         }
 
         // Validate checkpoint exists and integrity
@@ -249,10 +242,7 @@ impl ResumableCognitiveExecution {
     /// Resume workflow: Paused → Idle (Reject path)
     pub fn resume_workflow_reject(&mut self, reason: String) -> Result<(), String> {
         if self.state != ExecutionState::Paused {
-            return Err(format!(
-                "Cannot reject workflow in {:?} state",
-                self.state
-            ));
+            return Err(format!("Cannot reject workflow in {:?} state", self.state));
         }
 
         // Clear checkpoint and reset
@@ -278,10 +268,7 @@ impl ResumableCognitiveExecution {
     /// Resume workflow: Paused → Resumed (Modify path)
     pub fn resume_workflow_modify(&mut self, new_plan: Vec<Step>) -> Result<(), String> {
         if self.state != ExecutionState::Paused {
-            return Err(format!(
-                "Cannot modify workflow in {:?} state",
-                self.state
-            ));
+            return Err(format!("Cannot modify workflow in {:?} state", self.state));
         }
 
         if new_plan.is_empty() {
@@ -324,10 +311,7 @@ impl ResumableCognitiveExecution {
     /// Execute next step (for testing state transitions)
     pub fn execute_next_step(&mut self) -> Result<(), String> {
         if self.state != ExecutionState::Perform && self.state != ExecutionState::Resumed {
-            return Err(format!(
-                "Cannot execute step in {:?} state",
-                self.state
-            ));
+            return Err(format!("Cannot execute step in {:?} state", self.state));
         }
 
         if self.current_step_index >= self.plan.len() {
@@ -478,8 +462,7 @@ impl ResumableCognitiveExecution {
     /// Sort interrupts by severity (Critical first)
     pub fn sort_interrupts_by_severity(interrupts: &mut [InterruptSignal]) {
         interrupts.sort_by(|a, b| {
-            Self::severity_priority(&b.severity)
-                .cmp(&Self::severity_priority(&a.severity))
+            Self::severity_priority(&b.severity).cmp(&Self::severity_priority(&a.severity))
         });
     }
 
@@ -508,14 +491,12 @@ impl ResumableCognitiveExecution {
 
     /// Serialize RCE state to JSON bytes
     pub fn serialize_state(&self) -> Result<Vec<u8>, String> {
-        serde_json::to_vec(&self)
-            .map_err(|e| format!("Serialization failed: {}", e))
+        serde_json::to_vec(&self).map_err(|e| format!("Serialization failed: {}", e))
     }
 
     /// Deserialize RCE state from JSON bytes
     pub fn deserialize_state(data: &[u8]) -> Result<Self, String> {
-        serde_json::from_slice(data)
-            .map_err(|e| format!("Deserialization failed: {}", e))
+        serde_json::from_slice(data).map_err(|e| format!("Deserialization failed: {}", e))
     }
 
     /// Check if a step is safe to execute (idempotent or not yet executed)
@@ -592,55 +573,57 @@ impl ResumableCognitiveExecution {
         });
 
         // Check if checkpoint exists in DB → OCC update or initial save
-        let db_result = match crate::repo::rce_checkpoint_repo::load_checkpoint(
-            pool, self.workflow_id
-        ).await {
-            Ok(Some((_, _, _, _, db_version, _))) => {
-                // Re-pause: use OCC to increment version
-                let new_version = db_version + 1;
-                if let Some(ref mut cp) = self.checkpoint {
-                    cp.version = new_version as usize;
+        let db_result =
+            match crate::repo::rce_checkpoint_repo::load_checkpoint(pool, self.workflow_id).await {
+                Ok(Some((_, _, _, _, db_version, _))) => {
+                    // Re-pause: use OCC to increment version
+                    let new_version = db_version + 1;
+                    if let Some(ref mut cp) = self.checkpoint {
+                        cp.version = new_version as usize;
+                    }
+                    let cp = self.checkpoint.as_ref().unwrap();
+                    match crate::repo::rce_checkpoint_repo::update_checkpoint_occ(
+                        pool,
+                        self.workflow_id,
+                        db_version,
+                        cp.step_index as i32,
+                        &state_json,
+                        &cp.checksum,
+                        new_version,
+                        &interrupt_signal.reason,
+                        &interrupt_signal.severity,
+                    )
+                    .await
+                    {
+                        Ok(true) => Ok(()),
+                        Ok(false) => Err(
+                            "OCC conflict: concurrent checkpoint update — retry required"
+                                .to_string(),
+                        ),
+                        Err(e) => Err(format!("DB error on OCC update: {}", e)),
+                    }
                 }
-                let cp = self.checkpoint.as_ref().unwrap();
-                match crate::repo::rce_checkpoint_repo::update_checkpoint_occ(
-                    pool,
-                    self.workflow_id,
-                    db_version,
-                    cp.step_index as i32,
-                    &state_json,
-                    &cp.checksum,
-                    new_version,
-                    &interrupt_signal.reason,
-                    &interrupt_signal.severity,
-                )
-                .await
-                {
-                    Ok(true) => Ok(()),
-                    Ok(false) => Err("OCC conflict: concurrent checkpoint update — retry required".to_string()),
-                    Err(e) => Err(format!("DB error on OCC update: {}", e)),
+                Ok(None) => {
+                    // Initial pause: save with version=1
+                    let cp = self.checkpoint.as_ref().unwrap();
+                    match crate::repo::rce_checkpoint_repo::save_checkpoint(
+                        pool,
+                        self.workflow_id,
+                        cp.step_index as i32,
+                        &state_json,
+                        &cp.checksum,
+                        1,
+                        &interrupt_signal.reason,
+                        &interrupt_signal.severity,
+                    )
+                    .await
+                    {
+                        Ok(_) => Ok(()),
+                        Err(e) => Err(format!("Failed to persist checkpoint: {}", e)),
+                    }
                 }
-            }
-            Ok(None) => {
-                // Initial pause: save with version=1
-                let cp = self.checkpoint.as_ref().unwrap();
-                match crate::repo::rce_checkpoint_repo::save_checkpoint(
-                    pool,
-                    self.workflow_id,
-                    cp.step_index as i32,
-                    &state_json,
-                    &cp.checksum,
-                    1,
-                    &interrupt_signal.reason,
-                    &interrupt_signal.severity,
-                )
-                .await
-                {
-                    Ok(_) => Ok(()),
-                    Err(e) => Err(format!("Failed to persist checkpoint: {}", e)),
-                }
-            }
-            Err(e) => Err(format!("Failed to check existing checkpoint: {}", e)),
-        };
+                Err(e) => Err(format!("Failed to check existing checkpoint: {}", e)),
+            };
 
         // Rollback on DB failure (fail-closed)
         if db_result.is_err() {
@@ -674,7 +657,9 @@ impl ResumableCognitiveExecution {
                     // Validate checksum before hydrating (fail-closed on mismatch)
                     let computed = self.compute_checksum(&state_snapshot);
                     if computed != db_checksum {
-                        return Err("Checkpoint checksum mismatch — fail-closed, cannot resume".to_string());
+                        return Err(
+                            "Checkpoint checksum mismatch — fail-closed, cannot resume".to_string()
+                        );
                     }
 
                     // Reconstruct checkpoint with decoded snapshot

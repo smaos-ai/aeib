@@ -2,7 +2,6 @@
 ///
 /// Persistent storage layer for paused RCE workflow state with ACID guarantees.
 /// All functions are free functions taking &PgPool, following session_repo pattern.
-
 use chrono::{DateTime, Utc};
 use serde_json::Value as JsonValue;
 use sqlx::PgPool;
@@ -133,7 +132,18 @@ pub async fn fetch_audit_trail(
     )>,
     sqlx::Error,
 > {
-    sqlx::query_as::<_, (Uuid, String, Option<String>, Option<String>, Option<String>, JsonValue, DateTime<Utc>)>(
+    sqlx::query_as::<
+        _,
+        (
+            Uuid,
+            String,
+            Option<String>,
+            Option<String>,
+            Option<String>,
+            JsonValue,
+            DateTime<Utc>,
+        ),
+    >(
         "SELECT id, event_type, decision, decided_by, reason, details, occurred_at
          FROM rce_audit_trail
          WHERE workflow_id = $1

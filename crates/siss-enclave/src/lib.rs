@@ -25,6 +25,12 @@ pub struct EnclaveConfig {
     pub logprob_divergence_threshold: f64,
     /// Tool-call F1 score rejection threshold
     pub tool_f1_threshold: f64,
+    /// ROMA robustness evaluation endpoint (empty = disabled, fail-closed)
+    pub roma_endpoint: String,
+    /// MINT alignment evaluation endpoint (empty = disabled, fail-closed)
+    pub mint_endpoint: String,
+    /// CoReBench compositional reasoning evaluation endpoint (empty = disabled, fail-closed)
+    pub corebench_endpoint: String,
 }
 
 impl Default for EnclaveConfig {
@@ -35,6 +41,9 @@ impl Default for EnclaveConfig {
             canary_traffic_percent: 3,
             logprob_divergence_threshold: 0.15,
             tool_f1_threshold: 0.85,
+            roma_endpoint: String::new(),
+            mint_endpoint: String::new(),
+            corebench_endpoint: String::new(),
         }
     }
 }

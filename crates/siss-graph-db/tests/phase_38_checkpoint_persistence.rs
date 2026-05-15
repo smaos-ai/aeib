@@ -4,13 +4,12 @@
 /// All tests use testcontainers Postgres 16 with migrations applied.
 ///
 /// Expected: All 8 tests FAIL until repo implementation is complete.
-
 use chrono::Utc;
 use serde_json::json;
 use siss_graph_db::repo::rce_checkpoint_repo;
 use sqlx::PgPool;
 use testcontainers::runners::AsyncRunner;
-use testcontainers::{core::WaitFor, GenericImage, ImageExt};
+use testcontainers::{GenericImage, ImageExt, core::WaitFor};
 use uuid::Uuid;
 
 // =====================================================================
@@ -501,7 +500,7 @@ async fn test_occ_update_fails_when_version_mismatch() {
     .unwrap();
 
     assert!(!ok); // rejected — stale version
-                 // State must still reflect the concurrent writer's update
+    // State must still reflect the concurrent writer's update
     let loaded = rce_checkpoint_repo::load_checkpoint(&pool, workflow_id)
         .await
         .unwrap()

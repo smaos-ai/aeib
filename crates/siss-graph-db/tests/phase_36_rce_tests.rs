@@ -1,3 +1,5 @@
+use chrono::Utc;
+use siss_graph_db::rce::{ExecutionState, InterruptSignal, ResumableCognitiveExecution, Step};
 /// Phase 36: Resumable Cognitive Execution — Integration Test Suite
 ///
 /// 18 tests across 4 groups:
@@ -8,12 +10,7 @@
 ///
 /// Run with: cargo test --test phase_36_rce_tests --release
 /// Expected: All 18 FAIL (awaiting RCE implementation)
-
 use uuid::Uuid;
-use chrono::Utc;
-use siss_graph_db::rce::{
-    ResumableCognitiveExecution, ExecutionState, Step, InterruptSignal,
-};
 
 // =====================================================================
 // TEST HARNESS SETUP & MOCK TYPES
@@ -109,7 +106,8 @@ async fn test_02_workflow_pause_saves_checkpoint() {
         timestamp: Some(Utc::now()),
     };
 
-    rce.pause_workflow(signal, snapshot).expect("pause_workflow failed");
+    rce.pause_workflow(signal, snapshot)
+        .expect("pause_workflow failed");
     assert_eq!(rce.get_state(), ExecutionState::Paused);
     assert!(rce.has_checkpoint());
 }
@@ -137,10 +135,12 @@ async fn test_03_workflow_resume_restores_state() {
         timestamp: Some(Utc::now()),
     };
 
-    rce.pause_workflow(signal, snapshot).expect("pause_workflow failed");
+    rce.pause_workflow(signal, snapshot)
+        .expect("pause_workflow failed");
     assert_eq!(rce.get_state(), ExecutionState::Paused);
 
-    rce.resume_workflow_approve().expect("resume_workflow_approve failed");
+    rce.resume_workflow_approve()
+        .expect("resume_workflow_approve failed");
     assert_eq!(rce.get_state(), ExecutionState::Resumed);
     assert_eq!(rce.get_current_step_index(), 0);
 }
@@ -168,7 +168,8 @@ async fn test_04_workflow_reject_rolls_back_effects() {
         timestamp: Some(Utc::now()),
     };
 
-    rce.pause_workflow(signal, snapshot).expect("pause_workflow failed");
+    rce.pause_workflow(signal, snapshot)
+        .expect("pause_workflow failed");
     assert_eq!(rce.get_state(), ExecutionState::Paused);
 
     rce.resume_workflow_reject("operator_rejection".to_string())
@@ -201,7 +202,8 @@ async fn test_05_workflow_modify_applies_new_plan() {
         timestamp: Some(Utc::now()),
     };
 
-    rce.pause_workflow(signal, snapshot).expect("pause_workflow failed");
+    rce.pause_workflow(signal, snapshot)
+        .expect("pause_workflow failed");
 
     let new_plan = vec![
         Step {
@@ -247,7 +249,8 @@ async fn test_06_workflow_timeout_triggers_interrupt() {
         timestamp: Some(Utc::now()),
     };
 
-    rce.pause_workflow(signal, snapshot).expect("pause_workflow failed");
+    rce.pause_workflow(signal, snapshot)
+        .expect("pause_workflow failed");
     assert_eq!(rce.get_state(), ExecutionState::Paused);
 }
 
@@ -267,7 +270,11 @@ async fn test_07_interrupt_from_threat_anticipation() {
     let signal = signal.unwrap();
     assert_eq!(signal.severity, "High");
     assert_eq!(signal.workflow_id, Some(workflow_id));
-    assert!(signal.reason.contains("threat_anticipation_blast_radius_high"));
+    assert!(
+        signal
+            .reason
+            .contains("threat_anticipation_blast_radius_high")
+    );
 }
 
 #[tokio::test]
@@ -306,7 +313,7 @@ async fn test_10_interrupt_severity_levels_respected() {
 
     let mut interrupts = vec![
         InterruptSignal {
-        interrupt_type: "threat".to_string(),
+            interrupt_type: "threat".to_string(),
             workflow_id: Some(workflow_id),
             severity: "Low".to_string(),
             reason: "low_priority".to_string(),
@@ -314,7 +321,7 @@ async fn test_10_interrupt_severity_levels_respected() {
             timestamp: Some(Utc::now()),
         },
         InterruptSignal {
-        interrupt_type: "threat".to_string(),
+            interrupt_type: "threat".to_string(),
             workflow_id: Some(workflow_id),
             severity: "Critical".to_string(),
             reason: "critical_priority".to_string(),
@@ -322,7 +329,7 @@ async fn test_10_interrupt_severity_levels_respected() {
             timestamp: Some(Utc::now()),
         },
         InterruptSignal {
-        interrupt_type: "threat".to_string(),
+            interrupt_type: "threat".to_string(),
             workflow_id: Some(workflow_id),
             severity: "Medium".to_string(),
             reason: "medium_priority".to_string(),
@@ -330,7 +337,7 @@ async fn test_10_interrupt_severity_levels_respected() {
             timestamp: Some(Utc::now()),
         },
         InterruptSignal {
-        interrupt_type: "threat".to_string(),
+            interrupt_type: "threat".to_string(),
             workflow_id: Some(workflow_id),
             severity: "High".to_string(),
             reason: "high_priority".to_string(),
@@ -375,7 +382,8 @@ async fn test_11_checkpoint_integrity_checksum_verified() {
         timestamp: Some(Utc::now()),
     };
 
-    rce.pause_workflow(signal, checkpoint_data).expect("pause_workflow failed");
+    rce.pause_workflow(signal, checkpoint_data)
+        .expect("pause_workflow failed");
 
     let checkpoint = rce.checkpoint.as_ref().expect("No checkpoint found");
     let result = rce.verify_checkpoint_integrity(checkpoint, 1);
@@ -406,7 +414,8 @@ async fn test_12_checkpoint_corruption_detected_on_restore() {
         timestamp: Some(Utc::now()),
     };
 
-    rce.pause_workflow(signal, checkpoint_data).expect("pause_workflow failed");
+    rce.pause_workflow(signal, checkpoint_data)
+        .expect("pause_workflow failed");
 
     // Corrupt the checkpoint by manually truncating the data
     if let Some(ref mut checkpoint) = rce.checkpoint {
@@ -443,7 +452,8 @@ async fn test_13_checkpoint_version_mismatch_detected() {
         timestamp: Some(Utc::now()),
     };
 
-    rce.pause_workflow(signal, checkpoint_data).expect("pause_workflow failed");
+    rce.pause_workflow(signal, checkpoint_data)
+        .expect("pause_workflow failed");
 
     let checkpoint = rce.checkpoint.as_ref().expect("No checkpoint found");
     // Verify with wrong version should fail
@@ -464,21 +474,30 @@ async fn test_14_serialization_roundtrip_preserves_context() {
         idempotent: true,
     }];
 
-    original_rce.start_workflow(plan).expect("start_workflow failed");
+    original_rce
+        .start_workflow(plan)
+        .expect("start_workflow failed");
 
     // Serialize the RCE state
-    let serialized = original_rce.serialize_state().expect("Serialization failed");
-    assert!(!serialized.is_empty(), "Serialized data should not be empty");
+    let serialized = original_rce
+        .serialize_state()
+        .expect("Serialization failed");
+    assert!(
+        !serialized.is_empty(),
+        "Serialized data should not be empty"
+    );
 
     // Deserialize back
-    let deserialized_rce =
-        ResumableCognitiveExecution::deserialize_state(&serialized)
-            .expect("Deserialization failed");
+    let deserialized_rce = ResumableCognitiveExecution::deserialize_state(&serialized)
+        .expect("Deserialization failed");
 
     // Verify roundtrip preserves key fields
     assert_eq!(deserialized_rce.workflow_id, original_rce.workflow_id);
     assert_eq!(deserialized_rce.state, original_rce.state);
-    assert_eq!(deserialized_rce.current_step_index, original_rce.current_step_index);
+    assert_eq!(
+        deserialized_rce.current_step_index,
+        original_rce.current_step_index
+    );
     assert_eq!(deserialized_rce.plan.len(), original_rce.plan.len());
 }
 
@@ -551,7 +570,10 @@ async fn test_17_resource_exhaustion_triggers_interrupt() {
     let threshold = 80.0f64;
 
     let signal = rce.check_resource_exhaustion_interrupt(heap_usage_percent, threshold);
-    assert!(signal.is_some(), "Resource exhaustion should trigger interrupt");
+    assert!(
+        signal.is_some(),
+        "Resource exhaustion should trigger interrupt"
+    );
 
     let signal = signal.unwrap();
     assert_eq!(signal.severity, "High");
@@ -587,10 +609,12 @@ async fn test_18_human_decision_immutable_in_audit_trail() {
         timestamp: Some(Utc::now()),
     };
 
-    rce.pause_workflow(signal, snapshot).expect("pause_workflow failed");
+    rce.pause_workflow(signal, snapshot)
+        .expect("pause_workflow failed");
 
     // Record an approval decision
-    rce.resume_workflow_approve().expect("resume_workflow_approve failed");
+    rce.resume_workflow_approve()
+        .expect("resume_workflow_approve failed");
 
     // Get the history
     let history = rce.get_history();

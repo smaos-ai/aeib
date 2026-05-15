@@ -2,21 +2,20 @@
 ///
 /// Real-time SSE stream + decision webhook for RCE state machine.
 /// Spec: docs/api/phase-37-ag-ui-spec.md
-
 use async_stream::stream;
 use axum::{
+    Json, Router,
     extract::{Path, Query, State},
     http::StatusCode,
-    response::{sse::Event, Sse, IntoResponse},
+    response::{IntoResponse, Sse, sse::Event},
     routing::{get, post},
-    Json, Router,
 };
 use chrono::Utc;
 use futures::Stream;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::sync::Arc;
-use tokio::sync::{broadcast, RwLock};
+use tokio::sync::{RwLock, broadcast};
 use uuid::Uuid;
 
 use crate::rce::{ExecutionState, ResumableCognitiveExecution, Step};
@@ -185,9 +184,13 @@ pub async fn handle_decision(
 
     // Apply decision
     let result = match req.decision.as_str() {
-        "Approve" => rce.resume_workflow_approve().map(|_| ("approve", rce.get_state())),
+        "Approve" => rce
+            .resume_workflow_approve()
+            .map(|_| ("approve", rce.get_state())),
         "Reject" => {
-            let reason = req.reason.unwrap_or_else(|| "operator_decision".to_string());
+            let reason = req
+                .reason
+                .unwrap_or_else(|| "operator_decision".to_string());
             rce.resume_workflow_reject(reason)
                 .map(|_| ("reject", rce.get_state()))
         }
@@ -231,7 +234,9 @@ pub async fn handle_decision(
                 "reject" => RceEvent::WorkflowRejected {
                     workflow_id,
                     timestamp,
-                    reason: reject_reason.clone().unwrap_or_else(|| "operator_decision".to_string()),
+                    reason: reject_reason
+                        .clone()
+                        .unwrap_or_else(|| "operator_decision".to_string()),
                 },
                 _ => RceEvent::WorkflowResumed {
                     workflow_id,
@@ -587,10 +592,19 @@ pub fn rce_router(state: RceState) -> Router {
         .route("/stream", get(handle_stream))
         .route("/decision", post(handle_decision))
         .route("/:workflow_id/projection", get(handle_get_projection))
-        .route("/:workflow_id/projection/threat-anticipation", get(handle_get_threat_anticipation))
-        .route("/:workflow_id/projection/root-cause", get(handle_get_root_cause))
+        .route(
+            "/:workflow_id/projection/threat-anticipation",
+            get(handle_get_threat_anticipation),
+        )
+        .route(
+            "/:workflow_id/projection/root-cause",
+            get(handle_get_root_cause),
+        )
         .route("/:workflow_id/projection/swot", get(handle_get_swot))
         .route("/:workflow_id/checkpoint", get(handle_get_checkpoint))
-        .route("/:workflow_id/checkpoint/save", post(handle_save_checkpoint))
+        .route(
+            "/:workflow_id/checkpoint/save",
+            post(handle_save_checkpoint),
+        )
         .with_state(state)
 }

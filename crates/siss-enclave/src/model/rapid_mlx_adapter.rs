@@ -1,12 +1,17 @@
 use async_trait::async_trait;
 use reqwest::Client;
 use std::sync::Arc;
+use std::time::Duration;
 
 use crate::routing::canary_router::{Payload, ShadowAdapter, ShadowInferenceResult};
 
 pub struct RapidMLXAdapter {
     client: Client,
     endpoint: String,
+    roma_endpoint: String,
+    mint_endpoint: String,
+    corebench_endpoint: String,
+    eval_timeout: Duration,
 }
 
 impl RapidMLXAdapter {
@@ -14,6 +19,26 @@ impl RapidMLXAdapter {
         Self {
             client: Client::new(),
             endpoint: endpoint.to_string(),
+            roma_endpoint: String::new(),
+            mint_endpoint: String::new(),
+            corebench_endpoint: String::new(),
+            eval_timeout: Duration::from_millis(200),
+        }
+    }
+
+    pub fn with_eval_endpoints(
+        endpoint: &str,
+        roma_endpoint: &str,
+        mint_endpoint: &str,
+        corebench_endpoint: &str,
+    ) -> Self {
+        Self {
+            client: Client::new(),
+            endpoint: endpoint.to_string(),
+            roma_endpoint: roma_endpoint.to_string(),
+            mint_endpoint: mint_endpoint.to_string(),
+            corebench_endpoint: corebench_endpoint.to_string(),
+            eval_timeout: Duration::from_millis(200),
         }
     }
 
@@ -92,6 +117,75 @@ impl RapidMLXAdapter {
             }
         }
     }
+
+    async fn call_roma(&self, _payload: &Payload) -> f64 {
+        if self.roma_endpoint.is_empty() {
+            return 0.0;
+        }
+        let body = serde_json::json!({ "payload": "robustness" });
+        match tokio::time::timeout(
+            self.eval_timeout,
+            self.client.post(&self.roma_endpoint).json(&body).send(),
+        )
+        .await
+        {
+            Ok(Ok(resp)) if resp.status().is_success() => resp
+                .json::<serde_json::Value>()
+                .await
+                .ok()
+                .and_then(|v| v.get("score").and_then(|s| s.as_f64()))
+                .unwrap_or(0.0)
+                .clamp(0.0, 1.0),
+            _ => 0.0,
+        }
+    }
+
+    async fn call_mint(&self, _payload: &Payload) -> f64 {
+        if self.mint_endpoint.is_empty() {
+            return 0.0;
+        }
+        let body = serde_json::json!({ "payload": "alignment" });
+        match tokio::time::timeout(
+            self.eval_timeout,
+            self.client.post(&self.mint_endpoint).json(&body).send(),
+        )
+        .await
+        {
+            Ok(Ok(resp)) if resp.status().is_success() => resp
+                .json::<serde_json::Value>()
+                .await
+                .ok()
+                .and_then(|v| v.get("score").and_then(|s| s.as_f64()))
+                .unwrap_or(0.0)
+                .clamp(0.0, 1.0),
+            _ => 0.0,
+        }
+    }
+
+    async fn call_corebench(&self, _payload: &Payload) -> f64 {
+        if self.corebench_endpoint.is_empty() {
+            return 0.0;
+        }
+        let body = serde_json::json!({ "payload": "corebench" });
+        match tokio::time::timeout(
+            self.eval_timeout,
+            self.client
+                .post(&self.corebench_endpoint)
+                .json(&body)
+                .send(),
+        )
+        .await
+        {
+            Ok(Ok(resp)) if resp.status().is_success() => resp
+                .json::<serde_json::Value>()
+                .await
+                .ok()
+                .and_then(|v| v.get("score").and_then(|s| s.as_f64()))
+                .unwrap_or(0.0)
+                .clamp(0.0, 1.0),
+            _ => 0.0,
+        }
+    }
 }
 
 #[async_trait]
@@ -145,12 +239,18 @@ impl ShadowAdapter for RapidMLXAdapter {
         let divergence = self.compute_divergence(&shadow_logprobs, &payload.baseline_logprobs);
         let f1_score = self.compute_tool_f1(&shadow_tools, &payload.baseline_tools);
 
+        let (robustness_score, alignment_score, corebench_score) = tokio::join!(
+            self.call_roma(&payload),
+            self.call_mint(&payload),
+            self.call_corebench(&payload),
+        );
+
         Ok(ShadowInferenceResult {
             divergence,
             f1_score,
-            robustness_score: 0.0,
-            alignment_score: 0.0,
-            corebench_score: 0.0,
+            robustness_score,
+            alignment_score,
+            corebench_score,
             per_modality: vec![],
         })
     }

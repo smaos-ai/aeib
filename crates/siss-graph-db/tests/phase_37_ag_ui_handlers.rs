@@ -1,11 +1,10 @@
 #![cfg(feature = "axum")]
 
+use siss_graph_db::rce::ExecutionState;
 /// Phase 37: AG-UI Handler Scaffolding Tests
 ///
 /// Verify handler signatures compile and basic state management works.
-
 use siss_graph_db::rce_axum_handlers::RceState;
-use siss_graph_db::rce::ExecutionState;
 use uuid::Uuid;
 
 #[test]

@@ -29,6 +29,10 @@ impl ShadowAdapter for ChaosMockAdapter {
         Ok(ShadowInferenceResult {
             divergence: 0.0,
             f1_score: 1.0,
+            robustness_score: 0.0,
+            alignment_score: 0.0,
+            corebench_score: 0.0,
+            per_modality: vec![],
         })
     }
 }

@@ -2,6 +2,7 @@ use anyhow::Result;
 use tracing::{info, warn};
 
 use crate::events::sse_emitter::{SseEmitter, SseEvent};
+use crate::model::modality::Modality;
 
 #[async_trait::async_trait]
 pub trait Judge: Send + Sync {
@@ -12,6 +13,7 @@ pub trait Judge: Send + Sync {
 pub struct Verdict {
     pub pass: bool,
     pub reason: String,
+    pub approved_for_modalities: Vec<Modality>,
 }
 
 #[async_trait::async_trait]

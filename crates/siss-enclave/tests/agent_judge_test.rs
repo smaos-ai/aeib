@@ -5,12 +5,16 @@ use tokio::sync::mpsc;
 #[tokio::test]
 async fn test_judge_rejects_high_divergence() {
     let (tx, rx) = mpsc::channel(10);
-    let mut judge = AgentJudge::new(rx, Duration::from_secs(5));
+    let judge = AgentJudge::new(rx, Duration::from_secs(5));
 
     // divergence >= 0.15 should fail
     let req = EvaluationRequest {
         divergence: 0.16,
         f1_score: 1.0,
+        robustness_score: 0.95,
+        alignment_score: 0.85,
+        corebench_score: 0.80,
+        per_modality: vec![],
     };
     tx.send(req).await.unwrap();
 
@@ -21,12 +25,16 @@ async fn test_judge_rejects_high_divergence() {
 #[tokio::test]
 async fn test_judge_rejects_low_f1_score() {
     let (tx, rx) = mpsc::channel(10);
-    let mut judge = AgentJudge::new(rx, Duration::from_secs(5));
+    let judge = AgentJudge::new(rx, Duration::from_secs(5));
 
     // F1 score dropping below baseline (e.g., < 0.95) should fail
     let req = EvaluationRequest {
         divergence: 0.05,
         f1_score: 0.80,
+        robustness_score: 0.95,
+        alignment_score: 0.85,
+        corebench_score: 0.80,
+        per_modality: vec![],
     };
     tx.send(req).await.unwrap();
 
@@ -38,7 +46,7 @@ async fn test_judge_rejects_low_f1_score() {
 async fn test_judge_timeout_fails_closed() {
     let (_tx, rx) = mpsc::channel(10);
     // Aggressive timeout for test
-    let mut judge = AgentJudge::new(rx, Duration::from_millis(10));
+    let judge = AgentJudge::new(rx, Duration::from_millis(10));
 
     // No message sent, channel stays open, judge should timeout and fail closed
     let result = judge.evaluate_next().await.unwrap();

@@ -148,6 +148,10 @@ impl ShadowAdapter for RapidMLXAdapter {
         Ok(ShadowInferenceResult {
             divergence,
             f1_score,
+            robustness_score: 0.0,
+            alignment_score: 0.0,
+            corebench_score: 0.0,
+            per_modality: vec![],
         })
     }
 }

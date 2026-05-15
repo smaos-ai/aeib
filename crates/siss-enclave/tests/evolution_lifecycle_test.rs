@@ -34,6 +34,7 @@ impl Judge for MockJudge {
         Ok(Verdict {
             pass: self.pass,
             reason: "".into(),
+            approved_for_modalities: vec![],
         })
     }
 }

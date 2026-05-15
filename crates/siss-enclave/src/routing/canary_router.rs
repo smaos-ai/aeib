@@ -2,6 +2,8 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use tokio::sync::mpsc;
 
+use crate::model::modality::PerModalityScores;
+
 #[derive(Clone)]
 pub struct Payload {
     pub baseline_logprobs: Vec<f64>,
@@ -12,6 +14,10 @@ pub struct Payload {
 pub struct ShadowInferenceResult {
     pub divergence: f64,
     pub f1_score: f64,
+    pub robustness_score: f64,
+    pub alignment_score: f64,
+    pub corebench_score: f64,
+    pub per_modality: Vec<PerModalityScores>,
 }
 
 #[async_trait::async_trait]

@@ -14,10 +14,13 @@ impl ShadowAdapter for MockAdapter {
         Ok(ShadowInferenceResult {
             divergence: 0.05,
             f1_score: 0.98,
+            robustness_score: 0.95,
+            alignment_score: 0.85,
+            corebench_score: 0.80,
+            per_modality: vec![],
         })
     }
 }
-
 
 #[tokio::test]
 async fn test_canary_router_forwards_result_to_agent_judge() {
@@ -56,6 +59,10 @@ async fn test_agent_judge_implements_judge_trait_pass() {
             .send(EvaluationRequest {
                 divergence: 0.05,
                 f1_score: 0.98,
+                robustness_score: 0.95,
+                alignment_score: 0.85,
+                corebench_score: 0.80,
+                per_modality: vec![],
             })
             .await
             .ok();
@@ -82,6 +89,10 @@ async fn test_agent_judge_implements_judge_trait_fail() {
             .send(EvaluationRequest {
                 divergence: 0.20,
                 f1_score: 0.98,
+                robustness_score: 0.95,
+                alignment_score: 0.85,
+                corebench_score: 0.80,
+                per_modality: vec![],
             })
             .await
             .ok();

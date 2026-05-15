@@ -1,0 +1,102 @@
+{
+  "swarm_name": "arxiv-ingestion-refactor",
+  "description": "Parallel refactor of ArxivIngestionService with improved error handling and retry logic",
+  "coordinator": {
+    "role": "Orchestrator",
+    "responsibility": "Spawn workers, assign tasks, manage completion, roll up synthesis report",
+    "model": "claude-opus-4-7",
+    "timeout_seconds": 3600
+  },
+  "workers": [
+    {
+      "id": "architect",
+      "role": "Code-Explorer & Designer",
+      "responsibility": "Analyze ArxivIngestionService, design new exception interface, apply signature changes",
+      "model": "claude-opus-4-7",
+      "skills": ["java-architecture", "code-analysis"],
+      "read_tracking": ["src/main/java/ai/sovereign/code/service/ArxivIngestionService.java"],
+      "write_scope": [
+        "src/main/java/ai/sovereign/code/service/ArxivIngestionService.java",
+        "src/main/java/ai/sovereign/code/exception/"
+      ],
+      "timeout_seconds": 1800
+    },
+    {
+      "id": "test_writer",
+      "role": "Test-Writer-Fixer",
+      "responsibility": "Write failing tests first (TDD), then validate passing tests",
+      "model": "claude-sonnet-4-6",
+      "skills": ["java-architecture", "test-generation"],
+      "read_tracking": ["src/main/java/ai/sovereign/code/service/ArxivIngestionService.java"],
+      "write_scope": ["src/test/java/ai/sovereign/code/service/"],
+      "timeout_seconds": 1200,
+      "depends_on": ["architect"]
+    },
+    {
+      "id": "implementer",
+      "role": "Caller Updater",
+      "responsibility": "Find all callers of ArxivIngestionService, update to match new signature",
+      "model": "claude-sonnet-4-6",
+      "skills": ["java-architecture"],
+      "read_tracking": [
+        "src/main/java/ai/sovereign/code/controller/IngestionController.java",
+        "src/main/java/ai/sovereign/code/config/IngestionScheduler.java",
+        "src/main/java/ai/sovereign/code/service/ArxivIngestionService.java"
+      ],
+      "write_scope": [
+        "src/main/java/ai/sovereign/code/controller/IngestionController.java",
+        "src/main/java/ai/sovereign/code/config/IngestionScheduler.java"
+      ],
+      "timeout_seconds": 1200,
+      "depends_on": ["architect"]
+    },
+    {
+      "id": "validator",
+      "role": "Adversarial Code-Reviewer",
+      "responsibility": "Enforce java-architecture rules, detect regressions, sign-off on diffs",
+      "model": "claude-opus-4-7",
+      "skills": ["java-architecture"],
+      "read_tracking": [
+        "src/main/java/ai/sovereign/code/service/ArxivIngestionService.java",
+        "src/main/java/ai/sovereign/code/controller/IngestionController.java",
+        "src/main/java/ai/sovereign/code/config/IngestionScheduler.java",
+        "src/test/java/ai/sovereign/code/service/"
+      ],
+      "write_scope": [],
+      "timeout_seconds": 900,
+      "depends_on": ["architect", "test_writer", "implementer"]
+    }
+  ],
+  "messaging": {
+    "broadcast_on_code_shift": true,
+    "event_handlers": {
+      "ArxivIngestionService.java": ["implementer", "test_writer", "validator"],
+      "IngestionController.java": ["validator"],
+      "IngestionScheduler.java": ["validator"]
+    }
+  },
+  "validation_gates": [
+    {
+      "name": "all-tests-pass",
+      "trigger": "test_writer reports completion",
+      "action": "validator runs full integration test suite"
+    },
+    {
+      "name": "no-breaking-changes",
+      "trigger": "implementer reports completion",
+      "action": "validator scans all updated callers for signature mismatches"
+    },
+    {
+      "name": "architecture-compliance",
+      "trigger": "all workers report completion",
+      "action": "validator enforces java-architecture skill rules"
+    }
+  ],
+  "success_criteria": {
+    "all_workers_completed": true,
+    "validator_sign_off": true,
+    "test_suite_passing": true,
+    "no_regressions": true,
+    "zero_dead_code": true
+  }
+}

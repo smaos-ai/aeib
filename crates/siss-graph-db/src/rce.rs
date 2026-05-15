@@ -6,7 +6,6 @@
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use uuid::Uuid;
 
 // =====================================================================
@@ -511,6 +510,91 @@ impl ResumableCognitiveExecution {
         } else {
             None
         }
+    }
+
+    // =====================================================================
+    // ASYNC VARIANTS WITH DATABASE PERSISTENCE (PHASE 40)
+    // =====================================================================
+
+    /// Pause workflow with automatic PostgreSQL checkpoint persistence
+    /// Perform → Paused with fail-closed rollback on DB error
+    pub async fn pause_workflow_with_persistence(
+        &mut self,
+        interrupt_signal: InterruptSignal,
+        state_snapshot: Vec<u8>,
+        pool: &sqlx::PgPool,
+    ) -> Result<(), String> {
+        // Save original state for rollback
+        let original_state = self.state;
+        let original_step_index = self.current_step_index;
+
+        // Perform in-memory pause transition
+        self.pause_workflow(interrupt_signal.clone(), state_snapshot.clone())?;
+
+        // Attempt to persist checkpoint to PostgreSQL
+        let checkpoint = self.checkpoint.as_ref().ok_or("Checkpoint not created")?;
+        let state_json = serde_json::json!({
+            "workflow_id": self.workflow_id,
+            "step_index": checkpoint.step_index,
+            "plan_size": self.plan.len(),
+            "reason": interrupt_signal.reason,
+        });
+
+        match crate::repo::rce_checkpoint_repo::save_checkpoint(
+            pool,
+            self.workflow_id,
+            checkpoint.step_index as i32,
+            &state_json,
+            &checkpoint.checksum,
+            checkpoint.version as i32,
+            &interrupt_signal.reason,
+            &interrupt_signal.severity,
+        )
+        .await
+        {
+            Ok(_) => Ok(()),
+            Err(db_error) => {
+                // Fail-closed: Rollback pause transition on DB failure
+                self.state = original_state;
+                self.current_step_index = original_step_index;
+                self.checkpoint = None;
+                self.history.pop(); // Remove the workflow_paused event we just added
+                Err(format!("Failed to persist checkpoint: {}", db_error))
+            }
+        }
+    }
+
+    /// Resume workflow with automatic PostgreSQL checkpoint hydration
+    /// Paused → Resumed with state restoration from database
+    pub async fn resume_workflow_approve_with_persistence(
+        &mut self,
+        pool: &sqlx::PgPool,
+    ) -> Result<(), String> {
+        // Try to load checkpoint from PostgreSQL if not in memory
+        if self.checkpoint.is_none() {
+            match crate::repo::rce_checkpoint_repo::load_checkpoint(pool, self.workflow_id).await {
+                Ok(Some((_, step_index, _state_json, checksum, version, reason))) => {
+                    // Reconstruct checkpoint from DB
+                    self.checkpoint = Some(Checkpoint {
+                        step_index: step_index as usize,
+                        state_snapshot: vec![], // Snapshot not needed for validation here
+                        timestamp: Utc::now(),
+                        reason,
+                        checksum,
+                        version: version as usize,
+                    });
+                }
+                Ok(None) => {
+                    return Err("No checkpoint found in database or memory".to_string());
+                }
+                Err(e) => {
+                    return Err(format!("Failed to load checkpoint from database: {}", e));
+                }
+            }
+        }
+
+        // Now proceed with in-memory resume
+        self.resume_workflow_approve()
     }
 }
 

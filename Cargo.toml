@@ -11,6 +11,7 @@ members = [
     "crates/siss-agent-shell",
     "crates/siss-agent-card",
     "crates/siss-mcp-gitnexus",
+    "crates/siss-enclave",
 ]
 
 [workspace.package]

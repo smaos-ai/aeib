@@ -10,6 +10,7 @@ pub mod recovery_event_broadcaster;
 pub mod recovery_extractor;
 pub mod recovery_sweep_scheduler;
 pub mod repo;
+pub mod rce;
 pub mod signal_acceleration;
 pub mod signal_reinforcement;
 pub mod signal_tier_promotion;

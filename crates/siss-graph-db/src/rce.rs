@@ -27,7 +27,19 @@ pub struct Step {
     pub id: Uuid,
     pub name: String,
     pub timeout_ms: u64,
+    #[serde(default)]
     pub idempotent: bool,
+}
+
+impl Default for Step {
+    fn default() -> Self {
+        Self {
+            id: Uuid::nil(),
+            name: String::new(),
+            timeout_ms: 0,
+            idempotent: true,
+        }
+    }
 }
 
 /// Checkpoint captures execution state at pause point
@@ -62,11 +74,28 @@ pub enum HumanDecision {
 /// Interrupt signal from π+ projections
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InterruptSignal {
-    pub workflow_id: Uuid,
+    pub interrupt_type: String,
     pub severity: String,
     pub reason: String,
+    #[serde(default)]
+    pub workflow_id: Option<Uuid>,
+    #[serde(default)]
     pub human_approval_required: bool,
-    pub timestamp: DateTime<Utc>,
+    #[serde(default)]
+    pub timestamp: Option<DateTime<Utc>>,
+}
+
+impl Default for InterruptSignal {
+    fn default() -> Self {
+        Self {
+            interrupt_type: String::new(),
+            severity: String::new(),
+            reason: String::new(),
+            workflow_id: None,
+            human_approval_required: false,
+            timestamp: None,
+        }
+    }
 }
 
 /// Core Resumable Cognitive Execution state machine
@@ -159,11 +188,16 @@ impl ResumableCognitiveExecution {
         self.updated_at = Utc::now();
 
         // Record event
+        let step_id = if self.current_step_index < self.plan.len() {
+            Some(self.plan[self.current_step_index].id)
+        } else {
+            None
+        };
         self.history.push(Event {
             id: Uuid::new_v4(),
             event_type: "workflow_paused".to_string(),
             timestamp: Utc::now(),
-            step_id: Some(self.plan[self.current_step_index].id),
+            step_id,
             details: serde_json::json!({
                 "reason": interrupt_signal.reason,
                 "severity": interrupt_signal.severity,
@@ -194,11 +228,16 @@ impl ResumableCognitiveExecution {
         self.updated_at = Utc::now();
 
         // Record event
+        let step_id = if self.current_step_index < self.plan.len() {
+            Some(self.plan[self.current_step_index].id)
+        } else {
+            None
+        };
         self.history.push(Event {
             id: Uuid::new_v4(),
             event_type: "workflow_resumed".to_string(),
             timestamp: Utc::now(),
-            step_id: Some(self.plan[self.current_step_index].id),
+            step_id,
             details: serde_json::json!({
                 "decision": "approve",
             }),
@@ -263,11 +302,16 @@ impl ResumableCognitiveExecution {
         self.updated_at = Utc::now();
 
         // Record event
+        let step_id = if self.current_step_index < self.plan.len() {
+            Some(self.plan[self.current_step_index].id)
+        } else {
+            None
+        };
         self.history.push(Event {
             id: Uuid::new_v4(),
             event_type: "workflow_resumed".to_string(),
             timestamp: Utc::now(),
-            step_id: Some(self.plan[self.current_step_index].id),
+            step_id,
             details: serde_json::json!({
                 "decision": "modify",
                 "new_step_count": self.plan.len(),
@@ -357,14 +401,15 @@ impl ResumableCognitiveExecution {
     ) -> Option<InterruptSignal> {
         if tokens_at_risk > threshold {
             Some(InterruptSignal {
-                workflow_id: self.workflow_id,
+                interrupt_type: "threat_anticipation".to_string(),
                 severity: "High".to_string(),
                 reason: format!(
                     "threat_anticipation_blast_radius_high: {} tokens at risk (threshold: {})",
                     tokens_at_risk, threshold
                 ),
+                workflow_id: Some(self.workflow_id),
                 human_approval_required: true,
-                timestamp: Utc::now(),
+                timestamp: Some(Utc::now()),
             })
         } else {
             None
@@ -380,14 +425,15 @@ impl ResumableCognitiveExecution {
     ) -> Option<InterruptSignal> {
         if confidence > threshold {
             Some(InterruptSignal {
-                workflow_id: self.workflow_id,
+                interrupt_type: "root_cause".to_string(),
                 severity: "Critical".to_string(),
                 reason: format!(
                     "root_cause_discovered: confidence {:.2} exceeds threshold {:.2}",
                     confidence, threshold
                 ),
+                workflow_id: Some(self.workflow_id),
                 human_approval_required: true,
-                timestamp: Utc::now(),
+                timestamp: Some(Utc::now()),
             })
         } else {
             None
@@ -403,14 +449,15 @@ impl ResumableCognitiveExecution {
     ) -> Option<InterruptSignal> {
         if diversity_index < threshold {
             Some(InterruptSignal {
-                workflow_id: self.workflow_id,
+                interrupt_type: "swot_degradation".to_string(),
                 severity: "High".to_string(),
                 reason: format!(
                     "swot_scenario_degradation: diversity index {:.2} below threshold {:.2}",
                     diversity_index, threshold
                 ),
+                workflow_id: Some(self.workflow_id),
                 human_approval_required: true,
-                timestamp: Utc::now(),
+                timestamp: Some(Utc::now()),
             })
         } else {
             None
@@ -498,14 +545,15 @@ impl ResumableCognitiveExecution {
     ) -> Option<InterruptSignal> {
         if self.check_resource_exhaustion(heap_usage_percent, threshold) {
             Some(InterruptSignal {
-                workflow_id: self.workflow_id,
+                interrupt_type: "resource_exhaustion".to_string(),
                 severity: "High".to_string(),
                 reason: format!(
                     "resource_exhaustion: heap usage {:.1}% exceeds threshold {:.1}%",
                     heap_usage_percent, threshold
                 ),
+                workflow_id: Some(self.workflow_id),
                 human_approval_required: true,
-                timestamp: Utc::now(),
+                timestamp: Some(Utc::now()),
             })
         } else {
             None
@@ -518,54 +566,96 @@ impl ResumableCognitiveExecution {
 
     /// Pause workflow with automatic PostgreSQL checkpoint persistence
     /// Perform → Paused with fail-closed rollback on DB error
+    /// Supports re-pause with OCC: loads existing checkpoint, increments version
     pub async fn pause_workflow_with_persistence(
         &mut self,
-        interrupt_signal: InterruptSignal,
+        interrupt_signal: &InterruptSignal,
         state_snapshot: Vec<u8>,
         pool: &sqlx::PgPool,
     ) -> Result<(), String> {
         // Save original state for rollback
         let original_state = self.state;
         let original_step_index = self.current_step_index;
+        let original_checkpoint = self.checkpoint.clone();
 
-        // Perform in-memory pause transition
+        // Perform in-memory pause transition (sets version=1)
         self.pause_workflow(interrupt_signal.clone(), state_snapshot.clone())?;
 
-        // Attempt to persist checkpoint to PostgreSQL
         let checkpoint = self.checkpoint.as_ref().ok_or("Checkpoint not created")?;
+        let snapshot_hex = hex::encode(&state_snapshot);
         let state_json = serde_json::json!({
             "workflow_id": self.workflow_id,
             "step_index": checkpoint.step_index,
             "plan_size": self.plan.len(),
             "reason": interrupt_signal.reason,
+            "snapshot_hex": snapshot_hex,
         });
 
-        match crate::repo::rce_checkpoint_repo::save_checkpoint(
-            pool,
-            self.workflow_id,
-            checkpoint.step_index as i32,
-            &state_json,
-            &checkpoint.checksum,
-            checkpoint.version as i32,
-            &interrupt_signal.reason,
-            &interrupt_signal.severity,
-        )
-        .await
-        {
-            Ok(_) => Ok(()),
-            Err(db_error) => {
-                // Fail-closed: Rollback pause transition on DB failure
-                self.state = original_state;
-                self.current_step_index = original_step_index;
-                self.checkpoint = None;
-                self.history.pop(); // Remove the workflow_paused event we just added
-                Err(format!("Failed to persist checkpoint: {}", db_error))
+        // Check if checkpoint exists in DB → OCC update or initial save
+        let db_result = match crate::repo::rce_checkpoint_repo::load_checkpoint(
+            pool, self.workflow_id
+        ).await {
+            Ok(Some((_, _, _, _, db_version, _))) => {
+                // Re-pause: use OCC to increment version
+                let new_version = db_version + 1;
+                if let Some(ref mut cp) = self.checkpoint {
+                    cp.version = new_version as usize;
+                }
+                let cp = self.checkpoint.as_ref().unwrap();
+                match crate::repo::rce_checkpoint_repo::update_checkpoint_occ(
+                    pool,
+                    self.workflow_id,
+                    db_version,
+                    cp.step_index as i32,
+                    &state_json,
+                    &cp.checksum,
+                    new_version,
+                    &interrupt_signal.reason,
+                    &interrupt_signal.severity,
+                )
+                .await
+                {
+                    Ok(true) => Ok(()),
+                    Ok(false) => Err("OCC conflict: concurrent checkpoint update — retry required".to_string()),
+                    Err(e) => Err(format!("DB error on OCC update: {}", e)),
+                }
             }
+            Ok(None) => {
+                // Initial pause: save with version=1
+                let cp = self.checkpoint.as_ref().unwrap();
+                match crate::repo::rce_checkpoint_repo::save_checkpoint(
+                    pool,
+                    self.workflow_id,
+                    cp.step_index as i32,
+                    &state_json,
+                    &cp.checksum,
+                    1,
+                    &interrupt_signal.reason,
+                    &interrupt_signal.severity,
+                )
+                .await
+                {
+                    Ok(_) => Ok(()),
+                    Err(e) => Err(format!("Failed to persist checkpoint: {}", e)),
+                }
+            }
+            Err(e) => Err(format!("Failed to check existing checkpoint: {}", e)),
+        };
+
+        // Rollback on DB failure (fail-closed)
+        if db_result.is_err() {
+            self.state = original_state;
+            self.current_step_index = original_step_index;
+            self.checkpoint = original_checkpoint;
+            self.history.pop();
         }
+
+        db_result
     }
 
     /// Resume workflow with automatic PostgreSQL checkpoint hydration
     /// Paused → Resumed with state restoration from database
+    /// Decodes snapshot_hex and validates checksum (fail-closed on mismatch)
     pub async fn resume_workflow_approve_with_persistence(
         &mut self,
         pool: &sqlx::PgPool,
@@ -573,16 +663,32 @@ impl ResumableCognitiveExecution {
         // Try to load checkpoint from PostgreSQL if not in memory
         if self.checkpoint.is_none() {
             match crate::repo::rce_checkpoint_repo::load_checkpoint(pool, self.workflow_id).await {
-                Ok(Some((_, step_index, _state_json, checksum, version, reason))) => {
-                    // Reconstruct checkpoint from DB
+                Ok(Some((_, step_index, state_json, db_checksum, version, reason))) => {
+                    // Decode snapshot_hex from JSONB (fail-closed if missing)
+                    let snapshot_hex = state_json["snapshot_hex"]
+                        .as_str()
+                        .ok_or("snapshot_hex missing from DB checkpoint — corrupt record")?;
+                    let state_snapshot = hex::decode(snapshot_hex)
+                        .map_err(|e| format!("Failed to decode snapshot_hex: {}", e))?;
+
+                    // Validate checksum before hydrating (fail-closed on mismatch)
+                    let computed = self.compute_checksum(&state_snapshot);
+                    if computed != db_checksum {
+                        return Err("Checkpoint checksum mismatch — fail-closed, cannot resume".to_string());
+                    }
+
+                    // Reconstruct checkpoint with decoded snapshot
                     self.checkpoint = Some(Checkpoint {
                         step_index: step_index as usize,
-                        state_snapshot: vec![], // Snapshot not needed for validation here
+                        state_snapshot,
                         timestamp: Utc::now(),
                         reason,
-                        checksum,
+                        checksum: db_checksum,
                         version: version as usize,
                     });
+
+                    // Transition to Paused state (this is what DB checkpoint represents)
+                    self.state = ExecutionState::Paused;
                 }
                 Ok(None) => {
                     return Err("No checkpoint found in database or memory".to_string());
@@ -593,7 +699,7 @@ impl ResumableCognitiveExecution {
             }
         }
 
-        // Now proceed with in-memory resume
+        // Checkpoint is now in memory (either was already, or just hydrated above)
         self.resume_workflow_approve()
     }
 }
@@ -639,11 +745,12 @@ mod tests {
 
         let snapshot = vec![1, 2, 3, 4, 5];
         let signal = InterruptSignal {
-            workflow_id: rce.workflow_id,
+            interrupt_type: "test".to_string(),
             severity: "High".to_string(),
             reason: "test_interrupt".to_string(),
+            workflow_id: Some(rce.workflow_id),
             human_approval_required: true,
-            timestamp: Utc::now(),
+            timestamp: Some(Utc::now()),
         };
 
         rce.pause_workflow(signal, snapshot).unwrap();

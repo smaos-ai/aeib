@@ -101,11 +101,12 @@ async fn test_02_workflow_pause_saves_checkpoint() {
 
     let snapshot = vec![1, 2, 3, 4, 5];
     let signal = InterruptSignal {
-        workflow_id: rce.workflow_id,
+        interrupt_type: "threat".to_string(),
         severity: "High".to_string(),
         reason: "threat_anticipation_blast_radius_high".to_string(),
+        workflow_id: Some(rce.workflow_id),
         human_approval_required: true,
-        timestamp: Utc::now(),
+        timestamp: Some(Utc::now()),
     };
 
     rce.pause_workflow(signal, snapshot).expect("pause_workflow failed");
@@ -128,11 +129,12 @@ async fn test_03_workflow_resume_restores_state() {
 
     let snapshot = vec![1, 2, 3, 4, 5];
     let signal = InterruptSignal {
-        workflow_id: rce.workflow_id,
+        interrupt_type: "threat".to_string(),
+        workflow_id: Some(rce.workflow_id),
         severity: "High".to_string(),
         reason: "test_interrupt".to_string(),
         human_approval_required: true,
-        timestamp: Utc::now(),
+        timestamp: Some(Utc::now()),
     };
 
     rce.pause_workflow(signal, snapshot).expect("pause_workflow failed");
@@ -158,11 +160,12 @@ async fn test_04_workflow_reject_rolls_back_effects() {
 
     let snapshot = vec![1, 2, 3, 4, 5];
     let signal = InterruptSignal {
-        workflow_id: rce.workflow_id,
+        interrupt_type: "threat".to_string(),
+        workflow_id: Some(rce.workflow_id),
         severity: "High".to_string(),
         reason: "test_interrupt".to_string(),
         human_approval_required: true,
-        timestamp: Utc::now(),
+        timestamp: Some(Utc::now()),
     };
 
     rce.pause_workflow(signal, snapshot).expect("pause_workflow failed");
@@ -190,11 +193,12 @@ async fn test_05_workflow_modify_applies_new_plan() {
 
     let snapshot = vec![1, 2, 3, 4, 5];
     let signal = InterruptSignal {
-        workflow_id: rce.workflow_id,
+        interrupt_type: "threat".to_string(),
+        workflow_id: Some(rce.workflow_id),
         severity: "High".to_string(),
         reason: "test_interrupt".to_string(),
         human_approval_required: true,
-        timestamp: Utc::now(),
+        timestamp: Some(Utc::now()),
     };
 
     rce.pause_workflow(signal, snapshot).expect("pause_workflow failed");
@@ -235,11 +239,12 @@ async fn test_06_workflow_timeout_triggers_interrupt() {
 
     let snapshot = vec![1, 2, 3, 4, 5];
     let signal = InterruptSignal {
-        workflow_id: rce.workflow_id,
+        interrupt_type: "threat".to_string(),
+        workflow_id: Some(rce.workflow_id),
         severity: "High".to_string(),
         reason: "timeout_exceeded".to_string(),
         human_approval_required: true,
-        timestamp: Utc::now(),
+        timestamp: Some(Utc::now()),
     };
 
     rce.pause_workflow(signal, snapshot).expect("pause_workflow failed");
@@ -261,7 +266,7 @@ async fn test_07_interrupt_from_threat_anticipation() {
     assert!(signal.is_some());
     let signal = signal.unwrap();
     assert_eq!(signal.severity, "High");
-    assert_eq!(signal.workflow_id, workflow_id);
+    assert_eq!(signal.workflow_id, Some(workflow_id));
     assert!(signal.reason.contains("threat_anticipation_blast_radius_high"));
 }
 
@@ -276,7 +281,7 @@ async fn test_08_interrupt_from_root_cause_discovery() {
     assert!(signal.is_some());
     let signal = signal.unwrap();
     assert_eq!(signal.severity, "Critical");
-    assert_eq!(signal.workflow_id, workflow_id);
+    assert_eq!(signal.workflow_id, Some(workflow_id));
     assert!(signal.reason.contains("root_cause_discovered"));
 }
 
@@ -291,7 +296,7 @@ async fn test_09_interrupt_from_swot_degradation() {
     assert!(signal.is_some());
     let signal = signal.unwrap();
     assert_eq!(signal.severity, "High");
-    assert_eq!(signal.workflow_id, workflow_id);
+    assert_eq!(signal.workflow_id, Some(workflow_id));
     assert!(signal.reason.contains("swot_scenario_degradation"));
 }
 
@@ -301,32 +306,36 @@ async fn test_10_interrupt_severity_levels_respected() {
 
     let mut interrupts = vec![
         InterruptSignal {
-            workflow_id,
+        interrupt_type: "threat".to_string(),
+            workflow_id: Some(workflow_id),
             severity: "Low".to_string(),
             reason: "low_priority".to_string(),
             human_approval_required: false,
-            timestamp: Utc::now(),
+            timestamp: Some(Utc::now()),
         },
         InterruptSignal {
-            workflow_id,
+        interrupt_type: "threat".to_string(),
+            workflow_id: Some(workflow_id),
             severity: "Critical".to_string(),
             reason: "critical_priority".to_string(),
             human_approval_required: true,
-            timestamp: Utc::now(),
+            timestamp: Some(Utc::now()),
         },
         InterruptSignal {
-            workflow_id,
+        interrupt_type: "threat".to_string(),
+            workflow_id: Some(workflow_id),
             severity: "Medium".to_string(),
             reason: "medium_priority".to_string(),
             human_approval_required: false,
-            timestamp: Utc::now(),
+            timestamp: Some(Utc::now()),
         },
         InterruptSignal {
-            workflow_id,
+        interrupt_type: "threat".to_string(),
+            workflow_id: Some(workflow_id),
             severity: "High".to_string(),
             reason: "high_priority".to_string(),
             human_approval_required: true,
-            timestamp: Utc::now(),
+            timestamp: Some(Utc::now()),
         },
     ];
 
@@ -358,11 +367,12 @@ async fn test_11_checkpoint_integrity_checksum_verified() {
 
     let checkpoint_data = vec![1, 2, 3, 4, 5];
     let signal = InterruptSignal {
-        workflow_id,
+        interrupt_type: "threat".to_string(),
+        workflow_id: Some(workflow_id),
         severity: "High".to_string(),
         reason: "test".to_string(),
         human_approval_required: true,
-        timestamp: Utc::now(),
+        timestamp: Some(Utc::now()),
     };
 
     rce.pause_workflow(signal, checkpoint_data).expect("pause_workflow failed");
@@ -388,11 +398,12 @@ async fn test_12_checkpoint_corruption_detected_on_restore() {
 
     let checkpoint_data = vec![1, 2, 3, 4, 5];
     let signal = InterruptSignal {
-        workflow_id,
+        interrupt_type: "threat".to_string(),
+        workflow_id: Some(workflow_id),
         severity: "High".to_string(),
         reason: "test".to_string(),
         human_approval_required: true,
-        timestamp: Utc::now(),
+        timestamp: Some(Utc::now()),
     };
 
     rce.pause_workflow(signal, checkpoint_data).expect("pause_workflow failed");
@@ -424,11 +435,12 @@ async fn test_13_checkpoint_version_mismatch_detected() {
 
     let checkpoint_data = vec![1, 2, 3, 4, 5];
     let signal = InterruptSignal {
-        workflow_id,
+        interrupt_type: "threat".to_string(),
+        workflow_id: Some(workflow_id),
         severity: "High".to_string(),
         reason: "test".to_string(),
         human_approval_required: true,
-        timestamp: Utc::now(),
+        timestamp: Some(Utc::now()),
     };
 
     rce.pause_workflow(signal, checkpoint_data).expect("pause_workflow failed");
@@ -543,7 +555,7 @@ async fn test_17_resource_exhaustion_triggers_interrupt() {
 
     let signal = signal.unwrap();
     assert_eq!(signal.severity, "High");
-    assert_eq!(signal.workflow_id, workflow_id);
+    assert_eq!(signal.workflow_id, Some(workflow_id));
     assert!(signal.reason.contains("resource_exhaustion"));
 
     // Below threshold should not trigger
@@ -567,11 +579,12 @@ async fn test_18_human_decision_immutable_in_audit_trail() {
 
     let snapshot = vec![1, 2, 3, 4, 5];
     let signal = InterruptSignal {
-        workflow_id,
+        interrupt_type: "threat".to_string(),
+        workflow_id: Some(workflow_id),
         severity: "High".to_string(),
         reason: "test".to_string(),
         human_approval_required: true,
-        timestamp: Utc::now(),
+        timestamp: Some(Utc::now()),
     };
 
     rce.pause_workflow(signal, snapshot).expect("pause_workflow failed");

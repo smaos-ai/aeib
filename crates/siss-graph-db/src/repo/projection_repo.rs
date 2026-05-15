@@ -778,7 +778,7 @@ pub async fn query_swot_scenario(
 // ============================================================================
 
 /// Generate synthetic root-cause response for testing
-fn synthetic_root_cause_response(anomaly_id: Uuid, max_depth: i32) -> RootCauseResponse {
+pub fn synthetic_root_cause_response(anomaly_id: Uuid, max_depth: i32) -> RootCauseResponse {
     use uuid::Uuid;
 
     let now = Utc::now();
@@ -822,7 +822,7 @@ fn synthetic_root_cause_response(anomaly_id: Uuid, max_depth: i32) -> RootCauseR
 }
 
 /// Generate synthetic threat anticipation response for testing
-fn synthetic_threat_anticipation_response(
+pub fn synthetic_threat_anticipation_response(
     source_sovereign_id: Uuid,
     blast_radius_depth: i32,
 ) -> ThreatAnticipationResponse {
@@ -878,7 +878,7 @@ fn synthetic_threat_anticipation_response(
 }
 
 /// Generate synthetic SWOT response for testing
-fn synthetic_swot_response(
+pub fn synthetic_swot_response(
     source_sovereign_id: Uuid,
     time_window_days: i32,
 ) -> SwotScenarioResponse {

@@ -11,6 +11,7 @@ pub mod recovery_extractor;
 pub mod recovery_sweep_scheduler;
 pub mod repo;
 pub mod rce;
+pub mod rce_event_broadcaster;
 
 #[cfg(feature = "axum")]
 pub mod rce_axum_handlers;

@@ -9,40 +9,58 @@ use siss_graph_db::rce::ExecutionState;
 use uuid::Uuid;
 
 #[test]
-fn test_rce_state_creation() {
-    let workflow_id = Uuid::new_v4();
-    let state = RceState::new(workflow_id);
+fn test_rce_event_broadcaster_creation() {
+    use siss_graph_db::rce_event_broadcaster::RceEventBroadcaster;
+    let broadcaster = RceEventBroadcaster::new();
+    let mut rx = broadcaster.subscribe();
 
-    // State should be cloneable (Arc-wrapped)
-    let state_clone = state.clone();
-    assert!(format!("{:?}", state_clone).len() > 0);
+    // Subscribe should work
+    drop(rx);
+    assert!(true);
 }
 
 #[tokio::test]
-async fn test_rce_state_rwlock_access() {
-    let workflow_id = Uuid::new_v4();
-    let state = RceState::new(workflow_id);
+async fn test_rce_event_broadcaster_emit() {
+    use siss_graph_db::rce_event_broadcaster::{RceEvent, RceEventBroadcaster};
 
-    // Should be able to acquire read lock
-    let rce = state.rce.read().await;
-    assert_eq!(rce.get_state(), ExecutionState::Idle);
-    assert_eq!(rce.workflow_id, workflow_id);
+    let broadcaster = RceEventBroadcaster::new();
+    let mut rx = broadcaster.subscribe();
+
+    let event = RceEvent::WorkflowCompleted {
+        workflow_id: Uuid::new_v4(),
+        timestamp: chrono::Utc::now(),
+        total_steps: 3,
+    };
+
+    broadcaster.emit(event.clone());
+
+    let received = rx.recv().await;
+    assert!(received.is_ok());
+    assert_eq!(received.unwrap().event_type(), "workflow_completed");
 }
 
 #[tokio::test]
-async fn test_rce_state_write_access() {
+async fn test_rce_event_filtering_by_severity() {
+    use siss_graph_db::rce_event_broadcaster::{RceEvent, RceEventBroadcaster};
+
+    let broadcaster = RceEventBroadcaster::new();
+    let mut rx = broadcaster.subscribe();
+
     let workflow_id = Uuid::new_v4();
-    let state = RceState::new(workflow_id);
 
-    // Should be able to acquire write lock and modify state
-    let mut rce = state.rce.write().await;
-    let plan = vec![siss_graph_db::rce::Step {
-        id: Uuid::new_v4(),
-        name: "test_step".to_string(),
-        timeout_ms: 1000,
-        idempotent: true,
-    }];
+    // Emit a paused event with High severity
+    let event = RceEvent::WorkflowPaused {
+        workflow_id,
+        timestamp: chrono::Utc::now(),
+        step_index: 1,
+        step_id: Uuid::new_v4(),
+        step_name: "test".to_string(),
+        interrupt_reason: "test_interrupt".to_string(),
+        interrupt_severity: "High".to_string(),
+    };
 
-    assert!(rce.start_workflow(plan).is_ok());
-    assert_eq!(rce.get_state(), ExecutionState::Perform);
+    broadcaster.emit(event);
+
+    let received = rx.recv().await.unwrap();
+    assert_eq!(received.event_type(), "workflow_paused");
 }

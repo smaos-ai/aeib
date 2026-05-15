@@ -21,7 +21,7 @@ use uuid::Uuid;
 
 use crate::rce::{ExecutionState, ResumableCognitiveExecution, Step};
 use crate::rce_event_broadcaster::{RceEvent, RceEventBroadcaster};
-use crate::repo::projection_repo;
+use crate::repo::{projection_repo, rce_checkpoint_repo};
 
 // =====================================================================
 // SHARED STATE
@@ -231,7 +231,7 @@ pub async fn handle_decision(
                 "reject" => RceEvent::WorkflowRejected {
                     workflow_id,
                     timestamp,
-                    reason: reject_reason.unwrap_or_else(|| "operator_decision".to_string()),
+                    reason: reject_reason.clone().unwrap_or_else(|| "operator_decision".to_string()),
                 },
                 _ => RceEvent::WorkflowResumed {
                     workflow_id,
@@ -241,6 +241,28 @@ pub async fn handle_decision(
                 },
             };
             state.broadcaster.emit(event);
+
+            // Persist decision to audit trail
+            let audit_result = rce_checkpoint_repo::append_audit_event(
+                &state.pool,
+                workflow_id,
+                "human_decision",
+                Some(decision),
+                Some(&req.decided_by),
+                reject_reason.as_deref(),
+                &json!({ "decision": decision }),
+            )
+            .await;
+
+            if audit_result.is_err() {
+                // Log audit failure but don't block decision response
+                eprintln!("Failed to record audit trail for decision");
+            }
+
+            // Delete checkpoint on reject (already cleared in memory, now remove from DB)
+            if decision == "reject" {
+                let _ = rce_checkpoint_repo::delete_checkpoint(&state.pool, workflow_id).await;
+            }
 
             (
                 StatusCode::OK,
@@ -433,30 +455,123 @@ pub async fn handle_get_swot(
 /// GET /api/rce/:workflow_id/checkpoint
 pub async fn handle_get_checkpoint(
     State(state): State<RceState>,
-    Path(_workflow_id): Path<Uuid>,
+    Path(workflow_id): Path<Uuid>,
 ) -> impl IntoResponse {
-    let rce = state.rce.read().await;
-
-    match rce.checkpoint.as_ref() {
-        Some(cp) => (
+    // Try to load checkpoint from PostgreSQL first
+    match rce_checkpoint_repo::load_checkpoint(&state.pool, workflow_id).await {
+        Ok(Some((id, step_index, _state, checksum, version, reason))) => (
             StatusCode::OK,
             Json(json!({
-                "workflow_id": rce.workflow_id,
-                "state_index": cp.step_index,
-                "timestamp": cp.timestamp.to_rfc3339(),
-                "reason": cp.reason,
-                "version": cp.version,
+                "id": id,
+                "workflow_id": workflow_id,
+                "state_index": step_index,
+                "checksum": checksum,
+                "version": version,
+                "reason": reason,
                 "checksum_valid": true,
-                "can_resume": true
+                "can_resume": true,
+                "source": "persistent"
             })),
         )
             .into_response(),
-        None => (
-            StatusCode::NOT_FOUND,
+        Ok(None) => {
+            // Fall back to in-memory checkpoint if DB has none
+            let rce = state.rce.read().await;
+            match rce.checkpoint.as_ref() {
+                Some(cp) => (
+                    StatusCode::OK,
+                    Json(json!({
+                        "workflow_id": rce.workflow_id,
+                        "state_index": cp.step_index,
+                        "reason": cp.reason,
+                        "version": cp.version,
+                        "checksum_valid": true,
+                        "can_resume": true,
+                        "source": "memory"
+                    })),
+                )
+                    .into_response(),
+                None => (
+                    StatusCode::NOT_FOUND,
+                    Json(ErrorResponse {
+                        error: "not_found".to_string(),
+                        message: "No checkpoint exists for this workflow".to_string(),
+                        code: "NO_CHECKPOINT".to_string(),
+                    }),
+                )
+                    .into_response(),
+            }
+        }
+        Err(_) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
             Json(ErrorResponse {
-                error: "not_found".to_string(),
-                message: "No checkpoint exists for this workflow".to_string(),
-                code: "NO_CHECKPOINT".to_string(),
+                error: "database_error".to_string(),
+                message: "Failed to query checkpoint".to_string(),
+                code: "DB_ERROR".to_string(),
+            }),
+        )
+            .into_response(),
+    }
+}
+
+/// POST /api/rce/:workflow_id/checkpoint/save — Persist checkpoint to database
+pub async fn handle_save_checkpoint(
+    State(state): State<RceState>,
+    Path(workflow_id): Path<Uuid>,
+) -> impl IntoResponse {
+    let rce = state.rce.read().await;
+
+    // Get checkpoint from memory
+    match rce.checkpoint.as_ref() {
+        Some(cp) => {
+            // Serialize the RCE state for storage
+            let state_json = serde_json::json!({
+                "workflow_id": rce.workflow_id,
+                "step_index": cp.step_index,
+                "plan_size": rce.plan.len(),
+                "state_snapshot_size": cp.state_snapshot.len(),
+            });
+
+            // Save to database
+            match rce_checkpoint_repo::save_checkpoint(
+                &state.pool,
+                workflow_id,
+                cp.step_index as i32,
+                &state_json,
+                &cp.checksum,
+                cp.version as i32,
+                &cp.reason,
+                "High",
+            )
+            .await
+            {
+                Ok(id) => (
+                    StatusCode::CREATED,
+                    Json(json!({
+                        "id": id,
+                        "workflow_id": workflow_id,
+                        "status": "saved",
+                        "timestamp": Utc::now().to_rfc3339()
+                    })),
+                )
+                    .into_response(),
+                Err(_) => (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ErrorResponse {
+                        error: "save_failed".to_string(),
+                        message: "Failed to save checkpoint to database".to_string(),
+                        code: "SAVE_ERROR".to_string(),
+                    }),
+                )
+                    .into_response(),
+            }
+        }
+        None => (
+            StatusCode::BAD_REQUEST,
+            Json(ErrorResponse {
+                error: "no_checkpoint".to_string(),
+                message: "No in-memory checkpoint to persist".to_string(),
+                code: "NO_CHECKPOINT_IN_MEMORY".to_string(),
             }),
         )
             .into_response(),
@@ -476,5 +591,6 @@ pub fn rce_router(state: RceState) -> Router {
         .route("/:workflow_id/projection/root-cause", get(handle_get_root_cause))
         .route("/:workflow_id/projection/swot", get(handle_get_swot))
         .route("/:workflow_id/checkpoint", get(handle_get_checkpoint))
+        .route("/:workflow_id/checkpoint/save", post(handle_save_checkpoint))
         .with_state(state)
 }

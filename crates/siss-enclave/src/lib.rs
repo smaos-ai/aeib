@@ -4,6 +4,7 @@ pub mod memory;
 pub mod model;
 pub mod orchestrator;
 pub mod routing;
+pub mod swarm;
 
 /// Enclave v2.1: Safe Model Evolution with Chaos Petri Validation Gate
 ///

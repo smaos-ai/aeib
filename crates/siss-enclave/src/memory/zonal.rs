@@ -46,6 +46,12 @@ pub struct ConsolidatedEntry {
     pub token_count: i64,
 }
 
+impl ConsolidatedEntry {
+    pub fn into_raw_obs(self) -> RawObservation {
+        RawObservation::new(self.content, self.confidence, self.tier)
+    }
+}
+
 pub type LayeredFog = HashMap<ObservationTier, Vec<ConsolidatedEntry>>;
 
 #[derive(Debug, Clone)]
@@ -146,6 +152,17 @@ impl ZonalMemory {
         GrayFog {
             layers: guard.layers.clone(),
         }
+    }
+
+    pub fn get_by_ids(&self, ids: &[Uuid]) -> Vec<ConsolidatedEntry> {
+        let guard = self.fog.read();
+        guard
+            .layers
+            .values()
+            .flat_map(|v| v.iter())
+            .filter(|e| ids.contains(&e.id))
+            .cloned()
+            .collect()
     }
 
     pub fn with_fog(gray_fog: GrayFog, buffer_capacity: usize) -> Self {

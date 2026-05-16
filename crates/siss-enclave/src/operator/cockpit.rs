@@ -13,6 +13,7 @@ pub struct ContextProjection {
     pub pending_approvals: Vec<Uuid>,
 }
 
+#[derive(Clone)]
 pub struct OperatorCockpit {
     telemetry: Arc<OperatorTelemetry>,
     hitl_gate: Arc<HitlGate>,

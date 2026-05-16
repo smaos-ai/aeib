@@ -1,4 +1,5 @@
 pub mod alignment;
+pub mod api;
 pub mod eval;
 pub mod events;
 pub mod integration;

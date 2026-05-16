@@ -2369,10 +2369,12 @@ name = "siss-enclave"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-stream",
  "async-trait",
  "atomic",
  "axum",
  "chrono",
+ "futures",
  "hex",
  "parking_lot",
  "reqwest",
@@ -2385,6 +2387,7 @@ dependencies = [
  "testcontainers",
  "thiserror 1.0.69",
  "tokio",
+ "tokio-stream",
  "tracing",
  "uuid",
 ]

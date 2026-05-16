@@ -11,7 +11,8 @@
       "Bash(curl -X POST \"http://localhost:8081/api/v1/ingest/arxiv/sync?limit=5\")",
       "mcp__plugin_playwright_playwright__browser_navigate",
       "mcp__plugin_playwright_playwright__browser_take_screenshot",
-      "mcp__plugin_playwright_playwright__browser_snapshot"
+      "mcp__plugin_playwright_playwright__browser_snapshot",
+      "Read(//private/tmp/**)"
     ]
   }
 }

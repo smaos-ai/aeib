@@ -5,6 +5,7 @@ pub mod integration;
 pub mod learning;
 pub mod memory;
 pub mod model;
+pub mod operator;
 pub mod orchestrator;
 pub mod routing;
 pub mod security;

@@ -45,6 +45,7 @@ pub struct TuiState {
     pub violations: u64,
     pub l2_snippets: Vec<String>,
     pub ap2_logs: Vec<String>,
+    pub branding_context: String,
 }
 
 impl TuiState {
@@ -99,7 +100,13 @@ impl TuiState {
             violations: 0,
             l2_snippets: vec![],
             ap2_logs: vec![],
+            branding_context: "SMAOS Offline Intelligence".to_string(),
         }
+    }
+
+    pub fn with_branding(mut self, branding: String) -> Self {
+        self.branding_context = branding;
+        self
     }
 
     pub fn push_log(&mut self, entry: LogEntry) {

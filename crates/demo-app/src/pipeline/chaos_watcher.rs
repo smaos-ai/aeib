@@ -16,7 +16,9 @@ pub async fn spawn_chaos_petri_watcher(
     repo: ConcurrentMemoryRepo,
     tui_state: Arc<Mutex<TuiState>>,
 ) {
-    let quarantine_path = Path::new("/var/lib/smaos/chaos_petri_quarantine/");
+    let quarantine_path_str = std::env::var("SMAOS_QUARANTINE_PATH")
+        .unwrap_or_else(|_| "/var/lib/smaos/chaos_petri_quarantine".to_string());
+    let quarantine_path = Path::new(&quarantine_path_str);
     let _ = fs::create_dir_all(quarantine_path).await;
 
     info!(

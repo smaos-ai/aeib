@@ -4,7 +4,15 @@
   "mcpServers": {
     "gitnexus": {
       "command": "cargo",
-      "args": ["run", "--release", "-p", "siss-mcp-gitnexus"]
+      "args": [
+        "run",
+        "--release",
+        "-p",
+        "siss-mcp-gitnexus"
+      ]
     }
+  },
+  "enabledPlugins": {
+    "exa@claude-plugins-official": true
   }
 }

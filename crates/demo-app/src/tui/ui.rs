@@ -36,8 +36,8 @@ pub fn render(frame: &mut Frame, state: &TuiState) {
     // PANEL 1: The Sovereign Header
     // ========================================================================
     let header_text = format!(
-        " SMAOS Offline Intelligence | Mem: {:.0}% | TTFT: {}ms | Violations: {} ",
-        state.memory_pressure, state.agent_alpha.memory_tier_state.ttft_last_request_ms, state.ttft_violation_count
+        " {} - SMAOS SECURE ENCLAVE | Mem: {:.0}% | TTFT: {}ms | Violations: {} ",
+        state.branding_context, state.memory_pressure, state.agent_alpha.memory_tier_state.ttft_last_request_ms, state.ttft_violation_count
     );
     let header_block = Paragraph::new(Text::styled(
         header_text,

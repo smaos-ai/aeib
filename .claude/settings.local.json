@@ -12,7 +12,12 @@
       "mcp__plugin_playwright_playwright__browser_navigate",
       "mcp__plugin_playwright_playwright__browser_take_screenshot",
       "mcp__plugin_playwright_playwright__browser_snapshot",
-      "Read(//private/tmp/**)"
+      "Read(//private/tmp/**)",
+      "Bash(export SMAOS_BRANDING=\"MINISTRY OF DEFENSE\")",
+      "Bash(timeout 30 cargo run -p demo-app)"
     ]
+  },
+  "enabledPlugins": {
+    "exa@claude-plugins-official": true
   }
 }

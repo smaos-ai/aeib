@@ -7,7 +7,10 @@ use std::sync::{Arc, Mutex};
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create shared TUI state that both watcher and event loop access
-    let shared_state = Arc::new(Mutex::new(TuiState::new()));
+    let branding = std::env::var("SMAOS_BRANDING")
+        .unwrap_or_else(|_| "SMAOS Offline Intelligence".to_string());
+    let tui_state = TuiState::new().with_branding(branding);
+    let shared_state = Arc::new(Mutex::new(tui_state));
     let mut app = App::new();
 
     // Initialize the Chaos Petri Quarantine watcher

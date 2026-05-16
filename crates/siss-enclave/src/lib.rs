@@ -5,6 +5,7 @@ pub mod eval;
 pub mod events;
 pub mod integration;
 pub mod learning;
+pub mod ledger;
 pub mod memory;
 pub mod model;
 pub mod operator;

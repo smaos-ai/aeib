@@ -1,6 +1,7 @@
 pub mod agent;
 pub mod document;
 pub mod mandate;
+pub mod memory;
 pub mod tui_state;
 
 pub use agent::{AgentSession, MemoryTierState};
@@ -9,4 +10,5 @@ pub use document::{
     ParsedPage,
 };
 pub use mandate::{AnalysisMandate, AnalysisType, MandateStatus};
+pub use memory::{MemoryTier, MemoryWrite};
 pub use tui_state::{ActivePane, LogEntry, LogLevel, TuiState};

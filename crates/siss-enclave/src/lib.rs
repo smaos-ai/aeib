@@ -1,5 +1,7 @@
+pub mod alignment;
 pub mod eval;
 pub mod events;
+pub mod integration;
 pub mod learning;
 pub mod memory;
 pub mod model;

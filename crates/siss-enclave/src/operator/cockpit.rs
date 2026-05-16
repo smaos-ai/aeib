@@ -1,7 +1,9 @@
 use crate::integration::CoEvolutionOrchestrator;
 use crate::memory::EphemeralBuffer;
-use crate::operator::hitl::{CryptoApproval, HitlError, HitlGate};
+use crate::operator::hitl::{CryptoApproval, HitlError, HitlGate, HitlVerdict};
 use crate::operator::telemetry::{LoraSwapEvent, OperatorTelemetry, SwapEventKind};
+use parking_lot::RwLock;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::sync::broadcast;
 use uuid::Uuid;
@@ -13,11 +15,18 @@ pub struct ContextProjection {
     pub pending_approvals: Vec<Uuid>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentState {
+    pub verdict: HitlVerdict,
+    pub active_drops: Vec<String>,
+}
+
 #[derive(Clone)]
 pub struct OperatorCockpit {
     telemetry: Arc<OperatorTelemetry>,
     hitl_gate: Arc<HitlGate>,
-    orchestrator: Arc<CoEvolutionOrchestrator>,
+    orchestrator: Option<Arc<CoEvolutionOrchestrator>>,
+    agent_state: Arc<RwLock<AgentState>>,
 }
 
 impl OperatorCockpit {
@@ -29,10 +38,27 @@ impl OperatorCockpit {
             Self {
                 telemetry: Arc::new(telemetry),
                 hitl_gate: Arc::new(HitlGate::new()),
-                orchestrator,
+                orchestrator: Some(orchestrator),
+                agent_state: Arc::new(RwLock::new(AgentState {
+                    verdict: HitlVerdict::Approved,
+                    active_drops: vec![],
+                })),
             },
             rx,
         )
+    }
+
+    pub fn new_mock() -> Self {
+        let (telemetry, _rx) = OperatorTelemetry::new();
+        Self {
+            telemetry: Arc::new(telemetry),
+            hitl_gate: Arc::new(HitlGate::new()),
+            orchestrator: None,
+            agent_state: Arc::new(RwLock::new(AgentState {
+                verdict: HitlVerdict::Approved,
+                active_drops: vec![],
+            })),
+        }
     }
 
     pub fn subscribe_telemetry(&self) -> broadcast::Receiver<LoraSwapEvent> {
@@ -44,6 +70,11 @@ impl OperatorCockpit {
         ephemeral: Arc<EphemeralBuffer>,
         agent_did: String,
     ) -> Result<Uuid, String> {
+        let orchestrator = self
+            .orchestrator
+            .as_ref()
+            .ok_or("no orchestrator available")?;
+
         // Emit Queued event as pre-queue sentinel
         let pre_queue_id = Uuid::new_v4();
         self.telemetry.emit(LoraSwapEvent {
@@ -57,8 +88,7 @@ impl OperatorCockpit {
         });
 
         // Queue distillation via orchestrator
-        let task_id = self
-            .orchestrator
+        let task_id = orchestrator
             .process_positive_loop(ephemeral, agent_did.clone())
             .await?;
 
@@ -70,7 +100,7 @@ impl OperatorCockpit {
         let mut new_lora_id = String::new();
 
         while attempts < max_attempts && !completed {
-            if let Ok(task) = self.orchestrator.get_scheduled_swap(&task_id).await {
+            if let Ok(task) = orchestrator.get_scheduled_swap(&task_id).await {
                 if task.is_complete {
                     completed = true;
                     swap_token = task.swap_token;
@@ -101,7 +131,6 @@ impl OperatorCockpit {
     }
 
     pub async fn project_agent_state(&self, agent_id: Uuid) -> Result<ContextProjection, String> {
-        // Return a basic projection (can be extended to query Gray Fog, etc.)
         Ok(ContextProjection {
             agent_id,
             visible_field_entries: 0,
@@ -116,5 +145,26 @@ impl OperatorCockpit {
 
     pub fn hitl_gate(&self) -> Arc<HitlGate> {
         self.hitl_gate.clone()
+    }
+
+    pub async fn get_agent_state(&self) -> AgentState {
+        self.agent_state.read().clone()
+    }
+
+    pub(crate) fn set_agent_verdict(&self, verdict: HitlVerdict) {
+        let mut s = self.agent_state.write();
+        s.verdict = verdict;
+    }
+
+    pub(crate) fn push_active_drop(&self, service: String) {
+        let mut s = self.agent_state.write();
+        if !s.active_drops.contains(&service) {
+            s.active_drops.push(service);
+        }
+    }
+
+    pub(crate) fn has_active_drop(&self, service: &str) -> bool {
+        let s = self.agent_state.read();
+        s.active_drops.contains(&service.to_string())
     }
 }

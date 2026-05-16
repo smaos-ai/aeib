@@ -17,6 +17,9 @@ pub struct CryptoApproval {
 pub enum HitlVerdict {
     Approved,
     Rejected { reason: String },
+    Quarantined,
+    RequireApproval,
+    Suspended,
 }
 
 #[derive(Debug, Clone, thiserror::Error)]

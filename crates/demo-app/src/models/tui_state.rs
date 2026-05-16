@@ -30,6 +30,7 @@ pub enum LogLevel {
     Error,
 }
 
+#[derive(Debug, Clone)]
 pub struct TuiState {
     pub active_pane: ActivePane,
     pub agent_alpha: AgentSession,
@@ -41,6 +42,9 @@ pub struct TuiState {
     pub ttft_violation_count: u64,
     pub scroll_offset: usize,
     pub log_buffer: VecDeque<LogEntry>,
+    pub violations: u64,
+    pub l2_snippets: Vec<String>,
+    pub ap2_logs: Vec<String>,
 }
 
 impl TuiState {
@@ -92,6 +96,9 @@ impl TuiState {
             ttft_violation_count: 0,
             scroll_offset: 0,
             log_buffer: VecDeque::new(),
+            violations: 0,
+            l2_snippets: vec![],
+            ap2_logs: vec![],
         }
     }
 

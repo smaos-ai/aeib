@@ -79,15 +79,44 @@ impl Default for GrayFog {
 
 pub struct EphemeralBuffer {
     sender: tokio::sync::mpsc::Sender<RawObservation>,
+    trajectory: Arc<tokio::sync::RwLock<Vec<String>>>,
 }
 
 impl EphemeralBuffer {
     pub fn new(sender: tokio::sync::mpsc::Sender<RawObservation>) -> Self {
-        Self { sender }
+        Self {
+            sender,
+            trajectory: Arc::new(tokio::sync::RwLock::new(Vec::new())),
+        }
     }
 
     pub fn write(&self, obs: RawObservation) -> bool {
         self.sender.try_send(obs).is_ok()
+    }
+
+    pub async fn snapshot(&self) -> Vec<String> {
+        self.trajectory.read().await.clone()
+    }
+
+    pub fn append_thought(&self, thought: String) {
+        let trajectory = Arc::clone(&self.trajectory);
+        tokio::spawn(async move {
+            trajectory.write().await.push(thought);
+        });
+    }
+
+    pub fn append_tool_call(&self, tool: String, _args: String) {
+        let trajectory = Arc::clone(&self.trajectory);
+        tokio::spawn(async move {
+            trajectory.write().await.push(tool);
+        });
+    }
+
+    pub fn append_action_result(&self, result: String) {
+        let trajectory = Arc::clone(&self.trajectory);
+        tokio::spawn(async move {
+            trajectory.write().await.push(result);
+        });
     }
 }
 

@@ -120,28 +120,6 @@ impl RecursiveMasDispatcher {
 
             let result = (worker_clone.handler)(projected).await;
 
-            match result.artifact {
-                Some(artifact) => {
-                    let artifact_id = artifact.id;
-                    let raw_obs = artifact.into_raw_obs();
-                    let _ = zonal.write(raw_obs);
-                    let _ = tx.send(A2ATaskUpdate {
-                        task_id,
-                        status: A2ATaskStatus::Completed,
-                        artifact_ref: Some(artifact_id),
-                        reason: None,
-                    });
-                }
-                None => {
-                    let _ = tx.send(A2ATaskUpdate {
-                        task_id,
-                        status: A2ATaskStatus::Completed,
-                        artifact_ref: None,
-                        reason: None,
-                    });
-                }
-            }
-
             if let Some(error) = result.error {
                 let _ = tx.send(A2ATaskUpdate {
                     task_id,
@@ -149,6 +127,28 @@ impl RecursiveMasDispatcher {
                     artifact_ref: None,
                     reason: Some(error),
                 });
+            } else {
+                match result.artifact {
+                    Some(artifact) => {
+                        let artifact_id = artifact.id;
+                        let raw_obs = artifact.into_raw_obs();
+                        let _ = zonal.write(raw_obs);
+                        let _ = tx.send(A2ATaskUpdate {
+                            task_id,
+                            status: A2ATaskStatus::Completed,
+                            artifact_ref: Some(artifact_id),
+                            reason: None,
+                        });
+                    }
+                    None => {
+                        let _ = tx.send(A2ATaskUpdate {
+                            task_id,
+                            status: A2ATaskStatus::Completed,
+                            artifact_ref: None,
+                            reason: None,
+                        });
+                    }
+                }
             }
         });
 

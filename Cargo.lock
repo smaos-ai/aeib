@@ -535,9 +535,13 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "crossterm",
+ "ed25519-dalek",
+ "hex",
+ "lazy_static",
  "ratatui",
  "serde",
  "serde_json",
+ "sha2",
  "siss-enclave",
  "thiserror 2.0.18",
  "tokio",

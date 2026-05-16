@@ -10,5 +10,5 @@ pub use document::{
     ParsedPage,
 };
 pub use mandate::{AnalysisMandate, AnalysisType, MandateStatus};
-pub use memory::{MemoryTier, MemoryWrite};
+pub use memory::{MemorySnippet, MemoryTier, MemoryWrite};
 pub use tui_state::{ActivePane, LogEntry, LogLevel, TuiState};

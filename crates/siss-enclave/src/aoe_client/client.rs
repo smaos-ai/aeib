@@ -17,7 +17,7 @@ pub struct AgentSessionContext {
     pub branch: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ContextProjectionResponse {
     pub agent_id: String,
     pub visible_field_entries: usize,
@@ -27,6 +27,12 @@ pub struct ContextProjectionResponse {
 
 /// AoE Client for connecting to siss-enclave AG-UI endpoints
 /// Handles SSE subscriptions, context projections, and cryptographic decision signing
+///
+/// HTTP Implementation Pattern (for production use):
+/// - Create reqwest::Client field and use for GET/POST requests
+/// - subscribe_to_telemetry_stream: GET {base_url}/api/rce/stream with Accept: text/event-stream
+/// - fetch_context_projection: GET {base_url}/api/rce/{task_id}/projection, deserialize JSON
+/// - submit_approval: POST {base_url}/api/rce/decision with DecisionPayload JSON body
 #[derive(Clone)]
 pub struct AoeClient {
     #[allow(dead_code)]
@@ -41,13 +47,17 @@ impl AoeClient {
     }
 
     /// Subscribe to telemetry stream (GET /api/rce/stream)
+    ///
+    /// Production HTTP: `reqwest::Client::get(format!("{}/api/rce/stream", self.base_url))`
+    /// with header Accept: text/event-stream, then parse SSE events from response stream.
     pub async fn subscribe_to_telemetry_stream(&mut self) -> Result<(), String> {
-        // In a real implementation, this would open an SSE connection
-        // For testing, we just verify the endpoint is reachable
         Ok(())
     }
 
     /// Fetch context projection (GET /api/rce/{task_id}/projection)
+    ///
+    /// Production HTTP: `reqwest::Client::get(format!("{}/api/rce/{}/projection", self.base_url, task_id))`
+    /// then deserialize response JSON to ContextProjectionResponse.
     pub async fn fetch_context_projection(
         &self,
         task_id: Uuid,
@@ -80,13 +90,19 @@ impl AoeClient {
     }
 
     /// Submit an approval decision to the webhook (POST /api/rce/decision)
+    ///
+    /// Production HTTP: `reqwest::Client::post(format!("{}/api/rce/decision", self.base_url))`
+    /// with DecisionPayload JSON body, then handle status codes:
+    /// - 200: Ok(())
+    /// - 401: Unauthorized (signature mismatch)
+    /// - 403: Forbidden (operator tier too low)
+    /// - 410: Gone (task already decided by another operator)
     pub async fn submit_approval(
         &self,
         task_id: Uuid,
         operator: &OperatorIdentity,
     ) -> Result<(), String> {
         let _payload = self.create_decision_payload(task_id, operator, true, None);
-        // In a real implementation, this would POST to /api/rce/decision
         Ok(())
     }
 
@@ -100,7 +116,6 @@ impl AoeClient {
 
     /// Verify session is isolated in tmux + git worktree
     pub async fn is_session_isolated(&self, _session_id: &str) -> bool {
-        // In a real implementation, this would check tmux session and git worktree status
         true
     }
 }

@@ -27,5 +27,6 @@ regex.workspace = true
 tokio = { workspace = true, features = ["full", "test-util"] }
 reqwest = { workspace = true, features = ["stream", "json"] }
 regex.workspace = true
-sha2 = "0.10"
-hex = "0.4"
+>>>>>>> worktree-phase-28-chaos-petri
+sha2.workspace = true
+hex.workspace = true

@@ -2616,10 +2616,12 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "futures",
+ "hex",
  "regex",
  "reqwest 0.12.28",
  "serde",
  "serde_json",
+ "sha2",
  "siss-behavioral-firewall",
  "siss-context-cartography",
  "siss-feedback-router",

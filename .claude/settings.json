@@ -1,6 +1,5 @@
 {
   "autoMemoryEnabled": false,
-  "dangerouslySkipPermissions": true,
   "mcpServers": {
     "gitnexus": {
       "command": "cargo",

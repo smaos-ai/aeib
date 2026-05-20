@@ -4,5 +4,7 @@
 /// standardized Server-Sent Events (SSE) streams for consumption by the
 /// agent shell membrane and AoE orchestrator.
 pub mod sse_consumer;
+pub mod status_emitter;
 
 pub use sse_consumer::{AoEEvent, AoESseConsumer, SseConfig};
+pub use status_emitter::{AgentSessionManager, AgentState, emit_agent_status};

@@ -5,12 +5,13 @@
 /// - `/api/graph/projections/anomalies` (ANOMALY_DETECTED)
 ///
 /// Features:
-/// - Stable SSE connection with AbortController support
+/// - Stable SSE connection with CancellationToken support for clean shutdown
 /// - 5-second polling fallback with exponential backoff (5s, 10s, 20s, 40s, cap 60s)
 /// - Memory-efficient event routing to stdout in AoE format
 /// - Graceful error handling and connection recovery
 use std::time::Duration;
 use tokio::time::sleep;
+use tokio_util::sync::CancellationToken;
 
 /// Represents an SSE event from the AG-UI projection
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -93,29 +94,47 @@ impl AoESseConsumer {
             .await
     }
 
-    /// Stream events from a specific endpoint
+    /// Stream events from a specific endpoint with cancellation support
     async fn stream_endpoint(
         &mut self,
         endpoint: &str,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        self.stream_endpoint_with_cancel(endpoint, CancellationToken::new())
+            .await
+    }
+
+    /// Stream events from a specific endpoint with external cancellation token
+    pub async fn stream_endpoint_with_cancel(
+        &mut self,
+        endpoint: &str,
+        cancel_token: CancellationToken,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         loop {
-            match self.try_connect(endpoint).await {
-                Ok(_) => {
-                    // Successfully connected; reset backoff
-                    self.backoff_attempt = 0;
+            tokio::select! {
+                result = self.try_connect(endpoint) => {
+                    match result {
+                        Ok(_) => {
+                            // Successfully connected; reset backoff
+                            self.backoff_attempt = 0;
+                        }
+                        Err(e) => {
+                            // Connection failed; apply exponential backoff
+                            eprintln!("[SSE_ERROR] Connection failed: {}", e);
+                            self.backoff_attempt += 1;
+
+                            let backoff_duration = self.calculate_backoff();
+                            eprintln!(
+                                "[SSE_RETRY] Backing off for {:?} (attempt {})",
+                                backoff_duration, self.backoff_attempt
+                            );
+
+                            sleep(backoff_duration).await;
+                        }
+                    }
                 }
-                Err(e) => {
-                    // Connection failed; apply exponential backoff
-                    eprintln!("[SSE_ERROR] Connection failed: {}", e);
-                    self.backoff_attempt += 1;
-
-                    let backoff_duration = self.calculate_backoff();
-                    eprintln!(
-                        "[SSE_RETRY] Backing off for {:?} (attempt {})",
-                        backoff_duration, self.backoff_attempt
-                    );
-
-                    sleep(backoff_duration).await;
+                _ = cancel_token.cancelled() => {
+                    eprintln!("[SSE_CANCELLED] Stream endpoint cancelled");
+                    return Ok(());
                 }
             }
         }
@@ -275,5 +294,31 @@ mod tests {
         let non_data_line = "comment: this is a comment";
         let result = consumer.process_sse_line(non_data_line);
         assert!(result.is_ok(), "Should skip non-data lines");
+    }
+
+    #[tokio::test]
+    async fn test_cancellation_token_clean_shutdown() {
+        let mut consumer = AoESseConsumer::new();
+        let cancel_token = CancellationToken::new();
+
+        // Clone the token to cancel from another context
+        let cancel_clone = cancel_token.clone();
+
+        // Spawn a task that will be cancelled
+        let stream_task = tokio::spawn(async move {
+            consumer
+                .stream_endpoint_with_cancel("http://localhost:9999/api/graph/projections/actions", cancel_clone)
+                .await
+        });
+
+        // Give the stream a moment to start
+        tokio::time::sleep(Duration::from_millis(100)).await;
+
+        // Cancel the token
+        cancel_token.cancel();
+
+        // Wait for the stream to complete
+        let result = stream_task.await;
+        assert!(result.is_ok(), "Stream task should complete without panic");
     }
 }

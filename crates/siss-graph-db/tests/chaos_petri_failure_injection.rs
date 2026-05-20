@@ -85,18 +85,19 @@ async fn chaos_petri_node_crash_recovery_with_checkpoint() {
 
     // Trigger pause with persistence
     let interrupt = InterruptSignal {
-        workflow_id,
+        interrupt_type: "node_crash".to_string(),
+        workflow_id: Some(workflow_id),
         severity: "Critical".to_string(),
         reason: "node_crash_detected".to_string(),
         human_approval_required: true,
-        timestamp: Utc::now(),
+        timestamp: Some(Utc::now()),
     };
 
     let snapshot = json!({"step": 2, "state": "at_decision_point"})
         .to_string()
         .into_bytes();
 
-    rce.pause_workflow_with_persistence(interrupt, snapshot, &pool)
+    rce.pause_workflow_with_persistence(&interrupt, snapshot, &pool)
         .await
         .expect("pause with persistence");
 
@@ -132,11 +133,12 @@ async fn chaos_petri_node_crash_recovery_with_checkpoint() {
 
     // Must manually transition to Paused state before resuming
     let interrupt_recovery = InterruptSignal {
-        workflow_id,
+        interrupt_type: "recovery_resume".to_string(),
+        workflow_id: Some(workflow_id),
         severity: "Critical".to_string(),
         reason: "node_recovery_resume".to_string(),
         human_approval_required: true,
-        timestamp: Utc::now(),
+        timestamp: Some(Utc::now()),
     };
 
     recovered_rce
@@ -348,15 +350,16 @@ async fn chaos_petri_operator_cockpit_timeout_recovery() {
 
     // Pause workflow
     let interrupt = InterruptSignal {
-        workflow_id,
+        interrupt_type: "operator_decision".to_string(),
+        workflow_id: Some(workflow_id),
         severity: "High".to_string(),
         reason: "operator_decision_required".to_string(),
         human_approval_required: true,
-        timestamp: Utc::now(),
+        timestamp: Some(Utc::now()),
     };
 
     let snapshot = json!({"step": 1}).to_string().into_bytes();
-    rce.pause_workflow_with_persistence(interrupt, snapshot, &pool)
+    rce.pause_workflow_with_persistence(&interrupt, snapshot, &pool)
         .await
         .expect("pause");
 
@@ -393,15 +396,16 @@ async fn chaos_petri_operator_cockpit_timeout_recovery() {
 
     // Transition to Paused before resume
     let interrupt_recovery = InterruptSignal {
-        workflow_id,
+        interrupt_type: "cockpit_recovery".to_string(),
+        workflow_id: Some(workflow_id),
         severity: "High".to_string(),
         reason: "cockpit_recovery".to_string(),
         human_approval_required: true,
-        timestamp: Utc::now(),
+        timestamp: Some(Utc::now()),
     };
 
     new_session_rce
-        .pause_workflow(interrupt_recovery, vec![])
+        .pause_workflow(&interrupt_recovery, vec![])
         .expect("transition to paused");
 
     // ASSERTION: New session can recover and resume without loss
@@ -431,18 +435,19 @@ async fn chaos_petri_idempotent_vs_nonidempotent_step_tracking() {
     // Step 3 is NON-idempotent - critical for pause decision
     // Pause before executing step 3
     let interrupt = InterruptSignal {
-        workflow_id,
+        interrupt_type: "safeguard".to_string(),
+        workflow_id: Some(workflow_id),
         severity: "Critical".to_string(),
         reason: "non_idempotent_step_safeguard".to_string(),
         human_approval_required: true,
-        timestamp: Utc::now(),
+        timestamp: Some(Utc::now()),
     };
 
     let snapshot = json!({"step": 2, "next_is_nonidempotent": true})
         .to_string()
         .into_bytes();
 
-    rce.pause_workflow_with_persistence(interrupt, snapshot, &pool)
+    rce.pause_workflow_with_persistence(&interrupt, snapshot, &pool)
         .await
         .expect("pause before risky step");
 

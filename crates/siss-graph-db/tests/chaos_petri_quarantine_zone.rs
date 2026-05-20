@@ -87,18 +87,19 @@ async fn quarantine_db_disconnect_during_checkpoint_save() {
 
     // Create interrupt signal
     let interrupt = InterruptSignal {
-        workflow_id,
+        interrupt_type: "catastrophic".to_string(),
+        workflow_id: Some(workflow_id),
         severity: "Critical".to_string(),
         reason: "catastrophic_failure_imminent".to_string(),
         human_approval_required: true,
-        timestamp: Utc::now(),
+        timestamp: Some(Utc::now()),
     };
 
     let snapshot = vec![42u8; 1024];
 
     // Attempt pause with persistence
     let pause_result = rce
-        .pause_workflow_with_persistence(interrupt, snapshot, &pool)
+        .pause_workflow_with_persistence(&interrupt, snapshot, &pool)
         .await;
 
     // ASSERTION: Even if DB fails, RCE state machine should not corrupt
@@ -133,14 +134,15 @@ async fn quarantine_power_off_mid_reasoning_checkpoint_recovery() {
 
     // Pause and persist before "power off"
     let interrupt = InterruptSignal {
-        workflow_id,
+        interrupt_type: "power_failure".to_string(),
+        workflow_id: Some(workflow_id),
         severity: "Critical".to_string(),
         reason: "power_failure_detected".to_string(),
         human_approval_required: true,
-        timestamp: Utc::now(),
+        timestamp: Some(Utc::now()),
     };
 
-    rce.pause_workflow_with_persistence(interrupt, vec![1, 2, 3], &pool)
+    rce.pause_workflow_with_persistence(&interrupt, vec![1, 2, 3], &pool)
         .await
         .expect("pause before shutdown");
 
@@ -485,14 +487,15 @@ async fn quarantine_force_bypass_paused_state_nonidempotent_double_execution() {
 
     // First attempt: Pause at step boundary
     let interrupt = InterruptSignal {
-        workflow_id,
+        interrupt_type: "safeguard".to_string(),
+        workflow_id: Some(workflow_id),
         severity: "Critical".to_string(),
         reason: "safeguard_before_nonidempotent_step".to_string(),
         human_approval_required: true,
-        timestamp: Utc::now(),
+        timestamp: Some(Utc::now()),
     };
 
-    rce.pause_workflow_with_persistence(interrupt, vec![1, 2, 3], &pool)
+    rce.pause_workflow_with_persistence(&interrupt, vec![1, 2, 3], &pool)
         .await
         .expect("pause");
 
@@ -589,15 +592,16 @@ async fn quarantine_concurrent_pause_and_resume_race_condition() {
 
     // Create interrupt signal
     let interrupt = InterruptSignal {
-        workflow_id,
+        interrupt_type: "concurrent_pause".to_string(),
+        workflow_id: Some(workflow_id),
         severity: "High".to_string(),
         reason: "concurrent_pause_test".to_string(),
         human_approval_required: true,
-        timestamp: Utc::now(),
+        timestamp: Some(Utc::now()),
     };
 
     // Pause with persistence
-    rce.pause_workflow_with_persistence(interrupt, vec![1, 2], &pool)
+    rce.pause_workflow_with_persistence(&interrupt, vec![1, 2], &pool)
         .await
         .expect("pause");
 
@@ -735,14 +739,15 @@ async fn quarantine_workflow_completeness_under_interrupts() {
 
     // Interrupt at step 2 boundary
     let interrupt = InterruptSignal {
-        workflow_id,
+        interrupt_type: "mid_workflow".to_string(),
+        workflow_id: Some(workflow_id),
         severity: "High".to_string(),
         reason: "mid_workflow_interrupt".to_string(),
         human_approval_required: true,
-        timestamp: Utc::now(),
+        timestamp: Some(Utc::now()),
     };
 
-    rce.pause_workflow_with_persistence(interrupt, vec![], &pool)
+    rce.pause_workflow_with_persistence(&interrupt, vec![], &pool)
         .await
         .expect("pause");
 

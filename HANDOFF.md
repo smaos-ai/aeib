@@ -1,3 +1,26 @@
+# Phase 26 — siss-agent-shell Membrane Handoff
+
+**Date:** 2026-05-20  
+**Phase:** Phase 26: Deterministic Lifecycle Hooks & AG-UI SSE Streaming  
+**Status:** ✅ Complete, Merged to Main  
+**Commit:** d21c79c (Phase 26 Final: tokio-util sync feature, session emitter integration)
+
+---
+
+## Phase 26 Executive Summary
+
+Phase 26 implements the **siss-agent-shell membrane** — the execution bridge between Claude Code agents (local terminal) and the siss-enclave Axum API. This phase enforces the **Correctness Doctrine** and **Fail-Closed State** via:
+
+1. **PreToolUse Hook Gate** (`scripts/hooks/pre_tool_use_gate.js`) — Intercepts destructive commands (`rm -rf`, `drop table`, `.git/**`, `.claude/skills/**`), returns exit code 2 on block, exit code 0 on allow
+2. **PostToolUse Hook Logger** (`scripts/hooks/post_tool_use_logger.js`) — Captures tool execution, records audit trail to `~/.claude/agent-shell/audit.log`
+3. **AG-UI SSE Consumer** (`src/ag_ui/sse_consumer.rs`) — Async connection to `/api/graph/projections/actions` and `/api/graph/projections/anomalies` with CancellationToken and exponential backoff (5s, 10s, 20s, capped 60s)
+4. **AoE Status Emitter** (`src/ag_ui/status_emitter.rs`) — Emits `[AGENT_STATUS] state=running|idle|waiting|error` to stdout for AoE orchestrator integration
+5. **Hook Registration** (`.claude/settings.json`) — Registered PreToolUse/PostToolUse hooks on Bash|Write|Edit matchers; removed `dangerouslySkipPermissions` setting to restore fail-closed guarantee
+
+**Test Results:** 37 tests passing (24 AG-UI boundary tests + 13 safety gate tests). All tests run against live PostgreSQL, verifying deterministic lifecycle behavior.
+
+---
+
 # Phase 20 — Memory Crystallization Handoff
 
 **Date:** 2026-05-11  

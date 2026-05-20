@@ -83,13 +83,13 @@ impl AoESseConsumer {
     }
 
     /// Connect to the actions endpoint and stream events
-    pub async fn stream_actions(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn stream_actions(&mut self) -> Result<(), Box<dyn std::error::Error + Send>> {
         self.stream_endpoint(&self.config.actions_endpoint.clone())
             .await
     }
 
     /// Connect to the anomalies endpoint and stream events
-    pub async fn stream_anomalies(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn stream_anomalies(&mut self) -> Result<(), Box<dyn std::error::Error + Send>> {
         self.stream_endpoint(&self.config.anomalies_endpoint.clone())
             .await
     }
@@ -98,7 +98,7 @@ impl AoESseConsumer {
     async fn stream_endpoint(
         &mut self,
         endpoint: &str,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<(), Box<dyn std::error::Error + Send>> {
         self.stream_endpoint_with_cancel(endpoint, CancellationToken::new())
             .await
     }
@@ -108,7 +108,7 @@ impl AoESseConsumer {
         &mut self,
         endpoint: &str,
         cancel_token: CancellationToken,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<(), Box<dyn std::error::Error + Send>> {
         loop {
             tokio::select! {
                 result = self.try_connect(endpoint) => {
@@ -141,7 +141,7 @@ impl AoESseConsumer {
     }
 
     /// Attempt to connect to an endpoint and stream events
-    async fn try_connect(&self, endpoint: &str) -> Result<(), Box<dyn std::error::Error>> {
+    async fn try_connect(&self, endpoint: &str) -> Result<(), Box<dyn std::error::Error + Send>> {
         let response = self
             .client
             .get(endpoint)
@@ -178,7 +178,7 @@ impl AoESseConsumer {
     }
 
     /// Process a single SSE data line
-    fn process_sse_line(&self, line: &str) -> Result<(), Box<dyn std::error::Error>> {
+    fn process_sse_line(&self, line: &str) -> Result<(), Box<dyn std::error::Error + Send>> {
         // Remove "data: " prefix
         let data = if let Some(content) = line.strip_prefix("data:") {
             content.trim()

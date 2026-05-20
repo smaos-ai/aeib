@@ -37,8 +37,8 @@ pub async fn fetch_agent_actions(
     let since = since.unwrap_or_else(|| Utc::now() - chrono::Duration::hours(1));
     let limit = limit.unwrap_or(100).min(500); // Cap at 500
 
-    // Fetch actions
-    let actions = sqlx::query_as::<_, AgentActionProjection>(
+    // Fetch actions (limit+1 to detect has_more)
+    let mut actions = sqlx::query_as::<_, AgentActionProjection>(
         r#"
         SELECT
             ge.id as action_id,
@@ -62,9 +62,15 @@ pub async fn fetch_agent_actions(
     )
     .bind(sovereign_id)
     .bind(since)
-    .bind(limit)
+    .bind(limit + 1)
     .fetch_all(pool)
     .await?;
+
+    // Determine has_more and truncate to limit
+    let has_more = actions.len() > limit as usize;
+    if has_more {
+        actions.truncate(limit as usize);
+    }
 
     // Get total count (not capped)
     let total_count: i64 = sqlx::query_scalar(
@@ -78,8 +84,6 @@ pub async fn fetch_agent_actions(
     .bind(sovereign_id)
     .fetch_one(pool)
     .await?;
-
-    let has_more = actions.len() as i32 >= limit;
 
     Ok(AgentActionsPageResponse {
         actions,
@@ -214,10 +218,16 @@ pub async fn fetch_anomalies(
     .fetch_one(pool)
     .await?;
 
-    // Get active recovery count
+    // Get active recovery count from recovery nodes
     let active_recovery_count: i32 = sqlx::query_scalar(
-        "SELECT COUNT(DISTINCT (properties->>'persona_id'))::int FROM behavior_events WHERE status = 'in_recovery'"
+        r#"
+        SELECT COUNT(*)::int FROM graph_entities
+        WHERE label = 'RecoveryEventNode'
+          AND (properties->>'sovereign_id')::uuid = $1
+          AND (properties->>'is_approved')::boolean = true
+        "#
     )
+    .bind(sovereign_id)
     .fetch_optional(pool)
     .await?
     .flatten()
@@ -280,7 +290,7 @@ pub async fn fetch_recovery(
             (ge.properties->>'entry_reason') as entry_reason,
             (ge.properties->>'tier_at_entry')::smallint as tier_at_entry,
             (ge.properties->>'tier_current')::smallint as tier_current,
-            EXTRACT(WEEK FROM NOW() - (ge.properties->>'entry_at')::timestamptz)::int as weeks_elapsed,
+            (EXTRACT(DAY FROM NOW() - (ge.properties->>'entry_at')::timestamptz)::int / 7) as weeks_elapsed,
             (ge.properties->>'entry_at')::timestamptz as entry_at,
             (ge.properties->>'expected_exit_at')::timestamptz as expected_exit_at,
             (ge.properties->>'recovery_status') as recovery_status,

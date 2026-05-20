@@ -11,7 +11,7 @@ pub struct AnomalyCorrelation {
     pub triggering_event_type: String, // e.g., 'process_payment'
     pub anomaly_type: String,          // e.g., 'dispute_spam'
     pub correlation_strength: f64,     // 0.0-1.0: P(anomaly | event_type)
-    pub sample_size: i32,              // How many (event, anomaly) pairs?
+    pub sample_size: i64,              // How many (event, anomaly) pairs?
     pub confidence_95th: f64,          // Statistical confidence
     pub detected_at: DateTime<Utc>,
 }
@@ -49,13 +49,13 @@ pub async fn correlate_anomalies(
         SELECT
             gen_random_uuid() as pattern_id,
             $1::uuid as sovereign_id,
-            (a.properties->>'event_type') as triggering_event_type,
-            (an.properties->>'anomaly_type') as anomaly_type,
-            COUNT(CASE WHEN (an.properties->>'detected_at')::timestamptz
-                BETWEEN (a.properties->>'scored_at')::timestamptz
-                    AND (a.properties->>'scored_at')::timestamptz + INTERVAL '5 minutes'
+            a.event_type as triggering_event_type,
+            an.anomaly_type as anomaly_type,
+            COUNT(CASE WHEN an.detected_at
+                BETWEEN a.scored_at
+                    AND a.scored_at + INTERVAL '5 minutes'
                 THEN 1 END)::float / COUNT(*)::float as correlation_strength,
-            COUNT(*) as sample_size,
+            COUNT(*)::int8 as sample_size,
             0.95::float as confidence_95th,
             NOW()::timestamptz as detected_at
         FROM (

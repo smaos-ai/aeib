@@ -10,6 +10,7 @@
 use chrono::{DateTime, Duration, Utc};
 use serde_json::json;
 use siss_graph_db::repo::{correlation_repo, projections_repo};
+use siss_graph_db::migrations;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{Pool, Postgres};
 use std::sync::Arc;
@@ -45,40 +46,12 @@ async fn setup_test_db() -> Pool<Postgres> {
         }
     };
 
-    // Ensure extensions and tables exist
-    let _ = sqlx::query("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";")
-        .execute(&pool)
-        .await;
-    let _ = sqlx::query("CREATE EXTENSION IF NOT EXISTS \"pgcrypto\";")
-        .execute(&pool)
-        .await;
+    // Run all migrations to create the full schema
+    migrations::run_all(&pool)
+        .await
+        .expect("Failed to run migrations");
 
-    let _ = sqlx::query(
-        "CREATE TABLE IF NOT EXISTS graph_entities (
-            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            graph_id BIGINT NOT NULL DEFAULT 0,
-            label VARCHAR(32) NOT NULL,
-            properties JSONB NOT NULL DEFAULT '{}',
-            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-            updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-        );",
-    )
-    .execute(&pool)
-    .await;
-
-    let _ = sqlx::query(
-        "CREATE INDEX IF NOT EXISTS idx_entities_label ON graph_entities(label, created_at DESC);",
-    )
-    .execute(&pool)
-    .await;
-
-    let _ = sqlx::query(
-        "CREATE INDEX IF NOT EXISTS idx_entities_sovereign ON graph_entities ((properties->>'sovereign_id'));",
-    )
-    .execute(&pool)
-    .await;
-
-    // Clean up test data before each test
+    // Clean up test data before each test (graph_entities created by migrations)
     let _ = sqlx::query("DELETE FROM graph_entities WHERE label IN ('AgentActionNode', 'AnomalyEventNode', 'RecoveryEventNode');")
         .execute(&pool)
         .await;
@@ -114,11 +87,12 @@ async fn insert_test_action(
         "scored_at": scored_at.to_rfc3339(),
     });
 
-    let _ = sqlx::query("INSERT INTO graph_entities (label, properties) VALUES ($1, $2)")
+    sqlx::query("INSERT INTO graph_entities (label, properties) VALUES ($1, $2::jsonb)")
         .bind("AgentActionNode")
         .bind(properties.to_string())
         .execute(pool)
-        .await;
+        .await
+        .expect("Failed to insert test action");
 
     action_id
 }
@@ -150,11 +124,12 @@ async fn insert_test_anomaly(
         "recovery_tier_impact": 0,
     });
 
-    let _ = sqlx::query("INSERT INTO graph_entities (label, properties) VALUES ($1, $2)")
+    sqlx::query("INSERT INTO graph_entities (label, properties) VALUES ($1, $2::jsonb)")
         .bind("AnomalyEventNode")
         .bind(properties.to_string())
         .execute(pool)
-        .await;
+        .await
+        .expect("Failed to insert test anomaly");
 
     anomaly_db_id
 }
@@ -186,11 +161,12 @@ async fn insert_test_recovery(
         "is_approved": is_approved,
     });
 
-    let _ = sqlx::query("INSERT INTO graph_entities (label, properties) VALUES ($1, $2)")
+    sqlx::query("INSERT INTO graph_entities (label, properties) VALUES ($1, $2::jsonb)")
         .bind("RecoveryEventNode")
         .bind(properties.to_string())
         .execute(pool)
-        .await;
+        .await
+        .expect("Failed to insert test recovery");
 
     recovery_id
 }

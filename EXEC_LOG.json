@@ -12,5 +12,12 @@
     "commit": "0842f7c",
     "message": "Phase 33: False Positive Decay Acceleration — Accelerate signal decay on false positives (2-day half-life), reset on true positives (7-day half-life). 16/16 tests passing",
     "tests_pass": true
+  },
+  {
+    "hash": "398448afc5f0e4ec70f901779aa6c7b1eb6b5e48f2aec1ca4209caaa784e512c",
+    "timestamp": "2026-05-20T23:06:54Z",
+    "commit": "78b5434",
+    "message": "chore: deploy immutable execution ledger system — post-commit hook, EXEC_LOG.json, claude-replay.sh CLI",
+    "tests_pass": false
   }
 ]

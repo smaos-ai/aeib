@@ -4,9 +4,8 @@ use crate::a2ui::validator::A2UIValidator;
 #[test]
 fn test_accepts_text_component() {
     let component = A2UIComponent::Text {
-        id: "test".to_string(),
         content: "Hello".to_string(),
-        size: None,
+        size: "md".to_string(),
     };
     assert!(A2UIValidator::validate(&component).is_ok());
 }
@@ -16,7 +15,7 @@ fn test_accepts_input_component() {
     let component = A2UIComponent::Input {
         id: "field1".to_string(),
         label: "Name".to_string(),
-        placeholder: Some("Enter name".to_string()),
+        placeholder: "Enter name".to_string(),
         required: true,
     };
     assert!(A2UIValidator::validate(&component).is_ok());
@@ -39,9 +38,8 @@ fn test_accepts_card_with_nested_components() {
         title: Some("Details".to_string()),
         children: vec![
             A2UIComponent::Text {
-                id: "text1".to_string(),
                 content: "Content".to_string(),
-                size: None,
+                size: "sm".to_string(),
             },
         ],
     };
@@ -52,14 +50,14 @@ fn test_accepts_card_with_nested_components() {
 fn test_validates_all_18_primitives() {
     // Display (8)
     let display_components = vec![
-        A2UIComponent::Text { id: "1".to_string(), content: "t".to_string(), size: None },
-        A2UIComponent::Badge { id: "2".to_string(), label: "b".to_string(), color: None },
-        A2UIComponent::Alert { id: "3".to_string(), message: "a".to_string(), level: "info".to_string() },
-        A2UIComponent::Progress { id: "4".to_string(), value: 50, max: 100, label: None },
-        A2UIComponent::Divider { id: "5".to_string() },
-        A2UIComponent::Link { id: "6".to_string(), label: "l".to_string(), href: "http://x".to_string() },
-        A2UIComponent::Tooltip { id: "7".to_string(), content: "tip".to_string(), text: "t".to_string() },
-        A2UIComponent::Breadcrumb { id: "8".to_string(), items: vec![] },
+        A2UIComponent::Text { content: "t".to_string(), size: "md".to_string() },
+        A2UIComponent::Badge { label: "b".to_string(), color: "blue".to_string() },
+        A2UIComponent::Alert { message: "a".to_string(), level: "info".to_string() },
+        A2UIComponent::Progress { value: 50, max: 100, label: None },
+        A2UIComponent::Divider,
+        A2UIComponent::Link { text: "l".to_string(), href: "http://x".to_string() },
+        A2UIComponent::Tooltip { text: "t".to_string(), content: "tip".to_string() },
+        A2UIComponent::Breadcrumb { items: vec![] },
     ];
     for comp in display_components {
         assert!(A2UIValidator::validate(&comp).is_ok(), "Failed for: {:?}", comp);
@@ -67,7 +65,7 @@ fn test_validates_all_18_primitives() {
 
     // Forms (6)
     let form_components = vec![
-        A2UIComponent::Input { id: "9".to_string(), label: "i".to_string(), placeholder: None, required: false },
+        A2UIComponent::Input { id: "9".to_string(), label: "i".to_string(), placeholder: "".to_string(), required: false },
         A2UIComponent::Textarea { id: "10".to_string(), label: "ta".to_string(), rows: None },
         A2UIComponent::Select { id: "11".to_string(), label: "s".to_string(), options: vec![] },
         A2UIComponent::Checkbox { id: "12".to_string(), label: "c".to_string(), checked: false },
@@ -97,9 +95,8 @@ fn test_validator_rejects_invalid_nested_components() {
         title: None,
         children: vec![
             A2UIComponent::Text {
-                id: "text".to_string(),
                 content: "valid".to_string(),
-                size: None,
+                size: "sm".to_string(),
             },
         ],
     };
@@ -108,14 +105,14 @@ fn test_validator_rejects_invalid_nested_components() {
 
 #[test]
 fn test_returns_error_message_on_validation_failure() {
-    // This test would require creating an invalid component type
-    // For now, we ensure validator returns descriptive error
-    let component = A2UIComponent::Text {
+    let component = A2UIComponent::Input {
         id: "".to_string(), // Empty ID should fail
-        content: "x".to_string(),
-        size: None,
+        label: "Field".to_string(),
+        placeholder: "".to_string(),
+        required: false,
     };
     let result = A2UIValidator::validate(&component);
+    assert!(result.is_err(), "Expected validation to fail for empty ID");
     if let Err(msg) = result {
         assert!(!msg.is_empty(), "Error message should not be empty");
     }

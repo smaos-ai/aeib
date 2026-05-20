@@ -11,20 +11,23 @@ pub enum A2UIComponent {
 
     /// Plain text display
     Text {
+        id: String,
         content: String,
         #[serde(default)]
-        size: String, // "sm" | "md" | "lg"
+        size: Option<String>, // "sm" | "md" | "lg"
     },
 
     /// Badge/label with color
     Badge {
+        id: String,
         label: String,
         #[serde(default)]
-        color: String, // "blue" | "red" | "green" | "yellow"
+        color: Option<String>, // "blue" | "red" | "green" | "yellow"
     },
 
     /// Alert message (info/warn/error)
     Alert {
+        id: String,
         message: String,
         #[serde(default)]
         level: String, // "info" | "warn" | "error"
@@ -32,6 +35,7 @@ pub enum A2UIComponent {
 
     /// Progress bar with percentage
     Progress {
+        id: String,
         value: u32,
         max: u32,
         #[serde(default)]
@@ -39,22 +43,27 @@ pub enum A2UIComponent {
     },
 
     /// Horizontal divider line
-    Divider,
+    Divider {
+        id: String,
+    },
 
     /// Hyperlink
     Link {
-        text: String,
+        id: String,
+        label: String,
         href: String,
     },
 
     /// Hover tooltip
     Tooltip {
+        id: String,
         text: String,
         content: String,
     },
 
     /// Breadcrumb navigation
     Breadcrumb {
+        id: String,
         items: Vec<String>,
     },
 
@@ -65,7 +74,7 @@ pub enum A2UIComponent {
         id: String,
         label: String,
         #[serde(default)]
-        placeholder: String,
+        placeholder: Option<String>,
         #[serde(default)]
         required: bool,
     },
@@ -75,7 +84,7 @@ pub enum A2UIComponent {
         id: String,
         label: String,
         #[serde(default)]
-        rows: u32,
+        rows: Option<u32>,
     },
 
     /// Dropdown selector (required: id)
@@ -89,13 +98,17 @@ pub enum A2UIComponent {
     Checkbox {
         id: String,
         label: String,
+        #[serde(default)]
+        checked: bool,
     },
 
     /// Radio button group (required: id)
     Radio {
         id: String,
         label: String,
-        options: Vec<RadioOption>,
+        value: String,
+        #[serde(default)]
+        checked: bool,
     },
 
     /// Clickable button (required: id)
@@ -103,19 +116,22 @@ pub enum A2UIComponent {
         id: String,
         label: String,
         #[serde(default)]
-        action: String, // "submit" | "reset" | "custom"
+        action: Option<String>, // "submit" | "reset" | "custom"
     },
 
     // === LAYOUT (4 types) ===
 
     /// Card container with title
     Card {
-        title: String,
+        id: String,
+        #[serde(default)]
+        title: Option<String>,
         children: Vec<A2UIComponent>,
     },
 
     /// Grid layout with N columns
     Grid {
+        id: String,
         columns: u32,
         children: Vec<A2UIComponent>,
     },
@@ -124,11 +140,13 @@ pub enum A2UIComponent {
     Modal {
         id: String,
         title: String,
+        content: String,
         children: Vec<A2UIComponent>,
     },
 
     /// Data table with headers and rows
     Table {
+        id: String,
         headers: Vec<String>,
         rows: Vec<Vec<String>>,
     },

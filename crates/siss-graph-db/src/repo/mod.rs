@@ -8,6 +8,7 @@ pub mod chain_query;
 pub mod challenge_repo;
 pub mod consensus_repo;
 pub mod correlation_pattern_repo;
+pub mod correlation_repo;
 pub mod cross_sovereign_delegation_repo;
 pub mod cycle_detector;
 pub mod cycle_forensics;

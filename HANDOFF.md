@@ -1,592 +1,196 @@
-# Phase 26 — siss-agent-shell Membrane Handoff
+# Phase 31 HANDOFF — Real-Time Agent Observability
 
-**Date:** 2026-05-20  
-**Phase:** Phase 26: Deterministic Lifecycle Hooks & AG-UI SSE Streaming  
-**Status:** ✅ Complete, Merged to Main  
-**Commit:** d21c79c (Phase 26 Final: tokio-util sync feature, session emitter integration)
+## Overview
 
----
+5 atomic tasks. Wave 1 runs first (foundation). Wave 2 runs in parallel (Tasks 2/3/4 are file-orthogonal). Wave 3 runs after 2 and 3 complete.
 
-## Phase 26 Executive Summary
-
-Phase 26 implements the **siss-agent-shell membrane** — the execution bridge between Claude Code agents (local terminal) and the siss-enclave Axum API. This phase enforces the **Correctness Doctrine** and **Fail-Closed State** via:
-
-1. **PreToolUse Hook Gate** (`scripts/hooks/pre_tool_use_gate.js`) — Intercepts destructive commands (`rm -rf`, `drop table`, `.git/**`, `.claude/skills/**`), returns exit code 2 on block, exit code 0 on allow
-2. **PostToolUse Hook Logger** (`scripts/hooks/post_tool_use_logger.js`) — Captures tool execution, records audit trail to `~/.claude/agent-shell/audit.log`
-3. **AG-UI SSE Consumer** (`src/ag_ui/sse_consumer.rs`) — Async connection to `/api/graph/projections/actions` and `/api/graph/projections/anomalies` with CancellationToken and exponential backoff (5s, 10s, 20s, capped 60s)
-4. **AoE Status Emitter** (`src/ag_ui/status_emitter.rs`) — Emits `[AGENT_STATUS] state=running|idle|waiting|error` to stdout for AoE orchestrator integration
-5. **Hook Registration** (`.claude/settings.json`) — Registered PreToolUse/PostToolUse hooks on Bash|Write|Edit matchers; removed `dangerouslySkipPermissions` setting to restore fail-closed guarantee
-
-**Test Results:** 37 tests passing (24 AG-UI boundary tests + 13 safety gate tests). All tests run against live PostgreSQL, verifying deterministic lifecycle behavior.
+**The Golden Rule:** Each task owns a specific set of files. No task modifies another task's files. Zero merge conflicts by design.
 
 ---
 
-# Phase 20 — Memory Crystallization Handoff
+## Task 1: Workspace Foundation *(Wave 1 — must complete first)*
 
-**Date:** 2026-05-11  
-**Phase:** Phase 20: Graduated Reputation Recovery (SMAOS Pilot)  
-**Status:** ✅ Complete, Merged to Main  
-**Commits:** 7 commits (S0–S3 scaffolding + Tasks 87–92 implementation)
+**Goal:** Add missing workspace dependencies and create siss-cockpit crate skeleton so Tasks 2, 3, 4 can compile against it.
 
----
+**Owns (may modify only these files):**
+- `Cargo.toml` (root workspace)
+- `crates/siss-cockpit/Cargo.toml` (create new)
+- `crates/siss-cockpit/src/lib.rs` (create new, stub only)
 
-## Executive Summary
+**Constraints:**
+- Do NOT implement any logic. Create a minimal crate that compiles empty.
+- Do NOT modify any existing crate's `Cargo.toml` yet (that's Task 2's job for dispatcher).
+- The `lib.rs` should be literally: `pub mod server; pub mod state; pub mod handlers;` with empty stub modules.
 
-Phase 20 implements **graduated reputation recovery** for sovereigns exiting probation. A sovereign in recovery has their reputation score graduated linearly from 85 (week 0) to 100 (week 8), with Phase 19 penalty/bonus signals applied on top. This phase serves as the **pilot proof-of-concept for the SMAOS 6-layer platform**.
-
-**Key Achievement:** The Minimal Viable SMAOS Foundation is now operational:
-- **GitNexus MCP** — blast-radius analysis (Phase S0)
-- **LightRAG + Apache AGE** — intelligence graph for decision lineage (Phase S1)
-- **AG-UI SSE Streaming** — real-time event telemetry (Phase S2)
-- **AoE Cockpit** — operator visibility dashboard (Phase S3)
-- **Phase 20 Recovery Logic** — graduated scoring + state machine (Tasks 87–92)
-
----
-
-## Architecture Overview
-
-### State Machine
-
-```
-probation (80 base) → recovery (85→100 graduated) → active (100 base)
-                           ↓
-                      violation
-                           ↓
-                      quarantine (0)
-```
-
-**Key States:**
-- **probation:** Locked score = 80 + Phase 19 signals
-- **recovering:** Graduated score = 85 + (weeks/8)×15 + Phase 19 signals (0–8 weeks)
-- **active:** Locked score = 100 + Phase 19 signals
-- **quarantine:** Locked score = 0 (no signals applied)
-
-### Graduation Curve
-
-```
-Week 0:  base = 85
-Week 1:  base = 85 + (1/8)×15 = 86
-Week 4:  base = 85 + (4/8)×15 = 92
-Week 8:  base = 85 + (8/8)×15 = 100 (complete)
-Week 9+: capped at 100
-```
-
-**Signal Integration (Phase 19):**
-- Slash penalty: min(30, count × 10) applied to last 30 days
-- Anomaly penalty: min(20, count × 8) applied to last 30 days
-- Settlement bonus: min(20, count × 5) applied all-time
-
-**Final Score:** `clamp(base − slash_penalty − anomaly_penalty + settlement_bonus, 0, 100)`
+**Success Criteria:**
+- [ ] Root `Cargo.toml` contains `axum = { version = "0.7", features = ["json"] }` in `[workspace.dependencies]`
+- [ ] Root `Cargo.toml` contains `tokio-stream = "0.1"` in `[workspace.dependencies]`
+- [ ] Root `Cargo.toml` contains `async-stream = "0.3"` in `[workspace.dependencies]`
+- [ ] Root `Cargo.toml` has `"crates/siss-cockpit"` in `members` array
+- [ ] `cargo check -p siss-cockpit` passes (empty crate compiles)
+- [ ] `cargo check --all` passes (no existing crates broken)
 
 ---
 
-## Component Architecture
+## Task 2: Dispatcher Event Integration *(Wave 2 — parallel with Tasks 3 and 4)*
 
-### 1. Core Logic: `reputation_recovery_repo.rs`
+**Goal:** Wire the Phase 30 dispatcher to emit `AgentEvent` lifecycle events using the existing `EventEmitter` trait from `siss-agent-shell`.
 
-**Pure Functions (deterministic, testable):**
+**Owns (may modify only these files):**
+- `crates/siss-dispatcher/src/executor.rs`
+- `crates/siss-dispatcher/Cargo.toml`
 
-```rust
-recovered_base_score(weeks: u32) -> i16
-  // Returns graduated base: 85 + (weeks/8)*15, capped at 100
-  
-compute_recovery_score(weeks, slash_count, anomaly_count, settled_count) -> i16
-  // Applies Phase 19 signals to graduated base
-  // Returns final score ∈ [0, 100]
-  
-weeks_elapsed(recovery_started_at: DateTime<Utc>) -> u32
-  // Returns weeks since recovery began (wall-clock time)
-```
+**Context (read before touching):**
+- `siss-agent-shell/src/events/emitter.rs` — `EventEmitter` trait: `fn emit(&self, event: AgentEvent)`
+- `siss-agent-shell/src/events/mod.rs` — `AgentEvent` enum variants
+- `siss-dispatcher/src/executor.rs` — `Executor` struct, `run_loop()`, `spawn_agents()`, `assign_next_task()`, `finalize_tasks()`
 
-**Async DB Functions:**
+**Work:**
+1. Add `siss-agent-shell` to `crates/siss-dispatcher/Cargo.toml` deps
+2. Add `emitter: Box<dyn EventEmitter>` field to `Executor` struct (default: `NoOpEmitter`)
+3. In `spawn_agents()`: emit `AgentEvent::SessionStarted` per agent
+4. In `assign_next_task()`: emit `AgentEvent::TaskCreated` when task assigned
+5. In `finalize_tasks()`: emit `AgentEvent::IntentCompleted` per completed task
+6. Add `pub fn set_emitter(&mut self, emitter: Box<dyn EventEmitter>)` on `Executor`
 
-```rust
-auto_exit_probation_to_recovery(pool, sovereign_id, exit_reason) -> Result<Uuid>
-  // Triggered by Phase 16 sweep after 30 clean days
-  // Creates reputation_recovery_log record
-  // Transitions sovereigns.status = 'recovering'
-  // Writes to intelligence_graph_repo for decision lineage
-  
-sweep_recovery_progress(pool) -> Result<SweepResult>
-  // Weekly sweep: advances all active recovery records
-  // Updates recovery_progress_weeks based on wall-clock time
-  // At week 8: calls auto_exit_recovery_to_active()
-  // Emits RecoverySweepCompleted event to AG-UI
-  
-auto_exit_recovery_to_active(pool, sovereign_id) -> Result<()>
-  // Called by sweep at week 8 completion
-  // Sets recovery_exit_status = 'success'
-  // Transitions sovereigns.status = 'active'
-  // Emits RecoveryCompleted event
-  
-violation_during_recovery_to_quarantine(pool, sovereign_id, reason) -> Result<()>
-  // Called by gatekeeper on Phase 16 violation detection
-  // Sets recovery_exit_status = 'failure'
-  // Transitions sovereigns.status = 'quarantine' (IMMEDIATE)
-  // Emits RecoveryViolation event
-```
+**Constraints:**
+- Do NOT change any other file. Only `executor.rs` and `Cargo.toml`.
+- Do NOT break existing Phase 30 behavior — event emission is additive.
+- `NoOpEmitter` remains the default so existing tests pass without changes.
 
-### 2. Peer Scoring Integration: `peer_scoring_repo.rs`
-
-**Updated `compute_and_upsert_score(pool, sovereign_id)`:**
-
-```rust
-match sovereign.status {
-  "recovering" => {
-    // Fetch active recovery_log record
-    let recovery = get_active_recovery(pool, sovereign_id).await?;
-    let weeks = weeks_elapsed(recovery.recovery_started_at);
-    
-    // Apply Phase 20 graduation + Phase 19 signals
-    compute_recovery_score(weeks, slash_count, anomaly_count, settled_count)
-  }
-  "active" => compute_enriched_score(100, slash_count, anomaly_count, settled_count),
-  "probation" => compute_enriched_score(80, slash_count, anomaly_count, settled_count),
-  "quarantined" => 0,  // No enrichment
-}
-```
-
-**Scoring consistency:** All statuses apply the same signal penalties/bonuses, ensuring that signal aging (30-day windows) and settlement tracking (all-time) work uniformly across states.
-
-### 3. Gatekeeper Integration: `validate.rs`
-
-**Phase 20 Violation Detection:**
-
-```rust
-// In pipeline/validate.rs, after Phase 16 check:
-if probation_repo::check_and_enforce_violation(pool, tenant_id).await? {
-  // Re-quarantined — block session
-  return Err(GatekeeperError::SovereignQuarantined { tenant_id });
-}
-```
-
-**Same threshold:** Both probation and recovery violations use 50% of Phase 15 thresholds (reuse existing `check_and_enforce_violation()` logic).
-
-### 4. Background Sweep: `recovery_sweep_scheduler.rs`
-
-```rust
-start_recovery_sweep(pool, interval) -> JoinHandle<()>
-  // Spawns tokio task with weekly interval
-  // Calls run_recovery_sweep_pass() each tick
-  
-run_recovery_sweep_pass(pool) -> Result<RecoverySweepResult>
-  // Calls reputation_recovery_repo::sweep_recovery_progress()
-  // Returns { sovereigns_advanced, sovereigns_completed, sovereigns_violated }
-  // Emits RecoverySweepCompleted event with result
-```
+**Success Criteria:**
+- [ ] `cargo check -p siss-dispatcher` passes
+- [ ] `Executor::set_emitter()` is a public method
+- [ ] `executor.rs` calls `self.emitter.emit(...)` at task assignment, completion, and spawn
+- [ ] Existing `cargo test -p siss-dispatcher` (if any tests) still pass
+- [ ] No new clippy warnings in `siss-dispatcher`
 
 ---
 
-## Event Streaming: Axum SSE Architecture
+## Task 3: Cockpit SSE Server *(Wave 2 — parallel with Tasks 2 and 4)*
 
-### Event Types
+**Goal:** Build a standalone Axum HTTP server (port 8080) that fans out agent events via SSE and accepts pause/resume/abort control signals.
 
-**File:** `crates/siss-agent-card/src/events.rs`
+**Owns (may modify only these files):**
+- `crates/siss-cockpit/src/server.rs` (create)
+- `crates/siss-cockpit/src/state.rs` (create)
+- `crates/siss-cockpit/src/handlers/stream.rs` (create)
+- `crates/siss-cockpit/src/handlers/control.rs` (create)
+- `crates/siss-cockpit/src/lib.rs` (overwrite Task 1's stub with full module declarations)
 
-```rust
-#[derive(Debug, Serialize)]
-pub enum RecoveryEvent {
-  RecoveryEntered {
-    sovereign_id: Uuid,
-    score_at_entry: i16,
-    probation_exit_reason: String,
-  },
-  RecoveryProgressed {
-    sovereign_id: Uuid,
-    weeks_elapsed: u32,
-    current_score: i16,
-    slash_count: i64,
-    anomaly_count: i64,
-    settlement_count: i64,
-  },
-  RecoveryCompleted {
-    sovereign_id: Uuid,
-    exit_status: String,
-    score_at_exit: i16,
-  },
-  RecoveryViolation {
-    sovereign_id: Uuid,
-    violation_reason: String,
-    new_status: String,
-  },
-  ScoringDecision {
-    sovereign_id: Uuid,
-    status: String,
-    final_score: i16,
-    base_score: i16,
-    slash_penalty: i16,
-    anomaly_penalty: i16,
-    settlement_bonus: i16,
-  },
-}
-```
+**Context (read before touching — copy the pattern, not the code):**
+- `siss-enclave/src/events/sse_emitter.rs` — `SseEmitter` with `broadcast::Sender`
+- `siss-enclave/src/api/ag_ui.rs` — Axum SSE handler: `async_stream::stream!` + `broadcast::Receiver` + `Sse::new().keep_alive()`
+- `siss-enclave/src/api/router.rs` — `Router` mounting pattern
 
-### Event Broadcaster
+**Work:**
+1. `state.rs`: `CockpitState { broadcast: broadcast::Sender<AgEvent>, buffer: Arc<Mutex<VecDeque<AgEvent>>> }`. Buffer max 1000 events. Methods: `send_event()`, `subscribe()`, `get_buffer_snapshot()`.
+2. `handlers/stream.rs`: `GET /api/agents/stream` — on connect, send buffered events first, then live stream via `broadcast::Receiver`. `Sse::new(stream).keep_alive(KeepAlive::default())`.
+3. `handlers/control.rs`: `POST /api/agents/:id/pause`, `POST /api/agents/:id/resume`, `POST /api/agents/:id/abort` — send `ControlSignal` to `mpsc::Sender`. Return 202 Accepted.
+4. `server.rs`: `CockpitServer::run(port: u16)` — creates Axum router, mounts all routes, spawns tokio server.
 
-```rust
-pub struct EventBroadcaster {
-  tx: broadcast::Sender<RecoveryEvent>,
-}
+**Constraints:**
+- Do NOT write any HTML/JS. That's Task 4's scope.
+- Do NOT touch `siss-dispatcher`. Integration is Task 2's job.
+- Follow siss-enclave's SSE pattern exactly — do not invent a different approach.
 
-impl EventBroadcaster {
-  pub fn broadcast(&self, event: RecoveryEvent) {
-    let _ = self.tx.send(event);  // Fire-and-forget to all listeners
-  }
-  
-  pub fn subscribe(&self) -> broadcast::Receiver<RecoveryEvent> {
-    self.tx.subscribe()
-  }
-}
-```
-
-**Usage in reputation_recovery_repo:**
-```rust
-// After state transition (e.g., recovery → active)
-broadcaster.broadcast(RecoveryEvent::RecoveryCompleted {
-  sovereign_id,
-  exit_status: "success".to_string(),
-  score_at_exit: final_score,
-});
-```
-
-### SSE Handler
-
-**File:** `crates/siss-agent-card/src/events.rs`
-
-```rust
-pub async fn events_stream(
-  State(broadcaster): State<Arc<EventBroadcaster>>,
-) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
-  let rx = broadcaster.subscribe();
-  
-  let stream = BroadcastStream::new(rx)
-    .map(|event| {
-      let json = serde_json::to_string(&event).unwrap();
-      Ok(Event::default().data(json))
-    });
-    
-  Sse::new(stream)
-}
-```
-
-**Route:** `GET /events` returns `text/event-stream` with Content-Type headers
-
-### Integration with Axum Router
-
-```rust
-// In sse_server.rs example:
-let broadcaster = Arc::new(EventBroadcaster::new());
-
-let app = Router::new()
-  .route("/cockpit", get(cockpit_handler))
-  .route("/events", get(events_stream))
-  .with_state(broadcaster.clone())
-  .layer(DefaultBodyLimit::max(1024 * 1024));  // 1MB limit
-
-// Spawn demo task emitting events
-tokio::spawn(emit_demo_events(broadcaster.clone()));
-```
+**Success Criteria:**
+- [ ] `cargo check -p siss-cockpit` passes
+- [ ] `GET /api/agents/stream` compiles as SSE endpoint
+- [ ] `POST /api/agents/:id/pause` compiles and returns `StatusCode::ACCEPTED`
+- [ ] `CockpitState::send_event()` stores event in buffer + broadcasts to all subscribers
+- [ ] On reconnect, buffer snapshot is sent before live stream begins
+- [ ] No clippy warnings in `siss-cockpit`
 
 ---
 
-## Frontend: Cockpit Dashboard
+## Task 4: Dashboard UI *(Wave 2 — parallel, fully independent)*
 
-**File:** `crates/siss-agent-card/static/cockpit.html`
+**Goal:** Build a single-page HTML dashboard that reads SSE events from `/api/agents/stream` and displays live agent status with pause/resume/abort controls.
 
-### Architecture
+**Owns (may modify only these files):**
+- `crates/siss-cockpit/ui/index.html` (create)
+- `crates/siss-cockpit/ui/dashboard.js` (create)
 
-**EventSource Consumer:**
-```javascript
-const eventSource = new EventSource('/events');
+**Context:**
+- Dashboard talks to `GET /api/agents/stream` (SSE endpoint from Task 3)
+- Dashboard sends `POST /api/agents/:id/pause`, `/resume`, `/abort` (control endpoints from Task 3)
+- Events are JSON: `{ event_type: "TaskAssigned" | "ToolCall" | "IntentCompleted", agent_id, task_id, payload, timestamp }`
 
-eventSource.onmessage = (event) => {
-  const recovery = JSON.parse(event.data);
-  updateDashboard(recovery);
-};
+**Work:**
+1. `index.html`: Grid of 5 agent cards. Each card shows: agent ID, current task, status badge (idle/working/paused/completed), streaming output textarea, Pause/Resume/Abort buttons.
+2. `dashboard.js`:
+   - `EventSource('/api/agents/stream')` with auto-reconnect (exponential backoff, max 30s)
+   - On event: parse JSON, update correct agent card
+   - Buttons: `fetch('/api/agents/${id}/pause', { method: 'POST' })` etc.
+   - Handle SSE disconnect: show "Reconnecting..." indicator, re-attempt with backoff
+   - Keep last 500 lines of output per agent in textarea
 
-eventSource.onerror = () => {
-  eventSource.close();
-  setTimeout(() => { location.reload(); }, 5000);  // Reconnect
-};
-```
+**Constraints:**
+- Pure HTML + vanilla JS only. No React, Vue, or bundler.
+- No build step. File must work when served as static file.
+- Do NOT modify any Rust code.
 
-### Three-Column Layout
-
-**1. Recovery Status (left)**
-```
-┌─────────────────────────────┐
-│ Recovering Sovereigns       │
-├─────────────────────────────┤
-│ ID: abc-123                 │
-│ Status: recovering          │
-│ Weeks Elapsed: 4            │
-│ Current Score: 92           │
-│ Entry Score: 85             │
-├─────────────────────────────┤
-│ ID: def-456                 │
-│ ...                         │
-└─────────────────────────────┘
-```
-
-**Updates on:** `RecoveryProgressed`, `RecoveryEntered`
-
-**2. Recent Transitions (center)**
-```
-┌─────────────────────────────┐
-│ State Changes               │
-├─────────────────────────────┤
-│ abc-123: probation→recovery │
-│ Time: 2026-05-10 14:32      │
-│                             │
-│ def-456: recovery→active    │
-│ Time: 2026-05-11 09:15      │
-│                             │
-│ ghi-789: recovery→quarantine│
-│ Reason: violation           │
-└─────────────────────────────┘
-```
-
-**Updates on:** `RecoveryEntered`, `RecoveryCompleted`, `RecoveryViolation`
-
-**3. Signal Activity (right)**
-```
-┌─────────────────────────────┐
-│ Scoring Updates             │
-├─────────────────────────────┤
-│ abc-123 (week 4)            │
-│ Base: 92                    │
-│ - Slashes: -20 (2 events)  │
-│ - Anomalies: -8 (1 event)  │
-│ + Settlements: +5 (1 event)│
-│ = Final: 69                 │
-└─────────────────────────────┘
-```
-
-**Updates on:** `ScoringDecision`, `RecoveryProgressed`
-
-### Styling
-
-- **Dark theme** — #0a0e27 background (SMAOS-standard)
-- **Status badges** — color-coded (blue: recovering, green: active, red: quarantine)
-- **Responsive grid** — 1400px max-width, auto-wrap on mobile
-- **Auto-refresh** — EventSource keeps data in sync without polling
+**Success Criteria:**
+- [ ] `index.html` opens in Chrome without console errors
+- [ ] Dashboard shows 5 agent card slots with status badges
+- [ ] Pause button sends POST to correct endpoint
+- [ ] Auto-reconnect logic is present in `dashboard.js`
+- [ ] Textarea shows streaming output (last 500 lines)
 
 ---
 
-## Database Schema
+## Task 5: Integration Tests *(Wave 3 — after Tasks 2 and 3 complete)*
 
-### `reputation_recovery_log` (Migration 033)
+**Goal:** Write 8 integration tests for Phase 31 that verify the full observability stack works end-to-end.
 
-```sql
-CREATE TABLE reputation_recovery_log (
-  id UUID PRIMARY KEY,
-  sovereign_id UUID NOT NULL REFERENCES sovereigns(id),
-  recovery_started_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  score_at_entry SMALLINT NOT NULL,
-  probation_exit_reason TEXT NOT NULL,
-  recovery_window_weeks INTEGER NOT NULL DEFAULT 8,
-  recovery_progress_weeks INTEGER NOT NULL DEFAULT 0,
-  last_progress_update_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  slashes_during_recovery INTEGER NOT NULL DEFAULT 0,
-  anomalies_during_recovery INTEGER NOT NULL DEFAULT 0,
-  settlement_bonus_during_recovery INTEGER NOT NULL DEFAULT 0,
-  score_adjustments_applied INTEGER NOT NULL DEFAULT 0,
-  recovery_completed_at TIMESTAMP NULL,
-  recovery_exit_status TEXT NULL,  -- 'success' | 'failure'
-  score_at_exit SMALLINT NULL,
-  UNIQUE(sovereign_id, recovery_started_at)
-);
+**Owns (may modify only these files):**
+- `crates/demo-app/tests/phase_31_ag_ui_integration_test.rs` (create)
+
+**Context (read before touching):**
+- `crates/demo-app/tests/orchestration_integration_test.rs` — Phase 30 test pattern to follow
+- `siss-agent-shell/src/events/` — AgentEvent types used in assertions
+- `siss-cockpit/src/state.rs` — CockpitState API for test setup
+
+**Tests to write:**
+
+1. `test_ag_ui_broadcaster_emits_event_on_task_assignment`
+2. `test_cockpit_sse_stream_broadcasts_all_events`
+3. `test_cockpit_pause_signal_pauses_agent_execution`
+4. `test_cockpit_resume_signal_resumes_from_checkpoint`
+5. `test_event_ordering_maintained_under_5_concurrent_agents`
+6. `test_sse_connection_loss_and_reconnect_with_buffered_events`
+7. `test_pause_idempotency`
+8. `test_abort_releases_control_signal`
+
+**Constraints:**
+- Do NOT modify Tasks 2 or 3 source files. Tests must work with APIs as-built.
+- Follow Phase 30 test patterns from `orchestration_integration_test.rs`.
+- No live network calls in tests — use in-process server setup (bind to random port).
+
+**Success Criteria:**
+- [ ] All 8 tests compile without errors
+- [ ] All 8 tests pass: `cargo test --test phase_31_ag_ui_integration_test -p demo-app`
+- [ ] No `#[ignore]` or `#[should_panic]` markers (all tests verify real behavior)
+- [ ] Phase 30 tests still pass: `cargo test --test orchestration_integration_test -p demo-app`
+
+---
+
+## Merge Order (Topological)
+
+```
+Task 1 → merge first (unblocks all others)
+Tasks 2, 3, 4 → merge in any order (no dependencies between them)
+Task 5 → merge last (depends on 2 and 3 being in main)
 ```
 
-### Intelligence Graph Schema (Migration 032)
-
-**Apache AGE graph for decision lineage:**
-
-```sql
--- Node types: SovereignNode, RecoveryNode, ViolationNode, ScoringNode
--- Edge types: TRIGGERS, SCORES, EXPLAINS, SUPERSEDES
-
-CREATE TABLE graph_entities (
-  id BIGSERIAL PRIMARY KEY,
-  entity_type TEXT NOT NULL,
-  sovereign_id UUID,
-  entity_data JSONB,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
-CREATE TABLE graph_relationships (
-  id BIGSERIAL PRIMARY KEY,
-  source_id BIGINT REFERENCES graph_entities(id),
-  target_id BIGINT REFERENCES graph_entities(id),
-  relationship_type TEXT NOT NULL,
-  metadata JSONB,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-```
-
-**Dual-write pattern:** Every state transition writes to both `reputation_recovery_log` (transactional) and `graph_entities`/`relationships` (audit trail).
-
----
-
-## Testing
-
-### Unit Tests (17 tests in `reputation_recovery_repo.rs`)
-
-**Graduated Curve (5 tests):**
-- `test_recovered_base_score_week_0` → 85 ✓
-- `test_recovered_base_score_week_1` → 86 ✓
-- `test_recovered_base_score_week_4` → 92 ✓
-- `test_recovered_base_score_week_8` → 100 ✓
-- `test_recovered_base_score_capped_at_100` → 100 (week 16) ✓
-
-**Signal Integration (6 tests):**
-- `test_recovery_score_clean_week_0` → 85 (no signals) ✓
-- `test_recovery_score_with_slashes` → 85 - 20 = 65 ✓
-- `test_recovery_score_with_anomalies` → 85 - 16 = 69 ✓
-- `test_recovery_score_with_settlement_bonus` → 85 + 15 = 100 (clamped) ✓
-- `test_recovery_score_mixed_signals_week_4` → 92 - 20 - 8 + 10 = 74 ✓
-- `test_recovery_score_penalty_caps` → 100 - 30 - 20 = 50 ✓
-
-**Time Calculation (4 tests):**
-- `test_weeks_elapsed_now` → 0 ✓
-- `test_weeks_elapsed_7_days_ago` → 1 ✓
-- `test_weeks_elapsed_56_days_ago` → 8 ✓
-- `test_weeks_elapsed_beyond_recovery_window` → > 8 ✓
-
-**Edge Cases (2 tests):**
-- `test_recovery_score_clamped_to_100` → 100 ✓
-- `test_recovery_score_min_possible_with_max_penalties` → 35 ✓
-
-### Integration Tests (6 documented scenarios)
-
-*Require database setup; implementation left for future work:*
-
-1. **Probation to Recovery Transition** — verify status change, recovery_log creation
-2. **Recovery Score Progression** — score rises from 85 → 100 over weeks
-3. **Auto-Completion at Week 8** — sweep triggers auto_exit_recovery_to_active()
-4. **Violation Re-Quarantine** — immediate transition to quarantine on violation
-5. **Signal Aging** — 30-day window for slashes/anomalies, all-time for settlements
-6. **Full 8-Week E2E** — complete lifecycle probation → recovery → active
-
----
-
-## How Phase 20 Fits into SMAOS
-
-### Layers (from SMAOS 6-Layer Vision)
-
-| Layer | Component | Phase 20 Usage |
-|-------|-----------|---|
-| **1. Agent** | Sovereign workflows | Probation exit triggers recovery entry |
-| **2. Gatekeeper** | Access control | Violation detection blocks session |
-| **3. Federation** | Cross-sovereign ledger | Settlement signals feed Phase 19 bonus |
-| **4. Intelligence** | AGE graph + LightRAG | Recovery lineage, decision audit trail |
-| **5. Telemetry** | AG-UI SSE events | RecoveryProgressed, RecoveryCompleted |
-| **6. Operator** | AoE Cockpit | Dashboard shows recovery status in real-time |
-
-### Blast-Radius Safety (GitNexus)
-
-Phase 20 code touches:
-- `reputation_recovery_repo.rs` (new) — no callers yet
-- `peer_scoring_repo.rs` — already called by scoring sweep (impact: ✓ contained)
-- `validate.rs` — already checks violations (impact: ✓ reuses existing logic)
-- Migrations — no structural changes (impact: ✓ additive)
-
-**Conclusion:** Phase 20 is safely isolated; no breaking changes to existing phases.
-
----
-
-## Running the Demo
+## Final Verification (after all merges)
 
 ```bash
-# Start SSE server with cockpit
-cargo run --example sse_server -p siss-agent-card --features axum
-
-# In browser:
-# http://localhost:3000/cockpit
-# Watch recovery events stream live (every 5 seconds in demo)
+cargo check --all
+cargo test --test phase_31_ag_ui_integration_test -p demo-app
+cargo test --test orchestration_integration_test -p demo-app
+cargo clippy --all -- -D warnings
 ```
 
-**Expected Output:**
-- Cockpit HTML loads
-- EventSource connects to `/events`
-- Demo events emit: RecoveryEntered → RecoveryProgressed (multiple times) → RecoveryCompleted
-- Dashboard updates live with sovereigns moving through recovery lifecycle
-
----
-
-## Future Work
-
-### Phase 21+: Extensions
-1. **Multi-signatory recovery appeals** — allow sovereigns to dispute recovery duration
-2. **Graduated penalties** — slashes reduce base score during recovery (currently additive only)
-3. **Recovery insurance** — settlement bonds that extend recovery window on withdrawal
-4. **Cohort analytics** — batch reporting on recovery success rates by exit reason
-
-### Infrastructure
-1. **Complete integration tests** — 6 scenarios documented, implementation needed
-2. **Performance tuning** — batch sweep updates for 1000+ sovereigns
-3. **Alert system** — AoE panel notifications for recovery violations
-4. **Historical recovery dashboard** — charting score progression over time
-
----
-
-## Key Insights for Future Agents
-
-1. **Graduated curves matter.** Linear progression (85 → 100) feels fair; exponential or step functions create unfair compression near boundaries.
-
-2. **Phase 19 signals are the key.** Recovery score without slashes/anomalies/settlements is just a timer. Signals give sovereigns *agency*: settle invoices to boost recovery, avoid slashes to progress.
-
-3. **Dual-write pattern is essential.** The database records the current state (fast queries), the intelligence graph records the *why* (explainability). Never skip the graph write; it's the audit trail.
-
-4. **EventSource is stateless.** If the server restarts, the client auto-reconnects. Sovereigns in recovery don't lose anything; the dashboard just needs a refresh.
-
-5. **Cockpit is the operator's window.** Every state transition *must* emit an event. If the operator can't see it, it didn't happen (from their perspective).
-
-6. **Violation checks are fail-open on DB errors.** If the database is down, we don't block sessions. This is intentional: availability > consistency for session creation. The gatekeeper is a guard, not a blocker.
-
----
-
-## Files Created/Modified
-
-**New Files:**
-- `crates/siss-mcp-gitnexus/` — GitNexus MCP server (S0)
-- `crates/siss-graph-db/migrations/032_*.sql` — Intelligence graph schema (S1)
-- `crates/siss-graph-db/migrations/033_*.sql` — Phase 20 recovery table (Task 87)
-- `crates/siss-graph-db/src/repo/intelligence_graph_repo.rs` — Graph writes (S1)
-- `crates/siss-graph-db/src/repo/reputation_recovery_repo.rs` — Phase 20 logic (Task 88)
-- `crates/siss-graph-db/src/recovery_sweep_scheduler.rs` — Weekly sweep (Task 91)
-- `crates/siss-agent-card/src/events.rs` — SSE event types (S2)
-- `crates/siss-agent-card/src/cockpit.rs` — Cockpit handler (S3)
-- `crates/siss-agent-card/static/cockpit.html` — Cockpit UI (S3)
-- `crates/siss-agent-card/examples/sse_server.rs` — Demo server (S3)
-- `docs/wiki/semantic/smaos-concepts.md` — Entity definitions (S1)
-- `docs/wiki/semantic/phase-log.md` — Decision log (S1)
-- `docs/wiki/episodic/recovery-events.md` — Event schema (S2)
-
-**Modified Files:**
-- `crates/siss-graph-db/src/repo/peer_scoring_repo.rs` — Recovery scoring (Task 89)
-- `crates/siss-gatekeeper/src/pipeline/validate.rs` — Recovery violation check (Task 90)
-- `crates/siss-agent-card/src/refresh_handler.rs` — Fixed borrow error
-- `.claude/settings.json` — GitNexus MCP registration (S0)
-
----
-
-## Handoff Complete ✓
-
-This document serves as the **single source of truth** for Phase 20 architecture. Use it to:
-- Onboard new agents to the Phase 20 codebase
-- Understand how SSE streaming integrates with the recovery state machine
-- Debug issues in the cockpit, events, or scoring
-- Plan Phase 21+ extensions (appeals, batch analytics, insurance)
-
-**Questions for future agents:**
-- "How do I add a new recovery event type?" → See RecoveryEvent enum + cockpit layout
-- "What happens when a recovery period expires?" → See sweep_recovery_progress() + auto_exit_recovery_to_active()
-- "Why do both slash and anomaly penalties cap out?" → Signal ceiling prevents score collapse; cap values tuned to preserve fairness
-- "Can I see the full decision trail?" → Yes, via intelligence_graph_repo lineage queries
-
----
-
-**Last Updated:** 2026-05-11  
-**Status:** ✅ Ready for Phase 21  
-**Merged:** Main branch (fast-forward, 7 commits)
+Expected: All tests pass, zero warnings, clean compile.

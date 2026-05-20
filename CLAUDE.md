@@ -19,6 +19,15 @@ Never write implementation code for a feature that has no failing test. If a tas
 - **No drive-by refactoring.** Only modify code directly related to the user's explicit request. Do not clean up adjacent code unless instructed.
 - **Manage ambiguity.** If requirements are unclear, ask the user before writing code. Never make blind assumptions.
 
+## 2a. The Golden Rule of Parallel Execution — Avoid Collisions
+When organizing parallel work across multiple git worktrees (Advanced Worktree Orchestration):
+- **Never assign two concurrent agents the same file domain.** Each agent owns isolated subsystems with zero file overlap.
+- **Declare ownership upfront.** In task manifests, explicitly list which files/crates each agent modifies.
+- **Design tasks to be file-orthogonal.** Task A modifies crates/A; Task B modifies crates/B. No overlap = zero merge conflicts.
+- **When overlap is unavoidable,** serialize those tasks (Task C waits for Task B to complete and merge before starting).
+
+This rule enables true parallel execution without the complexity of conflict resolution or complex merge strategies.
+
 ## 3. Tool & Execution Constraints
 - Prefer the `Read` tool for specific files over broad shell `cat`/`grep` commands.
 - Do not run commands that delete or truncate databases without explicit human approval.

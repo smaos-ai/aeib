@@ -22,6 +22,12 @@
         "hooks": [
           {
             "type": "command",
+            "command": "node scripts/hooks/pre_tool_use_dispatcher_gate.js",
+            "condition": "DISPATCHER_ACTIVE=true",
+            "statusMessage": "Checking dispatcher state..."
+          },
+          {
+            "type": "command",
             "command": "node scripts/hooks/pre_tool_use_gate.js"
           },
           {
@@ -39,9 +45,69 @@
           {
             "type": "command",
             "command": "node scripts/hooks/post_tool_use_logger.js"
+          },
+          {
+            "type": "command",
+            "command": "node scripts/hooks/post_tool_use_dispatcher_report.js",
+            "condition": "DISPATCHER_ACTIVE=true",
+            "statusMessage": "Reporting to dispatcher..."
+          }
+        ]
+      }
+    ],
+    "WorktreeCreate": [
+      {
+        "matcher": "EnterWorktree",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/hooks/worktree_create_dispatcher_metadata.js",
+            "condition": "DISPATCHER_ACTIVE=true",
+            "statusMessage": "Initializing dispatcher metadata..."
+          }
+        ]
+      }
+    ],
+    "WorktreeRemove": [
+      {
+        "matcher": "ExitWorktree",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/hooks/worktree_remove_cleanup_context.js",
+            "condition": "DISPATCHER_ACTIVE=true",
+            "statusMessage": "Cleaning up agent context..."
           }
         ]
       }
     ]
+  },
+  "dispatcher": {
+    "enabled": false,
+    "taskQueueLocation": ".claude/dispatcher/task_queue.json",
+    "agentContextLocation": ".claude/dispatcher/agent_context",
+    "maxConcurrentAgents": 5,
+    "mergeStrategy": "sequential",
+    "conflictResolutionRules": {
+      "fileConflict": "abort_and_alert",
+      "symrefConflict": "manual_resolution",
+      "metadataConflict": "merge_dispatcher_metadata",
+      "lockTimeout": 30000
+    },
+    "hookExecutionOrder": [
+      "PreToolUse (dispatcher gate check)",
+      "PreToolUse (security gate)",
+      "PreToolUse (verification gate)",
+      "Tool execution",
+      "PostToolUse (audit logging)",
+      "PostToolUse (dispatcher progress tracking)",
+      "Automatic merge check"
+    ],
+    "stateFile": ".claude/dispatcher/dispatcher_state.json",
+    "agentChannels": {
+      "reportInterval": 1000,
+      "queueCheckInterval": 500,
+      "mergeCheckInterval": 5000
+    }
   }
 }

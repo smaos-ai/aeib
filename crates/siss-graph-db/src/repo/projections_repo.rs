@@ -20,7 +20,7 @@ pub struct AgentActionProjection {
 }
 
 /// Paginated response for agent actions
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentActionsPageResponse {
     pub actions: Vec<AgentActionProjection>,
     pub total_count: i64,
@@ -106,7 +106,7 @@ pub struct AnomalyProjection {
 }
 
 /// Paginated response for anomalies
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnomaliesPageResponse {
     pub anomalies: Vec<AnomalyProjection>,
     pub total_count: i64,
@@ -253,7 +253,7 @@ pub struct RecoveryProjection {
 }
 
 /// Paginated response for recovery status
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RecoveryPageResponse {
     pub recoveries: Vec<RecoveryProjection>,
     pub total_count: i64,

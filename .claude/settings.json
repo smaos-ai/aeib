@@ -23,6 +23,11 @@
           {
             "type": "command",
             "command": "node scripts/hooks/pre_tool_use_gate.js"
+          },
+          {
+            "type": "command",
+            "command": "bash scripts/hooks/pre_tool_use_verification_gate.sh",
+            "statusMessage": "Verifying correctness gate..."
           }
         ]
       }

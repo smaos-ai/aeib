@@ -92,16 +92,6 @@ warning: function `status_to_score` is never used
   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
 
 warning: `siss-graph-db` (lib) generated 13 warnings (run `cargo fix --lib -p siss-graph-db` to apply 10 suggestions)
-warning: variable does not need to be mutable
-  --> crates/siss-job-router/src/canary_router.rs:79:5
-   |
-79 |     mut results_tx: mpsc::Sender<ShadowInferenceResult>,
-   |     ----^^^^^^^^^^
-   |     |
-   |     help: remove this `mut`
-   |
-   = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
-
 warning: unused variable: `child_attestations_score`
    --> crates/siss-gatekeeper/src/refresh.rs:548:5
     |
@@ -122,121 +112,19 @@ warning: unused variable: `child_constraints`
 559 |     let child_constraints = parent_constraints.clone();
     |         ^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_child_constraints`
 
-warning: `siss-job-router` (lib) generated 1 warning (run `cargo fix --lib -p siss-job-router` to apply 1 suggestion)
+warning: variable does not need to be mutable
+  --> crates/siss-job-router/src/canary_router.rs:79:5
+   |
+79 |     mut results_tx: mpsc::Sender<ShadowInferenceResult>,
+   |     ----^^^^^^^^^^
+   |     |
+   |     help: remove this `mut`
+   |
+   = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
 warning: `siss-gatekeeper` (lib) generated 3 warnings (run `cargo fix --lib -p siss-gatekeeper` to apply 3 suggestions)
+warning: `siss-job-router` (lib) generated 1 warning (run `cargo fix --lib -p siss-job-router` to apply 1 suggestion)
    Compiling siss-agent-shell v0.1.0 (/Users/andriileukhin/Documents/SovereignNexus/.claude/worktrees/task3-a2ui-validator/crates/siss-agent-shell)
-error[E0027]: pattern does not mention field `checked`
-  --> crates/siss-agent-shell/src/a2ui/validator.rs:88:13
-   |
-88 |             A2UIComponent::Checkbox { id, label } => {
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ missing field `checked`
-   |
-help: include the missing field in the pattern
-   |
-88 |             A2UIComponent::Checkbox { id, label, checked } => {
-   |                                                +++++++++
-help: if you don't care about this missing field, you can explicitly ignore it
-   |
-88 |             A2UIComponent::Checkbox { id, label, checked: _ } => {
-   |                                                ++++++++++++
-help: or always ignore missing fields here
-   |
-88 |             A2UIComponent::Checkbox { id, label, .. } => {
-   |                                                ++++
-
-error[E0063]: missing field `id` in initializer of `schema::A2UIComponent`
- --> crates/siss-agent-shell/src/a2ui/validator_tests.rs:6:21
-  |
-6 |     let component = A2UIComponent::Text {
-  |                     ^^^^^^^^^^^^^^^^^^^ missing `id`
-
-error[E0308]: mismatched types
-  --> crates/siss-agent-shell/src/a2ui/validator_tests.rs:18:22
-   |
-18 |         placeholder: "Enter name".to_string(),
-   |                      ^^^^^^^^^^^^^^^^^^^^^^^^ expected `Option<String>`, found `String`
-   |
-   = note: expected enum `std::option::Option<std::string::String>`
-            found struct `std::string::String`
-help: try wrapping the expression in `Some`
-   |
-18 |         placeholder: Some("Enter name".to_string()),
-   |                      +++++                        +
-
-error[E0063]: missing field `id` in initializer of `schema::A2UIComponent`
-  --> crates/siss-agent-shell/src/a2ui/validator_tests.rs:40:13
-   |
-40 |             A2UIComponent::Text {
-   |             ^^^^^^^^^^^^^^^^^^^ missing `id`
-
-error[E0063]: missing field `id` in initializer of `schema::A2UIComponent`
-  --> crates/siss-agent-shell/src/a2ui/validator_tests.rs:53:9
-   |
-53 |         A2UIComponent::Text { content: "t".to_string(), size: "md".to_string() },
-   |         ^^^^^^^^^^^^^^^^^^^ missing `id`
-
-error[E0063]: missing field `id` in initializer of `schema::A2UIComponent`
-  --> crates/siss-agent-shell/src/a2ui/validator_tests.rs:54:9
-   |
-54 |         A2UIComponent::Badge { label: "b".to_string(), color: "blue".to_string() },
-   |         ^^^^^^^^^^^^^^^^^^^^ missing `id`
-
-error[E0063]: missing field `id` in initializer of `schema::A2UIComponent`
-  --> crates/siss-agent-shell/src/a2ui/validator_tests.rs:55:9
-   |
-55 |         A2UIComponent::Alert { message: "a".to_string(), level: "info".to_string() },
-   |         ^^^^^^^^^^^^^^^^^^^^ missing `id`
-
-error[E0063]: missing field `id` in initializer of `schema::A2UIComponent`
-  --> crates/siss-agent-shell/src/a2ui/validator_tests.rs:56:9
-   |
-56 |         A2UIComponent::Progress { value: 50, max: 100, label: None },
-   |         ^^^^^^^^^^^^^^^^^^^^^^^ missing `id`
-
-error[E0533]: expected value, found struct variant `A2UIComponent::Divider`
-  --> crates/siss-agent-shell/src/a2ui/validator_tests.rs:57:9
-   |
-57 |         A2UIComponent::Divider,
-   |         ^^^^^^^^^^^^^^^^^^^^^^ not a value
-   |
-help: you might have meant to create a new value of the struct
-   |
-57 |         A2UIComponent::Divider { id: /* value */ },
-   |                                +++++++++++++++++++
-
-error[E0559]: variant `schema::A2UIComponent::Link` has no field named `text`
-  --> crates/siss-agent-shell/src/a2ui/validator_tests.rs:58:31
-   |
-58 |         A2UIComponent::Link { text: "l".to_string(), href: "http://x".to_string() },
-   |                               ^^^^ `schema::A2UIComponent::Link` does not have this field
-   |
-   = note: available fields are: `id`, `label`
-
-error[E0063]: missing field `id` in initializer of `schema::A2UIComponent`
-  --> crates/siss-agent-shell/src/a2ui/validator_tests.rs:59:9
-   |
-59 |         A2UIComponent::Tooltip { text: "t".to_string(), content: "tip".to_string() },
-   |         ^^^^^^^^^^^^^^^^^^^^^^ missing `id`
-
-error[E0063]: missing field `id` in initializer of `schema::A2UIComponent`
-  --> crates/siss-agent-shell/src/a2ui/validator_tests.rs:60:9
-   |
-60 |         A2UIComponent::Breadcrumb { items: vec![] },
-   |         ^^^^^^^^^^^^^^^^^^^^^^^^^ missing `id`
-
-error[E0308]: mismatched types
-  --> crates/siss-agent-shell/src/a2ui/validator_tests.rs:68:90
-   |
-68 |         A2UIComponent::Input { id: "9".to_string(), label: "i".to_string(), placeholder: "".to_string(), required: false },
-   |                                                                                          ^^^^^^^^^^^^^^ expected `Option<String>`, found `String`
-   |
-   = note: expected enum `std::option::Option<std::string::String>`
-            found struct `std::string::String`
-help: try wrapping the expression in `Some`
-   |
-68 |         A2UIComponent::Input { id: "9".to_string(), label: "i".to_string(), placeholder: Some("".to_string()), required: false },
-   |                                                                                          +++++              +
-
 error[E0277]: `dyn StdError` cannot be sent between threads safely
    --> crates/siss-agent-shell/src/ag_ui/sse_consumer.rs:308:40
     |
@@ -265,58 +153,5 @@ note: required by a bound in `tokio::spawn`
 177 |         F::Output: Send + 'static,
     |                    ^^^^ required by this bound in `spawn`
 
-error[E0308]: mismatched types
- --> crates/siss-agent-shell/src/a2ui/validator_tests.rs:8:15
-  |
-8 |         size: "md".to_string(),
-  |               ^^^^^^^^^^^^^^^^ expected `Option<String>`, found `String`
-  |
-  = note: expected enum `std::option::Option<std::string::String>`
-           found struct `std::string::String`
-help: try wrapping the expression in `Some`
-  |
-8 |         size: Some("md".to_string()),
-  |               +++++                +
-
-error[E0308]: mismatched types
-  --> crates/siss-agent-shell/src/a2ui/validator_tests.rs:42:23
-   |
-42 |                 size: "sm".to_string(),
-   |                       ^^^^^^^^^^^^^^^^ expected `Option<String>`, found `String`
-   |
-   = note: expected enum `std::option::Option<std::string::String>`
-            found struct `std::string::String`
-help: try wrapping the expression in `Some`
-   |
-42 |                 size: Some("sm".to_string()),
-   |                       +++++                +
-
-error[E0308]: mismatched types
-  --> crates/siss-agent-shell/src/a2ui/validator_tests.rs:53:63
-   |
-53 |         A2UIComponent::Text { content: "t".to_string(), size: "md".to_string() },
-   |                                                               ^^^^^^^^^^^^^^^^ expected `Option<String>`, found `String`
-   |
-   = note: expected enum `std::option::Option<std::string::String>`
-            found struct `std::string::String`
-help: try wrapping the expression in `Some`
-   |
-53 |         A2UIComponent::Text { content: "t".to_string(), size: Some("md".to_string()) },
-   |                                                               +++++                +
-
-error[E0308]: mismatched types
-  --> crates/siss-agent-shell/src/a2ui/validator_tests.rs:54:63
-   |
-54 |         A2UIComponent::Badge { label: "b".to_string(), color: "blue".to_string() },
-   |                                                               ^^^^^^^^^^^^^^^^^^ expected `Option<String>`, found `String`
-   |
-   = note: expected enum `std::option::Option<std::string::String>`
-            found struct `std::string::String`
-help: try wrapping the expression in `Some`
-   |
-54 |         A2UIComponent::Badge { label: "b".to_string(), color: Some("blue".to_string()) },
-   |                                                               +++++                  +
-
-Some errors have detailed explanations: E0027, E0063, E0277, E0308, E0533, E0559.
-For more information about an error, try `rustc --explain E0027`.
-error: could not compile `siss-agent-shell` (lib test) due to 18 previous errors
+For more information about this error, try `rustc --explain E0277`.
+error: could not compile `siss-agent-shell` (lib test) due to 1 previous error

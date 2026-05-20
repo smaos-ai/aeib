@@ -85,7 +85,7 @@ impl A2UIValidator {
                 }
                 Ok(())
             }
-            A2UIComponent::Checkbox { id, label } => {
+            A2UIComponent::Checkbox { id, label, .. } => {
                 Self::validate_id(id)?;
                 if label.is_empty() {
                     return Err("Checkbox label must not be empty".to_string());

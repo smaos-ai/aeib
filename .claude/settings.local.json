@@ -24,7 +24,8 @@
       "mcp__notebooklm__refresh_auth",
       "Skill(update-config)",
       "WebSearch",
-      "WebFetch(domain:notebooklm.google.com)"
+      "WebFetch(domain:notebooklm.google.com)",
+      "mcp__notebooklm__notebook_describe"
     ]
   },
   "enabledPlugins": {

@@ -2771,6 +2771,7 @@ dependencies = [
  "futures",
  "serde",
  "serde_json",
+ "siss-agent-shell",
  "tokio",
  "tokio-stream",
  "uuid",

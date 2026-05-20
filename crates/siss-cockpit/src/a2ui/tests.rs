@@ -1,13 +1,14 @@
 #[cfg(test)]
 mod tests {
-    use siss_agent_shell::a2ui::{A2UIComponent, SelectOption, RadioOption};
+    use siss_agent_shell::a2ui::{A2UIComponent, SelectOption};
     use crate::a2ui::renderer::Renderer;
 
     #[test]
     fn test_render_text_sm() {
         let component = A2UIComponent::Text {
+            id: "text1".to_string(),
             content: "Hello World".to_string(),
-            size: "sm".to_string(),
+            size: Some("sm".to_string()),
         };
         let html = Renderer::render(&component);
         assert!(html.contains("Hello World"));
@@ -17,8 +18,9 @@ mod tests {
     #[test]
     fn test_render_text_default_size() {
         let component = A2UIComponent::Text {
+            id: "text2".to_string(),
             content: "Default Size".to_string(),
-            size: String::new(),
+            size: None,
         };
         let html = Renderer::render(&component);
         assert!(html.contains("Default Size"));
@@ -27,8 +29,9 @@ mod tests {
     #[test]
     fn test_render_badge_blue() {
         let component = A2UIComponent::Badge {
+            id: "badge1".to_string(),
             label: "Active".to_string(),
-            color: "blue".to_string(),
+            color: Some("blue".to_string()),
         };
         let html = Renderer::render(&component);
         assert!(html.contains("Active"));
@@ -38,8 +41,9 @@ mod tests {
     #[test]
     fn test_render_badge_default_color() {
         let component = A2UIComponent::Badge {
+            id: "badge2".to_string(),
             label: "Status".to_string(),
-            color: String::new(),
+            color: None,
         };
         let html = Renderer::render(&component);
         assert!(html.contains("Status"));
@@ -48,6 +52,7 @@ mod tests {
     #[test]
     fn test_render_alert_info() {
         let component = A2UIComponent::Alert {
+            id: "alert1".to_string(),
             message: "Information message".to_string(),
             level: "info".to_string(),
         };
@@ -59,6 +64,7 @@ mod tests {
     #[test]
     fn test_render_alert_error() {
         let component = A2UIComponent::Alert {
+            id: "alert2".to_string(),
             message: "Error occurred".to_string(),
             level: "error".to_string(),
         };
@@ -70,6 +76,7 @@ mod tests {
     #[test]
     fn test_render_progress_half() {
         let component = A2UIComponent::Progress {
+            id: "prog1".to_string(),
             value: 50,
             max: 100,
             label: None,
@@ -82,6 +89,7 @@ mod tests {
     #[test]
     fn test_render_progress_with_label() {
         let component = A2UIComponent::Progress {
+            id: "prog2".to_string(),
             value: 75,
             max: 100,
             label: Some("Upload".to_string()),
@@ -93,7 +101,9 @@ mod tests {
 
     #[test]
     fn test_render_divider() {
-        let component = A2UIComponent::Divider;
+        let component = A2UIComponent::Divider {
+            id: "divider1".to_string(),
+        };
         let html = Renderer::render(&component);
         assert!(!html.is_empty());
     }
@@ -101,7 +111,8 @@ mod tests {
     #[test]
     fn test_render_link() {
         let component = A2UIComponent::Link {
-            text: "Click here".to_string(),
+            id: "link1".to_string(),
+            label: "Click here".to_string(),
             href: "https://example.com".to_string(),
         };
         let html = Renderer::render(&component);
@@ -112,6 +123,7 @@ mod tests {
     #[test]
     fn test_render_tooltip() {
         let component = A2UIComponent::Tooltip {
+            id: "tooltip1".to_string(),
             text: "Hover me".to_string(),
             content: "Tooltip content".to_string(),
         };
@@ -123,6 +135,7 @@ mod tests {
     #[test]
     fn test_render_breadcrumb() {
         let component = A2UIComponent::Breadcrumb {
+            id: "breadcrumb1".to_string(),
             items: vec!["Home".to_string(), "Products".to_string(), "Item".to_string()],
         };
         let html = Renderer::render(&component);
@@ -136,7 +149,7 @@ mod tests {
         let component = A2UIComponent::Input {
             id: "email".to_string(),
             label: "Email Address".to_string(),
-            placeholder: "user@example.com".to_string(),
+            placeholder: Some("user@example.com".to_string()),
             required: true,
         };
         let html = Renderer::render(&component);
@@ -151,7 +164,7 @@ mod tests {
         let component = A2UIComponent::Input {
             id: "phone".to_string(),
             label: "Phone".to_string(),
-            placeholder: String::new(),
+            placeholder: None,
             required: false,
         };
         let html = Renderer::render(&component);
@@ -164,7 +177,7 @@ mod tests {
         let component = A2UIComponent::Textarea {
             id: "message".to_string(),
             label: "Message".to_string(),
-            rows: 5,
+            rows: Some(5),
         };
         let html = Renderer::render(&component);
         assert!(html.contains("message"));
@@ -195,6 +208,7 @@ mod tests {
         let component = A2UIComponent::Checkbox {
             id: "agree".to_string(),
             label: "I agree".to_string(),
+            checked: false,
         };
         let html = Renderer::render(&component);
         assert!(html.contains("agree"));
@@ -206,16 +220,13 @@ mod tests {
         let component = A2UIComponent::Radio {
             id: "priority".to_string(),
             label: "Priority".to_string(),
-            options: vec![
-                RadioOption { value: "high".to_string(), label: "High".to_string() },
-                RadioOption { value: "low".to_string(), label: "Low".to_string() },
-            ],
+            value: "high".to_string(),
+            checked: false,
         };
         let html = Renderer::render(&component);
         assert!(html.contains("priority"));
         assert!(html.contains("Priority"));
         assert!(html.contains("high"));
-        assert!(html.contains("low"));
     }
 
     #[test]
@@ -223,7 +234,7 @@ mod tests {
         let component = A2UIComponent::Button {
             id: "submit_btn".to_string(),
             label: "Submit".to_string(),
-            action: "submit".to_string(),
+            action: Some("submit".to_string()),
         };
         let html = Renderer::render(&component);
         assert!(html.contains("submit_btn"));
@@ -233,11 +244,13 @@ mod tests {
     #[test]
     fn test_render_card_with_children() {
         let component = A2UIComponent::Card {
-            title: "Card Title".to_string(),
+            id: "card1".to_string(),
+            title: Some("Card Title".to_string()),
             children: vec![
                 A2UIComponent::Text {
+                    id: "text_in_card".to_string(),
                     content: "Card content".to_string(),
-                    size: String::new(),
+                    size: None,
                 },
             ],
         };
@@ -249,7 +262,8 @@ mod tests {
     #[test]
     fn test_render_card_empty() {
         let component = A2UIComponent::Card {
-            title: "Empty Card".to_string(),
+            id: "card2".to_string(),
+            title: Some("Empty Card".to_string()),
             children: vec![],
         };
         let html = Renderer::render(&component);
@@ -259,10 +273,11 @@ mod tests {
     #[test]
     fn test_render_grid_two_columns() {
         let component = A2UIComponent::Grid {
+            id: "grid1".to_string(),
             columns: 2,
             children: vec![
-                A2UIComponent::Text { content: "Item 1".to_string(), size: String::new() },
-                A2UIComponent::Text { content: "Item 2".to_string(), size: String::new() },
+                A2UIComponent::Text { id: "grid_text1".to_string(), content: "Item 1".to_string(), size: None },
+                A2UIComponent::Text { id: "grid_text2".to_string(), content: "Item 2".to_string(), size: None },
             ],
         };
         let html = Renderer::render(&component);
@@ -276,9 +291,8 @@ mod tests {
         let component = A2UIComponent::Modal {
             id: "modal_1".to_string(),
             title: "Confirm Action".to_string(),
-            children: vec![
-                A2UIComponent::Text { content: "Are you sure?".to_string(), size: String::new() },
-            ],
+            content: "Are you sure?".to_string(),
+            children: vec![],
         };
         let html = Renderer::render(&component);
         assert!(html.contains("modal_1"));
@@ -289,6 +303,7 @@ mod tests {
     #[test]
     fn test_render_table() {
         let component = A2UIComponent::Table {
+            id: "table1".to_string(),
             headers: vec!["Name".to_string(), "Age".to_string()],
             rows: vec![
                 vec!["Alice".to_string(), "30".to_string()],
@@ -306,18 +321,19 @@ mod tests {
     #[test]
     fn test_render_nested_components() {
         let component = A2UIComponent::Card {
-            title: "Nested".to_string(),
+            id: "card_nested".to_string(),
+            title: Some("Nested".to_string()),
             children: vec![
                 A2UIComponent::Input {
                     id: "field1".to_string(),
                     label: "Field 1".to_string(),
-                    placeholder: String::new(),
+                    placeholder: None,
                     required: false,
                 },
                 A2UIComponent::Button {
                     id: "btn".to_string(),
                     label: "Submit".to_string(),
-                    action: "submit".to_string(),
+                    action: Some("submit".to_string()),
                 },
             ],
         };
@@ -330,8 +346,9 @@ mod tests {
     #[test]
     fn test_html_safety_xss_prevention() {
         let component = A2UIComponent::Text {
+            id: "xss_test".to_string(),
             content: "<script>alert('xss')</script>".to_string(),
-            size: String::new(),
+            size: None,
         };
         let html = Renderer::render(&component);
         // Ensure script tags are escaped
@@ -344,24 +361,24 @@ mod tests {
     fn test_render_all_18_primitives() {
         // Ensure each of the 18 primitives renders without panic
         let primitives = vec![
-            A2UIComponent::Text { content: "text".to_string(), size: String::new() },
-            A2UIComponent::Badge { label: "badge".to_string(), color: String::new() },
-            A2UIComponent::Alert { message: "alert".to_string(), level: String::new() },
-            A2UIComponent::Progress { value: 50, max: 100, label: None },
-            A2UIComponent::Divider,
-            A2UIComponent::Link { text: "link".to_string(), href: "http://example.com".to_string() },
-            A2UIComponent::Tooltip { text: "tooltip".to_string(), content: "content".to_string() },
-            A2UIComponent::Breadcrumb { items: vec!["home".to_string()] },
-            A2UIComponent::Input { id: "input".to_string(), label: "input".to_string(), placeholder: String::new(), required: false },
-            A2UIComponent::Textarea { id: "textarea".to_string(), label: "textarea".to_string(), rows: 5 },
+            A2UIComponent::Text { id: "t1".to_string(), content: "text".to_string(), size: None },
+            A2UIComponent::Badge { id: "b1".to_string(), label: "badge".to_string(), color: None },
+            A2UIComponent::Alert { id: "a1".to_string(), message: "alert".to_string(), level: "info".to_string() },
+            A2UIComponent::Progress { id: "p1".to_string(), value: 50, max: 100, label: None },
+            A2UIComponent::Divider { id: "d1".to_string() },
+            A2UIComponent::Link { id: "l1".to_string(), label: "link".to_string(), href: "http://example.com".to_string() },
+            A2UIComponent::Tooltip { id: "tt1".to_string(), text: "tooltip".to_string(), content: "content".to_string() },
+            A2UIComponent::Breadcrumb { id: "bc1".to_string(), items: vec!["home".to_string()] },
+            A2UIComponent::Input { id: "input".to_string(), label: "input".to_string(), placeholder: None, required: false },
+            A2UIComponent::Textarea { id: "textarea".to_string(), label: "textarea".to_string(), rows: None },
             A2UIComponent::Select { id: "select".to_string(), label: "select".to_string(), options: vec![] },
-            A2UIComponent::Checkbox { id: "checkbox".to_string(), label: "checkbox".to_string() },
-            A2UIComponent::Radio { id: "radio".to_string(), label: "radio".to_string(), options: vec![] },
-            A2UIComponent::Button { id: "button".to_string(), label: "button".to_string(), action: String::new() },
-            A2UIComponent::Card { title: "card".to_string(), children: vec![] },
-            A2UIComponent::Grid { columns: 1, children: vec![] },
-            A2UIComponent::Modal { id: "modal".to_string(), title: "modal".to_string(), children: vec![] },
-            A2UIComponent::Table { headers: vec![], rows: vec![] },
+            A2UIComponent::Checkbox { id: "checkbox".to_string(), label: "checkbox".to_string(), checked: false },
+            A2UIComponent::Radio { id: "radio".to_string(), label: "radio".to_string(), value: "v1".to_string(), checked: false },
+            A2UIComponent::Button { id: "button".to_string(), label: "button".to_string(), action: None },
+            A2UIComponent::Card { id: "c1".to_string(), title: None, children: vec![] },
+            A2UIComponent::Grid { id: "g1".to_string(), columns: 1, children: vec![] },
+            A2UIComponent::Modal { id: "m1".to_string(), title: "modal".to_string(), content: "content".to_string(), children: vec![] },
+            A2UIComponent::Table { id: "t2".to_string(), headers: vec![], rows: vec![] },
         ];
 
         for component in primitives {

@@ -141,17 +141,18 @@ impl AoESseConsumer {
     }
 
     /// Attempt to connect to an endpoint and stream events
-    async fn try_connect(&self, endpoint: &str) -> Result<(), Box<dyn std::error::Error + Send>> {
+    async fn try_connect(&self, endpoint: &str) -> Result<(), String> {
         let response = self
             .client
             .get(endpoint)
             .header("Accept", "text/event-stream")
             .timeout(Duration::from_secs(self.config.timeout_secs))
             .send()
-            .await?;
+            .await
+            .map_err(|e| e.to_string())?;
 
         if response.status() != 200 {
-            return Err(format!("HTTP {}", response.status()).into());
+            return Err(format!("HTTP {}", response.status()));
         }
 
         // Stream the response line by line
@@ -169,7 +170,7 @@ impl AoESseConsumer {
                     }
                 }
                 Err(e) => {
-                    return Err(format!("Stream error: {}", e).into());
+                    return Err(format!("Stream error: {}", e));
                 }
             }
         }
@@ -178,7 +179,7 @@ impl AoESseConsumer {
     }
 
     /// Process a single SSE data line
-    fn process_sse_line(&self, line: &str) -> Result<(), Box<dyn std::error::Error + Send>> {
+    fn process_sse_line(&self, line: &str) -> Result<(), String> {
         // Remove "data: " prefix
         let data = if let Some(content) = line.strip_prefix("data:") {
             content.trim()
@@ -187,7 +188,8 @@ impl AoESseConsumer {
         };
 
         // Parse as JSON
-        let event: AoEEvent = serde_json::from_str(data)?;
+        let event: AoEEvent = serde_json::from_str(data)
+            .map_err(|e| e.to_string())?;
 
         // Route to stdout in AoE format
         self.emit_aoe_event(&event);

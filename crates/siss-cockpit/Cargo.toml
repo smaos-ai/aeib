@@ -13,3 +13,4 @@ serde_json.workspace = true
 futures.workspace = true
 uuid.workspace = true
 chrono.workspace = true
+siss-agent-shell = { path = "../siss-agent-shell" }

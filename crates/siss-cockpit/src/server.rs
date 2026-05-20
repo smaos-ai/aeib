@@ -1,4 +1,4 @@
-use crate::handlers::{control, form_submit, stream};
+use crate::handlers::{control, dashboard, form_submit, stream};
 use crate::state::CockpitState;
 use axum::{
     routing::{get, post},
@@ -7,6 +7,7 @@ use axum::{
 
 pub fn create_router(state: CockpitState) -> Router {
     Router::new()
+        .route("/", get(dashboard::dashboard))
         .route("/api/agents/stream", get(stream::stream_agent_events))
         .route("/api/agents/:id/pause", post(control::pause_agent))
         .route("/api/agents/:id/resume", post(control::resume_agent))

@@ -227,7 +227,7 @@ pub async fn fetch_anomalies(
     })
 }
 
-/// Recovery status projection
+/// Recovery status projection with fail-closed approval lock
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
 pub struct RecoveryProjection {
     pub recovery_id: Uuid,
@@ -243,6 +243,7 @@ pub struct RecoveryProjection {
     pub recovery_status: String,
     pub anomaly_count_in_recovery: i64,
     pub last_tier_increase_at: Option<DateTime<Utc>>,
+    pub is_approved: bool, // Fail-closed: false by default until explicit approval
 }
 
 /// Paginated response for recovery status
@@ -253,7 +254,7 @@ pub struct RecoveryPageResponse {
     pub has_more: bool,
 }
 
-/// Fetch recovery status for agents
+/// Fetch recovery status for agents in a sovereign
 pub async fn fetch_recovery(
     pool: &PgPool,
     sovereign_id: Uuid,
@@ -262,23 +263,30 @@ pub async fn fetch_recovery(
 ) -> Result<RecoveryPageResponse, sqlx::Error> {
     let limit = limit.unwrap_or(25).min(100); // Cap at 100
 
-    // Simplified query for now (full join with graph would be complex)
+    // Query recovery events from graph entities with sovereign guard and approval lock
     let recoveries = sqlx::query_as::<_, RecoveryProjection>(
         r#"
         SELECT
-            gen_random_uuid() as recovery_id,
-            '00000000-0000-0000-0000-000000000000'::uuid as persona_id,
-            $1::uuid as sovereign_id,
-            'Agent' as agent_name,
-            'anomaly_detected' as entry_reason,
-            50::smallint as tier_at_entry,
-            40::smallint as tier_current,
-            2::int as weeks_elapsed,
-            (NOW() - INTERVAL '14 days') as entry_at,
-            (NOW() + INTERVAL '14 days') as expected_exit_at,
-            'active' as recovery_status,
-            0::bigint as anomaly_count_in_recovery,
-            NULL::timestamptz as last_tier_increase_at
+            ge.id as recovery_id,
+            (ge.properties->>'persona_id')::uuid as persona_id,
+            (ge.properties->>'sovereign_id')::uuid as sovereign_id,
+            (ge.properties->>'agent_name') as agent_name,
+            (ge.properties->>'entry_reason') as entry_reason,
+            (ge.properties->>'tier_at_entry')::smallint as tier_at_entry,
+            (ge.properties->>'tier_current')::smallint as tier_current,
+            EXTRACT(WEEK FROM NOW() - (ge.properties->>'entry_at')::timestamptz)::int as weeks_elapsed,
+            (ge.properties->>'entry_at')::timestamptz as entry_at,
+            (ge.properties->>'expected_exit_at')::timestamptz as expected_exit_at,
+            (ge.properties->>'recovery_status') as recovery_status,
+            COALESCE((ge.properties->>'anomaly_count_in_recovery')::bigint, 0) as anomaly_count_in_recovery,
+            (ge.properties->>'last_tier_increase_at')::timestamptz as last_tier_increase_at,
+            COALESCE((ge.properties->>'is_approved')::boolean, false) as is_approved
+        FROM graph_entities ge
+        WHERE ge.label = 'RecoveryEventNode'
+          AND (ge.properties->>'sovereign_id')::uuid = $1
+          AND (ge.properties->>'sovereign_id') IS NOT NULL
+          AND ge.created_at > NOW() - INTERVAL '90 days'
+        ORDER BY ge.created_at DESC
         LIMIT $2
         "#,
     )
@@ -287,8 +295,21 @@ pub async fn fetch_recovery(
     .fetch_all(pool)
     .await?;
 
-    let total_count = recoveries.len() as i64;
-    let has_more = false; // Placeholder
+    // Get total count of active recoveries
+    let total_count: i64 = sqlx::query_scalar(
+        r#"
+        SELECT COUNT(*)
+        FROM graph_entities ge
+        WHERE ge.label = 'RecoveryEventNode'
+          AND (ge.properties->>'sovereign_id')::uuid = $1
+          AND (ge.properties->>'sovereign_id') IS NOT NULL
+        "#,
+    )
+    .bind(sovereign_id)
+    .fetch_one(pool)
+    .await?;
+
+    let has_more = recoveries.len() as i32 >= limit;
 
     Ok(RecoveryPageResponse {
         recoveries,

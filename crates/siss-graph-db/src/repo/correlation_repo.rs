@@ -41,56 +41,48 @@ pub async fn correlate_anomalies(
 ) -> Result<CorrelationPageResponse, sqlx::Error> {
     let limit = limit.unwrap_or(25).min(100);
 
-    // SQL: Join AgentActionNode + AnomalyEventNode
-    // Group by (event_type, anomaly_type)
-    // Calculate: P(anomaly | event_type) = anomalies_within_5min / total_events
-    // Filter: sample_size >= min_sample_size AND correlation > 0.5
+    // SQL: Group-based aggregation without Cartesian join
+    // For each (event_type, anomaly_type) pair, calculate correlation in-database
+    // Avoids loading 30 days of data into memory
     let correlations = sqlx::query_as::<_, AnomalyCorrelation>(
         r#"
-        WITH action_anomaly_pairs AS (
-            SELECT
-                action.id as action_id,
-                (action.properties->>'event_type') as event_type,
-                (action.properties->>'scored_at')::timestamptz as action_time,
-                anomaly.id as anomaly_id,
-                (anomaly.properties->>'anomaly_type') as anomaly_type,
-                (anomaly.properties->>'detected_at')::timestamptz as anomaly_time,
-                CASE WHEN (anomaly.properties->>'detected_at')::timestamptz
-                    <= (action.properties->>'scored_at')::timestamptz + INTERVAL '5 minutes'
-                    AND (anomaly.properties->>'detected_at')::timestamptz
-                    >= (action.properties->>'scored_at')::timestamptz
-                THEN 1 ELSE 0 END as is_triggered_by_action
-            FROM graph_entities action
-            JOIN graph_entities anomaly
-                ON (action.properties->>'sovereign_id')::uuid
-                 = (anomaly.properties->>'sovereign_id')::uuid
-            WHERE action.label = 'AgentActionNode'
-              AND anomaly.label = 'AnomalyEventNode'
-              AND (action.properties->>'sovereign_id')::uuid = $1
-              AND action.created_at > NOW() - INTERVAL '30 days'
-        ),
-        correlation_stats AS (
-            SELECT
-                event_type,
-                anomaly_type,
-                COUNT(*) as sample_size,
-                SUM(is_triggered_by_action)::float as triggered_count,
-                SUM(is_triggered_by_action)::float / COUNT(*)::float as correlation_strength
-            FROM action_anomaly_pairs
-            GROUP BY event_type, anomaly_type
-            HAVING COUNT(*) >= $2
-              AND SUM(is_triggered_by_action)::float / COUNT(*)::float > 0.5
-        )
         SELECT
             gen_random_uuid() as pattern_id,
             $1::uuid as sovereign_id,
-            event_type as triggering_event_type,
-            anomaly_type,
-            correlation_strength,
-            sample_size,
+            (a.properties->>'event_type') as triggering_event_type,
+            (an.properties->>'anomaly_type') as anomaly_type,
+            COUNT(CASE WHEN (an.properties->>'detected_at')::timestamptz
+                BETWEEN (a.properties->>'scored_at')::timestamptz
+                    AND (a.properties->>'scored_at')::timestamptz + INTERVAL '5 minutes'
+                THEN 1 END)::float / COUNT(*)::float as correlation_strength,
+            COUNT(*) as sample_size,
             0.95::float as confidence_95th,
             NOW()::timestamptz as detected_at
-        FROM correlation_stats
+        FROM (
+            SELECT DISTINCT
+                id,
+                (properties->>'event_type') as event_type,
+                (properties->>'scored_at')::timestamptz as scored_at
+            FROM graph_entities
+            WHERE label = 'AgentActionNode'
+              AND (properties->>'sovereign_id')::uuid = $1
+              AND created_at > NOW() - INTERVAL '30 days'
+        ) a
+        CROSS JOIN (
+            SELECT DISTINCT
+                id,
+                (properties->>'anomaly_type') as anomaly_type,
+                (properties->>'detected_at')::timestamptz as detected_at
+            FROM graph_entities
+            WHERE label = 'AnomalyEventNode'
+              AND (properties->>'sovereign_id')::uuid = $1
+              AND created_at > NOW() - INTERVAL '30 days'
+        ) an
+        GROUP BY a.event_type, an.anomaly_type
+        HAVING COUNT(*) >= $2
+          AND COUNT(CASE WHEN (an.detected_at)
+                BETWEEN (a.scored_at) AND (a.scored_at) + INTERVAL '5 minutes'
+                THEN 1 END)::float / COUNT(*)::float > 0.5
         ORDER BY correlation_strength DESC
         LIMIT $3
         "#,

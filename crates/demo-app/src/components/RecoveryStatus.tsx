@@ -55,6 +55,25 @@ export function RecoveryStatus({ sovereignId }: RecoveryStatusProps) {
           const progressPct = Math.min((recovery.weeks_elapsed / 4) * 100, 100);
           const tierDelta = recovery.tier_current - recovery.tier_at_entry;
 
+          if (!recovery.is_approved) {
+            return (
+              <div
+                key={recovery.recovery_id}
+                className="recovery-card recovery-card--locked"
+              >
+                <div className="recovery-card-header">
+                  <div className="agent-info">
+                    <span className="agent-name">{recovery.agent_name}</span>
+                    <span className="status-badge status-active">🔒 LOCKED</span>
+                  </div>
+                </div>
+                <div className="recovery-locked-message">
+                  Recovery entry pending approval. Reason: {recovery.entry_reason}
+                </div>
+              </div>
+            );
+          }
+
           return (
             <div key={recovery.recovery_id} className="recovery-card">
               <div className="recovery-card-header">

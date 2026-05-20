@@ -64,6 +64,7 @@ export interface Recovery {
   recovery_status: string;
   anomaly_count_in_recovery: number;
   last_tier_increase_at?: string;
+  is_approved: boolean; // Fail-closed: false by default
 }
 
 export interface RecoveryState {
@@ -90,36 +91,47 @@ export function useAgentActions(sovereignId: UUID): AgentActionsState {
   });
 
   useEffect(() => {
+    const controller = new AbortController();
+    let isMounted = true;
+
     const fetchActions = async () => {
       try {
         const resp = await fetch(
-          `/api/graph/projections/agent_actions?sovereign_id=${sovereignId}&limit=50`
+          `/api/graph/projections/agent_actions?sovereign_id=${sovereignId}&limit=50`,
+          { signal: controller.signal }
         );
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const data = await resp.json();
-        setState({
-          actions: data.actions || [],
-          loading: false,
-          error: null,
-          lastUpdated: new Date(),
-          totalCount: data.total_count || 0,
-          hasMore: data.has_more || false,
-        });
+
+        if (isMounted) {
+          setState({
+            actions: data.actions || [],
+            loading: false,
+            error: null,
+            lastUpdated: new Date(),
+            totalCount: data.total_count || 0,
+            hasMore: data.has_more || false,
+          });
+        }
       } catch (err) {
-        setState((prev) => ({
-          ...prev,
-          error: String(err),
-          loading: false,
-        }));
+        if (isMounted && !(err instanceof Error && err.name === 'AbortError')) {
+          setState((prev) => ({
+            ...prev,
+            error: String(err),
+            loading: false,
+          }));
+        }
       }
     };
 
-    // Fetch immediately
     fetchActions();
-
-    // Poll every 5 seconds
     const interval = setInterval(fetchActions, 5000);
-    return () => clearInterval(interval);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+      controller.abort();
+    };
   }, [sovereignId]);
 
   return state;
@@ -145,6 +157,9 @@ export function useAnomalies(
   });
 
   useEffect(() => {
+    const controller = new AbortController();
+    let isMounted = true;
+
     const fetchAnomalies = async () => {
       try {
         const params = new URLSearchParams({
@@ -154,31 +169,42 @@ export function useAnomalies(
         if (severity) params.append('severity', severity);
         if (anomalyType) params.append('anomaly_type', anomalyType);
 
-        const resp = await fetch(`/api/graph/projections/anomalies?${params.toString()}`);
+        const resp = await fetch(`/api/graph/projections/anomalies?${params.toString()}`, {
+          signal: controller.signal,
+        });
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const data = await resp.json();
 
-        setState({
-          anomalies: data.anomalies || [],
-          loading: false,
-          error: null,
-          lastUpdated: new Date(),
-          totalCount: data.total_count || 0,
-          hasMore: data.has_more || false,
-          activeRecoveryCount: data.active_recovery_count || 0,
-        });
+        if (isMounted) {
+          setState({
+            anomalies: data.anomalies || [],
+            loading: false,
+            error: null,
+            lastUpdated: new Date(),
+            totalCount: data.total_count || 0,
+            hasMore: data.has_more || false,
+            activeRecoveryCount: data.active_recovery_count || 0,
+          });
+        }
       } catch (err) {
-        setState((prev) => ({
-          ...prev,
-          error: String(err),
-          loading: false,
-        }));
+        if (isMounted && !(err instanceof Error && err.name === 'AbortError')) {
+          setState((prev) => ({
+            ...prev,
+            error: String(err),
+            loading: false,
+          }));
+        }
       }
     };
 
     fetchAnomalies();
     const interval = setInterval(fetchAnomalies, 5000);
-    return () => clearInterval(interval);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+      controller.abort();
+    };
   }, [sovereignId, severity, anomalyType]);
 
   return state;
@@ -199,34 +225,47 @@ export function useRecovery(sovereignId: UUID): RecoveryState {
   });
 
   useEffect(() => {
+    const controller = new AbortController();
+    let isMounted = true;
+
     const fetchRecovery = async () => {
       try {
         const resp = await fetch(
-          `/api/graph/projections/recovery?sovereign_id=${sovereignId}&limit=25`
+          `/api/graph/projections/recovery?sovereign_id=${sovereignId}&limit=25`,
+          { signal: controller.signal }
         );
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const data = await resp.json();
 
-        setState({
-          recoveries: data.recoveries || [],
-          loading: false,
-          error: null,
-          lastUpdated: new Date(),
-          totalCount: data.total_count || 0,
-          hasMore: data.has_more || false,
-        });
+        if (isMounted) {
+          setState({
+            recoveries: data.recoveries || [],
+            loading: false,
+            error: null,
+            lastUpdated: new Date(),
+            totalCount: data.total_count || 0,
+            hasMore: data.has_more || false,
+          });
+        }
       } catch (err) {
-        setState((prev) => ({
-          ...prev,
-          error: String(err),
-          loading: false,
-        }));
+        if (isMounted && !(err instanceof Error && err.name === 'AbortError')) {
+          setState((prev) => ({
+            ...prev,
+            error: String(err),
+            loading: false,
+          }));
+        }
       }
     };
 
     fetchRecovery();
     const interval = setInterval(fetchRecovery, 5000);
-    return () => clearInterval(interval);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+      controller.abort();
+    };
   }, [sovereignId]);
 
   return state;

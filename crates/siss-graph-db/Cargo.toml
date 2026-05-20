@@ -16,7 +16,7 @@ sha2.workspace = true
 hex.workspace = true
 ed25519-dalek.workspace = true
 base64.workspace = true
-axum = { version = "0.7", optional = true }
+axum = "0.7"
 async-stream = "0.3"
 futures = "0.3"
 
@@ -25,6 +25,4 @@ testcontainers.workspace = true
 tokio = { workspace = true, features = ["full", "test-util"] }
 tempfile = "3.8"
 axum = "0.7"
-
-[features]
-axum = ["dep:axum"]
+http-body-util = "0.1"

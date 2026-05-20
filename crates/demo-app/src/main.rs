@@ -1,32 +1,31 @@
-use demo_app::app::App;
-use demo_app::models::TuiState;
-use demo_app::pipeline::IngestionPipeline;
-use demo_app::storage::ConcurrentMemoryRepo;
-use std::sync::{Arc, Mutex};
+use siss_graph_db::api::create_router;
+use sqlx::postgres::PgPoolOptions;
+use std::net::SocketAddr;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Create shared TUI state that both watcher and event loop access
-    let branding = std::env::var("SMAOS_BRANDING")
-        .unwrap_or_else(|_| "SMAOS Offline Intelligence".to_string());
-    let tui_state = TuiState::new().with_branding(branding);
-    let shared_state = Arc::new(Mutex::new(tui_state));
-    let mut app = App::new();
+    // Initialize tracing
+    tracing_subscriber::fmt::init();
 
-    // Initialize the Chaos Petri Quarantine watcher
-    let pipeline = IngestionPipeline::new("http://127.0.0.1:8080", 256);
-    let repo = ConcurrentMemoryRepo::new();
+    // Get database URL from environment or use default
+    let database_url = std::env::var("DATABASE_URL")
+        .unwrap_or_else(|_| "postgres://localhost/sovereignNexus".to_string());
 
-    // Spawn the background Chaos Petri watcher task
-    let watcher_state = Arc::clone(&shared_state);
-    tokio::spawn(demo_app::pipeline::spawn_chaos_petri_watcher(
-        pipeline,
-        repo,
-        watcher_state,
-    ));
+    // Create connection pool
+    let pool = PgPoolOptions::new()
+        .max_connections(5)
+        .connect(&database_url)
+        .await?;
 
-    // Run the TUI event loop with shared state
-    demo_app::tui::run_app_with_state(&mut app, Some(shared_state)).await?;
+    // Create the router
+    let app = create_router(pool);
+
+    // Start HTTP server
+    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
+    tracing::info!("Starting server on {}", addr);
+
+    let listener = tokio::net::TcpListener::bind(addr).await?;
+    axum::serve(listener, app).await?;
 
     Ok(())
 }

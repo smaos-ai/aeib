@@ -124,8 +124,8 @@ pub async fn fetch_anomalies(
 ) -> Result<AnomaliesPageResponse, sqlx::Error> {
     let limit = limit.unwrap_or(50).min(200); // Cap at 200
 
-    // Fetch anomalies with severity filter (low is excluded when high/medium requested)
-    let mut query_str = r#"
+    // Base query
+    let base_query = r#"
         SELECT
             ge.id as anomaly_id,
             (ge.properties->>'anomaly_db_id')::uuid as anomaly_db_id,
@@ -143,26 +143,54 @@ pub async fn fetch_anomalies(
         WHERE ge.label = 'AnomalyEventNode'
           AND (ge.properties->>'sovereign_id')::uuid = $1
           AND (ge.properties->>'detected_at')::timestamptz > NOW() - INTERVAL '7 days'
-    "#
-    .to_string();
+    "#;
 
-    // Add severity filter if requested
-    if severity.is_some() {
-        query_str.push_str("          AND (ge.properties->>'severity') = $2\n");
-    } else if anomaly_type.is_some() {
-        query_str.push_str("          AND (ge.properties->>'anomaly_type') = $2\n");
-    }
-
-    // Add anomaly_type filter if provided
-    if anomaly_type.is_some() && severity.is_some() {
-        query_str.push_str("          AND (ge.properties->>'anomaly_type') = $3\n");
-    }
-
-    query_str.push_str("        ORDER BY ge.created_at DESC\n        LIMIT $4");
-
-    // Execute with dynamic parameters
-    let anomalies = if let Some(sev) = severity {
-        if let Some(atype) = anomaly_type {
+    // Execute with correct parameter binding for each path
+    let anomalies = match (severity, anomaly_type) {
+        // (None, None) path → 2 params: $1 (sovereign_id), $2 (limit)
+        (None, None) => {
+            let query_str = format!(
+                "{}        ORDER BY ge.created_at DESC\n        LIMIT $2",
+                base_query
+            );
+            sqlx::query_as::<_, AnomalyProjection>(&query_str)
+                .bind(sovereign_id)
+                .bind(limit)
+                .fetch_all(pool)
+                .await?
+        }
+        // (Some(sev), None) path → 3 params: $1, $2 (severity), $3 (limit)
+        (Some(sev), None) => {
+            let query_str = format!(
+                "{}          AND (ge.properties->>'severity') = $2\n        ORDER BY ge.created_at DESC\n        LIMIT $3",
+                base_query
+            );
+            sqlx::query_as::<_, AnomalyProjection>(&query_str)
+                .bind(sovereign_id)
+                .bind(sev)
+                .bind(limit)
+                .fetch_all(pool)
+                .await?
+        }
+        // (None, Some(atype)) path → 3 params: $1, $2 (anomaly_type), $3 (limit)
+        (None, Some(atype)) => {
+            let query_str = format!(
+                "{}          AND (ge.properties->>'anomaly_type') = $2\n        ORDER BY ge.created_at DESC\n        LIMIT $3",
+                base_query
+            );
+            sqlx::query_as::<_, AnomalyProjection>(&query_str)
+                .bind(sovereign_id)
+                .bind(atype)
+                .bind(limit)
+                .fetch_all(pool)
+                .await?
+        }
+        // (Some(sev), Some(atype)) path → 4 params: $1, $2 (sev), $3 (atype), $4 (limit)
+        (Some(sev), Some(atype)) => {
+            let query_str = format!(
+                "{}          AND (ge.properties->>'severity') = $2\n          AND (ge.properties->>'anomaly_type') = $3\n        ORDER BY ge.created_at DESC\n        LIMIT $4",
+                base_query
+            );
             sqlx::query_as::<_, AnomalyProjection>(&query_str)
                 .bind(sovereign_id)
                 .bind(sev)
@@ -170,29 +198,7 @@ pub async fn fetch_anomalies(
                 .bind(limit)
                 .fetch_all(pool)
                 .await?
-        } else {
-            sqlx::query_as::<_, AnomalyProjection>(&query_str)
-                .bind(sovereign_id)
-                .bind(sev)
-                .bind(limit)
-                .bind(limit)
-                .fetch_all(pool)
-                .await?
         }
-    } else if let Some(atype) = anomaly_type {
-        sqlx::query_as::<_, AnomalyProjection>(&query_str)
-            .bind(sovereign_id)
-            .bind(atype)
-            .bind(limit)
-            .bind(limit)
-            .fetch_all(pool)
-            .await?
-    } else {
-        sqlx::query_as::<_, AnomalyProjection>(&query_str)
-            .bind(sovereign_id)
-            .bind(limit)
-            .fetch_all(pool)
-            .await?
     };
 
     // Get total count

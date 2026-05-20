@@ -16,7 +16,15 @@
       "Bash(export SMAOS_BRANDING=\"MINISTRY OF DEFENSE\")",
       "Bash(timeout 30 cargo run -p demo-app)",
       "Bash(mkdir -p /Users/andriileukhin/.claude/skills)",
-      "Read(//Users/andriileukhin/.claude/skills/**)"
+      "Read(//Users/andriileukhin/.claude/skills/**)",
+      "mcp__notebooklm__notebook_list",
+      "mcp__notebooklm__studio_status",
+      "mcp__notebooklm__notebook_create",
+      "mcp__notebooklm__notebook_add_text",
+      "mcp__notebooklm__refresh_auth",
+      "Skill(update-config)",
+      "WebSearch",
+      "WebFetch(domain:notebooklm.google.com)"
     ]
   },
   "enabledPlugins": {

@@ -533,6 +533,7 @@ dependencies = [
 name = "demo-app"
 version = "0.1.0"
 dependencies = [
+ "axum",
  "chrono",
  "crossterm",
  "ed25519-dalek",
@@ -543,6 +544,8 @@ dependencies = [
  "serde_json",
  "sha2",
  "siss-enclave",
+ "siss-graph-db",
+ "sqlx",
  "thiserror 2.0.18",
  "tokio",
  "tracing",
@@ -2664,6 +2667,7 @@ dependencies = [
  "ed25519-dalek",
  "futures",
  "hex",
+ "http-body-util",
  "serde",
  "serde_json",
  "sha2",

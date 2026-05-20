@@ -1,8 +1,8 @@
+use crate::models::tui_state::TuiState;
 use ratatui::{
     prelude::*,
     widgets::{Block, Borders, List, ListItem, Paragraph, Wrap},
 };
-use crate::models::tui_state::TuiState;
 
 /// The pure projection function: mapping the proven state machine to the Terminal Visible Field.
 pub fn render(frame: &mut Frame, state: &TuiState) {
@@ -10,9 +10,9 @@ pub fn render(frame: &mut Frame, state: &TuiState) {
     let main_layout = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(3),      // Panel 1: Sovereign Header
-            Constraint::Min(15),        // Panels 2, 3, 4: Agents & Cartography
-            Constraint::Length(8),      // Panel 5: AP2 Audit Log
+            Constraint::Length(3), // Panel 1: Sovereign Header
+            Constraint::Min(15),   // Panels 2, 3, 4: Agents & Cartography
+            Constraint::Length(8), // Panel 5: AP2 Audit Log
         ])
         .split(frame.area());
 
@@ -37,11 +37,16 @@ pub fn render(frame: &mut Frame, state: &TuiState) {
     // ========================================================================
     let header_text = format!(
         " {} - SMAOS SECURE ENCLAVE | Mem: {:.0}% | TTFT: {}ms | Violations: {} ",
-        state.branding_context, state.memory_pressure, state.agent_alpha.memory_tier_state.ttft_last_request_ms, state.ttft_violation_count
+        state.branding_context,
+        state.memory_pressure,
+        state.agent_alpha.memory_tier_state.ttft_last_request_ms,
+        state.ttft_violation_count
     );
     let header_block = Paragraph::new(Text::styled(
         header_text,
-        Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+        Style::default()
+            .fg(Color::Cyan)
+            .add_modifier(Modifier::BOLD),
     ))
     .block(Block::default().borders(Borders::ALL).title("Telemetry"))
     .alignment(Alignment::Center);
@@ -65,7 +70,7 @@ pub fn render(frame: &mut Frame, state: &TuiState) {
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .title("Agent Alpha [Pane: agent-alpha-session:0]")
+                .title("Agent Alpha [Pane: agent-alpha-session:0]"),
         )
         .wrap(Wrap { trim: true })
         .style(Style::default().fg(Color::Green));
@@ -89,7 +94,7 @@ pub fn render(frame: &mut Frame, state: &TuiState) {
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .title("Agent Beta [Pane: agent-beta-session:0]")
+                .title("Agent Beta [Pane: agent-beta-session:0]"),
         )
         .wrap(Wrap { trim: true })
         .style(Style::default().fg(Color::Yellow));
@@ -115,12 +120,21 @@ pub fn render(frame: &mut Frame, state: &TuiState) {
         .collect();
 
     let cartography_pane = if cartography_items.is_empty() {
-        List::new(vec![ListItem::new("(No L2 snippets in transit)")
-            .style(Style::default().fg(Color::DarkGray))])
-        .block(Block::default().borders(Borders::ALL).title("Context Cartography (G -> V)"))
+        List::new(vec![
+            ListItem::new("(No L2 snippets in transit)")
+                .style(Style::default().fg(Color::DarkGray)),
+        ])
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title("Context Cartography (G -> V)"),
+        )
     } else {
-        List::new(cartography_items)
-            .block(Block::default().borders(Borders::ALL).title("Context Cartography (G -> V)"))
+        List::new(cartography_items).block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title("Context Cartography (G -> V)"),
+        )
     };
 
     frame.render_widget(cartography_pane, middle_layout[1]);
@@ -143,23 +157,18 @@ pub fn render(frame: &mut Frame, state: &TuiState) {
                 crate::models::tui_state::LogLevel::Error => {
                     Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)
                 }
-                crate::models::tui_state::LogLevel::Warn => {
-                    Style::default().fg(Color::Yellow)
-                }
-                crate::models::tui_state::LogLevel::Info => {
-                    Style::default().fg(Color::DarkGray)
-                }
+                crate::models::tui_state::LogLevel::Warn => Style::default().fg(Color::Yellow),
+                crate::models::tui_state::LogLevel::Info => Style::default().fg(Color::DarkGray),
             };
-            ListItem::new(format!(
-                "{} [{}] {}",
-                level_indicator, log.agent, log.event
-            ))
-            .style(style)
+            ListItem::new(format!("{} [{}] {}", level_indicator, log.agent, log.event)).style(style)
         })
         .collect();
 
-    let audit_pane = List::new(audit_items)
-        .block(Block::default().borders(Borders::ALL).title("AP2 Ledger & Collision Firewall"));
+    let audit_pane = List::new(audit_items).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .title("AP2 Ledger & Collision Firewall"),
+    );
 
     frame.render_widget(audit_pane, main_layout[2]);
 }

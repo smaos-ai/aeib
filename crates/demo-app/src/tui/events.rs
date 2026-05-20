@@ -3,8 +3,8 @@ use crate::models::TuiState;
 use crate::tui::ui::render;
 use crossterm::{
     event::{self, KeyCode, KeyEvent},
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     execute,
+    terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
 use ratatui::prelude::*;
 use std::io;
@@ -31,10 +31,7 @@ pub async fn run_app_with_state(
 
     // Restore terminal
     disable_raw_mode()?;
-    execute!(
-        terminal.backend_mut(),
-        LeaveAlternateScreen
-    )?;
+    execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
     terminal.show_cursor()?;
 
     result

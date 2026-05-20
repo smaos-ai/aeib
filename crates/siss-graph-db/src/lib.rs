@@ -1,3 +1,4 @@
+pub mod api;
 pub mod autoresearch_scheduler;
 pub mod causal_extractor;
 pub mod chain_extractor;

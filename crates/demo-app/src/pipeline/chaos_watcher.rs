@@ -1,7 +1,7 @@
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 use tokio::fs;
-use tokio::time::{sleep, Duration};
+use tokio::time::{Duration, sleep};
 use tracing::{error, info};
 use uuid::Uuid;
 
@@ -35,13 +35,21 @@ pub async fn spawn_chaos_petri_watcher(
                 if path.is_file() && path.extension().map_or(false, |ext| ext == "enc") {
                     let doc_id = format!(
                         "doc-intel-{}",
-                        Uuid::new_v4().to_string().chars().take(8).collect::<String>()
+                        Uuid::new_v4()
+                            .to_string()
+                            .chars()
+                            .take(8)
+                            .collect::<String>()
                     );
 
                     // 1. Enforce Fail-Closed Status: Must begin in Quarantined
                     let mut manifest = DocumentManifest {
                         document_id: doc_id.clone(),
-                        filename: path.file_name().unwrap_or_default().to_string_lossy().to_string(),
+                        filename: path
+                            .file_name()
+                            .unwrap_or_default()
+                            .to_string_lossy()
+                            .to_string(),
                         ingestion_timestamp_ms: std::time::SystemTime::now()
                             .duration_since(std::time::UNIX_EPOCH)
                             .unwrap()
@@ -71,13 +79,19 @@ pub async fn spawn_chaos_petri_watcher(
                     }
 
                     // 4. Squeeze through the φ Operator
-                    match pipeline.process_quarantined_pdf(&mut manifest, &raw_text).await {
+                    match pipeline
+                        .process_quarantined_pdf(&mut manifest, &raw_text)
+                        .await
+                    {
                         Ok(memory_writes) => {
                             let mut success_count = 0;
 
                             // 5. AP2 Ledger Gating & Memory Sync
                             for write in memory_writes {
-                                let nonce = format!("burn-nonce-{}-{}", manifest.document_id, success_count);
+                                let nonce = format!(
+                                    "burn-nonce-{}-{}",
+                                    manifest.document_id, success_count
+                                );
 
                                 // Persist to concurrent repo
                                 repo.insert_l2(write.clone());

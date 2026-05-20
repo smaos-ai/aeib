@@ -324,7 +324,10 @@ fn test_tui_violation_counter_increments_on_ap2_rejection() {
     }
 
     // TUI violation counter must reflect all rejected mandates
-    assert_eq!(violations, 3, "Violations counter must be 3 after 3 AP2 rejections");
+    assert_eq!(
+        violations, 3,
+        "Violations counter must be 3 after 3 AP2 rejections"
+    );
 }
 
 #[test]
@@ -336,7 +339,10 @@ fn test_tui_metrics_real_time_telemetry_capture() {
     );
 
     // Capture agent metrics for header telemetry
-    assert!(!alpha.agent_id.is_empty(), "Agent ID must be present for header");
+    assert!(
+        !alpha.agent_id.is_empty(),
+        "Agent ID must be present for header"
+    );
     assert_eq!(
         alpha.git_worktree,
         PathBuf::from("/worktrees/alpha"),

@@ -1,3 +1,4 @@
+pub mod ag_ui;
 pub mod events;
 pub mod hooks;
 pub mod pipeline;

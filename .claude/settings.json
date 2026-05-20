@@ -15,5 +15,29 @@
   "enableAllProjectMcpServers": true,
   "enabledPlugins": {
     "exa@claude-plugins-official": true
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/hooks/pre_tool_use_gate.js"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash|Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/hooks/post_tool_use_logger.js"
+          }
+        ]
+      }
+    ]
   }
 }

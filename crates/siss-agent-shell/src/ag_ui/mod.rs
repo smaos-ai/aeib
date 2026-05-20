@@ -1,0 +1,8 @@
+/// AG-UI (Agent-User Interaction) Protocol Module
+///
+/// Implements the middleware that translates raw framework events into
+/// standardized Server-Sent Events (SSE) streams for consumption by the
+/// agent shell membrane and AoE orchestrator.
+pub mod sse_consumer;
+
+pub use sse_consumer::{AoEEvent, AoESseConsumer, SseConfig};

@@ -18,6 +18,11 @@ serde_json.workspace = true
 thiserror.workspace = true
 tokio.workspace = true
 sqlx.workspace = true
+reqwest.workspace = true
+futures.workspace = true
+regex.workspace = true
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["full", "test-util"] }
+reqwest = { workspace = true, features = ["stream", "json"] }
+regex.workspace = true

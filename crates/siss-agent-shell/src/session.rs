@@ -13,6 +13,7 @@ use siss_gatekeeper::signer::Signer;
 use siss_job_router::executor::Executor;
 use siss_job_router::strategy::RoutingStrategy;
 
+use crate::ag_ui::status_emitter::{emit_agent_status, AgentState};
 use crate::events::{
     AgentEvent,
     emitter::{EventEmitter, NoOpEmitter},
@@ -131,6 +132,8 @@ impl AgentSession {
             timestamp: Utc::now(),
         });
 
+        emit_agent_status(AgentState::Running);
+
         Ok(Self {
             pool,
             persona_id: config.persona_id,
@@ -165,8 +168,14 @@ impl AgentSession {
         };
         let hook_result = run_execution_hooks(&self.hooks, &exec_ctx, |h, c| h.on_pre_execution(c));
         match hook_result {
-            HookResult::Deny { reason } => return Err(AgentShellError::IntentDenied { reason }),
-            HookResult::Halt { reason } => return Err(AgentShellError::IntentHalted { reason }),
+            HookResult::Deny { reason } => {
+                emit_agent_status(AgentState::Error);
+                return Err(AgentShellError::IntentDenied { reason });
+            }
+            HookResult::Halt { reason } => {
+                emit_agent_status(AgentState::Error);
+                return Err(AgentShellError::IntentHalted { reason });
+            }
             HookResult::Continue => {}
         }
 
@@ -188,7 +197,11 @@ impl AgentSession {
             &*self.crystallizer,
             &*self.emitter,
         )
-        .await?;
+        .await
+        .map_err(|e| {
+            emit_agent_status(AgentState::Error);
+            e
+        })?;
 
         // 3. Update budget tracking
         self.budget_remaining -= params.estimated_cost;
@@ -231,6 +244,8 @@ impl AgentSession {
             session_id: self.session_id.0,
             timestamp: Utc::now(),
         });
+
+        emit_agent_status(AgentState::Idle);
 
         Ok(())
     }

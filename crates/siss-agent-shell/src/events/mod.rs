@@ -9,6 +9,7 @@ use uuid::Uuid;
 
 use siss_behavioral_firewall::types::Verdict;
 use siss_graph_core::node::execution::HardwareTarget;
+use crate::a2ui::A2UIComponent;
 
 /// All event types emitted by the AG-UI protocol.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -80,6 +81,13 @@ pub enum AgentEvent {
         message: String,
         timestamp: DateTime<Utc>,
     },
+    UIRequested {
+        task_id: Uuid,
+        components: Vec<A2UIComponent>,
+        #[serde(default)]
+        form_id: Option<String>,
+        timestamp: DateTime<Utc>,
+    },
 }
 
 /// Which lifecycle hook point fired.
@@ -118,6 +126,7 @@ impl AgentEvent {
             Self::Crystallized { .. } => "crystallized",
             Self::IntentCompleted { .. } => "intent_completed",
             Self::Error { .. } => "error",
+            Self::UIRequested { .. } => "ui_requested",
         }
     }
 }

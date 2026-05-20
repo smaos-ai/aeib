@@ -194,6 +194,126 @@ Expected: 8/8 Phase 31 tests pass, no regressions, clean compile.
 
 ---
 
+---
+
+# PHASE 32 EXTENSION — A2UI Locked Interface Contracts
+
+### Task 1: A2UI Schema Foundation
+**Owns:** `siss-agent-shell/src/a2ui/`, `siss-agent-shell/src/events/mod.rs`  
+**Delivers:** All 18 component types + UIRequested event variant  
+**Exit Criteria:** `cargo check -p siss-agent-shell` passes  
+**Merge:** To `main`  
+
+**Contract:**
+```rust
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum A2UIComponent {
+    // 8 Display types
+    Text { content: String, size: String },
+    Badge { label: String, color: String },
+    Alert { message: String, level: String },
+    Progress { value: u32, max: u32, label: Option<String> },
+    Divider,
+    Link { text: String, href: String },
+    Tooltip { text: String, content: String },
+    Breadcrumb { items: Vec<String> },
+    
+    // 6 Form types (all require id field)
+    Input { id: String, label: String, placeholder: String, required: bool },
+    Textarea { id: String, label: String, rows: u32 },
+    Select { id: String, label: String, options: Vec<SelectOption> },
+    Checkbox { id: String, label: String },
+    Radio { id: String, label: String, options: Vec<RadioOption> },
+    Button { id: String, label: String, action: String },
+    
+    // 4 Layout types
+    Card { title: String, children: Vec<A2UIComponent> },
+    Grid { columns: u32, children: Vec<A2UIComponent> },
+    Modal { id: String, title: String, children: Vec<A2UIComponent> },
+    Table { headers: Vec<String>, rows: Vec<Vec<String>> },
+}
+
+// In AgentEvent:
+UIRequested { task_id: Uuid, components: Vec<A2UIComponent>, form_id: Option<String>, timestamp: DateTime<Utc> }
+```
+
+---
+
+### Task 2: Agent-Side Validator
+**Owns:** `siss-agent-shell/src/a2ui/validator.rs`  
+**Delivers:** Pre-emit validation (Fail-Closed)  
+**Exit Criteria:** Validator rejects malformed components  
+**Merge:** To `main`  
+
+**Contract:**
+```rust
+impl A2UIComponent {
+    pub fn validate(&self) -> Result<(), ValidationError> { /* ... */ }
+}
+
+// ValidationError variants:
+// - MissingId(component_type)
+// - MissingLabel(component_type)
+// - InvalidValue(field)
+```
+
+---
+
+### Task 3: Cockpit SSE + Renderer
+**Owns:** `siss-cockpit/src/state.rs`, `handlers/`, `a2ui/renderer.rs`  
+**Delivers:** Real Axum handlers + HTML renderer for 18 components + form-submit endpoint  
+**Exit Criteria:** `cargo check -p siss-cockpit` passes  
+**Merge:** To `main`  
+
+**Contract:**
+```rust
+// GET /api/agents/stream → SSE (pattern: siss-enclave/src/api/ag_ui.rs)
+// POST /api/agents/:id/{pause,resume,abort} → 202 Accepted
+// POST /api/agents/:id/form-submit { form_id, values } → FormSubmission emitted back via SSE
+
+// Renderer:
+pub fn render_component(comp: &A2UIComponent) -> String { /* HTML */ }
+```
+
+---
+
+### Task 4: Dashboard UI Components
+**Owns:** `siss-cockpit/ui/components.js`, `siss-cockpit/ui/form-handler.js`  
+**Delivers:** DOM rendering + form submission  
+**Exit Criteria:** Opens in browser, renders all 18 types  
+**Merge:** To `main`  
+
+**Contract:**
+```javascript
+// renderComponent(comp) → DOM node
+// handleFormSubmit(formId, agentId) → POST /api/agents/:id/form-submit
+// Auto-reconnect on SSE disconnect
+```
+
+---
+
+### Task 5: Integration Tests
+**Owns:** `demo-app/tests/phase_32_a2ui_integration_test.rs`  
+**Delivers:** 8 integration tests  
+**Exit Criteria:** All 8 tests pass, no regressions  
+**Merge:** To `main`  
+
+---
+
+## WAVE 3+ EXECUTION SEQUENCE (Phase 32)
+
+### WAVE 1 — Sequential (Schema Foundation)
+**Task 1 ONLY.** Must complete before Wave 2.
+
+### WAVE 2 — Parallel (Implementation)
+**Tasks 2, 3, 4 run concurrently.** File-orthogonal (zero merge conflicts).
+
+### WAVE 3 — Sequential (Integration)
+**Task 5 ONLY.** Runs after Tasks 2 and 3 merge.
+
+---
+
 **Generated:** 2026-05-20  
+**Phases:** Phase 31 Locked | Phase 32 Locked  
 **Protocol:** ADVANCED REFACTOR PROTOCOL v2 — Thin Vertical Slices + Locked Interface Contracts  
 **Orchestrator:** Agent of Empires (AoE) with tmux isolation

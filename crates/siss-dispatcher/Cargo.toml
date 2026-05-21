@@ -16,6 +16,7 @@ tracing-subscriber.workspace = true
 clap = { version = "4", features = ["derive", "cargo"] }
 anyhow = "1"
 tempfile = "3"
+siss-event-log = { path = "../siss-event-log" }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["full", "test-util"] }

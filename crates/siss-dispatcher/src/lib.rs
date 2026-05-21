@@ -14,9 +14,13 @@ pub mod executor;
 pub mod git;
 pub mod lock;
 pub mod queue;
+pub mod swarm;
+pub mod tmux;
 pub mod types;
 
 pub use errors::{DispatchError, Result};
 pub use executor::Executor;
 pub use queue::TaskQueue;
+pub use swarm::SwarmDispatcher;
+pub use tmux::TmuxSession;
 pub use types::{Agent, AgentStatus, Task, TaskDependency, TaskStatus};

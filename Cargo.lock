@@ -2806,6 +2806,7 @@ dependencies = [
  "futures",
  "serde",
  "serde_json",
+ "siss-event-log",
  "tempfile",
  "thiserror 2.0.18",
  "tokio",

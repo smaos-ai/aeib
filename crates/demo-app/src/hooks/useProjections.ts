@@ -20,9 +20,9 @@ export interface AgentActionsState {
   actions: AgentAction[];
   loading: boolean;
   error: string | null;
-  lastUpdated: Date;
-  totalCount: number;
-  hasMore: boolean;
+  last_updated_at: string | null;
+  total_count: number;
+  has_more: boolean;
 }
 
 export interface Anomaly {
@@ -44,10 +44,10 @@ export interface AnomaliesState {
   anomalies: Anomaly[];
   loading: boolean;
   error: string | null;
-  lastUpdated: Date;
-  totalCount: number;
-  hasMore: boolean;
-  activeRecoveryCount: number;
+  last_updated_at: string | null;
+  total_count: number;
+  has_more: boolean;
+  active_recovery_count: number;
 }
 
 export interface Recovery {
@@ -71,9 +71,9 @@ export interface RecoveryState {
   recoveries: Recovery[];
   loading: boolean;
   error: string | null;
-  lastUpdated: Date;
-  totalCount: number;
-  hasMore: boolean;
+  last_updated_at: string | null;
+  total_count: number;
+  has_more: boolean;
 }
 
 /**
@@ -83,11 +83,11 @@ export interface RecoveryState {
 export function useAgentActions(sovereignId: UUID): AgentActionsState {
   const [state, setState] = useState<AgentActionsState>({
     actions: [],
-    loading: true,
+    loading: false,
     error: null,
-    lastUpdated: new Date(),
-    totalCount: 0,
-    hasMore: false,
+    last_updated_at: null,
+    total_count: 0,
+    has_more: false,
   });
 
   useEffect(() => {
@@ -97,7 +97,7 @@ export function useAgentActions(sovereignId: UUID): AgentActionsState {
     const fetchActions = async () => {
       try {
         const resp = await fetch(
-          `/api/graph/projections/agent_actions?sovereign_id=${sovereignId}&limit=50`,
+          `/api/graph/projections/agent-actions?sovereign_id=${sovereignId}&limit=50`,
           { signal: controller.signal }
         );
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
@@ -108,9 +108,9 @@ export function useAgentActions(sovereignId: UUID): AgentActionsState {
             actions: data.actions || [],
             loading: false,
             error: null,
-            lastUpdated: new Date(),
-            totalCount: data.total_count || 0,
-            hasMore: data.has_more || false,
+            last_updated_at: data.generated_at || new Date().toISOString(),
+            total_count: data.total_count || 0,
+            has_more: data.has_more || false,
           });
         }
       } catch (err) {
@@ -148,12 +148,12 @@ export function useAnomalies(
 ): AnomaliesState {
   const [state, setState] = useState<AnomaliesState>({
     anomalies: [],
-    loading: true,
+    loading: false,
     error: null,
-    lastUpdated: new Date(),
-    totalCount: 0,
-    hasMore: false,
-    activeRecoveryCount: 0,
+    last_updated_at: null,
+    total_count: 0,
+    has_more: false,
+    active_recovery_count: 0,
   });
 
   useEffect(() => {
@@ -180,10 +180,10 @@ export function useAnomalies(
             anomalies: data.anomalies || [],
             loading: false,
             error: null,
-            lastUpdated: new Date(),
-            totalCount: data.total_count || 0,
-            hasMore: data.has_more || false,
-            activeRecoveryCount: data.active_recovery_count || 0,
+            last_updated_at: data.generated_at || new Date().toISOString(),
+            total_count: data.total_count || 0,
+            has_more: data.has_more || false,
+            active_recovery_count: data.active_recovery_count || 0,
           });
         }
       } catch (err) {
@@ -217,11 +217,11 @@ export function useAnomalies(
 export function useRecovery(sovereignId: UUID): RecoveryState {
   const [state, setState] = useState<RecoveryState>({
     recoveries: [],
-    loading: true,
+    loading: false,
     error: null,
-    lastUpdated: new Date(),
-    totalCount: 0,
-    hasMore: false,
+    last_updated_at: null,
+    total_count: 0,
+    has_more: false,
   });
 
   useEffect(() => {
@@ -242,9 +242,9 @@ export function useRecovery(sovereignId: UUID): RecoveryState {
             recoveries: data.recoveries || [],
             loading: false,
             error: null,
-            lastUpdated: new Date(),
-            totalCount: data.total_count || 0,
-            hasMore: data.has_more || false,
+            last_updated_at: data.generated_at || new Date().toISOString(),
+            total_count: data.total_count || 0,
+            has_more: data.has_more || false,
           });
         }
       } catch (err) {

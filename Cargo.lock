@@ -2772,6 +2772,7 @@ dependencies = [
  "serde",
  "serde_json",
  "siss-agent-shell",
+ "siss-graph-db",
  "tokio",
  "tokio-stream",
  "uuid",

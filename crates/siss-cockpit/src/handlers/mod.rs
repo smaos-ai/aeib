@@ -4,3 +4,4 @@ pub mod stream;
 pub mod control;
 pub mod form_submit;
 pub mod dashboard;
+pub mod projections;

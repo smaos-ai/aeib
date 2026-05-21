@@ -9,7 +9,7 @@ use uuid::Uuid;
 
 use super::errors::{ApiError, ApiResult};
 use crate::repo::projections_repo::{
-    AgentActionsPageResponse, AnomaliesPageResponse, RecoveryPageResponse, fetch_agent_actions,
+    AgentActionPageResponse, AnomalyPageResponse, RecoveryPageResponse, fetch_agent_actions,
     fetch_anomalies, fetch_recovery,
 };
 
@@ -54,9 +54,9 @@ pub struct CorrelationsQuery {
 
 /// Handler for GET /api/graph/projections/agent_actions
 pub async fn get_agent_actions(
-    State(pool): State<PgPool>,
+    State(_pool): State<PgPool>,
     Query(params): Query<AgentActionsQuery>,
-) -> ApiResult<(StatusCode, Json<AgentActionsPageResponse>)> {
+) -> ApiResult<(StatusCode, Json<AgentActionPageResponse>)> {
     // Validate UUID
     let sovereign_id: Uuid = Uuid::parse_str(&params.sovereign_id)
         .map_err(|_| ApiError::InvalidParameter("sovereign_id must be a valid UUID".to_string()))?;
@@ -64,16 +64,16 @@ pub async fn get_agent_actions(
     // Clamp limit
     let limit = params.limit.unwrap_or(50).max(1).min(500);
 
-    let response = fetch_agent_actions(&pool, sovereign_id, None, Some(limit)).await?;
+    let response = fetch_agent_actions(&sovereign_id, None, limit).await?;
 
     Ok((StatusCode::OK, Json(response)))
 }
 
 /// Handler for GET /api/graph/projections/anomalies
 pub async fn get_anomalies(
-    State(pool): State<PgPool>,
+    State(_pool): State<PgPool>,
     Query(params): Query<AnomaliesQuery>,
-) -> ApiResult<(StatusCode, Json<AnomaliesPageResponse>)> {
+) -> ApiResult<(StatusCode, Json<AnomalyPageResponse>)> {
     // Validate UUID
     let sovereign_id: Uuid = Uuid::parse_str(&params.sovereign_id)
         .map_err(|_| ApiError::InvalidParameter("sovereign_id must be a valid UUID".to_string()))?;
@@ -91,11 +91,10 @@ pub async fn get_anomalies(
     let limit = params.limit.unwrap_or(50).max(1).min(200);
 
     let response = fetch_anomalies(
-        &pool,
-        sovereign_id,
+        &sovereign_id,
         params.severity.as_deref(),
         params.anomaly_type.as_deref(),
-        Some(limit),
+        limit,
     )
     .await?;
 
@@ -104,7 +103,7 @@ pub async fn get_anomalies(
 
 /// Handler for GET /api/graph/projections/recovery
 pub async fn get_recovery(
-    State(pool): State<PgPool>,
+    State(_pool): State<PgPool>,
     Query(params): Query<RecoveryQuery>,
 ) -> ApiResult<(StatusCode, Json<RecoveryPageResponse>)> {
     // Validate UUID
@@ -114,7 +113,7 @@ pub async fn get_recovery(
     // Clamp limit
     let limit = params.limit.unwrap_or(25).max(1).min(100);
 
-    let response = fetch_recovery(&pool, sovereign_id, None, Some(limit)).await?;
+    let response = fetch_recovery(&sovereign_id, limit).await?;
 
     Ok((StatusCode::OK, Json(response)))
 }

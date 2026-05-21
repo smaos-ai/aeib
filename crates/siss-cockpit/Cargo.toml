@@ -14,6 +14,7 @@ futures.workspace = true
 uuid.workspace = true
 chrono.workspace = true
 siss-agent-shell = { path = "../siss-agent-shell" }
+siss-graph-db = { path = "../siss-graph-db" }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["full"] }

@@ -75,5 +75,12 @@
     "commit": "60ecdf1",
     "message": "phase-25-task-1(refactor): add 14 integration tests for confidence-gating router (54 total passing)",
     "tests_pass": false
+  },
+  {
+    "hash": "75bc0536010f47c6862f570b2671336039aacaf544aabb30992aacd19cc591ec",
+    "timestamp": "2026-05-21T01:41:19Z",
+    "commit": "21cd9b8",
+    "message": "phase-25-task-1(refactor): add fallback chain simulation, cache-aware costs, and router binary",
+    "tests_pass": false
   }
 ]

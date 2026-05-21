@@ -1,4 +1,4 @@
-use crate::handlers::{control, dashboard, form_submit, stream, projections};
+use crate::handlers::{control, dashboard, form_submit, stream}; // projections removed due to Phase 24 pool blocker
 use crate::state::CockpitState;
 use axum::{
     routing::{get, post},
@@ -16,8 +16,10 @@ pub fn create_router(state: CockpitState) -> Router {
             "/api/agents/:id/form-submit",
             post(form_submit::form_submit),
         )
-        .route("/api/graph/projections/agent-actions", get(projections::get_agent_actions))
-        .route("/api/graph/projections/anomalies", get(projections::get_anomalies))
-        .route("/api/graph/projections/recovery", get(projections::get_recovery))
+        // Phase 24 projections routes — handlers need PgPool from state (currently commented)
+        // TODO: Wire PgPool into CockpitState and uncomment these routes
+        // .route("/api/graph/projections/agent-actions", get(projections::get_agent_actions))
+        // .route("/api/graph/projections/anomalies", get(projections::get_anomalies))
+        // .route("/api/graph/projections/recovery", get(projections::get_recovery))
         .with_state(state)
 }

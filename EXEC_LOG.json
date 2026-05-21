@@ -61,5 +61,12 @@
     "commit": "73a518b",
     "message": "phase-24: finalize checkpoint — all tests passing, real SQL integrated",
     "tests_pass": false
+  },
+  {
+    "hash": "7f3d75740d1b8e3790b2585e732ad97ccfa3361b1fe235a307525d8d0b70aead",
+    "timestamp": "2026-05-21T01:36:07Z",
+    "commit": "1cf655f",
+    "message": "phase-25-task-1(green): implement confidence-gating router with 40 passing tests",
+    "tests_pass": false
   }
 ]

@@ -180,5 +180,12 @@
     "commit": "fe834ec",
     "message": "phase-36(green): AoE Cockpit Security - Crabbox LOTA mitigation, MCP AP2 mandate enforcement, double-agent detection, RCE state preservation (11 tests passing, 149 total)",
     "tests_pass": false
+  },
+  {
+    "hash": "bf85714373ae8bdbf61ef42a209e27683e47791c3bc44a63488f8cd6d71be0f2",
+    "timestamp": "2026-05-21T09:58:29Z",
+    "commit": "a7b2950",
+    "message": "phase-37(red): API & AG-UI Schema Specification - SSE stream contracts, decision webhook state machines, projection decoupling, A2UI 18-component limit enforcement, OpenAPI strictness (RED tests failing)",
+    "tests_pass": false
   }
 ]

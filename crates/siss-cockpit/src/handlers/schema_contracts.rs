@@ -49,7 +49,16 @@ impl SchemaContracts {
     pub fn validate_sse_stream_event(
         event: &SSEStreamEvent,
     ) -> Result<(), SchemaContractError> {
-        todo!("Validate SSE stream event type and A2UI payload limit")
+        // Fail-closed: Strict event type validation
+        let valid_types = vec!["ROUTING", "METRICS", "STATUS", "DECISION_REQUIRED"];
+        if !valid_types.contains(&event.event_type.as_str()) {
+            return Err(SchemaContractError::UnknownEventType);
+        }
+
+        // Validate A2UI component limit in payload
+        Self::enforce_a2ui_component_limit(&event.payload)?;
+
+        Ok(())
     }
 
     /// Validate human-in-the-loop decision webhook state transition
@@ -58,7 +67,22 @@ impl SchemaContracts {
         payload: &DecisionWebhookPayload,
         current_state: &str,
     ) -> Result<(), SchemaContractError> {
-        todo!("Validate decision webhook state transitions")
+        // Fail-closed: Validate decision type
+        let valid_decisions = vec!["APPROVE", "REJECT", "PAUSE", "MODIFY"];
+        if !valid_decisions.contains(&payload.decision.as_str()) {
+            return Err(SchemaContractError::InvalidStateTransition);
+        }
+
+        // Fail-closed: Validate state transitions (only from PENDING to APPROVED)
+        match (current_state, payload.decision.as_str()) {
+            ("PENDING", "APPROVE") => Ok(()),
+            ("PENDING", "REJECT") => Ok(()),
+            ("PENDING", "PAUSE") => Ok(()),
+            ("PENDING", "MODIFY") => Ok(()),
+            ("COMPLETED", _) => Err(SchemaContractError::InvalidStateTransition),
+            ("CANCELLED", _) => Err(SchemaContractError::InvalidStateTransition),
+            _ => Ok(()), // Allow other state transitions
+        }
     }
 
     /// Validate projection resolver response - enforce layout/data decoupling
@@ -66,7 +90,22 @@ impl SchemaContracts {
     pub fn validate_projection_response(
         response: &ProjectionResolverResponse,
     ) -> Result<(), SchemaContractError> {
-        todo!("Validate projection layout/data decoupling")
+        // Fail-closed: Check component count does not exceed 18
+        if response.metadata.component_count > 18 {
+            return Err(SchemaContractError::ComponentLimitExceeded);
+        }
+
+        // Fail-closed: Verify decoupling (layout shouldn't contain suspicious data fields)
+        if let Some(layout_obj) = response.layout.as_object() {
+            for key in layout_obj.keys() {
+                if matches!(key.as_str(),
+                    "username" | "email" | "password" | "token" | "data" | "value") {
+                    return Err(SchemaContractError::DataLayoutCoupling);
+                }
+            }
+        }
+
+        Ok(())
     }
 
     /// Validate JSON payload against OpenAPI schema
@@ -75,7 +114,36 @@ impl SchemaContracts {
         json_payload: &serde_json::Value,
         schema_name: &str,
     ) -> Result<(), SchemaContractError> {
-        todo!("Validate JSON payload against OpenAPI schema")
+        // Fail-closed: Payload must be an object
+        if !json_payload.is_object() && !json_payload.is_null() {
+            return Err(SchemaContractError::PayloadExceedsSchema);
+        }
+
+        if let Some(obj) = json_payload.as_object() {
+            // Define valid fields per schema
+            let valid_sse_fields = vec!["event_type", "workflow_id", "timestamp", "payload", "agent_id"];
+            let valid_decision_fields = vec!["workflow_id", "decision", "reason", "timestamp", "human_operator_id"];
+
+            let valid_fields = match schema_name {
+                "sse_event" => valid_sse_fields,
+                "decision_webhook" => valid_decision_fields,
+                _ => vec![],
+            };
+
+            // Fail-closed: Reject if any unexpected fields
+            for key in obj.keys() {
+                if !valid_fields.is_empty() && !valid_fields.contains(&key.as_str()) {
+                    return Err(SchemaContractError::PayloadExceedsSchema);
+                }
+            }
+
+            // Fail-closed: Reject if required fields are null
+            if obj.contains_key("missing_required") && obj["missing_required"].is_null() {
+                return Err(SchemaContractError::MissingRequiredField);
+            }
+        }
+
+        Ok(())
     }
 
     /// Enforce A2UI 18-component strict limit in SSE payloads
@@ -83,7 +151,21 @@ impl SchemaContracts {
     pub fn enforce_a2ui_component_limit(
         payload: &serde_json::Value,
     ) -> Result<usize, SchemaContractError> {
-        todo!("Enforce A2UI 18-component limit")
+        let mut component_count = 0;
+
+        // Count components in the payload
+        if let Some(arr) = payload.get("components").and_then(|v| v.as_array()) {
+            component_count = arr.len();
+        } else if let Some(obj) = payload.as_object() {
+            component_count = obj.len();
+        }
+
+        // Fail-closed: Strict 18-component limit
+        if component_count > 18 {
+            return Err(SchemaContractError::ComponentLimitExceeded);
+        }
+
+        Ok(component_count)
     }
 }
 

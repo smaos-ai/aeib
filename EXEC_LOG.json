@@ -40,5 +40,12 @@
     "commit": "11dfc03",
     "message": "phase-24-task-1(green): implement projections endpoints and polling hooks - Add 3 HTTP handlers: get_agent_actions, get_anomalies, get_recovery - Implement stub functions in projections_repo returning empty responses - Update React hooks with correct state field names and 5s polling - 5 backend tests passing (empty response tests + structure tests) - 19 placeholder panic tests for future database implementation",
     "tests_pass": false
+  },
+  {
+    "hash": "d92dfe7ed8e1e4b3270a47dd99ec3cd6275f9870e76ebe72b843224550dd6bc8",
+    "timestamp": "2026-05-21T01:17:12Z",
+    "commit": "cfb8d11",
+    "message": "phase-24-task-1(refactor): implement real SQL queries for projections with testcontainers integration tests",
+    "tests_pass": false
   }
 ]

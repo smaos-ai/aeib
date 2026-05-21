@@ -28,3 +28,5 @@ pub mod schema_contracts;
 pub mod schema_contracts_integration;
 pub mod gravity_memory;
 pub mod gravity_memory_integration;
+pub mod openclaw_rl;
+pub mod openclaw_rl_integration;

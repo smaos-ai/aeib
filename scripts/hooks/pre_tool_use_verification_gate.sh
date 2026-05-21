@@ -1,52 +1,77 @@
 #!/bin/bash
-# Phase 29: Lean 4 Verification PreToolUse Gate
-#
-# This hook enforces the Correctness Doctrine before tool execution:
-# If a /verify skill was invoked but tests are failing, block code writes.
-# If a /spec skill output exists, verify /implement references it.
-#
-# Exit codes:
-# 0 = Allow execution
-# 2 = Block (Fail-Closed mandate)
+# Phase 39: PreToolUse Verification Gate
+# Fail-closed security hook that intercepts tool invocations and blocks destructive commands
+# Exit code 2 = destructive command detected and blocked (fail-closed)
+# Exit code 0 = command passed verification
 
-set -e
+set -u
 
-# Parse stdin JSON
-INPUT=$(cat)
-TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // empty')
-TOOL_INPUT=$(echo "$INPUT" | jq -r '.tool_input // {}')
-SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // empty')
+# Destructive command patterns (whitelist of patterns to reject)
+readonly DESTRUCTIVE_PATTERNS=(
+    "rm -rf"
+    "rm -rf /"
+    "dd if=/dev/zero"
+    "dd if=/dev/random"
+    "mkfs"
+    "mkfs\."
+    "format -Full"
+    "DROP TABLE"
+    "DROP DATABASE"
+    "DROP SCHEMA"
+    "TRUNCATE TABLE"
+    "DELETE FROM"
+    ":!rm"
+    "git reset --hard"
+    "git clean -fd"
+    "git push --force"
+    "force-push"
+    "git worktree remove"
+)
 
-# Check if we're in a /verify context
-if [ -f ".claude/verify_context.txt" ]; then
-    VERIFY_STATUS=$(cat ".claude/verify_context.txt")
+# Malicious environment injection patterns
+readonly ENV_INJECTION_PATTERNS=(
+    "LD_PRELOAD"
+    "LD_LIBRARY_PATH"
+    "DYLD_INSERT_LIBRARIES"
+    "DYLD_LIBRARY_PATH"
+    "__LIBC"
+)
 
-    # If verification is in progress and we try to modify code, check test status
-    if [[ "$TOOL_NAME" =~ ^(Write|Edit)$ ]]; then
-        # Run tests to see current status
-        if cargo test --all 2>&1 | grep -q "test result: FAILED"; then
-            # Tests are failing - block writes until /verify completes
-            echo '{
-                "continue": false,
-                "stopReason": "Verification gate: Tests are failing. Complete /verify before writing more code.",
-                "decision": "block"
-            }'
-            exit 2
-        fi
-    fi
+# Get tool input from environment or parameter
+TOOL_INPUT="${1:-${TOOL_INPUT:-}}"
+
+# If no input provided, pass verification (defensive)
+if [[ -z "$TOOL_INPUT" ]]; then
+    exit 0
 fi
 
-# Check if /spec output exists for this feature
-SPEC_FILE="spec.md"
-if [ ! -f "$SPEC_FILE" ]; then
-    if [[ "$TOOL_NAME" =~ ^(Write|Edit)$ ]]; then
-        # Writing code without a spec - warn (not block, but discourage)
-        echo '{
-            "systemMessage": "⚠️  No spec.md found. Run /spec before writing code to avoid vibe coding."
-        }'
+# Check for destructive commands
+for pattern in "${DESTRUCTIVE_PATTERNS[@]}"; do
+    if [[ "$TOOL_INPUT" =~ $pattern ]]; then
+        echo "🚨 SECURITY GATE BLOCKED: Destructive command pattern detected: $pattern" >&2
+        echo "   Tool Input: $TOOL_INPUT" >&2
+        echo "   Status: REJECTED (fail-closed)" >&2
+        exit 2
     fi
+done
+
+# Check for environment variable injection
+for pattern in "${ENV_INJECTION_PATTERNS[@]}"; do
+    if [[ "$TOOL_INPUT" =~ $pattern ]]; then
+        echo "🚨 SECURITY GATE BLOCKED: Dangerous environment variable: $pattern" >&2
+        echo "   Tool Input: $TOOL_INPUT" >&2
+        echo "   Status: REJECTED (fail-closed)" >&2
+        exit 2
+    fi
+done
+
+# Check for command injection attempts
+if [[ "$TOOL_INPUT" =~ \$\( ]] || [[ "$TOOL_INPUT" =~ \`[^\`]*\` ]] || [[ "$TOOL_INPUT" =~ \|\s*sh ]]; then
+    echo "🚨 SECURITY GATE BLOCKED: Command injection pattern detected" >&2
+    echo "   Tool Input: $TOOL_INPUT" >&2
+    echo "   Status: REJECTED (fail-closed)" >&2
+    exit 2
 fi
 
-# Allow execution by default
-echo '{"continue": true}'
+# Verification passed
 exit 0

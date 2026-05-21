@@ -26,3 +26,5 @@ pub mod mcp_governance;
 pub mod mcp_governance_integration;
 pub mod schema_contracts;
 pub mod schema_contracts_integration;
+pub mod gravity_memory;
+pub mod gravity_memory_integration;

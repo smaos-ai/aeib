@@ -1,34 +1,36 @@
 # Execution State (Auto-Resumable)
 
 ## Checkpoint
-- **Commit:** d5f9979 phase-26-task-1(refactor): add 8 E2E integration tests and metrics module
+- **Commit:** (pending) phase-27(refactor): add SSE streaming with A2UI event payloads
 - **Timestamp:** 2026-05-21T02:30:00Z
-- **Phase:** Phase 26 Task 1 (Cockpit Router Integration)
-- **Status:** COMPLETE (53/53 tests passing, 0 failures, 0 ignored)
+- **Phase:** Phase 27 (AG-UI Telemetry & A2UI Projections)
+- **Status:** COMPLETE (65/65 tests passing, 0 failures, 0 ignored)
 
 ## Context
 
-Integrated Phase 25 Confidence-Gating Job Router into siss-cockpit HTTP handlers.
-Implemented POST /api/router/route endpoint accepting task_description + budget_tokens.
-Returns confidence_score, assigned_tier, fallback_chain, latency_ms, token_cost, reason.
+Phase 27: Server-Sent Events (SSE) streaming for AG-UI telemetry metrics.
+Implemented GET /api/rce/stream endpoint with Bearer token authentication.
+Streams A2UI event payloads: routing_decision + metrics_update as SSE events.
 
-Architecture: SimpleScorer → RoutingEngine → CostMatrix → HTTP Response
-Budget enforcement prevents over-spend. Cache-aware cost calculation included.
+Architecture: HeaderMap validation → Stream<A2UIEvent> → Sse<impl Stream> → HTTP Response
+Authentication enforces Bearer tokens (401 UNAUTHORIZED for missing/malformed headers).
+A2UIEvent JSON provides data_binding for React dashboard component rendering.
 
 ## Last Action
 
-REFACTOR phase complete:
-- 5 unit tests for handler (GREEN phase)
-- 8 E2E integration tests for various task complexities
-- 3 metrics module tests for telemetry tracking
-- Zero regressions in existing tests (37 still passing)
-- All 53 tests passing
+Phase 27 COMPLETE — Full TDD cycle (RED → GREEN → REFACTOR):
+- RED: 5 failing tests for SSE endpoint validation
+- GREEN: Handler implementation with Bearer token auth
+- REFACTOR: SSE streaming with A2UIEvent payloads + 7 integration tests
+- Server integration: /api/rce/stream wired to router
+- Zero regressions in existing tests
+- All 65 siss-cockpit tests passing
 
 ## Next Step
 
-Phase 27: Add Server-Sent Events (SSE) for real-time metrics streaming.
-Integrate A2UI for dynamic React dashboard components.
-Production deployment: add authentication + rate limiting layer.
+Phase 28: Production deployment layer — rate limiting + connection management.
+Alternative: A2UI React dashboard integration (frontend wiring for component binding).
+Future: Real-time metrics aggregation pipeline (metrics_collector → SSE broadcast).
 
 ## Blockers
 
@@ -36,7 +38,9 @@ Phase 24 Blocker (noted): Projections handlers need PgPool in CockpitState (fixa
 
 ## Test Status
 
-53 passed; 0 failed; 0 ignored
+65 passed; 0 failed; 0 ignored
+- AG-UI Streaming Handler Unit Tests: 5 ✓
+- AG-UI Streaming Integration Tests: 7 ✓
 - Router Handler Unit Tests: 5 ✓
 - Router E2E Integration Tests: 8 ✓
 - Metrics Module Tests: 3 ✓
@@ -44,17 +48,20 @@ Phase 24 Blocker (noted): Projections handlers need PgPool in CockpitState (fixa
 
 ## Modified Files (Scope)
 
-NEW:
-- crates/siss-cockpit/src/handlers/router_handler.rs (POST /api/router/route + tests)
-- crates/siss-cockpit/src/handlers/router_integration_tests.rs (E2E tests)
-- crates/siss-cockpit/src/metrics/mod.rs
-- crates/siss-cockpit/src/metrics/routing_metrics.rs (RoutingMetrics + MetricsCollector)
+NEW (Phase 27):
+- crates/siss-cockpit/src/handlers/ag_ui_streaming.rs (GET /api/rce/stream + 5 unit tests)
+  - A2UIEvent struct with routing_decision() and metrics_update() factories
+  - Bearer token authentication validation
+  - SSE response streaming
+- crates/siss-cockpit/src/handlers/ag_ui_streaming_integration.rs (7 E2E tests)
+  - Authentication validation (401 for missing/malformed tokens)
+  - A2UI payload structure validation
+  - RFC3339 timestamp format verification
 
-MODIFIED:
-- crates/siss-cockpit/Cargo.toml (added siss-job-router dependency)
-- crates/siss-cockpit/src/handlers/mod.rs (module exports)
-- crates/siss-cockpit/src/server.rs (wired POST /api/router/route)
-- crates/siss-cockpit/src/lib.rs (added metrics module)
+MODIFIED (Phase 27):
+- crates/siss-cockpit/src/handlers/mod.rs (added ag_ui_streaming + integration exports)
+- crates/siss-cockpit/src/server.rs (wired GET /api/rce/stream endpoint)
+- .claude/STATE.md (Phase 27 context + test metrics)
 
 ## Git Command (Resume)
 

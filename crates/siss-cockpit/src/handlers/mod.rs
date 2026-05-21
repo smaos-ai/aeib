@@ -7,3 +7,5 @@ pub mod dashboard;
 // pub mod projections; // Phase 24: commented due to PgPool blocker
 pub mod router_handler;
 pub mod router_integration_tests;
+pub mod ag_ui_streaming;
+pub mod ag_ui_streaming_integration;

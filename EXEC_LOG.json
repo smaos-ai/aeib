@@ -47,5 +47,12 @@
     "commit": "cfb8d11",
     "message": "phase-24-task-1(refactor): implement real SQL queries for projections with testcontainers integration tests",
     "tests_pass": false
+  },
+  {
+    "hash": "5157c2f17e0f2dcf9e1a4bc9a55f6c9f2bed51c6c765c2ec276d44374e199e27",
+    "timestamp": "2026-05-21T01:24:01Z",
+    "commit": "a512359",
+    "message": "docs: formalize Sovereign Membrane — compressed principles + state templates",
+    "tests_pass": false
   }
 ]

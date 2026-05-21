@@ -27,3 +27,7 @@ siss-enclave = { path = "../siss-enclave" }
 axum = "0.7"
 sqlx = { workspace = true }
 siss-graph-db = { path = "../siss-graph-db" }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full", "test-util"] }
+futures = { workspace = true }

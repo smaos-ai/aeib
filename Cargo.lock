@@ -633,6 +633,7 @@ dependencies = [
  "chrono",
  "crossterm",
  "ed25519-dalek",
+ "futures",
  "hex",
  "lazy_static",
  "ratatui",

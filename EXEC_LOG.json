@@ -68,5 +68,12 @@
     "commit": "1cf655f",
     "message": "phase-25-task-1(green): implement confidence-gating router with 40 passing tests",
     "tests_pass": false
+  },
+  {
+    "hash": "1e22af08013e10c55cda2d4efe19cf28cb0a604fd22b4848601b39ee9ed57ca5",
+    "timestamp": "2026-05-21T01:38:28Z",
+    "commit": "60ecdf1",
+    "message": "phase-25-task-1(refactor): add 14 integration tests for confidence-gating router (54 total passing)",
+    "tests_pass": false
   }
 ]

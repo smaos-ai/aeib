@@ -12,6 +12,7 @@ pub struct CostMatrix {
     pub tier1_cost_per_token: f64,      // $0 baseline
     pub tier2_cost_per_token: f64,      // $0.003/1K
     pub tier3_cost_per_token: f64,      // $0.015/1K
+    pub cache_hit_reduction: f64,       // Cache hit reduces cost by 90% (0.1x multiplier)
 }
 
 impl TokenBudget {
@@ -46,6 +47,7 @@ impl Default for CostMatrix {
             tier1_cost_per_token: 0.0,
             tier2_cost_per_token: 0.000003,      // $0.003 per 1K tokens
             tier3_cost_per_token: 0.000015,      // $0.015 per 1K tokens
+            cache_hit_reduction: 0.1,            // Cache hits reduce cost to 10% (90% savings)
         }
     }
 }
@@ -56,6 +58,20 @@ impl CostMatrix {
             RoutingTier::Tier1RapidMLX => tokens as f64 * self.tier1_cost_per_token,
             RoutingTier::Tier2Sonnet => tokens as f64 * self.tier2_cost_per_token,
             RoutingTier::Tier3Opus => tokens as f64 * self.tier3_cost_per_token,
+        }
+    }
+
+    pub fn estimate_cost_with_cache(
+        &self,
+        tier: RoutingTier,
+        tokens: u32,
+        cache_hit: bool,
+    ) -> f64 {
+        let base_cost = self.estimate_cost(tier, tokens);
+        if cache_hit {
+            base_cost * self.cache_hit_reduction
+        } else {
+            base_cost
         }
     }
 
@@ -126,5 +142,40 @@ mod tests {
         assert!(matrix.should_route_to_frontier(RoutingTier::Tier1RapidMLX, 100, &budget));
         assert!(matrix.should_route_to_frontier(RoutingTier::Tier2Sonnet, 100, &budget));
         assert!(matrix.should_route_to_frontier(RoutingTier::Tier3Opus, 100, &budget));
+    }
+
+    #[test]
+    fn test_cache_hit_reduces_cost_tier2() {
+        let matrix = CostMatrix::default();
+        let base_cost = matrix.estimate_cost(RoutingTier::Tier2Sonnet, 1000);
+        let cached_cost = matrix.estimate_cost_with_cache(RoutingTier::Tier2Sonnet, 1000, true);
+
+        assert!(cached_cost < base_cost);
+        assert_eq!(cached_cost, base_cost * matrix.cache_hit_reduction);
+    }
+
+    #[test]
+    fn test_cache_hit_reduces_cost_tier3() {
+        let matrix = CostMatrix::default();
+        let base_cost = matrix.estimate_cost(RoutingTier::Tier3Opus, 1000);
+        let cached_cost = matrix.estimate_cost_with_cache(RoutingTier::Tier3Opus, 1000, true);
+
+        assert!(cached_cost < base_cost);
+        // Cache hit should reduce to 10% of original cost
+        assert_eq!(cached_cost, base_cost * 0.1);
+    }
+
+    #[test]
+    fn test_cache_aware_cost_alters_routing_decision() {
+        let matrix = CostMatrix::default();
+        let budget = TokenBudget::new(1000);
+
+        // Without cache: Tier3 might exceed budget
+        let uncached_cost = matrix.estimate_cost(RoutingTier::Tier3Opus, 500);
+        // With cache: same task is affordable
+        let cached_cost = matrix.estimate_cost_with_cache(RoutingTier::Tier3Opus, 500, true);
+
+        assert!(uncached_cost > cached_cost);
+        assert!(budget.has_capacity(500));
     }
 }

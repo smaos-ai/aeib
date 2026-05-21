@@ -11,3 +11,4 @@ pub mod ag_ui_streaming;
 pub mod ag_ui_streaming_integration;
 pub mod rate_limiting;
 pub mod rate_limiting_integration;
+pub mod rate_limiting_middleware;

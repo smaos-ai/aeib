@@ -1,48 +1,35 @@
-# Execution State (Auto-Resumable)
+# 🧭 Execution State (Auto-Resumable) + Immutable Ledger
 
-## Checkpoint
-- **Commit:** 5c838df phase-41(red): OpenClaw-RL & CIPO Continuous Learning - fail-closed invariant tests
-- **Timestamp:** 2026-05-21T02:45:00Z
-- **Phase:** Phase 41 (OpenClaw-RL & CIPO Continuous Learning Loop)
-- **Status:** RED (14 tests: 8 passing fail-closed checks, 6 failing success-path tests)
+## Last Checkpoint
+- **Commit:** `47dd7fd`
+- **Ledger Hash:** `0c6e940481c6d2a6`…
+- **Timestamp:** 2026-05-21T10:49:33Z
+- **Phase:** `phase-41(red-checkpoint)`
+- **Tests:** false
+- **Next Step:** (Edit before closing)
 
-## Context
-OpenClaw-RL asynchronous CIPO training pipeline with fail-closed invariants. Binary RL (GRPO) + On-Policy Distillation generating LoRA weights hot-swapped into Rapid-MLX on Apple Silicon. Memory pressure monitoring prevents unified memory exhaustion.
+## Active Constraints
+- Protocol v2 (diff-only, @file scoping, cargo test -q)
+- TDD mandatory (tests first, implementation second)
+- CLAUDE.md Correctness Doctrine (Plan Mode for multi-file)
+- GitNexus impact analysis required before editing any symbol
+- Test suite must pass 100% before commit
 
-## Last Action
-RED phase complete: 14 integration tests defined (4+ as required).
-- 8 tests PASSING: Validate fail-closed invariants (reject invalid inputs correctly)
-- 6 tests FAILING: Validate success paths (implementation deferred to GREEN phase)
+## Ledger System
+- **EXEC_LOG.json:** Append-only Merkle chain of all phases (diff hashes, test results, timestamps)
+- **Replay CLI:** `claude-replay.sh <commit_or_index>` — deterministically restores and verifies historical state
+- **Cryptographic Verification:** Every commit hash-linked, test-gated, immutable
 
-Fail-Closed Invariants:
-1. Trajectory Verification: Reject missing causal chains ✓
-2. LoRA Safety Gate: Reject weights without AP2 mandate ✓
-3. Reward Signal Strictness: Reject malformed/ambiguous signals ✓
-4. Resource Circuit Breaker: Graceful pause if memory > 85% ✓
+## Session Resume Checklist
+1. Read STATE.md FIRST (includes ledger hash)
+2. Check EXEC_LOG.json for full causal chain
+3. Use `claude-replay.sh <index>` to restore historical phase if needed
+4. Apply Protocol v2: diff-only, @file scoping, cargo test -q
+5. Run `cargo test -q` before proposing completion
+6. Commit triggers auto-update of ledger + STATE.md
 
-## Next Step
-GREEN phase: Implement 4 handler functions with real CIPO logic:
-- verify_trajectory_causality(): Extract trajectory_id from valid chains
-- validate_reward_signal(): Validate all fields, return reward_score
-- hot_swap_lora_weights(): Verify AP2 mandate, return capsule_id
-- check_memory_circuit_breaker(): Compare pressure to 85%, return Ok/Err
-
-## Blockers
-None. Ready for GREEN phase implementation.
-
-## Test Status
-14 total: 8 PASSING, 6 FAILING
-- PASSING: Fail-closed invariant validation (trajectory missing chain, reward malformed, LoRA no mandate, memory > 85%)
-- FAILING: Success-path validation (complete trajectory, valid reward, signed LoRA, safe memory pressure, complete workflow)
-
-## Modified Files (Scope)
-- crates/siss-cockpit/src/handlers/openclaw_rl.rs (NEW: 144 lines)
-- crates/siss-cockpit/src/handlers/openclaw_rl_integration.rs (NEW: 241 lines)
-- crates/siss-cockpit/src/handlers/mod.rs (exports added)
-
-## Git Command (Resume)
-```
-git checkout feat-phase41-openclaw-rl
-git pull origin main
-cargo test -p siss-cockpit --lib openclaw_rl -q
-```
+## Cached Artifacts
+- @docs/architecture/ — full system design
+- @EXEC_LOG.json — immutable execution ledger
+- @.claude/skills/ — specialized execution packs
+- @docs/wiki/ — semantic memory

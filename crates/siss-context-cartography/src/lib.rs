@@ -3,3 +3,4 @@ pub mod config;
 pub mod pipeline;
 pub mod retrieval;
 pub mod types;
+pub mod zones;

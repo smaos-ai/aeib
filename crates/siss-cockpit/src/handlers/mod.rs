@@ -34,3 +34,5 @@ pub mod chaos_petri;
 pub mod chaos_petri_integration;
 pub mod deployment_router;
 pub mod deployment_router_integration;
+pub mod gitnexus_graph;
+pub mod gitnexus_graph_integration;

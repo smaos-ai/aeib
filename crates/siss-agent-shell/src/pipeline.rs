@@ -71,7 +71,7 @@ pub async fn run_intent_pipeline(
         tenant_id,
     };
     let _auth_result =
-        siss_gatekeeper::pipeline::authorize_task(pool, signer, &auth_request).await?;
+        siss_gatekeeper::pipeline::authorize_task(pool, signer, &auth_request, None).await?;
 
     emitter.emit(AgentEvent::Authorized {
         task_id: task_id.0,
@@ -84,9 +84,10 @@ pub async fn run_intent_pipeline(
         task_id,
         persona_id,
         tenant_id,
+        depends_on: vec![],
     };
     let routing_result =
-        siss_job_router::pipeline::route_task(pool, strategy, executor, &routing_request).await?;
+        siss_job_router::pipeline::route_task(pool, strategy, executor, None, &routing_request).await?;
 
     emitter.emit(AgentEvent::Routed {
         task_id: task_id.0,

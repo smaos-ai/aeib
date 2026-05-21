@@ -3,6 +3,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
 use tokio::sync::broadcast;
+use crate::event_bridge::system_event_to_cockpit;
+use siss_event_log::EventFilter;
 
 pub const EVENT_BUFFER_SIZE: usize = 1000;
 pub const BROADCAST_CHANNEL_SIZE: usize = 1024;
@@ -47,6 +49,30 @@ impl CockpitState {
     pub fn buffered_events(&self) -> Vec<CockpitEvent> {
         let buf = self.buffer.lock().expect("buffer lock");
         buf.iter().cloned().collect()
+    }
+}
+
+impl CockpitState {
+    /// Wire the immutable event-log into the cockpit stream.
+    /// Spawns a background task that continuously streams events from the log.
+    /// Non-blocking: logging failures don't crash the cockpit.
+    pub fn wire_event_log(&self, event_log: siss_event_log::EventLog) {
+        let state = self.clone();
+        tokio::spawn(async move {
+            // Stream all events from the log (non-blocking integration)
+            match event_log.stream_events(EventFilter::all()).await {
+                Ok(mut stream) => {
+                    use futures::StreamExt;
+                    while let Some(event) = stream.next().await {
+                        let cockpit_event = system_event_to_cockpit(event);
+                        state.emit(cockpit_event);
+                    }
+                }
+                Err(e) => {
+                    eprintln!("Failed to stream events from log: {}", e);
+                }
+            }
+        });
     }
 }
 

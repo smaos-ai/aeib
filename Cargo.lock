@@ -2773,6 +2773,7 @@ dependencies = [
  "serde",
  "serde_json",
  "siss-agent-shell",
+ "siss-event-log",
  "siss-graph-db",
  "siss-job-router",
  "tokio",

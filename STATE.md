@@ -1,12 +1,12 @@
 # 🧭 Execution State (Auto-Resumable) + Immutable Ledger
 
 ## Last Checkpoint
-- **Commit:** `fe8a3b6` Phase 45 RED: GitNexus Structural Awareness & LadybugDB - fail-closed invariants
-- **Ledger Hash:** `a9f1e8c7d3b2a4f6`…
-- **Timestamp:** 2026-05-21T14:45:00Z
-- **Phase:** `Phase 45 RED`
-- **Tests:** 16 passing (6 unit + 10 integration)
-- **Next Step:** Await GREEN phase authorization for implement handlers (Blast Radius, Skill Gen, Pre-Commit, Hybrid Search)
+- **Commit:** `22f920b`
+- **Ledger Hash:** `e5ff10925316fedb`…
+- **Timestamp:** 2026-05-21T15:37:21Z
+- **Phase:** `phase-25(wave-b-green)`
+- **Tests:** false
+- **Next Step:** (Edit before closing)
 
 ## Active Constraints
 - Protocol v2 (diff-only, @file scoping, cargo test -q)

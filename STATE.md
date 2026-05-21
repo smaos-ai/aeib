@@ -1,52 +1,51 @@
 # Execution State (Auto-Resumable)
 
 ## Checkpoint
-- **Commit:** 34a32a2 phase-42(green): implement Chaos Petri validation air-lock with Quad-Pillar Doctrine
-- **Timestamp:** 2026-05-21T03:00:00Z
-- **Phase:** Phase 42 (Chaos Petri Validation Gate & Quad-Pillar Doctrine)
-- **Status:** GREEN (13/13 tests passing, RED→GREEN flip complete)
+- **Commit:** dd5412c phase-43(red): Rapid-MLX Production Hot-Swap & Sneakernet Ingress - fail-closed deployment invariants tests
+- **Timestamp:** 2026-05-21T03:05:00Z
+- **Phase:** Phase 43 (Rapid-MLX Production Hot-Swap & Sneakernet Ingress)
+- **Status:** RED (14 tests: 7 passing fail-closed checks, 7 failing success-path tests)
 
 ## Context
-Chaos Petri validation air-lock fully implemented. Quad-Pillar Evaluation Doctrine (ROMA/MINT benchmarks) enforces <2% performance degradation. AP2 cryptographic audit seals promotion authorization before hot-swap to live Operator Plane.
+Rapid-MLX production deployment pipeline for zero-downtime model hot-swap. AP2 promotion verification gates deployment authorization. Sneakernet dual-auth quorum ensures frontier models meet strategic oversight. TTFT circuit breaker prevents performance degradation. DeltaNet state flush prevents cross-model hallucination.
 
 ## Last Action
-GREEN phase complete: All 4 fail-closed validation functions implemented.
-- verify_petri_air_gap(): Validates network_escaped==false && isolation_verified==true
-- validate_quad_pillar(): Calculates degradation % for ROMA/MINT, enforces ≤2% threshold
-- check_catastrophic_forgetting(): Verifies no trajectory regression, failed_trajectories empty
-- sign_evaluation_to_ap2_ledger(): Validates ap2_mandate_signature, returns promotion token
+RED phase complete: 14 integration tests defined (4+ as required).
+- 7 tests PASSING: Validate fail-closed invariants (reject invalid inputs correctly)
+- 7 tests FAILING: Validate success paths (implementation deferred to GREEN phase)
 
-All 13 tests PASSING (4 that failed in RED, now GREEN):
-- 4 unit tests: Fail-closed invariants validated ✓
-- 9 integration tests: All success-path and failure-path validations ✓
+Fail-Closed Invariants:
+1. AP2 Promotion Verification: Reject expired/missing tokens ✓
+2. Sneakernet Dual-Auth Quorum: Require both orchestrator signatures ✓
+3. Zero-Downtime Drain: SSE stream completion before swap ✓
+4. DeltaNet State Safety: Flush prompt cache to prevent contamination ✓
+5. TTFT Baseline Circuit Breaker: Reject TTFT > 80ms (fail-safe) ✓
 
 ## Next Step
-Merge phase-42-chaos-petri to main. Ready for Phase 43+ dispatch.
+GREEN phase: Implement 5 deployment routing functions with real hot-swap logic:
+- verify_ap2_promotion_token(): Validate signature and expiry timestamp
+- validate_sneakernet_quorum(): Check both orchestrator_1 and orchestrator_2 signatures
+- drain_active_sse_streams(): Complete all buffered events on old model
+- flush_deltanet_state(): Invalidate all cached prompt state
+- verify_ttft_baseline(): Measure latency, trigger rollback if > 80ms
+- hot_swap_model(): Orchestrate complete workflow (verify→drain→flush→check TTFT)
 
 ## Blockers
-None. Ready for production merge.
+None. Ready for GREEN phase implementation.
 
 ## Test Status
-13/13 PASSING (RED→GREEN flip complete)
-- Air-gap isolation: Clean container accepted, DNS/API escapes rejected (403) ✓
-- Quad-pillar: Improvement accepted, ROMA/MINT degradation >2% rejected (406) ✓
-- Catastrophic forgetting: No failures accepted, single/multi trajectory regression rejected (406) ✓
-- AP2 audit: Valid signature accepted, missing/empty signature rejected (400) ✓
-- Complete workflow: All stages execute, promotion token authorized ✓
-
-Total siss-cockpit: 215 passing (13 new from Phase 42), 2 pre-existing failures (aoe_cockpit)
+14 total: 7 PASSING, 7 FAILING
+- PASSING: AP2 expired token, AP2 missing signature, sneakernet no signatures, TTFT exceeds threshold, rollback triggered
+- FAILING: AP2 valid token, AP2 not expired, sneakernet both signatures, SSE stream drain, DeltaNet flush, TTFT within baseline, complete workflow
 
 ## Modified Files (Scope)
-- crates/siss-cockpit/src/handlers/chaos_petri.rs (99 lines changed)
-  - 4 function implementations with real Quad-Pillar validation logic
-- crates/siss-cockpit/src/handlers/chaos_petri_integration.rs (56 lines changed)
-  - 9 integration tests now validated against implementations
+- crates/siss-cockpit/src/handlers/deployment_router.rs (NEW: 150 lines)
+- crates/siss-cockpit/src/handlers/deployment_router_integration.rs (NEW: 277 lines)
+- crates/siss-cockpit/src/handlers/mod.rs (exports added)
 
-## Git Command (Resume/Merge)
+## Git Command (Resume)
 ```
-git checkout feat/phase42-chaos-petri
+git checkout feat/phase43-rapid-mlx-deployment
 git pull origin main
-cargo test -p siss-cockpit --lib chaos_petri -q
-git checkout main
-git merge feat/phase42-chaos-petri --ff-only
+cargo test -p siss-cockpit --lib deployment_router -q
 ```

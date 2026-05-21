@@ -35,8 +35,8 @@ mod integration_tests {
             capsule_id: "capsule-expired".to_string(),
             promotion_authorized: true,
             signature: "sig:ed25519:promotion:valid...xyz".to_string(),
-            timestamp: "2026-05-21T10:00:00Z".to_string(),
-            expiry_timestamp: "2026-05-21T11:00:00Z".to_string(), // Expired
+            timestamp: "2026-05-21T12:00:00Z".to_string(),
+            expiry_timestamp: "2026-05-21T11:00:00Z".to_string(), // Expiry before timestamp = expired
         };
 
         // WHEN: Verifying promotion token

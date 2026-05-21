@@ -30,3 +30,5 @@ pub mod gravity_memory;
 pub mod gravity_memory_integration;
 pub mod openclaw_rl;
 pub mod openclaw_rl_integration;
+pub mod chaos_petri;
+pub mod chaos_petri_integration;

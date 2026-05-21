@@ -1,5 +1,8 @@
 pub mod canary_router;
+pub mod confidence_scorer;
+pub mod cost_budget;
 pub mod executor;
 pub mod pipeline;
+pub mod routing_engine;
 pub mod strategy;
 pub mod types;

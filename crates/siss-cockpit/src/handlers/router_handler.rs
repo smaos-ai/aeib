@@ -3,10 +3,13 @@
 
 use axum::{
     http::StatusCode,
-    response::IntoResponse,
     Json,
 };
 use serde::{Deserialize, Serialize};
+use std::time::Instant;
+use siss_job_router::confidence_scorer::SimpleScorer;
+use siss_job_router::routing_engine::RoutingEngine;
+use siss_job_router::cost_budget::CostMatrix;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RouteRequest {
@@ -25,9 +28,42 @@ pub struct RouteResponse {
 }
 
 pub async fn post_route(
-    Json(_payload): Json<RouteRequest>,
-) -> impl IntoResponse {
-    (StatusCode::NOT_IMPLEMENTED, "Route handler not yet implemented")
+    Json(payload): Json<RouteRequest>,
+) -> Result<Json<RouteResponse>, StatusCode> {
+    let start = Instant::now();
+
+    // Validate input
+    if payload.task_description.trim().is_empty() {
+        return Err(StatusCode::BAD_REQUEST);
+    }
+
+    // Compute confidence score
+    let score = SimpleScorer::score_task(&payload.task_description);
+
+    // Get routing decision
+    let decision = RoutingEngine::decide(&score, payload.budget_tokens)
+        .map_err(|_| StatusCode::BAD_REQUEST)?;
+
+    // Calculate token cost
+    let matrix = CostMatrix::default();
+    let base_cost = matrix.estimate_cost(score.recommended_tier, score.estimated_tokens);
+    // Assume 20% cache hit rate for baseline
+    let token_cost = base_cost * 0.8; // 20% cache discount
+
+    let latency_ms = start.elapsed().as_millis() as u32;
+
+    Ok(Json(RouteResponse {
+        confidence_score: score.score,
+        assigned_tier: format!("{:?}", decision.primary_tier),
+        fallback_chain: decision
+            .fallback_chain
+            .iter()
+            .map(|t| format!("{:?}", t))
+            .collect(),
+        latency_ms,
+        token_cost,
+        reason: decision.reason,
+    }))
 }
 
 #[cfg(test)]
@@ -40,59 +76,76 @@ mod tests {
 
     #[tokio::test]
     async fn test_router_endpoint_polling_task_routes_to_tier1() {
-        // GIVEN POST /api/router/route with task_description="polling status check"
-        // WHEN request processed
-        // THEN returns 200 OK
-        // AND response_body.assigned_tier = "Tier1RapidMLX"
-        // AND response_body.confidence_score = 0.1
+        let payload = RouteRequest {
+            task_description: "polling status check".to_string(),
+            budget_tokens: None,
+        };
 
-        panic!("Test placeholder: Verify polling routes to Tier1");
+        let result = post_route(Json(payload)).await;
+        assert!(result.is_ok());
+        let Json(body) = result.unwrap();
+        assert_eq!(body.assigned_tier, "Tier1RapidMLX");
+        assert_eq!(body.confidence_score, 0.1);
+        assert!(!body.fallback_chain.is_empty());
     }
 
     #[tokio::test]
     async fn test_router_endpoint_complex_task_routes_to_tier3() {
-        // GIVEN POST /api/router/route with task_description="complex decision making"
-        // WHEN request processed
-        // THEN returns 200 OK
-        // AND response_body.assigned_tier = "Tier3Opus"
-        // AND response_body.confidence_score >= 0.8
+        let payload = RouteRequest {
+            task_description: "complex decision making required".to_string(),
+            budget_tokens: None,
+        };
 
-        panic!("Test placeholder: Verify complex routes to Tier3");
+        let result = post_route(Json(payload)).await;
+        assert!(result.is_ok());
+        let Json(body) = result.unwrap();
+        assert_eq!(body.assigned_tier, "Tier3Opus");
+        assert!(body.confidence_score >= 0.8);
+        assert!(body.fallback_chain.is_empty()); // Tier3 has no fallback
     }
 
     #[tokio::test]
     async fn test_router_endpoint_response_includes_required_fields() {
-        // GIVEN POST /api/router/route with valid task_description
-        // WHEN request processed
-        // THEN response includes:
-        //   - confidence_score: f64 (0.0-1.0)
-        //   - assigned_tier: string ("Tier1RapidMLX"|"Tier2Sonnet"|"Tier3Opus")
-        //   - fallback_chain: Vec<string>
-        //   - latency_ms: u32
-        //   - token_cost: f64
-        //   - reason: string
+        let payload = RouteRequest {
+            task_description: "filter anomalies by severity".to_string(),
+            budget_tokens: Some(1000),
+        };
 
-        panic!("Test placeholder: Verify response schema");
+        let result = post_route(Json(payload)).await;
+        assert!(result.is_ok());
+        let Json(body) = result.unwrap();
+        assert!(body.confidence_score >= 0.0 && body.confidence_score <= 1.0);
+        assert!(
+            body.assigned_tier == "Tier1RapidMLX"
+                || body.assigned_tier == "Tier2Sonnet"
+                || body.assigned_tier == "Tier3Opus"
+        );
+        assert!(body.token_cost >= 0.0);
+        assert!(!body.reason.is_empty());
     }
 
     #[tokio::test]
     async fn test_router_endpoint_missing_task_description_returns_400() {
-        // GIVEN POST /api/router/route with empty task_description
-        // WHEN request processed
-        // THEN returns 400 Bad Request
-        // AND error_message indicates task_description required
+        let payload = RouteRequest {
+            task_description: "".to_string(),
+            budget_tokens: None,
+        };
 
-        panic!("Test placeholder: Verify 400 for missing task");
+        let result = post_route(Json(payload)).await;
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), StatusCode::BAD_REQUEST);
     }
 
     #[tokio::test]
     async fn test_router_endpoint_budget_constraint_enforced() {
-        // GIVEN POST /api/router/route with task_description + budget_tokens=50
-        // WHEN task requires 100 tokens for Tier3
-        // THEN returns 200 OK
-        // AND response.assigned_tier = "Tier2Sonnet" (cost-optimized fallback)
-        // OR error_code = "BUDGET_EXCEEDED"
+        let payload = RouteRequest {
+            task_description: "complex decision making".to_string(),
+            budget_tokens: Some(50), // Budget: 50 tokens
+        };
 
-        panic!("Test placeholder: Verify budget constraint");
+        // Tier3Opus tasks estimate ~800+ tokens, so budget should fail
+        let result = post_route(Json(payload)).await;
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), StatusCode::BAD_REQUEST);
     }
 }

@@ -2773,6 +2773,7 @@ dependencies = [
  "serde_json",
  "siss-agent-shell",
  "siss-graph-db",
+ "siss-job-router",
  "tokio",
  "tokio-stream",
  "uuid",

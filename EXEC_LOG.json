@@ -82,5 +82,12 @@
     "commit": "21cd9b8",
     "message": "phase-25-task-1(refactor): add fallback chain simulation, cache-aware costs, and router binary",
     "tests_pass": false
+  },
+  {
+    "hash": "cce05a1077defa264f3ebb2c5145b63a4d5c8728b4f2181d928fe92e64832bf8",
+    "timestamp": "2026-05-21T01:48:56Z",
+    "commit": "4ae0207",
+    "message": "phase-26-task-1(red): add 5 failing tests for POST /api/router/route endpoint with SSE telemetry",
+    "tests_pass": false
   }
 ]

@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SessionToken {
@@ -48,6 +49,35 @@ pub struct TrustPolicyRequirements {
     pub minimum_security_tier: u32,
     pub required_capabilities: Vec<String>,
     pub attestation_required: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IntentMandate {
+    pub id: Uuid,
+    pub budget_limit: i64,
+    pub budget_spent: i64,
+    pub risk_class: String,
+    pub allowed_tools: Vec<Uuid>,
+}
+
+impl IntentMandate {
+    pub fn budget_remaining(&self) -> i64 {
+        self.budget_limit - self.budget_spent
+    }
+
+    pub fn is_budget_exhausted(&self) -> bool {
+        self.budget_remaining() <= 0
+    }
+
+    pub fn can_use_tool(&self, tool_id: Uuid) -> bool {
+        self.allowed_tools.contains(&tool_id)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuthorizedJob {
+    pub task_id: Uuid,
+    pub mandate_id: Uuid,
 }
 
 #[cfg(test)]

@@ -6,6 +6,7 @@ version.workspace = true
 [dependencies]
 siss-graph-core = { path = "../siss-graph-core" }
 siss-graph-db = { path = "../siss-graph-db" }
+siss-event-log = { path = "../siss-event-log" }
 uuid.workspace = true
 chrono.workspace = true
 serde.workspace = true

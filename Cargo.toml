@@ -5,6 +5,7 @@ members = [
     "crates/siss-graph-db",
     "crates/siss-gatekeeper",
     "crates/siss-job-router",
+    "crates/siss-event-log",
     "crates/siss-context-cartography",
     "crates/siss-behavioral-firewall",
     "crates/siss-feedback-router",

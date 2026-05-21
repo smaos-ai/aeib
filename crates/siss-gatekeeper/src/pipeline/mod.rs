@@ -1,6 +1,7 @@
 pub mod ap2;
 pub mod commit;
 pub mod governance;
+pub mod mandate;
 pub mod rebac;
 pub mod validate;
 
@@ -8,9 +9,11 @@ use sqlx::PgPool;
 
 use crate::signer::Signer;
 use crate::types::{AuthorizationRequest, AuthorizationResult, GatekeeperError};
+use siss_event_log::{EventLog, SystemEvent};
 
 /// The sole entry point for task authorization.
 /// Runs the full pipeline: validate → ReBAC → AP2 → governance → sign+commit.
+/// Logs AccessDecision event to audit trail after successful commit.
 ///
 /// The entire operation should be called within a database transaction by the caller.
 /// If any step fails, the caller should roll back.
@@ -18,6 +21,7 @@ pub async fn authorize_task(
     pool: &PgPool,
     signer: &dyn Signer,
     request: &AuthorizationRequest,
+    event_log: Option<&EventLog>,
 ) -> Result<AuthorizationResult, GatekeeperError> {
     let task_id = request.task_id.0;
     let persona_id = request.persona_id.0;
@@ -60,6 +64,16 @@ pub async fn authorize_task(
         tenant_id,
     )
     .await?;
+
+    // Step 6: Audit Trail (post-commit)
+    if let Some(log) = event_log {
+        let decision_event = SystemEvent::AccessDecision {
+            actor: persona_id,
+            decision: format!("authorized task {} with risk_class {}", task_id, risk_class),
+        };
+        let _ = log.append_event(task_id, decision_event).await;
+        // If logging fails, don't fail the authorization - log is optional
+    }
 
     Ok(result)
 }

@@ -2845,6 +2845,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "siss-event-log"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "futures",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "testcontainers",
+ "thiserror 2.0.18",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "siss-feedback-router"
 version = "0.1.0"
 dependencies = [
@@ -2872,6 +2887,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
+ "siss-event-log",
  "siss-graph-core",
  "siss-graph-db",
  "sqlx",
@@ -2925,6 +2941,7 @@ dependencies = [
  "rand",
  "serde",
  "serde_json",
+ "siss-event-log",
  "siss-graph-core",
  "siss-graph-db",
  "sqlx",

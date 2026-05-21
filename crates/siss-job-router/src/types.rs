@@ -10,6 +10,8 @@ pub struct RoutingRequest {
     pub task_id: NodeId,
     pub persona_id: NodeId,
     pub tenant_id: NodeId,
+    #[serde(default)]
+    pub depends_on: Vec<Uuid>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

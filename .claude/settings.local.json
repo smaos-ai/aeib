@@ -29,7 +29,10 @@
       "WebFetch(domain:notebooklm.google.com)",
       "mcp__notebooklm__notebook_describe",
       "Bash(cat)",
-      "Bash(chmod +x .git/hooks/post-commit)"
+      "Bash(chmod +x .git/hooks/post-commit)",
+      "Bash(mkdir -p ~/.claude/channels/imessage)",
+      "Read(//Users/andriileukhin/.claude/channels/imessage/**)",
+      "Skill(imessage:configure)"
     ]
   },
   "enabledPlugins": {

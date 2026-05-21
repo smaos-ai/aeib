@@ -54,7 +54,7 @@ pub struct CorrelationsQuery {
 
 /// Handler for GET /api/graph/projections/agent_actions
 pub async fn get_agent_actions(
-    State(_pool): State<PgPool>,
+    State(pool): State<PgPool>,
     Query(params): Query<AgentActionsQuery>,
 ) -> ApiResult<(StatusCode, Json<AgentActionPageResponse>)> {
     // Validate UUID
@@ -64,14 +64,14 @@ pub async fn get_agent_actions(
     // Clamp limit
     let limit = params.limit.unwrap_or(50).max(1).min(500);
 
-    let response = fetch_agent_actions(&sovereign_id, None, limit).await?;
+    let response = fetch_agent_actions(&pool, &sovereign_id, None, limit).await?;
 
     Ok((StatusCode::OK, Json(response)))
 }
 
 /// Handler for GET /api/graph/projections/anomalies
 pub async fn get_anomalies(
-    State(_pool): State<PgPool>,
+    State(pool): State<PgPool>,
     Query(params): Query<AnomaliesQuery>,
 ) -> ApiResult<(StatusCode, Json<AnomalyPageResponse>)> {
     // Validate UUID
@@ -91,6 +91,7 @@ pub async fn get_anomalies(
     let limit = params.limit.unwrap_or(50).max(1).min(200);
 
     let response = fetch_anomalies(
+        &pool,
         &sovereign_id,
         params.severity.as_deref(),
         params.anomaly_type.as_deref(),
@@ -103,7 +104,7 @@ pub async fn get_anomalies(
 
 /// Handler for GET /api/graph/projections/recovery
 pub async fn get_recovery(
-    State(_pool): State<PgPool>,
+    State(pool): State<PgPool>,
     Query(params): Query<RecoveryQuery>,
 ) -> ApiResult<(StatusCode, Json<RecoveryPageResponse>)> {
     // Validate UUID
@@ -113,7 +114,7 @@ pub async fn get_recovery(
     // Clamp limit
     let limit = params.limit.unwrap_or(25).max(1).min(100);
 
-    let response = fetch_recovery(&sovereign_id, limit).await?;
+    let response = fetch_recovery(&pool, &sovereign_id, limit).await?;
 
     Ok((StatusCode::OK, Json(response)))
 }

@@ -26,5 +26,19 @@
     "commit": "5aa339b",
     "message": "chore: checkpoint state — Phase 24 Observability Plumbing ready for dispatch",
     "tests_pass": false
+  },
+  {
+    "hash": "57ef379388f576ce981cb778211124efb9a145eb2953d3a5a1f94d0a31b0e1f0",
+    "timestamp": "2026-05-21T01:02:24Z",
+    "commit": "11dfc03",
+    "message": "phase-24-task-1(green): implement projections endpoints and polling hooks - Add 3 HTTP handlers: get_agent_actions, get_anomalies, get_recovery - Implement stub functions in projections_repo returning empty responses - Update React hooks with correct state field names and 5s polling - 5 backend tests passing (empty response tests + structure tests) - 19 placeholder panic tests for future database implementation",
+    "tests_pass": false
+  },
+  {
+    "hash": "6c429f2d23559d2f132c03635a843f8b883e809c2572d7c9392ead2e1944ee79",
+    "timestamp": "2026-05-21T01:14:53Z",
+    "commit": "11dfc03",
+    "message": "phase-24-task-1(green): implement projections endpoints and polling hooks - Add 3 HTTP handlers: get_agent_actions, get_anomalies, get_recovery - Implement stub functions in projections_repo returning empty responses - Update React hooks with correct state field names and 5s polling - 5 backend tests passing (empty response tests + structure tests) - 19 placeholder panic tests for future database implementation",
+    "tests_pass": false
   }
 ]

@@ -33,6 +33,7 @@ pub mod prediction_repo;
 pub mod probation_repo;
 pub mod projection_repo;
 pub mod projections_repo;
+pub mod projections_repo_integration_tests;
 pub mod rce_checkpoint_repo;
 pub mod rebac_repo;
 pub mod recovery_preceded_repo;

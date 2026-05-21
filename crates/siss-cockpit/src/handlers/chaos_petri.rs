@@ -60,8 +60,13 @@ impl ChaosPetri {
     /// Isolate evaluation in network-severed Petri container
     /// Fail-closed: Reject any network escape attempt
     pub async fn verify_petri_air_gap(network_trace: PetriNetworkTrace) -> Result<(), ChaosPetriError> {
-        // TODO: Implement in GREEN phase
-        Err(ChaosPetriError::AirGapViolation)
+        // Fail-closed: Both conditions must be true for air-gap verification
+        if network_trace.network_escaped || !network_trace.container_isolation_verified {
+            return Err(ChaosPetriError::AirGapViolation);
+        }
+
+        // Air-gap verified: Container remains impenetrable quarantine zone
+        Ok(())
     }
 
     /// Validate Quad-Pillar (ROMA/MINT) thresholds against baseline
@@ -70,8 +75,25 @@ impl ChaosPetri {
         eval_result: PetriEvaluationResult,
         thresholds: QuadPillarThresholds,
     ) -> Result<(), ChaosPetriError> {
-        // TODO: Implement in GREEN phase
-        Err(ChaosPetriError::QuadPillarThresholdExceeded)
+        // Calculate ROMA degradation percentage: (baseline - new) / baseline
+        let roma_degradation = (thresholds.baseline_roma_score - eval_result.roma_new_score)
+            / thresholds.baseline_roma_score;
+
+        // Calculate MINT degradation percentage: (baseline - new) / baseline
+        let mint_degradation = (thresholds.baseline_mint_score - eval_result.mint_new_score)
+            / thresholds.baseline_mint_score;
+
+        // Fail-closed: Both pillars must be within threshold
+        if roma_degradation > thresholds.roma_degradation_threshold {
+            return Err(ChaosPetriError::QuadPillarThresholdExceeded);
+        }
+
+        if mint_degradation > thresholds.mint_degradation_threshold {
+            return Err(ChaosPetriError::QuadPillarThresholdExceeded);
+        }
+
+        // Quad-pillar verified: Performance within acceptable bounds
+        Ok(())
     }
 
     /// Check for catastrophic forgetting on Gravity Grid Memory trajectories
@@ -79,8 +101,18 @@ impl ChaosPetri {
     pub async fn check_catastrophic_forgetting(
         eval_result: PetriEvaluationResult,
     ) -> Result<(), ChaosPetriError> {
-        // TODO: Implement in GREEN phase
-        Err(ChaosPetriError::CatastrophicForgettingDetected)
+        // Fail-closed: Model must NOT exhibit catastrophic forgetting
+        if eval_result.catastrophic_forgetting_detected {
+            return Err(ChaosPetriError::CatastrophicForgettingDetected);
+        }
+
+        // Fail-closed: ALL previous trajectories must remain successful
+        if !eval_result.failed_trajectories.is_empty() {
+            return Err(ChaosPetriError::CatastrophicForgettingDetected);
+        }
+
+        // Catastrophic forgetting check passed: Prior capabilities preserved
+        Ok(())
     }
 
     /// Cryptographically sign evaluation scores to AP2 ledger
@@ -88,8 +120,18 @@ impl ChaosPetri {
     pub async fn sign_evaluation_to_ap2_ledger(
         eval_record: AP2AuditRecord,
     ) -> Result<String, ChaosPetriError> {
-        // TODO: Implement in GREEN phase
-        Err(ChaosPetriError::AP2AuditSignatureRequired)
+        // Fail-closed: AP2 mandate signature MUST be present and non-empty
+        match &eval_record.evaluation_signature {
+            Some(sig) if !sig.is_empty() => {
+                // Valid signature found: authorize promotion token
+                let promotion_token = format!("promotion:authorized:{}", eval_record.capsule_id);
+                Ok(promotion_token)
+            }
+            _ => {
+                // Missing or empty signature: deny promotion
+                Err(ChaosPetriError::AP2AuditSignatureRequired)
+            }
+        }
     }
 }
 

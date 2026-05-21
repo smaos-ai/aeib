@@ -1,48 +1,35 @@
-# Execution State (Auto-Resumable)
+# 🧭 Execution State (Auto-Resumable) + Immutable Ledger
 
-## Checkpoint
-- **Commit:** 0dd67ea phase-42(red): Chaos Petri Validation Gate & Quad-Pillar Evaluation - fail-closed air-lock tests
-- **Timestamp:** 2026-05-21T02:55:00Z
-- **Phase:** Phase 42 (Chaos Petri Validation Gate & Quad-Pillar Doctrine)
-- **Status:** RED (13 tests: 9 passing fail-closed checks, 4 failing success-path tests)
+## Last Checkpoint
+- **Commit:** `0b3536b`
+- **Ledger Hash:** `0c6e940481c6d2a6`…
+- **Timestamp:** 2026-05-21T10:59:13Z
+- **Phase:** `phase-42(red-checkpoint)`
+- **Tests:** false
+- **Next Step:** (Edit before closing)
 
-## Context
-Chaos Petri validation air-lock for LoRA weight promotion. Quad-Pillar Evaluation Doctrine (ROMA/MINT benchmarks) ensures new weights improve baseline without degradation or catastrophic forgetting. AP2 cryptographic audit seals promotion authorization before hot-swap to live Operator Plane.
+## Active Constraints
+- Protocol v2 (diff-only, @file scoping, cargo test -q)
+- TDD mandatory (tests first, implementation second)
+- CLAUDE.md Correctness Doctrine (Plan Mode for multi-file)
+- GitNexus impact analysis required before editing any symbol
+- Test suite must pass 100% before commit
 
-## Last Action
-RED phase complete: 13 integration tests defined (4+ as required).
-- 9 tests PASSING: Validate fail-closed invariants (reject invalid inputs correctly)
-- 4 tests FAILING: Validate success paths (implementation deferred to GREEN phase)
+## Ledger System
+- **EXEC_LOG.json:** Append-only Merkle chain of all phases (diff hashes, test results, timestamps)
+- **Replay CLI:** `claude-replay.sh <commit_or_index>` — deterministically restores and verifies historical state
+- **Cryptographic Verification:** Every commit hash-linked, test-gated, immutable
 
-Fail-Closed Invariants:
-1. Air-Gapped Sandbox: Reject network escapes from Petri container ✓
-2. Quad-Pillar Threshold: Reject >2% performance degradation ✓
-3. Catastrophic Forgetting Check: Reject if previous trajectories fail ✓
-4. AP2 Cryptographic Audit: Require valid signature for promotion ✓
+## Session Resume Checklist
+1. Read STATE.md FIRST (includes ledger hash)
+2. Check EXEC_LOG.json for full causal chain
+3. Use `claude-replay.sh <index>` to restore historical phase if needed
+4. Apply Protocol v2: diff-only, @file scoping, cargo test -q
+5. Run `cargo test -q` before proposing completion
+6. Commit triggers auto-update of ledger + STATE.md
 
-## Next Step
-GREEN phase: Implement 4 validation functions with real Quad-Pillar logic:
-- verify_petri_air_gap(): Check container_isolation_verified & network_escaped=false
-- validate_quad_pillar(): Compare baseline ROMA/MINT against 2% thresholds
-- check_catastrophic_forgetting(): Verify catastrophic_forgetting_detected=false
-- sign_evaluation_to_ap2_ledger(): Validate signature and return promotion token
-
-## Blockers
-None. Ready for GREEN phase implementation.
-
-## Test Status
-13 total: 9 PASSING, 4 FAILING
-- PASSING: Air-gap violation (DNS escape), ROMA degradation >2%, MINT degradation >2%, catastrophic forgetting, AP2 missing signature
-- FAILING: Air-gap verified clean, quad-pillar improvement, catastrophic forgetting not detected, AP2 signature valid, complete workflow
-
-## Modified Files (Scope)
-- crates/siss-cockpit/src/handlers/chaos_petri.rs (NEW: 145 lines)
-- crates/siss-cockpit/src/handlers/chaos_petri_integration.rs (NEW: 258 lines)
-- crates/siss-cockpit/src/handlers/mod.rs (exports added)
-
-## Git Command (Resume)
-```
-git checkout feat/phase42-chaos-petri
-git pull origin main
-cargo test -p siss-cockpit --lib chaos_petri -q
-```
+## Cached Artifacts
+- @docs/architecture/ — full system design
+- @EXEC_LOG.json — immutable execution ledger
+- @.claude/skills/ — specialized execution packs
+- @docs/wiki/ — semantic memory

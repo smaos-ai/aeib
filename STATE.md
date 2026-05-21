@@ -1,52 +1,48 @@
 # Execution State (Auto-Resumable)
 
 ## Checkpoint
-- **Commit:** 32f2d14 phase-41(green): implement OpenClaw-RL CIPO training pipeline with fail-closed handlers
-- **Timestamp:** 2026-05-21T02:50:00Z
-- **Phase:** Phase 41 (OpenClaw-RL & CIPO Continuous Learning Loop)
-- **Status:** GREEN (14/14 tests passing, RED→GREEN flip complete)
+- **Commit:** 0dd67ea phase-42(red): Chaos Petri Validation Gate & Quad-Pillar Evaluation - fail-closed air-lock tests
+- **Timestamp:** 2026-05-21T02:55:00Z
+- **Phase:** Phase 42 (Chaos Petri Validation Gate & Quad-Pillar Doctrine)
+- **Status:** RED (13 tests: 9 passing fail-closed checks, 4 failing success-path tests)
 
 ## Context
-OpenClaw-RL asynchronous CIPO training pipeline fully implemented. Binary RL (GRPO) + On-Policy Distillation generating LoRA weights hot-swapped into Rapid-MLX on Apple Silicon. Memory pressure monitoring prevents unified memory exhaustion.
+Chaos Petri validation air-lock for LoRA weight promotion. Quad-Pillar Evaluation Doctrine (ROMA/MINT benchmarks) ensures new weights improve baseline without degradation or catastrophic forgetting. AP2 cryptographic audit seals promotion authorization before hot-swap to live Operator Plane.
 
 ## Last Action
-GREEN phase complete: All 4 fail-closed handler functions implemented.
-- verify_trajectory_causality(): Validates causal chains, returns trajectory_id
-- validate_reward_signal(): Binary RL strictness (stdout_check=true, exit_code=0), returns reward_score
-- hot_swap_lora_weights(): AP2 mandate verification, returns capsule_id for Rapid-MLX injection
-- check_memory_circuit_breaker(): Memory pressure > 85% circuit break, graceful pause
+RED phase complete: 13 integration tests defined (4+ as required).
+- 9 tests PASSING: Validate fail-closed invariants (reject invalid inputs correctly)
+- 4 tests FAILING: Validate success paths (implementation deferred to GREEN phase)
 
-All 14 tests PASSING (6 that failed in RED, now GREEN):
-- 4 unit tests: Fail-closed invariants validated ✓
-- 10 integration tests: All success-path and failure-path validations ✓
+Fail-Closed Invariants:
+1. Air-Gapped Sandbox: Reject network escapes from Petri container ✓
+2. Quad-Pillar Threshold: Reject >2% performance degradation ✓
+3. Catastrophic Forgetting Check: Reject if previous trajectories fail ✓
+4. AP2 Cryptographic Audit: Require valid signature for promotion ✓
 
 ## Next Step
-Merge phase-41-openclaw-rl to main. Ready for Phase 42+ dispatch.
+GREEN phase: Implement 4 validation functions with real Quad-Pillar logic:
+- verify_petri_air_gap(): Check container_isolation_verified & network_escaped=false
+- validate_quad_pillar(): Compare baseline ROMA/MINT against 2% thresholds
+- check_catastrophic_forgetting(): Verify catastrophic_forgetting_detected=false
+- sign_evaluation_to_ap2_ledger(): Validate signature and return promotion token
 
 ## Blockers
-None. Ready for production merge.
+None. Ready for GREEN phase implementation.
 
 ## Test Status
-14/14 PASSING (RED→GREEN flip complete)
-- Trajectory verification: Complete causal chains accepted, broken chains rejected ✓
-- Reward signal: Valid signals accepted, malformed/ambiguous signals rejected ✓
-- LoRA safety gate: AP2-signed weights accepted, unsigned rejected (403) ✓
-- Memory circuit breaker: Safe levels allowed, >85% triggers graceful pause ✓
-- Complete workflow: All stages execute without blocking active agent ✓
-
-Total siss-cockpit: 202 passing (14 new from Phase 41), 2 pre-existing failures (aoe_cockpit)
+13 total: 9 PASSING, 4 FAILING
+- PASSING: Air-gap violation (DNS escape), ROMA degradation >2%, MINT degradation >2%, catastrophic forgetting, AP2 missing signature
+- FAILING: Air-gap verified clean, quad-pillar improvement, catastrophic forgetting not detected, AP2 signature valid, complete workflow
 
 ## Modified Files (Scope)
-- crates/siss-cockpit/src/handlers/openclaw_rl.rs (82 lines changed)
-  - 4 function implementations with real fail-closed logic
-- crates/siss-cockpit/src/handlers/openclaw_rl_integration.rs (56 lines changed)
-  - 10 integration tests now validated against implementations
+- crates/siss-cockpit/src/handlers/chaos_petri.rs (NEW: 145 lines)
+- crates/siss-cockpit/src/handlers/chaos_petri_integration.rs (NEW: 258 lines)
+- crates/siss-cockpit/src/handlers/mod.rs (exports added)
 
-## Git Command (Resume/Merge)
+## Git Command (Resume)
 ```
-git checkout feat-phase41-openclaw-rl
+git checkout feat/phase42-chaos-petri
 git pull origin main
-cargo test -p siss-cockpit --lib openclaw_rl -q
-git checkout main
-git merge feat-phase41-openclaw-rl --ff-only
+cargo test -p siss-cockpit --lib chaos_petri -q
 ```

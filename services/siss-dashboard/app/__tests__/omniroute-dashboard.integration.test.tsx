@@ -1,61 +1,13 @@
-/// Phase 38 RED Phase: OmniRoute Control Tower & A2UI Dashboard Integration Tests
+/// Phase 38 GREEN Phase: OmniRoute Control Tower & A2UI Dashboard Integration Tests
 /// Fail-closed React/DOM invariants for SSE streaming, component limits, RCE state preservation, and AP2 mandate webhooks
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-
-/// Mock types matching Phase 37 schema contracts
-interface SSEStreamEvent {
-  event_type: 'ROUTING' | 'METRICS' | 'STATUS' | 'DECISION_REQUIRED';
-  workflow_id: string;
-  timestamp: string;
-  payload: Record<string, unknown>;
-  agent_id: string;
-}
-
-interface DecisionWebhookPayload {
-  workflow_id: string;
-  decision: 'APPROVE' | 'REJECT' | 'PAUSE' | 'MODIFY';
-  reason?: string;
-  timestamp: string;
-  human_operator_id: string;
-}
-
-interface ProjectionResolverResponse {
-  workflow_id: string;
-  layout: Record<string, unknown>;
-  data_binding: Record<string, unknown>;
-  metadata: {
-    component_count: number;
-    decoupled: boolean;
-    version: string;
-  };
-}
-
-/// Stub Component: OmniRoute Control Tower (to be implemented)
-/// This component will fail tests until it implements the fail-closed invariants
-const OmniRouteDashboard: React.FC = () => {
-  return <div data-testid="omniroute-dashboard">Placeholder</div>;
-};
-
-/// Stub Component: A2UI Renderer (to be implemented)
-/// This component must enforce the 18-component limit
-const A2UIRenderer: React.FC<{ projection: ProjectionResolverResponse }> = ({ projection }) => {
-  return <div data-testid="a2ui-renderer">Placeholder</div>;
-};
-
-/// Stub Component: SSE Stream Listener (to be implemented)
-/// This component must bind to /api/rce/stream and handle DECISION_REQUIRED state
-const SSEStreamListener: React.FC<{ onEvent: (event: SSEStreamEvent) => void }> = ({ onEvent }) => {
-  return <div data-testid="sse-stream-listener">Placeholder</div>;
-};
-
-/// Stub Component: Decision Webhook Form (to be implemented)
-/// This component must construct valid DecisionWebhookPayload with AP2 mandate
-const DecisionWebhookForm: React.FC<{ workflowId: string; onSubmit: (payload: DecisionWebhookPayload) => void }> = ({ workflowId, onSubmit }) => {
-  return <form data-testid="decision-webhook-form">Placeholder</form>;
-};
+import { A2UIRenderer, ProjectionResolverResponse } from '@/lib/components/A2UIRenderer';
+import { SSEStreamListener, SSEStreamEvent } from '@/lib/components/SSEStreamListener';
+import { DecisionWebhookForm, DecisionWebhookPayload } from '@/lib/components/DecisionWebhookForm';
+import { OmniRouteDashboard } from '@/lib/components/OmniRouteDashboard';
 
 describe('Phase 38: OmniRoute Control Tower & A2UI Dashboard Integration (RED PHASE)', () => {
   describe('Test 1: Component Limit Enforcement — A2UI Rendering Engine Rejects Components > 18', () => {

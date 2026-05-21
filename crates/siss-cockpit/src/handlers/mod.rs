@@ -18,3 +18,4 @@ pub mod a2ui_payload_generator;
 pub mod a2ui_payload_integration;
 pub mod aoe_cockpit;
 pub mod aoe_cockpit_integration;
+pub mod swarm_sync;

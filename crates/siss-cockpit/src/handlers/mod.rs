@@ -32,3 +32,5 @@ pub mod openclaw_rl;
 pub mod openclaw_rl_integration;
 pub mod chaos_petri;
 pub mod chaos_petri_integration;
+pub mod deployment_router;
+pub mod deployment_router_integration;

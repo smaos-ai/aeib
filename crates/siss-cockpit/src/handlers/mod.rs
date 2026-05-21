@@ -21,4 +21,6 @@ pub mod aoe_cockpit_integration;
 pub mod swarm_sync;
 pub mod swarm_sync_integration;
 pub mod crabbox_security;
+pub mod crabbox_security_integration;
 pub mod mcp_governance;
+pub mod mcp_governance_integration;

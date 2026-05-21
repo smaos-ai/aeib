@@ -173,5 +173,12 @@
     "commit": "8e3d236",
     "message": "phase-36(red): AoE Cockpit Security View - Crabbox isolation & MCP governance - LOTA mitigation, AP2 mandate validation, double-agent detection, RCE preservation (11 tests failing)",
     "tests_pass": false
+  },
+  {
+    "hash": "c18008e35d319cd99834f0b2d3f6a849af36a89c65d0e912db709f0f895f5856",
+    "timestamp": "2026-05-21T09:52:54Z",
+    "commit": "fe834ec",
+    "message": "phase-36(green): AoE Cockpit Security - Crabbox LOTA mitigation, MCP AP2 mandate enforcement, double-agent detection, RCE state preservation (11 tests passing, 149 total)",
+    "tests_pass": false
   }
 ]

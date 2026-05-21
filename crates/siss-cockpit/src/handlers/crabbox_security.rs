@@ -36,7 +36,7 @@ impl CrabboxSecurity {
         // Fail-closed: Detect common LOTA escape patterns
         let escape_patterns = vec![
             "$(", "$(/", "`", ";&", "|&", "||", "&&",
-            "/bin/sh", "/bin/bash", "exec", "eval"
+            "/bin/sh", "/bin/bash", "/bash", "exec", "eval", "bash", "sh -c", ">&"
         ];
 
         for pattern in escape_patterns {

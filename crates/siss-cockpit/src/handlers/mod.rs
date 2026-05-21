@@ -13,3 +13,4 @@ pub mod rate_limiting;
 pub mod rate_limiting_integration;
 pub mod rate_limiting_middleware;
 pub mod skills_verification;
+pub mod skills_verification_integration;

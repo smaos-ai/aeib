@@ -2769,6 +2769,7 @@ dependencies = [
  "axum",
  "chrono",
  "futures",
+ "reqwest 0.12.28",
  "serde",
  "serde_json",
  "siss-agent-shell",

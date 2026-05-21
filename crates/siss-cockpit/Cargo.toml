@@ -13,6 +13,7 @@ serde_json.workspace = true
 futures.workspace = true
 uuid.workspace = true
 chrono.workspace = true
+reqwest.workspace = true
 siss-agent-shell = { path = "../siss-agent-shell" }
 siss-graph-db = { path = "../siss-graph-db" }
 siss-job-router = { path = "../siss-job-router" }

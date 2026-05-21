@@ -43,7 +43,7 @@ pub async fn set_sovereign_discoverable(
 
     let affected = sqlx::query_scalar::<_, i64>(
         "UPDATE sovereigns SET is_discoverable = $1, discovery_metadata = $2 WHERE id = $3 \
-         RETURNING 1",
+         RETURNING 1::bigint",
     )
     .bind(is_discoverable)
     .bind(discovery_metadata)

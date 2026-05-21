@@ -78,7 +78,7 @@ pub async fn update_reputation_blend_weight(
         "UPDATE federation_peers \
          SET reputation_blend_weight = $1 \
          WHERE id = $2 \
-         RETURNING 1",
+         RETURNING 1::bigint",
     )
     .bind(new_weight)
     .bind(federation_peer_id)

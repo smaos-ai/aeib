@@ -405,7 +405,7 @@ async fn chaos_petri_operator_cockpit_timeout_recovery() {
     };
 
     new_session_rce
-        .pause_workflow(&interrupt_recovery, vec![])
+        .pause_workflow(interrupt_recovery, vec![])
         .expect("transition to paused");
 
     // ASSERTION: New session can recover and resume without loss

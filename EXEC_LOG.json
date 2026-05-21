@@ -19,5 +19,12 @@
     "commit": "78b5434",
     "message": "chore: deploy immutable execution ledger system — post-commit hook, EXEC_LOG.json, claude-replay.sh CLI",
     "tests_pass": false
+  },
+  {
+    "hash": "0c6e940481c6d2a65d3f31e110d5c013b3f7d310c8657c09f7a786b1855d96d4",
+    "timestamp": "2026-05-20T23:10:30Z",
+    "commit": "5aa339b",
+    "message": "chore: checkpoint state — Phase 24 Observability Plumbing ready for dispatch",
+    "tests_pass": false
   }
 ]

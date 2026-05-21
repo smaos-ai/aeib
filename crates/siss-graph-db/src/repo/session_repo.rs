@@ -240,9 +240,9 @@ pub async fn fetch_ancestor_session_ids(
         "WITH RECURSIVE ancestor_chain AS (
            SELECT parent_session_id FROM sessions WHERE id = $1
            UNION ALL
-           SELECT parent_session_id FROM sessions s
+           SELECT s.parent_session_id FROM sessions s
            INNER JOIN ancestor_chain a ON s.id = a.parent_session_id
-           WHERE parent_session_id IS NOT NULL
+           WHERE s.parent_session_id IS NOT NULL
          )
          SELECT parent_session_id FROM ancestor_chain WHERE parent_session_id IS NOT NULL
          ORDER BY parent_session_id",

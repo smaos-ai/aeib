@@ -1,12 +1,12 @@
 # 🧭 Execution State (Auto-Resumable) + Immutable Ledger
 
 ## Last Checkpoint
-- **Commit:** `78b5434`
-- **Ledger Hash:** `398448afc5f0e4ec`…
-- **Timestamp:** 2026-05-20T23:06:54Z
+- **Commit:** `5aa339b`
+- **Ledger Hash:** `0c6e940481c6d2a6`…
+- **Timestamp:** 2026-05-20T23:10:30Z
 - **Phase:** `chore`
 - **Tests:** false
-- **Next Step:** Phase 24: Observability Plumbing — Real-time projection views, anomaly correlation, recovery lifecycle tracking. Wave 3 priority per NotebookLM. Ready for dispatch.
+- **Next Step:** (Edit before closing)
 
 ## Active Constraints
 - Protocol v2 (diff-only, @file scoping, cargo test -q)

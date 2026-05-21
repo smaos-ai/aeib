@@ -1,7 +1,5 @@
 use std::sync::Arc;
-
-#[derive(Debug, Clone)]
-pub struct RawObservation;
+use super::zonal::RawObservation;
 
 pub struct EphemeralBuffer {
     trajectory: Arc<tokio::sync::RwLock<Vec<String>>>,

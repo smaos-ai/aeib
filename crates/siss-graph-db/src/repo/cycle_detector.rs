@@ -375,11 +375,14 @@ mod tests {
             let b = Uuid::new_v4();
             let c = Uuid::new_v4();
 
+            let pkey = "-----BEGIN PUBLIC KEY-----\nMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAI...\n-----END PUBLIC KEY-----";
+
             sqlx::query(
-                "INSERT INTO sovereigns (id, name, status, endpoint_url) VALUES ($1, $2, $3, $4)",
+                "INSERT INTO sovereigns (id, name, public_key_pem, status, endpoint_url) VALUES ($1, $2, $3, $4, $5)",
             )
             .bind(a)
             .bind("alice")
+            .bind(pkey)
             .bind("active")
             .bind("http://alice.local")
             .execute(&pool)
@@ -387,10 +390,11 @@ mod tests {
             .expect("insert alice");
 
             sqlx::query(
-                "INSERT INTO sovereigns (id, name, status, endpoint_url) VALUES ($1, $2, $3, $4)",
+                "INSERT INTO sovereigns (id, name, public_key_pem, status, endpoint_url) VALUES ($1, $2, $3, $4, $5)",
             )
             .bind(b)
             .bind("bob")
+            .bind(pkey)
             .bind("active")
             .bind("http://bob.local")
             .execute(&pool)
@@ -398,10 +402,11 @@ mod tests {
             .expect("insert bob");
 
             sqlx::query(
-                "INSERT INTO sovereigns (id, name, status, endpoint_url) VALUES ($1, $2, $3, $4)",
+                "INSERT INTO sovereigns (id, name, public_key_pem, status, endpoint_url) VALUES ($1, $2, $3, $4, $5)",
             )
             .bind(c)
             .bind("charlie")
+            .bind(pkey)
             .bind("active")
             .bind("http://charlie.local")
             .execute(&pool)
@@ -414,40 +419,55 @@ mod tests {
             let grant_ca = Uuid::new_v4();
 
             sqlx::query(
-                "INSERT INTO memory_objects.delegation_cross (id, grantor_sovereign_id, grantee_sovereign_id, ceiling_tier, transitivity_depth, status) VALUES ($1, $2, $3, $4, $5, $6)"
+                "INSERT INTO cross_sovereign_delegation_grants (id, grantor_sovereign_id, grantee_sovereign_id, grantor_agent_id, grantee_agent_id, federation_peer_id, ceiling_tier, ceiling_attestation_types, transitivity_depth, status, grant_signature) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)"
             )
             .bind(grant_ab)
             .bind(a)
             .bind(b)
-            .bind(100)
-            .bind(1)
+            .bind("agent_a")
+            .bind("agent_b")
+            .bind(Uuid::new_v4())
+            .bind(100i16)
+            .bind(vec!["test"])
+            .bind(1i16)
             .bind("active")
+            .bind("sig1")
             .execute(&pool)
             .await
             .expect("insert grant A→B");
 
             sqlx::query(
-                "INSERT INTO memory_objects.delegation_cross (id, grantor_sovereign_id, grantee_sovereign_id, ceiling_tier, transitivity_depth, status) VALUES ($1, $2, $3, $4, $5, $6)"
+                "INSERT INTO cross_sovereign_delegation_grants (id, grantor_sovereign_id, grantee_sovereign_id, grantor_agent_id, grantee_agent_id, federation_peer_id, ceiling_tier, ceiling_attestation_types, transitivity_depth, status, grant_signature) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)"
             )
             .bind(grant_bc)
             .bind(b)
             .bind(c)
-            .bind(100)
-            .bind(1)
+            .bind("agent_b")
+            .bind("agent_c")
+            .bind(Uuid::new_v4())
+            .bind(100i16)
+            .bind(vec!["test"])
+            .bind(1i16)
             .bind("active")
+            .bind("sig2")
             .execute(&pool)
             .await
             .expect("insert grant B→C");
 
             sqlx::query(
-                "INSERT INTO memory_objects.delegation_cross (id, grantor_sovereign_id, grantee_sovereign_id, ceiling_tier, transitivity_depth, status) VALUES ($1, $2, $3, $4, $5, $6)"
+                "INSERT INTO cross_sovereign_delegation_grants (id, grantor_sovereign_id, grantee_sovereign_id, grantor_agent_id, grantee_agent_id, federation_peer_id, ceiling_tier, ceiling_attestation_types, transitivity_depth, status, grant_signature) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)"
             )
             .bind(grant_ca)
             .bind(c)
             .bind(a)
-            .bind(100)
-            .bind(1)
+            .bind("agent_c")
+            .bind("agent_a")
+            .bind(Uuid::new_v4())
+            .bind(100i16)
+            .bind(vec!["test"])
+            .bind(1i16)
             .bind("active")
+            .bind("sig3")
             .execute(&pool)
             .await
             .expect("insert grant C→A");
@@ -486,13 +506,15 @@ mod tests {
 
             // Create 5 sovereigns in a DAG (no cycles): A→B→C→D→E
             let sovereigns: Vec<Uuid> = (0..5).map(|_| Uuid::new_v4()).collect();
+            let pkey = "-----BEGIN PUBLIC KEY-----\nMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAI...\n-----END PUBLIC KEY-----";
 
             for (i, sid) in sovereigns.iter().enumerate() {
                 sqlx::query(
-                    "INSERT INTO sovereigns (id, name, status, endpoint_url) VALUES ($1, $2, $3, $4)"
+                    "INSERT INTO sovereigns (id, name, public_key_pem, status, endpoint_url) VALUES ($1, $2, $3, $4, $5)"
                 )
                 .bind(sid)
                 .bind(format!("s{}", i))
+                .bind(pkey)
                 .bind("active")
                 .bind(format!("http://s{}.local", i))
                 .execute(&pool)
@@ -503,14 +525,19 @@ mod tests {
             // Create chain: 0→1→2→3→4 (no cycles)
             for i in 0..4 {
                 sqlx::query(
-                    "INSERT INTO memory_objects.delegation_cross (id, grantor_sovereign_id, grantee_sovereign_id, ceiling_tier, transitivity_depth, status) VALUES ($1, $2, $3, $4, $5, $6)"
+                    "INSERT INTO cross_sovereign_delegation_grants (id, grantor_sovereign_id, grantee_sovereign_id, grantor_agent_id, grantee_agent_id, federation_peer_id, ceiling_tier, ceiling_attestation_types, transitivity_depth, status, grant_signature) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)"
                 )
                 .bind(Uuid::new_v4())
                 .bind(sovereigns[i])
                 .bind(sovereigns[i + 1])
-                .bind(100)
-                .bind(1)
+                .bind(format!("agent_{}", i))
+                .bind(format!("agent_{}", i + 1))
+                .bind(Uuid::new_v4())
+                .bind(100i16)
+                .bind(vec!["test"])
+                .bind(1i16)
                 .bind("active")
+                .bind("sig")
                 .execute(&pool)
                 .await
                 .expect("insert edge");
@@ -540,13 +567,16 @@ mod tests {
                 })
                 .collect();
 
+            let pkey = "-----BEGIN PUBLIC KEY-----\nMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAI...\n-----END PUBLIC KEY-----";
+
             // Insert sovereigns
             for (i, sid) in sovereigns.iter().enumerate() {
                 sqlx::query(
-                    "INSERT INTO sovereigns (id, name, status, endpoint_url) VALUES ($1, $2, $3, $4)"
+                    "INSERT INTO sovereigns (id, name, public_key_pem, status, endpoint_url) VALUES ($1, $2, $3, $4, $5)"
                 )
                 .bind(sid)
                 .bind(format!("s{}", i))
+                .bind(pkey)
                 .bind("active")
                 .bind(format!("http://s{}.local", i))
                 .execute(&pool)
@@ -560,40 +590,55 @@ mod tests {
             let grant3 = Uuid::new_v4();
 
             sqlx::query(
-                "INSERT INTO memory_objects.delegation_cross (id, grantor_sovereign_id, grantee_sovereign_id, ceiling_tier, transitivity_depth, status) VALUES ($1, $2, $3, $4, $5, $6)"
+                "INSERT INTO cross_sovereign_delegation_grants (id, grantor_sovereign_id, grantee_sovereign_id, grantor_agent_id, grantee_agent_id, federation_peer_id, ceiling_tier, ceiling_attestation_types, transitivity_depth, status, grant_signature) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)"
             )
             .bind(grant1)
             .bind(sovereigns[0])
             .bind(sovereigns[1])
-            .bind(100)
-            .bind(1)
+            .bind("agent_0")
+            .bind("agent_1")
+            .bind(Uuid::new_v4())
+            .bind(100i16)
+            .bind(vec!["test"])
+            .bind(1i16)
             .bind("active")
+            .bind("sig1")
             .execute(&pool)
             .await
             .expect("insert grant");
 
             sqlx::query(
-                "INSERT INTO memory_objects.delegation_cross (id, grantor_sovereign_id, grantee_sovereign_id, ceiling_tier, transitivity_depth, status) VALUES ($1, $2, $3, $4, $5, $6)"
+                "INSERT INTO cross_sovereign_delegation_grants (id, grantor_sovereign_id, grantee_sovereign_id, grantor_agent_id, grantee_agent_id, federation_peer_id, ceiling_tier, ceiling_attestation_types, transitivity_depth, status, grant_signature) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)"
             )
             .bind(grant2)
             .bind(sovereigns[1])
             .bind(sovereigns[2])
-            .bind(100)
-            .bind(1)
+            .bind("agent_1")
+            .bind("agent_2")
+            .bind(Uuid::new_v4())
+            .bind(100i16)
+            .bind(vec!["test"])
+            .bind(1i16)
             .bind("active")
+            .bind("sig2")
             .execute(&pool)
             .await
             .expect("insert grant");
 
             sqlx::query(
-                "INSERT INTO memory_objects.delegation_cross (id, grantor_sovereign_id, grantee_sovereign_id, ceiling_tier, transitivity_depth, status) VALUES ($1, $2, $3, $4, $5, $6)"
+                "INSERT INTO cross_sovereign_delegation_grants (id, grantor_sovereign_id, grantee_sovereign_id, grantor_agent_id, grantee_agent_id, federation_peer_id, ceiling_tier, ceiling_attestation_types, transitivity_depth, status, grant_signature) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)"
             )
             .bind(grant3)
             .bind(sovereigns[2])
             .bind(sovereigns[0])
-            .bind(100)
-            .bind(1)
+            .bind("agent_2")
+            .bind("agent_0")
+            .bind(Uuid::new_v4())
+            .bind(100i16)
+            .bind(vec!["test"])
+            .bind(1i16)
             .bind("active")
+            .bind("sig3")
             .execute(&pool)
             .await
             .expect("insert grant");

@@ -37,7 +37,6 @@ const PROTECTED_PATHS = [
   '.git',
   '.claude/skills',
   '.claude/CLAUDE.md',
-  '.claude/settings.json',
 ];
 
 // ============================================================================

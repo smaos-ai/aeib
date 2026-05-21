@@ -3,6 +3,6 @@ pub mod ephemeral;
 pub mod operators;
 pub mod zonal;
 
-pub use ephemeral::{EphemeralBuffer, RawObservation};
+pub use ephemeral::EphemeralBuffer;
 pub use operators::CartographicOperators;
-pub use zonal::{ConsolidatedEntry, GrayFog, LayeredFog, ObservationTier, ZonalMemory};
+pub use zonal::{ConsolidatedEntry, GrayFog, LayeredFog, ObservationTier, RawObservation, ZonalMemory};

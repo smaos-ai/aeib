@@ -781,6 +781,16 @@ mod tests {
             .await
             .unwrap();
 
+        let persona_id = Uuid::new_v4();
+        sqlx::query("INSERT INTO personas (id, tenant_id, name, kind) VALUES ($1, $2, $3, $4::persona_kind)")
+            .bind(persona_id)
+            .bind(tenant_id)
+            .bind("default")
+            .bind("ai_agent")
+            .execute(&pool)
+            .await
+            .unwrap();
+
         sqlx::query(
             "INSERT INTO sessions (id, tenant_id, token_budget, active_persona_id, visible_field_snapshot, status) \
              VALUES ($1, $2, $3, $4, 'null'::jsonb, 'active'::session_status)"
@@ -788,7 +798,7 @@ mod tests {
         .bind(session)
         .bind(tenant_id)
         .bind(1000i64)
-        .bind(Uuid::new_v4())
+        .bind(persona_id)
         .execute(&pool)
         .await
         .unwrap();
@@ -835,6 +845,16 @@ mod tests {
             .await
             .unwrap();
 
+        let persona_id = Uuid::new_v4();
+        sqlx::query("INSERT INTO personas (id, tenant_id, name, kind) VALUES ($1, $2, $3, $4::persona_kind)")
+            .bind(persona_id)
+            .bind(tenant_id)
+            .bind("default")
+            .bind("ai_agent")
+            .execute(&pool)
+            .await
+            .unwrap();
+
         sqlx::query(
             "INSERT INTO sessions (id, tenant_id, token_budget, active_persona_id, visible_field_snapshot, status) \
              VALUES ($1, $2, $3, $4, 'null'::jsonb, 'active'::session_status)"
@@ -842,7 +862,7 @@ mod tests {
         .bind(session)
         .bind(tenant_id)
         .bind(1000i64)
-        .bind(Uuid::new_v4())
+        .bind(persona_id)
         .execute(&pool)
         .await
         .unwrap();
@@ -900,6 +920,26 @@ mod tests {
             .await
             .unwrap();
 
+        let persona_id1 = Uuid::new_v4();
+        sqlx::query("INSERT INTO personas (id, tenant_id, name, kind) VALUES ($1, $2, $3, $4::persona_kind)")
+            .bind(persona_id1)
+            .bind(tenant_id)
+            .bind("default")
+            .bind("ai_agent")
+            .execute(&pool)
+            .await
+            .unwrap();
+
+        let persona_id2 = Uuid::new_v4();
+        sqlx::query("INSERT INTO personas (id, tenant_id, name, kind) VALUES ($1, $2, $3, $4::persona_kind)")
+            .bind(persona_id2)
+            .bind(tenant_id)
+            .bind("default2")
+            .bind("ai_agent")
+            .execute(&pool)
+            .await
+            .unwrap();
+
         sqlx::query(
             "INSERT INTO sessions (id, tenant_id, token_budget, active_persona_id, visible_field_snapshot, status) \
              VALUES ($1, $2, $3, $4, 'null'::jsonb, 'active'::session_status)"
@@ -907,7 +947,7 @@ mod tests {
         .bind(session1)
         .bind(tenant_id)
         .bind(1000i64)
-        .bind(Uuid::new_v4())
+        .bind(persona_id1)
         .execute(&pool)
         .await
         .unwrap();
@@ -919,7 +959,7 @@ mod tests {
         .bind(session2)
         .bind(tenant_id)
         .bind(2000i64)
-        .bind(Uuid::new_v4())
+        .bind(persona_id2)
         .execute(&pool)
         .await
         .unwrap();
@@ -950,8 +990,8 @@ mod tests {
         );
 
         // Verify sum of tokens
-        let total: (i64,) = sqlx::query_as(
-            "SELECT SUM(tokens_consumed) FROM sovereign_credit_entries \
+        let total: (Option<i64>,) = sqlx::query_as(
+            "SELECT CAST(SUM(tokens_consumed) AS BIGINT) FROM sovereign_credit_entries \
              WHERE creditor_sovereign_id = $1 AND debtor_sovereign_id = $2",
         )
         .bind(creditor)
@@ -960,7 +1000,7 @@ mod tests {
         .await
         .unwrap();
 
-        assert_eq!(total.0, 1250, "Total tokens should be 500 + 750 = 1250");
+        assert_eq!(total.0, Some(1250), "Total tokens should be 500 + 750 = 1250");
     }
 
     #[tokio::test]
@@ -1157,6 +1197,26 @@ mod tests {
             .await
             .unwrap();
 
+        let persona_id1 = Uuid::new_v4();
+        sqlx::query("INSERT INTO personas (id, tenant_id, name, kind) VALUES ($1, $2, $3, $4::persona_kind)")
+            .bind(persona_id1)
+            .bind(tenant_id)
+            .bind("default")
+            .bind("ai_agent")
+            .execute(&pool)
+            .await
+            .unwrap();
+
+        let persona_id2 = Uuid::new_v4();
+        sqlx::query("INSERT INTO personas (id, tenant_id, name, kind) VALUES ($1, $2, $3, $4::persona_kind)")
+            .bind(persona_id2)
+            .bind(tenant_id)
+            .bind("default2")
+            .bind("ai_agent")
+            .execute(&pool)
+            .await
+            .unwrap();
+
         sqlx::query(
             "INSERT INTO sessions (id, tenant_id, token_budget, active_persona_id, visible_field_snapshot, status) \
              VALUES ($1, $2, $3, $4, 'null'::jsonb, 'active'::session_status)"
@@ -1164,7 +1224,7 @@ mod tests {
         .bind(session1)
         .bind(tenant_id)
         .bind(1000i64)
-        .bind(Uuid::new_v4())
+        .bind(persona_id1)
         .execute(&pool)
         .await
         .unwrap();
@@ -1176,7 +1236,7 @@ mod tests {
         .bind(session2)
         .bind(tenant_id)
         .bind(2000i64)
-        .bind(Uuid::new_v4())
+        .bind(persona_id2)
         .execute(&pool)
         .await
         .unwrap();
@@ -1251,6 +1311,16 @@ mod tests {
             .await
             .unwrap();
 
+        let persona_id = Uuid::new_v4();
+        sqlx::query("INSERT INTO personas (id, tenant_id, name, kind) VALUES ($1, $2, $3, $4::persona_kind)")
+            .bind(persona_id)
+            .bind(tenant_id)
+            .bind("default")
+            .bind("ai_agent")
+            .execute(&pool)
+            .await
+            .unwrap();
+
         sqlx::query(
             "INSERT INTO sessions (id, tenant_id, token_budget, active_persona_id, visible_field_snapshot, status) \
              VALUES ($1, $2, $3, $4, 'null'::jsonb, 'active'::session_status)"
@@ -1258,7 +1328,7 @@ mod tests {
         .bind(session)
         .bind(tenant_id)
         .bind(1000i64)
-        .bind(Uuid::new_v4())
+        .bind(persona_id)
         .execute(&pool)
         .await
         .unwrap();

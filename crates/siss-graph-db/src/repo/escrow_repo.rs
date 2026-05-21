@@ -758,9 +758,9 @@ mod tests {
                 .await
                 .unwrap();
 
-            // Manually set timeout to past
+            // Manually set created_at to past and timeout to past (constraint: timeout > created)
             sqlx::query(
-                "UPDATE escrow_ledger SET timeout_at = NOW() - INTERVAL '1 second' WHERE id = $1",
+                "UPDATE escrow_ledger SET created_at = NOW() - INTERVAL '2 hours', timeout_at = NOW() - INTERVAL '1 hour' WHERE id = $1",
             )
             .bind(escrow_id)
             .execute(&pool)

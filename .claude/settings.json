@@ -80,6 +80,43 @@
           }
         ]
       }
+    ],
+    "Notification": [
+      {
+        "matcher": "permission_prompt|idle_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/andriileukhin/Documents/SovereignNexus/claude-alert.sh",
+            "timeout": 5,
+            "statusMessage": "Alert: your input needed"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/andriileukhin/Documents/SovereignNexus/claude-alert.sh",
+            "statusMessage": "Alert: Claude stopped for input"
+          }
+        ]
+      }
+    ],
+    "TaskCompleted": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/andriileukhin/Documents/SovereignNexus/claude-alert.sh",
+            "statusMessage": "Alert: Task completed"
+          }
+        ]
+      }
     ]
   },
   "dispatcher": {

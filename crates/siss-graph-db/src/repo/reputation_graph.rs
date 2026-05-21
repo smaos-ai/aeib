@@ -138,10 +138,6 @@ pub async fn build_reputation_graph_from_db(pool: &PgPool) -> Result<ReputationG
         graph.add_node(id, name);
     }
 
-    if graph.node_count() == 0 {
-        return Err(GraphError::EmptyGraph);
-    }
-
     // 2. Load all active cross-sovereign delegation grants
     let grants: Vec<(Uuid, Uuid, Uuid, i32, i16)> = sqlx::query_as(
         "SELECT id, grantor_sovereign_id, grantee_sovereign_id, ceiling_tier, transitivity_depth \

@@ -166,6 +166,10 @@ const MIGRATIONS: &[(&str, &str)] = &[
         "042_add_rce_checkpoints",
         include_str!("042_add_rce_checkpoints.sql"),
     ),
+    (
+        "043_add_revocation_unique_constraint",
+        include_str!("043_add_revocation_unique_constraint.sql"),
+    ),
 ];
 
 /// Run all migrations in order. Idempotent — tracks applied migrations in a metadata table.
@@ -242,7 +246,7 @@ mod tests {
     async fn test_has_trust_policy_edge_type_exists() {
         let (_container, pool) = setup_postgres().await;
 
-        let result: (String,) = sqlx::query_as("SELECT 'has_trust_policy'::edge_type")
+        let result: (String,) = sqlx::query_as("SELECT 'has_trust_policy'::edge_type::text")
             .fetch_one(&pool)
             .await
             .expect("query");

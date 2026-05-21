@@ -6,7 +6,7 @@ use sqlx::PgPool;
 use std::collections::BTreeMap;
 use uuid::Uuid;
 
-pub const TRANSITIVITY_DEPTH_MAX: i16 = 3;
+pub const TRANSITIVITY_DEPTH_MAX: i16 = 4;
 
 #[derive(Debug, Clone)]
 pub enum CrossSovereignDelegationError {
@@ -129,7 +129,7 @@ pub async fn revoke_grant(
         "UPDATE cross_sovereign_delegation_grants \
          SET revoked_at = NOW(), status = 'revoked' \
          WHERE id = $1 \
-         RETURNING 1",
+         RETURNING 1::bigint",
     )
     .bind(grant_id)
     .fetch_optional(pool)
@@ -562,10 +562,10 @@ mod tests {
         let transitivity_idx = payload.find("transitivity_depth").unwrap();
 
         assert!(ceiling_idx < tier_idx);
-        assert!(tier_idx < grantee_agent_idx);
+        assert!(tier_idx < granted_at_idx);
+        assert!(granted_at_idx < grantee_agent_idx);
         assert!(grantee_agent_idx < grantee_sovereign_idx);
-        assert!(grantee_sovereign_idx < granted_at_idx);
-        assert!(granted_at_idx < grantor_agent_idx);
+        assert!(grantee_sovereign_idx < grantor_agent_idx);
         assert!(grantor_agent_idx < grantor_sovereign_idx);
         assert!(grantor_sovereign_idx < transitivity_idx);
     }

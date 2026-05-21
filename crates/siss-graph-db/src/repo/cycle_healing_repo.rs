@@ -618,7 +618,7 @@ mod tests {
                 .expect("heal cycle");
 
             // Verify audit log entry
-            let (action_taken, severity, ceiling): (String, String, i32) = sqlx::query_as(
+            let (action_taken, severity, ceiling): (String, String, i16) = sqlx::query_as(
                 "SELECT action_taken, severity, weakest_link_ceiling FROM cycle_healing_log WHERE severity = 'low'"
             )
             .fetch_one(&pool)

@@ -20,7 +20,7 @@ pub async fn insert_delegation_edge(
     sqlx::query(
         "INSERT INTO delegation_edges \
          (id, source_persona_id, target_persona_id, tenant_id, ceiling_delegations, ceiling_constraints, delegated_at) \
-         VALUES ($1, $2, $3, $4, $5, $6, $7)"
+         VALUES ($1, $2, $3, $4, $5::jsonb, $6::jsonb, $7)"
     )
     .bind(id)
     .bind(source_persona_id)
@@ -215,8 +215,14 @@ mod tests {
 
         // Update personas to reflect delegation chain (set delegated_by)
         let _ = sqlx::query("UPDATE personas SET delegated_by = $1 WHERE id = $2")
+            .bind(root)
             .bind(parent)
+            .execute(&pool)
+            .await;
+
+        let _ = sqlx::query("UPDATE personas SET delegated_by = $1 WHERE id = $2")
             .bind(parent)
+            .bind(child)
             .execute(&pool)
             .await;
 
@@ -234,6 +240,19 @@ mod tests {
         // Insert delegation edges
         let _ = insert_delegation_edge(&pool, root, parent, tenant_id, "[]", "{}").await;
         let _ = insert_delegation_edge(&pool, parent, child, tenant_id, "[]", "{}").await;
+
+        // Update personas to reflect delegation chain (set delegated_by)
+        let _ = sqlx::query("UPDATE personas SET delegated_by = $1 WHERE id = $2")
+            .bind(root)
+            .bind(parent)
+            .execute(&pool)
+            .await;
+
+        let _ = sqlx::query("UPDATE personas SET delegated_by = $1 WHERE id = $2")
+            .bind(parent)
+            .bind(child)
+            .execute(&pool)
+            .await;
 
         let descendants = fetch_descendants(&pool, root)
             .await

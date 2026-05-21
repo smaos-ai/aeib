@@ -89,11 +89,12 @@ async fn test_auto_persistence_on_pause_transition() {
 
     // Create interrupt signal (e.g., Threat Anticipation spike)
     let interrupt = InterruptSignal {
-        workflow_id,
+        interrupt_type: "threat_anticipation".to_string(),
         severity: "High".to_string(),
         reason: "threat_anticipation_blast_radius_high".to_string(),
+        workflow_id: Some(workflow_id),
         human_approval_required: true,
-        timestamp: Utc::now(),
+        timestamp: Some(Utc::now()),
     };
 
     // Trigger pause transition with auto-persistence
@@ -106,7 +107,7 @@ async fn test_auto_persistence_on_pause_transition() {
     .to_string()
     .into_bytes();
 
-    rce.pause_workflow_with_persistence(interrupt, state_snapshot.clone(), &pool)
+    rce.pause_workflow_with_persistence(&interrupt, state_snapshot.clone(), &pool)
         .await
         .expect("pause workflow with persistence");
 
@@ -132,11 +133,12 @@ async fn test_rce_state_restoration_from_db_on_resume() {
     rce.execute_next_step().expect("execute step");
 
     let interrupt = InterruptSignal {
-        workflow_id,
+        interrupt_type: "threat_anticipation".to_string(),
         severity: "High".to_string(),
         reason: "threat_anticipation".to_string(),
+        workflow_id: Some(workflow_id),
         human_approval_required: true,
-        timestamp: Utc::now(),
+        timestamp: Some(Utc::now()),
     };
 
     let state_snapshot = json!({
@@ -148,7 +150,7 @@ async fn test_rce_state_restoration_from_db_on_resume() {
     .into_bytes();
 
     // Use Phase 40 async pause with persistence
-    rce.pause_workflow_with_persistence(interrupt, state_snapshot.clone(), &pool)
+    rce.pause_workflow_with_persistence(&interrupt, state_snapshot.clone(), &pool)
         .await
         .expect("pause workflow with persistence");
 
@@ -184,11 +186,12 @@ async fn test_db_failure_triggers_safe_rollback() {
 
     // Create interrupt signal
     let interrupt = InterruptSignal {
-        workflow_id,
+        interrupt_type: "resource_exhaustion".to_string(),
         severity: "Critical".to_string(),
         reason: "resource_exhaustion".to_string(),
+        workflow_id: Some(workflow_id),
         human_approval_required: true,
-        timestamp: Utc::now(),
+        timestamp: Some(Utc::now()),
     };
 
     let state_snapshot = json!({
@@ -223,7 +226,7 @@ async fn test_db_failure_triggers_safe_rollback() {
     // Phase 40: pause_workflow_with_persistence with DB failure should not corrupt in-memory state
 
     let result = rce
-        .pause_workflow_with_persistence(interrupt, state_snapshot, &invalid_pool)
+        .pause_workflow_with_persistence(&interrupt, state_snapshot, &invalid_pool)
         .await;
 
     // Phase 40: If checkpoint persistence fails, the state machine should:

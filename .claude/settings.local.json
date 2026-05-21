@@ -1,6 +1,8 @@
 {
   "permissions": {
     "allow": [
+      "Write(.claude/settings.json)",
+      "Edit(.claude/settings.json)",
       "Bash(*)",
       "Read(*)",
       "Edit(*)",
@@ -25,10 +27,12 @@
       "Skill(update-config)",
       "WebSearch",
       "WebFetch(domain:notebooklm.google.com)",
-      "mcp__notebooklm__notebook_describe"
+      "mcp__notebooklm__notebook_describe",
+      "Bash(cat)",
+      "Bash(chmod +x .git/hooks/post-commit)"
     ]
   },
   "enabledPlugins": {
-    "exa@claude-plugins-official": true
+    "exa@claude-plugins-official": false
   }
 }

@@ -128,6 +128,15 @@ mod tests {
         let (_container, pool) = setup_postgres().await;
 
         let source_sovereign_id = Uuid::new_v4();
+        let pkey = "-----BEGIN PUBLIC KEY-----\nMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAI...\n-----END PUBLIC KEY-----";
+        sqlx::query("INSERT INTO sovereigns (id, name, public_key_pem) VALUES ($1, $2, $3)")
+            .bind(source_sovereign_id)
+            .bind("source")
+            .bind(pkey)
+            .execute(&pool)
+            .await
+            .unwrap();
+
         let payload = serde_json::json!({"test": "payload"});
 
         // Insert first message
@@ -175,6 +184,15 @@ mod tests {
         let (_container, pool) = setup_postgres().await;
 
         let source_sovereign_id = Uuid::new_v4();
+        let pkey = "-----BEGIN PUBLIC KEY-----\nMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAI...\n-----END PUBLIC KEY-----";
+        sqlx::query("INSERT INTO sovereigns (id, name, public_key_pem) VALUES ($1, $2, $3)")
+            .bind(source_sovereign_id)
+            .bind("source")
+            .bind(pkey)
+            .execute(&pool)
+            .await
+            .unwrap();
+
         let payload = serde_json::json!({"test": "payload"});
 
         // Insert two messages with different gossip_seq
@@ -223,6 +241,15 @@ mod tests {
         let (_container, pool) = setup_postgres().await;
 
         let source_sovereign_id = Uuid::new_v4();
+        let pkey = "-----BEGIN PUBLIC KEY-----\nMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAI...\n-----END PUBLIC KEY-----";
+        sqlx::query("INSERT INTO sovereigns (id, name, public_key_pem) VALUES ($1, $2, $3)")
+            .bind(source_sovereign_id)
+            .bind("source")
+            .bind(pkey)
+            .execute(&pool)
+            .await
+            .unwrap();
+
         let payload = serde_json::json!({"test": "payload"});
 
         // Insert message
@@ -277,6 +304,15 @@ mod tests {
         let (_container, pool) = setup_postgres().await;
 
         let source_sovereign_id = Uuid::new_v4();
+        let pkey = "-----BEGIN PUBLIC KEY-----\nMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAI...\n-----END PUBLIC KEY-----";
+        sqlx::query("INSERT INTO sovereigns (id, name, public_key_pem) VALUES ($1, $2, $3)")
+            .bind(source_sovereign_id)
+            .bind("source")
+            .bind(pkey)
+            .execute(&pool)
+            .await
+            .unwrap();
+
         let payload = serde_json::json!({"test": "payload"});
 
         // Insert three messages

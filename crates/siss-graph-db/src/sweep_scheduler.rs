@@ -151,9 +151,11 @@ mod tests {
 
             // Create a past-due proposal
             let proposal_id = Uuid::new_v4();
+            let created_at = Utc::now() - chrono::Duration::hours(2);
+            let expires_at = Utc::now() - chrono::Duration::hours(1);  // 1 hour in past
             sqlx::query(
-                "INSERT INTO consensus_proposals (id, initiator_sovereign_id, proposal_type, peer_count, required_quorum, status, expires_at)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7)"
+                "INSERT INTO consensus_proposals (id, initiator_sovereign_id, proposal_type, peer_count, required_quorum, status, created_at, expires_at)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"
             )
             .bind(proposal_id)
             .bind(initiator_id)
@@ -161,7 +163,8 @@ mod tests {
             .bind(1)
             .bind(1)
             .bind("pending")
-            .bind(Utc::now() - chrono::Duration::hours(1))  // 1 hour in past
+            .bind(created_at)
+            .bind(expires_at)
             .execute(&pool)
             .await
             .expect("insert proposal");
@@ -231,14 +234,15 @@ mod tests {
 
             // Create escrow: held + acknowledged + past timeout
             let escrow_id = sqlx::query_scalar::<_, Uuid>(
-                "INSERT INTO escrow_ledger (invoice_id, creditor_sovereign_id, debtor_sovereign_id, tokens_held, created_by_sovereign_id, status, debtor_acknowledged_at, timeout_at)
-                 VALUES ($1, $2, $3, $4, $2, $5, $6, $7) RETURNING id"
+                "INSERT INTO escrow_ledger (invoice_id, creditor_sovereign_id, debtor_sovereign_id, tokens_held, created_by_sovereign_id, status, held_at, debtor_acknowledged_at, timeout_at)
+                 VALUES ($1, $2, $3, $4, $2, $5, $6, $7, $8) RETURNING id"
             )
             .bind(invoice_id)
             .bind(creditor_id)
             .bind(debtor_id)
             .bind(1000i64)
             .bind("held")
+            .bind(Utc::now())  // held_at
             .bind(Utc::now())  // acknowledged
             .bind(Utc::now() - chrono::Duration::hours(1))  // timeout 1 hour ago
             .fetch_one(&pool)

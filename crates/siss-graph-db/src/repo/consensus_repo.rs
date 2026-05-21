@@ -852,10 +852,12 @@ mod tests {
             // Create bilateral agreement
             let _peer_id = Uuid::new_v4();
             sqlx::query(
-                "INSERT INTO federation_peers (sovereign_a_id, sovereign_b_id, status) VALUES ($1, $2, $3)"
+                "INSERT INTO federation_peers (sovereign_a_id, sovereign_b_id, max_admitted_tier, granted_attestation_types, status) VALUES ($1, $2, $3, $4, $5)"
             )
             .bind(initiator_id)
             .bind(debtor_id)
+            .bind(100i16)
+            .bind(vec!["test"])
             .bind("active")
             .execute(&pool)
             .await
@@ -934,10 +936,12 @@ mod tests {
             // Create bilateral agreements: 0 is hub, connected to 1,2,3,4 (4 peers)
             for i in 1..5 {
                 sqlx::query(
-                    "INSERT INTO federation_peers (sovereign_a_id, sovereign_b_id, status) VALUES ($1, $2, $3)"
+                    "INSERT INTO federation_peers (sovereign_a_id, sovereign_b_id, max_admitted_tier, granted_attestation_types, status) VALUES ($1, $2, $3, $4, $5)"
                 )
                 .bind(sovereigns[0])
                 .bind(sovereigns[i])
+                .bind(100i16)
+                .bind(vec!["test"])
                 .bind("active")
                 .execute(&pool)
                 .await
@@ -1008,9 +1012,11 @@ mod tests {
 
             // Manually insert a proposal with expires_at in the past
             let proposal_id = Uuid::new_v4();
+            let created_at = Utc::now() - chrono::Duration::hours(2);
+            let expires_at = Utc::now() - chrono::Duration::hours(1);  // 1 hour in past
             sqlx::query(
-                "INSERT INTO consensus_proposals (id, initiator_sovereign_id, proposal_type, peer_count, required_quorum, status, expires_at)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7)"
+                "INSERT INTO consensus_proposals (id, initiator_sovereign_id, proposal_type, peer_count, required_quorum, status, created_at, expires_at)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"
             )
             .bind(proposal_id)
             .bind(initiator_id)
@@ -1018,7 +1024,8 @@ mod tests {
             .bind(1)
             .bind(1)
             .bind("pending")
-            .bind(Utc::now() - chrono::Duration::hours(1))  // 1 hour in past
+            .bind(created_at)
+            .bind(expires_at)
             .execute(&pool)
             .await
             .unwrap();

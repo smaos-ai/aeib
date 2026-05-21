@@ -24,3 +24,4 @@ pub mod crabbox_security;
 pub mod crabbox_security_integration;
 pub mod mcp_governance;
 pub mod mcp_governance_integration;
+pub mod schema_contracts;

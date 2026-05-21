@@ -35,7 +35,6 @@ pub struct AgentSession {
     tenant_id: NodeId,
     session_id: NodeId,
     intent_mandate_id: NodeId,
-    #[allow(dead_code)]
     visible_field: Option<VisibleField>,
     hooks: Vec<Box<dyn LifecycleHook>>,
     signer: Box<dyn Signer>,
@@ -181,6 +180,8 @@ impl AgentSession {
 
         // 2. Run the full pipeline
         let checker_refs: Vec<&dyn FirewallChecker> = self.checkers.iter().map(|c| &**c).collect();
+        let zonal_context = self.visible_field.as_ref()
+            .and_then(|vf| serde_json::to_value(vf).ok());
         let result = pipeline::run_intent_pipeline(
             &self.pool,
             self.persona_id,
@@ -189,6 +190,7 @@ impl AgentSession {
             &params.intent,
             &params.requested_tools,
             params.estimated_cost,
+            zonal_context,
             &*self.signer,
             &*self.strategy,
             &*self.executor,

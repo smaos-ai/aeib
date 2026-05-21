@@ -12,6 +12,8 @@ pub struct RoutingRequest {
     pub tenant_id: NodeId,
     #[serde(default)]
     pub depends_on: Vec<Uuid>,
+    #[serde(default)]
+    pub zonal_context: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -71,6 +73,8 @@ mod tests {
             task_id: NodeId::new(),
             persona_id: NodeId::new(),
             tenant_id: NodeId::new(),
+            depends_on: vec![],
+            zonal_context: None,
         };
         assert!(!req.task_id.0.is_nil());
     }

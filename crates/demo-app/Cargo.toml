@@ -33,3 +33,4 @@ tokio = { workspace = true, features = ["full", "test-util"] }
 futures = { workspace = true }
 siss-context-cartography = { path = "../siss-context-cartography" }
 siss-graph-core = { path = "../siss-graph-core" }
+siss-job-router = { path = "../siss-job-router" }

@@ -31,6 +31,8 @@ pub async fn run_intent_pipeline(
     intent: &str,
     requested_tools: &[NodeId],
     estimated_cost: i64,
+    // Context cartography
+    zonal_context: Option<serde_json::Value>,
     // Traits
     signer: &dyn Signer,
     strategy: &dyn RoutingStrategy,
@@ -85,6 +87,7 @@ pub async fn run_intent_pipeline(
         persona_id,
         tenant_id,
         depends_on: vec![],
+        zonal_context,
     };
     let routing_result =
         siss_job_router::pipeline::route_task(pool, strategy, executor, None, &routing_request).await?;

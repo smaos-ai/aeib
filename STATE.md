@@ -1,10 +1,10 @@
 # 🧭 Execution State (Auto-Resumable) + Immutable Ledger
 
 ## Last Checkpoint
-- **Commit:** `136e1d7`
-- **Ledger Hash:** `011eae8f3ade4f96`…
-- **Timestamp:** 2026-05-21T17:39:17Z
-- **Phase:** `phase-27(green)`
+- **Commit:** `58e65d5`
+- **Ledger Hash:** `61c03ac01d7f41c6`…
+- **Timestamp:** 2026-05-21T17:49:37Z
+- **Phase:** `phase-28(green)`
 - **Tests:** false
 - **Next Step:** (Edit before closing)
 

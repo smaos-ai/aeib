@@ -644,6 +644,7 @@ dependencies = [
  "siss-enclave",
  "siss-graph-core",
  "siss-graph-db",
+ "siss-job-router",
  "sqlx",
  "thiserror 2.0.18",
  "tokio",

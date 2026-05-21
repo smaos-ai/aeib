@@ -166,5 +166,12 @@
     "commit": "9ba4198",
     "message": "phase-35(green): Swarm Sync state machine - ONLINE/ORPHANED transitions, AP2 mandate validation, A2UI 18-component SSE emission (6 tests passing, 132 total)",
     "tests_pass": false
+  },
+  {
+    "hash": "3eb668143715325021197e7085d91df6c7593d12a7c510703ddfd50ca31293f8",
+    "timestamp": "2026-05-21T09:51:22Z",
+    "commit": "8e3d236",
+    "message": "phase-36(red): AoE Cockpit Security View - Crabbox isolation & MCP governance - LOTA mitigation, AP2 mandate validation, double-agent detection, RCE preservation (11 tests failing)",
+    "tests_pass": false
   }
 ]

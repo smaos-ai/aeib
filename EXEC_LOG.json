@@ -432,5 +432,12 @@
     "commit": "b008703",
     "message": "PATCHES 1-5: Fix database types, timestamps, federation peers, quorum formula",
     "tests_pass": false
+  },
+  {
+    "hash": "be0e0de11b76c2196459a1ef1e89e7b2fa4ecc76e9c011e051d9007c7f060ba4",
+    "timestamp": "2026-05-22T13:27:02Z",
+    "commit": "1bde5d0",
+    "message": "FIX: Add missing forfeited_at column and register migrations 046-047",
+    "tests_pass": false
   }
 ]

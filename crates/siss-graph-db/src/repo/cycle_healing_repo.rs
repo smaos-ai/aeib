@@ -52,16 +52,30 @@ fn resolve_weakest_link_grant(
     cycle: &ReputationCycle,
     graph: &ReputationGraph,
 ) -> Option<(Uuid, Uuid)> {
-    let edges = graph.outgoing_edges(cycle.weakest_link_id)?;
     let cycle_set: HashSet<Uuid> = cycle.cycle_nodes.iter().copied().collect();
 
-    // Find edge from weakest_link_id to a cycle node with matching ceiling_tier
-    edges
-        .iter()
-        .filter(|e| {
-            cycle_set.contains(&e.to_sovereign) && e.ceiling_tier == cycle.weakest_link_ceiling
-        })
-        .next()
+    // Collect all edges within the cycle
+    let mut cycle_edges = Vec::new();
+    for node_id in &cycle.cycle_nodes {
+        if let Some(outgoing) = graph.outgoing_edges(*node_id) {
+            for edge in outgoing {
+                if cycle_set.contains(&edge.to_sovereign) && (edge.ceiling_tier as u32) == cycle.weakest_link_ceiling {
+                    cycle_edges.push(edge.clone());
+                }
+            }
+        }
+    }
+
+    // If no matching edges found, return None
+    if cycle_edges.is_empty() {
+        return None;
+    }
+
+    // Sort by grant_id for deterministic selection
+    cycle_edges.sort_by_key(|e| e.delegation_grant_id);
+
+    cycle_edges
+        .first()
         .map(|e| (e.delegation_grant_id, e.from_sovereign))
 }
 
@@ -119,7 +133,7 @@ pub async fn heal_cycle(
                 "cycle_nodes": cycle.cycle_nodes.iter().map(|id| id.to_string()).collect::<Vec<_>>(),
             });
 
-            sqlx::query("UPDATE consensus_proposals SET payload = $1 WHERE id = $2")
+            sqlx::query("UPDATE consensus_proposals SET payload = $1::jsonb WHERE id = $2")
                 .bind(payload.to_string())
                 .bind(prop_id)
                 .execute(pool)
@@ -519,7 +533,7 @@ mod tests {
 
             // Verify proposal exists with correct type and payload
             let (prop_type, payload_str): (String, String) = sqlx::query_as(
-                "SELECT proposal_type, payload FROM consensus_proposals WHERE id = $1",
+                "SELECT proposal_type, payload::text FROM consensus_proposals WHERE id = $1",
             )
             .bind(result.proposal_id.unwrap())
             .fetch_one(&pool)

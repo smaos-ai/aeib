@@ -144,10 +144,10 @@ pub async fn generate_settlement_invoice(
 
     // Step 1: Aggregate unpaid entries for the period
     let (total_tokens, entry_count): (Option<i64>, Option<i64>) = sqlx::query_as(
-        "SELECT SUM(tokens_consumed), COUNT(*) FROM sovereign_credit_entries \
+        "SELECT SUM(tokens_consumed)::INT8, COUNT(*) FROM sovereign_credit_entries \
          WHERE creditor_sovereign_id = $1 AND debtor_sovereign_id = $2 \
          AND invoice_id IS NULL \
-         AND created_at >= $3 AND created_at <= $4",
+         AND scored_at >= $3 AND scored_at <= $4",
     )
     .bind(creditor_sovereign_id)
     .bind(debtor_sovereign_id)
@@ -190,7 +190,7 @@ pub async fn generate_settlement_invoice(
         "UPDATE sovereign_credit_entries SET invoice_id = $1 \
          WHERE creditor_sovereign_id = $2 AND debtor_sovereign_id = $3 \
          AND invoice_id IS NULL \
-         AND created_at >= $4 AND created_at <= $5",
+         AND scored_at >= $4 AND scored_at <= $5",
     )
     .bind(invoice_id)
     .bind(creditor_sovereign_id)
@@ -310,7 +310,7 @@ pub async fn acknowledge_invoice(
     invoice_id: Uuid,
     debtor_sovereign_id: Uuid,
 ) -> Result<bool, sqlx::Error> {
-    let affected = sqlx::query_scalar::<_, i64>(
+    let affected = sqlx::query_scalar::<_, i32>(
         "UPDATE settlement_invoices \
          SET status = 'acknowledged', acknowledged_at = NOW() \
          WHERE id = $1 AND debtor_sovereign_id = $2 AND status = 'pending' \
@@ -320,7 +320,7 @@ pub async fn acknowledge_invoice(
     .bind(debtor_sovereign_id)
     .fetch_optional(pool)
     .await?
-    .unwrap_or(0);
+    .unwrap_or(0i32);
 
     Ok(affected > 0)
 }
@@ -333,7 +333,7 @@ pub async fn dispute_invoice(
     dispute_reason: &str,
     dispute_evidence: serde_json::Value,
 ) -> Result<bool, sqlx::Error> {
-    let affected = sqlx::query_scalar::<_, i64>(
+    let affected = sqlx::query_scalar::<_, i32>(
         "UPDATE settlement_invoices \
          SET status = 'disputed', disputed_at = NOW(), dispute_reason = $1, dispute_evidence = $2 \
          WHERE id = $3 AND debtor_sovereign_id = $4 AND status = 'acknowledged' \
@@ -345,9 +345,9 @@ pub async fn dispute_invoice(
     .bind(debtor_sovereign_id)
     .fetch_optional(pool)
     .await?
-    .unwrap_or(0);
+    .unwrap_or(0i32);
 
-    Ok(affected > 0)
+    Ok(affected > 0i32)
 }
 
 /// Resolve a dispute (disputed → resolved).
@@ -358,7 +358,7 @@ pub async fn resolve_dispute(
     creditor_sovereign_id: Uuid,
     resolution: &str,
 ) -> Result<bool, InvoiceLifecycleError> {
-    let affected = sqlx::query_scalar::<_, i64>(
+    let affected = sqlx::query_scalar::<_, i32>(
         "UPDATE settlement_invoices \
          SET status = 'resolved', dispute_resolution = $1, dispute_resolved_at = NOW() \
          WHERE id = $2 AND creditor_sovereign_id = $3 AND status = 'disputed' \
@@ -369,9 +369,9 @@ pub async fn resolve_dispute(
     .bind(creditor_sovereign_id)
     .fetch_optional(pool)
     .await?
-    .unwrap_or(0);
+    .unwrap_or(0i32);
 
-    Ok(affected > 0)
+    Ok(affected > 0i32)
 }
 
 /// Fetch all invoices with a given status between two sovereigns.
@@ -398,7 +398,7 @@ pub async fn mark_invoice_settled_v2(
     invoice_id: Uuid,
     debtor_sovereign_id: Uuid,
 ) -> Result<bool, sqlx::Error> {
-    let affected = sqlx::query_scalar::<_, i64>(
+    let affected = sqlx::query_scalar::<_, i32>(
         "UPDATE settlement_invoices \
          SET status = 'settled', settled_at = NOW() \
          WHERE id = $1 AND debtor_sovereign_id = $2 AND status IN ('pending', 'acknowledged') \
@@ -408,9 +408,9 @@ pub async fn mark_invoice_settled_v2(
     .bind(debtor_sovereign_id)
     .fetch_optional(pool)
     .await?
-    .unwrap_or(0);
+    .unwrap_or(0i32);
 
-    Ok(affected > 0)
+    Ok(affected > 0i32)
 }
 
 /// Fetch full invoice lifecycle details.
@@ -520,7 +520,7 @@ pub async fn update_federation_peer_gossip_seq(
     federation_peer_id: Uuid,
     new_gossip_seq: i64,
 ) -> Result<bool, sqlx::Error> {
-    let affected = sqlx::query_scalar::<_, i64>(
+    let affected = sqlx::query_scalar::<_, i32>(
         "UPDATE federation_peers \
          SET gossip_seq = GREATEST(gossip_seq, $1) \
          WHERE id = $2 \
@@ -530,9 +530,9 @@ pub async fn update_federation_peer_gossip_seq(
     .bind(federation_peer_id)
     .fetch_optional(pool)
     .await?
-    .unwrap_or(0);
+    .unwrap_or(0i32);
 
-    Ok(affected > 0)
+    Ok(affected > 0i32)
 }
 
 /// Gap 2 Fix: Enforce foreign_agent_budget_cap atomically with consumption tracking.

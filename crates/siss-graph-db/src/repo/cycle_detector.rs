@@ -413,6 +413,28 @@ mod tests {
             .await
             .expect("insert charlie");
 
+            // Insert federation peers for each directed pair
+            let peer_ab = Uuid::new_v4();
+            sqlx::query(
+                "INSERT INTO federation_peers (id, sovereign_a_id, sovereign_b_id, max_admitted_tier, granted_attestation_types) VALUES ($1, $2, $3, $4, $5)"
+            )
+            .bind(peer_ab).bind(a).bind(b).bind(100i16).bind(vec!["test"])
+            .execute(&pool).await.expect("insert peer a-b");
+
+            let peer_bc = Uuid::new_v4();
+            sqlx::query(
+                "INSERT INTO federation_peers (id, sovereign_a_id, sovereign_b_id, max_admitted_tier, granted_attestation_types) VALUES ($1, $2, $3, $4, $5)"
+            )
+            .bind(peer_bc).bind(b).bind(c).bind(100i16).bind(vec!["test"])
+            .execute(&pool).await.expect("insert peer b-c");
+
+            let peer_ca = Uuid::new_v4();
+            sqlx::query(
+                "INSERT INTO federation_peers (id, sovereign_a_id, sovereign_b_id, max_admitted_tier, granted_attestation_types) VALUES ($1, $2, $3, $4, $5)"
+            )
+            .bind(peer_ca).bind(c).bind(a).bind(100i16).bind(vec!["test"])
+            .execute(&pool).await.expect("insert peer c-a");
+
             // Create cross-sovereign delegation cycle: A→B→C→A
             let grant_ab = Uuid::new_v4();
             let grant_bc = Uuid::new_v4();
@@ -426,7 +448,7 @@ mod tests {
             .bind(b)
             .bind("agent_a")
             .bind("agent_b")
-            .bind(Uuid::new_v4())
+            .bind(peer_ab)
             .bind(100i16)
             .bind(vec!["test"])
             .bind(1i16)
@@ -444,7 +466,7 @@ mod tests {
             .bind(c)
             .bind("agent_b")
             .bind("agent_c")
-            .bind(Uuid::new_v4())
+            .bind(peer_bc)
             .bind(100i16)
             .bind(vec!["test"])
             .bind(1i16)
@@ -462,7 +484,7 @@ mod tests {
             .bind(a)
             .bind("agent_c")
             .bind("agent_a")
-            .bind(Uuid::new_v4())
+            .bind(peer_ca)
             .bind(100i16)
             .bind(vec!["test"])
             .bind(1i16)
@@ -522,6 +544,22 @@ mod tests {
                 .expect("insert sovereign");
             }
 
+            // Create federation peers for chain 0→1→2→3→4
+            let mut peer_ids: Vec<Uuid> = Vec::new();
+            for i in 0..4 {
+                let peer_id = Uuid::new_v4();
+                sqlx::query(
+                    "INSERT INTO federation_peers (id, sovereign_a_id, sovereign_b_id, max_admitted_tier, granted_attestation_types) VALUES ($1, $2, $3, $4, $5)"
+                )
+                .bind(peer_id)
+                .bind(sovereigns[i])
+                .bind(sovereigns[i + 1])
+                .bind(100i16)
+                .bind(vec!["test"])
+                .execute(&pool).await.expect("insert peer");
+                peer_ids.push(peer_id);
+            }
+
             // Create chain: 0→1→2→3→4 (no cycles)
             for i in 0..4 {
                 sqlx::query(
@@ -532,7 +570,7 @@ mod tests {
                 .bind(sovereigns[i + 1])
                 .bind(format!("agent_{}", i))
                 .bind(format!("agent_{}", i + 1))
-                .bind(Uuid::new_v4())
+                .bind(peer_ids[i])
                 .bind(100i16)
                 .bind(vec!["test"])
                 .bind(1i16)
@@ -584,6 +622,28 @@ mod tests {
                 .expect("insert sovereign");
             }
 
+            // Create federation peers for the cycle
+            let peer_01 = Uuid::new_v4();
+            sqlx::query(
+                "INSERT INTO federation_peers (id, sovereign_a_id, sovereign_b_id, max_admitted_tier, granted_attestation_types) VALUES ($1, $2, $3, $4, $5)"
+            )
+            .bind(peer_01).bind(sovereigns[0]).bind(sovereigns[1]).bind(100i16).bind(vec!["test"])
+            .execute(&pool).await.expect("insert peer 0-1");
+
+            let peer_12 = Uuid::new_v4();
+            sqlx::query(
+                "INSERT INTO federation_peers (id, sovereign_a_id, sovereign_b_id, max_admitted_tier, granted_attestation_types) VALUES ($1, $2, $3, $4, $5)"
+            )
+            .bind(peer_12).bind(sovereigns[1]).bind(sovereigns[2]).bind(100i16).bind(vec!["test"])
+            .execute(&pool).await.expect("insert peer 1-2");
+
+            let peer_20 = Uuid::new_v4();
+            sqlx::query(
+                "INSERT INTO federation_peers (id, sovereign_a_id, sovereign_b_id, max_admitted_tier, granted_attestation_types) VALUES ($1, $2, $3, $4, $5)"
+            )
+            .bind(peer_20).bind(sovereigns[2]).bind(sovereigns[0]).bind(100i16).bind(vec!["test"])
+            .execute(&pool).await.expect("insert peer 2-0");
+
             // Create a simple cycle among 3 nodes, rest are disconnected
             let grant1 = Uuid::new_v4();
             let grant2 = Uuid::new_v4();
@@ -597,7 +657,7 @@ mod tests {
             .bind(sovereigns[1])
             .bind("agent_0")
             .bind("agent_1")
-            .bind(Uuid::new_v4())
+            .bind(peer_01)
             .bind(100i16)
             .bind(vec!["test"])
             .bind(1i16)
@@ -615,7 +675,7 @@ mod tests {
             .bind(sovereigns[2])
             .bind("agent_1")
             .bind("agent_2")
-            .bind(Uuid::new_v4())
+            .bind(peer_12)
             .bind(100i16)
             .bind(vec!["test"])
             .bind(1i16)
@@ -633,7 +693,7 @@ mod tests {
             .bind(sovereigns[0])
             .bind("agent_2")
             .bind("agent_0")
-            .bind(Uuid::new_v4())
+            .bind(peer_20)
             .bind(100i16)
             .bind(vec!["test"])
             .bind(1i16)

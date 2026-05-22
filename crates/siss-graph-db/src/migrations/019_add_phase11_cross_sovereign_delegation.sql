@@ -10,7 +10,7 @@ CREATE TABLE cross_sovereign_delegation_grants (
     federation_peer_id UUID NOT NULL REFERENCES federation_peers(id),
     ceiling_tier SMALLINT NOT NULL,
     ceiling_attestation_types TEXT[] NOT NULL,
-    transitivity_depth SMALLINT NOT NULL CHECK (transitivity_depth BETWEEN 1 AND 3),
+    transitivity_depth SMALLINT NOT NULL CHECK (transitivity_depth BETWEEN 1 AND 4),
     parent_grant_id UUID REFERENCES cross_sovereign_delegation_grants(id),
     granted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     expires_at TIMESTAMPTZ,

@@ -139,7 +139,7 @@ pub async fn build_reputation_graph_from_db(pool: &PgPool) -> Result<ReputationG
     }
 
     // 2. Load all active cross-sovereign delegation grants
-    let grants: Vec<(Uuid, Uuid, Uuid, i32, i16)> = sqlx::query_as(
+    let grants: Vec<(Uuid, Uuid, Uuid, i16, i16)> = sqlx::query_as(
         "SELECT id, grantor_sovereign_id, grantee_sovereign_id, ceiling_tier, transitivity_depth \
          FROM cross_sovereign_delegation_grants \
          WHERE status = 'active' AND revoked_at IS NULL",

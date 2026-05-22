@@ -234,8 +234,8 @@ mod tests {
 
             // Create escrow: held + acknowledged + past timeout
             let escrow_id = sqlx::query_scalar::<_, Uuid>(
-                "INSERT INTO escrow_ledger (invoice_id, creditor_sovereign_id, debtor_sovereign_id, tokens_held, created_by_sovereign_id, status, held_at, debtor_acknowledged_at, timeout_at)
-                 VALUES ($1, $2, $3, $4, $2, $5, $6, $7, $8) RETURNING id"
+                "INSERT INTO escrow_ledger (invoice_id, creditor_sovereign_id, debtor_sovereign_id, tokens_held, created_by_sovereign_id, status, held_at, debtor_acknowledged_at, timeout_at, created_at)
+                 VALUES ($1, $2, $3, $4, $2, $5, $6, $7, $8, $9) RETURNING id"
             )
             .bind(invoice_id)
             .bind(creditor_id)
@@ -244,7 +244,8 @@ mod tests {
             .bind("held")
             .bind(Utc::now())  // held_at
             .bind(Utc::now())  // acknowledged
-            .bind(Utc::now() - chrono::Duration::hours(1))  // timeout 1 hour ago
+            .bind(Utc::now() - chrono::Duration::hours(1))  // timeout_at 1 hour ago
+            .bind(Utc::now() - chrono::Duration::hours(2))  // created_at 2 hours ago (satisfies timeout_at > created_at)
             .fetch_one(&pool)
             .await
             .expect("insert escrow");

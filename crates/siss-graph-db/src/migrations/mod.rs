@@ -170,6 +170,14 @@ const MIGRATIONS: &[(&str, &str)] = &[
         "043_add_revocation_unique_constraint",
         include_str!("043_add_revocation_unique_constraint.sql"),
     ),
+    (
+        "046_night_cycle_archive",
+        include_str!("046_night_cycle_archive.sql"),
+    ),
+    (
+        "047_add_forfeited_at_to_escrow",
+        include_str!("047_add_forfeited_at_to_escrow.sql"),
+    ),
 ];
 
 /// Run all migrations in order. Idempotent — tracks applied migrations in a metadata table.

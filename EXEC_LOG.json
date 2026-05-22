@@ -425,5 +425,12 @@
     "commit": "6b1c13f",
     "message": "chore: disable broken Node.js hooks, add no-op bash fallback",
     "tests_pass": false
+  },
+  {
+    "hash": "64aab98f0308bb59f8e3e346f94c33914331b838d4f278a3f263505d0224abe1",
+    "timestamp": "2026-05-22T13:04:07Z",
+    "commit": "b008703",
+    "message": "PATCHES 1-5: Fix database types, timestamps, federation peers, quorum formula",
+    "tests_pass": false
   }
 ]

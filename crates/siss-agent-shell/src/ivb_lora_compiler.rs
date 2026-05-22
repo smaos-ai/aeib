@@ -4,9 +4,7 @@ use crate::distillation_gate::{DistillationConfig, DistillationGate, TrainingCon
 use crate::lora_orchestrator::{LoraOrchestrator, LoraJobState, OrchestrationError, ResourceMonitor};
 use crate::memory_crystallizer::{MemoryCrystal, SemanticCrystallizer};
 use crate::swarm_knowledge::KnowledgeAtom;
-use chrono::DateTime;
-use chrono::Utc;
-use uuid::Uuid;
+use chrono::{DateTime, Utc};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum IvbError {

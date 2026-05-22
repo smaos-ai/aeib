@@ -1,6 +1,6 @@
 /// Phase 60: Autodream Night Cycle & IVB Loop — 27 TDD Tests
 
-use siss_agent_shell::auto_dream_engine::{AutoDreamEngine, DreamReport};
+use siss_agent_shell::auto_dream_engine::AutoDreamEngine;
 use siss_agent_shell::contradiction_lint::ContradictionLint;
 use siss_agent_shell::distillation_gate::DistillationConfig;
 use siss_agent_shell::ivb_lora_compiler::{IvbError, IvbLoraCompiler};
@@ -84,8 +84,7 @@ fn test_dream_report_counts_correct() {
     let now = Utc::now();
 
     let (_survivors, report) = AutoDreamEngine::consolidate(&atoms, &config, now);
-    assert!(report.pruned_count >= 0);
-    assert!(report.survived_count >= 0);
+    assert_eq!(report.pruned_count + report.survived_count + report.merged_count, 3);
 }
 
 #[test]

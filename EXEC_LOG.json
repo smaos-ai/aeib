@@ -439,5 +439,12 @@
     "commit": "1bde5d0",
     "message": "FIX: Add missing forfeited_at column and register migrations 046-047",
     "tests_pass": false
+  },
+  {
+    "hash": "8996c931c92838d2beb868b3b2b1a7669767cccb35d57523aaff30af55679eb9",
+    "timestamp": "2026-05-22T13:37:04Z",
+    "commit": "7300f58",
+    "message": "FIX: JSONB payload casting and cycle healing grant selection determinism",
+    "tests_pass": false
   }
 ]

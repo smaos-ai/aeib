@@ -472,7 +472,7 @@ pub async fn finalize_consensus(pool: &PgPool, proposal_id: Uuid) -> Result<(), 
                 .map_err(|e| ConsensusError::Database(e.to_string()))?;
             } else if new_escrow_status == "forfeited" {
                 sqlx::query(
-                    "UPDATE escrow_ledger SET status = $1, arbitration_result = $2 WHERE id = $3 AND status = 'disputed'",
+                    "UPDATE escrow_ledger SET status = $1, arbitration_result = $2, forfeited_at = NOW() WHERE id = $3 AND status = 'disputed'",
                 )
                 .bind(new_escrow_status)
                 .bind(verdict)

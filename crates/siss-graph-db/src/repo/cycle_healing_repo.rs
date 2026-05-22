@@ -54,27 +54,19 @@ fn resolve_weakest_link_grant(
 ) -> Option<(Uuid, Uuid)> {
     let cycle_set: HashSet<Uuid> = cycle.cycle_nodes.iter().copied().collect();
 
-    // Collect all edges within the cycle
-    let mut cycle_edges = Vec::new();
-    for node_id in &cycle.cycle_nodes {
-        if let Some(outgoing) = graph.outgoing_edges(*node_id) {
-            for edge in outgoing {
-                if cycle_set.contains(&edge.to_sovereign) && (edge.ceiling_tier as u32) == cycle.weakest_link_ceiling {
-                    cycle_edges.push(edge.clone());
-                }
-            }
-        }
-    }
+    // Find incoming edges TO the weakest link with matching ceiling_tier
+    let incoming = graph.incoming_edges(cycle.weakest_link_id)?;
+    let mut matching_edges: Vec<_> = incoming
+        .iter()
+        .filter(|e| {
+            cycle_set.contains(&e.from_sovereign) && (e.ceiling_tier as u32) == cycle.weakest_link_ceiling
+        })
+        .collect();
 
-    // If no matching edges found, return None
-    if cycle_edges.is_empty() {
-        return None;
-    }
+    // Sort by from_sovereign for deterministic selection (pick smallest lexicographically)
+    matching_edges.sort_by_key(|e| e.from_sovereign);
 
-    // Sort by grant_id for deterministic selection
-    cycle_edges.sort_by_key(|e| e.delegation_grant_id);
-
-    cycle_edges
+    matching_edges
         .first()
         .map(|e| (e.delegation_grant_id, e.from_sovereign))
 }

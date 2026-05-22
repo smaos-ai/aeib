@@ -3,6 +3,7 @@
 
 use crate::gui_sandbox::GuiSandboxAllocator;
 use crate::hooks::{LifecycleHook, security_gate::SecurityGateHook};
+use crate::mlx_hardware::AirGapMembrane;
 use crate::pixel_provenance::PixelProvenanceRecorder;
 use crate::swarm_channel::SwarmChannel;
 use crate::swarm_mcp_server::SwarmMcpServer;
@@ -60,13 +61,16 @@ impl CrafterRuntime {
             analyzer: MockZoneAnalyzer { zones: vec![] },
         }) as Box<dyn LifecycleHook>;
 
+        let air_gap = Box::new(AirGapMembrane::default())
+            as Box<dyn LifecycleHook>;
+
         let sandbox_allocator = GuiSandboxAllocator::new();
 
-        let hooks: Vec<Box<dyn LifecycleHook>> = vec![security_hook, membrane];
+        let hooks: Vec<Box<dyn LifecycleHook>> = vec![security_hook, membrane, air_gap];
 
         assert!(
-            hooks.len() >= 2,
-            "CrafterRuntime requires at least 2 hooks at startup"
+            hooks.len() >= 3,
+            "CrafterRuntime requires at least 3 hooks at startup"
         );
 
         CrafterRuntime {
@@ -90,13 +94,13 @@ mod tests {
     #[tokio::test]
     async fn test_crafter_runtime_boots_with_defaults() {
         let runtime = CrafterRuntime::new(RuntimeConfig::default()).await;
-        assert!(runtime.hook_count() >= 2);
+        assert!(runtime.hook_count() >= 3);
     }
 
     #[tokio::test]
     async fn test_crafter_runtime_has_minimum_hooks() {
         let runtime = CrafterRuntime::new(RuntimeConfig::default()).await;
-        assert!(runtime.hook_count() >= 2, "Minimum 2 hooks required at startup");
+        assert!(runtime.hook_count() >= 3, "Minimum 3 hooks required at startup");
     }
 
     #[tokio::test]

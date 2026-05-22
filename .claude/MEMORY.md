@@ -34,6 +34,12 @@ Future agents MUST follow these rules to avoid context bloat and token waste:
 - **When:** Every exploration task must have: "Stop after reading maximum of 5 files. Return ONLY a bulleted list."
 - **Example:** "Explore dispatcher patterns. Max 5 files. Return: 3-bullet list of what needs to change in each."
 
+### Rule 5: Swarm Test Verification — One Target, Exponential Backoff
+- **What:** Run only `cargo test --test orchestration_integration_test -p demo-app` for swarm checks. No parallel `cargo test | grep` loops.
+- **Why:** Multiple hung integration tests consumed 600+ CPU-minutes (2026-05-21 incident).
+- **Polling:** If waiting on a long test, check status at 1m → 2m → 4m intervals (`sleep 60 && tail -5 log`). Never spawn redundant grep/tail shells.
+- **Cleanup:** Before a new run, ensure no stale `orchestration_integration_test` processes (`pkill -f orchestration_integration_test` only if hung).
+
 ---
 
 ## 2. LOCKED INTERFACE CONTRACTS (From WAVE_ORCHESTRATOR.md)

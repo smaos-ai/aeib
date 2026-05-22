@@ -1,8 +1,11 @@
 pub mod a2a;
 pub mod a2a_dispatcher;
 pub mod a2ui;
-pub mod aoe_telemetry;
+pub mod a2ui_composer;
+pub mod a2ui_primitives;
 pub mod ag_ui;
+pub mod ag_ui_integration;
+pub mod aoe_telemetry;
 pub mod anp_registry;
 pub mod ap2_syndication;
 pub mod batch_orchestrator;

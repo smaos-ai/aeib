@@ -72,6 +72,9 @@ impl TaskQueue {
             return None;
         }
         // Check if task dependencies are met
+        let initial_queue_size = queue.len();
+        let mut rotation_count = 0;
+
         loop {
             if queue.is_empty() {
                 return None;
@@ -85,8 +88,11 @@ impl TaskQueue {
                 // Task not ready; rotate queue
                 let task = queue.remove(0);
                 queue.push(task);
-                if queue.len() > 100 {
-                    // Prevent infinite loop if tasks can't be satisfied
+                rotation_count += 1;
+
+                // If we've rotated through all tasks without finding one ready,
+                // we have a circular dependency - give up
+                if rotation_count > initial_queue_size {
                     return None;
                 }
             }

@@ -2,7 +2,6 @@
 /// Stub for Phase 43; implements atomic archive-and-prune pattern.
 
 use sqlx::PgPool;
-use uuid::Uuid;
 
 /// Archive COMPLETE rows to crystallized_archive, then purge from swarm_state.
 /// Fails-closed: no rows are removed unless both operations succeed.

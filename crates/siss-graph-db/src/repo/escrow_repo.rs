@@ -283,7 +283,8 @@ pub async fn forfeit_escrow_on_timeout(pool: &PgPool, escrow_id: Uuid) -> Result
     // Mark escrow as forfeited
     sqlx::query(
         "UPDATE escrow_ledger
-         SET status = 'forfeited'
+         SET status = 'forfeited',
+             forfeited_at = NOW()
          WHERE id = $1 AND status = 'held'",
     )
     .bind(escrow_id)

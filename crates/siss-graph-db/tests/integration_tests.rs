@@ -185,7 +185,7 @@ async fn test_agent_actions_pagination() {
         insert_test_action(&pool, sovereign_id, i, now - Duration::minutes(i as i64)).await;
     }
 
-    let result = projections_repo::fetch_agent_actions(&pool, sovereign_id, None, Some(50))
+    let result = projections_repo::fetch_agent_actions(&pool, &sovereign_id, None, 50)
         .await
         .expect("fetch failed");
 
@@ -204,7 +204,7 @@ async fn test_agent_actions_limit_capping() {
         insert_test_action(&pool, sovereign_id, i, now - Duration::minutes(i as i64)).await;
     }
 
-    let result = projections_repo::fetch_agent_actions(&pool, sovereign_id, None, Some(1000))
+    let result = projections_repo::fetch_agent_actions(&pool, &sovereign_id, None, 1000)
         .await
         .expect("fetch failed");
 
@@ -216,7 +216,7 @@ async fn test_agent_actions_empty_result() {
     let pool = setup_test_db().await;
     let sovereign_id = Uuid::new_v4();
 
-    let result = projections_repo::fetch_agent_actions(&pool, sovereign_id, None, Some(50))
+    let result = projections_repo::fetch_agent_actions(&pool, &sovereign_id, None, 50)
         .await
         .expect("fetch failed");
 
@@ -240,7 +240,7 @@ async fn test_agent_actions_sovereign_guard() {
         insert_test_action(&pool, sovereign_2, i, now - Duration::minutes(i as i64)).await;
     }
 
-    let result = projections_repo::fetch_agent_actions(&pool, sovereign_1, None, Some(100))
+    let result = projections_repo::fetch_agent_actions(&pool, &sovereign_1, None, 100)
         .await
         .expect("fetch failed");
 
@@ -262,9 +262,9 @@ async fn test_agent_actions_timewindow() {
 
     let result = projections_repo::fetch_agent_actions(
         &pool,
-        sovereign_id,
+        &sovereign_id,
         Some(now - Duration::hours(1)),
-        Some(100),
+        100,
     )
     .await
     .expect("fetch failed");
@@ -282,7 +282,7 @@ async fn test_anomalies_severity_filter() {
     insert_test_anomaly(&pool, sovereign_id, 2, "dispute_spam", "medium", now).await;
     insert_test_anomaly(&pool, sovereign_id, 3, "dispute_spam", "high", now).await;
 
-    let result = projections_repo::fetch_anomalies(&pool, sovereign_id, Some("high"), None, None)
+    let result = projections_repo::fetch_anomalies(&pool, &sovereign_id, Some("high"), None, 50)
         .await
         .expect("fetch failed");
 
@@ -301,7 +301,7 @@ async fn test_anomalies_recovery_count() {
     insert_test_anomaly(&pool, sovereign_id, 2, "dispute_spam", "high", now).await;
     insert_test_recovery(&pool, sovereign_id, 1, now - Duration::hours(1), true).await;
 
-    let result = projections_repo::fetch_anomalies(&pool, sovereign_id, None, None, None)
+    let result = projections_repo::fetch_anomalies(&pool, &sovereign_id, None, None, 50)
         .await
         .expect("fetch failed");
 
@@ -316,7 +316,7 @@ async fn test_recovery_approval_lock() {
 
     insert_test_recovery(&pool, sovereign_id, 1, now - Duration::hours(1), false).await;
 
-    let result = projections_repo::fetch_recovery(&pool, sovereign_id, None, None)
+    let result = projections_repo::fetch_recovery(&pool, &sovereign_id, 50)
         .await
         .expect("fetch failed");
 
@@ -332,7 +332,7 @@ async fn test_recovery_approved_visible() {
 
     insert_test_recovery(&pool, sovereign_id, 1, now - Duration::hours(1), true).await;
 
-    let result = projections_repo::fetch_recovery(&pool, sovereign_id, None, None)
+    let result = projections_repo::fetch_recovery(&pool, &sovereign_id, 50)
         .await
         .expect("fetch failed");
 
@@ -350,7 +350,7 @@ async fn test_recovery_sovereign_guard() {
     insert_test_recovery(&pool, sovereign_1, 1, now - Duration::hours(1), true).await;
     insert_test_recovery(&pool, sovereign_2, 2, now - Duration::hours(1), true).await;
 
-    let result = projections_repo::fetch_recovery(&pool, sovereign_1, None, None)
+    let result = projections_repo::fetch_recovery(&pool, &sovereign_1, 50)
         .await
         .expect("fetch failed");
 
@@ -371,7 +371,7 @@ async fn test_pagination_has_more_logic() {
         insert_test_action(&pool, sovereign_id, i, now - Duration::minutes(i as i64)).await;
     }
 
-    let result = projections_repo::fetch_agent_actions(&pool, sovereign_id, None, Some(50))
+    let result = projections_repo::fetch_agent_actions(&pool, &sovereign_id, None, 50)
         .await
         .expect("fetch failed");
 
@@ -380,7 +380,7 @@ async fn test_pagination_has_more_logic() {
 
     insert_test_action(&pool, sovereign_id, 50, now - Duration::minutes(50)).await;
 
-    let result = projections_repo::fetch_agent_actions(&pool, sovereign_id, None, Some(50))
+    let result = projections_repo::fetch_agent_actions(&pool, &sovereign_id, None, 50)
         .await
         .expect("fetch failed");
 
@@ -592,7 +592,7 @@ async fn test_agent_actions_endpoint_basic() {
         insert_test_action(&pool, sovereign_id, i, now - Duration::minutes(i as i64)).await;
     }
 
-    let result = projections_repo::fetch_agent_actions(&pool, sovereign_id, None, Some(100))
+    let result = projections_repo::fetch_agent_actions(&pool, &sovereign_id, None, 100)
         .await
         .expect("fetch failed");
 
@@ -610,8 +610,8 @@ async fn test_agent_actions_endpoint_limit_capping() {
         insert_test_action(&pool, sovereign_id, i, now - Duration::minutes(i as i64)).await;
     }
 
-    let capped_limit = Some(1000i32).map(|l| l.max(1).min(500));
-    let result = projections_repo::fetch_agent_actions(&pool, sovereign_id, None, capped_limit)
+    let capped_limit = Some(1000i32).map(|l| l.max(1).min(500)).unwrap_or(50);
+    let result = projections_repo::fetch_agent_actions(&pool, &sovereign_id, None, capped_limit)
         .await
         .expect("fetch failed");
 
@@ -627,7 +627,7 @@ async fn test_anomalies_endpoint_severity_filter() {
     insert_test_anomaly(&pool, sovereign_id, 1, "dispute_spam", "low", now).await;
     insert_test_anomaly(&pool, sovereign_id, 2, "dispute_spam", "high", now).await;
 
-    let result = projections_repo::fetch_anomalies(&pool, sovereign_id, Some("high"), None, None)
+    let result = projections_repo::fetch_anomalies(&pool, &sovereign_id, Some("high"), None, 50)
         .await
         .expect("fetch failed");
 
@@ -646,7 +646,7 @@ async fn test_anomalies_endpoint_type_filter() {
     insert_test_anomaly(&pool, sovereign_id, 2, "fraud_detection", "high", now).await;
 
     let result =
-        projections_repo::fetch_anomalies(&pool, sovereign_id, None, Some("dispute_spam"), None)
+        projections_repo::fetch_anomalies(&pool, &sovereign_id, None, Some("dispute_spam"), 50)
             .await
             .expect("fetch failed");
 
@@ -664,7 +664,7 @@ async fn test_anomalies_endpoint_active_recovery_count() {
     insert_test_anomaly(&pool, sovereign_id, 1, "dispute_spam", "high", now).await;
     insert_test_recovery(&pool, sovereign_id, 1, now - Duration::hours(1), true).await;
 
-    let result = projections_repo::fetch_anomalies(&pool, sovereign_id, None, None, None)
+    let result = projections_repo::fetch_anomalies(&pool, &sovereign_id, None, None, 50)
         .await
         .expect("fetch failed");
 
@@ -679,7 +679,7 @@ async fn test_recovery_endpoint_approval_lock() {
 
     insert_test_recovery(&pool, sovereign_id, 1, now - Duration::hours(1), false).await;
 
-    let result = projections_repo::fetch_recovery(&pool, sovereign_id, None, None)
+    let result = projections_repo::fetch_recovery(&pool, &sovereign_id, 50)
         .await
         .expect("fetch failed");
 
@@ -695,7 +695,7 @@ async fn test_recovery_endpoint_locked_display() {
     insert_test_recovery(&pool, sovereign_id, 1, now - Duration::hours(1), false).await;
     insert_test_recovery(&pool, sovereign_id, 2, now - Duration::hours(2), true).await;
 
-    let result = projections_repo::fetch_recovery(&pool, sovereign_id, None, None)
+    let result = projections_repo::fetch_recovery(&pool, &sovereign_id, 50)
         .await
         .expect("fetch failed");
 
@@ -761,8 +761,9 @@ async fn test_concurrent_requests_no_race() {
     let mut handles = vec![];
     for _ in 0..100 {
         let pool_clone = pool.clone();
+        let sovereign_id_clone = sovereign_id;
         let handle = tokio::spawn(async move {
-            projections_repo::fetch_agent_actions(&pool_clone, sovereign_id, None, Some(10)).await
+            projections_repo::fetch_agent_actions(&pool_clone, &sovereign_id_clone, None, 10).await
         });
         handles.push(handle);
     }
@@ -781,13 +782,13 @@ async fn test_response_json_serialization() {
 
     insert_test_action(&pool, sovereign_id, 1, now).await;
 
-    let result = projections_repo::fetch_agent_actions(&pool, sovereign_id, None, Some(10))
+    let result = projections_repo::fetch_agent_actions(&pool, &sovereign_id, None, 10)
         .await
         .expect("fetch failed");
 
     let json = serde_json::to_string(&result).expect("serialization failed");
     assert!(!json.is_empty());
 
-    let _: projections_repo::AgentActionsPageResponse =
+    let _: projections_repo::AgentActionPageResponse =
         serde_json::from_str(&json).expect("deserialization failed");
 }

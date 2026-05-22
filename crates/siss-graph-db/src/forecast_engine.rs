@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::Utc;
 use serde_json::json;
 use sqlx::{FromRow, PgPool};
 use std::collections::HashMap;

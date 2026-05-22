@@ -72,7 +72,7 @@ pub async fn write_recovery_event(
 /// Creates a ScoringNode with signal breakdown (slash, anomaly, settlement).
 pub async fn write_scoring_decision(
     pool: &PgPool,
-    sovereign_id: Uuid,
+    _sovereign_id: Uuid,
     score: i16,
     weeks_elapsed: u32,
     slash_count: i64,
@@ -109,7 +109,7 @@ pub async fn write_scoring_decision(
 /// Creates a ViolationNode and links it to causation (recovery event that triggered it).
 pub async fn write_violation_quarantine(
     pool: &PgPool,
-    sovereign_id: Uuid,
+    _sovereign_id: Uuid,
     reason: &str,
     evidence: serde_json::Value,
     recovery_event_id: Option<Uuid>,

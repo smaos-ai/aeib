@@ -103,7 +103,7 @@ impl EventLog {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    
 
     #[tokio::test]
     async fn test_append_event_succeeds() {

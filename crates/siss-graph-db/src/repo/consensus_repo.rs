@@ -132,7 +132,7 @@ pub async fn initiate_consensus(
         ((2 * (peer_count + 1) + 2) / 3).max(2)
     } else {
         // Simple majority: ceil((peer_count + 1) / 2), minimum 1
-        ((peer_count + 1) / 2).max(1)
+        ((peer_count + 2) / 2).max(1)
     };
 
     // Insert proposal
@@ -460,17 +460,31 @@ pub async fn finalize_consensus(pool: &PgPool, proposal_id: Uuid) -> Result<(), 
                 .await
                 .map_err(|e| ConsensusError::Database(e.to_string()))?;
 
-            sqlx::query(
-                "UPDATE escrow_ledger \
-                 SET status = $1, arbitration_result = $2 \
-                 WHERE id = $3 AND status = 'disputed'",
-            )
-            .bind(new_escrow_status)
-            .bind(verdict)
-            .bind(escrow_id)
-            .execute(&mut *tx)
-            .await
-            .map_err(|e| ConsensusError::Database(e.to_string()))?;
+            if new_escrow_status == "released" {
+                sqlx::query(
+                    "UPDATE escrow_ledger SET status = $1, arbitration_result = $2, release_at = NOW() WHERE id = $3 AND status = 'disputed'",
+                )
+                .bind(new_escrow_status)
+                .bind(verdict)
+                .bind(escrow_id)
+                .execute(&mut *tx)
+                .await
+                .map_err(|e| ConsensusError::Database(e.to_string()))?;
+            } else if new_escrow_status == "forfeited" {
+                sqlx::query(
+                    "UPDATE escrow_ledger SET status = $1, arbitration_result = $2 WHERE id = $3 AND status = 'disputed'",
+                )
+                .bind(new_escrow_status)
+                .bind(verdict)
+                .bind(escrow_id)
+                .execute(&mut *tx)
+                .await
+                .map_err(|e| ConsensusError::Database(e.to_string()))?;
+            } else {
+                return Err(ConsensusError::InvalidProposal(format!(
+                    "Invalid escrow status: {new_escrow_status}"
+                )));
+            }
 
             sqlx::query(
                 "UPDATE settlement_invoices \
@@ -1119,8 +1133,8 @@ mod tests {
             // Create invoice in disputed status
             let invoice_id = Uuid::new_v4();
             sqlx::query(
-                "INSERT INTO settlement_invoices (id, creditor_sovereign_id, debtor_sovereign_id, period_start, period_end, total_tokens, entry_count, invoice_hash, invoice_signature, status, dispute_resolved_at, dispute_resolution)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)"
+                "INSERT INTO settlement_invoices (id, creditor_sovereign_id, debtor_sovereign_id, period_start, period_end, total_tokens, entry_count, invoice_hash, invoice_signature, status, disputed_at, dispute_resolved_at, dispute_resolution)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)"
             )
             .bind(invoice_id)
             .bind(creditor_id)
@@ -1132,6 +1146,7 @@ mod tests {
             .bind("invoice_hash")
             .bind("sig_bytes")
             .bind("disputed")
+            .bind(Utc::now())
             .bind::<Option<DateTime<Utc>>>(None)
             .bind::<Option<String>>(None)
             .execute(&pool)
@@ -1140,14 +1155,16 @@ mod tests {
 
             // Create escrow in disputed status
             let escrow_id = sqlx::query_scalar::<_, Uuid>(
-                "INSERT INTO escrow_ledger (invoice_id, creditor_sovereign_id, debtor_sovereign_id, tokens_held, created_by_sovereign_id, status, arbitration_result)
-                 VALUES ($1, $2, $3, $4, $2, $5, $6) RETURNING id"
+                "INSERT INTO escrow_ledger (invoice_id, creditor_sovereign_id, debtor_sovereign_id, tokens_held, created_by_sovereign_id, status, disputed_at, held_at, arbitration_result)
+                 VALUES ($1, $2, $3, $4, $2, $5, $6, $7, $8) RETURNING id"
             )
             .bind(invoice_id)
             .bind(creditor_id)
             .bind(debtor_id)
             .bind(1000i64)
             .bind("disputed")
+            .bind(Utc::now())
+            .bind(Utc::now())
             .bind::<Option<String>>(None)
             .fetch_one(&pool)
             .await
@@ -1296,8 +1313,8 @@ mod tests {
             // Create invoice in disputed status
             let invoice_id = Uuid::new_v4();
             sqlx::query(
-                "INSERT INTO settlement_invoices (id, creditor_sovereign_id, debtor_sovereign_id, period_start, period_end, total_tokens, entry_count, invoice_hash, invoice_signature, status, dispute_resolved_at, dispute_resolution)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)"
+                "INSERT INTO settlement_invoices (id, creditor_sovereign_id, debtor_sovereign_id, period_start, period_end, total_tokens, entry_count, invoice_hash, invoice_signature, status, disputed_at, dispute_resolved_at, dispute_resolution)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)"
             )
             .bind(invoice_id)
             .bind(creditor_id)
@@ -1309,6 +1326,7 @@ mod tests {
             .bind("invoice_hash")
             .bind("sig_bytes")
             .bind("disputed")
+            .bind(Utc::now())
             .bind::<Option<DateTime<Utc>>>(None)
             .bind::<Option<String>>(None)
             .execute(&pool)
@@ -1317,14 +1335,16 @@ mod tests {
 
             // Create escrow in disputed status
             let escrow_id = sqlx::query_scalar::<_, Uuid>(
-                "INSERT INTO escrow_ledger (invoice_id, creditor_sovereign_id, debtor_sovereign_id, tokens_held, created_by_sovereign_id, status, arbitration_result)
-                 VALUES ($1, $2, $3, $4, $2, $5, $6) RETURNING id"
+                "INSERT INTO escrow_ledger (invoice_id, creditor_sovereign_id, debtor_sovereign_id, tokens_held, created_by_sovereign_id, status, disputed_at, held_at, arbitration_result)
+                 VALUES ($1, $2, $3, $4, $2, $5, $6, $7, $8) RETURNING id"
             )
             .bind(invoice_id)
             .bind(creditor_id)
             .bind(debtor_id)
             .bind(1000i64)
             .bind("disputed")
+            .bind(Utc::now())
+            .bind(Utc::now())
             .bind::<Option<String>>(None)
             .fetch_one(&pool)
             .await

@@ -1,4 +1,4 @@
-use chrono::{DateTime, Duration, Utc};
+use chrono::{Duration, Utc};
 use sqlx::PgPool;
 use std::sync::Arc;
 use tokio::task::JoinHandle;

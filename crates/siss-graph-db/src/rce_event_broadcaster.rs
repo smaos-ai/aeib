@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::broadcast;
 use uuid::Uuid;
 
-use crate::rce::{ExecutionState, Step};
+use crate::rce::Step;
 
 // =====================================================================
 // RCE EVENT TYPES

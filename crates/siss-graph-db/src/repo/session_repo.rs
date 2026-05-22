@@ -168,7 +168,7 @@ pub async fn revoke_session(pool: &PgPool, session_id: Uuid) -> Result<bool, sql
 pub async fn revoke_all_descendants(
     pool: &PgPool,
     ancestor_session_id: Uuid,
-    reason: &str,
+    _reason: &str,
 ) -> Result<u64, sqlx::Error> {
     // Phase 6: Strict revocation — mark entire subtree
     let result = sqlx::query(

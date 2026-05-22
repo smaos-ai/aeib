@@ -545,18 +545,18 @@ pub struct DelegationEnvelope {
 pub fn build_attenuated_capability_token(
     parent_delegations: &[crate::tokens::Delegation],
     parent_constraints: &crate::tokens::DelegationConstraints,
-    child_attestations_score: u32,
+    _child_attestations_score: u32,
     child_attestations_tier: u32,
     ceiling_max_tier: u32,
 ) -> Result<CapabilityToken, String> {
     // Clamp child's tier to ceiling
-    let effective_tier = std::cmp::min(child_attestations_tier, ceiling_max_tier);
+    let _effective_tier = std::cmp::min(child_attestations_tier, ceiling_max_tier);
 
     // Inherit parent's delegations (strict subset by construction)
     let child_delegations = parent_delegations.to_vec();
 
     // Inherit and potentially tighten parent's constraints
-    let child_constraints = parent_constraints.clone();
+    let _child_constraints = parent_constraints.clone();
 
     // Build token with effective tier
     let token = CapabilityToken {

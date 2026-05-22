@@ -71,7 +71,7 @@ pub async fn fetch_unprocessed_gossip_messages(
 /// Process reputation gossip batch: extract signals and insert into reputation store.
 /// Called after gossip_receive_handler validates and persists the message.
 pub async fn process_reputation_gossip_batch(
-    pool: &PgPool,
+    _pool: &PgPool,
     _gossip_message_id: Uuid,
     _source_sovereign_id: Uuid,
     _subject_agent_id: &str,
@@ -87,7 +87,7 @@ pub async fn process_reputation_gossip_batch(
 /// Process peer announcement gossip batch: record discovered sovereign and announcement link.
 /// Called after gossip_receive_handler validates and persists the message.
 pub async fn process_peer_announcement_batch(
-    pool: &PgPool,
+    _pool: &PgPool,
     _gossip_message_id: Uuid,
     _announcing_sovereign_id: Uuid,
     _announced_sovereign_id: Uuid,

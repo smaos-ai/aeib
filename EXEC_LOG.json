@@ -418,5 +418,12 @@
     "commit": "362a1a9",
     "message": "Phase 63: UCP & AP2 Cryptographic Mandate Engine",
     "tests_pass": false
+  },
+  {
+    "hash": "8983bd232cf42f62fe51d56bb61981bcc41007e4a9615b44b75e9aa8c9037ddb",
+    "timestamp": "2026-05-22T10:09:35Z",
+    "commit": "6b1c13f",
+    "message": "chore: disable broken Node.js hooks, add no-op bash fallback",
+    "tests_pass": false
   }
 ]

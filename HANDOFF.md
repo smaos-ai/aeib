@@ -1,196 +1,379 @@
-# Phase 31 HANDOFF — Real-Time Agent Observability
+# Phase 25 HANDOFF — Behavioral Firewall: ReBAC + AP2 Policy Engine
+
+**Date:** 2026-05-22  
+**Status:** Ready for Implementation (TDD)  
+**Crate:** `siss-behavioral-firewall` (expand existing)  
+**Wave Structure:** Sequential (Wave 1) → Parallel (Wave 2, 3 agents) → Sequential (Wave 3)
+
+---
 
 ## Overview
 
-5 atomic tasks. Wave 1 runs first (foundation). Wave 2 runs in parallel (Tasks 2/3/4 are file-orthogonal). Wave 3 runs after 2 and 3 complete.
+5 atomic tasks across 3 waves. Each task owns distinct file domains (zero merge conflicts).
 
-**The Golden Rule:** Each task owns a specific set of files. No task modifies another task's files. Zero merge conflicts by design.
-
----
-
-## Task 1: Workspace Foundation *(Wave 1 — must complete first)*
-
-**Goal:** Add missing workspace dependencies and create siss-cockpit crate skeleton so Tasks 2, 3, 4 can compile against it.
-
-**Owns (may modify only these files):**
-- `Cargo.toml` (root workspace)
-- `crates/siss-cockpit/Cargo.toml` (create new)
-- `crates/siss-cockpit/src/lib.rs` (create new, stub only)
-
-**Constraints:**
-- Do NOT implement any logic. Create a minimal crate that compiles empty.
-- Do NOT modify any existing crate's `Cargo.toml` yet (that's Task 2's job for dispatcher).
-- The `lib.rs` should be literally: `pub mod server; pub mod state; pub mod handlers;` with empty stub modules.
-
-**Success Criteria:**
-- [ ] Root `Cargo.toml` contains `axum = { version = "0.7", features = ["json"] }` in `[workspace.dependencies]`
-- [ ] Root `Cargo.toml` contains `tokio-stream = "0.1"` in `[workspace.dependencies]`
-- [ ] Root `Cargo.toml` contains `async-stream = "0.3"` in `[workspace.dependencies]`
-- [ ] Root `Cargo.toml` has `"crates/siss-cockpit"` in `members` array
-- [ ] `cargo check -p siss-cockpit` passes (empty crate compiles)
-- [ ] `cargo check --all` passes (no existing crates broken)
+**Architectural Decisions (LOCKED):**
+- **Decision 1:** PostgreSQL-backed ReBAC (durable governance state)
+- **Decision 2:** Cache-first AP2 attributes (50µs lookups, immediate invalidation)
+- **Decision 3:** Transitive delegation with cycle detection (max depth 3)
+- **Decision 4:** Immediate cache invalidation (100% consistency guarantee)
+- **Decision 5:** TTL + Archive audit logs (90-day hot, S3 cold storage)
 
 ---
 
-## Task 2: Dispatcher Event Integration *(Wave 2 — parallel with Tasks 3 and 4)*
+## Task 1: ReBAC Foundation & PostgreSQL Persistence *(Wave 1 — Sequential)*
 
-**Goal:** Wire the Phase 30 dispatcher to emit `AgentEvent` lifecycle events using the existing `EventEmitter` trait from `siss-agent-shell`.
+**Goal:** Build ReBAC graph, PostgreSQL schema, and relationship lifecycle.
 
-**Owns (may modify only these files):**
-- `crates/siss-dispatcher/src/executor.rs`
-- `crates/siss-dispatcher/Cargo.toml`
+**Owns:**
+- `crates/siss-behavioral-firewall/src/rebac/mod.rs` (create)
+- `crates/siss-behavioral-firewall/src/rebac/graph.rs` (create)
+- `crates/siss-behavioral-firewall/src/rebac/relationship.rs` (create)
+- `crates/siss-behavioral-firewall/src/rebac/queries.rs` (create)
+- `crates/siss-behavioral-firewall/src/lib.rs` (modify: add pub mod rebac)
+- `migrations/001_create_relationships_table.sql` (create)
 
-**Context (read before touching):**
-- `siss-agent-shell/src/events/emitter.rs` — `EventEmitter` trait: `fn emit(&self, event: AgentEvent)`
-- `siss-agent-shell/src/events/mod.rs` — `AgentEvent` enum variants
-- `siss-dispatcher/src/executor.rs` — `Executor` struct, `run_loop()`, `spawn_agents()`, `assign_next_task()`, `finalize_tasks()`
+**Key Types:**
+```rust
+pub enum RelationType {
+    Owner,      // Full control
+    Operator,   // Lifecycle management
+    Observer,   // Read-only
+    Delegate,   // Grant permissions
+    Participant,// Consensus voting
+    Initiator,  // Resource creator
+}
 
-**Work:**
-1. Add `siss-agent-shell` to `crates/siss-dispatcher/Cargo.toml` deps
-2. Add `emitter: Box<dyn EventEmitter>` field to `Executor` struct (default: `NoOpEmitter`)
-3. In `spawn_agents()`: emit `AgentEvent::SessionStarted` per agent
-4. In `assign_next_task()`: emit `AgentEvent::TaskCreated` when task assigned
-5. In `finalize_tasks()`: emit `AgentEvent::IntentCompleted` per completed task
-6. Add `pub fn set_emitter(&mut self, emitter: Box<dyn EventEmitter>)` on `Executor`
-
-**Constraints:**
-- Do NOT change any other file. Only `executor.rs` and `Cargo.toml`.
-- Do NOT break existing Phase 30 behavior — event emission is additive.
-- `NoOpEmitter` remains the default so existing tests pass without changes.
-
-**Success Criteria:**
-- [ ] `cargo check -p siss-dispatcher` passes
-- [ ] `Executor::set_emitter()` is a public method
-- [ ] `executor.rs` calls `self.emitter.emit(...)` at task assignment, completion, and spawn
-- [ ] Existing `cargo test -p siss-dispatcher` (if any tests) still pass
-- [ ] No new clippy warnings in `siss-dispatcher`
-
----
-
-## Task 3: Cockpit SSE Server *(Wave 2 — parallel with Tasks 2 and 4)*
-
-**Goal:** Build a standalone Axum HTTP server (port 8080) that fans out agent events via SSE and accepts pause/resume/abort control signals.
-
-**Owns (may modify only these files):**
-- `crates/siss-cockpit/src/server.rs` (create)
-- `crates/siss-cockpit/src/state.rs` (create)
-- `crates/siss-cockpit/src/handlers/stream.rs` (create)
-- `crates/siss-cockpit/src/handlers/control.rs` (create)
-- `crates/siss-cockpit/src/lib.rs` (overwrite Task 1's stub with full module declarations)
-
-**Context (read before touching — copy the pattern, not the code):**
-- `siss-enclave/src/events/sse_emitter.rs` — `SseEmitter` with `broadcast::Sender`
-- `siss-enclave/src/api/ag_ui.rs` — Axum SSE handler: `async_stream::stream!` + `broadcast::Receiver` + `Sse::new().keep_alive()`
-- `siss-enclave/src/api/router.rs` — `Router` mounting pattern
-
-**Work:**
-1. `state.rs`: `CockpitState { broadcast: broadcast::Sender<AgEvent>, buffer: Arc<Mutex<VecDeque<AgEvent>>> }`. Buffer max 1000 events. Methods: `send_event()`, `subscribe()`, `get_buffer_snapshot()`.
-2. `handlers/stream.rs`: `GET /api/agents/stream` — on connect, send buffered events first, then live stream via `broadcast::Receiver`. `Sse::new(stream).keep_alive(KeepAlive::default())`.
-3. `handlers/control.rs`: `POST /api/agents/:id/pause`, `POST /api/agents/:id/resume`, `POST /api/agents/:id/abort` — send `ControlSignal` to `mpsc::Sender`. Return 202 Accepted.
-4. `server.rs`: `CockpitServer::run(port: u16)` — creates Axum router, mounts all routes, spawns tokio server.
-
-**Constraints:**
-- Do NOT write any HTML/JS. That's Task 4's scope.
-- Do NOT touch `siss-dispatcher`. Integration is Task 2's job.
-- Follow siss-enclave's SSE pattern exactly — do not invent a different approach.
-
-**Success Criteria:**
-- [ ] `cargo check -p siss-cockpit` passes
-- [ ] `GET /api/agents/stream` compiles as SSE endpoint
-- [ ] `POST /api/agents/:id/pause` compiles and returns `StatusCode::ACCEPTED`
-- [ ] `CockpitState::send_event()` stores event in buffer + broadcasts to all subscribers
-- [ ] On reconnect, buffer snapshot is sent before live stream begins
-- [ ] No clippy warnings in `siss-cockpit`
-
----
-
-## Task 4: Dashboard UI *(Wave 2 — parallel, fully independent)*
-
-**Goal:** Build a single-page HTML dashboard that reads SSE events from `/api/agents/stream` and displays live agent status with pause/resume/abort controls.
-
-**Owns (may modify only these files):**
-- `crates/siss-cockpit/ui/index.html` (create)
-- `crates/siss-cockpit/ui/dashboard.js` (create)
-
-**Context:**
-- Dashboard talks to `GET /api/agents/stream` (SSE endpoint from Task 3)
-- Dashboard sends `POST /api/agents/:id/pause`, `/resume`, `/abort` (control endpoints from Task 3)
-- Events are JSON: `{ event_type: "TaskAssigned" | "ToolCall" | "IntentCompleted", agent_id, task_id, payload, timestamp }`
-
-**Work:**
-1. `index.html`: Grid of 5 agent cards. Each card shows: agent ID, current task, status badge (idle/working/paused/completed), streaming output textarea, Pause/Resume/Abort buttons.
-2. `dashboard.js`:
-   - `EventSource('/api/agents/stream')` with auto-reconnect (exponential backoff, max 30s)
-   - On event: parse JSON, update correct agent card
-   - Buttons: `fetch('/api/agents/${id}/pause', { method: 'POST' })` etc.
-   - Handle SSE disconnect: show "Reconnecting..." indicator, re-attempt with backoff
-   - Keep last 500 lines of output per agent in textarea
-
-**Constraints:**
-- Pure HTML + vanilla JS only. No React, Vue, or bundler.
-- No build step. File must work when served as static file.
-- Do NOT modify any Rust code.
-
-**Success Criteria:**
-- [ ] `index.html` opens in Chrome without console errors
-- [ ] Dashboard shows 5 agent card slots with status badges
-- [ ] Pause button sends POST to correct endpoint
-- [ ] Auto-reconnect logic is present in `dashboard.js`
-- [ ] Textarea shows streaming output (last 500 lines)
-
----
-
-## Task 5: Integration Tests *(Wave 3 — after Tasks 2 and 3 complete)*
-
-**Goal:** Write 8 integration tests for Phase 31 that verify the full observability stack works end-to-end.
-
-**Owns (may modify only these files):**
-- `crates/demo-app/tests/phase_31_ag_ui_integration_test.rs` (create)
-
-**Context (read before touching):**
-- `crates/demo-app/tests/orchestration_integration_test.rs` — Phase 30 test pattern to follow
-- `siss-agent-shell/src/events/` — AgentEvent types used in assertions
-- `siss-cockpit/src/state.rs` — CockpitState API for test setup
-
-**Tests to write:**
-
-1. `test_ag_ui_broadcaster_emits_event_on_task_assignment`
-2. `test_cockpit_sse_stream_broadcasts_all_events`
-3. `test_cockpit_pause_signal_pauses_agent_execution`
-4. `test_cockpit_resume_signal_resumes_from_checkpoint`
-5. `test_event_ordering_maintained_under_5_concurrent_agents`
-6. `test_sse_connection_loss_and_reconnect_with_buffered_events`
-7. `test_pause_idempotency`
-8. `test_abort_releases_control_signal`
-
-**Constraints:**
-- Do NOT modify Tasks 2 or 3 source files. Tests must work with APIs as-built.
-- Follow Phase 30 test patterns from `orchestration_integration_test.rs`.
-- No live network calls in tests — use in-process server setup (bind to random port).
-
-**Success Criteria:**
-- [ ] All 8 tests compile without errors
-- [ ] All 8 tests pass: `cargo test --test phase_31_ag_ui_integration_test -p demo-app`
-- [ ] No `#[ignore]` or `#[should_panic]` markers (all tests verify real behavior)
-- [ ] Phase 30 tests still pass: `cargo test --test orchestration_integration_test -p demo-app`
-
----
-
-## Merge Order (Topological)
-
-```
-Task 1 → merge first (unblocks all others)
-Tasks 2, 3, 4 → merge in any order (no dependencies between them)
-Task 5 → merge last (depends on 2 and 3 being in main)
+pub struct Relationship {
+    pub id: Uuid,
+    pub from: SovereignIdentity,
+    pub to_resource: PolicyResource,
+    pub rel_type: RelationType,
+    pub created_at: SystemTime,
+    pub expires_at: Option<SystemTime>,
+}
 ```
 
-## Final Verification (after all merges)
+**PostgreSQL Schema:**
+```sql
+CREATE TABLE relationships (
+    id UUID PRIMARY KEY,
+    from_sovereign UUID NOT NULL,
+    to_resource_type TEXT NOT NULL,
+    to_resource_id UUID NOT NULL,
+    relationship_type TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    expires_at TIMESTAMPTZ,
+    revoked_at TIMESTAMPTZ
+);
 
-```bash
-cargo check --all
-cargo test --test phase_31_ag_ui_integration_test -p demo-app
-cargo test --test orchestration_integration_test -p demo-app
-cargo clippy --all -- -D warnings
+CREATE TABLE relationship_audit (
+    id BIGSERIAL PRIMARY KEY,
+    relationship_id UUID REFERENCES relationships(id),
+    event_type TEXT NOT NULL,
+    event_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_relationships_from ON relationships(from_sovereign);
+CREATE INDEX idx_relationships_expires ON relationships(expires_at);
 ```
 
-Expected: All tests pass, zero warnings, clean compile.
+**Tests (12+):**
+- Grant relationship (success + duplicate error)
+- Revoke relationship
+- Verify relationship with action mapping
+- Expired relationships filtered
+- List relationships for sovereign
+- Action mapping per RelationType
+
+**Success Criteria:**
+- [ ] `cargo check -p siss-behavioral-firewall` passes
+- [ ] `cargo test -p siss-behavioral-firewall` 12/12 ✓
+- [ ] No clippy warnings
+- [ ] PostgreSQL schema compiles (sqlx prepare)
+
+---
+
+## Task 2: AP2 Evaluator + Sovereign Attribute Cache *(Wave 2 — Parallel)*
+
+**Goal:** Build AP2 policy engine and cache-first attribute store.
+
+**Owns:**
+- `crates/siss-behavioral-firewall/src/ap2/mod.rs` (create)
+- `crates/siss-behavioral-firewall/src/ap2/evaluator.rs` (create)
+- `crates/siss-behavioral-firewall/src/ap2/attribute_store.rs` (create)
+- `crates/siss-behavioral-firewall/src/ap2/rules.rs` (create)
+- `crates/siss-behavioral-firewall/src/lib.rs` (modify: add pub mod ap2)
+- `migrations/002_create_attributes_tables.sql` (create)
+
+**Key Types:**
+```rust
+pub enum AttributePredicate {
+    TrustLevel(u32),
+    ReputationScore(i32),
+    SenioritySince(SystemTime),
+    NotBlacklisted,
+    HasCertification(String),
+    And(Box<AttributePredicate>, Box<AttributePredicate>),
+    Or(Box<AttributePredicate>, Box<AttributePredicate>),
+    Not(Box<AttributePredicate>),
+}
+
+pub struct SovereignAttributes {
+    pub trust_level: u32,    // 0-100
+    pub reputation: i32,
+    pub joined_at: SystemTime,
+    pub blacklisted: bool,
+    pub certifications: Vec<String>,
+}
+
+pub struct SovereignAttributeCache {
+    cache: Arc<DashMap<Uuid, CachedAttribute>>,
+    freshness_window: Duration, // 5 minutes
+}
+```
+
+**Tests (15+):**
+- Attribute cache hit + miss
+- Freshness window (>5min → re-fetch)
+- Invalidation on demand
+- All AttributePredicate variants
+- Priority-ordered rule evaluation
+- Deny-override rule
+
+**Success Criteria:**
+- [ ] `cargo test -p siss-behavioral-firewall` 15+ ✓
+- [ ] Cache freshness enforced (5-minute window)
+- [ ] Immediate invalidation working
+- [ ] No clippy warnings
+
+---
+
+## Task 3: TemporalGuard + Rate Limiting *(Wave 2 — Parallel)*
+
+**Goal:** Implement rate limiting (60 req/min), UTC time windows, blackout dates.
+
+**Owns:**
+- `crates/siss-behavioral-firewall/src/temporal/mod.rs` (create)
+- `crates/siss-behavioral-firewall/src/temporal/guard.rs` (create)
+- `crates/siss-behavioral-firewall/src/temporal/rate_limiter.rs` (create)
+- `crates/siss-behavioral-firewall/src/temporal/window_checker.rs` (create)
+- `crates/siss-behavioral-firewall/src/lib.rs` (modify: add pub mod temporal)
+
+**Key Types:**
+```rust
+pub struct TemporalGuard {
+    rate_limiter: Arc<DashMap<Uuid, RateLimit>>,
+    time_windows: Arc<Vec<TimeWindow>>,
+}
+
+pub struct TimeWindow {
+    pub applies_to: PolicyAction,
+    pub allowed_hours: Vec<(u8, u8)>,      // UTC only
+    pub blackout_dates: Vec<(u32, u32)>,   // (month, day)
+}
+```
+
+**Rate Limit Logic:**
+- 60 requests per minute per sovereign
+- Sliding window (old requests expire after 60s)
+- In-memory (DashMap), no DB
+
+**Time Windows:**
+- UTC only (chrono::Utc)
+- Allowed hours: (0-23, 0-23)
+- Blackout dates: (1-12, 1-31)
+
+**Tests (12+):**
+- Rate limit (60 allowed, 61st denied)
+- Sliding window expiry
+- Time window enforcement (allowed hours)
+- Blackout date blocking
+- UTC-only (no Local time)
+- Multiple sovereigns isolated
+
+**Success Criteria:**
+- [ ] `cargo test -p siss-behavioral-firewall` 12+ ✓
+- [ ] Rate limiter thread-safe (DashMap)
+- [ ] All time ops use UTC
+- [ ] No clippy warnings
+
+---
+
+## Task 4: PolicyEngine Composition + Cycle Detection *(Wave 2 — Parallel)*
+
+**Goal:** Wire ReBAC, AP2, TemporalGuard. Add cycle detection and decision cache.
+
+**Owns:**
+- `crates/siss-behavioral-firewall/src/policy_engine.rs` (create)
+- `crates/siss-behavioral-firewall/src/mandate_verifier.rs` (create)
+- `crates/siss-behavioral-firewall/src/cycle_detection.rs` (create)
+- `crates/siss-behavioral-firewall/src/cache.rs` (create)
+- `crates/siss-behavioral-firewall/src/lib.rs` (modify: export + pub trait MandateVerifier)
+
+**Key Types:**
+```rust
+pub trait MandateVerifier: Send + Sync {
+    fn verify_mandate(
+        &self,
+        requester: &SovereignIdentity,
+        action: &PolicyAction,
+        resource: &PolicyResource,
+        context: &RequestContext,
+    ) -> Result<Mandate, DenyReason>;
+}
+
+pub enum AllowDeny {
+    Allow,
+    Deny,
+}
+
+pub struct Mandate {
+    pub decision: AllowDeny,
+    pub reasons: Vec<String>,
+    pub audit_id: Uuid,
+}
+
+pub enum DenyReason {
+    ReBAC(String),
+    AP2(String),
+    TemporalViolation(String),
+    Unknown(String),
+}
+```
+
+**Three-Phase Evaluation:**
+1. ReBAC: Verify relationship
+2. AP2: Evaluate attributes
+3. Temporal: Check rate limit + time window
+→ **All must pass. One deny = entire deny.**
+
+**Cycle Detection (DFS):**
+- Max depth = 3
+- Reject if cycle found
+- RelationType::Delegate only
+
+**Decision Cache:**
+- DashMap-based key="{requester}:{action}:{resource}"
+- Invalidate immediately on relationship changes
+- Atomic invalidation per sovereign
+
+**Tests (18+):**
+- Three-phase evaluation (all pass → Allow)
+- One phase fails → Deny
+- Decision cache hit + miss
+- Immediate invalidation
+- Cycle detection (DFS, max depth 3)
+- Audit ID generation
+- All DenyReason variants
+
+**Success Criteria:**
+- [ ] `cargo test -p siss-behavioral-firewall` 18+ ✓
+- [ ] All three phases evaluated in order
+- [ ] Deny-override rule (one deny = deny all)
+- [ ] Cycle detection working (max depth 3)
+- [ ] Cache invalidation immediate
+- [ ] No clippy warnings
+
+---
+
+## Task 5: Audit Logging + S3 Archive Export *(Wave 3 — Sequential)*
+
+**Goal:** Build audit logging and 90-day TTL + S3 archive export.
+
+**Owns:**
+- `crates/siss-behavioral-firewall/src/audit.rs` (create)
+- `crates/siss-behavioral-firewall/src/archive.rs` (create)
+- `crates/siss-behavioral-firewall/src/lib.rs` (modify: add pub mod audit, pub mod archive)
+- `migrations/003_create_audit_tables.sql` (create)
+
+**Audit Schema:**
+```sql
+CREATE TABLE audit_log (
+    id BIGSERIAL PRIMARY KEY,
+    audit_id UUID UNIQUE,
+    requester UUID NOT NULL,
+    action TEXT NOT NULL,
+    decision TEXT NOT NULL, -- 'Allow' or 'Deny'
+    reasons JSONB NOT NULL,
+    timestamp TIMESTAMPTZ DEFAULT NOW(),
+    expires_at TIMESTAMPTZ DEFAULT NOW() + INTERVAL '90 days'
+);
+
+CREATE INDEX idx_audit_expires ON audit_log(expires_at);
+```
+
+**Audit Entry:**
+```rust
+pub struct AuditEntry {
+    pub audit_id: Uuid,
+    pub requester: SovereignIdentity,
+    pub action: PolicyAction,
+    pub resource: PolicyResource,
+    pub decision: AllowDeny,
+    pub reasons: Vec<String>,
+    pub timestamp: SystemTime,
+}
+```
+
+**S3 Archive Export:**
+- Format: JSONL + gzip
+- Trigger: 90-day expiry
+- Delete from hot storage after export
+- Immutable append-only S3 storage
+
+**Tests (10+):**
+- AuditEntry creation (Allow + Deny)
+- Audit log insertion
+- S3 export (mock client)
+- JSONL compression
+- 90-day TTL enforcement
+- Deletion after export
+
+**Success Criteria:**
+- [ ] `cargo test -p siss-behavioral-firewall` 10+ ✓
+- [ ] Audit logs to PostgreSQL
+- [ ] S3 export working (gzipped JSONL)
+- [ ] 90-day TTL + delete working
+- [ ] No clippy warnings
+
+---
+
+## Wave Execution Plan
+
+```
+Wave 1 (Sequential)
+└─ Task 1: ReBAC Foundation
+   └─ GATE: Tests pass + schema valid
+   
+Wave 2 (Parallel — 3 agents)
+├─ Task 2: AP2 Evaluator
+├─ Task 3: TemporalGuard
+└─ Task 4: PolicyEngine + Cycle Detection
+   └─ GATE: All three tasks merge clean
+   
+Wave 3 (Sequential)
+└─ Task 5: Audit + Archive
+   └─ Complete: All tests pass
+```
+
+---
+
+## Final Merge & Completion
+
+After all 5 tasks:
+1. Merge Wave 1 → main
+2. Merge Wave 2 (Tasks 2, 3, 4 topologically) → main
+3. Merge Wave 3 (Task 5) → main
+4. Final: `git commit -m "Phase 25: Behavioral Firewall complete — ReBAC+AP2 policy engine active"`
+
+**Success Metrics:**
+- [ ] All 55+ tests passing
+- [ ] `cargo clippy --all -- -D warnings` zero warnings
+- [ ] SPEC.md locked with architectural decisions
+- [ ] HANDOFF.md complete + verified
+- [ ] EXEC_LOG.json updated with Phase 25 checkpoint
+- [ ] Dispatcher/Router integration hooks ready (not wired yet)
+
+---
+
+**Status:** Ready to begin Wave 1 implementation (Task 1: ReBAC Foundation).

@@ -2,6 +2,7 @@
 /// Every pixel interaction is logged with mandate, screenshot delta, and token cost.
 
 use crate::swarm_mcp_server::{SwarmMcpServer, SwarmStatePayload};
+use crate::swarm_channel::{SwarmChannel, SwarmMessage};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -22,6 +23,7 @@ pub struct PixelProvenanceRecord {
     pub after_screenshot_path: Option<String>,
     pub token_cost: i64,
     pub recorded_at: DateTime<Utc>,
+    pub failure_reason: Option<String>,    // None = success (skip CIPO), Some("reason") = route to retraining
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -33,16 +35,22 @@ pub enum ProvenanceError {
 
 pub struct PixelProvenanceRecorder {
     server: Arc<SwarmMcpServer>,
+    channel: Option<Arc<SwarmChannel>>,
 }
 
 impl PixelProvenanceRecorder {
     pub fn new(server: Arc<SwarmMcpServer>) -> Self {
-        PixelProvenanceRecorder { server }
+        PixelProvenanceRecorder { server, channel: None }
+    }
+
+    pub fn new_with_channel(server: Arc<SwarmMcpServer>, channel: Arc<SwarmChannel>) -> Self {
+        PixelProvenanceRecorder { server, channel: Some(channel) }
     }
 
     /// RULE 1: record.intent_mandate_id == Uuid::nil() → Err(MissingMandate)
     /// RULE 2: Serialize record → SwarmStatePayload
     /// RULE 3: server.update_swarm_state(payload) → Ok(())
+    /// RULE 4: If channel is Some, broadcast SwarmMessage::PixelProvenance (errors silently ignored)
     pub async fn record(&self, record: &PixelProvenanceRecord) -> Result<(), ProvenanceError> {
         if record.intent_mandate_id == Uuid::nil() {
             return Err(ProvenanceError::MissingMandate);
@@ -66,6 +74,19 @@ impl PixelProvenanceRecorder {
             .update_swarm_state(payload)
             .await
             .map_err(|e| ProvenanceError::StoreFailed(e))?;
+
+        if let Some(channel) = &self.channel {
+            let msg = SwarmMessage::PixelProvenance {
+                provenance_id: record.provenance_id,
+                agent_id: record.agent_id.clone(),
+                action_type: record.action_type.clone(),
+                action_x: record.action_x,
+                action_y: record.action_y,
+                token_cost: record.token_cost,
+                mandate_id: record.intent_mandate_id,
+            };
+            let _ = channel.broadcast(msg);
+        }
 
         Ok(())
     }

@@ -207,7 +207,7 @@ async fn test_escalation_inbox_phase_isolation() {
 fn test_telemetry_hub_reports_state() {
     let tmux = MockTmuxSpawner::new();
     let ledger = Arc::new(InMemorySwarmState::new());
-    let channel = Arc::new(SwarmChannel::new(100));
+    let channel = Arc::new(SwarmChannel::with_capacity(100));
     let hub = AoETelemetryHub::new(tmux, ledger, channel);
 
     let agent_id = Uuid::new_v4();
@@ -234,7 +234,7 @@ fn test_telemetry_hub_reports_state() {
 async fn test_telemetry_hub_kill_switch_terminates_tmux() {
     let tmux = MockTmuxSpawner::new();
     let ledger = Arc::new(InMemorySwarmState::new());
-    let channel = Arc::new(SwarmChannel::new(100));
+    let channel = Arc::new(SwarmChannel::with_capacity(100));
     let hub = AoETelemetryHub::new(tmux.clone(), ledger, channel);
 
     let agent_id = Uuid::new_v4();
@@ -253,7 +253,7 @@ async fn test_telemetry_hub_kill_switch_terminates_tmux() {
 async fn test_telemetry_hub_kill_switch_fails_unknown_agent() {
     let tmux = MockTmuxSpawner::new();
     let ledger = Arc::new(InMemorySwarmState::new());
-    let channel = Arc::new(SwarmChannel::new(100));
+    let channel = Arc::new(SwarmChannel::with_capacity(100));
     let hub = AoETelemetryHub::new(tmux, ledger, channel);
 
     let unknown_agent = Uuid::new_v4();

@@ -103,6 +103,15 @@ pub enum SwarmMessage {
         target_agent_id: Uuid,
         payload: serde_json::Value,
     },
+    PixelProvenance {
+        provenance_id: Uuid,
+        agent_id: String,
+        action_type: String,
+        action_x: Option<f64>,
+        action_y: Option<f64>,
+        token_cost: i64,
+        mandate_id: Uuid,
+    },
 }
 
 impl SwarmMessage {
@@ -126,6 +135,14 @@ impl SwarmMessage {
                 }
                 Ok(())
             }
+            SwarmMessage::PixelProvenance { mandate_id, .. } => {
+                if *mandate_id == Uuid::nil() {
+                    return Err(ChannelError::SchemaMismatch(
+                        "PixelProvenance.mandate_id cannot be nil".to_string(),
+                    ));
+                }
+                Ok(())
+            }
         }
     }
 }
@@ -136,7 +153,12 @@ pub struct SwarmChannel {
 }
 
 impl SwarmChannel {
-    pub fn new(capacity: usize) -> Self {
+    pub fn new() -> Self {
+        let (sender, _) = broadcast::channel(256);
+        SwarmChannel { sender }
+    }
+
+    pub fn with_capacity(capacity: usize) -> Self {
         let (sender, _) = broadcast::channel(capacity);
         SwarmChannel { sender }
     }

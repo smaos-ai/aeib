@@ -215,6 +215,7 @@ async fn test_provenance_records_with_valid_mandate() {
         after_screenshot_path: Some("/tmp/after.png".to_string()),
         token_cost: 42,
         recorded_at: Utc::now(),
+        failure_reason: None,
     };
 
     let result = recorder.record(&record).await;
@@ -251,6 +252,7 @@ async fn test_provenance_rejects_nil_mandate() {
         after_screenshot_path: None,
         token_cost: 0,
         recorded_at: Utc::now(),
+        failure_reason: None,
     };
 
     let result = recorder.record(&record).await;

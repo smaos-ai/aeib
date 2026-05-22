@@ -171,7 +171,7 @@ fn test_mandate_delegation_unauthorized_tool() {
 #[test]
 fn test_channel_invalid_progress_rejected() {
     // GIVEN: SwarmChannel
-    let channel = SwarmChannel::new(10);
+    let channel = SwarmChannel::with_capacity(10);
 
     // WHEN: attempt to broadcast StatusUpdate with invalid progress_pct (101)
     let msg = SwarmMessage::StatusUpdate {

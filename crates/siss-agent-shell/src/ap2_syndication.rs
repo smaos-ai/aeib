@@ -6,7 +6,7 @@ use siss_gatekeeper::tokens::IntentMandate;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CreatorDid {
     pub did: String,  // "did:sovereign:agent_id" format
     pub agent_id: Uuid,

@@ -1,11 +1,14 @@
 pub mod a2a;
+pub mod a2a_dispatcher;
 pub mod a2ui;
 pub mod aoe_telemetry;
 pub mod ag_ui;
+pub mod anp_registry;
 pub mod ap2_syndication;
 pub mod batch_orchestrator;
 pub mod covenant_charter;
 pub mod crafter_runtime;
+pub mod crdt_sync;
 pub mod distillation_gate;
 pub mod escalation_inbox;
 pub mod events;

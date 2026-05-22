@@ -2917,6 +2917,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "siss-audit-archiver"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_json",
+ "uuid",
+]
+
+[[package]]
+name = "siss-bandwidth-monitor"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "uuid",
+]
+
+[[package]]
 name = "siss-behavioral-firewall"
 version = "0.1.0"
 dependencies = [
@@ -3160,6 +3179,25 @@ dependencies = [
  "sysinfo",
  "thiserror 2.0.18",
  "tokio",
+]
+
+[[package]]
+name = "siss-otel-tracer"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "uuid",
+]
+
+[[package]]
+name = "siss-telemetry-router"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_json",
+ "uuid",
 ]
 
 [[package]]

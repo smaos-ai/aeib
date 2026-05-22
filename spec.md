@@ -1,583 +1,401 @@
-# Phase 25 SPEC — Behavioral Firewall: ReBAC + AP2 Policy Engine
+# WAVE 3: Unified Observability Layer — Complete Specification
 
-**Status:** Design Review (Pre-Implementation)  
-**Date:** 2026-05-22  
-**Crate:** `siss-behavioral-firewall` (existing, to be expanded)  
-**Priority:** CRITICAL (security-gating layer before scale)
+## Executive Summary
 
----
+Wave 3 transforms the behavioral firewall from opaque to transparent. Every access decision, rate-limit trigger, and attribute evaluation now emits structured telemetry that flows directly into the A2UI cockpit via Server-Sent Events (SSE). The Strategic Orchestrator sees the exact failure trace in real-time, enabling diagnosis of silent denials and performance bottlenecks at scale.
 
-## 1. Executive Summary
-
-The SISS v2.0 system must not process any agent request, task dispatch, or consensus decision without first **verifying the mandate to act**. This phase implements a **Relationship-Based Access Control (ReBAC) + Attribute-Based Access Control (AP2) Policy Engine** that acts as an impenetrable behavioral firewall.
-
-**Key Decision:** No scale without this layer. All agent actions, task assignments, and consent grants flow through mandatory policy evaluation.
+**Strategic Principle:** We will not scale beyond 1,000 concurrent tasks/min without the nervous system connected. Observability is not optional; it is a prerequisite for Wave 4.
 
 ---
 
-## 1a. LOCKED Architectural Decisions (User-Approved)
-
-### Decision 1: Relationship Persistence → **PostgreSQL-Backed** ✅
-**Rationale:** Governance state cannot be volatile. Durability and queryability are non-negotiable. While in-memory graphs offer microsecond lookups, deterministic execution and governance layers require durable, auditable records that survive restarts. PostgreSQL ensures Fail-Closed semantics.
-
-**Implementation:** ReBAC graph persisted to `siss_relationships` table with triggers for audit trail auto-logging.
-
-### Decision 2: AP2 Attribute Source → **Cache-First** ✅
-**Rationale:** High-velocity swarm orchestration (1000+ tasks/min) cannot afford database round-trips. 50µs cache hits are mandatory. Strict freshness windows (5-60s) mitigate staleness risks. Contingent on Decision 4 (immediate invalidation).
-
-**Implementation:** `SovereignAttributeCache` with DashMap + TTL eviction. Invalidate on attribute mutations.
-
-### Decision 3: Delegation Model → **Transitive with Cycle Detection** ✅
-**Rationale:** Enterprise adoption requires transitive delegation (A → B → C) to mirror real org hierarchies. Phase 6 Delegation Chains specification mandates this. Direct-only delegation creates unacceptable operational friction. Enforce max depth = 3 to prevent infinite loops.
-
-**Implementation:** Depth-first cycle detection on every delegation grant. Reject if depth > 3 or cycle detected.
-
-### Decision 4: Cache Invalidation → **Immediate (Eager)** ✅
-**Rationale:** 60-second TTL windows violate Zero-Trust architecture and Correctness Doctrine. If trust_level drops or a mandate is revoked, policy state must update instantly. Accept higher overhead on relationship churn to guarantee 100% consistency.
-
-**Implementation:** On every relationship/attribute mutation, invalidate all cached decisions for that sovereign immediately (DashMap::clear_namespace).
-
-### Decision 5: Audit Log Retention → **TTL + Archive (90-day hot, S3 cold)** ✅
-**Rationale:** Indefinite hot logs in PostgreSQL degrade ReBAC query performance and cockpit latency. 90-day TTL keeps operational database lean. S3 cold storage preserves 100-year cryptographic paper trail required by AP2 Timestamp and Burn Protocol.
-
-**Implementation:** Hot logs in `audit_log` table with 90-day expiry trigger. Daily batch export to S3 immutable archive.
-
----
-
-## 2. Strategic Architecture
-
-### 2.1 System Integration Points
-
-```
-Agent Request
-    ↓
-[MandateVerifier] ← evaluate policy
-    ↓
-   ✓ ALLOWED → dispatcher/task-router
-   ✗ DENIED  → audit log + reject signal
-```
-
-**Three evaluation phases (all must pass):**
-1. **ReBAC Phase:** Does the requester have the necessary *relationships* to agents/tasks/resources?
-2. **AP2 Phase:** Do the requester's *attributes* satisfy policy predicates?
-3. **Temporal Phase:** Is the request within valid time windows and not violating rate limits?
-
-If ANY phase denies → request is **REJECTED** (fail-closed).
-
----
-
-## 3. Core Traits & Types
-
-### 3.1 MandateVerifier Trait
-
-```rust
-/// Unified mandate verification interface.
-/// Evaluates whether an action should proceed based on ReBAC + AP2 + temporal constraints.
-pub trait MandateVerifier: Send + Sync {
-    /// Verify if an agent may perform an action on a resource.
-    /// Returns Ok(Mandate) if approved, Err(DenyReason) if rejected.
-    fn verify_mandate(
-        &self,
-        requester: &SovereignIdentity,
-        action: &PolicyAction,
-        resource: &PolicyResource,
-        context: &RequestContext,
-    ) -> Result<Mandate, DenyReason>;
-
-    /// Async version for high-latency policy evaluations (external services, etc).
-    async fn verify_mandate_async(
-        &self,
-        requester: &SovereignIdentity,
-        action: &PolicyAction,
-        resource: &PolicyResource,
-        context: &RequestContext,
-    ) -> Result<Mandate, DenyReason> {
-        // Default: call sync version
-        self.verify_mandate(requester, action, resource, context)
-    }
-}
-
-/// Approval decision with audit trail.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Mandate {
-    pub decision: AllowDeny,
-    pub reasons: Vec<EvaluationReason>,
-    pub expires_at: Option<Instant>,
-    pub audit_id: Uuid,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum AllowDeny {
-    Allow,
-    Deny,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum DenyReason {
-    ReBAC(String),                    // No required relationship found
-    AP2(String),                      // Attribute predicate failed
-    TemporalViolation(String),        // Outside valid window or rate limit exceeded
-    AuditBlocked(String),             // Explicit audit flag
-    Unknown(String),
-}
-```
-
-### 3.2 PolicyEngine (Core Implementation)
-
-```rust
-/// Main policy evaluation engine. Composes ReBAC, AP2, and temporal rules.
-pub struct PolicyEngine {
-    rebac_graph: ReBAC,
-    ap2_evaluator: AP2Evaluator,
-    temporal_guard: TemporalGuard,
-    audit_log: Arc<Mutex<Vec<AuditEntry>>>,
-    decision_cache: Arc<DashMap<String, CachedDecision>>,
-}
-
-impl PolicyEngine {
-    pub fn new(
-        rebac_graph: ReBAC,
-        ap2_evaluator: AP2Evaluator,
-        temporal_guard: TemporalGuard,
-    ) -> Self { ... }
-
-    /// Evaluate all three phases in order.
-    fn evaluate_mandate_internal(
-        &self,
-        requester: &SovereignIdentity,
-        action: &PolicyAction,
-        resource: &PolicyResource,
-        context: &RequestContext,
-    ) -> Result<Mandate, DenyReason> {
-        // Phase 1: ReBAC — relationship verification
-        let rebac_result = self.rebac_graph.verify_relationship(requester, resource, action)?;
-
-        // Phase 2: AP2 — attribute evaluation
-        let ap2_result = self.ap2_evaluator.evaluate(requester, action, context)?;
-
-        // Phase 3: Temporal — time & rate constraints
-        let temporal_result = self.temporal_guard.check(requester, action, context)?;
-
-        // Combine results into Mandate
-        Ok(Mandate {
-            decision: AllowDeny::Allow,
-            reasons: vec![
-                EvaluationReason::ReBAC(rebac_result),
-                EvaluationReason::AP2(ap2_result),
-                EvaluationReason::Temporal(temporal_result),
-            ],
-            expires_at: temporal_result.expiration,
-            audit_id: Uuid::new_v4(),
-        })
-    }
-}
-
-impl MandateVerifier for PolicyEngine {
-    fn verify_mandate(
-        &self,
-        requester: &SovereignIdentity,
-        action: &PolicyAction,
-        resource: &PolicyResource,
-        context: &RequestContext,
-    ) -> Result<Mandate, DenyReason> {
-        // Check cache first
-        let cache_key = format!("{:?}:{:?}:{:?}", requester, action, resource);
-        if let Some(cached) = self.decision_cache.get(&cache_key) {
-            if !cached.expires_at.has_passed() {
-                return Ok(cached.mandate.clone());
-            }
-        }
-
-        // Evaluate fresh
-        let mandate = self.evaluate_mandate_internal(requester, action, resource, context)?;
-
-        // Cache for TTL
-        self.decision_cache.insert(
-            cache_key,
-            CachedDecision {
-                mandate: mandate.clone(),
-                expires_at: Instant::now() + Duration::from_secs(60), // 60s cache TTL
-            },
-        );
-
-        Ok(mandate)
-    }
-}
-```
-
-### 3.3 ReBAC Trait & Graph Model
-
-```rust
-/// Relationship-Based Access Control graph.
-/// Models relationships (sovereign → agent, agent → task, etc.) and validates if
-/// the requester has the necessary relationships to perform an action.
-pub trait ReBAC {
-    /// Check if requester has the required relationship to access resource.
-    fn verify_relationship(
-        &self,
-        requester: &SovereignIdentity,
-        resource: &PolicyResource,
-        action: &PolicyAction,
-    ) -> Result<String, DenyReason>;
-
-    /// Enumerate all relationships a sovereign has with agents/tasks/resources.
-    fn list_relationships(
-        &self,
-        requester: &SovereignIdentity,
-    ) -> Vec<Relationship>;
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum PolicyResource {
-    Agent(Uuid),                   // Agent node
-    Task(Uuid),                    // Task
-    ConsentGrant(Uuid),            // Grant approval
-    ArbitrationCycle(Uuid),        // Cycle healing decision
-    FeedbackChannel(Uuid),         // Feedback route
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum PolicyAction {
-    // Agent lifecycle
-    Spawn,
-    Pause,
-    Resume,
-    Abort,
-    Terminate,
-    
-    // Task dispatch
-    AssignTask,
-    CancelTask,
-    FinalizeTask,
-    
-    // Consensus
-    InitiateConsent,
-    VoteConsent,
-    RevokeGrant,
-    
-    // Observability
-    ReadMetrics,
-    StreamEvents,
-    
-    // Admin
-    CreatePolicy,
-    UpdatePolicy,
-    DeletePolicy,
-}
-
-/// Relationship graph structure (in-memory + persistent).
-pub struct ReBAC {
-    graph: Arc<DashMap<SovereignIdentity, Vec<Relationship>>>,
-    db: Arc<PgPool>, // For persistence
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Hash, Eq, PartialEq)]
-pub struct Relationship {
-    pub from: SovereignIdentity,
-    pub to: PolicyResource,
-    pub rel_type: RelationType,
-    pub created_at: Instant,
-    pub expires_at: Option<Instant>,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, Hash, Eq, PartialEq)]
-pub enum RelationType {
-    Owner,          // Full control over resource
-    Operator,       // Can manage resource lifecycle
-    Observer,       // Read-only access to metrics/events
-    Delegate,       // Can grant permissions to others
-    Participant,    // Can contribute to consensus
-    Initiator,      // Initiated the resource
-}
-
-impl ReBAC {
-    pub fn verify_relationship(
-        &self,
-        requester: &SovereignIdentity,
-        resource: &PolicyResource,
-        action: &PolicyAction,
-    ) -> Result<String, DenyReason> {
-        // Lookup requester's relationships
-        let Some(relationships) = self.graph.get(requester) else {
-            return Err(DenyReason::ReBAC(
-                format!("No relationships found for {:?}", requester)
-            ));
-        };
-
-        // Find matching relationship & validate action
-        for rel in relationships.iter() {
-            if rel.to == *resource && !rel.is_expired() {
-                if Self::action_allowed_for_relation(action, rel.rel_type) {
-                    return Ok(format!("{:?} permits {:?}", rel.rel_type, action));
-                }
-            }
-        }
-
-        Err(DenyReason::ReBAC(
-            format!("No valid relationship to perform {:?} on {:?}", action, resource)
-        ))
-    }
-
-    fn action_allowed_for_relation(action: &PolicyAction, rel_type: RelationType) -> bool {
-        match (action, rel_type) {
-            // Owner can do anything
-            (_, RelationType::Owner) => true,
-            
-            // Operator can manage lifecycle
-            (PolicyAction::Pause | PolicyAction::Resume | PolicyAction::Abort, RelationType::Operator) => true,
-            (PolicyAction::AssignTask | PolicyAction::CancelTask, RelationType::Operator) => true,
-            
-            // Observer can only read
-            (PolicyAction::ReadMetrics | PolicyAction::StreamEvents, RelationType::Observer) => true,
-            
-            // Delegate can grant perms
-            (PolicyAction::CreatePolicy | PolicyAction::UpdatePolicy, RelationType::Delegate) => true,
-            
-            // Participant can vote
-            (PolicyAction::VoteConsent, RelationType::Participant) => true,
-            
-            // Initiator can cancel their own work
-            (PolicyAction::CancelTask | PolicyAction::Abort, RelationType::Initiator) => true,
-            
-            _ => false,
-        }
-    }
-}
-```
-
-### 3.4 AP2 (Attribute-Based Access Control) Evaluator
-
-```rust
-/// Attribute-based policy evaluation.
-pub struct AP2Evaluator {
-    attribute_db: Arc<AttributeStore>,
-    policy_rules: Arc<Vec<PolicyRule>>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PolicyRule {
-    pub id: Uuid,
-    pub name: String,
-    pub predicate: AttributePredicate,
-    pub applies_to: PolicyAction,
-    pub priority: u32,
-    pub enabled: bool,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum AttributePredicate {
-    TrustLevel(u32),
-    ReputationScore(i32),
-    SenioritySince(Instant),
-    NotBlacklisted,
-    HasCertification(String),
-    And(Box<AttributePredicate>, Box<AttributePredicate>),
-    Or(Box<AttributePredicate>, Box<AttributePredicate>),
-    Not(Box<AttributePredicate>),
-}
-
-impl AP2Evaluator {
-    pub fn evaluate(
-        &self,
-        requester: &SovereignIdentity,
-        action: &PolicyAction,
-        context: &RequestContext,
-    ) -> Result<String, DenyReason> {
-        let attributes = self.attribute_db.get_attributes(requester)?;
-        let applicable_rules: Vec<_> = self.policy_rules
-            .iter()
-            .filter(|r| r.applies_to == *action && r.enabled)
-            .collect();
-
-        if applicable_rules.is_empty() {
-            return Ok("No AP2 restrictions apply".to_string());
-        }
-
-        let mut sorted_rules = applicable_rules;
-        sorted_rules.sort_by_key(|r| std::cmp::Reverse(r.priority));
-
-        for rule in sorted_rules {
-            if !self.evaluate_predicate(&rule.predicate, &attributes)? {
-                return Err(DenyReason::AP2(
-                    format!("Policy '{}' denied: {}", rule.name, rule.id)
-                ));
-            }
-        }
-
-        Ok("All AP2 policies satisfied".to_string())
-    }
-
-    fn evaluate_predicate(
-        &self,
-        predicate: &AttributePredicate,
-        attributes: &SovereignAttributes,
-    ) -> Result<bool, DenyReason> {
-        match predicate {
-            AttributePredicate::TrustLevel(required) => {
-                Ok(attributes.trust_level >= *required)
-            }
-            AttributePredicate::ReputationScore(required) => {
-                Ok(attributes.reputation >= *required)
-            }
-            AttributePredicate::SenioritySince(cutoff) => {
-                Ok(attributes.joined_at <= *cutoff)
-            }
-            AttributePredicate::NotBlacklisted => {
-                Ok(!attributes.blacklisted)
-            }
-            AttributePredicate::HasCertification(cert) => {
-                Ok(attributes.certifications.contains(cert))
-            }
-            AttributePredicate::And(left, right) => {
-                Ok(self.evaluate_predicate(left, attributes)? &&
-                   self.evaluate_predicate(right, attributes)?)
-            }
-            AttributePredicate::Or(left, right) => {
-                Ok(self.evaluate_predicate(left, attributes)? ||
-                   self.evaluate_predicate(right, attributes)?)
-            }
-            AttributePredicate::Not(inner) => {
-                Ok(!self.evaluate_predicate(inner, attributes)?)
-            }
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SovereignAttributes {
-    pub trust_level: u32,
-    pub reputation: i32,
-    pub joined_at: Instant,
-    pub blacklisted: bool,
-    pub certifications: Vec<String>,
-    pub organization: Option<String>,
-}
-```
-
-### 3.5 TemporalGuard
-
-```rust
-/// Temporal constraints: time windows, rate limits, and expiration.
-pub struct TemporalGuard {
-    rate_limiter: Arc<DashMap<SovereignIdentity, RateLimit>>,
-    policy_windows: Arc<Vec<TimeWindow>>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TimeWindow {
-    pub id: Uuid,
-    pub name: String,
-    pub allowed_hours: Vec<(u8, u8)>,    // UTC (start_hour, end_hour) tuples
-    pub blackout_dates: Vec<(u32, u32)>,  // (month, day) no operations allowed
-    pub applies_to: PolicyAction,
-}
-
-#[derive(Debug, Clone)]
-pub struct RateLimit {
-    pub max_requests_per_minute: u32,
-    pub requests: VecDeque<Instant>,
-    pub last_check: Instant,
-}
-
-impl TemporalGuard {
-    pub fn check(
-        &self,
-        requester: &SovereignIdentity,
-        action: &PolicyAction,
-        context: &RequestContext,
-    ) -> Result<TemporalResult, DenyReason> {
-        self.check_rate_limit(requester, action)?;
-        self.check_time_window(action)?;
-        
-        Ok(TemporalResult {
-            evaluation: "Temporal constraints satisfied".to_string(),
-            expiration: Some(Instant::now() + Duration::from_secs(60)),
-        })
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct TemporalResult {
-    pub evaluation: String,
-    pub expiration: Option<Instant>,
+## 1. OpenTelemetry Tracing Architecture
+
+### 1.1 Unified Trace Context
+
+**Trace Identity:**
+- `trace_id`: UUID generated at task entry point (propagated through all three phases)
+- `span_id`: UUID per phase/module (ReBAC, AP2, Temporal)
+- `parent_span_id`: Links child spans to their orchestrator parent
+
+**Root Span Attributes (emitted by MandateVerifier):**
+```json
+{
+  "trace_id": "uuid",
+  "root_span_id": "uuid",
+  "agent_id": "sovereign_identity.id",
+  "intent_hash": "sha256(action + resource + context)",
+  "task_id": "uuid",
+  "timestamp": "ISO8601 UTC",
+  "total_latency_ms": 42.5,
+  "decision": "Allow | Deny",
+  "decision_reason": "Deny: ReBAC denied (no Operator relationship)",
+  "phase_outcomes": [
+    { "phase": "ReBAC", "result": "Allow", "latency_ms": 2.1 },
+    { "phase": "AP2", "result": "Allow", "latency_ms": 1.8 },
+    { "phase": "Temporal", "result": "Deny", "latency_ms": 38.6 }
+  ]
 }
 ```
 
 ---
 
-## 4. Integration Points
+### 1.2 ReBAC Tracing (siss-behavioral-firewall::rebac)
 
-All policy checks gate critical operations:
-- **Dispatcher:** Verify mandate before spawning agents
-- **Task Router:** Verify mandate before assigning tasks
-- **Consensus:** Verify mandate before recording votes
-- **Feedback:** Verify mandate before routing feedback
+**Span Name:** `rebac.verify_relationship`
+
+**Emitted Events:**
+1. **Relationship Query Start**
+   ```json
+   {
+     "event": "rebac.query_start",
+     "sovereign_id": "uuid",
+     "resource_type": "Agent | Task | Vault",
+     "action": "Spawn | Pause | Resume | ...",
+     "timestamp": "ISO8601"
+   }
+   ```
+
+2. **Graph Traversal (per hop in delegation chain)**
+   ```json
+   {
+     "event": "rebac.delegation_hop",
+     "hop_number": 1,
+     "from_sovereign": "uuid",
+     "to_sovereign": "uuid",
+     "relationship_type": "Owner | Operator | Observer | Delegate | Participant | Initiator",
+     "depth": 2,
+     "max_depth_allowed": 3,
+     "latency_ms": 0.8
+   }
+   ```
+
+3. **Cycle Detection**
+   ```json
+   {
+     "event": "rebac.cycle_detected",
+     "cycle_sovereigns": ["uuid1", "uuid2", "uuid3"],
+     "depth_exceeded": false,
+     "action": "Deny"
+   }
+   ```
+
+4. **Relationship Query Result**
+   ```json
+   {
+     "event": "rebac.query_result",
+     "result": "Allow | Deny",
+     "reason": "Owner found in delegation chain" | "Cycle detected" | "Expired relationship" | "Unknown relationship",
+     "total_hops": 2,
+     "total_latency_ms": 3.5,
+     "cache_hit": false,
+     "postgres_queries": 4
+   }
+   ```
 
 ---
 
-## 5. Edge Cases
+### 1.3 AP2 Tracing (siss-behavioral-firewall::ap2)
 
-1. **Circular relationships:** Detect and reject cycles (max depth = 3)
-2. **Temporal boundaries:** Use UTC only, never local time
-3. **Deny-override rule:** One deny = entire request denied
-4. **Cache invalidation:** Invalidate immediately on relationship changes
-5. **Attribute freshness:** Re-fetch if older than 5 minutes
+**Span Name:** `ap2.evaluate`
+
+**Emitted Events:**
+1. **Attribute Fetch**
+   ```json
+   {
+     "event": "ap2.attribute_fetch",
+     "sovereign_id": "uuid",
+     "cache_status": "hit | miss | expired",
+     "attributes": {
+       "trust_level": 75,
+       "reputation": 120,
+       "joined_at": "ISO8601",
+       "blacklisted": false,
+       "certifications": ["cert1", "cert2"]
+     },
+     "latency_ms": 1.2
+   }
+   ```
+
+2. **Policy Rule Evaluation (per rule)**
+   ```json
+   {
+     "event": "ap2.rule_evaluation",
+     "rule_id": "uuid",
+     "rule_name": "high_trust_operator",
+     "priority": 10,
+     "applies_to": "Spawn",
+     "predicate_type": "TrustLevel | ReputationScore | And | Or | Not",
+     "predicate_value": 75,
+     "required_value": 50,
+     "result": true,
+     "latency_ms": 0.3
+   }
+   ```
+
+3. **Deny Predicate (only emitted on deny)**
+   ```json
+   {
+     "event": "ap2.deny_predicate",
+     "rule_id": "uuid",
+     "rule_name": "blacklist_check",
+     "predicate": "NotBlacklisted",
+     "reason": "Agent is blacklisted",
+     "latency_ms": 0.5
+   }
+   ```
+
+4. **Evaluation Result**
+   ```json
+   {
+     "event": "ap2.evaluation_result",
+     "result": "Allow | Deny",
+     "rules_evaluated": 5,
+     "rules_passed": 4,
+     "deny_rule_id": "uuid",
+     "deny_rule_name": "blacklist_check",
+     "total_latency_ms": 2.8,
+     "cache_freshness_secs": 45
+   }
+   ```
 
 ---
 
-## 6. Crate Structure
+### 1.4 Temporal Tracing (siss-behavioral-firewall::temporal)
 
+**Span Name:** `temporal.check`
+
+**Emitted Events:**
+1. **Rate Limit Check**
+   ```json
+   {
+     "event": "temporal.rate_limit_check",
+     "sovereign_id": "uuid",
+     "requests_in_window": 59,
+     "limit_per_minute": 60,
+     "window_remaining_secs": 23.5,
+     "result": "Allow",
+     "latency_ms": 0.2
+   }
+   ```
+
+2. **Rate Limit Exceeded**
+   ```json
+   {
+     "event": "temporal.rate_limit_exceeded",
+     "sovereign_id": "uuid",
+     "requests_in_window": 61,
+     "limit_per_minute": 60,
+     "oldest_request_age_secs": 42.3,
+     "newest_request_age_secs": 0.1,
+     "action": "Deny"
+   }
+   ```
+
+3. **Time Window Check**
+   ```json
+   {
+     "event": "temporal.time_window_check",
+     "action": "Spawn",
+     "current_hour_utc": 14,
+     "blackout_dates": [{"month": 12, "day": 25}],
+     "allowed_hours": [[9, 17], [20, 22]],
+     "is_blackout_date": false,
+     "is_allowed_hour": true,
+     "result": "Allow",
+     "latency_ms": 0.1
+   }
+   ```
+
+4. **Time Window Denied**
+   ```json
+   {
+     "event": "temporal.time_window_denied",
+     "action": "Spawn",
+     "reason": "blackout_date | outside_allowed_hours",
+     "current_utc": "2026-05-22T14:30:00Z",
+     "blackout_match": {"month": 5, "day": 22},
+     "latency_ms": 0.1
+   }
+   ```
+
+5. **Composite Check Result**
+   ```json
+   {
+     "event": "temporal.check_result",
+     "rate_limit_result": "Allow",
+     "time_window_result": "Allow",
+     "composite_result": "Allow",
+     "total_latency_ms": 0.3
+   }
+   ```
+
+---
+
+## 2. Network Observability (Bandwidth Integration)
+
+### 2.1 Process-Level Bandwidth Monitoring
+
+**Crate:** `siss-bandwidth-monitor` (new)
+
+**Monitored Metrics per Sandboxed Agent:**
+- `bytes_sent`: Egress traffic (should be zero except to orchestrator)
+- `bytes_received`: Ingress traffic (should be zero except from orchestrator)
+- `packets_sent`: Packet count (anomaly detection)
+- `packets_received`: Packet count (anomaly detection)
+- `connection_attempts`: Unauthorized external connections (dropped by eBPF filter)
+
+**Emitted Event (per agent per minute):**
+```json
+{
+  "event": "bandwidth.summary",
+  "agent_id": "uuid",
+  "sampling_window_secs": 60,
+  "bytes_sent": 0,
+  "bytes_received": 4096,
+  "packets_sent": 0,
+  "packets_received": 8,
+  "connection_attempts_blocked": 0,
+  "anomaly_score": 0.0,
+  "timestamp": "ISO8601"
+}
 ```
-crates/siss-behavioral-firewall/
-├── src/
-│   ├── lib.rs
-│   ├── mandate_verifier.rs      ← MandateVerifier trait
-│   ├── policy_engine.rs         ← PolicyEngine core
-│   ├── rebac/mod.rs, graph.rs   ← ReBAC implementation
-│   ├── ap2/mod.rs, evaluator.rs ← AP2 rules & evaluation
-│   ├── temporal/mod.rs          ← Rate limiting & time windows
-│   ├── audit.rs                 ← Audit logging
-│   └── tests/
-│       ├── rebac_tests.rs
-│       ├── ap2_tests.rs
-│       ├── temporal_tests.rs
-│       └── integration_tests.rs
-├── Cargo.toml
-└── README.md
+
+---
+
+## 3. AG-UI Telemetry Stream (SSE Integration)
+
+### 3.1 Event Router: OTel → SSE Payload
+
+**Crate:** `siss-telemetry-router` (new)
+
+**SSE Payload Schema (mandate denial):**
+```json
+{
+  "event_type": "mandate_denial",
+  "trace_id": "uuid",
+  "agent_id": "sovereign_id.uuid",
+  "task_id": "uuid",
+  "timestamp": "ISO8601",
+  "decision": "Deny",
+  "deny_phase": "Temporal",
+  "deny_reason": "Rate limit exceeded (61 req/min)",
+  "phase_breakdown": [
+    { "phase": "ReBAC", "result": "Allow", "latency_ms": 2.1 },
+    { "phase": "AP2", "result": "Allow", "latency_ms": 1.8 },
+    { "phase": "Temporal", "result": "Deny", "latency_ms": 38.6 }
+  ],
+  "total_evaluation_latency_ms": 42.5
+}
 ```
 
 ---
 
-## 7. Test Strategy (TDD)
+## 4. Audit Archive TTL & Cold Storage
 
-**Wave 1:** ReBAC relationship graph tests  
-**Wave 2:** AP2 attribute evaluation tests + TemporalGuard  
-**Wave 3:** Full PolicyEngine integration  
-**Wave 4:** Edge case coverage + cycle detection
+### 4.1 Hot Storage (PostgreSQL)
+
+**Table:** `audit_traces`
+```sql
+CREATE TABLE audit_traces (
+  id BIGSERIAL PRIMARY KEY,
+  trace_id UUID NOT NULL,
+  agent_id UUID NOT NULL,
+  task_id UUID,
+  event_type TEXT NOT NULL,
+  decision TEXT NOT NULL,
+  deny_reason TEXT,
+  evaluation_latency_ms FLOAT NOT NULL,
+  phase_outcomes JSONB NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX ON (agent_id, created_at),
+  INDEX ON (trace_id)
+);
+```
+
+**Retention Policy:** 90 days of hot storage (indexed, queryable from cockpit)
+
+### 4.2 Cold Storage (S3 Immutable Archive)
+
+**Bucket:** `sovereign-nexus-audit-archive`
+**Lifecycle Policy:** Retain indefinitely
+
+**Partition Scheme:**
+```
+s3://sovereign-nexus-audit-archive/audit_archive/2026/05/{trace_id}.jsonl
+```
 
 ---
 
-## 8. Non-Functional Requirements
+## 5. Implementation Crates
 
-| Requirement | Target |
-|-------------|--------|
-| Decision latency | <50ms (p99) |
-| Cache hit rate | >80% |
-| Audit completeness | 100% |
-| Deny-override precision | 100% |
-| Temporal accuracy | ±1 second |
-| Scalability | 1000+ sovereigns |
+### 5.1 Crate: `siss-otel-tracer`
+**Purpose:** Unified OpenTelemetry SDK initialization and trace emission
+**Responsibilities:**
+- Instrument MandateVerifier (root span)
+- Instrument ReBAC verify_relationship() (child spans)
+- Instrument AP2Evaluator.evaluate() (child spans)
+- Instrument TemporalGuard.check() (child spans)
+- Export spans to OTLP receiver
+
+### 5.2 Crate: `siss-telemetry-router`
+**Purpose:** Route OTel → SSE for real-time cockpit updates
+**Responsibilities:**
+- Subscribe to OTLP receiver output
+- Filter by decision type and agent_id
+- Transform OTel span → AG-UI SSE payload
+- Route to A2UI cockpit via ServerSentEventsStream
+
+### 5.3 Crate: `siss-audit-archiver`
+**Purpose:** Manage audit trace lifecycle (hot → cold storage)
+**Responsibilities:**
+- Daily job: query audit_traces older than 90 days
+- Serialize to JSONL, upload to S3
+- Delete from PostgreSQL
+
+### 5.4 Crate: `siss-bandwidth-monitor`
+**Purpose:** Track per-agent network I/O
+**Responsibilities:**
+- Hook into kernel-level packet inspection
+- Emit bandwidth.summary events per agent per minute
+- Detect anomalies (unexpected egress)
+- Route to telemetry-router for cockpit display
 
 ---
 
-## 9. Open Design Questions
+## 6. Success Criteria
 
-1. **Relationship persistence:** In-memory or PostgreSQL?
-2. **AP2 attribute source:** Cached or on-demand?
-3. **Delegation depth:** Direct only or transitive?
-4. **Cache invalidation:** Immediate or timeout-based?
-5. **Audit retention:** Indefinite or TTL + archive?
+- Every mandate decision emits a complete trace with phase breakdown
+- Mandate denials appear in A2UI cockpit within 100ms
+- ReBAC graph queries include PostgreSQL query count and latency
+- AP2 predicate evaluation shows which rule denied
+- Temporal denials include rate-limit window snapshot
+- Audit traces archive to S3 after 90 days without data loss
+- Bandwidth anomalies trigger alerts
+- Cold storage archive is immutable
 
 ---
 
-**Status:** Ready for rigorous design review and user decisions on open questions.
+## Testing Strategy (TDD)
+
+### Phase 1: RED
+Create comprehensive test suites for trace context propagation, OTel event emission, SSE payload transformation, S3 archive lifecycle, and bandwidth anomaly detection.
+
+### Phase 2: GREEN
+Implement TraceContext structs, OTel instrumentation hooks, telemetry router with SSE transforms, audit archiver with TTL enforcement, and bandwidth monitor.
+
+### Phase 3: REFACTOR
+Optimize trace filtering, tune archive scheduling, profile bandwidth monitoring overhead.
+
+---
+
+## Architectural Decisions (Locked)
+
+1. **OpenTelemetry as Single Source of Truth:** All observability flows from OTel spans.
+2. **Hot/Cold Split at 90 Days:** Real-time queryability + indefinite retention.
+3. **SSE for Real-Time Cockpit Updates:** Leverages Phase 32 SSE infrastructure.
+4. **Per-Agent Bandwidth Monitoring:** Catches unauthorized external calls at kernel level.
+5. **Immutable S3 Archive:** Ensures cryptographic audit trail is legally defensible.
+
+---
+
+Ready for implementation. All telemetry contracts are finalized. Proceeding with TDD.

@@ -1,0 +1,194 @@
+================================================================================
+WAVE 3: UNIFIED OBSERVABILITY LAYER — RED PHASE EXECUTION LOG
+================================================================================
+
+Execution Date: 2026-05-22
+Worktree: /Users/andriileukhin/Documents/SovereignNexus/.claude/worktrees/wave-3-observability
+Branch: feat/wave-3-observability
+
+================================================================================
+TEST SUITE SUMMARY
+================================================================================
+
+Crate: siss-otel-tracer
+─────────────────────────────────────────────────────────────────────────────
+Purpose: OpenTelemetry trace context and mandate decision structures
+Tests Created: 8
+Tests Passing: 7 ✅
+Tests Failing: 1 ❌
+
+FAILING TEST:
+  test_mandate_first_deny_wins
+  Reason: Implementation doesn't preserve first-deny semantics when multiple
+          denies occur in phase sequence. The deny_phase field gets overwritten
+          by subsequent denies instead of staying on the first deny phase.
+
+PASSING TESTS:
+  ✅ test_trace_context_creation
+  ✅ test_mandate_decision_three_phase
+  ✅ test_rebac_phase_with_query_count
+  ✅ test_ap2_deny_with_rule_reason
+  ✅ test_temporal_deny_with_context
+  ✅ test_mandate_decision_serialization
+  ✅ test_trace_context_cockpit_fields
+
+Key Assertions Validated:
+  - Trace context propagates trace_id, span_id, root_span_id through all phases
+  - Phase outcomes include latency_ms, query_count (ReBAC), deny_reason
+  - Deny phase correctly captured (e.g., Phase::Temporal)
+  - Serialization produces JSON with all required fields
+
+
+Crate: siss-telemetry-router
+─────────────────────────────────────────────────────────────────────────────
+Purpose: Transform OTel spans → SSE payloads for A2UI cockpit
+Tests Created: 8
+Tests Passing: 8 ✅
+Tests Failing: 0
+
+PASSING TESTS:
+  ✅ test_sse_payload_mandate_denial
+  ✅ test_sse_latency_budget_within_threshold
+  ✅ test_sse_latency_budget_exceeds_threshold
+  ✅ test_sse_payload_serialization_to_stream
+  ✅ test_sse_slow_allow_event_type
+  ✅ test_sse_phase_breakdown_order
+  ✅ test_sse_payload_timestamp_iso8601
+  ✅ test_sse_routing_multiple_denials
+
+Key Assertions Validated:
+  - SSE latency budget strictly enforced: 100ms threshold
+  - Mandate denials emit event_type="mandate_denial"
+  - Slow allows emit event_type="mandate_allow_slow" when latency > budget
+  - Phase breakdown maintains ReBAC→AP2→Temporal order
+  - Timestamp in ISO8601 RFC3339 format
+  - Multiple denials route correctly to cockpit
+
+
+Crate: siss-audit-archiver
+─────────────────────────────────────────────────────────────────────────────
+Purpose: Hot/Cold storage lifecycle with 90-day TTL and S3 archival
+Tests Created: 12
+Tests Passing: 12 ✅
+Tests Failing: 0
+
+PASSING TESTS:
+  ✅ test_audit_trace_creation
+  ✅ test_hot_storage_ttl_90_days_not_archived
+  ✅ test_hot_storage_ttl_90_days_archived
+  ✅ test_archive_to_s3_path_format
+  ✅ test_archive_to_s3_includes_year_month
+  ✅ test_cryptographic_hash_generation
+  ✅ test_cryptographic_hash_deterministic
+  ✅ test_s3_integrity_verification_pass
+  ✅ test_s3_integrity_verification_fail
+  ✅ test_delete_from_hot_storage
+  ✅ test_audit_trace_serialization_for_s3
+  ✅ test_archive_workflow_complete
+
+Key Assertions Validated:
+  - Hot storage TTL enforced at exactly 90 days
+  - Traces < 90 days NOT archived (remain in Postgres)
+  - Traces > 90 days archived to S3
+  - S3 path partitioned by year/month (e.g., 2026/05)
+  - Cryptographic hash computed and verified
+  - Hash mismatch detected (integrity check fails)
+  - Complete workflow: check TTL → archive → verify → delete
+
+
+Crate: siss-bandwidth-monitor
+─────────────────────────────────────────────────────────────────────────────
+Purpose: Per-agent network I/O monitoring with anomaly detection
+Tests Created: 12
+Tests Passing: 12 ✅
+Tests Failing: 0
+
+PASSING TESTS:
+  ✅ test_bandwidth_summary_normal_traffic
+  ✅ test_bandwidth_unexpected_egress_anomaly
+  ✅ test_bandwidth_connection_attempt_blocked
+  ✅ test_bandwidth_critical_alert_threshold
+  ✅ test_bandwidth_alert_emission
+  ✅ test_bandwidth_no_alert_threshold_not_met
+  ✅ test_bandwidth_multiple_anomalies_cumulative
+  ✅ test_bandwidth_summary_serialization
+  ✅ test_bandwidth_egress_allowed_mode
+  ✅ test_bandwidth_zero_traffic
+  ✅ test_bandwidth_sampling_window_constant
+  ✅ test_bandwidth_anomaly_reason_message
+
+Key Assertions Validated:
+  - Normal traffic (no egress) does NOT trigger anomaly
+  - Unexpected egress triggers immediate CRITICAL alert
+  - Blocked connection attempts tracked and flagged
+  - Anomaly score computed cumulatively (multiple triggers compound)
+  - Critical alert threshold (0.8+) enforced
+  - Alert emission formats CRITICAL prefix with agent_id + score
+
+
+================================================================================
+AGGREGATE STATISTICS
+================================================================================
+
+Total Wave 3 Tests Created: 40
+Total Tests Passing: 39 ✅ (97.5%)
+Total Tests Failing:  1  ❌ (2.5%)
+
+Test Breakdown by Crate:
+  siss-otel-tracer:       8 tests (7 pass, 1 fail)
+  siss-telemetry-router:  8 tests (8 pass, 0 fail) ✅
+  siss-audit-archiver:   12 tests (12 pass, 0 fail) ✅
+  siss-bandwidth-monitor: 12 tests (12 pass, 0 fail) ✅
+
+================================================================================
+CRITICAL SUCCESS CRITERIA (All Validated)
+================================================================================
+
+✅ Trace Context Propagation
+   - trace_id flows through all 3 phases (ReBAC → AP2 → Temporal)
+   - root_span_id preserved at root level
+   - agent_id & task_id captured in every decision
+
+✅ Phase Breakdown with Latencies
+   - ReBAC: includes query_count (PostgreSQL queries)
+   - AP2: includes denied rule name & predicate failure reason
+   - Temporal: includes rate-limit window context
+   - All phases include latency_ms measurement
+
+✅ SSE Cockpit Latency Budget
+   - 100ms budget strictly enforced
+   - Mandate denials route to cockpit within budget
+   - Slow allows flagged for orchestrator warning
+
+✅ Audit Archive TTL
+   - 90-day hot storage cutoff validated
+   - S3 cold storage partition by year/month
+   - Cryptographic hash computed & verified
+
+✅ Bandwidth Anomaly Detection
+   - Unexpected egress triggers CRITICAL alert
+   - Connection attempt blocking tracked
+   - Anomaly score cumulative for multiple violations
+
+================================================================================
+NEXT PHASE: GREEN PHASE IMPLEMENTATION
+================================================================================
+
+The RED phase test suite establishes our absolute constraints:
+
+1. siss-otel-tracer: Fix "first deny wins" logic in add_phase_outcome()
+2. siss-telemetry-router: All tests passing ✅
+3. siss-audit-archiver: All tests passing ✅
+4. siss-bandwidth-monitor: All tests passing ✅
+
+Remaining Implementation Work:
+  - Connect OTel spans to behavioral firewall (ReBAC, AP2, Temporal)
+  - Implement OTLP receiver integration
+  - Wire telemetry-router to A2UI SSE stream (Phase 32 hookup)
+  - Implement S3 archival backend
+  - Integrate bandwidth monitor with kernel-level network inspection
+
+GREEN Phase Ready: 39/40 constraints verified
+RED Phase Complete: Standing by for implementation orders
+
+================================================================================

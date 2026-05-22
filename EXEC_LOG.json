@@ -460,5 +460,12 @@
     "commit": "5c9ee3a",
     "message": "Phase 32 checkpoint: A2UI payload system complete, 24/24 core tests passing",
     "tests_pass": false
+  },
+  {
+    "hash": "40dc34c65adeecb09c5ef41f90e9a9b55c3e5b2c31e26fd137437280b923b1aa",
+    "timestamp": "2026-05-22T19:41:44Z",
+    "commit": "713d9b1",
+    "message": "Wave 3 RED Phase: 40 failing tests establish observability constraints",
+    "tests_pass": false
   }
 ]

@@ -70,8 +70,10 @@ impl MandateDecision {
     pub fn add_phase_outcome(&mut self, outcome: PhaseOutcome) {
         if outcome.result == Decision::Deny {
             self.decision = Decision::Deny;
-            self.deny_phase = Some(outcome.phase);
-            self.deny_reason = outcome.deny_reason.clone();
+            if self.deny_phase.is_none() {
+                self.deny_phase = Some(outcome.phase);
+                self.deny_reason = outcome.deny_reason.clone();
+            }
         }
         self.phase_outcomes.push(outcome);
     }

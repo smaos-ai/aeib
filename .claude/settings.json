@@ -22,65 +22,13 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node scripts/hooks/pre_tool_use_dispatcher_gate.js",
-            "condition": "DISPATCHER_ACTIVE=true",
-            "statusMessage": "Checking dispatcher state..."
-          },
-          {
-            "type": "command",
-            "command": "node scripts/hooks/pre_tool_use_gate.js"
-          },
-          {
-            "type": "command",
             "command": "bash scripts/hooks/pre_tool_use_verification_gate.sh",
             "statusMessage": "Verifying correctness gate..."
           }
         ]
       }
     ],
-    "PostToolUse": [
-      {
-        "matcher": "Bash|Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node scripts/hooks/post_tool_use_logger.js"
-          },
-          {
-            "type": "command",
-            "command": "node scripts/hooks/post_tool_use_dispatcher_report.js",
-            "condition": "DISPATCHER_ACTIVE=true",
-            "statusMessage": "Reporting to dispatcher..."
-          }
-        ]
-      }
-    ],
-    "WorktreeCreate": [
-      {
-        "matcher": "EnterWorktree",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node scripts/hooks/worktree_create_dispatcher_metadata.js",
-            "condition": "DISPATCHER_ACTIVE=true",
-            "statusMessage": "Initializing dispatcher metadata..."
-          }
-        ]
-      }
-    ],
-    "WorktreeRemove": [
-      {
-        "matcher": "ExitWorktree",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node scripts/hooks/worktree_remove_cleanup_context.js",
-            "condition": "DISPATCHER_ACTIVE=true",
-            "statusMessage": "Cleaning up agent context..."
-          }
-        ]
-      }
-    ],
+    "PostToolUse": [],
     "Notification": [
       {
         "matcher": "permission_prompt|idle_prompt",

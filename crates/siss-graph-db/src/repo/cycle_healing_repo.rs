@@ -54,17 +54,18 @@ fn resolve_weakest_link_grant(
 ) -> Option<(Uuid, Uuid)> {
     let cycle_set: HashSet<Uuid> = cycle.cycle_nodes.iter().copied().collect();
 
-    // Find incoming edges TO the weakest link with matching ceiling_tier
-    let incoming = graph.incoming_edges(cycle.weakest_link_id)?;
-    let mut matching_edges: Vec<_> = incoming
+    // Find outgoing edges FROM the weakest link with matching ceiling_tier
+    // The weakest_link_id is the SOURCE node of an edge with minimum ceiling_tier
+    let outgoing = graph.outgoing_edges(cycle.weakest_link_id)?;
+    let mut matching_edges: Vec<_> = outgoing
         .iter()
         .filter(|e| {
-            cycle_set.contains(&e.from_sovereign) && (e.ceiling_tier as u32) == cycle.weakest_link_ceiling
+            cycle_set.contains(&e.to_sovereign) && (e.ceiling_tier as u32) == cycle.weakest_link_ceiling
         })
         .collect();
 
-    // Sort by from_sovereign for deterministic selection (pick smallest lexicographically)
-    matching_edges.sort_by_key(|e| e.from_sovereign);
+    // Sort by grant_id for deterministic selection
+    matching_edges.sort_by_key(|e| e.delegation_grant_id);
 
     matching_edges
         .first()
@@ -125,8 +126,8 @@ pub async fn heal_cycle(
                 "cycle_nodes": cycle.cycle_nodes.iter().map(|id| id.to_string()).collect::<Vec<_>>(),
             });
 
-            sqlx::query("UPDATE consensus_proposals SET payload = $1::jsonb WHERE id = $2")
-                .bind(payload.to_string())
+            sqlx::query("UPDATE consensus_proposals SET payload = $1 WHERE id = $2")
+                .bind(&payload)
                 .bind(prop_id)
                 .execute(pool)
                 .await
@@ -587,12 +588,39 @@ mod tests {
         #[tokio::test]
         async fn test_heal_all_detected_cycles_batch() {
             let (_container, pool) = setup_postgres().await;
-            let (_a, _b, _c, _grant_ab, _grant_bc, _grant_ca) = setup_cycle(&pool, 20).await;
+            let (a, b, c, grant_ab, grant_bc, grant_ca) = setup_cycle(&pool, 20).await;
 
-            // Batch heal all detected cycles
-            let results = heal_all_detected_cycles(&pool, Uuid::new_v4())
+            eprintln!("=== SETUP STATE ===");
+            eprintln!("Node A: {}", a);
+            eprintln!("Node B: {}", b);
+            eprintln!("Node C: {}", c);
+            eprintln!("Grant A→B: {}", grant_ab);
+            eprintln!("Grant B→C: {}", grant_bc);
+            eprintln!("Grant C→A: {}", grant_ca);
+
+            // Direct graph build to capture cycle order
+            let graph = build_reputation_graph_from_db(&pool)
+                .await
+                .expect("build graph");
+            eprintln!("Graph nodes: {}", graph.node_count());
+            eprintln!("Graph edges: {}", graph.edge_count());
+
+            let all_cycles = TarjanCycleFinder::new(graph.clone()).find_all_cycles();
+            eprintln!("Tarjan found {} cycles", all_cycles.len());
+            if !all_cycles.is_empty() {
+                eprintln!("Cycle 0 nodes: {:?}", all_cycles[0]);
+            }
+
+            // Batch heal all detected cycles (use a valid initiator from the cycle)
+            let results = heal_all_detected_cycles(&pool, a)
                 .await
                 .expect("heal all cycles");
+
+            eprintln!("heal_all_detected_cycles returned {} results", results.len());
+            if !results.is_empty() {
+                eprintln!("Result 0 action: {}", results[0].action_taken);
+                eprintln!("Result 0 revoked grant: {:?}", results[0].grant_id_revoked);
+            }
 
             assert!(
                 !results.is_empty(),
@@ -624,7 +652,7 @@ mod tests {
                 .expect("heal cycle");
 
             // Verify audit log entry
-            let (action_taken, severity, ceiling): (String, String, i16) = sqlx::query_as(
+            let (action_taken, severity, ceiling): (String, String, i32) = sqlx::query_as(
                 "SELECT action_taken, severity, weakest_link_ceiling FROM cycle_healing_log WHERE severity = 'low'"
             )
             .fetch_one(&pool)

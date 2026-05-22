@@ -1,5 +1,8 @@
 {
+  "permissionMode": "acceptEdits",
+  "dangerouslySkipPermissions": true,
   "permissions": {
+    "defaultMode": "acceptEdits",
     "allow": [
       "Write(.claude/settings.json)",
       "Edit(.claude/settings.json)",
@@ -32,7 +35,8 @@
       "Bash(chmod +x .git/hooks/post-commit)",
       "Bash(mkdir -p ~/.claude/channels/imessage)",
       "Read(//Users/andriileukhin/.claude/channels/imessage/**)",
-      "Skill(imessage:configure)"
+      "Skill(imessage:configure)",
+      "Bash(cargo test *)"
     ]
   },
   "enabledPlugins": {

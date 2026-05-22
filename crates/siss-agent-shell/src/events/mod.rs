@@ -77,6 +77,13 @@ pub enum AgentEvent {
         quality_score: f64,
         timestamp: DateTime<Utc>,
     },
+    IntentMandateRequested {
+        task_id: Uuid,
+        mandate_id: Uuid,
+        reason: String,
+        required_budget: i64,
+        timestamp: DateTime<Utc>,
+    },
     Error {
         message: String,
         timestamp: DateTime<Utc>,
@@ -125,6 +132,7 @@ impl AgentEvent {
             Self::Scored { .. } => "scored",
             Self::Crystallized { .. } => "crystallized",
             Self::IntentCompleted { .. } => "intent_completed",
+            Self::IntentMandateRequested { .. } => "intent_mandate_requested",
             Self::Error { .. } => "error",
             Self::UIRequested { .. } => "ui_requested",
         }

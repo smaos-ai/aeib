@@ -4,6 +4,7 @@ edition.workspace = true
 version.workspace = true
 
 [dependencies]
+siss-gatekeeper = { path = "../siss-gatekeeper" }
 siss-graph-core = { path = "../siss-graph-core" }
 siss-graph-db = { path = "../siss-graph-db" }
 siss-event-log = { path = "../siss-event-log" }

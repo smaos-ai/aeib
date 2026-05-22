@@ -24,6 +24,7 @@ pub mod gossip_repo;
 pub mod governance_repo;
 pub mod intelligence_graph_repo;
 pub mod memory_repo;
+pub mod night_cycle_repo;
 pub mod node_repo;
 pub mod observability_repo;
 pub mod peer_cluster_repo;

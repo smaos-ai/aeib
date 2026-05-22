@@ -3,8 +3,10 @@
 
 #[cfg(test)]
 mod integration_tests {
-    use crate::handlers::ag_ui_streaming::get_rce_stream;
+    use crate::handlers::ag_ui_streaming::{get_rce_stream, StreamParams};
+    use crate::state::CockpitState;
     use axum::http::{HeaderMap, StatusCode};
+    use axum::extract::{State, Query};
 
     #[tokio::test]
     async fn test_ag_ui_sse_endpoint_rejects_unauthenticated_requests() {
@@ -14,7 +16,12 @@ mod integration_tests {
         // AND response prevents unauthorized SSE stream access
 
         let headers = HeaderMap::new();
-        let result = get_rce_stream(headers).await;
+        let state = CockpitState::new();
+        let params = Query(StreamParams {
+            workflow_id: None,
+            severity_min: None,
+        });
+        let result = get_rce_stream(headers, State(state), params).await;
 
         assert!(result.is_err());
         assert_eq!(result.unwrap_err(), StatusCode::UNAUTHORIZED);
@@ -33,7 +40,12 @@ mod integration_tests {
             "Bearer valid-test-token-12345".parse().unwrap(),
         );
 
-        let result = get_rce_stream(headers).await;
+        let state = CockpitState::new();
+        let params = Query(StreamParams {
+            workflow_id: None,
+            severity_min: None,
+        });
+        let result = get_rce_stream(headers, State(state), params).await;
         assert!(result.is_ok());
     }
 
@@ -46,7 +58,12 @@ mod integration_tests {
         let mut headers = HeaderMap::new();
         headers.insert("Authorization", "Basic dGVzdDp0ZXN0".parse().unwrap()); // Basic auth, not Bearer
 
-        let result = get_rce_stream(headers).await;
+        let state = CockpitState::new();
+        let params = Query(StreamParams {
+            workflow_id: None,
+            severity_min: None,
+        });
+        let result = get_rce_stream(headers, State(state), params).await;
         assert!(result.is_err());
         assert_eq!(result.unwrap_err(), StatusCode::UNAUTHORIZED);
     }
@@ -60,7 +77,12 @@ mod integration_tests {
         let mut headers = HeaderMap::new();
         headers.insert("Authorization", "Bearer ".parse().unwrap());
 
-        let result = get_rce_stream(headers).await;
+        let state = CockpitState::new();
+        let params = Query(StreamParams {
+            workflow_id: None,
+            severity_min: None,
+        });
+        let result = get_rce_stream(headers, State(state), params).await;
         // Bearer prefix exists, so this passes authentication check
         assert!(result.is_ok());
     }

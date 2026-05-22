@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use siss_graph_core::node::NodeId;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SessionToken {
@@ -52,12 +53,35 @@ pub struct TrustPolicyRequirements {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CartMandate {
+    pub id: Uuid,
+    pub session_id: Uuid,
+    pub persona_id: NodeId,
+    pub tenant_id: NodeId,
+    pub allowed_tools: Vec<Uuid>,
+    pub budget_limit: i64,
+    pub active_until: DateTime<Utc>,
+    pub signature: Vec<u8>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IntentMandate {
     pub id: Uuid,
     pub budget_limit: i64,
     pub budget_spent: i64,
     pub risk_class: String,
     pub allowed_tools: Vec<Uuid>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExecutionMandate {
+    pub id: Uuid,
+    pub intent_mandate_id: Uuid,
+    pub task_id: Uuid,
+    pub amount: i64,
+    pub nonce: String,
+    pub created_at: DateTime<Utc>,
+    pub signature: Vec<u8>,
 }
 
 impl IntentMandate {

@@ -34,3 +34,6 @@ futures = { workspace = true }
 siss-context-cartography = { path = "../siss-context-cartography" }
 siss-graph-core = { path = "../siss-graph-core" }
 siss-job-router = { path = "../siss-job-router" }
+siss-agent-shell = { path = "../siss-agent-shell" }
+proptest = "1"
+rand = "0.8"

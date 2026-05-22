@@ -27,11 +27,12 @@ pub struct IntentResult {
 }
 
 /// Parameters for submitting an intent.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IntentParams {
     pub intent: String,
     pub requested_tools: Vec<NodeId>,
     pub estimated_cost: i64,
+    pub skill_context: Option<siss_context_cartography::skill::SkillPayload>,
 }
 
 #[derive(Debug, Error)]
@@ -44,6 +45,9 @@ pub enum AgentShellError {
 
     #[error("intent halted: {reason}")]
     IntentHalted { reason: String },
+
+    #[error("intent deferred for human review: {reason} (severity: {severity})")]
+    IntentDeferred { reason: String, severity: String },
 
     #[error("gatekeeper error: {0}")]
     GatekeeperError(#[from] siss_gatekeeper::types::GatekeeperError),
@@ -62,6 +66,9 @@ pub enum AgentShellError {
 
     #[error("cartography error: {0}")]
     CartographyError(#[from] siss_context_cartography::types::CartographyError),
+
+    #[error("CIPO violation: {reason}")]
+    CipoViolation { reason: String },
 
     #[error("database error: {message}")]
     DatabaseError { message: String },
@@ -98,6 +105,7 @@ mod tests {
             intent: "Summarize this".into(),
             requested_tools: vec![NodeId::new()],
             estimated_cost: 500,
+            skill_context: None,
         };
         assert_eq!(params.estimated_cost, 500);
     }

@@ -94,6 +94,15 @@ pub async fn accelerate_signal_decay_for_false_positive(
             Some(row) => row.get::<serde_json::Value, _>(0),
         };
 
+        // Skip acceleration for Semantic tier: decay formula already ignores acceleration_mode for semantic
+        let current_tier = signal_props
+            .get("tier")
+            .and_then(|v| v.as_str())
+            .unwrap_or("episodic");
+        if current_tier == "semantic" {
+            continue;
+        }
+
         // Set acceleration_mode to true
         signal_props["acceleration_mode"] = serde_json::json!(true);
 

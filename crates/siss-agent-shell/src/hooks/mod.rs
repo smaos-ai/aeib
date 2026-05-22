@@ -1,7 +1,10 @@
 pub mod audit;
+pub mod blast_radius;
 pub mod budget;
 pub mod gatekeeper;
 pub mod runner;
+pub mod security_gate;
+pub mod session_recovery;
 
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -15,6 +18,7 @@ pub enum HookResult {
     Continue,
     Halt { reason: String },
     Deny { reason: String },
+    Defer { reason: String, severity: String },
 }
 
 /// Context for SessionStart and Stop hooks.
@@ -41,6 +45,8 @@ pub struct ToolUseContext {
     pub task_id: NodeId,
     pub tool_id: Uuid,
     pub tool_name: String,
+    pub tool_input: serde_json::Value,
+    pub tool_output: Option<serde_json::Value>,
 }
 
 /// Trait for deterministic lifecycle hooks.

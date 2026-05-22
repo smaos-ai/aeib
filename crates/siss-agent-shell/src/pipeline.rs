@@ -5,6 +5,7 @@ use uuid::Uuid;
 use siss_behavioral_firewall::checker::FirewallChecker;
 use siss_behavioral_firewall::types::InspectionRequest;
 use siss_behavioral_firewall::types::Verdict;
+use siss_context_cartography::skill::{CipoContext, SkillPayload};
 use siss_feedback_router::crystallizer::Crystallizer;
 use siss_feedback_router::scorer::Scorer;
 use siss_feedback_router::types::CompletionRequest;
@@ -33,6 +34,7 @@ pub async fn run_intent_pipeline(
     estimated_cost: i64,
     // Context cartography
     zonal_context: Option<serde_json::Value>,
+    skill_context: Option<SkillPayload>,
     // Traits
     signer: &dyn Signer,
     strategy: &dyn RoutingStrategy,
@@ -81,6 +83,15 @@ pub async fn run_intent_pipeline(
         timestamp: Utc::now(),
     });
 
+    // 2.5 CIPO pre-router guard: verify depth constraint before dispatch
+    if let Some(skill) = skill_context.as_ref() {
+        CipoContext::new(skill.clone())
+            .verify()
+            .map_err(|e| AgentShellError::CipoViolation {
+                reason: format!("{:?}", e),
+            })?;
+    }
+
     // 3. Router: route + execute
     let routing_request = RoutingRequest {
         task_id,
@@ -91,6 +102,16 @@ pub async fn run_intent_pipeline(
     };
     let routing_result =
         siss_job_router::pipeline::route_task(pool, strategy, executor, None, &routing_request).await?;
+
+    // 3.5 CIPO post-execution guard: verify budget constraint after token cost is known
+    if let Some(skill) = skill_context.as_ref() {
+        let mut cipo = CipoContext::new(skill.clone());
+        cipo.tokens_consumed = routing_result.execution.token_cost.max(0) as u32;
+        cipo.verify()
+            .map_err(|e| AgentShellError::CipoViolation {
+                reason: format!("{:?}", e),
+            })?;
+    }
 
     emitter.emit(AgentEvent::Routed {
         task_id: task_id.0,

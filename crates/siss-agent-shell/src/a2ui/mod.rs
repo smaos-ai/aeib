@@ -1,3 +1,4 @@
+pub mod escalation;
 pub mod schema;
 pub mod types;
 pub mod validator;

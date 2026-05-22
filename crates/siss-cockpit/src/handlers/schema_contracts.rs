@@ -2,6 +2,7 @@
 /// RED phase: Failing tests for OpenAPI/protobuf schema contracts
 
 use serde::{Deserialize, Serialize};
+use siss_graph_db::rce::Step;
 
 /// SSE Stream event - strictly enforces AG-UI event types
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -19,6 +20,7 @@ pub struct DecisionWebhookPayload {
     pub workflow_id: String,
     pub decision: String,              // APPROVE, REJECT, PAUSE, MODIFY
     pub reason: Option<String>,
+    pub new_plan: Option<Vec<Step>>,   // required when decision == "MODIFY"
     pub timestamp: String,             // RFC3339 format
     pub human_operator_id: String,
 }
@@ -239,6 +241,7 @@ mod tests {
             workflow_id: "wf-789".to_string(),
             decision: "APPROVE".to_string(),
             reason: Some("Operator approved".to_string()),
+            new_plan: None,
             timestamp: "2026-05-21T12:00:00Z".to_string(),
             human_operator_id: "op-001".to_string(),
         };
@@ -259,6 +262,7 @@ mod tests {
             workflow_id: "wf-pending".to_string(),
             decision: "APPROVE".to_string(),
             reason: Some("Approved by operator".to_string()),
+            new_plan: None,
             timestamp: "2026-05-21T12:00:00Z".to_string(),
             human_operator_id: "op-002".to_string(),
         };

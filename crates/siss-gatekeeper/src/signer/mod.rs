@@ -1,6 +1,9 @@
 pub mod local;
 pub mod mock;
 
+pub use local::LocalEd25519Signer;
+pub use mock::MockSigner;
+
 use thiserror::Error;
 
 #[derive(Debug, Error)]

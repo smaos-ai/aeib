@@ -1,9 +1,10 @@
-/// Event bridge: converts siss-event-log SystemEvents to CockpitEvents for SSE streaming.
-/// This module integrates the immutable event log into the real-time observability stream
-/// WITHOUT modifying any A2UI schemas or Phase 32 components (read-only integration).
+/// Event bridge: converts agent events and system events to CockpitEvents for SSE streaming.
+/// Integrates the immutable event log and real-time agent pipeline into the SSE stream.
 
 use crate::state::CockpitEvent;
 use chrono::Utc;
+use serde_json::json;
+use siss_agent_shell::events::AgentEvent;
 use siss_event_log::SystemEvent;
 
 /// Convert a SystemEvent from the immutable log into a CockpitEvent for SSE streaming.
@@ -46,6 +47,77 @@ pub fn system_event_to_cockpit(event: SystemEvent) -> CockpitEvent {
             timestamp: Utc::now(),
         },
     }
+}
+
+/// Convert an AgentEvent from the agent pipeline into a CockpitEvent for SSE streaming.
+pub fn agent_event_to_cockpit(event: AgentEvent) -> CockpitEvent {
+    let event_type = event.event_type().to_string();
+    let timestamp = Utc::now();
+
+    let (agent_id, payload) = match event {
+        AgentEvent::SessionStarted { session_id, persona_id, .. } => (
+            Some(session_id.to_string()),
+            json!({ "session_id": session_id, "persona_id": persona_id }),
+        ),
+        AgentEvent::SessionClosed { session_id, .. } => (
+            Some(session_id.to_string()),
+            json!({ "session_id": session_id }),
+        ),
+        AgentEvent::HookFired { hook_name, hook_point, result, .. } => (
+            None,
+            json!({ "hook_name": hook_name, "hook_point": format!("{:?}", hook_point), "result": format!("{:?}", result) }),
+        ),
+        AgentEvent::TaskCreated { task_id, intent, .. } => (
+            Some(task_id.to_string()),
+            json!({ "task_id": task_id, "intent": intent }),
+        ),
+        AgentEvent::Authorized { task_id, mandate_id, .. } => (
+            Some(task_id.to_string()),
+            json!({ "task_id": task_id, "mandate_id": mandate_id }),
+        ),
+        AgentEvent::Routed { task_id, hardware_target, .. } => (
+            Some(task_id.to_string()),
+            json!({ "task_id": task_id, "hardware_target": format!("{:?}", hardware_target) }),
+        ),
+        AgentEvent::OutputChunk { task_id, chunk, index, .. } => (
+            Some(task_id.to_string()),
+            json!({ "task_id": task_id, "chunk": chunk, "index": index }),
+        ),
+        AgentEvent::Executing { task_id, token_cost, duration_ms, .. } => (
+            Some(task_id.to_string()),
+            json!({ "task_id": task_id, "token_cost": token_cost, "duration_ms": duration_ms }),
+        ),
+        AgentEvent::FirewallInspected { task_id, verdict, violation_count, .. } => (
+            Some(task_id.to_string()),
+            json!({ "task_id": task_id, "verdict": format!("{:?}", verdict), "violation_count": violation_count }),
+        ),
+        AgentEvent::Scored { task_id, quality_score, .. } => (
+            Some(task_id.to_string()),
+            json!({ "task_id": task_id, "quality_score": quality_score }),
+        ),
+        AgentEvent::Crystallized { task_id, memory_count, .. } => (
+            Some(task_id.to_string()),
+            json!({ "task_id": task_id, "memory_count": memory_count }),
+        ),
+        AgentEvent::IntentCompleted { task_id, quality_score, .. } => (
+            Some(task_id.to_string()),
+            json!({ "task_id": task_id, "quality_score": quality_score }),
+        ),
+        AgentEvent::IntentMandateRequested { task_id, mandate_id, reason, required_budget, .. } => (
+            Some(task_id.to_string()),
+            json!({ "task_id": task_id, "mandate_id": mandate_id, "reason": reason, "required_budget": required_budget }),
+        ),
+        AgentEvent::Error { message, .. } => (
+            None,
+            json!({ "message": message }),
+        ),
+        AgentEvent::UIRequested { task_id, components, form_id, .. } => (
+            Some(task_id.to_string()),
+            json!({ "task_id": task_id, "components": components, "form_id": form_id }),
+        ),
+    };
+
+    CockpitEvent { event_type, agent_id, payload, timestamp }
 }
 
 #[cfg(test)]

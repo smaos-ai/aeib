@@ -448,6 +448,32 @@ impl ResumableCognitiveExecution {
         }
     }
 
+    /// Check interrupt from mandate budget exhaustion (Phase 41)
+    /// Returns InterruptSignal if mandate budget is exhausted
+    pub fn check_mandate_exhausted_interrupt(
+        &self,
+        mandate_id: uuid::Uuid,
+        is_exhausted: bool,
+        budget_spent: i64,
+        budget_limit: i64,
+    ) -> Option<InterruptSignal> {
+        if is_exhausted {
+            Some(InterruptSignal {
+                interrupt_type: "mandate_exhausted".to_string(),
+                severity: "Critical".to_string(),
+                reason: format!(
+                    "Mandate {} budget exhausted: spent {} / {}",
+                    mandate_id, budget_spent, budget_limit
+                ),
+                workflow_id: Some(self.workflow_id),
+                human_approval_required: true,
+                timestamp: Some(Utc::now()),
+            })
+        } else {
+            None
+        }
+    }
+
     /// Get severity level as numeric priority (higher = more urgent)
     pub fn severity_priority(severity: &str) -> u32 {
         match severity {

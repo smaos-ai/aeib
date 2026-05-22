@@ -52,6 +52,7 @@ mod integration_tests {
             workflow_id: "wf-approval".to_string(),
             decision: "APPROVE".to_string(),
             reason: Some("Operator approved workflow".to_string()),
+            new_plan: None,
             timestamp: "2026-05-21T12:01:00Z".to_string(),
             human_operator_id: "op-001".to_string(),
         };
@@ -199,6 +200,7 @@ mod integration_tests {
             workflow_id: "wf-complete".to_string(),
             decision: "APPROVE".to_string(),
             reason: Some("Operator verified output quality".to_string()),
+            new_plan: None,
             timestamp: "2026-05-21T12:01:00Z".to_string(),
             human_operator_id: "op-strategic".to_string(),
         };

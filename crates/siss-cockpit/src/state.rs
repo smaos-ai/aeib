@@ -2,9 +2,13 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
-use tokio::sync::broadcast;
-use crate::event_bridge::system_event_to_cockpit;
+use tokio::sync::{broadcast, mpsc, RwLock};
+use crate::event_bridge::{system_event_to_cockpit, agent_event_to_cockpit};
+use siss_agent_shell::events::AgentEvent;
 use siss_event_log::EventFilter;
+use siss_graph_db::rce_event_broadcaster::RceEventBroadcaster;
+use siss_graph_db::rce::ResumableCognitiveExecution;
+use sqlx::PgPool;
 
 pub const EVENT_BUFFER_SIZE: usize = 1000;
 pub const BROADCAST_CHANNEL_SIZE: usize = 1024;
@@ -21,6 +25,9 @@ pub struct CockpitEvent {
 pub struct CockpitState {
     tx: broadcast::Sender<CockpitEvent>,
     buffer: Arc<Mutex<VecDeque<CockpitEvent>>>,
+    pub rce_broadcaster: Arc<RceEventBroadcaster>,
+    pub rce_engine: Arc<RwLock<Option<ResumableCognitiveExecution>>>,
+    pub pool: Arc<Mutex<Option<Arc<PgPool>>>>,
 }
 
 impl CockpitState {
@@ -29,6 +36,9 @@ impl CockpitState {
         Self {
             tx,
             buffer: Arc::new(Mutex::new(VecDeque::with_capacity(EVENT_BUFFER_SIZE))),
+            rce_broadcaster: Arc::new(RceEventBroadcaster::new()),
+            rce_engine: Arc::new(RwLock::new(None)),
+            pool: Arc::new(Mutex::new(None)),
         }
     }
 
@@ -73,6 +83,31 @@ impl CockpitState {
                 }
             }
         });
+    }
+
+    /// Wire the agent pipeline event stream into the cockpit SSE stream.
+    /// Converts AgentEvent → CockpitEvent and broadcasts via SSE.
+    /// Non-blocking: event conversion/emission errors don't crash the cockpit.
+    pub fn wire_agent_emitter(&self, mut rx: mpsc::Receiver<AgentEvent>) {
+        let state = self.clone();
+        tokio::spawn(async move {
+            while let Some(event) = rx.recv().await {
+                state.emit(agent_event_to_cockpit(event));
+            }
+        });
+    }
+
+    /// Wire an active RCE engine into the cockpit decision handler.
+    /// Safe to call multiple times; replaces any previously wired engine.
+    pub fn wire_rce_engine(&self, engine: ResumableCognitiveExecution, pool: Arc<PgPool>) {
+        {
+            let mut guard = self.rce_engine.blocking_write();
+            *guard = Some(engine);
+        }
+        {
+            let mut p = self.pool.lock().expect("pool lock");
+            *p = Some(pool);
+        }
     }
 }
 

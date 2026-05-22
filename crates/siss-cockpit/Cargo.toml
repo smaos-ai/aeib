@@ -14,10 +14,15 @@ futures.workspace = true
 uuid.workspace = true
 chrono.workspace = true
 reqwest.workspace = true
+sqlx.workspace = true
 siss-agent-shell = { path = "../siss-agent-shell" }
 siss-graph-db = { path = "../siss-graph-db" }
 siss-job-router = { path = "../siss-job-router" }
 siss-event-log = { path = "../siss-event-log" }
+siss-context-cartography = { path = "../siss-context-cartography" }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["full"] }
+siss-graph-core = { path = "../siss-graph-core" }
+siss-behavioral-firewall = { path = "../siss-behavioral-firewall" }
+testcontainers.workspace = true

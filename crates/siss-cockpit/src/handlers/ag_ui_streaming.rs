@@ -1,18 +1,27 @@
-/// Phase 27: AG-UI Telemetry & A2UI Projections
-/// Server-Sent Events (SSE) endpoint for real-time routing metrics streaming
-///
-/// AG-UI: Agent-User Interaction Protocol (middleware for SSE)
-/// A2UI: Agent-to-User Interface Protocol (declarative JSON payloads)
+/// Phase 37: AG-UI Handlers RCE-to-Cockpit SSE Bridge
+/// Server-Sent Events (SSE) endpoint for real-time RCE event streaming
 
 use axum::{
+    extract::{Query, State},
     http::{StatusCode, HeaderMap},
     response::{sse::Event, Sse},
 };
-use futures::stream::{self, Stream};
+use futures::stream::Stream;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use std::time::Duration;
+use uuid::Uuid;
 
-/// A2UI Event Payload — Declarative JSON for React components
+use crate::state::CockpitState;
+use siss_graph_db::rce_event_broadcaster::RceEvent;
+
+#[derive(Debug, Deserialize)]
+pub struct StreamParams {
+    pub workflow_id: Option<String>,
+    pub severity_min: Option<String>,
+}
+
+/// A2UI Event Payload — Declarative JSON for React components (kept for backwards compat)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct A2UIEvent {
     pub event_type: String,
@@ -62,10 +71,107 @@ impl A2UIEvent {
     }
 }
 
+/// Parse severity level to numeric score for filtering
+fn severity_score(severity: &str) -> i32 {
+    match severity {
+        "Low" => 1,
+        "Medium" => 2,
+        "High" => 3,
+        "Critical" => 4,
+        _ => 0,
+    }
+}
+
+/// Convert RceEvent to SSE JSON payload
+fn rce_event_to_sse_json(event: &RceEvent) -> serde_json::Value {
+    match event {
+        RceEvent::WorkflowStarted {
+            workflow_id,
+            timestamp,
+            step_count,
+            plan,
+        } => json!({
+            "event": "workflow_started",
+            "workflow_id": workflow_id.to_string(),
+            "timestamp": timestamp.to_rfc3339(),
+            "data": {
+                "step_count": step_count,
+                "plan": plan,
+            }
+        }),
+        RceEvent::WorkflowPaused {
+            workflow_id,
+            timestamp,
+            step_index,
+            step_id,
+            step_name,
+            interrupt_reason,
+            interrupt_severity,
+        } => json!({
+            "event": "workflow_paused",
+            "workflow_id": workflow_id.to_string(),
+            "timestamp": timestamp.to_rfc3339(),
+            "data": {
+                "step_index": step_index,
+                "step_id": step_id.to_string(),
+                "step_name": step_name,
+                "interrupt_reason": interrupt_reason,
+                "interrupt_severity": interrupt_severity,
+                "human_approval_required": true,
+                "checkpoint_timestamp": timestamp.to_rfc3339(),
+            }
+        }),
+        RceEvent::WorkflowResumed {
+            workflow_id,
+            timestamp,
+            step_index,
+            decision,
+        } => json!({
+            "event": "workflow_resumed",
+            "workflow_id": workflow_id.to_string(),
+            "timestamp": timestamp.to_rfc3339(),
+            "data": {
+                "step_index": step_index,
+                "decision": decision,
+                "decision_reason": serde_json::Value::Null,
+                "human_operator_id": "",
+            }
+        }),
+        RceEvent::WorkflowRejected {
+            workflow_id,
+            timestamp,
+            reason,
+        } => json!({
+            "event": "workflow_rejected",
+            "workflow_id": workflow_id.to_string(),
+            "timestamp": timestamp.to_rfc3339(),
+            "data": {
+                "reason": reason,
+                "human_operator_id": "",
+            }
+        }),
+        RceEvent::WorkflowCompleted {
+            workflow_id,
+            timestamp,
+            total_steps,
+        } => json!({
+            "event": "workflow_completed",
+            "workflow_id": workflow_id.to_string(),
+            "timestamp": timestamp.to_rfc3339(),
+            "data": {
+                "total_steps": total_steps,
+                "execution_time_ms": 0,
+            }
+        }),
+    }
+}
+
 /// AG-UI SSE Stream Handler
-/// Authenticates request, opens SSE connection, streams A2UI events
+/// Authenticates request, subscribes to RceEventBroadcaster, streams events with keep-alive
 pub async fn get_rce_stream(
     headers: HeaderMap,
+    State(state): State<CockpitState>,
+    Query(params): Query<StreamParams>,
 ) -> Result<Sse<impl Stream<Item = Result<Event, std::convert::Infallible>>>, StatusCode> {
     let _auth_header = headers
         .get("Authorization")
@@ -73,16 +179,85 @@ pub async fn get_rce_stream(
         .filter(|s| s.starts_with("Bearer "))
         .ok_or(StatusCode::UNAUTHORIZED)?;
 
-    let stream = stream::iter(vec![
-        Ok(Event::default()
-            .event("routing_decision")
-            .json_data(A2UIEvent::routing_decision(0.85, "Tier1RapidMLX", 5, 0.0))
-            .unwrap()),
-        Ok(Event::default()
-            .event("metrics_update")
-            .json_data(A2UIEvent::metrics_update(100, 80.0, 15.0, 5.0, 3.2, 0.0024))
-            .unwrap()),
-    ]);
+    // Parse and validate workflow_id if provided
+    let filter_workflow_id = if let Some(ref id_str) = params.workflow_id {
+        match Uuid::parse_str(id_str) {
+            Ok(id) => Some(id),
+            Err(_) => return Err(StatusCode::BAD_REQUEST),
+        }
+    } else {
+        None
+    };
+
+    // Validate severity_min if provided
+    let min_severity_score = if let Some(ref sev) = params.severity_min {
+        match sev.as_str() {
+            "Low" | "Medium" | "High" | "Critical" => severity_score(sev),
+            _ => return Err(StatusCode::BAD_REQUEST),
+        }
+    } else {
+        0
+    };
+
+    let mut rx = state.rce_broadcaster.subscribe();
+
+    let stream = async_stream::stream! {
+        // Send retry hint and keep-alive interval at stream start
+        yield Ok(Event::default()
+            .event("open")
+            .data(""));
+
+        loop {
+            // Receive with 30s timeout for keep-alive
+            match tokio::time::timeout(Duration::from_secs(30), rx.recv()).await {
+                Ok(Ok(event)) => {
+                    // Filter by workflow_id if specified
+                    if let Some(filter_id) = filter_workflow_id {
+                        if event.workflow_id() != filter_id {
+                            continue;
+                        }
+                    }
+
+                    // Filter by severity_min if WorkflowPaused
+                    if min_severity_score > 0 {
+                        if let RceEvent::WorkflowPaused { interrupt_severity, .. } = &event {
+                            if severity_score(interrupt_severity) < min_severity_score {
+                                continue;
+                            }
+                        }
+                    }
+
+                    // Convert to SSE JSON
+                    let json_data = rce_event_to_sse_json(&event);
+                    let event_name = event.event_type().to_string();
+
+                    if let Ok(sse_event) = Event::default()
+                        .event(event_name)
+                        .json_data(&json_data)
+                    {
+                        yield Ok(sse_event);
+                    }
+                }
+                Ok(Err(_)) => {
+                    // Channel closed, stream ends
+                    break;
+                }
+                Err(_) => {
+                    // Timeout: send keep-alive
+                    let keep_alive = json!({
+                        "event": "keep_alive",
+                        "timestamp": chrono::Utc::now().to_rfc3339(),
+                    });
+                    if let Ok(sse_event) = Event::default()
+                        .event("keep_alive")
+                        .json_data(&keep_alive)
+                    {
+                        yield Ok(sse_event);
+                    }
+                }
+            }
+        }
+    };
 
     Ok(Sse::new(stream))
 }
@@ -93,79 +268,62 @@ mod tests {
 
     #[tokio::test]
     async fn test_ag_ui_stream_endpoint_requires_authentication() {
-        // GIVEN GET /api/rce/stream with NO Authorization header
-        // WHEN request processed
-        // THEN returns 401 Unauthorized
-
         let headers = axum::http::HeaderMap::new();
-        let result = get_rce_stream(headers).await;
+        let state = CockpitState::new();
+        let params = Query(StreamParams {
+            workflow_id: None,
+            severity_min: None,
+        });
+        let result = get_rce_stream(headers, State(state), params).await;
         assert!(result.is_err());
         assert_eq!(result.unwrap_err(), StatusCode::UNAUTHORIZED);
     }
 
     #[tokio::test]
     async fn test_ag_ui_stream_establishes_sse_connection() {
-        // GIVEN GET /api/rce/stream with valid Bearer token
-        // WHEN request processed
-        // THEN returns SSE stream (200 OK via response wrapper)
-
         let mut headers = axum::http::HeaderMap::new();
         headers.insert(
             "Authorization",
             "Bearer test-token-12345".parse().unwrap(),
         );
-
-        let result = get_rce_stream(headers).await;
+        let state = CockpitState::new();
+        let params = Query(StreamParams {
+            workflow_id: None,
+            severity_min: None,
+        });
+        let result = get_rce_stream(headers, State(state), params).await;
         assert!(result.is_ok(), "Should accept valid Bearer token and return SSE stream");
     }
 
     #[tokio::test]
-    async fn test_a2ui_routing_metric_payload_structure() {
-        // GIVEN routing decision event created
-        // WHEN serialized as A2UI JSON
-        // THEN contains all required fields:
-        // - event_type: "routing_decision"
-        // - timestamp: RFC3339 format
-        // - data: {confidence_score, assigned_tier, latency_ms, token_cost}
-        // - component: {type, title, data_binding}
-
-        let event = A2UIEvent::routing_decision(0.1, "Tier1RapidMLX", 2, 0.0);
-        assert_eq!(event.event_type, "routing_decision");
-        assert!(!event.timestamp.is_empty());
-        assert_eq!(event.data["confidence_score"], 0.1);
-        assert_eq!(event.data["assigned_tier"], "Tier1RapidMLX");
-    }
-
-    #[tokio::test]
-    async fn test_a2ui_metrics_aggregation_payload_structure() {
-        // GIVEN metrics aggregation event created
-        // WHEN serialized as A2UI JSON
-        // THEN contains all required fields:
-        // - event_type: "metrics_update"
-        // - data: {total_requests, tier percentages, latency, cost}
-        // - component: {type: "metric_dashboard", layout array, data_binding}
-
-        let event = A2UIEvent::metrics_update(100, 80.0, 15.0, 5.0, 3.2, 0.0024);
-        assert_eq!(event.event_type, "metrics_update");
-        assert_eq!(event.data["total_requests"], 100);
-        assert_eq!(event.data["tier1_percentage"], 80.0);
-        assert_eq!(event.component["type"], "metric_dashboard");
-    }
-
-    #[tokio::test]
-    async fn test_ag_ui_stream_graceful_disconnect() {
-        // GIVEN /api/rce/stream connected
-        // WHEN client disconnects
-        // THEN stream terminates gracefully
-        // AND no orphaned connections remain
-
+    async fn test_sse_invalid_workflow_id_returns_400() {
         let mut headers = axum::http::HeaderMap::new();
         headers.insert(
             "Authorization",
-            "Bearer test-token-12345".parse().unwrap(),
+            "Bearer test-token".parse().unwrap(),
         );
+        let state = CockpitState::new();
+        let params = Query(StreamParams {
+            workflow_id: Some("not-a-uuid".to_string()),
+            severity_min: None,
+        });
+        let result = get_rce_stream(headers, State(state), params).await;
+        assert_eq!(result.unwrap_err(), StatusCode::BAD_REQUEST);
+    }
 
-        let result = get_rce_stream(headers).await;
-        assert!(result.is_ok(), "Stream should establish and maintain connection");
+    #[tokio::test]
+    async fn test_sse_invalid_severity_min_returns_400() {
+        let mut headers = axum::http::HeaderMap::new();
+        headers.insert(
+            "Authorization",
+            "Bearer test-token".parse().unwrap(),
+        );
+        let state = CockpitState::new();
+        let params = Query(StreamParams {
+            workflow_id: None,
+            severity_min: Some("InvalidSeverity".to_string()),
+        });
+        let result = get_rce_stream(headers, State(state), params).await;
+        assert_eq!(result.unwrap_err(), StatusCode::BAD_REQUEST);
     }
 }

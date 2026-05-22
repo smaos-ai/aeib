@@ -175,6 +175,10 @@ impl AgentSession {
                 emit_agent_status(AgentState::Error);
                 return Err(AgentShellError::IntentHalted { reason });
             }
+            HookResult::Defer { reason, severity } => {
+                emit_agent_status(AgentState::Error);
+                return Err(AgentShellError::IntentDeferred { reason, severity });
+            }
             HookResult::Continue => {}
         }
 
@@ -191,6 +195,7 @@ impl AgentSession {
             &params.requested_tools,
             params.estimated_cost,
             zonal_context,
+            params.skill_context.clone(),
             &*self.signer,
             &*self.strategy,
             &*self.executor,
@@ -260,5 +265,25 @@ impl AgentSession {
     /// Get the remaining budget.
     pub fn budget_remaining(&self) -> i64 {
         self.budget_remaining
+    }
+
+    /// Suspend the session (persist to DB, do not fire on_stop hooks).
+    pub async fn suspend(&self) -> Result<(), AgentShellError> {
+        // 1. Write {"status": "suspended"} to DB snapshot
+        if self.session_id.0 != uuid::Uuid::nil() {
+            let _ = siss_graph_db::repo::node_repo::update_session_snapshot(
+                &self.pool,
+                self.session_id.0,
+                serde_json::json!({"status": "suspended"}),
+            )
+            .await;
+        }
+
+        // 2. Emit suspended state
+        crate::ag_ui::status_emitter::emit_agent_status(crate::ag_ui::status_emitter::AgentState::Suspended);
+
+        // Note: on_stop hooks are NOT fired (session is resumable, not terminated)
+
+        Ok(())
     }
 }

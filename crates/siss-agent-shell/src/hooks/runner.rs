@@ -1,4 +1,4 @@
-use super::{ExecutionContext, HookResult, LifecycleHook, SessionContext};
+use super::{ExecutionContext, HookResult, LifecycleHook, SessionContext, ToolUseContext};
 
 /// Run a session-context hook across all registered hooks.
 /// First Deny wins. Halt stops execution but isn't a violation.
@@ -15,6 +15,7 @@ where
             HookResult::Continue => continue,
             result @ HookResult::Deny { .. } => return result,
             result @ HookResult::Halt { .. } => return result,
+            result @ HookResult::Defer { .. } => return result,
         }
     }
     HookResult::Continue
@@ -34,6 +35,43 @@ where
             HookResult::Continue => continue,
             result @ HookResult::Deny { .. } => return result,
             result @ HookResult::Halt { .. } => return result,
+            result @ HookResult::Defer { .. } => return result,
+        }
+    }
+    HookResult::Continue
+}
+
+/// Run a tool-use-context hook across all registered hooks with timeout isolation.
+/// First non-Continue wins. If a hook times out, returns Deny("hook_timeout") fail-closed.
+pub async fn run_tool_hooks<F, Fut>(
+    hooks: &[Box<dyn LifecycleHook>],
+    ctx: &ToolUseContext,
+    method: F,
+    timeout_ms: u64,
+) -> HookResult
+where
+    F: Fn(&dyn LifecycleHook, &ToolUseContext) -> Fut,
+    Fut: std::future::Future<Output = HookResult>,
+{
+    use tokio::time::{timeout, Duration};
+
+    for hook in hooks {
+        let result = match timeout(Duration::from_millis(timeout_ms), method(&**hook, ctx)).await
+        {
+            Ok(r) => r,
+            Err(_) => {
+                // Hook timed out — fail-closed
+                return HookResult::Deny {
+                    reason: "hook_timeout".to_string(),
+                };
+            }
+        };
+
+        match result {
+            HookResult::Continue => continue,
+            result @ HookResult::Deny { .. } => return result,
+            result @ HookResult::Halt { .. } => return result,
+            result @ HookResult::Defer { .. } => return result,
         }
     }
     HookResult::Continue

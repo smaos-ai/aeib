@@ -1,4 +1,4 @@
-use crate::handlers::{control, dashboard, form_submit, stream, router_handler, ag_ui_streaming}; // projections removed due to Phase 24 pool blocker
+use crate::handlers::{control, dashboard, form_submit, stream, router_handler, ag_ui_streaming, rce_decision, rce_projection}; // projections removed due to Phase 24 pool blocker
 use crate::state::CockpitState;
 use axum::{
     routing::{get, post},
@@ -18,6 +18,8 @@ pub fn create_router(state: CockpitState) -> Router {
         )
         .route("/api/router/route", post(router_handler::post_route))
         .route("/api/rce/stream", get(ag_ui_streaming::get_rce_stream))
+        .route("/api/rce/decision", post(rce_decision::post_rce_decision))
+        .route("/api/rce/:workflow_id/projection", get(rce_projection::get_rce_projection))
         // Phase 24 projections routes — handlers need PgPool from state (currently commented)
         // TODO: Wire PgPool into CockpitState and uncomment these routes
         // .route("/api/graph/projections/agent-actions", get(projections::get_agent_actions))

@@ -10,6 +10,7 @@ pub enum AgentState {
     Idle,
     Waiting,
     Error,
+    Suspended,
 }
 
 impl AgentState {
@@ -20,6 +21,7 @@ impl AgentState {
             AgentState::Idle => "idle",
             AgentState::Waiting => "waiting",
             AgentState::Error => "error",
+            AgentState::Suspended => "suspended",
         }
     }
 }
@@ -135,7 +137,7 @@ mod tests {
 
     #[test]
     fn test_status_format() {
-        let states = vec!["running", "idle", "waiting", "error"];
+        let states = vec!["running", "idle", "waiting", "error", "suspended"];
         for state_str in states {
             let msg = format!("[AGENT_STATUS] state={}", state_str);
             assert!(

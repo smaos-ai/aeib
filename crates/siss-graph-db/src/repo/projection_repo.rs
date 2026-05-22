@@ -117,9 +117,9 @@ pub async fn query_root_cause_chain(
             .await
             .map_err(|e| format!("Database error: {}", e))?;
 
-    // If not found, generate synthetic data for testing
+    // If not found, return error
     if anomaly_row.is_none() {
-        return Ok(synthetic_root_cause_response(anomaly_id, max_depth));
+        return Err(format!("Anomaly not found: {}", anomaly_id));
     }
 
     let anomaly_row = anomaly_row.unwrap();

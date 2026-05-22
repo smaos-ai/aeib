@@ -453,5 +453,12 @@
     "commit": "4a43801",
     "message": "FIX: Add forfeited_at timestamp to arbitration forfeit path",
     "tests_pass": false
+  },
+  {
+    "hash": "01b46fb2b3fd838b4d0d0480db2a238d57344ed6f8babcad992f11e161dc3f9e",
+    "timestamp": "2026-05-22T18:19:28Z",
+    "commit": "530f2f9",
+    "message": "Phase 25 Wave 1 Task 1: ReBAC Foundation (COMPLETE)",
+    "tests_pass": false
   }
 ]

@@ -3174,6 +3174,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "siss-memory-plane"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "rayon",
+ "serde",
+ "serde_json",
+ "siss-context-cartography",
+ "siss-graph-core",
+ "thiserror 2.0.18",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "siss-ontology-proofs"
 version = "0.1.0"
 dependencies = [

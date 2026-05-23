@@ -97,6 +97,7 @@ pub struct AsyncTaskRouter {
     connection_pool_limit: Arc<Semaphore>,
     active_tasks: Arc<AtomicU32>,
     max_concurrent_tasks: Arc<tokio::sync::Mutex<u32>>,
+    peak_active_tasks: Arc<AtomicU32>,
 }
 
 impl AsyncTaskRouter {
@@ -113,12 +114,15 @@ impl AsyncTaskRouter {
         let active_tasks = Arc::new(AtomicU32::new(0));
         let max_concurrent_tasks = Arc::new(tokio::sync::Mutex::new(0));
 
+        let peak_active_tasks = Arc::new(AtomicU32::new(0));
+
         // Spawn worker tasks to consume from queue
         for _ in 0..worker_count {
             let rx_clone = rx.clone();
             let pool_clone = connection_pool.clone();
             let active_clone = active_tasks.clone();
             let max_clone = max_concurrent_tasks.clone();
+            let peak_clone = peak_active_tasks.clone();
 
             tokio::spawn(async move {
                 loop {
@@ -137,6 +141,9 @@ impl AsyncTaskRouter {
                                 *max_guard = count as u32;
                             }
                             drop(max_guard);
+
+                            // Update peak active tasks (for 10k saturation trap)
+                            peak_clone.fetch_max(count as u32, Ordering::SeqCst);
 
                             // PHASE 1 INTEGRATION: Behavioral Firewall Evaluation
                             // In production: call siss_behavioral_firewall::MandateVerifier::evaluate()
@@ -174,6 +181,7 @@ impl AsyncTaskRouter {
             connection_pool_limit: connection_pool,
             active_tasks,
             max_concurrent_tasks,
+            peak_active_tasks,
         }
     }
 
@@ -199,6 +207,10 @@ impl AsyncTaskRouter {
 
     pub async fn get_circuit_breaker_state(&self) -> CircuitBreakerState {
         *self.circuit_breaker_state.lock().await
+    }
+
+    pub fn peak_active_task_count(&self) -> u32 {
+        self.peak_active_tasks.load(Ordering::SeqCst)
     }
 }
 
@@ -978,6 +990,66 @@ mod tests {
         // Verify max concurrent stayed within limits
         let max_concurrent = router.get_max_concurrent().await;
         assert!(max_concurrent <= 10, "Semaphore limits must be respected");
+    }
+
+    // ============================================================================
+    // TEST: 10K SATURATION SEMAPHORE CAP TRAP (Phase 65 Invariant 1)
+    // ============================================================================
+
+    #[tokio::test]
+    async fn test_10k_saturation_semaphore_cap_trap() {
+        // Constraint: Blast 10k concurrent tasks, semaphore capped at 5 permits
+        // Queue capacity = 100, so ~9900 must be rejected via backpressure
+        // Peak active never exceeds 5 concurrent tasks under semaphore
+        let router = AsyncTaskRouter::new(100, 4).await;
+        let accepted = StdArc::new(AtomicU32::new(0));
+        let rejected = StdArc::new(AtomicU32::new(0));
+
+        let mut futs = vec![];
+        for i in 0..10_000 {
+            let r = router.clone();
+            let a = accepted.clone();
+            let rj = rejected.clone();
+
+            let fut = async move {
+                let task = MandateTask {
+                    trace_id: Uuid::new_v4(),
+                    agent_id: sovereign(1),
+                    task_id: Uuid::new_v4(),
+                    action: "read".to_string(),
+                    resource_id: format!("res_{}", i),
+                };
+
+                match r.submit_task(task).await {
+                    Ok(_) => {
+                        a.fetch_add(1, Ordering::SeqCst);
+                    }
+                    Err(_) => {
+                        rj.fetch_add(1, Ordering::SeqCst);
+                    }
+                }
+            };
+            futs.push(fut);
+        }
+
+        // Wait for all submissions to complete
+        futures::future::join_all(futs).await;
+
+        let total_accepted = accepted.load(Ordering::SeqCst);
+        let total_rejected = rejected.load(Ordering::SeqCst);
+        let total = total_accepted + total_rejected;
+
+        assert_eq!(total as usize, 10_000, "No tasks must be lost");
+        assert!(total_rejected >= 9_800,
+            "Expected >= 9800 backpressure rejections, got {}", total_rejected);
+
+        // Wait for workers to finish processing all queued tasks
+        tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+
+        // Verify semaphore cap: peak active tasks must never exceed 5
+        let peak = router.peak_active_task_count();
+        assert!(peak <= 5,
+            "Semaphore cap violated: {} active tasks exceeded 5-permit limit", peak);
     }
 }
 

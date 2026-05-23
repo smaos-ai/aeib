@@ -1,6 +1,8 @@
 use uuid::Uuid;
 use serde::{Serialize, Deserialize};
 use std::time::{SystemTime, UNIX_EPOCH, Duration};
+use std::sync::{Arc, Mutex};
+use std::collections::HashMap;
 use chrono::Datelike;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -27,9 +29,28 @@ pub struct PhaseOutcome {
     pub latency_ms: f64,
 }
 
+pub struct DeleteTransaction {
+    pub trace_id: Uuid,
+    pub verification: Result<(), String>,
+    pub hot_storage: Arc<Mutex<HashMap<Uuid, AuditTrace>>>,
+}
+
+impl DeleteTransaction {
+    pub fn commit(&self) -> Result<(), String> {
+        if self.verification.is_ok() {
+            let mut storage = self.hot_storage.lock().unwrap();
+            storage.remove(&self.trace_id);
+            Ok(())
+        } else {
+            Err("Cannot commit: verification failed".to_string())
+        }
+    }
+}
+
 pub struct AuditArchiver {
     hot_storage_ttl_days: u32,
     cold_storage_bucket: String,
+    hot_storage: Arc<Mutex<HashMap<Uuid, AuditTrace>>>,
 }
 
 impl AuditArchiver {
@@ -37,6 +58,29 @@ impl AuditArchiver {
         AuditArchiver {
             hot_storage_ttl_days,
             cold_storage_bucket,
+            hot_storage: Arc::new(Mutex::new(HashMap::new())),
+        }
+    }
+
+    pub fn add_trace(&self, trace: AuditTrace) {
+        let mut storage = self.hot_storage.lock().unwrap();
+        storage.insert(trace.trace_id, trace);
+    }
+
+    pub fn hot_storage_contains(&self, trace_id: Uuid) -> bool {
+        let storage = self.hot_storage.lock().unwrap();
+        storage.contains_key(&trace_id)
+    }
+
+    pub fn delete_from_hot_storage_with_verification(
+        &self,
+        trace_id: Uuid,
+        verification: Result<(), String>,
+    ) -> DeleteTransaction {
+        DeleteTransaction {
+            trace_id,
+            verification,
+            hot_storage: self.hot_storage.clone(),
         }
     }
 
@@ -269,5 +313,39 @@ mod tests {
         // Step 4: Delete from hot storage
         let delete_result = archiver.delete_from_hot_storage(trace.trace_id);
         assert!(delete_result.is_ok());
+    }
+
+    // ============================================================================
+    // TEST: NETWORK SEVER FAIL-CLOSED HOT STORAGE PRESERVATION (Phase 65 Invariant 3)
+    // ============================================================================
+
+    #[test]
+    fn test_network_sever_fail_closed_hot_storage_preservation_trap() {
+        let archiver = AuditArchiver::new(90, "test-bucket".to_string());
+        let trace = create_trace(0); // Fresh trace, not eligible for archival yet
+
+        // Add trace to hot storage first
+        archiver.add_trace(trace.clone());
+        assert!(archiver.hot_storage_contains(trace.trace_id),
+            "Trace must be added to hot storage");
+
+        // Simulate S3 archival: get hash, then corrupt the retrieved hash
+        let (_path, original_hash) = archiver.archive_to_s3(&trace)
+            .expect("archive_to_s3 must succeed");
+        let corrupted_retrieved = format!("{}_NETWORK_SEVER", original_hash);
+
+        // Integrity check fails (simulates S3 timeout / bit-rot)
+        let verification = archiver.verify_s3_integrity(&original_hash, &corrupted_retrieved);
+        assert!(verification.is_err(), "Corrupted hash must fail verification");
+
+        // Fail-closed: delete transaction must NOT commit after S3 failure
+        let tx = archiver.delete_from_hot_storage_with_verification(trace.trace_id, verification);
+        let commit_result = tx.commit();
+        assert!(commit_result.is_err(),
+            "DELETE must not commit after S3 failure");
+
+        // FAIL-CLOSED GUARANTEE: Trace must remain in hot storage after failed archival
+        assert!(archiver.hot_storage_contains(trace.trace_id),
+            "FAIL-CLOSED: Trace must remain in hot storage after failed archival");
     }
 }

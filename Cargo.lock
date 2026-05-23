@@ -3166,6 +3166,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "siss-ontology-proofs"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "hex",
+ "rand 0.8.6",
+ "serde",
+ "serde_json",
+ "sha2",
+ "uuid",
+]
+
+[[package]]
 name = "siss-os-sidecar"
 version = "0.1.0"
 dependencies = [

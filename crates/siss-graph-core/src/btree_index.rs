@@ -2,6 +2,7 @@ use uuid::Uuid;
 use std::collections::BTreeMap;
 use crate::node::NodeType;
 
+#[allow(dead_code)]
 pub struct EntityIndex {
     tree: BTreeMap<Uuid, NodeType>,
     hit_count: u64,

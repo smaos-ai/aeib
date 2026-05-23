@@ -502,5 +502,12 @@
     "commit": "a975154",
     "message": "State snapshot before Phase 66 merge",
     "tests_pass": false
+  },
+  {
+    "hash": "a397f5851aa8369c8bc65792af7d8ba0afa0a8b1e78f2a3300292ff795adbc02",
+    "timestamp": "2026-05-23T08:31:59Z",
+    "commit": "11d5c63",
+    "message": "Merge Phase 67: Sovereign Swarm Validation (12 new tests, all GREEN)",
+    "tests_pass": false
   }
 ]

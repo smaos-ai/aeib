@@ -1,10 +1,10 @@
 # 🧭 Execution State (Auto-Resumable) + Immutable Ledger
 
 ## Last Checkpoint
-- **Commit:** `a975154`
-- **Ledger Hash:** `0c6e940481c6d2a6`…
-- **Timestamp:** 2026-05-23T04:47:32Z
-- **Phase:** `State snapshot before Phase 66 merge`
+- **Commit:** `11d5c63`
+- **Ledger Hash:** `a397f5851aa8369c`…
+- **Timestamp:** 2026-05-23T08:31:59Z
+- **Phase:** `Merge Phase 67`
 - **Tests:** false
 - **Next Step:** (Edit before closing)
 

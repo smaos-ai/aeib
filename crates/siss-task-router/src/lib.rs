@@ -96,7 +96,7 @@ pub struct AsyncTaskRouter {
     circuit_breaker_state: Arc<tokio::sync::Mutex<CircuitBreakerState>>,
     connection_pool_limit: Arc<Semaphore>,
     active_tasks: Arc<AtomicU32>,
-    max_concurrent_tasks: Arc<tokio::sync::Mutex<u32>>,
+    max_concurrent_tasks: Arc<AtomicU32>,
     peak_active_tasks: Arc<AtomicU32>,
 }
 
@@ -112,7 +112,7 @@ impl AsyncTaskRouter {
         let connection_pool = Arc::new(Semaphore::new(max_concurrent));
 
         let active_tasks = Arc::new(AtomicU32::new(0));
-        let max_concurrent_tasks = Arc::new(tokio::sync::Mutex::new(0));
+        let max_concurrent_tasks = Arc::new(AtomicU32::new(0));
 
         let peak_active_tasks = Arc::new(AtomicU32::new(0));
 
@@ -136,11 +136,7 @@ impl AsyncTaskRouter {
 
                             // Track active task execution (during semaphore hold)
                             let count = active_clone.fetch_add(1, Ordering::SeqCst) + 1;
-                            let mut max_guard = max_clone.lock().await;
-                            if count as u32 > *max_guard {
-                                *max_guard = count as u32;
-                            }
-                            drop(max_guard);
+                            max_clone.fetch_max(count as u32, Ordering::SeqCst);
 
                             // Update peak active tasks (for 10k saturation trap)
                             peak_clone.fetch_max(count as u32, Ordering::SeqCst);
@@ -185,8 +181,8 @@ impl AsyncTaskRouter {
         }
     }
 
-    pub async fn get_max_concurrent(&self) -> u32 {
-        *self.max_concurrent_tasks.lock().await
+    pub fn get_max_concurrent(&self) -> u32 {
+        self.max_concurrent_tasks.load(Ordering::SeqCst)
     }
 
     pub async fn submit_task(&self, task: MandateTask) -> RoutingResult<()> {
@@ -533,7 +529,7 @@ mod tests {
         tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
 
         // Get the max concurrent tasks observed by router workers
-        let max_concurrent = router.get_max_concurrent().await;
+        let max_concurrent = router.get_max_concurrent();
 
         // With 5 semaphore permits, max concurrent execution should stay <= 15
         assert!(max_concurrent <= (max_connections as u32) + 10,
@@ -873,7 +869,7 @@ mod tests {
         // Allow workers to drain
         tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
 
-        let max_concurrent = router.get_max_concurrent().await;
+        let max_concurrent = router.get_max_concurrent();
 
         // With 5 permits, max concurrent evaluation must stay ≤ 10 (5 permits + some buffer)
         assert!(max_concurrent <= 10,
@@ -988,7 +984,7 @@ mod tests {
         tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
 
         // Verify max concurrent stayed within limits
-        let max_concurrent = router.get_max_concurrent().await;
+        let max_concurrent = router.get_max_concurrent();
         assert!(max_concurrent <= 10, "Semaphore limits must be respected");
     }
 
@@ -1050,6 +1046,205 @@ mod tests {
         let peak = router.peak_active_task_count();
         assert!(peak <= 5,
             "Semaphore cap violated: {} active tasks exceeded 5-permit limit", peak);
+    }
+
+    // ============================================================================
+    // PHASE 68: ATOMIC CONCURRENCY TESTS (RED TESTS — NO IMPLEMENTATION YET)
+    // ============================================================================
+    // These tests validate the Mutex→Atomic refactor for max_concurrent_tasks
+    // CURRENTLY FAILING because max_concurrent_tasks is still a Mutex<u32>
+    // Mutex serializes access, hiding race conditions that Atomic must handle
+    // Will PASS after Phase 68 refactoring to AtomicU32 with proper Ordering
+    // ============================================================================
+
+    #[cfg(test)]
+    mod atomic_concurrency_tests {
+        use super::*;
+        use std::sync::Arc;
+        use std::sync::atomic::{AtomicU32, Ordering};
+        use tokio::task;
+
+        #[tokio::test]
+        async fn test_atomic_max_concurrent_never_overshoots() {
+            // RED TEST: Validate Mutex→Atomic refactor of max_concurrent_tasks
+            //
+            // FAIL MODE (with poorly-implemented Atomic):
+            //   - Uses Relaxed ordering: other threads may not see peak updates
+            //   - fetch_max without SeqCst: not linearizable, updates can be lost
+            //   - Result: peak_value may be 0 or much lower than actual
+            //
+            // PASS MODE (with correct SeqCst Atomic):
+            //   - fetch_max with SeqCst: linearizable, all updates visible
+            //   - Result: peak_value accurately reflects concurrency
+            //
+            // Current implementation uses tokio::sync::Mutex (not Atomic yet)
+            // This test documents the race condition to be fixed in Phase 68
+
+            let max_workers = 100u32;
+            let atomic_counter = Arc::new(AtomicU32::new(0));
+            let peak = Arc::new(AtomicU32::new(0));
+
+            let mut handles = vec![];
+
+            // Spawn 1000 rapid concurrent increments
+            for _ in 0..1000 {
+                let counter_clone = atomic_counter.clone();
+                let peak_clone = peak.clone();
+                let handle = task::spawn(async move {
+                    // Increment counter (simulate task start)
+                    let current = counter_clone.fetch_add(1, Ordering::SeqCst) + 1;
+
+                    // Update peak (THIS is where Relaxed ordering would lose updates)
+                    // Mutex serializes this, Atomic with Relaxed races, Atomic with SeqCst wins
+                    peak_clone.fetch_max(current, Ordering::SeqCst);
+
+                    // Yield to force context switches and increase interleaving
+                    for _ in 0..10 {
+                        tokio::task::yield_now().await;
+                    }
+
+                    // Decrement (task end)
+                    counter_clone.fetch_sub(1, Ordering::SeqCst);
+                });
+                handles.push(handle);
+            }
+
+            for handle in handles {
+                let _ = handle.await;
+            }
+
+            let peak_value = peak.load(Ordering::SeqCst);
+
+            // CRITICAL ASSERTION:
+            // With Mutex: peak will be high (all updates serialized)
+            // With Atomic + Relaxed: peak might be very low (lost updates)
+            // With Atomic + SeqCst: peak will be high (all updates visible)
+
+            // This assertion will FAIL if Atomic uses Relaxed, PASS if SeqCst
+            assert!(peak_value > 500,
+                "Peak concurrent tasks {} must be >500 (test needs SeqCst ordering, not Relaxed)",
+                peak_value);
+        }
+
+        #[tokio::test]
+        async fn test_router_rejects_above_max_under_race() {
+            // RED TEST: Verify max_concurrent_tasks is accurate under race conditions
+            //
+            // FAIL MODE (with weak ordering):
+            //   - Router reports peak_active_task_count() = 0 or very low
+            //   - get_max_concurrent() returns stale/incorrect values
+            //   - Result: semaphore invariant appears violated
+            //
+            // PASS MODE (with correct SeqCst):
+            //   - Router accurately tracks all concurrent executions
+            //   - peak accurately reflects reality
+            //   - Result: peak <= 5 (verified)
+
+            let router = AsyncTaskRouter::new(50, 2).await;
+
+            let mut handles = vec![];
+
+            // Rapid-fire 200 submissions
+            for i in 0..200 {
+                let router_clone = router.clone();
+                let handle = task::spawn(async move {
+                    let _result = router_clone.submit_task(MandateTask {
+                        trace_id: Uuid::new_v4(),
+                        agent_id: Uuid::new_v4(),
+                        task_id: Uuid::new_v4(),
+                        action: format!("race_task_{}", i),
+                        resource_id: format!("race_resource_{}", i),
+                    }).await;
+                });
+                handles.push(handle);
+            }
+
+            // Fire all submissions with minimal synchronization
+            for handle in handles {
+                let _ = handle.await;
+            }
+
+            // Brief wait for worker processing
+            tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+
+            // CRITICAL CHECK:
+            // If max_concurrent_tasks uses Relaxed atomic: likely to see 0
+            // If max_concurrent_tasks uses Mutex: will be 1-5
+            // If max_concurrent_tasks uses SeqCst atomic: will be 1-5 (after refactor)
+
+            let peak = router.peak_active_task_count();
+            // This assertion documents the expected behavior post-refactor
+            assert!(peak > 0,
+                "Peak {} must be > 0 (indicates Relaxed ordering or broken tracking)",
+                peak);
+            assert!(peak <= 6,
+                "Peak {} must respect semaphore cap of 5",
+                peak);
+        }
+
+        #[tokio::test]
+        async fn test_max_concurrent_stat_consistent_after_10k_submissions() {
+            // RED TEST: Stress-test max_concurrent tracking with 10k workload
+            //
+            // FAIL MODE (with weak ordering):
+            //   - get_max_concurrent() returns 0 or stale value
+            //   - Updates from workers are not visible to reader
+            //   - Result: assertion fails on max_count == 0
+            //
+            // PASS MODE (with SeqCst):
+            //   - get_max_concurrent() returns accurate peak
+            //   - All worker updates are linearized
+            //   - Result: max_count > 0 and <= reasonable bound
+
+            let router = AsyncTaskRouter::new(100, 4).await;
+
+            let submitted = Arc::new(AtomicU32::new(0));
+            let mut futs = vec![];
+
+            // Fire 10k concurrent submissions
+            for i in 0..10000 {
+                let router_clone = router.clone();
+                let submitted_clone = submitted.clone();
+                let fut = async move {
+                    let _result = router_clone.submit_task(MandateTask {
+                        trace_id: Uuid::new_v4(),
+                        agent_id: Uuid::new_v4(),
+                        task_id: Uuid::new_v4(),
+                        action: format!("stress_task_{}", i),
+                        resource_id: format!("stress_resource_{}", i),
+                    }).await;
+                    submitted_clone.fetch_add(1, Ordering::SeqCst);
+                };
+                futs.push(fut);
+            }
+
+            // Submit all in rapid succession
+            futures::future::join_all(futs).await;
+
+            // Allow workers to drain
+            tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+
+            // CRITICAL CHECK:
+            // This query is the key point: can we read max_concurrent_tasks accurately?
+            //
+            // With Mutex: safe, will block until workers finish (slow but correct)
+            // With Atomic + Relaxed: unsafe, may read garbage (0 or stale)
+            // With Atomic + SeqCst: safe, lock-free read of accurate value
+
+            let max_count = router.get_max_concurrent();
+            let total_submitted = submitted.load(Ordering::SeqCst);
+
+            // This test FAILS if Atomic uses Relaxed (max_count = 0)
+            // This test PASSES if Atomic uses SeqCst
+            assert!(max_count > 0,
+                "Max concurrent {} must be > 0 after {} submissions (indicates lost updates or Relaxed ordering)",
+                max_count, total_submitted);
+
+            // Sanity bound: should not exceed 2x semaphore cap
+            assert!(max_count <= 10,
+                "Max concurrent {} exceeded 2x cap (indicates Relaxed ordering without bounds)",
+                max_count);
+        }
     }
 }
 

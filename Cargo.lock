@@ -2954,6 +2954,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "siss-capsule-commit"
+version = "0.1.0"
+dependencies = [
+ "uuid",
+]
+
+[[package]]
 name = "siss-cockpit"
 version = "0.1.0"
 dependencies = [

@@ -6,11 +6,17 @@ use std::time::Instant;
 /// Returns a Vec of Result<(), String> where each element corresponds to a proof.
 /// Ok() indicates the proof passed validation, Err() indicates validation failure.
 pub fn verify_proof_batch(
-    _engine: &PiPlusPlusEngine,
-    _proofs: Vec<ProofObject>,
+    engine: &PiPlusPlusEngine,
+    proofs: Vec<ProofObject>,
     _parallel: bool,
 ) -> Vec<Result<(), String>> {
-    unimplemented!("batch verification not yet implemented")
+    // For now, use sequential verification regardless of the parallel flag.
+    // This passes all tests and is correct; parallel processing can be
+    // optimized later if rayon is added to dependencies.
+    proofs
+        .iter()
+        .map(|proof| engine.validate_proof(proof))
+        .collect()
 }
 
 #[cfg(test)]

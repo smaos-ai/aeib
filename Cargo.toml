@@ -17,7 +17,7 @@ members = [
     "crates/siss-os-sidecar",
     "crates/siss-dispatcher",
     "crates/demo-app",
-    "crates/siss-cockpit", "crates/siss-otel-tracer", "crates/siss-telemetry-router", "crates/siss-audit-archiver", "crates/siss-bandwidth-monitor", "crates/siss-task-router", "crates/siss-ontology-proofs", "crates/siss-capsule-commit", "crates/siss-memory-plane", "crates/siss-mcp-gateway", "crates/siss-ap2-enforcer", "crates/siss-a2a-dispatcher", "crates/siss-skill-hooks",
+    "crates/siss-cockpit", "crates/siss-otel-tracer", "crates/siss-telemetry-router", "crates/siss-audit-archiver", "crates/siss-bandwidth-monitor", "crates/siss-task-router", "crates/siss-ontology-proofs", "crates/siss-capsule-commit", "crates/siss-memory-plane", "crates/siss-mcp-gateway", "crates/siss-ap2-enforcer", "crates/siss-a2a-dispatcher", "crates/siss-skill-hooks", "crates/siss-aoe-orchestrator", "crates/siss-a2ui-renderer", "crates/siss-remote-gateway", "crates/siss-swarm-attestation", "crates/siss-telemetry-loop",
 ]
 
 [workspace.package]

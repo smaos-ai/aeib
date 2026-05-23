@@ -1,0 +1,16 @@
+[package]
+name = "siss-telemetry-loop"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+siss-skill-hooks          = { path = "../siss-skill-hooks" }
+siss-memory-plane         = { path = "../siss-memory-plane" }
+siss-context-cartography  = { path = "../siss-context-cartography" }
+siss-agent-shell          = { path = "../siss-agent-shell" }
+siss-graph-core           = { path = "../siss-graph-core" }
+uuid.workspace      = true
+thiserror.workspace = true
+serde.workspace     = true
+chrono.workspace    = true
+serde_json.workspace = true

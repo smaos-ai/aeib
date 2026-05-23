@@ -2874,6 +2874,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "siss-a2ui-renderer"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "siss-agent-shell",
+ "siss-cockpit",
+ "thiserror 2.0.18",
+ "uuid",
+]
+
+[[package]]
 name = "siss-agent-card"
 version = "0.1.0"
 dependencies = [
@@ -2927,6 +2939,19 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "tokio-util",
+ "uuid",
+]
+
+[[package]]
+name = "siss-aoe-orchestrator"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "serde",
+ "siss-agent-shell",
+ "siss-graph-core",
+ "thiserror 2.0.18",
+ "tokio",
  "uuid",
 ]
 
@@ -3265,6 +3290,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "siss-remote-gateway"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "serde",
+ "thiserror 2.0.18",
+ "uuid",
+]
+
+[[package]]
 name = "siss-skill-hooks"
 version = "0.1.0"
 dependencies = [
@@ -3274,6 +3309,20 @@ dependencies = [
  "siss-context-cartography",
  "siss-graph-core",
  "siss-memory-plane",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
+name = "siss-swarm-attestation"
+version = "0.1.0"
+dependencies = [
+ "ed25519-dalek",
+ "hex",
+ "rand 0.8.6",
+ "serde",
+ "serde_json",
+ "sha2",
  "tokio",
  "uuid",
 ]
@@ -3289,6 +3338,22 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "siss-telemetry-loop"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_json",
+ "siss-agent-shell",
+ "siss-context-cartography",
+ "siss-graph-core",
+ "siss-memory-plane",
+ "siss-skill-hooks",
+ "thiserror 2.0.18",
  "uuid",
 ]
 

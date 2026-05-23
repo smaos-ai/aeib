@@ -1,0 +1,12 @@
+[package]
+name = "siss-a2ui-renderer"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+siss-agent-shell = { path = "../siss-agent-shell" }
+siss-cockpit     = { path = "../siss-cockpit" }
+uuid.workspace       = true
+serde.workspace      = true
+serde_json.workspace = true
+thiserror.workspace  = true

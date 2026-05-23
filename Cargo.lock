@@ -3172,6 +3172,7 @@ dependencies = [
  "chrono",
  "hex",
  "rand 0.8.6",
+ "rayon",
  "serde",
  "serde_json",
  "sha2",

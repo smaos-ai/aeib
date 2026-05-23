@@ -7,6 +7,7 @@ version.workspace = true
 siss-graph-core = { path = "../siss-graph-core" }
 siss-graph-db = { path = "../siss-graph-db" }
 siss-event-log = { path = "../siss-event-log" }
+siss-behavioral-firewall = { path = "../siss-behavioral-firewall" }
 uuid.workspace = true
 chrono.workspace = true
 serde.workspace = true

@@ -150,6 +150,7 @@ pub fn create_test_projection() -> ProjectionResult {
 }
 
 pub mod batch_verifier;
+pub mod proof_cache;
 
 #[cfg(test)]
 mod tests {

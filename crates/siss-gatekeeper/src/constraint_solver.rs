@@ -11,23 +11,141 @@ pub struct ConstraintKey {
 pub struct ConstraintSolver {
     cache: HashMap<ConstraintKey, bool>,
     max_depth: u32,
+    total_queries: u64,
+    cache_hits: u64,
 }
 
 impl ConstraintSolver {
     pub fn new(max_depth: u32) -> Self {
-        unimplemented!()
+        ConstraintSolver {
+            cache: HashMap::new(),
+            max_depth,
+            total_queries: 0,
+            cache_hits: 0,
+        }
     }
 
     pub fn solve(&mut self, key: ConstraintKey, edges: &[(Uuid, Uuid)]) -> bool {
-        unimplemented!()
+        self.total_queries += 1;
+
+        // Check cache first
+        if let Some(&cached_result) = self.cache.get(&key) {
+            self.cache_hits += 1;
+            return cached_result;
+        }
+
+        // Not in cache, perform DFS transitive closure query
+        let result = self.transitive_closure_dfs(&key.entity_a, &key.entity_b, edges, self.max_depth);
+
+        // Cache the result
+        self.cache.insert(key, result);
+        result
+    }
+
+    fn transitive_closure_dfs(
+        &self,
+        from: &Uuid,
+        to: &Uuid,
+        edges: &[(Uuid, Uuid)],
+        max_depth: u32,
+    ) -> bool {
+        if from == to {
+            return true;
+        }
+
+        let mut visited = std::collections::HashSet::new();
+        self.dfs_helper(from, to, edges, &mut visited, max_depth)
+    }
+
+    fn dfs_helper(
+        &self,
+        current: &Uuid,
+        target: &Uuid,
+        edges: &[(Uuid, Uuid)],
+        visited: &mut std::collections::HashSet<Uuid>,
+        depth_remaining: u32,
+    ) -> bool {
+        if depth_remaining == 0 {
+            return false;
+        }
+
+        if visited.contains(current) {
+            return false;
+        }
+
+        visited.insert(*current);
+
+        // Find all edges starting from current
+        for (from, to) in edges {
+            if from == current {
+                if to == target {
+                    return true;
+                }
+                if self.dfs_helper(to, target, edges, visited, depth_remaining - 1) {
+                    return true;
+                }
+            }
+        }
+
+        false
     }
 
     pub fn detect_cycle(&self, edges: &[(Uuid, Uuid)]) -> bool {
-        unimplemented!()
+        // Build adjacency list
+        let mut graph: HashMap<Uuid, Vec<Uuid>> = HashMap::new();
+        let mut all_nodes = std::collections::HashSet::new();
+
+        for (from, to) in edges {
+            graph.entry(*from).or_insert_with(Vec::new).push(*to);
+            all_nodes.insert(*from);
+            all_nodes.insert(*to);
+        }
+
+        let mut visited = std::collections::HashSet::new();
+        let mut rec_stack = std::collections::HashSet::new();
+
+        for node in all_nodes {
+            if !visited.contains(&node) {
+                if self.has_cycle_dfs(&node, &graph, &mut visited, &mut rec_stack) {
+                    return true;
+                }
+            }
+        }
+
+        false
+    }
+
+    fn has_cycle_dfs(
+        &self,
+        node: &Uuid,
+        graph: &HashMap<Uuid, Vec<Uuid>>,
+        visited: &mut std::collections::HashSet<Uuid>,
+        rec_stack: &mut std::collections::HashSet<Uuid>,
+    ) -> bool {
+        visited.insert(*node);
+        rec_stack.insert(*node);
+
+        if let Some(neighbors) = graph.get(node) {
+            for neighbor in neighbors {
+                if !visited.contains(neighbor) {
+                    if self.has_cycle_dfs(neighbor, graph, visited, rec_stack) {
+                        return true;
+                    }
+                } else if rec_stack.contains(neighbor) {
+                    return true;
+                }
+            }
+        }
+
+        rec_stack.remove(node);
+        false
     }
 
     pub fn cache_hit_ratio(&self) -> f64 {
-        unimplemented!()
+        if self.total_queries == 0 {
+            return 0.0;
+        }
+        self.cache_hits as f64 / self.total_queries as f64
     }
 }
 

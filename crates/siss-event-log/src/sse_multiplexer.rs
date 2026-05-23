@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::sync::mpsc;
+use tokio::sync::mpsc;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum SSEStreamType {
@@ -9,20 +9,46 @@ pub enum SSEStreamType {
 }
 
 pub struct SSEMultiplexer {
-    streams: HashMap<SSEStreamType, Vec<mpsc::SyncSender<String>>>,
+    streams: HashMap<SSEStreamType, Vec<mpsc::Sender<String>>>,
 }
 
 impl SSEMultiplexer {
     pub fn new() -> Self {
-        unimplemented!()
+        SSEMultiplexer {
+            streams: HashMap::new(),
+        }
     }
 
-    pub fn subscribe(&mut self, _stream_type: SSEStreamType) -> mpsc::Receiver<String> {
-        unimplemented!()
+    pub fn subscribe(&mut self, stream_type: SSEStreamType) -> mpsc::Receiver<String> {
+        // Create a bounded channel with capacity 1 for backpressure
+        let (tx, rx) = mpsc::channel(1);
+
+        // Ensure the stream_type key exists in the HashMap and store the sender
+        self.streams
+            .entry(stream_type.clone())
+            .or_insert_with(Vec::new)
+            .push(tx);
+
+        rx
     }
 
-    pub fn publish(&self, _stream_type: SSEStreamType, _event: String) -> Result<usize, String> {
-        unimplemented!()
+    pub fn publish(&self, stream_type: SSEStreamType, event: String) -> Result<usize, String> {
+        // Get all senders for this specific stream type
+        let senders = match self.streams.get(&stream_type) {
+            Some(senders) => senders,
+            None => return Ok(0), // No subscribers for this stream
+        };
+
+        let mut count = 0;
+        for sender in senders {
+            // Use try_send() for non-blocking, which enables backpressure
+            match sender.try_send(event.clone()) {
+                Ok(()) => count += 1,
+                Err(_) => return Err("Channel full or receiver dropped".to_string()),
+            }
+        }
+
+        Ok(count)
     }
 }
 

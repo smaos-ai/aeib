@@ -1,0 +1,10 @@
+[package]
+name = "siss-eval-court"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+siss-job-router = { path = "../siss-job-router" }
+uuid.workspace = true
+thiserror.workspace = true
+serde.workspace = true

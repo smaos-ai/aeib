@@ -1,0 +1,11 @@
+[package]
+name = "siss-skill-crystallizer"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+siss-context-cartography = { path = "../siss-context-cartography" }
+siss-memory-plane        = { path = "../siss-memory-plane" }
+uuid.workspace           = true
+thiserror.workspace      = true
+serde.workspace          = true

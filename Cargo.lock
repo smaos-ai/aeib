@@ -3011,6 +3011,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "siss-cipo-engine"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "serde",
+ "siss-job-router",
+ "siss-telemetry-loop",
+ "thiserror 2.0.18",
+ "uuid",
+]
+
+[[package]]
 name = "siss-cockpit"
 version = "0.1.0"
 dependencies = [
@@ -3098,6 +3110,16 @@ dependencies = [
  "tokio-stream",
  "tracing",
  "tracing-subscriber",
+ "uuid",
+]
+
+[[package]]
+name = "siss-eval-court"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "siss-job-router",
+ "thiserror 2.0.18",
  "uuid",
 ]
 
@@ -3290,11 +3312,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "siss-rapid-lora"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "siss-agent-shell",
+ "thiserror 2.0.18",
+ "uuid",
+]
+
+[[package]]
 name = "siss-remote-gateway"
 version = "0.1.0"
 dependencies = [
  "chrono",
  "serde",
+ "thiserror 2.0.18",
+ "uuid",
+]
+
+[[package]]
+name = "siss-skill-crystallizer"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "siss-context-cartography",
+ "siss-memory-plane",
  "thiserror 2.0.18",
  "uuid",
 ]

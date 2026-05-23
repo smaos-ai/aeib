@@ -8,15 +8,22 @@ use std::time::Instant;
 pub fn verify_proof_batch(
     engine: &PiPlusPlusEngine,
     proofs: Vec<ProofObject>,
-    _parallel: bool,
+    parallel: bool,
 ) -> Vec<Result<(), String>> {
-    // For now, use sequential verification regardless of the parallel flag.
-    // This passes all tests and is correct; parallel processing can be
-    // optimized later if rayon is added to dependencies.
-    proofs
-        .iter()
-        .map(|proof| engine.validate_proof(proof))
-        .collect()
+    if parallel && proofs.len() > 100 {
+        // Only use parallel for batches larger than 100 to avoid thread overhead
+        use rayon::prelude::*;
+        proofs
+            .par_iter()
+            .map(|proof| engine.validate_proof(proof))
+            .collect()
+    } else {
+        // Sequential for small batches and when parallel is false
+        proofs
+            .iter()
+            .map(|proof| engine.validate_proof(proof))
+            .collect()
+    }
 }
 
 #[cfg(test)]

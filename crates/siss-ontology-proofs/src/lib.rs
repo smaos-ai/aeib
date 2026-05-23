@@ -149,6 +149,8 @@ pub fn create_test_projection() -> ProjectionResult {
     }
 }
 
+pub mod batch_verifier;
+
 #[cfg(test)]
 mod tests {
     use super::*;

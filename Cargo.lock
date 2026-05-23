@@ -2860,6 +2860,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "siss-a2a-dispatcher"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_json",
+ "siss-context-cartography",
+ "siss-graph-core",
+ "siss-memory-plane",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "siss-agent-card"
 version = "0.1.0"
 dependencies = [
@@ -2913,6 +2927,17 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "tokio-util",
+ "uuid",
+]
+
+[[package]]
+name = "siss-ap2-enforcer"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "siss-capsule-commit",
+ "thiserror 2.0.18",
+ "tokio",
  "uuid",
 ]
 
@@ -3160,6 +3185,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "siss-mcp-gateway"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "siss-mcp-gitnexus"
 version = "0.1.0"
 dependencies = [
@@ -3224,6 +3261,20 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
+ "uuid",
+]
+
+[[package]]
+name = "siss-skill-hooks"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "siss-agent-shell",
+ "siss-context-cartography",
+ "siss-graph-core",
+ "siss-memory-plane",
+ "tokio",
  "uuid",
 ]
 

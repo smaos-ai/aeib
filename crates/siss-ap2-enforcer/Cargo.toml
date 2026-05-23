@@ -1,0 +1,12 @@
+[package]
+name = "siss-ap2-enforcer"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[dependencies]
+uuid.workspace = true
+serde.workspace = true
+tokio.workspace = true
+thiserror.workspace = true
+siss-capsule-commit = { path = "../siss-capsule-commit" }

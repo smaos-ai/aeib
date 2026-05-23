@@ -1,6 +1,7 @@
 pub mod attestation;
 pub mod behavior_scorer;
 pub mod constraint_resolver;
+pub mod constraint_solver;
 pub mod delegation;
 pub mod edge_actuation;
 pub mod evaluator;

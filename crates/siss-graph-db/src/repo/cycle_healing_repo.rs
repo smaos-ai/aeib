@@ -457,7 +457,7 @@ mod tests {
         #[tokio::test]
         async fn test_heal_cycle_auto_revokes_grant() {
             let (_container, pool) = setup_postgres().await;
-            let (a, _b, _c, _grant_ab, grant_bc, _grant_ca) = setup_cycle(&pool, 20).await;
+            let (a, _b, _c, grant_ab, grant_bc, grant_ca) = setup_cycle(&pool, 20).await;
 
             // Build graph and detect cycles
             let graph = build_reputation_graph_from_db(&pool)
@@ -481,13 +481,21 @@ mod tests {
                 .expect("heal cycle");
 
             assert_eq!(result.action_taken, "auto_revoked");
-            assert_eq!(result.grant_id_revoked, Some(grant_bc));
+
+            // With deterministic tiebreaker, one of the three grants will be revoked
+            // All three edges have identical ceiling_tier, so tiebreaker picks by destination UUID
+            let revoked_grant_id = result.grant_id_revoked.expect("grant_id_revoked should be Some");
+            let valid_grants = vec![grant_ab, grant_bc, grant_ca];
+            assert!(
+                valid_grants.contains(&revoked_grant_id),
+                "Revoked grant should be one of the cycle's grants"
+            );
 
             // Verify grant is revoked
             let status: String = sqlx::query_scalar(
                 "SELECT status FROM cross_sovereign_delegation_grants WHERE id = $1",
             )
-            .bind(grant_bc)
+            .bind(revoked_grant_id)
             .fetch_one(&pool)
             .await
             .expect("fetch grant status");
@@ -542,7 +550,7 @@ mod tests {
         #[tokio::test]
         async fn test_finalize_consensus_cycle_break_revokes_grant() {
             let (_container, pool) = setup_postgres().await;
-            let (a, _b, _c, _grant_ab, grant_bc, _grant_ca) = setup_cycle(&pool, 170).await;
+            let (a, _b, _c, grant_ab, grant_bc, grant_ca) = setup_cycle(&pool, 170).await;
 
             // Build graph and detect cycles
             let graph = build_reputation_graph_from_db(&pool)
@@ -561,6 +569,30 @@ mod tests {
                 .expect("heal cycle");
             let proposal_id = result.proposal_id.expect("proposal_id");
 
+            // Get which grant was selected for revocation in the proposal
+            let grant_id_str: String = sqlx::query_scalar(
+                "SELECT payload::text FROM consensus_proposals WHERE id = $1",
+            )
+            .bind(proposal_id)
+            .fetch_one(&pool)
+            .await
+            .expect("fetch proposal payload");
+
+            let payload: serde_json::Value =
+                serde_json::from_str(&grant_id_str).expect("parse payload");
+            let grant_id_to_revoke = payload["grant_id_to_revoke"]
+                .as_str()
+                .expect("grant_id_to_revoke in payload")
+                .parse::<Uuid>()
+                .expect("parse UUID");
+
+            // Verify it's one of the three grants
+            let valid_grants = vec![grant_ab, grant_bc, grant_ca];
+            assert!(
+                valid_grants.contains(&grant_id_to_revoke),
+                "Grant to revoke should be one of the cycle's grants"
+            );
+
             // Manually approve the proposal (bypass voting)
             sqlx::query("UPDATE consensus_proposals SET status = 'approved' WHERE id = $1")
                 .bind(proposal_id)
@@ -573,11 +605,11 @@ mod tests {
                 .await
                 .expect("finalize consensus");
 
-            // Verify grant is revoked
+            // Verify the selected grant is revoked
             let status: String = sqlx::query_scalar(
                 "SELECT status FROM cross_sovereign_delegation_grants WHERE id = $1",
             )
-            .bind(grant_bc)
+            .bind(grant_id_to_revoke)
             .fetch_one(&pool)
             .await
             .expect("fetch grant status");

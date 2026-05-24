@@ -4,6 +4,10 @@ use std::collections::HashMap;
 use ed25519_dalek::{SigningKey, Signer, Verifier};
 use std::time::Instant;
 
+// Phase 74.5: HPC-Yield scheduling + Formal verification
+pub mod scheduler;
+pub mod policy;
+
 /// Node identifier in the swarm
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct NodeId(Uuid);

@@ -64,7 +64,7 @@ fn resolve_weakest_link_grant(
         })
         .collect();
 
-    // Sort by grant_id for deterministic selection
+    // Deterministic selection: lexicographically smallest grant UUID wins among ties
     matching_edges.sort_by_key(|e| e.delegation_grant_id);
 
     matching_edges

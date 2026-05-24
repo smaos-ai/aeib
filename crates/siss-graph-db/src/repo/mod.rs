@@ -1,3 +1,4 @@
+pub mod agent_discovery;
 pub mod anomaly_chain_repo;
 pub mod ap2_repo;
 pub mod appeal_repo;
@@ -14,6 +15,7 @@ pub mod cycle_detector;
 pub mod cycle_forensics;
 pub mod cycle_healing_repo;
 pub mod delegation_repo;
+pub mod distributed_consensus;
 pub mod discovery_repo;
 pub mod edge_repo;
 pub mod escrow_repo;

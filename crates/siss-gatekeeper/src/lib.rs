@@ -4,6 +4,7 @@ pub mod behavior_scorer;
 pub mod constraint_resolver;
 pub mod constraint_solver;
 pub mod delegation;
+pub mod delegation_routing;
 pub mod edge_actuation;
 pub mod evaluator;
 pub mod facility_mandate;

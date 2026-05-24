@@ -558,5 +558,12 @@
     "commit": "9c0327b",
     "message": "Phase 73: Fix existing tests for deterministic tiebreaker",
     "tests_pass": false
+  },
+  {
+    "hash": "a0bd9d09d099f0d98365aa34d01f867fd5b9a4d8aca206260f1c39c7cac94b26",
+    "timestamp": "2026-05-24T08:08:33Z",
+    "commit": "7541a05",
+    "message": "Phase 73: Fix recovery query label and deserialization",
+    "tests_pass": false
   }
 ]

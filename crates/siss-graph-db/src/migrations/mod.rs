@@ -178,6 +178,10 @@ const MIGRATIONS: &[(&str, &str)] = &[
         "047_add_forfeited_at_to_escrow",
         include_str!("047_add_forfeited_at_to_escrow.sql"),
     ),
+    (
+        "048_cross_sovereign_agent_registry",
+        include_str!("048_cross_sovereign_agent_registry.sql"),
+    ),
 ];
 
 /// Run all migrations in order. Idempotent — tracks applied migrations in a metadata table.

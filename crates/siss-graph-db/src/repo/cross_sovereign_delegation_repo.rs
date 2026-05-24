@@ -197,6 +197,122 @@ pub async fn compute_chain_depth(
     Ok(depth)
 }
 
+#[derive(Debug, Clone)]
+pub struct DelegationGrant {
+    pub id: Uuid,
+    pub grantor_sovereign_id: Uuid,
+    pub grantee_sovereign_id: Uuid,
+    pub ceiling_tier: i16,
+    pub status: String,
+}
+
+/// List all active delegation grants from a grantor sovereign.
+pub async fn list_active_grants_for_grantor(
+    pool: &PgPool,
+    grantor_sovereign_id: Uuid,
+) -> Result<Vec<DelegationGrant>, sqlx::Error> {
+    sqlx::query_as::<_, (Uuid, Uuid, Uuid, i16, String)>(
+        "SELECT id, grantor_sovereign_id, grantee_sovereign_id, ceiling_tier, status \
+         FROM cross_sovereign_delegation_grants \
+         WHERE grantor_sovereign_id = $1 \
+         AND status = 'active' \
+         AND (expires_at IS NULL OR expires_at > NOW()) \
+         AND revoked_at IS NULL",
+    )
+    .bind(grantor_sovereign_id)
+    .fetch_all(pool)
+    .await
+    .map(|rows| {
+        rows.into_iter()
+            .map(|(id, grantor, grantee, tier, status)| DelegationGrant {
+                id,
+                grantor_sovereign_id: grantor,
+                grantee_sovereign_id: grantee,
+                ceiling_tier: tier,
+                status,
+            })
+            .collect()
+    })
+}
+
+/// Simplified wrapper for inserting a sovereign-to-sovereign delegation grant.
+pub async fn insert_delegation_grant(
+    pool: &PgPool,
+    grantor_sovereign_id: Uuid,
+    grantee_sovereign_id: Uuid,
+    ceiling_tier: u32,
+    expires_at: DateTime<Utc>,
+) -> Result<Uuid, CrossSovereignDelegationError> {
+    // Create federation peer and get or create the peer ID
+    let federation_peer_id = Uuid::new_v4();
+    let empty_types: Vec<&str> = vec![];
+
+    // Try to insert federation peer - will fail silently if it already exists with same pair
+    let _ = sqlx::query(
+        "INSERT INTO federation_peers (id, sovereign_a_id, sovereign_b_id, max_admitted_tier, granted_attestation_types, status) \
+         VALUES ($1, $2, $3, $4, $5, $6)"
+    )
+    .bind(federation_peer_id)
+    .bind(grantor_sovereign_id)
+    .bind(grantee_sovereign_id)
+    .bind(100i16)
+    .bind(&empty_types)
+    .bind("active")
+    .execute(pool)
+    .await;
+
+    // Get the actual federation peer ID (handle multiple insertions gracefully)
+    let actual_peer_id: Uuid = sqlx::query_scalar(
+        "SELECT id FROM federation_peers WHERE sovereign_a_id = $1 AND sovereign_b_id = $2 AND status = 'active' ORDER BY granted_at DESC LIMIT 1"
+    )
+    .bind(grantor_sovereign_id)
+    .bind(grantee_sovereign_id)
+    .fetch_one(pool)
+    .await
+    .unwrap_or(federation_peer_id);
+
+    let grant_id = Uuid::new_v4();
+
+    sqlx::query(
+        "INSERT INTO cross_sovereign_delegation_grants \
+         (id, grantor_agent_id, grantor_sovereign_id, grantee_agent_id, grantee_sovereign_id, \
+          federation_peer_id, ceiling_tier, ceiling_attestation_types, transitivity_depth, expires_at, status, grant_signature) \
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'active', $11)",
+    )
+    .bind(grant_id)
+    .bind(format!("agent-{}", grantor_sovereign_id))
+    .bind(grantor_sovereign_id)
+    .bind(format!("agent-{}", grantee_sovereign_id))
+    .bind(grantee_sovereign_id)
+    .bind(actual_peer_id)
+    .bind(ceiling_tier as i16)
+    .bind(&empty_types)
+    .bind(1i16)
+    .bind(expires_at)
+    .bind("placeholder-sig")
+    .execute(pool)
+    .await?;
+
+    Ok(grant_id)
+}
+
+/// Simplified wrapper to revoke a delegation grant.
+pub async fn revoke_delegation_grant(
+    pool: &PgPool,
+    grant_id: Uuid,
+) -> Result<(), CrossSovereignDelegationError> {
+    sqlx::query(
+        "UPDATE cross_sovereign_delegation_grants \
+         SET revoked_at = NOW(), status = 'revoked' \
+         WHERE id = $1",
+    )
+    .bind(grant_id)
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
 /// Build canonical grant payload for signature verification (BTreeMap alphabetical order).
 pub fn build_canonical_grant_payload(
     grantor_agent_id: &str,

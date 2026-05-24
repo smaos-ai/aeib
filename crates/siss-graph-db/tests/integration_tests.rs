@@ -5,7 +5,7 @@
 /// - Group 2 (10 tests): correlation_repo.rs (anomaly patterns & correlation detection)
 /// - Group 3 (13+ tests): API route handlers (Axum endpoints with validation)
 ///
-/// Requires DATABASE_URL environment variable pointing to a test Postgres database.
+/// Uses ephemeral testcontainers PostgreSQL — NO DATABASE_URL dependency.
 /// Tests use shared test fixtures with isolated test data.
 use chrono::{DateTime, Duration, Utc};
 use serde_json::json;
@@ -14,6 +14,9 @@ use siss_graph_db::migrations;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{Pool, Postgres};
 use std::sync::Arc;
+use testcontainers::core::WaitFor;
+use testcontainers::runners::AsyncRunner;
+use testcontainers::{GenericImage, ImageExt};
 use uuid::Uuid;
 
 // =====================================================================
@@ -21,30 +24,25 @@ use uuid::Uuid;
 // =====================================================================
 
 async fn setup_test_db() -> Pool<Postgres> {
-    let database_url = std::env::var("DATABASE_URL")
-        .unwrap_or_else(|_| "postgres://postgres:postgres@localhost:5432/siss_test".to_string());
+    // Spawn ephemeral PostgreSQL container (never uses DATABASE_URL)
+    let container = GenericImage::new("postgres", "16")
+        .with_wait_for(WaitFor::message_on_stderr(
+            "database system is ready to accept connections",
+        ))
+        .with_env_var("POSTGRES_PASSWORD", "postgres")
+        .with_env_var("POSTGRES_DB", "siss_test")
+        .start()
+        .await
+        .expect("postgres container started");
 
-    let mut retries = 0;
-    let pool = loop {
-        match PgPoolOptions::new()
-            .max_connections(5)
-            .connect(&database_url)
-            .await
-        {
-            Ok(p) => break p,
-            Err(_) if retries < 10 => {
-                tokio::time::sleep(std::time::Duration::from_millis(200)).await;
-                retries += 1;
-            }
-            Err(e) => {
-                eprintln!(
-                    "Warning: Could not connect to DB, skipping integration tests: {}",
-                    e
-                );
-                panic!("DATABASE_URL required for integration tests");
-            }
-        }
-    };
+    let port = container.get_host_port_ipv4(5432).await.unwrap();
+    let database_url = format!("postgres://postgres:postgres@127.0.0.1:{port}/siss_test");
+
+    let pool = PgPoolOptions::new()
+        .max_connections(5)
+        .connect(&database_url)
+        .await
+        .expect("Failed to connect to ephemeral test database");
 
     // Run all migrations to create the full schema
     migrations::run_all(&pool)
@@ -52,9 +50,13 @@ async fn setup_test_db() -> Pool<Postgres> {
         .expect("Failed to run migrations");
 
     // Clean up test data before each test (graph_entities created by migrations)
-    let _ = sqlx::query("DELETE FROM graph_entities WHERE label IN ('AgentActionNode', 'AnomalyEventNode', 'RecoveryEventNode');")
+    sqlx::query("DELETE FROM graph_entities WHERE label IN ('AgentActionNode', 'AnomalyEventNode', 'RecoveryNode')")
         .execute(&pool)
-        .await;
+        .await
+        .ok();
+
+    // Leak the container so it stays alive for the test
+    std::mem::forget(container);
 
     pool
 }
@@ -162,7 +164,7 @@ async fn insert_test_recovery(
     });
 
     sqlx::query("INSERT INTO graph_entities (label, properties) VALUES ($1, $2::jsonb)")
-        .bind("RecoveryEventNode")
+        .bind("RecoveryNode")
         .bind(properties.to_string())
         .execute(pool)
         .await
@@ -750,7 +752,8 @@ async fn test_correlations_endpoint_min_sample_validation() {
 
 #[tokio::test]
 async fn test_concurrent_requests_no_race() {
-    let pool = Arc::new(setup_test_db().await);
+    let pool = setup_test_db().await;
+    let pool = Arc::new(pool);
     let sovereign_id = Uuid::new_v4();
     let now = Utc::now();
 

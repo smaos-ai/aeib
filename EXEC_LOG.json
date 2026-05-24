@@ -551,5 +551,12 @@
     "commit": "3bfd699",
     "message": "Ledger: Phase 72 completion — 348/348 tests verified",
     "tests_pass": false
+  },
+  {
+    "hash": "2527e25ef861624183c9bd1396efd58b9f1d9d7f59e4b14f2719b5f183799c24",
+    "timestamp": "2026-05-24T06:03:11Z",
+    "commit": "9c0327b",
+    "message": "Phase 73: Fix existing tests for deterministic tiebreaker",
+    "tests_pass": false
   }
 ]

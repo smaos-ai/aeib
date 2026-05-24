@@ -44,11 +44,11 @@ pub async fn fetch_agent_actions(
             "SELECT COUNT(*) FROM graph_entities
              WHERE label = 'AgentActionNode'
              AND properties->>'sovereign_id' = $1
-             AND created_at > $2
+             AND (properties->>'scored_at' IS NULL OR properties->>'scored_at' > $2)
              AND properties->>'sovereign_id' IS NOT NULL"
         )
         .bind(sovereign_id.to_string())
-        .bind(ts)
+        .bind(ts.to_rfc3339())
         .fetch_one(pool)
         .await?
     } else {
@@ -69,13 +69,13 @@ pub async fn fetch_agent_actions(
             "SELECT id, properties, created_at FROM graph_entities
              WHERE label = 'AgentActionNode'
              AND properties->>'sovereign_id' = $1
-             AND created_at > $2
+             AND (properties->>'scored_at' IS NULL OR properties->>'scored_at' > $2)
              AND properties->>'sovereign_id' IS NOT NULL
              ORDER BY created_at DESC
              LIMIT $3"
         )
         .bind(sovereign_id.to_string())
-        .bind(ts)
+        .bind(ts.to_rfc3339())
         .bind(limit as i64)
         .fetch_all(pool)
         .await?
@@ -430,6 +430,10 @@ pub async fn fetch_recovery(
                 _ => "unknown".to_string(),
             };
 
+            let is_approved = properties.get("is_approved")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+
             Some(RecoveryProjection {
                 recovery_id: id,
                 persona_id: Uuid::new_v4(), // Placeholder until we have proper tracking
@@ -444,7 +448,7 @@ pub async fn fetch_recovery(
                 recovery_status,
                 anomaly_count_in_recovery: 0,
                 last_tier_increase_at: None,
-                is_approved: false, // Fail-closed
+                is_approved,
             })
         })
         .collect();

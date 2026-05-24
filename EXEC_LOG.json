@@ -600,5 +600,12 @@
     "commit": "f7af103",
     "message": "Phase 77 LOCKED: Capability Negotiation — 16/16 integration tests passing",
     "tests_pass": false
+  },
+  {
+    "hash": "854a3c7e0ca7507e5319deba8d7a511db4b61ced3964926b6165e4270728cb12",
+    "timestamp": "2026-05-24T15:16:37Z",
+    "commit": "09fa2ac",
+    "message": "Infra: testcontainers port exposure + event log timestamp fix",
+    "tests_pass": false
   }
 ]

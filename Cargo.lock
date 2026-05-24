@@ -2891,6 +2891,7 @@ version = "0.1.0"
 dependencies = [
  "async-stream",
  "axum",
+ "base64 0.22.1",
  "chrono",
  "ed25519-dalek",
  "futures",
@@ -2900,6 +2901,7 @@ dependencies = [
  "rand 0.8.6",
  "serde",
  "serde_json",
+ "sha2",
  "siss-gatekeeper",
  "siss-graph-core",
  "siss-graph-db",
@@ -3055,6 +3057,7 @@ dependencies = [
  "proptest",
  "serde",
  "serde_json",
+ "sha2",
  "siss-graph-core",
  "siss-graph-db",
  "sqlx",
@@ -3360,6 +3363,7 @@ dependencies = [
 name = "siss-swarm-attestation"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "ed25519-dalek",
  "hex",
  "rand 0.8.6",

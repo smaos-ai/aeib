@@ -136,6 +136,81 @@ impl SwarmState {
 
 pub mod mcp {
     use super::*;
+    use sha2::{Sha256, Digest};
+
+    // ====== Phase 74: SwarmState with Merkle root + attestation ======
+    #[derive(Clone, Serialize, Deserialize, Debug)]
+    pub struct MerkleSwarmState {
+        pub idempotency_key: String,
+        pub status: String,
+        pub phase: String,
+        pub payload_json: Option<String>,
+        pub created_at: chrono::DateTime<chrono::Utc>,
+        pub updated_at: chrono::DateTime<chrono::Utc>,
+        pub merkle_root: Option<String>,
+        pub attestation_sig: Option<String>,
+        pub node_id: String,
+    }
+
+    // Phase 74: Merkle root computation
+    pub fn compute_merkle_root(states: &[MerkleSwarmState]) -> String {
+        let mut hashes: Vec<[u8; 32]> = states
+            .iter()
+            .map(|s| {
+                let mut hasher = Sha256::new();
+                hasher.update(format!(
+                    "{}:{}:{}:{}",
+                    s.idempotency_key,
+                    s.status,
+                    s.phase,
+                    s.payload_json.as_deref().unwrap_or("")
+                ));
+                hasher.finalize().into()
+            })
+            .collect();
+
+        while hashes.len() > 1 {
+            let mut next_level = Vec::new();
+            for chunk in hashes.chunks(2) {
+                let mut hasher = Sha256::new();
+                hasher.update(chunk[0]);
+                if chunk.len() > 1 {
+                    hasher.update(chunk[1]);
+                }
+                next_level.push(hasher.finalize().into());
+            }
+            hashes = next_level;
+        }
+        hex::encode(hashes.first().unwrap_or(&[0u8; 32]))
+    }
+
+    // Phase 74: Sign state with Ed25519
+    pub fn sign_state(state: &MerkleSwarmState, key: &SigningKey) -> Result<String, String> {
+        let msg = format!(
+            "{}:{}:{}",
+            state.node_id,
+            state.merkle_root.as_ref().unwrap_or(&"".to_string()),
+            state.updated_at.timestamp()
+        );
+        let sig = key.sign(msg.as_bytes());
+        Ok(hex::encode(sig.to_bytes()))
+    }
+
+    // Phase 74: Verify peer attestation
+    pub fn verify_peer_attestation(
+        node_id: &str,
+        merkle_root: &str,
+        sig_hex: &str,
+        peer_key: &ed25519_dalek::VerifyingKey,
+    ) -> Result<bool, String> {
+        use ed25519_dalek::Verifier;
+        let msg = format!("{}:{}:{}", node_id, merkle_root, chrono::Utc::now().timestamp());
+        let sig_bytes = hex::decode(sig_hex).map_err(|e| e.to_string())?;
+        let sig = ed25519_dalek::Signature::from_slice(&sig_bytes)
+            .map_err(|_| "Invalid Ed25519 signature format".to_string())?;
+
+        Ok(peer_key.verify(msg.as_bytes(), &sig).is_ok())
+    }
 
     /// MCP contract for get_node_attestation
     #[derive(Debug, Serialize, Deserialize)]

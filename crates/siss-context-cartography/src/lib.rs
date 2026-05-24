@@ -1,6 +1,7 @@
 pub mod budget;
 pub mod config;
 pub mod inbound;
+pub mod llm_wiki_v2;
 pub mod pipeline;
 pub mod retrieval;
 pub mod skill;

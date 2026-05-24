@@ -1,6 +1,11 @@
 pub mod enforcer;
+pub mod mandates;
 
 pub use enforcer::{Ap2Enforcer, ToolInvokeRequest, ToolInvokeResult, EnforcementError};
+pub use mandates::{
+    IntentMandate, PaymentMandate, AP2MandateEngine, ResourceType, PaymentStatus, AuditEvent,
+    AuditEventType,
+};
 
 #[cfg(test)]
 mod tests {

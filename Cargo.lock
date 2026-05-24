@@ -2961,7 +2961,11 @@ dependencies = [
 name = "siss-ap2-enforcer"
 version = "0.1.0"
 dependencies = [
+ "chrono",
+ "hex",
  "serde",
+ "serde_json",
+ "sha2",
  "siss-capsule-commit",
  "thiserror 2.0.18",
  "tokio",

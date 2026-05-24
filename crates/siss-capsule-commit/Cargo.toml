@@ -5,3 +5,9 @@ edition = "2021"
 
 [dependencies]
 uuid = { version = "1.0", features = ["v4", "serde"] }
+siss-agent-shell = { path = "../siss-agent-shell" }
+siss-eval-court = { path = "../siss-eval-court" }
+sha2.workspace = true
+hex.workspace = true
+serde.workspace = true
+serde_json.workspace = true

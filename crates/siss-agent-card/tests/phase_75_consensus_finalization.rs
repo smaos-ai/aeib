@@ -1,10 +1,11 @@
 use siss_graph_db::repo::bft_consensus;
 use sqlx::PgPool;
-use testcontainers::{GenericImage, ImageExt, core::WaitFor, runners::AsyncRunner};
+use testcontainers::{GenericImage, ImageExt, core::{WaitFor, ContainerPort}, runners::AsyncRunner};
 use uuid::Uuid;
 
 async fn start_postgres() -> (testcontainers::ContainerAsync<GenericImage>, PgPool) {
     let container = GenericImage::new("postgres", "16")
+        .with_exposed_port(ContainerPort::Tcp(5432))
         .with_wait_for(WaitFor::message_on_stderr(
             "database system is ready to accept connections",
         ))

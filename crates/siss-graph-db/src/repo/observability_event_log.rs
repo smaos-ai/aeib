@@ -1,4 +1,4 @@
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use sha2::{Sha256, Digest};
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -70,9 +70,8 @@ pub async fn verify_event_log_integrity(
 ) -> Result<(bool, Option<String>), sqlx::Error> {
     // Fetch all events for this sovereign in order
     // Note: event_payload is JSONB, so we cast it to text for hashing
-    // We need created_at timestamp to properly recompute hashes
-    let events: Vec<(i64, String, String, String, Option<String>, String, String)> = sqlx::query_as(
-        "SELECT sequence, event_type, agent_id, event_payload::text, prev_hash, curr_hash, created_at AT TIME ZONE 'UTC' FROM observability_event_log WHERE sovereign_id = $1 ORDER BY sequence ASC"
+    let events: Vec<(i64, String, String, String, Option<String>, String, DateTime<Utc>)> = sqlx::query_as(
+        "SELECT sequence, event_type, agent_id, event_payload::text, prev_hash, curr_hash, created_at FROM observability_event_log WHERE sovereign_id = $1 ORDER BY sequence ASC"
     )
     .bind(sovereign_id)
     .fetch_all(pool)
@@ -95,14 +94,15 @@ pub async fn verify_event_log_integrity(
         }
 
         // Recompute current hash using the same format as append_event
-        // Format: prev_hash || event_type || agent_id || payload || timestamp
+        // Format: prev_hash || event_type || agent_id || payload || timestamp (RFC3339)
+        let timestamp_str = created_at.to_rfc3339();
         let hash_input = format!(
             "{}{}{}{}{}",
             stored_prev_hash.as_deref().unwrap_or(""),
             event_type,
             agent_id,
             payload,
-            created_at
+            timestamp_str
         );
         let mut hasher = Sha256::new();
         hasher.update(hash_input.as_bytes());

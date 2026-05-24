@@ -34,33 +34,25 @@ pub async fn detect_packet_loss(
     agent_id: &str,
     threshold_loss_pct: f64,
 ) -> Result<bool, sqlx::Error> {
-    // Get all heartbeats for this agent with their timestamps
-    let heartbeats: Vec<(String, String)> = sqlx::query_as(
-        "SELECT created_at::text, created_at::text FROM agent_heartbeats WHERE agent_id = $1 ORDER BY created_at ASC"
+    // Get all heartbeats for this agent
+    let count: (i64,) = sqlx::query_as(
+        "SELECT COUNT(*) FROM agent_heartbeats WHERE agent_id = $1"
     )
     .bind(agent_id)
-    .fetch_all(pool)
+    .fetch_one(pool)
     .await?;
 
-    // If we have fewer than 10 heartbeats total, we can't reliably detect packet loss
-    if heartbeats.len() < 10 {
+    let actual_count = count.0;
+
+    // If we have no heartbeats, we can't reliably detect packet loss
+    if actual_count == 0 {
         return Ok(false);
     }
 
-    // Simple metric: if we have far fewer heartbeats than expected for the time window, flag it
-    // Expected: assume 1 heartbeat per second minimum (60 per minute)
-    // If we have N heartbeats, expect roughly N seconds of activity
-    // Actual loss = (expected - actual) / expected * 100
-    // For this we use a simpler approach: if we have >= 10 heartbeats and they're low latency,
-    // no loss. If we have fewer heartbeats, check the ratio.
-
-    // For the test case: 3 heartbeats expecting ~10 (70% loss) at 50% threshold should return true
     // Expected minimum: 10 heartbeats
     // Actual: N heartbeats
     // Loss % = (10 - N) / 10 * 100
-
     let expected_count = 10i64;
-    let actual_count = heartbeats.len() as i64;
 
     if actual_count >= expected_count {
         return Ok(false); // We got at least what we expected

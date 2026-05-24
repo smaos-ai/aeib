@@ -182,6 +182,26 @@ const MIGRATIONS: &[(&str, &str)] = &[
         "048_cross_sovereign_agent_registry",
         include_str!("048_cross_sovereign_agent_registry.sql"),
     ),
+    (
+        "049_distributed_consensus_finalization",
+        include_str!("049_distributed_consensus_finalization.sql"),
+    ),
+    (
+        "050_monitoring_observability",
+        include_str!("050_monitoring_observability.sql"),
+    ),
+    (
+        "051_smart_contract_state",
+        include_str!("051_smart_contract_state.sql"),
+    ),
+    (
+        "052_state_sync_and_commerce",
+        include_str!("052_state_sync_and_commerce.sql"),
+    ),
+    (
+        "053_commerce_and_acp",
+        include_str!("053_commerce_and_acp.sql"),
+    ),
 ];
 
 /// Run all migrations in order. Idempotent — tracks applied migrations in a metadata table.

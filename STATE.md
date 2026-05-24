@@ -1,12 +1,12 @@
 # 🧭 Execution State (Auto-Resumable) + Immutable Ledger
 
 ## Last Checkpoint
-- **Commit:** `64dfb39`
-- **Ledger Hash:** `(Sprint 1 hash pending)`
-- **Timestamp:** 2026-05-24T16:00:00Z
-- **Phase:** `Sprint 1 Complete (Phases 75-78)`
-- **Tests:** 56/56 passing (52 integration + 4 unit)
-- **Next Step:** Sprint 2 Phase Sequencing (Phases 79-82)
+- **Commit:** `8649d99`
+- **Ledger Hash:** `0c6e940481c6d2a6`…
+- **Timestamp:** 2026-05-24T15:10:55Z
+- **Phase:** `State`
+- **Tests:** false
+- **Next Step:** (Edit before closing)
 
 ## Active Constraints
 - Protocol v2 (diff-only, @file scoping, cargo test -q)

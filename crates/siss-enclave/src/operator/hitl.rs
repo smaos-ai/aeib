@@ -77,7 +77,14 @@ impl HitlGate {
         let sig_bytes = hasher.finalize();
         let expected_signature = hex::encode(sig_bytes);
 
+        let mut pending = self.pending.write().await;
+
+        // Eager validation: reject invalid signatures and notify any waiting task
         if approval.signature != expected_signature {
+            // If there's a pending task waiting for approval, send it a Quarantined verdict to unblock it
+            if let Some(tx) = pending.remove(&approval.task_id) {
+                let _ = tx.send(HitlVerdict::Quarantined);
+            }
             return Err(HitlError::InvalidSignature {
                 task_id: approval.task_id,
             });
@@ -94,7 +101,6 @@ impl HitlGate {
             }
         };
 
-        let mut pending = self.pending.write().await;
         if let Some(tx) = pending.remove(&approval.task_id) {
             let _ = tx.send(verdict);
             Ok(())

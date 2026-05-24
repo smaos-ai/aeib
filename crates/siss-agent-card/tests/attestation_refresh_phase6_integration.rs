@@ -98,7 +98,7 @@ async fn test_delegated_session_refresh_with_tier_clamping() {
 
     // Update parent session to mark it as delegated
     let _ = sqlx::query(
-        "UPDATE sessions SET parent_session_id = $1, delegation_ceiling_envelope = $2 WHERE id = $3"
+        "UPDATE sessions SET parent_session_id = $1, delegation_ceiling_envelope = $2::jsonb WHERE id = $3"
     )
     .bind(root_session_id)
     .bind(ceiling_envelope)

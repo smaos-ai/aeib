@@ -109,7 +109,8 @@ pub async fn fetch_delegation_ceiling(
     persona_id: Uuid,
 ) -> Result<Option<(String, String)>, sqlx::Error> {
     let row: Option<(String, String)> = sqlx::query_as(
-        "SELECT ceiling_delegations, ceiling_constraints \
+        "SELECT REPLACE(REPLACE(ceiling_delegations::text, ': ', ':'), ', ', ','), \
+         REPLACE(REPLACE(ceiling_constraints::text, ': ', ':'), ', ', ',') \
          FROM delegation_edges \
          WHERE target_persona_id = $1 \
          ORDER BY delegated_at DESC \

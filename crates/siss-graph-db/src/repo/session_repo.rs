@@ -91,8 +91,8 @@ pub async fn fetch_session_by_token(
 > {
     let row = sqlx::query_as::<_, (Uuid, Uuid, String, i32, Option<i32>, DateTime<Utc>, Option<Uuid>, Option<Uuid>, Option<String>, Option<String>, Option<String>)>(
         "SELECT id, tenant_id, status::text, attestation_score, attestation_tier, session_expires_at, \
-         parent_session_id, delegated_by_agent_id, delegation_ceiling_envelope, \
-         current_effective_envelope, lineage_cache \
+         parent_session_id, delegated_by_agent_id, delegation_ceiling_envelope::text, \
+         current_effective_envelope::text, lineage_cache::text \
          FROM sessions \
          WHERE session_token = $1 \
            AND status = 'active'::session_status \

@@ -621,5 +621,12 @@
     "commit": "f0feb20",
     "message": "Phase 74.5 INTEGRATED: HPC-Yield scheduler + Formal verification gates (8/8 tests, research paper)",
     "tests_pass": false
+  },
+  {
+    "hash": "3b16bcaee175a481d62f47d1f68c52a0480b09c6a36c0cd28a486871b1b1f54c",
+    "timestamp": "2026-05-24T21:39:43Z",
+    "commit": "781f08e",
+    "message": "Phase 81.5/82: GitNexusCapsuleCommitActor with blast-radius intersection guard",
+    "tests_pass": false
   }
 ]

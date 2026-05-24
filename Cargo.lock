@@ -3009,6 +3009,12 @@ dependencies = [
 name = "siss-capsule-commit"
 version = "0.1.0"
 dependencies = [
+ "hex",
+ "serde",
+ "serde_json",
+ "sha2",
+ "siss-agent-shell",
+ "siss-eval-court",
  "uuid",
 ]
 
@@ -3356,6 +3362,19 @@ dependencies = [
  "siss-graph-core",
  "siss-memory-plane",
  "tokio",
+ "uuid",
+]
+
+[[package]]
+name = "siss-sovereign-kg"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "hex",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror 2.0.18",
  "uuid",
 ]
 

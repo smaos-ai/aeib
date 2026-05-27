@@ -74,13 +74,55 @@ class TestSharedStateVector:
 class TestHolographicPerception:
     """Test HolographicPerception for agent-filtered state views."""
 
-    def test_holographic_perception_agent_filters(self):
+    def test_holographic_perception_agent_filters(self, sample_agent_ids, sample_metrics):
         """Test that perception correctly filters state for each agent."""
-        pytest.skip("Implementation pending")
+        from tier5_holographic_mesh import SharedStateVector, HolographicPerception
 
-    def test_holographic_perception_local_view_computation(self):
+        # Create state vectors for multiple agents
+        states = [
+            SharedStateVector(agent_id=agent_id, timestamp="2026-05-27T18:00:00Z", metrics=sample_metrics)
+            for agent_id in sample_agent_ids
+        ]
+
+        # Create perception for first agent
+        perception = HolographicPerception(
+            self_agent_id=sample_agent_ids[0],
+            all_states=states
+        )
+
+        # Verify other_agent_ids excludes self
+        other_ids = perception.other_agent_ids()
+        assert sample_agent_ids[0] not in other_ids
+        assert sample_agent_ids[1] in other_ids
+        assert len(other_ids) == len(sample_agent_ids) - 1
+
+    def test_holographic_perception_local_view_computation(self, sample_agent_ids, sample_metrics):
         """Test computation of local view with agent-specific state."""
-        pytest.skip("Implementation pending")
+        from tier5_holographic_mesh import SharedStateVector, HolographicPerception
+
+        states = [
+            SharedStateVector(agent_id=agent_id, timestamp="2026-05-27T18:00:00Z", metrics=sample_metrics)
+            for agent_id in sample_agent_ids
+        ]
+
+        perception = HolographicPerception(
+            self_agent_id=sample_agent_ids[0],
+            all_states=states
+        )
+
+        # Compute local view
+        local_view = perception.compute_local_view()
+
+        # Verify local view structure
+        assert "self_state" in local_view
+        assert "other_states" in local_view
+        assert "view_hash" in local_view
+
+        # Verify self_state is the agent's own state
+        assert local_view["self_state"].agent_id == sample_agent_ids[0]
+
+        # Verify other_states contains all other agents
+        assert len(local_view["other_states"]) == len(sample_agent_ids) - 1
 
 
 # ============================================================================

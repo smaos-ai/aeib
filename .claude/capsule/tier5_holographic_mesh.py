@@ -59,3 +59,62 @@ class SharedStateVector:
         # Create deterministic serialization
         state_str = f"{self.agent_id}:{self.timestamp}:{str(sorted(self.metrics.items()))}"
         return hashlib.sha256(state_str.encode()).hexdigest()
+
+
+@dataclass
+class HolographicPerception:
+    """
+    Agent-filtered view of the shared mesh state.
+
+    Each agent maintains a holographic perception: a view of the entire mesh
+    from its local perspective, including awareness of other agents' states
+    without central coordination.
+
+    Attributes:
+        self_agent_id: Identifier of the perceiving agent
+        all_states: List of SharedStateVector from all agents in mesh
+    """
+
+    self_agent_id: str
+    all_states: List[SharedStateVector]
+
+    def other_agent_ids(self) -> List[str]:
+        """
+        Return list of other agent IDs (excluding self).
+
+        Returns:
+            List of agent IDs excluding self_agent_id
+        """
+        return [state.agent_id for state in self.all_states if state.agent_id != self.self_agent_id]
+
+    def compute_local_view(self) -> Dict[str, Any]:
+        """
+        Compute this agent's local view of the mesh.
+
+        Returns:
+            Dict with keys:
+            - self_state: This agent's SharedStateVector
+            - other_states: List of other agents' SharedStateVectors
+            - view_hash: SHA256 hash of the complete view
+        """
+        # Find self state
+        self_state = None
+        other_states = []
+
+        for state in self.all_states:
+            if state.agent_id == self.self_agent_id:
+                self_state = state
+            else:
+                other_states.append(state)
+
+        # Compute view hash
+        view_str = f"{self_state.merkle_root}:" + ":".join(
+            sorted([s.merkle_root for s in other_states])
+        )
+        view_hash = hashlib.sha256(view_str.encode()).hexdigest()
+
+        return {
+            "self_state": self_state,
+            "other_states": other_states,
+            "view_hash": view_hash
+        }

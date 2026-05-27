@@ -22,13 +22,49 @@ import hashlib
 class TestSharedStateVector:
     """Test SharedStateVector immutable state container."""
 
-    def test_shared_state_vector_immutability(self):
+    def test_shared_state_vector_immutability(self, sample_metrics):
         """Test that SharedStateVector is frozen and cannot be modified."""
-        pytest.skip("Implementation pending")
+        from tier5_holographic_mesh import SharedStateVector
 
-    def test_shared_state_vector_hashable(self):
+        sv = SharedStateVector(
+            agent_id="agent_prague_001",
+            timestamp="2026-05-27T18:00:00Z",
+            metrics=sample_metrics
+        )
+
+        # Verify attributes are accessible
+        assert sv.agent_id == "agent_prague_001"
+        assert sv.timestamp == "2026-05-27T18:00:00Z"
+        assert sv.metrics == sample_metrics
+
+        # Verify frozen by attempting to modify (should raise FrozenInstanceError)
+        import dataclasses
+        with pytest.raises((dataclasses.FrozenInstanceError, AttributeError)):
+            sv.agent_id = "modified"
+
+    def test_shared_state_vector_hashable(self, sample_metrics):
         """Test that SharedStateVector instances are hashable for consensus."""
-        pytest.skip("Implementation pending")
+        from tier5_holographic_mesh import SharedStateVector
+
+        sv1 = SharedStateVector(
+            agent_id="agent_prague_001",
+            timestamp="2026-05-27T18:00:00Z",
+            metrics=sample_metrics
+        )
+
+        sv2 = SharedStateVector(
+            agent_id="agent_prague_001",
+            timestamp="2026-05-27T18:00:00Z",
+            metrics=sample_metrics
+        )
+
+        # Verify hashable: can use in set
+        state_set = {sv1, sv2}
+        assert len(state_set) == 1  # Same content = same hash
+
+        # Verify hashable: can use as dict key
+        state_dict = {sv1: "consensus_reached"}
+        assert state_dict[sv2] == "consensus_reached"
 
 
 # ============================================================================

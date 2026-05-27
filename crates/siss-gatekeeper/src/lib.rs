@@ -24,6 +24,7 @@ pub mod policy;
 pub mod refresh;
 pub mod reputation_blender;
 pub mod signer;
+pub mod sneakernet_ingress;
 pub mod tokens;
 pub mod transitive_resolver;
 pub mod types;

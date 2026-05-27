@@ -635,5 +635,19 @@
     "commit": "210602e",
     "message": "Phase 81/82: Night Cycle Evolution Engine + Sovereign Knowledge Graph",
     "tests_pass": false
+  },
+  {
+    "hash": "b68df0cb07fe5666219200602f9b000252645d7ba182e967b7c18e347bd6952e",
+    "timestamp": "2026-05-24T22:22:53Z",
+    "commit": "35b5072",
+    "message": "Phase 82.5: AP2 Mandates + Rapid-MLX Integration + Investment Brief",
+    "tests_pass": false
+  },
+  {
+    "hash": "f23fdebd3a01b6dbb2d10c99ceed59ed50b1ab3f254213402a5a78ab622e72e2",
+    "timestamp": "2026-05-27T06:22:03Z",
+    "commit": "0f74681",
+    "message": "feat(siss-chaos-petri): Implement 12-scenario failure injection framework for Phase 1 hardening",
+    "tests_pass": false
   }
 ]

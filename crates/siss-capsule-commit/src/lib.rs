@@ -1,13 +1,15 @@
 pub mod prepare;
 pub mod actor;
 pub mod orchestration;
+pub mod persistence;
 
 pub use prepare::{PrepareRequest, PrepareToken};
 pub use actor::{CapsuleCommitActor, CapsuleEntry};
 pub use orchestration::capsule_commit_actor::{
-    CommitmentCapsule, ClusterIntersection, MergeDecision, ActorError, ImpactGateConfig,
+    CommitmentCapsule, ClusterIntersection, MergeDecision, ActorError,
     GitNexusCapsuleCommitActor,
 };
+pub use persistence::{CapsuleDB, CapsuleDBError, MultiRegionDB, Region, VectorClock, AuditLogEntry, SLAMonitor};
 
 #[cfg(test)]
 mod tests {

@@ -1,10 +1,10 @@
 # 🧭 Execution State (Auto-Resumable) + Immutable Ledger
 
 ## Last Checkpoint
-- **Commit:** `210602e`
-- **Ledger Hash:** `4c17466917430e09`…
-- **Timestamp:** 2026-05-24T21:57:32Z
-- **Phase:** `Phase 81/82`
+- **Commit:** `0f74681`
+- **Ledger Hash:** `f23fdebd3a01b6db`…
+- **Timestamp:** 2026-05-27T06:22:03Z
+- **Phase:** `feat(siss-chaos-petri)`
 - **Tests:** false
 - **Next Step:** (Edit before closing)
 

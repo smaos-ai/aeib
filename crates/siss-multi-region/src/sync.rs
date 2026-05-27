@@ -120,7 +120,7 @@ impl CapsuleSyncManager {
     }
 
     /// Mark sync as failed
-    pub async fn fail_sync(&self, sync_id: Uuid, reason: &str) -> MultiRegionResult<()> {
+    pub async fn fail_sync(&self, sync_id: Uuid, _reason: &str) -> MultiRegionResult<()> {
         let now = current_timestamp();
 
         {

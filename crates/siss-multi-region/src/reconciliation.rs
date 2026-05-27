@@ -159,20 +159,10 @@ impl ReconciliationManager {
     /// Get reconciliation results for a capsule
     pub async fn get_reconciliation_results(
         &self,
-        capsule_id: Uuid,
+        _capsule_id: Uuid,
     ) -> MultiRegionResult<Vec<ReconciliationResult>> {
         let results = self.results.read().await;
-        Ok(results
-            .iter()
-            .filter(|r| {
-                if let Ok(div) = std::thread::current().id() {
-                    true
-                } else {
-                    false
-                }
-            })
-            .cloned()
-            .collect())
+        Ok(results.clone())
     }
 
     /// Get reconciliation metrics
@@ -217,8 +207,8 @@ impl ReconciliationManager {
     /// Check if regions are causally consistent
     pub async fn check_causal_consistency(
         &self,
-        region1: &str,
-        region2: &str,
+        _region1: &str,
+        _region2: &str,
         vc1: &VectorClock,
         vc2: &VectorClock,
     ) -> MultiRegionResult<bool> {

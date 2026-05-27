@@ -55,6 +55,7 @@ pub struct GitNexusCapsuleCommitActor<A: ImpactAnalyzer> {
     base: CapsuleCommitActor,
     analyzer: A,
     pending_capsules: HashMap<Uuid, CommitmentCapsule>,
+    committed_capsules: HashMap<Uuid, CommitmentCapsule>,
 }
 
 impl<A: ImpactAnalyzer> GitNexusCapsuleCommitActor<A> {
@@ -63,6 +64,7 @@ impl<A: ImpactAnalyzer> GitNexusCapsuleCommitActor<A> {
             base: CapsuleCommitActor::new(),
             analyzer,
             pending_capsules: HashMap::new(),
+            committed_capsules: HashMap::new(),
         }
     }
 
@@ -103,8 +105,15 @@ impl<A: ImpactAnalyzer> GitNexusCapsuleCommitActor<A> {
     }
 
     fn check_all_intersections(&self, incoming: &CommitmentCapsule) -> Option<ClusterIntersection> {
+        // Check against pending capsules
         for (_, pending) in &self.pending_capsules {
             if let Some(intersection) = self.capsules_intersect(incoming, pending) {
+                return Some(intersection);
+            }
+        }
+        // Check against committed capsules
+        for (_, committed) in &self.committed_capsules {
+            if let Some(intersection) = self.capsules_intersect(incoming, committed) {
                 return Some(intersection);
             }
         }
@@ -261,6 +270,7 @@ impl<A: ImpactAnalyzer> GitNexusCapsuleCommitActor<A> {
 
         let entry = self.base.commit(token)?;
         self.pending_capsules.remove(&capsule.capsule_id);
+        self.committed_capsules.insert(capsule.capsule_id, capsule);
         Ok(entry)
     }
 

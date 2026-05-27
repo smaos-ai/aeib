@@ -7,6 +7,9 @@ use uuid::Uuid;
 #[cfg(test)]
 mod tests;
 
+#[cfg(test)]
+mod integration_tests;
+
 /// Pilot customer profile
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum CustomerProfile {

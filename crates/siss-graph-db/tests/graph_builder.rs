@@ -1,49 +1,29 @@
-use chrono::Utc;
 use uuid::Uuid;
-use std::collections::HashMap;
 use siss_graph_db::graph_builder::{
-    GraphRelationship, RelationType, GraphBuilder, extract_relationships,
+    Fact, GraphRelationship, RelationType, extract_relationships,
     determine_relationship_type, build_graph, traverse_graph,
 };
-use siss_context_cartography::llm_wiki_v2::SemanticFact;
 
 // Test 1: Relationship extraction finds relevant pairs
 #[test]
 fn test_relationship_extraction_finds_relevant_pairs() {
-    let fact1 = SemanticFact {
-        id: Uuid::new_v4(),
-        fact: "Machine learning models require large datasets".to_string(),
-        confidence_score: 0.85,
-        created_at: Utc::now(),
-        last_accessed_at: Utc::now(),
-        access_count: 10,
-        superseded_by: None,
-        is_stale: false,
-        sources: vec!["test".to_string()],
+    let id1 = Uuid::new_v4();
+    let id2 = Uuid::new_v4();
+    let id3 = Uuid::new_v4();
+
+    let fact1 = Fact {
+        id: id1,
+        text: "Machine learning models require large datasets".to_string(),
     };
 
-    let fact2 = SemanticFact {
-        id: Uuid::new_v4(),
-        fact: "Training deep learning models needs large data".to_string(),
-        confidence_score: 0.80,
-        created_at: Utc::now(),
-        last_accessed_at: Utc::now(),
-        access_count: 5,
-        superseded_by: None,
-        is_stale: false,
-        sources: vec!["test".to_string()],
+    let fact2 = Fact {
+        id: id2,
+        text: "Training deep learning models needs large data".to_string(),
     };
 
-    let fact3 = SemanticFact {
-        id: Uuid::new_v4(),
-        fact: "The Eiffel Tower is in Paris".to_string(),
-        confidence_score: 0.95,
-        created_at: Utc::now(),
-        last_accessed_at: Utc::now(),
-        access_count: 20,
-        superseded_by: None,
-        is_stale: false,
-        sources: vec!["test".to_string()],
+    let fact3 = Fact {
+        id: id3,
+        text: "The Eiffel Tower is in Paris".to_string(),
     };
 
     let facts = vec![fact1.clone(), fact2.clone(), fact3.clone()];
@@ -51,8 +31,8 @@ fn test_relationship_extraction_finds_relevant_pairs() {
 
     // Should find relationship between fact1 and fact2 (similar)
     let has_relevant_pair = relationships.iter()
-        .any(|r| (r.source_id == fact1.id && r.target_id == fact2.id) ||
-                 (r.source_id == fact2.id && r.target_id == fact1.id));
+        .any(|r| (r.source_id == id1 && r.target_id == id2) ||
+                 (r.source_id == id2 && r.target_id == id1));
 
     assert!(has_relevant_pair, "Should detect similar facts");
     assert!(relationships.len() >= 1, "Should find at least one relationship");
@@ -140,7 +120,6 @@ fn test_graph_traversal_returns_ranked_neighbors() {
 fn test_search_ranking_incorporates_graph_relevance() {
     let id_a = Uuid::new_v4();
     let id_b = Uuid::new_v4();
-    let id_c = Uuid::new_v4();
 
     // A and B are related
     let relationships = vec![
@@ -164,28 +143,14 @@ fn test_search_ranking_incorporates_graph_relevance() {
 // Test 5: Graph integration is deterministic
 #[test]
 fn test_graph_integration_deterministic() {
-    let fact1 = SemanticFact {
+    let fact1 = Fact {
         id: Uuid::new_v4(),
-        fact: "Climate change is accelerating".to_string(),
-        confidence_score: 0.88,
-        created_at: Utc::now(),
-        last_accessed_at: Utc::now(),
-        access_count: 15,
-        superseded_by: None,
-        is_stale: false,
-        sources: vec!["test".to_string()],
+        text: "Climate change is accelerating".to_string(),
     };
 
-    let fact2 = SemanticFact {
+    let fact2 = Fact {
         id: Uuid::new_v4(),
-        fact: "Global warming is increasing rapidly".to_string(),
-        confidence_score: 0.85,
-        created_at: Utc::now(),
-        last_accessed_at: Utc::now(),
-        access_count: 12,
-        superseded_by: None,
-        is_stale: false,
-        sources: vec!["test".to_string()],
+        text: "Global warming is increasing rapidly".to_string(),
     };
 
     let facts = vec![fact1, fact2];
@@ -216,8 +181,9 @@ fn test_determine_relationship_type_varies() {
     let rel_type_1 = determine_relationship_type(similar1, similar2);
     let rel_type_2 = determine_relationship_type(contradicts1, contradicts2);
 
-    // Different types should be detected differently
-    // (exact behavior depends on implementation)
-    assert!(rel_type_1 != RelationType::Contradicts || rel_type_2 == RelationType::Contradicts,
-        "Relationship types should vary based on fact content");
+    // Relationship types should be detected
+    assert!(rel_type_1 == RelationType::SemanticSimilar || rel_type_1 == RelationType::Related,
+        "Similar facts should be detected as related or similar");
+    assert_eq!(rel_type_2, RelationType::Contradicts,
+        "Contradictory facts should be detected");
 }

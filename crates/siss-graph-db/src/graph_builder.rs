@@ -1,6 +1,5 @@
 use uuid::Uuid;
 use std::collections::{HashMap, VecDeque};
-use siss_context_cartography::llm_wiki_v2::SemanticFact;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum RelationType {
@@ -18,30 +17,22 @@ pub struct GraphRelationship {
     pub score: f64,
 }
 
+// Fact representation for this module
 #[derive(Clone, Debug)]
-pub struct GraphBuilder {
-    pub relationships: Vec<GraphRelationship>,
-    pub graph: HashMap<Uuid, Vec<(Uuid, f64)>>,
+pub struct Fact {
+    pub id: Uuid,
+    pub text: String,
 }
 
-impl GraphBuilder {
-    pub fn new() -> Self {
-        Self {
-            relationships: Vec::new(),
-            graph: HashMap::new(),
-        }
-    }
-}
-
-pub fn extract_relationships(facts: &[SemanticFact]) -> Vec<GraphRelationship> {
+pub fn extract_relationships(facts: &[Fact]) -> Vec<GraphRelationship> {
     let mut relationships = Vec::new();
 
     for i in 0..facts.len() {
         for j in (i + 1)..facts.len() {
-            let similarity = semantic_similarity(&facts[i].fact, &facts[j].fact);
+            let similarity = semantic_similarity(&facts[i].text, &facts[j].text);
 
-            if similarity > 0.80 {
-                let rel_type = determine_relationship_type(&facts[i].fact, &facts[j].fact);
+            if similarity > 0.25 {
+                let rel_type = determine_relationship_type(&facts[i].text, &facts[j].text);
                 let type_weight = match rel_type {
                     RelationType::SemanticSimilar => 1.0,
                     RelationType::Contradicts => 0.8,

@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc, Duration};
+use chrono::{Utc, Duration};
 use uuid::Uuid;
 use siss_context_cartography::confidence_scorer::{
     SourceType, ConfidenceSource, calculate_confidence, compute_source_weight,

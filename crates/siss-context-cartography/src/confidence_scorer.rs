@@ -43,7 +43,7 @@ pub fn detect_contradiction(new_fact: &str, existing_facts: &[SemanticFact]) -> 
         }
 
         let similarity = semantic_similarity(&new_fact, &existing.fact);
-        if similarity > 0.85 && contradicts(new_fact, &existing.fact) {
+        if similarity > 0.70 && contradicts(new_fact, &existing.fact) {
             return Some(existing.id);
         }
     }

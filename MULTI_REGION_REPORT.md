@@ -664,3 +664,56 @@ The system is ready for immediate Prague-Frankfurt production deployment.
 *Run #11 — 2026-05-27T14:02:00Z*  
 *Continuous validation suite*  
 *All systems: PRODUCTION READY*
+
+---
+
+## Phase 6 — Smart Contract Integration Fix
+
+### Date: 2026-05-27T14:19:00Z
+
+**Issue:** 10 failing tests in `phase_78_smart_contracts` test suite
+- `test_execute_contract_function_returns_result`
+- `test_contract_state_changes_captured`
+- `test_gas_tracking_during_execution`
+- `test_chain_validation_with_proofs`
+- `test_reentrancy_guard_blocks_concurrent_execution`
+- `test_settle_execution_with_consensus_proof`
+- `test_settlement_idempotency_same_receipt`
+- `test_settlement_is_atomic_all_or_nothing`
+- `test_settlement_locks_execution_during_phase`
+- `test_finality_lock_prevents_state_modification`
+
+**Root Cause:** JSONB column deserialization error in `siss_gatekeeper::evm_executor`
+- Query tried to decode PostgreSQL JSONB column as `String` instead of `serde_json::Value`
+- Error: `ColumnDecode { source: "mismatched types; Rust type String (as SQL type TEXT) is not compatible with SQL type JSONB" }`
+
+**Fix Applied:**
+```rust
+// Before:
+let contract: (String, String) = sqlx::query_as(
+    "SELECT bytecode, abi FROM smart_contracts WHERE contract_address = $1"
+)?;
+let abi_str = contract.1;
+let _abi: Value = serde_json::from_str(&abi_str)?;
+
+// After:
+let contract: (String, Value) = sqlx::query_as(
+    "SELECT bytecode, abi FROM smart_contracts WHERE contract_address = $1"
+)?;
+let (_bytecode, _abi) = contract;
+```
+
+**Verification Results:**
+
+| Test Suite | Result | Count |
+|-----------|--------|-------|
+| siss-night-cycle | ✅ PASS | 15 tests |
+| phase_78_smart_contracts | ✅ PASS | 22 tests |
+| Total | ✅ PASS | 37 tests |
+
+**Commit:** `9e8e74c` — "fix: correct JSONB deserialization in evm_executor"
+
+**Status:** All smart contract integration tests now passing. System ready for Phase 7 enhancements.
+
+---
+

@@ -322,18 +322,125 @@ class TestLocalityAwareness:
 class TestIntegration:
     """Integration tests for full holographic mesh workflow."""
 
-    def test_local_computation_deterministic(self):
+    def test_local_computation_deterministic(self, sample_agent_ids, sample_metrics):
         """Test that local computations are deterministic."""
-        pytest.skip("Implementation pending")
+        from tier5_holographic_mesh import SharedStateVector, ConsensusProtocol
 
-    def test_multi_agent_view_consistency(self):
+        states = [
+            SharedStateVector(agent_id=agent_id, timestamp="2026-05-27T18:00:00Z", metrics=sample_metrics)
+            for agent_id in sample_agent_ids
+        ]
+
+        # Run consensus multiple times - should always produce same result
+        consensus1 = ConsensusProtocol(agent_states=states, f_byzantine=1)
+        consensus2 = ConsensusProtocol(agent_states=states, f_byzantine=1)
+
+        root1 = consensus1.compute_merkle_root()
+        root2 = consensus2.compute_merkle_root()
+
+        assert root1 == root2, "Merkle root should be deterministic"
+
+    def test_multi_agent_view_consistency(self, sample_agent_ids, sample_metrics):
         """Test consistency of multi-agent views."""
-        pytest.skip("Implementation pending")
+        from tier5_holographic_mesh import SharedStateVector, HolographicPerception
 
-    def test_state_vector_ordering(self):
+        states = [
+            SharedStateVector(agent_id=agent_id, timestamp="2026-05-27T18:00:00Z", metrics=sample_metrics)
+            for agent_id in sample_agent_ids
+        ]
+
+        # Create perception from each agent's perspective
+        perceptions = [
+            HolographicPerception(self_agent_id=agent_id, all_states=states)
+            for agent_id in sample_agent_ids
+        ]
+
+        # All should see same other_states (minus themselves)
+        for perception in perceptions:
+            view = perception.compute_local_view()
+            other_count = len(view["other_states"])
+            assert other_count == len(sample_agent_ids) - 1
+
+    def test_state_vector_ordering(self, sample_agent_ids, sample_metrics):
         """Test deterministic ordering of state vector elements."""
-        pytest.skip("Implementation pending")
+        from tier5_holographic_mesh import SharedStateVector, ConsensusProtocol
 
-    def test_full_mesh_workflow(self):
+        # Create states
+        states1 = [
+            SharedStateVector(agent_id=agent_id, timestamp="2026-05-27T18:00:00Z", metrics=sample_metrics)
+            for agent_id in sample_agent_ids
+        ]
+
+        # Create same states in different order
+        states2 = list(reversed(states1))
+
+        # Consensus should produce same root regardless of input order
+        consensus1 = ConsensusProtocol(agent_states=states1, f_byzantine=1)
+        consensus2 = ConsensusProtocol(agent_states=states2, f_byzantine=1)
+
+        root1 = consensus1.compute_merkle_root()
+        root2 = consensus2.compute_merkle_root()
+
+        assert root1 == root2, "Merkle root should be order-independent"
+
+    def test_full_mesh_workflow(self, sample_agent_ids, sample_metrics, prague_frankfurt_latency):
         """Test full mesh workflow: state vector → perception → consensus → gossip."""
-        pytest.skip("Implementation pending")
+        from tier5_holographic_mesh import (
+            SharedStateVector, HolographicPerception, ConsensusProtocol,
+            MeshCoordinator, LocalityAwareness
+        )
+
+        # 1. Create shared state vectors
+        states = [
+            SharedStateVector(agent_id=agent_id, timestamp="2026-05-27T18:00:00Z", metrics=sample_metrics)
+            for agent_id in sample_agent_ids
+        ]
+
+        # 2. Create holographic perception from agent 0's view
+        perception = HolographicPerception(
+            self_agent_id=sample_agent_ids[0],
+            all_states=states
+        )
+        view = perception.compute_local_view()
+        assert view["self_state"].agent_id == sample_agent_ids[0]
+
+        # 3. Compute consensus
+        consensus = ConsensusProtocol(agent_states=states, f_byzantine=1)
+        agreement = consensus.compute_merkle_root()
+        signature = consensus.sign_agreement(agreement, sample_agent_ids[0])
+        assert consensus.verify_peer_agreement(sample_agent_ids[0], agreement, signature)
+
+        # 4. Setup mesh coordinator
+        coordinator = MeshCoordinator(
+            self_agent_id=sample_agent_ids[0],
+            known_peers=sample_agent_ids[1:]
+        )
+
+        # Receive state from another agent
+        coordinator.receive_state(states[1])
+        assert states[1].agent_id in coordinator.received_states
+
+        # Select gossip peers
+        gossip_peers = coordinator.select_gossip_peers(fanout=2)
+        assert len(gossip_peers) > 0
+        assert sample_agent_ids[0] not in gossip_peers
+
+        # 5. Setup locality awareness
+        latencies = {
+            sample_agent_ids[0]: 0.5,
+            sample_agent_ids[1]: prague_frankfurt_latency,
+            sample_agent_ids[2]: 25.0,
+            sample_agent_ids[3]: 180.0
+        }
+        awareness = LocalityAwareness(self_location="Prague", latencies=latencies)
+
+        # Rank peers by latency
+        ranked = awareness.rank_peers_by_latency(sample_agent_ids)
+        assert ranked[0] == sample_agent_ids[0]  # Closest to self
+
+        # Select local peers
+        local_peers = awareness.select_local_peers(threshold_ms=50.0)
+        assert len(local_peers) >= 2
+
+        # Full workflow complete: all components integrated
+        assert True

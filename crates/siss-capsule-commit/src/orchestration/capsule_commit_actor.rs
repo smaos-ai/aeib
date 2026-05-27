@@ -165,19 +165,19 @@ impl<A: ImpactAnalyzer> GitNexusCapsuleCommitActor<A> {
     fn phi_plus_review(&mut self, intersection: ClusterIntersection) -> MergeDecision {
         let eval = EvalCourt::new();
 
-        let capsule_a = match self.pending_capsules.get(&intersection.capsule_a) {
-            Some(c) => c.clone(),
-            None => return MergeDecision::Rejected {
-                capsule_id: intersection.capsule_a,
-                reason: "Capsule not found in pending".to_string(),
-            },
-        };
+        let capsule_a = self.pending_capsules.get(&intersection.capsule_a)
+            .or_else(|| self.committed_capsules.get(&intersection.capsule_a))
+            .cloned();
 
-        let capsule_b = match self.pending_capsules.get(&intersection.capsule_b) {
-            Some(c) => c.clone(),
-            None => return MergeDecision::Rejected {
-                capsule_id: intersection.capsule_b,
-                reason: "Capsule not found in pending".to_string(),
+        let capsule_b = self.pending_capsules.get(&intersection.capsule_b)
+            .or_else(|| self.committed_capsules.get(&intersection.capsule_b))
+            .cloned();
+
+        let (capsule_a, capsule_b) = match (capsule_a, capsule_b) {
+            (Some(a), Some(b)) => (a, b),
+            _ => return MergeDecision::Rejected {
+                capsule_id: intersection.capsule_a,
+                reason: "One or both capsules not found".to_string(),
             },
         };
 
@@ -303,9 +303,19 @@ mod tests {
         clusters: Vec<&str>,
         created_at: u64,
     ) -> CommitmentCapsule {
+        create_capsule_with_diff(id, symbols, clusters, created_at, None)
+    }
+
+    fn create_capsule_with_diff(
+        id: Uuid,
+        symbols: Vec<&str>,
+        clusters: Vec<&str>,
+        created_at: u64,
+        git_diff_override: Option<String>,
+    ) -> CommitmentCapsule {
         let affected_symbols: Vec<String> = symbols.iter().map(|s| s.to_string()).collect();
         let cluster_tags: Vec<String> = clusters.iter().map(|c| c.to_string()).collect();
-        let git_diff = format!("diff for {:?}", id);
+        let git_diff = git_diff_override.unwrap_or_else(|| format!("diff for {:?}", id));
 
         let mut hasher = Sha256::new();
         hasher.update(&git_diff);
@@ -476,13 +486,14 @@ mod tests {
             vec!["auth-cluster"],
             1000,
         );
-        let mut capsule_b = create_capsule(
-            Uuid::new_v4(),
+        let capsule_b_id = Uuid::new_v4();
+        let capsule_b = create_capsule_with_diff(
+            capsule_b_id,
             vec!["handleLogin"],
             vec!["auth-cluster"],
             2000,
+            Some("unsafe bypass code".to_string()),
         );
-        capsule_b.git_diff = "unsafe bypass code".to_string();
 
         actor.ingest_capsule(capsule_a.clone()).ok();
         actor.ingest_capsule(capsule_b.clone()).ok();
@@ -508,21 +519,22 @@ mod tests {
     fn test_phi_plus_rejects_both_when_both_unsafe() {
         let mut actor = GitNexusCapsuleCommitActor::new(MockAnalyzer);
 
-        let mut capsule_a = create_capsule(
-            Uuid::new_v4(),
+        let capsule_a_id = Uuid::new_v4();
+        let capsule_a = create_capsule_with_diff(
+            capsule_a_id,
             vec!["validateUser"],
             vec!["auth-cluster"],
             1000,
+            Some("unsafe code A".to_string()),
         );
-        let mut capsule_b = create_capsule(
-            Uuid::new_v4(),
+        let capsule_b_id = Uuid::new_v4();
+        let capsule_b = create_capsule_with_diff(
+            capsule_b_id,
             vec!["handleLogin"],
             vec!["auth-cluster"],
             2000,
+            Some("unsafe code B".to_string()),
         );
-
-        capsule_a.git_diff = "unsafe code A".to_string();
-        capsule_b.git_diff = "unsafe code B".to_string();
 
         actor.ingest_capsule(capsule_a.clone()).ok();
         actor.ingest_capsule(capsule_b.clone()).ok();

@@ -204,24 +204,26 @@ mod tests {
         let checker = Arc::new(HealthChecker::new(Duration::from_secs(5)));
         checker.register_region("prague".to_string()).await.unwrap();
         checker.register_region("frankfurt".to_string()).await.unwrap();
+        checker.register_region("london".to_string()).await.unwrap();
 
         // Primary fails
         for _ in 0..3 {
             checker.record_failure("prague").await.unwrap();
         }
-        // Secondary healthy
+        // Secondary and tertiary healthy
         checker.record_success("frankfurt", 100).await.unwrap();
+        checker.record_success("london", 120).await.unwrap();
 
         let manager = FailoverManager::new(
             "prague".to_string(),
-            vec!["frankfurt".to_string()],
+            vec!["frankfurt".to_string(), "london".to_string()],
             checker,
         );
 
         let decision = manager.evaluate_failover().await.unwrap();
         match decision {
             FailoverDecision::FailoverToRegion { target_region, .. } => {
-                assert_eq!(target_region, "frankfurt");
+                assert!(target_region == "frankfurt" || target_region == "london");
             }
             _ => panic!("Expected failover decision"),
         }

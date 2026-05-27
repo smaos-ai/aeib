@@ -20,6 +20,8 @@ impl ReachabilityCache {
 
     pub fn add_edge(&mut self, from: Uuid, to: Uuid) {
         self.graph.entry(from).or_insert_with(Vec::new).push(to);
+        // CRITICAL: Invalidate cache on every mutation to maintain correctness
+        self.cache.clear();
     }
 
     pub fn reachable(&mut self, from: Uuid, to: Uuid) -> bool {
@@ -34,30 +36,36 @@ impl ReachabilityCache {
         // Cache miss
         self.misses += 1;
 
-        // Perform DFS to find reachability
-        let mut visited = HashSet::new();
-        let result = self.dfs(from, to, &mut visited);
+        // Perform iterative BFS to find reachability (no stack overflow risk)
+        let result = self.bfs_reachable(from, to);
 
         // Cache the result
         self.cache.insert(key, result);
         result
     }
 
-    fn dfs(&self, current: Uuid, target: Uuid, visited: &mut HashSet<Uuid>) -> bool {
-        if current == target {
+    fn bfs_reachable(&self, from: Uuid, to: Uuid) -> bool {
+        if from == to {
             return true;
         }
 
-        if visited.contains(&current) {
-            return false;
-        }
+        let mut visited = HashSet::new();
+        let mut queue = std::collections::VecDeque::new();
 
-        visited.insert(current);
+        queue.push_back(from);
+        visited.insert(from);
 
-        if let Some(neighbors) = self.graph.get(&current) {
-            for &neighbor in neighbors {
-                if self.dfs(neighbor, target, visited) {
-                    return true;
+        while let Some(current) = queue.pop_front() {
+            if current == to {
+                return true;
+            }
+
+            if let Some(neighbors) = self.graph.get(&current) {
+                for &neighbor in neighbors {
+                    if !visited.contains(&neighbor) {
+                        visited.insert(neighbor);
+                        queue.push_back(neighbor);
+                    }
                 }
             }
         }
@@ -131,5 +139,21 @@ mod tests {
         // With 1 miss and 99 hits, hit ratio should be >= 0.99
         let ratio = cache.hit_ratio();
         assert!(ratio >= 0.99);
+    }
+
+    #[test]
+    fn test_cache_invalidates_on_add_edge() {
+        let mut cache = ReachabilityCache::new();
+        let a = Uuid::new_v4();
+        let b = Uuid::new_v4();
+
+        // Initially, a cannot reach b
+        assert!(!cache.reachable(a, b));
+
+        // Now add the edge a -> b
+        cache.add_edge(a, b);
+
+        // The cache should be invalidated. Now a MUST be able to reach b
+        assert!(cache.reachable(a, b), "Cache was not invalidated on add_edge. Reachability is broken.");
     }
 }

@@ -38,15 +38,14 @@ pub async fn execute_contract_function(
     }
 
     // Fetch contract from database
-    let contract: (String, String) = sqlx::query_as(
+    let contract: (String, Value) = sqlx::query_as(
         "SELECT bytecode, abi FROM smart_contracts WHERE contract_address = $1"
     )
     .bind(contract_address)
     .fetch_one(pool)
     .await?;
 
-    let (_bytecode, abi_str) = contract;
-    let _abi: Value = serde_json::from_str(&abi_str)?;
+    let (_bytecode, _abi) = contract;
 
     // For now: mock execution with deterministic result
     // In production: use revm or similar EVM library

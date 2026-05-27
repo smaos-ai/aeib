@@ -3684,6 +3684,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "siss-night-cycle"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "crossterm",
+ "ratatui",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokio",
+]
+
+[[package]]
 name = "siss-ontology-proofs"
 version = "0.1.0"
 dependencies = [

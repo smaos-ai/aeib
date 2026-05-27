@@ -16,6 +16,6 @@
 
 ## Merkle Proof
 
-**SHA256:** `8d3cbe26d7439f72677f460e72b72f326f970ed34e0444b02b8df0b9e1752e39`
+**SHA256:** `6cdeb26afcaa400f869c41abd27ecde023cd35ec1207ce56757c1e4fb7f677c0`
 
 **Source:** `test_run.json`

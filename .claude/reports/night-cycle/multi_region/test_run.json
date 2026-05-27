@@ -1,36 +1,36 @@
 {
-  "summary": {
-    "failed": 0,
-    "passed": 5,
-    "total": 5
-  },
+  "timestamp": 1779899957,
   "test_suite": "siss-multi-region",
   "tests": [
     {
       "name": "test_capsule_replicates_to_all_regions",
-      "passed": true,
-      "status": "PASSED"
+      "status": "PASSED",
+      "passed": true
     },
     {
       "name": "test_health_check_triggers_failover",
-      "passed": true,
-      "status": "PASSED"
+      "status": "PASSED",
+      "passed": true
     },
     {
       "name": "test_vector_clock_causality_preserved",
-      "passed": true,
-      "status": "PASSED"
+      "status": "PASSED",
+      "passed": true
     },
     {
       "name": "test_quorum_not_achieved_halts_on_split_brain",
-      "passed": true,
-      "status": "PASSED"
+      "status": "PASSED",
+      "passed": true
     },
     {
       "name": "test_replication_completes_within_rto",
-      "passed": true,
-      "status": "PASSED"
+      "status": "PASSED",
+      "passed": true
     }
   ],
-  "timestamp": 1779883325
+  "summary": {
+    "total": 5,
+    "passed": 5,
+    "failed": 0
+  }
 }

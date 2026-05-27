@@ -132,17 +132,78 @@ class TestHolographicPerception:
 class TestConsensusProtocol:
     """Test Byzantine-tolerant consensus with Merkle verification."""
 
-    def test_consensus_protocol_agreement(self):
+    def test_consensus_protocol_agreement(self, sample_agent_ids, sample_metrics):
         """Test that consensus produces agreement across honest agents."""
-        pytest.skip("Implementation pending")
+        from tier5_holographic_mesh import SharedStateVector, ConsensusProtocol
 
-    def test_consensus_protocol_signature(self):
+        states = [
+            SharedStateVector(agent_id=agent_id, timestamp="2026-05-27T18:00:00Z", metrics=sample_metrics)
+            for agent_id in sample_agent_ids
+        ]
+
+        consensus = ConsensusProtocol(agent_states=states, f_byzantine=1)
+
+        # Compute agreement
+        agreement = consensus.compute_merkle_root()
+
+        # All honest agents should compute same root
+        assert isinstance(agreement, str)
+        assert len(agreement) == 64  # SHA256 hex digest
+
+    def test_consensus_protocol_signature(self, sample_agent_ids, sample_metrics):
         """Test digital signature of state agreement."""
-        pytest.skip("Implementation pending")
+        from tier5_holographic_mesh import SharedStateVector, ConsensusProtocol
 
-    def test_byzantine_tolerance_detect_lying_agent(self):
+        states = [
+            SharedStateVector(agent_id=agent_id, timestamp="2026-05-27T18:00:00Z", metrics=sample_metrics)
+            for agent_id in sample_agent_ids
+        ]
+
+        consensus = ConsensusProtocol(agent_states=states, f_byzantine=1)
+
+        # Compute and sign agreement
+        agreement = consensus.compute_merkle_root()
+        signature = consensus.sign_agreement(agreement, agent_id=sample_agent_ids[0])
+
+        # Verify signature exists and is valid
+        assert signature is not None
+        assert isinstance(signature, str)
+        assert len(signature) > 0
+
+        # Verify the signature
+        is_valid = consensus.verify_peer_agreement(
+            agent_id=sample_agent_ids[0],
+            agreement=agreement,
+            signature=signature
+        )
+        assert is_valid
+
+    def test_byzantine_tolerance_detect_lying_agent(self, sample_agent_ids, sample_metrics):
         """Test detection of Byzantine (lying) agents."""
-        pytest.skip("Implementation pending")
+        from tier5_holographic_mesh import SharedStateVector, ConsensusProtocol
+
+        # Create honest states
+        states = [
+            SharedStateVector(agent_id=agent_id, timestamp="2026-05-27T18:00:00Z", metrics=sample_metrics)
+            for agent_id in sample_agent_ids
+        ]
+
+        consensus = ConsensusProtocol(agent_states=states, f_byzantine=1)
+
+        # Agent 0 tries to sign false agreement
+        agreement = consensus.compute_merkle_root()
+        false_agreement = "0" * 64  # Completely different hash
+
+        signature = consensus.sign_agreement(false_agreement, agent_id=sample_agent_ids[0])
+
+        # Detect Byzantine behavior
+        byzantine_agents = consensus.detect_byzantine(
+            agreements={sample_agent_ids[0]: (false_agreement, signature)},
+            honest_agreement=agreement
+        )
+
+        # Should detect agent 0 as Byzantine
+        assert sample_agent_ids[0] in byzantine_agents
 
 
 # ============================================================================

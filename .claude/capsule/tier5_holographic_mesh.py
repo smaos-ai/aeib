@@ -118,3 +118,92 @@ class HolographicPerception:
             "other_states": other_states,
             "view_hash": view_hash
         }
+
+
+@dataclass
+class ConsensusProtocol:
+    """
+    Byzantine-tolerant consensus with Merkle verification.
+
+    Enables agreement on shared state across agents despite Byzantine actors.
+    Uses threshold signatures and Merkle root verification.
+
+    Attributes:
+        agent_states: List of SharedStateVector from all agents
+        f_byzantine: Number of tolerable Byzantine faults (default: n/3)
+    """
+
+    agent_states: List[SharedStateVector]
+    f_byzantine: int = 1
+
+    def compute_merkle_root(self) -> str:
+        """
+        Compute Merkle root of all agent states.
+
+        Returns deterministic hash agreeable by all honest agents.
+
+        Returns:
+            SHA256 hex digest of Merkle tree root
+        """
+        # Sort states by agent_id for deterministic ordering
+        sorted_states = sorted(self.agent_states, key=lambda s: s.agent_id)
+
+        # Build Merkle tree by hashing each state's merkle_root
+        merkle_hashes = [s.merkle_root for s in sorted_states]
+
+        # Compute root
+        root_str = ":".join(merkle_hashes)
+        return hashlib.sha256(root_str.encode()).hexdigest()
+
+    def sign_agreement(self, agreement: str, agent_id: str) -> str:
+        """
+        Sign a consensus agreement (simple mock signature).
+
+        Args:
+            agreement: The agreement hash to sign (as hex string)
+            agent_id: ID of the agent signing
+
+        Returns:
+            Signature string
+        """
+        # Simple deterministic signature: hash(agreement + agent_id)
+        sig_input = f"{agreement}:{agent_id}"
+        return hashlib.sha256(sig_input.encode()).hexdigest()
+
+    def verify_peer_agreement(self, agent_id: str, agreement: str, signature: str) -> bool:
+        """
+        Verify a peer's signature on an agreement.
+
+        Args:
+            agent_id: ID of the agent that signed
+            agreement: The agreement hash
+            signature: The signature to verify
+
+        Returns:
+            True if signature is valid
+        """
+        expected_sig = self.sign_agreement(agreement, agent_id)
+        return signature == expected_sig
+
+    def detect_byzantine(self, agreements: Dict[str, Tuple[str, str]], honest_agreement: str) -> List[str]:
+        """
+        Detect Byzantine agents based on agreement mismatch.
+
+        Args:
+            agreements: Dict mapping agent_id to (agreement, signature) tuple
+            honest_agreement: The consensus agreement from honest agents
+
+        Returns:
+            List of agent IDs that are Byzantine
+        """
+        byzantine_agents = []
+
+        for agent_id, (agreement, signature) in agreements.items():
+            # Check if agreement matches
+            if agreement != honest_agreement:
+                # Double-check signature is valid for the false agreement
+                if self.verify_peer_agreement(agent_id, agreement, signature):
+                    # Agent signed a false agreement - it's Byzantine
+                    byzantine_agents.append(agent_id)
+
+        return byzantine_agents

@@ -207,3 +207,63 @@ class ConsensusProtocol:
                     byzantine_agents.append(agent_id)
 
         return byzantine_agents
+
+
+@dataclass
+class MeshCoordinator:
+    """
+    Gossip-based mesh coordination without central coordinator.
+
+    Manages state propagation across the mesh using gossip protocol.
+    Each agent independently selects peers for state dissemination.
+
+    Attributes:
+        self_agent_id: Identifier of this agent
+        known_peers: List of peer agent IDs in mesh
+        received_states: Dict mapping agent_id to SharedStateVector
+    """
+
+    self_agent_id: str
+    known_peers: List[str]
+    received_states: Dict[str, SharedStateVector] = field(default_factory=dict)
+
+    def receive_state(self, state: SharedStateVector) -> None:
+        """
+        Receive and store a state vector from a peer.
+
+        Args:
+            state: SharedStateVector to receive
+        """
+        self.received_states[state.agent_id] = state
+
+    def select_gossip_peers(self, fanout: int = 2) -> List[str]:
+        """
+        Select peers for gossip propagation (random fanout).
+
+        Args:
+            fanout: Number of peers to select for gossip
+
+        Returns:
+            List of selected peer agent IDs
+        """
+        import random
+
+        # Filter out self
+        available_peers = [p for p in self.known_peers if p != self.self_agent_id]
+
+        # Select random subset up to fanout size
+        num_to_select = min(fanout, len(available_peers))
+        return random.sample(available_peers, num_to_select)
+
+    def get_peers_to_notify(self, state: SharedStateVector, fanout: int = 2) -> List[str]:
+        """
+        Get list of peers to notify about a state update.
+
+        Args:
+            state: The state to propagate
+            fanout: Number of peers to select
+
+        Returns:
+            List of peer agent IDs to notify
+        """
+        return self.select_gossip_peers(fanout)

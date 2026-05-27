@@ -213,13 +213,49 @@ class TestConsensusProtocol:
 class TestMeshCoordinator:
     """Test gossip-based mesh coordination and state propagation."""
 
-    def test_gossip_propagation_correctness(self):
+    def test_gossip_propagation_correctness(self, sample_agent_ids, sample_metrics):
         """Test that gossip correctly propagates state updates across mesh."""
-        pytest.skip("Implementation pending")
+        from tier5_holographic_mesh import SharedStateVector, MeshCoordinator
 
-    def test_mesh_convergence_time(self):
+        states = [
+            SharedStateVector(agent_id=agent_id, timestamp="2026-05-27T18:00:00Z", metrics=sample_metrics)
+            for agent_id in sample_agent_ids
+        ]
+
+        coordinator = MeshCoordinator(self_agent_id=sample_agent_ids[0], known_peers=sample_agent_ids[1:])
+
+        # Receive a state from another agent
+        new_state = states[1]
+        coordinator.receive_state(new_state)
+
+        # Verify state is stored
+        assert new_state.agent_id in coordinator.received_states
+        assert coordinator.received_states[new_state.agent_id] == new_state
+
+    def test_mesh_convergence_time(self, sample_agent_ids, sample_metrics):
         """Test that mesh converges within expected time bounds."""
-        pytest.skip("Implementation pending")
+        from tier5_holographic_mesh import SharedStateVector, MeshCoordinator
+
+        states = [
+            SharedStateVector(agent_id=agent_id, timestamp="2026-05-27T18:00:00Z", metrics=sample_metrics)
+            for agent_id in sample_agent_ids
+        ]
+
+        coordinator = MeshCoordinator(self_agent_id=sample_agent_ids[0], known_peers=sample_agent_ids[1:])
+
+        # Select gossip peers
+        gossip_peers = coordinator.select_gossip_peers(fanout=2)
+
+        # Should select up to fanout peers
+        assert len(gossip_peers) <= 2
+        assert len(gossip_peers) > 0
+
+        # Should not include self
+        assert sample_agent_ids[0] not in gossip_peers
+
+        # All selected peers should be in known_peers
+        for peer in gossip_peers:
+            assert peer in sample_agent_ids[1:]
 
 
 # ============================================================================

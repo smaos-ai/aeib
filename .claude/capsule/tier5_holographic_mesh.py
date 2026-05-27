@@ -267,3 +267,67 @@ class MeshCoordinator:
             List of peer agent IDs to notify
         """
         return self.select_gossip_peers(fanout)
+
+
+@dataclass
+class LocalityAwareness:
+    """
+    Latency-aware peer selection for gossip optimization.
+
+    Enables agents to prefer nearby peers based on network latency,
+    reducing mesh propagation time without central coordination.
+
+    Attributes:
+        self_location: String describing agent's geographic location
+        latencies: Dict mapping agent_id to latency in milliseconds
+    """
+
+    self_location: str
+    latencies: Dict[str, float]
+
+    def get_latency(self, agent_id: str) -> Optional[float]:
+        """
+        Get latency to a specific agent.
+
+        Args:
+            agent_id: Identifier of the agent
+
+        Returns:
+            Latency in milliseconds, or None if unknown
+        """
+        return self.latencies.get(agent_id)
+
+    def rank_peers_by_latency(self, agent_ids: List[str]) -> List[str]:
+        """
+        Rank peers by latency (lowest first).
+
+        Args:
+            agent_ids: List of agent IDs to rank
+
+        Returns:
+            Agent IDs sorted by increasing latency
+        """
+        # Sort by latency, handling missing entries
+        def get_sort_key(agent_id: str) -> Tuple[int, float]:
+            latency = self.latencies.get(agent_id, float('inf'))
+            # Handle infinity by sorting missing entries last
+            return (0 if latency < float('inf') else 1, latency)
+
+        return sorted(agent_ids, key=get_sort_key)
+
+    def select_local_peers(self, threshold_ms: float = 50.0) -> List[str]:
+        """
+        Select peers within latency threshold (local peers).
+
+        Args:
+            threshold_ms: Maximum acceptable latency in milliseconds
+
+        Returns:
+            List of agent IDs within threshold
+        """
+        local_peers = []
+        for agent_id, latency in self.latencies.items():
+            if latency <= threshold_ms:
+                local_peers.append(agent_id)
+
+        return local_peers

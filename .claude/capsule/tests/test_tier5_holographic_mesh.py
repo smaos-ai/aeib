@@ -265,13 +265,54 @@ class TestMeshCoordinator:
 class TestLocalityAwareness:
     """Test latency-aware peer selection for gossip."""
 
-    def test_latency_aware_routing_prague_frankfurt(self):
+    def test_latency_aware_routing_prague_frankfurt(self, prague_frankfurt_latency):
         """Test routing optimization between Prague and Frankfurt."""
-        pytest.skip("Implementation pending")
+        from tier5_holographic_mesh import LocalityAwareness
+
+        # Create latency map
+        latencies = {
+            "agent_prague_001": 0.5,      # Local to Prague
+            "agent_frankfurt_002": prague_frankfurt_latency,  # 12.5ms to Frankfurt
+            "agent_london_003": 25.0,     # Farther from Prague
+            "agent_tokyo_004": 180.0      # Very far
+        }
+
+        awareness = LocalityAwareness(self_location="Prague", latencies=latencies)
+
+        # Test latency lookup
+        assert awareness.get_latency("agent_frankfurt_002") == prague_frankfurt_latency
+
+        # Test peer ranking by latency
+        ranked = awareness.rank_peers_by_latency(list(latencies.keys()))
+
+        # Should be ordered by increasing latency
+        assert ranked[0] == "agent_prague_001"
+        assert ranked[1] == "agent_frankfurt_002"
+        assert ranked[-1] == "agent_tokyo_004"
 
     def test_no_central_coordinator_required(self):
         """Test that mesh operates without central coordinator."""
-        pytest.skip("Implementation pending")
+        from tier5_holographic_mesh import LocalityAwareness
+
+        # Multiple agents can independently compute locality awareness
+        agents = ["prague_001", "frankfurt_002", "london_003"]
+
+        # Each agent has different latency perspective
+        prague_latencies = {"prague_001": 0.5, "frankfurt_002": 12.5, "london_003": 25.0}
+        frankfurt_latencies = {"prague_001": 12.5, "frankfurt_002": 0.5, "london_003": 18.0}
+
+        awareness_prague = LocalityAwareness(self_location="Prague", latencies=prague_latencies)
+        awareness_frankfurt = LocalityAwareness(self_location="Frankfurt", latencies=frankfurt_latencies)
+
+        # Both can independently select local peers without coordination
+        prague_locals = awareness_prague.select_local_peers(threshold_ms=20.0)
+        frankfurt_locals = awareness_frankfurt.select_local_peers(threshold_ms=20.0)
+
+        # Should select different local peers based on position
+        assert len(prague_locals) > 0
+        assert len(frankfurt_locals) > 0
+
+        # No central coordinator was used - just local knowledge
 
 
 # ============================================================================

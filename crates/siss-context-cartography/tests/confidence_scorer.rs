@@ -50,6 +50,7 @@ fn test_contradiction_marks_fact_stale() {
         superseded_by: None,
         is_stale: false,
         sources: vec!["human_input".to_string()],
+        epistemic_status: siss_context_cartography::llm_wiki_v2::EpistemicStatus::Unverified,
     };
 
     let new_contradicting_fact = "The sky is not blue".to_string();

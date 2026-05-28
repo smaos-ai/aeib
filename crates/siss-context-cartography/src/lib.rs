@@ -1,6 +1,8 @@
 pub mod budget;
 pub mod config;
 pub mod confidence_scorer;
+pub mod epistemic_gate;
+pub mod gamma_operator;
 pub mod inbound;
 pub mod llm_wiki_v2;
 pub mod night_cycle;

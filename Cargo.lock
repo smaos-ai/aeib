@@ -3919,6 +3919,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "siss-trust-mesh"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "ed25519-dalek",
+ "serde",
+ "serde_json",
+ "sha2",
+ "siss-gatekeeper",
+ "siss-graph-core",
+ "thiserror 2.0.18",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "siss-ui-server"
 version = "0.1.0"
 dependencies = [

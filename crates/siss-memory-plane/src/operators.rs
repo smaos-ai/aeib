@@ -62,9 +62,16 @@ impl CartographicOperatorSet {
     pub fn phi_simplify(&self, entries: Vec<MemoryEntry>) -> Vec<MemoryEntry> {
         entries.into_iter()
             .map(|mut e| {
-                let max_chars = self.max_tokens_per_entry * 4; // ~1 token = 4 chars
-                if e.content.len() > max_chars {
-                    e.content.truncate(max_chars);
+                // Check affective bypass: high valence + high arousal + high sovereign_relevance
+                let should_bypass_truncation = e.affective_signature.as_ref()
+                    .map(|sig| sig.arousal > 0.8 && sig.sovereign_relevance >= 0.7)
+                    .unwrap_or(false);
+
+                if !should_bypass_truncation {
+                    let max_chars = self.max_tokens_per_entry * 4; // ~1 token = 4 chars
+                    if e.content.len() > max_chars {
+                        e.content.truncate(max_chars);
+                    }
                 }
                 e
             })
@@ -122,6 +129,33 @@ impl CartographicOperatorSet {
         entries.into_iter()
             .filter(|e| e.namespace.as_deref() == Some(namespace))
             .collect()
+    }
+
+    pub fn omega_resonate(
+        &self,
+        _visible: Vec<MemoryEntry>,
+        gray_fog: Vec<MemoryEntry>,
+        limit: usize,
+    ) -> Vec<MemoryEntry> {
+        // ω operator: rescue high-arousal facts from GrayFog back to VisibleField
+        let mut candidates: Vec<MemoryEntry> = gray_fog
+            .into_iter()
+            .filter(|e| {
+                e.affective_signature.as_ref()
+                    .map(|sig| sig.arousal > 0.8)
+                    .unwrap_or(false)
+            })
+            .collect();
+
+        // Sort by arousal (descending)
+        candidates.sort_by(|a, b| {
+            let arousal_a = a.affective_signature.as_ref().map(|s| s.arousal).unwrap_or(0.0);
+            let arousal_b = b.affective_signature.as_ref().map(|s| s.arousal).unwrap_or(0.0);
+            arousal_b.partial_cmp(&arousal_a).unwrap_or(std::cmp::Ordering::Equal)
+        });
+
+        candidates.truncate(limit);
+        candidates
     }
 }
 

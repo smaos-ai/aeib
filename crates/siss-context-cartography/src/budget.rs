@@ -57,6 +57,7 @@ mod tests {
             content: content.into(),
             confidence_score: 0.9,
             tier,
+            affective_signature: None,
         }
     }
 

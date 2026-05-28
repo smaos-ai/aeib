@@ -29,6 +29,7 @@ pub async fn fetch(
             content,
             confidence_score: confidence,
             tier: ConsolidationTier::Semantic,
+            affective_signature: None,
         })
         .collect();
 

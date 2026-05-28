@@ -40,6 +40,14 @@ pub enum MemoryTier {
     Procedural,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub enum EpistemicStatus {
+    Unverified,
+    Verified { divergence_score: f64 },
+    Uncertain { divergence_score: f64, flagged_at: DateTime<Utc> },
+    HumanApproved { approved_by: String, at: DateTime<Utc> },
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SemanticFact {
     pub id: Uuid,
@@ -51,6 +59,7 @@ pub struct SemanticFact {
     pub superseded_by: Option<Uuid>,  // Link to newer fact if contradicted
     pub is_stale: bool,
     pub sources: Vec<String>,  // Audit trail
+    pub epistemic_status: EpistemicStatus,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -370,6 +379,7 @@ mod tests {
             superseded_by: None,
             is_stale: false,
             sources: vec!["phase-73".to_string()],
+            epistemic_status: EpistemicStatus::Unverified,
         };
 
         engine.add_fact(old_fact, Vec::new());
@@ -385,6 +395,7 @@ mod tests {
             superseded_by: None,
             is_stale: false,
             sources: vec!["phase-75".to_string()],
+            epistemic_status: EpistemicStatus::Unverified,
         };
 
         let result = engine.supersede_fact(old_id, new_fact, "BFT provides better guarantees".to_string());
@@ -410,6 +421,7 @@ mod tests {
             superseded_by: None,
             is_stale: false,
             sources: vec!["wiki".to_string()],
+            epistemic_status: EpistemicStatus::Unverified,
         };
 
         let fact2_id = Uuid::new_v4();
@@ -423,6 +435,7 @@ mod tests {
             superseded_by: None,
             is_stale: true,  // Stale
             sources: vec!["archive".to_string()],
+            epistemic_status: EpistemicStatus::Unverified,
         };
 
         fact1.superseded_by = Some(fact2_id);

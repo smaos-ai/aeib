@@ -14,6 +14,13 @@ pub struct CartographyRequest {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AffectiveSignature {
+    pub valence: f64,              // [-1.0, +1.0] negative=threat, positive=opportunity
+    pub arousal: f64,              // [0.0, 1.0] activation intensity
+    pub sovereign_relevance: f64,  // [0.0, 1.0] alignment to user's core values
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VisibleField {
     pub session_id: NodeId,
     pub procedural: Vec<MemoryEntry>,
@@ -28,6 +35,7 @@ pub struct MemoryEntry {
     pub content: String,
     pub confidence_score: f64,
     pub tier: ConsolidationTier,
+    pub affective_signature: Option<AffectiveSignature>,
 }
 
 impl MemoryEntry {
@@ -76,6 +84,7 @@ mod tests {
             content: "hello world".into(),
             confidence_score: 0.9,
             tier: ConsolidationTier::Semantic,
+            affective_signature: None,
         };
         assert_eq!(entry.estimate_tokens(0.25), 3);
     }
@@ -87,6 +96,7 @@ mod tests {
             content: "".into(),
             confidence_score: 0.5,
             tier: ConsolidationTier::Episodic,
+            affective_signature: None,
         };
         assert_eq!(entry.estimate_tokens(0.25), 0);
     }

@@ -56,30 +56,35 @@ mod tests {
                 content: "entry 0".to_string(),
                 confidence_score: 0.8,
                 tier: ConsolidationTier::Semantic,
+                affective_signature: None,
             },
             MemoryEntry {
                 memory_id: Uuid::new_v4(),
                 content: "entry 1".to_string(),
                 confidence_score: 0.8,
                 tier: ConsolidationTier::Semantic,
+                affective_signature: None,
             },
             MemoryEntry {
                 memory_id: Uuid::new_v4(),
                 content: "entry 2".to_string(),
                 confidence_score: 0.8,
                 tier: ConsolidationTier::Semantic,
+                affective_signature: None,
             },
             MemoryEntry {
                 memory_id: constraint_id,
                 content: "constraint".to_string(),
                 confidence_score: 0.95,
                 tier: ConsolidationTier::Semantic,
+                affective_signature: None,
             },
             MemoryEntry {
                 memory_id: Uuid::new_v4(),
                 content: "entry 4".to_string(),
                 confidence_score: 0.8,
                 tier: ConsolidationTier::Semantic,
+                affective_signature: None,
             },
         ];
 
@@ -102,6 +107,7 @@ mod tests {
             content: "test content".to_string(),
             confidence_score: 0.9,
             tier: ConsolidationTier::Semantic,
+            affective_signature: None,
         };
 
         let annotated = AnnotatedEntry {

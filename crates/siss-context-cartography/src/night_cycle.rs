@@ -238,6 +238,7 @@ mod tests {
             superseded_by: None,
             is_stale: false,
             sources: vec!["test".to_string()],
+            epistemic_status: crate::llm_wiki_v2::EpistemicStatus::Unverified,
         }
     }
 

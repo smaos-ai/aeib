@@ -79,6 +79,18 @@ impl BehaviorScorer {
             .min(TIER_MAX as i32);
         tier_after_i32 as u32
     }
+
+    /// Apply tier delta with optional Trust Mesh boost (Layer 13 integration).
+    /// Adds trust_mesh_boost to the computed delta, clamped to [0, 5].
+    pub fn apply_tier_delta_with_trust(&self, tier_before: u32, trust_mesh_boost: Option<i16>) -> u32 {
+        let delta = self.compute_tier_delta();
+        let boost = trust_mesh_boost.unwrap_or(0).max(0).min(5) as i32;
+        let total_delta = delta + boost;
+        let tier_after_i32 = (tier_before as i32 + total_delta)
+            .max(TIER_MIN as i32)
+            .min(TIER_MAX as i32);
+        tier_after_i32 as u32
+    }
 }
 
 #[cfg(test)]

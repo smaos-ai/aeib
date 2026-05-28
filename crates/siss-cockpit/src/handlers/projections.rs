@@ -41,6 +41,7 @@ pub async fn get_agent_actions(
         &pool,
         &sovereign_id,
         None,
+        limit,
     )
     .await
     .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;

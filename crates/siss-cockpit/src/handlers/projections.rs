@@ -52,6 +52,7 @@ pub async fn get_agent_actions(
 /// GET /api/graph/projections/anomalies
 /// Query params: sovereign_id (required), severity (optional), anomaly_type (optional), limit (optional)
 pub async fn get_anomalies(
+    State(state): State<CockpitState>,
     Query(params): Query<ProjectionQueryParams>,
 ) -> Result<Json<serde_json::Value>, StatusCode> {
     // Parse sovereign_id as UUID
@@ -60,8 +61,15 @@ pub async fn get_anomalies(
 
     let limit = params.limit.unwrap_or(100).min(500);
 
+    // Extract pool from state
+    let pool = state.pool.lock()
+        .ok()
+        .and_then(|p| p.clone())
+        .ok_or(StatusCode::INTERNAL_SERVER_ERROR)?;
+
     // Call projections_repo
     let response = siss_graph_db::repo::projections_repo::fetch_anomalies(
+        &pool,
         &sovereign_id,
         params.severity.as_deref(),
         params.anomaly_type.as_deref(),
@@ -77,6 +85,7 @@ pub async fn get_anomalies(
 /// GET /api/graph/projections/recovery
 /// Query params: sovereign_id (required), limit (optional)
 pub async fn get_recovery(
+    State(state): State<CockpitState>,
     Query(params): Query<ProjectionQueryParams>,
 ) -> Result<Json<serde_json::Value>, StatusCode> {
     // Parse sovereign_id as UUID
@@ -85,8 +94,15 @@ pub async fn get_recovery(
 
     let limit = params.limit.unwrap_or(100).min(200);
 
+    // Extract pool from state
+    let pool = state.pool.lock()
+        .ok()
+        .and_then(|p| p.clone())
+        .ok_or(StatusCode::INTERNAL_SERVER_ERROR)?;
+
     // Call projections_repo
     let response = siss_graph_db::repo::projections_repo::fetch_recovery(
+        &pool,
         &sovereign_id,
         limit,
     )

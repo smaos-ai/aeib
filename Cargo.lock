@@ -3433,6 +3433,7 @@ dependencies = [
  "sha2",
  "siss-graph-core",
  "siss-graph-db",
+ "siss-ontology-proofs",
  "sqlx",
  "thiserror 2.0.18",
  "tokio",

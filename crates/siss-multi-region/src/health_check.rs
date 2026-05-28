@@ -4,6 +4,128 @@ use tokio::sync::RwLock;
 use uuid::Uuid;
 use serde::{Deserialize, Serialize};
 use crate::errors::{MultiRegionError, MultiRegionResult};
+use std::marker::PhantomData;
+
+// Type-state markers for CircuitBreaker
+#[doc = "Closed state: circuit breaker is functioning normally"]
+pub struct Closed;
+#[doc = "Open state: circuit breaker has failed and is rejecting requests"]
+pub struct Open;
+#[doc = "HalfOpen state: circuit breaker is testing if service recovered"]
+pub struct HalfOpen;
+
+#[derive(Clone, Debug)]
+pub struct CircuitBreaker<S> {
+    _state: PhantomData<S>,
+}
+
+impl CircuitBreaker<Closed> {
+    pub fn new(failure_threshold: u32) -> Self {
+        Self::with_counts(0, failure_threshold)
+    }
+
+    pub fn with_counts(failure_count: u32, failure_threshold: u32) -> Self {
+        let _ = (failure_count, failure_threshold);
+        CircuitBreaker {
+            _state: PhantomData,
+        }
+    }
+
+    pub fn record_failure(self, _failure_threshold: u32) -> Result<CircuitBreaker<Closed>, CircuitBreaker<Open>> {
+        Err(CircuitBreaker {
+            _state: PhantomData,
+        })
+    }
+}
+
+impl CircuitBreaker<Open> {
+    pub fn try_reset(self, _reset_timeout: Duration) -> Result<CircuitBreaker<Open>, CircuitBreaker<HalfOpen>> {
+        Err(CircuitBreaker {
+            _state: PhantomData,
+        })
+    }
+}
+
+impl CircuitBreaker<HalfOpen> {
+    pub fn record_success(self) -> CircuitBreaker<Closed> {
+        CircuitBreaker {
+            _state: PhantomData,
+        }
+    }
+
+    pub fn record_failure(self) -> CircuitBreaker<Open> {
+        CircuitBreaker {
+            _state: PhantomData,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum CircuitBreakerState {
+    Closed { failure_count: u32, failure_threshold: u32 },
+    Open { opened_at: Instant, reset_timeout: Duration },
+    HalfOpen { probe_count: u32 },
+}
+
+impl CircuitBreakerState {
+    pub fn new() -> Self {
+        Self::Closed {
+            failure_count: 0,
+            failure_threshold: 3,
+        }
+    }
+
+    pub fn record_failure(&mut self, failure_threshold: u32) {
+        match self {
+            CircuitBreakerState::Closed { failure_count, .. } => {
+                *failure_count += 1;
+                if *failure_count >= failure_threshold {
+                    *self = CircuitBreakerState::Open {
+                        opened_at: Instant::now(),
+                        reset_timeout: Duration::from_secs(60),
+                    };
+                }
+            }
+            CircuitBreakerState::HalfOpen { probe_count } => {
+                *self = CircuitBreakerState::Open {
+                    opened_at: Instant::now(),
+                    reset_timeout: Duration::from_secs(60),
+                };
+                let _ = probe_count;
+            }
+            CircuitBreakerState::Open { .. } => {}
+        }
+    }
+
+    pub fn try_reset(&mut self) {
+        if let CircuitBreakerState::Open { opened_at, reset_timeout } = self {
+            if opened_at.elapsed() >= *reset_timeout {
+                *self = CircuitBreakerState::HalfOpen { probe_count: 0 };
+            }
+        }
+    }
+
+    pub fn record_success(&mut self) {
+        if let CircuitBreakerState::HalfOpen { .. } = self {
+            *self = CircuitBreakerState::Closed {
+                failure_count: 0,
+                failure_threshold: 3,
+            };
+        }
+    }
+
+    pub fn is_open(&self) -> bool {
+        matches!(self, CircuitBreakerState::Open { .. })
+    }
+
+    pub fn is_half_open(&self) -> bool {
+        matches!(self, CircuitBreakerState::HalfOpen { .. })
+    }
+
+    pub fn is_closed(&self) -> bool {
+        matches!(self, CircuitBreakerState::Closed { .. })
+    }
+}
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum HealthStatus {
@@ -21,6 +143,8 @@ pub struct RegionHealth {
     pub response_time_ms: u64,
     pub error_count: u32,
     pub consecutive_failures: u32,
+    #[serde(skip)]
+    pub circuit_breaker: CircuitBreakerState,
 }
 
 impl RegionHealth {
@@ -32,6 +156,7 @@ impl RegionHealth {
             response_time_ms: 0,
             error_count: 0,
             consecutive_failures: 0,
+            circuit_breaker: CircuitBreakerState::new(),
         }
     }
 }
@@ -83,8 +208,9 @@ impl HealthChecker {
         if let Some(health) = regions.get_mut(region_id) {
             health.error_count += 1;
             health.consecutive_failures += 1;
+            health.circuit_breaker.record_failure(self.failure_threshold);
 
-            if health.consecutive_failures >= self.failure_threshold {
+            if health.circuit_breaker.is_open() {
                 health.status = HealthStatus::Unhealthy;
             } else {
                 health.status = HealthStatus::Degraded;

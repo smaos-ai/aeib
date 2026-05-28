@@ -1,5 +1,5 @@
 use siss_chaos_petri::{
-    ChaosPetriQuarantine, FailureScenario,
+    ChaosPetriQuarantine, FailureScenario, ChaosScheduler, ChaosReplayRecord,
 };
 use uuid::Uuid;
 use std::fs;
@@ -319,4 +319,64 @@ fn test_generate_chaos_petri_report() {
     fs::write(format!("{}/CHAOS_PETRI_REPORT.md", report_dir), markdown).ok();
 
     assert!(results.iter().all(|(_, p)| *p), "All chaos scenarios should pass");
+}
+
+#[test]
+fn test_deterministic_seed_produces_same_sequence() {
+    let seed = 42u64;
+    let scheduler = ChaosScheduler::new(seed, 100);
+
+    let scenarios_1 = scheduler.replay_from_seed();
+    let scenarios_2 = scheduler.replay_from_seed();
+
+    assert_eq!(scenarios_1.len(), 12, "Should generate 12 scenarios");
+    assert_eq!(scenarios_2.len(), 12, "Should generate 12 scenarios");
+
+    // Verify sequence is identical
+    for (s1, s2) in scenarios_1.iter().zip(scenarios_2.iter()) {
+        assert_eq!(s1, s2, "Same seed should produce identical scenarios");
+    }
+}
+
+#[test]
+fn test_different_seeds_produce_different_sequences() {
+    let seed_1 = 42u64;
+    let seed_2 = 99u64;
+
+    let scheduler_1 = ChaosScheduler::new(seed_1, 100);
+    let scheduler_2 = ChaosScheduler::new(seed_2, 100);
+
+    let scenarios_1 = scheduler_1.replay_from_seed();
+    let scenarios_2 = scheduler_2.replay_from_seed();
+
+    // At least one scenario should differ between different seeds
+    let mut diverged = false;
+    for (s1, s2) in scenarios_1.iter().zip(scenarios_2.iter()) {
+        if s1 != s2 {
+            diverged = true;
+            break;
+        }
+    }
+    assert!(diverged, "Different seeds should produce different sequences");
+}
+
+#[test]
+fn test_scheduled_execution_runs_all_12_variants_with_same_seed() {
+    let mut chaos = ChaosPetriQuarantine::new();
+    chaos.init_cluster(5);
+
+    let agents = vec![Uuid::new_v4(); 5];
+    let mut scheduler = ChaosScheduler::new(123u64, 100);
+
+    let results = chaos.execute_scheduled(&mut scheduler, 12, &agents)
+        .expect("Scheduled execution should succeed");
+
+    assert_eq!(results.len(), 12, "Should execute exactly 12 scenarios");
+    assert!(chaos.verify_all_passed(), "All scheduled scenarios should pass recovery SLA");
+
+    // Verify recovery times are under 5s
+    for result in &results {
+        assert!(result.recovery_latency_ms < 5000,
+            "Recovery time {} ms exceeds 5s target", result.recovery_latency_ms);
+    }
 }

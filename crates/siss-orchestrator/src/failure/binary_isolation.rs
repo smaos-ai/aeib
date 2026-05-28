@@ -1,5 +1,7 @@
 use uuid::Uuid;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::process::Command;
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct AgentHealth {
@@ -13,6 +15,50 @@ pub enum IsolationError {
     EmptyTree,
     NoHealthyAgents,
     ProbeTimeout,
+    ProcessKillFailed(String),
+    ProcessNotFound,
+}
+
+pub struct AgentProcessRegistry {
+    pid_map: HashMap<Uuid, u32>,
+}
+
+impl AgentProcessRegistry {
+    pub fn new() -> Self {
+        Self {
+            pid_map: HashMap::new(),
+        }
+    }
+
+    pub fn register_agent_pid(&mut self, agent_id: Uuid, pid: u32) {
+        self.pid_map.insert(agent_id, pid);
+    }
+
+    pub fn kill_agent_process(&mut self, agent_id: Uuid) -> Result<(), IsolationError> {
+        let pid = self.pid_map.get(&agent_id)
+            .copied()
+            .ok_or(IsolationError::ProcessNotFound)?;
+
+        let output = Command::new("kill")
+            .args(&["-TERM", &pid.to_string()])
+            .output()
+            .map_err(|e| IsolationError::ProcessKillFailed(e.to_string()))?;
+
+        if !output.status.success() {
+            return Err(IsolationError::ProcessKillFailed(
+                String::from_utf8_lossy(&output.stderr).to_string()
+            ));
+        }
+
+        self.pid_map.remove(&agent_id);
+        Ok(())
+    }
+}
+
+impl Default for AgentProcessRegistry {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -195,6 +241,12 @@ impl AgentBinaryTree {
 
     pub fn subtree_health_ok(&self) -> bool {
         self.root.as_ref().map(|r| r.subtree_health_ok).unwrap_or(true)
+    }
+
+    pub fn isolate_and_kill(&mut self, _symptom: &str, registry: &mut AgentProcessRegistry) -> Result<Uuid, IsolationError> {
+        let agent_id = self.isolate_failure(_symptom)?;
+        registry.kill_agent_process(agent_id)?;
+        Ok(agent_id)
     }
 }
 

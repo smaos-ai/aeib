@@ -27,6 +27,10 @@ use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use uuid::Uuid;
+use rand::SeedableRng;
+use rand::rngs::SmallRng;
+use rand::seq::SliceRandom;
+use rand::Rng;
 
 // ============================================================================
 // TYPES
@@ -165,9 +169,148 @@ pub struct CheckpointState {
     pub timestamp: DateTime<Utc>,
 }
 
+pub struct ChaosScheduler {
+    seed: u64,
+    rng: SmallRng,
+    interval_ms: u64,
+    running: bool,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ChaosReplayRecord {
+    pub seed: u64,
+    pub scenarios: Vec<FailureScenario>,
+}
+
 // ============================================================================
 // IMPLEMENTATION
 // ============================================================================
+
+impl ChaosScheduler {
+    pub fn new(seed: u64, interval_ms: u64) -> Self {
+        Self {
+            seed,
+            rng: SmallRng::seed_from_u64(seed),
+            interval_ms,
+            running: true,
+        }
+    }
+
+    pub fn next_scenario(&mut self, agents: &[Uuid]) -> FailureScenario {
+        let scenarios = vec![
+            FailureScenario::NetworkTimeout {
+                agent_id: agents.choose(&mut self.rng).copied().unwrap_or_else(Uuid::new_v4),
+                timeout_ms: self.rng.gen_range(100..2000),
+            },
+            FailureScenario::DatabaseCrash {
+                transaction_id: Uuid::new_v4(),
+                checkpoint_available: self.rng.gen_bool(0.7),
+            },
+            FailureScenario::ConcurrentWriteCollision {
+                resource_id: Uuid::new_v4(),
+                writer_count: self.rng.gen_range(2..5),
+            },
+            FailureScenario::AgentPanic {
+                agent_id: agents.choose(&mut self.rng).copied().unwrap_or_else(Uuid::new_v4),
+                restart_time_ms: self.rng.gen_range(500..2000),
+            },
+            FailureScenario::MemoryExhaustion {
+                node_id: self.rng.gen_range(0..5),
+                bytes_to_exhaust: self.rng.gen_range(500_000_000..1_000_000_000),
+            },
+            FailureScenario::CascadingFailure {
+                trigger_agent: agents.choose(&mut self.rng).copied().unwrap_or_else(Uuid::new_v4),
+                affected_agents: vec![agents.choose(&mut self.rng).copied().unwrap_or_else(Uuid::new_v4)],
+            },
+            FailureScenario::ClockSkew {
+                node_id: self.rng.gen_range(0..5),
+                skew_ms: self.rng.gen_range(100..1000),
+            },
+            FailureScenario::PartialMessageLoss {
+                agent_id: agents.choose(&mut self.rng).copied().unwrap_or_else(Uuid::new_v4),
+                loss_percentage: self.rng.gen_range(10..50),
+            },
+            FailureScenario::DuplicateMessageInjection {
+                agent_id: agents.choose(&mut self.rng).copied().unwrap_or_else(Uuid::new_v4),
+                duplicate_count: self.rng.gen_range(1..20),
+            },
+            FailureScenario::CapsuleCorruption {
+                capsule_id: Uuid::new_v4(),
+                corruption_type: "bit_flip".to_string(),
+            },
+            FailureScenario::CheckpointRecovery {
+                checkpoint_id: Uuid::new_v4(),
+                state_vector_size: self.rng.gen_range(3..10),
+            },
+            FailureScenario::FullClusterPartition {
+                partition_a: vec![0, 1, 2],
+                partition_b: vec![3, 4],
+            },
+        ];
+        scenarios[self.rng.gen_range(0..scenarios.len())].clone()
+    }
+
+    pub fn replay_from_seed(&self) -> Vec<FailureScenario> {
+        let mut rng = SmallRng::seed_from_u64(self.seed);
+        let dummy_agents = vec![Uuid::new_v4(); 5];
+
+        let mut scenarios = Vec::new();
+        for _ in 0..12 {
+            let scenario_variants = vec![
+                FailureScenario::NetworkTimeout {
+                    agent_id: dummy_agents.choose(&mut rng).copied().unwrap_or_else(Uuid::new_v4),
+                    timeout_ms: rng.gen_range(100..2000),
+                },
+                FailureScenario::DatabaseCrash {
+                    transaction_id: Uuid::new_v4(),
+                    checkpoint_available: rng.gen_bool(0.7),
+                },
+                FailureScenario::ConcurrentWriteCollision {
+                    resource_id: Uuid::new_v4(),
+                    writer_count: rng.gen_range(2..5),
+                },
+                FailureScenario::AgentPanic {
+                    agent_id: dummy_agents.choose(&mut rng).copied().unwrap_or_else(Uuid::new_v4),
+                    restart_time_ms: rng.gen_range(500..2000),
+                },
+                FailureScenario::MemoryExhaustion {
+                    node_id: rng.gen_range(0..5),
+                    bytes_to_exhaust: rng.gen_range(500_000_000..1_000_000_000),
+                },
+                FailureScenario::CascadingFailure {
+                    trigger_agent: dummy_agents.choose(&mut rng).copied().unwrap_or_else(Uuid::new_v4),
+                    affected_agents: vec![dummy_agents.choose(&mut rng).copied().unwrap_or_else(Uuid::new_v4)],
+                },
+                FailureScenario::ClockSkew {
+                    node_id: rng.gen_range(0..5),
+                    skew_ms: rng.gen_range(100..1000),
+                },
+                FailureScenario::PartialMessageLoss {
+                    agent_id: dummy_agents.choose(&mut rng).copied().unwrap_or_else(Uuid::new_v4),
+                    loss_percentage: rng.gen_range(10..50),
+                },
+                FailureScenario::DuplicateMessageInjection {
+                    agent_id: dummy_agents.choose(&mut rng).copied().unwrap_or_else(Uuid::new_v4),
+                    duplicate_count: rng.gen_range(1..20),
+                },
+                FailureScenario::CapsuleCorruption {
+                    capsule_id: Uuid::new_v4(),
+                    corruption_type: "bit_flip".to_string(),
+                },
+                FailureScenario::CheckpointRecovery {
+                    checkpoint_id: Uuid::new_v4(),
+                    state_vector_size: rng.gen_range(3..10),
+                },
+                FailureScenario::FullClusterPartition {
+                    partition_a: vec![0, 1, 2],
+                    partition_b: vec![3, 4],
+                },
+            ];
+            scenarios.push(scenario_variants[rng.gen_range(0..scenario_variants.len())].clone());
+        }
+        scenarios
+    }
+}
 
 impl Default for ChaosPetriQuarantine {
     fn default() -> Self {
@@ -453,6 +596,15 @@ impl ChaosPetriQuarantine {
         self.failure_results
             .iter()
             .all(|r| r.recovery_latency_ms < 5000)
+    }
+
+    /// Execute scheduled failures with deterministic replay capability
+    pub fn execute_scheduled(&mut self, scheduler: &mut ChaosScheduler, rounds: u32, agents: &[Uuid]) -> Result<Vec<FailureInjectionResult>, String> {
+        for _ in 0..rounds {
+            let scenario = scheduler.next_scenario(agents);
+            self.queue_failure(scenario);
+        }
+        self.execute_all()
     }
 }
 

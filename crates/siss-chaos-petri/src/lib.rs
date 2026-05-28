@@ -169,6 +169,7 @@ pub struct CheckpointState {
     pub timestamp: DateTime<Utc>,
 }
 
+#[allow(dead_code)]
 pub struct ChaosScheduler {
     seed: u64,
     rng: SmallRng,

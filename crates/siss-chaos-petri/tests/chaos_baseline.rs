@@ -1,5 +1,5 @@
 use siss_chaos_petri::{
-    ChaosPetriQuarantine, FailureScenario, ChaosScheduler, ChaosReplayRecord,
+    ChaosPetriQuarantine, FailureScenario, ChaosScheduler,
 };
 use uuid::Uuid;
 use std::fs;

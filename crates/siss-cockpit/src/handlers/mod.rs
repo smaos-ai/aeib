@@ -4,7 +4,8 @@ pub mod stream;
 pub mod control;
 pub mod form_submit;
 pub mod dashboard;
-// pub mod projections; // Phase 24: commented due to PgPool blocker
+pub mod projections;
+pub mod anomaly_stream;
 pub mod router_handler;
 pub mod router_integration_tests;
 pub mod ag_ui_streaming;

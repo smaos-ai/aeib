@@ -202,6 +202,10 @@ const MIGRATIONS: &[(&str, &str)] = &[
         "053_commerce_and_acp",
         include_str!("053_commerce_and_acp.sql"),
     ),
+    (
+        "054_add_inferred_trust_edge",
+        include_str!("054_add_inferred_trust_edge.sql"),
+    ),
 ];
 
 /// Run all migrations in order. Idempotent — tracks applied migrations in a metadata table.

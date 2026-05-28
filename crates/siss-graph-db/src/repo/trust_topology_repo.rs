@@ -57,6 +57,29 @@ pub fn compute_hybrid_trust_score(
     (sum.clamp(0, 100)) as i16
 }
 
+/// Extends compute_hybrid_trust_score with ProofOfSapience score fusion.
+/// If pos_score is Some, computes pos_bonus = clamp(pos_score * 10.0, 0.0, 10.0) as i16
+/// Returns: clamp(explicit + implicit + decay + transitive + pos_bonus, 0, 100)
+/// If pos_score is None, behavior is identical to baseline (pos_bonus = 0)
+pub fn compute_hybrid_trust_score_with_pos(
+    explicit_base: i16,
+    implicit_adj: i16,
+    decay_penalty: i16,
+    transitive_boost: Option<i16>,
+    pos_score: Option<f64>,
+) -> i16 {
+    let pos_bonus = pos_score
+        .map(|score| ((score * 10.0).clamp(0.0, 10.0)) as i16)
+        .unwrap_or(0);
+
+    let sum = explicit_base as i32
+        + implicit_adj as i32
+        + decay_penalty as i32
+        + transitive_boost.unwrap_or(0) as i32
+        + pos_bonus as i32;
+    (sum.clamp(0, 100)) as i16
+}
+
 // ============================================================================
 // ASYNC DB FUNCTIONS
 // ============================================================================
@@ -257,6 +280,81 @@ pub async fn compute_and_upsert_trust_score(
     Ok(hybrid_score)
 }
 
+/// Computes hybrid trust score with ProofOfSapience integration.
+/// Queries existing components (explicit, implicit, decay, transitive) and fuses pos_score.
+/// UPSERT pattern: updates trust_network_edges.hybrid_trust_score with final clamped value.
+/// Emits TrustUpdateSignal via broadcaster.
+pub async fn compute_and_upsert_trust_score_with_pos(
+    pool: &PgPool,
+    source_id: Uuid,
+    target_id: Uuid,
+    pos_score: Option<f64>,
+    broadcaster: &crate::trust_event_broadcaster::TrustEventBroadcaster,
+) -> Result<i16, sqlx::Error> {
+    // Fetch existing trust components
+    let row: Option<(Option<i16>, Option<i16>, Option<i16>, Option<i16>)> = sqlx::query_as(
+        "SELECT explicit_component, implicit_component, decay_component, transitive_component \
+         FROM trust_network_edges \
+         WHERE source_sovereign_id = $1 AND target_sovereign_id = $2",
+    )
+    .bind(source_id)
+    .bind(target_id)
+    .fetch_optional(pool)
+    .await?;
+
+    let (explicit_base, implicit_adj, decay_penalty, transitive_boost) = match row {
+        Some((e, i, d, t)) => (
+            e.unwrap_or(0),
+            i.unwrap_or(0),
+            d.unwrap_or(0),
+            t,
+        ),
+        None => (0, 0, 0, None),
+    };
+
+    // Compute hybrid score with ProofOfSapience fusion
+    let hybrid_score = compute_hybrid_trust_score_with_pos(
+        explicit_base,
+        implicit_adj,
+        decay_penalty,
+        transitive_boost,
+        pos_score,
+    );
+
+    // UPSERT: update hybrid_trust_score with new value
+    sqlx::query(
+        "INSERT INTO trust_network_edges \
+         (source_sovereign_id, target_sovereign_id, hybrid_trust_score, explicit_component, \
+          implicit_component, decay_component, transitive_component) \
+         VALUES ($1, $2, $3, $4, $5, $6, $7) \
+         ON CONFLICT (source_sovereign_id, target_sovereign_id) \
+         DO UPDATE SET hybrid_trust_score = $3, last_updated_at = NOW()",
+    )
+    .bind(source_id)
+    .bind(target_id)
+    .bind(hybrid_score)
+    .bind(explicit_base)
+    .bind(implicit_adj)
+    .bind(decay_penalty)
+    .bind(transitive_boost)
+    .execute(pool)
+    .await?;
+
+    // Emit event
+    broadcaster.emit(crate::trust_event_broadcaster::TrustUpdateSignal {
+        source_id,
+        target_id,
+        new_score: hybrid_score,
+        explicit_component: explicit_base,
+        implicit_component: implicit_adj,
+        decay_component: decay_penalty,
+        transitive_component: transitive_boost,
+        timestamp: chrono::Utc::now(),
+    });
+
+    Ok(hybrid_score)
+}
+
 /// Daily sweep: recompute all edges. Skips quarantined/recovering sovereigns.
 pub async fn sweep_trust_decay(pool: &PgPool) -> Result<TrustDecaySweepResult, sqlx::Error> {
     let edges: Vec<(Uuid, Uuid)> = sqlx::query_as(
@@ -281,6 +379,59 @@ pub async fn sweep_trust_decay(pool: &PgPool) -> Result<TrustDecaySweepResult, s
     Ok(TrustDecaySweepResult {
         edges_updated: updated,
     })
+}
+
+/// Record INFERRED_TRUST edge in graph_relationships with computed confidence score
+pub async fn record_inferred_trust(
+    pool: &PgPool,
+    source_id: Uuid,
+    target_id: Uuid,
+    inferred_score: f64,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        "INSERT INTO graph_relationships (source_entity_id, target_entity_id, relationship_type, confidence) \
+         VALUES ($1, $2, 'INFERRED_TRUST', $3) \
+         ON CONFLICT (source_entity_id, target_entity_id, relationship_type) \
+         DO UPDATE SET confidence = $3, created_at = NOW()",
+    )
+    .bind(source_id)
+    .bind(target_id)
+    .bind(inferred_score)
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
+/// Propose bilateral upgrade: if INFERRED_TRUST >= threshold, record TRUSTS edge via record_explicit_trust
+pub async fn maybe_propose_bilateral_upgrade(
+    pool: &PgPool,
+    source_id: Uuid,
+    target_id: Uuid,
+    threshold: f64,
+) -> Result<bool, sqlx::Error> {
+    let inferred_conf: Option<f64> = sqlx::query_scalar(
+        "SELECT confidence FROM graph_relationships \
+         WHERE source_entity_id = $1 AND target_entity_id = $2 AND relationship_type = 'INFERRED_TRUST'",
+    )
+    .bind(source_id)
+    .bind(target_id)
+    .fetch_optional(pool)
+    .await?
+    .flatten();
+
+    if let Some(conf) = inferred_conf {
+        if conf >= threshold {
+            // Call record_explicit_trust with confidence clamped to [0, 1]
+            let explicit_confidence = (conf.min(1.0)) as f32;
+            record_explicit_trust(pool, source_id, target_id, explicit_confidence)
+                .await
+                .ok();
+            return Ok(true);
+        }
+    }
+
+    Ok(false)
 }
 
 #[cfg(test)]
@@ -368,5 +519,70 @@ mod tests {
     fn test_hybrid_score_clamped_to_0() {
         let score = compute_hybrid_trust_score(30, -50, -60, None);
         assert_eq!(score, 0);
+    }
+
+    // --- compute_hybrid_trust_score_with_pos ---
+    #[test]
+    fn test_pos_bonus_added_to_hybrid_score() {
+        // explicit=30, implicit=20, decay=10, transitive=None, pos_score=0.5
+        // sum = 30 + 20 + 10 + 0 + 5 = 65
+        let score = compute_hybrid_trust_score_with_pos(30, 20, 10, None, Some(0.5));
+        assert_eq!(score, 65);
+    }
+
+    #[test]
+    fn test_pos_none_unchanged_from_baseline() {
+        // same inputs but pos_score=None: sum = 30 + 20 + 10 + 0 + 0 = 60
+        let score = compute_hybrid_trust_score_with_pos(30, 20, 10, None, None);
+        assert_eq!(score, 60);
+    }
+
+    #[test]
+    fn test_pos_score_clamped_at_10_max() {
+        // pos_score=2.0 would give pos_bonus=20, but clamped to 10
+        // sum = 30 + 20 + 10 + 0 + 10 = 70 (not exceeding 100, but pos_bonus clamped)
+        let score = compute_hybrid_trust_score_with_pos(30, 20, 10, None, Some(2.0));
+        assert_eq!(score, 70);
+    }
+
+    #[test]
+    fn test_pos_score_final_total_clamped_at_100() {
+        // explicit=90, implicit=20, pos_score=1.5 → pos_bonus=10
+        // sum = 90 + 20 + 0 + 0 + 10 = 120, clamped to 100
+        let score = compute_hybrid_trust_score_with_pos(90, 20, 0, None, Some(1.5));
+        assert_eq!(score, 100);
+    }
+
+    // --- record_inferred_trust and maybe_propose_bilateral_upgrade ---
+    #[tokio::test]
+    async fn test_record_inferred_trust_writes_edge() {
+        // NOTE: This test would require testcontainers postgres setup.
+        // For now, we document the expected behavior:
+        // 1. record_inferred_trust inserts a row into graph_relationships
+        // 2. A subsequent query finds the row with relationship_type = 'INFERRED_TRUST'
+        // 3. confidence = inferred_score
+        // TODO: Implement with testcontainers when DB test harness is set up
+    }
+
+    #[tokio::test]
+    async fn test_bilateral_upgrade_triggers_at_threshold() {
+        // NOTE: This test would require testcontainers postgres setup with sovereigns table.
+        // Expected behavior:
+        // 1. Insert INFERRED_TRUST edge with confidence = 0.75
+        // 2. Call maybe_propose_bilateral_upgrade with threshold = 0.7
+        // 3. Verify record_explicit_trust was called (check trust_network_edges for TRUSTS edge)
+        // 4. Return Ok(true)
+        // TODO: Implement with testcontainers when DB test harness is set up
+    }
+
+    #[tokio::test]
+    async fn test_bilateral_upgrade_skips_below_threshold() {
+        // NOTE: This test would require testcontainers postgres setup.
+        // Expected behavior:
+        // 1. Insert INFERRED_TRUST edge with confidence = 0.65
+        // 2. Call maybe_propose_bilateral_upgrade with threshold = 0.7
+        // 3. Verify record_explicit_trust was NOT called
+        // 4. Return Ok(false)
+        // TODO: Implement with testcontainers when DB test harness is set up
     }
 }

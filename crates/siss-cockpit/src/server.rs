@@ -1,4 +1,4 @@
-use crate::handlers::{control, dashboard, form_submit, stream, router_handler, ag_ui_streaming, rce_decision, rce_projection}; // projections removed due to Phase 24 pool blocker
+use crate::handlers::{control, dashboard, form_submit, stream, router_handler, ag_ui_streaming, rce_decision, rce_projection, projections, anomaly_stream};
 use crate::state::CockpitState;
 use axum::{
     routing::{get, post},
@@ -20,10 +20,11 @@ pub fn create_router(state: CockpitState) -> Router {
         .route("/api/rce/stream", get(ag_ui_streaming::get_rce_stream))
         .route("/api/rce/decision", post(rce_decision::post_rce_decision))
         .route("/api/rce/:workflow_id/projection", get(rce_projection::get_rce_projection))
-        // Phase 24 projections routes — handlers need PgPool from state (currently commented)
-        // TODO: Wire PgPool into CockpitState and uncomment these routes
-        // .route("/api/graph/projections/agent-actions", get(projections::get_agent_actions))
-        // .route("/api/graph/projections/anomalies", get(projections::get_anomalies))
-        // .route("/api/graph/projections/recovery", get(projections::get_recovery))
+        // Phase 24 projections routes — PgPool now wired into CockpitState
+        .route("/api/graph/projections/agent-actions", get(projections::get_agent_actions))
+        .route("/api/graph/projections/anomalies", get(projections::get_anomalies))
+        .route("/api/graph/projections/recovery", get(projections::get_recovery))
+        // Phase 38 anomaly stream SSE endpoint
+        .route("/api/anomalies/stream", get(anomaly_stream::get_anomaly_stream))
         .with_state(state)
 }

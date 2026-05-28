@@ -2,7 +2,8 @@ use uuid::Uuid;
 use serde::{Deserialize, Serialize};
 use sha2::{Sha256, Digest};
 use std::collections::HashMap;
-use aes_gcm::{Aes256Gcm, Key, Nonce, KeyInit, Aead as AeadCrypt};
+use aes_gcm::{Aes256Gcm, Key, Nonce, KeyInit};
+use aes_gcm::aead::Aead;
 use rand::RngCore;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -222,7 +223,7 @@ impl DualAuthTransfer {
             .ok_or(SneakernetError::DecryptionFailed { chunk_id })
     }
 
-    fn aes256_decrypt(ciphertext: &[u8], key: &[u8; 32]) -> Option<Vec<u8>> {
+    pub fn aes256_decrypt(ciphertext: &[u8], key: &[u8; 32]) -> Option<Vec<u8>> {
         // Wire format: first 12 bytes = nonce, remaining = ciphertext + 16-byte GCM auth tag
         if ciphertext.len() < 28 {
             return None;
@@ -237,7 +238,7 @@ impl DualAuthTransfer {
         cipher.decrypt(nonce, payload).ok()
     }
 
-    fn aes256_encrypt(plaintext: &[u8], key: &[u8; 32]) -> Vec<u8> {
+    pub fn aes256_encrypt(plaintext: &[u8], key: &[u8; 32]) -> Vec<u8> {
         let mut nonce_bytes = [0u8; 12];
         rand::thread_rng().fill_bytes(&mut nonce_bytes);
 
@@ -355,7 +356,7 @@ mod tests {
     #[test]
     fn test_sign_by_custodian_a() {
         let mut transfer = DualAuthTransfer::new("hash".to_string());
-        let sig = "valid_signature_1234567890abcdef".to_string();
+        let sig = "a".repeat(128); // Valid 128-char hex Ed25519 signature
         assert!(transfer.sign_by_custodian_a(sig).is_ok());
         assert!(transfer.signature_a.is_some());
         assert!(!transfer.both_signed);
@@ -364,8 +365,8 @@ mod tests {
     #[test]
     fn test_both_signatures_required() {
         let mut transfer = DualAuthTransfer::new("hash".to_string());
-        let sig_a = "valid_sig_a_1234567890abcdef_extra".to_string();
-        let sig_b = "valid_sig_b_1234567890abcdef_extra".to_string();
+        let sig_a = "a".repeat(128); // Valid 128-char hex
+        let sig_b = "b".repeat(128); // Valid 128-char hex
 
         transfer.sign_by_custodian_a(sig_a).ok();
         assert!(!transfer.both_signed);

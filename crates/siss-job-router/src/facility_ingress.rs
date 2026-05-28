@@ -2,7 +2,7 @@
 /// External model weights and Skill Packs must pass four fail-closed rules to enter the facility.
 
 use uuid::Uuid;
-use siss_gatekeeper::sneakernet_ingress::{SneakernetGateway, SneakernetError};
+use siss_gatekeeper::sneakernet_ingress::SneakernetGateway;
 
 /// Compile-time facility admission policy. Cannot be modified at runtime.
 pub struct FacilityBounds {

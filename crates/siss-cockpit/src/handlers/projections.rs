@@ -1,10 +1,11 @@
 use axum::{
-    extract::Query,
+    extract::{Query, State},
     http::StatusCode,
     Json,
 };
 use serde::Deserialize;
 use uuid::Uuid;
+use crate::state::CockpitState;
 
 #[derive(Debug, Deserialize)]
 pub struct ProjectionQueryParams {
@@ -20,6 +21,7 @@ pub struct ProjectionQueryParams {
 /// GET /api/graph/projections/agent-actions
 /// Query params: sovereign_id (required), limit (optional, default 100)
 pub async fn get_agent_actions(
+    State(state): State<CockpitState>,
     Query(params): Query<ProjectionQueryParams>,
 ) -> Result<Json<serde_json::Value>, StatusCode> {
     // Parse sovereign_id as UUID
@@ -28,11 +30,17 @@ pub async fn get_agent_actions(
 
     let limit = params.limit.unwrap_or(100).min(500);
 
+    // Extract pool from state
+    let pool = state.pool.lock()
+        .ok()
+        .and_then(|p| p.clone())
+        .ok_or(StatusCode::INTERNAL_SERVER_ERROR)?;
+
     // Call projections_repo
     let response = siss_graph_db::repo::projections_repo::fetch_agent_actions(
+        &pool,
         &sovereign_id,
         None,
-        limit,
     )
     .await
     .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;

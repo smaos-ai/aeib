@@ -2,6 +2,8 @@
 /// INVARIANT: signature → frontmatter → dry-run → human-approval gates all fail-closed.
 
 use crate::skill_compiler::SkillCompiler;
+use crate::ap2_syndication::{Ap2Syndication, CreatorDid};
+use siss_gatekeeper::tokens::IntentMandate;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -77,6 +79,29 @@ impl SneakernetIngress {
         Ok(true)
     }
 
+    /// Gate 4 (real): AP2 Syndication validation and routing
+    /// RULE 11: Validate SkillPack via Ap2Syndication::validate_and_route
+    /// RULE 12: If mandate is missing or skill pack not verified → Err(HumanApprovalMissing)
+    /// RULE 13: If mandate exhausted → Err(HumanApprovalMissing)
+    pub fn gate_4_ap2_syndication(
+        pack: &crate::skill_compiler::SkillPack,
+        mandate: Option<&IntentMandate>,
+        creator_did: &CreatorDid,
+        amount: i64,
+    ) -> Result<bool, QuarantineError> {
+        Ap2Syndication::validate_and_route(pack, mandate, creator_did, amount)
+            .map(|_| true)
+            .map_err(|err| {
+                use crate::ap2_syndication::SyndicationError;
+                match err {
+                    SyndicationError::MandateMissing => QuarantineError::HumanApprovalMissing,
+                    SyndicationError::SkillPackNotVerified => QuarantineError::HumanApprovalMissing,
+                    SyndicationError::MandateExhausted { .. } => QuarantineError::HumanApprovalMissing,
+                    _ => QuarantineError::HumanApprovalMissing,
+                }
+            })
+    }
+
     /// Run all four gates in sequence.
     /// RULE 11: All gates must pass (fail-closed: first failure halts)
     /// RULE 12: Return Ok(QuarantineRecord) if all gates pass
@@ -88,6 +113,30 @@ impl SneakernetIngress {
         Self::gate_2_validate_frontmatter(pack)?;
         Self::gate_3_dry_run(pack)?;
         Self::gate_4_human_approval(human_approved)?;
+
+        Ok(QuarantineRecord {
+            quarantine_id: Uuid::new_v4(),
+            skill_pack_id: pack.pack_id,
+            gate_1_signature_verified: true,
+            gate_2_frontmatter_valid: true,
+            gate_3_dry_run_passed: true,
+            gate_4_human_approved: true,
+            promoted_at: Some(chrono::Utc::now()),
+        })
+    }
+
+    /// Real Gate 4: Quarantine with AP2 mandate
+    /// Uses Ap2Syndication to validate and route based on mandate
+    pub fn quarantine_with_mandate(
+        pack: &crate::skill_compiler::SkillPack,
+        mandate: Option<&IntentMandate>,
+        creator_did: &CreatorDid,
+        amount: i64,
+    ) -> Result<QuarantineRecord, QuarantineError> {
+        Self::gate_1_verify_signature(pack)?;
+        Self::gate_2_validate_frontmatter(pack)?;
+        Self::gate_3_dry_run(pack)?;
+        Self::gate_4_ap2_syndication(pack, mandate, creator_did, amount)?;
 
         Ok(QuarantineRecord {
             quarantine_id: Uuid::new_v4(),

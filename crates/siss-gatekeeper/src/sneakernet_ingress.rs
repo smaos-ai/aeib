@@ -2,6 +2,8 @@ use uuid::Uuid;
 use serde::{Deserialize, Serialize};
 use sha2::{Sha256, Digest};
 use std::collections::HashMap;
+use aes_gcm::{Aes256Gcm, Key, Nonce, KeyInit, Aead as AeadCrypt};
+use rand::RngCore;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DualAuthTransfer {
@@ -12,6 +14,8 @@ pub struct DualAuthTransfer {
     pub both_signed: bool,
     pub model_chunks: Vec<ModelChunk>,
     pub created_at: u64,
+    pub custodian_a_pubkey: Option<[u8; 32]>,
+    pub custodian_b_pubkey: Option<[u8; 32]>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -27,6 +31,7 @@ pub struct ModelChunk {
 pub struct KeyAuthority {
     pub custodian_id: Uuid,
     pub public_key: String,
+    pub public_key_bytes: [u8; 32],
     pub key_id: String,
 }
 
@@ -53,6 +58,25 @@ impl DualAuthTransfer {
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap_or_default()
                 .as_secs(),
+            custodian_a_pubkey: None,
+            custodian_b_pubkey: None,
+        }
+    }
+
+    pub fn with_custodians(manifest_hash: String, pk_a: [u8; 32], pk_b: [u8; 32]) -> Self {
+        Self {
+            transfer_id: Uuid::new_v4(),
+            manifest_hash,
+            signature_a: None,
+            signature_b: None,
+            both_signed: false,
+            model_chunks: Vec::new(),
+            created_at: std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_secs(),
+            custodian_a_pubkey: Some(pk_a),
+            custodian_b_pubkey: Some(pk_b),
         }
     }
 
@@ -104,26 +128,58 @@ impl DualAuthTransfer {
             });
         }
 
-        if !Self::verify_signature_consistency(
-            &self.signature_a.as_ref().unwrap(),
-            &self.signature_b.as_ref().unwrap(),
-        ) {
-            return Err(SneakernetError::ManifestTampered);
+        if let Some(pk_a) = self.custodian_a_pubkey {
+            let sig_a_str = self.signature_a.as_ref().unwrap();
+            Self::verify_ed25519_signature(sig_a_str, &pk_a, self.manifest_hash.as_bytes())
+                .map_err(|_| SneakernetError::InvalidSignature {
+                    custodian: "A".to_string(),
+                })?;
+        }
+
+        if let Some(pk_b) = self.custodian_b_pubkey {
+            let sig_b_str = self.signature_b.as_ref().unwrap();
+            Self::verify_ed25519_signature(sig_b_str, &pk_b, self.manifest_hash.as_bytes())
+                .map_err(|_| SneakernetError::InvalidSignature {
+                    custodian: "B".to_string(),
+                })?;
         }
 
         Ok(())
     }
 
     fn verify_signature_format(sig: &str) -> bool {
-        sig.len() >= 32 && sig.chars().all(|c| c.is_alphanumeric() || c == '_')
+        // Ed25519 signature is 64 bytes = 128 hex characters
+        sig.len() == 128 && sig.chars().all(|c| c.is_ascii_hexdigit())
     }
 
-    fn verify_signature_consistency(sig_a: &str, sig_b: &str) -> bool {
-        let combined = format!("{}{}", sig_a, sig_b);
-        let mut hasher = Sha256::new();
-        hasher.update(combined.as_bytes());
-        let hash = format!("{:x}", hasher.finalize());
-        hash.len() == 64 && hash.chars().all(|c| c.is_ascii_hexdigit())
+    fn verify_ed25519_signature(sig_hex: &str, pubkey_bytes: &[u8; 32], message: &[u8]) -> Result<(), SneakernetError> {
+        use ed25519_dalek::{VerifyingKey, Signature};
+
+        // Decode hex signature to 64 bytes
+        let sig_bytes = hex::decode(sig_hex)
+            .map_err(|_| SneakernetError::InvalidSignature {
+                custodian: "unknown".to_string(),
+            })?;
+
+        if sig_bytes.len() != 64 {
+            return Err(SneakernetError::InvalidSignature {
+                custodian: "unknown".to_string(),
+            });
+        }
+
+        let mut sig_array = [0u8; 64];
+        sig_array.copy_from_slice(&sig_bytes);
+
+        let vk = VerifyingKey::from_bytes(pubkey_bytes)
+            .map_err(|_| SneakernetError::InvalidSignature {
+                custodian: "unknown".to_string(),
+            })?;
+
+        let signature = Signature::from_bytes(&sig_array);
+        vk.verify_strict(message, &signature)
+            .map_err(|_| SneakernetError::InvalidSignature {
+                custodian: "unknown".to_string(),
+            })
     }
 
     pub fn verify_chunk_checksums(&mut self) -> Result<(), SneakernetError> {
@@ -167,16 +223,32 @@ impl DualAuthTransfer {
     }
 
     fn aes256_decrypt(ciphertext: &[u8], key: &[u8; 32]) -> Option<Vec<u8>> {
-        if ciphertext.len() < 16 {
+        // Wire format: first 12 bytes = nonce, remaining = ciphertext + 16-byte GCM auth tag
+        if ciphertext.len() < 28 {
             return None;
         }
 
-        let mut plaintext = Vec::with_capacity(ciphertext.len() - 16);
-        for i in 0..ciphertext.len() - 16 {
-            plaintext.push(ciphertext[i] ^ key[i % 32]);
-        }
+        let nonce_bytes = &ciphertext[..12];
+        let payload = &ciphertext[12..];
 
-        Some(plaintext)
+        let cipher = Aes256Gcm::new(Key::<Aes256Gcm>::from_slice(key));
+        let nonce = Nonce::from_slice(nonce_bytes);
+
+        cipher.decrypt(nonce, payload).ok()
+    }
+
+    fn aes256_encrypt(plaintext: &[u8], key: &[u8; 32]) -> Vec<u8> {
+        let mut nonce_bytes = [0u8; 12];
+        rand::thread_rng().fill_bytes(&mut nonce_bytes);
+
+        let cipher = Aes256Gcm::new(Key::<Aes256Gcm>::from_slice(key));
+        let nonce = Nonce::from_slice(&nonce_bytes);
+
+        let mut result = nonce_bytes.to_vec();
+        if let Ok(ciphertext) = cipher.encrypt(nonce, plaintext.as_ref()) {
+            result.extend_from_slice(&ciphertext);
+        }
+        result
     }
 
     pub fn total_size_bytes(&self) -> u64 {
@@ -337,16 +409,20 @@ mod tests {
     #[test]
     fn test_decrypt_chunk_basic() {
         let mut transfer = DualAuthTransfer::new("hash".to_string());
-        let encrypted_data = vec![1; 32];
+        let plaintext = b"Hello, Sneakernet!";
+        let key: [u8; 32] = [42; 32];
+
+        // Encrypt plaintext
+        let encrypted_data = DualAuthTransfer::aes256_encrypt(plaintext, &key);
         let checksum = DualAuthTransfer::compute_checksum(&encrypted_data);
         transfer.add_chunk(0, encrypted_data, checksum);
         transfer.verify_chunk_checksums().ok();
 
-        let key: [u8; 32] = [1; 32];
+        // Decrypt and verify roundtrip
         let result = transfer.decrypt_chunk(0, &key);
         assert!(result.is_ok());
         let decrypted = result.unwrap();
-        assert_eq!(decrypted.len(), 16);
+        assert_eq!(decrypted, plaintext);
     }
 
     #[test]
@@ -362,6 +438,7 @@ mod tests {
         let authority = KeyAuthority {
             custodian_id: Uuid::new_v4(),
             public_key: "pubkey".to_string(),
+            public_key_bytes: [0u8; 32],
             key_id: "key_001".to_string(),
         };
         gateway.register_authority(authority);

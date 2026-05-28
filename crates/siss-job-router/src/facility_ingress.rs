@@ -2,6 +2,7 @@
 /// External model weights and Skill Packs must pass four fail-closed rules to enter the facility.
 
 use uuid::Uuid;
+use siss_gatekeeper::sneakernet_ingress::{SneakernetGateway, SneakernetError};
 
 /// Compile-time facility admission policy. Cannot be modified at runtime.
 pub struct FacilityBounds {
@@ -36,6 +37,32 @@ pub enum IngressRejection {
     OversizedArtifact { size: u64, cap: u64 },
     MissingAttestation,
     JurisdictionNotAllowed { jurisdiction: String },
+}
+
+pub struct FullIngressPipeline;
+
+pub enum IngressRejection2 {
+    JurisdictionFailed,
+    GatewayFailed(String),
+}
+
+impl FullIngressPipeline {
+    /// Run the complete ingress pipeline: IngressRitual → SneakernetGateway authorization
+    pub fn run(
+        manifest: &SneakernetManifest,
+        bounds: &FacilityBounds,
+        transfer_id: Uuid,
+        gateway: &mut SneakernetGateway,
+    ) -> Result<QuarantineVerdict, IngressRejection> {
+        // Step 1: Run IngressRitual (jurisdiction/size/attestation checks)
+        let verdict = IngressRitual::admit(manifest, bounds)?;
+
+        // Step 2: Call gateway.authorize_transfer
+        gateway.authorize_transfer(transfer_id)
+            .map_err(|_| IngressRejection::MissingAttestation)?;
+
+        Ok(verdict)
+    }
 }
 
 pub struct IngressRitual;

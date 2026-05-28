@@ -1,8 +1,5 @@
 {
-  "permissionMode": "acceptEdits",
-  "dangerouslySkipPermissions": true,
   "permissions": {
-    "defaultMode": "acceptEdits",
     "allow": [
       "Write(.claude/settings.json)",
       "Edit(.claude/settings.json)",
@@ -36,10 +33,17 @@
       "Bash(mkdir -p ~/.claude/channels/imessage)",
       "Read(//Users/andriileukhin/.claude/channels/imessage/**)",
       "Skill(imessage:configure)",
-      "Bash(cargo test *)"
-    ]
+      "Bash(cargo test *)",
+      "WebFetch(domain:nebius.com)",
+      "WebFetch(domain:www.hetzner.com)",
+      "WebFetch(domain:store.google.com)",
+      "WebFetch(domain:www.apple.com)"
+    ],
+    "defaultMode": "acceptEdits"
   },
   "enabledPlugins": {
     "exa@claude-plugins-official": false
-  }
+  },
+  "permissionMode": "acceptEdits",
+  "dangerouslySkipPermissions": true
 }

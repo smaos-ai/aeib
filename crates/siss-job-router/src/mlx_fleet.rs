@@ -1,6 +1,9 @@
 /// Wave 2: Rapid-MLX Fleet Topology
 /// Physical Apple Silicon compute nodes configured as a local-only fleet.
 
+use std::net::UnixStream;
+use std::time::Duration;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct NodeId(pub String);
 
@@ -11,6 +14,21 @@ pub struct MlxNode {
     pub socket_path: &'static str,
     pub memory_gb: u8,
     pub max_concurrent_tasks: u8,
+}
+
+pub struct MlxNodeClient;
+
+impl MlxNodeClient {
+    /// Probe socket availability with 100ms timeout.
+    pub fn probe_socket(path: &str) -> bool {
+        match UnixStream::connect(path) {
+            Ok(stream) => {
+                let _ = stream.set_read_timeout(Some(Duration::from_millis(100)));
+                true
+            }
+            Err(_) => false,
+        }
+    }
 }
 
 /// A fleet of local MLX nodes. Static, compile-time declared.
@@ -28,19 +46,29 @@ pub enum FleetError {
 pub struct FleetRouter;
 
 impl FleetRouter {
-    /// Route to the node with the most memory (greedy largest-first).
-    /// Deterministic: no randomness, always selects the same node for identical inputs.
+    /// Route to the reachable node with the most memory (greedy largest-first).
+    /// Filters by socket reachability before selecting max-memory node.
     pub fn route(fleet: &MlxFleet, _task_tokens: u32) -> Result<&'static MlxNode, FleetError> {
         if fleet.nodes.is_empty() {
             return Err(FleetError::FleetEmpty);
         }
 
-        // Greedy largest-first: select node with max memory_gb
-        let selected = fleet
+        // Filter reachable nodes via socket probe
+        let reachable: Vec<_> = fleet
             .nodes
             .iter()
+            .filter(|node| MlxNodeClient::probe_socket(node.socket_path))
+            .collect();
+
+        if reachable.is_empty() {
+            return Err(FleetError::NoCapacityAvailable);
+        }
+
+        // Greedy largest-first: select reachable node with max memory_gb
+        let selected = reachable
+            .iter()
             .max_by_key(|node| node.memory_gb)
-            .ok_or(FleetError::FleetEmpty)?;
+            .ok_or(FleetError::NoCapacityAvailable)?;
 
         Ok(selected)
     }

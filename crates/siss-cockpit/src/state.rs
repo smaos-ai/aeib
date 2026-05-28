@@ -149,28 +149,11 @@ mod tests {
     fn test_wire_pool_populates_state() {
         let state = CockpitState::new();
 
-        // Create a mock PgPool (we'll use a minimal configuration)
-        // For testing, we create a disabled pool
-        let pool_options = sqlx::postgres::PgPoolOptions::new()
-            .max_connections(1);
-
-        // Create a dummy connection string for testing
-        // Note: This won't actually connect, just create the pool
+        // Create a lazy pool without actual database connection
         let pool = Arc::new(
-            tokio::task::block_in_place(|| {
-                tokio::runtime::Handle::current().block_on(async {
-                    pool_options
-                        .connect("postgres://test:test@localhost/test")
-                        .await
-                        .unwrap_or_else(|_| {
-                            // For test purposes, we can't actually connect
-                            // So we'll use a workaround: create via connect_lazy
-                            sqlx::postgres::PgPoolOptions::new()
-                                .connect_lazy("postgres://test:test@localhost/test")
-                                .expect("pool creation")
-                        })
-                })
-            })
+            sqlx::postgres::PgPoolOptions::new()
+                .connect_lazy("postgres://test:test@localhost/test")
+                .expect("pool creation")
         );
 
         state.wire_pool(pool.clone());
@@ -182,7 +165,7 @@ mod tests {
     #[test]
     fn test_subscribe_anomalies_returns_receiver() {
         let state = CockpitState::new();
-        let receiver = state.subscribe_anomalies();
+        let _receiver = state.subscribe_anomalies();
 
         // Verify we get a receiver; sending on broadcaster should work
         let event = AnomalyEvent {

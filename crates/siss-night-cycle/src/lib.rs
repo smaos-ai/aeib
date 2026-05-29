@@ -7,6 +7,7 @@ pub mod metrics;
 pub mod offline_verifier;
 pub mod tui;
 pub mod watchdog;
+pub mod vision_survival_protocol;
 
 pub use config_evolution::ConfigEvolution;
 pub use consolidator::NightCycleConsolidator;
@@ -17,3 +18,4 @@ pub use metrics::{MetricRow, MetricsDb};
 pub use offline_verifier::OfflineVerifier;
 pub use tui::Dashboard;
 pub use watchdog::RecoveryWatchdog;
+pub use vision_survival_protocol::{VisionSurvivalProtocol, SyncCapsule, SyncStatus};

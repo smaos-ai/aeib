@@ -9,6 +9,7 @@ pub mod temporal;
 pub mod policy_engine;
 pub mod policy;
 pub mod audit;
+pub mod missions;
 
 #[cfg(test)]
 mod tests_temporal;

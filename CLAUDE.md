@@ -108,7 +108,50 @@ These rules apply to ALL responses and specs in this project. Never violate them
 - **Spec Template:** `.claude/SPEC_TEMPLATE.md` — fill before any feature
 - **Model Routing:** `.claude/MODEL_ROUTING.md`
 - **Wiki (semantic memory):** `docs/wiki/` — query this, not raw chat history
-- **Custom Skills:** `.claude/skills/` *(not yet created)*
+- **Session Briefing Skill:** `.claude/skills/session-briefing/SKILL.md` — invoked at session start
+
+## 9. Session Initialization Protocol (MANDATORY)
+
+**At the start of every new session:**
+1. Invoke `/session-briefing` skill (auto-fires on first message)
+2. Read ADVANCED-BRIEFING: `.claude/skills/session-briefing/ADVANCED-BRIEFING.md` (notebook-aligned defaults)
+3. Assemble complete context: HANDOFF files + git status + NotebookLM updates + task list
+4. Display briefing with current phase, deadlines, blockers, next logical steps
+5. User responds: "Focus on [X]" → Task is set, context locked
+6. Execute task with full awareness of project state
+
+**What the briefing includes (ADVANCED format):**
+- **Session initialization defaults** (auto-mode, context management, TDD, verification, hooks)
+- **Current project state** (phase %, tasks completed, git status, last commit)
+- **Task progress** (completed, in-progress, pending breakdown)
+- **Critical deadlines** (grants, demos, investor meetings, Prague PoC)
+- **Notebook insights** (agentic AI trends, investor priorities, hardware recommendations)
+- **Night Shift readiness** (parallel execution status, launch checklist)
+- **Further recommended steps** (prioritized by impact + deadline)
+- **Decision gate** — explicit priority ranking for session focus
+
+**Why ADVANCED-BRIEFING (notebook-aligned):**
+- Integrates "17 Advanced Techniques for Mastering Claude Code" notebook
+- Pre-loads optimal session defaults (context management, TDD discipline, automation hooks)
+- Tracks hardware spectrum (mobile → developer → production → cloud)
+- Provides decision matrix for multi-option scenarios
+- No ambiguity on next actions (ranked 1-5 by impact)
+
+**Example invocation:**
+```
+Session starts:
+→ /session-briefing auto-fires
+→ Read ADVANCED-BRIEFING.md (includes Session Defaults section)
+→ Briefing displayed with 4-option decision gate
+→ User: "Focus on [option]: [reasoning]"
+→ Session proceeds with locked context + defaults active
+```
+
+**For subagents/parallel work:**
+- Each agent reads ADVANCED-BRIEFING context in its prompt
+- Each agent knows full timeline + critical dates + session defaults
+- Each agent applies TDD discipline + verification checklist
+- No agent works in isolation (context is shared + aligned)
 
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence

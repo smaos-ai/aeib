@@ -1,10 +1,8 @@
-use crate::confidence_scorer::{ConfidenceScore, RoutingTier, SimpleScorer};
-use crate::cost_budget::{CostMatrix, TokenBudget};
-use crate::routing_engine::{RoutingEngine, RoutingError};
-
 #[cfg(test)]
 mod integration_tests {
-    use super::*;
+    use crate::confidence_scorer::{ConfidenceScore, RoutingTier, SimpleScorer};
+    use crate::cost_budget::{CostMatrix, TokenBudget};
+    use crate::routing_engine::{RoutingEngine, RoutingEngine};
 
     #[test]
     fn test_e2e_simple_task_routing() {

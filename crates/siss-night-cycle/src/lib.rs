@@ -6,6 +6,7 @@ pub mod failure_analyzer;
 pub mod offline_verifier;
 pub mod config_evolution;
 pub mod consolidator;
+pub mod memtree;
 
 pub use watchdog::RecoveryWatchdog;
 pub use ledger::append_audit;
@@ -15,3 +16,4 @@ pub use failure_analyzer::FailureAnalyzer;
 pub use offline_verifier::OfflineVerifier;
 pub use config_evolution::ConfigEvolution;
 pub use consolidator::NightCycleConsolidator;
+pub use memtree::{MemTree, Capsule, ScopeType};

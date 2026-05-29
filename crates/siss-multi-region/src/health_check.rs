@@ -1,4 +1,4 @@
-use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use uuid::Uuid;
@@ -63,16 +63,22 @@ impl CircuitBreaker<HalfOpen> {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum CircuitBreakerState {
     Closed { failure_count: u32, failure_threshold: u32 },
-    Open { opened_at: Instant, reset_timeout: Duration },
+    Open { opened_at: SystemTime, reset_timeout: Duration },
     HalfOpen { probe_count: u32 },
 }
 
-impl CircuitBreakerState {
-    pub fn new() -> Self {
+impl Default for CircuitBreakerState {
+    fn default() -> Self {
         Self::Closed {
             failure_count: 0,
             failure_threshold: 3,
         }
+    }
+}
+
+impl CircuitBreakerState {
+    pub fn new() -> Self {
+        Self::default()
     }
 
     pub fn record_failure(&mut self, failure_threshold: u32) {
@@ -81,17 +87,16 @@ impl CircuitBreakerState {
                 *failure_count += 1;
                 if *failure_count >= failure_threshold {
                     *self = CircuitBreakerState::Open {
-                        opened_at: Instant::now(),
+                        opened_at: SystemTime::now(),
                         reset_timeout: Duration::from_secs(60),
                     };
                 }
             }
-            CircuitBreakerState::HalfOpen { probe_count } => {
+            CircuitBreakerState::HalfOpen { .. } => {
                 *self = CircuitBreakerState::Open {
-                    opened_at: Instant::now(),
+                    opened_at: SystemTime::now(),
                     reset_timeout: Duration::from_secs(60),
                 };
-                let _ = probe_count;
             }
             CircuitBreakerState::Open { .. } => {}
         }
@@ -99,8 +104,10 @@ impl CircuitBreakerState {
 
     pub fn try_reset(&mut self) {
         if let CircuitBreakerState::Open { opened_at, reset_timeout } = self {
-            if opened_at.elapsed() >= *reset_timeout {
-                *self = CircuitBreakerState::HalfOpen { probe_count: 0 };
+            if let Ok(elapsed) = SystemTime::now().duration_since(*opened_at) {
+                if elapsed >= *reset_timeout {
+                    *self = CircuitBreakerState::HalfOpen { probe_count: 0 };
+                }
             }
         }
     }

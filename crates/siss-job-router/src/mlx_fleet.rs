@@ -1,7 +1,7 @@
 /// Wave 2: Rapid-MLX Fleet Topology
 /// Physical Apple Silicon compute nodes configured as a local-only fleet.
 
-use std::net::UnixStream;
+use std::os::unix::net::UnixStream;
 use std::time::Duration;
 
 #[derive(Debug, Clone, PartialEq, Eq)]

@@ -11,7 +11,8 @@ pub mod executor;
 pub mod facility_ingress;
 pub mod iworld_bench;
 pub mod mlx_fleet;
-pub mod integration_tests;
+#[cfg(test)]
+mod integration_tests;
 pub mod omni_route;
 pub mod pipeline;
 pub mod routing_engine;

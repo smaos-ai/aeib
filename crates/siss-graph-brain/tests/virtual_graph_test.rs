@@ -1,6 +1,4 @@
-use siss_graph_brain::{
-    Neo4jVirtualGraphConnector, VirtualGraphEndpoint, VirtualGraphError,
-};
+use siss_graph_brain::{Neo4jVirtualGraphConnector, VirtualGraphEndpoint, VirtualGraphError};
 
 #[test]
 fn test_virtual_graph_connector_initializes() {
@@ -37,7 +35,7 @@ fn test_virtual_graph_returns_provenanced_capsules() {
 fn test_virtual_graph_error_display() {
     let err = VirtualGraphError::ConnectionFailed("test".to_string());
     let display = format!("{}", err);
-    assert!(display.contains("Connection"));
+    assert!(display.contains("connection"));
 }
 
 #[test]
@@ -52,7 +50,7 @@ fn test_virtual_graph_connector_rejects_empty_url() {
     assert!(result.is_err());
     if let Err(err) = result {
         let msg = format!("{}", err);
-        assert!(msg.contains("Connection"));
+        assert!(msg.contains("connection"));
     }
 }
 

@@ -12,8 +12,8 @@ pub struct VirtualGraphEndpoint {
 pub struct ProvenancedCapsule {
     pub id: String,
     pub content: serde_json::Value,
-    pub gemba_proof: String,        // Hash pointer to warehouse source
-    pub source_endpoint: String,     // Where this came from
+    pub gemba_proof: String,     // Hash pointer to warehouse source
+    pub source_endpoint: String, // Where this came from
 }
 
 #[derive(Debug)]
@@ -26,12 +26,11 @@ pub enum VirtualGraphError {
 impl fmt::Display for VirtualGraphError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            VirtualGraphError::ConnectionFailed(msg) =>
-                write!(f, "Virtual Graph connection failed: {}", msg),
-            VirtualGraphError::QueryFailed(msg) =>
-                write!(f, "Virtual Graph query failed: {}", msg),
-            VirtualGraphError::SerializationError(msg) =>
-                write!(f, "Serialization error: {}", msg),
+            VirtualGraphError::ConnectionFailed(msg) => {
+                write!(f, "Virtual Graph connection failed: {}", msg)
+            }
+            VirtualGraphError::QueryFailed(msg) => write!(f, "Virtual Graph query failed: {}", msg),
+            VirtualGraphError::SerializationError(msg) => write!(f, "Serialization error: {}", msg),
         }
     }
 }
@@ -56,7 +55,10 @@ impl Neo4jVirtualGraphConnector {
         Ok(Self { endpoint })
     }
 
-    pub fn query_warehouse(&self, _query: &str) -> Result<Option<ProvenancedCapsule>, VirtualGraphError> {
+    pub fn query_warehouse(
+        &self,
+        _query: &str,
+    ) -> Result<Option<ProvenancedCapsule>, VirtualGraphError> {
         // Placeholder: real implementation would execute Cypher query
         // and wrap results in ProvenancedCapsule with gemba_proof hash
         Ok(Some(ProvenancedCapsule {

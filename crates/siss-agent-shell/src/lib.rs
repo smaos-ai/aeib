@@ -28,6 +28,7 @@ pub mod ivb_lora_compiler;
 pub mod lora_orchestrator;
 pub mod memory_crystallizer;
 pub mod memory_decay;
+pub mod missions;
 pub mod mlx_hardware;
 pub mod rapid_mlx_integration;
 pub mod night_cycle;

@@ -1,3 +1,4 @@
+pub mod biometric;
 pub mod config_evolution;
 pub mod consolidator;
 pub mod failure_analyzer;
@@ -9,6 +10,10 @@ pub mod tui;
 pub mod watchdog;
 pub mod vision_survival_protocol;
 
+pub use biometric::{
+    BiometricCapsule, DeviceData, DeviceType, PersonalMetabolicModel, AP2ResearchCapsule,
+    ConsentLevel, GembaProof,
+};
 pub use config_evolution::ConfigEvolution;
 pub use consolidator::NightCycleConsolidator;
 pub use failure_analyzer::FailureAnalyzer;

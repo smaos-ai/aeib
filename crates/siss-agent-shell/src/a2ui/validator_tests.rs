@@ -383,3 +383,389 @@ fn test_alert_with_different_levels() {
         assert!(A2UIValidator::validate(&component).is_ok());
     }
 }
+
+// === CONTEXT-AWARE VALIDATION TESTS (Wave 2) ===
+
+#[test]
+fn test_form_validation_with_context_required_fields() {
+    // A form with required=true input should fail if empty value provided
+    let form_state = vec![
+        ("name_field".to_string(), serde_json::json!("")),
+        ("email_field".to_string(), serde_json::json!("test@example.com")),
+    ];
+
+    // Validate: name_field is required but empty
+    let result = A2UIValidator::validate_form_state(&form_state, &[
+        ("name_field".to_string(), true),  // required
+        ("email_field".to_string(), false), // optional
+    ]);
+
+    assert!(result.is_err());
+    if let Err(e) = result {
+        assert!(e.contains("name_field") || e.contains("required"));
+    }
+}
+
+#[test]
+fn test_form_validation_all_required_fields_provided() {
+    let form_state = vec![
+        ("name_field".to_string(), serde_json::json!("John")),
+        ("email_field".to_string(), serde_json::json!("john@example.com")),
+    ];
+
+    let result = A2UIValidator::validate_form_state(&form_state, &[
+        ("name_field".to_string(), true),
+        ("email_field".to_string(), true),
+    ]);
+
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_cross_field_dependency_validation() {
+    // When "use_address" is checked, "address_field" must not be empty
+    let form_state = vec![
+        ("use_address".to_string(), serde_json::json!(true)),
+        ("address_field".to_string(), serde_json::json!("")),
+    ];
+
+    let result = A2UIValidator::validate_cross_field_dependency(
+        "use_address",
+        true,
+        "address_field",
+        &form_state,
+    );
+
+    assert!(result.is_err());
+    if let Err(e) = result {
+        assert!(e.contains("address_field") || e.contains("dependency"));
+    }
+}
+
+#[test]
+fn test_cross_field_dependency_satisfied() {
+    let form_state = vec![
+        ("use_address".to_string(), serde_json::json!(true)),
+        ("address_field".to_string(), serde_json::json!("123 Main St")),
+    ];
+
+    let result = A2UIValidator::validate_cross_field_dependency(
+        "use_address",
+        true,
+        "address_field",
+        &form_state,
+    );
+
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_cross_field_dependency_ignored_when_condition_false() {
+    let form_state = vec![
+        ("use_address".to_string(), serde_json::json!(false)),
+        ("address_field".to_string(), serde_json::json!("")),
+    ];
+
+    let result = A2UIValidator::validate_cross_field_dependency(
+        "use_address",
+        true,
+        "address_field",
+        &form_state,
+    );
+
+    // Should pass because dependency condition is not met
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_mutually_exclusive_field_validation() {
+    // Either "password" or "oauth_token" must be provided, but not both
+    let form_state = vec![
+        ("password".to_string(), serde_json::json!("pass123")),
+        ("oauth_token".to_string(), serde_json::json!("token456")),
+    ];
+
+    let result = A2UIValidator::validate_mutually_exclusive(
+        &["password".to_string(), "oauth_token".to_string()],
+        &form_state,
+    );
+
+    assert!(result.is_err());
+    if let Err(e) = result {
+        assert!(e.contains("mutually exclusive") || e.contains("both"));
+    }
+}
+
+#[test]
+fn test_mutually_exclusive_exactly_one_provided() {
+    let form_state = vec![
+        ("password".to_string(), serde_json::json!("pass123")),
+        ("oauth_token".to_string(), serde_json::json!("")),
+    ];
+
+    let result = A2UIValidator::validate_mutually_exclusive(
+        &["password".to_string(), "oauth_token".to_string()],
+        &form_state,
+    );
+
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_mutually_exclusive_neither_provided() {
+    let form_state = vec![
+        ("password".to_string(), serde_json::json!("")),
+        ("oauth_token".to_string(), serde_json::json!("")),
+    ];
+
+    let result = A2UIValidator::validate_mutually_exclusive(
+        &["password".to_string(), "oauth_token".to_string()],
+        &form_state,
+    );
+
+    // Should fail: neither provided
+    assert!(result.is_err());
+}
+
+#[test]
+fn test_field_format_validation_email() {
+    let result = A2UIValidator::validate_field_format("email", "test@example.com", "email");
+    assert!(result.is_ok());
+
+    let result = A2UIValidator::validate_field_format("email", "invalid-email", "email");
+    assert!(result.is_err());
+}
+
+#[test]
+fn test_field_format_validation_phone() {
+    let result = A2UIValidator::validate_field_format("phone", "+1-555-123-4567", "phone");
+    assert!(result.is_ok());
+
+    let result = A2UIValidator::validate_field_format("phone", "123", "phone");
+    assert!(result.is_err());
+}
+
+#[test]
+fn test_field_format_validation_url() {
+    let result = A2UIValidator::validate_field_format("url", "https://example.com", "url");
+    assert!(result.is_ok());
+
+    let result = A2UIValidator::validate_field_format("url", "not a url", "url");
+    assert!(result.is_err());
+}
+
+#[test]
+fn test_field_length_validation_min_max() {
+    let result = A2UIValidator::validate_field_length("username", 3, 20, "john");
+    assert!(result.is_ok());
+
+    let result = A2UIValidator::validate_field_length("username", 3, 20, "ab");
+    assert!(result.is_err());
+
+    let result = A2UIValidator::validate_field_length("username", 3, 20, "this_is_a_very_long_username");
+    assert!(result.is_err());
+}
+
+#[test]
+fn test_form_state_completeness_check() {
+    let form_state = vec![
+        ("field1".to_string(), serde_json::json!("value1")),
+        ("field2".to_string(), serde_json::json!("value2")),
+    ];
+
+    let required_fields = vec!["field1".to_string(), "field2".to_string()];
+
+    let result = A2UIValidator::check_form_completeness(&form_state, &required_fields);
+    assert!(result.is_ok());
+
+    let result = A2UIValidator::check_form_completeness(
+        &form_state,
+        &vec!["field1".to_string(), "field2".to_string(), "field3".to_string()],
+    );
+    assert!(result.is_err());
+}
+
+#[test]
+fn test_component_hierarchy_validation() {
+    // Modal with required Button should validate children
+    let modal = A2UIComponent::Modal {
+        id: "confirm_modal".to_string(),
+        title: "Confirm Action".to_string(),
+        content: "Are you sure?".to_string(),
+        children: vec![
+            A2UIComponent::Button {
+                id: "confirm_btn".to_string(),
+                label: "Confirm".to_string(),
+                action: Some("submit".to_string()),
+            },
+        ],
+    };
+
+    assert!(A2UIValidator::validate(&modal).is_ok());
+}
+
+#[test]
+fn test_fail_closed_on_invalid_required_component() {
+    // Modal without buttons should fail (context-aware)
+    let modal = A2UIComponent::Modal {
+        id: "modal".to_string(),
+        title: "Action".to_string(),
+        content: "Do something".to_string(),
+        children: vec![], // No buttons = invalid for action modal
+    };
+
+    let result = A2UIValidator::validate_modal_context(&modal);
+    // Should be error because modal with content but no action buttons
+    assert!(result.is_err());
+}
+
+#[test]
+fn test_select_with_no_options_context_validation() {
+    let select = A2UIComponent::Select {
+        id: "choice".to_string(),
+        label: "Choose One".to_string(),
+        options: vec![], // Empty options invalid in context
+    };
+
+    let result = A2UIValidator::validate_select_context(&select);
+    assert!(result.is_err());
+}
+
+#[test]
+fn test_select_with_options_context_validation() {
+    let select = A2UIComponent::Select {
+        id: "choice".to_string(),
+        label: "Choose One".to_string(),
+        options: vec![
+            SelectOption {
+                value: "opt1".to_string(),
+                label: "Option 1".to_string(),
+            },
+        ],
+    };
+
+    let result = A2UIValidator::validate_select_context(&select);
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_form_submission_validation_with_schema() {
+    // Test form submission against a schema
+    let submission = serde_json::json!({
+        "name": "John",
+        "email": "john@example.com"
+    });
+
+    let schema = vec![
+        ("name".to_string(), ("text".to_string(), true)), // type, required
+        ("email".to_string(), ("email".to_string(), true)),
+    ];
+
+    let result = A2UIValidator::validate_submission(&submission, &schema);
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_form_submission_validation_missing_required() {
+    let submission = serde_json::json!({
+        "name": "John"
+        // missing email
+    });
+
+    let schema = vec![
+        ("name".to_string(), ("text".to_string(), true)),
+        ("email".to_string(), ("email".to_string(), true)), // required
+    ];
+
+    let result = A2UIValidator::validate_submission(&submission, &schema);
+    assert!(result.is_err());
+}
+
+#[test]
+fn test_conditional_field_visibility_validation() {
+    // If "account_type" == "business", then "company_name" is required
+    let form_state = vec![
+        ("account_type".to_string(), serde_json::json!("business")),
+        ("company_name".to_string(), serde_json::json!("")),
+    ];
+
+    let result = A2UIValidator::validate_conditional_field(
+        "account_type",
+        "business",
+        "company_name",
+        &form_state,
+    );
+
+    assert!(result.is_err());
+}
+
+#[test]
+fn test_conditional_field_validation_satisfied() {
+    let form_state = vec![
+        ("account_type".to_string(), serde_json::json!("business")),
+        ("company_name".to_string(), serde_json::json!("ACME Corp")),
+    ];
+
+    let result = A2UIValidator::validate_conditional_field(
+        "account_type",
+        "business",
+        "company_name",
+        &form_state,
+    );
+
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_grid_column_count_validation() {
+    let grid = A2UIComponent::Grid {
+        id: "grid".to_string(),
+        columns: 0, // Invalid: must be > 0
+        children: vec![],
+    };
+
+    let result = A2UIValidator::validate_grid_context(&grid);
+    assert!(result.is_err());
+}
+
+#[test]
+fn test_grid_column_count_valid() {
+    let grid = A2UIComponent::Grid {
+        id: "grid".to_string(),
+        columns: 3,
+        children: vec![
+            A2UIComponent::Text {
+                id: "c1".to_string(),
+                content: "Cell 1".to_string(),
+                size: None,
+            },
+        ],
+    };
+
+    let result = A2UIValidator::validate_grid_context(&grid);
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_textarea_rows_validation() {
+    let textarea = A2UIComponent::Textarea {
+        id: "notes".to_string(),
+        label: "Notes".to_string(),
+        rows: Some(0), // Invalid: must be > 0
+    };
+
+    let result = A2UIValidator::validate_textarea_context(&textarea);
+    assert!(result.is_err());
+}
+
+#[test]
+fn test_textarea_rows_valid() {
+    let textarea = A2UIComponent::Textarea {
+        id: "notes".to_string(),
+        label: "Notes".to_string(),
+        rows: Some(5),
+    };
+
+    let result = A2UIValidator::validate_textarea_context(&textarea);
+    assert!(result.is_ok());
+}

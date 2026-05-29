@@ -1,10 +1,10 @@
 use crate::metrics::MetricsDb;
 use ratatui::{
+    Terminal,
     backend::CrosstermBackend,
     layout::{Constraint, Direction, Layout},
     style::{Color, Style},
-    widgets::{Block, Borders, Paragraph, Gauge},
-    Terminal,
+    widgets::{Block, Borders, Gauge, Paragraph},
 };
 use std::io;
 
@@ -22,13 +22,15 @@ impl Dashboard {
         let backend = CrosstermBackend::new(stdout);
         let mut terminal = Terminal::new(backend)?;
 
-        let rows = self.db.last_50().map_err(|_| {
-            io::Error::new(io::ErrorKind::Other, "Failed to fetch metrics")
-        })?;
+        let rows = self
+            .db
+            .last_50()
+            .map_err(|_| io::Error::new(io::ErrorKind::Other, "Failed to fetch metrics"))?;
 
-        let (avg_cpu, avg_mem, avg_duration) = self.db.stats().map_err(|_| {
-            io::Error::new(io::ErrorKind::Other, "Failed to compute stats")
-        })?;
+        let (avg_cpu, avg_mem, avg_duration) = self
+            .db
+            .stats()
+            .map_err(|_| io::Error::new(io::ErrorKind::Other, "Failed to compute stats"))?;
 
         terminal.draw(|f| {
             let chunks = Layout::default()
@@ -57,14 +59,22 @@ impl Dashboard {
             f.render_widget(mem_gauge, chunks[1]);
 
             let duration_gauge = Gauge::default()
-                .block(Block::default().title("Avg Test Duration (ms)").borders(Borders::ALL))
+                .block(
+                    Block::default()
+                        .title("Avg Test Duration (ms)")
+                        .borders(Borders::ALL),
+                )
                 .gauge_style(Style::default().fg(Color::Yellow))
                 .ratio((avg_duration as f64 / 1000.0).min(1.0))
                 .label(format!("{:.0} ms", avg_duration));
             f.render_widget(duration_gauge, chunks[2]);
 
             let run_count = rows.len();
-            let last_run = rows.last().map(|r| &r.timestamp).cloned().unwrap_or_default();
+            let last_run = rows
+                .last()
+                .map(|r| &r.timestamp)
+                .cloned()
+                .unwrap_or_default();
             let status_text = format!(
                 "Night Cycle: {} runs | Last: {} | All tests passing ✓",
                 run_count, last_run

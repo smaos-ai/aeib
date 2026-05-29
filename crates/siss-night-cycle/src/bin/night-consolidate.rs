@@ -11,9 +11,18 @@ fn main() -> std::io::Result<()> {
 
     println!("[NightConsolidate] Starting offline consolidation...");
     println!("[NightConsolidate] EXEC_LOG: {}", exec_log_path.display());
-    println!("[NightConsolidate] Metrics DB: {}", metrics_db_path.display());
-    println!("[NightConsolidate] Config Log: {}", config_log_path.display());
-    println!("[NightConsolidate] Report Output: {}", verification_report_path.display());
+    println!(
+        "[NightConsolidate] Metrics DB: {}",
+        metrics_db_path.display()
+    );
+    println!(
+        "[NightConsolidate] Config Log: {}",
+        config_log_path.display()
+    );
+    println!(
+        "[NightConsolidate] Report Output: {}",
+        verification_report_path.display()
+    );
 
     let consolidator = NightCycleConsolidator::new(
         exec_log_path,
@@ -25,7 +34,10 @@ fn main() -> std::io::Result<()> {
     consolidator.run_consolidation()?;
 
     println!("[NightConsolidate] ✓ Consolidation complete");
-    println!("[NightConsolidate] Verification report written to: {}", verification_report_path.display());
+    println!(
+        "[NightConsolidate] Verification report written to: {}",
+        verification_report_path.display()
+    );
 
     Ok(())
 }

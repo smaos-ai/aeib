@@ -45,7 +45,10 @@ fn test_memtree_fetch_by_scope_returns_capsules() {
 fn test_memtree_parallel_compression_updates_summaries() {
     let mut tree = MemTree::new();
     for i in 0..100 {
-        tree.insert_capsule(ScopeType::Session, create_test_capsule(&format!("cap-{}", i)));
+        tree.insert_capsule(
+            ScopeType::Session,
+            create_test_capsule(&format!("cap-{}", i)),
+        );
     }
 
     let before_count = tree.node_count();

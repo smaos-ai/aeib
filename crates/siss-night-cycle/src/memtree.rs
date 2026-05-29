@@ -61,7 +61,7 @@ impl MemTree {
         self.nodes.insert(capsule.id.clone(), node);
         self.scope_index
             .entry(scope_key)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(capsule.id);
     }
 
@@ -144,7 +144,10 @@ mod tests {
     fn test_memtree_multiple_inserts_same_scope() {
         let mut tree = MemTree::new();
         for i in 0..5 {
-            tree.insert_capsule(ScopeType::Session, create_test_capsule(&format!("cap-{}", i)));
+            tree.insert_capsule(
+                ScopeType::Session,
+                create_test_capsule(&format!("cap-{}", i)),
+            );
         }
 
         assert_eq!(tree.node_count(), 5);

@@ -1,4 +1,4 @@
-use siss_night_cycle::{FailureAnalyzer, OfflineVerifier, ConfigEvolution, MetricsDb};
+use siss_night_cycle::{ConfigEvolution, FailureAnalyzer, MetricsDb, OfflineVerifier};
 use std::io::Write;
 use tempfile::NamedTempFile;
 

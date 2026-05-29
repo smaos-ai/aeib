@@ -1,7 +1,7 @@
-use crate::failure_analyzer::FailureAnalyzer;
-use crate::offline_verifier::OfflineVerifier;
 use crate::config_evolution::ConfigEvolution;
+use crate::failure_analyzer::FailureAnalyzer;
 use crate::metrics::MetricsDb;
+use crate::offline_verifier::OfflineVerifier;
 use std::path::PathBuf;
 
 pub struct NightCycleConsolidator {

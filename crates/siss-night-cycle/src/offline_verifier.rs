@@ -55,9 +55,8 @@ impl OfflineVerifier {
                         max_retries_rate * 100.0
                     ),
                 });
-                next_actions.push(
-                    "Update watchdog.rs max_retries from 3 to 4 and re-test".to_string(),
-                );
+                next_actions
+                    .push("Update watchdog.rs max_retries from 3 to 4 and re-test".to_string());
             }
 
             if avg_duration > 500.0 {

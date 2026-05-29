@@ -108,8 +108,8 @@ impl FailureAnalyzer {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile::NamedTempFile;
     use std::io::Write;
+    use tempfile::NamedTempFile;
 
     #[test]
     fn test_parse_log_entries() {
@@ -147,10 +147,7 @@ mod tests {
         };
 
         analyzer.analyze();
-        let timeout_pattern = analyzer
-            .patterns
-            .values()
-            .find(|p| p.category == "timeout");
+        let timeout_pattern = analyzer.patterns.values().find(|p| p.category == "timeout");
         assert!(timeout_pattern.is_some());
     }
 }

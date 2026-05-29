@@ -18,9 +18,7 @@ impl RecoveryWatchdog {
     pub async fn monitor(&self, test_cmd: &str) -> bool {
         let mut retries = 0;
         loop {
-            let output = Command::new("bash")
-                .args(["-c", test_cmd])
-                .output();
+            let output = Command::new("bash").args(["-c", test_cmd]).output();
 
             match output {
                 Ok(output) => {
@@ -42,7 +40,10 @@ impl RecoveryWatchdog {
                 }
                 Err(e) => {
                     retries += 1;
-                    let msg = format!("Command spawn failed: {} (attempt {}/{})", e, retries, self.max_retries);
+                    let msg = format!(
+                        "Command spawn failed: {} (attempt {}/{})",
+                        e, retries, self.max_retries
+                    );
                     self.trigger_alert(&msg);
 
                     if retries >= self.max_retries {

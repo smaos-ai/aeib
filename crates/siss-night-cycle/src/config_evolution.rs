@@ -73,11 +73,7 @@ impl ConfigEvolution {
     }
 
     pub fn get_unapplied_mutations(&self) -> Vec<&ConfigMutation> {
-        self
-            .mutations
-            .iter()
-            .filter(|m| !m.applied)
-            .collect()
+        self.mutations.iter().filter(|m| !m.applied).collect()
     }
 
     pub fn rollback(&mut self, index: usize) -> std::io::Result<()> {
@@ -99,12 +95,7 @@ mod tests {
         let mut evolution = ConfigEvolution::new(temp_file.path().to_path_buf()).unwrap();
 
         evolution
-            .record_mutation(
-                "max_retries",
-                "3",
-                "4",
-                "High failure rate detected",
-            )
+            .record_mutation("max_retries", "3", "4", "High failure rate detected")
             .unwrap();
 
         assert_eq!(evolution.get_mutations().len(), 1);

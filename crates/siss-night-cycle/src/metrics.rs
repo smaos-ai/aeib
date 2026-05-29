@@ -81,9 +81,8 @@ impl MetricsDb {
         let mut stmt = self.conn.prepare(
             "SELECT AVG(cpu_pct), AVG(mem_mb), AVG(test_duration_ms) FROM night_metrics",
         )?;
-        let (avg_cpu, avg_mem, avg_duration) = stmt.query_row([], |row| {
-            Ok((row.get(0)?, row.get(1)?, row.get(2)?))
-        })?;
+        let (avg_cpu, avg_mem, avg_duration) =
+            stmt.query_row([], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)))?;
         Ok((avg_cpu, avg_mem, avg_duration))
     }
 }

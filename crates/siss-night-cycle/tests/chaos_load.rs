@@ -83,11 +83,8 @@ async fn test_bounded_concurrent_connections() {
     let server_handle = tokio::spawn(async move {
         let mut count = 0;
         loop {
-            match tokio::time::timeout(
-                tokio::time::Duration::from_millis(100),
-                listener.accept(),
-            )
-            .await
+            match tokio::time::timeout(tokio::time::Duration::from_millis(100), listener.accept())
+                .await
             {
                 Ok(Ok(_)) => {
                     count += 1;

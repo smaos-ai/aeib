@@ -153,6 +153,33 @@ Session starts:
 - Each agent applies TDD discipline + verification checklist
 - No agent works in isolation (context is shared + aligned)
 
+## 10. Strategic Decision Protocol (MANDATORY for >€50K decisions)
+
+For any strategic decision that is high-investment (>€50K), high-stakes (irreversible), or ambiguous (multiple valid approaches):
+
+1. **Identify decision** — Reframe as 2-4 explicit YES/NO gates (not open-ended questions)
+2. **Research phase** — Enter Plan Mode; launch 3 parallel Explore agents with WebSearch; each agent validates against live 2026 market data (competitors, regulatory pathways, field deployments)
+3. **Synthesize** — Compare research findings vs. original assumptions; identify uncontested position
+4. **Approval gate** — Present with real data + recommendation; user responds YES/NO per decision
+5. **Document** — Store approval in `.claude/decisions/` with research summary + 6-month lock
+
+**Default triggers (automatic protocol):**
+- Any regulatory claim (FDA, EU MDR, GDPR)
+- Series A positioning or investor messaging
+- Hardware selection for production/conflict zones
+- Timeline deferral >6 months
+- Budget line item >€100K
+- Government or enterprise partnerships
+
+**Why:** Eliminate speculation. Decisions backed by live 2026 market data eliminate 60%+ of pivots post-commitment.
+
+**See:** `.claude/STRATEGIC_DECISION_PROTOCOL.md` for full framework.
+
+**Recent example:** EDEN Strategic Approval (May 29, 2026) — 3 decisions reframed based on live research:
+- Dual-deck → EU governance layer positioning ($200B uncontested market)
+- Defer diabetes → Launch June 30 as wellness app (proven by Levels Health playbook)
+- Theoretical hardware → Jetson Orin + Starlink (validated in Ukraine/Israel field deployments)
+
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// Agents emit these declaratively. Cockpit renders each type.
 /// All variants implement Serialize/Deserialize for JSON transmission.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum A2UIComponent {
     // === DISPLAY (8 types) ===
@@ -152,13 +152,13 @@ pub enum A2UIComponent {
     },
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SelectOption {
     pub value: String,
     pub label: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RadioOption {
     pub value: String,
     pub label: String,

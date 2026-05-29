@@ -1,5 +1,6 @@
 use std::collections::VecDeque;
 use std::sync::Arc;
+use std::sync::Mutex;
 use std::time::{SystemTime, Duration};
 use uuid::Uuid;
 use dashmap::DashMap;
@@ -32,9 +33,57 @@ struct RateLimit {
     requests: VecDeque<SystemTime>,
 }
 
+/// Token bucket rate limiter with configurable capacity and refill period.
+/// Allows a maximum number of tokens (capacity) that refill over the refill_period.
+pub struct RateLimiter {
+    capacity: u32,
+    refill_period: Duration,
+    tokens: Mutex<f64>,
+    last_refill: Mutex<SystemTime>,
+}
+
+impl RateLimiter {
+    /// Create a new RateLimiter with the given capacity and refill period.
+    ///
+    /// # Arguments
+    /// * `capacity` - Maximum number of tokens
+    /// * `refill_period` - Duration after which the bucket is refilled to capacity
+    pub fn new(capacity: u32, refill_period: Duration) -> Self {
+        RateLimiter {
+            capacity,
+            refill_period,
+            tokens: Mutex::new(capacity as f64),
+            last_refill: Mutex::new(SystemTime::now()),
+        }
+    }
+
+    /// Attempt to consume one token. Returns Ok if a token was consumed, Err otherwise.
+    pub fn try_consume(&self) -> Result<(), String> {
+        let now = SystemTime::now();
+        let mut tokens = self.tokens.lock().unwrap();
+        let mut last_refill = self.last_refill.lock().unwrap();
+
+        // Calculate tokens to add based on elapsed time
+        if let Ok(elapsed) = now.duration_since(*last_refill) {
+            let refill_count = elapsed.as_secs_f64() / self.refill_period.as_secs_f64();
+            let new_tokens = *tokens + (refill_count * self.capacity as f64);
+            *tokens = new_tokens.min(self.capacity as f64);
+            *last_refill = now;
+        }
+
+        if *tokens >= 1.0 {
+            *tokens -= 1.0;
+            Ok(())
+        } else {
+            Err("Rate limit exceeded".to_string())
+        }
+    }
+}
+
 pub struct TemporalGuard {
     rate_limiter: Arc<DashMap<Uuid, RateLimit>>,
     time_windows: Arc<Vec<TimeWindow>>,
+    scheduled_revocations: Arc<DashMap<Uuid, SystemTime>>,
 }
 
 impl TemporalGuard {
@@ -42,10 +91,14 @@ impl TemporalGuard {
         TemporalGuard {
             rate_limiter: Arc::new(DashMap::new()),
             time_windows: Arc::new(time_windows),
+            scheduled_revocations: Arc::new(DashMap::new()),
         }
     }
 
     pub fn check_rate_limit(&self, sovereign_id: Uuid) -> Result<(), DenyReason> {
+        // Check scheduled revocation first
+        self.check_scheduled_revocation(sovereign_id)?;
+
         let now = SystemTime::now();
         let mut rate = self
             .rate_limiter
@@ -114,6 +167,42 @@ impl TemporalGuard {
     pub fn check(&self, sovereign_id: Uuid, action: PolicyAction) -> Result<(), DenyReason> {
         self.check_rate_limit(sovereign_id)?;
         self.check_time_window(action)?;
+        Ok(())
+    }
+
+    /// Check if action is allowed with a deadline constraint.
+    /// Returns Err if the deadline has passed.
+    pub fn check_with_deadline(
+        &self,
+        sovereign_id: Uuid,
+        action: PolicyAction,
+        deadline: SystemTime,
+    ) -> Result<(), DenyReason> {
+        let now = SystemTime::now();
+        if now > deadline {
+            return Err(DenyReason::TemporalViolation(
+                "Deadline has passed".to_string(),
+            ));
+        }
+        self.check(sovereign_id, action)
+    }
+
+    /// Register a scheduled revocation time for a sovereign.
+    /// After this time, actions by this sovereign will be blocked.
+    pub fn register_scheduled_revocation(&self, sovereign_id: Uuid, revocation_time: SystemTime) {
+        self.scheduled_revocations.insert(sovereign_id, revocation_time);
+    }
+
+    /// Check if a sovereign has been revoked due to scheduled revocation.
+    fn check_scheduled_revocation(&self, sovereign_id: Uuid) -> Result<(), DenyReason> {
+        if let Some(revocation_entry) = self.scheduled_revocations.get(&sovereign_id) {
+            let revocation_time = *revocation_entry;
+            if SystemTime::now() >= revocation_time {
+                return Err(DenyReason::TemporalViolation(
+                    "Sovereign access revoked".to_string(),
+                ));
+            }
+        }
         Ok(())
     }
 }

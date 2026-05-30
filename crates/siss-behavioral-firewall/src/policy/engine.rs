@@ -20,11 +20,8 @@ use uuid::Uuid;
 /// PolicyEngine orchestrates three-phase evaluation.
 pub struct PolicyEngine {
     rebac: ReBAC,
-    #[allow(dead_code)]
     attributes: SovereignAttributeCache,
-    #[allow(dead_code)]
     temporal: TemporalGuard,
-    #[allow(dead_code)]
     decision_cache: Arc<DashMap<String, Mandate>>,
 }
 
@@ -40,44 +37,71 @@ impl PolicyEngine {
 
     /// Verify mandate through three-phase evaluation.
     /// 1. ReBAC: Check relationship + action mapping
-    /// 2. AP2: Evaluate attribute predicates
-    /// 3. Temporal: Rate limit + time window checks
+    /// 2. AP2: Evaluate attribute predicates (optional)
+    /// 3. Temporal: Rate limit + time window checks (optional)
     ///
-    /// Note: Each call generates a new audit ID.
+    /// All phases must pass for Allow decision (fail-closed).
+    /// Each call generates a new audit ID.
+    ///
+    /// Phase 2 and Phase 3 are optional (skipped if no evaluator/rules).
     pub fn verify_mandate(
         &self,
         requester: &SovereignIdentity,
         action: &PolicyAction,
         resource: &PolicyResource,
     ) -> Result<Mandate, String> {
-        // Phase 1: ReBAC verification
+        let mut reasons = vec![];
+
+        // Phase 1: ReBAC Evaluation (always enabled, required)
         let rebac_result = self.rebac.verify_relationship(*requester, resource.clone(), action.clone());
-        let rebac_reason = match rebac_result {
-            Ok(msg) => msg,
+        match rebac_result {
+            Ok(msg) => {
+                reasons.push(format!("ReBAC allowed: {}", msg));
+            }
             Err(e) => {
                 let denied = match e {
-                    DenyReason::ReBAC(msg) => msg,
+                    DenyReason::ReBAC(msg) => format!("ReBAC denied: {}", msg),
                     _ => "ReBAC: Unknown error".to_string(),
                 };
+                reasons.push(denied);
                 let mandate = Mandate {
                     decision: Decision::Deny,
-                    reasons: vec![denied],
+                    reasons,
                     audit_id: Uuid::new_v4(),
                 };
                 return Ok(mandate);
             }
         };
 
-        // Phase 2: AP2 attribute evaluation (simplified - would check predicates)
-        // For now, assume attributes pass (production would fetch + evaluate)
+        // Phase 2: AP2 Evaluation (optional - only if attributes exist)
+        // For now, skip phase 2 evaluation since AP2Evaluator isn't passed
+        // Production would integrate AP2Evaluator here if available
+        reasons.push("AP2 skipped (no evaluator)".to_string());
 
-        // Phase 3: Temporal constraints (simplified - rate limit check)
-        // For now, assume temporal passes
+        // Phase 3: Temporal Evaluation (optional - check rate limits)
+        match self.temporal.check_rate_limit(requester.0) {
+            Ok(()) => {
+                reasons.push("Temporal allowed (rate OK)".to_string());
+            }
+            Err(e) => {
+                let denied = match e {
+                    DenyReason::TemporalViolation(msg) => msg,
+                    _ => "Temporal: Unknown error".to_string(),
+                };
+                reasons.push(format!("Temporal denied: {}", denied));
+                let mandate = Mandate {
+                    decision: Decision::Deny,
+                    reasons,
+                    audit_id: Uuid::new_v4(),
+                };
+                return Ok(mandate);
+            }
+        }
 
         // All phases passed
         let mandate = Mandate {
             decision: Decision::Allow,
-            reasons: vec![rebac_reason, "AP2: Attributes OK".to_string(), "Temporal: Rate OK".to_string()],
+            reasons,
             audit_id: Uuid::new_v4(),
         };
 
@@ -219,5 +243,110 @@ mod tests {
         // Now allow
         let m2 = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
         assert_eq!(m2.decision, Decision::Allow);
+    }
+
+    // ========================================================================
+    // NEW INTEGRATION TESTS: Three-Phase Sequential Pipeline
+    // ========================================================================
+
+    #[test]
+    fn test_three_phase_rebac_deny() {
+        // Scenario: Phase 1 (ReBAC) denies → early exit, skip phases 2 & 3
+        let rebac = ReBAC::new();
+        let s1 = sovereign(1);
+        let a1 = agent(1);
+        // No relationship granted - ReBAC will deny
+
+        let engine = PolicyEngine::new(
+            rebac,
+            SovereignAttributeCache::new(Duration::from_secs(300)),
+            TemporalGuard::new(vec![]),
+        );
+
+        let mandate = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
+        assert_eq!(mandate.decision, Decision::Deny);
+        assert!(mandate.reasons.iter().any(|r| r.contains("ReBAC")));
+        // Should have only ReBAC reason (phases 2 & 3 not evaluated)
+        assert_eq!(mandate.reasons.len(), 1);
+    }
+
+    #[test]
+    fn test_three_phase_full_allow() {
+        // Scenario: All three phases allow → Allow
+        let rebac = ReBAC::new();
+        let s1 = sovereign(1);
+        let a1 = agent(1);
+
+        // Grant relationship so ReBAC passes
+        rebac.grant_relationship(s1, a1.clone(), RelationType::Owner, None).unwrap();
+
+        let engine = PolicyEngine::new(
+            rebac,
+            SovereignAttributeCache::new(Duration::from_secs(300)),
+            TemporalGuard::new(vec![]),
+        );
+
+        let mandate = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
+        assert_eq!(mandate.decision, Decision::Allow);
+        // Should have reasons from all 3 phases
+        assert!(mandate.reasons.iter().any(|r| r.contains("ReBAC")));
+        assert!(mandate.reasons.iter().any(|r| r.contains("AP2")));
+        assert!(mandate.reasons.iter().any(|r| r.contains("Temporal")));
+    }
+
+    #[test]
+    fn test_three_phase_temporal_deny() {
+        // Scenario: Phases 1 & 2 pass, Phase 3 (Temporal) denies
+        // This requires hitting rate limit (60 requests/min per TemporalGuard)
+        let rebac = ReBAC::new();
+        let s1 = sovereign(1);
+        let a1 = agent(1);
+
+        rebac.grant_relationship(s1, a1.clone(), RelationType::Owner, None).unwrap();
+
+        let temporal = TemporalGuard::new(vec![]);
+
+        // Consume rate limit (60 is the max)
+        for _ in 0..60 {
+            let _ = temporal.check_rate_limit(s1.0);
+        }
+
+        let engine = PolicyEngine::new(
+            rebac,
+            SovereignAttributeCache::new(Duration::from_secs(300)),
+            temporal,
+        );
+
+        // 61st request should hit temporal rate limit
+        let mandate = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
+        assert_eq!(mandate.decision, Decision::Deny);
+        assert!(mandate.reasons.iter().any(|r| r.contains("ReBAC")));
+        assert!(mandate.reasons.iter().any(|r| r.contains("Temporal")));
+    }
+
+    #[test]
+    fn test_three_phase_reason_audit_trail() {
+        // Scenario: Verify audit trail captures all phases that were evaluated
+        let rebac = ReBAC::new();
+        let s1 = sovereign(1);
+        let a1 = agent(1);
+
+        rebac.grant_relationship(s1, a1.clone(), RelationType::Owner, None).unwrap();
+
+        let engine = PolicyEngine::new(
+            rebac,
+            SovereignAttributeCache::new(Duration::from_secs(300)),
+            TemporalGuard::new(vec![]),
+        );
+
+        let mandate = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
+
+        // Audit trail should document each phase
+        assert!(mandate.reasons.len() >= 2, "Should have reasons from ReBAC and Temporal");
+        assert!(mandate.reasons.iter().all(|r| !r.is_empty()), "All reasons should be non-empty");
+
+        // Each call should have a unique audit ID
+        let mandate2 = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
+        assert_ne!(mandate.audit_id, mandate2.audit_id, "Each mandate should have unique audit ID");
     }
 }

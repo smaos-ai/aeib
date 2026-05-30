@@ -3404,10 +3404,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b838eba278d213a8beaf485bd313fd580ca4505a00d5871caeb1457c55322cae"
 dependencies = [
  "bitflags 2.11.1",
+ "chrono",
  "fallible-iterator",
  "fallible-streaming-iterator",
  "hashlink",
  "libsqlite3-sys",
+ "serde_json",
  "smallvec",
 ]
 
@@ -4177,6 +4179,21 @@ dependencies = [
  "siss-graph-db",
  "siss-ontology-proofs",
  "sqlx",
+ "thiserror 2.0.18",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
+name = "siss-decision-db"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "hex",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "sha2",
  "thiserror 2.0.18",
  "tokio",
  "uuid",

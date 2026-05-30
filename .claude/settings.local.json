@@ -49,7 +49,11 @@
       "WebFetch(domain:nickarner.com)",
       "WebFetch(domain:logdy.dev)",
       "WebFetch(domain:octet-stream.net)",
-      "WebFetch(domain:www.mohitsharma.com)"
+      "WebFetch(domain:www.mohitsharma.com)",
+      "WebFetch(domain:crates.io)",
+      "WebFetch(domain:eprint.iacr.org)",
+      "WebFetch(domain:docs.rs)",
+      "WebFetch(domain:opensource.contentauthenticity.org)"
     ],
     "defaultMode": "acceptEdits"
   },

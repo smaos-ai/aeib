@@ -3,6 +3,7 @@ pub mod commit;
 pub mod governance;
 pub mod mandate;
 pub mod rebac;
+pub mod research;
 pub mod validate;
 
 use sqlx::PgPool;

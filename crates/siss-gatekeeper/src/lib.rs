@@ -28,3 +28,6 @@ pub mod sneakernet_ingress;
 pub mod tokens;
 pub mod transitive_resolver;
 pub mod types;
+
+// Re-export research gateway types for convenience
+pub use pipeline::research::{ResearchQuery, ResearchResult, ResearchSource};

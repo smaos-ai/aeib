@@ -4295,6 +4295,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "siss-governance"
+version = "0.1.0"
+dependencies = [
+ "ed25519-dalek",
+ "hex",
+ "proptest",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+ "uuid",
+]
+
+[[package]]
 name = "siss-graph-brain"
 version = "0.1.0"
 dependencies = [

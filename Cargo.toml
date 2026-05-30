@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
+    "crates/siss-governance",
     "crates/siss-graph-core",
     "crates/siss-graph-db",
     "crates/siss-graph-brain",

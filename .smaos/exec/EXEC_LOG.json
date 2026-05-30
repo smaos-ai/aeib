@@ -1,0 +1,8 @@
+[
+  {
+    "event": "kanban_init",
+    "timestamp": "2026-05-30T18:00:00Z",
+    "merkle_root": "d7d4e7dc81de68af40ab3a1422cf10c53c1bcf4fb7d7221cd7ea33fde65b7c84",
+    "source": "test"
+  }
+]

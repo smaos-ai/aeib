@@ -37,7 +37,19 @@
       "WebFetch(domain:nebius.com)",
       "WebFetch(domain:www.hetzner.com)",
       "WebFetch(domain:store.google.com)",
-      "WebFetch(domain:www.apple.com)"
+      "WebFetch(domain:www.apple.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:searx.space)",
+      "WebFetch(domain:you.com)",
+      "WebFetch(domain:perplexity.ai)",
+      "WebFetch(domain:aisotools.com)",
+      "WebFetch(domain:wterm.dev)",
+      "WebFetch(domain:kunobi.ninja)",
+      "WebFetch(domain:mobilesystemdesign.substack.com)",
+      "WebFetch(domain:nickarner.com)",
+      "WebFetch(domain:logdy.dev)",
+      "WebFetch(domain:octet-stream.net)",
+      "WebFetch(domain:www.mohitsharma.com)"
     ],
     "defaultMode": "acceptEdits"
   },

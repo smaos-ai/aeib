@@ -1,0 +1,493 @@
+/**
+ * A2UI Component Styles
+ * Styling for all 18 A2UIComponent primitives
+ */
+
+/* ── RESET & BASE ── */
+.a2ui-component,
+.a2ui-form-group,
+.a2ui-text,
+.a2ui-badge,
+.a2ui-alert,
+.a2ui-progress-wrapper,
+.a2ui-divider,
+.a2ui-link,
+.a2ui-tooltip,
+.a2ui-breadcrumb,
+.a2ui-input,
+.a2ui-textarea,
+.a2ui-select,
+.a2ui-checkbox-wrapper,
+.a2ui-radio-wrapper,
+.a2ui-button,
+.a2ui-card,
+.a2ui-grid,
+.a2ui-modal,
+.a2ui-table,
+.a2ui-form {
+  box-sizing: border-box;
+}
+
+/* ── DISPLAY COMPONENTS ── */
+
+/* Text */
+.a2ui-text {
+  color: #e0e0e0;
+  line-height: 1.5;
+  margin: 8px 0;
+}
+.a2ui-text-sm {
+  font-size: 12px;
+}
+.a2ui-text-md {
+  font-size: 14px;
+}
+.a2ui-text-lg {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* Badge */
+.a2ui-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  margin: 4px 4px;
+}
+.badge-blue {
+  background: #1e3a8a;
+  color: #93c5fd;
+}
+.badge-red {
+  background: #7f1d1d;
+  color: #fca5a5;
+}
+.badge-green {
+  background: #1b4332;
+  color: #81c784;
+}
+.badge-yellow {
+  background: #6b5100;
+  color: #fdd835;
+}
+
+/* Alert */
+.a2ui-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 4px;
+  border-left: 4px solid;
+  margin: 12px 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.alert-info {
+  background: #0f172a;
+  border-left-color: #0284c7;
+  color: #7dd3fc;
+}
+.alert-warn {
+  background: #1f1810;
+  border-left-color: #d97706;
+  color: #fbbf24;
+}
+.alert-error {
+  background: #1f0f0f;
+  border-left-color: #dc2626;
+  color: #f87171;
+}
+.alert-icon {
+  flex-shrink: 0;
+  font-weight: bold;
+  margin-top: 2px;
+}
+.alert-message {
+  flex: 1;
+}
+
+/* Progress */
+.a2ui-progress-wrapper {
+  margin: 12px 0;
+}
+.progress-label {
+  font-size: 12px;
+  color: #aaa;
+  margin-bottom: 4px;
+}
+.a2ui-progress-bar {
+  width: 100%;
+  height: 20px;
+  background: #1a1a1a;
+  border-radius: 2px;
+  border: 1px solid #333;
+  overflow: hidden;
+  position: relative;
+}
+.a2ui-progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #0284c7, #06b6d4);
+  transition: width 0.3s ease;
+}
+.progress-text {
+  font-size: 11px;
+  color: #666;
+  margin-top: 4px;
+  text-align: right;
+}
+
+/* Divider */
+.a2ui-divider {
+  border: none;
+  border-top: 1px solid #333;
+  margin: 16px 0;
+}
+
+/* Link */
+.a2ui-link {
+  color: #60a5fa;
+  text-decoration: none;
+  cursor: pointer;
+  border-bottom: 1px dotted #60a5fa;
+  transition: color 0.15s;
+}
+.a2ui-link:hover {
+  color: #93c5fd;
+}
+.a2ui-link:active {
+  color: #3b82f6;
+}
+
+/* Tooltip */
+.a2ui-tooltip {
+  border-bottom: 1px dotted #666;
+  cursor: help;
+  transition: color 0.15s;
+}
+.a2ui-tooltip:hover {
+  color: #60a5fa;
+}
+
+/* Breadcrumb */
+.a2ui-breadcrumb {
+  margin: 8px 0;
+}
+.a2ui-breadcrumb ol {
+  list-style: none;
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  color: #888;
+  flex-wrap: wrap;
+}
+.a2ui-breadcrumb li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.a2ui-breadcrumb li:last-child {
+  color: #aaa;
+  font-weight: 500;
+}
+
+/* ── FORM COMPONENTS ── */
+
+.a2ui-form,
+.a2ui-form-group {
+  margin: 12px 0;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: #aaa;
+  font-weight: 500;
+}
+.required {
+  color: #f87171;
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+  width: 100%;
+  padding: 8px 10px;
+  background: #0d0d0d;
+  color: #e0e0e0;
+  border: 1px solid #333;
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 13px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+  outline: none;
+  border-color: #60a5fa;
+  background: #0a0a0a;
+}
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: #666;
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px;
+  padding-right: 28px;
+}
+
+/* Checkbox & Radio */
+.a2ui-checkbox-wrapper,
+.a2ui-radio-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.form-checkbox,
+.form-radio {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #60a5fa;
+}
+
+.checkbox-label,
+.radio-label {
+  cursor: pointer;
+  font-size: 13px;
+  color: #ccc;
+  user-select: none;
+}
+.checkbox-label:hover,
+.radio-label:hover {
+  color: #e0e0e0;
+}
+
+/* Button */
+.a2ui-button {
+  padding: 8px 16px;
+  background: #1e3a8a;
+  color: #e0e0e0;
+  border: none;
+  border-radius: 3px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+  margin: 8px 4px 8px 0;
+}
+.a2ui-button:hover {
+  background: #1e40af;
+  opacity: 0.9;
+}
+.a2ui-button:active {
+  background: #1830a6;
+  opacity: 0.8;
+}
+.a2ui-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-submit {
+  background: #0369a1;
+}
+.btn-submit:hover {
+  background: #0284c7;
+}
+
+.btn-reset {
+  background: #64748b;
+}
+.btn-reset:hover {
+  background: #78909c;
+}
+
+/* ── LAYOUT COMPONENTS ── */
+
+/* Card */
+.a2ui-card {
+  background: #141414;
+  border: 1px solid #2a2a2a;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 12px 0;
+}
+.card-header {
+  padding: 12px 16px;
+  background: #1a1a2e;
+  border-bottom: 1px solid #333;
+  font-size: 14px;
+  font-weight: 600;
+  color: #aaa;
+}
+.card-body {
+  padding: 16px;
+}
+
+/* Grid */
+.a2ui-grid {
+  display: grid;
+  gap: 16px;
+  margin: 12px 0;
+}
+
+/* Modal */
+.a2ui-modal {
+  display: flex;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+}
+.modal-content {
+  position: relative;
+  z-index: 1001;
+  background: #1a1a2e;
+  border: 1px solid #333;
+  border-radius: 6px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.modal-header {
+  padding: 16px;
+  border-bottom: 1px solid #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #e0e0e0;
+}
+.modal-body {
+  padding: 16px;
+  color: #ccc;
+}
+
+/* Table */
+.a2ui-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 13px;
+  overflow-x: auto;
+}
+.a2ui-table thead {
+  background: #1a1a2e;
+}
+.a2ui-table th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #aaa;
+  border-bottom: 1px solid #333;
+}
+.a2ui-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #222;
+  color: #ccc;
+}
+.a2ui-table tbody tr:hover {
+  background: #0d0d0d;
+}
+
+/* ── ERROR HANDLING ── */
+
+.a2ui-fallback {
+  padding: 12px 16px;
+  background: #1f0f0f;
+  border: 1px solid #dc2626;
+  border-radius: 4px;
+  color: #f87171;
+  font-size: 12px;
+  margin: 12px 0;
+}
+
+/* ── RESPONSIVE ── */
+
+@media (max-width: 768px) {
+  .a2ui-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .modal-content {
+    width: 95%;
+  }
+
+  .a2ui-table {
+    font-size: 12px;
+  }
+  .a2ui-table th,
+  .a2ui-table td {
+    padding: 8px;
+  }
+}
+
+/* ── ACCESSIBILITY ── */
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus,
+.a2ui-button:focus {
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: more) {
+  .a2ui-alert,
+  .a2ui-card,
+  .modal-content {
+    border-width: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .a2ui-progress-bar,
+  .form-input,
+  .form-textarea,
+  .a2ui-button,
+  .a2ui-link {
+    transition: none;
+  }
+}

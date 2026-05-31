@@ -30,6 +30,7 @@ pub struct StoredDecision {
 pub enum StoreError {
     Db(String),
     ChainBroken { at_id: String, expected: String, found: String },
+    RetentionFloorViolation { floor: u64, current: u64 },
 }
 
 impl fmt::Display for StoreError {
@@ -38,6 +39,9 @@ impl fmt::Display for StoreError {
             StoreError::Db(msg) => write!(f, "Database error: {}", msg),
             StoreError::ChainBroken { at_id, expected, found } => {
                 write!(f, "Chain broken at {}: expected {} found {}", at_id, expected, found)
+            }
+            StoreError::RetentionFloorViolation { floor, current } => {
+                write!(f, "Retention floor violation: floor={} current={}", floor, current)
             }
         }
     }
@@ -56,6 +60,7 @@ pub trait DecisionStore: Send + Sync {
     fn query_by_category(&self, category: &str) -> Result<Vec<StoredDecision>, StoreError>;
     fn query_active(&self) -> Result<Vec<StoredDecision>, StoreError>;
     fn verify_chain(&self) -> Result<bool, StoreError>;
+    fn delete(&self, id: &str) -> Result<(), StoreError>;
 }
 
 const SCHEMA_DDL: &str = r#"
@@ -76,12 +81,28 @@ CREATE INDEX IF NOT EXISTS idx_decisions_category ON decisions(category);
 CREATE INDEX IF NOT EXISTS idx_decisions_created  ON decisions(created_at DESC);
 "#;
 
+#[derive(Debug, Clone)]
+pub struct DecisionDbConfig {
+    pub retention_floor: u64,
+}
+
+impl Default for DecisionDbConfig {
+    fn default() -> Self {
+        Self { retention_floor: 1 }
+    }
+}
+
 pub struct DecisionDb {
     conn: Mutex<Connection>,
+    retention_floor: u64,
 }
 
 impl DecisionDb {
     pub fn new(path: Option<PathBuf>) -> Result<Self, StoreError> {
+        Self::with_config(path, DecisionDbConfig::default())
+    }
+
+    pub fn with_config(path: Option<PathBuf>, cfg: DecisionDbConfig) -> Result<Self, StoreError> {
         let conn = match path {
             Some(p) => Connection::open(p)?,
             None => Connection::open_in_memory()?,
@@ -89,6 +110,7 @@ impl DecisionDb {
         conn.execute_batch(SCHEMA_DDL)?;
         Ok(Self {
             conn: Mutex::new(conn),
+            retention_floor: cfg.retention_floor,
         })
     }
 }
@@ -196,6 +218,33 @@ impl DecisionStore for DecisionDb {
             }
         }
         Ok(true)
+    }
+
+    fn delete(&self, id: &str) -> Result<(), StoreError> {
+        let conn = self.conn.lock().unwrap();
+
+        // Count active records (before attempting delete)
+        let count: u64 = conn.query_row(
+            "SELECT COUNT(*) FROM decisions WHERE status = 'ACTIVE'",
+            [],
+            |row| row.get(0),
+        )?;
+
+        // Enforce floor constraint (fail-closed)
+        if count <= self.retention_floor {
+            return Err(StoreError::RetentionFloorViolation {
+                floor: self.retention_floor,
+                current: count,
+            });
+        }
+
+        // Soft-delete: mark as REVOKED (preserves Merkle chain integrity)
+        conn.execute(
+            "UPDATE decisions SET status = 'REVOKED' WHERE id = ? AND status = 'ACTIVE'",
+            rusqlite::params![id],
+        )?;
+
+        Ok(())
     }
 }
 

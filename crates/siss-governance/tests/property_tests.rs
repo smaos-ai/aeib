@@ -1,6 +1,6 @@
 use proptest::prelude::*;
 use siss_governance::{DecisionRecord, DecisionStore};
-use siss_governance::decision_store::DecisionDb;
+use siss_governance::decision_store::{DecisionDb, DecisionDbConfig};
 
 fn arb_decision_record() -> impl Strategy<Value = DecisionRecord> {
     (
@@ -61,6 +61,85 @@ proptest! {
             prop_assert!(matching.iter().all(|d| d.category == cat));
             prop_assert!(!matching.is_empty());
         }
+    }
+
+    #[test]
+    fn prop_retention_floor_blocks_delete_at_boundary(n in 1u64..=10u64) {
+        let floor = 5u64;
+        let cfg = DecisionDbConfig { retention_floor: floor };
+        let db = DecisionDb::with_config(None, cfg).expect("db creation");
+
+        // Insert floor + n records
+        let num_to_insert = floor + n;
+        let mut ids = Vec::new();
+        for _ in 0..num_to_insert {
+            let rec = DecisionRecord {
+                category: "test".into(),
+                context: "test context".into(),
+                decision: "test decision".into(),
+            };
+            let id = db.record(rec).expect("record");
+            ids.push(id);
+        }
+
+        // Attempt to delete all records; should succeed until count <= floor
+        let mut delete_count = 0;
+        for id in ids {
+            match db.delete(&id) {
+                Ok(()) => delete_count += 1,
+                Err(siss_governance::decision_store::StoreError::RetentionFloorViolation { floor: _, current }) => {
+                    // Delete blocked; verify count is at or below floor
+                    prop_assert!(current <= floor);
+                    break;
+                }
+                Err(e) => prop_assert!(false, "Unexpected error: {:?}", e),
+            }
+        }
+
+        // We should have deleted exactly (num_to_insert - floor) records
+        prop_assert_eq!(delete_count, n);
+    }
+
+    #[test]
+    fn prop_insert_unaffected_by_floor(recs in prop::collection::vec(arb_decision_record(), 1..20)) {
+        let cfg = DecisionDbConfig { retention_floor: 100 };
+        let db = DecisionDb::with_config(None, cfg).expect("db creation");
+
+        // All inserts should succeed regardless of floor
+        for rec in &recs {
+            let _id = db.record(rec.clone()).expect("insert should always succeed");
+        }
+
+        let active = db.query_active().expect("query");
+        prop_assert_eq!(active.len(), recs.len());
+    }
+
+    #[test]
+    fn prop_chain_intact_after_revoke(n in 2usize..=15usize) {
+        let db = DecisionDb::new(None).expect("db creation");
+        let mut ids = Vec::new();
+
+        // Insert n records
+        for _ in 0..n {
+            let rec = DecisionRecord {
+                category: "test".into(),
+                context: "test context".into(),
+                decision: "test decision".into(),
+            };
+            let id = db.record(rec).expect("record");
+            ids.push(id);
+        }
+
+        // Revoke a middle record (not first or last, if n > 2)
+        if n > 2 {
+            let revoke_idx = n / 2;
+            let revoke_id = &ids[revoke_idx];
+            db.delete(revoke_id).expect("delete succeeds");
+        }
+
+        // Chain should still be valid (soft-delete preserves Merkle integrity)
+        let valid = db.verify_chain().expect("verify");
+        prop_assert!(valid);
     }
 }
 

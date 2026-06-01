@@ -53,7 +53,11 @@
       "WebFetch(domain:crates.io)",
       "WebFetch(domain:eprint.iacr.org)",
       "WebFetch(domain:docs.rs)",
-      "WebFetch(domain:opensource.contentauthenticity.org)"
+      "WebFetch(domain:opensource.contentauthenticity.org)",
+      "mcp__notebooklm__source_list_drive",
+      "Bash(mkdir -p /Users/andriileukhin/.claude/patent)",
+      "Read(//Users/andriileukhin/.claude/**)",
+      "WebFetch(domain:www.pearlcohen.com)"
     ],
     "defaultMode": "acceptEdits"
   },

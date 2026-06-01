@@ -3,6 +3,9 @@ pub mod acp {
     pub use crate::agent_communication_platform::*;
 }
 pub mod anomaly_detection;
+pub mod c2pa_compat {
+    pub use siss_c2pa::*;
+}
 pub mod ap2_policies;
 pub mod attestation;
 pub mod behavior_scorer;
@@ -28,6 +31,7 @@ pub mod sneakernet_ingress;
 pub mod tokens;
 pub mod transitive_resolver;
 pub mod types;
+pub mod router;
 
 // Re-export research gateway types for convenience
 pub use pipeline::research::{ResearchQuery, ResearchResult, ResearchSource};

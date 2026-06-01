@@ -4,9 +4,9 @@ use serde::{Deserialize, Serialize};
 /// Retention policy enforcing minimum and optional maximum data retention periods
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RetentionPolicy {
-    pub min_days: u32,      // Minimum retention (180 days = 6 months, per EU AI Act Art. 12)
-    pub max_days: u32,      // Maximum retention (optional TTL)
-    pub count_floor: u64,   // Minimum retained record count (deletion blocked below this)
+    pub min_days: u32, // Minimum retention (180 days = 6 months, per EU AI Act Art. 12)
+    pub max_days: u32, // Maximum retention (optional TTL)
+    pub count_floor: u64, // Minimum retained record count (deletion blocked below this)
 }
 
 impl Default for RetentionPolicy {

@@ -1,0 +1,164 @@
+================================================================================
+SOVERIEGNNEXUS AXIOM — SERIES A INVESTOR MATERIALS
+Quick Reference Card | June 1-30, 2026
+================================================================================
+
+CRITICAL DATES (NON-NEGOTIABLE)
+- June 2:    Patents filed (US/IL provisional)
+- June 3-5:  Israel trip (IDF briefing + Prague PoC demo)
+- June 5:    Prague PoC public demo (live Dilithium signing)
+- June 6-15: Investor meetings (10-12 warm intros)
+- June 30:   Series A close target (€10M+)
+- July 15:   Ukraine field deployment live
+- Sept 30:   Israel field deployment live
+
+MATERIALS CHECKLIST (9 DOCUMENTS)
+01. PITCH-DECK-OUTLINE.md    — 30-slide narrative arc (convert to Google Slides)
+02. ONE-PAGER.md             — 2-page PDF (email attachment + leave-behind)
+03. INVESTOR-TARGETING-STRATEGY.md — Investor segmentation + sequencing
+04. INVESTOR-STORY-ARC.md    — 6-act narrative framework (memorize)
+05. EMAIL-TEMPLATES.md       — 10 production-ready templates
+06. TALKING-POINTS.md        — 7 investor personas + Q&A
+07. INVESTOR-TARGETING-CSV.csv — Database (import to Airtable)
+08. MEETING-CHECKLIST.md     — Tactical guide (print + reference)
+09. README.md                — Master index + production timeline
+
+THE PITCH (9 MINUTES)
+- ACT 1 (2 min): Problem (ungoverned agents, fragmented hardware, quantum threat)
+- ACT 2 (2 min): Solution (AXIOM Trinity — RCE/Night Cycle/IVB)
+- ACT 3 (1 min): Market (€100B+ by 2030, quantum-driven)
+- ACT 4 (2 min): Traction (patents, Prague PoC, Ukraine + Israel)
+- ACT 5 (1 min): Ask (€10M Series A, deployment + go-to-market + R&D)
+- ACT 6 (1 min): Closing ("Are you interested in going deeper?")
+
+KEY INVESTOR TARGETS (TIER PRIORITY)
+TIER 1 (€5M+): Israel Ministry of Defense, US NSA/DoD, EU AI Commission, NATO
+TIER 2 (€2-5M): Sequoia, Balderton, Founders Fund, Lowercarbon, Khosla, Eclipse
+TIER 3 (€2-5M): JPMorgan, Novartis, Intel, Renko (design partners + equity)
+TIER 4 (€1-3M): MacArthur, Ford, Omidyar (impact investing)
+
+SEQUENCING (JUNE 6-15)
+Week 1: Intel, NSA, Sequoia, Balderton, JPMorgan
+Week 2: Lowercarbon, Khosla, Founders Fund, Eclipse, Novartis
+
+ELEVATOR PITCH (30 SECONDS)
+"AXIOM is the constitutional governance layer for AI agents. It enforces
+cryptographic mandate compliance across any processor, any device. Post-quantum
+ready. Three patents filed June 2. Field-proven in Ukraine and Israel. Raising
+€10M for Series A. Closing June 30."
+
+PROOF POINTS (HAVE READY)
+- Patents: RCE (Governance Membrane), Night Cycle (Self-Evolving Ontology), IVB (Sovereign Distillation)
+- Live implementations: MIT robotics, Renko finance, HF agent harness, sovereign swarm
+- Field deployments: Ukraine (75 Jetson Orin + ICRC), Israel (IDF C4I)
+- Post-quantum: Dilithium signing <100ms (live demo June 5)
+- Market: €100B+ by 2030 (defense €40B, finance €35B, healthcare €25B)
+- Competitive moat: Only processor-agnostic, cryptographically-backed governance standard
+
+TALKING POINTS BY INVESTOR TYPE
+Defense Ministry: "Quantum break 2030. Post-quantum ready now. Field-proven. TS/CS compliant."
+Finance (JPMorgan): "Covenant enforcement. AP2 settlement. Regulatory compliance. SEC audit trail."
+Healthcare (Novartis): "FDA SaMD guidance. Deterministic critic. Cryptographic convergence proof."
+VC (Tier 1): "€100B+ TAM. Cryptographic moat. 18 months ahead. First-mover advantage defensible."
+Corporate (Fortune 500): "Regulatory requirement. Design partner influence. Favorable Tier 2 terms."
+Foundation: "1%/99% covenant enforced cryptographically. Eden Protocol 7 missions. Impact at scale."
+
+EMAIL FOLLOW-UP TEMPLATES
+1. Warm intro request → Send before meeting
+2. Follow-up after initial meeting → Send within 24 hours
+3. Follow-up after technical deep dive → Send within 48 hours
+4. Follow-up if passing → Keep door open
+5. Corporate strategic investor → JPMorgan/Novartis/Intel specific
+6. Government / defense ministry → Procurement-specific
+7. Follow-up after Prague PoC → Post June 5
+8. Design partner agreement → Formal 12-month offer
+9. Commitment email → Verbal YES → binding intent
+10. Investor update email → Monthly cadence template
+
+MEETING CHECKLIST (PRE-MEETING)
+- Research investor (recent investments, public statements, conflicts)
+- Prepare materials (one-pager x3, laptop, charger, investor email)
+- Logistics (parking, time, phone on silent, bathroom before meeting)
+- Memorize 5 key facts (quantum timeline, patent filing, Ukraine, TAM, ask)
+- Practice opening pitch (30 seconds, exact words)
+
+MEETING CHECKLIST (DURING)
+- Greeting: Handshake, eye contact, small talk (30 sec)
+- Pitch: 9-minute story arc (problem → solution → market → traction → ask → close)
+- Q&A: Answer concisely (30-60 sec), use proof, redirect to next question
+- Closing: Get commitment (deep dive scheduled, Prague PoC attended, or follow-up date locked)
+
+MEETING CHECKLIST (POST-MEETING)
+- Log meeting in spreadsheet (date, interest level, objections, next steps)
+- Send follow-up email within 24 hours (Template 2 or 3)
+- Schedule deep dive (if interested)
+- Update calendar (prepare diligence materials)
+
+RED FLAGS (ESCALATE IMMEDIATELY)
+- Investor asks to misrepresent technology (walk away)
+- >3 investors ask same objection you can't answer (pivot pitch)
+- Design partner goes silent (follow up daily)
+- Government contact ghosts you (escalate to counsel)
+- Patent filing delayed past June 2 (announce immediately)
+
+RISK MITIGATION
+Patent filing delayed → Announce within 48 hours
+Prague PoC fails → Use video replay or private investor demos
+No government commitment by June 15 → Pivot to Tier 1 VC
+VCs request extended diligence → Two closing tranches (June 30 + July 31)
+Only €7-8M by June 25 → Close at €8M, announce Series A oversubscribed
+
+FINANCIAL METRICS
+Series A target: €10M (€20M post-money valuation)
+Deployment budget: €6M (MVNI, hardware, nodes)
+Go-to-market: €2M (sales, partnerships, regulatory)
+R&D: €1.5M (IVB proofs, Night Cycle, governance layer)
+Operating reserve: €0.5M (6-month buffer)
+Burn rate: €417k/month (24-month runway)
+
+REVENUE PATH (CONSERVATIVE)
+Y1: Design partners (€2-5M licensing)
+Y2: Tier 2 customers (€10M ARR, 5 customers × €2M ACV)
+Y3: Government procurement + Tier 3 settlement (€20M+ ARR)
+Y4: Enterprise sprawl + international (€50M+ ARR)
+Y5: €100M+ ARR → IPO or tier-1 M&A
+
+COMPARABLE EXITS
+CrowdStrike: €30B IPO (2024)
+Darktrace: €3.7B IPO (2021)
+Abnormal Security: €8B valuation (2024)
+
+EXPECTED RETURN SCENARIOS
+Conservative (Y5): €200M exit = 2.0x MOIC
+Base case (Y6): €500M exit = 5.0x MOIC
+Upside (Y6-7): €1B+ exit = 10x+ MOIC (if AXIOM = de facto standard)
+
+WEEKLY SUMMARY TEMPLATE (FRIDAYS)
+- Total meetings completed: [#]
+- Tier 1 VCs interested: [#]
+- Corporate strategic committed: [#]
+- Government LOIs pending: [#]
+- Term sheets issued: [#]
+- Design partner agreements signed: [#]
+- Confidence check (1-10): [#]
+- Blockers: [list]
+- Next week focus: [highest priority]
+
+FINAL CONFIDENCE CHECK (BEFORE JUNE 6)
+Can deliver 9-min pitch without notes? YES / NO
+Can explain RCE/Night Cycle/IVB in 1 min each? YES / NO
+Can name 3 competitive weaknesses? YES / NO
+Believe in €100B TAM by 2030? YES / NO
+Can handle likely objections? YES / NO
+Know when to listen vs. talk? YES / NO
+
+IF ALL YES: YOU'RE READY. GO EXECUTE.
+
+================================================================================
+NEXT ACTIONS (IMMEDIATE)
+1. Confirm patent filing date (June 2, morning)
+2. Finalize Prague PoC demo (rehearse June 4)
+3. Confirm Israel trip schedule (IDF briefing June 3-5)
+4. Compile investor list (start warm intro requests)
+5. Convert one-pager to PDF + print 30 copies for Israel trip
+================================================================================

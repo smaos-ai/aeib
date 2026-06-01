@@ -31,8 +31,8 @@ pub struct BusinessAssociateAgreement {
 /// Access log for PHI - tracks who accessed what PHI and when
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PhiAccessLog {
-    pub who: Uuid,                     // Who accessed
-    pub what: Vec<PhiClassification>,  // What PHI types
+    pub who: Uuid,                    // Who accessed
+    pub what: Vec<PhiClassification>, // What PHI types
     pub when: DateTime<Utc>,
-    pub why: String,                   // Purpose (treatment, payment, operations)
+    pub why: String, // Purpose (treatment, payment, operations)
 }

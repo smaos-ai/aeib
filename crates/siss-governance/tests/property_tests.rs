@@ -1,18 +1,13 @@
 use proptest::prelude::*;
-use siss_governance::{DecisionRecord, DecisionStore};
 use siss_governance::decision_store::{DecisionDb, DecisionDbConfig};
+use siss_governance::{DecisionRecord, DecisionStore};
 
 fn arb_decision_record() -> impl Strategy<Value = DecisionRecord> {
-    (
-        "[a-z]{3,20}",
-        "[a-z ]{10,50}",
-        "[a-z ]{10,50}",
-    )
-        .prop_map(|(cat, ctx, dec)| DecisionRecord {
-            category: cat.to_string(),
-            context: ctx.to_string(),
-            decision: dec.to_string(),
-        })
+    ("[a-z]{3,20}", "[a-z ]{10,50}", "[a-z ]{10,50}").prop_map(|(cat, ctx, dec)| DecisionRecord {
+        category: cat.to_string(),
+        context: ctx.to_string(),
+        decision: dec.to_string(),
+    })
 }
 
 proptest! {

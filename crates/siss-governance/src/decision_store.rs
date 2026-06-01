@@ -29,19 +29,38 @@ pub struct StoredDecision {
 #[derive(Debug)]
 pub enum StoreError {
     Db(String),
-    ChainBroken { at_id: String, expected: String, found: String },
-    RetentionFloorViolation { floor: u64, current: u64 },
+    ChainBroken {
+        at_id: String,
+        expected: String,
+        found: String,
+    },
+    RetentionFloorViolation {
+        floor: u64,
+        current: u64,
+    },
 }
 
 impl fmt::Display for StoreError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             StoreError::Db(msg) => write!(f, "Database error: {}", msg),
-            StoreError::ChainBroken { at_id, expected, found } => {
-                write!(f, "Chain broken at {}: expected {} found {}", at_id, expected, found)
+            StoreError::ChainBroken {
+                at_id,
+                expected,
+                found,
+            } => {
+                write!(
+                    f,
+                    "Chain broken at {}: expected {} found {}",
+                    at_id, expected, found
+                )
             }
             StoreError::RetentionFloorViolation { floor, current } => {
-                write!(f, "Retention floor violation: floor={} current={}", floor, current)
+                write!(
+                    f,
+                    "Retention floor violation: floor={} current={}",
+                    floor, current
+                )
             }
         }
     }
@@ -263,8 +282,7 @@ pub fn fixture_decisions() -> Vec<DecisionRecord> {
         DecisionRecord {
             category: "scope".into(),
             context: "Phase DB-1 is foundation only; complexity added incrementally".into(),
-            decision: "Phase DB-1 ships SQLite layer only; no vector store or cloud"
-                .into(),
+            decision: "Phase DB-1 ships SQLite layer only; no vector store or cloud".into(),
         },
     ]
 }

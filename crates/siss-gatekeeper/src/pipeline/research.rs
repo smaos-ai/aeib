@@ -118,6 +118,27 @@ pub async fn execute_research(
     })
 }
 
+/// Export ResearchResult as C2PA manifest for enterprise interoperability.
+///
+/// Converts SMAOS research capsule to industry-standard C2PA content credential.
+/// Enables trusted research provenance across third-party systems.
+pub fn export_research_result_as_c2pa(
+    result: &ResearchResult,
+) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    // Map ResearchSource enum to string for C2PA serialization
+    let source_str = result.source.as_str().to_string();
+
+    let c2pa_capsule = siss_c2pa::ResearchResult {
+        query: result.query.clone(),
+        answer: result.answer.clone(),
+        source: source_str,
+        timestamp: result.timestamp.clone(),
+        merkle_hash: result.merkle_hash.clone(),
+    };
+
+    siss_c2pa::capsule_to_c2pa_manifest(&c2pa_capsule)
+}
+
 /// LDR: Try local MemTree cache via siss-night-cycle.
 /// In production, queries siss_night_cycle::memtree::MemTree for precomputed summaries.
 async fn get_local_cache(

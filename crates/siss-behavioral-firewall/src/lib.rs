@@ -5,6 +5,7 @@ pub mod types;
 pub mod verdict;
 pub mod rebac;
 pub mod ap2;
+pub mod covenant_firewall;
 pub mod temporal;
 pub mod policy_engine;
 pub mod policy;
@@ -19,7 +20,7 @@ mod tests {
     pub mod audit_tests;
 }
 
-pub use rebac::{ReBAC, Relationship, RelationType, PolicyResource, PolicyAction, DenyReason, SovereignIdentity, ReBACError};
+pub use rebac::{ReBAC, Relationship, RelationType, PolicyResource, PolicyAction, DenyReason, SovereignIdentity, ReBACError, pg};
 pub use ap2::{AP2Evaluator, SovereignAttributes, SovereignAttributeCache, AttributePredicate, PolicyRule};
 pub use temporal::{TemporalGuard, RateLimiter};
 pub use policy_engine::{Mandate, Decision};

@@ -45,6 +45,24 @@ pub enum GatekeeperError {
         persona_frozen: bool,
     },
 
+    #[error("covenant violation: merkle_root={merkle_root}, violation={violation}")]
+    CovenantViolation {
+        merkle_root: String,
+        violation: String,
+    },
+
+    #[error("intent mismatch for task {task_id}: {reason}")]
+    IntentMismatch { task_id: String, reason: String },
+
+    #[error("policy violation '{policy_id}': {reason}")]
+    PolicyViolation { policy_id: String, reason: String },
+
+    #[error("temporal violation: {0}")]
+    TemporalViolation(String),
+
+    #[error("human gate required for task {task_id}: {reason}")]
+    HumanGateRequired { task_id: String, reason: String },
+
     // Soft failures — Task stays pending
     #[error("access denied for tool {tool_id}")]
     AccessDenied { tool_id: Uuid },
@@ -83,6 +101,11 @@ impl GatekeeperError {
                 | Self::PersonaFrozen { .. }
                 | Self::SovereignQuarantined { .. }
                 | Self::CriticalRuleViolation { .. }
+                | Self::CovenantViolation { .. }
+                | Self::IntentMismatch { .. }
+                | Self::PolicyViolation { .. }
+                | Self::TemporalViolation(_)
+                | Self::HumanGateRequired { .. }
         )
     }
 }

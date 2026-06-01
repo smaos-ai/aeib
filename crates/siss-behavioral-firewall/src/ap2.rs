@@ -1,10 +1,15 @@
+use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use std::time::{SystemTime, Duration};
+use std::time::{Duration, SystemTime};
 use uuid::Uuid;
-use dashmap::DashMap;
 
 use crate::rebac::DenyReason;
+
+/// Default cache TTL: 5 minutes (per AP2 spec).
+pub const DEFAULT_CACHE_TTL_SECS: u64 = 300;
+/// Default cache capacity for bounded LRU stores.
+pub const DEFAULT_CACHE_CAPACITY: usize = 1024;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum PolicyAction {
@@ -29,8 +34,8 @@ pub enum PolicyAction {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SovereignAttributes {
     pub sovereign_id: Uuid,
-    pub trust_level: u32,      // 0-100
-    pub reputation: i32,        // can be negative
+    pub trust_level: u32, // 0-100
+    pub reputation: i32,  // can be negative
     pub joined_at: SystemTime,
     pub blacklisted: bool,
     pub certifications: Vec<String>,
@@ -64,18 +69,34 @@ pub struct PolicyRule {
 pub struct SovereignAttributeCache {
     cache: Arc<DashMap<Uuid, CachedAttribute>>,
     freshness_window: Duration,
+    /// Optional capacity. None = unbounded (legacy behavior).
+    capacity: Option<usize>,
 }
 
 #[derive(Debug, Clone)]
 struct CachedAttribute {
     attrs: SovereignAttributes,
+    inserted_at: SystemTime,
 }
 
 impl SovereignAttributeCache {
+    /// Create an unbounded cache with the given freshness window.
+    /// Legacy constructor — used by PolicyEngine and existing call sites.
     pub fn new(freshness_window: Duration) -> Self {
         SovereignAttributeCache {
             cache: Arc::new(DashMap::new()),
             freshness_window,
+            capacity: None,
+        }
+    }
+
+    /// Create a bounded cache with LRU eviction at `capacity`.
+    /// Used for hot-path policy evaluation where memory must be bounded.
+    pub fn new_bounded(capacity: usize, freshness_window: Duration) -> Self {
+        SovereignAttributeCache {
+            cache: Arc::new(DashMap::new()),
+            freshness_window,
+            capacity: Some(capacity),
         }
     }
 
@@ -96,16 +117,72 @@ impl SovereignAttributeCache {
     }
 
     pub fn set_attribute(&self, attrs: SovereignAttributes) {
-        self.cache.insert(attrs.sovereign_id, CachedAttribute { attrs });
+        self.evict_if_at_capacity(&attrs.sovereign_id);
+        let inserted_at = attrs.cached_at;
+        self.cache
+            .insert(attrs.sovereign_id, CachedAttribute { attrs, inserted_at });
     }
 
     pub fn invalidate(&self, sovereign_id: Uuid) {
         self.cache.remove(&sovereign_id);
     }
 
+    /// Number of currently held entries (including stale ones not yet swept).
+    pub fn len(&self) -> usize {
+        self.cache.len()
+    }
+
+    /// True when no entries are cached.
+    pub fn is_empty(&self) -> bool {
+        self.cache.is_empty()
+    }
+
+    /// Age of the entry for `sovereign_id` in seconds since `cached_at`,
+    /// or `None` if no entry exists.
+    pub fn age_secs(&self, sovereign_id: Uuid) -> Option<u64> {
+        let entry = self.cache.get(&sovereign_id)?;
+        SystemTime::now()
+            .duration_since(entry.inserted_at)
+            .ok()
+            .map(|d| d.as_secs())
+    }
+
+    /// True when the cached entry exists AND is within the freshness window.
+    /// Stale entries return false (and are not auto-removed by this call).
+    pub fn is_fresh(&self, sovereign_id: Uuid) -> bool {
+        match self.cache.get(&sovereign_id) {
+            Some(entry) => entry
+                .inserted_at
+                .elapsed()
+                .map(|age| age < self.freshness_window)
+                .unwrap_or(false),
+            None => false,
+        }
+    }
+
+    /// LRU eviction policy: when at capacity AND inserting a new key, drop the
+    /// entry with the oldest `inserted_at`. No-op for unbounded caches.
+    fn evict_if_at_capacity(&self, incoming: &Uuid) {
+        let Some(cap) = self.capacity else { return };
+        if self.cache.len() < cap || self.cache.contains_key(incoming) {
+            return;
+        }
+        let oldest = self
+            .cache
+            .iter()
+            .min_by_key(|e| e.value().inserted_at)
+            .map(|e| *e.key());
+        if let Some(key) = oldest {
+            self.cache.remove(&key);
+        }
+    }
+
     fn fetch_from_db(&self, sovereign_id: Uuid) -> Result<SovereignAttributes, DenyReason> {
         // In real implementation, fetch from PostgreSQL
-        Err(DenyReason::AP2(format!("Attributes not found for sovereign {}", sovereign_id)))
+        Err(DenyReason::AP2(format!(
+            "Attributes not found for sovereign {}",
+            sovereign_id
+        )))
     }
 }
 
@@ -122,14 +199,53 @@ impl AP2Evaluator {
         }
     }
 
-    pub fn evaluate(
+    /// Construct an evaluator with a default bounded cache (1024 entries,
+    /// 5 minute TTL) and no policy rules. Useful for ad-hoc predicate
+    /// evaluation and tests.
+    pub fn with_defaults() -> Self {
+        AP2Evaluator {
+            attribute_cache: Arc::new(SovereignAttributeCache::new_bounded(
+                DEFAULT_CACHE_CAPACITY,
+                Duration::from_secs(DEFAULT_CACHE_TTL_SECS),
+            )),
+            policy_rules: Arc::new(Vec::new()),
+        }
+    }
+
+    /// Cache an attribute set (passthrough to underlying cache).
+    pub fn cache_set(&self, attrs: SovereignAttributes) {
+        self.attribute_cache.set_attribute(attrs);
+    }
+
+    /// Retrieve cached attributes, returning None on miss or stale entry.
+    pub fn cache_get(&self, sovereign_id: Uuid) -> Option<SovereignAttributes> {
+        if !self.attribute_cache.is_fresh(sovereign_id) {
+            return None;
+        }
+        self.attribute_cache.get(sovereign_id).ok()
+    }
+
+    /// Invalidate a specific sovereign's cached attributes.
+    pub fn invalidate(&self, sovereign_id: Uuid) {
+        self.attribute_cache.invalidate(sovereign_id);
+    }
+
+    /// Evaluate a single predicate against attributes, returning a bool.
+    /// Distinct from `evaluate` which runs the full rule list with deny-override.
+    pub fn evaluate_predicate_pure(
         &self,
-        sovereign_id: Uuid,
-        action: PolicyAction,
-    ) -> Result<String, DenyReason> {
+        predicate: &AttributePredicate,
+        attrs: &SovereignAttributes,
+    ) -> bool {
+        // Internal evaluator is total — no DenyReason can be produced by pure eval.
+        self.evaluate_predicate(predicate, attrs).unwrap_or(false)
+    }
+
+    pub fn evaluate(&self, sovereign_id: Uuid, action: PolicyAction) -> Result<String, DenyReason> {
         let attrs = self.attribute_cache.get(sovereign_id)?;
 
-        let applicable_rules: Vec<_> = self.policy_rules
+        let applicable_rules: Vec<_> = self
+            .policy_rules
             .iter()
             .filter(|r| r.applies_to == action && r.enabled)
             .collect();
@@ -165,16 +281,14 @@ impl AP2Evaluator {
             AttributePredicate::NotBlacklisted => Ok(!attrs.blacklisted),
             AttributePredicate::HasCertification(cert) => Ok(attrs.certifications.contains(cert)),
             AttributePredicate::And(left, right) => {
-                Ok(self.evaluate_predicate(left, attrs)? &&
-                   self.evaluate_predicate(right, attrs)?)
+                Ok(self.evaluate_predicate(left, attrs)?
+                    && self.evaluate_predicate(right, attrs)?)
             }
             AttributePredicate::Or(left, right) => {
-                Ok(self.evaluate_predicate(left, attrs)? ||
-                   self.evaluate_predicate(right, attrs)?)
+                Ok(self.evaluate_predicate(left, attrs)?
+                    || self.evaluate_predicate(right, attrs)?)
             }
-            AttributePredicate::Not(inner) => {
-                Ok(!self.evaluate_predicate(inner, attrs)?)
-            }
+            AttributePredicate::Not(inner) => Ok(!self.evaluate_predicate(inner, attrs)?),
         }
     }
 }

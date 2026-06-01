@@ -16,6 +16,7 @@ pub mod ap2_syndication;
 pub mod auto_dream_engine;
 pub mod batch_orchestrator;
 pub mod covenant_charter;
+pub mod covenant_firewall;
 pub mod crafter_runtime;
 pub mod crdt_sync;
 pub mod contradiction_lint;

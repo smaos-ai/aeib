@@ -108,8 +108,8 @@ mod tests {
             max_days: 2555,
             count_floor: 5,
         };
-        assert!(!policy.can_delete_by_count(5));   // at floor → blocked
-        assert!(policy.can_delete_by_count(6));    // above floor → allowed
+        assert!(!policy.can_delete_by_count(5)); // at floor → blocked
+        assert!(policy.can_delete_by_count(6)); // above floor → allowed
     }
 
     /// test_count_floor_default_is_ten: ensures default count_floor is 10
@@ -117,8 +117,8 @@ mod tests {
     fn test_count_floor_default_is_ten() {
         let policy = RetentionPolicy::default();
         assert_eq!(policy.count_floor, 10);
-        assert!(!policy.can_delete_by_count(10));  // at floor → blocked
-        assert!(policy.can_delete_by_count(11));   // above floor → allowed
+        assert!(!policy.can_delete_by_count(10)); // at floor → blocked
+        assert!(policy.can_delete_by_count(11)); // above floor → allowed
     }
 
     /// test_phi_classification: ensures PhiClassification enum values are valid
@@ -139,10 +139,7 @@ mod tests {
                 PhiClassification::MedicalRecord,
                 PhiClassification::Biometric,
             ],
-            safeguards_implemented: vec![
-                "AES-256-GCM".to_string(),
-                "Ed25519-signing".to_string(),
-            ],
+            safeguards_implemented: vec!["AES-256-GCM".to_string(), "Ed25519-signing".to_string()],
             breach_notification_days: 30,
         };
         assert_eq!(baa.phi_types.len(), 2);

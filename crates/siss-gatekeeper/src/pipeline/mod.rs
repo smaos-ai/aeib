@@ -1,10 +1,14 @@
 pub mod ap2;
+pub mod authorization;
 pub mod commit;
+pub mod covenant;
 pub mod governance;
 pub mod mandate;
 pub mod rebac;
 pub mod research;
 pub mod validate;
+
+pub use authorization::{AuthorizationPipeline, AuthorizationProof, TaskAuthorizationRequest};
 
 use sqlx::PgPool;
 
@@ -13,7 +17,7 @@ use crate::types::{AuthorizationRequest, AuthorizationResult, GatekeeperError};
 use siss_event_log::{EventLog, SystemEvent};
 
 /// The sole entry point for task authorization.
-/// Runs the full pipeline: validate → ReBAC → AP2 → governance → sign+commit.
+/// Runs the full pipeline: validate → ReBAC → AP2 → governance → covenant → sign+commit.
 /// Logs AccessDecision event to audit trail after successful commit.
 ///
 /// The entire operation should be called within a database transaction by the caller.
@@ -53,7 +57,10 @@ pub async fn authorize_task(
     )
     .await?;
 
-    // Step 5: Sign + Commit
+    // Step 5: Covenant (Economic Intent Validation)
+    covenant::check_covenant(pool, intent_mandate_id).await?;
+
+    // Step 6: Sign + Commit
     let result = commit::sign_and_commit(
         pool,
         signer,

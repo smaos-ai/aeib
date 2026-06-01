@@ -628,3 +628,5 @@ mod tests {
         assert!(rebac.verify_relationship(s2, a1.clone(), PolicyAction::ReadMetrics).is_ok());
     }
 }
+
+pub mod pg;

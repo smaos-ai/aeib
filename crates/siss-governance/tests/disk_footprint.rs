@@ -1,5 +1,5 @@
-use siss_governance::{DecisionRecord, DecisionStore};
 use siss_governance::decision_store::DecisionDb;
+use siss_governance::{DecisionRecord, DecisionStore};
 use tempfile::NamedTempFile;
 
 #[test]
@@ -31,5 +31,9 @@ fn test_disk_footprint_1000_records() {
     let metadata = std::fs::metadata(temp_file.path()).expect("metadata");
     let size_mb = metadata.len() as f64 / (1024.0 * 1024.0);
     println!("Database size after 1000 records: {:.2} MB", size_mb);
-    assert!(size_mb < 5.0, "Database should be < 5MB, got {:.2}MB", size_mb);
+    assert!(
+        size_mb < 5.0,
+        "Database should be < 5MB, got {:.2}MB",
+        size_mb
+    );
 }

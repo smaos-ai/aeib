@@ -24,7 +24,7 @@ pub struct RiskManagementRecord {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuditLogEntry {
     pub id: Uuid,
-    pub actor: Uuid, // persona_id or system_id
+    pub actor: Uuid,    // persona_id or system_id
     pub action: String, // "decision", "training", "deployment"
     pub decision_json: serde_json::Value,
     pub created_at: DateTime<Utc>,

@@ -63,7 +63,7 @@ pub async fn execute_research(
     pool: &PgPool,
     query: &ResearchQuery,
 ) -> Result<ResearchResult, GatekeeperError> {
-    let query_hash = format!("{:x}", md5::compute(query.query_text.as_bytes()));
+    let _query_hash = format!("{:x}", md5::compute(query.query_text.as_bytes()));
 
     // Step 1: Check AP2 mandate allows research
     let mandate_row = siss_graph_db::repo::node_repo::fetch_intent_mandate(pool, query.mandate_id)
@@ -221,7 +221,7 @@ mod tests {
     #[test]
     fn test_local_cache_sovereign_ai() {
         // Verify local cache contains SMAOS docs
-        let query = ResearchQuery {
+        let _query = ResearchQuery {
             query_text: "What is SMAOS?".to_string(),
             persona_id: Uuid::new_v4(),
             mandate_id: Uuid::new_v4(),

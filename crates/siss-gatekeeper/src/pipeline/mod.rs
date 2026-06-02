@@ -2,13 +2,19 @@ pub mod ap2;
 pub mod authorization;
 pub mod commit;
 pub mod covenant;
+pub mod genesis;
 pub mod governance;
 pub mod mandate;
+pub mod monge_gap;
 pub mod rebac;
 pub mod research;
 pub mod validate;
 
 pub use authorization::{AuthorizationPipeline, AuthorizationProof, TaskAuthorizationRequest};
+pub use genesis::{GenesisCapsule, execute_genesis_with_generated_key};
+pub use monge_gap::{CMGComputeOperator, MongeGapResult, NOf1Experiment, MongeGapGovernor, TemporalDecay, AdversarialSampler, GoverningDecision};
+pub use crate::latency::{LatencyConstitution, LatencyTier, ConstitutionVerdict};
+pub use crate::pricing::BlastMatrixCache;
 
 use sqlx::PgPool;
 

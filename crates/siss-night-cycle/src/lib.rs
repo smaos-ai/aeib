@@ -6,6 +6,7 @@ pub mod ledger;
 pub mod memtree;
 pub mod metrics;
 pub mod offline_verifier;
+pub mod operators;
 pub mod tui;
 pub mod watchdog;
 pub mod vision_survival_protocol;

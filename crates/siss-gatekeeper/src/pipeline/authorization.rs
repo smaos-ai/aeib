@@ -56,7 +56,7 @@ pub struct TaskAuthorizationRequest {
 /// were skipped (no predicate / no composition supplied) do not appear in
 /// the map. `merkle_root` is a hex-encoded SHA-256 of the canonical proof
 /// body (`task_id || actor || sorted(gate_decisions) || timestamp_nanos`).
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct AuthorizationProof {
     pub task_id: Uuid,
     pub actor: Uuid,

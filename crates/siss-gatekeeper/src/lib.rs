@@ -20,10 +20,12 @@ pub mod evaluator;
 pub mod evm_executor;
 pub mod facility_mandate;
 pub mod federation_resolver;
+pub mod latency;
 pub mod nonce;
 pub mod payload;
 pub mod pipeline;
 pub mod policy;
+pub mod pricing;
 pub mod refresh;
 pub mod reputation_blender;
 pub mod signer;
@@ -35,3 +37,4 @@ pub mod router;
 
 // Re-export research gateway types for convenience
 pub use pipeline::research::{ResearchQuery, ResearchResult, ResearchSource};
+pub use pricing::BlastMatrixCache;

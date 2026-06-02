@@ -1,7 +1,6 @@
 use siss_behavioral_firewall::ap2::{
     SovereignAttributes, AttributePredicate, PolicyRule, PolicyAction,
 };
-use std::time::SystemTime;
 use uuid::Uuid;
 
 #[derive(Debug, PartialEq)]
@@ -91,7 +90,7 @@ impl PolicySet {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::time::Duration;
+    use std::time::{Duration, SystemTime};
 
     fn sovereign_attrs(trust_level: u32, blacklisted: bool) -> SovereignAttributes {
         SovereignAttributes {

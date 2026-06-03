@@ -24,6 +24,8 @@ sha2 = { workspace = true }
 hex = { workspace = true }
 lazy_static = "1.4"
 siss-enclave = { path = "../siss-enclave" }
+siss-payment = { path = "../siss-payment" }
+siss-gatekeeper = { path = "../siss-gatekeeper" }
 axum = "0.7"
 sqlx = { workspace = true }
 siss-graph-db = { path = "../siss-graph-db" }
@@ -37,3 +39,7 @@ siss-job-router = { path = "../siss-job-router" }
 siss-agent-shell = { path = "../siss-agent-shell" }
 proptest = "1"
 rand = "0.8"
+
+[[bin]]
+name = "prague-demo"
+path = "src/prague_demo.rs"

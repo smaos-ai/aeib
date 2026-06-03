@@ -1436,9 +1436,11 @@ dependencies = [
  "siss-agent-shell",
  "siss-context-cartography",
  "siss-enclave",
+ "siss-gatekeeper",
  "siss-graph-core",
  "siss-graph-db",
  "siss-job-router",
+ "siss-payment",
  "sqlx",
  "thiserror 2.0.18",
  "tokio",
@@ -5529,6 +5531,19 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
+ "uuid",
+]
+
+[[package]]
+name = "siss-payment"
+version = "0.1.0"
+dependencies = [
+ "dashmap",
+ "hex",
+ "parking_lot",
+ "rand 0.8.6",
+ "sha2",
+ "tokio",
  "uuid",
 ]
 

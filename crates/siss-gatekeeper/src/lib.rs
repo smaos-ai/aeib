@@ -10,6 +10,7 @@ pub mod ap2_policies;
 pub mod attestation;
 pub mod behavior_scorer;
 pub mod commerce;
+pub mod compliance;
 pub mod constraint_resolver;
 pub mod constraint_solver;
 pub mod contract_state_store;

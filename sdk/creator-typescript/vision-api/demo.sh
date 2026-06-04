@@ -38,12 +38,12 @@ echo
 
 # 4. Ed25519 Signature verification
 echo -e "${YELLOW}[4/8] Ed25519 Quantum-Resistant Signature${NC}"
-echo "$CLEAN" | jq '.decision.signature | {publicKey: .publicKey[0:16] + "...", signature: .signature[0:16] + "..."}'
+echo "$CLEAN" | jq '.decision.signature | {publicKey: (.publicKey[0:16] + "..."), signature: (.signature[0:16] + "...")}'
 echo
 
 # 5. Merkle proof
 echo -e "${YELLOW}[5/8] Merkle-Rooted Audit Trail${NC}"
-echo "$CLEAN" | jq '.decision.merkleProof | {root: .root[0:16] + "...", entries: (.entries | length)}'
+echo "$CLEAN" | jq '.decision.merkleProof | {root: (.root[0:16] + "..."), entries: (.entries | length)}'
 echo
 
 # 6. Malicious input (XSS, triggers human gate)

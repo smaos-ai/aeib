@@ -2,7 +2,7 @@
 mod integration_tests {
     use crate::confidence_scorer::{ConfidenceScore, RoutingTier, SimpleScorer};
     use crate::cost_budget::{CostMatrix, TokenBudget};
-    use crate::routing_engine::{RoutingEngine, RoutingEngine};
+    use crate::routing_engine::{RoutingEngine, RoutingError};
 
     #[test]
     fn test_e2e_simple_task_routing() {

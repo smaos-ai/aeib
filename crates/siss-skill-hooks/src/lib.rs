@@ -19,6 +19,7 @@ mod tests {
             content: content.into(),
             confidence_score: confidence,
             tier: ConsolidationTier::Semantic,
+            affective_signature: None,
         }
     }
 

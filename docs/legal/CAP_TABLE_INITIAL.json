@@ -1,0 +1,85 @@
+{
+  "company": "SovereignNexus, Inc.",
+  "jurisdiction": "Delaware",
+  "as_of_date": "2026-06-09",
+  "par_value_per_share": 0.0001,
+  "capitalization": {
+    "authorized_shares": 10000000,
+    "outstanding_shares": 8000000,
+    "option_pool_reserved": 1500000,
+    "unallocated": 500000,
+    "fully_diluted_shares": 9500000
+  },
+  "shareholders": [
+    {
+      "name": "[Founder 1]",
+      "shares": 4000000,
+      "percentage_outstanding": 50.0,
+      "percentage_fully_diluted": 42.1,
+      "class": "Common",
+      "price_per_share": 0.0001,
+      "total_consideration": 400.00,
+      "grant_date": "2026-06-09",
+      "vesting": {
+        "schedule": "4-year 1-year cliff",
+        "cliff_date": "2027-06-09",
+        "full_vest_date": "2030-06-09",
+        "monthly_vest_post_cliff": 83333,
+        "acceleration": "double-trigger only",
+        "status_as_of_grant": "0% vested"
+      },
+      "83b_election": {
+        "required": true,
+        "deadline": "2026-07-09",
+        "filed": false,
+        "filed_date": null
+      }
+    },
+    {
+      "name": "[Founder 2]",
+      "shares": 4000000,
+      "percentage_outstanding": 50.0,
+      "percentage_fully_diluted": 42.1,
+      "class": "Common",
+      "price_per_share": 0.0001,
+      "total_consideration": 400.00,
+      "grant_date": "2026-06-09",
+      "vesting": {
+        "schedule": "4-year 1-year cliff",
+        "cliff_date": "2027-06-09",
+        "full_vest_date": "2030-06-09",
+        "monthly_vest_post_cliff": 83333,
+        "acceleration": "double-trigger only",
+        "status_as_of_grant": "0% vested"
+      },
+      "83b_election": {
+        "required": true,
+        "deadline": "2026-07-09",
+        "filed": false,
+        "filed_date": null
+      }
+    }
+  ],
+  "option_pool": {
+    "reserved": 1500000,
+    "available": 1500000,
+    "granted": 0,
+    "percentage_fully_diluted": 15.8,
+    "plan_name": "SovereignNexus, Inc. 2026 Equity Incentive Plan",
+    "board_adoption_date": null,
+    "notes": "ESOP to be adopted by board resolution — target Jun 13–17, 2026"
+  },
+  "unallocated": {
+    "shares": 500000,
+    "percentage_authorized": 5.0,
+    "purpose": "Future grants, strategic reserves, SAFEs"
+  },
+  "notes": [
+    "Cap table effective as of stock purchase date Jun 9, 2026",
+    "All founders subject to 4-year vesting with 1-year cliff and double-trigger acceleration only",
+    "83(b) elections required for all founders — HARD DEADLINE Jul 9, 2026",
+    "Import this file into Carta (https://carta.com) for official record",
+    "Update filed_date fields upon 83(b) submission confirmation",
+    "Percentages shown as of grant date — will change with future issuances (Series A, SAFE conversions)"
+  ]
+}

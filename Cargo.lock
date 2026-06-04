@@ -5266,6 +5266,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "siss-defense-framework"
+version = "0.1.0"
+
+[[package]]
 name = "siss-dispatcher"
 version = "0.1.0"
 dependencies = [
@@ -5397,6 +5401,16 @@ dependencies = [
  "serde",
  "serde_json",
  "siss-gatekeeper",
+]
+
+[[package]]
+name = "siss-gdpr-nis2"
+version = "0.1.0"
+dependencies = [
+ "hex",
+ "serde",
+ "sha2",
+ "uuid",
 ]
 
 [[package]]

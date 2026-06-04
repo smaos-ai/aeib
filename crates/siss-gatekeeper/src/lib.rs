@@ -45,3 +45,12 @@ pub use vision_api::{
     RiskLevel, HumanGatePolicy, HumanGateProof, GovernRequest,
     PreExecuteCheckResult, VisionAPI, DecisionContext, DecisionGate
 };
+
+// Re-export Federal Compliance Capsule Pack types
+pub use compliance::{
+    ComplianceCapsule, ApprovalLevel, SafetyGateResult, SafetyGateType,
+    SafetyGateValidator, SafetyGateValidationResult,
+    HumanGateRequest, HumanGateAttestation,
+    MerkleAuditEntry, EXEC_LOG,
+    AP2SettlementRecord, CreatorPayoutSimulation, SettlementStatus
+};

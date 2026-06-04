@@ -5377,6 +5377,7 @@ dependencies = [
  "md5",
  "rand 0.8.6",
  "rand_distr",
+ "regex",
  "serde",
  "serde_json",
  "sha2",

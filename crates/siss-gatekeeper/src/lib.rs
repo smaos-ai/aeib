@@ -35,7 +35,13 @@ pub mod tokens;
 pub mod transitive_resolver;
 pub mod types;
 pub mod router;
+pub mod vision_api;
+pub mod baseline_capsule;
 
 // Re-export research gateway types for convenience
 pub use pipeline::research::{ResearchQuery, ResearchResult, ResearchSource};
 pub use pricing::BlastMatrixCache;
+pub use vision_api::{
+    RiskLevel, HumanGatePolicy, HumanGateProof, GovernRequest,
+    PreExecuteCheckResult, VisionAPI, DecisionContext, DecisionGate
+};

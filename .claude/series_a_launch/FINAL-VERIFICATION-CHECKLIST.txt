@@ -1,0 +1,263 @@
+═══════════════════════════════════════════════════════════════════════════════
+AXIOM SERIES A EMAIL BATCH — FINAL VERIFICATION CHECKLIST
+June 4, 2026 @ 1000 UTC Launch
+═══════════════════════════════════════════════════════════════════════════════
+
+This checklist must be completed BEFORE triggering the email batch send.
+Use this as your pre-flight verification 30 minutes before launch.
+
+═══════════════════════════════════════════════════════════════════════════════
+PART 1: FILE VERIFICATION (Run 15 minutes before send)
+═══════════════════════════════════════════════════════════════════════════════
+
+INVESTOR ROSTER
+  [ ] File exists: 01-INVESTOR-ROSTER-50.csv
+  [ ] Row count: 50+ investors (excluding header)
+  [ ] All 4 tiers represented: Tier 1 (10), Tier 2 (15), Tier 3 (15), Tier 4 (10)
+  [ ] Email column populated (no empty cells)
+  [ ] Warm intro contacts verified (spot-check 5 random entries)
+
+  Command to verify:
+  $ wc -l 01-INVESTOR-ROSTER-50.csv  # Should be 51 lines (50 + header)
+  $ grep "^Tier" 01-INVESTOR-ROSTER-50.csv | sort | uniq -c  # Count by tier
+  $ cut -d',' -f3 01-INVESTOR-ROSTER-50.csv | grep -v "Email" | grep -v "@" | wc -l  # Should be 0 (all emails valid)
+
+EMAIL TEMPLATES (4 files)
+  [ ] 02-EMAIL-TEMPLATES-TIER1.txt exists and readable
+  [ ] 03-EMAIL-TEMPLATES-TIER2.txt exists and readable
+  [ ] 04-EMAIL-TEMPLATES-TIER3.txt exists and readable
+  [ ] 05-EMAIL-TEMPLATES-TIER4.txt exists and readable
+  [ ] Each template includes [Name], [Firm], [Warm Intro Contact], [Time Slots] placeholders
+  [ ] Subject line present and compelling (copy-paste ready)
+  [ ] Each template > 300 words (substantial, not thin)
+  [ ] No typos in core value props (proof-read manually)
+
+  Command to verify:
+  $ for f in 02-EMAIL-TEMPLATES-*.txt; do echo "=== $f ==="; grep -c "\[Name\]" "$f"; done  # Should show 1 per file
+
+ATTACHMENTS PACKAGE (4 core files)
+  [ ] demo.tar.gz exists (Prague PoC video + manifest)
+      Size: ~180MB (verify with `ls -lh demo.tar.gz`)
+      Extraction test: `tar -tzf demo.tar.gz | head` (should list files)
+
+  [ ] patent.tar.gz exists (RCE, Night Cycle, IVB claims + counsel letter)
+      Size: ~8.5MB
+      Extraction test: `tar -tzf patent.tar.gz | head` (should list files)
+
+  [ ] proof.json exists (Merkle covenant proof)
+      Size: ~5KB
+      Content test: `cat proof.json | python3 -m json.tool` (should be valid JSON)
+
+  [ ] pitch.md exists (one-pager)
+      Size: ~6KB
+      Content: Should have Problem/Solution/Proof/Market/Ask/Timeline sections
+
+  Command to verify all:
+  $ ls -lh demo.tar.gz patent.tar.gz proof.json pitch.md
+  $ tar -tzf demo.tar.gz > /dev/null && echo "✓ demo.tar.gz valid"
+  $ tar -tzf patent.tar.gz > /dev/null && echo "✓ patent.tar.gz valid"
+  $ python3 -m json.tool < proof.json > /dev/null && echo "✓ proof.json valid"
+
+BUNDLE TEST
+  [ ] Create test bundle:
+      $ tar -czf axiom-series-a-test.tar.gz demo.tar.gz patent.tar.gz proof.json pitch.md
+  [ ] Extract in clean directory:
+      $ mkdir /tmp/axiom-test && cd /tmp/axiom-test && tar -xzf /path/to/axiom-series-a-test.tar.gz
+  [ ] Verify all 4 files present:
+      $ ls -la | grep -E "(demo|patent|proof|pitch)"
+  [ ] Cleanup:
+      $ rm -rf /tmp/axiom-test axiom-series-a-test.tar.gz
+
+═══════════════════════════════════════════════════════════════════════════════
+PART 2: EMAIL PROVIDER SETUP (Complete 1 hour before send)
+═══════════════════════════════════════════════════════════════════════════════
+
+DNS RECORDS (must be verified before sending)
+  [ ] SPF record present and valid (dig TXT your-domain.com | grep spf)
+      Should show: v=spf1 include:[email-provider] ~all
+  [ ] DKIM record present and valid (dig TXT s1._domainkey.your-domain.com)
+      Should show: v=DKIM1; k=rsa; p=[public_key]
+  [ ] DMARC record present (dig TXT _dmarc.your-domain.com)
+      Should show: v=DMARC1; p=quarantine; rua=mailto:...
+
+  Command to verify:
+  $ dig TXT your-domain.com | grep spf
+  $ dig TXT s1._domainkey.your-domain.com | grep DKIM
+  $ dig TXT _dmarc.your-domain.com
+
+EMAIL PROVIDER AUTHENTICATION
+  Choose ONE of:
+
+  OPTION A: Amazon SES
+    [ ] AWS credentials configured: `aws configure`
+    [ ] SES sandbox verified or production access granted
+    [ ] Sender email verified: `aws ses verify-email-identity --email-address your-email@domain.com`
+    [ ] Test send: `aws ses send-email --from ... --to ... --subject ... --message ...`
+
+  OPTION B: Postmark
+    [ ] API key obtained from postmark.com
+    [ ] Sender signature verified
+    [ ] Test send via curl or SDK
+    [ ] Check: `curl -X GET https://api.postmarkapp.com/senders -H "X-Postmark-Server-Token: [TOKEN]"`
+
+  OPTION C: SendGrid
+    [ ] API key obtained
+    [ ] Sender identity verified
+    [ ] Test send: `curl ... -X POST ... https://api.sendgrid.com/v3/mail/send`
+
+  OPTION D: Gmail API
+    [ ] OAuth credentials downloaded (client_secret.json)
+    [ ] Local auth token refreshed: `gcloud auth login`
+    [ ] Test send via gmail_send.py script
+
+  VERIFICATION TEST (Run 5 test emails to yourself)
+    [ ] Send 5 test emails using your chosen provider
+    [ ] Verify all 5 arrive in inbox within 5 minutes
+    [ ] Check: Formatting looks good, subject line correct, attachments present
+    [ ] Check: Email headers show correct sender + authentication (SPF/DKIM pass)
+    [ ] Monitor: No emails in spam folder (if any, adjust SPF/DKIM or sender)
+
+═══════════════════════════════════════════════════════════════════════════════
+PART 3: SEND SCRIPT VERIFICATION (5 minutes before send)
+═══════════════════════════════════════════════════════════════════════════════
+
+SCRIPT SETUP
+  [ ] send-series-a.sh has execute permissions:
+      $ chmod +x send-series-a.sh
+
+  [ ] Script reads roster correctly:
+      $ ./send-series-a.sh true  # DRY_RUN=true (shows what would be sent)
+      Should output 50 emails with [Name], [Firm], [Email], [Tier]
+
+  [ ] Log directory exists and is writable:
+      $ mkdir -p ~/.smaos/exec
+      $ touch ~/.smaos/exec/EXEC_LOG.private.json
+      $ rm ~/.smaos/exec/EXEC_LOG.private.json  # Clean slate
+
+  [ ] Script correctly personalizes templates:
+      Run DRY_RUN and spot-check 5 random outputs
+      Verify: [Name], [Firm], and template content match CSV
+
+TIMEZONE VERIFICATION
+  [ ] Verify time slots are timezone-aware per recipient
+      Example: For Tier 1 (Israel): 2 PM PT = 12 AM CET+1 (early but OK)
+      Example: For Tier 2 (US): 2 PM PT = 11 PM CET (evening, acceptable)
+      Don't schedule Tier 4 meetings at 3 AM — adjust slots per geography
+
+  Command to spot-check:
+  $ ./send-series-a.sh true | grep "Time slots" | head -5
+
+═══════════════════════════════════════════════════════════════════════════════
+PART 4: RESPONSE TEAM READY (30 minutes before send)
+═══════════════════════════════════════════════════════════════════════════════
+
+INBOX SETUP
+  [ ] Primary inbox: Andrey (receives all investor responses)
+  [ ] Backup inbox: [IR person] (for follow-ups if Andrey delayed)
+  [ ] Email filtering rules configured:
+      Rule: "Series A" in subject → Star + Label "Series A Investors"
+      Rule: Response rate metric → Auto-forward to Slack #series-a channel
+  [ ] Unsubscribe link: Verify it works (test by sending to yourself)
+
+RESPONSE TEMPLATES PREPARED
+  [ ] Quick response template (for "Tell me more" → schedule call)
+      File: respond-investor-inquiry.txt (ready to paste + customize)
+  [ ] Meeting confirmation template (for accepted calls)
+      File: meeting-confirmation.txt (ready to paste + customize)
+  [ ] Tier 1 specific: Encrypted contact details (Signal/ProtonMail)
+      Have these ready to share on first call
+
+ESCALATION CONTACTS
+  [ ] Andrey: Available 24/7 for first responses
+  [ ] [IR person]: Available for scheduling + follow-ups
+  [ ] [CTO]: Available for technical deep dives (Tier 1 + Government)
+  [ ] Klaus Mueller (Pearl Cohen): Available for patent/legal questions
+  [ ] All contacts: Have updated mobile + backup email (in case primary bounces)
+
+═══════════════════════════════════════════════════════════════════════════════
+PART 5: FINAL SAFETY CHECKS (10 minutes before send)
+═══════════════════════════════════════════════════════════════════════════════
+
+CONTENT VERIFICATION
+  [ ] Subject line is compelling and no typos
+  [ ] Email body is free of placeholder text (no [BRACKET] fields remaining)
+  [ ] Company names are correct (Sequoia, Anthropic, Stripe, etc.)
+  [ ] Investor names are spelled correctly (spot-check 10 random)
+  [ ] Patent claims reference is accurate (filed June 2, 2026)
+  [ ] Prague PoC date is correct (June 5, 2026)
+  [ ] Series A ask amount is correct (€10M)
+  [ ] Target close date is correct (June 30, 2026)
+  [ ] No confidential info exposed (no IP numbers, secret tech details, etc.)
+
+PERSONAL INFO VERIFICATION
+  [ ] Your contact email is correct: andrey@sovereign-nexus.io
+  [ ] Your phone number/Signal name is ready to share (on call)
+  [ ] ProtonMail address is correct (for Tier 1 encryption)
+  [ ] IR contact info is correct (for follow-ups)
+
+LEGAL COMPLIANCE
+  [ ] Unsubscribe link present in email footer
+  [ ] CAN-SPAM header: From, To, Subject, Date, Message-ID all present
+  [ ] GDPR compliance: No list was purchased (all warm intros or sourced)
+  [ ] Patent claims: Marked "ATTORNEY WORK PRODUCT" (if applicable)
+
+═══════════════════════════════════════════════════════════════════════════════
+PART 6: GO/NO-GO DECISION (At T-5 minutes)
+═══════════════════════════════════════════════════════════════════════════════
+
+GREEN LIGHT CRITERIA (All must be YES to proceed)
+
+  ✓ All 50 investors have valid email addresses (no typos)
+  ✓ All 4 attachments exist and are bundle-testable
+  ✓ Email templates personalize correctly (verified via DRY_RUN)
+  ✓ Email provider is authenticated and test-sends pass (5/5 to inbox)
+  ✓ SPF/DKIM/DMARC records are green (live DNS check)
+  ✓ Response team is briefed and available
+  ✓ Inbox filtering rules configured (to catch responses)
+  ✓ No content errors (typos, missing fields, wrong dates)
+  ✓ Legal compliance verified (unsubscribe, GDPR, etc.)
+  ✓ Time slots are timezone-aware (no 3 AM meetings)
+
+RED FLAG CRITERIA (Any YES = STOP and fix before sending)
+
+  ✗ Email provider authentication failing
+  ✗ SPF/DKIM/DMARC records not green
+  ✗ Any recipient email invalid (typos, etc.)
+  ✗ Any attachment missing or corrupted
+  ✗ Content has [PLACEHOLDER] fields still remaining
+  ✗ Template personalization failing (test emails don't look right)
+  ✗ Response team NOT available/briefed
+  ✗ Typos in investor names or company names
+  ✗ Subject line is generic or bland
+  ✗ Legal requirements not met (no unsubscribe, GDPR risk)
+
+═══════════════════════════════════════════════════════════════════════════════
+FINAL SIGN-OFF (At T-0)
+═══════════════════════════════════════════════════════════════════════════════
+
+All checklists complete?  YES / NO
+
+If YES, proceed:
+
+$ chmod +x send-series-a.sh
+$ ./send-series-a.sh  # (production mode, no dry-run)
+
+Expected output:
+  - 50 emails sent in 10 batches (5 per batch, 2-sec intervals)
+  - EXEC_LOG.private.json populated with all sends
+  - Total time: ~20 minutes
+  - Status: SUCCESS
+
+If NO, identify which items failed and fix before proceeding. Do not send if:
+  - Email provider auth broken
+  - DNS records not green
+  - Content has errors
+  - Response team unavailable
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Timestamp: ___________________________
+Signed by: ___________________________
+Status: [ ] READY TO SEND    [ ] HOLD (fix issues first)
+
+═══════════════════════════════════════════════════════════════════════════════

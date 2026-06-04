@@ -37,7 +37,7 @@ export const OmniRouteDashboard: React.FC = () => {
         ...prevState,
         waitingForDecision: true,
         isStreaming: false,
-        rceContext: event.payload.context || event.payload
+        rceContext: (event.payload.context || event.payload) as Record<string, unknown>
       }));
     }
 
@@ -47,7 +47,7 @@ export const OmniRouteDashboard: React.FC = () => {
         ...prevState,
         waitingForDecision: true,
         isStreaming: false,
-        rceContext: event.payload.execution_context || event.payload
+        rceContext: (event.payload.execution_context || event.payload) as Record<string, unknown>
       }));
     }
   };

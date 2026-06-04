@@ -1,0 +1,19 @@
+[package]
+name = "siss-gatekeeper-py"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+siss-gatekeeper = { path = "../siss-gatekeeper" }
+pyo3 = { version = "0.22", features = ["extension-module", "abi3-py312"] }
+chrono.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[lib]
+name = "siss_gatekeeper_py"
+crate-type = ["cdylib"]
+
+[profile.release]
+opt-level = 3
+lto = true

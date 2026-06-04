@@ -6,6 +6,7 @@ members = [
     "crates/siss-graph-db",
     "crates/siss-graph-brain",
     "crates/siss-gatekeeper",
+    "crates/siss-gatekeeper-py",
     "crates/siss-job-router",
     "crates/siss-event-log",
     "crates/siss-context-cartography",

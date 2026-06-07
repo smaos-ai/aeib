@@ -37,6 +37,7 @@ pub mod types;
 pub mod router;
 pub mod vision_api;
 pub mod baseline_capsule;
+pub mod capsules;
 
 // Re-export research gateway types for convenience
 pub use pipeline::research::{ResearchQuery, ResearchResult, ResearchSource};

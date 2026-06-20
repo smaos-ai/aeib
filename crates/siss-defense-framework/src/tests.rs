@@ -57,3 +57,42 @@ mod stream8_itar_ear {
         assert!(result.is_ok());
     }
 }
+
+#[cfg(test)]
+mod stream8_dcma_filing {
+    use crate::generate_dcma_package;
+
+    #[test]
+    fn test_dcma_filing_israel_no_blockers() {
+        let result = generate_dcma_package("IL");
+        assert!(result.is_ok());
+        let pkg = result.unwrap();
+        assert_eq!(pkg.destination, "IL");
+        assert_eq!(pkg.eccn, "ECCN 5D002.c.1");
+        assert!(pkg.filing_ready);
+        assert!(!pkg.itar_controlled);
+    }
+
+    #[test]
+    fn test_dcma_filing_iran_blocked() {
+        let result = generate_dcma_package("IR");
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), "COUNTRY_BLOCKED");
+    }
+
+    #[test]
+    fn test_dcma_filing_germany_no_blockers() {
+        let result = generate_dcma_package("DE");
+        assert!(result.is_ok());
+        let pkg = result.unwrap();
+        assert_eq!(pkg.destination, "DE");
+        assert!(pkg.filing_ready);
+    }
+
+    #[test]
+    fn test_dcma_filing_north_korea_blocked() {
+        let result = generate_dcma_package("KP");
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), "COUNTRY_BLOCKED");
+    }
+}

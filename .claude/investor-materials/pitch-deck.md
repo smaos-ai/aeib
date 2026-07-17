@@ -4,70 +4,99 @@
 ---
 
 ## SLIDE 1: PROBLEM
-### Mythos-Class AI Needs Governance
+### The Sovereign Layer 0 Gap: Fortress Builders vs. Platform Scalers
 
-**The Challenge:**
-- Autonomous agents proliferate without cryptographic controls
-- Hardware fragments across CPU, GPU, TPU, NPU, LPU, DPU
-- Encryption becomes obsolete in 2030 (quantum break of RSA/ECC)
-- Institutions have no standardized way to enforce governance across agent populations
+**The Market Split:**
+
+**The Fortress (Layer 0):** Sovereign Infrastructure
+- Defense ministries, governments, and critical infrastructure lack cryptographic governance for autonomous systems
+- Post-quantum encryption mandate (2030) creates existential CTO urgency
+- Hardware fragments (CPU/GPU/TPU/NPU/LPU/DPU) but no standardized pre-execution control layer
+- Palantir + Nvidia can sell hardware; neither can sell **fail-closed governance**
+
+**The Platform (Layer 1-2):** Creator Economy + Transactional Volume
+- AI-generated content exploding (2026: 500M creators, €50B marketplace)
+- No standardized proof of attribution + micro-settlement infrastructure
+- Regulation mandates transparency (NY synthetic performer law, EU AI Act)
+- Transaction fees, royalty settlement, proof-of-creation all locked behind governance bottleneck
 
 **Market Impact:**
-Every Fortune 500, defense ministry, and financial institution with >€10M in encrypted data is racing to post-quantum governance solutions. The 2026-2030 window is a 4-year deployment sprint.
+- Fortress: €15B TAM (2026) → €100B (2030) — quantum-driven mandate
+- Platform: €5B TAM (2026) → €50B (2030) — regulatory + creator demand
+- **Gap:** No single vendor serves both. We build the Layer 0 that unifies both.
 
 **Urgency:**
-The quantum threat is not speculative—it's NIST-validated timeline. Every CTO is building post-quantum transition plans right now.
+The 2026-2030 window closes the quantum loop AND opens the creator economy regulation wave. First mover owns the standard.
 
 ---
 
 ## SLIDE 2: SOLUTION
-### Personal Palantir + Fail-Closed Gates
+### Sovereign Layer 0: Cryptographic Governance for Fortress + Platform
 
-**The AXIOM Trinity: Three Patent Families (Filed June 2, 2026)**
+**The Unified Layer 0 Stack: Three Patent Families (Filed June 2, 2026)**
 
-**1. RCE (Resumable Human-Governed Execution)**
-- Every agent state mutation is Ed25519-cryptographically signed
-- Fail-closed constraints: Rate limits, cost caps, blast-radius bounds
-- Human approval required for high-risk actions
-- Deterministic replay: Full state recovery at any point
+**1. RCE (Resumable Human-Governed Execution)** — *Fortress Anchor*
+- Every autonomous decision is Ed25519-cryptographically signed (non-repudiation)
+- Pre-execution fail-closed gates: Rate limits, cost caps, blast-radius bounds
+- Human approval loop embedded in consensus validation (1%/99% covenant)
+- Deterministic replay: Full state recovery at any point in time
+- **Use case:** Defense autonomous systems, financial trading, critical infrastructure
 
-**2. Night Cycle (Self-Evolving Economically-Aligned Ontology)**
-- Agent knowledge consolidates through MemTree DAG (provenance-bound)
-- AP2 Protocol: Cryptographic 1%/99% covenant (1% builders, 99% beneficiaries)
+**2. Night Cycle (Self-Evolving Economically-Aligned Ontology)** — *Platform Bridge*
+- Agent knowledge consolidates through Merkle-DAG (provenance-bound, immutable)
+- AP2 Protocol: Cryptographic 1%/99% economic covenant (1% builders, 99% beneficiaries)
+- Creator attribution + micro-settlement: Built-in at Layer 0 (not added on top)
 - Deterministic verification loop validates outputs against proven state
-- Economic alignment is not policy—it's cryptographic law
+- **Use case:** Creator economy settlement, AI-generated content attribution, transactional governance
 
-**3. IVB (Iterative Verifier Bootstrapping)**
-- Distillation with cryptographic proof of convergence
-- Deterministic critic (temperature=0, not probabilistic)
-- Fail-closed rollback if quality drops
-- Full Merkle-DAG audit trail (first distillation with complete provenance)
+**3. IVB (Iterative Verifier Bootstrapping)** — *Quality Assurance Loop*
+- Distillation with cryptographic proof of convergence (Layer 0 efficiency)
+- Deterministic critic (temperature=0, not probabilistic sampling)
+- Fail-closed rollback if quality drops below covenant threshold
+- Full Merkle-DAG audit trail: First distillation with complete provenance
+- **Use case:** Multi-model coordination, compliance validation, safety gates
 
-**The Result:**
-A constitutional layer for AI governance that works locally, cryptographically, and processor-agnostically. Not a cloud service. Not a policy framework. Not a business logic layer. Pure math.
+**The Unification:**
+A cryptographic governance substrate that serves both:
+- **Fortress (Layer 0 Security):** Pre-execution validation, fail-closed enforcement, post-quantum readiness
+- **Platform (Layer 0 Economics):** Settlement finality, creator attribution, regulatory proof
+
+**Why This Wins:**
+Palantir + Nvidia can build hardware; we build the math that secures + settles it. Governance is not a layer on top—it's the foundation.
 
 ---
 
 ## SLIDE 3: MARKET
-### €50B+ TAM, IBM Validates
+### €65B+ TAM (Fortress €15B + Platform €50B), Palantir + Nvidia Gap
 
-**Post-Quantum Governance Market (2026-2030)**
+**Dual-Deck Market Opportunity (2026-2030)**
 
-| Sector | 2026 TAM | 2030 TAM | Driver |
-|--------|----------|----------|--------|
-| **Defense** | €8B | €40B | NATO quantum-safe mandate, US DoD + IDF post-quantum infrastructure |
-| **Finance** | €5B | €35B | JPMorgan/Goldman/UBS post-quantum settlement, AML + compliance AI |
-| **Healthcare** | €2B | €25B | Precision medicine, distributed diagnostics, FDA SaMD compliance |
-| **TOTAL** | **€15B** | **€100B** | **6.7x growth, quantum-driven urgency** |
+| Market | 2026 TAM | 2030 TAM | Driver | Fortress / Platform |
+|--------|----------|----------|--------|----------------------|
+| **Fortress: Defense + Energy** | €8B | €40B | NATO quantum mandate, post-quantum CTO sprint | **Fortress** |
+| **Fortress: Finance + Enterprise** | €5B | €35B | JPMorgan/Goldman/UBS settlement, AML AI | **Fortress** |
+| **Fortress: Healthcare** | €2B | €25B | FDA SaMD + precision medicine + diagnostics | **Fortress** |
+| **Platform: Creator Economy + Settlement** | €3B | €25B | AI content attribution, micro-royalty infrastructure (NY law, EU AI Act) | **Platform** |
+| **Platform: Transactional Volume** | €2B | €12B | AP2 ledger settlement fees, smart contract governance | **Platform** |
+| **TOTAL TAM** | **€20B** | **€137B** | **6.9x growth** | **Fortress €15B + Platform €50B** |
 
-**Why AXIOM Wins:**
-- Only hardware-agnostic governance layer (competitors locked to cloud or single processor)
-- Post-quantum ready now (Dilithium live; competitors still on RSA/ECC)
-- Cryptographic covenant can't be out-engineered or out-trusted
-- First-mover establishes the standard; switching cost → ∞
+**The Palantir + Nvidia Gap:**
+- **Palantir:** Sells analytics + decision support (post-execution auditing). Does NOT solve pre-execution governance.
+- **Nvidia:** Sells hardware. Does NOT solve cryptographic attestation or economic settlement.
+- **Our Gap Fill:** We own the Layer 0 that enables both—pre-execution fail-closed gates (Fortress) + transactional settlement proof (Platform).
 
-**IBM Validation:**
-IBM's post-quantum cryptography adoption (2025) validates market urgency. They're moving to Dilithium; AXIOM deployed it already.
+**Why We Win:**
+- Only unified governance layer that spans both Fortress (defense + enterprise) and Platform (creator economy)
+- Post-quantum cryptography standard embedded (not retrofit)
+- Economic covenant enforced at Layer 0 (not added as accounting layer)
+- Switching cost once adopted = infinite (becomes regulatory requirement by 2028)
+
+**Market Validation:**
+- NATO quantum-safe mandate (2026) = Fortress urgency
+- NY synthetic performer law (June 9, 2026) + EU AI Act (Aug 2, 2026 transparency) = Platform urgency
+  - Note: EU AI Act transparency mandate (Aug 2, 2026) affects all AI systems immediately
+  - High-risk AI compliance deadline: December 2027 (per May 2026 update)
+- IBM Dilithium adoption (2025) validates post-quantum as table-stakes
 
 ---
 
@@ -271,48 +300,56 @@ Every strategic partnership is paying-customer-validated, not speculative LOI. R
 ---
 
 ## SLIDE 10: VISION
-### €500M ARR in 5 Years, Governance Standard
+### €500M ARR in 5 Years, Dual-Deck Dominance (Fortress + Platform)
 
-**The 5-Year Roadmap: From €10M to €500M**
+**The 5-Year Roadmap: From €10M to €500M (Fortress + Platform Unified)**
 
-**Year 1 (Series A: €10M investment)**
-- Deploy AXIOM across Ukraine + Israel + 3 Tier 2 customers
-- Establish post-quantum cryptography as regulatory baseline (EU AI Act, US NIST)
-- €6-8M ARR from enterprise licensing + settlement fees
+**Year 1 (Series A: €10M investment) — Proof of Both Markets**
+- **Fortress:** Deploy across Ukraine + Israel + 3 Tier 2 enterprise customers (JPMorgan, Novartis, Intel)
+- **Platform:** Creator SDK live (Substack + Patreon integration), 500+ creators using AP2 settlement
+- Post-quantum crypto becomes regulatory baseline (EU AI Act Aug 2 transparency + Dec 2027 high-risk compliance, US NIST guidance)
+- **ARR: €8-10M** (€5M Fortress licensing + €3-5M Platform settlement fees)
 - Series B trigger (€25M) armed by Month 18
 
-**Year 2 (Post-Series B: €25M investment)**
-- Scale to 10 verticals: Finance, Defense, Healthcare, Energy, Education, Climate, Telecom, Infra, Logistics, Aerospace
-- AXIOM becomes NATO requirement (quantum-safe governance mandate)
-- EU governance layer (SMAOS) integrated into EuroHPC factories
-- €30-40M ARR (5-7 Tier 2 @ €5-10M each + Tier 3 settlement ramping)
+**Year 2 (Post-Series B: €25M investment) — Market Dominance**
+- **Fortress:** Scale to 10 government + enterprise customers (€10-15M per customer, 3-year contracts)
+- **Platform:** Creator network 50K+ (€100M+ settlement volume, 1% settlement fees = €1M MRR)
+- AXIOM becomes NATO requirement + EU governance baseline (regulatory wedge locked)
+- **ARR: €35-50M** (€25-30M Fortress + €10-20M Platform settlement ramping)
 
-**Year 3 (IPO Preparation or Series C: €50M+ investment)**
-- AXIOM = de facto governance standard for Fortune 500 + defense ministries
-- Post-quantum cryptography shifts from "strategic advantage" to "compliance requirement"
-- Apple, Microsoft, Google licensing AXIOM for cloud sovereignty
-- €100-120M ARR (enterprise + settlement + licensing ecosystem)
+**Year 3 (Series C: €50M+ investment) — Infrastructure Layer**
+- **Fortress:** Apple, Microsoft, Google licensing AXIOM for cloud sovereignty + defense contracts
+- **Platform:** Ownership hand-off to creator DAO (while we own Layer 0 licensing fees forever)
+- EU governance layer (SMAOS) integrated into EuroHPC factories across 50+ member states
+- **ARR: €100-150M** (€60-80M Fortress + €40-70M Platform settlement + licensing)
 
-**Year 4-5 (Exit Preparation: IPO or Tier-1 M&A)**
-- Global deployment: NATO, EU, US DoD, JPMorgan, Goldman, UBS, Microsoft, Apple
-- Governance ecosystem revenue: €300-500M ARR (licensing + settlement + API fees)
-- Market valuation: €500M+ (5-10x revenue multiple, enterprise software + crypto)
+**Year 4-5 (IPO or Tier-1 M&A) — Governance Standard**
+- **Fortress:** Mandatory for all NATO-aligned + EU critical infrastructure (€200M+ annual licensing)
+- **Platform:** Layer 0 governance fee on every AI-generated transaction globally (€300M+ settlement volume)
+- Market valuation: €1-2B+ (7-10x revenue multiple, enterprise infrastructure + crypto)
+
+**Revenue Mix at Year 5:**
+- Fortress licensing: €250-300M ARR (enterprises + government + defense)
+- Platform settlement: €200-250M ARR (creator economy + transactional fees)
+- API ecosystem licensing: €50-100M ARR (third-party integrations)
+- **Total: €500M+ ARR**
 
 **Exit Scenarios:**
-- **Conservative:** €200M valuation, Year 5 (2x Series A return on €100M pool)
-- **Base case:** €500M valuation, Year 6 (5x Series A return, IPO or Tier-1 M&A)
-- **Upside:** €1B+ valuation, Year 6-7 (10x+ Series A return, if AXIOM becomes NATO/EU standard)
+- **Conservative:** €300M valuation, Year 5 (3x Series A return on combined pools)
+- **Base case:** €800M valuation, Year 6 (8x Series A return, IPO or Tier-1 M&A)
+- **Upside:** €2B+ valuation, Year 6-7 (20x Series A return, if AXIOM becomes de facto Layer 0 for all AI)
 
 **Comparable Exits:**
-- CrowdStrike (€30B IPO, 2024) — cybersecurity
-- Darktrace (€3.7B IPO, 2021) — threat detection
-- Abnormal Security (€8B valuation, 2024) — email security
+- CrowdStrike (€30B IPO, 2024) — cybersecurity infrastructure
+- Darktrace (€3.7B IPO, 2021) — autonomous threat detection
+- Abnormal Security (€8B valuation, 2024) — AI-driven security
+- **Our Advantage:** Infrastructure play (Layer 0) + economic settlement (transaction fees) = hybrid SaaS + FinTech multiple
 
-**Why AXIOM Wins:**
-Post-quantum cryptography is not a feature—it's a law of physics. Every institution with encrypted data becomes a buyer by 2030. AXIOM owns the governance layer. Ownership = scale = exit.
+**Why Dual-Deck AXIOM Wins:**
+Post-quantum cryptography is law of physics (Fortress). Creator economy settlement is regulatory mandate (Platform). We own the governance layer that solves both simultaneously. First-mover in dual-market = unsinkable moat.
 
 **The Mission:**
-In 5 years, every autonomous system runs on AXIOM. Governance is standardized. Trust is cryptographic. Sovereignty is restored.
+In 5 years, every autonomous system + every creator transaction runs on Sovereign Layer 0. Governance is standardized. Trust is cryptographic. Sovereignty is restored. Economy is transparent.
 
 ---
 

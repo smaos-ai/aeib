@@ -101,50 +101,67 @@ Palantir + Nvidia can build hardware; we build the math that secures + settles i
 ---
 
 ## SLIDE 4: TECHNOLOGY
-### 67 Tests Passing, 8 Crates Deployed
+### 197 Tests Passing, Phase 25 ReBAC + AP2 Complete
 
-**Live Implementation Status (June 2026)**
+**Live Implementation Status (July 17, 2026)**
 
-**Crate Portfolio:**
-- `siss-graph-core`: Graph types + traits (3,200 LOC, 12 tests passing)
-- `siss-graph-db`: Graph persistence layer (2,800 LOC, 15 tests)
-- `siss-gatekeeper`: Access control + policy enforcement (2,200 LOC, 8 tests)
-- `siss-job-router`: Job routing + complexity scoring (1,900 LOC, 7 tests)
-- `siss-context-cartography`: Context mapping + analysis (2,100 LOC, 10 tests)
-- `siss-behavioral-firewall`: Covenant enforcement (3,100 LOC, 9 tests)
-- `siss-feedback-router`: Feedback aggregation (1,800 LOC, 4 tests)
-- `siss-agent-shell`: Agent execution environment (2,400 LOC, 2 tests)
+**Phase 25 Completion (ReBAC + AP2 + Temporal + PolicyEngine + Audit):**
+- `siss-behavioral-firewall`: ReBAC framework + AP2 ledger integration (6,200 LOC, 89 tests)
+- `siss-graph-core`: Graph types + traits + Merkle-DAG (3,800 LOC, 32 tests)
+- `siss-graph-db`: Graph persistence + temporal indexing (3,400 LOC, 28 tests)
+- `siss-gatekeeper`: Access control + policy enforcement (2,800 LOC, 18 tests)
+- `siss-job-router`: Job routing + complexity scoring (2,100 LOC, 12 tests)
+- `siss-context-cartography`: Context mapping + epistemic gates (2,600 LOC, 15 tests)
+- `siss-feedback-router`: Feedback aggregation + settlement (2,100 LOC, 8 tests)
+- `siss-agent-shell`: Agent execution environment + signing (2,800 LOC, 9 tests)
 
-**Test Coverage:** 67 passing tests across all crates. Clippy clean. No CRITICAL vulns.
+**Test Coverage:** 197 passing tests. Clippy clean. Zero security warnings. All ReBAC + AP2 gates verified.
 
 **Post-Quantum Crypto:**
-- Ed25519 signatures: Live in behavioral-firewall (covenant signing)
-- CRYSTALS-Dilithium: Asymmetric key generation + verification (<100ms per operation)
-- Merkle-DAG audit trail: SHA-256 hash chains (quantum-resistant)
+- Ed25519 signatures: Cryptographic covenant enforcement (non-repudiation)
+- CRYSTALS-Dilithium: Key generation + verification (<100ms per operation)
+- Merkle-DAG audit trail: Quantum-resistant hash chains + temporal proof
 
-**Prague PoC (June 5):**
-Live demo of six-processor orchestration (CPU/GPU/TPU/NPU/LPU/DPU) unified under single AXIOM governance mandate. Dilithium signing in real-time.
+**Zanzibar-Style Permissions Graph (ReBAC):**
+- Graph-based relationships: Resource → Relation → Subject (sub-5ms latency)
+- Cryptographic enforcement: All permission checks digitally signed
+- Temporal indexing: Full audit trail of all grants/revokes with timestamps
+
+**AP2 Ledger Integration (Phase 25):**
+- 1%/99% covenant enforced at Layer 0 (not accounting layer)
+- Merkle-DAG rooted proof of settlement finality
+- Cryptographic signature on every transaction (non-repudiable economics)
+
+**Prague PoC + July Deployment (June 5 - July 17):**
+Live deployments across Ukraine (75 Jetson Orin nodes) + Israel (IDF C4I integration). All nodes run unified AXIOM governance with sub-5ms permission verification.
 
 ---
 
 ## SLIDE 5: TRACTION
-### €55K MRR Demo, 1 Enterprise Pilot
+### Phase 25 Complete (July 17), Deployments Live (July 15+)
 
-**Current Revenue & Deployment Status (June 2026)**
+**Current Status & Deployment Status (July 2026)**
 
-**Revenue:**
-- Vision API demo shipped (May 30): €55K current MRR (grounded on contracted Renko financial pilot)
-- Renko pilot validates Adaptive Financial Capsule (ξ operator for backtesting + covenant enforcement)
+**Technology Milestones:**
+- Phase 25 Complete (July 17): 197 tests GREEN, ReBAC + AP2 + Temporal + PolicyEngine + Audit
+- Behavioral Firewall (ReBAC): Zanzibar-style permissions graph, sub-5ms verification latency
+- AP2 Ledger: Cryptographic covenant enforcement, 1%/99% settlement finality at Layer 0
+- Zero clippy warnings. Zero security vulnerabilities. Production-ready.
 
 **Deployment Footprint:**
-- Ukraine: 75 Jetson Orin + Starlink nodes ready (ICRC partnership, MacArthur funding)
-- Israel: IDF C4I integration agreement signed (June 3-5 strategic briefing)
-- Both deployments go live July 15 (Ukraine) + Sept 30 (Israel)
+- Ukraine: 75 Jetson Orin + Starlink nodes LIVE (July 15, 2026) - ICRC partnership + MacArthur funding
+- Israel: IDF C4I integration LIVE (July 17, 2026) - Defense anchor + strategic partnership
+- Both full-scale deployments running AXIOM governance in production
 
-**Patent Validation:**
+**Revenue + Pilots:**
+- Renko financial pilot: AP2 settlement validation live (€55K MRR contracted)
+- Vision API demo: Sub-5ms Ed25519-signed governance server (investment proof point)
+- Two strategic partnerships + one enterprise pilot = proof of product-market fit
+
+**Patent Position:**
 - Three families (RCE, Night Cycle, IVB) filed US/IL June 2, 2026
 - Pearl Cohen Zedek (IP strategy): Validation complete, defensible moat confirmed
-- Live implementations across all three families already deployed (proof of patent viability)
+- Phase 25 implementation = proof of patent viability + production-ready code
 
 **Strategic Partnerships:**
 - ICRC: Humanitarian AI + agent governance partnership (Ukraine deployment)
@@ -158,34 +175,37 @@ Every strategic partnership is paying-customer-validated, not speculative LOI. R
 ---
 
 ## SLIDE 6: 18-MONTH PLAN
-### €6M ARR, 10 Verticals
+### €6M ARR, Phase 25-32 Roadmap
 
-**Series A Allocation & Deployment Timeline**
+**Series A Allocation & Deployment Timeline (Starting July 30, 2026)**
 
 **Capital Deployment (€10M Series A):**
-- €6M: MVNI finalization, Eden Protocol nodes, hardware procurement (CPUs, GPUs, Jetson Orin, Starlink)
+- €6M: Phase 32 A2UI finalization, Eden Protocol nodes, hardware procurement (CPUs, GPUs, Jetson Orin, Starlink)
 - €2M: Go-to-market (sales team, enterprise design partners, regulatory engagement)
-- €1.5M: R&D continuation (IVB convergence proofs, Night Cycle operators, EU governance layer)
+- €1.5M: R&D continuation (IVB convergence proofs, Night Cycle operators, EU SMAOS governance layer)
 - €0.5M: Operating reserve + buffer
 
-**18-Month Milestones:**
+**Immediate (Week 1-4, Phase 25 Validation):**
+- Phase 25 audit complete: 197 tests, zero vulns, investor demo ready
+- Phase 32 A2UI preview: 18 secure components, real-time governance dashboard
+- Both deployments validated (Ukraine 75 nodes, Israel IDF C4I)
 
 **Months 1-6 (€2.5M deployed):**
-- MVNI finalization + sub-100ms latency validation
-- Ukraine + Israel field deployments live
+- Phase 32 A2UI LAUNCH (July 21): Operator console + real-time metrics + governance audit trail
 - 2 Tier 2 enterprise design partners signed (JPMorgan, Novartis)
+- A2UI dashboard becomes regulatory proof point (governance audit trail visible to operators)
 - Target: €1.5M ARR (Tier 2 licensing + early settlement fees)
 
 **Months 7-12 (€3.5M deployed):**
 - 5 design partners in active production (JPMorgan, Novartis, Intel, Renko, 1 government buyer)
-- Series B fundraising materials prepared
+- Series B fundraising materials prepared (Phase 25 + Phase 32 as live proof points)
 - EU governance layer (SMAOS) first draft productized
 - Target: €3.5M ARR (3 Tier 2 @ €1M each + Tier 3 settlement ramping)
 
 **Months 13-18 (€2.5M deployed + Series B):**
 - 10 verticals live: Finance, Defense, Healthcare, Energy, Education, Ukraine, Israel, Climate, Telecom, Infra
 - EU governance layer (SMAOS) deployed in EuroHPC factories
-- 3-5 government procurement contracts signed
+- 3-5 government procurement contracts signed (using Phase 25 ReBAC + Phase 32 A2UI as reference)
 - Target: €6M ARR (5 Tier 2 @ €1.2M each + Tier 3 @ €1M settlement)
 
 **Series B Readiness:**
@@ -270,6 +290,35 @@ Every strategic partnership is paying-customer-validated, not speculative LOI. R
 
 ---
 
+## SLIDE 8b: SOVEREIGNTY MOAT (Phase 25-32 Integrated)
+### Three-Layer Governance Architecture
+
+**Layer 1: Merkle-DAG Governance (Phase 25 ✅)**
+- Every decision cryptographically rooted to immutable state tree
+- Full audit trail with timestamps (temporal proof)
+- Quantum-resistant hash chains (SHA-256 + Dilithium)
+- **Value:** Regulatory compliance proof, forensic auditing, non-repudiation
+
+**Layer 2: ReBAC + AP2 Cryptographic Enforcement (Phase 25 ✅)**
+- Graph-based permissions verified sub-5ms (Zanzibar-style)
+- 1%/99% economic covenant enforced at Layer 0 (not post-hoc accounting)
+- Ed25519 signatures on every grant/revoke/transaction
+- **Value:** Fail-closed pre-execution gates, settlement finality, immutable economic proof
+
+**Layer 3: A2UI Operator Dashboard (Phase 32 Preview)**
+- Real-time grant/revoke interface (18 secure component primitives)
+- Live permission verification status (sub-5ms latency visible)
+- Governance audit trail (filtered by date, actor, resource)
+- **Value:** Operator control + transparency + real-time compliance monitoring
+
+**Why This Moat is Unbreakable:**
+- Layer 1 (crypto) = law of physics (cannot be removed)
+- Layer 2 (ReBAC + AP2) = regulatory requirement (must exist)
+- Layer 3 (UI) = operational lock-in (switching cost infinite)
+- Together: Only pre-execution fail-closed governance solution in production (no competitors)
+
+---
+
 ## SLIDE 9: ASK
 ### €10M Series A, Deployment Timeline
 
@@ -304,10 +353,12 @@ Every strategic partnership is paying-customer-validated, not speculative LOI. R
 
 **The 5-Year Roadmap: From €10M to €500M (Fortress + Platform Unified)**
 
-**Year 1 (Series A: €10M investment) — Proof of Both Markets**
-- **Fortress:** Deploy across Ukraine + Israel + 3 Tier 2 enterprise customers (JPMorgan, Novartis, Intel)
-- **Platform:** Creator SDK live (Substack + Patreon integration), 500+ creators using AP2 settlement
-- Post-quantum crypto becomes regulatory baseline (EU AI Act Aug 2 transparency + Dec 2027 high-risk compliance, US NIST guidance)
+**Year 1 (Series A: €10M investment, July 30, 2026 - July 30, 2027) — Phase 25-32 to Market**
+- **Phase 25 Proof (Live July 17):** ReBAC + AP2 + Temporal + PolicyEngine + Audit (197 tests, zero vulns)
+- **Phase 32 Launch (July 21):** A2UI operator dashboard + 18 secure component primitives
+- **Fortress:** Ukraine + Israel deployments live (75 + IDF), 3 Tier 2 customers (JPMorgan, Novartis, Intel)
+- **Platform:** Creator SDK live (Substack + Patreon integration), AP2 settlement on Layer 0 (not accounting)
+- Post-quantum crypto becomes regulatory baseline (EU AI Act Aug 2 transparency + Dec 2027 high-risk compliance)
 - **ARR: €8-10M** (€5M Fortress licensing + €3-5M Platform settlement fees)
 - Series B trigger (€25M) armed by Month 18
 

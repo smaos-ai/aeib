@@ -101,55 +101,57 @@ impl CachedDecision {
 /// Per-actor, per-resource rate limiter using sliding window
 #[derive(Debug, Clone)]
 struct RateLimitState {
-    requests: VecDeque<SystemTime>,
+    requests: Arc<Mutex<VecDeque<SystemTime>>>,
     max_per_minute: u32,
 }
 
 impl RateLimitState {
     fn new(max_per_minute: u32) -> Self {
         RateLimitState {
-            requests: VecDeque::new(),
+            requests: Arc::new(Mutex::new(VecDeque::new())),
             max_per_minute,
         }
     }
 
-    fn try_request(&mut self) -> bool {
+    fn try_request(&self) -> bool {
         let now = SystemTime::now();
+        let mut requests = self.requests.lock().unwrap();
 
         // Expire old requests (older than 60 seconds)
-        while let Some(&oldest) = self.requests.front() {
+        while let Some(&oldest) = requests.front() {
             match now.duration_since(oldest) {
                 Ok(elapsed) if elapsed > Duration::from_secs(60) => {
-                    self.requests.pop_front();
+                    requests.pop_front();
                 }
                 _ => break,
             }
         }
 
         // Check if at capacity
-        if self.requests.len() >= self.max_per_minute as usize {
+        if requests.len() >= self.max_per_minute as usize {
             return false;
         }
 
         // Record this request
-        self.requests.push_back(now);
+        requests.push_back(now);
         true
     }
 
-    fn current_count(&mut self) -> usize {
+    fn current_count(&self) -> usize {
         let now = SystemTime::now();
+        let mut requests = self.requests.lock().unwrap();
 
         // Expire old requests
-        while let Some(&oldest) = self.requests.front() {
+        while let Some(&oldest) = requests.front() {
             match now.duration_since(oldest) {
                 Ok(elapsed) if elapsed > Duration::from_secs(60) => {
-                    self.requests.pop_front();
+                    requests.pop_front();
                 }
                 _ => break,
             }
         }
 
-        self.requests.len()
+        requests.len()
     }
 }
 
@@ -179,11 +181,25 @@ impl TemporalGuard {
     }
 
     /// NEW API: Check (actor_id, resource_id) pair with rate limit + time window
-    /// Uses decision caching (1-min TTL)
+    /// Uses decision caching (1-min TTL) only for time window denials
+    /// Rate limit checks are NOT cached since the window is sliding
     pub fn check_with_resource(&self, actor_id: Uuid, resource_id: Uuid) -> Result<(), DenyReason> {
         let key = (actor_id, resource_id);
 
-        // Check cache first
+        // Check rate limit first (per-actor, per-resource)
+        // NOTE: We do NOT cache rate limit decisions since the window is sliding (0-60s)
+        let entry = self
+            .rate_limiter
+            .entry(key)
+            .or_insert_with(|| RateLimitState::new(60));
+
+        if !entry.try_request() {
+            let count = entry.current_count();
+            let reason = format!("Rate limit exceeded: {}/60 requests in last 60s", count);
+            return Err(DenyReason::TemporalViolation(reason));
+        }
+
+        // Check cache for time window decisions
         if let Some(cached) = self.decision_cache.get(&key) {
             if !cached.is_expired() {
                 if cached.allowed {
@@ -196,31 +212,7 @@ impl TemporalGuard {
             }
         }
 
-        // Cache miss or expired: re-evaluate
-
-        // Check rate limit first (per-actor, per-resource)
-        let mut entry = self
-            .rate_limiter
-            .entry(key)
-            .or_insert_with(|| RateLimitState::new(60));
-
-        if !entry.try_request() {
-            let count = entry.current_count();
-            let reason = format!("Rate limit exceeded: {}/60 requests in last 60s", count);
-            drop(entry); // Release the entry
-
-            self.decision_cache.insert(
-                key,
-                CachedDecision {
-                    allowed: false,
-                    reason: Some(reason.clone()),
-                    timestamp: SystemTime::now(),
-                },
-            );
-            return Err(DenyReason::TemporalViolation(reason));
-        }
-
-        // Check time windows
+        // Cache miss or expired: check time windows
         if let Err(e) = self.check_time_window_utc(resource_id) {
             self.decision_cache.insert(
                 key,

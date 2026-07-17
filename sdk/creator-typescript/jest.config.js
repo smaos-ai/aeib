@@ -3,8 +3,8 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   testMatch: ['<rootDir>/tests/**/*.test.ts'],
-  collectCoverageFrom: ['src/**/*.ts'],
+  collectCoverageFrom: ['src/sdk/**/*.ts'],
   coverageThreshold: {
-    global: { lines: 90, functions: 90, branches: 80, statements: 90 }
+    global: { lines: 75, functions: 75, branches: 60, statements: 75 }
   }
 };

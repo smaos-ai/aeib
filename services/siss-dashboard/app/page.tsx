@@ -28,6 +28,24 @@ export default function Landing() {
             </div>
           </Link>
 
+          <Link href="/creator-platform" className="bg-gray-900 border border-gray-800 rounded-xl p-8 shadow-sm hover:border-green-500 transition-colors block">
+            <div className="flex justify-between items-start mb-4">
+              <h2 className="text-2xl font-semibold text-green-400">Creator Platform</h2>
+              <span className="bg-green-900 text-xs px-3 py-1 rounded text-green-200">MVP</span>
+            </div>
+            <div className="space-y-3 text-sm text-gray-400">
+              <p>Real-time royalty tracking and payments for content creators.</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Creator Profiles & Onboarding</li>
+                <li>Real-Time MRR Dashboard</li>
+                <li>Royalty Settlement Ledger</li>
+                <li>Stripe Payment Integration</li>
+                <li>WebSocket Live Updates</li>
+                <li>Monthly Breakdown Analytics</li>
+              </ul>
+            </div>
+          </Link>
+
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-8">
             <div className="flex justify-between items-start mb-4">
               <h2 className="text-2xl font-semibold text-green-400">System Status</h2>

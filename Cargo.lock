@@ -5068,6 +5068,7 @@ dependencies = [
  "chrono",
  "dashmap",
  "ed25519-dalek",
+ "flate2",
  "regex",
  "serde",
  "serde_json",

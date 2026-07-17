@@ -5,7 +5,7 @@
 
 use uuid::Uuid;
 use siss_behavioral_firewall::temporal::{TemporalGuard, TimeWindow};
-use chrono::Utc;
+use chrono::{Utc, Datelike, Timelike};
 
 // ============================================================================
 // TIER 1: Rate Limiting (60 req/min sliding window) - 5 tests

@@ -100,3 +100,88 @@ mod stream6_gdpr_nis2 {
         assert_eq!(types.len(), 4);
     }
 }
+
+#[cfg(test)]
+mod stream7_eu_data_residency {
+    use crate::data_residency::{EUDataGuard, DomainValidator};
+
+    #[test]
+    fn test_eu_data_residency_enforced() {
+        let guard = EUDataGuard::new();
+        assert!(guard.validate_frankfurt_residency("eu-central-1.amazonaws.com").is_ok());
+        assert!(guard.validate_frankfurt_residency("user@us-east-1.amazonaws.com").is_err());
+    }
+
+    #[test]
+    fn test_domain_validator_rejects_non_eu() {
+        let validator = DomainValidator::new();
+        assert!(validator.is_eu_domain("example.de").is_ok());
+        assert!(validator.is_eu_domain("example.com").is_err());
+    }
+}
+
+#[cfg(test)]
+mod stream8_nis2_mapping {
+    use crate::nis2_mapping::{NIS2AssetMapper, CriticalAssetType};
+
+    #[test]
+    fn test_nis2_asset_mapping_complete() {
+        let mapper = NIS2AssetMapper::new();
+        let cryptography_assets = mapper.get_assets_by_type(CriticalAssetType::Cryptography);
+        assert!(!cryptography_assets.is_empty());
+
+        let incident_response = mapper.get_assets_by_type(CriticalAssetType::IncidentResponse);
+        assert!(!incident_response.is_empty());
+
+        let supply_chain = mapper.get_assets_by_type(CriticalAssetType::SupplyChain);
+        assert!(!supply_chain.is_empty());
+    }
+}
+
+#[cfg(test)]
+mod stream9_gdpr_rights {
+    use uuid::Uuid;
+    use crate::data_subject_rights::DataSubjectRightsService;
+
+    #[test]
+    fn test_gdpr_right_to_be_forgotten() {
+        let service = DataSubjectRightsService::new();
+        let subject_id = Uuid::new_v4();
+        let result = service.execute_right_to_be_forgotten(subject_id);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_gdpr_right_to_access_data() {
+        let service = DataSubjectRightsService::new();
+        let subject_id = Uuid::new_v4();
+        let result = service.execute_right_to_access(subject_id);
+        assert!(result.is_ok());
+        if let Ok(data) = result {
+            assert!(!data.is_empty());
+        }
+    }
+
+    #[test]
+    fn test_gdpr_right_to_data_portability() {
+        let service = DataSubjectRightsService::new();
+        let subject_id = Uuid::new_v4();
+        let result = service.execute_data_portability(subject_id);
+        assert!(result.is_ok());
+    }
+}
+
+#[cfg(test)]
+mod stream10_compliance_dashboard {
+    use crate::compliance_dashboard::ComplianceDashboard;
+
+    #[test]
+    fn test_compliance_dashboard_metrics_accurate() {
+        let dashboard = ComplianceDashboard::new();
+        let metrics = dashboard.get_metrics();
+
+        assert!(metrics.gdpr_consent_percentage >= 0.0 && metrics.gdpr_consent_percentage <= 100.0);
+        assert!(metrics.nis2_readiness_score >= 0.0 && metrics.nis2_readiness_score <= 100.0);
+        assert!(metrics.eu_data_residency_verified);
+    }
+}

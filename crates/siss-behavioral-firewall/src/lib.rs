@@ -36,4 +36,4 @@ pub use policy_engine::{
     Decision,
 };
 pub use policy::{PolicyEngine, PolicyComposer, CycleDetector};
-pub use audit::{AuditLogger, AuditArchive, AuditEvent, EventType, MerkleArchive};
+pub use audit::{AuditLogger, AuditArchive, AuditEvent, EventType, MerkleArchive, S3Exporter, S3ArchiveMetadata};

@@ -57,7 +57,49 @@
       "mcp__notebooklm__source_list_drive",
       "Bash(mkdir -p /Users/andriileukhin/.claude/patent)",
       "Read(//Users/andriileukhin/.claude/**)",
-      "WebFetch(domain:www.pearlcohen.com)"
+      "WebFetch(domain:www.pearlcohen.com)",
+      "WebFetch(domain:www.facebook.com)",
+      "WebFetch(domain:1813349683209503.a.metaaiusercontent.com)",
+      "WebFetch(domain:thompsonpatentlaw.com)",
+      "WebFetch(domain:www.uspto.gov)",
+      "WebFetch(domain:www.cooley.com)",
+      "WebFetch(domain:www.sternekessler.com)",
+      "WebFetch(domain:www.linkedin.com)",
+      "WebFetch(domain:www.avvo.com)",
+      "WebFetch(domain:www.google.com)",
+      "WebFetch(domain:www.arnoldporter.com)",
+      "WebFetch(domain:www.lpglobal.com)",
+      "WebFetch(domain:www.knobbe.com)",
+      "WebFetch(domain:www.mofo.com)",
+      "WebFetch(domain:www.fandor.com)",
+      "WebFetch(domain:www.justia.com)",
+      "WebFetch(domain:www.patentxl.com)",
+      "WebFetch(domain:www.americanbar.org)",
+      "WebFetch(domain:www.patentlyo.com)",
+      "WebFetch(domain:www.crunchbase.com)",
+      "WebFetch(domain:www.docketalarm.com)",
+      "WebFetch(domain:en.wikipedia.org)",
+      "WebFetch(domain:www.ballardspahr.com)",
+      "WebFetch(domain:www.loewenstein.com)",
+      "WebFetch(domain:www.nytimes.com)",
+      "WebFetch(domain:www.fenwick.com)",
+      "WebFetch(domain:www.ycombinator.com)",
+      "WebFetch(domain:www.forbes.com)",
+      "WebFetch(domain:www.startupgrind.com)",
+      "WebFetch(domain:www.crowell.com)",
+      "WebFetch(domain:www.reedsmith.com)",
+      "WebFetch(domain:www.livepatent.com)",
+      "WebFetch(domain:www.patentprosecution.com)",
+      "WebFetch(domain:www.ipcyber.com)",
+      "WebFetch(domain:thompson-patents.com)",
+      "WebFetch(domain:prospeo.io)",
+      "WebFetch(domain:leadhaste.com)",
+      "WebFetch(domain:www.vklaw.com)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "WebFetch(domain:claude.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:www.quinnemanuel.com)",
+      "WebFetch(domain:www.gunder.com)"
     ],
     "defaultMode": "acceptEdits"
   },
@@ -65,5 +107,16 @@
     "exa@claude-plugins-official": false
   },
   "permissionMode": "acceptEdits",
-  "dangerouslySkipPermissions": true
+  "dangerouslySkipPermissions": true,
+  "cache_mode": "shared",
+  "auto_memory": {
+    "enabled": false,
+    "reason": "Disabled to prevent concurrent invalidation across 25+ worktrees"
+  },
+  "parallel_worktree_mode": "read_only",
+  "cache_settings": {
+    "updated_at": "2026-07-17",
+    "token_savings_estimate": "~75%",
+    "concurrent_sessions": 25
+  }
 }

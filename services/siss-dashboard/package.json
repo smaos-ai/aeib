@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "seed": "node --require ts-node/register scripts/seed-demo-creators.ts",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:reset": "prisma migrate reset --force"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
@@ -17,7 +20,9 @@
     "react-dom": "19.2.4",
     "recharts": "^2.10.3",
     "axios": "^1.6.0",
-    "swr": "^2.2.0"
+    "swr": "^2.2.0",
+    "ws": "^8.14.2",
+    "crypto": "builtin"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -28,6 +33,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/ws": "^8.5.9",
     "@vitejs/plugin-react": "^4.0.0",
     "@vitest/ui": "^2.0.0",
     "eslint": "^9",
@@ -35,6 +41,7 @@
     "jsdom": "^24.0.0",
     "prisma": "^5.22.0",
     "tailwindcss": "^4",
+    "ts-node": "^10.9.1",
     "typescript": "^5",
     "vitest": "^2.0.0"
   }

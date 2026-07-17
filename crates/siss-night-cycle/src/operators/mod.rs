@@ -1,6 +1,8 @@
+use serde::{Serialize, Deserialize};
 use serde_json::Value;
 
 pub mod phi;
+pub mod phi_pruner;
 pub mod delta;
 pub mod gamma;
 
@@ -8,11 +10,12 @@ pub mod gamma;
 mod tests;
 
 pub use phi::PhiOperator;
+pub use phi_pruner::SafePruningPhiOperator;
 pub use delta::DeltaOperator;
 pub use gamma::GammaOperator;
 
 /// OntologyEntity: core unit for night cycle operators
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct OntologyEntity {
     pub id: String,
     pub timestamp: i64,

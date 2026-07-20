@@ -9,10 +9,11 @@ use siss_capsule::{
 };
 use siss_behavioral_firewall::{
     ReBAC, AP2Evaluator, SovereignIdentity, PolicyResource, PolicyAction,
-    RelationType, SovereignAttributes, AuditArchive, AuditEvent, EventType,
+    RelationType, AuditArchive,
 };
 use uuid::Uuid;
 use std::time::Instant;
+use std::sync::Arc;
 
 // ============================================================================
 // PHASE 1: Policy Verification Tests (4)
@@ -20,7 +21,7 @@ use std::time::Instant;
 
 #[tokio::test]
 async fn test_baseline_verify_rebac_owner_allows_spawn() {
-    let rebac = ReBAC::new();
+    let rebac = Arc::new(ReBAC::new());
     let baseline = BaselineCapsule::new(rebac.clone());
 
     let sovereign_id = SovereignIdentity(Uuid::new_v4());
@@ -40,7 +41,7 @@ async fn test_baseline_verify_rebac_owner_allows_spawn() {
 
 #[tokio::test]
 async fn test_baseline_verify_non_owner_denies() {
-    let rebac = ReBAC::new();
+    let rebac = Arc::new(ReBAC::new());
     let baseline = BaselineCapsule::new(rebac.clone());
 
     let sovereign_id = SovereignIdentity(Uuid::new_v4());
@@ -61,8 +62,8 @@ async fn test_baseline_verify_non_owner_denies() {
 
 #[tokio::test]
 async fn test_baseline_verify_ap2_attributes_allow() {
-    let rebac = ReBAC::new();
-    let ap2 = AP2Evaluator::new();
+    let rebac = Arc::new(ReBAC::new());
+    let ap2 = Arc::new(AP2Evaluator::with_defaults());
     let baseline = BaselineCapsule::with_ap2(rebac.clone(), ap2.clone());
 
     let sovereign_id = SovereignIdentity(Uuid::new_v4());
@@ -86,8 +87,8 @@ async fn test_baseline_verify_ap2_attributes_allow() {
 
 #[tokio::test]
 async fn test_baseline_verify_ap2_deny_override() {
-    let rebac = ReBAC::new();
-    let ap2 = AP2Evaluator::new();
+    let rebac = Arc::new(ReBAC::new());
+    let ap2 = Arc::new(AP2Evaluator::with_defaults());
     let baseline = BaselineCapsule::with_ap2(rebac.clone(), ap2.clone());
 
     let sovereign_id = SovereignIdentity(Uuid::new_v4());
@@ -115,7 +116,7 @@ async fn test_baseline_verify_ap2_deny_override() {
 
 #[tokio::test]
 async fn test_baseline_tool_call_hash_proof_generation() {
-    let rebac = ReBAC::new();
+    let rebac = Arc::new(ReBAC::new());
     let baseline = BaselineCapsule::new(rebac.clone());
 
     let tool_name = "execute_bash";
@@ -130,7 +131,7 @@ async fn test_baseline_tool_call_hash_proof_generation() {
 
 #[tokio::test]
 async fn test_baseline_tool_call_unsigned_rejected() {
-    let rebac = ReBAC::new();
+    let rebac = Arc::new(ReBAC::new());
     let baseline = BaselineCapsule::new(rebac.clone());
 
     let tool_name = "execute_bash";
@@ -146,7 +147,7 @@ async fn test_baseline_tool_call_unsigned_rejected() {
 
 #[tokio::test]
 async fn test_baseline_tool_call_batch_verification() {
-    let rebac = ReBAC::new();
+    let rebac = Arc::new(ReBAC::new());
     let baseline = BaselineCapsule::new(rebac.clone());
 
     let mut proofs = Vec::new();
@@ -168,7 +169,7 @@ async fn test_baseline_tool_call_batch_verification() {
 
 #[tokio::test]
 async fn test_baseline_context_sovereign_isolation() {
-    let rebac = ReBAC::new();
+    let rebac = Arc::new(ReBAC::new());
     let baseline = BaselineCapsule::new(rebac.clone());
 
     let sovereign_id_a = SovereignIdentity(Uuid::new_v4());
@@ -185,7 +186,7 @@ async fn test_baseline_context_sovereign_isolation() {
 
 #[tokio::test]
 async fn test_baseline_context_rollback_on_failure() {
-    let rebac = ReBAC::new();
+    let rebac = Arc::new(ReBAC::new());
     let baseline = BaselineCapsule::new(rebac.clone());
 
     let sovereign_id = SovereignIdentity(Uuid::new_v4());
@@ -205,7 +206,7 @@ async fn test_baseline_context_rollback_on_failure() {
 
 #[tokio::test]
 async fn test_baseline_context_1_99_covenant_enforcement() {
-    let rebac = ReBAC::new();
+    let rebac = Arc::new(ReBAC::new());
     let baseline = BaselineCapsule::new(rebac.clone());
 
     let sovereign_id = SovereignIdentity(Uuid::new_v4());
@@ -224,8 +225,8 @@ async fn test_baseline_context_1_99_covenant_enforcement() {
 
 #[tokio::test]
 async fn test_baseline_audit_trace_creation() {
-    let rebac = ReBAC::new();
-    let audit = AuditArchive::new();
+    let rebac = Arc::new(ReBAC::new());
+    let audit = Arc::new(AuditArchive::new());
     let baseline = BaselineCapsule::with_audit(rebac.clone(), audit.clone());
 
     let sovereign_id = SovereignIdentity(Uuid::new_v4());
@@ -245,8 +246,8 @@ async fn test_baseline_audit_trace_creation() {
 
 #[tokio::test]
 async fn test_baseline_audit_merkle_proof_verification() {
-    let rebac = ReBAC::new();
-    let audit = AuditArchive::new();
+    let rebac = Arc::new(ReBAC::new());
+    let audit = Arc::new(AuditArchive::new());
     let baseline = BaselineCapsule::with_audit(rebac.clone(), audit.clone());
 
     let sovereign_id = SovereignIdentity(Uuid::new_v4());
@@ -270,8 +271,8 @@ async fn test_baseline_audit_merkle_proof_verification() {
 
 #[tokio::test]
 async fn test_baseline_audit_s3_archive_export() {
-    let rebac = ReBAC::new();
-    let audit = AuditArchive::new();
+    let rebac = Arc::new(ReBAC::new());
+    let audit = Arc::new(AuditArchive::new());
     let baseline = BaselineCapsule::with_audit(rebac.clone(), audit.clone());
 
     let sovereign_id = SovereignIdentity(Uuid::new_v4());

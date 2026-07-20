@@ -303,9 +303,6 @@ fn test_audit_immutable_log_appending() {
 
 #[test]
 fn test_audit_filtering_by_user_access_level() {
-    let _high_access_creator_id = Uuid::new_v4();
-    let _low_access_creator_id = Uuid::new_v4();
-
     let violation_critical = PolicyViolation {
         policy_id: Uuid::new_v4(),
         rule_name: "critical_rule".to_string(),

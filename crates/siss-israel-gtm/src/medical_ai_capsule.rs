@@ -102,7 +102,7 @@ pub struct RegulatoryReport {
 }
 
 pub struct MedicalAICapsule {
-    id: Uuid,
+    pub id: Uuid,
 }
 
 impl MedicalAICapsule {

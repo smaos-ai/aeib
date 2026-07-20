@@ -20,7 +20,7 @@ pub use twitch::TwitchAdapter;
 pub use discord::DiscordAdapter;
 pub use slack::SlackAdapter;
 
-use crate::{PlatformAuth, ActionResult, VisionError, Result, ActionDefinition};
+use crate::{PlatformAuth, ActionResult, Result, ActionDefinition};
 use async_trait::async_trait;
 
 #[async_trait]

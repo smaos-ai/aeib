@@ -36,6 +36,7 @@ pub struct BriefEvent {
 
 /// Generator for daily user briefs
 pub struct BriefGenerator {
+    #[allow(dead_code)]
     batch_size: usize,
 }
 
@@ -80,7 +81,7 @@ impl BriefGenerator {
             .filter(|s| s.policy_violations.is_empty())
             .count();
         let compliance_score = if repos_monitored > 0 {
-            (compliant_repos as f64 / repos_monitored as f64) * 100.0
+            (compliant_repos as f64 / f64::from(repos_monitored)) * 100.0
         } else {
             100.0
         };
@@ -146,13 +147,14 @@ impl BriefGenerator {
         }
 
         // Sort by timestamp descending (newest first)
-        events.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+        events.sort_by_key(|e| std::cmp::Reverse(e.timestamp));
         events.truncate(10); // Keep top 10 events
 
         events
     }
 
     /// Generate briefs for batch of creators
+    #[allow(dead_code)]
     pub fn generate_batch(&self, creator_snapshots: &[(Uuid, Vec<RepoSnapshot>, Vec<DeltaEvent>)]) -> Result<Vec<UserBrief>> {
         let briefs = creator_snapshots
             .iter()

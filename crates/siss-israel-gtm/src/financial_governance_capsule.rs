@@ -104,7 +104,7 @@ pub struct SettlementVerification {
 }
 
 pub struct FinancialGovernanceCapsule {
-    id: Uuid,
+    pub id: Uuid,
 }
 
 impl FinancialGovernanceCapsule {

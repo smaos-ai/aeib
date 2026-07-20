@@ -1,6 +1,5 @@
 use siss_vision_sdk::*;
 use uuid::Uuid;
-use std::collections::HashMap;
 
 // ============================================================================
 // SDK CORE TESTS (10 tests)

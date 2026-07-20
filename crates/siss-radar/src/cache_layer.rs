@@ -13,6 +13,7 @@ pub struct LocalCache {
 #[derive(Debug, Clone)]
 struct CacheEntry {
     sha: String,
+    #[allow(dead_code)]
     timestamp: DateTime<Utc>,
 }
 
@@ -183,11 +184,13 @@ impl CacheLayer {
         if let Some(redis) = &mut self.redis {
             if let Some(sha) = redis.get(repo_id).await? {
                 self.local.set(repo_id, sha.clone()); // Repopulate local
-                return Ok(Some(sha));
+                Ok(Some(sha))
+            } else {
+                Ok(None)
             }
+        } else {
+            Ok(None)
         }
-
-        Ok(None)
     }
 
     /// Check cache hit rate

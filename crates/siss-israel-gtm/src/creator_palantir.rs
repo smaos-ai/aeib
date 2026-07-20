@@ -86,7 +86,7 @@ impl CreatorPalantirDashboard {
 
     pub async fn render_governance_dashboard(&self, tenant_id: Uuid) -> Result<DashboardRender, PalantirError> {
         let html = format!(
-            "<html><body>Governance Dashboard for {}</body></html>",
+            "<html><body><h1>governance dashboard</h1><p>Tenant: {}</p></body></html>",
             tenant_id
         );
 

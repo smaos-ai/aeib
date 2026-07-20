@@ -1,4 +1,4 @@
-use crate::{AuditEntry, RevenueSplit, Settlement, SplitRatio, VisionError, Result, EarningsSummary};
+use crate::{AuditEntry, Settlement, SplitRatio, VisionError, Result, EarningsSummary};
 use uuid::Uuid;
 use std::collections::HashMap;
 use parking_lot::RwLock;

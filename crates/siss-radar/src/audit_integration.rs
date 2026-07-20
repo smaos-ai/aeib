@@ -126,6 +126,13 @@ impl GovernanceEngine {
             policy.enabled = false;
         }
     }
+
+    /// Update policy enabled status
+    pub fn set_policy_enabled(&mut self, name: &str, enabled: bool) {
+        if let Some(policy) = self.policies.iter_mut().find(|p| p.name == name) {
+            policy.enabled = enabled;
+        }
+    }
 }
 
 impl Default for GovernanceEngine {
@@ -276,7 +283,7 @@ mod tests {
         let mut audit = AuditIntegration::new(engine);
         let repo_id = Uuid::new_v4();
 
-        for i in 0..3 {
+        for _i in 0..3 {
             audit.append_log(AuditLog {
                 id: Uuid::new_v4(),
                 repo_id,

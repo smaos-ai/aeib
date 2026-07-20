@@ -39,11 +39,8 @@ pub struct ExecutionContext {
     pub sovereign_identity: String,
     pub isolation_level: ContextIsolation,
     pub created_at: DateTime<Utc>,
-    #[serde(skip)]
     pub state_mutations: std::sync::Arc<parking_lot::Mutex<Vec<(String, String)>>>,
-    #[serde(skip)]
     pub snapshot_data: std::sync::Arc<parking_lot::Mutex<Option<Vec<u8>>>>,
-    #[serde(skip)]
     pub rolled_back: std::sync::Arc<parking_lot::Mutex<bool>>,
 }
 

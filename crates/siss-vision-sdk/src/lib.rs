@@ -49,7 +49,7 @@ impl VisionSDKBuilder {
         self
     }
 
-    pub async fn build(self) -> Result<VisionSDK, VisionError> {
+    pub async fn build(self) -> Result<VisionSDK> {
         Ok(VisionSDK {
             auth_handler: Arc::new(OAuth2Handler::new(self.test_mode)),
             token_manager: Arc::new(TokenManager::new(self.test_mode)),
@@ -67,8 +67,8 @@ impl VisionSDK {
         creator_id: uuid::Uuid,
         platform: &str,
         action: &str,
-        context: &DecisionContext,
-    ) -> Result<DecisionGate, VisionError> {
+        _context: &DecisionContext,
+    ) -> Result<DecisionGate> {
         // Check rate limit
         if !self.rate_limiter.check_limit(creator_id) {
             return Err(VisionError::RateLimited(
@@ -118,7 +118,7 @@ impl VisionSDK {
         policy: &CreatorPolicy,
         platform: &str,
         action: &str,
-    ) -> Result<bool, VisionError> {
+    ) -> Result<bool> {
         for rule in &policy.rules {
             match &rule.condition {
                 PolicyCondition::Always => {

@@ -1,5 +1,5 @@
 use super::PlatformAdapter;
-use crate::{PlatformAuth, ActionResult, ActionStatus, ActionDefinition, VisionError, Result};
+use crate::{PlatformAuth, ActionResult, ActionStatus, ActionDefinition, Result};
 use async_trait::async_trait;
 
 pub struct SubstackAdapter {

@@ -78,7 +78,7 @@ pub struct AccessDecision {
 }
 
 pub struct CyberDefenseCapsule {
-    id: Uuid,
+    pub id: Uuid,
 }
 
 impl CyberDefenseCapsule {

@@ -1,6 +1,5 @@
-use chrono::{DateTime, Utc, Duration, TimeZone};
+use chrono::{DateTime, Utc};
 use uuid::Uuid;
-use std::collections::HashMap;
 
 #[derive(Clone, Debug)]
 pub struct TimeCapsuleCapsule {

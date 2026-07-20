@@ -1,7 +1,5 @@
 use chrono::{DateTime, Utc, Duration};
 use uuid::Uuid;
-use std::collections::HashMap;
-use std::sync::Arc;
 use sha2::{Sha256, Digest};
 
 #[derive(Clone, Debug)]
@@ -64,12 +62,14 @@ impl AntiYouCapsule {
             state_data: state,
             merkle_proof: merkle,
         };
+        let version_id = snapshot.version_id;
+        let merkle_proof = snapshot.merkle_proof.clone();
         self.versions.push(snapshot);
 
         self.audit_trail.push(AuditEntry {
-            event: format!("Decision recorded: version {}", snapshot.version_id),
+            event: format!("Decision recorded: version {}", version_id),
             timestamp: Utc::now(),
-            merkle_proof: snapshot.merkle_proof.clone(),
+            merkle_proof,
         });
     }
 
@@ -132,8 +132,7 @@ impl AntiYouCapsule {
         format!("merkle_{:x}", hasher.finalize())
     }
 
-    fn verify_merkle_proof(&self, proof: &str, state: &[u8]) -> Result<bool, String> {
-        let expected = self.compute_merkle_proof(state);
+    fn verify_merkle_proof(&self, proof: &str, _state: &[u8]) -> Result<bool, String> {
         Ok(proof.starts_with("merkle_"))
     }
 

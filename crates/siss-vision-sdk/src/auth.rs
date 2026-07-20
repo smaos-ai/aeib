@@ -2,7 +2,6 @@ use crate::{OAuth2Token, VisionError, Result};
 use uuid::Uuid;
 use std::collections::HashMap;
 use parking_lot::RwLock;
-use std::sync::Arc;
 use chrono::{Duration, Utc};
 
 pub struct OAuth2Handler {

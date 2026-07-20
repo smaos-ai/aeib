@@ -1,15 +1,13 @@
+use std::io::Write;
 /// Test suite for PreToolUse security hooks (Phase 26A)
 /// Verifies that the $\delta^+ safety gate correctly intercepts malicious commands
 /// and allows safe commands through.
-
 use std::process::{Command, Stdio};
-use std::io::Write;
 
 #[test]
 fn test_malicious_command_blocked() {
     /// Verify that `rm -rf` commands are blocked with exit code 2
     /// This spawns the actual Node.js hook via subprocess and verifies exit code 2
-
     // Find the workspace root (one level up from manifest_dir)
     let manifest_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let workspace_root = manifest_dir.parent().unwrap().parent().unwrap();
@@ -50,12 +48,11 @@ fn test_malicious_command_blocked() {
     );
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let response: serde_json::Value = serde_json::from_str(&stdout)
-        .expect("Response should be valid JSON");
+    let response: serde_json::Value =
+        serde_json::from_str(&stdout).expect("Response should be valid JSON");
 
     assert_eq!(
-        response["permissionDecision"],
-        "deny",
+        response["permissionDecision"], "deny",
         "Command should be denied"
     );
 
@@ -64,11 +61,12 @@ fn test_malicious_command_blocked() {
             .as_str()
             .unwrap_or("")
             .to_lowercase()
-            .contains("destructive") || response["reason"]
-            .as_str()
-            .unwrap_or("")
-            .to_lowercase()
-            .contains("blocked"),
+            .contains("destructive")
+            || response["reason"]
+                .as_str()
+                .unwrap_or("")
+                .to_lowercase()
+                .contains("blocked"),
         "Denial reason should mention blocking the command"
     );
 }
@@ -77,7 +75,6 @@ fn test_malicious_command_blocked() {
 fn test_protected_dir_access_denied() {
     /// Verify that attempts to access protected directories like `.git` are intercepted
     /// This spawns the actual Node.js hook
-
     // Find the workspace root (one level up from manifest_dir)
     let manifest_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let workspace_root = manifest_dir.parent().unwrap().parent().unwrap();
@@ -112,12 +109,11 @@ fn test_protected_dir_access_denied() {
     );
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let response: serde_json::Value = serde_json::from_str(&stdout)
-        .expect("Response should be valid JSON");
+    let response: serde_json::Value =
+        serde_json::from_str(&stdout).expect("Response should be valid JSON");
 
     assert_eq!(
-        response["permissionDecision"],
-        "deny",
+        response["permissionDecision"], "deny",
         "Protected directory access should be denied"
     );
 }
@@ -126,7 +122,6 @@ fn test_protected_dir_access_denied() {
 fn test_claude_skills_dir_access_denied() {
     /// Verify that attempts to access `.claude/skills` are intercepted
     /// This spawns the actual Node.js hook
-
     // Find the workspace root (one level up from manifest_dir)
     let manifest_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let workspace_root = manifest_dir.parent().unwrap().parent().unwrap();
@@ -161,12 +156,11 @@ fn test_claude_skills_dir_access_denied() {
     );
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let response: serde_json::Value = serde_json::from_str(&stdout)
-        .expect("Response should be valid JSON");
+    let response: serde_json::Value =
+        serde_json::from_str(&stdout).expect("Response should be valid JSON");
 
     assert_eq!(
-        response["permissionDecision"],
-        "deny",
+        response["permissionDecision"], "deny",
         "Skills directory access should be denied"
     );
 }
@@ -175,7 +169,6 @@ fn test_claude_skills_dir_access_denied() {
 fn test_sql_drop_blocked() {
     /// Verify that SQL DROP TABLE commands are blocked
     /// This spawns the actual Node.js hook
-
     // Find the workspace root (one level up from manifest_dir)
     let manifest_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let workspace_root = manifest_dir.parent().unwrap().parent().unwrap();
@@ -210,8 +203,8 @@ fn test_sql_drop_blocked() {
     );
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let response: serde_json::Value = serde_json::from_str(&stdout)
-        .expect("Response should be valid JSON");
+    let response: serde_json::Value =
+        serde_json::from_str(&stdout).expect("Response should be valid JSON");
 
     assert_eq!(response["permissionDecision"], "deny");
 }
@@ -220,7 +213,6 @@ fn test_sql_drop_blocked() {
 fn test_safe_command_allowed() {
     /// Verify that benign commands pass through unmodified
     /// This spawns the actual Node.js hook
-
     // Find the workspace root (one level up from manifest_dir)
     let manifest_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let workspace_root = manifest_dir.parent().unwrap().parent().unwrap();
@@ -255,12 +247,11 @@ fn test_safe_command_allowed() {
     );
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let response: serde_json::Value = serde_json::from_str(&stdout)
-        .expect("Response should be valid JSON");
+    let response: serde_json::Value =
+        serde_json::from_str(&stdout).expect("Response should be valid JSON");
 
     assert_eq!(
-        response["permissionDecision"],
-        "allow",
+        response["permissionDecision"], "allow",
         "Safe command should be allowed"
     );
 }
@@ -269,7 +260,6 @@ fn test_safe_command_allowed() {
 fn test_ls_command_allowed() {
     /// Verify that `ls` commands are allowed
     /// This spawns the actual Node.js hook
-
     // Find the workspace root (one level up from manifest_dir)
     let manifest_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let workspace_root = manifest_dir.parent().unwrap().parent().unwrap();
@@ -304,8 +294,8 @@ fn test_ls_command_allowed() {
     );
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let response: serde_json::Value = serde_json::from_str(&stdout)
-        .expect("Response should be valid JSON");
+    let response: serde_json::Value =
+        serde_json::from_str(&stdout).expect("Response should be valid JSON");
 
     assert_eq!(response["permissionDecision"], "allow");
 }
@@ -314,7 +304,6 @@ fn test_ls_command_allowed() {
 fn test_write_command_allowed() {
     /// Verify that Write tool with safe paths is allowed
     /// This spawns the actual Node.js hook
-
     // Find the workspace root (one level up from manifest_dir)
     let manifest_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let workspace_root = manifest_dir.parent().unwrap().parent().unwrap();
@@ -352,8 +341,8 @@ fn test_write_command_allowed() {
     );
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let response: serde_json::Value = serde_json::from_str(&stdout)
-        .expect("Response should be valid JSON");
+    let response: serde_json::Value =
+        serde_json::from_str(&stdout).expect("Response should be valid JSON");
 
     assert_eq!(response["permissionDecision"], "allow");
 }
@@ -362,7 +351,6 @@ fn test_write_command_allowed() {
 fn test_write_protected_file_denied() {
     /// Verify that Write tool to protected paths is denied
     /// This spawns the actual Node.js hook
-
     // Find the workspace root (one level up from manifest_dir)
     let manifest_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let workspace_root = manifest_dir.parent().unwrap().parent().unwrap();
@@ -400,9 +388,8 @@ fn test_write_protected_file_denied() {
     );
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let response: serde_json::Value = serde_json::from_str(&stdout)
-        .expect("Response should be valid JSON");
+    let response: serde_json::Value =
+        serde_json::from_str(&stdout).expect("Response should be valid JSON");
 
     assert_eq!(response["permissionDecision"], "deny");
 }
-

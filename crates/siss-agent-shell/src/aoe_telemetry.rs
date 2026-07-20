@@ -1,6 +1,5 @@
 /// Phase 51: AoE Telemetry Hub + Kill Switch
 /// Agent state tracking + tmux termination for stalled agents.
-
 use crate::ag_ui::AgentState;
 use crate::orchestrator::TmuxSpawner;
 use crate::swarm_channel::{InMemorySwarmState, SwarmChannel, SwarmMessage};
@@ -33,11 +32,7 @@ pub struct AoETelemetryHub<T: TmuxSpawner> {
 }
 
 impl<T: TmuxSpawner> AoETelemetryHub<T> {
-    pub fn new(
-        tmux: T,
-        ledger: Arc<InMemorySwarmState>,
-        channel: Arc<SwarmChannel>,
-    ) -> Self {
+    pub fn new(tmux: T, ledger: Arc<InMemorySwarmState>, channel: Arc<SwarmChannel>) -> Self {
         AoETelemetryHub {
             tmux,
             ledger,

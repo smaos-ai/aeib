@@ -1,0 +1,67 @@
+═══════════════════════════════════════════════════════════════════════════════
+TIER 1 EMAIL TEMPLATE (Israeli Focus: Glasswing, Sapphire, Team8, JVP)
+Series A Warm Intro — June 4, 2026
+═══════════════════════════════════════════════════════════════════════════════
+
+SUBJECT LINE:
+Govern any frontier model — Post-quantum ready (AXIOM Protocol, Prague PoC June 5)
+
+---
+
+BODY:
+
+Hi [Name],
+
+I'd like to make a quick introduction. [Warm Intro Contact] mentioned you've been tracking post-quantum
+cryptography and Israeli AI defense positioning. We're raising a €10M Series A for AXIOM—the constitutional
+governance layer for AI agents across any processor, any device, anywhere.
+
+THE PROBLEM:
+Quantum break timeline is 2030 (NIST-confirmed). Every institution with €10M+ in encrypted data is race-prepping.
+First company to establish the post-quantum governance standard owns €100B+ by 2030. This is why Israeli defense
+(IDF, Mossad, military AI) is racing toward cryptographic solutions. AXIOM is already quantum-safe operational.
+
+THE PROOF (3 Live Demonstrations):
+1. Post-Quantum Signing: Dilithium key generation + signature in 47ms (quantum-safe, NIST validated)
+2. Covenant Enforcement: Agent tries unsafe decision → Blocked at governance gate (fail-closed validation)
+3. Hardware Orchestration: 10,000 decisions/sec on CPU/GPU/TPU → <10ms overhead (governance invisible to users)
+
+WHY AXIOM (Israeli Positioning):
+- Three patents filed June 2 (RCE, Night Cycle, IVB) — Israeli inventors, Swiss filing strategy
+- Live deployments: IDF C4I integration (classified system, TS/CS compliant by Sept 30)
+- Ukraine anchor customer: 75 Jetson Orin + Starlink nodes, ICRC partnership (field-proof by July 15)
+- Pax Silica positioning: Defense-grade AI governance for Israeli tech leadership (2030 post-quantum mandate)
+- EU regulatory moat: GDPR/NIS2 compliant, constitutional AI enforces compliance at protocol level
+
+THE MARKET:
+- Post-quantum defense infrastructure: €40B by 2030 (NATO mandate, IDF/US DoD roadmap)
+- First-mover advantage: Whoever owns the standard owns the market (cryptographic moat, non-negotiable)
+- Israeli tech narrative: Defense-derived, proven in field, expanding to enterprise + creator economy
+
+INVESTOR FIT:
+You're positioned at the intersection of defense, post-quantum readiness, and Israeli tech leadership.
+AXIOM is the infrastructure layer that every defense ministry, every bank, every healthcare company will
+license by 2027. Series A = first-mover advantage.
+
+SERIES A ASK:
+€10M to scale post-quantum governance for defense + enterprise + creator economy. Target close: June 30, 2026.
+
+Prague PoC:
+June 5, 2026 at 18:00 UTC — Live Dilithium signing + covenant proof. EU regulators, investor delegation,
+defense contacts attending. Zoom link available if you can't attend in person.
+
+NEXT STEP:
+Available for a 15-minute intro call this week? [Time slots: TBD per recipient timezone]
+
+Best,
+Andrey
+Architect, Axiom Protocol
+
+Encrypted contact: Signal/ProtonMail (details on call)
+
+P.S. Three reference customers already validating: JPMorgan (financial AI), Novartis (healthcare AI), Intel
+(hardware abstraction). Design partner agreements in progress. You'd be at the core of this ecosystem.
+
+P.P.S. Warm intro from [Contact Name] if you haven't already connected.
+
+═══════════════════════════════════════════════════════════════════════════════

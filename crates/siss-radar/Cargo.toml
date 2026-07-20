@@ -1,0 +1,44 @@
+[package]
+name = "siss-radar"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[dependencies]
+uuid.workspace = true
+chrono.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+sqlx.workspace = true
+
+# Git operations (simplified to avoid version conflicts)
+# gix = { version = "0.60", features = ["blocking-http-transport-reqwest"] }
+
+# Redis caching
+redis = { version = "0.24", features = ["aio", "tokio-comp", "connection-manager"] }
+
+# In-process caching
+dashmap = "5.5"
+
+# HTTP client for Git hosts
+reqwest = { version = "0.12", features = ["json", "stream"] }
+
+# Encryption
+ring = "0.17"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Error handling & utilities
+anyhow = "1.0"
+strum = { version = "0.26", features = ["derive"] }
+strum_macros = "0.26"
+
+[dev-dependencies]
+testcontainers = "0.23"
+tempfile = "3.8"
+
+[lib]

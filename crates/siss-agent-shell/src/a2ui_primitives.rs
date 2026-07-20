@@ -1,5 +1,4 @@
 /// Phase 59: A2UI Primitives Registry — Fail-Closed Component Type Gate
-
 use crate::a2ui::schema::A2UIComponent;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -16,9 +15,24 @@ impl PrimitiveRegistry {
     pub fn is_known(type_name: &str) -> bool {
         matches!(
             type_name,
-            "text" | "badge" | "alert" | "progress" | "divider" | "link" | "tooltip"
-                | "breadcrumb" | "input" | "textarea" | "select" | "checkbox" | "radio"
-                | "button" | "card" | "grid" | "modal" | "table"
+            "text"
+                | "badge"
+                | "alert"
+                | "progress"
+                | "divider"
+                | "link"
+                | "tooltip"
+                | "breadcrumb"
+                | "input"
+                | "textarea"
+                | "select"
+                | "checkbox"
+                | "radio"
+                | "button"
+                | "card"
+                | "grid"
+                | "modal"
+                | "table"
         )
     }
 
@@ -49,9 +63,24 @@ mod tests {
     #[test]
     fn test_registry_knows_all_18_primitives() {
         let names = vec![
-            "text", "badge", "alert", "progress", "divider", "link", "tooltip", "breadcrumb",
-            "input", "textarea", "select", "checkbox", "radio", "button", "card", "grid",
-            "modal", "table",
+            "text",
+            "badge",
+            "alert",
+            "progress",
+            "divider",
+            "link",
+            "tooltip",
+            "breadcrumb",
+            "input",
+            "textarea",
+            "select",
+            "checkbox",
+            "radio",
+            "button",
+            "card",
+            "grid",
+            "modal",
+            "table",
         ];
         for name in names {
             assert!(PrimitiveRegistry::is_known(name), "Should know: {}", name);

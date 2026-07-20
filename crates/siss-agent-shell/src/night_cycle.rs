@@ -2,8 +2,8 @@
 ///
 /// Monitors SwarmMcpServer for idle moments, crystallizes COMPLETE rows via EpisodicCrystallizer,
 /// and safely prunes the hot store. Three fail-closed invariants prevent memory bloat and racing.
-
 use crate::swarm_mcp_server::SwarmStatePayload;
+use chrono::Utc;
 use siss_feedback_router::crystallizer::Crystallizer;
 use siss_feedback_router::types::CrystallizedMemory;
 use siss_graph_core::node::memory::ConsolidationTier;
@@ -13,7 +13,6 @@ use std::collections::HashMap;
 use std::time::Duration;
 use thiserror::Error;
 use uuid::Uuid;
-use chrono::Utc;
 
 /// Trigger heuristic for when to wake the Night Cycle.
 pub struct CompactionTrigger {
@@ -56,9 +55,10 @@ impl CompactionTrigger {
     /// Invariant 1: Must not fire while any agent has status == RUNNING or PAUSED.
     pub fn should_trigger(&self, snapshot: &SwarmSnapshot) -> CompactionDecision {
         // Fail-closed: any unknown status causes skip
-        let has_active = snapshot.payloads.iter().any(|p| {
-            p.status == "RUNNING" || p.status == "PAUSED"
-        });
+        let has_active = snapshot
+            .payloads
+            .iter()
+            .any(|p| p.status == "RUNNING" || p.status == "PAUSED");
 
         if has_active {
             return CompactionDecision::Skip("active agent detected".to_string());
@@ -68,7 +68,11 @@ impl CompactionTrigger {
             return CompactionDecision::Skip("no events to compact".to_string());
         }
 
-        let completed_count = snapshot.payloads.iter().filter(|p| p.status == "COMPLETE").count() as u64;
+        let completed_count = snapshot
+            .payloads
+            .iter()
+            .filter(|p| p.status == "COMPLETE")
+            .count() as u64;
         let time_threshold_met = snapshot.elapsed_since_last_cycle >= self.cycle_interval;
         let count_threshold_met = completed_count >= self.event_count_threshold;
 
@@ -144,22 +148,17 @@ impl<C: Crystallizer> NightCycleEngine<C> {
 
     /// Process FAILED payloads through CIPO distillation.
     /// Constructs minimal CipoTrace objects from FAILED rows and distills them into RefinementSignals.
-    pub fn process_failed_payloads(
-        &self,
-        payloads: &[SwarmStatePayload],
-    ) -> Vec<RefinementSignal> {
+    pub fn process_failed_payloads(&self, payloads: &[SwarmStatePayload]) -> Vec<RefinementSignal> {
         let failed_traces: Vec<CipoTrace> = payloads
             .iter()
             .filter(|p| p.status == "FAILED")
-            .map(|payload| {
-                CipoTrace {
-                    payload: payload.idempotency_key.clone(),
-                    slm_output: payload.payload_json.clone().unwrap_or_default(),
-                    gate_error_raw: "gateway_failure".to_string(),
-                    tier_escalated_from: RoutingTier::Tier1RapidMLX,
-                    tier_escalated_to: RoutingTier::Tier3Opus,
-                    timestamp: Utc::now(),
-                }
+            .map(|payload| CipoTrace {
+                payload: payload.idempotency_key.clone(),
+                slm_output: payload.payload_json.clone().unwrap_or_default(),
+                gate_error_raw: "gateway_failure".to_string(),
+                tier_escalated_from: RoutingTier::Tier1RapidMLX,
+                tier_escalated_to: RoutingTier::Tier3Opus,
+                timestamp: Utc::now(),
             })
             .collect();
 
@@ -183,6 +182,9 @@ mod tests {
             elapsed_since_last_cycle: Duration::from_secs(1),
         };
 
-        assert_eq!(trigger.should_trigger(&snapshot), CompactionDecision::Skip("no events to compact".to_string()));
+        assert_eq!(
+            trigger.should_trigger(&snapshot),
+            CompactionDecision::Skip("no events to compact".to_string())
+        );
     }
 }

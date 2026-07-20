@@ -1,10 +1,10 @@
 use chrono::{DateTime, Utc};
-use serde::{Serialize, Deserialize};
-use uuid::Uuid;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::io::{BufRead, BufReader};
 use std::process::Command;
-use std::io::{BufReader, BufRead};
 use std::time::Instant;
+use uuid::Uuid;
 
 /// Rapid-MLX Integration Module
 /// Local-first inference engine for Apple Silicon with 0.08s cached Time-To-First-Token (TTFT)
@@ -166,10 +166,7 @@ impl RapidMLXEngine {
             .map_err(|e| format!("Failed to spawn MLX subprocess: {}", e))?;
 
         let mut ttft_ms = None;
-        let stdout = child
-            .stdout
-            .take()
-            .ok_or("Failed to open stdout")?;
+        let stdout = child.stdout.take().ok_or("Failed to open stdout")?;
         let reader = BufReader::new(stdout);
 
         let mut output = String::new();
@@ -183,7 +180,9 @@ impl RapidMLXEngine {
             }
         }
 
-        let _ = child.wait().map_err(|e| format!("Process wait failed: {}", e))?;
+        let _ = child
+            .wait()
+            .map_err(|e| format!("Process wait failed: {}", e))?;
 
         let ttft = ttft_ms.unwrap_or(0.0);
         Ok((output, ttft))
@@ -203,13 +202,14 @@ impl RapidMLXEngine {
             },
         );
 
-        let (generated_text, tool_calls, tokens, ttft_ms) = if let Some(snapshot_id) = request.resume_from_snapshot {
-            self.infer_with_snapshot(&request, snapshot_id)?
-        } else if request.use_cached_prompt {
-            self.infer_with_cached_prompt(&request)?
-        } else {
-            self.infer_fresh(&request)?
-        };
+        let (generated_text, tool_calls, tokens, ttft_ms) =
+            if let Some(snapshot_id) = request.resume_from_snapshot {
+                self.infer_with_snapshot(&request, snapshot_id)?
+            } else if request.use_cached_prompt {
+                self.infer_with_cached_prompt(&request)?
+            } else {
+                self.infer_fresh(&request)?
+            };
 
         let elapsed = start_time.elapsed();
         let total_time_ms = elapsed.as_secs_f32() * 1000.0;
@@ -232,12 +232,13 @@ impl RapidMLXEngine {
         Ok(response)
     }
 
-    fn infer_fresh(&self, request: &InferenceRequest) -> Result<(String, Vec<ToolCall>, usize, f32), String> {
+    fn infer_fresh(
+        &self,
+        request: &InferenceRequest,
+    ) -> Result<(String, Vec<ToolCall>, usize, f32), String> {
         if MlxAvailabilityProbe::check() {
-            let (output, ttft) = self.spawn_mlx_subprocess(
-                &request.prompt,
-                request.system_prompt.as_deref(),
-            )?;
+            let (output, ttft) =
+                self.spawn_mlx_subprocess(&request.prompt, request.system_prompt.as_deref())?;
             let tool_calls = self.extract_tool_calls(&request.tools);
             Ok((output, tool_calls, 150, ttft))
         } else {
@@ -330,20 +331,26 @@ impl RapidMLXEngine {
     }
 
     fn hash_prompt(prompt: &str) -> String {
-        use sha2::{Sha256, Digest};
+        use sha2::{Digest, Sha256};
         let mut hasher = Sha256::new();
         hasher.update(prompt.as_bytes());
         hex::encode(hasher.finalize())
     }
 
     fn compute_state_hash(session_id: &Uuid) -> String {
-        use sha2::{Sha256, Digest};
+        use sha2::{Digest, Sha256};
         let mut hasher = Sha256::new();
         hasher.update(session_id.to_string().as_bytes());
         hex::encode(hasher.finalize())
     }
 
-    fn record_metric(&mut self, response: &InferenceResponse, ttft: f32, total_time: f32, tokens: usize) {
+    fn record_metric(
+        &mut self,
+        response: &InferenceResponse,
+        ttft: f32,
+        total_time: f32,
+        tokens: usize,
+    ) {
         let tps = tokens as f32 / (total_time / 1000.0);
         self.inference_metrics.push(InferenceMetric {
             request_id: response.request_id,

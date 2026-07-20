@@ -1,9 +1,8 @@
 /// Phase 54: Headless GUI Sandbox — δ+ Jail with Exclusive Container Token
 /// Non-Clone token enforces exclusive agent-to-port binding via Rust ownership.
-
 use std::collections::HashMap;
-use std::sync::Mutex;
 use std::sync::Arc;
+use std::sync::Mutex;
 use uuid::Uuid;
 
 pub trait ContainerDriver: Send + Sync {
@@ -11,7 +10,7 @@ pub trait ContainerDriver: Send + Sync {
     fn stop_container(&self, container_id: &str) -> Result<(), GuiSandboxError>;
 }
 
-#[derive(Debug)]  // NO Clone — intentional
+#[derive(Debug)] // NO Clone — intentional
 pub struct GuiContainerToken {
     pub container_id: String,
     pub agent_id: Uuid,

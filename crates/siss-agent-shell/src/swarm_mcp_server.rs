@@ -1,6 +1,5 @@
 /// MCP server for swarm state synchronization via Unix socket.
 /// Single source of truth: idempotent upsert semantics via PRIMARY KEY on idempotency_key.
-
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -41,7 +40,10 @@ impl SwarmMcpServer {
     }
 
     /// Retrieve global state snapshot with optional phase filter.
-    pub async fn get_global_state(&self, filter: GlobalStateFilter) -> Result<Vec<SwarmStatePayload>, String> {
+    pub async fn get_global_state(
+        &self,
+        filter: GlobalStateFilter,
+    ) -> Result<Vec<SwarmStatePayload>, String> {
         let state = self.state.read().await;
         let mut result = Vec::new();
 
@@ -84,7 +86,10 @@ mod tests {
         let result = server.update_swarm_state(req.clone()).await;
         assert!(result.is_ok());
 
-        let state = server.get_global_state(GlobalStateFilter { phase_filter: None }).await.unwrap();
+        let state = server
+            .get_global_state(GlobalStateFilter { phase_filter: None })
+            .await
+            .unwrap();
         assert_eq!(state.len(), 1);
         assert_eq!(state[0].idempotency_key, req.idempotency_key);
     }

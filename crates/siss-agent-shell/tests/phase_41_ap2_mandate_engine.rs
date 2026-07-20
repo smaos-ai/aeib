@@ -1,14 +1,13 @@
+use chrono::Utc;
+use siss_gatekeeper::nonce::{InMemoryNonceLedger, NonceBurnError, NonceLedger};
+use siss_gatekeeper::payload::build_execution_mandate_payload;
 /// Phase 41: AP2 Mandate Engine & Cryptographic Governance
 /// 6 TDD tests covering:
 /// - Mandate Typology: CartMandate, ExecutionMandate with Ed25519 signatures (Invariant 1)
 /// - Separation of Responsibilities: agent cannot forge execution credentials (Invariant 2)
 /// - Nonce Burn Protocol: one-time-use nonces enforced fail-closed (Invariant 3)
-
 use siss_gatekeeper::signer::{LocalEd25519Signer, MockSigner, Signer};
 use siss_gatekeeper::tokens::{CartMandate, ExecutionMandate};
-use siss_gatekeeper::payload::build_execution_mandate_payload;
-use siss_gatekeeper::nonce::{InMemoryNonceLedger, NonceLedger, NonceBurnError};
-use chrono::Utc;
 use uuid::Uuid;
 
 // ============================================================================
@@ -38,7 +37,9 @@ fn test_execution_mandate_signing_roundtrip() {
     let signature = signer.sign(&payload).expect("signing should succeed");
 
     // THEN: verify with the same signer returns true
-    let is_valid = signer.verify(&payload, &signature).expect("verify should return bool");
+    let is_valid = signer
+        .verify(&payload, &signature)
+        .expect("verify should return bool");
     assert!(is_valid, "signature should verify against original payload");
 }
 
@@ -68,10 +69,12 @@ fn test_execution_mandate_tampered_fails() {
     let signature = signer.sign(&payload).expect("signing should succeed");
 
     // WHEN: tamper with one byte in the payload
-    payload[5] ^= 0xFF;  // flip bits
+    payload[5] ^= 0xFF; // flip bits
 
     // THEN: verification fails
-    let is_valid = signer.verify(&payload, &signature).expect("verify should return bool");
+    let is_valid = signer
+        .verify(&payload, &signature)
+        .expect("verify should return bool");
     assert!(
         !is_valid,
         "signature should NOT verify against tampered payload"
@@ -86,7 +89,7 @@ fn test_execution_mandate_tampered_fails() {
 fn test_separation_agent_cannot_forge() {
     // GIVEN: real signer (cockpit) and mock signer (agent)
     let cockpit_signer = LocalEd25519Signer::generate();
-    let agent_signer = MockSigner;  // always produces [0xAA; 64]
+    let agent_signer = MockSigner; // always produces [0xAA; 64]
 
     let mandate_id = Uuid::new_v4();
     let intent_mandate_id = Uuid::new_v4();
@@ -104,7 +107,9 @@ fn test_separation_agent_cannot_forge() {
     );
 
     // WHEN: agent (MockSigner) tries to forge a signature
-    let forged_signature = agent_signer.sign(&payload).expect("mock signer always succeeds");
+    let forged_signature = agent_signer
+        .sign(&payload)
+        .expect("mock signer always succeeds");
 
     // THEN: cockpit's verifier rejects the forged signature
     let is_valid = cockpit_signer
@@ -169,15 +174,16 @@ fn test_rce_mandate_exhausted_triggers_interrupt() {
     // GIVEN: mandate parameters showing exhausted state
     let mandate_id = Uuid::new_v4();
     let budget_limit = 1000;
-    let budget_spent = 1000;  // exhausted
-    let is_exhausted = budget_spent > budget_limit;  // false in this case, need budget_spent >= budget_limit
+    let budget_spent = 1000; // exhausted
+    let is_exhausted = budget_spent > budget_limit; // false in this case, need budget_spent >= budget_limit
 
     // Create a minimal RCE instance to test the interrupt checker
     let workflow_id = Uuid::new_v4();
     let rce = siss_graph_db::rce::ResumableCognitiveExecution::new(workflow_id);
 
     // WHEN: check for mandate exhaustion interrupt with exhausted budget
-    let interrupt = rce.check_mandate_exhausted_interrupt(mandate_id, true, budget_spent, budget_limit);
+    let interrupt =
+        rce.check_mandate_exhausted_interrupt(mandate_id, true, budget_spent, budget_limit);
 
     // THEN: returns Some(InterruptSignal) with correct fields
     assert!(
@@ -205,14 +211,15 @@ fn test_rce_mandate_not_exhausted_no_interrupt() {
     // GIVEN: mandate parameters showing active state
     let mandate_id = Uuid::new_v4();
     let budget_limit = 1000;
-    let budget_spent = 500;  // not exhausted
+    let budget_spent = 500; // not exhausted
     let is_exhausted = false;
 
     let workflow_id = Uuid::new_v4();
     let rce = siss_graph_db::rce::ResumableCognitiveExecution::new(workflow_id);
 
     // WHEN: check for mandate exhaustion interrupt with active budget
-    let interrupt = rce.check_mandate_exhausted_interrupt(mandate_id, is_exhausted, budget_spent, budget_limit);
+    let interrupt =
+        rce.check_mandate_exhausted_interrupt(mandate_id, is_exhausted, budget_spent, budget_limit);
 
     // THEN: returns None
     assert!(

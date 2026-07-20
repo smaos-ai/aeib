@@ -1,3 +1,4 @@
+use siss_agent_shell::hooks::security_gate::{SecurityGateConfig, SecurityGateHook};
 /// Phase 39: δ⁺ Security Hook Hardening — Zero-Trust Tool Membrane
 ///
 /// 6 TDD tests covering:
@@ -6,9 +7,7 @@
 /// - Hook Execution Isolation with timeout enforcement
 ///
 /// Status: RED phase — all tests FAIL initially (Inversion Development)
-
 use siss_agent_shell::hooks::{HookResult, LifecycleHook, ToolUseContext};
-use siss_agent_shell::hooks::security_gate::{SecurityGateHook, SecurityGateConfig};
 use siss_graph_core::node::NodeId;
 use uuid::Uuid;
 
@@ -44,7 +43,10 @@ fn test_security_gate_deny_banned_tool() {
     let result1 = hook.on_pre_tool_use(&ctx);
     let result2 = hook.on_pre_tool_use(&ctx);
 
-    assert!(matches!(result1, HookResult::Deny { .. }), "First call should deny");
+    assert!(
+        matches!(result1, HookResult::Deny { .. }),
+        "First call should deny"
+    );
     assert_eq!(result1, result2, "Decisions must be deterministic");
 }
 
@@ -76,7 +78,10 @@ fn test_security_gate_deny_dangerous_pattern() {
     };
 
     let result = hook.on_pre_tool_use(&ctx);
-    assert!(matches!(result, HookResult::Deny { .. }), "Should deny dangerous pattern");
+    assert!(
+        matches!(result, HookResult::Deny { .. }),
+        "Should deny dangerous pattern"
+    );
 }
 
 // ============================================================================
@@ -107,7 +112,10 @@ fn test_security_gate_defer_sensitive_operation() {
     };
 
     let result = hook.on_pre_tool_use(&ctx);
-    assert!(matches!(result, HookResult::Defer { .. }), "Should defer sensitive operation");
+    assert!(
+        matches!(result, HookResult::Defer { .. }),
+        "Should defer sensitive operation"
+    );
 }
 
 // ============================================================================
@@ -138,9 +146,7 @@ fn test_hook_isolation_timeout_fail_closed() {
     };
 
     // Call the hook 10 times with same context
-    let results: Vec<_> = (0..10)
-        .map(|_| hook.on_pre_tool_use(&ctx1))
-        .collect();
+    let results: Vec<_> = (0..10).map(|_| hook.on_pre_tool_use(&ctx1)).collect();
 
     // All results must be identical - proves determinism (no shared state mutation)
     for i in 1..results.len() {

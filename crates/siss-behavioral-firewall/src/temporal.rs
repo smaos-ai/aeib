@@ -4,7 +4,7 @@ use std::sync::Mutex;
 use std::time::{SystemTime, Duration};
 use uuid::Uuid;
 use dashmap::DashMap;
-use chrono::{Utc, Datelike, Timelike};
+use chrono::{Utc, Datelike, Timelike, Weekday};
 use serde::{Serialize, Deserialize};
 
 use crate::rebac::DenyReason;
@@ -22,9 +22,10 @@ pub enum PolicyAction {
 pub struct TimeWindow {
     pub id: Uuid,
     pub name: String,
-    pub applies_to: PolicyAction,
+    pub applies_to: Option<PolicyAction>,  // None = applies to all
     pub allowed_hours: Vec<(u8, u8)>,
     pub blackout_dates: Vec<(u32, u32)>,
+    pub day_of_week: Option<Vec<u32>>,  // 0=Mon, 6=Sun, None = all days
 }
 
 #[derive(Debug, Clone)]
@@ -80,28 +81,179 @@ impl RateLimiter {
     }
 }
 
+/// Cached decision with timestamp for 1-minute TTL
+#[derive(Debug, Clone)]
+struct CachedDecision {
+    allowed: bool,
+    reason: Option<String>,
+    timestamp: SystemTime,
+}
+
+impl CachedDecision {
+    fn is_expired(&self) -> bool {
+        match SystemTime::now().duration_since(self.timestamp) {
+            Ok(elapsed) => elapsed > Duration::from_secs(60),
+            Err(_) => true,
+        }
+    }
+}
+
+/// Per-actor, per-resource rate limiter using sliding window
+#[derive(Debug, Clone)]
+struct RateLimitState {
+    requests: Arc<Mutex<VecDeque<SystemTime>>>,
+    max_per_minute: u32,
+}
+
+impl RateLimitState {
+    fn new(max_per_minute: u32) -> Self {
+        RateLimitState {
+            requests: Arc::new(Mutex::new(VecDeque::new())),
+            max_per_minute,
+        }
+    }
+
+    fn try_request(&self) -> bool {
+        let now = SystemTime::now();
+        let mut requests = self.requests.lock().unwrap();
+
+        // Expire old requests (older than 60 seconds)
+        while let Some(&oldest) = requests.front() {
+            match now.duration_since(oldest) {
+                Ok(elapsed) if elapsed > Duration::from_secs(60) => {
+                    requests.pop_front();
+                }
+                _ => break,
+            }
+        }
+
+        // Check if at capacity
+        if requests.len() >= self.max_per_minute as usize {
+            return false;
+        }
+
+        // Record this request
+        requests.push_back(now);
+        true
+    }
+
+    fn current_count(&self) -> usize {
+        let now = SystemTime::now();
+        let mut requests = self.requests.lock().unwrap();
+
+        // Expire old requests
+        while let Some(&oldest) = requests.front() {
+            match now.duration_since(oldest) {
+                Ok(elapsed) if elapsed > Duration::from_secs(60) => {
+                    requests.pop_front();
+                }
+                _ => break,
+            }
+        }
+
+        requests.len()
+    }
+}
+
 pub struct TemporalGuard {
-    rate_limiter: Arc<DashMap<Uuid, RateLimit>>,
+    // Old API: per-actor-only rate limiting for backward compatibility
+    rate_limiter_legacy: Arc<DashMap<Uuid, RateLimit>>,
+
+    // New API: per-(actor, resource) rate limiting
+    rate_limiter: Arc<DashMap<(Uuid, Uuid), RateLimitState>>,
+
     time_windows: Arc<Vec<TimeWindow>>,
     scheduled_revocations: Arc<DashMap<Uuid, SystemTime>>,
+
+    // Decision cache: (actor_id, resource_id) -> CachedDecision
+    decision_cache: Arc<DashMap<(Uuid, Uuid), CachedDecision>>,
 }
 
 impl TemporalGuard {
     pub fn new(time_windows: Vec<TimeWindow>) -> Self {
         TemporalGuard {
+            rate_limiter_legacy: Arc::new(DashMap::new()),
             rate_limiter: Arc::new(DashMap::new()),
             time_windows: Arc::new(time_windows),
             scheduled_revocations: Arc::new(DashMap::new()),
+            decision_cache: Arc::new(DashMap::new()),
         }
     }
 
+    /// NEW API: Check (actor_id, resource_id) pair with rate limit + time window
+    /// Uses decision caching (1-min TTL) only for time window denials
+    /// Rate limit checks are NOT cached since the window is sliding
+    pub fn check_with_resource(&self, actor_id: Uuid, resource_id: Uuid) -> Result<(), DenyReason> {
+        let key = (actor_id, resource_id);
+
+        // Check rate limit first (per-actor, per-resource)
+        // NOTE: We do NOT cache rate limit decisions since the window is sliding (0-60s)
+        let entry = self
+            .rate_limiter
+            .entry(key)
+            .or_insert_with(|| RateLimitState::new(60));
+
+        if !entry.try_request() {
+            let count = entry.current_count();
+            let reason = format!("Rate limit exceeded: {}/60 requests in last 60s", count);
+            return Err(DenyReason::TemporalViolation(reason));
+        }
+
+        // Check cache for time window decisions
+        if let Some(cached) = self.decision_cache.get(&key) {
+            if !cached.is_expired() {
+                if cached.allowed {
+                    return Ok(());
+                } else {
+                    return Err(DenyReason::TemporalViolation(
+                        cached.reason.clone().unwrap_or_default(),
+                    ));
+                }
+            }
+        }
+
+        // Cache miss or expired: check time windows
+        if let Err(e) = self.check_time_window_utc(resource_id) {
+            self.decision_cache.insert(
+                key,
+                CachedDecision {
+                    allowed: false,
+                    reason: Some(format!("{:?}", e)),
+                    timestamp: SystemTime::now(),
+                },
+            );
+            return Err(e);
+        }
+
+        self.decision_cache.insert(
+            key,
+            CachedDecision {
+                allowed: true,
+                reason: None,
+                timestamp: SystemTime::now(),
+            },
+        );
+        Ok(())
+    }
+
+    /// Invalidate entire cache (for policy changes)
+    pub fn invalidate_cache(&self) {
+        self.decision_cache.clear();
+    }
+
+    /// Invalidate cache for specific actor+resource
+    pub fn invalidate_cache_for(&self, actor_id: Uuid, resource_id: Uuid) {
+        self.decision_cache.remove(&(actor_id, resource_id));
+    }
+
+    /// OLD API: Check rate limit per sovereign (backward compat)
     pub fn check_rate_limit(&self, sovereign_id: Uuid) -> Result<(), DenyReason> {
         // Check scheduled revocation first
         self.check_scheduled_revocation(sovereign_id)?;
 
         let now = SystemTime::now();
         let mut rate = self
-            .rate_limiter
+            .rate_limiter_legacy
             .entry(sovereign_id)
             .or_insert_with(|| RateLimit {
                 max_per_minute: 60,
@@ -129,14 +281,77 @@ impl TemporalGuard {
         Ok(())
     }
 
+    /// Check time window using UTC time
+    pub fn check_time_window_utc(&self, _resource_id: Uuid) -> Result<(), DenyReason> {
+        let now = Utc::now();
+        let hour = now.hour() as u8;
+        let (month, day) = (now.month(), now.day());
+        let weekday = now.weekday();
+        let weekday_num = match weekday {
+            Weekday::Mon => 0,
+            Weekday::Tue => 1,
+            Weekday::Wed => 2,
+            Weekday::Thu => 3,
+            Weekday::Fri => 4,
+            Weekday::Sat => 5,
+            Weekday::Sun => 6,
+        };
+
+        for window in self.time_windows.iter() {
+            // Skip windows that don't apply to this resource
+            if let Some(applies_to) = window.applies_to {
+                // If applies_to is set, this window only applies to specific actions
+                // For the new API, we ignore this and apply to resources
+                let _ = applies_to;
+            }
+
+            // Check blackout date first (highest priority)
+            if window.blackout_dates.contains(&(month, day)) {
+                return Err(DenyReason::TemporalViolation(format!(
+                    "Blackout date: {}-{}",
+                    month, day
+                )));
+            }
+
+            // Check day-of-week filtering if specified
+            if let Some(ref allowed_days) = window.day_of_week {
+                if !allowed_days.contains(&weekday_num) {
+                    continue; // This window doesn't apply to this day
+                }
+            }
+
+            // Check allowed hours
+            let hour_allowed = window
+                .allowed_hours
+                .iter()
+                .any(|(start, end)| hour >= *start && hour < *end);
+
+            if !hour_allowed {
+                return Err(DenyReason::TemporalViolation(format!(
+                    "Outside allowed hours: {} UTC",
+                    hour
+                )));
+            }
+
+            // If we get here, this window allows it
+            return Ok(());
+        }
+
+        // No windows configured or none blocked it
+        Ok(())
+    }
+
+    /// OLD API: Check time window by action
     pub fn check_time_window(&self, action: PolicyAction) -> Result<(), DenyReason> {
         let now = Utc::now();
         let hour = now.hour() as u8;
         let (month, day) = (now.month(), now.day());
 
         for window in self.time_windows.iter() {
-            if window.applies_to != action {
-                continue;
+            if let Some(applies_to) = window.applies_to {
+                if applies_to != action {
+                    continue;
+                }
             }
 
             // Check blackout date
@@ -164,6 +379,7 @@ impl TemporalGuard {
         Ok(())
     }
 
+    /// OLD API: Check both rate limit and time window
     pub fn check(&self, sovereign_id: Uuid, action: PolicyAction) -> Result<(), DenyReason> {
         self.check_rate_limit(sovereign_id)?;
         self.check_time_window(action)?;
@@ -277,9 +493,10 @@ mod tests {
         let window = TimeWindow {
             id: Uuid::new_v4(),
             name: "business_hours".to_string(),
-            applies_to: PolicyAction::Spawn,
+            applies_to: Some(PolicyAction::Spawn),
             allowed_hours: vec![(9, 17)],
             blackout_dates: vec![],
+            day_of_week: None,
         };
 
         let guard = TemporalGuard::new(vec![window]);
@@ -292,9 +509,10 @@ mod tests {
         let window = TimeWindow {
             id: Uuid::new_v4(),
             name: "holiday".to_string(),
-            applies_to: PolicyAction::CreatePolicy,
+            applies_to: Some(PolicyAction::CreatePolicy),
             allowed_hours: vec![(0, 24)],
             blackout_dates: vec![(today.month(), today.day())],
+            day_of_week: None,
         };
 
         let guard = TemporalGuard::new(vec![window]);
@@ -307,9 +525,10 @@ mod tests {
         let window = TimeWindow {
             id: Uuid::new_v4(),
             name: "other_action".to_string(),
-            applies_to: PolicyAction::Pause,
+            applies_to: Some(PolicyAction::Pause),
             allowed_hours: vec![(9, 17)],
             blackout_dates: vec![],
+            day_of_week: None,
         };
 
         let guard = TemporalGuard::new(vec![window]);
@@ -345,9 +564,10 @@ mod tests {
         let window = TimeWindow {
             id: Uuid::new_v4(),
             name: "holiday".to_string(),
-            applies_to: PolicyAction::Spawn,
+            applies_to: Some(PolicyAction::Spawn),
             allowed_hours: vec![(0, 24)],
             blackout_dates: vec![(today.month(), today.day())],
+            day_of_week: None,
         };
 
         let guard = TemporalGuard::new(vec![window]);

@@ -1,10 +1,9 @@
 /// Phase 49: Knowledge Atom Protocol — Typed cross-worktree swarm sync
 /// Single source of truth: SwarmMcpServer Arc<RwLock<HashMap>> for KnowledgeAtom exchange.
-
 use crate::swarm_mcp_server::{GlobalStateFilter, SwarmMcpServer, SwarmStatePayload};
 use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
-use siss_graph_core::node::memory::{compute_decay, is_gc_eligible, ConsolidationTier};
+use siss_graph_core::node::memory::{ConsolidationTier, compute_decay, is_gc_eligible};
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::sync::Arc;
@@ -24,12 +23,12 @@ pub enum KnowledgeKind {
 pub struct KnowledgeAtom {
     pub atom_id: Uuid,
     pub kind: KnowledgeKind,
-    pub source_worktree: String,     // "alpha" or "beta"
-    pub symbol_path: String,         // e.g. "siss_gatekeeper::tokens::IntentMandate"
-    pub content: String,             // human-readable insight
-    pub confidence: f64,             // 0.0–1.0
-    pub provenance_hash: String,     // deterministic hex hash of content
-    pub reinforcement_count: u32,    // incremented by reinforce()
+    pub source_worktree: String,  // "alpha" or "beta"
+    pub symbol_path: String,      // e.g. "siss_gatekeeper::tokens::IntentMandate"
+    pub content: String,          // human-readable insight
+    pub confidence: f64,          // 0.0–1.0
+    pub provenance_hash: String,  // deterministic hex hash of content
+    pub reinforcement_count: u32, // incremented by reinforce()
     pub discovered_at: DateTime<Utc>,
 }
 
@@ -190,7 +189,10 @@ impl SwarmKnowledgeBus {
 
     /// Query atoms by confidence threshold.
     /// Returns all atoms with effective_confidence(now) >= threshold.
-    pub async fn query_by_confidence(&self, threshold: f64) -> Result<Vec<KnowledgeAtom>, KnowledgeBusError> {
+    pub async fn query_by_confidence(
+        &self,
+        threshold: f64,
+    ) -> Result<Vec<KnowledgeAtom>, KnowledgeBusError> {
         let payloads = self
             .server
             .get_global_state(GlobalStateFilter {
@@ -242,9 +244,10 @@ impl SwarmKnowledgeBus {
             }
         }
 
-        let atom = updated_atom.ok_or(KnowledgeBusError::StoreFailed(
-            format!("atom {} not found", atom_id),
-        ))?;
+        let atom = updated_atom.ok_or(KnowledgeBusError::StoreFailed(format!(
+            "atom {} not found",
+            atom_id
+        )))?;
 
         let payload_json = serde_json::to_string(&atom)
             .map_err(|e| KnowledgeBusError::SerializationFailed(e.to_string()))?;

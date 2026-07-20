@@ -1,13 +1,15 @@
 // Phase 25 Wave 3: Audit + Archive Infrastructure
-// Immutable audit logging with merkle tree archival
+// Immutable audit logging with merkle tree archival + S3 export
 
 mod events;
 mod logger;
 mod archive;
+mod s3_exporter;
 
 pub use events::{AuditEvent, EventType};
 pub use logger::AuditLogger;
 pub use archive::MerkleArchive;
+pub use s3_exporter::{S3Exporter, S3ArchiveMetadata};
 
 use crate::rebac::{SovereignIdentity, PolicyAction, PolicyResource};
 

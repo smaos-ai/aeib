@@ -3,7 +3,6 @@
 /// - Compaction Trigger: heuristics for safe wake during idle (Invariant 1)
 /// - Hot-to-Cold Distillation: atomic crystallization (Invariant 2)
 /// - Database Pruning: safe metabolic decay (Invariant 3)
-
 use siss_agent_shell::night_cycle::{
     CompactionDecision, CompactionTrigger, CycleError, NightCycleEngine, SwarmSnapshot,
 };
@@ -17,7 +16,10 @@ use std::time::Duration;
 struct MockCrystallizer;
 
 impl Crystallizer for MockCrystallizer {
-    fn crystallize(&self, _context: &siss_feedback_router::crystallizer::CrystallizationContext) -> Vec<CrystallizedMemory> {
+    fn crystallize(
+        &self,
+        _context: &siss_feedback_router::crystallizer::CrystallizationContext,
+    ) -> Vec<CrystallizedMemory> {
         // Mock returns empty; NightCycleEngine handles the actual logic in tests
         Vec::new()
     }
@@ -50,7 +52,10 @@ fn test_trigger_fires_when_all_idle() {
         elapsed_since_last_cycle: Duration::from_secs(1),
     };
 
-    assert_eq!(trigger.should_trigger(&snapshot), CompactionDecision::Trigger);
+    assert_eq!(
+        trigger.should_trigger(&snapshot),
+        CompactionDecision::Trigger
+    );
 }
 
 // ============================================================================
@@ -70,12 +75,7 @@ fn test_trigger_skipped_when_any_running() {
             idempotency_key: format!("key-{}", i),
             agent_id: "agent-1".to_string(),
             phase: "PHASE_43".to_string(),
-            status: if i == 0 {
-                "RUNNING"
-            } else {
-                "COMPLETE"
-            }
-            .to_string(),
+            status: if i == 0 { "RUNNING" } else { "COMPLETE" }.to_string(),
             payload_json: None,
         });
     }
@@ -120,7 +120,7 @@ fn test_trigger_skipped_empty_swarm() {
 #[test]
 fn test_trigger_fires_on_time_threshold() {
     let trigger = CompactionTrigger {
-        event_count_threshold: 100,  // high threshold
+        event_count_threshold: 100, // high threshold
         cycle_interval: Duration::from_secs(60),
     };
 
@@ -134,10 +134,13 @@ fn test_trigger_fires_on_time_threshold() {
 
     let snapshot = SwarmSnapshot {
         payloads,
-        elapsed_since_last_cycle: Duration::from_secs(3600),  // elapsed > interval
+        elapsed_since_last_cycle: Duration::from_secs(3600), // elapsed > interval
     };
 
-    assert_eq!(trigger.should_trigger(&snapshot), CompactionDecision::Trigger);
+    assert_eq!(
+        trigger.should_trigger(&snapshot),
+        CompactionDecision::Trigger
+    );
 }
 
 // ============================================================================
@@ -203,15 +206,13 @@ fn test_distillation_atomic_on_failure() {
         crystallizer: MockCrystallizer,
     };
 
-    let payloads = vec![
-        SwarmStatePayload {
-            idempotency_key: "complete-1".to_string(),
-            agent_id: "agent-1".to_string(),
-            phase: "PHASE_43".to_string(),
-            status: "COMPLETE".to_string(),
-            payload_json: Some("CRYSTALLIZER_ERROR".to_string()),
-        },
-    ];
+    let payloads = vec![SwarmStatePayload {
+        idempotency_key: "complete-1".to_string(),
+        agent_id: "agent-1".to_string(),
+        phase: "PHASE_43".to_string(),
+        status: "COMPLETE".to_string(),
+        payload_json: Some("CRYSTALLIZER_ERROR".to_string()),
+    }];
 
     let result = engine.crystallize_batch(&payloads);
     assert!(result.is_err(), "should fail atomically");
@@ -273,5 +274,8 @@ fn test_prune_removes_only_crystallized() {
     assert_eq!(pruned, 2, "should prune 2 rows");
     assert!(!store.contains_key("complete-1"));
     assert!(!store.contains_key("complete-2"));
-    assert!(store.contains_key("running-1"), "RUNNING row must survive prune");
+    assert!(
+        store.contains_key("running-1"),
+        "RUNNING row must survive prune"
+    );
 }

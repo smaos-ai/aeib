@@ -1,5 +1,4 @@
 /// Phase 59: A2UI Composer — Component ID Binding & Payload Assembly
-
 use crate::a2ui::schema::A2UIComponent;
 use crate::a2ui_primitives::PrimitiveRegistry;
 use serde::{Deserialize, Serialize};

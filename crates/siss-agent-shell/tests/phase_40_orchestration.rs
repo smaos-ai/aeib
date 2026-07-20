@@ -3,11 +3,12 @@
 /// - Telemetry Sync: AgentSessionManager deduplication (Invariant 1)
 /// - Worktree Provisioning: Atomic fail-closed provisioning (Invariant 2)
 /// - Session Recovery: Fail-open recovery from suspended state (Invariant 3)
-
 use siss_agent_shell::ag_ui::status_emitter::{AgentSessionManager, AgentState};
-use siss_agent_shell::hooks::{HookResult, LifecycleHook, SessionContext};
 use siss_agent_shell::hooks::session_recovery::{SessionRecoveryHook, SnapshotReader};
-use siss_agent_shell::orchestrator::{SwarmProvisioner, TmuxSpawner, WorktreeCreator, ProvisionError};
+use siss_agent_shell::hooks::{HookResult, LifecycleHook, SessionContext};
+use siss_agent_shell::orchestrator::{
+    ProvisionError, SwarmProvisioner, TmuxSpawner, WorktreeCreator,
+};
 use siss_graph_core::node::NodeId;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
@@ -150,7 +151,10 @@ async fn test_provision_fail_closed_worktree_error() {
 
     // THEN: returns WorktreeFailed, tmux.spawn never called
     assert!(matches!(result, Err(ProvisionError::WorktreeFailed(_))));
-    assert!(!tmux.spawn_was_called(), "TmuxSpawner::spawn should not have been called");
+    assert!(
+        !tmux.spawn_was_called(),
+        "TmuxSpawner::spawn should not have been called"
+    );
 }
 
 // ============================================================================

@@ -101,16 +101,16 @@ pub async fn run_intent_pipeline(
         zonal_context,
     };
     let routing_result =
-        siss_job_router::pipeline::route_task(pool, strategy, executor, None, &routing_request).await?;
+        siss_job_router::pipeline::route_task(pool, strategy, executor, None, &routing_request)
+            .await?;
 
     // 3.5 CIPO post-execution guard: verify budget constraint after token cost is known
     if let Some(skill) = skill_context.as_ref() {
         let mut cipo = CipoContext::new(skill.clone());
         cipo.tokens_consumed = routing_result.execution.token_cost.max(0) as u32;
-        cipo.verify()
-            .map_err(|e| AgentShellError::CipoViolation {
-                reason: format!("{:?}", e),
-            })?;
+        cipo.verify().map_err(|e| AgentShellError::CipoViolation {
+            reason: format!("{:?}", e),
+        })?;
     }
 
     emitter.emit(AgentEvent::Routed {

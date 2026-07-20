@@ -1,6 +1,5 @@
 /// Phase 52: Memory Decay Engine — Atrophy-based garbage collection
 /// Applies geometric decay to unreinforced knowledge atoms.
-
 use crate::swarm_knowledge::KnowledgeAtom;
 use chrono::DateTime;
 use chrono::Utc;

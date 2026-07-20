@@ -1,19 +1,20 @@
+use chrono::Utc;
+use serde_json::json;
 /// Phase 54: Spatial & Computer-Use Plane — Eyes and hands with δ+ security gates
 /// RED gate: 9 failing tests define expected behavior for GUI sandbox, visual action membrane, and pixel provenance.
 /// Invariants: (1) Non-Clone exclusive container token enforces δ+ jail isolation
 ///             (2) Visual action membrane validates click zones before execution
 ///             (3) Pixel provenance audit trail tied to AP2 mandate (fail-closed on nil)
-
 use siss_agent_shell::gui_sandbox::{GuiSandboxAllocator, GuiSandboxError, MockContainerDriver};
 use siss_agent_shell::hooks::{HookResult, LifecycleHook, ToolUseContext};
-use siss_agent_shell::pixel_provenance::{PixelProvenanceRecord, PixelProvenanceRecorder, ProvenanceError};
+use siss_agent_shell::pixel_provenance::{
+    PixelProvenanceRecord, PixelProvenanceRecorder, ProvenanceError,
+};
 use siss_agent_shell::swarm_mcp_server::SwarmMcpServer;
 use siss_agent_shell::visual_action_membrane::{
     BoundingBox, MockZoneAnalyzer, RestrictedZone, VisualActionMembrane, ZonePolicy,
 };
 use siss_graph_core::node::NodeId;
-use chrono::Utc;
-use serde_json::json;
 use std::sync::Arc;
 use uuid::Uuid;
 
@@ -240,7 +241,7 @@ async fn test_provenance_rejects_nil_mandate() {
 
     let record = PixelProvenanceRecord {
         provenance_id: Uuid::new_v4(),
-        intent_mandate_id: Uuid::nil(),  // fail-closed gate
+        intent_mandate_id: Uuid::nil(), // fail-closed gate
         task_id: Uuid::new_v4(),
         agent_id: "agent_alpha".to_string(),
         phase: "PHASE_54".to_string(),

@@ -1,5 +1,4 @@
 /// Phase 62: Tmux Session Isolation — 1:1 session-to-agent binding with detach resilience.
-
 use std::collections::HashMap;
 use std::sync::Arc;
 use uuid::Uuid;
@@ -109,10 +108,7 @@ impl<D: TmuxSessionDriver> AoeTmuxBridge<D> {
 
     pub fn list_bound(&self) -> Vec<(String, Uuid)> {
         match self.registry.try_lock() {
-            Ok(reg) => reg
-                .iter()
-                .map(|(name, id)| (name.clone(), *id))
-                .collect(),
+            Ok(reg) => reg.iter().map(|(name, id)| (name.clone(), *id)).collect(),
             Err(_) => Vec::new(),
         }
     }

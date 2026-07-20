@@ -767,3 +767,147 @@
 {"event":"watchdog_alert","message":"Test failed (attempt 2/2)","source":"siss-night-cycle","timestamp":"2026-06-02T05:20:13.202622+00:00"}
 {"event":"watchdog_alert","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle","timestamp":"2026-06-02T05:20:13.256154+00:00"}
 {"event":"watchdog","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle","timestamp":"2026-06-02T05:20:13.256308+00:00"}
+{"event":"test_event","message":"test message","source":"siss-night-cycle","timestamp":"2026-06-03T00:40:29.219129+00:00"}
+{"event":"watchdog","message":"test passed","source":"siss-night-cycle","timestamp":"2026-06-03T00:40:29.222664+00:00"}
+{"event":"watchdog_alert","message":"Test failed (attempt 1/2)","source":"siss-night-cycle","timestamp":"2026-06-03T00:40:29.281487+00:00"}
+{"event":"watchdog_alert","message":"Test failed (attempt 2/2)","source":"siss-night-cycle","timestamp":"2026-06-03T00:40:29.345187+00:00"}
+{"event":"watchdog_alert","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle","timestamp":"2026-06-03T00:40:29.410254+00:00"}
+{"event":"watchdog","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle","timestamp":"2026-06-03T00:40:29.410406+00:00"}
+{"timestamp":"2026-06-06T11:23:16.190020+00:00","event":"test_event","message":"test message","source":"siss-night-cycle"}
+{"timestamp":"2026-06-06T11:23:16.200683+00:00","event":"watchdog","message":"test passed","source":"siss-night-cycle"}
+{"timestamp":"2026-06-06T11:23:16.302007+00:00","event":"watchdog_alert","message":"Test failed (attempt 1/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-06-06T11:23:16.376391+00:00","event":"watchdog_alert","message":"Test failed (attempt 2/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-06-06T11:23:16.431646+00:00","event":"watchdog_alert","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"timestamp":"2026-06-06T11:23:16.431788+00:00","event":"watchdog","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"timestamp":"2026-06-06T11:30:43.355548+00:00","event":"test_event","message":"test message","source":"siss-night-cycle"}
+{"timestamp":"2026-06-06T11:30:43.359869+00:00","event":"watchdog","message":"test passed","source":"siss-night-cycle"}
+{"timestamp":"2026-06-06T11:30:43.451320+00:00","event":"watchdog_alert","message":"Test failed (attempt 1/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-06-06T11:30:43.537201+00:00","event":"watchdog_alert","message":"Test failed (attempt 2/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-06-06T11:30:43.608297+00:00","event":"watchdog_alert","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"timestamp":"2026-06-06T11:30:43.608494+00:00","event":"watchdog","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"event":"test_event","message":"test message","source":"siss-night-cycle","timestamp":"2026-06-06T11:32:49.623164+00:00"}
+{"event":"watchdog","message":"test passed","source":"siss-night-cycle","timestamp":"2026-06-06T11:32:49.630333+00:00"}
+{"event":"watchdog_alert","message":"Test failed (attempt 1/2)","source":"siss-night-cycle","timestamp":"2026-06-06T11:32:49.709507+00:00"}
+{"event":"watchdog_alert","message":"Test failed (attempt 2/2)","source":"siss-night-cycle","timestamp":"2026-06-06T11:32:49.779158+00:00"}
+{"event":"watchdog_alert","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle","timestamp":"2026-06-06T11:32:49.851348+00:00"}
+{"event":"watchdog","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle","timestamp":"2026-06-06T11:32:49.851499+00:00"}
+{"event":"test_event","message":"test message","source":"siss-night-cycle","timestamp":"2026-06-06T11:33:30.031649+00:00"}
+{"event":"watchdog","message":"test passed","source":"siss-night-cycle","timestamp":"2026-06-06T11:33:30.037651+00:00"}
+{"event":"watchdog_alert","message":"Test failed (attempt 1/2)","source":"siss-night-cycle","timestamp":"2026-06-06T11:33:30.121748+00:00"}
+{"event":"watchdog_alert","message":"Test failed (attempt 2/2)","source":"siss-night-cycle","timestamp":"2026-06-06T11:33:30.227536+00:00"}
+{"event":"watchdog_alert","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle","timestamp":"2026-06-06T11:33:30.298313+00:00"}
+{"event":"watchdog","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle","timestamp":"2026-06-06T11:33:30.298452+00:00"}
+{"event":"test_event","message":"test message","source":"siss-night-cycle","timestamp":"2026-06-06T11:34:33.810229+00:00"}
+{"event":"watchdog","message":"test passed","source":"siss-night-cycle","timestamp":"2026-06-06T11:34:33.814122+00:00"}
+{"event":"watchdog_alert","message":"Test failed (attempt 1/2)","source":"siss-night-cycle","timestamp":"2026-06-06T11:34:33.876834+00:00"}
+{"event":"watchdog_alert","message":"Test failed (attempt 2/2)","source":"siss-night-cycle","timestamp":"2026-06-06T11:34:33.952144+00:00"}
+{"event":"watchdog_alert","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle","timestamp":"2026-06-06T11:34:34.014807+00:00"}
+{"event":"watchdog","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle","timestamp":"2026-06-06T11:34:34.014964+00:00"}
+{"timestamp":"2026-06-06T11:37:37.302881+00:00","event":"test_event","message":"test message","source":"siss-night-cycle"}
+{"timestamp":"2026-06-06T11:37:37.352340+00:00","event":"watchdog","message":"test passed","source":"siss-night-cycle"}
+{"timestamp":"2026-06-06T11:37:37.432679+00:00","event":"watchdog_alert","message":"Test failed (attempt 1/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-06-06T11:37:37.520901+00:00","event":"watchdog_alert","message":"Test failed (attempt 2/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-06-06T11:37:37.588477+00:00","event":"watchdog_alert","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"timestamp":"2026-06-06T11:37:37.588639+00:00","event":"watchdog","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T20:52:37.645049+00:00","event":"test_event","message":"test message","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T20:52:37.650348+00:00","event":"watchdog","message":"test passed","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T20:52:37.725177+00:00","event":"watchdog_alert","message":"Test failed (attempt 1/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T20:52:37.812796+00:00","event":"watchdog_alert","message":"Test failed (attempt 2/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T20:52:37.881549+00:00","event":"watchdog_alert","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T20:52:37.881699+00:00","event":"watchdog","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T20:55:55.414816+00:00","event":"test_event","message":"test message","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T20:55:55.422452+00:00","event":"watchdog","message":"test passed","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T20:55:55.529859+00:00","event":"watchdog_alert","message":"Test failed (attempt 1/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T20:55:55.618385+00:00","event":"watchdog_alert","message":"Test failed (attempt 2/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T20:55:55.677991+00:00","event":"watchdog_alert","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T20:55:55.678121+00:00","event":"watchdog","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:41:58.095582+00:00","event":"test_event","message":"test message","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:41:58.100455+00:00","event":"watchdog","message":"test passed","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:41:58.183152+00:00","event":"watchdog_alert","message":"Test failed (attempt 1/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:41:58.265539+00:00","event":"watchdog_alert","message":"Test failed (attempt 2/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:41:58.335270+00:00","event":"watchdog_alert","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:41:58.335372+00:00","event":"watchdog","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"event":"test_event","message":"test message","source":"siss-night-cycle","timestamp":"2026-06-07T23:46:51.385201+00:00"}
+{"event":"watchdog","message":"test passed","source":"siss-night-cycle","timestamp":"2026-06-07T23:46:51.389002+00:00"}
+{"event":"watchdog_alert","message":"Test failed (attempt 1/2)","source":"siss-night-cycle","timestamp":"2026-06-07T23:46:51.457585+00:00"}
+{"event":"watchdog_alert","message":"Test failed (attempt 2/2)","source":"siss-night-cycle","timestamp":"2026-06-07T23:46:51.522597+00:00"}
+{"event":"watchdog_alert","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle","timestamp":"2026-06-07T23:46:51.573390+00:00"}
+{"event":"watchdog","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle","timestamp":"2026-06-07T23:46:51.573518+00:00"}
+{"event":"test_event","message":"test message","source":"siss-night-cycle","timestamp":"2026-06-07T23:48:20.314702+00:00"}
+{"event":"watchdog","message":"test passed","source":"siss-night-cycle","timestamp":"2026-06-07T23:48:20.321982+00:00"}
+{"event":"watchdog_alert","message":"Test failed (attempt 1/2)","source":"siss-night-cycle","timestamp":"2026-06-07T23:48:20.389353+00:00"}
+{"event":"watchdog_alert","message":"Test failed (attempt 2/2)","source":"siss-night-cycle","timestamp":"2026-06-07T23:48:20.459886+00:00"}
+{"event":"watchdog_alert","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle","timestamp":"2026-06-07T23:48:20.515368+00:00"}
+{"event":"watchdog","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle","timestamp":"2026-06-07T23:48:20.515509+00:00"}
+{"timestamp":"2026-06-07T23:49:14.387113+00:00","event":"test_event","message":"test message","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:49:14.392013+00:00","event":"watchdog","message":"test passed","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:49:14.470364+00:00","event":"watchdog_alert","message":"Test failed (attempt 1/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:49:14.546474+00:00","event":"watchdog_alert","message":"Test failed (attempt 2/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:49:14.603783+00:00","event":"watchdog_alert","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:49:14.603928+00:00","event":"watchdog","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:49:21.145335+00:00","event":"test_event","message":"test message","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:49:21.148359+00:00","event":"watchdog","message":"test passed","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:49:21.208938+00:00","event":"watchdog_alert","message":"Test failed (attempt 1/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:49:21.281943+00:00","event":"watchdog_alert","message":"Test failed (attempt 2/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:49:21.341440+00:00","event":"watchdog_alert","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:49:21.341577+00:00","event":"watchdog","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:49:58.640846+00:00","event":"test_event","message":"test message","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:49:58.643571+00:00","event":"watchdog","message":"test passed","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:49:58.706320+00:00","event":"watchdog_alert","message":"Test failed (attempt 1/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:49:58.771431+00:00","event":"watchdog_alert","message":"Test failed (attempt 2/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:49:58.828281+00:00","event":"watchdog_alert","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:49:58.828446+00:00","event":"watchdog","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:56:45.069597+00:00","event":"test_event","message":"test message","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:56:45.076971+00:00","event":"watchdog","message":"test passed","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:56:45.178353+00:00","event":"watchdog_alert","message":"Test failed (attempt 1/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:56:45.259677+00:00","event":"watchdog_alert","message":"Test failed (attempt 2/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:56:45.331705+00:00","event":"watchdog_alert","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:56:45.331826+00:00","event":"watchdog","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:56:57.392983+00:00","event":"test_event","message":"test message","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:56:57.396635+00:00","event":"watchdog","message":"test passed","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:56:57.459417+00:00","event":"watchdog_alert","message":"Test failed (attempt 1/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:56:57.524306+00:00","event":"watchdog_alert","message":"Test failed (attempt 2/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:56:57.582969+00:00","event":"watchdog_alert","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"timestamp":"2026-06-07T23:56:57.583106+00:00","event":"watchdog","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"timestamp":"2026-06-08T00:01:32.845779+00:00","event":"test_event","message":"test message","source":"siss-night-cycle"}
+{"timestamp":"2026-06-08T00:01:32.850354+00:00","event":"watchdog","message":"test passed","source":"siss-night-cycle"}
+{"timestamp":"2026-06-08T00:01:32.916308+00:00","event":"watchdog_alert","message":"Test failed (attempt 1/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-06-08T00:01:32.989600+00:00","event":"watchdog_alert","message":"Test failed (attempt 2/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-06-08T00:01:33.056496+00:00","event":"watchdog_alert","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"timestamp":"2026-06-08T00:01:33.056654+00:00","event":"watchdog","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"timestamp":"2026-06-08T00:01:39.146729+00:00","event":"test_event","message":"test message","source":"siss-night-cycle"}
+{"timestamp":"2026-06-08T00:01:39.150259+00:00","event":"watchdog","message":"test passed","source":"siss-night-cycle"}
+{"timestamp":"2026-06-08T00:01:39.216057+00:00","event":"watchdog_alert","message":"Test failed (attempt 1/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-06-08T00:01:39.291069+00:00","event":"watchdog_alert","message":"Test failed (attempt 2/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-06-08T00:01:39.352690+00:00","event":"watchdog_alert","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"timestamp":"2026-06-08T00:01:39.352836+00:00","event":"watchdog","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"event":"test_event","message":"test message","source":"siss-night-cycle","timestamp":"2026-07-16T05:26:52.146269+00:00"}
+{"event":"watchdog","message":"test passed","source":"siss-night-cycle","timestamp":"2026-07-16T05:26:52.162762+00:00"}
+{"event":"watchdog_alert","message":"Test failed (attempt 1/2)","source":"siss-night-cycle","timestamp":"2026-07-16T05:26:52.271134+00:00"}
+{"event":"watchdog_alert","message":"Test failed (attempt 2/2)","source":"siss-night-cycle","timestamp":"2026-07-16T05:26:52.364318+00:00"}
+{"event":"watchdog_alert","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle","timestamp":"2026-07-16T05:26:52.437361+00:00"}
+{"event":"watchdog","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle","timestamp":"2026-07-16T05:26:52.437538+00:00"}
+{"event":"test_event","message":"test message","source":"siss-night-cycle","timestamp":"2026-07-16T05:27:17.686106+00:00"}
+{"event":"watchdog","message":"test passed","source":"siss-night-cycle","timestamp":"2026-07-16T05:27:17.689671+00:00"}
+{"event":"watchdog_alert","message":"Test failed (attempt 1/2)","source":"siss-night-cycle","timestamp":"2026-07-16T05:27:17.798355+00:00"}
+{"event":"watchdog_alert","message":"Test failed (attempt 2/2)","source":"siss-night-cycle","timestamp":"2026-07-16T05:27:17.876372+00:00"}
+{"event":"watchdog_alert","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle","timestamp":"2026-07-16T05:27:17.938580+00:00"}
+{"event":"watchdog","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle","timestamp":"2026-07-16T05:27:17.938724+00:00"}
+{"event":"test_event","message":"test message","source":"siss-night-cycle","timestamp":"2026-07-16T14:25:39.078140+00:00"}
+{"event":"watchdog","message":"test passed","source":"siss-night-cycle","timestamp":"2026-07-16T14:25:39.084461+00:00"}
+{"event":"watchdog_alert","message":"Test failed (attempt 1/2)","source":"siss-night-cycle","timestamp":"2026-07-16T14:25:39.161592+00:00"}
+{"event":"watchdog_alert","message":"Test failed (attempt 2/2)","source":"siss-night-cycle","timestamp":"2026-07-16T14:25:39.289812+00:00"}
+{"event":"watchdog_alert","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle","timestamp":"2026-07-16T14:25:39.362492+00:00"}
+{"event":"watchdog","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle","timestamp":"2026-07-16T14:25:39.362593+00:00"}
+{"timestamp":"2026-07-16T14:29:45.600741+00:00","event":"test_event","message":"test message","source":"siss-night-cycle"}
+{"timestamp":"2026-07-16T14:29:45.608086+00:00","event":"watchdog","message":"test passed","source":"siss-night-cycle"}
+{"timestamp":"2026-07-16T14:29:45.691712+00:00","event":"watchdog_alert","message":"Test failed (attempt 1/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-07-16T14:29:45.777015+00:00","event":"watchdog_alert","message":"Test failed (attempt 2/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-07-16T14:29:45.844338+00:00","event":"watchdog_alert","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"timestamp":"2026-07-16T14:29:45.844472+00:00","event":"watchdog","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"timestamp":"2026-07-16T14:30:28.272329+00:00","event":"test_event","message":"test message","source":"siss-night-cycle"}
+{"timestamp":"2026-07-16T14:30:28.276577+00:00","event":"watchdog","message":"test passed","source":"siss-night-cycle"}
+{"timestamp":"2026-07-16T14:30:28.343041+00:00","event":"watchdog_alert","message":"Test failed (attempt 1/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-07-16T14:30:28.416862+00:00","event":"watchdog_alert","message":"Test failed (attempt 2/2)","source":"siss-night-cycle"}
+{"timestamp":"2026-07-16T14:30:28.479009+00:00","event":"watchdog_alert","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"timestamp":"2026-07-16T14:30:28.479160+00:00","event":"watchdog","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}

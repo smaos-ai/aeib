@@ -1,6 +1,5 @@
 /// Phase 51: Worktree Sandbox Membrane (Branch Exclusivity Proof)
 /// Atomic allocation guard preventing two agents from occupying the same git branch.
-
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use uuid::Uuid;

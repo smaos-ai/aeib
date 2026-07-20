@@ -3,11 +3,10 @@ pub mod eden;
 pub mod witness;
 
 pub use eden::{
-    FamilyCommandCenterCapsule, FamilyUnit, FamilyMember, FamilyRole, AgeGroup,
-    EducationCapsule, StudentRecord, LearningProgress, Curriculum, CurriculumModule,
-    Lesson, Exercise, AssessmentMethod, HouseholdDecisions, EnergyDecision,
-    FoodSovereignty, Seed, RecipeFromHarvest, FinancialDecision, LocalProjectVote,
-    VoteChoice, RegenerationFundGovernance, RegenerationProject, ProjectCategory,
-    ProjectStatus, ImpactMetrics, PrivacyLevel,
+    AgeGroup, AssessmentMethod, Curriculum, CurriculumModule, EducationCapsule, EnergyDecision,
+    Exercise, FamilyCommandCenterCapsule, FamilyMember, FamilyRole, FamilyUnit, FinancialDecision,
+    FoodSovereignty, HouseholdDecisions, ImpactMetrics, LearningProgress, Lesson, LocalProjectVote,
+    PrivacyLevel, ProjectCategory, ProjectStatus, RecipeFromHarvest, RegenerationFundGovernance,
+    RegenerationProject, Seed, StudentRecord, VoteChoice,
 };
 pub use witness::{DigitalWitnessCapsule, WitnessContent, WitnessGenerationError};

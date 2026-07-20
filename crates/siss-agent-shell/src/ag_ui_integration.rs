@@ -1,17 +1,20 @@
 /// Phase 59: AG-UI Streaming Integration — SSE Stream Injection for Real-Time Rendering
-
 use crate::a2ui::schema::A2UIComponent;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "event_type", rename_all = "snake_case")]
 pub enum AgUiStreamEvent {
-    Text { content: String },
+    Text {
+        content: String,
+    },
     ToolCall {
         name: String,
         params: serde_json::Value,
     },
-    UiComponent { component: A2UIComponent },
+    UiComponent {
+        component: A2UIComponent,
+    },
     Done,
 }
 

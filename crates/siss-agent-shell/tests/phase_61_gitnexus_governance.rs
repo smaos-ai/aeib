@@ -1,15 +1,14 @@
-/// Phase 61: GitNexus Structural Awareness & Blast-Radius Governance — 27 TDD Tests
-
-use siss_agent_shell::hooks::gitnexus_impact::{
-    GitNexusImpactGate, ImpactAnalyzer, ImpactGateConfig, ImpactGateError, ImpactReport,
-};
+use siss_agent_shell::hooks::blast_radius::BlastRiskLevel;
 use siss_agent_shell::hooks::gitnexus_detect_changes::{
     ChangeDetector, CommitRiskLevel, CommitRiskReport, DetectChangesError, PreCommitGate,
+};
+/// Phase 61: GitNexus Structural Awareness & Blast-Radius Governance — 27 TDD Tests
+use siss_agent_shell::hooks::gitnexus_impact::{
+    GitNexusImpactGate, ImpactAnalyzer, ImpactGateConfig, ImpactGateError, ImpactReport,
 };
 use siss_agent_shell::hooks::gitnexus_rename::{
     CoordinatedRenameGate, RenameError, RenamePreview, RenameScope, RenameTarget,
 };
-use siss_agent_shell::hooks::blast_radius::BlastRiskLevel;
 use siss_agent_shell::hooks::{HookResult, LifecycleHook, ToolUseContext};
 use siss_graph_core::node::NodeId;
 use uuid::Uuid;
@@ -199,7 +198,10 @@ fn test_impact_gate_critical_risk_always_defers() {
         },
     );
 
-    let ctx = make_tool_ctx("Edit", serde_json::json!({ "file_path": "/src/hooks/mod.rs" }));
+    let ctx = make_tool_ctx(
+        "Edit",
+        serde_json::json!({ "file_path": "/src/hooks/mod.rs" }),
+    );
     let result = gate.on_pre_tool_use(&ctx);
     assert!(
         matches!(result, HookResult::Defer { .. }),

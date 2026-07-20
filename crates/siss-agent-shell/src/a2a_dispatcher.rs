@@ -1,5 +1,4 @@
 /// Phase 58: A2A Dispatcher — JSON-RPC + SSE stream parsing
-
 use serde::{Deserialize, Serialize};
 use siss_gatekeeper::tokens::IntentMandate;
 use uuid::Uuid;
@@ -90,10 +89,10 @@ impl A2ADispatcher {
         }
 
         if let Ok(val) = serde_json::from_str::<serde_json::Value>(data) {
-            if let (Some(step_id_str), Some(content_str)) =
-                (val.get("step_id").and_then(|v| v.as_str()),
-                 val.get("content").and_then(|v| v.as_str()))
-            {
+            if let (Some(step_id_str), Some(content_str)) = (
+                val.get("step_id").and_then(|v| v.as_str()),
+                val.get("content").and_then(|v| v.as_str()),
+            ) {
                 if let Ok(step_id) = Uuid::parse_str(step_id_str) {
                     return Some(A2AStreamEvent::Step {
                         step_id,

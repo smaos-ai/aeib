@@ -1,6 +1,5 @@
 /// Phase 57: Batch Orchestrator — Collision-Free 50–100 Parallel Agent Fan-Out
 /// INVARIANT: InMemoryClaimLedger enforces first-wins file ownership via Mutex atomicity.
-
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -37,7 +36,11 @@ impl InMemoryClaimLedger {
     /// RULE 3: Check if file_path already claimed
     /// RULE 4: If claimed by different owner → Err(AlreadyClaimed { owner_id })
     /// RULE 5: If unclaimed or claimed by same owner → insert/update claim, return Ok(FileClaim)
-    pub async fn claim_file(&self, file_path: &str, owner_id: Uuid) -> Result<FileClaim, ClaimError> {
+    pub async fn claim_file(
+        &self,
+        file_path: &str,
+        owner_id: Uuid,
+    ) -> Result<FileClaim, ClaimError> {
         if file_path.is_empty() {
             return Err(ClaimError::InvalidWorkItem);
         }

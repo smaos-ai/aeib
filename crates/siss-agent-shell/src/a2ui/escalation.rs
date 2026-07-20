@@ -1,6 +1,5 @@
 /// Phase 50: A2UI Interactive Escalation — Operator Approval UI Composition
 /// Wires UIRequested event into the operator plane when budget is exceeded.
-
 use super::schema::A2UIComponent;
 use crate::ucp::UcpContract;
 
@@ -54,7 +53,11 @@ impl EscalationComposer {
 
         // RULE C: Add Alert if BudgetExceeded
         let mut card_children = contract_details;
-        if let EscalationReason::BudgetExceeded { required, available } = request.reason {
+        if let EscalationReason::BudgetExceeded {
+            required,
+            available,
+        } = request.reason
+        {
             card_children.push(A2UIComponent::Alert {
                 id: "budget_warning".to_string(),
                 message: format!("Budget exceeded: requires {}, have {}", required, available),

@@ -1,6 +1,5 @@
 /// Phase 40: SessionRecoveryHook — on_session_start hook that detects suspended snapshots
 /// Always returns Continue (fail-open): never blocks session startup.
-
 use crate::hooks::{HookResult, LifecycleHook, SessionContext};
 use uuid::Uuid;
 

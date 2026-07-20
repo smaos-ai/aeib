@@ -1,6 +1,6 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use siss_agent_shell::rapid_mlx_integration::{
-    RapidMLXEngine, RapidMLXConfig, InferenceRequest, Quantization, MlxAvailabilityProbe,
+    InferenceRequest, MlxAvailabilityProbe, Quantization, RapidMLXConfig, RapidMLXEngine,
 };
 use uuid::Uuid;
 

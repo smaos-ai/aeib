@@ -1,5 +1,5 @@
 use siss_agent_shell::rapid_mlx_integration::{
-    RapidMLXEngine, RapidMLXConfig, InferenceRequest, Quantization, MlxAvailabilityProbe,
+    InferenceRequest, MlxAvailabilityProbe, Quantization, RapidMLXConfig, RapidMLXEngine,
 };
 use uuid::Uuid;
 
@@ -35,7 +35,10 @@ fn test_ttft_measured_not_hardcoded() {
     let result = engine.infer(request);
     if let Ok(response) = result {
         // TTFT must not be hardcoded to 0.08
-        assert!(response.time_to_first_token_ms > 0.0, "TTFT must be measured, not zero");
+        assert!(
+            response.time_to_first_token_ms > 0.0,
+            "TTFT must be measured, not zero"
+        );
     }
 }
 

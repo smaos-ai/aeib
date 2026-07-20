@@ -1,11 +1,10 @@
+use siss_agent_shell::swarm_mcp_client::SwarmMcpClient;
 /// Phase 42 MCP Integration Tests
 /// - Concurrency: 100 parallel updates with same idempotency_key
 /// - Retry Idempotency: repeated calls don't duplicate state
 /// - Latency: <2ms per operation target
 /// - Flat-file ban: STATE.md / MEMORY.md rejected
-
-use siss_agent_shell::swarm_mcp_server::{SwarmMcpServer, SwarmStatePayload, GlobalStateFilter};
-use siss_agent_shell::swarm_mcp_client::SwarmMcpClient;
+use siss_agent_shell::swarm_mcp_server::{GlobalStateFilter, SwarmMcpServer, SwarmStatePayload};
 use std::sync::Arc;
 use uuid::Uuid;
 

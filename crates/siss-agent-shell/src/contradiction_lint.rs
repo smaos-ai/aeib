@@ -1,5 +1,4 @@
 /// Phase 60: Contradiction Lint — Automated Graph Linter
-
 use crate::crdt_sync::{CrdtSync, ProvenanceFork};
 use crate::swarm_knowledge::KnowledgeAtom;
 use std::collections::HashMap;
@@ -62,7 +61,8 @@ impl ContradictionLint {
             }
 
             for i in 0..group.len() - 1 {
-                let result = Self::lint_pair(&group[i].0, group[i].1, &group[i + 1].0, group[i + 1].1);
+                let result =
+                    Self::lint_pair(&group[i].0, group[i].1, &group[i + 1].0, group[i + 1].1);
                 if let LintResult::Conflict { fork } = result {
                     forks.push(fork);
                 }

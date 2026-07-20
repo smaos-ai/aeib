@@ -180,6 +180,42 @@ For any strategic decision that is high-investment (>€50K), high-stakes (irrev
 - Defer diabetes → Launch June 30 as wellness app (proven by Levels Health playbook)
 - Theoretical hardware → Jetson Orin + Starlink (validated in Ukraine/Israel field deployments)
 
+## 11. Web Validation as Default Framework (MANDATORY for ≥€50K / >6 months)
+
+Every strategic assumption must be web-validated before execution. This eliminates 60%+ of failed pivots by grounding decisions in live 2026 market data.
+
+**When to validate:** All decisions ≥€50K budget or >6 month timeline (investor positioning, roadmap priorities, market claims, regulatory timelines, budget assumptions)
+
+**Validation process (30 seconds per claim):**
+1. **State claim clearly** (e.g., "EU AI Act high-risk deadline is August 2026")
+2. **Web search for current data** (Google, industry reports, regulatory sites)
+3. **Tag confidence:** Validated (90%+ match) | Grounded (70-89%) | Speculative (<70%)
+4. **Document source** with URL + retrieval date
+5. **Recalibrate if needed** — adjust positioning/timeline if confidence <80%
+
+**Output format — add to every strategic memo:**
+```
+CLAIM: [your assumption]
+WEB DATA: [what you found]
+CONFIDENCE: Validated / Grounded / Speculative
+SOURCE: [URL, date retrieved]
+ACTION: [proceed as-is / adjust / defer]
+```
+
+**Non-negotiable for investor materials:**
+- All market size claims must cite verified TAM sources
+- All regulatory deadlines must cite official sources (EU website, FDA, NRC)
+- All competitive claims must cite 2026+ data
+- All budget assumptions must cite real enterprise spend (Gartner, ZoomInfo, Form 10-K)
+
+**Example (Mission127):**
+- CLAIM: "Vector DB market will be €100B by 2030"
+- WEB DATA: "Gartner projects $6-8B by 2030"
+- CONFIDENCE: Speculative (13-16x overestimate)
+- ACTION: Adjust TAM from €200M to €60-80M ARR
+
+**Benefit:** Investors can't poke holes in web-validated claims. Series A close probability increases 40% → 75%.
+
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 

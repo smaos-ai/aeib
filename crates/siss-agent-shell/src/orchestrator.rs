@@ -1,6 +1,5 @@
 /// Phase 40: SwarmProvisioner — atomic worktree + tmux provisioning
 /// Fail-closed: both succeed or neither. Atomic ordering enforced.
-
 use siss_graph_core::node::NodeId;
 use std::path::{Path, PathBuf};
 use thiserror::Error;
@@ -69,7 +68,11 @@ impl<T: TmuxSpawner, W: WorktreeCreator> SwarmProvisioner<T, W> {
             })?;
 
         // Step 2: Spawn tmux (fail-closed: cleanup worktree if this fails)
-        if let Err(e) = self.tmux.spawn(&tmux_name, worktree_path.to_str().unwrap_or("")).await {
+        if let Err(e) = self
+            .tmux
+            .spawn(&tmux_name, worktree_path.to_str().unwrap_or(""))
+            .await
+        {
             // Tmux spawn failed — cleanup worktree before returning
             let _ = self.worktree.remove(&worktree_path).await;
             return Err(e);

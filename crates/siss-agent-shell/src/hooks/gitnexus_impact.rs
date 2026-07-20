@@ -1,5 +1,4 @@
 /// Phase 61: GitNexus Impact Gate — AST-Driven PreToolUse Governance
-
 use crate::hooks::blast_radius::BlastRiskLevel;
 use crate::hooks::{HookResult, LifecycleHook, ToolUseContext};
 
@@ -23,7 +22,10 @@ pub enum ImpactGateError {
         caller_count: usize,
         risk_level: BlastRiskLevel,
     },
-    ConfidenceTooLow { required: i64, actual: i64 },
+    ConfidenceTooLow {
+        required: i64,
+        actual: i64,
+    },
     AnalysisFailed(String),
 }
 

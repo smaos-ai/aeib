@@ -1,12 +1,11 @@
+use chrono::Utc;
 /// Phase 55: Immortal Mesh Integration — GUI Failure → LoRA Retraining, Pixel Telemetry → SSE, Sovereign Binary
 /// RED gate: 9 failing tests define expected behavior for spatial CIPO routing, SSE telemetry, and runtime wiring.
-
 use siss_agent_shell::ag_ui::AoeSpatialStream;
 use siss_agent_shell::crafter_runtime::{CrafterRuntime, RuntimeConfig};
 use siss_agent_shell::pixel_provenance::PixelProvenanceRecord;
 use siss_agent_shell::spatial_cipo_router::SpatialCipoRouter;
 use siss_agent_shell::swarm_channel::SwarmMessage;
-use chrono::Utc;
 use std::sync::Arc;
 use uuid::Uuid;
 
@@ -31,7 +30,10 @@ fn test_spatial_router_skips_success_records() {
     };
 
     let result = SpatialCipoRouter::route_failure(&record);
-    assert!(result.is_none(), "Success records (failure_reason=None) should return None");
+    assert!(
+        result.is_none(),
+        "Success records (failure_reason=None) should return None"
+    );
 }
 
 // Test 2: SpatialCipoRouter routes GUI failure
@@ -55,7 +57,10 @@ fn test_spatial_router_routes_gui_failure() {
     };
 
     let result = SpatialCipoRouter::route_failure(&record);
-    assert!(result.is_some(), "Failure records should route to MemoryCrystal");
+    assert!(
+        result.is_some(),
+        "Failure records should route to MemoryCrystal"
+    );
     let crystal = result.unwrap();
     assert!(
         crystal.source_content.contains("element_not_found"),
@@ -100,9 +105,9 @@ fn test_spatial_router_distills_failures_to_contract_or_none() {
 // Test 4: PixelProvenance broadcasts SwarmMessage
 #[tokio::test]
 async fn test_pixel_provenance_broadcasts_swarm_message() {
+    use siss_agent_shell::pixel_provenance::PixelProvenanceRecorder;
     use siss_agent_shell::swarm_channel::SwarmChannel;
     use siss_agent_shell::swarm_mcp_server::SwarmMcpServer;
-    use siss_agent_shell::pixel_provenance::PixelProvenanceRecorder;
 
     let server = Arc::new(
         SwarmMcpServer::new("sqlite::memory:")

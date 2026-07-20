@@ -157,9 +157,10 @@ fn test_temporal_guard_time_window_allowed_hours() {
     let window = TimeWindow {
         id: Uuid::new_v4(),
         name: "business_hours".to_string(),
-        applies_to: PolicyAction::Spawn,
+        applies_to: Some(PolicyAction::Spawn),
         allowed_hours: vec![(0, 24)], // Allow all hours for testing
         blackout_dates: vec![],
+        day_of_week: None,
     };
 
     let guard = TemporalGuard::new(vec![window]);
@@ -172,9 +173,10 @@ fn test_temporal_guard_time_window_blackout_dates() {
     let window = TimeWindow {
         id: Uuid::new_v4(),
         name: "holiday".to_string(),
-        applies_to: PolicyAction::CreatePolicy,
+        applies_to: Some(PolicyAction::CreatePolicy),
         allowed_hours: vec![(0, 24)],
         blackout_dates: vec![(today.month(), today.day())],
+        day_of_week: None,
     };
 
     let guard = TemporalGuard::new(vec![window]);
@@ -187,9 +189,10 @@ fn test_temporal_guard_no_applicable_time_window() {
     let window = TimeWindow {
         id: Uuid::new_v4(),
         name: "other_action".to_string(),
-        applies_to: PolicyAction::Pause,
+        applies_to: Some(PolicyAction::Pause),
         allowed_hours: vec![(9, 17)],
         blackout_dates: vec![],
+        day_of_week: None,
     };
 
     let guard = TemporalGuard::new(vec![window]);
@@ -225,9 +228,10 @@ fn test_temporal_guard_composite_check_time_window_fail() {
     let window = TimeWindow {
         id: Uuid::new_v4(),
         name: "holiday".to_string(),
-        applies_to: PolicyAction::Spawn,
+        applies_to: Some(PolicyAction::Spawn),
         allowed_hours: vec![(0, 24)],
         blackout_dates: vec![(today.month(), today.day())],
+        day_of_week: None,
     };
 
     let guard = TemporalGuard::new(vec![window]);
@@ -379,9 +383,10 @@ fn test_temporal_guard_window_multiple_allowed_ranges() {
     let window = TimeWindow {
         id: Uuid::new_v4(),
         name: "split_hours".to_string(),
-        applies_to: PolicyAction::Spawn,
+        applies_to: Some(PolicyAction::Spawn),
         allowed_hours: vec![(9, 12), (14, 17)],
         blackout_dates: vec![],
+        day_of_week: None,
     };
 
     let guard = TemporalGuard::new(vec![window]);

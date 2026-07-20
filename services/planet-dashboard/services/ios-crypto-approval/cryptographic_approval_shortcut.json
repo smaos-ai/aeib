@@ -1,0 +1,138 @@
+{
+  "WFWorkflowTypes": 0,
+  "WFWorkflowInputContentTypes": [],
+  "WFWorkflowMinimumClientVersion": 900,
+  "WFWorkflowMinimumClientRelease": "1900.0",
+  "WFWorkflowTypes": 0,
+  "WFWorkflowInputContentTypes": [],
+  "WFWorkflowClientVersion": "1900.0",
+  "WFWorkflowClientRelease": "1900.0",
+  "WFWorkflowTypes": 0,
+  "WFWorkflowMinimumClientRelease": "1900.0",
+  "WFWorkflowMinimumClientVersion": 900,
+  "WFWorkflowActions": [
+    {
+      "WFSerializationType": "WFAppStore",
+      "WFWorkflowActionType": "is.workflow.actions.ask.number"
+    },
+    {
+      "WFInput": {
+        "Type": "ActionReference",
+        "OutputName": "Provided Number",
+        "OutputUUID": "00000000-0000-0000-0000-000000000001"
+      },
+      "WFSerializationType": "WFAppStore",
+      "WFWorkflowActionType": "is.workflow.actions.ask.fortext"
+    },
+    {
+      "WFSerializationType": "WFAppStore",
+      "WFWorkflowActionType": "is.workflow.actions.conditional"
+    },
+    {
+      "WFSerializationType": "WFAppStore",
+      "WFWorkflowActionType": "is.workflow.actions.ask.forapproval",
+      "WFInput": {
+        "Value": {
+          "string": "Approve this decision?",
+          "attachmentsByRange": {}
+        },
+        "WFSerializationType": "WFTextTokenAttachment"
+      }
+    },
+    {
+      "WFSerializationType": "WFAppStore",
+      "WFWorkflowActionType": "is.workflow.actions.biometric.authenticate",
+      "WFInput": {
+        "Value": {
+          "string": "FaceID"
+        }
+      }
+    },
+    {
+      "WFSerializationType": "WFAppStore",
+      "WFWorkflowActionType": "is.workflow.actions.conditional",
+      "WFInput": {
+        "Value": {
+          "string": "Success"
+        }
+      }
+    },
+    {
+      "WFInput": {
+        "Type": "ActionReference",
+        "OutputName": "Result"
+      },
+      "WFSerializationType": "WFAppStore",
+      "WFWorkflowActionType": "is.workflow.actions.hash",
+      "WFHashAlgorithm": "SHA256"
+    },
+    {
+      "WFSerializationType": "WFAppStore",
+      "WFWorkflowActionType": "is.workflow.actions.ask.fortext",
+      "WFInput": {
+        "Value": {
+          "string": "Secure Enclave P256 Signature (from app)"
+        }
+      }
+    },
+    {
+      "WFSerializationType": "WFAppStore",
+      "WFWorkflowActionType": "is.workflow.actions.conditional"
+    },
+    {
+      "WFInput": {
+        "Type": "ActionReference",
+        "OutputName": "Provided Number"
+      },
+      "WFSerializationType": "WFAppStore",
+      "WFWorkflowActionType": "is.workflow.actions.url"
+    },
+    {
+      "WFInput": {
+        "Type": "ActionReference",
+        "OutputName": "URL"
+      },
+      "WFSerializationType": "WFAppStore",
+      "WFWorkflowActionType": "is.workflow.actions.request",
+      "WFRequestMethod": "POST",
+      "WFRequestHeaders": {
+        "Authorization": "Bearer {token}",
+        "Content-Type": "application/json"
+      },
+      "WFRequestBody": {
+        "Type": "ActionReference",
+        "OutputName": "Signed Proof"
+      }
+    },
+    {
+      "WFInput": {
+        "Type": "ActionReference",
+        "OutputName": "Response"
+      },
+      "WFSerializationType": "WFAppStore",
+      "WFWorkflowActionType": "is.workflow.actions.conditional",
+      "WFInput": {
+        "Value": {
+          "string": "200"
+        }
+      }
+    },
+    {
+      "WFSerializationType": "WFAppStore",
+      "WFWorkflowActionType": "is.workflow.actions.ask.fortext",
+      "WFInput": {
+        "Value": {
+          "string": "Approval submitted and verified by Vision API."
+        }
+      }
+    }
+  ],
+  "WFWorkflowDescription": "Cryptographic approval flow: approval prompt → FaceID auth → P256 signing → Vision API submission",
+  "WFWorkflowTypes": 0,
+  "WFWorkflowInputContentTypes": [],
+  "WFWorkflowClientVersion": "1900.0",
+  "WFWorkflowClientRelease": "1900.0",
+  "WFWorkflowMinimumClientRelease": "1900.0",
+  "WFWorkflowMinimumClientVersion": 900,
+  "WFWorkflowDescription": "Cryptographic approval flow with Secure Enclave P256 signing"
+}

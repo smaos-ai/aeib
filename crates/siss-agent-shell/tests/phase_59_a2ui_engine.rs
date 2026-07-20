@@ -1,8 +1,7 @@
 /// Phase 59: A2UI Protocol & Interactive Payload Engine — 27 TDD Tests
-
 use siss_agent_shell::a2ui::schema::A2UIComponent;
-use siss_agent_shell::a2ui_primitives::{PrimitiveError, PrimitiveRegistry};
 use siss_agent_shell::a2ui_composer::{A2UIComposer, ComponentRef};
+use siss_agent_shell::a2ui_primitives::{PrimitiveError, PrimitiveRegistry};
 use siss_agent_shell::ag_ui_integration::{AgUiStream, AgUiStreamEvent};
 use uuid::Uuid;
 
@@ -11,9 +10,24 @@ use uuid::Uuid;
 #[test]
 fn test_registry_knows_all_18_primitives() {
     let names = vec![
-        "text", "badge", "alert", "progress", "divider", "link", "tooltip", "breadcrumb",
-        "input", "textarea", "select", "checkbox", "radio", "button", "card", "grid",
-        "modal", "table",
+        "text",
+        "badge",
+        "alert",
+        "progress",
+        "divider",
+        "link",
+        "tooltip",
+        "breadcrumb",
+        "input",
+        "textarea",
+        "select",
+        "checkbox",
+        "radio",
+        "button",
+        "card",
+        "grid",
+        "modal",
+        "table",
     ];
     for name in names {
         assert!(PrimitiveRegistry::is_known(name), "Should know: {}", name);

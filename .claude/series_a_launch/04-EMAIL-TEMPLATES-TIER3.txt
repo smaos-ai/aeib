@@ -1,0 +1,73 @@
+═══════════════════════════════════════════════════════════════════════════════
+TIER 3 EMAIL TEMPLATE (Strategic Partners: Stripe, Wise, Patreon, Substack, YouTube)
+Series A Warm Intro — June 4, 2026
+═══════════════════════════════════════════════════════════════════════════════
+
+SUBJECT LINE:
+Partnership: 99% creator payout protocol (AXIOM + AP2 Ledger, cryptographically enforced)
+
+---
+
+BODY:
+
+Hi [Name],
+
+We're not competing with you. We're the settlement layer that makes your margins work.
+
+AP2 (Agent Payment Protocol) is a cryptographic covenant: 1% to builders, 99% to beneficiaries/creators.
+It's enforced at protocol level. No "smart contract loopholes." No off-chain leakage. Merkle-auditable.
+
+We're raising €10M Series A to scale AP2 across 150M creators globally (€2B/month in creator earnings).
+We want [Creator Platform] to be a founding partner.
+
+THE PROBLEM:
+Creator platforms have margin compression. You're caught between payout fairness (creators want 95%+) and
+platform sustainability (you need 5%+ to operate). This kills margins. AP2 solves it: cryptographically
+enforce 1%/99% split, and let creators see it in real-time on the ledger.
+
+THE SOLUTION:
+AXIOM governs the payment settlement. AP2 Ledger proves every $1 earned → $0.01 platform → $0.99 creator.
+Creators can verify independently. Trust is cryptographic, not policy.
+
+WHY THIS WORKS FOR [PLATFORM]:
+- Whitelabel AP2 settlement on your infrastructure
+- You keep your users, your data, your margins (1% protocol fee)
+- Creator trust increases (provable fairness)
+- You become the "fairness standard" in creator economy
+- Patent-protected moat (we handle governance, you focus on creators)
+
+THE MARKET:
+- 150M creators globally
+- €2B/month in earnings
+- Growing 23% YoY
+- Founders Fund / Sequoia / Founders are betting on this
+- Ukraine + Israel deployments prove the tech works in high-stakes environments
+
+PARTNERSHIP MODEL:
+- Design partner retainer: €250k (covers integration)
+- Y2 licensing: €2M ACV (whitelabel AP2 on your platform)
+- Revenue share: You keep 1% protocol fee, we get 0.5% payment routing fees
+- Founding partner status: Public case study, Series B narrative, investor references
+
+INVESTOR FIT:
+Strategic equity participation (€2-3M check optional). If you want to join as founding investor, we have
+equity allocation available. Non-dilutive: you can also structure as revenue-sharing partnership only.
+
+THE ASK:
+Design partner commitment (12 months). Optional: equity participation + licensing revenue share.
+Timeline: Design partner agreement by June 15, go-live by Q1 2027.
+
+NEXT STEP:
+20-minute call to discuss partnership model? We can walk through the AP2 spec, the cryptographic proofs,
+and how Stripe/Wise/Patreon/Substack would integrate.
+
+Best,
+Andrey
+Architect, Axiom Protocol
+
+Encrypted contact: Signal/ProtonMail (details on call)
+
+P.S. Prague PoC is June 5 (18:00 UTC). Live AP2 settlement proof (Merkle-rooted creator payment, cryptographically
+audited). You're invited.
+
+═══════════════════════════════════════════════════════════════════════════════

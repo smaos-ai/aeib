@@ -1,13 +1,12 @@
 /// Phase 55: CrafterRuntime — Sovereign Binary Wiring
 /// Single-entry point for air-gapped sovereign execution with all subsystems wired.
-
 use crate::gui_sandbox::GuiSandboxAllocator;
 use crate::hooks::{LifecycleHook, security_gate::SecurityGateHook};
 use crate::mlx_hardware::AirGapMembrane;
 use crate::pixel_provenance::PixelProvenanceRecorder;
 use crate::swarm_channel::SwarmChannel;
 use crate::swarm_mcp_server::SwarmMcpServer;
-use crate::visual_action_membrane::{VisualActionMembrane, MockZoneAnalyzer};
+use crate::visual_action_membrane::{MockZoneAnalyzer, VisualActionMembrane};
 use std::sync::Arc;
 
 pub struct RuntimeConfig {
@@ -54,15 +53,14 @@ impl CrafterRuntime {
         let provenance_recorder =
             PixelProvenanceRecorder::new_with_channel(server.clone(), channel.clone());
 
-        let security_hook = Box::new(SecurityGateHook::new(Default::default()))
-            as Box<dyn LifecycleHook>;
+        let security_hook =
+            Box::new(SecurityGateHook::new(Default::default())) as Box<dyn LifecycleHook>;
 
         let membrane = Box::new(VisualActionMembrane {
             analyzer: MockZoneAnalyzer { zones: vec![] },
         }) as Box<dyn LifecycleHook>;
 
-        let air_gap = Box::new(AirGapMembrane::default())
-            as Box<dyn LifecycleHook>;
+        let air_gap = Box::new(AirGapMembrane::default()) as Box<dyn LifecycleHook>;
 
         let sandbox_allocator = GuiSandboxAllocator::new();
 
@@ -100,7 +98,10 @@ mod tests {
     #[tokio::test]
     async fn test_crafter_runtime_has_minimum_hooks() {
         let runtime = CrafterRuntime::new(RuntimeConfig::default()).await;
-        assert!(runtime.hook_count() >= 3, "Minimum 3 hooks required at startup");
+        assert!(
+            runtime.hook_count() >= 3,
+            "Minimum 3 hooks required at startup"
+        );
     }
 
     #[tokio::test]

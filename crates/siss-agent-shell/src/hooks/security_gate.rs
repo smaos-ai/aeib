@@ -1,16 +1,15 @@
+use crate::hooks::{HookResult, LifecycleHook, ToolUseContext};
 /// Phase 39: δ⁺ Security Gate Hook
 /// PreToolUse interception with pattern-based deterministic decisions
-
 use regex::Regex;
-use crate::hooks::{HookResult, LifecycleHook, ToolUseContext};
 
 /// Configuration for SecurityGateHook
 #[derive(Debug, Clone)]
 pub struct SecurityGateConfig {
-    pub banned_tool_names: Vec<String>,      // Exact match on tool_name → Deny
-    pub dangerous_patterns: Vec<String>,     // Regex on tool_input.to_string() → Deny
-    pub defer_patterns: Vec<String>,         // Regex on tool_input.to_string() → Defer
-    pub defer_severity: String,              // "High" | "Critical"
+    pub banned_tool_names: Vec<String>, // Exact match on tool_name → Deny
+    pub dangerous_patterns: Vec<String>, // Regex on tool_input.to_string() → Deny
+    pub defer_patterns: Vec<String>,    // Regex on tool_input.to_string() → Defer
+    pub defer_severity: String,         // "High" | "Critical"
 }
 
 impl Default for SecurityGateConfig {

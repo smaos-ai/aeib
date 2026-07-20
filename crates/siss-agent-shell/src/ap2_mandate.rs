@@ -1,8 +1,7 @@
+use crate::hooks::HookResult;
 /// Phase 63: AP2 Mandate Gate — role-separated payment authorization.
-
 use siss_gatekeeper::signer::{Signer, SigningError};
 use siss_gatekeeper::tokens::IntentMandate;
-use crate::hooks::HookResult;
 use uuid::Uuid;
 
 #[derive(Debug, Clone)]

@@ -1,7 +1,6 @@
 /// Phase 56: Covenant Charter — Human-Governed Skill Syndication Gate
 /// Halts execution and requires cryptographic APPROVE signature from human Strategic Orchestrator
 /// before any SkillPack is exported to the network.
-
 use crate::hooks::{HookResult, LifecycleHook, ToolUseContext};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -11,7 +10,7 @@ use uuid::Uuid;
 pub struct CovenantApproval {
     pub approval_id: Uuid,
     pub skill_pack_id: Uuid,
-    pub human_signature: Vec<u8>,    // Ed25519 signature from human
+    pub human_signature: Vec<u8>, // Ed25519 signature from human
     pub approved_at: DateTime<Utc>,
 }
 
@@ -50,10 +49,7 @@ impl CovenantCharter {
             approved_at: Utc::now(),
         };
 
-        self.approvals
-            .lock()
-            .unwrap()
-            .push(approval);
+        self.approvals.lock().unwrap().push(approval);
 
         Ok(approval_id)
     }
@@ -64,16 +60,17 @@ impl CovenantCharter {
     /// RULE 3: If not found, return Err(NoApprovalOnFile)
     pub fn is_approved(&self, skill_pack_id: Uuid) -> Result<bool, CovenantError> {
         let approvals = self.approvals.lock().unwrap();
-        Ok(approvals
-            .iter()
-            .any(|a| a.skill_pack_id == skill_pack_id))
+        Ok(approvals.iter().any(|a| a.skill_pack_id == skill_pack_id))
     }
 
     /// Revoke an approval (audit trail only — does not delete).
     /// In a real system, this would be immutable logging.
     pub fn revoke(&self, skill_pack_id: Uuid) -> Result<(), CovenantError> {
         let mut approvals = self.approvals.lock().unwrap();
-        if let Some(pos) = approvals.iter().position(|a| a.skill_pack_id == skill_pack_id) {
+        if let Some(pos) = approvals
+            .iter()
+            .position(|a| a.skill_pack_id == skill_pack_id)
+        {
             approvals.remove(pos);
             Ok(())
         } else {
@@ -112,13 +109,13 @@ impl LifecycleHook for CovenantCharter {
                 Err(_) => {
                     return HookResult::Deny {
                         reason: "invalid_skill_pack_id".to_string(),
-                    }
+                    };
                 }
             },
             None => {
                 return HookResult::Deny {
                     reason: "missing_skill_pack_id".to_string(),
-                }
+                };
             }
         };
 
@@ -163,8 +160,8 @@ mod tests {
 
     #[test]
     fn test_hook_halts_unapproved_syndication() {
-        use siss_graph_core::node::NodeId;
         use serde_json::json;
+        use siss_graph_core::node::NodeId;
 
         let charter = CovenantCharter::new();
         let pack_id = Uuid::new_v4();
@@ -188,8 +185,8 @@ mod tests {
 
     #[test]
     fn test_hook_allows_approved_syndication() {
-        use siss_graph_core::node::NodeId;
         use serde_json::json;
+        use siss_graph_core::node::NodeId;
 
         let charter = CovenantCharter::new();
         let pack_id = Uuid::new_v4();
@@ -211,8 +208,8 @@ mod tests {
 
     #[test]
     fn test_non_syndication_tools_pass_through() {
-        use siss_graph_core::node::NodeId;
         use serde_json::json;
+        use siss_graph_core::node::NodeId;
 
         let charter = CovenantCharter::new();
 
@@ -233,9 +230,7 @@ mod tests {
         let charter = CovenantCharter::new();
         let pack_id = Uuid::new_v4();
 
-        charter
-            .register_approval(pack_id, vec![0u8; 64])
-            .unwrap();
+        charter.register_approval(pack_id, vec![0u8; 64]).unwrap();
         assert_eq!(charter.is_approved(pack_id), Ok(true));
 
         let _ = charter.revoke(pack_id);

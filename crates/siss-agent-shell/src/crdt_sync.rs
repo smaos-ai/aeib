@@ -1,5 +1,4 @@
 /// Phase 58: CRDT Sync — Provenance-forking knowledge merge
-
 use crate::swarm_knowledge::KnowledgeAtom;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -85,9 +84,7 @@ impl CrdtSync {
     }
 
     /// Merge a batch of atoms pairwise.
-    pub fn merge_batch(
-        atoms: Vec<(KnowledgeAtom, Uuid)>,
-    ) -> (KnowledgeAtom, Vec<ProvenanceFork>) {
+    pub fn merge_batch(atoms: Vec<(KnowledgeAtom, Uuid)>) -> (KnowledgeAtom, Vec<ProvenanceFork>) {
         let mut forks = Vec::new();
 
         if atoms.is_empty() {

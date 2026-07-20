@@ -1,7 +1,8 @@
 /// Phase 60: IVB LoRA Compiler — Self-Improvement Harvest & Queue Pipeline
-
 use crate::distillation_gate::{DistillationConfig, DistillationGate, TrainingContract};
-use crate::lora_orchestrator::{LoraOrchestrator, LoraJobState, OrchestrationError, ResourceMonitor};
+use crate::lora_orchestrator::{
+    LoraJobState, LoraOrchestrator, OrchestrationError, ResourceMonitor,
+};
 use crate::memory_crystallizer::{MemoryCrystal, SemanticCrystallizer};
 use crate::swarm_knowledge::KnowledgeAtom;
 use chrono::{DateTime, Utc};

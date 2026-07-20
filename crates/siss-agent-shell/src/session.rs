@@ -13,7 +13,7 @@ use siss_gatekeeper::signer::Signer;
 use siss_job_router::executor::Executor;
 use siss_job_router::strategy::RoutingStrategy;
 
-use crate::ag_ui::status_emitter::{emit_agent_status, AgentState};
+use crate::ag_ui::status_emitter::{AgentState, emit_agent_status};
 use crate::events::{
     AgentEvent,
     emitter::{EventEmitter, NoOpEmitter},
@@ -184,7 +184,9 @@ impl AgentSession {
 
         // 2. Run the full pipeline
         let checker_refs: Vec<&dyn FirewallChecker> = self.checkers.iter().map(|c| &**c).collect();
-        let zonal_context = self.visible_field.as_ref()
+        let zonal_context = self
+            .visible_field
+            .as_ref()
             .and_then(|vf| serde_json::to_value(vf).ok());
         let result = pipeline::run_intent_pipeline(
             &self.pool,
@@ -280,7 +282,9 @@ impl AgentSession {
         }
 
         // 2. Emit suspended state
-        crate::ag_ui::status_emitter::emit_agent_status(crate::ag_ui::status_emitter::AgentState::Suspended);
+        crate::ag_ui::status_emitter::emit_agent_status(
+            crate::ag_ui::status_emitter::AgentState::Suspended,
+        );
 
         // Note: on_stop hooks are NOT fired (session is resumable, not terminated)
 

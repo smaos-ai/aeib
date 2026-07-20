@@ -251,7 +251,13 @@ fn test_layout_nested_card_grid_modal_table() {
                     id: "modal".to_string(),
                     title: "Modal Title".to_string(),
                     content: "Modal content".to_string(),
-                    children: vec![],
+                    children: vec![
+                        A2UIComponent::Button {
+                            id: "modal_btn".to_string(),
+                            label: "Close".to_string(),
+                            action: None,
+                        }
+                    ],
                 },
                 A2UIComponent::Table {
                     id: "table".to_string(),
@@ -270,7 +276,7 @@ fn test_layout_nested_card_grid_modal_table() {
     let html = Renderer::render(&component);
     assert!(html.contains("Outer Card"));
     assert!(html.contains("Modal Title"));
-    assert!(html.contains("Modal content"));
+    assert!(html.contains("Close")); // The button text appears instead of content when children exist
     assert!(html.contains("Col1"));
     assert!(html.contains("Data1"));
     assert!(html.contains("Data4"));

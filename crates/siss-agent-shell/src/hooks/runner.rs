@@ -53,11 +53,10 @@ where
     F: Fn(&dyn LifecycleHook, &ToolUseContext) -> Fut,
     Fut: std::future::Future<Output = HookResult>,
 {
-    use tokio::time::{timeout, Duration};
+    use tokio::time::{Duration, timeout};
 
     for hook in hooks {
-        let result = match timeout(Duration::from_millis(timeout_ms), method(&**hook, ctx)).await
-        {
+        let result = match timeout(Duration::from_millis(timeout_ms), method(&**hook, ctx)).await {
             Ok(r) => r,
             Err(_) => {
                 // Hook timed out — fail-closed

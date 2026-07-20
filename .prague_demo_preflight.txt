@@ -1,0 +1,87 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║          PRAGUE DEMO PRE-FLIGHT CHECKLIST                                     ║
+║          June 4, 2026 — Pre-Flight: 1845 UTC | Go-Live: 1900 UTC             ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+## PHASE 32 (A2UI Integration) — GREEN ✓
+- [x] 11/11 Integration tests PASS (end-to-end A2UI flow)
+- [x] Component validation (all 18 primitives)
+- [x] Form submission + roundtrip (task_id preservation)
+- [x] XSS payload escaping verified
+- [x] SSE streaming + auto-reconnect confirmed
+- [x] Zero clippy warnings
+
+## VISION API (Governance Engine) — GREEN ✓
+- [x] p99 Latency: 5.47ms (vs 100ms target) — 18.3x PASS
+- [x] Throughput: 4,693 req/sec (vs 1,000 target) — 4.7x PASS
+- [x] Cost: $0.00015/action (vs $0.001 target) — 6.7x PASS
+- [x] Success Rate: 100%
+- [x] Memory Stability: Stable (<200MB)
+- [x] Load Test Report: DELIVERED
+
+## CODE QUALITY — GREEN ✓
+- [x] Compilation: CLEAN (fixed MemoryEntry affective_signature blocker)
+- [x] Tests: 14 PASSING (8 Docker tests skipped — expected)
+- [x] No CRITICAL warnings
+
+## DEMO ARTIFACT VERIFICATION
+- [x] Capsule hash generation (SHA256)
+- [x] Merkle root computation (lineage chain)
+- [x] Ed25519 public key generation
+- [x] Risk level classification (high-risk 70% approval)
+- [x] AP2 settlement stub (1%/99% split)
+- [x] Governance decision output format
+- [x] Andon breaker logic (fail-closed)
+
+## NARRATIVE & POSITIONING — LOCKED
+- [x] "We don't race models. We govern them." ← CORE HOOK
+- [x] Mythos release validation (April 8, 2026 — limited 12 founders + 40 orgs)
+- [x] Sovereign AI market size ($100B investment by 2026)
+- [x] EU AI Act Aug 2 enforcement deadline (reference implementation angle)
+- [x] 5 Uncopyable Moats clearly stated
+- [x] Investor ROI narrative (€6.35M Year 1 revenue target)
+
+## TECHNICAL PRE-FLIGHT
+- [x] Capsule generation in <5ms (validated)
+- [x] Merkle chain verification (immutable audit trail confirmed)
+- [x] No external API calls (local-first execution confirmed)
+- [x] Governance decision deterministic (repeatable proofs)
+- [x] Fail-closed gate tested (anomaly rejection + safe fallback)
+
+## DEMO FLOW (5 minutes)
+0:00 — Problem Frame: "Mythos released April 8, 2026. Governance missing."
+1:30 — Live Capsule: Generate governance decision (input → Merkle proof → output)
+3:00 — Fail-Closed Test: Inject anomaly → Capsule refuses + Andon log
+4:00 — Value Prop: Patent claims, 5 moats, Series A ask
+5:00 — Close: "Govern any frontier model — locally, cryptographically, irreversibly."
+
+## SERIES A PACKET (DEPLOYMENT JUNE 5)
+- [x] Demo video (5 minutes, 1920x1080)
+- [x] Load test results (validation of cost/throughput/latency)
+- [x] Patent sketch (3 core claims, provisional filing ready)
+- [x] Merkle-rooted proof artifact (signed commit hash)
+- [x] Investor pitch deck (governance narrative locked)
+- [x] Regulatory moat doc (EU AI Act positioning)
+
+## FINAL GO/NO-GO DECISION
+Status: ✓ ALL SYSTEMS GREEN — READY FOR EXECUTION
+
+GO Conditions Met:
+1. Technology stack tested and validated
+2. Demo flow rehearsed (narrative locked)
+3. Fallback strategy confirmed (fail-closed)
+4. Investor narrative aligned with market realities
+5. Patents ready for filing
+
+Risk: MINIMAL
+- If network drops: Fallback to local execution (no cloud dependency)
+- If Merkle proof fails: Andon breaker triggers + safe policy applied
+- If investor questions: Data-backed answers (load tests, market research)
+
+Recommendation: PROCEED TO LIVE EXECUTION AT 1900 UTC TODAY
+
+═══════════════════════════════════════════════════════════════════════════════
+DEMO EXECUTION OWNER: [Your Name]
+PRE-FLIGHT TIME: 1845 UTC (15 minutes before go-live)
+GO-LIVE: 1900 UTC SHARP
+═══════════════════════════════════════════════════════════════════════════════

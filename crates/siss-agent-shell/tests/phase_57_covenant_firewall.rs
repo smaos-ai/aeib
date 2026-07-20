@@ -1,11 +1,12 @@
-use siss_agent_shell::covenant_firewall::{
-    CovenantFirewall, EconomicIntent, CovenantViolation,
-};
-use ed25519_dalek::{SigningKey, Signer as DalekSigner};
+use ed25519_dalek::{Signer as DalekSigner, SigningKey};
 use rand::rngs::OsRng;
+use siss_agent_shell::covenant_firewall::{CovenantFirewall, CovenantViolation, EconomicIntent};
 
 fn sign_intent(merkle: &[u8; 32], s: u8, b: u8, key: &SigningKey) -> (EconomicIntent, Vec<u8>) {
-    let intent = EconomicIntent { steward_pct: s, beneficiary_pct: b };
+    let intent = EconomicIntent {
+        steward_pct: s,
+        beneficiary_pct: b,
+    };
     let payload = CovenantFirewall::signing_payload(merkle, &intent);
     let sig = key.sign(&payload).to_bytes().to_vec();
     (intent, sig)

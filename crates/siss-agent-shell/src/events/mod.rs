@@ -7,9 +7,9 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::a2ui::A2UIComponent;
 use siss_behavioral_firewall::types::Verdict;
 use siss_graph_core::node::execution::HardwareTarget;
-use crate::a2ui::A2UIComponent;
 
 /// All event types emitted by the AG-UI protocol.
 #[derive(Debug, Clone, Serialize, Deserialize)]

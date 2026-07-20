@@ -15,6 +15,9 @@ uuid.workspace = true
 chrono.workspace = true
 reqwest.workspace = true
 sqlx.workspace = true
+parking_lot.workspace = true
+lru.workspace = true
+regex.workspace = true
 siss-agent-shell = { path = "../siss-agent-shell" }
 siss-graph-db = { path = "../siss-graph-db" }
 siss-job-router = { path = "../siss-job-router" }
@@ -26,3 +29,8 @@ tokio = { workspace = true, features = ["full"] }
 siss-graph-core = { path = "../siss-graph-core" }
 siss-behavioral-firewall = { path = "../siss-behavioral-firewall" }
 testcontainers.workspace = true
+criterion.workspace = true
+
+[[bench]]
+name = "performance_benchmarks"
+harness = false

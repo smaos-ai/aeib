@@ -194,7 +194,7 @@ impl BaselineCapsule {
     }
 
     /// Rollback context to snapshot
-    pub async fn rollback_context(&self, context: &Arc<ExecutionContext>, snapshot: &[u8]) {
+    pub async fn rollback_context(&self, context: &Arc<ExecutionContext>, _snapshot: &[u8]) {
         context.mark_rolled_back();
         // In real implementation, restore state from snapshot
     }

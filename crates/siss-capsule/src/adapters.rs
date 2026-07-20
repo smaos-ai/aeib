@@ -97,7 +97,7 @@ impl<'a> OllamaAdapter<'a> {
     }
 
     /// Generate N tokens with per-token latency tracking
-    pub async fn generate_tokens(&self, model: &str, prompt: &str, count: usize) -> Vec<String> {
+    pub async fn generate_tokens(&self, _model: &str, _prompt: &str, count: usize) -> Vec<String> {
         self.harness.increment_request_count();
 
         // Simulate token generation

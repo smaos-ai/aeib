@@ -11,6 +11,7 @@ members = [
     "crates/siss-event-log",
     "crates/siss-context-cartography",
     "crates/siss-behavioral-firewall",
+    "crates/siss-layer00",
     "crates/siss-feedback-router",
     "crates/siss-agent-shell",
     "crates/crafter-runtime",

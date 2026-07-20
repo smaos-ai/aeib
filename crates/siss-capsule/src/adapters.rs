@@ -86,6 +86,11 @@ impl<'a> OllamaAdapter<'a> {
         }))
     }
 
+    #[allow(dead_code)]
+    pub fn _unused_placeholder(&self) {
+        // Reserved for future extensions
+    }
+
     /// Check if GPU acceleration enabled
     pub fn is_gpu_acceleration_enabled(&self) -> bool {
         self.harness.config().enable_gpu

@@ -6,11 +6,17 @@ pub struct SubstackAdapter {
     platform_name: String,
 }
 
-impl SubstackAdapter {
-    pub fn new() -> Self {
+impl Default for SubstackAdapter {
+    fn default() -> Self {
         Self {
             platform_name: "substack".to_string(),
         }
+    }
+}
+
+impl SubstackAdapter {
+    pub fn new() -> Self {
+        Self::default()
     }
 
     pub fn new_test() -> Self {

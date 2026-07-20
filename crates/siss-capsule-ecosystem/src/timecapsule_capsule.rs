@@ -7,6 +7,7 @@ pub struct TimeCapsuleCapsule {
     scheduled_publishes: Vec<ScheduledPublish>,
     audit_trail: Vec<PublishAuditEntry>,
     publish_accuracy_samples: Vec<u64>,
+    #[allow(dead_code)]
     retry_max_attempts: u32,
 }
 

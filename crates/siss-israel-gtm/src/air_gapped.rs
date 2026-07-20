@@ -76,7 +76,7 @@ impl AirGappedDeployment {
         })
     }
 
-    pub async fn execute_zero_cloud(&self, context: &ExecutionContext) -> Result<ExecutionResult, AirGappedError> {
+    pub async fn execute_zero_cloud(&self, _context: &ExecutionContext) -> Result<ExecutionResult, AirGappedError> {
         Ok(ExecutionResult {
             cloud_api_calls: 0,
             local_only: true,

@@ -38,7 +38,7 @@ async fn test_sdk_oauth2_token_refresh() {
         access_token: "access_123".to_string(),
         refresh_token: Some("refresh_123".to_string()),
         platform: platform.to_string(),
-        expires_at: chrono::Utc::now() - chrono::Duration::seconds(3600),
+        expires_at: Some(chrono::Utc::now() - chrono::Duration::seconds(3600)),
         scope: vec!["read".to_string()],
     };
 
@@ -791,11 +791,13 @@ async fn test_adapter_list_exhaustive() {
 
 #[tokio::test]
 async fn test_policy_condition_parsing() {
-    let sdk = VisionSDKBuilder::new()
+    let _sdk = VisionSDKBuilder::new()
         .with_test_mode()
         .build()
         .await
         .expect("SDK build");
+
+    let sdk = _sdk;
 
     let creator_id = Uuid::new_v4();
     let policy = CreatorPolicy {
@@ -865,10 +867,11 @@ async fn test_multi_platform_simultaneous_decisions() {
         estimated_value: Some(100.0),
     };
 
+    let platforms = vec!["substack", "patreon", "youtube"];
     // Execute multiple decisions in parallel
-    let handles: Vec<_> = vec!["substack", "patreon", "youtube"]
+    let handles: Vec<_> = platforms
         .iter()
-        .map(|platform| {
+        .map(|&platform| {
             let sdk_clone = sdk.clone();
             let ctx_clone = ctx.clone();
             tokio::spawn(async move {

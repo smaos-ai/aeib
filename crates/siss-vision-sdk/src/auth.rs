@@ -6,7 +6,9 @@ use chrono::{Duration, Utc};
 
 pub struct OAuth2Handler {
     test_mode: bool,
+    #[allow(dead_code)]
     client_id: String,
+    #[allow(dead_code)]
     client_secret: String,
 }
 
@@ -22,7 +24,7 @@ impl OAuth2Handler {
     pub async fn acquire_token(
         &self,
         platform: &str,
-        code: &str,
+        _code: &str,
         _state: &str,
     ) -> Result<OAuth2Token> {
         if self.test_mode {
@@ -99,6 +101,7 @@ impl TokenManager {
                 }
             }
         }
+        drop(cache);
 
         // If expired or missing, create a new test token
         if self.test_mode {

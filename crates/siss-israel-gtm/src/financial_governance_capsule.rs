@@ -114,7 +114,7 @@ impl FinancialGovernanceCapsule {
         }
     }
 
-    pub async fn enforce_trading_policy(&self, order: &TradeOrder) -> Result<TradeApproval, FinancialError> {
+    pub async fn enforce_trading_policy(&self, _order: &TradeOrder) -> Result<TradeApproval, FinancialError> {
         Ok(TradeApproval {
             approved: true,
             policy_checked: true,
@@ -122,7 +122,7 @@ impl FinancialGovernanceCapsule {
         })
     }
 
-    pub async fn automate_regulatory_reporting(&self, period: &ReportingPeriod) -> Result<RegulatoryReport, FinancialError> {
+    pub async fn automate_regulatory_reporting(&self, _period: &ReportingPeriod) -> Result<RegulatoryReport, FinancialError> {
         Ok(RegulatoryReport {
             transactions: vec![],
             compliant: true,
@@ -139,7 +139,7 @@ impl FinancialGovernanceCapsule {
         })
     }
 
-    pub async fn override_compliance_rule(&self, request: &ComplianceOverrideRequest) -> Result<OverrideStatus, FinancialError> {
+    pub async fn override_compliance_rule(&self, _request: &ComplianceOverrideRequest) -> Result<OverrideStatus, FinancialError> {
         Ok(OverrideStatus {
             approved: true,
             audit_logged: true,
@@ -162,7 +162,7 @@ impl FinancialGovernanceCapsule {
         })
     }
 
-    pub async fn verify_settlement(&self, settlement: &SettlementRequest) -> Result<SettlementVerification, FinancialError> {
+    pub async fn verify_settlement(&self, _settlement: &SettlementRequest) -> Result<SettlementVerification, FinancialError> {
         Ok(SettlementVerification {
             verified: true,
             timestamp: Utc::now(),

@@ -4,9 +4,15 @@ use async_trait::async_trait;
 
 pub struct NotionAdapter;
 
+impl Default for NotionAdapter {
+    fn default() -> Self {
+        Self
+    }
+}
+
 impl NotionAdapter {
     pub fn new() -> Self {
-        Self
+        Self::default()
     }
 
     pub fn new_test() -> Self {

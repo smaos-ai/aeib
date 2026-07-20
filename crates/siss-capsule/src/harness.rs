@@ -9,6 +9,7 @@ use parking_lot::Mutex;
 pub struct HarnessCapsule {
     config: HarnessConfig,
     request_counter: Arc<Mutex<usize>>,
+    #[allow(dead_code)]
     active_requests: Arc<Mutex<HashMap<String, bool>>>,
 }
 

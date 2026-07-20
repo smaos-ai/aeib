@@ -4,9 +4,15 @@ use async_trait::async_trait;
 
 pub struct TwitterAdapter;
 
+impl Default for TwitterAdapter {
+    fn default() -> Self {
+        Self
+    }
+}
+
 impl TwitterAdapter {
     pub fn new() -> Self {
-        Self
+        Self::default()
     }
 
     pub fn new_test() -> Self {

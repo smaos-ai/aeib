@@ -59,16 +59,16 @@ impl MarketVisionCapsule {
 
         let mut detected = Vec::new();
 
-        for (idx, &value) in data.iter().enumerate() {
-            let mean = data.iter().sum::<f64>() / data.len() as f64;
-            let variance = data.iter()
-                .map(|x| (x - mean).powi(2))
-                .sum::<f64>() / data.len() as f64;
-            let std_dev = variance.sqrt();
+        let mean = data.iter().sum::<f64>() / data.len() as f64;
+        let variance = data.iter()
+            .map(|x| (x - mean).powi(2))
+            .sum::<f64>() / data.len() as f64;
+        let std_dev = variance.sqrt();
 
+        for (idx, &value) in data.iter().enumerate() {
             let z_score = (value - mean).abs() / (std_dev + 1e-9);
 
-            if z_score > 2.5 {
+            if z_score > 1.5 {
                 let confidence = self.calculate_confidence(z_score);
                 let anomaly_id = Uuid::new_v4();
 
@@ -205,8 +205,8 @@ impl MarketVisionCapsule {
     }
 
     fn calculate_confidence(&self, z_score: f64) -> f64 {
-        let base = (z_score - 2.5) / 5.0;
-        (base.min(1.0)).max(0.0)
+        let base = (z_score - 1.5) / 3.5;
+        base.clamp(0.1, 1.0)
     }
 }
 

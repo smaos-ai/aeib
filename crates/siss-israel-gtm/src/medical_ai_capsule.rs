@@ -144,14 +144,14 @@ impl MedicalAICapsule {
         })
     }
 
-    pub async fn enforce_data_segregation(&self, policy: &DataSegregationPolicy) -> Result<SegregationStatus, MedicalAIError> {
+    pub async fn enforce_data_segregation(&self, _policy: &DataSegregationPolicy) -> Result<SegregationStatus, MedicalAIError> {
         Ok(SegregationStatus {
             enforced: true,
             timestamp: Utc::now(),
         })
     }
 
-    pub async fn override_ai_decision(&self, request: &GovernanceOverrideRequest) -> Result<OverrideStatus, MedicalAIError> {
+    pub async fn override_ai_decision(&self, _request: &GovernanceOverrideRequest) -> Result<OverrideStatus, MedicalAIError> {
         Ok(OverrideStatus {
             approved: true,
             audit_logged: true,

@@ -4,9 +4,15 @@ use async_trait::async_trait;
 
 pub struct ZapierAdapter;
 
+impl Default for ZapierAdapter {
+    fn default() -> Self {
+        Self
+    }
+}
+
 impl ZapierAdapter {
     pub fn new() -> Self {
-        Self
+        Self::default()
     }
 
     pub fn new_test() -> Self {

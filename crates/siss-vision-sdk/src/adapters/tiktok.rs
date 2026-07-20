@@ -4,9 +4,15 @@ use async_trait::async_trait;
 
 pub struct TiktokAdapter;
 
+impl Default for TiktokAdapter {
+    fn default() -> Self {
+        Self
+    }
+}
+
 impl TiktokAdapter {
     pub fn new() -> Self {
-        Self
+        Self::default()
     }
 
     pub fn new_test() -> Self {

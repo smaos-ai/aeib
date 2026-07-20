@@ -1,7 +1,6 @@
 use std::thread;
 use std::time::Duration;
-use chrono::{DateTime, Utc, Duration as ChronoDuration};
-use uuid::Uuid;
+use chrono::{Utc, Duration as ChronoDuration};
 use siss_capsule_ecosystem::{AntiYouCapsule, TimeCapsuleCapsule, MarketVisionCapsule};
 
 // ============================================================================
@@ -56,7 +55,7 @@ fn test_antiyou_rollback_merkle_proof_verification() {
 #[test]
 fn test_antiyou_rollback_state_restoration() {
     let mut capsule = AntiYouCapsule::new();
-    let original_state = vec![100, 200, 300];
+    let original_state = vec![100u8, 200u8, 250u8];
     capsule.record_decision(original_state.clone());
 
     let version_id = capsule.get_versions()[0].version_id;
@@ -197,7 +196,7 @@ fn test_antiyou_concurrent_rollback_requests() {
 #[test]
 fn test_antiyou_data_persistence_integrity() {
     let mut capsule = AntiYouCapsule::new();
-    let test_data = vec![255, 254, 253, 252];
+    let test_data = vec![255, 254, 253, 252u8];
     capsule.record_decision(test_data.clone());
 
     let version = capsule.get_versions()[0].version_id;
@@ -279,9 +278,9 @@ fn test_timecapsule_concurrent_publish_ordering() {
     let mut capsule = TimeCapsuleCapsule::new();
     let now = Utc::now();
 
-    let id1 = capsule.schedule_publish(vec![1], now + ChronoDuration::seconds(1), "UTC").unwrap();
-    let id2 = capsule.schedule_publish(vec![2], now + ChronoDuration::seconds(2), "UTC").unwrap();
-    let id3 = capsule.schedule_publish(vec![3], now + ChronoDuration::seconds(3), "UTC").unwrap();
+    let _id1 = capsule.schedule_publish(vec![1], now + ChronoDuration::seconds(1), "UTC").unwrap();
+    let _id2 = capsule.schedule_publish(vec![2], now + ChronoDuration::seconds(2), "UTC").unwrap();
+    let _id3 = capsule.schedule_publish(vec![3], now + ChronoDuration::seconds(3), "UTC").unwrap();
 
     let scheduled = capsule.get_scheduled();
     assert_eq!(scheduled[0].scheduled_time, scheduled[0].scheduled_time, "Should maintain order");
@@ -292,7 +291,7 @@ fn test_timecapsule_retry_on_publish_failure() {
     let mut capsule = TimeCapsuleCapsule::new();
     let now = Utc::now() - ChronoDuration::seconds(1);
 
-    let publish_id = capsule.schedule_publish(vec![1], now, "UTC").unwrap();
+    let _publish_id = capsule.schedule_publish(vec![1], now, "UTC").unwrap();
     let result = capsule.execute_pending_publishes();
 
     assert!(result.is_ok(), "Should retry publish");
@@ -450,7 +449,6 @@ fn test_market_vision_latency_under_500ms() {
 #[test]
 fn test_market_vision_model_retraining_schedule() {
     let mut capsule = MarketVisionCapsule::new();
-    let initial_version = 1;
 
     capsule.retrain_model().unwrap();
 

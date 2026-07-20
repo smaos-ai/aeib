@@ -4,9 +4,15 @@ use async_trait::async_trait;
 
 pub struct PatreonAdapter;
 
+impl Default for PatreonAdapter {
+    fn default() -> Self {
+        Self
+    }
+}
+
 impl PatreonAdapter {
     pub fn new() -> Self {
-        Self
+        Self::default()
     }
 
     pub fn new_test() -> Self {

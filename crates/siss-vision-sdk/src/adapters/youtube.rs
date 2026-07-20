@@ -4,9 +4,15 @@ use async_trait::async_trait;
 
 pub struct YoutubeAdapter;
 
+impl Default for YoutubeAdapter {
+    fn default() -> Self {
+        Self
+    }
+}
+
 impl YoutubeAdapter {
     pub fn new() -> Self {
-        Self
+        Self::default()
     }
 
     pub fn new_test() -> Self {

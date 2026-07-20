@@ -57,13 +57,13 @@ pub struct OverrideExecution {
 }
 
 pub struct CreatorPalantirDashboard {
-    id: Uuid,
+    _id: Uuid,
 }
 
 impl CreatorPalantirDashboard {
     pub fn new() -> Self {
         Self {
-            id: Uuid::new_v4(),
+            _id: Uuid::new_v4(),
         }
     }
 
@@ -96,7 +96,7 @@ impl CreatorPalantirDashboard {
         })
     }
 
-    pub async fn execute_policy_override(&self, request: &RealtimePolicyOverride) -> Result<OverrideExecution, PalantirError> {
+    pub async fn execute_policy_override(&self, _request: &RealtimePolicyOverride) -> Result<OverrideExecution, PalantirError> {
         Ok(OverrideExecution {
             executed: true,
             audit_logged: true,

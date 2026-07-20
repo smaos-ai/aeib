@@ -5,6 +5,7 @@ use parking_lot::RwLock;
 use chrono::Utc;
 
 pub struct RevenueRouter {
+    #[allow(dead_code)]
     test_mode: bool,
     settlements: RwLock<HashMap<Uuid, Settlement>>,
     earnings: RwLock<HashMap<Uuid, EarningsSummary>>,
@@ -72,6 +73,7 @@ impl RevenueRouter {
 }
 
 pub struct AuditLog {
+    #[allow(dead_code)]
     test_mode: bool,
     entries: RwLock<HashMap<Uuid, AuditEntry>>,
 }

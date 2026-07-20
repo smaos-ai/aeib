@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use parking_lot::RwLock;
 
 pub struct CreatorPolicyStore {
+    #[allow(dead_code)]
     test_mode: bool,
     policies: RwLock<HashMap<Uuid, CreatorPolicy>>,
 }

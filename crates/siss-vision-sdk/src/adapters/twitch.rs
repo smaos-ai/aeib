@@ -4,9 +4,15 @@ use async_trait::async_trait;
 
 pub struct TwitchAdapter;
 
+impl Default for TwitchAdapter {
+    fn default() -> Self {
+        Self
+    }
+}
+
 impl TwitchAdapter {
     pub fn new() -> Self {
-        Self
+        Self::default()
     }
 
     pub fn new_test() -> Self {

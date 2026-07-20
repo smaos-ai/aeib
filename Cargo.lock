@@ -5134,6 +5134,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "siss-apac"
+version = "0.1.0"
+dependencies = [
+ "base64 0.22.1",
+ "chrono",
+ "hex",
+ "parking_lot",
+ "regex",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "siss-audit-archiver"
 version = "0.1.0"
 dependencies = [

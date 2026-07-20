@@ -167,6 +167,7 @@ impl RateLimiter {
 fn is_supported_platform(platform: &str) -> bool {
     matches!(
         platform,
+        // Phase 1: 10 platforms
         "substack"
             | "patreon"
             | "youtube"
@@ -177,5 +178,40 @@ fn is_supported_platform(platform: &str) -> bool {
             | "twitch"
             | "discord"
             | "slack"
+            // Phase 2: 40 platforms
+            | "medium"
+            | "linkedin"
+            | "bluesky"
+            | "threads"
+            | "mastodon"
+            | "farcaster"
+            | "lens"
+            | "pixelfed"
+            | "peertube"
+            | "telegram"
+            | "signal"
+            | "wechat"
+            | "viber"
+            | "line"
+            | "kick"
+            | "rumble"
+            | "odysee"
+            | "amazon_live"
+            | "tiktok_shop"
+            | "activecampaign"
+            | "hubspot"
+            | "mailchimp"
+            | "brevo"
+            | "getresponse"
+            | "unbounce"
+            | "leadpages"
+            | "funnelytics"
+            | "strava"
+            | "patreon_enterprise"
+            | "convertkit"
+            | "flodesk"
+            | "gumroad"
+            | "ghost"
+            | "mirror"
     )
 }

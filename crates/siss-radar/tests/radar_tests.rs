@@ -231,7 +231,7 @@ fn test_audit_governance_rule_matching() {
 
 #[test]
 fn test_audit_alert_generation_on_violation() {
-    let repo_id = Uuid::new_v4();
+    let _repo_id = Uuid::new_v4();
     let creator_id = Uuid::new_v4();
 
     let mut snapshot = RepoSnapshot {

@@ -3,8 +3,7 @@
 
 use siss_capsule::{
     BaselineCapsule, HarnessCapsule, HarnessConfig,
-    PolicyVerificationResult, ToolAuthProof, ExecutionContext, ContextIsolation,
-    AuditTraceEntry, MerkleProofVerification,
+    PolicyVerificationResult, ContextIsolation,
     LangChainAdapter, OllamaAdapter, AutoGPTAdapter,
 };
 use siss_behavioral_firewall::{
@@ -142,7 +141,7 @@ async fn test_baseline_tool_call_hash_proof_generation() {
 
     let proof = baseline.generate_tool_proof(tool_name, tool_args).await;
 
-    assert!(proof.hash.len() > 0);
+    assert!(!proof.hash.is_empty());
     assert!(!proof.signature.is_empty());
     assert_eq!(proof.tool_name, tool_name);
 }
@@ -259,7 +258,7 @@ async fn test_baseline_audit_trace_creation() {
     ).await;
 
     assert!(!trace.trace_id.is_nil());
-    assert_eq!(trace.is_decision_allowed, true);
+    assert!(trace.is_decision_allowed);
 }
 
 #[tokio::test]
@@ -399,7 +398,7 @@ async fn test_harness_ollama_token_latency_under_100ms() {
     let per_token_ms = elapsed.as_millis() as f64 / 10.0;
 
     // Verify tokens generated
-    assert!(tokens.len() > 0);
+    assert!(!tokens.is_empty());
     // Note: actual hardware will vary; this is a goal latency
     println!("Per-token latency: {:.2} ms", per_token_ms);
 }

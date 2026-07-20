@@ -64,7 +64,9 @@ impl MerkleChainMonitor {
         // 2. For each entry, re-compute the merkle_hash
         // 3. Compare expected vs stored hash
         // 4. Return status and entry count
-        Err(MonitoringError::DatabaseError("Not implemented".to_string()))
+        Err(MonitoringError::DatabaseError(
+            "Not implemented".to_string(),
+        ))
     }
 
     /// Detect tampering by comparing computed vs stored hashes
@@ -76,7 +78,9 @@ impl MerkleChainMonitor {
         // 2. Compare with stored merkle_hash
         // 3. Collect all mismatches
         // 4. Return TamperAlerts with detailed info
-        Err(MonitoringError::DatabaseError("Not implemented".to_string()))
+        Err(MonitoringError::DatabaseError(
+            "Not implemented".to_string(),
+        ))
     }
 
     /// Check if chain is sound (all entries verify)
@@ -217,6 +221,9 @@ mod tests {
             next_check_at: Utc::now(),
         };
         let json = serde_json::to_string(&verification);
-        assert!(json.is_ok(), "ChainVerification should be JSON serializable");
+        assert!(
+            json.is_ok(),
+            "ChainVerification should be JSON serializable"
+        );
     }
 }

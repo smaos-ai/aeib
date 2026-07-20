@@ -103,9 +103,18 @@ mod tests {
     fn test_s3_archive_path_format() {
         let archiver = ColdStorageArchiver::new(test_config());
         let path = archiver.s3_archive_path(2026, 7, 21);
-        assert!(path.contains("archives/exec_log"), "Path should contain archives/exec_log");
-        assert!(path.contains("2026/07/21"), "Path should contain year/month/day");
-        assert!(path.contains("test-bucket"), "Path should contain bucket name");
+        assert!(
+            path.contains("archives/exec_log"),
+            "Path should contain archives/exec_log"
+        );
+        assert!(
+            path.contains("2026/07/21"),
+            "Path should contain year/month/day"
+        );
+        assert!(
+            path.contains("test-bucket"),
+            "Path should contain bucket name"
+        );
     }
 
     #[test]
@@ -113,7 +122,10 @@ mod tests {
         let archiver = ColdStorageArchiver::new(test_config());
         let path = archiver.s3_archive_path(2026, 1, 5);
         // Should be zero-padded: 2026/01/05
-        assert!(path.contains("2026/01/05"), "Month and day should be zero-padded");
+        assert!(
+            path.contains("2026/01/05"),
+            "Month and day should be zero-padded"
+        );
     }
 
     #[test]
@@ -126,7 +138,10 @@ mod tests {
         };
         assert_eq!(stats.total_records, 1000);
         assert_eq!(stats.bytes_exported, 512_000);
-        assert!(stats.s3_path.ends_with(".gz"), "S3 path should end with .gz for compression");
+        assert!(
+            stats.s3_path.ends_with(".gz"),
+            "S3 path should end with .gz for compression"
+        );
     }
 
     #[test]

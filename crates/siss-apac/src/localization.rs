@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Language {
@@ -79,7 +79,7 @@ impl Localizer {
     pub fn add_translation(&mut self, key: &str, lang: Language, value: String) {
         self.strings
             .entry(key.to_string())
-            .or_insert_with(HashMap::new)
+            .or_default()
             .insert(lang.code().to_string(), value);
     }
 
@@ -124,11 +124,11 @@ impl Localizer {
         }
 
         let total_langs = Self::supported_languages().len();
-        let mut coverage = 0.0;
-
-        for (_, translations) in &self.strings {
-            coverage += translations.len() as f64 / total_langs as f64;
-        }
+        let coverage: f64 = self
+            .strings
+            .values()
+            .map(|translations| translations.len() as f64 / total_langs as f64)
+            .sum();
 
         coverage / self.strings.len() as f64
     }

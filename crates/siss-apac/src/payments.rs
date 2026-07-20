@@ -31,19 +31,19 @@ impl PaymentProcessor {
 
     pub fn min_settlement_amount_cents(&self) -> u64 {
         match self {
-            PaymentProcessor::Alipay => 100,      // 1 CNY
-            PaymentProcessor::WeChatPay => 100,   // 1 CNY
-            PaymentProcessor::GCash => 5000,      // 50 PHP
-            PaymentProcessor::Paytm => 10000,     // 100 INR
+            PaymentProcessor::Alipay => 100,    // 1 CNY
+            PaymentProcessor::WeChatPay => 100, // 1 CNY
+            PaymentProcessor::GCash => 5000,    // 50 PHP
+            PaymentProcessor::Paytm => 10000,   // 100 INR
         }
     }
 
     pub fn fee_bps(&self) -> u16 {
         match self {
-            PaymentProcessor::Alipay => 25,   // 0.25%
+            PaymentProcessor::Alipay => 25,    // 0.25%
             PaymentProcessor::WeChatPay => 30, // 0.30%
-            PaymentProcessor::GCash => 45,    // 0.45%
-            PaymentProcessor::Paytm => 50,    // 0.50%
+            PaymentProcessor::GCash => 45,     // 0.45%
+            PaymentProcessor::Paytm => 50,     // 0.50%
         }
     }
 }
@@ -87,14 +87,12 @@ impl PaymentEngine {
         currency: &str,
     ) -> crate::Result<Transaction> {
         if amount_cents < processor.min_settlement_amount_cents() {
-            return Err(crate::ApacError::PaymentError(
-                format!(
-                    "Amount {} cents below minimum {} for {}",
-                    amount_cents,
-                    processor.min_settlement_amount_cents(),
-                    processor.provider_id()
-                )
-            ));
+            return Err(crate::ApacError::PaymentError(format!(
+                "Amount {} cents below minimum {} for {}",
+                amount_cents,
+                processor.min_settlement_amount_cents(),
+                processor.provider_id()
+            )));
         }
 
         let tx = Transaction {
@@ -112,8 +110,9 @@ impl PaymentEngine {
     }
 
     pub fn complete_transaction(&mut self, tx_id: &str) -> crate::Result<Transaction> {
-        let tx = self.transactions.get_mut(tx_id)
-            .ok_or_else(|| crate::ApacError::PaymentError(format!("Transaction not found: {}", tx_id)))?;
+        let tx = self.transactions.get_mut(tx_id).ok_or_else(|| {
+            crate::ApacError::PaymentError(format!("Transaction not found: {}", tx_id))
+        })?;
 
         tx.status = TransactionStatus::Completed;
         self.settlement_queue.push(tx_id.to_string());
@@ -129,12 +128,13 @@ impl PaymentEngine {
     }
 
     pub fn process_settlement(&mut self, tx_id: &str) -> crate::Result<()> {
-        let tx = self.transactions.get_mut(tx_id)
-            .ok_or_else(|| crate::ApacError::PaymentError(format!("Transaction not found: {}", tx_id)))?;
+        let tx = self.transactions.get_mut(tx_id).ok_or_else(|| {
+            crate::ApacError::PaymentError(format!("Transaction not found: {}", tx_id))
+        })?;
 
         if tx.status != TransactionStatus::Completed {
             return Err(crate::ApacError::PaymentError(
-                "Transaction must be completed before settlement".to_string()
+                "Transaction must be completed before settlement".to_string(),
             ));
         }
 
@@ -147,7 +147,8 @@ impl PaymentEngine {
         self.settlement_queue
             .iter()
             .filter_map(|id| {
-                self.transactions.get(id)
+                self.transactions
+                    .get(id)
                     .filter(|tx| tx.status == TransactionStatus::Completed)
                     .cloned()
             })

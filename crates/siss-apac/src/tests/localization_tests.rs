@@ -116,9 +116,18 @@ mod tests {
         localizer.add_translation("greeting", Language::JaJp, "こんにちは".to_string());
         localizer.add_translation("greeting", Language::KoKr, "안녕하세요".to_string());
 
-        assert_eq!(localizer.get("greeting", Language::ZhCn), Some("你好".to_string()));
-        assert_eq!(localizer.get("greeting", Language::JaJp), Some("こんにちは".to_string()));
-        assert_eq!(localizer.get("greeting", Language::KoKr), Some("안녕하세요".to_string()));
+        assert_eq!(
+            localizer.get("greeting", Language::ZhCn),
+            Some("你好".to_string())
+        );
+        assert_eq!(
+            localizer.get("greeting", Language::JaJp),
+            Some("こんにちは".to_string())
+        );
+        assert_eq!(
+            localizer.get("greeting", Language::KoKr),
+            Some("안녕하세요".to_string())
+        );
     }
 
     #[test]

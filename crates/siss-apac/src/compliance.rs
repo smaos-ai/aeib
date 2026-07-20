@@ -131,10 +131,7 @@ impl ComplianceEngine {
         let status = ComplianceStatus {
             jurisdiction: jurisdiction.code().to_string(),
             entity_id: entity_id.to_string(),
-            rules_enforced: rules
-                .iter()
-                .map(|r| format!("{:?}", r))
-                .collect(),
+            rules_enforced: rules.iter().map(|r| format!("{:?}", r)).collect(),
             last_audit: None,
             status: ComplianceCheckStatus::PendingReview,
         };
@@ -145,10 +142,9 @@ impl ComplianceEngine {
     }
 
     pub fn verify_compliance(&mut self, entity_id: &str) -> crate::Result<bool> {
-        let record = self.entity_records.get_mut(entity_id)
-            .ok_or_else(|| crate::ApacError::ComplianceError(
-                format!("Entity not found: {}", entity_id)
-            ))?;
+        let record = self.entity_records.get_mut(entity_id).ok_or_else(|| {
+            crate::ApacError::ComplianceError(format!("Entity not found: {}", entity_id))
+        })?;
 
         let rules_count = record.rules_enforced.len();
         if rules_count >= 4 {
@@ -166,22 +162,15 @@ impl ComplianceEngine {
     }
 
     pub fn audit_trail(&self, entity_id: &str) -> crate::Result<ComplianceStatus> {
-        self.entity_records.get(entity_id)
-            .cloned()
-            .ok_or_else(|| crate::ApacError::ComplianceError(
-                format!("No audit trail for entity: {}", entity_id)
-            ))
+        self.entity_records.get(entity_id).cloned().ok_or_else(|| {
+            crate::ApacError::ComplianceError(format!("No audit trail for entity: {}", entity_id))
+        })
     }
 
-    pub fn enforce_rule(
-        &mut self,
-        entity_id: &str,
-        rule: ComplianceRule,
-    ) -> crate::Result<()> {
-        let record = self.entity_records.get_mut(entity_id)
-            .ok_or_else(|| crate::ApacError::ComplianceError(
-                format!("Entity not found: {}", entity_id)
-            ))?;
+    pub fn enforce_rule(&mut self, entity_id: &str, rule: ComplianceRule) -> crate::Result<()> {
+        let record = self.entity_records.get_mut(entity_id).ok_or_else(|| {
+            crate::ApacError::ComplianceError(format!("Entity not found: {}", entity_id))
+        })?;
 
         let rule_name = format!("{:?}", rule);
         if !record.rules_enforced.contains(&rule_name) {

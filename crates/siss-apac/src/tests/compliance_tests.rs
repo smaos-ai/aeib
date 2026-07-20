@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::{Jurisdiction, ComplianceEngine, ComplianceCheckStatus};
+    use crate::{ComplianceCheckStatus, ComplianceEngine, Jurisdiction};
 
     #[test]
     fn test_singapore_jurisdiction_config() {
@@ -84,7 +84,9 @@ mod tests {
     #[test]
     fn test_verify_compliance_passes() {
         let mut engine = ComplianceEngine::new();
-        engine.register_entity(Jurisdiction::Singapore, "entity_001").unwrap();
+        engine
+            .register_entity(Jurisdiction::Singapore, "entity_001")
+            .unwrap();
 
         let result = engine.verify_compliance("entity_001");
         assert!(result.is_ok());
@@ -97,7 +99,9 @@ mod tests {
     #[test]
     fn test_verify_compliance_fails() {
         let mut engine = ComplianceEngine::new();
-        engine.register_entity(Jurisdiction::Singapore, "entity_002").unwrap();
+        engine
+            .register_entity(Jurisdiction::Singapore, "entity_002")
+            .unwrap();
 
         // Manually remove rules to trigger non-compliance
         // This requires a custom setup - the current test assumes rules are auto-populated
@@ -109,7 +113,9 @@ mod tests {
     #[test]
     fn test_get_compliance_status() {
         let mut engine = ComplianceEngine::new();
-        engine.register_entity(Jurisdiction::Japan, "entity_jp_002").unwrap();
+        engine
+            .register_entity(Jurisdiction::Japan, "entity_jp_002")
+            .unwrap();
 
         let status = engine.get_compliance_status("entity_jp_002");
         assert!(status.is_some());
@@ -119,7 +125,9 @@ mod tests {
     #[test]
     fn test_audit_trail() {
         let mut engine = ComplianceEngine::new();
-        engine.register_entity(Jurisdiction::Korea, "entity_kr_002").unwrap();
+        engine
+            .register_entity(Jurisdiction::Korea, "entity_kr_002")
+            .unwrap();
 
         let result = engine.audit_trail("entity_kr_002");
         assert!(result.is_ok());
@@ -132,7 +140,9 @@ mod tests {
         use crate::ComplianceRule;
 
         let mut engine = ComplianceEngine::new();
-        engine.register_entity(Jurisdiction::Singapore, "entity_sg_003").unwrap();
+        engine
+            .register_entity(Jurisdiction::Singapore, "entity_sg_003")
+            .unwrap();
 
         let result = engine.enforce_rule("entity_sg_003", ComplianceRule::KycRequired);
         assert!(result.is_ok());
@@ -144,7 +154,9 @@ mod tests {
     #[test]
     fn test_is_compliant_true() {
         let mut engine = ComplianceEngine::new();
-        engine.register_entity(Jurisdiction::Singapore, "entity_sg_004").unwrap();
+        engine
+            .register_entity(Jurisdiction::Singapore, "entity_sg_004")
+            .unwrap();
         engine.verify_compliance("entity_sg_004").unwrap();
 
         assert!(engine.is_compliant("entity_sg_004"));
@@ -152,7 +164,7 @@ mod tests {
 
     #[test]
     fn test_is_compliant_false() {
-        let mut engine = ComplianceEngine::new();
+        let engine = ComplianceEngine::new();
         let result = engine.is_compliant("nonexistent_entity");
         assert!(!result);
     }
@@ -160,9 +172,15 @@ mod tests {
     #[test]
     fn test_multiple_entity_registration() {
         let mut engine = ComplianceEngine::new();
-        engine.register_entity(Jurisdiction::Singapore, "entity_sg_005").unwrap();
-        engine.register_entity(Jurisdiction::Japan, "entity_jp_003").unwrap();
-        engine.register_entity(Jurisdiction::Korea, "entity_kr_003").unwrap();
+        engine
+            .register_entity(Jurisdiction::Singapore, "entity_sg_005")
+            .unwrap();
+        engine
+            .register_entity(Jurisdiction::Japan, "entity_jp_003")
+            .unwrap();
+        engine
+            .register_entity(Jurisdiction::Korea, "entity_kr_003")
+            .unwrap();
 
         assert!(engine.get_compliance_status("entity_sg_005").is_some());
         assert!(engine.get_compliance_status("entity_jp_003").is_some());

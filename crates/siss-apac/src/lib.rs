@@ -1,13 +1,13 @@
+pub mod compliance;
 pub mod localization;
 pub mod payments;
-pub mod compliance;
 
 #[cfg(test)]
 mod tests;
 
+pub use compliance::*;
 pub use localization::*;
 pub use payments::*;
-pub use compliance::*;
 
 #[derive(Debug, Clone)]
 pub enum ApacError {

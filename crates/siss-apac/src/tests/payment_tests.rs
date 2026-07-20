@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::{PaymentProcessor, PaymentEngine, TransactionStatus};
+    use crate::{PaymentEngine, PaymentProcessor, TransactionStatus};
 
     #[test]
     fn test_alipay_processor_config() {
@@ -14,7 +14,10 @@ mod tests {
     fn test_wechat_pay_processor_config() {
         assert_eq!(PaymentProcessor::WeChatPay.provider_id(), "wechat_pay");
         assert_eq!(PaymentProcessor::WeChatPay.settlement_cycle_days(), 1);
-        assert_eq!(PaymentProcessor::WeChatPay.min_settlement_amount_cents(), 100);
+        assert_eq!(
+            PaymentProcessor::WeChatPay.min_settlement_amount_cents(),
+            100
+        );
         assert_eq!(PaymentProcessor::WeChatPay.fee_bps(), 30);
     }
 
@@ -37,11 +40,7 @@ mod tests {
     #[test]
     fn test_initiate_transaction_alipay() {
         let mut engine = PaymentEngine::new();
-        let result = engine.initiate_transaction(
-            PaymentProcessor::Alipay,
-            1000,
-            "CNY"
-        );
+        let result = engine.initiate_transaction(PaymentProcessor::Alipay, 1000, "CNY");
 
         assert!(result.is_ok());
         let tx = result.unwrap();
@@ -54,11 +53,7 @@ mod tests {
     #[test]
     fn test_initiate_transaction_wechat_pay() {
         let mut engine = PaymentEngine::new();
-        let result = engine.initiate_transaction(
-            PaymentProcessor::WeChatPay,
-            5000,
-            "CNY"
-        );
+        let result = engine.initiate_transaction(PaymentProcessor::WeChatPay, 5000, "CNY");
 
         assert!(result.is_ok());
         let tx = result.unwrap();
@@ -69,11 +64,7 @@ mod tests {
     #[test]
     fn test_initiate_transaction_gcash() {
         let mut engine = PaymentEngine::new();
-        let result = engine.initiate_transaction(
-            PaymentProcessor::GCash,
-            10000,
-            "PHP"
-        );
+        let result = engine.initiate_transaction(PaymentProcessor::GCash, 10000, "PHP");
 
         assert!(result.is_ok());
         let tx = result.unwrap();
@@ -84,11 +75,7 @@ mod tests {
     #[test]
     fn test_initiate_transaction_paytm() {
         let mut engine = PaymentEngine::new();
-        let result = engine.initiate_transaction(
-            PaymentProcessor::Paytm,
-            50000,
-            "INR"
-        );
+        let result = engine.initiate_transaction(PaymentProcessor::Paytm, 50000, "INR");
 
         assert!(result.is_ok());
         let tx = result.unwrap();
@@ -99,11 +86,7 @@ mod tests {
     #[test]
     fn test_transaction_below_minimum_fails() {
         let mut engine = PaymentEngine::new();
-        let result = engine.initiate_transaction(
-            PaymentProcessor::Alipay,
-            50,
-            "CNY"
-        );
+        let result = engine.initiate_transaction(PaymentProcessor::Alipay, 50, "CNY");
 
         assert!(result.is_err());
     }
@@ -111,11 +94,9 @@ mod tests {
     #[test]
     fn test_complete_transaction() {
         let mut engine = PaymentEngine::new();
-        let tx = engine.initiate_transaction(
-            PaymentProcessor::Alipay,
-            1000,
-            "CNY"
-        ).unwrap();
+        let tx = engine
+            .initiate_transaction(PaymentProcessor::Alipay, 1000, "CNY")
+            .unwrap();
 
         let result = engine.complete_transaction(&tx.id);
         assert!(result.is_ok());
@@ -139,11 +120,9 @@ mod tests {
     #[test]
     fn test_process_settlement() {
         let mut engine = PaymentEngine::new();
-        let tx = engine.initiate_transaction(
-            PaymentProcessor::Alipay,
-            1000,
-            "CNY"
-        ).unwrap();
+        let tx = engine
+            .initiate_transaction(PaymentProcessor::Alipay, 1000, "CNY")
+            .unwrap();
 
         engine.complete_transaction(&tx.id).unwrap();
         let result = engine.process_settlement(&tx.id);
@@ -157,16 +136,12 @@ mod tests {
     #[test]
     fn test_get_pending_settlements() {
         let mut engine = PaymentEngine::new();
-        let tx1 = engine.initiate_transaction(
-            PaymentProcessor::Alipay,
-            1000,
-            "CNY"
-        ).unwrap();
-        let tx2 = engine.initiate_transaction(
-            PaymentProcessor::GCash,
-            10000,
-            "PHP"
-        ).unwrap();
+        let tx1 = engine
+            .initiate_transaction(PaymentProcessor::Alipay, 1000, "CNY")
+            .unwrap();
+        let tx2 = engine
+            .initiate_transaction(PaymentProcessor::GCash, 10000, "PHP")
+            .unwrap();
 
         engine.complete_transaction(&tx1.id).unwrap();
         engine.complete_transaction(&tx2.id).unwrap();
@@ -178,14 +153,18 @@ mod tests {
     #[test]
     fn test_settlement_status() {
         let mut engine = PaymentEngine::new();
-        let tx = engine.initiate_transaction(
-            PaymentProcessor::Alipay,
-            1000,
-            "CNY"
-        ).unwrap();
+        let tx = engine
+            .initiate_transaction(PaymentProcessor::Alipay, 1000, "CNY")
+            .unwrap();
 
-        assert_eq!(engine.settlement_status(&tx.id), Some(TransactionStatus::Pending));
+        assert_eq!(
+            engine.settlement_status(&tx.id),
+            Some(TransactionStatus::Pending)
+        );
         engine.complete_transaction(&tx.id).unwrap();
-        assert_eq!(engine.settlement_status(&tx.id), Some(TransactionStatus::Completed));
+        assert_eq!(
+            engine.settlement_status(&tx.id),
+            Some(TransactionStatus::Completed)
+        );
     }
 }

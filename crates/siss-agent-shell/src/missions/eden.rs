@@ -7,10 +7,9 @@
 /// - Household decision-making (energy, food, finance)
 /// - Regeneration fund governance (community voting)
 /// - Zero FDA regulation (education-focused, not medical)
-
 use serde::{Deserialize, Serialize};
-use std::time::SystemTime;
 use std::collections::HashMap;
+use std::time::SystemTime;
 use uuid::Uuid;
 
 // ============================================================================
@@ -46,8 +45,8 @@ pub struct FamilyCommandCenterCapsule {
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum PrivacyLevel {
-    FullPrivacy,           // No data shared with anyone
-    CommunityVisibility,   // Aggregate data visible to community (no PII)
+    FullPrivacy,         // No data shared with anyone
+    CommunityVisibility, // Aggregate data visible to community (no PII)
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -70,7 +69,7 @@ pub struct FamilyUnit {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FamilyMember {
-    pub member_id: String,  // Anonymous identifier (not name)
+    pub member_id: String, // Anonymous identifier (not name)
     pub age_group: AgeGroup,
     pub role: FamilyRole,
 }
@@ -124,7 +123,7 @@ pub struct StudentRecord {
 pub struct LearningProgress {
     pub lessons_completed: u32,
     pub problems_solved: u32,
-    pub accuracy: f32,                  // 0.0 - 1.0
+    pub accuracy: f32, // 0.0 - 1.0
     pub last_session: Option<SystemTime>,
     pub total_hours: f32,
 }
@@ -161,9 +160,9 @@ pub struct Exercise {
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum AssessmentMethod {
-    Adaptive,      // Difficulty adjusts based on performance
-    MasteryBased,  // Student must reach 90%+ before advancing
-    Portfolio,     // Curated collection of student work
+    Adaptive,     // Difficulty adjusts based on performance
+    MasteryBased, // Student must reach 90%+ before advancing
+    Portfolio,    // Curated collection of student work
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -190,8 +189,8 @@ pub struct EnergyDecision {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FoodSovereignty {
-    pub garden_yield_kg: u32,              // Monthly garden harvest
-    pub water_efficiency: f32,             // liters per kg produced
+    pub garden_yield_kg: u32,  // Monthly garden harvest
+    pub water_efficiency: f32, // liters per kg produced
     pub seed_catalog: Vec<Seed>,
     pub recipes_from_harvest: Vec<RecipeFromHarvest>,
 }
@@ -214,7 +213,7 @@ pub struct RecipeFromHarvest {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FinancialDecision {
-    pub ap2_earnings_usd: u32,                  // From research participation + local services
+    pub ap2_earnings_usd: u32, // From research participation + local services
     pub regeneration_fund_contribution_usd: u32, // Family's contribution
     pub local_investment_votes: Vec<LocalProjectVote>,
 }
@@ -385,7 +384,8 @@ impl FamilyCommandCenterCapsule {
 
         if total_consumption > 0 {
             self.household_decisions.energy.self_sufficiency_percent =
-                (self.household_decisions.energy.self_consumption_kwh as f32 / total_consumption as f32)
+                (self.household_decisions.energy.self_consumption_kwh as f32
+                    / total_consumption as f32)
                     * 100.0;
         } else {
             self.household_decisions.energy.self_sufficiency_percent = 0.0;
@@ -411,7 +411,8 @@ impl FamilyCommandCenterCapsule {
             .sum();
 
         if total_yield > 0 {
-            self.household_decisions.food.water_efficiency = total_water as f32 / total_yield as f32;
+            self.household_decisions.food.water_efficiency =
+                total_water as f32 / total_yield as f32;
         } else {
             self.household_decisions.food.water_efficiency = 0.0;
         }
@@ -519,7 +520,8 @@ impl FamilyCommandCenterCapsule {
         let recommendation = if self.household_decisions.energy.self_sufficiency_percent < 50.0 {
             "Increase solar panel investment or reduce peak-hour consumption.".to_string()
         } else if self.household_decisions.energy.self_sufficiency_percent < 80.0 {
-            "Consider shifting high-consumption tasks (dishwasher, laundry) to off-peak hours.".to_string()
+            "Consider shifting high-consumption tasks (dishwasher, laundry) to off-peak hours."
+                .to_string()
         } else {
             "Excellent energy autonomy! Monitor battery storage for resilience.".to_string()
         };
@@ -583,10 +585,14 @@ mod tests {
         assert_eq!(capsule.family_unit.members.len(), 4);
 
         // Assert: household_location is valid GPS
-        assert!(capsule.family_unit.household_location.0 >= -90.0
-            && capsule.family_unit.household_location.0 <= 90.0);
-        assert!(capsule.family_unit.household_location.1 >= -180.0
-            && capsule.family_unit.household_location.1 <= 180.0);
+        assert!(
+            capsule.family_unit.household_location.0 >= -90.0
+                && capsule.family_unit.household_location.0 <= 90.0
+        );
+        assert!(
+            capsule.family_unit.household_location.1 >= -180.0
+                && capsule.family_unit.household_location.1 <= 180.0
+        );
     }
 
     #[test]
@@ -676,9 +682,11 @@ mod tests {
         };
 
         // Student gets 85% → cannot advance
-        assert!(!capsule
-            .can_advance_to_next_lesson(&student_id)
-            .unwrap_or(false));
+        assert!(
+            !capsule
+                .can_advance_to_next_lesson(&student_id)
+                .unwrap_or(false)
+        );
 
         capsule.add_student(student.clone());
 
@@ -692,9 +700,11 @@ mod tests {
             .expect("student should exist");
         student_idx.progress.accuracy = 0.91;
 
-        assert!(capsule
-            .can_advance_to_next_lesson(&student_id)
-            .unwrap_or(false));
+        assert!(
+            capsule
+                .can_advance_to_next_lesson(&student_id)
+                .unwrap_or(false)
+        );
     }
 
     #[test]
@@ -711,7 +721,9 @@ mod tests {
 
         // Assert: self_sufficiency_percent = (100 / 130) * 100 = 76.9%
         let expected = (100.0 / 130.0) * 100.0;
-        assert!((capsule.household_decisions.energy.self_sufficiency_percent - expected).abs() < 0.1);
+        assert!(
+            (capsule.household_decisions.energy.self_sufficiency_percent - expected).abs() < 0.1
+        );
     }
 
     #[test]
@@ -724,17 +736,35 @@ mod tests {
         // Low self-sufficiency
         capsule.household_decisions.energy.self_sufficiency_percent = 30.0;
         capsule.generate_energy_recommendation();
-        assert!(capsule.household_decisions.energy.ai_recommendation.contains("solar"));
+        assert!(
+            capsule
+                .household_decisions
+                .energy
+                .ai_recommendation
+                .contains("solar")
+        );
 
         // Medium self-sufficiency
         capsule.household_decisions.energy.self_sufficiency_percent = 70.0;
         capsule.generate_energy_recommendation();
-        assert!(capsule.household_decisions.energy.ai_recommendation.contains("off-peak"));
+        assert!(
+            capsule
+                .household_decisions
+                .energy
+                .ai_recommendation
+                .contains("off-peak")
+        );
 
         // High self-sufficiency
         capsule.household_decisions.energy.self_sufficiency_percent = 90.0;
         capsule.generate_energy_recommendation();
-        assert!(capsule.household_decisions.energy.ai_recommendation.contains("battery"));
+        assert!(
+            capsule
+                .household_decisions
+                .energy
+                .ai_recommendation
+                .contains("battery")
+        );
     }
 
     #[test]
@@ -773,7 +803,9 @@ mod tests {
 
         // Assert: water_efficiency = total_water / total_yield = 380 / 105 ≈ 3.619 (liters per kg)
         let expected_efficiency = 380.0 / 105.0;
-        assert!((capsule.household_decisions.food.water_efficiency - expected_efficiency).abs() < 0.001);
+        assert!(
+            (capsule.household_decisions.food.water_efficiency - expected_efficiency).abs() < 0.001
+        );
     }
 
     #[test]
@@ -830,7 +862,14 @@ mod tests {
         assert_eq!(updated_project.community_votes, 1);
 
         // Assert: vote record exists in family's votes
-        assert_eq!(capsule.household_decisions.financial.local_investment_votes.len(), 1);
+        assert_eq!(
+            capsule
+                .household_decisions
+                .financial
+                .local_investment_votes
+                .len(),
+            1
+        );
     }
 
     #[test]
@@ -859,18 +898,36 @@ mod tests {
             FamilyCommandCenterCapsule::new("Test Family".to_string(), (0.0, 0.0), members);
 
         // Set impact metrics
-        capsule.regeneration_fund_governance.impact_measurement.soil_carbon_increase_tons = 2.0;
-        capsule.regeneration_fund_governance.impact_measurement.water_retention_gallons = 5000.0;
-        capsule.regeneration_fund_governance.impact_measurement.biodiversity_index = 0.75;
-        capsule.regeneration_fund_governance.impact_measurement.community_participation_families = 20;
+        capsule
+            .regeneration_fund_governance
+            .impact_measurement
+            .soil_carbon_increase_tons = 2.0;
+        capsule
+            .regeneration_fund_governance
+            .impact_measurement
+            .water_retention_gallons = 5000.0;
+        capsule
+            .regeneration_fund_governance
+            .impact_measurement
+            .biodiversity_index = 0.75;
+        capsule
+            .regeneration_fund_governance
+            .impact_measurement
+            .community_participation_families = 20;
 
         // Assert: metrics recorded correctly
         assert_eq!(
-            capsule.regeneration_fund_governance.impact_measurement.soil_carbon_increase_tons,
+            capsule
+                .regeneration_fund_governance
+                .impact_measurement
+                .soil_carbon_increase_tons,
             2.0
         );
         assert_eq!(
-            capsule.regeneration_fund_governance.impact_measurement.community_participation_families,
+            capsule
+                .regeneration_fund_governance
+                .impact_measurement
+                .community_participation_families,
             20
         );
     }

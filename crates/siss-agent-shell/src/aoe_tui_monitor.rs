@@ -1,5 +1,4 @@
 /// Phase 62: TUI Status Aggregation — operator cockpit status matrix.
-
 use crate::ag_ui::AgentState;
 use chrono::{DateTime, Utc};
 use std::collections::HashMap;
@@ -73,9 +72,18 @@ impl AoeTuiMonitor {
     pub fn build_report(&self, now: DateTime<Utc>) -> TuiMonitorReport {
         let entries: Vec<AgentStatusEntry> = self.registry.values().cloned().collect();
 
-        let running_count = entries.iter().filter(|e| e.state == AgentState::Running).count();
-        let waiting_count = entries.iter().filter(|e| e.state == AgentState::Waiting).count();
-        let idle_count = entries.iter().filter(|e| e.state == AgentState::Idle).count();
+        let running_count = entries
+            .iter()
+            .filter(|e| e.state == AgentState::Running)
+            .count();
+        let waiting_count = entries
+            .iter()
+            .filter(|e| e.state == AgentState::Waiting)
+            .count();
+        let idle_count = entries
+            .iter()
+            .filter(|e| e.state == AgentState::Idle)
+            .count();
 
         TuiMonitorReport {
             entries,

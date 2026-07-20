@@ -1,6 +1,5 @@
 /// Phase 55: Spatial CIPO Router — GUI Failure → LoRA Retraining Pipeline
 /// Converts PixelProvenanceRecord failures into MemoryCrystal lessons for distillation.
-
 use crate::distillation_gate::{DistillationConfig, DistillationGate, TrainingContract};
 use crate::memory_crystallizer::MemoryCrystal;
 use crate::pixel_provenance::PixelProvenanceRecord;
@@ -36,10 +35,7 @@ impl SpatialCipoRouter {
 
         let trace = CipoTrace {
             payload: record.action_type.clone(),
-            slm_output: record
-                .before_screenshot_path
-                .clone()
-                .unwrap_or_default(),
+            slm_output: record.before_screenshot_path.clone().unwrap_or_default(),
             gate_error_raw: failure_reason.clone(),
             tier_escalated_from: RoutingTier::Tier1RapidMLX,
             tier_escalated_to: RoutingTier::Tier3Opus,
@@ -62,10 +58,7 @@ impl SpatialCipoRouter {
     /// RULE 5: Collect route_failure() results (skip None) → DistillationGate::extract
     /// RULE 6: TrainingContract.examples.is_empty() → None  (no contract if no qualifying data)
     pub fn distill_failures(&self, records: &[PixelProvenanceRecord]) -> Option<TrainingContract> {
-        let crystals: Vec<MemoryCrystal> = records
-            .iter()
-            .filter_map(Self::route_failure)
-            .collect();
+        let crystals: Vec<MemoryCrystal> = records.iter().filter_map(Self::route_failure).collect();
 
         if crystals.is_empty() {
             return None;

@@ -1,12 +1,11 @@
+use base64::{Engine as _, engine::general_purpose};
 /// EDEN Cluster D: DigitalWitnessCapsule — Cryptographic witness provenance
 /// for authoritarian/conflict-zone contexts. Immutable ledger signing + QR distribution.
-
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use sha2::{Sha256, Digest};
-use uuid::Uuid;
+use sha2::{Digest, Sha256};
 use std::fmt;
-use base64::{Engine as _, engine::general_purpose};
+use uuid::Uuid;
 
 // Re-export for convenience
 use crate::ap2_ledger::{Ap2BurnLedger, BurnError};
@@ -46,11 +45,21 @@ pub enum WitnessGenerationError {
 impl fmt::Display for WitnessGenerationError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            WitnessGenerationError::QrEncodingFailed(msg) => write!(f, "QR encoding failed: {}", msg),
-            WitnessGenerationError::DidGenerationFailed(msg) => write!(f, "DID generation failed: {}", msg),
-            WitnessGenerationError::LedgerSigningFailed(msg) => write!(f, "Ledger signing failed: {}", msg),
-            WitnessGenerationError::ContentHashFailed(msg) => write!(f, "Content hash failed: {}", msg),
-            WitnessGenerationError::ResilienceIntegrationFailed(msg) => write!(f, "Resilience integration failed: {}", msg),
+            WitnessGenerationError::QrEncodingFailed(msg) => {
+                write!(f, "QR encoding failed: {}", msg)
+            }
+            WitnessGenerationError::DidGenerationFailed(msg) => {
+                write!(f, "DID generation failed: {}", msg)
+            }
+            WitnessGenerationError::LedgerSigningFailed(msg) => {
+                write!(f, "Ledger signing failed: {}", msg)
+            }
+            WitnessGenerationError::ContentHashFailed(msg) => {
+                write!(f, "Content hash failed: {}", msg)
+            }
+            WitnessGenerationError::ResilienceIntegrationFailed(msg) => {
+                write!(f, "Resilience integration failed: {}", msg)
+            }
         }
     }
 }
@@ -88,13 +97,19 @@ impl DigitalWitnessCapsule {
 
     /// Generate W3C-compatible DID.
     pub fn generate_did(&mut self) -> String {
-        let did = format!("did:sovereign:{}", self.witness_id.to_string().replace("-", ""));
+        let did = format!(
+            "did:sovereign:{}",
+            self.witness_id.to_string().replace("-", "")
+        );
         self.did = did.clone();
         did
     }
 
     /// Sign capsule with AP2 ledger (using a mock signer for tests).
-    pub fn sign_with_ap2_ledger(&mut self, signature_bytes: Vec<u8>) -> Result<(), WitnessGenerationError> {
+    pub fn sign_with_ap2_ledger(
+        &mut self,
+        signature_bytes: Vec<u8>,
+    ) -> Result<(), WitnessGenerationError> {
         if signature_bytes.is_empty() {
             return Err(WitnessGenerationError::LedgerSigningFailed(
                 "signature cannot be empty".to_string(),
@@ -141,10 +156,14 @@ impl DigitalWitnessCapsule {
         }
 
         // Validate base64 by attempting decode
-        general_purpose::STANDARD.decode(&self.qr_code)
-            .map_err(|e| WitnessGenerationError::ResilienceIntegrationFailed(
-                format!("QR code is not valid base64: {}", e),
-            ))?;
+        general_purpose::STANDARD
+            .decode(&self.qr_code)
+            .map_err(|e| {
+                WitnessGenerationError::ResilienceIntegrationFailed(format!(
+                    "QR code is not valid base64: {}",
+                    e
+                ))
+            })?;
 
         // Check DID format
         if !self.did.starts_with("did:sovereign:") {
@@ -166,20 +185,22 @@ impl DigitalWitnessCapsule {
     /// Register witness with AP2 ledger.
     pub fn sync_to_ledger(&self, ledger: &mut Ap2BurnLedger) -> Result<(), WitnessGenerationError> {
         // Use content_hash as mandate_hash
-        ledger.register(self.witness_id, self.nonce, self.content_hash.clone(), self.timestamp)
-            .map_err(|e| {
-                match e {
-                    BurnError::NonceAlreadyBurned { .. } => {
-                        WitnessGenerationError::LedgerSigningFailed(
-                            "witness already registered (nonce burned)".to_string(),
-                        )
-                    }
-                    BurnError::EntryNotFound { .. } => {
-                        WitnessGenerationError::LedgerSigningFailed(
-                            "ledger entry not found".to_string(),
-                        )
-                    }
+        ledger
+            .register(
+                self.witness_id,
+                self.nonce,
+                self.content_hash.clone(),
+                self.timestamp,
+            )
+            .map_err(|e| match e {
+                BurnError::NonceAlreadyBurned { .. } => {
+                    WitnessGenerationError::LedgerSigningFailed(
+                        "witness already registered (nonce burned)".to_string(),
+                    )
                 }
+                BurnError::EntryNotFound { .. } => WitnessGenerationError::LedgerSigningFailed(
+                    "ledger entry not found".to_string(),
+                ),
             })
     }
 }
@@ -209,7 +230,9 @@ mod tests {
 
         // Check timestamp is recent (within 1 second)
         let now = Utc::now();
-        let diff = now.signed_duration_since(capsule.timestamp).num_milliseconds();
+        let diff = now
+            .signed_duration_since(capsule.timestamp)
+            .num_milliseconds();
         assert!(diff >= 0 && diff < 1000);
 
         // Check resilience tags

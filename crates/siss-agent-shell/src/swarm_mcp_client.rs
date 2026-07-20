@@ -1,11 +1,10 @@
 /// MCP client: agent-side wrapper with degraded mode local buffering.
 /// Blocks flat-file writes (STATE.md, MEMORY.md) for hot coordination.
-
-use crate::swarm_mcp_server::{SwarmStatePayload, GlobalStateFilter};
+use crate::swarm_mcp_server::{GlobalStateFilter, SwarmStatePayload};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use tokio::time::{sleep, Duration};
+use tokio::time::{Duration, sleep};
 
 pub struct SwarmMcpClient {
     pub socket_path: String,
@@ -54,7 +53,10 @@ impl SwarmMcpClient {
     }
 
     /// Retrieve state from MCP, fallback to degraded mode buffer.
-    pub async fn get_global_state(&self, filter: GlobalStateFilter) -> Result<Vec<SwarmStatePayload>, String> {
+    pub async fn get_global_state(
+        &self,
+        filter: GlobalStateFilter,
+    ) -> Result<Vec<SwarmStatePayload>, String> {
         match self.fetch_via_unix_socket(&filter).await {
             Ok(state) => Ok(state),
             Err(_) => {
@@ -81,7 +83,10 @@ impl SwarmMcpClient {
         Err("Socket unavailable (stub)".into())
     }
 
-    async fn fetch_via_unix_socket(&self, _filter: &GlobalStateFilter) -> Result<Vec<SwarmStatePayload>, String> {
+    async fn fetch_via_unix_socket(
+        &self,
+        _filter: &GlobalStateFilter,
+    ) -> Result<Vec<SwarmStatePayload>, String> {
         // Stubbed Unix domain socket implementation.
         Err("Socket unavailable (stub)".into())
     }
@@ -124,7 +129,10 @@ mod tests {
         let result = client.update_swarm_state(req.clone()).await;
         assert!(result.is_ok(), "should fall back to degraded mode");
 
-        let state = client.get_global_state(GlobalStateFilter { phase_filter: None }).await.unwrap();
+        let state = client
+            .get_global_state(GlobalStateFilter { phase_filter: None })
+            .await
+            .unwrap();
         assert_eq!(state.len(), 1);
         assert_eq!(state[0].idempotency_key, req.idempotency_key);
     }

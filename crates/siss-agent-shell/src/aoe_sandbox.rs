@@ -1,5 +1,4 @@
 /// Phase 62: Docker Sandbox Governance — file-write boundary enforcement.
-
 use crate::hooks::{HookResult, LifecycleHook, ToolUseContext};
 
 #[derive(Debug, Clone)]

@@ -8,7 +8,6 @@ use serde::{Deserialize, Serialize};
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum A2UIComponent {
     // === DISPLAY (8 types) ===
-
     /// Plain text display
     Text {
         id: String,
@@ -43,9 +42,7 @@ pub enum A2UIComponent {
     },
 
     /// Horizontal divider line
-    Divider {
-        id: String,
-    },
+    Divider { id: String },
 
     /// Hyperlink
     Link {
@@ -62,13 +59,9 @@ pub enum A2UIComponent {
     },
 
     /// Breadcrumb navigation
-    Breadcrumb {
-        id: String,
-        items: Vec<String>,
-    },
+    Breadcrumb { id: String, items: Vec<String> },
 
     // === INTERACTIVE FORMS (6 types, all require id) ===
-
     /// Text input field (required: id)
     Input {
         id: String,
@@ -120,7 +113,6 @@ pub enum A2UIComponent {
     },
 
     // === LAYOUT (4 types) ===
-
     /// Card container with title
     Card {
         id: String,

@@ -1,6 +1,8 @@
 pub mod renderer;
 pub mod form_handler;
 pub mod sse_handler;
+pub mod security;
+pub mod perf;
 
 #[cfg(test)]
 mod tests;

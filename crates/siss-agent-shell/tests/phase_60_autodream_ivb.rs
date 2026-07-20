@@ -1,5 +1,5 @@
+use chrono::Utc;
 /// Phase 60: Autodream Night Cycle & IVB Loop — 27 TDD Tests
-
 use siss_agent_shell::auto_dream_engine::AutoDreamEngine;
 use siss_agent_shell::contradiction_lint::ContradictionLint;
 use siss_agent_shell::distillation_gate::DistillationConfig;
@@ -8,7 +8,6 @@ use siss_agent_shell::lora_orchestrator::{LoraOrchestrator, ResourceMonitor};
 use siss_agent_shell::memory_crystallizer::SemanticCrystallizer;
 use siss_agent_shell::memory_decay::DecayConfig;
 use siss_agent_shell::swarm_knowledge::{KnowledgeAtom, KnowledgeKind};
-use chrono::Utc;
 use uuid::Uuid;
 
 // ─── AUTO DREAM ENGINE TESTS (1–9) ─────────────────────────────
@@ -84,7 +83,10 @@ fn test_dream_report_counts_correct() {
     let now = Utc::now();
 
     let (_survivors, report) = AutoDreamEngine::consolidate(&atoms, &config, now);
-    assert_eq!(report.pruned_count + report.survived_count + report.merged_count, 3);
+    assert_eq!(
+        report.pruned_count + report.survived_count + report.merged_count,
+        3
+    );
 }
 
 #[test]
@@ -146,7 +148,10 @@ fn test_lint_pair_identical_content_returns_clean() {
     let atom2 = create_test_atom("path1", 0.8, "same");
 
     let result = ContradictionLint::lint_pair(&atom1, Uuid::new_v4(), &atom2, Uuid::new_v4());
-    assert!(matches!(result, siss_agent_shell::contradiction_lint::LintResult::Clean));
+    assert!(matches!(
+        result,
+        siss_agent_shell::contradiction_lint::LintResult::Clean
+    ));
 }
 
 #[test]

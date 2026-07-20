@@ -1,12 +1,11 @@
+use ed25519_dalek::SigningKey;
 /// Phase 56: Sovereign Skill Pack Compilation & AP2 Syndication — The Crafter Economy Layer
 /// RED gate: 9 failing tests define expected behavior for skill compilation, AP2 routing, and human covenant approval.
-
 use siss_agent_shell::ap2_syndication::{Ap2Syndication, CreatorDid};
 use siss_agent_shell::covenant_charter::CovenantCharter;
 use siss_agent_shell::hooks::LifecycleHook;
 use siss_agent_shell::skill_compiler::SkillCompiler;
 use siss_gatekeeper::tokens::IntentMandate;
-use ed25519_dalek::SigningKey;
 use uuid::Uuid;
 
 // Test 1: SkillCompiler parses valid SKILL.md frontmatter
@@ -153,9 +152,9 @@ allowed-tools: [Read]
 // Test 8: CovenantCharter halts unapproved syndication (human gate)
 #[test]
 fn test_covenant_charter_halts_unapproved_syndication() {
+    use serde_json::json;
     use siss_agent_shell::hooks::{HookResult, ToolUseContext};
     use siss_graph_core::node::NodeId;
-    use serde_json::json;
 
     let charter = CovenantCharter::new();
     let pack_id = Uuid::new_v4();
@@ -180,9 +179,9 @@ fn test_covenant_charter_halts_unapproved_syndication() {
 // Test 9: CovenantCharter allows approved syndication
 #[test]
 fn test_covenant_charter_allows_approved_syndication() {
+    use serde_json::json;
     use siss_agent_shell::hooks::{HookResult, ToolUseContext};
     use siss_graph_core::node::NodeId;
-    use serde_json::json;
 
     let charter = CovenantCharter::new();
     let pack_id = Uuid::new_v4();

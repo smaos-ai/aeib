@@ -3,7 +3,6 @@
 /// Invariant 1: WorktreeClaimLedger is atomic first-wins claim/release.
 /// Invariant 3: SwarmChannel validates schema before broadcast.
 /// Invariant 4: SwarmStateLedger upsert is idempotent via agent_id.
-
 use std::collections::HashMap;
 use std::sync::Mutex;
 use thiserror::Error;
@@ -120,9 +119,10 @@ impl SwarmMessage {
         match self {
             SwarmMessage::StatusUpdate { progress_pct, .. } => {
                 if *progress_pct > 100 {
-                    return Err(ChannelError::SchemaMismatch(
-                        format!("progress_pct {} exceeds max 100", progress_pct),
-                    ));
+                    return Err(ChannelError::SchemaMismatch(format!(
+                        "progress_pct {} exceeds max 100",
+                        progress_pct
+                    )));
                 }
                 Ok(())
             }

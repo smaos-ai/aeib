@@ -6,7 +6,6 @@
 /// 3. Deserialized from JSON
 /// 4. Emitted via UIRequested event
 /// 5. Embedded in AgentEvent enum
-
 use chrono::Utc;
 use siss_agent_shell::a2ui::{A2UIComponent, SelectOption};
 use siss_agent_shell::events::AgentEvent;
@@ -123,7 +122,11 @@ fn test_a2ui_tooltip_component() {
 fn test_a2ui_breadcrumb_component() {
     let component = A2UIComponent::Breadcrumb {
         id: "breadcrumb_1".to_string(),
-        items: vec!["Home".to_string(), "Products".to_string(), "Item".to_string()],
+        items: vec![
+            "Home".to_string(),
+            "Products".to_string(),
+            "Item".to_string(),
+        ],
     };
 
     let json = serde_json::to_string(&component).expect("Should serialize");
@@ -173,8 +176,14 @@ fn test_a2ui_select_component() {
         id: "select_1".to_string(),
         label: "Choose option".to_string(),
         options: vec![
-            SelectOption { value: "opt1".to_string(), label: "Option 1".to_string() },
-            SelectOption { value: "opt2".to_string(), label: "Option 2".to_string() },
+            SelectOption {
+                value: "opt1".to_string(),
+                label: "Option 1".to_string(),
+            },
+            SelectOption {
+                value: "opt2".to_string(),
+                label: "Option 2".to_string(),
+            },
         ],
     };
 
@@ -240,13 +249,11 @@ fn test_a2ui_card_component() {
     let component = A2UIComponent::Card {
         id: "card_1".to_string(),
         title: Some("Card Title".to_string()),
-        children: vec![
-            A2UIComponent::Text {
-                id: "text_in_card".to_string(),
-                content: "Card content".to_string(),
-                size: None,
-            },
-        ],
+        children: vec![A2UIComponent::Text {
+            id: "text_in_card".to_string(),
+            content: "Card content".to_string(),
+            size: None,
+        }],
     };
 
     let json = serde_json::to_string(&component).expect("Should serialize");
@@ -262,8 +269,16 @@ fn test_a2ui_grid_component() {
         id: "grid_1".to_string(),
         columns: 3,
         children: vec![
-            A2UIComponent::Text { id: "c1".to_string(), content: "Cell 1".to_string(), size: None },
-            A2UIComponent::Text { id: "c2".to_string(), content: "Cell 2".to_string(), size: None },
+            A2UIComponent::Text {
+                id: "c1".to_string(),
+                content: "Cell 1".to_string(),
+                size: None,
+            },
+            A2UIComponent::Text {
+                id: "c2".to_string(),
+                content: "Cell 2".to_string(),
+                size: None,
+            },
         ],
     };
 
@@ -280,13 +295,11 @@ fn test_a2ui_modal_component() {
         id: "modal_1".to_string(),
         title: "Confirmation".to_string(),
         content: "Are you sure?".to_string(),
-        children: vec![
-            A2UIComponent::Button {
-                id: "confirm_btn".to_string(),
-                label: "Yes".to_string(),
-                action: Some("confirm".to_string()),
-            },
-        ],
+        children: vec![A2UIComponent::Button {
+            id: "confirm_btn".to_string(),
+            label: "Yes".to_string(),
+            action: Some("confirm".to_string()),
+        }],
     };
 
     let json = serde_json::to_string(&component).expect("Should serialize");
@@ -302,8 +315,16 @@ fn test_a2ui_table_component() {
         id: "table_1".to_string(),
         headers: vec!["ID".to_string(), "Name".to_string(), "Email".to_string()],
         rows: vec![
-            vec!["1".to_string(), "Alice".to_string(), "alice@example.com".to_string()],
-            vec!["2".to_string(), "Bob".to_string(), "bob@example.com".to_string()],
+            vec![
+                "1".to_string(),
+                "Alice".to_string(),
+                "alice@example.com".to_string(),
+            ],
+            vec![
+                "2".to_string(),
+                "Bob".to_string(),
+                "bob@example.com".to_string(),
+            ],
         ],
     };
 
@@ -345,7 +366,12 @@ fn test_ui_requested_event_with_single_component() {
     // Deserialize back
     let deserialized: AgentEvent = serde_json::from_str(&json).expect("Should deserialize event");
     match deserialized {
-        AgentEvent::UIRequested { task_id: tid, components: comps, form_id, .. } => {
+        AgentEvent::UIRequested {
+            task_id: tid,
+            components: comps,
+            form_id,
+            ..
+        } => {
             assert_eq!(tid, task_id);
             assert_eq!(comps.len(), 1);
             assert_eq!(form_id, Some("form_1".to_string()));
@@ -388,7 +414,11 @@ fn test_ui_requested_event_with_multiple_components() {
     let deserialized: AgentEvent = serde_json::from_str(&json).expect("Should deserialize");
 
     match deserialized {
-        AgentEvent::UIRequested { task_id: tid, components: comps, .. } => {
+        AgentEvent::UIRequested {
+            task_id: tid,
+            components: comps,
+            ..
+        } => {
             assert_eq!(tid, task_id);
             assert_eq!(comps.len(), 3);
             assert!(matches!(comps[0], A2UIComponent::Input { .. }));
@@ -484,31 +514,106 @@ fn test_ui_requested_event_with_nested_layout() {
 fn test_all_18_components_serialize_deserialize() {
     let all_components = vec![
         // Display (8)
-        A2UIComponent::Text { id: "1".to_string(), content: "t".to_string(), size: None },
-        A2UIComponent::Badge { id: "2".to_string(), label: "b".to_string(), color: None },
-        A2UIComponent::Alert { id: "3".to_string(), message: "a".to_string(), level: "info".to_string() },
-        A2UIComponent::Progress { id: "4".to_string(), value: 50, max: 100, label: None },
-        A2UIComponent::Divider { id: "5".to_string() },
-        A2UIComponent::Link { id: "6".to_string(), label: "l".to_string(), href: "http://x".to_string() },
-        A2UIComponent::Tooltip { id: "7".to_string(), text: "t".to_string(), content: "tip".to_string() },
-        A2UIComponent::Breadcrumb { id: "8".to_string(), items: vec![] },
+        A2UIComponent::Text {
+            id: "1".to_string(),
+            content: "t".to_string(),
+            size: None,
+        },
+        A2UIComponent::Badge {
+            id: "2".to_string(),
+            label: "b".to_string(),
+            color: None,
+        },
+        A2UIComponent::Alert {
+            id: "3".to_string(),
+            message: "a".to_string(),
+            level: "info".to_string(),
+        },
+        A2UIComponent::Progress {
+            id: "4".to_string(),
+            value: 50,
+            max: 100,
+            label: None,
+        },
+        A2UIComponent::Divider {
+            id: "5".to_string(),
+        },
+        A2UIComponent::Link {
+            id: "6".to_string(),
+            label: "l".to_string(),
+            href: "http://x".to_string(),
+        },
+        A2UIComponent::Tooltip {
+            id: "7".to_string(),
+            text: "t".to_string(),
+            content: "tip".to_string(),
+        },
+        A2UIComponent::Breadcrumb {
+            id: "8".to_string(),
+            items: vec![],
+        },
         // Forms (6)
-        A2UIComponent::Input { id: "9".to_string(), label: "i".to_string(), placeholder: None, required: false },
-        A2UIComponent::Textarea { id: "10".to_string(), label: "ta".to_string(), rows: None },
-        A2UIComponent::Select { id: "11".to_string(), label: "s".to_string(), options: vec![] },
-        A2UIComponent::Checkbox { id: "12".to_string(), label: "c".to_string(), checked: false },
-        A2UIComponent::Radio { id: "13".to_string(), label: "r".to_string(), value: "v".to_string(), checked: false },
-        A2UIComponent::Button { id: "14".to_string(), label: "btn".to_string(), action: None },
+        A2UIComponent::Input {
+            id: "9".to_string(),
+            label: "i".to_string(),
+            placeholder: None,
+            required: false,
+        },
+        A2UIComponent::Textarea {
+            id: "10".to_string(),
+            label: "ta".to_string(),
+            rows: None,
+        },
+        A2UIComponent::Select {
+            id: "11".to_string(),
+            label: "s".to_string(),
+            options: vec![],
+        },
+        A2UIComponent::Checkbox {
+            id: "12".to_string(),
+            label: "c".to_string(),
+            checked: false,
+        },
+        A2UIComponent::Radio {
+            id: "13".to_string(),
+            label: "r".to_string(),
+            value: "v".to_string(),
+            checked: false,
+        },
+        A2UIComponent::Button {
+            id: "14".to_string(),
+            label: "btn".to_string(),
+            action: None,
+        },
         // Layout (4)
-        A2UIComponent::Card { id: "15".to_string(), title: None, children: vec![] },
-        A2UIComponent::Grid { id: "16".to_string(), columns: 2, children: vec![] },
-        A2UIComponent::Modal { id: "17".to_string(), title: "m".to_string(), content: "content".to_string(), children: vec![] },
-        A2UIComponent::Table { id: "18".to_string(), headers: vec![], rows: vec![] },
+        A2UIComponent::Card {
+            id: "15".to_string(),
+            title: None,
+            children: vec![],
+        },
+        A2UIComponent::Grid {
+            id: "16".to_string(),
+            columns: 2,
+            children: vec![],
+        },
+        A2UIComponent::Modal {
+            id: "17".to_string(),
+            title: "m".to_string(),
+            content: "content".to_string(),
+            children: vec![],
+        },
+        A2UIComponent::Table {
+            id: "18".to_string(),
+            headers: vec![],
+            rows: vec![],
+        },
     ];
 
     for (idx, component) in all_components.iter().enumerate() {
-        let json = serde_json::to_string(&component).expect(&format!("Should serialize component {}", idx));
-        let deserialized: A2UIComponent = serde_json::from_str(&json).expect(&format!("Should deserialize component {}", idx));
+        let json = serde_json::to_string(&component)
+            .expect(&format!("Should serialize component {}", idx));
+        let deserialized: A2UIComponent =
+            serde_json::from_str(&json).expect(&format!("Should deserialize component {}", idx));
         assert_eq!(component, &deserialized, "Component {} mismatch", idx);
     }
 }
@@ -522,26 +627,99 @@ fn test_ui_requested_with_all_18_components() {
     let task_id = Uuid::new_v4();
     let all_components = vec![
         // Display (8)
-        A2UIComponent::Text { id: "1".to_string(), content: "t".to_string(), size: None },
-        A2UIComponent::Badge { id: "2".to_string(), label: "b".to_string(), color: None },
-        A2UIComponent::Alert { id: "3".to_string(), message: "a".to_string(), level: "info".to_string() },
-        A2UIComponent::Progress { id: "4".to_string(), value: 50, max: 100, label: None },
-        A2UIComponent::Divider { id: "5".to_string() },
-        A2UIComponent::Link { id: "6".to_string(), label: "l".to_string(), href: "http://x".to_string() },
-        A2UIComponent::Tooltip { id: "7".to_string(), text: "t".to_string(), content: "tip".to_string() },
-        A2UIComponent::Breadcrumb { id: "8".to_string(), items: vec![] },
+        A2UIComponent::Text {
+            id: "1".to_string(),
+            content: "t".to_string(),
+            size: None,
+        },
+        A2UIComponent::Badge {
+            id: "2".to_string(),
+            label: "b".to_string(),
+            color: None,
+        },
+        A2UIComponent::Alert {
+            id: "3".to_string(),
+            message: "a".to_string(),
+            level: "info".to_string(),
+        },
+        A2UIComponent::Progress {
+            id: "4".to_string(),
+            value: 50,
+            max: 100,
+            label: None,
+        },
+        A2UIComponent::Divider {
+            id: "5".to_string(),
+        },
+        A2UIComponent::Link {
+            id: "6".to_string(),
+            label: "l".to_string(),
+            href: "http://x".to_string(),
+        },
+        A2UIComponent::Tooltip {
+            id: "7".to_string(),
+            text: "t".to_string(),
+            content: "tip".to_string(),
+        },
+        A2UIComponent::Breadcrumb {
+            id: "8".to_string(),
+            items: vec![],
+        },
         // Forms (6)
-        A2UIComponent::Input { id: "9".to_string(), label: "i".to_string(), placeholder: None, required: false },
-        A2UIComponent::Textarea { id: "10".to_string(), label: "ta".to_string(), rows: None },
-        A2UIComponent::Select { id: "11".to_string(), label: "s".to_string(), options: vec![] },
-        A2UIComponent::Checkbox { id: "12".to_string(), label: "c".to_string(), checked: false },
-        A2UIComponent::Radio { id: "13".to_string(), label: "r".to_string(), value: "v".to_string(), checked: false },
-        A2UIComponent::Button { id: "14".to_string(), label: "btn".to_string(), action: None },
+        A2UIComponent::Input {
+            id: "9".to_string(),
+            label: "i".to_string(),
+            placeholder: None,
+            required: false,
+        },
+        A2UIComponent::Textarea {
+            id: "10".to_string(),
+            label: "ta".to_string(),
+            rows: None,
+        },
+        A2UIComponent::Select {
+            id: "11".to_string(),
+            label: "s".to_string(),
+            options: vec![],
+        },
+        A2UIComponent::Checkbox {
+            id: "12".to_string(),
+            label: "c".to_string(),
+            checked: false,
+        },
+        A2UIComponent::Radio {
+            id: "13".to_string(),
+            label: "r".to_string(),
+            value: "v".to_string(),
+            checked: false,
+        },
+        A2UIComponent::Button {
+            id: "14".to_string(),
+            label: "btn".to_string(),
+            action: None,
+        },
         // Layout (4)
-        A2UIComponent::Card { id: "15".to_string(), title: None, children: vec![] },
-        A2UIComponent::Grid { id: "16".to_string(), columns: 2, children: vec![] },
-        A2UIComponent::Modal { id: "17".to_string(), title: "m".to_string(), content: "content".to_string(), children: vec![] },
-        A2UIComponent::Table { id: "18".to_string(), headers: vec![], rows: vec![] },
+        A2UIComponent::Card {
+            id: "15".to_string(),
+            title: None,
+            children: vec![],
+        },
+        A2UIComponent::Grid {
+            id: "16".to_string(),
+            columns: 2,
+            children: vec![],
+        },
+        A2UIComponent::Modal {
+            id: "17".to_string(),
+            title: "m".to_string(),
+            content: "content".to_string(),
+            children: vec![],
+        },
+        A2UIComponent::Table {
+            id: "18".to_string(),
+            headers: vec![],
+            rows: vec![],
+        },
     ];
 
     let event = AgentEvent::UIRequested {
@@ -551,14 +729,22 @@ fn test_ui_requested_with_all_18_components() {
         timestamp: Utc::now(),
     };
 
-    let json = serde_json::to_string(&event).expect("Should serialize event with all 18 components");
-    let deserialized: AgentEvent = serde_json::from_str(&json).expect("Should deserialize event with all 18 components");
+    let json =
+        serde_json::to_string(&event).expect("Should serialize event with all 18 components");
+    let deserialized: AgentEvent =
+        serde_json::from_str(&json).expect("Should deserialize event with all 18 components");
 
     match deserialized {
-        AgentEvent::UIRequested { task_id: tid, components: comps, .. } => {
+        AgentEvent::UIRequested {
+            task_id: tid,
+            components: comps,
+            ..
+        } => {
             assert_eq!(tid, task_id);
             assert_eq!(comps.len(), 18, "All 18 components must be present");
-            for (idx, (original, deserialized)) in all_components.iter().zip(comps.iter()).enumerate() {
+            for (idx, (original, deserialized)) in
+                all_components.iter().zip(comps.iter()).enumerate()
+            {
                 assert_eq!(original, deserialized, "Component {} mismatch", idx);
             }
         }

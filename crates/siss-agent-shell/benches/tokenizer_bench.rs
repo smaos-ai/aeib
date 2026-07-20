@@ -1,4 +1,4 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, black_box, criterion_group, criterion_main};
 
 // Sample SMAOS Capsule text for tokenization benchmarks
 const CAPSULE_TEXT: &str = r#"
@@ -76,10 +76,7 @@ fn bench_tokenize_with_special_tokens(c: &mut Criterion) {
     // Test tokenization with special SMAOS markers
     let text_with_markers = black_box(format!(
         "{}{}{}{}",
-        "[CAPSULE_START]\n",
-        CAPSULE_TEXT,
-        "\n[POLICY_GATE]\n",
-        CAPSULE_TEXT
+        "[CAPSULE_START]\n", CAPSULE_TEXT, "\n[POLICY_GATE]\n", CAPSULE_TEXT
     ));
 
     c.bench_function("perplexity_tokenize_with_markers", |b| {

@@ -1,14 +1,13 @@
 /// Phase 56: AP2 Revenue Routing — Micro-Transaction Syndication to Creator DID
 /// Validates IntentMandate and routes agreed-upon revenue to creator's Decentralized Identifier.
-
 use crate::skill_compiler::SkillPack;
-use siss_gatekeeper::tokens::IntentMandate;
 use serde::{Deserialize, Serialize};
+use siss_gatekeeper::tokens::IntentMandate;
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CreatorDid {
-    pub did: String,  // "did:sovereign:agent_id" format
+    pub did: String, // "did:sovereign:agent_id" format
     pub agent_id: Uuid,
     pub public_key_bytes: Vec<u8>,
 }
@@ -87,8 +86,9 @@ impl Ap2Syndication {
         }
 
         let agent_id_str = &did_str[DID_PREFIX.len()..];
-        let agent_id = Uuid::parse_str(agent_id_str)
-            .map_err(|_| SyndicationError::DidResolutionFailed("invalid UUID in DID".to_string()))?;
+        let agent_id = Uuid::parse_str(agent_id_str).map_err(|_| {
+            SyndicationError::DidResolutionFailed("invalid UUID in DID".to_string())
+        })?;
 
         Ok(CreatorDid {
             did: did_str.to_string(),

@@ -1,9 +1,9 @@
+use chrono::Utc;
 /// Phase 53: Weight-Update Pipeline — Distillation, Orchestration, Hot-Swap
 /// RED gate: 9 failing tests that define expected behavior.
 /// Invariants: (1) Distillation extracts high-confidence crystals → JSONL (pure, no egress)
 ///             (2) LoRA orchestrator enforces 85% memory circuit breaker
 ///             (3) Weight swapper validates AP2 mandate + TTFT SLA
-
 use siss_agent_shell::distillation_gate::{DistillationConfig, DistillationGate};
 use siss_agent_shell::lora_orchestrator::{
     LoraConfig, LoraJobState, LoraOrchestrator, OrchestrationError, ResourceMonitor,
@@ -13,7 +13,6 @@ use siss_agent_shell::weight_swapper::{
     AdapterManifest, MockInferenceEndpoint, SwapError, WeightSwapper,
 };
 use siss_graph_core::node::memory::ConsolidationTier;
-use chrono::Utc;
 use uuid::Uuid;
 
 struct MockResourceMonitor {
@@ -73,8 +72,8 @@ fn test_distillation_formats_valid_jsonl() {
 
     for line in jsonl.lines() {
         if !line.is_empty() {
-            let parsed: serde_json::Value = serde_json::from_str(line)
-                .expect("every JSONL line must be valid JSON");
+            let parsed: serde_json::Value =
+                serde_json::from_str(line).expect("every JSONL line must be valid JSON");
             assert!(parsed.get("prompt").is_some(), "must have 'prompt' key");
             assert!(
                 parsed.get("completion").is_some(),
@@ -102,24 +101,22 @@ fn test_distillation_output_is_deterministic() {
     let contract2 = DistillationGate::extract(&crystals, &config);
     let jsonl2 = DistillationGate::to_jsonl(&contract2);
 
-    assert_eq!(jsonl1, jsonl2, "identical input must produce identical output");
+    assert_eq!(
+        jsonl1, jsonl2,
+        "identical input must produce identical output"
+    );
 }
 
 // Test 4: Orchestrator rejects high memory pressure
 #[test]
 fn test_orchestrator_rejects_high_memory_pressure() {
-    let monitor = MockResourceMonitor {
-        memory_pct: 0.87,
-    };
+    let monitor = MockResourceMonitor { memory_pct: 0.87 };
     let config = LoraConfig {
         memory_pressure_limit: 0.85,
         base_model: "test".to_string(),
         adapter_output_dir: "/tmp".to_string(),
     };
-    let orchestrator = LoraOrchestrator {
-        config,
-        monitor,
-    };
+    let orchestrator = LoraOrchestrator { config, monitor };
 
     let crystal = MemoryCrystal {
         crystal_id: Uuid::new_v4(),
@@ -132,7 +129,13 @@ fn test_orchestrator_rejects_high_memory_pressure() {
 
     let result = orchestrator.try_queue(&contract);
     assert!(
-        matches!(result, Err(OrchestrationError::MemoryPressureTooHigh { actual_pct: 87, limit_pct: 85 })),
+        matches!(
+            result,
+            Err(OrchestrationError::MemoryPressureTooHigh {
+                actual_pct: 87,
+                limit_pct: 85
+            })
+        ),
         "Expected MemoryPressureTooHigh, got {:?}",
         result
     );
@@ -141,18 +144,13 @@ fn test_orchestrator_rejects_high_memory_pressure() {
 // Test 5: Orchestrator queues below threshold
 #[test]
 fn test_orchestrator_queues_below_threshold() {
-    let monitor = MockResourceMonitor {
-        memory_pct: 0.70,
-    };
+    let monitor = MockResourceMonitor { memory_pct: 0.70 };
     let config = LoraConfig {
         memory_pressure_limit: 0.85,
         base_model: "test".to_string(),
         adapter_output_dir: "/tmp".to_string(),
     };
-    let orchestrator = LoraOrchestrator {
-        config,
-        monitor,
-    };
+    let orchestrator = LoraOrchestrator { config, monitor };
 
     let crystal = MemoryCrystal {
         crystal_id: Uuid::new_v4(),
@@ -170,18 +168,13 @@ fn test_orchestrator_queues_below_threshold() {
 // Test 6: Orchestrator pause signal on memory pressure rise
 #[test]
 fn test_orchestrator_pause_signal_on_pressure_rise() {
-    let monitor = MockResourceMonitor {
-        memory_pct: 0.90,
-    };
+    let monitor = MockResourceMonitor { memory_pct: 0.90 };
     let config = LoraConfig {
         memory_pressure_limit: 0.85,
         base_model: "test".to_string(),
         adapter_output_dir: "/tmp".to_string(),
     };
-    let orchestrator = LoraOrchestrator {
-        config,
-        monitor,
-    };
+    let orchestrator = LoraOrchestrator { config, monitor };
 
     let state = LoraJobState::Running { pid: 12345 };
     let pause_signal = orchestrator.should_pause(&state);
@@ -240,7 +233,13 @@ fn test_weight_swapper_rejects_excessive_ttft() {
 
     let result = swapper.swap(&manifest);
     assert!(
-        matches!(result, Err(SwapError::TtftExceededBaseline { measured_ms: 200, baseline_ms: 100 })),
+        matches!(
+            result,
+            Err(SwapError::TtftExceededBaseline {
+                measured_ms: 200,
+                baseline_ms: 100
+            })
+        ),
         "Expected TtftExceededBaseline, got {:?}",
         result
     );

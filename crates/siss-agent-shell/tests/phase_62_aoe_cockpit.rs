@@ -1,15 +1,14 @@
+use chrono::Utc;
+use serde_json::json;
+use siss_agent_shell::ag_ui::AgentState;
+use siss_agent_shell::aoe_sandbox::{AoeSandboxGate, SandboxBoundary, SandboxViolation};
 /// Phase 62: Operator Cockpit & Swarm Orchestration — 27 TDD Tests
-
 use siss_agent_shell::aoe_tmux_bridge::{
     AoeTmuxBridge, TmuxBridgeConfig, TmuxBridgeError, TmuxSessionDriver,
 };
-use siss_agent_shell::aoe_sandbox::{AoeSandboxGate, SandboxBoundary, SandboxViolation};
 use siss_agent_shell::aoe_tui_monitor::AoeTuiMonitor;
-use siss_agent_shell::ag_ui::AgentState;
 use siss_agent_shell::hooks::{HookResult, LifecycleHook, ToolUseContext};
 use siss_graph_core::node::NodeId;
-use chrono::Utc;
-use serde_json::json;
 use uuid::Uuid;
 
 // ============================================================================
@@ -90,7 +89,10 @@ async fn test_bridge_bind_second_bind_same_name_fails() {
 
     let second = bridge.bind(agent_id, working_dir).await;
     assert!(second.is_err());
-    assert!(matches!(second.unwrap_err(), TmuxBridgeError::AlreadyBound { .. }));
+    assert!(matches!(
+        second.unwrap_err(),
+        TmuxBridgeError::AlreadyBound { .. }
+    ));
 }
 
 #[tokio::test]
@@ -173,7 +175,10 @@ async fn test_bridge_unbind_unknown_session_returns_not_found() {
 
     let result = bridge.unbind(fake_token).await;
     assert!(result.is_err());
-    assert!(matches!(result.unwrap_err(), TmuxBridgeError::SessionNotFound { .. }));
+    assert!(matches!(
+        result.unwrap_err(),
+        TmuxBridgeError::SessionNotFound { .. }
+    ));
 }
 
 #[tokio::test]
@@ -531,8 +536,22 @@ fn test_tui_multiple_agents_tracked_independently() {
     let id2 = Uuid::new_v4();
     let id3 = Uuid::new_v4();
 
-    monitor.update(id1, AgentState::Running, "tmux1", "/workspace", 50, Utc::now());
-    monitor.update(id2, AgentState::Idle, "tmux2", "/workspace", 100, Utc::now());
+    monitor.update(
+        id1,
+        AgentState::Running,
+        "tmux1",
+        "/workspace",
+        50,
+        Utc::now(),
+    );
+    monitor.update(
+        id2,
+        AgentState::Idle,
+        "tmux2",
+        "/workspace",
+        100,
+        Utc::now(),
+    );
     monitor.update(id3, AgentState::Error, "tmux3", "/workspace", 0, Utc::now());
 
     let report = monitor.build_report(Utc::now());

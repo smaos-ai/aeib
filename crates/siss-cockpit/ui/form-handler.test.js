@@ -3,6 +3,7 @@
  * Tests form submission, SSE routing, state persistence
  */
 
+import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   attachFormHandlers,
   submitForm,
@@ -16,19 +17,19 @@ describe('Form Handler', () => {
 
   beforeEach(() => {
     // Mock fetch
-    mockFetch = jest.fn();
+    mockFetch = vi.fn();
     global.fetch = mockFetch;
 
     // Mock EventSource
     mockEventSource = {
-      addEventListener: jest.fn(),
-      close: jest.fn(),
+      addEventListener: vi.fn(),
+      close: vi.fn(),
     };
-    global.EventSource = jest.fn(() => mockEventSource);
+    global.EventSource = vi.fn(() => mockEventSource);
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   // === FORM SUBMISSION ===
@@ -129,14 +130,14 @@ describe('Form Handler', () => {
 
   describe('SSE Listener Setup', () => {
     test('setupSSEListener connects to SSE endpoint', () => {
-      const callback = jest.fn();
+      const callback = vi.fn();
       setupSSEListener(callback);
 
       expect(global.EventSource).toHaveBeenCalledWith('/api/agents/stream');
     });
 
     test('setupSSEListener attaches message handler', () => {
-      const callback = jest.fn();
+      const callback = vi.fn();
       setupSSEListener(callback);
 
       expect(mockEventSource.addEventListener).toHaveBeenCalledWith(
@@ -146,7 +147,7 @@ describe('Form Handler', () => {
     });
 
     test('setupSSEListener calls callback on message', () => {
-      const callback = jest.fn();
+      const callback = vi.fn();
       setupSSEListener(callback);
 
       // Get the message handler that was attached
@@ -169,7 +170,7 @@ describe('Form Handler', () => {
     });
 
     test('setupSSEListener handles attach error handler', () => {
-      setupSSEListener(jest.fn());
+      setupSSEListener(vi.fn());
 
       expect(mockEventSource.addEventListener).toHaveBeenCalledWith(
         'error',
@@ -188,7 +189,7 @@ describe('Form Handler', () => {
       document.body.appendChild(form);
 
       const submitEvent = new Event('submit');
-      submitEvent.preventDefault = jest.fn();
+      submitEvent.preventDefault = vi.fn();
 
       mockFetch.mockResolvedValue({ ok: true });
 
@@ -261,8 +262,8 @@ describe('Form Handler', () => {
     });
 
     test('setupSSEListener logs errors', () => {
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-      const callback = jest.fn();
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const callback = vi.fn();
 
       setupSSEListener(callback);
 

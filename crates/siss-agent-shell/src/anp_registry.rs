@@ -1,7 +1,6 @@
 /// Phase 58: ANP Registry — DID-authenticated peer discovery
-
 use crate::ap2_syndication::CreatorDid;
-use ed25519_dalek::{VerifyingKey, Signature, Verifier};
+use ed25519_dalek::{Signature, Verifier, VerifyingKey};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -96,18 +95,17 @@ impl AnpRegistry {
                 reason: "peer_not_registered".to_string(),
             })?;
 
-        let verifying_key = VerifyingKey::from_bytes(&peer.public_key).map_err(|_| {
-            AnpError::UnauthorizedPeer {
+        let verifying_key =
+            VerifyingKey::from_bytes(&peer.public_key).map_err(|_| AnpError::UnauthorizedPeer {
                 reason: "invalid_public_key".to_string(),
-            }
-        })?;
+            })?;
 
         let signature = Signature::from_bytes(signature_bytes);
-        verifying_key.verify(payload, &signature).map_err(|_| {
-            AnpError::UnauthorizedPeer {
+        verifying_key
+            .verify(payload, &signature)
+            .map_err(|_| AnpError::UnauthorizedPeer {
                 reason: "invalid_signature".to_string(),
-            }
-        })?;
+            })?;
 
         Ok(peer)
     }

@@ -1,6 +1,5 @@
 /// Phase 53: LoRA Orchestrator — Memory Pressure Circuit Breaker
 /// Enforces 85% unified memory limit before spawning training jobs.
-
 use crate::distillation_gate::TrainingContract;
 
 pub trait ResourceMonitor: Send + Sync {
@@ -51,7 +50,10 @@ impl<R: ResourceMonitor> LoraOrchestrator<R> {
     /// RULE 2: monitor.unified_memory_pct() > config.memory_pressure_limit
     ///         → Err(MemoryPressureTooHigh { actual_pct, limit_pct }) (values * 100)
     /// RULE 3: Ok(LoraJobState::Queued) — caller is responsible for spawning
-    pub fn try_queue(&self, contract: &TrainingContract) -> Result<LoraJobState, OrchestrationError> {
+    pub fn try_queue(
+        &self,
+        contract: &TrainingContract,
+    ) -> Result<LoraJobState, OrchestrationError> {
         if contract.examples.is_empty() {
             return Err(OrchestrationError::NoExamplesInContract);
         }

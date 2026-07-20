@@ -3,17 +3,16 @@
 /// Invariants: (1) WorktreeSandbox proves branch exclusivity
 ///             (2) EscalationInbox routes Phase 50 approval cards to the SwarmMcpServer bus
 ///             (3) AoETelemetryHub wires agent status + kill switch
-
 use chrono::Utc;
-use siss_agent_shell::aoe_telemetry::{AoETelemetryHub, TelemetryError};
+use siss_agent_shell::a2ui::escalation::{EscalationReason, EscalationRequest};
 use siss_agent_shell::ag_ui::AgentState;
+use siss_agent_shell::aoe_telemetry::{AoETelemetryHub, TelemetryError};
 use siss_agent_shell::escalation_inbox::EscalationInbox;
 use siss_agent_shell::orchestrator::{ProvisionError, TmuxSpawner};
 use siss_agent_shell::sandbox::{SandboxAllocator, SandboxError};
 use siss_agent_shell::swarm_channel::{InMemorySwarmState, SwarmChannel};
-use siss_agent_shell::a2ui::escalation::{EscalationReason, EscalationRequest};
-use siss_agent_shell::ucp::UcpContract;
 use siss_agent_shell::swarm_mcp_server::SwarmMcpServer;
+use siss_agent_shell::ucp::UcpContract;
 use std::sync::Arc;
 use uuid::Uuid;
 
@@ -87,7 +86,9 @@ fn test_sandbox_release_allows_reallocation() {
     let agent_a = Uuid::new_v4();
     let agent_b = Uuid::new_v4();
 
-    let sandbox_a = allocator.allocate(agent_a, "shared-branch", "/path/to/a").unwrap();
+    let sandbox_a = allocator
+        .allocate(agent_a, "shared-branch", "/path/to/a")
+        .unwrap();
     allocator.release(sandbox_a);
     let result_b = allocator.allocate(agent_b, "shared-branch", "/path/to/b");
 
@@ -238,8 +239,14 @@ async fn test_telemetry_hub_kill_switch_terminates_tmux() {
     let hub = AoETelemetryHub::new(tmux.clone(), ledger, channel);
 
     let agent_id = Uuid::new_v4();
-    hub.report(agent_id, AgentState::Running, 75, "worktree-a", "siss-agent-test")
-        .unwrap();
+    hub.report(
+        agent_id,
+        AgentState::Running,
+        75,
+        "worktree-a",
+        "siss-agent-test",
+    )
+    .unwrap();
 
     let result = hub.kill_switch(agent_id).await;
     assert!(result.is_ok());

@@ -1,6 +1,5 @@
 /// Phase 49: Blast Radius Gate — PreToolUse structural edit validation
 /// Prevents silent HIGH/CRITICAL impact edits to core files via GitNexus impact analysis.
-
 use crate::hooks::{HookResult, LifecycleHook, ToolUseContext};
 
 /// BlastRadiusAnalyzer trait for pluggable impact analysis.
@@ -22,8 +21,8 @@ pub enum BlastRiskLevel {
 #[derive(Debug, Clone)]
 pub struct AffectedSymbol {
     pub name: String,
-    pub depth: u8,           // 1=direct, 2=indirect, 3=transitive
-    pub confidence: f64,     // 0.0–1.0 from GitNexus edge weight
+    pub depth: u8,       // 1=direct, 2=indirect, 3=transitive
+    pub confidence: f64, // 0.0–1.0 from GitNexus edge weight
 }
 
 /// Impact analysis report from GitNexus or mock analyzer.
@@ -38,8 +37,8 @@ pub struct BlastRadiusReport {
 /// Threshold configuration for gate decisions.
 #[derive(Debug, Clone)]
 pub struct BlastRadiusThresholds {
-    pub low_symbol_cap: usize,            // Below this → Low risk
-    pub medium_symbol_cap: usize,         // Between caps → Medium
+    pub low_symbol_cap: usize,                  // Below this → Low risk
+    pub medium_symbol_cap: usize,               // Between caps → Medium
     pub require_approval_above: BlastRiskLevel, // Defer if risk > this
 }
 

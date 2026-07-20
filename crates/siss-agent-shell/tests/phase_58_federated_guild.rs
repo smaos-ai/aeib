@@ -1,12 +1,13 @@
+use ed25519_dalek::{Signer, SigningKey};
+use siss_agent_shell::a2a_dispatcher::{
+    A2ADispatcher, A2AStreamEvent, DispatchError, JsonRpcError, JsonRpcRequest, JsonRpcResponse,
+};
 /// Phase 58: Federated Guild Network — ANP Registry, A2A Dispatcher, CRDT Sync (27 RED tests)
-
-use siss_agent_shell::anp_registry::{AnpRegistry, AnpError};
-use siss_agent_shell::a2a_dispatcher::{A2ADispatcher, A2AStreamEvent, DispatchError, JsonRpcRequest, JsonRpcResponse, JsonRpcError};
+use siss_agent_shell::anp_registry::{AnpError, AnpRegistry};
 use siss_agent_shell::crdt_sync::{CrdtSync, ProvenanceFork};
 use siss_agent_shell::swarm_knowledge::KnowledgeAtom;
 use siss_gatekeeper::tokens::IntentMandate;
 use uuid::Uuid;
-use ed25519_dalek::{SigningKey, Signer};
 
 // ─── ANP REGISTRY TESTS (1–9) ──────────────────────────────
 
@@ -18,7 +19,14 @@ async fn test_anp_register_peer_valid_did() {
     let public_key = signing_key.verifying_key().to_bytes();
 
     let did = format!("did:sovereign:{}", Uuid::new_v4());
-    let result = registry.register_peer(&did, "https://factory.local", vec!["task/run".to_string()], public_key).await;
+    let result = registry
+        .register_peer(
+            &did,
+            "https://factory.local",
+            vec!["task/run".to_string()],
+            public_key,
+        )
+        .await;
     assert!(result.is_ok());
 }
 
@@ -29,7 +37,14 @@ async fn test_anp_register_rejects_invalid_did() {
     let signing_key = SigningKey::generate(&mut rng);
     let public_key = signing_key.verifying_key().to_bytes();
 
-    let result = registry.register_peer("not-a-valid-did", "https://factory.local", vec![], public_key).await;
+    let result = registry
+        .register_peer(
+            "not-a-valid-did",
+            "https://factory.local",
+            vec![],
+            public_key,
+        )
+        .await;
     assert!(matches!(result, Err(AnpError::InvalidDidFormat(_))));
 }
 
@@ -41,7 +56,10 @@ async fn test_anp_authenticate_valid_signature() {
     let public_key = signing_key.verifying_key().to_bytes();
 
     let did = format!("did:sovereign:{}", Uuid::new_v4());
-    let _ = registry.register_peer(&did, "https://factory.local", vec![], public_key).await.unwrap();
+    let _ = registry
+        .register_peer(&did, "https://factory.local", vec![], public_key)
+        .await
+        .unwrap();
 
     let payload = b"test payload";
     let signature = signing_key.sign(payload);
@@ -59,14 +77,22 @@ async fn test_anp_authenticate_invalid_signature() {
     let public_key = signing_key.verifying_key().to_bytes();
 
     let did = format!("did:sovereign:{}", Uuid::new_v4());
-    let _ = registry.register_peer(&did, "https://factory.local", vec![], public_key).await.unwrap();
+    let _ = registry
+        .register_peer(&did, "https://factory.local", vec![], public_key)
+        .await
+        .unwrap();
 
     let payload = b"test payload";
     let mut bad_sig = [0u8; 64];
     bad_sig[0] = 0xFF;
 
     let result = registry.authenticate_peer(&did, payload, &bad_sig).await;
-    assert_eq!(result, Err(AnpError::UnauthorizedPeer { reason: "invalid_signature".to_string() }));
+    assert_eq!(
+        result,
+        Err(AnpError::UnauthorizedPeer {
+            reason: "invalid_signature".to_string()
+        })
+    );
 }
 
 #[tokio::test]
@@ -77,7 +103,12 @@ async fn test_anp_authenticate_unregistered_peer() {
     let sig = [0u8; 64];
 
     let result = registry.authenticate_peer(&did, payload, &sig).await;
-    assert_eq!(result, Err(AnpError::UnauthorizedPeer { reason: "peer_not_registered".to_string() }));
+    assert_eq!(
+        result,
+        Err(AnpError::UnauthorizedPeer {
+            reason: "peer_not_registered".to_string()
+        })
+    );
 }
 
 #[tokio::test]
@@ -88,7 +119,10 @@ async fn test_anp_lookup_finds_registered_peer() {
     let public_key = signing_key.verifying_key().to_bytes();
 
     let did = format!("did:sovereign:{}", Uuid::new_v4());
-    let _ = registry.register_peer(&did, "https://factory.local", vec![], public_key).await.unwrap();
+    let _ = registry
+        .register_peer(&did, "https://factory.local", vec![], public_key)
+        .await
+        .unwrap();
 
     let result = registry.lookup_by_did(&did).await;
     assert!(result.is_some());
@@ -111,7 +145,10 @@ async fn test_anp_deregister_removes_peer() {
     let public_key = signing_key.verifying_key().to_bytes();
 
     let did = format!("did:sovereign:{}", Uuid::new_v4());
-    let peer_id = registry.register_peer(&did, "https://factory.local", vec![], public_key).await.unwrap();
+    let peer_id = registry
+        .register_peer(&did, "https://factory.local", vec![], public_key)
+        .await
+        .unwrap();
     let _ = registry.deregister_peer(peer_id).await.unwrap();
 
     let result = registry.lookup_by_did(&did).await;
@@ -126,9 +163,14 @@ async fn test_anp_duplicate_did_rejected() {
     let public_key = signing_key.verifying_key().to_bytes();
 
     let did = format!("did:sovereign:{}", Uuid::new_v4());
-    let _ = registry.register_peer(&did, "https://factory.local", vec![], public_key).await.unwrap();
+    let _ = registry
+        .register_peer(&did, "https://factory.local", vec![], public_key)
+        .await
+        .unwrap();
 
-    let result = registry.register_peer(&did, "https://other.local", vec![], public_key).await;
+    let result = registry
+        .register_peer(&did, "https://other.local", vec![], public_key)
+        .await;
     assert!(matches!(result, Err(AnpError::AlreadyRegistered(_))));
 }
 
@@ -149,7 +191,8 @@ fn test_json_rpc_request_serializes_correctly() {
 
 #[test]
 fn test_json_rpc_response_deserializes_result() {
-    let json = r#"{"jsonrpc":"2.0","id":"550e8400-e29b-41d4-a716-446655440000","result":{"foo":"bar"}}"#;
+    let json =
+        r#"{"jsonrpc":"2.0","id":"550e8400-e29b-41d4-a716-446655440000","result":{"foo":"bar"}}"#;
     let response: JsonRpcResponse = serde_json::from_str(json).unwrap();
     assert!(response.result.is_some());
 }
@@ -178,7 +221,13 @@ fn test_dispatch_rejects_insufficient_budget() {
         allowed_tools: vec![],
     };
     let result = A2ADispatcher::validate_dispatch(Some(&mandate), 100);
-    assert_eq!(result, Err(DispatchError::InsufficientBudget { required: 100, available: 50 }));
+    assert_eq!(
+        result,
+        Err(DispatchError::InsufficientBudget {
+            required: 100,
+            available: 50
+        })
+    );
 }
 
 #[test]
@@ -233,7 +282,12 @@ fn test_crdt_merge_lww_later_wins() {
     let mut atom_b = create_test_atom("B content", 3);
     atom_b.discovered_at = atom_a.discovered_at + chrono::Duration::seconds(1);
 
-    let result = CrdtSync::merge(atom_a.clone(), Uuid::new_v4(), atom_b.clone(), Uuid::new_v4());
+    let result = CrdtSync::merge(
+        atom_a.clone(),
+        Uuid::new_v4(),
+        atom_b.clone(),
+        Uuid::new_v4(),
+    );
     assert_eq!(result.merged.content, atom_b.content);
 }
 
@@ -243,7 +297,12 @@ fn test_crdt_merge_lww_earlier_loses() {
     let atom_b = create_test_atom("B content", 3);
     atom_a.discovered_at = atom_b.discovered_at + chrono::Duration::seconds(1);
 
-    let result = CrdtSync::merge(atom_a.clone(), Uuid::new_v4(), atom_b.clone(), Uuid::new_v4());
+    let result = CrdtSync::merge(
+        atom_a.clone(),
+        Uuid::new_v4(),
+        atom_b.clone(),
+        Uuid::new_v4(),
+    );
     assert_eq!(result.merged.content, atom_a.content);
 }
 

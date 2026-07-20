@@ -1,6 +1,5 @@
 /// Phase 54: Visual Action Membrane — Click-Zone Validation Gate
 /// Validates spatial coordinates against restricted zones before execution.
-
 use crate::hooks::{HookResult, LifecycleHook, ToolUseContext};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -62,12 +61,20 @@ impl<A: ZoneAnalyzer> LifecycleHook for VisualActionMembrane<A> {
         // RULE 2: x or y missing from tool_input → Deny
         let x = match ctx.tool_input.get("x").and_then(|v| v.as_f64()) {
             Some(val) => val,
-            None => return HookResult::Deny { reason: "missing_coords".to_string() },
+            None => {
+                return HookResult::Deny {
+                    reason: "missing_coords".to_string(),
+                };
+            }
         };
 
         let y = match ctx.tool_input.get("y").and_then(|v| v.as_f64()) {
             Some(val) => val,
-            None => return HookResult::Deny { reason: "missing_coords".to_string() },
+            None => {
+                return HookResult::Deny {
+                    reason: "missing_coords".to_string(),
+                };
+            }
         };
 
         // RULE 3: analyzer.check_point(x, y)

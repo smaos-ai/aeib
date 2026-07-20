@@ -1,15 +1,13 @@
+use regex;
 /// Test suite for AG-UI SSE streaming consumer (Phase 26C)
 /// Unit tests for SSE event parsing, backoff logic, and event formatting.
 /// Integration tests with actual network would be run in a separate integration suite.
-
 use std::sync::Arc;
-use regex;
 
 #[test]
 fn test_sse_request_configuration() {
     /// Verify that the SSE consumer correctly configures HTTP requests
     /// with proper headers and timeouts for SSE connections
-
     let client = reqwest::Client::new();
 
     // Verify we can build a properly configured SSE request
@@ -25,7 +23,6 @@ fn test_sse_request_configuration() {
 #[test]
 fn test_sse_json_event_parsing() {
     /// Verify that the SSE consumer correctly parses JSON event data
-
     let raw_event = r#"{"action_type": "TEXT_MESSAGE_CONTENT", "id": "550e8400-e29b-41d4-a716-446655440000", "content": "Hello"}"#;
 
     // Simulate parsing the event
@@ -34,13 +31,11 @@ fn test_sse_json_event_parsing() {
 
     let event = parsed.unwrap();
     assert_eq!(
-        event["action_type"],
-        "TEXT_MESSAGE_CONTENT",
+        event["action_type"], "TEXT_MESSAGE_CONTENT",
         "Should extract action_type"
     );
     assert_eq!(
-        event["id"],
-        "550e8400-e29b-41d4-a716-446655440000",
+        event["id"], "550e8400-e29b-41d4-a716-446655440000",
         "Should extract id"
     );
 }
@@ -49,7 +44,6 @@ fn test_sse_json_event_parsing() {
 fn test_sse_event_types() {
     /// Verify that the consumer can parse all expected event types:
     /// TEXT_MESSAGE_CONTENT, TOOL_CALL_START, ANOMALY_DETECTED
-
     let event_types = vec![
         "TEXT_MESSAGE_CONTENT",
         "TOOL_CALL_START",
@@ -75,15 +69,13 @@ fn test_sse_event_types() {
 fn test_exponential_backoff_computation() {
     /// Verify that the exponential backoff schedule follows the spec:
     /// 5s → 10s → 20s → 40s → cap at 60s
-
     let initial_delay = 5.0;
     let max_delay = 60.0;
     let expected = vec![5, 10, 20, 40, 60, 60];
 
     let mut computed = Vec::new();
     for attempt in 0..6 {
-        let delay = (initial_delay * 2.0_f64.powi(attempt as i32))
-            .min(max_delay) as i64;
+        let delay = (initial_delay * 2.0_f64.powi(attempt as i32)).min(max_delay) as i64;
         computed.push(delay);
     }
 
@@ -97,7 +89,6 @@ fn test_exponential_backoff_computation() {
 fn test_exponential_backoff_with_jitter() {
     /// Verify that jitter can be applied to backoff delays
     /// Jitter is applied before capping to max delay to avoid exceeding the cap
-
     let initial_delay = 5.0;
     let max_delay = 60.0;
 
@@ -117,10 +108,7 @@ fn test_exponential_backoff_with_jitter() {
             final_delay,
             max_delay
         );
-        assert!(
-            final_delay > 0.0,
-            "Final delay should stay positive"
-        );
+        assert!(final_delay > 0.0, "Final delay should stay positive");
     }
 }
 
@@ -128,8 +116,8 @@ fn test_exponential_backoff_with_jitter() {
 fn test_aoe_event_format() {
     /// Verify that events emitted to stdout follow the AoE parser format:
     /// [AoE_EVENT] action_type=<type> id=<uuid> [optional_fields]
-
-    let event = "[AoE_EVENT] action_type=TEXT_MESSAGE_CONTENT id=550e8400-e29b-41d4-a716-446655440000";
+    let event =
+        "[AoE_EVENT] action_type=TEXT_MESSAGE_CONTENT id=550e8400-e29b-41d4-a716-446655440000";
 
     let pattern = r"^\[AoE_EVENT\] action_type=(\w+) id=([a-f0-9\-]+)";
     let re = regex::Regex::new(pattern).expect("Pattern should compile");
@@ -145,7 +133,6 @@ fn test_aoe_event_format() {
 #[test]
 fn test_aoe_format_all_event_types() {
     /// Verify that all event types can be formatted in AoE format
-
     let event_types = vec![
         ("TEXT_MESSAGE_CONTENT", "uuid-1"),
         ("TOOL_CALL_START", "uuid-2"),
@@ -168,7 +155,6 @@ fn test_aoe_format_all_event_types() {
 #[test]
 fn test_sse_stream_drop_cleanup() {
     /// Verify that the consumer cleans up resources when a stream is dropped
-
     // Simulate creating and dropping an SSE connection
     {
         let client = reqwest::Client::new();
@@ -185,12 +171,7 @@ fn test_sse_stream_drop_cleanup() {
 #[test]
 fn test_malformed_sse_event_handling() {
     /// Verify that the consumer handles malformed JSON gracefully
-
-    let malformed_events = vec![
-        "{invalid json",
-        "not json at all",
-        r#"{"incomplete": "#,
-    ];
+    let malformed_events = vec!["{invalid json", "not json at all", r#"{"incomplete": "#];
 
     for event in malformed_events {
         let parsed: Result<serde_json::Value, _> = serde_json::from_str(event);
@@ -202,7 +183,6 @@ fn test_malformed_sse_event_handling() {
 #[test]
 fn test_sse_event_with_extra_fields() {
     /// Verify that the consumer can handle SSE events with extra/unknown fields
-
     let event_with_extras = r#"{
         "action_type": "TEXT_MESSAGE_CONTENT",
         "id": "uuid-123",
@@ -223,7 +203,6 @@ fn test_sse_event_with_extra_fields() {
 #[test]
 fn test_sse_client_header_construction() {
     /// Verify that SSE requests include proper headers for connection stability
-
     let headers = vec![
         ("Accept", "text/event-stream"),
         ("Cache-Control", "no-cache"),
@@ -239,7 +218,6 @@ fn test_sse_client_header_construction() {
 #[test]
 fn test_sse_timeout_configuration() {
     /// Verify that SSE connections have appropriate timeout values
-
     let timeout_secs = 5;
     let reconnect_base = 5;
     let reconnect_max = 60;
@@ -260,10 +238,7 @@ fn test_memory_efficiency() {
 
     // Simulate adding 1000 events
     for i in 0..1000 {
-        buffer.push(format!(
-            "[AoE_EVENT] action_type=TEST id=uuid-{}",
-            i
-        ));
+        buffer.push(format!("[AoE_EVENT] action_type=TEST id=uuid-{}", i));
 
         // If buffer would exceed threshold, it should be trimmed
         if buffer.len() > MAX_BUFFER_SIZE {
@@ -271,13 +246,15 @@ fn test_memory_efficiency() {
         }
     }
 
-    assert!(buffer.len() <= MAX_BUFFER_SIZE, "Buffer should stay within limits");
+    assert!(
+        buffer.len() <= MAX_BUFFER_SIZE,
+        "Buffer should stay within limits"
+    );
 }
 
 #[test]
 fn test_event_id_uniqueness_detection() {
     /// Verify that we can detect duplicate event IDs (indicating potential replay)
-
     let mut seen_ids = std::collections::HashSet::new();
     let ids = vec!["uuid-1", "uuid-2", "uuid-1"]; // Duplicate uuid-1
 
@@ -296,7 +273,6 @@ fn test_event_id_uniqueness_detection() {
 fn test_status_state_transitions() {
     /// Verify that agent status state transitions are valid
     /// Valid states: running -> idle -> waiting -> error (or back to running)
-
     let valid_transitions = vec![
         ("running", "idle"),
         ("running", "waiting"),
@@ -320,7 +296,6 @@ fn test_status_state_transitions() {
 fn test_aoe_status_format() {
     /// Verify that agent status updates follow the format:
     /// [AGENT_STATUS] state=<running|idle|waiting|error>
-
     let statuses = vec!["running", "idle", "waiting", "error"];
 
     let pattern = r"^\[AGENT_STATUS\] state=(running|idle|waiting|error)$";

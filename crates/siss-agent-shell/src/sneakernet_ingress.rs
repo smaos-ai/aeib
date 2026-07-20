@@ -1,10 +1,9 @@
+use crate::ap2_syndication::{Ap2Syndication, CreatorDid};
 /// Phase 57: Sneakernet Ingress — 4-Gate USB Quarantine Pipeline
 /// INVARIANT: signature → frontmatter → dry-run → human-approval gates all fail-closed.
-
 use crate::skill_compiler::SkillCompiler;
-use crate::ap2_syndication::{Ap2Syndication, CreatorDid};
-use siss_gatekeeper::tokens::IntentMandate;
 use serde::{Deserialize, Serialize};
+use siss_gatekeeper::tokens::IntentMandate;
 use uuid::Uuid;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -32,7 +31,9 @@ impl SneakernetIngress {
     /// Gate 1: Signature verification.
     /// RULE 1: SkillCompiler::verify(pack) → false → Err(SignatureInvalid)
     /// RULE 2: true → Ok(gate_passed=true)
-    pub fn gate_1_verify_signature(pack: &crate::skill_compiler::SkillPack) -> Result<bool, QuarantineError> {
+    pub fn gate_1_verify_signature(
+        pack: &crate::skill_compiler::SkillPack,
+    ) -> Result<bool, QuarantineError> {
         if !SkillCompiler::verify(pack) {
             return Err(QuarantineError::SignatureInvalid);
         }
@@ -43,7 +44,9 @@ impl SneakernetIngress {
     /// RULE 3: pack.frontmatter.name.is_empty() → Err(FrontmatterMalformed)
     /// RULE 4: pack.frontmatter.allowed_tools.is_empty() → Err(FrontmatterMalformed)
     /// RULE 5: All checks pass → Ok(gate_passed=true)
-    pub fn gate_2_validate_frontmatter(pack: &crate::skill_compiler::SkillPack) -> Result<bool, QuarantineError> {
+    pub fn gate_2_validate_frontmatter(
+        pack: &crate::skill_compiler::SkillPack,
+    ) -> Result<bool, QuarantineError> {
         if pack.frontmatter.name.is_empty() {
             return Err(QuarantineError::FrontmatterMalformed);
         }
@@ -57,7 +60,9 @@ impl SneakernetIngress {
     /// RULE 6: Simulate execution of allowed tools in dry-run sandbox
     /// RULE 7: If any tool invocation fails (mock: always succeed for now) → Err(DryRunFailure)
     /// RULE 8: All tools succeed → Ok(gate_passed=true)
-    pub fn gate_3_dry_run(pack: &crate::skill_compiler::SkillPack) -> Result<bool, QuarantineError> {
+    pub fn gate_3_dry_run(
+        pack: &crate::skill_compiler::SkillPack,
+    ) -> Result<bool, QuarantineError> {
         // Mock: simulate that all allowed_tools execute without error
         for tool in &pack.frontmatter.allowed_tools {
             if tool.is_empty() {
@@ -96,7 +101,9 @@ impl SneakernetIngress {
                 match err {
                     SyndicationError::MandateMissing => QuarantineError::HumanApprovalMissing,
                     SyndicationError::SkillPackNotVerified => QuarantineError::HumanApprovalMissing,
-                    SyndicationError::MandateExhausted { .. } => QuarantineError::HumanApprovalMissing,
+                    SyndicationError::MandateExhausted { .. } => {
+                        QuarantineError::HumanApprovalMissing
+                    }
                     _ => QuarantineError::HumanApprovalMissing,
                 }
             })

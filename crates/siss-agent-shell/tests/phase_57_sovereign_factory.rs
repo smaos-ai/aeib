@@ -1,11 +1,10 @@
-/// Phase 57: Sovereign Factory — Air-Gap, Batch, Sneakernet (9 RED→GREEN tests)
-
-use siss_agent_shell::mlx_hardware::AirGapMembrane;
-use siss_agent_shell::batch_orchestrator::{InMemoryClaimLedger, ClaimError};
-use siss_agent_shell::sneakernet_ingress::SneakernetIngress;
-use siss_agent_shell::skill_compiler::SkillCompiler;
-use siss_agent_shell::hooks::LifecycleHook;
 use ed25519_dalek::SigningKey;
+use siss_agent_shell::batch_orchestrator::{ClaimError, InMemoryClaimLedger};
+use siss_agent_shell::hooks::LifecycleHook;
+/// Phase 57: Sovereign Factory — Air-Gap, Batch, Sneakernet (9 RED→GREEN tests)
+use siss_agent_shell::mlx_hardware::AirGapMembrane;
+use siss_agent_shell::skill_compiler::SkillCompiler;
+use siss_agent_shell::sneakernet_ingress::SneakernetIngress;
 use uuid::Uuid;
 
 // ─── AIR-GAP MEMBRANE TESTS ─────────────────────────────────────────
@@ -28,9 +27,9 @@ fn test_air_gap_membrane_allows_localhost() {
 
 #[test]
 fn test_air_gap_membrane_hook_halts_fetch() {
-    use siss_agent_shell::hooks::{ToolUseContext, HookResult};
-    use siss_graph_core::node::NodeId;
     use serde_json::json;
+    use siss_agent_shell::hooks::{HookResult, ToolUseContext};
+    use siss_graph_core::node::NodeId;
 
     let membrane = AirGapMembrane::default();
     let ctx = ToolUseContext {
@@ -42,7 +41,12 @@ fn test_air_gap_membrane_hook_halts_fetch() {
     };
 
     let result = membrane.on_pre_tool_use(&ctx);
-    assert_eq!(result, HookResult::Halt { reason: "air_gap_violation".to_string() });
+    assert_eq!(
+        result,
+        HookResult::Halt {
+            reason: "air_gap_violation".to_string()
+        }
+    );
 }
 
 // ─── BATCH ORCHESTRATOR TESTS ──────────────────────────────────────

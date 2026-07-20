@@ -1,6 +1,5 @@
 /// Phase 50: UCP/AP2 Cryptographic Checkout — Service Negotiation & Contract Signing
 /// Reuses siss_gatekeeper::signer::{Signer, MockSigner} for Ed25519 signatures.
-
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use siss_gatekeeper::signer::Signer;
@@ -74,13 +73,34 @@ impl<S: Signer> UcpCheckout<S> {
     /// Used for non-repudiatable signing.
     fn canonical_bytes(contract: &UcpContract) -> Vec<u8> {
         let mut map = serde_json::Map::new();
-        map.insert("contract_id".to_string(), serde_json::to_value(&contract.contract_id).unwrap());
-        map.insert("buyer_agent_id".to_string(), serde_json::to_value(&contract.buyer_agent_id).unwrap());
-        map.insert("seller_agent_id".to_string(), serde_json::to_value(&contract.seller_agent_id).unwrap());
-        map.insert("skill_id".to_string(), serde_json::to_value(&contract.skill_id).unwrap());
-        map.insert("agreed_price".to_string(), serde_json::to_value(&contract.agreed_price).unwrap());
-        map.insert("terms".to_string(), serde_json::to_value(&contract.terms).unwrap());
-        map.insert("created_at".to_string(), serde_json::to_value(&contract.created_at).unwrap());
+        map.insert(
+            "contract_id".to_string(),
+            serde_json::to_value(&contract.contract_id).unwrap(),
+        );
+        map.insert(
+            "buyer_agent_id".to_string(),
+            serde_json::to_value(&contract.buyer_agent_id).unwrap(),
+        );
+        map.insert(
+            "seller_agent_id".to_string(),
+            serde_json::to_value(&contract.seller_agent_id).unwrap(),
+        );
+        map.insert(
+            "skill_id".to_string(),
+            serde_json::to_value(&contract.skill_id).unwrap(),
+        );
+        map.insert(
+            "agreed_price".to_string(),
+            serde_json::to_value(&contract.agreed_price).unwrap(),
+        );
+        map.insert(
+            "terms".to_string(),
+            serde_json::to_value(&contract.terms).unwrap(),
+        );
+        map.insert(
+            "created_at".to_string(),
+            serde_json::to_value(&contract.created_at).unwrap(),
+        );
 
         let obj = serde_json::Value::Object(map);
         obj.to_string().into_bytes()

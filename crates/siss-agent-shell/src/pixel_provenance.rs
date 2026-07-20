@@ -1,8 +1,7 @@
+use crate::swarm_channel::{SwarmChannel, SwarmMessage};
 /// Phase 54: Pixel-Level Provenance & Audit Trail — AP2-Gated GUI Action Recording
 /// Every pixel interaction is logged with mandate, screenshot delta, and token cost.
-
 use crate::swarm_mcp_server::{SwarmMcpServer, SwarmStatePayload};
-use crate::swarm_channel::{SwarmChannel, SwarmMessage};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -11,11 +10,11 @@ use uuid::Uuid;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PixelProvenanceRecord {
     pub provenance_id: Uuid,
-    pub intent_mandate_id: Uuid,           // Uuid::nil() → rejected at record()
+    pub intent_mandate_id: Uuid, // Uuid::nil() → rejected at record()
     pub task_id: Uuid,
     pub agent_id: String,
-    pub phase: String,                     // "PHASE_54"
-    pub action_type: String,               // "GuiClick" | "GuiType" | "GuiScroll"
+    pub phase: String,       // "PHASE_54"
+    pub action_type: String, // "GuiClick" | "GuiType" | "GuiScroll"
     pub action_x: Option<f64>,
     pub action_y: Option<f64>,
     pub ui_element_selector: Option<String>,
@@ -23,7 +22,7 @@ pub struct PixelProvenanceRecord {
     pub after_screenshot_path: Option<String>,
     pub token_cost: i64,
     pub recorded_at: DateTime<Utc>,
-    pub failure_reason: Option<String>,    // None = success (skip CIPO), Some("reason") = route to retraining
+    pub failure_reason: Option<String>, // None = success (skip CIPO), Some("reason") = route to retraining
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -40,11 +39,17 @@ pub struct PixelProvenanceRecorder {
 
 impl PixelProvenanceRecorder {
     pub fn new(server: Arc<SwarmMcpServer>) -> Self {
-        PixelProvenanceRecorder { server, channel: None }
+        PixelProvenanceRecorder {
+            server,
+            channel: None,
+        }
     }
 
     pub fn new_with_channel(server: Arc<SwarmMcpServer>, channel: Arc<SwarmChannel>) -> Self {
-        PixelProvenanceRecorder { server, channel: Some(channel) }
+        PixelProvenanceRecorder {
+            server,
+            channel: Some(channel),
+        }
     }
 
     /// RULE 1: record.intent_mandate_id == Uuid::nil() → Err(MissingMandate)

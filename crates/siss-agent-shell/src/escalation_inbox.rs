@@ -1,6 +1,5 @@
 /// Phase 51: Centralized Escalation Inbox
 /// Routes Phase 50 approval cards to the SwarmMcpServer bus with phase filtering.
-
 use crate::a2ui::escalation::{EscalationReason, EscalationRequest};
 use crate::swarm_mcp_server::{GlobalStateFilter, SwarmMcpServer, SwarmStatePayload};
 use std::sync::Arc;

@@ -1,6 +1,5 @@
 /// Phase 53: Weight Swapper — Hot-Swap with AP2 Mandate Gate + TTFT Verification
 /// AP2 gate is fail-closed: no signature → no swap.
-
 use uuid::Uuid;
 
 #[derive(Debug, Clone)]

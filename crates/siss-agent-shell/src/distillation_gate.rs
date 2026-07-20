@@ -1,6 +1,5 @@
 /// Phase 53: Distillation Extraction Gate — MemoryCrystal → SFT JSONL (no cloud egress)
 /// Pure synchronous transformation: high-confidence crystals → training data.
-
 use crate::memory_crystallizer::MemoryCrystal;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;

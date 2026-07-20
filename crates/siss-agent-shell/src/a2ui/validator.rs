@@ -1,160 +1,537 @@
 use crate::a2ui::schema::A2UIComponent;
 use regex::Regex;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
-pub struct A2UIValidator;
+/// Validation error types with context
+#[derive(Debug, Clone, PartialEq)]
+pub enum ValidationError {
+    ExceedsMaxDepth(usize),
+    ExceedsComponentCount(usize),
+    CircularReference(String),
+    InvalidTextContent(String),
+    MissingRequiredField(String),
+    InvalidColorFormat(String),
+    InvalidIdFormat(String),
+    InvalidSizeFormat(String),
+    InvalidAlertLevel(String),
+    DuplicateFormId(String),
+    InvalidProgressRange(u32, u32),
+    EmptySelectOptions,
+    InvalidGridColumns,
+    InvalidTextareaRows,
+    TextContentTooLarge(usize),
+    MessageTooLarge(usize),
+    ModalMissingButtons,
+    Other(String),
+}
+
+impl std::fmt::Display for ValidationError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ValidationError::ExceedsMaxDepth(d) => {
+                write!(
+                    formatter,
+                    "Component nesting exceeds maximum depth of {} levels",
+                    d
+                )
+            }
+            ValidationError::ExceedsComponentCount(c) => {
+                write!(formatter, "Number of components exceeds limit of {}", c)
+            }
+            ValidationError::CircularReference(id) => {
+                write!(
+                    formatter,
+                    "Circular reference detected in component: {}",
+                    id
+                )
+            }
+            ValidationError::InvalidTextContent(msg) => {
+                write!(formatter, "Invalid text content: {}", msg)
+            }
+            ValidationError::MissingRequiredField(field_name) => {
+                write!(formatter, "Missing required field: {}", field_name)
+            }
+            ValidationError::InvalidColorFormat(c) => {
+                write!(formatter, "Invalid color format: {}", c)
+            }
+            ValidationError::InvalidIdFormat(id) => write!(formatter, "Invalid ID format: {}", id),
+            ValidationError::InvalidSizeFormat(s) => {
+                write!(formatter, "Invalid size format: {}", s)
+            }
+            ValidationError::InvalidAlertLevel(l) => {
+                write!(formatter, "Invalid alert level: {}", l)
+            }
+            ValidationError::DuplicateFormId(id) => write!(formatter, "Duplicate form ID: {}", id),
+            ValidationError::InvalidProgressRange(v, m) => {
+                write!(formatter, "Progress value {} exceeds max {}", v, m)
+            }
+            ValidationError::EmptySelectOptions => {
+                write!(formatter, "Select must have at least one option")
+            }
+            ValidationError::InvalidGridColumns => {
+                write!(formatter, "Grid must have at least 1 column")
+            }
+            ValidationError::InvalidTextareaRows => write!(formatter, "Textarea rows must be > 0"),
+            ValidationError::TextContentTooLarge(size) => {
+                write!(
+                    formatter,
+                    "Text content exceeds max size of 10KB (got {} bytes)",
+                    size
+                )
+            }
+            ValidationError::MessageTooLarge(size) => {
+                write!(
+                    formatter,
+                    "Message exceeds max size of 10KB (got {} bytes)",
+                    size
+                )
+            }
+            ValidationError::ModalMissingButtons => {
+                write!(
+                    formatter,
+                    "Modal with content must have at least one action button"
+                )
+            }
+            ValidationError::Other(msg) => write!(formatter, "{}", msg),
+        }
+    }
+}
+
+/// A2UI Validator with depth, count, and circular reference protection
+pub struct A2UIValidator {
+    max_depth: usize,      // Max 10 levels
+    max_components: usize, // Max 1000 components per request
+    max_text_size: usize,  // Max 10KB per text field
+}
+
+impl Default for A2UIValidator {
+    fn default() -> Self {
+        Self {
+            max_depth: 10,
+            max_components: 1000,
+            max_text_size: 10240, // 10KB
+        }
+    }
+}
 
 impl A2UIValidator {
-    /// Validate A2UIComponent against 18-primitive schema (fail-closed)
+    pub fn new(max_depth: usize, max_components: usize) -> Self {
+        Self {
+            max_depth,
+            max_components,
+            max_text_size: 10240,
+        }
+    }
+
+    /// Legacy validate function (backward compatible)
     pub fn validate(component: &A2UIComponent) -> Result<(), String> {
+        Self::default()
+            .validate_component(component)
+            .map_err(|e| e.to_string())
+    }
+
+    /// Validate a single component with internal depth tracking
+    pub fn validate_component(&self, component: &A2UIComponent) -> Result<(), ValidationError> {
+        self.validate_component_internal(component, 0)
+    }
+
+    /// Validate event with component count check
+    pub fn validate_event(&self, components: &[A2UIComponent]) -> Result<(), ValidationError> {
+        if components.len() > self.max_components {
+            return Err(ValidationError::ExceedsComponentCount(self.max_components));
+        }
+
+        for component in components {
+            self.validate_component(component)?;
+        }
+
+        Ok(())
+    }
+
+    /// Check for circular references across all components
+    pub fn check_circular_refs(&self, components: &[A2UIComponent]) -> Result<(), ValidationError> {
+        let mut visited = HashSet::new();
+        let mut rec_stack = HashSet::new();
+
+        for component in components {
+            self.check_circular_refs_internal(component, &mut visited, &mut rec_stack)?;
+        }
+
+        Ok(())
+    }
+
+    fn check_circular_refs_internal(
+        &self,
+        component: &A2UIComponent,
+        visited: &mut HashSet<String>,
+        rec_stack: &mut HashSet<String>,
+    ) -> Result<(), ValidationError> {
+        let id = self.get_component_id(component);
+
+        if rec_stack.contains(&id) {
+            return Err(ValidationError::CircularReference(id));
+        }
+
+        if visited.contains(&id) {
+            return Ok(());
+        }
+
+        visited.insert(id.clone());
+        rec_stack.insert(id.clone());
+
+        // Traverse children
+        match component {
+            A2UIComponent::Card { children, .. }
+            | A2UIComponent::Grid { children, .. }
+            | A2UIComponent::Modal { children, .. } => {
+                for child in children {
+                    self.check_circular_refs_internal(child, visited, rec_stack)?;
+                }
+            }
+            _ => {}
+        }
+
+        rec_stack.remove(&id);
+        Ok(())
+    }
+
+    fn get_component_id(&self, component: &A2UIComponent) -> String {
+        match component {
+            A2UIComponent::Text { id, .. } => id.clone(),
+            A2UIComponent::Badge { id, .. } => id.clone(),
+            A2UIComponent::Alert { id, .. } => id.clone(),
+            A2UIComponent::Progress { id, .. } => id.clone(),
+            A2UIComponent::Divider { id } => id.clone(),
+            A2UIComponent::Link { id, .. } => id.clone(),
+            A2UIComponent::Tooltip { id, .. } => id.clone(),
+            A2UIComponent::Breadcrumb { id, .. } => id.clone(),
+            A2UIComponent::Input { id, .. } => id.clone(),
+            A2UIComponent::Textarea { id, .. } => id.clone(),
+            A2UIComponent::Select { id, .. } => id.clone(),
+            A2UIComponent::Checkbox { id, .. } => id.clone(),
+            A2UIComponent::Radio { id, .. } => id.clone(),
+            A2UIComponent::Button { id, .. } => id.clone(),
+            A2UIComponent::Card { id, .. } => id.clone(),
+            A2UIComponent::Grid { id, .. } => id.clone(),
+            A2UIComponent::Modal { id, .. } => id.clone(),
+            A2UIComponent::Table { id, .. } => id.clone(),
+        }
+    }
+
+    fn validate_component_internal(
+        &self,
+        component: &A2UIComponent,
+        depth: usize,
+    ) -> Result<(), ValidationError> {
+        // Check depth limit
+        if depth > self.max_depth {
+            return Err(ValidationError::ExceedsMaxDepth(self.max_depth));
+        }
+
         match component {
             // Display components
-            A2UIComponent::Text { id, content, .. } => {
-                Self::validate_id(id)?;
+            A2UIComponent::Text { id, content, size } => {
+                self.validate_id(id)?;
                 if content.is_empty() {
-                    return Err("Text content must not be empty".to_string());
+                    return Err(ValidationError::InvalidTextContent(
+                        "Text content must not be empty".to_string(),
+                    ));
+                }
+                if content.len() > self.max_text_size {
+                    return Err(ValidationError::TextContentTooLarge(content.len()));
+                }
+                if let Some(s) = size {
+                    Self::validate_size_format(s)?;
                 }
                 Ok(())
             }
-            A2UIComponent::Badge { id, label, .. } => {
-                Self::validate_id(id)?;
+            A2UIComponent::Badge { id, label, color } => {
+                self.validate_id(id)?;
                 if label.is_empty() {
-                    return Err("Badge label must not be empty".to_string());
+                    return Err(ValidationError::InvalidTextContent(
+                        "Badge label must not be empty".to_string(),
+                    ));
+                }
+                if let Some(c) = color {
+                    Self::validate_color_format(c)?;
                 }
                 Ok(())
             }
-            A2UIComponent::Alert { id, message, .. } => {
-                Self::validate_id(id)?;
+            A2UIComponent::Alert { id, message, level } => {
+                self.validate_id(id)?;
                 if message.is_empty() {
-                    return Err("Alert message must not be empty".to_string());
+                    return Err(ValidationError::InvalidTextContent(
+                        "Alert message must not be empty".to_string(),
+                    ));
                 }
+                if message.len() > self.max_text_size {
+                    return Err(ValidationError::MessageTooLarge(message.len()));
+                }
+                Self::validate_alert_level(level)?;
                 Ok(())
             }
             A2UIComponent::Progress { id, value, max, .. } => {
-                Self::validate_id(id)?;
+                self.validate_id(id)?;
                 if value > max {
-                    return Err("Progress value cannot exceed max".to_string());
+                    return Err(ValidationError::InvalidProgressRange(*value, *max));
                 }
                 Ok(())
             }
-            A2UIComponent::Divider { id } => {
-                Self::validate_id(id)?;
-                Ok(())
-            }
+            A2UIComponent::Divider { id } => self.validate_id(id),
             A2UIComponent::Link { id, label, href } => {
-                Self::validate_id(id)?;
+                self.validate_id(id)?;
                 if label.is_empty() {
-                    return Err("Link label must not be empty".to_string());
+                    return Err(ValidationError::InvalidTextContent(
+                        "Link label must not be empty".to_string(),
+                    ));
                 }
                 if href.is_empty() {
-                    return Err("Link href must not be empty".to_string());
+                    return Err(ValidationError::InvalidTextContent(
+                        "Link href must not be empty".to_string(),
+                    ));
                 }
                 Ok(())
             }
             A2UIComponent::Tooltip { id, text, content } => {
-                Self::validate_id(id)?;
+                self.validate_id(id)?;
                 if text.is_empty() {
-                    return Err("Tooltip text must not be empty".to_string());
+                    return Err(ValidationError::InvalidTextContent(
+                        "Tooltip text must not be empty".to_string(),
+                    ));
                 }
                 if content.is_empty() {
-                    return Err("Tooltip content must not be empty".to_string());
+                    return Err(ValidationError::InvalidTextContent(
+                        "Tooltip content must not be empty".to_string(),
+                    ));
                 }
                 Ok(())
             }
-            A2UIComponent::Breadcrumb { id, .. } => {
-                Self::validate_id(id)?;
-                Ok(())
-            }
+            A2UIComponent::Breadcrumb { id, .. } => self.validate_id(id),
             // Form components
             A2UIComponent::Input { id, label, .. } => {
-                Self::validate_id(id)?;
+                self.validate_id(id)?;
                 if label.is_empty() {
-                    return Err("Input label must not be empty".to_string());
+                    return Err(ValidationError::InvalidTextContent(
+                        "Input label must not be empty".to_string(),
+                    ));
                 }
                 Ok(())
             }
-            A2UIComponent::Textarea { id, label, .. } => {
-                Self::validate_id(id)?;
+            A2UIComponent::Textarea { id, label, rows } => {
+                self.validate_id(id)?;
                 if label.is_empty() {
-                    return Err("Textarea label must not be empty".to_string());
+                    return Err(ValidationError::InvalidTextContent(
+                        "Textarea label must not be empty".to_string(),
+                    ));
+                }
+                if let Some(row_count) = rows {
+                    if *row_count == 0 {
+                        return Err(ValidationError::InvalidTextareaRows);
+                    }
                 }
                 Ok(())
             }
-            A2UIComponent::Select { id, label, .. } => {
-                Self::validate_id(id)?;
+            A2UIComponent::Select { id, label, options } => {
+                self.validate_id(id)?;
                 if label.is_empty() {
-                    return Err("Select label must not be empty".to_string());
+                    return Err(ValidationError::InvalidTextContent(
+                        "Select label must not be empty".to_string(),
+                    ));
+                }
+                if options.is_empty() {
+                    return Err(ValidationError::EmptySelectOptions);
+                }
+                if options.len() > 100 {
+                    return Err(ValidationError::Other(format!(
+                        "Select options exceed limit of 100 (found {})",
+                        options.len()
+                    )));
                 }
                 Ok(())
             }
             A2UIComponent::Checkbox { id, label, .. } => {
-                Self::validate_id(id)?;
+                self.validate_id(id)?;
                 if label.is_empty() {
-                    return Err("Checkbox label must not be empty".to_string());
+                    return Err(ValidationError::InvalidTextContent(
+                        "Checkbox label must not be empty".to_string(),
+                    ));
                 }
                 Ok(())
             }
-            A2UIComponent::Radio { id, label, value, .. } => {
-                Self::validate_id(id)?;
+            A2UIComponent::Radio {
+                id, label, value, ..
+            } => {
+                self.validate_id(id)?;
                 if label.is_empty() {
-                    return Err("Radio label must not be empty".to_string());
+                    return Err(ValidationError::InvalidTextContent(
+                        "Radio label must not be empty".to_string(),
+                    ));
                 }
                 if value.is_empty() {
-                    return Err("Radio value must not be empty".to_string());
+                    return Err(ValidationError::InvalidTextContent(
+                        "Radio value must not be empty".to_string(),
+                    ));
                 }
                 Ok(())
             }
             A2UIComponent::Button { id, label, .. } => {
-                Self::validate_id(id)?;
+                self.validate_id(id)?;
                 if label.is_empty() {
-                    return Err("Button label must not be empty".to_string());
+                    return Err(ValidationError::InvalidTextContent(
+                        "Button label must not be empty".to_string(),
+                    ));
                 }
                 Ok(())
             }
             // Layout components
             A2UIComponent::Card { id, children, .. } => {
-                Self::validate_id(id)?;
+                self.validate_id(id)?;
                 for child in children {
-                    Self::validate(child)?;
+                    self.validate_component_internal(child, depth + 1)?;
                 }
                 Ok(())
             }
-            A2UIComponent::Grid { id, children, .. } => {
-                Self::validate_id(id)?;
+            A2UIComponent::Grid {
+                id,
+                columns,
+                children,
+            } => {
+                self.validate_id(id)?;
+                if *columns == 0 {
+                    return Err(ValidationError::InvalidGridColumns);
+                }
                 for child in children {
-                    Self::validate(child)?;
+                    self.validate_component_internal(child, depth + 1)?;
                 }
                 Ok(())
             }
-            A2UIComponent::Modal { id, title, content, children } => {
-                Self::validate_id(id)?;
+            A2UIComponent::Modal {
+                id,
+                title,
+                content,
+                children,
+            } => {
+                self.validate_id(id)?;
                 if title.is_empty() {
-                    return Err("Modal title must not be empty".to_string());
+                    return Err(ValidationError::InvalidTextContent(
+                        "Modal title must not be empty".to_string(),
+                    ));
                 }
                 if content.is_empty() {
-                    return Err("Modal content must not be empty".to_string());
+                    return Err(ValidationError::InvalidTextContent(
+                        "Modal content must not be empty".to_string(),
+                    ));
                 }
+                if content.len() > self.max_text_size {
+                    return Err(ValidationError::MessageTooLarge(content.len()));
+                }
+
+                // Validate modal has action buttons if it has substantial content
+                if !content.is_empty() && content.len() > 5 {
+                    let has_button = children
+                        .iter()
+                        .any(|child| matches!(child, A2UIComponent::Button { .. }));
+                    if !has_button {
+                        return Err(ValidationError::ModalMissingButtons);
+                    }
+                }
+
                 for child in children {
-                    Self::validate(child)?;
+                    self.validate_component_internal(child, depth + 1)?;
                 }
                 Ok(())
             }
-            A2UIComponent::Table { id, .. } => {
-                Self::validate_id(id)?;
-                Ok(())
+            A2UIComponent::Table { id, .. } => self.validate_id(id),
+        }
+    }
+
+    fn validate_id(&self, id: &str) -> Result<(), ValidationError> {
+        if id.is_empty() {
+            return Err(ValidationError::MissingRequiredField(
+                "Component ID must not be empty".to_string(),
+            ));
+        }
+        // ID should be alphanumeric with underscores/hyphens
+        if !id
+            .chars()
+            .all(|c| c.is_alphanumeric() || c == '_' || c == '-')
+        {
+            return Err(ValidationError::InvalidIdFormat(id.to_string()));
+        }
+        Ok(())
+    }
+
+    fn validate_color_format(color: &str) -> Result<(), ValidationError> {
+        // Support hex colors and named colors
+        if color.starts_with('#') {
+            if color.len() != 7 {
+                return Err(ValidationError::InvalidColorFormat(color.to_string()));
+            }
+            if !color[1..].chars().all(|c| c.is_ascii_hexdigit()) {
+                return Err(ValidationError::InvalidColorFormat(color.to_string()));
+            }
+        } else {
+            // Named colors
+            let valid_colors = [
+                "red", "blue", "green", "yellow", "orange", "purple", "pink", "gray", "white",
+                "black",
+            ];
+            if !valid_colors.contains(&color) {
+                return Err(ValidationError::InvalidColorFormat(color.to_string()));
             }
         }
+        Ok(())
     }
 
-    fn validate_id(id: &str) -> Result<(), String> {
-        if id.is_empty() {
-            Err("Component ID must not be empty".to_string())
-        } else {
-            Ok(())
+    fn validate_size_format(size: &str) -> Result<(), ValidationError> {
+        match size {
+            "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" => Ok(()),
+            _ => Err(ValidationError::InvalidSizeFormat(size.to_string())),
         }
     }
 
-    // === CONTEXT-AWARE VALIDATION (Wave 2) ===
+    fn validate_alert_level(level: &str) -> Result<(), ValidationError> {
+        match level {
+            "info" | "warn" | "error" | "success" => Ok(()),
+            _ => Err(ValidationError::InvalidAlertLevel(level.to_string())),
+        }
+    }
+
+    /// Validate all IDs are unique within the component tree (for form IDs)
+    pub fn validate_unique_form_ids(
+        &self,
+        components: &[A2UIComponent],
+    ) -> Result<(), ValidationError> {
+        let mut ids = HashSet::new();
+        self.collect_ids(components, &mut ids)?;
+        Ok(())
+    }
+
+    fn collect_ids(
+        &self,
+        components: &[A2UIComponent],
+        seen_ids: &mut HashSet<String>,
+    ) -> Result<(), ValidationError> {
+        for component in components {
+            let id = self.get_component_id(component);
+            if !seen_ids.insert(id.clone()) {
+                return Err(ValidationError::DuplicateFormId(id));
+            }
+
+            // Collect from children recursively
+            match component {
+                A2UIComponent::Card { children, .. }
+                | A2UIComponent::Grid { children, .. }
+                | A2UIComponent::Modal { children, .. } => {
+                    self.collect_ids(children, seen_ids)?;
+                }
+                _ => {}
+            }
+        }
+        Ok(())
+    }
+
+    // === CONTEXT-AWARE VALIDATION (backward compatible wrappers) ===
 
     /// Validate form state against required fields
     pub fn validate_form_state(
@@ -352,9 +729,13 @@ impl A2UIValidator {
         {
             // If there's substantial content, there should be buttons for action
             if !content.is_empty() && content.len() > 5 {
-                let has_button = children.iter().any(|child| matches!(child, A2UIComponent::Button { .. }));
+                let has_button = children
+                    .iter()
+                    .any(|child| matches!(child, A2UIComponent::Button { .. }));
                 if !has_button {
-                    return Err("Modal with content must have at least one action button".to_string());
+                    return Err(
+                        "Modal with content must have at least one action button".to_string()
+                    );
                 }
             }
             Ok(())
@@ -404,36 +785,24 @@ impl A2UIValidator {
                     match field_type.as_str() {
                         "text" | "string" => {
                             if !v.is_string() {
-                                return Err(format!(
-                                    "Field '{}' must be a string",
-                                    field_name
-                                ));
+                                return Err(format!("Field '{}' must be a string", field_name));
                             }
                         }
                         "email" => {
                             if let Some(s) = v.as_str() {
                                 Self::validate_field_format(field_name, s, "email")?;
                             } else {
-                                return Err(format!(
-                                    "Field '{}' must be a string",
-                                    field_name
-                                ));
+                                return Err(format!("Field '{}' must be a string", field_name));
                             }
                         }
                         "number" | "int" => {
                             if !v.is_number() {
-                                return Err(format!(
-                                    "Field '{}' must be a number",
-                                    field_name
-                                ));
+                                return Err(format!("Field '{}' must be a number", field_name));
                             }
                         }
                         "bool" | "boolean" => {
                             if !v.is_boolean() {
-                                return Err(format!(
-                                    "Field '{}' must be a boolean",
-                                    field_name
-                                ));
+                                return Err(format!("Field '{}' must be a boolean", field_name));
                             }
                         }
                         _ => {} // Unknown type, skip type check

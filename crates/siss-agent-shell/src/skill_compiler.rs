@@ -1,7 +1,6 @@
 /// Phase 56: Sovereign Skill Pack Compilation — Ed25519 Signed Provenance Artifacts
 /// Parses SKILL.md frontmatter, hashes contents, cryptographically signs with creator's private key.
-
-use ed25519_dalek::{Signature, SigningKey, Signer, SignatureError, Verifier};
+use ed25519_dalek::{Signature, SignatureError, Signer, SigningKey, Verifier};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
@@ -17,10 +16,10 @@ pub struct SkillFrontmatter {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SkillPack {
     pub pack_id: Uuid,
-    pub creator_public_key: Vec<u8>,  // Ed25519 public key (32 bytes)
+    pub creator_public_key: Vec<u8>, // Ed25519 public key (32 bytes)
     pub frontmatter: SkillFrontmatter,
-    pub content_hash: String,          // SHA256 hex of .md body
-    pub signature: Vec<u8>,            // Ed25519 signature over canonical bytes
+    pub content_hash: String, // SHA256 hex of .md body
+    pub signature: Vec<u8>,   // Ed25519 signature over canonical bytes
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -102,10 +101,7 @@ impl SkillCompiler {
     /// RULE 3: Hash body with sha256 → content_hash (hex)
     /// RULE 4: Sign canonical_bytes(frontmatter + content_hash) with signing_key
     /// RULE 5: Return SkillPack with signature, public_key extracted from signing_key
-    pub fn compile(
-        content: &str,
-        signing_key: &SigningKey,
-    ) -> Result<SkillPack, CompileError> {
+    pub fn compile(content: &str, signing_key: &SigningKey) -> Result<SkillPack, CompileError> {
         let (frontmatter, body) = Self::parse_frontmatter(content)?;
 
         if body.trim().is_empty() {

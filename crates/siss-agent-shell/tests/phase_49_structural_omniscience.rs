@@ -3,7 +3,6 @@
 /// Invariants: (1) PreToolUse blast radius gate blocks HIGH/CRITICAL edits to core files
 ///             (2) BlastRiskLevel PartialOrd enforces threshold enforcement
 ///             (3) KnowledgeAtom protocol enables cross-worktree swarm sync
-
 use siss_agent_shell::hooks::blast_radius::{
     AffectedSymbol, BlastRadiusAnalyzer, BlastRadiusHook, BlastRadiusReport, BlastRadiusThresholds,
     BlastRiskLevel,
@@ -267,8 +266,8 @@ fn test_blast_medium_at_relaxed_threshold_continues() {
 // Test 7: Cross-worktree knowledge atom queryable by kind
 #[tokio::test]
 async fn test_knowledge_atom_cross_worktree_queryable() {
-    use std::sync::Arc;
     use siss_agent_shell::swarm_mcp_server::SwarmMcpServer;
+    use std::sync::Arc;
 
     let server = Arc::new(
         SwarmMcpServer::new("sqlite::memory:")
@@ -304,8 +303,8 @@ async fn test_knowledge_atom_cross_worktree_queryable() {
 // Test 8: Knowledge bus filters by symbol path
 #[tokio::test]
 async fn test_knowledge_bus_query_by_symbol_filters_correctly() {
-    use std::sync::Arc;
     use siss_agent_shell::swarm_mcp_server::SwarmMcpServer;
+    use std::sync::Arc;
 
     let server = Arc::new(
         SwarmMcpServer::new("sqlite::memory:")
@@ -348,7 +347,9 @@ async fn test_knowledge_bus_query_by_symbol_filters_correctly() {
         .expect("query failed");
 
     assert_eq!(results.len(), 2);
-    assert!(results
-        .iter()
-        .all(|a| a.symbol_path.contains("IntentMandate")));
+    assert!(
+        results
+            .iter()
+            .all(|a| a.symbol_path.contains("IntentMandate"))
+    );
 }

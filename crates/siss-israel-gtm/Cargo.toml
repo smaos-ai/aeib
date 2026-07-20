@@ -1,0 +1,34 @@
+[package]
+name = "siss-israel-gtm"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+uuid.workspace = true
+chrono.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+serde_yaml.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+sqlx.workspace = true
+ed25519-dalek.workspace = true
+rand.workspace = true
+regex.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+reqwest.workspace = true
+futures.workspace = true
+axum.workspace = true
+hex.workspace = true
+base64.workspace = true
+sha2.workspace = true
+sha3 = "0.10"
+
+siss-graph-core = { path = "../siss-graph-core" }
+siss-behavioral-firewall = { path = "../siss-behavioral-firewall" }
+siss-gatekeeper = { path = "../siss-gatekeeper" }
+
+[dev-dependencies]
+testcontainers.workspace = true

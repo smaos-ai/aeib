@@ -1,6 +1,5 @@
 /// Phase 55: AoE Spatial Telemetry Stream — Pixel Provenance → SSE Events
 /// Translates PixelProvenance broadcast messages into AoEEvent format for dashboard.
-
 use crate::ag_ui::AoEEvent;
 use crate::swarm_channel::{SwarmChannel, SwarmMessage};
 use serde_json::json;

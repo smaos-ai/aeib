@@ -1,7 +1,6 @@
 /// Phase 50: A2A Handshake & Discovery — Agent-to-Agent Delegation Membrane
 /// Ports-and-adapters: real impl fetches /.well-known/agent.json;
 /// tests use MockAgentRegistry with preset cards.
-
 use chrono::{DateTime, Utc};
 use siss_gatekeeper::tokens::IntentMandate;
 use uuid::Uuid;
@@ -61,12 +60,12 @@ impl<R: AgentRegistry> A2ADelegator<R> {
         }
 
         // RULE 2: Discover agent
-        let remote_agent = self
-            .registry
-            .discover(skill_id)
-            .ok_or_else(|| A2AError::AgentNotFound {
-                skill_id: skill_id.to_string(),
-            })?;
+        let remote_agent =
+            self.registry
+                .discover(skill_id)
+                .ok_or_else(|| A2AError::AgentNotFound {
+                    skill_id: skill_id.to_string(),
+                })?;
 
         // RULE 3: Check budget headroom
         let available = self.mandate.budget_remaining();

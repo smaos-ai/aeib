@@ -1,5 +1,4 @@
 /// Phase 61: Pre-Commit Risk Gate — Structural Risk Analysis Before Commit
-
 use crate::hooks::{HookResult, LifecycleHook, ToolUseContext};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]

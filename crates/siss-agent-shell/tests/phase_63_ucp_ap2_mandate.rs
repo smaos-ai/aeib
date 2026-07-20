@@ -1,14 +1,13 @@
+use chrono::Utc;
+use siss_agent_shell::ap2_ledger::{Ap2BurnLedger, BurnError, MandateState};
+use siss_agent_shell::ap2_mandate::{Ap2MandateGate, MandateError, PaymentMandate};
+use siss_agent_shell::hooks::HookResult;
 /// Phase 63: UCP & AP2 Cryptographic Mandate Engine — 27 TDD Tests
-
 use siss_agent_shell::ucp_checkout::{
     CartItem, CartRequest, CheckoutError, CheckoutPayload, CheckoutTransport, UcpCheckoutRouter,
 };
-use siss_agent_shell::ap2_mandate::{Ap2MandateGate, MandateError, PaymentMandate};
-use siss_agent_shell::ap2_ledger::{Ap2BurnLedger, BurnError, MandateState};
-use siss_agent_shell::hooks::HookResult;
 use siss_gatekeeper::signer::MockSigner;
 use siss_gatekeeper::tokens::IntentMandate;
-use chrono::Utc;
 use uuid::Uuid;
 
 // ============================================================================
@@ -325,7 +324,10 @@ fn test_ledger_register_duplicate_nonce_fails() {
         .register(mandate_id, nonce, mandate_hash.clone(), Utc::now())
         .unwrap();
     let result = ledger.register(mandate_id, nonce, mandate_hash, Utc::now());
-    assert!(matches!(result.unwrap_err(), BurnError::NonceAlreadyBurned { .. }));
+    assert!(matches!(
+        result.unwrap_err(),
+        BurnError::NonceAlreadyBurned { .. }
+    ));
 }
 
 #[test]
@@ -335,7 +337,9 @@ fn test_ledger_entry_state_active_after_register() {
     let mandate_id = Uuid::new_v4();
     let mandate_hash = Ap2BurnLedger::compute_mandate_hash(mandate_id, Uuid::new_v4(), 100);
 
-    ledger.register(mandate_id, nonce, mandate_hash, Utc::now()).ok();
+    ledger
+        .register(mandate_id, nonce, mandate_hash, Utc::now())
+        .ok();
     let entry = ledger.get_entry(nonce);
     assert!(entry.is_some());
     assert_eq!(entry.unwrap().state, MandateState::Active);
@@ -348,7 +352,9 @@ fn test_ledger_burn_transitions_to_executed() {
     let mandate_id = Uuid::new_v4();
     let mandate_hash = Ap2BurnLedger::compute_mandate_hash(mandate_id, Uuid::new_v4(), 100);
 
-    ledger.register(mandate_id, nonce, mandate_hash, Utc::now()).ok();
+    ledger
+        .register(mandate_id, nonce, mandate_hash, Utc::now())
+        .ok();
     ledger.burn(nonce).ok();
 
     let entry = ledger.get_entry(nonce);
@@ -362,18 +368,26 @@ fn test_ledger_double_burn_same_nonce_fails() {
     let mandate_id = Uuid::new_v4();
     let mandate_hash = Ap2BurnLedger::compute_mandate_hash(mandate_id, Uuid::new_v4(), 100);
 
-    ledger.register(mandate_id, nonce, mandate_hash, Utc::now()).ok();
+    ledger
+        .register(mandate_id, nonce, mandate_hash, Utc::now())
+        .ok();
     ledger.burn(nonce).ok();
 
     let result = ledger.burn(nonce);
-    assert!(matches!(result.unwrap_err(), BurnError::NonceAlreadyBurned { .. }));
+    assert!(matches!(
+        result.unwrap_err(),
+        BurnError::NonceAlreadyBurned { .. }
+    ));
 }
 
 #[test]
 fn test_ledger_burn_unknown_nonce_returns_not_found() {
     let mut ledger = Ap2BurnLedger::new();
     let result = ledger.burn(Uuid::new_v4());
-    assert!(matches!(result.unwrap_err(), BurnError::EntryNotFound { .. }));
+    assert!(matches!(
+        result.unwrap_err(),
+        BurnError::EntryNotFound { .. }
+    ));
 }
 
 #[test]
@@ -389,7 +403,9 @@ fn test_ledger_is_burned_true_after_burn() {
     let mandate_id = Uuid::new_v4();
     let mandate_hash = Ap2BurnLedger::compute_mandate_hash(mandate_id, Uuid::new_v4(), 100);
 
-    ledger.register(mandate_id, nonce, mandate_hash, Utc::now()).ok();
+    ledger
+        .register(mandate_id, nonce, mandate_hash, Utc::now())
+        .ok();
     ledger.burn(nonce).ok();
 
     assert!(ledger.is_burned(nonce));

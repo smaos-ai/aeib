@@ -1,5 +1,4 @@
 /// Phase 63: UCP Checkout Router — transport-agnostic cart payload construction.
-
 use uuid::Uuid;
 
 #[derive(Debug, Clone, PartialEq, Eq)]

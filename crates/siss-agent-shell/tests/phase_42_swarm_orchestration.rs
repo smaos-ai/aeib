@@ -4,10 +4,9 @@
 /// - Cryptographic Inheritance: DelegatedMandate budget/tool bounds (Invariant 2)
 /// - Channel Schema Validation: SwarmMessage validation (Invariant 3)
 /// - Database-Backed State Sync: SwarmStateLedger idempotent upsert (Invariant 4)
-
 use siss_agent_shell::swarm_channel::{
     ClaimError, InMemoryClaimLedger, InMemorySwarmState, SwarmChannel, SwarmMessage,
-    WorktreeClaimLedger, SwarmStateLedger,
+    SwarmStateLedger, WorktreeClaimLedger,
 };
 use siss_gatekeeper::delegation::{DelegatedMandate, DelegationError};
 use siss_gatekeeper::tokens::IntentMandate;
@@ -97,8 +96,8 @@ fn test_mandate_delegation_within_budget() {
         risk_class: "low".to_string(),
     };
 
-    let allowed_tools = vec![parent.allowed_tools[0]];  // subset of parent
-    let budget_limit = 400;  // less than parent.budget_remaining() = 500
+    let allowed_tools = vec![parent.allowed_tools[0]]; // subset of parent
+    let budget_limit = 400; // less than parent.budget_remaining() = 500
 
     // WHEN: create delegated mandate
     let result = DelegatedMandate::from_parent(&parent, allowed_tools, budget_limit, 1);
@@ -123,7 +122,7 @@ fn test_mandate_delegation_exceeds_budget() {
     };
 
     let allowed_tools = vec![parent.allowed_tools[0]];
-    let budget_limit = 501;  // exceeds parent.budget_remaining()
+    let budget_limit = 501; // exceeds parent.budget_remaining()
 
     // WHEN: attempt to create delegated mandate
     let result = DelegatedMandate::from_parent(&parent, allowed_tools, budget_limit, 1);
@@ -146,11 +145,11 @@ fn test_mandate_delegation_unauthorized_tool() {
         id: Uuid::new_v4(),
         budget_limit: 1000,
         budget_spent: 500,
-        allowed_tools: vec![Uuid::new_v4()],  // only one tool allowed
+        allowed_tools: vec![Uuid::new_v4()], // only one tool allowed
         risk_class: "low".to_string(),
     };
 
-    let unauthorized_tool = Uuid::new_v4();  // not in parent.allowed_tools
+    let unauthorized_tool = Uuid::new_v4(); // not in parent.allowed_tools
     let allowed_tools = vec![unauthorized_tool];
     let budget_limit = 100;
 
@@ -177,7 +176,7 @@ fn test_channel_invalid_progress_rejected() {
     let msg = SwarmMessage::StatusUpdate {
         agent_id: Uuid::new_v4(),
         state: "executing".to_string(),
-        progress_pct: 101,  // invalid: must be 0-100
+        progress_pct: 101, // invalid: must be 0-100
     };
 
     let result = channel.broadcast(msg);
@@ -214,5 +213,8 @@ fn test_swarm_state_idempotent_upsert() {
         snapshot.state, "executing",
         "second update should overwrite first"
     );
-    assert_eq!(snapshot.progress, 50, "progress should be from second update");
+    assert_eq!(
+        snapshot.progress, 50,
+        "progress should be from second update"
+    );
 }

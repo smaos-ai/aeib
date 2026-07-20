@@ -38,10 +38,8 @@ pub struct SseConfig {
 impl Default for SseConfig {
     fn default() -> Self {
         Self {
-            actions_endpoint: "http://localhost:3000/api/graph/projections/actions"
-                .to_string(),
-            anomalies_endpoint: "http://localhost:3000/api/graph/projections/anomalies"
-                .to_string(),
+            actions_endpoint: "http://localhost:3000/api/graph/projections/actions".to_string(),
+            anomalies_endpoint: "http://localhost:3000/api/graph/projections/anomalies".to_string(),
             base_url: "http://localhost:3000".to_string(),
             initial_backoff_secs: 5,
             max_backoff_secs: 60,
@@ -188,8 +186,7 @@ impl AoESseConsumer {
         };
 
         // Parse as JSON
-        let event: AoEEvent = serde_json::from_str(data)
-            .map_err(|e| e.to_string())?;
+        let event: AoEEvent = serde_json::from_str(data).map_err(|e| e.to_string())?;
 
         // Route to stdout in AoE format
         self.emit_aoe_event(&event);
@@ -283,7 +280,8 @@ mod tests {
         let consumer = AoESseConsumer::new();
 
         // Test valid SSE line
-        let valid_line = r#"data: {"action_type": "TEXT_MESSAGE_CONTENT", "id": "uuid-1", "content": "test"}"#;
+        let valid_line =
+            r#"data: {"action_type": "TEXT_MESSAGE_CONTENT", "id": "uuid-1", "content": "test"}"#;
         let result = consumer.process_sse_line(valid_line);
         assert!(result.is_ok(), "Should parse valid SSE line");
 
@@ -309,7 +307,10 @@ mod tests {
         // Spawn a task that will be cancelled
         let stream_task = tokio::spawn(async move {
             consumer
-                .stream_endpoint_with_cancel("http://localhost:9999/api/graph/projections/actions", cancel_clone)
+                .stream_endpoint_with_cancel(
+                    "http://localhost:9999/api/graph/projections/actions",
+                    cancel_clone,
+                )
                 .await
         });
 

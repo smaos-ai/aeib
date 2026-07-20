@@ -1,7 +1,6 @@
 /// Phase 57: Air-Gap Hardware Membrane — Compile-Time Cloud Egress Block
 /// INVARIANT: CLOUD_BLOCKLIST const prevents any outbound connection at compile time.
-
-use crate::hooks::{LifecycleHook, HookResult, ToolUseContext};
+use crate::hooks::{HookResult, LifecycleHook, ToolUseContext};
 use std::collections::HashSet;
 
 pub const CLOUD_BLOCKLIST: &[&str] = &[
@@ -59,7 +58,10 @@ impl LifecycleHook for AirGapMembrane {
     /// RULE 5: is_blocked(hostname) → HookResult::Halt { reason: "air_gap_violation" }
     /// RULE 6: Otherwise → HookResult::Continue
     fn on_pre_tool_use(&self, ctx: &ToolUseContext) -> HookResult {
-        if !matches!(ctx.tool_name.as_str(), "HttpFetch" | "HttpPost" | "TcpConnect") {
+        if !matches!(
+            ctx.tool_name.as_str(),
+            "HttpFetch" | "HttpPost" | "TcpConnect"
+        ) {
             return HookResult::Continue;
         }
 
@@ -116,9 +118,9 @@ mod tests {
 
     #[test]
     fn test_air_gap_hook_halts_cloud_fetch() {
+        use serde_json::json;
         use siss_graph_core::node::NodeId;
         use uuid::Uuid;
-        use serde_json::json;
 
         let membrane = AirGapMembrane::default();
         let ctx = ToolUseContext {
@@ -130,6 +132,11 @@ mod tests {
         };
 
         let result = membrane.on_pre_tool_use(&ctx);
-        assert_eq!(result, HookResult::Halt { reason: "air_gap_violation".to_string() });
+        assert_eq!(
+            result,
+            HookResult::Halt {
+                reason: "air_gap_violation".to_string()
+            }
+        );
     }
 }

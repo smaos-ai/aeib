@@ -1,5 +1,4 @@
 /// Phase 60: Auto Dream Engine — Nightly Consolidation Cycle
-
 use crate::crdt_sync::CrdtSync;
 use crate::memory_decay::{DecayConfig, DecayEngine};
 use crate::swarm_knowledge::{KnowledgeAtom, KnowledgeKind};
@@ -105,7 +104,11 @@ impl AutoDreamEngine {
             })
             .collect();
 
-        entries.sort_by(|a, b| b.confidence.partial_cmp(&a.confidence).unwrap_or(std::cmp::Ordering::Equal));
+        entries.sort_by(|a, b| {
+            b.confidence
+                .partial_cmp(&a.confidence)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
         entries.truncate(200);
 
         DreamIndex {

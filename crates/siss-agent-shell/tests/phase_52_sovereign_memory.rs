@@ -3,11 +3,10 @@
 /// Invariants: (1) Multi-agent graph sync with provenance hash
 ///             (2) 4-tier crystallization pipeline (Episodic→Semantic→Procedural)
 ///             (3) Confidence atrophy decay with GC eligibility
-
 use siss_agent_shell::memory_crystallizer::{CrystalError, SemanticCrystallizer};
 use siss_agent_shell::memory_decay::{DecayConfig, DecayEngine};
 use siss_agent_shell::night_cycle::{CompactionTrigger, NightCycleEngine};
-use siss_agent_shell::swarm_knowledge::{compute_provenance_hash, KnowledgeAtom, KnowledgeKind};
+use siss_agent_shell::swarm_knowledge::{KnowledgeAtom, KnowledgeKind, compute_provenance_hash};
 use siss_agent_shell::swarm_mcp_server::SwarmMcpServer;
 use siss_feedback_router::crystallizer::Crystallizer;
 use std::sync::Arc;
@@ -39,7 +38,10 @@ async fn test_atom_published_by_worktree_a_retrievable_by_b() {
     let atom_id = atom.atom_id;
 
     bus_a.publish(atom.clone(), "alpha").await.unwrap();
-    let results = bus_b.query_by_kind(&KnowledgeKind::ArchitecturalPattern).await.unwrap();
+    let results = bus_b
+        .query_by_kind(&KnowledgeKind::ArchitecturalPattern)
+        .await
+        .unwrap();
 
     assert_eq!(results.len(), 1);
     assert_eq!(results[0].atom_id, atom_id);
@@ -127,7 +129,10 @@ fn test_semantic_crystallizer_promotes_above_threshold() {
     atom.reinforcement_count = 3;
 
     let result = crystallizer.promote(&atom).unwrap();
-    assert_eq!(result.tier, siss_graph_core::node::memory::ConsolidationTier::Semantic);
+    assert_eq!(
+        result.tier,
+        siss_graph_core::node::memory::ConsolidationTier::Semantic
+    );
     assert_eq!(result.confidence, 0.92);
 }
 

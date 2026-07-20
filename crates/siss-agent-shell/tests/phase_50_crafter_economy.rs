@@ -3,14 +3,13 @@
 /// Invariants: (1) A2A delegation membrane gates on agent discovery & budget
 ///             (2) UCP/AP2 checkout enforces cryptographic contracts
 ///             (3) A2UI escalation wires budget-overflow to operator approval
-
 use chrono::Utc;
 use siss_agent_shell::a2a::{
     A2ADelegator, A2AError, A2AHandshakeResult, AgentRegistry, DelegatedMandate, RemoteAgentCard,
 };
-use siss_agent_shell::a2ui::escalation::{EscalationComposer, EscalationReason, EscalationRequest};
 use siss_agent_shell::a2ui::A2UIComponent;
-use siss_agent_shell::ucp::{UcpCheckout, UcpContract, UcpError, SignedUcpContract};
+use siss_agent_shell::a2ui::escalation::{EscalationComposer, EscalationReason, EscalationRequest};
+use siss_agent_shell::ucp::{SignedUcpContract, UcpCheckout, UcpContract, UcpError};
 use siss_gatekeeper::signer::MockSigner;
 use siss_gatekeeper::tokens::IntentMandate;
 use std::collections::HashMap;
@@ -54,7 +53,12 @@ fn test_a2a_discovers_agent_by_skill() {
 
     assert!(result.is_ok());
     let handshake = result.unwrap();
-    assert!(handshake.remote_agent.skill_ids.contains(&"security_audit".to_string()));
+    assert!(
+        handshake
+            .remote_agent
+            .skill_ids
+            .contains(&"security_audit".to_string())
+    );
     assert_eq!(handshake.delegated_mandate.budget_allocated, 200);
 }
 
@@ -199,7 +203,10 @@ fn test_ucp_checkout_fails_price_exceeds_budget() {
 
     assert!(matches!(
         result,
-        Err(UcpError::ContractPriceExceedsBudget { price: 200, budget: 100 })
+        Err(UcpError::ContractPriceExceedsBudget {
+            price: 200,
+            budget: 100
+        })
     ));
 }
 
@@ -257,14 +264,25 @@ fn test_a2ui_escalation_budget_exceeded_composes_card_and_alert() {
     let components = EscalationComposer::compose(&request);
 
     // Should contain Card + 2 Buttons
-    assert!(components.iter().any(|c| matches!(c, A2UIComponent::Card { .. })));
-    let button_count = components.iter().filter(|c| matches!(c, A2UIComponent::Button { .. })).count();
+    assert!(
+        components
+            .iter()
+            .any(|c| matches!(c, A2UIComponent::Card { .. }))
+    );
+    let button_count = components
+        .iter()
+        .filter(|c| matches!(c, A2UIComponent::Button { .. }))
+        .count();
     assert_eq!(button_count, 2);
 
     // Card should contain Alert
     for component in &components {
         if let A2UIComponent::Card { children, .. } = component {
-            assert!(children.iter().any(|c| matches!(c, A2UIComponent::Alert { .. })));
+            assert!(
+                children
+                    .iter()
+                    .any(|c| matches!(c, A2UIComponent::Alert { .. }))
+            );
         }
     }
 }

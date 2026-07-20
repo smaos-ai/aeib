@@ -1,8 +1,7 @@
+use chrono::{DateTime, Utc};
 /// Phase 63: AP2 Burn Ledger — nonce-based one-mandate-one-execution invariant.
-
 use std::collections::HashMap;
 use uuid::Uuid;
-use chrono::{DateTime, Utc};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum MandateState {

@@ -4,9 +4,15 @@ use async_trait::async_trait;
 
 pub struct SlackAdapter;
 
+impl Default for SlackAdapter {
+    fn default() -> Self {
+        Self
+    }
+}
+
 impl SlackAdapter {
     pub fn new() -> Self {
-        Self
+        Self::default()
     }
 
     pub fn new_test() -> Self {

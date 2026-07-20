@@ -4,9 +4,15 @@ use async_trait::async_trait;
 
 pub struct DiscordAdapter;
 
+impl Default for DiscordAdapter {
+    fn default() -> Self {
+        Self
+    }
+}
+
 impl DiscordAdapter {
     pub fn new() -> Self {
-        Self
+        Self::default()
     }
 
     pub fn new_test() -> Self {

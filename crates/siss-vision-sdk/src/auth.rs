@@ -101,7 +101,6 @@ impl TokenManager {
                 }
             }
         }
-        drop(cache);
 
         // If expired or missing, create a new test token
         if self.test_mode {

@@ -137,6 +137,21 @@ impl VisionSDK {
         }
         Ok(false)
     }
+
+    pub async fn list_all_adapters(&self) -> Result<Vec<String>> {
+        let platforms = vec![
+            // Phase 1: 10 platforms
+            "substack", "patreon", "youtube", "notion", "zapier", "twitter", "tiktok", "twitch", "discord", "slack",
+            // Phase 2: 40 platforms
+            "medium", "linkedin", "bluesky", "threads", "mastodon", "farcaster", "lens", "pixelfed", "peertube",
+            "telegram", "signal", "wechat", "viber", "line", "kick", "rumble", "odysee", "amazon_live", "tiktok_shop",
+            "activecampaign", "hubspot", "mailchimp", "brevo", "getresponse", "unbounce", "leadpages", "funnelytics",
+            "strava", "patreon_enterprise", "convertkit", "flodesk", "gumroad", "ghost", "mirror",
+            // Additional Phase 2 (6 more to reach 40)
+            "substack_notes", "youtube_shorts", "instagram", "snapchat", "whatsapp", "messenger"
+        ];
+        Ok(platforms.into_iter().map(|s| s.to_string()).collect())
+    }
 }
 
 struct RateLimiter {

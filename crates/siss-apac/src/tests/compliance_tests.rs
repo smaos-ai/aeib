@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use siss_apac::{Jurisdiction, ComplianceEngine, ComplianceCheckStatus};
+    use crate::{Jurisdiction, ComplianceEngine, ComplianceCheckStatus};
 
     #[test]
     fn test_singapore_jurisdiction_config() {
@@ -129,7 +129,7 @@ mod tests {
 
     #[test]
     fn test_enforce_rule() {
-        use siss_apac::ComplianceRule;
+        use crate::ComplianceRule;
 
         let mut engine = ComplianceEngine::new();
         engine.register_entity(Jurisdiction::Singapore, "entity_sg_003").unwrap();

@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use siss_apac::{Language, Localizer};
+    use crate::{Language, Localizer};
 
     #[test]
     fn test_chinese_simplified_localization() {
@@ -119,5 +119,59 @@ mod tests {
         assert_eq!(localizer.get("greeting", Language::ZhCn), Some("你好".to_string()));
         assert_eq!(localizer.get("greeting", Language::JaJp), Some("こんにちは".to_string()));
         assert_eq!(localizer.get("greeting", Language::KoKr), Some("안녕하세요".to_string()));
+    }
+
+    #[test]
+    fn test_tamil_localization() {
+        let mut localizer = Localizer::new();
+        localizer.add_translation("hi", Language::TaIn, "வணக்கம்".to_string());
+
+        let result = localizer.get("hi", Language::TaIn);
+        assert_eq!(result, Some("வணக்கம்".to_string()));
+    }
+
+    #[test]
+    fn test_hindi_localization() {
+        let mut localizer = Localizer::new();
+        localizer.add_translation("hello", Language::HiIn, "नमस्ते".to_string());
+
+        let result = localizer.get("hello", Language::HiIn);
+        assert_eq!(result, Some("नमस्ते".to_string()));
+    }
+
+    #[test]
+    fn test_bengali_localization() {
+        let mut localizer = Localizer::new();
+        localizer.add_translation("greet", Language::BnIn, "নমস্কার".to_string());
+
+        let result = localizer.get("greet", Language::BnIn);
+        assert_eq!(result, Some("নমস্কার".to_string()));
+    }
+
+    #[test]
+    fn test_tagalog_localization() {
+        let mut localizer = Localizer::new();
+        localizer.add_translation("hi", Language::FilPh, "Kamusta".to_string());
+
+        let result = localizer.get("hi", Language::FilPh);
+        assert_eq!(result, Some("Kamusta".to_string()));
+    }
+
+    #[test]
+    fn test_burmese_localization() {
+        let mut localizer = Localizer::new();
+        localizer.add_translation("hello", Language::MyMm, "မင်္ဂလာပါ".to_string());
+
+        let result = localizer.get("hello", Language::MyMm);
+        assert_eq!(result, Some("မင်္ဂလာပါ".to_string()));
+    }
+
+    #[test]
+    fn test_khmer_localization() {
+        let mut localizer = Localizer::new();
+        localizer.add_translation("greeting", Language::KmKh, "សូស្វាគមន៍".to_string());
+
+        let result = localizer.get("greeting", Language::KmKh);
+        assert_eq!(result, Some("សូស្វាគមន៍".to_string()));
     }
 }

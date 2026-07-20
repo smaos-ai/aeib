@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use siss_apac::{PaymentProcessor, PaymentEngine, TransactionStatus};
+    use crate::{PaymentProcessor, PaymentEngine, TransactionStatus};
 
     #[test]
     fn test_alipay_processor_config() {

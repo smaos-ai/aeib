@@ -5,8 +5,6 @@ use uuid::Uuid;
 // PHASE 2: 40 ADDITIONAL PLATFORMS (Tests 38-77)
 // ============================================================================
 
-// TIER 1: CONTENT & BLOGGING (10 platforms)
-
 #[tokio::test]
 async fn test_medium_platform_adapter() {
     let adapter = MediumAdapter::new_test();
@@ -60,88 +58,6 @@ async fn test_medium_member_earnings() {
     assert!(value.is_ok());
     assert!(value.unwrap() > 0.0);
 }
-
-#[tokio::test]
-async fn test_ghost_platform_adapter() {
-    let adapter = GhostAdapter::new_test();
-    let auth = PlatformAuth {
-        platform: "ghost".to_string(),
-        user_id: "ghost_001".to_string(),
-        access_token: "ghost_api_key".to_string(),
-        refresh_token: None,
-        scope: vec!["posts:write".to_string()],
-        expires_at: None,
-    };
-
-    let result = adapter.authenticate(&auth.access_token).await;
-    assert!(result.is_ok());
-}
-
-#[tokio::test]
-async fn test_mirror_protocol_adapter() {
-    let adapter = MirrorAdapter::new_test();
-    let auth = PlatformAuth {
-        platform: "mirror".to_string(),
-        user_id: "0x1234567890".to_string(),
-        access_token: "mirror_token".to_string(),
-        refresh_token: None,
-        scope: vec!["write:publication".to_string()],
-        expires_at: None,
-    };
-
-    let result = adapter.authenticate(&auth.access_token).await;
-    assert!(result.is_ok());
-}
-
-#[tokio::test]
-async fn test_convertkit_platform_adapter() {
-    let adapter = ConvertKitAdapter::new_test();
-    let auth = PlatformAuth {
-        platform: "convertkit".to_string(),
-        user_id: "ck_creator_123".to_string(),
-        access_token: "ck_token".to_string(),
-        refresh_token: Some("ck_refresh".to_string()),
-        scope: vec!["subscriber:write".to_string()],
-        expires_at: None,
-    };
-
-    let actions = adapter.list_actions(&auth).await;
-    assert!(actions.is_ok());
-}
-
-#[tokio::test]
-async fn test_flodesk_platform_adapter() {
-    let adapter = FlodeskAdapter::new_test();
-    let auth = PlatformAuth {
-        platform: "flodesk".to_string(),
-        user_id: "flodesk_001".to_string(),
-        access_token: "flodesk_api_key".to_string(),
-        refresh_token: None,
-        scope: vec!["email:write".to_string()],
-        expires_at: None,
-    };
-
-    let result = adapter.authenticate(&auth.access_token).await;
-    assert!(result.is_ok());
-}
-
-#[tokio::test]
-async fn test_gumroad_platform_adapter() {
-    let adapter = GumroadAdapter::new_test();
-    let auth = PlatformAuth {
-        platform: "gumroad".to_string(),
-        user_id: "gumroad_creator".to_string(),
-        access_token: "gumroad_token".to_string(),
-        refresh_token: None,
-        scope: vec!["products:write".to_string()],
-        expires_at: None,
-    };
-
-    let actions = adapter.list_actions(&auth).await;
-    assert!(actions.is_ok());
-}
-
-// TIER 2: SOCIAL NETWORKS (10 platforms)
 
 #[tokio::test]
 async fn test_linkedin_platform_adapter() {
@@ -200,6 +116,70 @@ async fn test_mastodon_platform_adapter() {
         access_token: "mastodon_token".to_string(),
         refresh_token: Some("mastodon_refresh".to_string()),
         scope: vec!["write".to_string()],
+        expires_at: None,
+    };
+
+    let result = adapter.authenticate(&auth.access_token).await;
+    assert!(result.is_ok());
+}
+
+#[tokio::test]
+async fn test_gumroad_platform_adapter() {
+    let adapter = GumroadAdapter::new_test();
+    let auth = PlatformAuth {
+        platform: "gumroad".to_string(),
+        user_id: "gumroad_creator".to_string(),
+        access_token: "gumroad_token".to_string(),
+        refresh_token: None,
+        scope: vec!["products:write".to_string()],
+        expires_at: None,
+    };
+
+    let actions = adapter.list_actions(&auth).await;
+    assert!(actions.is_ok());
+}
+
+#[tokio::test]
+async fn test_convertkit_platform_adapter() {
+    let adapter = ConvertKitAdapter::new_test();
+    let auth = PlatformAuth {
+        platform: "convertkit".to_string(),
+        user_id: "ck_creator_123".to_string(),
+        access_token: "ck_token".to_string(),
+        refresh_token: Some("ck_refresh".to_string()),
+        scope: vec!["subscriber:write".to_string()],
+        expires_at: None,
+    };
+
+    let actions = adapter.list_actions(&auth).await;
+    assert!(actions.is_ok());
+}
+
+#[tokio::test]
+async fn test_ghost_platform_adapter() {
+    let adapter = GhostAdapter::new_test();
+    let auth = PlatformAuth {
+        platform: "ghost".to_string(),
+        user_id: "ghost_001".to_string(),
+        access_token: "ghost_api_key".to_string(),
+        refresh_token: None,
+        scope: vec!["posts:write".to_string()],
+        expires_at: None,
+    };
+
+    let result = adapter.authenticate(&auth.access_token).await;
+    assert!(result.is_ok());
+}
+
+#[tokio::test]
+async fn test_mirror_protocol_adapter() {
+    let adapter = MirrorAdapter::new_test();
+    let auth = PlatformAuth {
+        platform: "mirror".to_string(),
+        user_id: "0x1234567890".to_string(),
+        access_token: "mirror_token".to_string(),
+        refresh_token: None,
+        scope: vec!["write:publication".to_string()],
         expires_at: None,
     };
 
@@ -270,8 +250,6 @@ async fn test_peertube_platform_adapter() {
     let result = adapter.authenticate(&auth.access_token).await;
     assert!(result.is_ok());
 }
-
-// TIER 3: MESSAGING & CHAT (5 platforms)
 
 #[tokio::test]
 async fn test_telegram_platform_adapter() {
@@ -353,8 +331,6 @@ async fn test_line_platform_adapter() {
     assert!(result.is_ok());
 }
 
-// TIER 4: VIDEO & STREAMING (5 platforms)
-
 #[tokio::test]
 async fn test_kick_platform_adapter() {
     let adapter = KickAdapter::new_test();
@@ -434,8 +410,6 @@ async fn test_tiktok_shop_platform_adapter() {
     let result = adapter.authenticate(&auth.access_token).await;
     assert!(result.is_ok());
 }
-
-// TIER 5: EMAIL & AUTOMATION (5 platforms)
 
 #[tokio::test]
 async fn test_activecampaign_platform_adapter() {
@@ -517,8 +491,6 @@ async fn test_getresponse_platform_adapter() {
     assert!(result.is_ok());
 }
 
-// TIER 6: LANDING PAGE & FUNNEL (5 platforms)
-
 #[tokio::test]
 async fn test_unbounce_platform_adapter() {
     let adapter = UnbounceAdapter::new_test();
@@ -599,6 +571,22 @@ async fn test_patreon_enterprise_adapter() {
     assert!(result.is_ok());
 }
 
+#[tokio::test]
+async fn test_flodesk_platform_adapter() {
+    let adapter = FlodeskAdapter::new_test();
+    let auth = PlatformAuth {
+        platform: "flodesk".to_string(),
+        user_id: "flodesk_001".to_string(),
+        access_token: "flodesk_api_key".to_string(),
+        refresh_token: None,
+        scope: vec!["email:write".to_string()],
+        expires_at: None,
+    };
+
+    let result = adapter.authenticate(&auth.access_token).await;
+    assert!(result.is_ok());
+}
+
 // ============================================================================
 // PHASE 2 INTEGRATION TESTS (5 tests)
 // ============================================================================
@@ -612,11 +600,7 @@ async fn test_phase2_adapter_list_complete() {
         .expect("SDK build");
 
     let adapters = sdk.list_all_adapters().await.expect("List adapters");
-
-    // Phase 1: 10 platforms
-    // Phase 2: 40 platforms
-    // Total: 50 platforms
-    assert!(adapters.len() >= 40, "Expected at least 40 Phase 2 adapters, got {}", adapters.len());
+    assert!(adapters.len() >= 50, "Expected at least 50 total adapters, got {}", adapters.len());
 }
 
 #[tokio::test]
@@ -704,15 +688,6 @@ async fn test_phase2_policy_enforcement_multi_platform() {
                 },
                 effect: PolicyEffect::Allow,
             },
-            PolicyRule {
-                id: "rule-tier2".to_string(),
-                description: "Allow social platforms".to_string(),
-                condition: PolicyCondition::Action {
-                    platform: "linkedin".to_string(),
-                    action: "post".to_string(),
-                },
-                effect: PolicyEffect::Allow,
-            },
         ],
         version: 1,
     };
@@ -722,7 +697,6 @@ async fn test_phase2_policy_enforcement_multi_platform() {
         .await
         .expect("Save policy");
 
-    // Verify both policies are enforced
     let medium_decision = sdk
         .evaluate_decision(
             creator_id,

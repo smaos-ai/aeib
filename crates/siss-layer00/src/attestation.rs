@@ -1,5 +1,5 @@
-use ed25519_dalek::{SigningKey, VerifyingKey, Signature, Signer, Verifier};
-use sha2::{Sha256, Digest};
+use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
+use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 #[derive(Debug, Clone, Error)]

@@ -1,11 +1,13 @@
+use chrono::Utc;
 use siss_layer00::{
-    archival::{ArchiveConfig, ArchiveError, ColdStorageArchiver, ArchiveStats, ExecLogArchiveRecord},
+    archival::{
+        ArchiveConfig, ArchiveError, ArchiveStats, ColdStorageArchiver, ExecLogArchiveRecord,
+    },
     monitoring::{
         ChainVerification, HealthStatus, MerkleChainMonitor, MonitoringError, TamperAlert,
         TamperAlerts,
     },
 };
-use chrono::Utc;
 use uuid::Uuid;
 
 // ============================================================================
@@ -32,9 +34,18 @@ fn test_s3_archive_path_format() {
     };
     let archiver = ColdStorageArchiver::new(config);
     let path = archiver.s3_archive_path(2026, 7, 21);
-    assert!(path.contains("archives/exec_log"), "Path should contain archives/exec_log");
-    assert!(path.contains("2026/07/21"), "Path should contain year/month/day");
-    assert!(path.contains("test-bucket"), "Path should contain bucket name");
+    assert!(
+        path.contains("archives/exec_log"),
+        "Path should contain archives/exec_log"
+    );
+    assert!(
+        path.contains("2026/07/21"),
+        "Path should contain year/month/day"
+    );
+    assert!(
+        path.contains("test-bucket"),
+        "Path should contain bucket name"
+    );
 }
 
 #[test]
@@ -47,7 +58,10 @@ fn test_s3_archive_path_zero_pads_date() {
     let archiver = ColdStorageArchiver::new(config);
     let path = archiver.s3_archive_path(2026, 1, 5);
     // Should be zero-padded: 2026/01/05
-    assert!(path.contains("2026/01/05"), "Month and day should be zero-padded");
+    assert!(
+        path.contains("2026/01/05"),
+        "Month and day should be zero-padded"
+    );
 }
 
 #[test]
@@ -60,7 +74,10 @@ fn test_archive_stats_contains_correct_fields() {
     };
     assert_eq!(stats.total_records, 1000);
     assert_eq!(stats.bytes_exported, 512_000);
-    assert!(stats.s3_path.ends_with(".gz"), "S3 path should end with .gz for gzip compression");
+    assert!(
+        stats.s3_path.ends_with(".gz"),
+        "S3 path should end with .gz for gzip compression"
+    );
 }
 
 #[test]
@@ -233,7 +250,10 @@ fn test_chain_verification_is_serializable() {
         next_check_at: Utc::now(),
     };
     let json = serde_json::to_string(&verification);
-    assert!(json.is_ok(), "ChainVerification should be JSON serializable");
+    assert!(
+        json.is_ok(),
+        "ChainVerification should be JSON serializable"
+    );
 }
 
 #[test]

@@ -1,0 +1,113 @@
+{
+  "name": "palace-memory-mcp",
+  "version": "1.0.0",
+  "description": "Palace — The Memory That Doesn't Forget. Sovereign memory filesystem with cryptographic governance for AI agents.",
+  "author": "SovereignNexus",
+  "license": "MIT",
+  "repository": "https://github.com/SovereignNexus/palace-memory-mcp",
+  "homepage": "https://sovereignnexus.io/palace",
+  "keywords": [
+    "memory",
+    "mcp",
+    "governance",
+    "cryptographic",
+    "agents",
+    "ap2",
+    "ed25519"
+  ],
+  "protocol": {
+    "version": "1.0.0",
+    "transport": "stdio",
+    "tools": [
+      {
+        "name": "memory.read",
+        "description": "Read memory entries from the Palace graph",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "UUID of memory entry to read"
+            },
+            "zone": {
+              "type": "string",
+              "enum": ["BlackFog", "GrayFog", "VisibleField"],
+              "description": "Memory zone to query"
+            }
+          },
+          "required": ["id"]
+        }
+      },
+      {
+        "name": "memory.write",
+        "description": "Write memory entries to the Palace graph",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "zone": {
+              "type": "string",
+              "enum": ["BlackFog", "GrayFog", "VisibleField"],
+              "description": "Target memory zone"
+            },
+            "content": {
+              "type": "string",
+              "description": "Memory content to persist"
+            }
+          },
+          "required": ["zone", "content"]
+        }
+      },
+      {
+        "name": "memory.query",
+        "description": "Query memory entries across zones with AP2 budget enforcement",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "zone": {
+              "type": "string",
+              "enum": ["BlackFog", "GrayFog", "VisibleField"],
+              "description": "Zone to search"
+            },
+            "pattern": {
+              "type": "string",
+              "description": "Search pattern"
+            }
+          },
+          "required": ["zone"]
+        }
+      }
+    ],
+    "resources": [
+      {
+        "name": "palace://memory",
+        "description": "Access to Palace memory graph with cryptographic audit trails"
+      },
+      {
+        "name": "palace://ledger",
+        "description": "Access to AP2 payment ledger with 1%/99% sovereign split"
+      }
+    ]
+  },
+  "features": {
+    "cryptographic_governance": "Ed25519 mandate verification + Merkle-DAG audit trails",
+    "ap2_ledger": "1%/99% payment split with hard budget cap ($12.43 per session)",
+    "memory_zones": "Black Fog (system), Gray Fog (user), Visible Field (public)",
+    "zero_network_latency": "Stdio transport for sub-100ms round-trip execution",
+    "post_quantum_ready": "Dilithium + Ed25519 hybrid cryptography"
+  },
+  "deployment": {
+    "binary": "palace-memory-mcp",
+    "args": ["--stdio"],
+    "env": {
+      "PALACE_MODE": "sovereign",
+      "AP2_HARD_CAP_USD": "12.43",
+      "GOVERNANCE_ENFORCE": "true"
+    }
+  },
+  "integrations": {
+    "openclaw": "native MCP server",
+    "hermes": "skill plugin via config.yaml",
+    "claude-code": "memory provider",
+    "cursor": "via .cursor/mcp.json"
+  }
+}

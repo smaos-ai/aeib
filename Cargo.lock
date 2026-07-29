@@ -3453,6 +3453,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "palace-memory-mcp"
+version = "0.1.0"
+dependencies = [
+ "base64 0.22.1",
+ "chrono",
+ "dashmap",
+ "ed25519-dalek",
+ "hex",
+ "parking_lot",
+ "serde",
+ "serde_json",
+ "sha2",
+ "siss-context-cartography",
+ "siss-gatekeeper",
+ "siss-layer00",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-test",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "parking"
 version = "2.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5698,6 +5721,7 @@ version = "0.1.0"
 dependencies = [
  "base64 0.22.1",
  "chrono",
+ "criterion",
  "dashmap",
  "ed25519-dalek",
  "hex",
@@ -5709,6 +5733,23 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "siss-local-llm"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "dashmap",
+ "futures",
+ "hex",
+ "serde",
+ "serde_json",
+ "sha2",
+ "siss-layer00",
+ "thiserror 2.0.18",
+ "tokio",
  "uuid",
 ]
 
@@ -6000,6 +6041,22 @@ dependencies = [
  "serde_json",
  "sha2",
  "thiserror 2.0.18",
+ "uuid",
+]
+
+[[package]]
+name = "siss-stream6-usa-creator"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "dashmap",
+ "serde",
+ "serde_json",
+ "siss-layer00",
+ "sqlx",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
  "uuid",
 ]
 

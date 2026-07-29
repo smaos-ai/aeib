@@ -2,7 +2,7 @@
 // Demonstrates: mandate verification → capability token → policy enforcement → audit trail
 // (Full ReBAC integration requires PostgreSQL; these tests show Layer 0 gate mechanism)
 
-use chrono::{Utc, Duration};
+use chrono::{Duration, Utc};
 use siss_layer00::{DashMapStore, Layer0Gate, Mandate, SovereignKeypair};
 use std::sync::Arc;
 use uuid::Uuid;
@@ -72,13 +72,13 @@ fn test_mode2_policy_with_layer0_gate_success() {
     gate.register_mandate(mandate.clone()).unwrap();
 
     // Step 3: AI requests capability token for "spawn_agent" action
-    let token = gate
-        .request_capability(mandate.id, "spawn_agent")
-        .unwrap();
+    let token = gate.request_capability(mandate.id, "spawn_agent").unwrap();
 
     // Step 4: AI invokes tool with capability token
     let result_hash = siss_layer00::sha256(b"SpawnResult: Success");
-    let audit_id = gate.invoke_tool(&token, "spawn_agent", result_hash).unwrap();
+    let audit_id = gate
+        .invoke_tool(&token, "spawn_agent", result_hash)
+        .unwrap();
 
     // Step 5: Verify execution was logged to EXEC_LOG
     assert!(audit_id >= 0);
@@ -118,19 +118,13 @@ fn test_full_stack_mandate_with_multiple_actions() {
     gate.register_mandate(mandate.clone()).unwrap();
 
     // Request token for spawn_agent
-    let token = gate
-        .request_capability(mandate.id, "spawn_agent")
-        .unwrap();
+    let token = gate.request_capability(mandate.id, "spawn_agent").unwrap();
 
     // Invoke: spawn agent (in scope)
-    let audit_id1 = gate
-        .invoke_tool(&token, "spawn_agent", [1u8; 32])
-        .unwrap();
+    let audit_id1 = gate.invoke_tool(&token, "spawn_agent", [1u8; 32]).unwrap();
 
     // Request token for revoke_agent
-    let token2 = gate
-        .request_capability(mandate.id, "revoke_agent")
-        .unwrap();
+    let token2 = gate.request_capability(mandate.id, "revoke_agent").unwrap();
 
     // Invoke: revoke agent (also in scope)
     let audit_id2 = gate
@@ -198,9 +192,7 @@ fn test_scope_violation_denies_capability_token() {
     gate.register_mandate(mandate.clone()).unwrap();
 
     // Request token for allowed action → success
-    let token = gate
-        .request_capability(mandate.id, "spawn_agent")
-        .unwrap();
+    let token = gate.request_capability(mandate.id, "spawn_agent").unwrap();
     assert!(token.action_scope == "spawn_agent");
 
     // Request token for disallowed action → denied
@@ -257,9 +249,7 @@ fn test_multi_agent_mandate_isolation() {
     gate.register_mandate(mandate2.clone()).unwrap();
 
     // S1 can request spawn_agent
-    let token1 = gate
-        .request_capability(mandate1.id, "spawn_agent")
-        .unwrap();
+    let token1 = gate.request_capability(mandate1.id, "spawn_agent").unwrap();
     assert!(token1.mandate_id == mandate1.id);
 
     // S2 can request terminate_agent
@@ -312,9 +302,7 @@ fn test_audit_trail_immutability() {
     };
 
     gate.register_mandate(mandate.clone()).unwrap();
-    let token = gate
-        .request_capability(mandate.id, "spawn_agent")
-        .unwrap();
+    let token = gate.request_capability(mandate.id, "spawn_agent").unwrap();
 
     // Perform multiple invocations
     let mut ids = vec![];
@@ -369,9 +357,7 @@ fn test_mandate_revocation_invalidates_active_tokens() {
     gate.register_mandate(mandate.clone()).unwrap();
 
     // Get valid token before revocation
-    let token = gate
-        .request_capability(mandate.id, "spawn_agent")
-        .unwrap();
+    let token = gate.request_capability(mandate.id, "spawn_agent").unwrap();
 
     // Invoke successfully with token
     let result1 = gate.invoke_tool(&token, "spawn_agent", [1u8; 32]);
@@ -420,22 +406,31 @@ fn test_layer0_latency_requirements() {
     let start = std::time::Instant::now();
     gate.register_mandate(mandate.clone()).unwrap();
     let duration = start.elapsed();
-    assert!(duration.as_millis() < 1, "Mandate registration took {:?}", duration);
+    assert!(
+        duration.as_millis() < 1,
+        "Mandate registration took {:?}",
+        duration
+    );
 
     // Capability token request should be <1ms
     let start = std::time::Instant::now();
-    let token = gate
-        .request_capability(mandate.id, "spawn_agent")
-        .unwrap();
+    let token = gate.request_capability(mandate.id, "spawn_agent").unwrap();
     let duration = start.elapsed();
-    assert!(duration.as_millis() < 1, "Token request took {:?}", duration);
+    assert!(
+        duration.as_millis() < 1,
+        "Token request took {:?}",
+        duration
+    );
 
     // Tool invocation should be <1ms
     let start = std::time::Instant::now();
-    gate.invoke_tool(&token, "spawn_agent", [0u8; 32])
-        .unwrap();
+    gate.invoke_tool(&token, "spawn_agent", [0u8; 32]).unwrap();
     let duration = start.elapsed();
-    assert!(duration.as_millis() < 1, "Tool invocation took {:?}", duration);
+    assert!(
+        duration.as_millis() < 1,
+        "Tool invocation took {:?}",
+        duration
+    );
 
     // All operations well under <0.1ms target (we measure in 1ms units for practicality)
 }

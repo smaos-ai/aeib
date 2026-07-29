@@ -1,8 +1,8 @@
+use crate::attestation::sha256;
 use chrono::{DateTime, Utc};
 use std::sync::Mutex;
 use thiserror::Error;
 use uuid::Uuid;
-use crate::attestation::sha256;
 
 #[derive(Debug, Clone, Error)]
 pub enum ExecLogError {

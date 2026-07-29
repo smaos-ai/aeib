@@ -22,3 +22,8 @@ siss-behavioral-firewall = { path = "../siss-behavioral-firewall" }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
+criterion = { workspace = true }
+
+[[bench]]
+name = "layer0_benchmarks"
+harness = false

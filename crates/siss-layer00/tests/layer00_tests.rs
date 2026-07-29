@@ -1,4 +1,4 @@
-use chrono::{Utc, Duration};
+use chrono::{Duration, Utc};
 use siss_layer00::{
     DashMapStore, ExecLogEntry, GateError, Layer0Gate, Mandate, MandateStore, SovereignKeypair,
 };
@@ -189,7 +189,10 @@ fn test_gate_deny_out_of_scope() {
     // Try to use action outside scope
     let result = gate.request_capability(mandate.id, "invoke_tool_admin");
     assert!(result.is_err());
-    assert!(matches!(result.unwrap_err(), GateError::CapabilityDenied(_)));
+    assert!(matches!(
+        result.unwrap_err(),
+        GateError::CapabilityDenied(_)
+    ));
 }
 
 #[test]

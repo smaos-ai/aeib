@@ -1,9 +1,9 @@
+use crate::exec_log::InMemoryAuditLog;
+use crate::mandate::{Mandate, MandateError, MandateStore};
 use chrono::{DateTime, Utc};
 use std::sync::Arc;
 use thiserror::Error;
 use uuid::Uuid;
-use crate::mandate::{MandateStore, Mandate, MandateError};
-use crate::exec_log::InMemoryAuditLog;
 
 #[derive(Debug, Clone, Error)]
 pub enum GateError {
@@ -125,7 +125,12 @@ impl Layer0Gate {
 
         let audit_id = self
             .exec_log
-            .append(token.mandate_id, &token.action_scope, tool_name, result_hash)
+            .append(
+                token.mandate_id,
+                &token.action_scope,
+                tool_name,
+                result_hash,
+            )
             .map(|entry| entry.id)
             .map_err(|e| GateError::AuditLogFailure(e.to_string()))?;
 

@@ -1,0 +1,23 @@
+[package]
+name = "siss-local-llm"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json.workspace = true
+thiserror.workspace = true
+uuid.workspace = true
+chrono.workspace = true
+hex.workspace = true
+sha2.workspace = true
+dashmap = "5.5"
+
+# Layer 0 integration
+siss-layer00 = { path = "../siss-layer00" }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full"] }
+futures = { workspace = true }

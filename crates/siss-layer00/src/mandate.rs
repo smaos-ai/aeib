@@ -1,9 +1,9 @@
+use crate::attestation::{verify_signature, AttestationError};
 use chrono::{DateTime, Utc};
 use dashmap::DashMap;
 use std::sync::Arc;
 use thiserror::Error;
 use uuid::Uuid;
-use crate::attestation::{verify_signature, AttestationError};
 
 #[derive(Debug, Clone, Error)]
 pub enum MandateError {

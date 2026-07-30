@@ -5931,6 +5931,7 @@ dependencies = [
  "num_cpus",
  "serde",
  "serde_json",
+ "siss-local-llm",
  "thiserror 2.0.18",
  "tokio",
  "tracing",

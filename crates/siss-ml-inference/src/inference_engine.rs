@@ -1,5 +1,6 @@
 use crate::{InferenceError, ModelMetadata, Result, Tensor};
 use dashmap::DashMap;
+use siss_local_llm::OllamaClient;
 use std::sync::Arc;
 use std::time::SystemTime;
 
@@ -8,6 +9,7 @@ pub enum HardwareBackend {
     AppleNeuralEngine,
     MetalGPU,
     CPU,
+    Ollama,
 }
 
 #[derive(Debug, Clone)]
@@ -36,11 +38,23 @@ impl InferenceModel {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct InferenceEngine {
     models: Arc<DashMap<String, InferenceModel>>,
     hardware_backend: HardwareBackend,
     determinism_cache: Arc<DashMap<String, bool>>,
+    ollama_client: Option<Arc<OllamaClient>>,
+}
+
+impl std::fmt::Debug for InferenceEngine {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("InferenceEngine")
+            .field("models", &self.models)
+            .field("hardware_backend", &self.hardware_backend)
+            .field("determinism_cache", &self.determinism_cache)
+            .field("ollama_client", &self.ollama_client.is_some())
+            .finish()
+    }
 }
 
 impl InferenceEngine {
@@ -49,11 +63,21 @@ impl InferenceEngine {
             models: Arc::new(DashMap::new()),
             hardware_backend,
             determinism_cache: Arc::new(DashMap::new()),
+            ollama_client: None,
         }
     }
 
     pub fn with_backend(backend: HardwareBackend) -> Self {
         Self::new(backend)
+    }
+
+    pub fn with_ollama(mut self, endpoint: &str, model: &str) -> Self {
+        self.ollama_client = Some(Arc::new(OllamaClient::new(endpoint, model)));
+        self
+    }
+
+    pub fn ollama_client(&self) -> Option<&Arc<OllamaClient>> {
+        self.ollama_client.as_ref()
     }
 
     pub fn register_model(&self, model: InferenceModel) -> Result<()> {
@@ -198,6 +222,9 @@ mod tests {
 
         let _engine_metal = InferenceEngine::with_backend(HardwareBackend::MetalGPU);
         assert_eq!(_engine_metal.hardware_backend(), HardwareBackend::MetalGPU);
+
+        let engine_ollama = InferenceEngine::with_backend(HardwareBackend::Ollama);
+        assert_eq!(engine_ollama.hardware_backend(), HardwareBackend::Ollama);
     }
 
     #[test]
@@ -361,5 +388,24 @@ mod tests {
             HardwareBackend::AppleNeuralEngine,
             HardwareBackend::MetalGPU
         );
+    }
+
+    #[test]
+    fn test_ollama_client_initialization() {
+        let engine = InferenceEngine::with_backend(HardwareBackend::Ollama)
+            .with_ollama("http://localhost:11434", "qwen2.5-coder:14b");
+
+        assert_eq!(engine.hardware_backend(), HardwareBackend::Ollama);
+        assert!(engine.ollama_client().is_some());
+
+        let client = engine.ollama_client().unwrap();
+        assert_eq!(client.endpoint(), "http://localhost:11434");
+        assert_eq!(client.default_model(), "qwen2.5-coder:14b");
+    }
+
+    #[test]
+    fn test_inference_engine_without_ollama() {
+        let engine = InferenceEngine::with_backend(HardwareBackend::CPU);
+        assert!(engine.ollama_client().is_none());
     }
 }

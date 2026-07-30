@@ -65,3 +65,4 @@ criterion = "0.5"
 async-trait = "0.1"
 anyhow = "1.0"
 dashmap = "5.5"
+siss-local-llm = { path = "crates/siss-local-llm" }

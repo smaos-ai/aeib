@@ -5458,6 +5458,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "siss-contract-engine"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "dashmap",
+ "futures",
+ "parking_lot",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "siss-decision-db"
 version = "0.1.0"
 dependencies = [

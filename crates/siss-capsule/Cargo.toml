@@ -8,6 +8,7 @@ license.workspace = true
 siss-behavioral-firewall = { path = "../siss-behavioral-firewall" }
 siss-graph-core = { path = "../siss-graph-core" }
 siss-audit-archiver = { path = "../siss-audit-archiver" }
+siss-layer00 = { path = "../siss-layer00" }
 uuid.workspace = true
 chrono.workspace = true
 serde.workspace = true

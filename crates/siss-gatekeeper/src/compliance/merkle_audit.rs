@@ -1,5 +1,6 @@
 use uuid::Uuid;
 use serde::{Deserialize, Serialize};
+use sha2::{Sha256, Digest};
 
 /// Single entry in the Merkle-DAG audit trail (EXEC_LOG)
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -49,7 +50,7 @@ impl EXEC_LOG {
 
         // Compute Merkle root: SHA256(entry_data || parent_hash)
         let entry_str = format!("{:?}|{}", entry, parent_hash);
-        let merkle_root = format!("sha256:{:x}", simple_hash(&entry_str));
+        let merkle_root = format!("sha256:{}", simple_hash(&entry_str));
 
         let mut new_entry = entry;
         new_entry.parent_hash = parent_hash;
@@ -113,12 +114,11 @@ impl EXEC_LOG {
     }
 }
 
-/// Simple hash function (in production use SHA256 from sha2 crate)
-fn simple_hash(data: &str) -> u64 {
-    let mut hasher = std::collections::hash_map::DefaultHasher::new();
-    use std::hash::{Hash, Hasher};
-    data.hash(&mut hasher);
-    hasher.finish()
+/// Simple hash function using SHA256
+fn simple_hash(data: &str) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(data);
+    format!("{:x}", hasher.finalize())
 }
 
 #[cfg(test)]

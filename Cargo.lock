@@ -5263,6 +5263,7 @@ dependencies = [
  "siss-audit-archiver",
  "siss-behavioral-firewall",
  "siss-graph-core",
+ "siss-layer00",
  "thiserror 2.0.18",
  "tokio",
  "tracing",

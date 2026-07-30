@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use chrono::{DateTime, Utc};
+use std::sync::Arc;
+use crate::signing::StateMutationSigner;
+use crate::state_log::{SignedStateLog, StateLogError};
 
 /// Policy verification result from ReBAC + AP2
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -42,6 +45,8 @@ pub struct ExecutionContext {
     pub state_mutations: std::sync::Arc<parking_lot::Mutex<Vec<(String, String)>>>,
     pub snapshot_data: std::sync::Arc<parking_lot::Mutex<Option<Vec<u8>>>>,
     pub rolled_back: std::sync::Arc<parking_lot::Mutex<bool>>,
+    pub signed_log: Arc<SignedStateLog>,
+    pub signer: Arc<StateMutationSigner>,
 }
 
 impl ExecutionContext {
@@ -54,6 +59,8 @@ impl ExecutionContext {
             state_mutations: std::sync::Arc::new(parking_lot::Mutex::new(Vec::new())),
             snapshot_data: std::sync::Arc::new(parking_lot::Mutex::new(None)),
             rolled_back: std::sync::Arc::new(parking_lot::Mutex::new(false)),
+            signed_log: Arc::new(SignedStateLog::new()),
+            signer: Arc::new(StateMutationSigner::generate()),
         }
     }
 
@@ -66,6 +73,24 @@ impl ExecutionContext {
     pub async fn record_mutation(&self, key: &str, value: &str) {
         let mut mutations = self.state_mutations.lock();
         mutations.push((key.to_string(), value.to_string()));
+    }
+
+    /// Record a signed state mutation
+    pub fn record_state_mutation(&self, key: String, value: String) -> Result<(), StateLogError> {
+        // Sign the mutation
+        let mutation = self
+            .signer
+            .sign_mutation(&key, &value, self.context_id)
+            .map_err(|_| StateLogError::VerificationFailed)?;
+
+        // Append to signed log
+        self.signed_log.append(mutation)?;
+
+        // Also push to state_mutations Vec for backward compatibility
+        let mut mutations = self.state_mutations.lock();
+        mutations.push((key, value));
+
+        Ok(())
     }
 
     pub fn was_rolled_back(&self) -> bool {

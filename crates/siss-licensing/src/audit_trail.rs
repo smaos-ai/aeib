@@ -87,6 +87,7 @@ impl Clone for AuditTrail {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::types::Sku;
 
     #[test]
     fn test_audit_event_generated_logged() {

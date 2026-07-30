@@ -56,14 +56,10 @@ impl VisionSurvivalProtocol {
                 let name = entry.file_name();
 
                 // Match vault naming pattern: SMAOS_VAULT_A, SMAOS_VAULT_B, SMAOS_VAULT_C
-                if let Some(name_str) = name.to_str() {
-                    if name_str.starts_with("SMAOS_VAULT_") {
-                        if let Some(location) = name_str.chars().last() {
-                            if matches!(location, 'A' | 'B' | 'C') {
-                                vaults.push(location);
-                                self.vault_mount_points.push(path);
-                            }
-                        }
+                if let Some(name_str) = name.to_str().filter(|s| s.starts_with("SMAOS_VAULT_")) {
+                    if let Some(location) = name_str.chars().last().filter(|&c| matches!(c, 'A' | 'B' | 'C')) {
+                        vaults.push(location);
+                        self.vault_mount_points.push(path);
                     }
                 }
             }
@@ -107,11 +103,9 @@ impl VisionSurvivalProtocol {
                     let entry = entry.map_err(|e| e.to_string())?;
                     let entry_path = entry.path();
 
-                    if let Some(name) = entry_path.file_name() {
-                        if let Some(name_str) = name.to_str() {
-                            if excluded.contains(&name_str) {
-                                continue; // Skip excluded directories
-                            }
+                    if let Some(name_str) = entry_path.file_name().and_then(|n| n.to_str()) {
+                        if excluded.contains(&name_str) {
+                            continue; // Skip excluded directories
                         }
                     }
 
@@ -143,11 +137,9 @@ impl VisionSurvivalProtocol {
     pub fn compute_delta(&self, current_checksum: &str) -> Result<Vec<String>, String> {
         let mut delta = vec![];
 
-        if let Some(ref last_hash) = self.last_sync_hash {
-            if last_hash == current_checksum {
-                // No changes
-                return Ok(delta);
-            }
+        if let Some(ref last_hash) = self.last_sync_hash.filter(|h| h == current_checksum) {
+            // No changes
+            return Ok(delta);
         }
 
         // Run git diff to find changed files

@@ -18,7 +18,7 @@ pub fn append_audit(event: &str, msg: &str) -> std::io::Result<()> {
         "source": "siss-night-cycle"
     });
 
-    let line = format!("{}\n", log_entry.to_string());
+    let line = format!("{}\n", log_entry);
     fs::OpenOptions::new()
         .create(true)
         .append(true)

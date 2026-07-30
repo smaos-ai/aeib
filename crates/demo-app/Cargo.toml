@@ -29,6 +29,7 @@ siss-gatekeeper = { path = "../siss-gatekeeper" }
 axum = "0.7"
 sqlx = { workspace = true }
 siss-graph-db = { path = "../siss-graph-db" }
+num_cpus = "1.16"
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["full", "test-util"] }
@@ -39,6 +40,7 @@ siss-job-router = { path = "../siss-job-router" }
 siss-agent-shell = { path = "../siss-agent-shell" }
 proptest = "1"
 rand = "0.8"
+reqwest = { workspace = true }
 
 [[bin]]
 name = "prague-demo"

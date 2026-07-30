@@ -45,7 +45,7 @@ impl AP2Ledger {
 
         self.settlements
             .entry(creator_id)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(settlement);
 
         self.update_merkle_root();

@@ -8,6 +8,12 @@ pub struct ReachabilityCache {
     misses: u64,
 }
 
+impl Default for ReachabilityCache {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ReachabilityCache {
     pub fn new() -> Self {
         Self {
@@ -19,7 +25,7 @@ impl ReachabilityCache {
     }
 
     pub fn add_edge(&mut self, from: Uuid, to: Uuid) {
-        self.graph.entry(from).or_insert_with(Vec::new).push(to);
+        self.graph.entry(from).or_default().push(to);
         // CRITICAL: Invalidate cache on every mutation to maintain correctness
         self.cache.clear();
     }

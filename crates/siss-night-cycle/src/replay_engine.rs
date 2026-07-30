@@ -59,7 +59,7 @@ impl StateTransitionRecord {
         StateTransitionRecord {
             sequence,
             timestamp: Utc::now(),
-            operator_name: operator_name,
+            operator_name,
             prev_state_hash,
             state_hash,
             entities_before,
@@ -94,6 +94,11 @@ impl ReplayLog {
         self.records.len()
     }
 
+    /// Check if replay log is empty
+    pub fn is_empty(&self) -> bool {
+        self.records.is_empty()
+    }
+
     /// Validate Merkle DAG: each record's prev_state_hash matches prior record's state_hash
     pub fn validate_merkle_dag(&self) -> Result<(), String> {
         for i in 1..self.records.len() {
@@ -111,7 +116,7 @@ impl ReplayLog {
 
     /// Validate causality: φ→δ→γ ordering preserved, no out-of-order consolidations
     pub fn validate_causality(&self) -> Result<(), String> {
-        let expected_order = vec!["Phi", "Delta", "Gamma"];
+        let expected_order = ["Phi", "Delta", "Gamma"];
         let mut last_seen_index: HashMap<&str, usize> = HashMap::new();
 
         for (idx, record) in self.records.iter().enumerate() {
@@ -281,23 +286,21 @@ impl ReplayEngine for FileBasedReplayLog {
             let curr_record = &self.log.records[i];
 
             // If operator is Gamma (confidence filtering), confidence should decrease or stay same
-            if curr_record.operator_name == "Gamma" {
-                if !curr_record.confidence_scores_after.is_empty()
-                    && !prev_record.confidence_scores_after.is_empty() {
-                    // At least verify scores don't increase artificially
-                    let prev_max = prev_record.confidence_scores_after.iter()
-                        .cloned()
-                        .fold(0.0, f64::max);
-                    let curr_max = curr_record.confidence_scores_after.iter()
-                        .cloned()
-                        .fold(0.0, f64::max);
-                    // Gamma should not increase max confidence
-                    if curr_max > prev_max {
-                        return Err(format!(
-                            "Gamma decay violation: max confidence increased from {} to {}",
-                            prev_max, curr_max
-                        ));
-                    }
+            if curr_record.operator_name == "Gamma" && !curr_record.confidence_scores_after.is_empty()
+                && !prev_record.confidence_scores_after.is_empty() {
+                // At least verify scores don't increase artificially
+                let prev_max = prev_record.confidence_scores_after.iter()
+                    .cloned()
+                    .fold(0.0, f64::max);
+                let curr_max = curr_record.confidence_scores_after.iter()
+                    .cloned()
+                    .fold(0.0, f64::max);
+                // Gamma should not increase max confidence
+                if curr_max > prev_max {
+                    return Err(format!(
+                        "Gamma decay violation: max confidence increased from {} to {}",
+                        prev_max, curr_max
+                    ));
                 }
             }
         }

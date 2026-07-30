@@ -9,6 +9,12 @@ pub struct EntityIndex {
     miss_count: u64,
 }
 
+impl Default for EntityIndex {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl EntityIndex {
     pub fn new() -> Self {
         EntityIndex {
@@ -28,12 +34,15 @@ impl EntityIndex {
 
     pub fn range(&self, start: &Uuid, end: &Uuid) -> Vec<(&Uuid, &NodeType)> {
         self.tree.range(*start..=*end)
-            .map(|(k, v)| (k, v))
             .collect()
     }
 
     pub fn len(&self) -> usize {
         self.tree.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.tree.is_empty()
     }
 }
 

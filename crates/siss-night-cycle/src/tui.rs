@@ -25,12 +25,12 @@ impl Dashboard {
         let rows = self
             .db
             .last_50()
-            .map_err(|_| io::Error::new(io::ErrorKind::Other, "Failed to fetch metrics"))?;
+            .map_err(|_| io::Error::other("Failed to fetch metrics"))?;
 
         let (avg_cpu, avg_mem, avg_duration) = self
             .db
             .stats()
-            .map_err(|_| io::Error::new(io::ErrorKind::Other, "Failed to compute stats"))?;
+            .map_err(|_| io::Error::other("Failed to compute stats"))?;
 
         terminal.draw(|f| {
             let chunks = Layout::default()
@@ -65,7 +65,7 @@ impl Dashboard {
                         .borders(Borders::ALL),
                 )
                 .gauge_style(Style::default().fg(Color::Yellow))
-                .ratio((avg_duration as f64 / 1000.0).min(1.0))
+                .ratio((avg_duration / 1000.0).min(1.0))
                 .label(format!("{:.0} ms", avg_duration));
             f.render_widget(duration_gauge, chunks[2]);
 

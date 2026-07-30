@@ -17,7 +17,7 @@
 //! - confidence < 0.5 (low confidence → low utility)
 
 use super::{NightCycleOperator, OperatorResult, OntologyState, OntologyEntity};
-use serde_json::{json, Value};
+use serde_json::Value;
 
 /// SafePruningPhiOperator: Goal-aware token filtering for governance.
 #[derive(Clone, Debug)]
@@ -59,10 +59,8 @@ impl SafePruningPhiOperator {
     /// Extract decision_criticality from entity.data.
     fn extract_criticality(&self, data: &Value) -> Option<f64> {
         // If decision_criticality field exists and is not 0, use it.
-        if let Some(v) = data.get("decision_criticality").and_then(|v| v.as_f64()) {
-            if v > 0.0 {
-                return Some(v);
-            }
+        if let Some(v) = data.get("decision_criticality").and_then(|v| v.as_f64()).filter(|&v| v > 0.0) {
+            return Some(v);
         }
 
         // Fallback: infer from entity_type.
@@ -79,10 +77,8 @@ impl SafePruningPhiOperator {
     /// Extract alignment_relevance from entity.data.
     fn extract_alignment_relevance(&self, data: &Value) -> Option<f64> {
         // If alignment_relevance field exists and is not 0, use it.
-        if let Some(v) = data.get("alignment_relevance").and_then(|v| v.as_f64()) {
-            if v > 0.0 {
-                return Some(v);
-            }
+        if let Some(v) = data.get("alignment_relevance").and_then(|v| v.as_f64()).filter(|&v| v > 0.0) {
+            return Some(v);
         }
 
         // Fallback: infer from entity_type.

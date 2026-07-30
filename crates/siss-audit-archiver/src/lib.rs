@@ -97,7 +97,7 @@ impl AuditArchiver {
         &self,
         trace: &AuditTrace,
     ) -> Result<(String, String), String> {
-        let created_at = trace.created_at
+        let _created_at = trace.created_at
             .duration_since(UNIX_EPOCH)
             .unwrap_or_default();
         let date = chrono::DateTime::<chrono::Utc>::from(trace.created_at);
@@ -117,7 +117,7 @@ impl AuditArchiver {
         Ok((s3_path, hash))
     }
 
-    pub fn compute_cryptographic_hash(&self, data: &str) -> String {
+    pub fn compute_cryptographic_hash(&self, _data: &str) -> String {
         // Stub: represents SHA256 hash
         format!("sha256:{}", uuid::Uuid::new_v4().simple())
     }
@@ -137,7 +137,7 @@ impl AuditArchiver {
         }
     }
 
-    pub fn delete_from_hot_storage(&self, trace_id: Uuid) -> Result<(), String> {
+    pub fn delete_from_hot_storage(&self, _trace_id: Uuid) -> Result<(), String> {
         // Stub: represents deletion from PostgreSQL
         Ok(())
     }

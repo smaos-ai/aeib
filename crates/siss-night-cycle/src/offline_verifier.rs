@@ -79,20 +79,18 @@ impl OfflineVerifier {
             .patterns
             .values()
             .find(|p| p.category == "timeout");
-        if let Some(pattern) = timeout_pattern {
-            if pattern.count > 5 {
-                suggestions.push(Suggestion {
-                    category: "socket_timeout".to_string(),
-                    current_value: "100ms".to_string(),
-                    recommended_value: "250ms".to_string(),
-                    confidence: 0.80,
-                    rationale: format!(
-                        "Timeout failures observed {} times. Increase socket timeout.",
-                        pattern.count
-                    ),
-                });
-                next_actions.push("Increase TcpListener timeout threshold".to_string());
-            }
+        if let Some(pattern) = timeout_pattern.filter(|p| p.count > 5) {
+            suggestions.push(Suggestion {
+                category: "socket_timeout".to_string(),
+                current_value: "100ms".to_string(),
+                recommended_value: "250ms".to_string(),
+                confidence: 0.80,
+                rationale: format!(
+                    "Timeout failures observed {} times. Increase socket timeout.",
+                    pattern.count
+                ),
+            });
+            next_actions.push("Increase TcpListener timeout threshold".to_string());
         }
 
         Ok(VerificationReport {

@@ -1,5 +1,4 @@
 use crate::{PiPlusPlusEngine, ProofObject};
-use std::time::Instant;
 
 /// Verify a batch of proof objects, optionally in parallel.
 ///

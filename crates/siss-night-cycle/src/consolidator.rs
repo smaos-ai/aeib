@@ -34,7 +34,7 @@ impl NightCycleConsolidator {
         analyzer.analyze();
 
         let db = MetricsDb::new(Some(self.metrics_db_path.clone()))
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
+            .map_err(|e| std::io::Error::other(e.to_string()))?;
 
         let verifier = OfflineVerifier::new(analyzer, db);
         let report = verifier.verify()?;

@@ -37,14 +37,18 @@ impl TaskStatus {
             TaskStatus::Archived => "archived",
         }
     }
+}
 
-    pub fn from_str(s: &str) -> Option<Self> {
+impl std::str::FromStr for TaskStatus {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "pending" => Some(TaskStatus::Pending),
-            "in_progress" => Some(TaskStatus::InProgress),
-            "completed" => Some(TaskStatus::Completed),
-            "archived" => Some(TaskStatus::Archived),
-            _ => None,
+            "pending" => Ok(TaskStatus::Pending),
+            "in_progress" => Ok(TaskStatus::InProgress),
+            "completed" => Ok(TaskStatus::Completed),
+            "archived" => Ok(TaskStatus::Archived),
+            _ => Err(format!("Unknown status: {}", s)),
         }
     }
 }
@@ -64,13 +68,17 @@ impl TaskStream {
             TaskStream::StreamC => "stream_c",
         }
     }
+}
 
-    pub fn from_str(s: &str) -> Option<Self> {
+impl std::str::FromStr for TaskStream {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "stream_a" => Some(TaskStream::StreamA),
-            "stream_b" => Some(TaskStream::StreamB),
-            "stream_c" => Some(TaskStream::StreamC),
-            _ => None,
+            "stream_a" => Ok(TaskStream::StreamA),
+            "stream_b" => Ok(TaskStream::StreamB),
+            "stream_c" => Ok(TaskStream::StreamC),
+            _ => Err(format!("Unknown stream: {}", s)),
         }
     }
 }
@@ -141,8 +149,8 @@ impl TaskDb {
             Ok(Task {
                 id: row.get(0)?,
                 title: row.get(1)?,
-                status: TaskStatus::from_str(&row.get::<_, String>(2)?).unwrap(),
-                stream: TaskStream::from_str(&row.get::<_, String>(3)?).unwrap(),
+                status: row.get::<_, String>(2)?.parse().unwrap(),
+                stream: row.get::<_, String>(3)?.parse().unwrap(),
                 priority: row.get(4)?,
                 assignee: row.get(5)?,
                 created_at: row.get(6)?,
@@ -166,8 +174,8 @@ impl TaskDb {
             Ok(Task {
                 id: row.get(0)?,
                 title: row.get(1)?,
-                status: TaskStatus::from_str(&row.get::<_, String>(2)?).unwrap(),
-                stream: TaskStream::from_str(&row.get::<_, String>(3)?).unwrap(),
+                status: row.get::<_, String>(2)?.parse().unwrap(),
+                stream: row.get::<_, String>(3)?.parse().unwrap(),
                 priority: row.get(4)?,
                 assignee: row.get(5)?,
                 created_at: row.get(6)?,
@@ -191,8 +199,8 @@ impl TaskDb {
             Ok(Task {
                 id: row.get(0)?,
                 title: row.get(1)?,
-                status: TaskStatus::from_str(&row.get::<_, String>(2)?).unwrap(),
-                stream: TaskStream::from_str(&row.get::<_, String>(3)?).unwrap(),
+                status: row.get::<_, String>(2)?.parse().unwrap(),
+                stream: row.get::<_, String>(3)?.parse().unwrap(),
                 priority: row.get(4)?,
                 assignee: row.get(5)?,
                 created_at: row.get(6)?,
@@ -231,7 +239,7 @@ impl TaskDb {
         })?.collect::<Result<Vec<_>, _>>()?;
 
         crate::merkle::verify_chain(&entries)
-            .map_err(|e| DbError::ChainIntegrityViolation(e))
+            .map_err(DbError::ChainIntegrityViolation)
     }
 
     pub fn archive_task(&self, task_id: &str) -> Result<(), DbError> {

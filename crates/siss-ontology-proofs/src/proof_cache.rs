@@ -12,6 +12,12 @@ pub struct ProofCache {
     hits: usize,
 }
 
+impl Default for ProofCache {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ProofCache {
     /// Create a new proof cache
     pub fn new() -> Self {

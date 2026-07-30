@@ -12,7 +12,7 @@ impl NightCycleOperator for PhiOperator {
         // Group entities by id
         let mut groups: HashMap<String, Vec<usize>> = HashMap::new();
         for (idx, entity) in state.entities.iter().enumerate() {
-            groups.entry(entity.id.clone()).or_insert_with(Vec::new).push(idx);
+            groups.entry(entity.id.clone()).or_default().push(idx);
         }
 
         // Merge duplicates: keep the one with highest confidence

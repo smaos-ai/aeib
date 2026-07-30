@@ -8,7 +8,9 @@ impl ProofOfSapience {
         domain_accuracy: f64,
         recency_weight: f64,
     ) -> f64 {
-        (base_authority * domain_accuracy * recency_weight).max(0.0).min(1.0)
+        (base_authority * domain_accuracy * recency_weight)
+            .max(0.0)
+            .min(1.0)
     }
 
     /// Ebbinghaus decay: accuracy decays exponentially with half-life

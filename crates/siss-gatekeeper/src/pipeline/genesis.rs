@@ -8,18 +8,18 @@
 //! This is the proof artifact for Prague PoC: a live Capsule with Ed25519 signature,
 //! valid 1%/99% covenant intent, and full merkle-rooted audit trail.
 
+use ed25519_dalek::{Signer as DalekSigner, SigningKey};
+use rand::rngs::OsRng;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::time::SystemTime;
 use uuid::Uuid;
-use ed25519_dalek::{SigningKey, Signer as DalekSigner};
-use rand::rngs::OsRng;
-use sha2::{Sha256, Digest};
-use serde::{Serialize, Deserialize};
 
-use siss_behavioral_firewall::ap2::{SovereignAttributes, AttributePredicate};
+use siss_behavioral_firewall::ap2::{AttributePredicate, SovereignAttributes};
 use siss_behavioral_firewall::covenant_firewall::EconomicIntent;
 use siss_behavioral_firewall::rebac::PolicyAction;
 
-use crate::pipeline::authorization::{TaskAuthorizationRequest, AuthorizationPipeline};
+use crate::pipeline::authorization::{AuthorizationPipeline, TaskAuthorizationRequest};
 use crate::types::GatekeeperError;
 
 /// Genesis Capsule: The irreducible proof artifact combining cryptographic,
@@ -103,10 +103,9 @@ pub fn execute_genesis(signing_key: &SigningKey) -> Result<GenesisCapsule, Gatek
     let proof = pipeline.authorize(&auth_req)?;
 
     // 8. Serialize proof as JSON for audit trail
-    let proof_json = serde_json::to_string(&proof)
-        .map_err(|e| GatekeeperError::DatabaseError {
-            message: format!("proof serialization failed: {}", e),
-        })?;
+    let proof_json = serde_json::to_string(&proof).map_err(|e| GatekeeperError::DatabaseError {
+        message: format!("proof serialization failed: {}", e),
+    })?;
 
     let timestamp = chrono::Utc::now().to_rfc3339();
 
@@ -156,8 +155,8 @@ mod tests {
     #[test]
     fn test_genesis_all_gates_passed() {
         let capsule = execute_genesis_with_generated_key().unwrap();
-        let proof: serde_json::Value = serde_json::from_str(&capsule.authorization_proof)
-            .expect("proof must be valid JSON");
+        let proof: serde_json::Value =
+            serde_json::from_str(&capsule.authorization_proof).expect("proof must be valid JSON");
 
         assert_eq!(proof["gate_decisions"]["covenant"], "PASSED");
         assert_eq!(proof["gate_decisions"]["ap2"], "PASSED");

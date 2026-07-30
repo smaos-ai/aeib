@@ -1,6 +1,5 @@
 /// Phase 43: Rapid-MLX Production Hot-Swap & Sneakernet Ingress
 /// RED phase: Fail-closed invariants for zero-downtime model deployment
-
 use serde::{Deserialize, Serialize};
 
 /// Promotion token from Phase 42 Chaos Petri validation
@@ -51,11 +50,11 @@ pub struct TTFTMeasurement {
 /// Deployment router error types (fail-closed)
 #[derive(Debug, Clone)]
 pub enum DeploymentRouterError {
-    InvalidPromotionToken,           // 403: Missing/expired promotion token
-    SneakernetAuthFailure,           // 401: Insufficient orchestrator signatures
-    DeltaNetStateCorruption,         // 500: Failed to flush prompt cache
-    TTFTBaselineExceeded,            // 503: New model exceeds 0.08s baseline
-    RollbackTriggered,               // 503: Deployment rolled back to stable weights
+    InvalidPromotionToken,   // 403: Missing/expired promotion token
+    SneakernetAuthFailure,   // 401: Insufficient orchestrator signatures
+    DeltaNetStateCorruption, // 500: Failed to flush prompt cache
+    TTFTBaselineExceeded,    // 503: New model exceeds 0.08s baseline
+    RollbackTriggered,       // 503: Deployment rolled back to stable weights
 }
 
 /// Deployment router handler (fail-closed zero-downtime hot-swap)
@@ -64,7 +63,9 @@ pub struct DeploymentRouter;
 impl DeploymentRouter {
     /// Verify promotion token from Phase 42 air-lock before hot-swap
     /// Fail-closed: Reject any missing/expired/invalid token
-    pub async fn verify_ap2_promotion_token(token: PromotionToken) -> Result<String, DeploymentRouterError> {
+    pub async fn verify_ap2_promotion_token(
+        token: PromotionToken,
+    ) -> Result<String, DeploymentRouterError> {
         // Fail-closed: Signature MUST be non-empty
         if token.signature.is_empty() {
             return Err(DeploymentRouterError::InvalidPromotionToken);
@@ -188,7 +189,10 @@ mod tests {
 
         // THEN: Rejects missing signature (fail-closed, 403)
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), DeploymentRouterError::InvalidPromotionToken));
+        assert!(matches!(
+            result.unwrap_err(),
+            DeploymentRouterError::InvalidPromotionToken
+        ));
     }
 
     #[tokio::test]
@@ -207,7 +211,10 @@ mod tests {
 
         // THEN: Rejects insufficient quorum (fail-closed, 401)
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), DeploymentRouterError::SneakernetAuthFailure));
+        assert!(matches!(
+            result.unwrap_err(),
+            DeploymentRouterError::SneakernetAuthFailure
+        ));
     }
 
     #[tokio::test]
@@ -224,7 +231,10 @@ mod tests {
 
         // THEN: Rejects degraded performance (fail-closed circuit breaker, 503)
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), DeploymentRouterError::TTFTBaselineExceeded));
+        assert!(matches!(
+            result.unwrap_err(),
+            DeploymentRouterError::TTFTBaselineExceeded
+        ));
     }
 
     #[tokio::test]

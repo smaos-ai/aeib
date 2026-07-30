@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct RateLimiter {
     pub max_requests: u32,
-    pub window_seconds: u64,  // 60 for 60 req/min
+    pub window_seconds: u64, // 60 for 60 req/min
 }
 
 impl RateLimiter {

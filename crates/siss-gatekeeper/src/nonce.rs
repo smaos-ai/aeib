@@ -1,6 +1,5 @@
 /// Phase 41: Nonce Burn Protocol — one-time-use mandate enforcement
 /// Abstracted as trait for both in-memory (tests) and PostgreSQL (production) implementations
-
 use std::collections::HashSet;
 use std::sync::Mutex;
 use thiserror::Error;

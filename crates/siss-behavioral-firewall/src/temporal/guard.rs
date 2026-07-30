@@ -1,13 +1,13 @@
-use chrono::{DateTime, Utc, Datelike, Timelike};
+use chrono::{DateTime, Datelike, Timelike, Utc};
 use dashmap::DashMap;
 use uuid::Uuid;
 
-use super::types::{TimeWindow, BlackoutDate, Decision, TemporalError};
 use super::rate_limiter::RateLimiter;
+use super::types::{BlackoutDate, Decision, TemporalError, TimeWindow};
 
 pub struct TemporalGuard {
     rate_limiter: RateLimiter,
-    request_tracker: DashMap<Uuid, Vec<DateTime<Utc>>>,  // requester_id → timestamps
+    request_tracker: DashMap<Uuid, Vec<DateTime<Utc>>>, // requester_id → timestamps
     allowed_windows: Vec<TimeWindow>,
     blackout_dates: Vec<BlackoutDate>,
 }
@@ -141,8 +141,7 @@ mod tests {
 
     #[test]
     fn test_with_time_window() {
-        let guard = TemporalGuard::new(60, 60)
-            .with_time_window(9, 17, true);
+        let guard = TemporalGuard::new(60, 60).with_time_window(9, 17, true);
         assert_eq!(guard.allowed_windows.len(), 1);
         assert_eq!(guard.allowed_windows[0].start_hour, 9);
         assert_eq!(guard.allowed_windows[0].end_hour, 17);
@@ -151,8 +150,7 @@ mod tests {
 
     #[test]
     fn test_with_blackout_date() {
-        let guard = TemporalGuard::new(60, 60)
-            .with_blackout_date(12, 25, "Christmas".to_string());
+        let guard = TemporalGuard::new(60, 60).with_blackout_date(12, 25, "Christmas".to_string());
         assert_eq!(guard.blackout_dates.len(), 1);
         assert_eq!(guard.blackout_dates[0].month, 12);
         assert_eq!(guard.blackout_dates[0].day, 25);

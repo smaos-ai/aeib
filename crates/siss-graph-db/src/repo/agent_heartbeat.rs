@@ -1,8 +1,8 @@
 use chrono::Utc;
-use sha2::{Sha256, Digest};
+use serde_json::json;
+use sha2::{Digest, Sha256};
 use sqlx::PgPool;
 use uuid::Uuid;
-use serde_json::json;
 
 /// Record a heartbeat for an agent and append an event to the observability log.
 /// Returns the heartbeat UUID.
@@ -16,7 +16,11 @@ pub async fn record_heartbeat(
     let now = Utc::now();
 
     // Determine status based on latency
-    let status = if latency_ms < 1000 { "healthy" } else { "degraded" };
+    let status = if latency_ms < 1000 {
+        "healthy"
+    } else {
+        "degraded"
+    };
 
     // Compute merkle_proof_ref: SHA256('agent:' || agent_id || ':' || sovereign_id || ':' || registry_id)
     // For now, we'll use a simplified version without registry_id
@@ -118,13 +122,7 @@ pub async fn compute_agent_health_score(
 
     let total_points: f64 = heartbeats
         .iter()
-        .map(|(status,)| {
-            if status == "healthy" {
-                100.0
-            } else {
-                50.0
-            }
-        })
+        .map(|(status,)| if status == "healthy" { 100.0 } else { 50.0 })
         .sum();
 
     let health_score = total_points / heartbeats.len() as f64;

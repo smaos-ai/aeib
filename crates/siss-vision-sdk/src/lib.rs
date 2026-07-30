@@ -1,20 +1,20 @@
+pub mod adapters;
 pub mod auth;
 pub mod core;
-pub mod adapters;
+pub mod error;
 pub mod policy;
 pub mod types;
-pub mod error;
 
+pub use adapters::*;
 pub use auth::*;
 pub use core::*;
-pub use adapters::*;
+pub use error::*;
 pub use policy::*;
 pub use types::*;
-pub use error::*;
 
-use std::sync::Arc;
 use parking_lot::RwLock;
 use std::collections::HashMap;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct VisionSDK {
@@ -82,11 +82,7 @@ impl VisionSDK {
         }
 
         // Load creator policy
-        let policy = self
-            .policy_store
-            .load_policy(creator_id)
-            .await
-            .ok();
+        let policy = self.policy_store.load_policy(creator_id).await.ok();
 
         // Evaluate policy
         let approved = if let Some(p) = policy {
@@ -141,14 +137,58 @@ impl VisionSDK {
     pub async fn list_all_adapters(&self) -> Result<Vec<String>> {
         let platforms = vec![
             // Phase 1: 10 platforms
-            "substack", "patreon", "youtube", "notion", "zapier", "twitter", "tiktok", "twitch", "discord", "slack",
+            "substack",
+            "patreon",
+            "youtube",
+            "notion",
+            "zapier",
+            "twitter",
+            "tiktok",
+            "twitch",
+            "discord",
+            "slack",
             // Phase 2: 40 platforms
-            "medium", "linkedin", "bluesky", "threads", "mastodon", "farcaster", "lens", "pixelfed", "peertube",
-            "telegram", "signal", "wechat", "viber", "line", "kick", "rumble", "odysee", "amazon_live", "tiktok_shop",
-            "activecampaign", "hubspot", "mailchimp", "brevo", "getresponse", "unbounce", "leadpages", "funnelytics",
-            "strava", "patreon_enterprise", "convertkit", "flodesk", "gumroad", "ghost", "mirror",
+            "medium",
+            "linkedin",
+            "bluesky",
+            "threads",
+            "mastodon",
+            "farcaster",
+            "lens",
+            "pixelfed",
+            "peertube",
+            "telegram",
+            "signal",
+            "wechat",
+            "viber",
+            "line",
+            "kick",
+            "rumble",
+            "odysee",
+            "amazon_live",
+            "tiktok_shop",
+            "activecampaign",
+            "hubspot",
+            "mailchimp",
+            "brevo",
+            "getresponse",
+            "unbounce",
+            "leadpages",
+            "funnelytics",
+            "strava",
+            "patreon_enterprise",
+            "convertkit",
+            "flodesk",
+            "gumroad",
+            "ghost",
+            "mirror",
             // Additional Phase 2 (6 more to reach 40)
-            "substack_notes", "youtube_shorts", "instagram", "snapchat", "whatsapp", "messenger"
+            "substack_notes",
+            "youtube_shorts",
+            "instagram",
+            "snapchat",
+            "whatsapp",
+            "messenger",
         ];
         Ok(platforms.into_iter().map(|s| s.to_string()).collect())
     }

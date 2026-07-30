@@ -1,6 +1,5 @@
 /// Event bridge: converts agent events and system events to CockpitEvents for SSE streaming.
 /// Integrates the immutable event log and real-time agent pipeline into the SSE stream.
-
 use crate::state::CockpitEvent;
 use chrono::Utc;
 use serde_json::json;
@@ -55,7 +54,11 @@ pub fn agent_event_to_cockpit(event: AgentEvent) -> CockpitEvent {
     let timestamp = Utc::now();
 
     let (agent_id, payload) = match event {
-        AgentEvent::SessionStarted { session_id, persona_id, .. } => (
+        AgentEvent::SessionStarted {
+            session_id,
+            persona_id,
+            ..
+        } => (
             Some(session_id.to_string()),
             json!({ "session_id": session_id, "persona_id": persona_id }),
         ),
@@ -63,61 +66,116 @@ pub fn agent_event_to_cockpit(event: AgentEvent) -> CockpitEvent {
             Some(session_id.to_string()),
             json!({ "session_id": session_id }),
         ),
-        AgentEvent::HookFired { hook_name, hook_point, result, .. } => (
+        AgentEvent::HookFired {
+            hook_name,
+            hook_point,
+            result,
+            ..
+        } => (
             None,
             json!({ "hook_name": hook_name, "hook_point": format!("{:?}", hook_point), "result": format!("{:?}", result) }),
         ),
-        AgentEvent::TaskCreated { task_id, intent, .. } => (
+        AgentEvent::TaskCreated {
+            task_id, intent, ..
+        } => (
             Some(task_id.to_string()),
             json!({ "task_id": task_id, "intent": intent }),
         ),
-        AgentEvent::Authorized { task_id, mandate_id, .. } => (
+        AgentEvent::Authorized {
+            task_id,
+            mandate_id,
+            ..
+        } => (
             Some(task_id.to_string()),
             json!({ "task_id": task_id, "mandate_id": mandate_id }),
         ),
-        AgentEvent::Routed { task_id, hardware_target, .. } => (
+        AgentEvent::Routed {
+            task_id,
+            hardware_target,
+            ..
+        } => (
             Some(task_id.to_string()),
             json!({ "task_id": task_id, "hardware_target": format!("{:?}", hardware_target) }),
         ),
-        AgentEvent::OutputChunk { task_id, chunk, index, .. } => (
+        AgentEvent::OutputChunk {
+            task_id,
+            chunk,
+            index,
+            ..
+        } => (
             Some(task_id.to_string()),
             json!({ "task_id": task_id, "chunk": chunk, "index": index }),
         ),
-        AgentEvent::Executing { task_id, token_cost, duration_ms, .. } => (
+        AgentEvent::Executing {
+            task_id,
+            token_cost,
+            duration_ms,
+            ..
+        } => (
             Some(task_id.to_string()),
             json!({ "task_id": task_id, "token_cost": token_cost, "duration_ms": duration_ms }),
         ),
-        AgentEvent::FirewallInspected { task_id, verdict, violation_count, .. } => (
+        AgentEvent::FirewallInspected {
+            task_id,
+            verdict,
+            violation_count,
+            ..
+        } => (
             Some(task_id.to_string()),
             json!({ "task_id": task_id, "verdict": format!("{:?}", verdict), "violation_count": violation_count }),
         ),
-        AgentEvent::Scored { task_id, quality_score, .. } => (
+        AgentEvent::Scored {
+            task_id,
+            quality_score,
+            ..
+        } => (
             Some(task_id.to_string()),
             json!({ "task_id": task_id, "quality_score": quality_score }),
         ),
-        AgentEvent::Crystallized { task_id, memory_count, .. } => (
+        AgentEvent::Crystallized {
+            task_id,
+            memory_count,
+            ..
+        } => (
             Some(task_id.to_string()),
             json!({ "task_id": task_id, "memory_count": memory_count }),
         ),
-        AgentEvent::IntentCompleted { task_id, quality_score, .. } => (
+        AgentEvent::IntentCompleted {
+            task_id,
+            quality_score,
+            ..
+        } => (
             Some(task_id.to_string()),
             json!({ "task_id": task_id, "quality_score": quality_score }),
         ),
-        AgentEvent::IntentMandateRequested { task_id, mandate_id, reason, required_budget, .. } => (
+        AgentEvent::IntentMandateRequested {
+            task_id,
+            mandate_id,
+            reason,
+            required_budget,
+            ..
+        } => (
             Some(task_id.to_string()),
             json!({ "task_id": task_id, "mandate_id": mandate_id, "reason": reason, "required_budget": required_budget }),
         ),
-        AgentEvent::Error { message, .. } => (
-            None,
-            json!({ "message": message }),
-        ),
-        AgentEvent::UIRequested { task_id, components, form_id, .. } => (
+        AgentEvent::Error { message, .. } => (None, json!({ "message": message })),
+        AgentEvent::UIRequested {
+            task_id,
+            components,
+            form_id,
+            ..
+        } => (
             Some(task_id.to_string()),
             json!({ "task_id": task_id, "components": components, "form_id": form_id }),
         ),
     };
 
-    CockpitEvent { event_type, agent_id, payload, timestamp }
+    CockpitEvent {
+        event_type,
+        agent_id,
+        payload,
+        timestamp,
+    }
 }
 
 #[cfg(test)]

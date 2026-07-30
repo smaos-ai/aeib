@@ -1,8 +1,8 @@
-use crate::{OAuth2Token, VisionError, Result};
-use uuid::Uuid;
-use std::collections::HashMap;
-use parking_lot::RwLock;
+use crate::{OAuth2Token, Result, VisionError};
 use chrono::{Duration, Utc};
+use parking_lot::RwLock;
+use std::collections::HashMap;
+use uuid::Uuid;
 
 pub struct OAuth2Handler {
     test_mode: bool,
@@ -38,7 +38,9 @@ impl OAuth2Handler {
         }
 
         // Real OAuth2 flow would go here
-        Err(VisionError::AuthError("Not implemented in production yet".to_string()))
+        Err(VisionError::AuthError(
+            "Not implemented in production yet".to_string(),
+        ))
     }
 
     pub async fn refresh_token(&self, refresh_token: &str) -> Result<OAuth2Token> {
@@ -52,9 +54,7 @@ impl OAuth2Handler {
             });
         }
 
-        Err(VisionError::AuthError(
-            "Refresh token failed".to_string(),
-        ))
+        Err(VisionError::AuthError("Refresh token failed".to_string()))
     }
 }
 
@@ -82,11 +82,7 @@ impl TokenManager {
         Ok(())
     }
 
-    pub async fn retrieve_token(
-        &self,
-        creator_id: Uuid,
-        platform: &str,
-    ) -> Result<OAuth2Token> {
+    pub async fn retrieve_token(&self, creator_id: Uuid, platform: &str) -> Result<OAuth2Token> {
         let key = format!("{}_{}", creator_id, platform);
 
         // Check cache
@@ -118,11 +114,7 @@ impl TokenManager {
         }
     }
 
-    pub async fn revoke_token(
-        &self,
-        creator_id: Uuid,
-        platform: &str,
-    ) -> Result<()> {
+    pub async fn revoke_token(&self, creator_id: Uuid, platform: &str) -> Result<()> {
         let key = format!("{}_{}", creator_id, platform);
         self.cache.write().remove(&key);
         Ok(())

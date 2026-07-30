@@ -1,8 +1,8 @@
-pub mod schema;
-pub mod merkle;
 pub mod db;
+pub mod merkle;
+pub mod schema;
 
-pub use db::{TaskDb, TaskStatus, TaskStream, Task, DbError};
+pub use db::{DbError, Task, TaskDb, TaskStatus, TaskStream};
 
 #[derive(Debug)]
 pub struct TaskDbConfig {

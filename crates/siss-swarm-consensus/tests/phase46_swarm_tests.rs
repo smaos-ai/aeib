@@ -1,5 +1,5 @@
 use siss_swarm_consensus::{
-    BftEngine, BftConsensusError, Proposal, Vote, VoteType, ConsensusProof, Agent,
+    Agent, BftConsensusError, BftEngine, ConsensusProof, Proposal, Vote, VoteType,
 };
 use uuid::Uuid;
 
@@ -310,8 +310,18 @@ fn test_merkle_root_consistency() {
 #[test]
 fn test_merkle_verification_valid() {
     let votes = vec![
-        Vote::new(Uuid::new_v4(), Uuid::new_v4(), VoteType::Commit, vec![1, 2, 3]),
-        Vote::new(Uuid::new_v4(), Uuid::new_v4(), VoteType::Commit, vec![4, 5, 6]),
+        Vote::new(
+            Uuid::new_v4(),
+            Uuid::new_v4(),
+            VoteType::Commit,
+            vec![1, 2, 3],
+        ),
+        Vote::new(
+            Uuid::new_v4(),
+            Uuid::new_v4(),
+            VoteType::Commit,
+            vec![4, 5, 6],
+        ),
     ];
 
     let proof = ConsensusProof::new(Uuid::new_v4(), votes);

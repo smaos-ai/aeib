@@ -4,12 +4,12 @@
 
 #[cfg(test)]
 mod security_audit {
+    use siss_agent_shell::a2ui::A2UIComponent;
     use siss_cockpit::a2ui::renderer::Renderer;
     use siss_cockpit::a2ui::security::{
-        InputValidator, SecurityConfig, CircularReferenceDetector,
-        RateLimiter, SessionValidator, CSPBuilder,
+        CSPBuilder, CircularReferenceDetector, InputValidator, RateLimiter, SecurityConfig,
+        SessionValidator,
     };
-    use siss_agent_shell::a2ui::A2UIComponent;
 
     // ===== TEST 1: XSS PREVENTION =====
     #[test]
@@ -141,9 +141,7 @@ mod security_audit {
         let component = A2UIComponent::Table {
             id: "table_xss".to_string(),
             headers: vec!["Name".to_string()],
-            rows: vec![vec![
-                r#"<img src=x onerror="alert('xss')">"#.to_string()
-            ]],
+            rows: vec![vec![r#"<img src=x onerror="alert('xss')">"#.to_string()]],
         };
 
         let html = Renderer::render(&component);
@@ -370,8 +368,12 @@ mod security_audit {
     #[test]
     fn test_session_isolation_different_sessions() {
         let config = SecurityConfig::default();
-        let session1 = SessionValidator::new("550e8400-e29b-41d4-a716-446655440001".to_string(), config.clone());
-        let session2 = SessionValidator::new("550e8400-e29b-41d4-a716-446655440002".to_string(), config);
+        let session1 = SessionValidator::new(
+            "550e8400-e29b-41d4-a716-446655440001".to_string(),
+            config.clone(),
+        );
+        let session2 =
+            SessionValidator::new("550e8400-e29b-41d4-a716-446655440002".to_string(), config);
 
         assert_eq!(session1.session_id, "550e8400-e29b-41d4-a716-446655440001");
         assert_eq!(session2.session_id, "550e8400-e29b-41d4-a716-446655440002");
@@ -381,7 +383,8 @@ mod security_audit {
     #[test]
     fn test_session_isolation_valid_session() {
         let config = SecurityConfig::default();
-        let session = SessionValidator::new("550e8400-e29b-41d4-a716-446655440003".to_string(), config);
+        let session =
+            SessionValidator::new("550e8400-e29b-41d4-a716-446655440003".to_string(), config);
         assert!(session.is_valid().is_ok());
     }
 
@@ -428,7 +431,10 @@ mod security_audit {
         let csp = CSPBuilder::build_csp();
 
         // Ensure script-src doesn't allow unsafe-inline
-        let script_src_part = csp.split(';').find(|s| s.contains("script-src")).unwrap_or("");
+        let script_src_part = csp
+            .split(';')
+            .find(|s| s.contains("script-src"))
+            .unwrap_or("");
         assert!(!script_src_part.contains("unsafe-inline"));
     }
 
@@ -499,12 +505,10 @@ mod security_audit {
         let component = A2UIComponent::Select {
             id: "select_field".to_string(),
             label: "Choose".to_string(),
-            options: vec![
-                siss_agent_shell::a2ui::SelectOption {
-                    value: "<script>".to_string(),
-                    label: "Bad Option".to_string(),
-                }
-            ],
+            options: vec![siss_agent_shell::a2ui::SelectOption {
+                value: "<script>".to_string(),
+                label: "Bad Option".to_string(),
+            }],
         };
 
         let html = Renderer::render(&component);
@@ -604,7 +608,8 @@ mod security_audit {
         let mut limiter = RateLimiter::new("session-test".to_string(), config.clone());
 
         // 2. Validate session
-        let session = SessionValidator::new("550e8400-e29b-41d4-a716-446655440000".to_string(), config);
+        let session =
+            SessionValidator::new("550e8400-e29b-41d4-a716-446655440000".to_string(), config);
         assert!(session.is_valid().is_ok());
 
         // 3. Check rate limit

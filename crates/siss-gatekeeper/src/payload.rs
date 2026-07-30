@@ -1,5 +1,5 @@
+use sha2::{Digest, Sha256};
 use uuid::Uuid;
-use sha2::{Sha256, Digest};
 
 /// Build the deterministic 48-byte payload for signing a PaymentMandate.
 /// Format: task_id (16 bytes) || intent_mandate_id (16 bytes) || amount (8 bytes BE) || timestamp (8 bytes BE)

@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::latency::{LatencyConstitution, LatencyTier, ConstitutionVerdict};
+    use crate::latency::{ConstitutionVerdict, LatencyConstitution, LatencyTier};
 
     #[test]
     fn test_tier0_passes_within_20ns() {

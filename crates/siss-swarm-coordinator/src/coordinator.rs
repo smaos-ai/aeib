@@ -1,15 +1,15 @@
 use dashmap::DashMap;
-use std::sync::Arc;
+use parking_lot::Mutex;
 use std::collections::VecDeque;
+use std::sync::Arc;
 use std::time::Duration;
 use uuid::Uuid;
-use parking_lot::Mutex;
 
+use crate::a2a_protocol::A2AMessage;
 use crate::agent_metadata::AgentMetadata;
 use crate::bounds::MongeGapBound;
-use crate::errors::SwarmCoordinatorError;
-use crate::a2a_protocol::A2AMessage;
 use crate::conflict_resolver::ConflictResolver;
+use crate::errors::SwarmCoordinatorError;
 
 pub struct SwarmCoordinator {
     local_agent_id: Uuid,
@@ -78,11 +78,15 @@ impl SwarmCoordinator {
         }
 
         if !self.agents.contains_key(&from_agent_id) {
-            return Err(SwarmCoordinatorError::AgentNotFound(from_agent_id.to_string()));
+            return Err(SwarmCoordinatorError::AgentNotFound(
+                from_agent_id.to_string(),
+            ));
         }
 
         if !self.agents.contains_key(&to_agent_id) {
-            return Err(SwarmCoordinatorError::AgentNotFound(to_agent_id.to_string()));
+            return Err(SwarmCoordinatorError::AgentNotFound(
+                to_agent_id.to_string(),
+            ));
         }
 
         if self.detect_cycle(to_agent_id, from_agent_id, 0)? {
@@ -116,7 +120,12 @@ impl SwarmCoordinator {
         Ok(())
     }
 
-    fn detect_cycle(&self, current: Uuid, target: Uuid, depth: usize) -> Result<bool, SwarmCoordinatorError> {
+    fn detect_cycle(
+        &self,
+        current: Uuid,
+        target: Uuid,
+        depth: usize,
+    ) -> Result<bool, SwarmCoordinatorError> {
         if depth > 3 {
             return Ok(false);
         }
@@ -138,14 +147,19 @@ impl SwarmCoordinator {
 
     pub fn send_message(&self, msg: A2AMessage) -> Result<(), SwarmCoordinatorError> {
         if !self.agents.contains_key(&msg.from_agent_id) {
-            return Err(SwarmCoordinatorError::AgentNotFound(msg.from_agent_id.to_string()));
+            return Err(SwarmCoordinatorError::AgentNotFound(
+                msg.from_agent_id.to_string(),
+            ));
         }
 
         if !self.agents.contains_key(&msg.to_agent_id) {
-            return Err(SwarmCoordinatorError::AgentNotFound(msg.to_agent_id.to_string()));
+            return Err(SwarmCoordinatorError::AgentNotFound(
+                msg.to_agent_id.to_string(),
+            ));
         }
 
-        let queue = self.message_queues
+        let queue = self
+            .message_queues
             .entry(msg.to_agent_id)
             .or_insert_with(|| Arc::new(Mutex::new(VecDeque::new())))
             .clone();
@@ -160,7 +174,10 @@ impl SwarmCoordinator {
         Ok(())
     }
 
-    pub fn process_message(&self, agent_id: Uuid) -> Result<Option<A2AMessage>, SwarmCoordinatorError> {
+    pub fn process_message(
+        &self,
+        agent_id: Uuid,
+    ) -> Result<Option<A2AMessage>, SwarmCoordinatorError> {
         if !self.agents.contains_key(&agent_id) {
             return Err(SwarmCoordinatorError::AgentNotFound(agent_id.to_string()));
         }
@@ -193,7 +210,11 @@ impl SwarmCoordinator {
         resolver.resolve(msg1, msg2)
     }
 
-    pub fn resolve_conflict_by_timestamp(&self, msg1: &A2AMessage, msg2: &A2AMessage) -> A2AMessage {
+    pub fn resolve_conflict_by_timestamp(
+        &self,
+        msg1: &A2AMessage,
+        msg2: &A2AMessage,
+    ) -> A2AMessage {
         let resolver = ConflictResolver::new(crate::ConflictStrategy::VectorClock);
         resolver.resolve(msg1, msg2)
     }

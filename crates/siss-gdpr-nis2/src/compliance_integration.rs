@@ -1,11 +1,10 @@
+use crate::compliance_dashboard::ComplianceDashboard;
+use crate::data_residency::EUDataGuard;
+use crate::data_subject_rights::DataSubjectRightsService;
+use crate::nis2_mapping::NIS2AssetMapper;
 /// End-to-end EU compliance integration
 /// Demonstrates: Data Residency + NIS2 Mapping + GDPR Rights + Dashboard
-
 use uuid::Uuid;
-use crate::data_residency::EUDataGuard;
-use crate::nis2_mapping::NIS2AssetMapper;
-use crate::data_subject_rights::DataSubjectRightsService;
-use crate::compliance_dashboard::ComplianceDashboard;
 
 pub struct ComplianceIntegration {
     eu_guard: EUDataGuard,
@@ -27,7 +26,8 @@ impl ComplianceIntegration {
     /// Full compliance check: residency + NIS2 + GDPR
     pub fn run_compliance_audit(&self) -> Result<ComplianceReport, String> {
         // 1. Verify EU data residency
-        let residency_check = self.eu_guard
+        let residency_check = self
+            .eu_guard
             .validate_frankfurt_residency("eu-central-1.amazonaws.com")
             .is_ok();
 
@@ -46,7 +46,10 @@ impl ComplianceIntegration {
             nis2_readiness_score: nis2_score,
             gdpr_consent_rate: metrics.gdpr_consent_percentage,
             audit_events_count: metrics.audit_events_logged,
-            overall_status: if residency_check && nis2_score >= 85.0 && metrics.gdpr_consent_percentage >= 80.0 {
+            overall_status: if residency_check
+                && nis2_score >= 85.0
+                && metrics.gdpr_consent_percentage >= 80.0
+            {
                 "COMPLIANT".to_string()
             } else {
                 "NEEDS_REMEDIATION".to_string()
@@ -101,7 +104,9 @@ mod tests {
     #[test]
     fn test_full_compliance_audit() {
         let integration = ComplianceIntegration::new();
-        let report = integration.run_compliance_audit().expect("audit must succeed");
+        let report = integration
+            .run_compliance_audit()
+            .expect("audit must succeed");
 
         assert!(report.residency_verified);
         assert!(report.nis2_readiness_score > 0.0);

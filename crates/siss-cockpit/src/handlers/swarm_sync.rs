@@ -1,21 +1,20 @@
+use chrono::Utc;
 /// Phase 35: Universal Agent Canvas & Swarm Sync
 /// RED phase: Failing tests for swarm synchronization state machine
-
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use chrono::Utc;
 
 /// Agent state within swarm synchronization context
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum AgentState {
     #[serde(rename = "ONLINE")]
-    Online,           // Active tmux/Docker session
+    Online, // Active tmux/Docker session
     #[serde(rename = "ORPHANED")]
-    Orphaned,         // Dropped or crashed session (fail-closed: no recovery hallucination)
+    Orphaned, // Dropped or crashed session (fail-closed: no recovery hallucination)
     #[serde(rename = "SYNCING")]
-    Syncing,          // State synchronization in progress
+    Syncing, // State synchronization in progress
     #[serde(rename = "DESYNC")]
-    Desync,           // Out of sync with swarm consensus
+    Desync, // Out of sync with swarm consensus
 }
 
 /// AgentStateUpdate event for SSE stream (adheres to A2UI 18-component declarative JSON limit)
@@ -84,12 +83,9 @@ impl SwarmSync {
 
     /// Emit AgentStateUpdate via SSE stream
     /// Fail-closed: Reject if payload exceeds A2UI 18-component JSON limit
-    pub async fn emit_state_update(
-        update: &AgentStateUpdate,
-    ) -> Result<String, SwarmSyncError> {
+    pub async fn emit_state_update(update: &AgentStateUpdate) -> Result<String, SwarmSyncError> {
         // Serialize to JSON and validate component count
-        let json = serde_json::to_string(update)
-            .map_err(|_| SwarmSyncError::InternalError)?;
+        let json = serde_json::to_string(update).map_err(|_| SwarmSyncError::InternalError)?;
 
         // Count JSON object fields (A2UI component limit check)
         if let Ok(value) = serde_json::from_str::<serde_json::Value>(&json) {
@@ -107,11 +103,11 @@ impl SwarmSync {
 
 #[derive(Debug, Clone)]
 pub enum SwarmSyncError {
-    SessionNotFound,           // 404: Active session missing
-    UnauthorizedMutation,      // 403: No valid AP2 mandate
-    PayloadExceedsLimit,       // 400: A2UI 18-component limit exceeded
-    DesyncDetected,            // 409: Swarm consensus lost
-    InternalError,             // 500: Unexpected error
+    SessionNotFound,      // 404: Active session missing
+    UnauthorizedMutation, // 403: No valid AP2 mandate
+    PayloadExceedsLimit,  // 400: A2UI 18-component limit exceeded
+    DesyncDetected,       // 409: Swarm consensus lost
+    InternalError,        // 500: Unexpected error
 }
 
 #[cfg(test)]
@@ -125,12 +121,8 @@ mod tests {
         // THEN: AgentState transitions to ONLINE
         // AND: Session identity preserved in update
 
-        let result = SwarmSync::sync_active_session(
-            "agent-001",
-            "session-12345",
-            "sovereign-tmux-1",
-        )
-        .await;
+        let result =
+            SwarmSync::sync_active_session("agent-001", "session-12345", "sovereign-tmux-1").await;
 
         assert!(result.is_ok());
         let update = result.unwrap();
@@ -146,11 +138,7 @@ mod tests {
         // THEN: AgentState immediately transitions to ORPHANED
         // AND: No recovery hallucination (fail-closed: mark orphaned, don't guess recovery)
 
-        let result = SwarmSync::detect_session_drop(
-            "agent-002",
-            "session-crashed-789",
-        )
-        .await;
+        let result = SwarmSync::detect_session_drop("agent-002", "session-crashed-789").await;
 
         assert!(result.is_ok());
         let update = result.unwrap();
@@ -175,7 +163,10 @@ mod tests {
         .await;
 
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), SwarmSyncError::UnauthorizedMutation));
+        assert!(matches!(
+            result.unwrap_err(),
+            SwarmSyncError::UnauthorizedMutation
+        ));
     }
 
     #[tokio::test]

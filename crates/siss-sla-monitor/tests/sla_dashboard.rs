@@ -1,15 +1,20 @@
-use siss_sla_monitor::{SLAMonitor, SLAThresholds, MetricSnapshot, Alert, AlertSeverity};
 use chrono::Utc;
-use std::fs;
 use serde_json::{json, to_string_pretty};
+use siss_sla_monitor::{Alert, AlertSeverity, MetricSnapshot, SLAMonitor, SLAThresholds};
+use std::fs;
 
 fn simple_hash(data: &str) -> String {
-    format!("{:x}", data.len() * 31 + data.chars().map(|c| c as usize).sum::<usize>())
+    format!(
+        "{:x}",
+        data.len() * 31 + data.chars().map(|c| c as usize).sum::<usize>()
+    )
 }
 
 #[tokio::test]
 async fn test_health_endpoint_responds() {
-    let mut monitor = SLAMonitor::new().await.expect("Failed to create SLAMonitor");
+    let mut monitor = SLAMonitor::new()
+        .await
+        .expect("Failed to create SLAMonitor");
 
     monitor.set_thresholds(SLAThresholds {
         uptime_percent: 99.5,
@@ -26,7 +31,9 @@ async fn test_health_endpoint_responds() {
 
 #[tokio::test]
 async fn test_alert_triggers_on_threshold_breach() {
-    let mut monitor = SLAMonitor::new().await.expect("Failed to create SLAMonitor");
+    let mut monitor = SLAMonitor::new()
+        .await
+        .expect("Failed to create SLAMonitor");
 
     monitor.set_thresholds(SLAThresholds {
         uptime_percent: 99.9,
@@ -38,26 +45,38 @@ async fn test_alert_triggers_on_threshold_breach() {
     // Record metrics that breach thresholds
     let snapshot = MetricSnapshot {
         timestamp: Utc::now(),
-        uptime_percent: 99.0,  // Below 99.9% threshold
-        p99_latency_us: 100,   // Above 50µs threshold
-        error_rate_percent: 0.5,  // Above 0.01% threshold
-        data_loss_count: 1,    // Above 0 threshold
+        uptime_percent: 99.0,    // Below 99.9% threshold
+        p99_latency_us: 100,     // Above 50µs threshold
+        error_rate_percent: 0.5, // Above 0.01% threshold
+        data_loss_count: 1,      // Above 0 threshold
     };
 
-    let alerts = monitor.record_metrics(snapshot).await.expect("Failed to record metrics");
+    let alerts = monitor
+        .record_metrics(snapshot)
+        .await
+        .expect("Failed to record metrics");
 
-    assert!(!alerts.is_empty(), "Should trigger alerts on threshold breach");
+    assert!(
+        !alerts.is_empty(),
+        "Should trigger alerts on threshold breach"
+    );
 
-    let critical_alerts: Vec<_> = alerts.iter()
+    let critical_alerts: Vec<_> = alerts
+        .iter()
         .filter(|a| a.severity == AlertSeverity::Critical)
         .collect();
 
-    assert!(!critical_alerts.is_empty(), "Should have at least one Critical severity alert");
+    assert!(
+        !critical_alerts.is_empty(),
+        "Should have at least one Critical severity alert"
+    );
 }
 
 #[tokio::test]
 async fn test_alert_acknowledgment_workflow() {
-    let mut monitor = SLAMonitor::new().await.expect("Failed to create SLAMonitor");
+    let mut monitor = SLAMonitor::new()
+        .await
+        .expect("Failed to create SLAMonitor");
 
     monitor.set_thresholds(SLAThresholds {
         uptime_percent: 99.9,
@@ -75,38 +94,60 @@ async fn test_alert_acknowledgment_workflow() {
         data_loss_count: 5,
     };
 
-    let alerts = monitor.record_metrics(snapshot).await.expect("Failed to record metrics");
+    let alerts = monitor
+        .record_metrics(snapshot)
+        .await
+        .expect("Failed to record metrics");
     assert!(!alerts.is_empty(), "Should have created alerts");
 
     let alert_id = &alerts[0].id;
 
     // Acknowledge alert
-    monitor.acknowledge_alert(alert_id).await.expect("Failed to acknowledge alert");
+    monitor
+        .acknowledge_alert(alert_id)
+        .await
+        .expect("Failed to acknowledge alert");
 
     // Verify acknowledgment in history
-    let history = monitor.get_alert_history(100).await.expect("Failed to get alert history");
+    let history = monitor
+        .get_alert_history(100)
+        .await
+        .expect("Failed to get alert history");
 
-    let acked_alert = history.iter()
+    let acked_alert = history
+        .iter()
         .find(|a| a.id == *alert_id)
         .expect("Alert should be in history");
 
-    assert!(acked_alert.acknowledged, "Alert should be marked as acknowledged");
+    assert!(
+        acked_alert.acknowledged,
+        "Alert should be marked as acknowledged"
+    );
 }
 
 #[tokio::test]
 async fn test_manual_failover_endpoint_ready() {
-    let monitor = SLAMonitor::new().await.expect("Failed to create SLAMonitor");
+    let monitor = SLAMonitor::new()
+        .await
+        .expect("Failed to create SLAMonitor");
 
     // Verify monitor is operational and can report failover-ready status
     let status = monitor.get_status().await;
 
     // In a real scenario, this would trigger a failover endpoint
     // For test purposes, we verify the monitor state supports failover
-    assert!(!status.status.is_empty(), "Monitor should have operational status");
+    assert!(
+        !status.status.is_empty(),
+        "Monitor should have operational status"
+    );
 
     // Failover readiness: no critical unacknowledged alerts
-    let recent_alerts = monitor.get_alert_history(10).await.expect("Failed to get alerts");
-    let unacked_critical = recent_alerts.iter()
+    let recent_alerts = monitor
+        .get_alert_history(10)
+        .await
+        .expect("Failed to get alerts");
+    let unacked_critical = recent_alerts
+        .iter()
         .filter(|a| a.severity == AlertSeverity::Critical && !a.acknowledged)
         .count();
 
@@ -117,10 +158,15 @@ async fn test_manual_failover_endpoint_ready() {
 #[tokio::test]
 async fn test_metrics_persistence_and_report() {
     let manifest_dir = env!("CARGO_MANIFEST_DIR");
-    let report_dir = format!("{}/../../.claude/reports/night-cycle/sla_monitor", manifest_dir);
+    let report_dir = format!(
+        "{}/../../.claude/reports/night-cycle/sla_monitor",
+        manifest_dir
+    );
     fs::create_dir_all(&report_dir).expect("Failed to create report directory");
 
-    let mut monitor = SLAMonitor::new().await.expect("Failed to create SLAMonitor");
+    let mut monitor = SLAMonitor::new()
+        .await
+        .expect("Failed to create SLAMonitor");
 
     monitor.set_thresholds(SLAThresholds {
         uptime_percent: 99.5,
@@ -157,10 +203,8 @@ async fn test_metrics_persistence_and_report() {
     });
 
     let sla_metrics_str = to_string_pretty(&sla_metrics).expect("Failed to serialize metrics");
-    fs::write(
-        format!("{}/sla_metrics.json", report_dir),
-        &sla_metrics_str
-    ).expect("Failed to write sla_metrics.json");
+    fs::write(format!("{}/sla_metrics.json", report_dir), &sla_metrics_str)
+        .expect("Failed to write sla_metrics.json");
 
     // Generate merkle_proof.json
     let merkle_hash = simple_hash(&sla_metrics_str);
@@ -172,8 +216,9 @@ async fn test_metrics_persistence_and_report() {
 
     fs::write(
         format!("{}/merkle_proof.json", report_dir),
-        to_string_pretty(&merkle_proof).unwrap()
-    ).expect("Failed to write merkle_proof.json");
+        to_string_pretty(&merkle_proof).unwrap(),
+    )
+    .expect("Failed to write merkle_proof.json");
 
     // Generate SLA_DASHBOARD_REPORT.md
     let markdown = format!(
@@ -196,12 +241,16 @@ async fn test_metrics_persistence_and_report() {
         merkle_hash
     );
 
-    fs::write(
-        format!("{}/SLA_DASHBOARD_REPORT.md", report_dir),
-        markdown
-    ).expect("Failed to write SLA_DASHBOARD_REPORT.md");
+    fs::write(format!("{}/SLA_DASHBOARD_REPORT.md", report_dir), markdown)
+        .expect("Failed to write SLA_DASHBOARD_REPORT.md");
 
     // Verify all metrics recorded
-    let history = monitor.get_alert_history(100).await.expect("Failed to get history");
-    assert!(history.is_empty() || history.len() >= 0, "Alert history should be accessible");
+    let history = monitor
+        .get_alert_history(100)
+        .await
+        .expect("Failed to get history");
+    assert!(
+        history.is_empty() || history.len() >= 0,
+        "Alert history should be accessible"
+    );
 }

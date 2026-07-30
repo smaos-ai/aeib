@@ -6,8 +6,8 @@
 //! - ϕ: token budget enforced (budget-cut entries → GrayFog, known but obscured)
 //! - π⁺: classification into VisibleField, GrayFog, BlackFog for agent awareness
 
-use crate::zones::{classify_zones, ZonalContextMap};
 use crate::types::MemoryEntry;
+use crate::zones::{ZonalContextMap, classify_zones};
 use serde_json;
 
 /// Inbound cartographic pipeline: σ ∘ ϕ ∘ π⁺
@@ -24,7 +24,13 @@ pub fn apply_inbound_pipeline(
     token_budget: i64,
     budget_used: i64,
 ) -> ZonalContextMap {
-    classify_zones(all_candidates, visible, confidence_threshold, token_budget, budget_used)
+    classify_zones(
+        all_candidates,
+        visible,
+        confidence_threshold,
+        token_budget,
+        budget_used,
+    )
 }
 
 /// π⁺ projection: serialize ZonalContextMap for TaskContext.visible_field injection.

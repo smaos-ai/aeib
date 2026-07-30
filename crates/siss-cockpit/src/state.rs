@@ -1,15 +1,15 @@
+use crate::event_bridge::{agent_event_to_cockpit, system_event_to_cockpit};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use std::collections::VecDeque;
-use std::sync::{Arc, Mutex};
-use tokio::sync::{broadcast, mpsc, RwLock};
-use uuid::Uuid;
-use crate::event_bridge::{system_event_to_cockpit, agent_event_to_cockpit};
 use siss_agent_shell::events::AgentEvent;
 use siss_event_log::EventFilter;
-use siss_graph_db::rce_event_broadcaster::RceEventBroadcaster;
 use siss_graph_db::rce::ResumableCognitiveExecution;
+use siss_graph_db::rce_event_broadcaster::RceEventBroadcaster;
 use sqlx::PgPool;
+use std::collections::VecDeque;
+use std::sync::{Arc, Mutex};
+use tokio::sync::{RwLock, broadcast, mpsc};
+use uuid::Uuid;
 
 pub const EVENT_BUFFER_SIZE: usize = 1000;
 pub const BROADCAST_CHANNEL_SIZE: usize = 1024;
@@ -153,13 +153,16 @@ mod tests {
         let pool = Arc::new(
             sqlx::postgres::PgPoolOptions::new()
                 .connect_lazy("postgres://test:test@localhost/test")
-                .expect("pool creation")
+                .expect("pool creation"),
         );
 
         state.wire_pool(pool.clone());
 
         let retrieved = state.pool.lock().unwrap().clone();
-        assert!(retrieved.is_some(), "Pool should be populated after wire_pool");
+        assert!(
+            retrieved.is_some(),
+            "Pool should be populated after wire_pool"
+        );
     }
 
     #[test]

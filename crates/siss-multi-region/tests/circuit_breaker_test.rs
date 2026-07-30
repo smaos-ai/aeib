@@ -62,12 +62,18 @@ fn test_half_open_reopens_on_failure() {
 #[tokio::test]
 async fn test_circuit_breaker_integration_with_health_checker() {
     let checker = HealthChecker::new(Duration::from_secs(5));
-    checker.register_region("test_region".to_string()).await.unwrap();
+    checker
+        .register_region("test_region".to_string())
+        .await
+        .unwrap();
 
     for _ in 0..3 {
         checker.record_failure("test_region").await.unwrap();
     }
 
     let status = checker.get_region_status("test_region").await.unwrap();
-    assert_eq!(status, siss_multi_region::health_check::HealthStatus::Unhealthy);
+    assert_eq!(
+        status,
+        siss_multi_region::health_check::HealthStatus::Unhealthy
+    );
 }

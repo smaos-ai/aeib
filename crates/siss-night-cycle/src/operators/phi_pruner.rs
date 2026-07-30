@@ -16,7 +16,7 @@
 //! - decision_criticality + alignment_relevance < threshold (default: 0.3)
 //! - confidence < 0.5 (low confidence → low utility)
 
-use super::{NightCycleOperator, OperatorResult, OntologyState, OntologyEntity};
+use super::{NightCycleOperator, OntologyEntity, OntologyState, OperatorResult};
 use serde_json::Value;
 
 /// SafePruningPhiOperator: Goal-aware token filtering for governance.
@@ -49,7 +49,9 @@ impl SafePruningPhiOperator {
     fn score_entity(&self, entity: &OntologyEntity) -> f64 {
         // Extract or compute criticality scores from entity data.
         let criticality = self.extract_criticality(&entity.data).unwrap_or(0.0);
-        let alignment = self.extract_alignment_relevance(&entity.data).unwrap_or(0.0);
+        let alignment = self
+            .extract_alignment_relevance(&entity.data)
+            .unwrap_or(0.0);
 
         // Combined score: criticality + alignment_relevance.
         // Entities with combined score < threshold are candidates for pruning.
@@ -59,7 +61,11 @@ impl SafePruningPhiOperator {
     /// Extract decision_criticality from entity.data.
     fn extract_criticality(&self, data: &Value) -> Option<f64> {
         // If decision_criticality field exists and is not 0, use it.
-        if let Some(v) = data.get("decision_criticality").and_then(|v| v.as_f64()).filter(|&v| v > 0.0) {
+        if let Some(v) = data
+            .get("decision_criticality")
+            .and_then(|v| v.as_f64())
+            .filter(|&v| v > 0.0)
+        {
             return Some(v);
         }
 
@@ -77,7 +83,11 @@ impl SafePruningPhiOperator {
     /// Extract alignment_relevance from entity.data.
     fn extract_alignment_relevance(&self, data: &Value) -> Option<f64> {
         // If alignment_relevance field exists and is not 0, use it.
-        if let Some(v) = data.get("alignment_relevance").and_then(|v| v.as_f64()).filter(|&v| v > 0.0) {
+        if let Some(v) = data
+            .get("alignment_relevance")
+            .and_then(|v| v.as_f64())
+            .filter(|&v| v > 0.0)
+        {
             return Some(v);
         }
 
@@ -175,8 +185,8 @@ mod tests {
         let mut state = OntologyState {
             entities: vec![
                 entity("e1", "policy_decision", 0.8, 0.9, 0.5), // High criticality
-                entity("e2", "metadata", 0.6, 0.1, 0.0),         // Low criticality
-                entity("e3", "audit_log", 0.6, 0.2, 0.0),        // Low criticality
+                entity("e2", "metadata", 0.6, 0.1, 0.0),        // Low criticality
+                entity("e3", "audit_log", 0.6, 0.2, 0.0),       // Low criticality
             ],
             confidence_threshold: 0.5,
         };

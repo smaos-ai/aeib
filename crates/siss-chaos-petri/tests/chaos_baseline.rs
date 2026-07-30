@@ -1,12 +1,13 @@
-use siss_chaos_petri::{
-    ChaosPetriQuarantine, FailureScenario, ChaosScheduler,
-};
-use uuid::Uuid;
-use std::fs;
 use serde_json::{json, to_string_pretty};
+use siss_chaos_petri::{ChaosPetriQuarantine, ChaosScheduler, FailureScenario};
+use std::fs;
+use uuid::Uuid;
 
 fn simple_hash(data: &str) -> String {
-    format!("{:x}", data.len() * 31 + data.chars().map(|c| c as usize).sum::<usize>())
+    format!(
+        "{:x}",
+        data.len() * 31 + data.chars().map(|c| c as usize).sum::<usize>()
+    )
 }
 
 #[test]
@@ -25,8 +26,14 @@ fn test_scenario_01_network_timeout_recovery() {
     assert!(!results.is_empty(), "Should have execution results");
 
     let recovery_time = results[0].recovery_latency_ms;
-    assert!(recovery_time < 5000, "Network timeout recovery should be < 5s");
-    assert_eq!(results[0].data_loss_bytes, 0, "Network timeout should not cause data loss");
+    assert!(
+        recovery_time < 5000,
+        "Network timeout recovery should be < 5s"
+    );
+    assert_eq!(
+        results[0].data_loss_bytes, 0,
+        "Network timeout should not cause data loss"
+    );
 }
 
 #[test]
@@ -48,8 +55,14 @@ fn test_scenario_02_database_checkpoint_recovery() {
     assert!(!results.is_empty(), "Should have execution results");
 
     let data_loss = results[0].data_loss_bytes;
-    assert_eq!(data_loss, 0, "Checkpoint recovery should have zero data loss");
-    assert!(results[0].recovery_latency_ms < 5000, "Recovery should be < 5s");
+    assert_eq!(
+        data_loss, 0,
+        "Checkpoint recovery should have zero data loss"
+    );
+    assert!(
+        results[0].recovery_latency_ms < 5000,
+        "Recovery should be < 5s"
+    );
 }
 
 #[test]
@@ -71,8 +84,14 @@ fn test_scenario_06_cascading_failure_isolation() {
     assert!(!results.is_empty(), "Should have execution results");
 
     let cascade_depth = results[0].cascade_depth;
-    assert!(cascade_depth <= 3, "Cascade should be bounded (≤ 3 levels deep)");
-    assert!(results[0].recovery_latency_ms < 5000, "Isolation + recovery should be < 5s");
+    assert!(
+        cascade_depth <= 3,
+        "Cascade should be bounded (≤ 3 levels deep)"
+    );
+    assert!(
+        results[0].recovery_latency_ms < 5000,
+        "Isolation + recovery should be < 5s"
+    );
 }
 
 #[test]
@@ -92,7 +111,10 @@ fn test_scenario_07_clock_skew_detection() {
 
     let recovery_time = results[0].recovery_latency_ms;
     assert!(recovery_time < 5000, "Clock resync should be < 5s");
-    assert_eq!(results[0].data_loss_bytes, 0, "Clock skew should not cause data loss");
+    assert_eq!(
+        results[0].data_loss_bytes, 0,
+        "Clock skew should not cause data loss"
+    );
 }
 
 #[test]
@@ -113,7 +135,10 @@ fn test_scenario_12_full_cluster_partition_split_brain() {
     // Quorum election should prevent split-brain
     let recovery_time = results[0].recovery_latency_ms;
     assert!(recovery_time < 5000, "Quorum election should recover < 5s");
-    assert_eq!(results[0].data_loss_bytes, 0, "Quorum should prevent data loss");
+    assert_eq!(
+        results[0].data_loss_bytes, 0,
+        "Quorum should prevent data loss"
+    );
 }
 
 #[test]
@@ -195,9 +220,11 @@ fn test_all_12_scenarios_pass_recovery_sla() {
 
     // Verify all recovery times < 5s
     for result in &results {
-        assert!(result.recovery_latency_ms < 5000,
+        assert!(
+            result.recovery_latency_ms < 5000,
             "Recovery for scenario should be < 5s, got {}ms",
-            result.recovery_latency_ms);
+            result.recovery_latency_ms
+        );
     }
 
     // Verify no data loss across all scenarios
@@ -211,7 +238,10 @@ fn test_all_12_scenarios_pass_recovery_sla() {
 #[test]
 fn test_generate_chaos_petri_report() {
     let manifest_dir = env!("CARGO_MANIFEST_DIR");
-    let report_dir = format!("{}/../../.claude/reports/night-cycle/chaos_petri", manifest_dir);
+    let report_dir = format!(
+        "{}/../../.claude/reports/night-cycle/chaos_petri",
+        manifest_dir
+    );
     fs::create_dir_all(&report_dir).expect("Failed to create report directory");
 
     // Run sampled chaos tests to collect results
@@ -295,7 +325,11 @@ fn test_generate_chaos_petri_report() {
         "hash": merkle_hash,
         "source": "chaos_results.json"
     });
-    fs::write(format!("{}/merkle_proof.json", report_dir), to_string_pretty(&proof).unwrap()).ok();
+    fs::write(
+        format!("{}/merkle_proof.json", report_dir),
+        to_string_pretty(&proof).unwrap(),
+    )
+    .ok();
 
     // Generate CHAOS_PETRI_REPORT.md
     let markdown = format!(
@@ -309,16 +343,27 @@ fn test_generate_chaos_petri_report() {
          - **All SLA Passed:** {}\n\n\
          ## Merkle Proof\n\n\
          **SHA256:** `{}`\n",
-        results.iter().map(|(name, passed)| {
-            format!("- **{}**: {}", name, if *passed { "✓ PASS" } else { "✗ FAIL" })
-        }).collect::<Vec<_>>().join("\n"),
+        results
+            .iter()
+            .map(|(name, passed)| {
+                format!(
+                    "- **{}**: {}",
+                    name,
+                    if *passed { "✓ PASS" } else { "✗ FAIL" }
+                )
+            })
+            .collect::<Vec<_>>()
+            .join("\n"),
         results.iter().all(|(_, p)| *p),
         merkle_hash
     );
 
     fs::write(format!("{}/CHAOS_PETRI_REPORT.md", report_dir), markdown).ok();
 
-    assert!(results.iter().all(|(_, p)| *p), "All chaos scenarios should pass");
+    assert!(
+        results.iter().all(|(_, p)| *p),
+        "All chaos scenarios should pass"
+    );
 }
 
 #[test]
@@ -357,7 +402,10 @@ fn test_different_seeds_produce_different_sequences() {
             break;
         }
     }
-    assert!(diverged, "Different seeds should produce different sequences");
+    assert!(
+        diverged,
+        "Different seeds should produce different sequences"
+    );
 }
 
 #[test]
@@ -368,15 +416,22 @@ fn test_scheduled_execution_runs_all_12_variants_with_same_seed() {
     let agents = vec![Uuid::new_v4(); 5];
     let mut scheduler = ChaosScheduler::new(123u64, 100);
 
-    let results = chaos.execute_scheduled(&mut scheduler, 12, &agents)
+    let results = chaos
+        .execute_scheduled(&mut scheduler, 12, &agents)
         .expect("Scheduled execution should succeed");
 
     assert_eq!(results.len(), 12, "Should execute exactly 12 scenarios");
-    assert!(chaos.verify_all_passed(), "All scheduled scenarios should pass recovery SLA");
+    assert!(
+        chaos.verify_all_passed(),
+        "All scheduled scenarios should pass recovery SLA"
+    );
 
     // Verify recovery times are under 5s
     for result in &results {
-        assert!(result.recovery_latency_ms < 5000,
-            "Recovery time {} ms exceeds 5s target", result.recovery_latency_ms);
+        assert!(
+            result.recovery_latency_ms < 5000,
+            "Recovery time {} ms exceeds 5s target",
+            result.recovery_latency_ms
+        );
     }
 }

@@ -1,5 +1,5 @@
 use crate::error::LocalLLMResult;
-use crate::types::{ModelType, ModelMetadata, LocalLLMConfig};
+use crate::types::{LocalLLMConfig, ModelMetadata, ModelType};
 use chrono::Utc;
 use dashmap::DashMap;
 use std::sync::Arc;
@@ -47,23 +47,12 @@ impl ModelCache {
 
     fn resolve_model_path(&self, model_type: ModelType) -> LocalLLMResult<String> {
         match model_type {
-            ModelType::Llama405B => {
-                Ok(format!(
-                    "{}/llama-405b.gguf",
-                    self.config.model_cache_dir
-                ))
-            }
+            ModelType::Llama405B => Ok(format!("{}/llama-405b.gguf", self.config.model_cache_dir)),
             ModelType::MistralMoE => {
-                Ok(format!(
-                    "{}/mistral-moe.gguf",
-                    self.config.model_cache_dir
-                ))
+                Ok(format!("{}/mistral-moe.gguf", self.config.model_cache_dir))
             }
             ModelType::OpenSourceCustom => {
-                Ok(format!(
-                    "{}/custom.gguf",
-                    self.config.model_cache_dir
-                ))
+                Ok(format!("{}/custom.gguf", self.config.model_cache_dir))
             }
         }
     }

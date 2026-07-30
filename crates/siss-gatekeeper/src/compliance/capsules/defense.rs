@@ -1,5 +1,5 @@
-use uuid::Uuid;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 /// Classification levels in ascending clearance order.
 /// Derived Ord uses declaration order: Unclassified=0 < CUI=1 < Secret=2 < TopSecret=3 < TopSecretSCI=4

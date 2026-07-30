@@ -1,10 +1,10 @@
 //! Core dispatcher executor - orchestrates parallel agent task execution
 
+use crate::Result;
 use crate::agent::AgentExecutor;
 use crate::git::GitManager;
 use crate::queue::TaskQueue;
 use crate::types::{Agent, AgentStatus, ExecutorConfig, MergeResult, Task, TaskStatus};
-use crate::Result;
 use std::collections::HashMap;
 use std::time::Duration;
 use uuid::Uuid;
@@ -33,8 +33,7 @@ impl Executor {
 
     /// Spawn N agents and initialize them
     pub async fn spawn_agents(&mut self, count: u32) -> Result<Vec<Agent>> {
-        let actual_count =
-            std::cmp::min(count, self.config.max_agents);
+        let actual_count = std::cmp::min(count, self.config.max_agents);
 
         let mut agents = Vec::new();
         for i in 0..actual_count {
@@ -140,19 +139,13 @@ impl Executor {
 
         for task in completed_tasks {
             let agent_id = task.assigned_to.ok_or_else(|| {
-                crate::DispatchError::MergeFailed(
-                    "Task has no assigned agent".to_string(),
-                )
+                crate::DispatchError::MergeFailed("Task has no assigned agent".to_string())
             })?;
 
-            let branch_name =
-                format!("agent-{}-task-{}", 0, task.id); // TODO: Get actual agent index
+            let branch_name = format!("agent-{}-task-{}", 0, task.id); // TODO: Get actual agent index
 
             // Check for conflicts
-            let conflicts = self
-                .git
-                .check_merge_conflicts(&branch_name, "main")
-                .await?;
+            let conflicts = self.git.check_merge_conflicts(&branch_name, "main").await?;
 
             let result = if conflicts.is_empty() {
                 // Auto-merge if no conflicts
@@ -186,10 +179,7 @@ impl Executor {
                     success: false,
                     conflicts: conflicts.clone(),
                     merged_files: Vec::new(),
-                    error: Some(format!(
-                        "Merge conflict: {:?}",
-                        conflicts
-                    )),
+                    error: Some(format!("Merge conflict: {:?}", conflicts)),
                 }
             };
 
@@ -219,7 +209,10 @@ impl Executor {
     /// Get queue status
     pub fn queue_status(&self) -> (usize, usize, usize) {
         let all_tasks = self.queue.all();
-        let pending = all_tasks.iter().filter(|t| t.status == TaskStatus::Pending).count();
+        let pending = all_tasks
+            .iter()
+            .filter(|t| t.status == TaskStatus::Pending)
+            .count();
         let in_progress = all_tasks
             .iter()
             .filter(|t| t.status == TaskStatus::InProgress)
@@ -241,10 +234,7 @@ impl Executor {
     }
 
     /// Run main dispatch loop
-    pub async fn run_loop(
-        &mut self,
-        max_iterations: Option<u32>,
-    ) -> Result<()> {
+    pub async fn run_loop(&mut self, max_iterations: Option<u32>) -> Result<()> {
         let mut iterations = 0;
 
         loop {
@@ -296,7 +286,11 @@ mod tests {
         let tempdir = tempfile::tempdir().unwrap();
         let config = ExecutorConfig {
             max_agents: 2,
-            queue_file: tempdir.path().join("queue.json").to_string_lossy().to_string(),
+            queue_file: tempdir
+                .path()
+                .join("queue.json")
+                .to_string_lossy()
+                .to_string(),
             ..Default::default()
         };
 
@@ -309,7 +303,11 @@ mod tests {
         let tempdir = tempfile::tempdir().unwrap();
         let config = ExecutorConfig {
             max_agents: 3,
-            queue_file: tempdir.path().join("queue.json").to_string_lossy().to_string(),
+            queue_file: tempdir
+                .path()
+                .join("queue.json")
+                .to_string_lossy()
+                .to_string(),
             ..Default::default()
         };
 
@@ -329,7 +327,11 @@ mod tests {
     async fn test_queue_status() {
         let tempdir = tempfile::tempdir().unwrap();
         let config = ExecutorConfig {
-            queue_file: tempdir.path().join("queue.json").to_string_lossy().to_string(),
+            queue_file: tempdir
+                .path()
+                .join("queue.json")
+                .to_string_lossy()
+                .to_string(),
             ..Default::default()
         };
         let executor = Executor::new(config).await.unwrap();

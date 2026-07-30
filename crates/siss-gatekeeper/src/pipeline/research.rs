@@ -1,3 +1,5 @@
+use chrono::Utc;
+use serde_json::json;
 /// Pipeline: Research Gateway
 /// Executes research queries with AP2-gated internet access and local-first fallback.
 ///
@@ -9,11 +11,8 @@
 ///
 /// Fail-closed: If AP2 denies or budget exhausted, return cached/local results only.
 /// No external API call happens without AP2 mandate + valid signature.
-
 use sqlx::PgPool;
 use uuid::Uuid;
-use chrono::Utc;
-use serde_json::json;
 
 use crate::types::GatekeeperError;
 
@@ -78,7 +77,14 @@ pub async fn execute_research(
     // Check if research action is in allowed_tools (stub: assume research_tool_id exists)
     let research_tool_id = Uuid::nil(); // Placeholder; in production, use real tool UUID
     if !allowed_tools.is_empty() && !allowed_tools.contains(&research_tool_id) {
-        log_research_to_db(pool, query, "research_action_not_authorized", ResearchSource::Denied).await.ok();
+        log_research_to_db(
+            pool,
+            query,
+            "research_action_not_authorized",
+            ResearchSource::Denied,
+        )
+        .await
+        .ok();
         return Err(GatekeeperError::ToolNotAuthorized {
             tool_id: research_tool_id,
             mandate_id: query.mandate_id,
@@ -87,7 +93,9 @@ pub async fn execute_research(
 
     // Step 2: Try local cache first (LDR layer)
     if let Ok(cached) = get_local_cache(pool, &query.query_text).await {
-        log_research_to_db(pool, query, &cached.answer, cached.source.clone()).await.ok();
+        log_research_to_db(pool, query, &cached.answer, cached.source.clone())
+            .await
+            .ok();
         return Ok(cached);
     }
 
@@ -96,13 +104,24 @@ pub async fn execute_research(
         match fetch_from_perplexity(pool, query).await {
             Ok(result) => {
                 // Debit 1 budget unit for external API call
-                siss_graph_db::repo::ap2_repo::debit_mandate(pool, query.mandate_id, 1).await.ok();
-                log_research_to_db(pool, query, &result.answer, result.source.clone()).await.ok();
+                siss_graph_db::repo::ap2_repo::debit_mandate(pool, query.mandate_id, 1)
+                    .await
+                    .ok();
+                log_research_to_db(pool, query, &result.answer, result.source.clone())
+                    .await
+                    .ok();
                 return Ok(result);
             }
             Err(_) => {
                 // Perplexity failed; return denial (fail-closed)
-                log_research_to_db(pool, query, "perplexity_unavailable", ResearchSource::Denied).await.ok();
+                log_research_to_db(
+                    pool,
+                    query,
+                    "perplexity_unavailable",
+                    ResearchSource::Denied,
+                )
+                .await
+                .ok();
                 return Err(GatekeeperError::DatabaseError {
                     message: "perplexity_mcp_unavailable".to_string(),
                 });
@@ -111,7 +130,14 @@ pub async fn execute_research(
     }
 
     // Step 4: No cache, no budget, no permission for external → return denial
-    log_research_to_db(pool, query, "budget_exhausted_or_not_permitted", ResearchSource::Denied).await.ok();
+    log_research_to_db(
+        pool,
+        query,
+        "budget_exhausted_or_not_permitted",
+        ResearchSource::Denied,
+    )
+    .await
+    .ok();
     Err(GatekeeperError::BudgetExceeded {
         requested: 1,
         remaining: remaining_budget,
@@ -141,10 +167,7 @@ pub fn export_research_result_as_c2pa(
 
 /// LDR: Try local MemTree cache via siss-night-cycle.
 /// In production, queries siss_night_cycle::memtree::MemTree for precomputed summaries.
-async fn get_local_cache(
-    _pool: &PgPool,
-    query: &str,
-) -> Result<ResearchResult, GatekeeperError> {
+async fn get_local_cache(_pool: &PgPool, query: &str) -> Result<ResearchResult, GatekeeperError> {
     // Stub: Simulate local cache lookup
     // In production: query MemTree or local SQLite FTS index
     if query.contains("sovereign ai") || query.contains("SMAOS") {

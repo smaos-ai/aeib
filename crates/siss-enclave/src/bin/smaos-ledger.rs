@@ -1,5 +1,5 @@
-use siss_enclave::ledger::{IngressGatekeeper, SneakernetPayload};
 use ed25519_dalek::VerifyingKey;
+use siss_enclave::ledger::{IngressGatekeeper, SneakernetPayload};
 use std::path::Path;
 use tracing_subscriber;
 
@@ -40,8 +40,7 @@ fn verify_ingress_ritual(payload_path: &str) -> Result<(), Box<dyn std::error::E
     // In production, these would be hardcoded or loaded from secure storage
     // This is a valid ed25519 public key (all zeros) for testing purposes
     let dummy_pk_bytes: [u8; 32] = [0; 32];
-    let dummy_pk = VerifyingKey::from_bytes(&dummy_pk_bytes)
-        .map_err(|_| "Invalid public key")?;
+    let dummy_pk = VerifyingKey::from_bytes(&dummy_pk_bytes).map_err(|_| "Invalid public key")?;
 
     let gatekeeper = IngressGatekeeper::new(vec![dummy_pk], 1);
 

@@ -1,16 +1,15 @@
 /// Phase 37: API & AG-UI Schema Specification
 /// RED phase: Failing tests for OpenAPI/protobuf schema contracts
-
 use serde::{Deserialize, Serialize};
 use siss_graph_db::rce::Step;
 
 /// SSE Stream event - strictly enforces AG-UI event types
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SSEStreamEvent {
-    pub event_type: String,           // Must be one of: ROUTING, METRICS, STATUS, DECISION_REQUIRED
+    pub event_type: String, // Must be one of: ROUTING, METRICS, STATUS, DECISION_REQUIRED
     pub workflow_id: String,
-    pub timestamp: String,            // RFC3339 format
-    pub payload: serde_json::Value,   // Must validate against A2UI 18-component limit
+    pub timestamp: String,          // RFC3339 format
+    pub payload: serde_json::Value, // Must validate against A2UI 18-component limit
     pub agent_id: String,
 }
 
@@ -18,10 +17,10 @@ pub struct SSEStreamEvent {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DecisionWebhookPayload {
     pub workflow_id: String,
-    pub decision: String,              // APPROVE, REJECT, PAUSE, MODIFY
+    pub decision: String, // APPROVE, REJECT, PAUSE, MODIFY
     pub reason: Option<String>,
-    pub new_plan: Option<Vec<Step>>,   // required when decision == "MODIFY"
-    pub timestamp: String,             // RFC3339 format
+    pub new_plan: Option<Vec<Step>>, // required when decision == "MODIFY"
+    pub timestamp: String,           // RFC3339 format
     pub human_operator_id: String,
 }
 
@@ -29,7 +28,7 @@ pub struct DecisionWebhookPayload {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProjectionResolverResponse {
     pub workflow_id: String,
-    pub layout: serde_json::Value,     // UI structure only
+    pub layout: serde_json::Value,       // UI structure only
     pub data_binding: serde_json::Value, // JSONPath pointers only
     pub metadata: ProjectionMetadata,
 }
@@ -37,9 +36,9 @@ pub struct ProjectionResolverResponse {
 /// Projection metadata
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProjectionMetadata {
-    pub component_count: usize,        // Must be <= 18 (A2UI limit)
-    pub decoupled: bool,               // layout and data_binding are separate
-    pub version: String,               // Schema version
+    pub component_count: usize, // Must be <= 18 (A2UI limit)
+    pub decoupled: bool,        // layout and data_binding are separate
+    pub version: String,        // Schema version
 }
 
 /// Schema contract enforcer - validates OpenAPI/protobuf compliance
@@ -48,9 +47,7 @@ pub struct SchemaContracts;
 impl SchemaContracts {
     /// Validate SSE Stream event type and payload structure
     /// Fail-closed: 400 BAD_REQUEST if event type unknown or payload exceeds A2UI limit
-    pub fn validate_sse_stream_event(
-        event: &SSEStreamEvent,
-    ) -> Result<(), SchemaContractError> {
+    pub fn validate_sse_stream_event(event: &SSEStreamEvent) -> Result<(), SchemaContractError> {
         // Fail-closed: Strict event type validation
         let valid_types = vec!["ROUTING", "METRICS", "STATUS", "DECISION_REQUIRED"];
         if !valid_types.contains(&event.event_type.as_str()) {
@@ -100,8 +97,10 @@ impl SchemaContracts {
         // Fail-closed: Verify decoupling (layout shouldn't contain suspicious data fields)
         if let Some(layout_obj) = response.layout.as_object() {
             for key in layout_obj.keys() {
-                if matches!(key.as_str(),
-                    "username" | "email" | "password" | "token" | "data" | "value") {
+                if matches!(
+                    key.as_str(),
+                    "username" | "email" | "password" | "token" | "data" | "value"
+                ) {
                     return Err(SchemaContractError::DataLayoutCoupling);
                 }
             }
@@ -123,8 +122,20 @@ impl SchemaContracts {
 
         if let Some(obj) = json_payload.as_object() {
             // Define valid fields per schema
-            let valid_sse_fields = vec!["event_type", "workflow_id", "timestamp", "payload", "agent_id"];
-            let valid_decision_fields = vec!["workflow_id", "decision", "reason", "timestamp", "human_operator_id"];
+            let valid_sse_fields = vec![
+                "event_type",
+                "workflow_id",
+                "timestamp",
+                "payload",
+                "agent_id",
+            ];
+            let valid_decision_fields = vec![
+                "workflow_id",
+                "decision",
+                "reason",
+                "timestamp",
+                "human_operator_id",
+            ];
 
             let valid_fields = match schema_name {
                 "sse_event" => valid_sse_fields,
@@ -173,13 +184,13 @@ impl SchemaContracts {
 
 #[derive(Debug, Clone)]
 pub enum SchemaContractError {
-    UnknownEventType,              // 400: SSE event type not recognized
-    InvalidStateTransition,        // 400: Decision webhook state change invalid
-    DataLayoutCoupling,            // 400: Projection layout contains data or vice versa
-    PayloadExceedsSchema,          // 400: JSON payload violates OpenAPI spec
-    ComponentLimitExceeded,        // 400: A2UI component count > 18
-    MissingRequiredField,          // 400: Required schema field missing
-    InternalError,                 // 500: Unexpected error
+    UnknownEventType,       // 400: SSE event type not recognized
+    InvalidStateTransition, // 400: Decision webhook state change invalid
+    DataLayoutCoupling,     // 400: Projection layout contains data or vice versa
+    PayloadExceedsSchema,   // 400: JSON payload violates OpenAPI spec
+    ComponentLimitExceeded, // 400: A2UI component count > 18
+    MissingRequiredField,   // 400: Required schema field missing
+    InternalError,          // 500: Unexpected error
 }
 
 #[cfg(test)]
@@ -204,7 +215,10 @@ mod tests {
 
         let result = SchemaContracts::validate_sse_stream_event(&invalid_event);
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), SchemaContractError::UnknownEventType));
+        assert!(matches!(
+            result.unwrap_err(),
+            SchemaContractError::UnknownEventType
+        ));
     }
 
     #[test]
@@ -226,7 +240,11 @@ mod tests {
             };
 
             let result = SchemaContracts::validate_sse_stream_event(&event);
-            assert!(result.is_ok(), "Valid event type {} should pass", event_type);
+            assert!(
+                result.is_ok(),
+                "Valid event type {} should pass",
+                event_type
+            );
         }
     }
 
@@ -248,7 +266,10 @@ mod tests {
 
         let result = SchemaContracts::validate_decision_webhook(&decision, "COMPLETED");
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), SchemaContractError::InvalidStateTransition));
+        assert!(matches!(
+            result.unwrap_err(),
+            SchemaContractError::InvalidStateTransition
+        ));
     }
 
     #[test]
@@ -295,7 +316,10 @@ mod tests {
 
         let result = SchemaContracts::validate_projection_response(&coupled_response);
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), SchemaContractError::DataLayoutCoupling));
+        assert!(matches!(
+            result.unwrap_err(),
+            SchemaContractError::DataLayoutCoupling
+        ));
     }
 
     #[test]
@@ -318,7 +342,10 @@ mod tests {
 
         let result = SchemaContracts::validate_projection_response(&response_exceeds_limit);
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), SchemaContractError::ComponentLimitExceeded));
+        assert!(matches!(
+            result.unwrap_err(),
+            SchemaContractError::ComponentLimitExceeded
+        ));
     }
 
     #[test]
@@ -335,7 +362,10 @@ mod tests {
 
         let result = SchemaContracts::validate_json_schema(&malformed_payload, "sse_event");
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), SchemaContractError::PayloadExceedsSchema));
+        assert!(matches!(
+            result.unwrap_err(),
+            SchemaContractError::PayloadExceedsSchema
+        ));
     }
 
     #[test]

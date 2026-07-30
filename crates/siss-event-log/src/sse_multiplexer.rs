@@ -87,17 +87,11 @@ mod tests {
         let _rx = multiplexer.subscribe(SSEStreamType::TaskRouting);
 
         // Publish first event - should succeed
-        let result1 = multiplexer.publish(
-            SSEStreamType::TaskRouting,
-            "event_1".to_string(),
-        );
+        let result1 = multiplexer.publish(SSEStreamType::TaskRouting, "event_1".to_string());
         assert!(result1.is_ok());
 
         // Publish second event rapidly - should fail (bounded channel full)
-        let result2 = multiplexer.publish(
-            SSEStreamType::TaskRouting,
-            "event_2".to_string(),
-        );
+        let result2 = multiplexer.publish(SSEStreamType::TaskRouting, "event_2".to_string());
         assert!(result2.is_err());
     }
 
@@ -111,8 +105,12 @@ mod tests {
         let task_event = "task_event".to_string();
         let audit_event = "audit_event".to_string();
 
-        multiplexer.publish(SSEStreamType::TaskRouting, task_event).ok();
-        multiplexer.publish(SSEStreamType::Audit, audit_event.clone()).ok();
+        multiplexer
+            .publish(SSEStreamType::TaskRouting, task_event)
+            .ok();
+        multiplexer
+            .publish(SSEStreamType::Audit, audit_event.clone())
+            .ok();
 
         // Assert only Audit events arrive on the Audit receiver
         let received = audit_rx.try_recv();

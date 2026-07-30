@@ -27,7 +27,7 @@ impl MetricsAggregate {
 
         let success_score = self.success_rate();
         let latency_score = if self.avg_latency > 500 {
-            0.5  // Penalize if latency exceeds 500ms
+            0.5 // Penalize if latency exceeds 500ms
         } else if self.avg_latency > 0 {
             1.0 - (self.avg_latency as f64 / 500.0) * 0.5
         } else {

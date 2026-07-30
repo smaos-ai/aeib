@@ -75,7 +75,9 @@ impl SkillExecutor {
 
         // Handle {device_id} for single-arg case
         if invocation.args.len() == 1 && skill.command_template.contains("{device_id}") {
-            resolved = skill.command_template.replace("{device_id}", &invocation.args[0]);
+            resolved = skill
+                .command_template
+                .replace("{device_id}", &invocation.args[0]);
         }
 
         // Handle {device_id} {value} for two-arg case

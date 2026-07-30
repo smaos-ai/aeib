@@ -1,7 +1,7 @@
-use siss_trust_mesh::did_registry::{DidRegistry, DidDocument};
-use siss_trust_mesh::proof_of_sapience::ProofOfSapience;
-use siss_trust_mesh::trust_resolver::{TrustResolver, ContradictionCandidate, Resolution};
 use chrono::Utc;
+use siss_trust_mesh::did_registry::{DidDocument, DidRegistry};
+use siss_trust_mesh::proof_of_sapience::ProofOfSapience;
+use siss_trust_mesh::trust_resolver::{ContradictionCandidate, Resolution, TrustResolver};
 use uuid::Uuid;
 
 #[test]
@@ -29,10 +29,15 @@ fn test_trust_score_domain_expert_wins() {
     let base_authority = 0.8;
     let recency = 0.9;
 
-    let expert_score = ProofOfSapience::compute_trust_score(base_authority, expert_accuracy, recency);
-    let novice_score = ProofOfSapience::compute_trust_score(base_authority, novice_accuracy, recency);
+    let expert_score =
+        ProofOfSapience::compute_trust_score(base_authority, expert_accuracy, recency);
+    let novice_score =
+        ProofOfSapience::compute_trust_score(base_authority, novice_accuracy, recency);
 
-    assert!(expert_score > novice_score, "Domain expert should have higher trust score");
+    assert!(
+        expert_score > novice_score,
+        "Domain expert should have higher trust score"
+    );
 }
 
 #[test]
@@ -63,7 +68,7 @@ fn test_proof_of_sapience_resolves_contradiction() {
 
 #[test]
 fn test_sybil_resistance_caps_score() {
-    let max_uncapped_score = 1.5;  // Impossible in theory, but test the cap
+    let max_uncapped_score = 1.5; // Impossible in theory, but test the cap
     let capped = ProofOfSapience::cap_score(max_uncapped_score);
 
     assert!(capped <= 0.95, "Score should be capped at 0.95");
@@ -71,7 +76,10 @@ fn test_sybil_resistance_caps_score() {
 
     let normal_score = 0.5;
     let normal_capped = ProofOfSapience::cap_score(normal_score);
-    assert_eq!(normal_capped, normal_score, "Normal scores should not be modified");
+    assert_eq!(
+        normal_capped, normal_score,
+        "Normal scores should not be modified"
+    );
 }
 
 #[test]
@@ -85,6 +93,12 @@ fn test_historical_accuracy_decay() {
 
     assert_eq!(after_0_days, initial_accuracy, "No decay at day 0");
     assert!(after_30_days < initial_accuracy, "Decay at half-life");
-    assert!(after_60_days < after_30_days, "More decay after 2 half-lives");
-    assert!((after_30_days - initial_accuracy * 0.5).abs() < 0.01, "Ebbinghaus half-life at 30 days");
+    assert!(
+        after_60_days < after_30_days,
+        "More decay after 2 half-lives"
+    );
+    assert!(
+        (after_30_days - initial_accuracy * 0.5).abs() < 0.01,
+        "Ebbinghaus half-life at 30 days"
+    );
 }

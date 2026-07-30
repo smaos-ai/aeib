@@ -1,8 +1,7 @@
 /// Phase 32: A2UI Interface Contract Tests
 /// Golden path validation of the 18 JSON component primitives,
 /// SSE stream specification, and fail-closed validation rules
-
-use siss_a2ui_renderer::{A2UIPayload, PayloadValidator, PayloadRenderer, ValidationError};
+use siss_a2ui_renderer::{A2UIPayload, PayloadRenderer, PayloadValidator, ValidationError};
 use uuid::Uuid;
 
 /// Test 1: All 18 JSON component primitives validate and render
@@ -13,29 +12,87 @@ fn test_18_component_primitives_valid_and_render() {
 
     let test_cases = vec![
         // Display primitives
-        ("text", serde_json::json!({"type": "text", "id": "text1", "content": "Hello"})),
-        ("badge", serde_json::json!({"type": "badge", "id": "badge1", "label": "New"})),
-        ("alert", serde_json::json!({"type": "alert", "id": "alert1", "message": "Warning", "level": "warn"})),
-        ("progress", serde_json::json!({"type": "progress", "id": "prog1", "value": 50, "max": 100})),
-        ("divider", serde_json::json!({"type": "divider", "id": "div1"})),
-        ("link", serde_json::json!({"type": "link", "id": "link1", "label": "Click", "href": "https://example.com"})),
-        ("tooltip", serde_json::json!({"type": "tooltip", "id": "tip1", "text": "Hover", "content": "Tooltip text"})),
-        ("breadcrumb", serde_json::json!({"type": "breadcrumb", "id": "bread1", "items": ["Home", "Section"]})),
+        (
+            "text",
+            serde_json::json!({"type": "text", "id": "text1", "content": "Hello"}),
+        ),
+        (
+            "badge",
+            serde_json::json!({"type": "badge", "id": "badge1", "label": "New"}),
+        ),
+        (
+            "alert",
+            serde_json::json!({"type": "alert", "id": "alert1", "message": "Warning", "level": "warn"}),
+        ),
+        (
+            "progress",
+            serde_json::json!({"type": "progress", "id": "prog1", "value": 50, "max": 100}),
+        ),
+        (
+            "divider",
+            serde_json::json!({"type": "divider", "id": "div1"}),
+        ),
+        (
+            "link",
+            serde_json::json!({"type": "link", "id": "link1", "label": "Click", "href": "https://example.com"}),
+        ),
+        (
+            "tooltip",
+            serde_json::json!({"type": "tooltip", "id": "tip1", "text": "Hover", "content": "Tooltip text"}),
+        ),
+        (
+            "breadcrumb",
+            serde_json::json!({"type": "breadcrumb", "id": "bread1", "items": ["Home", "Section"]}),
+        ),
         // Form primitives
-        ("input", serde_json::json!({"type": "input", "id": "input1", "label": "Name"})),
-        ("textarea", serde_json::json!({"type": "textarea", "id": "text1", "label": "Comment"})),
-        ("select", serde_json::json!({"type": "select", "id": "select1", "label": "Choose", "options": []})),
-        ("checkbox", serde_json::json!({"type": "checkbox", "id": "check1", "label": "Agree"})),
-        ("radio", serde_json::json!({"type": "radio", "id": "radio1", "label": "Option", "value": "opt1"})),
-        ("button", serde_json::json!({"type": "button", "id": "btn1", "label": "Submit"})),
+        (
+            "input",
+            serde_json::json!({"type": "input", "id": "input1", "label": "Name"}),
+        ),
+        (
+            "textarea",
+            serde_json::json!({"type": "textarea", "id": "text1", "label": "Comment"}),
+        ),
+        (
+            "select",
+            serde_json::json!({"type": "select", "id": "select1", "label": "Choose", "options": []}),
+        ),
+        (
+            "checkbox",
+            serde_json::json!({"type": "checkbox", "id": "check1", "label": "Agree"}),
+        ),
+        (
+            "radio",
+            serde_json::json!({"type": "radio", "id": "radio1", "label": "Option", "value": "opt1"}),
+        ),
+        (
+            "button",
+            serde_json::json!({"type": "button", "id": "btn1", "label": "Submit"}),
+        ),
         // Layout primitives
-        ("card", serde_json::json!({"type": "card", "id": "card1", "children": []})),
-        ("grid", serde_json::json!({"type": "grid", "id": "grid1", "columns": 2, "children": []})),
-        ("modal", serde_json::json!({"type": "modal", "id": "modal1", "title": "Dialog", "content": "Content", "children": []})),
-        ("table", serde_json::json!({"type": "table", "id": "table1", "headers": ["Col1"], "rows": [["Data1"]]})),
+        (
+            "card",
+            serde_json::json!({"type": "card", "id": "card1", "children": []}),
+        ),
+        (
+            "grid",
+            serde_json::json!({"type": "grid", "id": "grid1", "columns": 2, "children": []}),
+        ),
+        (
+            "modal",
+            serde_json::json!({"type": "modal", "id": "modal1", "title": "Dialog", "content": "Content", "children": []}),
+        ),
+        (
+            "table",
+            serde_json::json!({"type": "table", "id": "table1", "headers": ["Col1"], "rows": [["Data1"]]}),
+        ),
     ];
 
-    assert_eq!(test_cases.len(), 18, "Must have exactly 18 component primitives");
+    assert_eq!(
+        test_cases.len(),
+        18,
+        "Must have exactly 18 component primitives"
+    );
 
     for (prim_type, json) in test_cases {
         let payload = A2UIPayload {
@@ -48,13 +105,18 @@ fn test_18_component_primitives_valid_and_render() {
         assert!(
             result.is_ok(),
             "Primitive '{}' should validate successfully, got error: {:?}",
-            prim_type, result
+            prim_type,
+            result
         );
 
         // All 18 primitives must render to non-empty HTML
         if let Ok(components) = result {
             let html = renderer.render_all(components);
-            assert!(!html.is_empty(), "Primitive '{}' should render HTML", prim_type);
+            assert!(
+                !html.is_empty(),
+                "Primitive '{}' should render HTML",
+                prim_type
+            );
         }
     }
 }

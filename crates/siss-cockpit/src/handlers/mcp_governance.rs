@@ -1,6 +1,5 @@
 /// Phase 36: AoE Cockpit Security View — MCP Governance & AP2 Mandate Validation
 /// RED phase: Failing tests for MCP tool authorization and double-agent prevention
-
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -26,11 +25,11 @@ pub struct MCPToolResult {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum AgentBehavioralState {
     #[serde(rename = "TRUSTED")]
-    Trusted,              // Normal operation
+    Trusted, // Normal operation
     #[serde(rename = "SUSPICIOUS")]
-    Suspicious,           // Potential double-agent behavior detected
+    Suspicious, // Potential double-agent behavior detected
     #[serde(rename = "QUARANTINED")]
-    Quarantined,          // Confirmed double-agent — isolated
+    Quarantined, // Confirmed double-agent — isolated
 }
 
 /// MCP governance enforcer — validates tool invocations and detects compromised agents
@@ -43,7 +42,10 @@ impl MCPGovernance {
         request: &MCPToolRequest,
     ) -> Result<MCPToolResult, MCPGovernanceError> {
         // Fail-closed: require valid AP2 mandate
-        let mandate = request.ap2_mandate.as_ref().ok_or(MCPGovernanceError::UnauthorizedMCPInvocation)?;
+        let mandate = request
+            .ap2_mandate
+            .as_ref()
+            .ok_or(MCPGovernanceError::UnauthorizedMCPInvocation)?;
 
         // Verify mandate signature
         let is_valid = Self::verify_ap2_mandate(mandate).await?;
@@ -61,9 +63,7 @@ impl MCPGovernance {
 
     /// Verify cryptographic signature of AP2 mandate
     /// Fail-closed: Reject mandate if signature invalid or expired
-    pub async fn verify_ap2_mandate(
-        mandate: &str,
-    ) -> Result<bool, MCPGovernanceError> {
+    pub async fn verify_ap2_mandate(mandate: &str) -> Result<bool, MCPGovernanceError> {
         // Fail-closed: Reject invalid/tampered mandates
         // Valid format: "mandate:ap2:valid:sig-*"
         if !mandate.starts_with("mandate:ap2:") {
@@ -87,7 +87,7 @@ impl MCPGovernance {
             "bypass_security",
             "disable_firewall",
             "execute_as_root",
-            "inject_code"
+            "inject_code",
         ];
 
         for directive in malicious_directives {
@@ -124,12 +124,12 @@ impl MCPGovernance {
 
 #[derive(Debug, Clone)]
 pub enum MCPGovernanceError {
-    UnauthorizedMCPInvocation,     // 403: No valid AP2 mandate
-    InvalidMandateSignature,       // 403: Mandate signature verification failed
-    DoubleAgentDetected,           // 403: Unauthorized directive injection detected
-    AgentQuarantined,              // 403: Agent is already quarantined
-    RCEPreservationFailed,         // 500: Failed to preserve execution state
-    InternalError,                 // 500: Unexpected error
+    UnauthorizedMCPInvocation, // 403: No valid AP2 mandate
+    InvalidMandateSignature,   // 403: Mandate signature verification failed
+    DoubleAgentDetected,       // 403: Unauthorized directive injection detected
+    AgentQuarantined,          // 403: Agent is already quarantined
+    RCEPreservationFailed,     // 500: Failed to preserve execution state
+    InternalError,             // 500: Unexpected error
 }
 
 #[cfg(test)]
@@ -153,7 +153,10 @@ mod tests {
         let result = MCPGovernance::invoke_mcp_tool(&request).await;
 
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), MCPGovernanceError::UnauthorizedMCPInvocation));
+        assert!(matches!(
+            result.unwrap_err(),
+            MCPGovernanceError::UnauthorizedMCPInvocation
+        ));
     }
 
     #[tokio::test]
@@ -186,11 +189,7 @@ mod tests {
 
         let malicious_context = r#"{"directive": "override_ap2_mandate", "execute_as": "root"}"#;
 
-        let result = MCPGovernance::detect_double_agent(
-            "agent-double",
-            malicious_context,
-        )
-        .await;
+        let result = MCPGovernance::detect_double_agent("agent-double", malicious_context).await;
 
         assert!(result.is_ok());
         let state = result.unwrap();
@@ -229,11 +228,7 @@ mod tests {
             "timestamp": "2026-05-21T12:00:00Z"
         });
 
-        let result = MCPGovernance::preserve_rce_state(
-            "agent-breach",
-            &execution_context,
-        )
-        .await;
+        let result = MCPGovernance::preserve_rce_state("agent-breach", &execution_context).await;
 
         assert!(result.is_ok());
         let state_hash = result.unwrap();

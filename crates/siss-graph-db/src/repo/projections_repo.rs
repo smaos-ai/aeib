@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 use sqlx::PgPool;
+use uuid::Uuid;
 
 /// Agent action projection for real-time dashboard
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
@@ -45,7 +45,7 @@ pub async fn fetch_agent_actions(
              WHERE label = 'AgentActionNode'
              AND properties->>'sovereign_id' = $1
              AND (properties->>'scored_at' IS NULL OR properties->>'scored_at' > $2)
-             AND properties->>'sovereign_id' IS NOT NULL"
+             AND properties->>'sovereign_id' IS NOT NULL",
         )
         .bind(sovereign_id.to_string())
         .bind(ts.to_rfc3339())
@@ -56,7 +56,7 @@ pub async fn fetch_agent_actions(
             "SELECT COUNT(*) FROM graph_entities
              WHERE label = 'AgentActionNode'
              AND properties->>'sovereign_id' = $1
-             AND properties->>'sovereign_id' IS NOT NULL"
+             AND properties->>'sovereign_id' IS NOT NULL",
         )
         .bind(sovereign_id.to_string())
         .fetch_one(pool)
@@ -72,7 +72,7 @@ pub async fn fetch_agent_actions(
              AND (properties->>'scored_at' IS NULL OR properties->>'scored_at' > $2)
              AND properties->>'sovereign_id' IS NOT NULL
              ORDER BY created_at DESC
-             LIMIT $3"
+             LIMIT $3",
         )
         .bind(sovereign_id.to_string())
         .bind(ts.to_rfc3339())
@@ -86,7 +86,7 @@ pub async fn fetch_agent_actions(
              AND properties->>'sovereign_id' = $1
              AND properties->>'sovereign_id' IS NOT NULL
              ORDER BY created_at DESC
-             LIMIT $2"
+             LIMIT $2",
         )
         .bind(sovereign_id.to_string())
         .bind(limit as i64)
@@ -98,32 +98,41 @@ pub async fn fetch_agent_actions(
     let actions: Vec<AgentActionProjection> = rows
         .into_iter()
         .filter_map(|(id, properties, _created_at)| {
-            let behavior_event_id = properties.get("behavior_event_id")
+            let behavior_event_id = properties
+                .get("behavior_event_id")
                 .and_then(|v| v.as_str())
                 .and_then(|s| Uuid::parse_str(s).ok())?;
-            let session_id = properties.get("session_id")
+            let session_id = properties
+                .get("session_id")
                 .and_then(|v| v.as_str())
                 .and_then(|s| Uuid::parse_str(s).ok())?;
-            let persona_id = properties.get("persona_id")
+            let persona_id = properties
+                .get("persona_id")
                 .and_then(|v| v.as_str())
                 .and_then(|s| Uuid::parse_str(s).ok())?;
-            let event_type = properties.get("event_type")
+            let event_type = properties
+                .get("event_type")
                 .and_then(|v| v.as_str())
                 .unwrap_or("unknown")
                 .to_string();
-            let tier_before = properties.get("tier_before")
+            let tier_before = properties
+                .get("tier_before")
                 .and_then(|v| v.as_i64())
                 .unwrap_or(0) as i16;
-            let tier_after = properties.get("tier_after")
+            let tier_after = properties
+                .get("tier_after")
                 .and_then(|v| v.as_i64())
                 .unwrap_or(0) as i16;
-            let cost_incurred = properties.get("cost_incurred")
+            let cost_incurred = properties
+                .get("cost_incurred")
                 .and_then(|v| v.as_i64())
                 .unwrap_or(0);
-            let lineage_safe = properties.get("lineage_safe")
+            let lineage_safe = properties
+                .get("lineage_safe")
                 .and_then(|v| v.as_bool())
                 .unwrap_or(false);
-            let scored_at = properties.get("scored_at")
+            let scored_at = properties
+                .get("scored_at")
                 .and_then(|v| v.as_str())
                 .and_then(|s| DateTime::parse_from_rfc3339(s).ok())
                 .map(|dt| dt.with_timezone(&Utc))?;
@@ -195,13 +204,17 @@ pub async fn fetch_anomalies(
     let seven_days_ago = Utc::now() - chrono::Duration::days(7) - chrono::Duration::seconds(1);
 
     // Build base WHERE clause
-    let mut where_clause = "label = 'AnomalyEventNode' AND properties->>'sovereign_id' = $1 AND created_at > $2".to_string();
+    let mut where_clause =
+        "label = 'AnomalyEventNode' AND properties->>'sovereign_id' = $1 AND created_at > $2"
+            .to_string();
 
     // Severity filter: high or critical
     if let Some(sev) = severity {
         let sev_lower = sev.to_lowercase();
         if sev_lower == "high" || sev_lower == "critical" {
-            where_clause.push_str(" AND (properties->>'severity' = 'high' OR properties->>'severity' = 'critical')");
+            where_clause.push_str(
+                " AND (properties->>'severity' = 'high' OR properties->>'severity' = 'critical')",
+            );
         }
     }
 
@@ -251,34 +264,43 @@ pub async fn fetch_anomalies(
     let anomalies: Vec<AnomalyProjection> = rows
         .into_iter()
         .filter_map(|(id, properties, _)| {
-            let anomaly_db_id = properties.get("anomaly_db_id")
+            let anomaly_db_id = properties
+                .get("anomaly_db_id")
                 .and_then(|v| v.as_str())
                 .and_then(|s| Uuid::parse_str(s).ok())?;
-            let anom_type = properties.get("anomaly_type")
+            let anom_type = properties
+                .get("anomaly_type")
                 .and_then(|v| v.as_str())
                 .unwrap_or("unknown")
                 .to_string();
-            let sev = properties.get("severity")
+            let sev = properties
+                .get("severity")
                 .and_then(|v| v.as_str())
                 .unwrap_or("advisory")
                 .to_string();
-            let event_count = properties.get("event_count")
+            let event_count = properties
+                .get("event_count")
                 .and_then(|v| v.as_i64())
                 .unwrap_or(0);
-            let window_hours = properties.get("window_hours")
+            let window_hours = properties
+                .get("window_hours")
                 .and_then(|v| v.as_i64())
                 .unwrap_or(1);
-            let evidence = properties.get("evidence")
+            let evidence = properties
+                .get("evidence")
                 .cloned()
                 .unwrap_or_else(|| serde_json::json!({}));
-            let detected_at = properties.get("detected_at")
+            let detected_at = properties
+                .get("detected_at")
                 .and_then(|v| v.as_str())
                 .and_then(|s| DateTime::parse_from_rfc3339(s).ok())
                 .map(|dt| dt.with_timezone(&Utc))?;
-            let recovery_triggered = properties.get("recovery_triggered")
+            let recovery_triggered = properties
+                .get("recovery_triggered")
                 .and_then(|v| v.as_bool())
                 .unwrap_or(false);
-            let recovery_tier_impact = properties.get("recovery_tier_impact")
+            let recovery_tier_impact = properties
+                .get("recovery_tier_impact")
                 .and_then(|v| v.as_i64())
                 .map(|n| n as i16);
 
@@ -305,7 +327,7 @@ pub async fn fetch_anomalies(
          WHERE label = 'AnomalyEventNode'
          AND properties->>'sovereign_id' = $1
          AND properties->>'recovery_triggered' = 'true'
-         AND created_at > $2"
+         AND created_at > $2",
     )
     .bind(sovereign_id.to_string())
     .bind(seven_days_ago)
@@ -367,7 +389,7 @@ pub async fn fetch_recovery(
         "SELECT COUNT(*) FROM graph_entities
          WHERE label = 'RecoveryNode'
          AND properties->>'sovereign_id' = $1
-         AND created_at > $2"
+         AND created_at > $2",
     )
     .bind(sovereign_id.to_string())
     .bind(ninety_days_ago)
@@ -381,7 +403,7 @@ pub async fn fetch_recovery(
          AND properties->>'sovereign_id' = $1
          AND created_at > $2
          ORDER BY created_at DESC
-         LIMIT $3"
+         LIMIT $3",
     )
     .bind(sovereign_id.to_string())
     .bind(ninety_days_ago)
@@ -393,7 +415,8 @@ pub async fn fetch_recovery(
     let recoveries: Vec<RecoveryProjection> = rows
         .into_iter()
         .filter_map(|(id, properties)| {
-            let entry_at = properties.get("entry_at")
+            let entry_at = properties
+                .get("entry_at")
                 .and_then(|v| v.as_str())
                 .and_then(|s| DateTime::parse_from_rfc3339(s).ok())
                 .map(|dt| dt.with_timezone(&Utc))?;
@@ -406,19 +429,25 @@ pub async fn fetch_recovery(
             // Expected exit is 4 weeks from entry
             let expected_exit_at = Some(entry_at + chrono::Duration::weeks(4));
 
-            let tier_at_entry = properties.get("tier_at_entry")
+            let tier_at_entry = properties
+                .get("tier_at_entry")
                 .and_then(|v| v.as_i64())
                 .unwrap_or(0) as i16;
 
-            let tier_current = properties.get("tier_current")
+            let tier_current = properties
+                .get("tier_current")
                 .and_then(|v| v.as_i64())
                 .map(|n| n as i16)
-                .or_else(|| properties.get("current_tier")
-                    .and_then(|v| v.as_i64())
-                    .map(|n| n as i16))
+                .or_else(|| {
+                    properties
+                        .get("current_tier")
+                        .and_then(|v| v.as_i64())
+                        .map(|n| n as i16)
+                })
                 .unwrap_or(tier_at_entry);
 
-            let event_type = properties.get("event_type")
+            let event_type = properties
+                .get("event_type")
                 .and_then(|v| v.as_str())
                 .unwrap_or("probation_to_recovery");
 
@@ -430,7 +459,8 @@ pub async fn fetch_recovery(
                 _ => "unknown".to_string(),
             };
 
-            let is_approved = properties.get("is_approved")
+            let is_approved = properties
+                .get("is_approved")
                 .and_then(|v| v.as_bool())
                 .unwrap_or(false);
 

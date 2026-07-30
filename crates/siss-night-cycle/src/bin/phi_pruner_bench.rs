@@ -1,10 +1,11 @@
+use serde_json::json;
 /// T3: Safe Pruning φ Operator Benchmark
 ///
 /// Measures token reduction and performance on M3 Pro hardware.
 /// Target: 60-84% token reduction with negligible latency overhead.
-
-use siss_night_cycle::operators::{NightCycleOperator, OntologyState, OntologyEntity, SafePruningPhiOperator};
-use serde_json::json;
+use siss_night_cycle::operators::{
+    NightCycleOperator, OntologyEntity, OntologyState, SafePruningPhiOperator,
+};
 
 fn create_governance_state(num_entities: usize) -> OntologyState {
     let mut entities = Vec::new();
@@ -73,8 +74,14 @@ fn main() {
         println!("Governance State: {} entities", size);
         println!("  Before: {} entities", before_count);
         println!("  After:  {} entities", after_count);
-        println!("  Removed: {} entities ({:.1}% reduction)", result.entities_changed, reduction_pct);
-        println!("  Token reduction: ~{} tokens ({:.1}%)", tokens_removed, reduction_pct);
+        println!(
+            "  Removed: {} entities ({:.1}% reduction)",
+            result.entities_changed, reduction_pct
+        );
+        println!(
+            "  Token reduction: ~{} tokens ({:.1}%)",
+            tokens_removed, reduction_pct
+        );
         println!("  Latency: {:.3}ms", elapsed.as_secs_f64() * 1000.0);
         println!();
     }

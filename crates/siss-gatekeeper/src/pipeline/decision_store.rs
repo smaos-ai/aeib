@@ -7,11 +7,11 @@
 //!
 //! Latency: Target <100µs per append (Tier1 SLO from LatencyConstitution).
 
-use serde::{Serialize, Deserialize};
-use uuid::Uuid;
-use std::sync::{Arc, RwLock};
 use dashmap::DashMap;
-use sha2::{Sha256, Digest};
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+use std::sync::{Arc, RwLock};
+use uuid::Uuid;
 
 use crate::signer::Signer;
 use crate::types::GatekeeperError;
@@ -73,9 +73,7 @@ impl DecisionStore {
         Self {
             entries: Arc::new(DashMap::new()),
             task_indices: Arc::new(DashMap::new()),
-            merkle_root_hash: Arc::new(RwLock::new(
-                "sha256:genesis".to_string(),
-            )),
+            merkle_root_hash: Arc::new(RwLock::new("sha256:genesis".to_string())),
         }
     }
 
@@ -99,7 +97,10 @@ impl DecisionStore {
 
         // Index by task
         {
-            let mut indices = self.task_indices.entry(entry.task_id).or_insert_with(Vec::new);
+            let mut indices = self
+                .task_indices
+                .entry(entry.task_id)
+                .or_insert_with(Vec::new);
             indices.push(entry.id);
         }
 
@@ -141,11 +142,12 @@ impl DecisionStore {
 
     /// Get all decisions for a specific task (audit trail).
     pub fn audit_trail(&self, task_id: Uuid) -> Result<Vec<DecisionEntry>, GatekeeperError> {
-        let indices = self.task_indices
-            .get(&task_id)
-            .ok_or_else(|| GatekeeperError::SigningError {
-                message: format!("no audit trail for task {}", task_id),
-            })?;
+        let indices =
+            self.task_indices
+                .get(&task_id)
+                .ok_or_else(|| GatekeeperError::SigningError {
+                    message: format!("no audit trail for task {}", task_id),
+                })?;
 
         let trail = indices
             .iter()

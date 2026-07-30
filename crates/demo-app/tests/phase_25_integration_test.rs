@@ -3,7 +3,6 @@
 /// TDD Red Phase: All 6 tests write to specification before implementation exists.
 /// Tests verify: async dispatch, append-only immutability, gatekeeper mandate validation,
 /// event logging (success/failure), and dependency chaining.
-
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use uuid::Uuid;
@@ -112,7 +111,10 @@ impl MockEventLog {
 
     async fn find_event(&self, predicate: impl Fn(&SystemEvent) -> bool) -> Option<SystemEvent> {
         let events = self.events.lock().await;
-        events.iter().find(|(_, event)| predicate(event)).map(|(_, e)| e.clone())
+        events
+            .iter()
+            .find(|(_, event)| predicate(event))
+            .map(|(_, e)| e.clone())
     }
 
     // Verify no update/delete methods exist (test the API surface)
@@ -151,10 +153,7 @@ impl MockJobRouter {
 
         // Check dependencies: if any depend_on UUIDs are missing, queue as Pending
         let completed = self.completed_jobs.lock().await;
-        let deps_met = job
-            .depends_on
-            .iter()
-            .all(|dep| completed.contains(dep));
+        let deps_met = job.depends_on.iter().all(|dep| completed.contains(dep));
 
         if !deps_met {
             // Job stays in queue until dependencies complete
@@ -173,10 +172,7 @@ impl MockJobRouter {
     /// Simulate job completion (records event).
     async fn complete_job(&self, job_id: Uuid, result: String) {
         self.event_log
-            .append(job_id, SystemEvent::JobCompleted {
-                job_id,
-                result,
-            })
+            .append(job_id, SystemEvent::JobCompleted { job_id, result })
             .await;
         self.completed_jobs.lock().await.push(job_id);
     }
@@ -184,10 +180,7 @@ impl MockJobRouter {
     /// Simulate job failure (records event).
     async fn fail_job(&self, job_id: Uuid, error: String) {
         self.event_log
-            .append(job_id, SystemEvent::JobFailed {
-                job_id,
-                error,
-            })
+            .append(job_id, SystemEvent::JobFailed { job_id, error })
             .await;
     }
 
@@ -209,8 +202,8 @@ async fn test_async_dispatch_non_blocking() {
     let router = MockJobRouter::new(event_log);
 
     // Create a job with a valid mandate
-    let job = JobRequest::new("high-latency task")
-        .with_mandate(IntentMandate::valid_with_tools(vec![]));
+    let job =
+        JobRequest::new("high-latency task").with_mandate(IntentMandate::valid_with_tools(vec![]));
     let job_id = job.job_id;
 
     // Dispatch: should return immediately with job_id
@@ -282,15 +275,16 @@ async fn test_event_log_records_success() {
     let router = MockJobRouter::new(event_log.clone());
 
     // Dispatch job with valid mandate
-    let job = JobRequest::new("task_a")
-        .with_mandate(IntentMandate::valid_with_tools(vec![]));
+    let job = JobRequest::new("task_a").with_mandate(IntentMandate::valid_with_tools(vec![]));
     let job_id = job.job_id;
 
     let dispatch_result = router.dispatch_async(job).await;
     assert!(dispatch_result.is_ok());
 
     // Simulate job completion
-    router.complete_job(job_id, "result: success".to_string()).await;
+    router
+        .complete_job(job_id, "result: success".to_string())
+        .await;
 
     // Verify JobCompleted event was recorded
     let events = event_log.get_events(job_id).await;
@@ -312,8 +306,7 @@ async fn test_event_log_records_failure() {
     let router = MockJobRouter::new(event_log.clone());
 
     // Dispatch job with valid mandate
-    let job = JobRequest::new("task_b")
-        .with_mandate(IntentMandate::valid_with_tools(vec![]));
+    let job = JobRequest::new("task_b").with_mandate(IntentMandate::valid_with_tools(vec![]));
     let job_id = job.job_id;
 
     let dispatch_result = router.dispatch_async(job).await;
@@ -343,8 +336,7 @@ async fn test_dispatch_dependency_chaining() {
     let router = MockJobRouter::new(event_log.clone());
 
     // Dispatch Job A (no dependencies)
-    let job_a = JobRequest::new("task_a")
-        .with_mandate(IntentMandate::valid_with_tools(vec![]));
+    let job_a = JobRequest::new("task_a").with_mandate(IntentMandate::valid_with_tools(vec![]));
     let job_a_id = job_a.job_id;
 
     let result_a = router.dispatch_async(job_a).await;
@@ -357,7 +349,10 @@ async fn test_dispatch_dependency_chaining() {
     let job_b_id = job_b.job_id;
 
     let result_b = router.dispatch_async(job_b).await;
-    assert!(result_b.is_ok(), "Job B dispatch should succeed (returns pending)");
+    assert!(
+        result_b.is_ok(),
+        "Job B dispatch should succeed (returns pending)"
+    );
 
     // Verify Job B is in Pending state (waiting for A)
     assert!(

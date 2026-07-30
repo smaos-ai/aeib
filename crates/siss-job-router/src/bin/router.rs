@@ -1,4 +1,4 @@
-use siss_job_router::confidence_scorer::{SimpleScorer, RoutingTier};
+use siss_job_router::confidence_scorer::{RoutingTier, SimpleScorer};
 use siss_job_router::cost_budget::CostMatrix;
 use siss_job_router::routing_engine::RoutingEngine;
 use std::io::{self, BufRead};
@@ -23,7 +23,10 @@ fn main() {
                         continue;
                     }
                     let score = SimpleScorer::score_task(task);
-                    println!("✓ Task: '{}' → Confidence: {:.2} → Tier: {:?}", task, score.score, score.recommended_tier);
+                    println!(
+                        "✓ Task: '{}' → Confidence: {:.2} → Tier: {:?}",
+                        task, score.score, score.recommended_tier
+                    );
                     println!("  Est. Tokens: {}", score.estimated_tokens);
                 }
                 Some("route") => {
@@ -48,7 +51,8 @@ fn main() {
                     if let Some(tokens_str) = trimmed.strip_prefix("budget ") {
                         if let Ok(tokens) = tokens_str.trim().parse::<u32>() {
                             let matrix = CostMatrix::default();
-                            let cost_tier1 = matrix.estimate_cost(RoutingTier::Tier1RapidMLX, tokens);
+                            let cost_tier1 =
+                                matrix.estimate_cost(RoutingTier::Tier1RapidMLX, tokens);
                             let cost_tier2 = matrix.estimate_cost(RoutingTier::Tier2Sonnet, tokens);
                             let cost_tier3 = matrix.estimate_cost(RoutingTier::Tier3Opus, tokens);
 
@@ -57,8 +61,16 @@ fn main() {
                             println!("  Tier2 Cost: ${:.6}", cost_tier2);
                             println!("  Tier3 Cost: ${:.6}", cost_tier3);
 
-                            let cached_cost_tier2 = matrix.estimate_cost_with_cache(RoutingTier::Tier2Sonnet, tokens, true);
-                            let cached_cost_tier3 = matrix.estimate_cost_with_cache(RoutingTier::Tier3Opus, tokens, true);
+                            let cached_cost_tier2 = matrix.estimate_cost_with_cache(
+                                RoutingTier::Tier2Sonnet,
+                                tokens,
+                                true,
+                            );
+                            let cached_cost_tier3 = matrix.estimate_cost_with_cache(
+                                RoutingTier::Tier3Opus,
+                                tokens,
+                                true,
+                            );
 
                             println!("  Tier2 Cost (cached): ${:.6} (-90%)", cached_cost_tier2);
                             println!("  Tier3 Cost (cached): ${:.6} (-90%)", cached_cost_tier3);
@@ -72,7 +84,10 @@ fn main() {
                     break;
                 }
                 Some(cmd) => {
-                    println!("❌ Unknown command: {}. Try: score, route, budget, exit", cmd);
+                    println!(
+                        "❌ Unknown command: {}. Try: score, route, budget, exit",
+                        cmd
+                    );
                 }
                 None => {
                     println!("❌ Empty command");

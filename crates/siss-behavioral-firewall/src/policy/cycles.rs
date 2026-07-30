@@ -2,7 +2,6 @@
 ///
 /// Tarjan's algorithm identifies Strongly Connected Components (SCCs) in O(V+E) time.
 /// A non-empty SCC indicates a cycle (nodes that can reach each other).
-
 use std::collections::{HashMap, HashSet};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -40,10 +39,7 @@ impl Graph {
     }
 
     pub fn get_successors(&self, node_id: &str) -> Vec<String> {
-        self.edges
-            .get(node_id)
-            .cloned()
-            .unwrap_or_default()
+        self.edges.get(node_id).cloned().unwrap_or_default()
     }
 
     pub fn nodes(&self) -> impl Iterator<Item = &String> {
@@ -84,12 +80,7 @@ impl CycleDetector {
         state.sccs
     }
 
-    fn strongconnect(
-        &self,
-        node_id: &str,
-        graph: &Graph,
-        state: &mut TarjanState,
-    ) {
+    fn strongconnect(&self, node_id: &str, graph: &Graph, state: &mut TarjanState) {
         let index = state.index;
         state.index += 1;
 

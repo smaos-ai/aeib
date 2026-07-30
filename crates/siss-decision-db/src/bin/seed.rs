@@ -1,5 +1,5 @@
-use siss_decision_db::{TaskDb, TaskStatus, TaskStream, Task};
 use chrono::Utc;
+use siss_decision_db::{Task, TaskDb, TaskStatus, TaskStream};
 use std::fs;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

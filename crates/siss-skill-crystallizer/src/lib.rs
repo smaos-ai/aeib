@@ -33,13 +33,18 @@ pub struct SkillCrystallizer {
 impl SkillCrystallizer {
     /// Create a new SkillCrystallizer with a repetition threshold.
     pub fn new(repetition_threshold: usize) -> Self {
-        SkillCrystallizer { repetition_threshold }
+        SkillCrystallizer {
+            repetition_threshold,
+        }
     }
 
     /// Crystallize a single task log into a synthesized skill if it meets the threshold.
     pub fn crystallize_skill(&self, log: &TaskLog) -> Result<SynthesizedSkill, CrystallizerError> {
         if log.repetitions < self.repetition_threshold {
-            return Err(CrystallizerError::BelowThreshold(log.repetitions, self.repetition_threshold));
+            return Err(CrystallizerError::BelowThreshold(
+                log.repetitions,
+                self.repetition_threshold,
+            ));
         }
         Ok(SynthesizedSkill {
             skill_name: log.tool_name.clone(),
@@ -50,7 +55,9 @@ impl SkillCrystallizer {
 
     /// Crystallize a batch of task logs, filtering for those that meet the threshold.
     pub fn crystallize_batch(&self, logs: &[TaskLog]) -> Vec<SynthesizedSkill> {
-        logs.iter().filter_map(|l| self.crystallize_skill(l).ok()).collect()
+        logs.iter()
+            .filter_map(|l| self.crystallize_skill(l).ok())
+            .collect()
     }
 }
 

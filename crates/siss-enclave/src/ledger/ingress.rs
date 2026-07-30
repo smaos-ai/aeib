@@ -1,10 +1,10 @@
-use ed25519_dalek::{VerifyingKey, ed25519::Signature};
 use ed25519_dalek::Verifier;
-use sha2::{Sha256, Digest};
-use std::path::Path;
-use std::fs;
-use tracing::{info, warn, error};
+use ed25519_dalek::{ed25519::Signature, VerifyingKey};
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+use std::fs;
+use std::path::Path;
+use tracing::{error, info, warn};
 
 /// The encrypted payload entering the air-gap via USB.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -36,16 +36,22 @@ pub struct IngressGatekeeper {
 
 impl IngressGatekeeper {
     pub fn new(trusted_orchestrators: Vec<VerifyingKey>, quorum_required: usize) -> Self {
-        Self { trusted_orchestrators, quorum_required }
+        Self {
+            trusted_orchestrators,
+            quorum_required,
+        }
     }
 
     /// 1. Payload Ingestion & Validation
     pub fn verify_and_ingest(&self, usb_path: &Path) -> Result<(), IngressError> {
-        info!("Initiating Sneakernet Ingress Ritual from {}", usb_path.display());
+        info!(
+            "Initiating Sneakernet Ingress Ritual from {}",
+            usb_path.display()
+        );
 
         let payload_bytes = fs::read(usb_path).map_err(IngressError::IoError)?;
-        let payload: SneakernetPayload = bincode::deserialize(&payload_bytes)
-            .map_err(|_| IngressError::DecryptionFailed)?;
+        let payload: SneakernetPayload =
+            bincode::deserialize(&payload_bytes).map_err(|_| IngressError::DecryptionFailed)?;
 
         // 2. Cryptographic Quorum (Ed25519 AP2 Mandate)
         let mut valid_signatures = 0;
@@ -64,7 +70,10 @@ impl IngressGatekeeper {
             self.purge_payload(usb_path, "Cryptographic AP2 Quorum Failed.");
             return Err(IngressError::QuorumFailed);
         }
-        info!("AP2 Quorum Verified: {}/{} valid signatures.", valid_signatures, self.quorum_required);
+        info!(
+            "AP2 Quorum Verified: {}/{} valid signatures.",
+            valid_signatures, self.quorum_required
+        );
 
         // 3. Neural / Biometric Authentication (Neural Interface Plane Stub)
         if !self.verify_neural_biometrics() {
@@ -87,13 +96,19 @@ impl IngressGatekeeper {
 
     fn decrypt_to_quarantine(&self, data: &[u8], path: &Path) -> Result<(), IngressError> {
         // Enforce decryption strictly inside the Chaos Petri Sandbox
-        info!("Payload decrypted successfully to Chaos Petri Quarantine Zone: {}", path.display());
+        info!(
+            "Payload decrypted successfully to Chaos Petri Quarantine Zone: {}",
+            path.display()
+        );
         // TODO: Trigger the ChaosHarness to begin adversarial testing of the new weights.
         Ok(())
     }
 
     fn purge_payload(&self, path: &Path, reason: &str) {
-        error!("FATAL: {}. Initiating violent purge of USB payload.", reason);
+        error!(
+            "FATAL: {}. Initiating violent purge of USB payload.",
+            reason
+        );
         let _ = fs::remove_file(path); // Shred the file to prevent contamination
     }
 }

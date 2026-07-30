@@ -1,6 +1,6 @@
-use sha2::{Sha256, Digest};
-use std::sync::{Arc, Mutex};
 use chrono::{DateTime, Utc};
+use sha2::{Digest, Sha256};
+use std::sync::{Arc, Mutex};
 
 #[derive(Debug, Clone)]
 pub struct MerkleRootEntry {

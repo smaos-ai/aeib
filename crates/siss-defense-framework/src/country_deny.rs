@@ -13,8 +13,14 @@ impl CountryDenyList {
     pub fn seed_ofac() -> Self {
         Self {
             embargoed: vec![
-                "IR".to_string(), "KP".to_string(), "SY".to_string(), "CU".to_string(),
-                "RU".to_string(), "BY".to_string(), "VE".to_string(), "MM".to_string(),
+                "IR".to_string(),
+                "KP".to_string(),
+                "SY".to_string(),
+                "CU".to_string(),
+                "RU".to_string(),
+                "BY".to_string(),
+                "VE".to_string(),
+                "MM".to_string(),
             ],
         }
     }
@@ -22,6 +28,8 @@ impl CountryDenyList {
 
 impl Default for CountryDenyList {
     fn default() -> Self {
-        Self { embargoed: Vec::new() }
+        Self {
+            embargoed: Vec::new(),
+        }
     }
 }

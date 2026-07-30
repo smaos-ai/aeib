@@ -1,21 +1,20 @@
 /// Saliency scoring: pattern-first routing that detects task semantics before confidence scoring.
 /// AP2 microtransactions and RAG fetches always route to SLM (Tier1RapidMLX).
 /// Complex reasoning and high token count escalate to LLM (Tier3Opus).
-
 use crate::confidence_scorer::{RoutingTier, SimpleScorer};
 use crate::routing_engine::RoutingDecision;
 
-pub const SALIENCY_COMPLEX_THRESHOLD: u32 = 200;     // tokens
-pub const REASONING_DEPTH_COMPLEX: u8 = 3;           // steps
+pub const SALIENCY_COMPLEX_THRESHOLD: u32 = 200; // tokens
+pub const REASONING_DEPTH_COMPLEX: u8 = 3; // steps
 
 /// Features extracted from a task that determine saliency.
 #[derive(Debug, Clone)]
 pub struct SaliencyFeatures {
     pub estimated_tokens: u32,
-    pub reasoning_depth: u8,       // 0 = single step, N = N-step reasoning chain
-    pub is_ap2_microtx: bool,      // AP2 micro-transaction pattern
-    pub is_rag_fetch: bool,         // RAG fetch pattern
-    pub description: String,        // task description for fallback confidence scoring
+    pub reasoning_depth: u8,  // 0 = single step, N = N-step reasoning chain
+    pub is_ap2_microtx: bool, // AP2 micro-transaction pattern
+    pub is_rag_fetch: bool,   // RAG fetch pattern
+    pub description: String,  // task description for fallback confidence scoring
 }
 
 impl SaliencyFeatures {
@@ -31,7 +30,7 @@ impl SaliencyFeatures {
             || desc_lower.contains("by id");
 
         SaliencyFeatures {
-            estimated_tokens: 100,  // default estimate
+            estimated_tokens: 100, // default estimate
             reasoning_depth: 1,
             is_ap2_microtx,
             is_rag_fetch,
@@ -84,12 +83,13 @@ impl SaliencyScorer {
 
         // DEFAULT: delegate to existing confidence-based routing
         let confidence = SimpleScorer::score_task(&features.description);
-        crate::routing_engine::RoutingEngine::decide(&confidence, None)
-            .unwrap_or_else(|_| RoutingDecision {
+        crate::routing_engine::RoutingEngine::decide(&confidence, None).unwrap_or_else(|_| {
+            RoutingDecision {
                 primary_tier: RoutingTier::Tier1RapidMLX,
                 fallback_chain: vec![RoutingTier::Tier2Sonnet, RoutingTier::Tier3Opus],
                 reason: "fallback_default".to_string(),
-            })
+            }
+        })
     }
 }
 

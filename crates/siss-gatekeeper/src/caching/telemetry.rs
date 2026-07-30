@@ -6,8 +6,8 @@
 //! - Memory usage (estimated from entry count and size)
 //! - Token savings (estimated from cache hits)
 
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, Ordering};
 
 /// Cache telemetry snapshot.
 #[derive(Debug, Clone)]

@@ -9,13 +9,11 @@
 //!
 //! Test Count: 7+ tests covering all threat vectors
 
-use siss_swarm_consensus::{
-    BftEngine, Proposal, Vote, VoteType, ConsensusProof,
-};
-use uuid::Uuid;
+use siss_swarm_consensus::{BftEngine, ConsensusProof, Proposal, Vote, VoteType};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread;
+use uuid::Uuid;
 
 // ============================================================================
 // Test 1: Ed25519 Signature Forgery Rejection
@@ -35,10 +33,7 @@ fn test_ed25519_signature_forgery_rejection() {
     // TEST 1A: Empty signature should be rejected
     let vote_empty_sig = Vote::new(agent_id, proposal_id, VoteType::Commit, vec![]);
     let result = engine.register_vote(vote_empty_sig);
-    assert!(
-        result.is_err(),
-        "Empty signature should be rejected"
-    );
+    assert!(result.is_err(), "Empty signature should be rejected");
 
     // TEST 1B: Malformed signature (too short) should be rejected
     let vote_short_sig = Vote::new(agent_id, proposal_id, VoteType::Commit, vec![0xFF]);
@@ -120,9 +115,15 @@ fn test_key_rotation_concurrent() {
         handle.join().unwrap();
     }
 
-    assert!(rotation_count.load(Ordering::SeqCst), "All rotations completed");
+    assert!(
+        rotation_count.load(Ordering::SeqCst),
+        "All rotations completed"
+    );
     // Verify agents still exist after rotations (exact count may vary due to concurrent registration)
-    assert!(engine.agent_count() >= 10, "Original agents should still exist");
+    assert!(
+        engine.agent_count() >= 10,
+        "Original agents should still exist"
+    );
 }
 
 // ============================================================================
@@ -139,14 +140,7 @@ fn test_merkle_tamper_detection() {
     let votes: Vec<_> = agent_ids
         .iter()
         .enumerate()
-        .map(|(i, &id)| {
-            Vote::new(
-                id,
-                proposal_id,
-                VoteType::Commit,
-                vec![i as u8; 32],
-            )
-        })
+        .map(|(i, &id)| Vote::new(id, proposal_id, VoteType::Commit, vec![i as u8; 32]))
         .collect();
 
     // Generate proof with correct merkle root
@@ -154,7 +148,10 @@ fn test_merkle_tamper_detection() {
     let original_root = proof.merkle_root.clone();
 
     // Verify clean root passes validation
-    assert!(proof.verify_merkle_root(), "Clean merkle root should verify");
+    assert!(
+        proof.verify_merkle_root(),
+        "Clean merkle root should verify"
+    );
 
     // TEST 3A: Create tampered proof by modifying one byte
     let mut tampered_root = original_root.clone();
@@ -304,12 +301,7 @@ fn test_signature_replay_prevention() {
     assert!(engine.register_vote(vote1).is_ok());
 
     // TEST 6B: Attempt to replay same signature for proposal2
-    let vote_replay = Vote::new(
-        agent_id,
-        proposal2_id,
-        VoteType::Commit,
-        signature,
-    );
+    let vote_replay = Vote::new(agent_id, proposal2_id, VoteType::Commit, signature);
     // This is allowed in current voting model (different proposals)
     // Real replay protection requires signature binding to proposal hash
     assert!(engine.register_vote(vote_replay).is_ok());
@@ -453,12 +445,7 @@ async fn test_byzantine_node_consensus_resilience() {
 
     // 2 byzantine nodes voting abort
     for agent_id in agent_ids.iter().skip(5).take(2) {
-        let vote = Vote::new(
-            *agent_id,
-            proposal.id,
-            VoteType::Abort,
-            vec![0xFF; 64],
-        );
+        let vote = Vote::new(*agent_id, proposal.id, VoteType::Abort, vec![0xFF; 64]);
         engine.register_vote(vote).unwrap();
     }
 

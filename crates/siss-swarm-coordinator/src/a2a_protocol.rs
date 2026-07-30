@@ -1,7 +1,7 @@
-use uuid::Uuid;
-use chrono::{DateTime, Utc};
-use sha2::{Sha256, Digest};
 use crate::errors::SwarmCoordinatorError;
+use chrono::{DateTime, Utc};
+use sha2::{Digest, Sha256};
+use uuid::Uuid;
 
 #[derive(Debug, Clone)]
 pub struct A2AMessage {
@@ -18,13 +18,13 @@ impl A2AMessage {
     pub fn new(from_agent_id: Uuid, to_agent_id: Uuid, payload: String) -> Self {
         let message_id = Uuid::new_v4();
         let timestamp = Utc::now();
-        
+
         let mut hasher = Sha256::new();
         hasher.update(from_agent_id.as_bytes());
         hasher.update(to_agent_id.as_bytes());
         hasher.update(payload.as_bytes());
         hasher.update(timestamp.to_rfc3339().as_bytes());
-        
+
         let hash_result = hasher.finalize();
         let mut merkle_hash = [0u8; 32];
         merkle_hash.copy_from_slice(&hash_result[..]);

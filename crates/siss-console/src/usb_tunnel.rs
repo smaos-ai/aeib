@@ -42,20 +42,15 @@ impl Frame {
 
         let len = u16::from_le_bytes([data[1], data[2]]) as usize;
         if data.len() < 5 + len {
-            return Err(ConsoleError::FrameError(
-                "Incomplete payload".to_string(),
-            ));
+            return Err(ConsoleError::FrameError("Incomplete payload".to_string()));
         }
 
         let payload = data[3..3 + len].to_vec();
-        let received_crc =
-            u16::from_le_bytes([data[3 + len], data[4 + len]]);
+        let received_crc = u16::from_le_bytes([data[3 + len], data[4 + len]]);
         let computed_crc = Self::compute_crc(&payload);
 
         if received_crc != computed_crc {
-            return Err(ConsoleError::FrameError(
-                "CRC mismatch".to_string(),
-            ));
+            return Err(ConsoleError::FrameError("CRC mismatch".to_string()));
         }
 
         Ok(Self { payload })
@@ -101,9 +96,7 @@ impl UsbTunnel {
     pub async fn read_frame(&self) -> Result<Vec<u8>, ConsoleError> {
         let buffer = self.buffer.lock().await;
         if buffer.is_empty() {
-            Err(ConsoleError::UsbError(
-                "No data available".to_string(),
-            ))
+            Err(ConsoleError::UsbError("No data available".to_string()))
         } else {
             Ok(buffer.clone())
         }

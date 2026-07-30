@@ -1,6 +1,6 @@
-use uuid::Uuid;
-use std::collections::BTreeMap;
 use crate::node::NodeType;
+use std::collections::BTreeMap;
+use uuid::Uuid;
 
 #[allow(dead_code)]
 pub struct EntityIndex {
@@ -33,8 +33,7 @@ impl EntityIndex {
     }
 
     pub fn range(&self, start: &Uuid, end: &Uuid) -> Vec<(&Uuid, &NodeType)> {
-        self.tree.range(*start..=*end)
-            .collect()
+        self.tree.range(*start..=*end).collect()
     }
 
     pub fn len(&self) -> usize {
@@ -49,9 +48,9 @@ impl EntityIndex {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::time::Instant;
     use std::sync::Arc;
     use std::thread;
+    use std::time::Instant;
 
     #[test]
     fn test_10k_lookups_under_1ms() {

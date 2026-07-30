@@ -1,17 +1,12 @@
 /// Phase 37.5: RCE Execution Layer — Decision Webhook
 /// POST /api/rce/decision — atomic state mutation, synchronized broadcast, audit-first
-
-use axum::{
-    extract::State,
-    http::StatusCode,
-    Json,
-};
+use axum::{Json, extract::State, http::StatusCode};
+use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use chrono::Utc;
 
-use crate::state::CockpitState;
 use crate::handlers::schema_contracts::DecisionWebhookPayload;
+use crate::state::CockpitState;
 use siss_graph_db::rce::ExecutionState;
 use siss_graph_db::rce_event_broadcaster::RceEvent;
 use siss_graph_db::repo::rce_checkpoint_repo;
@@ -74,7 +69,7 @@ pub async fn post_rce_decision(
                     decision: payload.decision.clone(),
                     timestamp: Utc::now().to_rfc3339(),
                 }),
-            )
+            );
         }
         Some(e) => e,
     };
@@ -212,7 +207,7 @@ pub async fn post_rce_decision(
                             decision: "MODIFY".to_string(),
                             timestamp: Utc::now().to_rfc3339(),
                         }),
-                    )
+                    );
                 }
             };
             if let Err(e) = engine.resume_workflow_modify(new_plan) {
@@ -252,7 +247,7 @@ pub async fn post_rce_decision(
                     decision: payload.decision.clone(),
                     timestamp: Utc::now().to_rfc3339(),
                 }),
-            )
+            );
         }
     };
 

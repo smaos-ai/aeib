@@ -1,7 +1,7 @@
-use thiserror::Error;
-use uuid::Uuid;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
+use uuid::Uuid;
 
 #[derive(Error, Debug)]
 pub enum CyberDefenseError {
@@ -83,16 +83,21 @@ pub struct CyberDefenseCapsule {
 
 impl CyberDefenseCapsule {
     pub fn new() -> Self {
-        Self {
-            id: Uuid::new_v4(),
-        }
+        Self { id: Uuid::new_v4() }
     }
 
-    pub async fn route_threat_signal(&self, signal: &ThreatSignal) -> Result<ThreatRouting, CyberDefenseError> {
+    pub async fn route_threat_signal(
+        &self,
+        signal: &ThreatSignal,
+    ) -> Result<ThreatRouting, CyberDefenseError> {
         let policy_engine = match signal.source.as_str() {
             "wiz" => "wiz-policy-enforcer",
             "snyk" => "snyk-policy-enforcer",
-            _ => return Err(CyberDefenseError::ProcessingFailed("Unknown threat source".to_string())),
+            _ => {
+                return Err(CyberDefenseError::ProcessingFailed(
+                    "Unknown threat source".to_string(),
+                ));
+            }
         };
 
         Ok(ThreatRouting {
@@ -101,7 +106,10 @@ impl CyberDefenseCapsule {
         })
     }
 
-    pub async fn automate_threat_response(&self, signal: &ThreatSignal) -> Result<IncidentResponse, CyberDefenseError> {
+    pub async fn automate_threat_response(
+        &self,
+        signal: &ThreatSignal,
+    ) -> Result<IncidentResponse, CyberDefenseError> {
         if signal.severity >= 9 {
             Ok(IncidentResponse {
                 automated: true,
@@ -117,12 +125,11 @@ impl CyberDefenseCapsule {
         }
     }
 
-    pub async fn trigger_incident_response(&self, incident: &IncidentContext) -> Result<IncidentEscalation, CyberDefenseError> {
-        let escalation_level = if incident.severity >= 8 {
-            "L2"
-        } else {
-            "L1"
-        };
+    pub async fn trigger_incident_response(
+        &self,
+        incident: &IncidentContext,
+    ) -> Result<IncidentEscalation, CyberDefenseError> {
+        let escalation_level = if incident.severity >= 8 { "L2" } else { "L1" };
 
         Ok(IncidentEscalation {
             escalated: incident.severity >= 8,
@@ -131,9 +138,14 @@ impl CyberDefenseCapsule {
         })
     }
 
-    pub async fn verify_cmmc_l3_compliance(&self, check: &ComplianceCheckRequest) -> Result<ComplianceStatus, CyberDefenseError> {
+    pub async fn verify_cmmc_l3_compliance(
+        &self,
+        check: &ComplianceCheckRequest,
+    ) -> Result<ComplianceStatus, CyberDefenseError> {
         if check.framework != "cmmc-l3" {
-            return Err(CyberDefenseError::ComplianceFailed("Unsupported framework".to_string()));
+            return Err(CyberDefenseError::ComplianceFailed(
+                "Unsupported framework".to_string(),
+            ));
         }
 
         Ok(ComplianceStatus {
@@ -143,7 +155,10 @@ impl CyberDefenseCapsule {
         })
     }
 
-    pub async fn enforce_zero_trust(&self, request: &AccessRequest) -> Result<AccessDecision, CyberDefenseError> {
+    pub async fn enforce_zero_trust(
+        &self,
+        request: &AccessRequest,
+    ) -> Result<AccessDecision, CyberDefenseError> {
         if request.context == "external-network" {
             Ok(AccessDecision {
                 require_mfa: true,

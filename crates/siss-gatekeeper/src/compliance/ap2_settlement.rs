@@ -1,36 +1,36 @@
-use uuid::Uuid;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 /// AP2 Settlement Record: cryptographically binding creator earnings to governance proof
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AP2SettlementRecord {
     pub settlement_id: Uuid,
-    pub capsule_id: Uuid,              // Links to compliance capsule
+    pub capsule_id: Uuid, // Links to compliance capsule
 
     /// Creator information
-    pub creator_address: String,       // Smart contract address or wallet
+    pub creator_address: String, // Smart contract address or wallet
     pub creator_id: Uuid,
 
     /// Financial details
-    pub inference_cost_usd: f64,       // Total cost (e.g., $0.001)
-    pub creator_fee_usd: f64,          // 1% (e.g., $0.00001)
-    pub platform_fee_usd: f64,         // 99% (e.g., $0.00099)
+    pub inference_cost_usd: f64, // Total cost (e.g., $0.001)
+    pub creator_fee_usd: f64,  // 1% (e.g., $0.00001)
+    pub platform_fee_usd: f64, // 99% (e.g., $0.00099)
 
     /// Proof of compliance
-    pub merkle_proof_hash: String,     // Links to EXEC_LOG
-    pub governance_proof: bool,        // Was governance enforced?
+    pub merkle_proof_hash: String, // Links to EXEC_LOG
+    pub governance_proof: bool, // Was governance enforced?
 
     /// Settlement status
     pub status: SettlementStatus,
-    pub timestamp: u64,                // When settled
+    pub timestamp: u64, // When settled
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum SettlementStatus {
-    Pending,     // Waiting for governance proof
-    Approved,    // Governance proved, ready to pay out
-    Settled,     // Payment executed
-    Failed,      // Governance violation, no payout
+    Pending,  // Waiting for governance proof
+    Approved, // Governance proved, ready to pay out
+    Settled,  // Payment executed
+    Failed,   // Governance violation, no payout
 }
 
 /// Payout simulation for creator economics
@@ -40,16 +40,16 @@ pub struct CreatorPayoutSimulation {
     pub creator_address: String,
 
     /// Payout details
-    pub daily_inferences: u64,         // e.g., 1M inferences/day
-    pub cost_per_inference: f64,       // e.g., $0.003
-    pub ap2_fee_percentage: f64,       // 1% = 0.01
-    pub success_rate: f64,             // % of inferences that pass governance (0.0-1.0)
+    pub daily_inferences: u64, // e.g., 1M inferences/day
+    pub cost_per_inference: f64, // e.g., $0.003
+    pub ap2_fee_percentage: f64, // 1% = 0.01
+    pub success_rate: f64,       // % of inferences that pass governance (0.0-1.0)
 
     /// Calculated earnings
-    pub daily_revenue_usd: f64,        // total cost * daily_inferences
+    pub daily_revenue_usd: f64, // total cost * daily_inferences
     pub daily_creator_earnings_usd: f64, // 1% * success_rate * daily_revenue
-    pub monthly_earnings_usd: f64,     // daily * 30
-    pub yearly_earnings_usd: f64,      // daily * 365
+    pub monthly_earnings_usd: f64,       // daily * 30
+    pub yearly_earnings_usd: f64,        // daily * 365
 }
 
 impl AP2SettlementRecord {
@@ -60,8 +60,8 @@ impl AP2SettlementRecord {
         inference_cost_usd: f64,
         merkle_proof_hash: String,
     ) -> Self {
-        let creator_fee = inference_cost_usd * 0.01;    // 1%
-        let platform_fee = inference_cost_usd * 0.99;   // 99%
+        let creator_fee = inference_cost_usd * 0.01; // 1%
+        let platform_fee = inference_cost_usd * 0.99; // 99%
 
         Self {
             settlement_id: Uuid::new_v4(),
@@ -136,8 +136,12 @@ impl CreatorPayoutSimulation {
     pub fn summary(&self) -> String {
         format!(
             "Creator {}: {} inferences/day @ ${:.6}/inference\nDaily earnings: ${:.4} | Monthly: ${:.2} | Yearly: ${:.2}",
-            self.creator_id, self.daily_inferences, self.cost_per_inference,
-            self.daily_creator_earnings_usd, self.monthly_earnings_usd, self.yearly_earnings_usd
+            self.creator_id,
+            self.daily_inferences,
+            self.cost_per_inference,
+            self.daily_creator_earnings_usd,
+            self.monthly_earnings_usd,
+            self.yearly_earnings_usd
         )
     }
 
@@ -219,9 +223,9 @@ mod tests {
         let sim = CreatorPayoutSimulation::new(
             creator_id,
             "0xdeadbeef".to_string(),
-            1_000_000,           // 1M inferences/day
-            0.003,               // $0.003 per inference
-            0.95,                // 95% success rate
+            1_000_000, // 1M inferences/day
+            0.003,     // $0.003 per inference
+            0.95,      // 95% success rate
         );
 
         // Daily revenue: 1M * $0.003 = $3,000

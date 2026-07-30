@@ -1,7 +1,7 @@
-use uuid::Uuid;
+use super::prepare::{PrepareRequest, PrepareToken};
 use std::collections::HashMap;
 use std::time::{SystemTime, UNIX_EPOCH};
-use super::prepare::{PrepareRequest, PrepareToken};
+use uuid::Uuid;
 
 #[derive(Clone)]
 pub struct CapsuleEntry {

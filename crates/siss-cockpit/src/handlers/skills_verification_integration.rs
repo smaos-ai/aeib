@@ -3,7 +3,9 @@
 
 #[cfg(test)]
 mod integration_tests {
-    use crate::handlers::skills_verification::{ExecutionContext, SkillPayload, VerificationError, ParseError};
+    use crate::handlers::skills_verification::{
+        ExecutionContext, ParseError, SkillPayload, VerificationError,
+    };
 
     #[test]
     fn test_skills_2_0_payload_end_to_end_valid() {
@@ -62,7 +64,10 @@ mod integration_tests {
         ctx.depth = 6;
         let result = ctx.verify();
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), VerificationError::DepthExceeded));
+        assert!(matches!(
+            result.unwrap_err(),
+            VerificationError::DepthExceeded
+        ));
     }
 
     #[test]
@@ -91,7 +96,10 @@ mod integration_tests {
         ctx.tokens_consumed = 51;
         let result = ctx.verify();
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), VerificationError::BudgetExceeded));
+        assert!(matches!(
+            result.unwrap_err(),
+            VerificationError::BudgetExceeded
+        ));
     }
 
     #[test]
@@ -148,7 +156,7 @@ mod integration_tests {
         ctx_b.depth = 10;
 
         assert!(ctx_a.verify().is_err()); // Skill A: depth 10 > max 5
-        assert!(ctx_b.verify().is_ok());  // Skill B: depth 10 <= max 20
+        assert!(ctx_b.verify().is_ok()); // Skill B: depth 10 <= max 20
     }
 
     #[test]

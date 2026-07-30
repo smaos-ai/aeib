@@ -51,26 +51,106 @@ impl NistControlMapper {
     pub fn seed_from_axiom() -> Self {
         let mut m = Self::new();
         let seeds: &[(&str, &str, &str)] = &[
-            ("AC-2",  "NIST SP 800-53 Rev5 AC-2",  "siss-gatekeeper/src/policy.rs"),
-            ("AT-1",  "NIST SP 800-53 Rev5 AT-1",  "docs/training/awareness.md"),
-            ("AU-2",  "NIST SP 800-53 Rev5 AU-2",  "siss-audit-archiver/src/lib.rs"),
-            ("CA-7",  "NIST SP 800-53 Rev5 CA-7",  "siss-compliance/src/eu_ai_act.rs"),
-            ("CM-6",  "NIST SP 800-53 Rev5 CM-6",  "siss-os-sidecar/src/config.rs"),
-            ("CP-9",  "NIST SP 800-53 Rev5 CP-9",  "siss-decision-db/src/backup.rs"),
-            ("IA-2",  "NIST SP 800-53 Rev5 IA-2",  "siss-enclave/src/identity.rs"),
-            ("IR-4",  "NIST SP 800-53 Rev5 IR-4",  "siss-behavioral-firewall/src/lib.rs"),
-            ("MA-2",  "NIST SP 800-53 Rev5 MA-2",  "docs/ops/maintenance.md"),
-            ("MP-5",  "NIST SP 800-53 Rev5 MP-5",  "siss-enclave/src/media.rs"),
-            ("PE-3",  "NIST SP 800-53 Rev5 PE-3",  "docs/physical/access_control.md"),
-            ("PL-2",  "NIST SP 800-53 Rev5 PL-2",  "docs/architecture/security_plan.md"),
-            ("PM-1",  "NIST SP 800-53 Rev5 PM-1",  "docs/program/info_security.md"),
-            ("PS-3",  "NIST SP 800-53 Rev5 PS-3",  "docs/hr/personnel_screening.md"),
-            ("PT-2",  "NIST SP 800-53 Rev5 PT-2",  "siss-compliance/src/consent.rs"),
-            ("RA-5",  "NIST SP 800-53 Rev5 RA-5",  "siss-security-hardening/src/vuln_scan.rs"),
-            ("SA-11", "NIST SP 800-53 Rev5 SA-11", "docs/dev/code_review.md"),
-            ("SC-8",  "NIST SP 800-53 Rev5 SC-8",  "siss-enclave/src/tls.rs"),
-            ("SI-3",  "NIST SP 800-53 Rev5 SI-3",  "siss-behavioral-firewall/src/malware.rs"),
-            ("SR-3",  "NIST SP 800-53 Rev5 SR-3",  "docs/supply_chain/vendor_policy.md"),
+            (
+                "AC-2",
+                "NIST SP 800-53 Rev5 AC-2",
+                "siss-gatekeeper/src/policy.rs",
+            ),
+            (
+                "AT-1",
+                "NIST SP 800-53 Rev5 AT-1",
+                "docs/training/awareness.md",
+            ),
+            (
+                "AU-2",
+                "NIST SP 800-53 Rev5 AU-2",
+                "siss-audit-archiver/src/lib.rs",
+            ),
+            (
+                "CA-7",
+                "NIST SP 800-53 Rev5 CA-7",
+                "siss-compliance/src/eu_ai_act.rs",
+            ),
+            (
+                "CM-6",
+                "NIST SP 800-53 Rev5 CM-6",
+                "siss-os-sidecar/src/config.rs",
+            ),
+            (
+                "CP-9",
+                "NIST SP 800-53 Rev5 CP-9",
+                "siss-decision-db/src/backup.rs",
+            ),
+            (
+                "IA-2",
+                "NIST SP 800-53 Rev5 IA-2",
+                "siss-enclave/src/identity.rs",
+            ),
+            (
+                "IR-4",
+                "NIST SP 800-53 Rev5 IR-4",
+                "siss-behavioral-firewall/src/lib.rs",
+            ),
+            (
+                "MA-2",
+                "NIST SP 800-53 Rev5 MA-2",
+                "docs/ops/maintenance.md",
+            ),
+            (
+                "MP-5",
+                "NIST SP 800-53 Rev5 MP-5",
+                "siss-enclave/src/media.rs",
+            ),
+            (
+                "PE-3",
+                "NIST SP 800-53 Rev5 PE-3",
+                "docs/physical/access_control.md",
+            ),
+            (
+                "PL-2",
+                "NIST SP 800-53 Rev5 PL-2",
+                "docs/architecture/security_plan.md",
+            ),
+            (
+                "PM-1",
+                "NIST SP 800-53 Rev5 PM-1",
+                "docs/program/info_security.md",
+            ),
+            (
+                "PS-3",
+                "NIST SP 800-53 Rev5 PS-3",
+                "docs/hr/personnel_screening.md",
+            ),
+            (
+                "PT-2",
+                "NIST SP 800-53 Rev5 PT-2",
+                "siss-compliance/src/consent.rs",
+            ),
+            (
+                "RA-5",
+                "NIST SP 800-53 Rev5 RA-5",
+                "siss-security-hardening/src/vuln_scan.rs",
+            ),
+            (
+                "SA-11",
+                "NIST SP 800-53 Rev5 SA-11",
+                "docs/dev/code_review.md",
+            ),
+            (
+                "SC-8",
+                "NIST SP 800-53 Rev5 SC-8",
+                "siss-enclave/src/tls.rs",
+            ),
+            (
+                "SI-3",
+                "NIST SP 800-53 Rev5 SI-3",
+                "siss-behavioral-firewall/src/malware.rs",
+            ),
+            (
+                "SR-3",
+                "NIST SP 800-53 Rev5 SR-3",
+                "docs/supply_chain/vendor_policy.md",
+            ),
         ];
         for (id, standard, imp) in seeds {
             m.controls.insert(

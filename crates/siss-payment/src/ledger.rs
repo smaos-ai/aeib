@@ -1,8 +1,8 @@
+use dashmap::DashMap;
+use parking_lot::RwLock;
 use sha2::{Digest, Sha256};
 use std::sync::Arc;
 use uuid::Uuid;
-use dashmap::DashMap;
-use parking_lot::RwLock;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Settlement {
@@ -82,9 +82,7 @@ impl AP2Ledger {
     pub fn get_creator_balance(&self, creator_id: Uuid) -> i64 {
         self.settlements
             .get(&creator_id)
-            .map(|settlements| {
-                settlements.iter().map(|s| s.creator_payout_cents).sum()
-            })
+            .map(|settlements| settlements.iter().map(|s| s.creator_payout_cents).sum())
             .unwrap_or(0)
     }
 
@@ -201,7 +199,11 @@ mod tests {
         let start = std::time::Instant::now();
         ledger.settle(creator_id, 10000);
         let single_elapsed = start.elapsed();
-        assert!(single_elapsed.as_millis() < 50, "Single settlement: {:?}", single_elapsed);
+        assert!(
+            single_elapsed.as_millis() < 50,
+            "Single settlement: {:?}",
+            single_elapsed
+        );
 
         // Test batch of 100 is reasonable (should be <1s)
         let start = std::time::Instant::now();
@@ -209,7 +211,11 @@ mod tests {
             ledger.settle(creator_id, 10000 + i);
         }
         let batch_elapsed = start.elapsed();
-        assert!(batch_elapsed.as_secs() < 2, "Batch of 100: {:?}", batch_elapsed);
+        assert!(
+            batch_elapsed.as_secs() < 2,
+            "Batch of 100: {:?}",
+            batch_elapsed
+        );
     }
 
     #[test]
@@ -219,7 +225,10 @@ mod tests {
         let settlement = ledger.settle(creator_id, 10000);
 
         assert_eq!(settlement.platform_fee_cents, 100, "Platform should get 1%");
-        assert_eq!(settlement.creator_payout_cents, 9900, "Creator should get 99%");
+        assert_eq!(
+            settlement.creator_payout_cents, 9900,
+            "Creator should get 99%"
+        );
         assert_eq!(settlement.amount_cents, 10000, "Total should be input");
     }
 
@@ -230,7 +239,10 @@ mod tests {
 
         // Small amount: $0.50 should give platform $0.01 (ceiling)
         let settlement = ledger.settle(creator_id, 50);
-        assert!(settlement.platform_fee_cents >= 1, "Platform must get at least 1 cent");
+        assert!(
+            settlement.platform_fee_cents >= 1,
+            "Platform must get at least 1 cent"
+        );
     }
 
     #[test]
@@ -242,7 +254,13 @@ mod tests {
         let settlement = ledger.settle(creator_id, amount);
 
         let total = settlement.platform_fee_cents + settlement.creator_payout_cents;
-        assert_eq!(total, amount, "Sum of fee + payout must equal original amount");
-        assert!(settlement.creator_payout_cents >= (amount * 99) / 100, "Creator must get >=99%");
+        assert_eq!(
+            total, amount,
+            "Sum of fee + payout must equal original amount"
+        );
+        assert!(
+            settlement.creator_payout_cents >= (amount * 99) / 100,
+            "Creator must get >=99%"
+        );
     }
 }

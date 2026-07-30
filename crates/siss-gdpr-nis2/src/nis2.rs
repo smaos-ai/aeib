@@ -1,9 +1,13 @@
+use sha2::{Digest, Sha256};
 use std::time::{SystemTime, UNIX_EPOCH};
 use uuid::Uuid;
-use sha2::{Digest, Sha256};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum IncidentSeverity { Low, Significant, Critical }
+pub enum IncidentSeverity {
+    Low,
+    Significant,
+    Critical,
+}
 
 pub struct BreachNotification {
     pub incident_id: Uuid,
@@ -49,7 +53,12 @@ impl BreachNotification {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum SecurityEventType { AuthAttempt, DataAccess, ConfigChange, IncidentDetected }
+pub enum SecurityEventType {
+    AuthAttempt,
+    DataAccess,
+    ConfigChange,
+    IncidentDetected,
+}
 
 #[derive(Debug, Clone)]
 pub struct SecurityAuditEvent {
@@ -66,7 +75,10 @@ pub struct SecurityAuditLogger {
 
 impl SecurityAuditLogger {
     pub fn new() -> Self {
-        Self { events: Vec::new(), merkle_root: String::new() }
+        Self {
+            events: Vec::new(),
+            merkle_root: String::new(),
+        }
     }
 
     pub fn log_event(&mut self, event: SecurityAuditEvent) {

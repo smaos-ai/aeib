@@ -12,7 +12,10 @@ async fn test_health_check_endpoint_returns_200() {
         health_response.status, "healthy",
         "Health check should return healthy status"
     );
-    assert_eq!(health_response.http_code, 200, "Health check should return 200");
+    assert_eq!(
+        health_response.http_code, 200,
+        "Health check should return 200"
+    );
 }
 
 // Test 2: Graceful shutdown (SIGTERM → drain in-flight txns, close DB)
@@ -34,7 +37,10 @@ async fn test_graceful_shutdown_drains_connections() {
         .await
         .expect("Graceful shutdown timed out");
 
-    assert!(result.is_ok(), "Graceful shutdown should complete successfully");
+    assert!(
+        result.is_ok(),
+        "Graceful shutdown should complete successfully"
+    );
 }
 
 // Test 3: Startup validation (verify crypto keys exist, DB connected, network reachable)
@@ -109,10 +115,7 @@ async fn test_config_validation_rejects_invalid() {
     // This test verifies invalid configs are rejected at startup
     let invalid_config = InvalidConfig::new();
     let result = validate_configuration(&invalid_config).await;
-    assert!(
-        result.is_err(),
-        "Invalid configuration should be rejected"
-    );
+    assert!(result.is_err(), "Invalid configuration should be rejected");
 }
 
 // Test 8b: Configuration validation (accept valid configs)
@@ -121,10 +124,7 @@ async fn test_config_validation_accepts_valid() {
     // This test verifies valid configs are accepted at startup
     let valid_config = ValidConfig::new();
     let result = validate_configuration_valid(&valid_config).await;
-    assert!(
-        result.is_ok(),
-        "Valid configuration should be accepted"
-    );
+    assert!(result.is_ok(), "Valid configuration should be accepted");
 }
 
 // Helper structures for tests
@@ -179,16 +179,12 @@ impl ValidConfig {
     }
 }
 
-async fn validate_configuration(
-    _config: &InvalidConfig,
-) -> Result<(), String> {
+async fn validate_configuration(_config: &InvalidConfig) -> Result<(), String> {
     // Invalid config should fail validation
     Err("Configuration is invalid".to_string())
 }
 
-async fn validate_configuration_valid(
-    _config: &ValidConfig,
-) -> Result<(), String> {
+async fn validate_configuration_valid(_config: &ValidConfig) -> Result<(), String> {
     // Valid config should pass validation
     Ok(())
 }

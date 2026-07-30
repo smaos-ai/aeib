@@ -27,14 +27,16 @@ fn main() {
     let subject_id = uuid::Uuid::new_v4();
 
     // Baseline: all values near 100 (essentially no variance, std ≈ 0.1)
-    let baseline_values = vec![100.0, 100.0, 100.0, 100.0, 100.0,
-                              100.0, 100.0, 100.0, 100.0, 100.0,
-                              100.0, 100.0, 100.0, 100.0, 100.0];
+    let baseline_values = vec![
+        100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0,
+        100.0, 100.0,
+    ];
 
     // Intervention: shift by +0.1 to match predicted_effect (0.1 minimum when std≈0)
-    let intervention_values = vec![100.1, 100.1, 100.1, 100.1, 100.1,
-                                  100.1, 100.1, 100.1, 100.1, 100.1,
-                                  100.1, 100.1, 100.1, 100.1, 100.1];
+    let intervention_values = vec![
+        100.1, 100.1, 100.1, 100.1, 100.1, 100.1, 100.1, 100.1, 100.1, 100.1, 100.1, 100.1, 100.1,
+        100.1, 100.1,
+    ];
 
     let experiment = siss_gatekeeper::pipeline::NOf1Experiment {
         subject_id,
@@ -46,8 +48,14 @@ fn main() {
     println!("📊 SYNTHETIC N-OF-1 EXPERIMENT:");
     println!("   Subject: {}", experiment.subject_id);
     println!("   Hypothesis: {}", experiment.hypothesis);
-    println!("   Baseline period: {} measurements", experiment.baseline_values.len());
-    println!("   Intervention period: {} measurements\n", experiment.intervention_values.len());
+    println!(
+        "   Baseline period: {} measurements",
+        experiment.baseline_values.len()
+    );
+    println!(
+        "   Intervention period: {} measurements\n",
+        experiment.intervention_values.len()
+    );
 
     println!("📈 BASELINE DISTRIBUTION:");
     let baseline_min = experiment
@@ -60,9 +68,12 @@ fn main() {
         .iter()
         .cloned()
         .fold(f64::NEG_INFINITY, f64::max);
-    let baseline_mean: f64 = experiment.baseline_values.iter().sum::<f64>()
-        / experiment.baseline_values.len() as f64;
-    println!("   min: {:.2}, max: {:.2}, mean: {:.2}", baseline_min, baseline_max, baseline_mean);
+    let baseline_mean: f64 =
+        experiment.baseline_values.iter().sum::<f64>() / experiment.baseline_values.len() as f64;
+    println!(
+        "   min: {:.2}, max: {:.2}, mean: {:.2}",
+        baseline_min, baseline_max, baseline_mean
+    );
 
     println!("\n📊 INTERVENTION DISTRIBUTION:");
     let intervention_min = experiment
@@ -77,7 +88,10 @@ fn main() {
         .fold(f64::NEG_INFINITY, f64::max);
     let intervention_mean: f64 = experiment.intervention_values.iter().sum::<f64>()
         / experiment.intervention_values.len() as f64;
-    println!("   min: {:.2}, max: {:.2}, mean: {:.2}", intervention_min, intervention_max, intervention_mean);
+    println!(
+        "   min: {:.2}, max: {:.2}, mean: {:.2}",
+        intervention_min, intervention_max, intervention_mean
+    );
 
     println!("\n⚙️  COMPUTING MONGE GAP...\n");
 
@@ -93,7 +107,10 @@ fn main() {
             println!("   Actual effect: {:.2}", result.actual_effect);
             println!("   Predicted effect: {:.2}", result.predicted_effect);
             println!("   Monge gap score: {:.4}", result.gap_score);
-            println!("   Breach condition (gap > 0.15): {}\n", result.breach_condition);
+            println!(
+                "   Breach condition (gap > 0.15): {}\n",
+                result.breach_condition
+            );
 
             // Summary
             if result.breach_condition {
@@ -107,8 +124,8 @@ fn main() {
             }
 
             // Serialize to JSON for audit trail
-            let result_json = serde_json::to_string_pretty(&result)
-                .expect("result must be serializable");
+            let result_json =
+                serde_json::to_string_pretty(&result).expect("result must be serializable");
             println!("📋 PROOF ARTIFACT (JSON):");
             println!("{}\n", result_json);
 

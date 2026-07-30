@@ -1,10 +1,10 @@
-pub mod tensor_ops;
-pub mod model_registry;
 pub mod inference_engine;
+pub mod model_registry;
+pub mod tensor_ops;
 
-pub use inference_engine::{InferenceEngine, InferenceModel, HardwareBackend};
-pub use tensor_ops::Tensor;
+pub use inference_engine::{HardwareBackend, InferenceEngine, InferenceModel};
 pub use model_registry::ModelMetadata;
+pub use tensor_ops::Tensor;
 
 use thiserror::Error;
 

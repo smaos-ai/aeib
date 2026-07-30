@@ -1,11 +1,11 @@
-mod veto_flow;
 mod api_server;
+mod veto_flow;
 
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-pub use veto_flow::{VetoDecision, SignedVetoDecision, EvalCourt as VetoEvalCourt};
-pub use api_server::{VetoFlowAPI, ConflictDisplay, VetoSubmission, VetoResponse};
+pub use api_server::{ConflictDisplay, VetoFlowAPI, VetoResponse, VetoSubmission};
+pub use veto_flow::{EvalCourt as VetoEvalCourt, SignedVetoDecision, VetoDecision};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum EvalVerdict {
@@ -63,7 +63,11 @@ impl EvalCourt {
         }
     }
 
-    pub fn detect_conflict<C: CapsuleData>(&self, capsule_a: &C, capsule_b: &C) -> Option<SymbolConflict> {
+    pub fn detect_conflict<C: CapsuleData>(
+        &self,
+        capsule_a: &C,
+        capsule_b: &C,
+    ) -> Option<SymbolConflict> {
         // Check for symbol intersection
         let symbols_a: std::collections::HashSet<_> = capsule_a.affected_symbols().iter().collect();
         let symbols_b: std::collections::HashSet<_> = capsule_b.affected_symbols().iter().collect();
@@ -75,8 +79,10 @@ impl EvalCourt {
 
         if !intersecting_symbols.is_empty() {
             // Check for cluster intersection
-            let clusters_a: std::collections::HashSet<_> = capsule_a.cluster_tags().iter().collect();
-            let clusters_b: std::collections::HashSet<_> = capsule_b.cluster_tags().iter().collect();
+            let clusters_a: std::collections::HashSet<_> =
+                capsule_a.cluster_tags().iter().collect();
+            let clusters_b: std::collections::HashSet<_> =
+                capsule_b.cluster_tags().iter().collect();
 
             let intersecting_clusters: Vec<String> = clusters_a
                 .intersection(&clusters_b)
@@ -203,6 +209,9 @@ mod tests {
         let court = EvalCourt::new();
         let conflict = court.detect_conflict(&capsule_a, &capsule_b);
 
-        assert!(conflict.is_none(), "Should not detect conflict for different symbols");
+        assert!(
+            conflict.is_none(),
+            "Should not detect conflict for different symbols"
+        );
     }
 }

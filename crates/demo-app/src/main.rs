@@ -1,5 +1,5 @@
+use demo_app::production::{ProductionConfig, create_production_router, startup_with_validations};
 use siss_graph_db::api::create_router;
-use demo_app::production::{ProductionConfig, startup_with_validations, create_production_router};
 use std::net::SocketAddr;
 
 #[tokio::main]
@@ -16,8 +16,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing::info!("=== Production Server Startup ===");
 
     // Load and validate configuration
-    let config = ProductionConfig::from_env()
-        .expect("Failed to load configuration");
+    let config = ProductionConfig::from_env().expect("Failed to load configuration");
 
     tracing::info!(
         "Configuration loaded: bind={}:{}, pool_size={}, timeout={}s",

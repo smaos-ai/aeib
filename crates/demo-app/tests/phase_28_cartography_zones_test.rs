@@ -1,14 +1,13 @@
+use futures::future::join_all;
+use siss_context_cartography::budget::apply_budget;
 /// Phase 28 Integration Test Suite — Context Cartography Zones
 ///
 /// TDD Red Phase: All 6 tests define acceptance criteria for the Tripartite Zonal Model
 /// (VisibleField, GrayFog, BlackFog) that governs context window visibility.
-
 use siss_context_cartography::types::MemoryEntry;
 use siss_context_cartography::zones::classify_zones;
-use siss_context_cartography::budget::apply_budget;
 use siss_graph_core::node::memory::ConsolidationTier;
 use uuid::Uuid;
-use futures::future::join_all;
 
 // ============================================================================
 // TEST UTILITIES
@@ -38,7 +37,11 @@ fn test_entries_within_budget_above_threshold_land_in_visible_field() {
 
     let map = classify_zones(entries, visible, 0.1, 1000, 100);
 
-    assert_eq!(map.visible.len(), 3, "all entries within budget and above threshold should be visible");
+    assert_eq!(
+        map.visible.len(),
+        3,
+        "all entries within budget and above threshold should be visible"
+    );
     assert_eq!(map.gray_fog.len(), 0, "no entries should be in gray fog");
     assert_eq!(map.black_fog_count, 0, "no entries should be in black fog");
 }
@@ -60,7 +63,11 @@ fn test_budget_cut_entries_land_in_gray_fog() {
     let map = classify_zones(all_entries, visible, 0.1, 1000, budget_used);
 
     assert_eq!(map.visible.len(), 2, "first 2 entries within budget");
-    assert_eq!(map.gray_fog.len(), 3, "remaining 3 entries passed confidence but cut by budget");
+    assert_eq!(
+        map.gray_fog.len(),
+        3,
+        "remaining 3 entries passed confidence but cut by budget"
+    );
     assert_eq!(map.black_fog_count, 0, "no low-confidence entries");
 }
 
@@ -85,8 +92,15 @@ fn test_below_threshold_entries_are_black_fog() {
     let map = classify_zones(all_candidates, visible, 0.1, 1000, 4);
 
     assert_eq!(map.visible.len(), 2, "high-confidence entries visible");
-    assert_eq!(map.gray_fog.len(), 0, "no budget-cut entries in this scenario");
-    assert_eq!(map.black_fog_count, 3, "low-confidence entries classified as black fog");
+    assert_eq!(
+        map.gray_fog.len(),
+        0,
+        "no budget-cut entries in this scenario"
+    );
+    assert_eq!(
+        map.black_fog_count, 3,
+        "low-confidence entries classified as black fog"
+    );
 }
 
 #[test]
@@ -139,7 +153,10 @@ fn test_black_fog_exposes_no_content() {
 
     let map = classify_zones(black_entry, visible, 0.1, 1000, 0);
 
-    assert_eq!(map.black_fog_count, 1, "1 entry below threshold counted in black fog");
+    assert_eq!(
+        map.black_fog_count, 1,
+        "1 entry below threshold counted in black fog"
+    );
     assert!(map.visible.is_empty(), "visible field empty");
     assert!(map.gray_fog.is_empty(), "gray fog empty");
 
@@ -182,7 +199,11 @@ async fn test_concurrent_zone_classification_no_cross_contamination() {
         let map = result.as_ref().unwrap();
 
         // Each task should have its own classification
-        let expected_visible = if (100 + (task_id as i64) * 50) < 200 { 1 } else { 5 };
+        let expected_visible = if (100 + (task_id as i64) * 50) < 200 {
+            1
+        } else {
+            5
+        };
         assert_eq!(
             map.visible.len(),
             expected_visible.min(5),

@@ -4,8 +4,8 @@
 #[cfg(test)]
 mod integration_tests {
     use crate::handlers::deployment_router::{
-        DeploymentRouter, PromotionToken, SneakernetIngressPayload, ActiveSSEStream,
-        DeltaNetStateSnapshot, TTFTMeasurement, DeploymentRouterError,
+        ActiveSSEStream, DeltaNetStateSnapshot, DeploymentRouter, DeploymentRouterError,
+        PromotionToken, SneakernetIngressPayload, TTFTMeasurement,
     };
 
     #[tokio::test]
@@ -44,7 +44,10 @@ mod integration_tests {
 
         // THEN: Rejects expired token (fail-closed, 403)
         assert!(result.is_err(), "Expired token should be rejected");
-        assert!(matches!(result.unwrap_err(), DeploymentRouterError::InvalidPromotionToken));
+        assert!(matches!(
+            result.unwrap_err(),
+            DeploymentRouterError::InvalidPromotionToken
+        ));
     }
 
     #[tokio::test]
@@ -83,7 +86,10 @@ mod integration_tests {
 
         // THEN: Rejects missing quorum (fail-closed, 401)
         assert!(result.is_err(), "Missing signatures must be rejected");
-        assert!(matches!(result.unwrap_err(), DeploymentRouterError::SneakernetAuthFailure));
+        assert!(matches!(
+            result.unwrap_err(),
+            DeploymentRouterError::SneakernetAuthFailure
+        ));
     }
 
     #[tokio::test]
@@ -114,13 +120,11 @@ mod integration_tests {
     #[tokio::test]
     async fn test_deltanet_cache_invalidation_prevents_contamination() {
         // GIVEN: Valid DeltaNet state snapshots ready for flush
-        let snapshots = vec![
-            DeltaNetStateSnapshot {
-                snapshot_id: "snap-clean-001".to_string(),
-                cached_tokens: 256,
-                context_hash: "hash:clean:xyz789".to_string(),
-            },
-        ];
+        let snapshots = vec![DeltaNetStateSnapshot {
+            snapshot_id: "snap-clean-001".to_string(),
+            cached_tokens: 256,
+            context_hash: "hash:clean:xyz789".to_string(),
+        }];
 
         // WHEN: Flushing DeltaNet state
         let result = DeploymentRouter::flush_deltanet_state(snapshots).await;
@@ -142,7 +146,10 @@ mod integration_tests {
         let result = DeploymentRouter::verify_ttft_baseline(measurement).await;
 
         // THEN: Should accept fast model (fails in RED, passes in GREEN)
-        assert!(result.is_ok(), "Model within TTFT baseline should be accepted");
+        assert!(
+            result.is_ok(),
+            "Model within TTFT baseline should be accepted"
+        );
     }
 
     #[tokio::test]
@@ -158,7 +165,10 @@ mod integration_tests {
         let result = DeploymentRouter::verify_ttft_baseline(measurement).await;
 
         // THEN: Should accept model at threshold (fails in RED, passes in GREEN)
-        assert!(result.is_ok(), "Model at baseline threshold should be accepted");
+        assert!(
+            result.is_ok(),
+            "Model at baseline threshold should be accepted"
+        );
     }
 
     #[tokio::test]
@@ -182,23 +192,19 @@ mod integration_tests {
         };
 
         // Stage 3: Active SSE streams to drain
-        let streams = vec![
-            ActiveSSEStream {
-                stream_id: "stream-workflow-001".to_string(),
-                client_id: "client-workflow".to_string(),
-                model_version: "v1.0".to_string(),
-                buffered_events: 2,
-            },
-        ];
+        let streams = vec![ActiveSSEStream {
+            stream_id: "stream-workflow-001".to_string(),
+            client_id: "client-workflow".to_string(),
+            model_version: "v1.0".to_string(),
+            buffered_events: 2,
+        }];
 
         // Stage 4: DeltaNet state to flush
-        let snapshots = vec![
-            DeltaNetStateSnapshot {
-                snapshot_id: "snap-workflow-001".to_string(),
-                cached_tokens: 128,
-                context_hash: "hash:workflow:abc".to_string(),
-            },
-        ];
+        let snapshots = vec![DeltaNetStateSnapshot {
+            snapshot_id: "snap-workflow-001".to_string(),
+            cached_tokens: 128,
+            context_hash: "hash:workflow:abc".to_string(),
+        }];
 
         // WHEN: Executing complete hot-swap
         let result = DeploymentRouter::hot_swap_model(token, ttft, streams, snapshots).await;
@@ -206,7 +212,10 @@ mod integration_tests {
         // THEN: Complete workflow succeeds (fails in RED, passes in GREEN)
         assert!(result.is_ok(), "Complete hot-swap workflow should succeed");
         let deployment_id = result.unwrap();
-        assert!(!deployment_id.is_empty(), "Should return deployment confirmation ID");
+        assert!(
+            !deployment_id.is_empty(),
+            "Should return deployment confirmation ID"
+        );
     }
 
     #[tokio::test]
@@ -223,6 +232,9 @@ mod integration_tests {
 
         // THEN: Triggers rollback to stable weights (fail-closed, 503)
         assert!(result.is_err(), "Degraded TTFT must trigger rollback");
-        assert!(matches!(result.unwrap_err(), DeploymentRouterError::TTFTBaselineExceeded));
+        assert!(matches!(
+            result.unwrap_err(),
+            DeploymentRouterError::TTFTBaselineExceeded
+        ));
     }
 }

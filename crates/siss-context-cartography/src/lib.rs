@@ -1,6 +1,6 @@
 pub mod budget;
-pub mod config;
 pub mod confidence_scorer;
+pub mod config;
 pub mod epistemic_gate;
 pub mod gamma_operator;
 pub mod inbound;

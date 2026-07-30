@@ -1,6 +1,6 @@
-use uuid::Uuid;
+use serde::{Deserialize, Serialize};
 use std::time::Instant;
-use serde::{Serialize, Deserialize};
+use uuid::Uuid;
 
 #[derive(Debug, Clone)]
 pub struct TraceContext {
@@ -48,12 +48,7 @@ pub struct MandateDecision {
 }
 
 impl MandateDecision {
-    pub fn new(
-        trace_id: Uuid,
-        root_span_id: Uuid,
-        agent_id: Uuid,
-        task_id: Uuid,
-    ) -> Self {
+    pub fn new(trace_id: Uuid, root_span_id: Uuid, agent_id: Uuid, task_id: Uuid) -> Self {
         MandateDecision {
             trace_id,
             root_span_id,
@@ -182,7 +177,13 @@ mod tests {
         };
 
         assert_eq!(ap2_deny.result, Decision::Deny);
-        assert!(ap2_deny.deny_reason.as_ref().unwrap().contains("blacklist_check"));
+        assert!(
+            ap2_deny
+                .deny_reason
+                .as_ref()
+                .unwrap()
+                .contains("blacklist_check")
+        );
     }
 
     #[test]
@@ -248,7 +249,13 @@ mod tests {
         });
 
         assert_eq!(decision.deny_phase, Some(Phase::ReBAC));
-        assert!(decision.deny_reason.as_ref().unwrap().contains("No relationship"));
+        assert!(
+            decision
+                .deny_reason
+                .as_ref()
+                .unwrap()
+                .contains("No relationship")
+        );
     }
 
     #[test]

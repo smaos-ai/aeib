@@ -1,19 +1,18 @@
+use chrono::Utc;
 /// Phase 45: AutoResearch & CIPO Evolution Engine
 /// 8 TDD tests covering:
 /// - Bounds Enforcement (Invariant 2): path whitelist, destructive pattern ban, anti-deletion
 /// - Judge Determinism (Invariant 4): function pointer, no side effects, deterministic score
 /// - CIPO Trace Capture (Invariant 3): Tier1 → Tier3 escalation emits trace
 /// - CIPO Distillation: failure traces → refinement signals
-
 use siss_job_router::auto_research::{
-    AutoResearchEngine, BoundsViolation, JudgeInput, JudgeScript, ProgramBounds, SandboxedExperiment,
-    TestOutcome, TestTarget,
+    AutoResearchEngine, BoundsViolation, JudgeInput, JudgeScript, ProgramBounds,
+    SandboxedExperiment, TestOutcome, TestTarget,
 };
 use siss_job_router::cipo::{CipoDistiller, CipoTrace};
 use siss_job_router::confidence_scorer::RoutingTier;
 use siss_job_router::omni_route::OmniRoute;
 use siss_job_router::routing_engine::RoutingDecision;
-use chrono::Utc;
 
 // ============================================================================
 // TEST 1: Bounds allow valid mutation
@@ -125,7 +124,8 @@ fn test_empty_content_blocked() {
         self_modification_banned: true,
     };
 
-    let result = SandboxedExperiment::validate_mutation("crates/siss-job-router/src/foo.rs", "", &bounds);
+    let result =
+        SandboxedExperiment::validate_mutation("crates/siss-job-router/src/foo.rs", "", &bounds);
 
     assert!(
         matches!(result, Err(BoundsViolation::EmptyContent)),
@@ -143,7 +143,9 @@ fn test_judge_score_deterministic() {
         input.test_outcomes.iter().filter(|t| t.passed).count() as f64 / 5.0
     }
 
-    let script = JudgeScript { score_fn: my_scorer };
+    let script = JudgeScript {
+        score_fn: my_scorer,
+    };
 
     let input = JudgeInput {
         code: "fn foo() {}".to_string(),
@@ -178,11 +180,13 @@ fn test_cipo_trace_emitted_on_slm_failure() {
 
     assert_eq!(sink.len(), 1, "should capture one trace on Tier1 failure");
     assert_eq!(
-        sink[0].tier_escalated_from, RoutingTier::Tier1RapidMLX,
+        sink[0].tier_escalated_from,
+        RoutingTier::Tier1RapidMLX,
         "escalation should be from Tier1"
     );
     assert_eq!(
-        sink[0].tier_escalated_to, RoutingTier::Tier3Opus,
+        sink[0].tier_escalated_to,
+        RoutingTier::Tier3Opus,
         "escalation should be to Tier3"
     );
     assert_eq!(sink[0].payload, "my_payload", "payload should be captured");
@@ -206,10 +210,7 @@ fn test_cipo_distiller_produces_refinement_signal() {
     let signals = CipoDistiller::distill(&traces);
 
     assert!(!signals.is_empty(), "should produce at least one signal");
-    assert!(
-        signals[0].confidence > 0.0,
-        "confidence should be positive"
-    );
+    assert!(signals[0].confidence > 0.0, "confidence should be positive");
     assert!(
         signals[0].lesson.contains("SLM failed"),
         "lesson should mention SLM failure"

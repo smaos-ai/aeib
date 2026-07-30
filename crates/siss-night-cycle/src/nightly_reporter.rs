@@ -1,12 +1,12 @@
 //! Nightly Reporter Module — Phase 31
 //! Generates and stores nightly settlement reports with 7-year retention.
 
-use chrono::{DateTime, Utc, NaiveDate, Duration};
+use chrono::{DateTime, Duration, NaiveDate, Utc};
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 
+use crate::fx_reconciliation::{Currency, FxRate, ReconciliationReport};
 use crate::settlement_batch::BatchResult;
-use crate::fx_reconciliation::{ReconciliationReport, Currency, FxRate};
 
 /// Nightly Report — immutable, 7-year retention enforced at type level
 pub struct NightlyReport {
@@ -21,19 +21,11 @@ pub struct NightlyReport {
 
 impl NightlyReport {
     /// Generate a nightly report (7-year retention auto-calculated)
-    pub fn generate(
-        date: NaiveDate,
-        batch: BatchResult,
-        fx: ReconciliationReport,
-    ) -> Self {
+    pub fn generate(date: NaiveDate, batch: BatchResult, fx: ReconciliationReport) -> Self {
         let created_at = Utc::now();
         let expires_at = created_at + Duration::days(365 * 7);
 
-        let merkle_root = compute_merkle_deterministic(
-            &batch.merkle_root,
-            &fx.audit_hash,
-            &date,
-        );
+        let merkle_root = compute_merkle_deterministic(&batch.merkle_root, &fx.audit_hash, &date);
 
         Self {
             date,
@@ -63,7 +55,11 @@ impl NightlyReport {
 }
 
 /// Deterministic merkle root computation
-fn compute_merkle_deterministic(batch_root: &[u8; 32], fx_hash: &[u8; 32], date: &NaiveDate) -> [u8; 32] {
+fn compute_merkle_deterministic(
+    batch_root: &[u8; 32],
+    fx_hash: &[u8; 32],
+    date: &NaiveDate,
+) -> [u8; 32] {
     let mut hasher = Sha256::new();
     hasher.update(batch_root);
     hasher.update(fx_hash);

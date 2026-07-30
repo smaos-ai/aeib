@@ -1,4 +1,4 @@
-use super::{NightCycleOperator, OperatorResult, OntologyState};
+use super::{NightCycleOperator, OntologyState, OperatorResult};
 use std::collections::HashMap;
 
 /// PhiOperator: Consolidation — merge duplicate entities by id, keep highest confidence

@@ -44,7 +44,11 @@ mod integration_tests {
             assert!(result.is_ok(), "Failed for task: {}", description);
 
             let Json(response) = result.unwrap();
-            assert_eq!(response.assigned_tier, expected_tier, "Task: {}", description);
+            assert_eq!(
+                response.assigned_tier, expected_tier,
+                "Task: {}",
+                description
+            );
             assert_eq!(
                 response.confidence_score, expected_confidence,
                 "Task: {}",
@@ -115,7 +119,11 @@ mod integration_tests {
             .expect("handler should succeed");
 
         // Routing latency should be < 100ms (very fast operation)
-        assert!(response.latency_ms < 100, "Latency too high: {}ms", response.latency_ms);
+        assert!(
+            response.latency_ms < 100,
+            "Latency too high: {}ms",
+            response.latency_ms
+        );
     }
 
     #[tokio::test]
@@ -127,7 +135,10 @@ mod integration_tests {
         };
 
         let result = post_route(Json(payload)).await;
-        assert!(result.is_err(), "Should reject high-confidence task with tiny budget");
+        assert!(
+            result.is_err(),
+            "Should reject high-confidence task with tiny budget"
+        );
     }
 
     #[tokio::test]

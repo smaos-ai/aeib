@@ -1,6 +1,5 @@
 /// Verification Gate: post-execution output validation for SLM responses.
 /// Detects malformed JSON and triggers cloud fallback on failure.
-
 use thiserror::Error;
 
 /// Verified output passed through the gate.

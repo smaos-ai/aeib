@@ -1,4 +1,4 @@
-use crate::types::{Currency, FxRate, FxError};
+use crate::types::{Currency, FxError, FxRate};
 use chrono::Utc;
 use serde::Deserialize;
 
@@ -60,10 +60,7 @@ impl RateProvider for EcbRateProvider {
             Currency::USD => "USD",
         };
 
-        let url = format!(
-            "https://api.exchangerate-api.com/v4/latest/{}",
-            base
-        );
+        let url = format!("https://api.exchangerate-api.com/v4/latest/{}", base);
 
         let response = self
             .client

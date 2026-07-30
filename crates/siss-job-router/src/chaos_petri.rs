@@ -1,7 +1,6 @@
 /// Chaos Petri Quarantine: Type-State RCE Failure Machine
 /// Infrastructure failures (network drops, MCP socket loss, malformed mandates) trigger
 /// deterministic state transitions without panicking or crashing the host.
-
 use std::collections::VecDeque;
 use std::marker::PhantomData;
 use uuid::Uuid;
@@ -82,9 +81,7 @@ mod tests {
     fn test_network_dropout_pauses() {
         let agent_id = Uuid::new_v4();
         let rce = RceStateMachine::new(agent_id);
-        let chaos = ChaosInjection::NetworkDropout {
-            duration_ms: 100,
-        };
+        let chaos = ChaosInjection::NetworkDropout { duration_ms: 100 };
         let paused = rce.inject_failure(chaos);
         let (running, _) = paused.resume();
         assert_eq!(running.agent_id, agent_id);
@@ -98,9 +95,7 @@ mod tests {
         rce.add_command("cmd2".to_string());
         rce.add_command("cmd3".to_string());
 
-        let chaos = ChaosInjection::NetworkDropout {
-            duration_ms: 100,
-        };
+        let chaos = ChaosInjection::NetworkDropout { duration_ms: 100 };
         let paused = rce.inject_failure(chaos);
         let (_running, drained) = paused.resume();
 

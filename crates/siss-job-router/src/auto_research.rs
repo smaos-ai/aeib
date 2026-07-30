@@ -1,6 +1,5 @@
 /// AutoResearch: autonomous optimization within hard, provably-closed guardrails.
 /// Prevents metric gaming (paperclip problem) via path whitelist, destructive pattern ban, and anti-deletion.
-
 use thiserror::Error;
 
 /// A single test outcome for scoring.
@@ -165,8 +164,11 @@ mod tests {
             self_modification_banned: true,
         };
 
-        let result =
-            SandboxedExperiment::validate_mutation("crates/siss-job-router/src/foo.rs", "fn bar() {}", &bounds);
+        let result = SandboxedExperiment::validate_mutation(
+            "crates/siss-job-router/src/foo.rs",
+            "fn bar() {}",
+            &bounds,
+        );
         assert!(result.is_ok());
     }
 
@@ -239,7 +241,11 @@ mod tests {
             self_modification_banned: true,
         };
 
-        let result = SandboxedExperiment::validate_mutation("crates/siss-job-router/src/foo.rs", "", &bounds);
+        let result = SandboxedExperiment::validate_mutation(
+            "crates/siss-job-router/src/foo.rs",
+            "",
+            &bounds,
+        );
         assert!(matches!(result, Err(BoundsViolation::EmptyContent)));
     }
 
@@ -249,7 +255,9 @@ mod tests {
             input.test_outcomes.iter().filter(|t| t.passed).count() as f64 / 5.0
         }
 
-        let script = JudgeScript { score_fn: my_scorer };
+        let script = JudgeScript {
+            score_fn: my_scorer,
+        };
 
         let input = JudgeInput {
             code: "fn foo() {}".to_string(),
@@ -273,9 +281,7 @@ mod tests {
             self_modification_banned: true,
         };
 
-        let engine = AutoResearchEngine {
-            bounds: &BOUNDS,
-        };
+        let engine = AutoResearchEngine { bounds: &BOUNDS };
 
         fn dummy_scorer(input: &JudgeInput) -> f64 {
             input.code.len() as f64 / 100.0

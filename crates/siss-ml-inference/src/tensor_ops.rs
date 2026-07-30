@@ -1,6 +1,6 @@
-use std::sync::Arc;
-use serde::{Deserialize, Serialize, Deserializer, Serializer};
 use crate::{InferenceError, Result};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 pub struct Tensor {
@@ -140,16 +140,8 @@ impl Tensor {
     }
 
     pub fn quantize_int8(&self) -> Result<Tensor> {
-        let min = self
-            .data
-            .iter()
-            .cloned()
-            .fold(f32::INFINITY, f32::min);
-        let max = self
-            .data
-            .iter()
-            .cloned()
-            .fold(f32::NEG_INFINITY, f32::max);
+        let min = self.data.iter().cloned().fold(f32::INFINITY, f32::min);
+        let max = self.data.iter().cloned().fold(f32::NEG_INFINITY, f32::max);
 
         let scale = (max - min) / 255.0;
         if scale <= 0.0 {
@@ -235,11 +227,7 @@ impl Tensor {
         }
 
         let max = self.data.iter().cloned().fold(f32::NEG_INFINITY, f32::max);
-        let exp: Vec<f32> = self
-            .data
-            .iter()
-            .map(|&x| (x - max).exp())
-            .collect();
+        let exp: Vec<f32> = self.data.iter().map(|&x| (x - max).exp()).collect();
         let sum: f32 = exp.iter().sum();
 
         let softmax_data = exp.iter().map(|&x| x / sum).collect();

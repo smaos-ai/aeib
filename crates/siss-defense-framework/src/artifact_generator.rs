@@ -1,4 +1,4 @@
-use crate::cmmc_artifacts::{ComplianceArtifacts, ArtifactFormat};
+use crate::cmmc_artifacts::{ArtifactFormat, ComplianceArtifacts};
 use std::fs;
 
 /// Generate and write compliance artifacts to disk
@@ -62,7 +62,8 @@ pub fn generate_compliance_artifacts_to_disk(output_dir: &str) -> Result<Vec<Str
 }
 
 fn generate_test_results() -> String {
-    format!(r#"
+    format!(
+        r#"
 CMMC LEVEL 2 DEFENSE FRAMEWORK - TEST RESULTS
 ==============================================
 
@@ -183,11 +184,13 @@ NEXT STEPS FOR AUDIT
 Generated: 2026-06-06
 Deadline: 2026-06-15
 Contract: €135,000 (DoD NDAA)
-"#)
+"#
+    )
 }
 
 fn generate_risk_assessment_summary() -> String {
-    format!(r#"
+    format!(
+        r#"
 CMMC LEVEL 2 RISK ASSESSMENT SUMMARY
 ====================================
 
@@ -311,7 +314,8 @@ Assessment Date: 2026-06-06
 Responsible: SISS Defense Framework Team
 Audit Body: Verifact / C3M (pending)
 Next Review: Post-deployment penetration testing
-"#)
+"#
+    )
 }
 
 #[cfg(test)]

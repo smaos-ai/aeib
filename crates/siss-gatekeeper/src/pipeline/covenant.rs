@@ -1,7 +1,7 @@
-use uuid::Uuid;
-use sqlx::PgPool;
 use crate::types::GatekeeperError;
 use siss_behavioral_firewall::covenant_firewall::{CovenantFirewall, EconomicIntent};
+use sqlx::PgPool;
+use uuid::Uuid;
 
 pub struct CapsuleCovenant {
     pub merkle_root: [u8; 32],
@@ -16,11 +16,16 @@ pub fn enforce(c: &CapsuleCovenant) -> Result<(), GatekeeperError> {
         steward_pct: c.steward_pct,
         beneficiary_pct: c.beneficiary_pct,
     };
-    CovenantFirewall::verify(&c.merkle_root, &intent, &c.covenant_signature, &c.verifying_key)
-        .map_err(|e| GatekeeperError::CovenantViolation {
-            merkle_root: hex::encode(c.merkle_root),
-            violation: e.to_string(),
-        })
+    CovenantFirewall::verify(
+        &c.merkle_root,
+        &intent,
+        &c.covenant_signature,
+        &c.verifying_key,
+    )
+    .map_err(|e| GatekeeperError::CovenantViolation {
+        merkle_root: hex::encode(c.merkle_root),
+        violation: e.to_string(),
+    })
 }
 
 /// Pipeline step: Check covenant signature against declared economic intent.

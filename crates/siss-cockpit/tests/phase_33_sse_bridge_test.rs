@@ -1,14 +1,13 @@
+use chrono::Utc;
+use siss_agent_shell::a2ui::A2UIComponent;
+use siss_agent_shell::events::{AgentEvent, HookPoint, HookResultSummary};
+use siss_behavioral_firewall::types::Verdict;
 /// Phase 33 SSE Event Bridge Test Suite
 ///
 /// Tests verify that AgentEvent instances convert correctly to CockpitEvent payloads
 /// for real-time SSE streaming to the dashboard. Covers all 14 AgentEvent variants.
-
 use siss_cockpit::event_bridge::agent_event_to_cockpit;
-use siss_agent_shell::events::{AgentEvent, HookPoint, HookResultSummary};
-use siss_agent_shell::a2ui::A2UIComponent;
 use siss_graph_core::node::execution::HardwareTarget;
-use siss_behavioral_firewall::types::Verdict;
-use chrono::Utc;
 use uuid::Uuid;
 
 // ============================================================================

@@ -1,8 +1,8 @@
-use crate::{AuditEntry, Settlement, SplitRatio, VisionError, Result, EarningsSummary};
-use uuid::Uuid;
-use std::collections::HashMap;
-use parking_lot::RwLock;
+use crate::{AuditEntry, EarningsSummary, Result, Settlement, SplitRatio, VisionError};
 use chrono::Utc;
+use parking_lot::RwLock;
+use std::collections::HashMap;
+use uuid::Uuid;
 
 pub struct RevenueRouter {
     #[allow(dead_code)]
@@ -39,19 +39,23 @@ impl RevenueRouter {
             merkle_proof: "0x_settlement_proof".to_string(),
         };
 
-        self.settlements.write().insert(settlement.decision_id, settlement.clone());
+        self.settlements
+            .write()
+            .insert(settlement.decision_id, settlement.clone());
 
         // Update earnings
         let mut earnings = self.earnings.write();
-        let summary = earnings.entry(creator_id).or_insert_with(|| EarningsSummary {
-            creator_id,
-            total_detected: 0.0,
-            creator_total: 0.0,
-            platform_total: 0.0,
-            by_platform: HashMap::new(),
-            period_start: Utc::now(),
-            period_end: Utc::now(),
-        });
+        let summary = earnings
+            .entry(creator_id)
+            .or_insert_with(|| EarningsSummary {
+                creator_id,
+                total_detected: 0.0,
+                creator_total: 0.0,
+                platform_total: 0.0,
+                by_platform: HashMap::new(),
+                period_start: Utc::now(),
+                period_end: Utc::now(),
+            });
 
         summary.total_detected += value;
         summary.creator_total += creator_payout;
@@ -60,10 +64,7 @@ impl RevenueRouter {
         Ok(settlement)
     }
 
-    pub async fn get_earnings_summary(
-        &self,
-        creator_id: Uuid,
-    ) -> Result<EarningsSummary> {
+    pub async fn get_earnings_summary(&self, creator_id: Uuid) -> Result<EarningsSummary> {
         self.earnings
             .read()
             .get(&creator_id)

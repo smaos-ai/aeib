@@ -1,19 +1,18 @@
 /// Attention Budget Enforcement: σ⁺ operator that enforces hard token caps and ϕ⁺ simplification.
 /// SLM path capped at 2048 tokens; LLM path capped at 4096 tokens.
 /// Oversize context is greedily trimmed by priority.
-
 use crate::confidence_scorer::RoutingTier;
 use thiserror::Error;
 
 pub const SLM_TOKEN_CAP: i64 = 2048;
 pub const LLM_TOKEN_CAP: i64 = 4096;
-pub const TOKENS_PER_CHAR: f64 = 0.25;   // 1 token ≈ 4 chars
+pub const TOKENS_PER_CHAR: f64 = 0.25; // 1 token ≈ 4 chars
 
 /// Local context entry (no dependency on siss-context-cartography).
 #[derive(Debug, Clone)]
 pub struct ContextEntry {
-    pub content: String,         // raw text chunk
-    pub priority: u8,            // 0 = drop first, 255 = keep last (ϕ⁺ uses this for greedy trim)
+    pub content: String, // raw text chunk
+    pub priority: u8,    // 0 = drop first, 255 = keep last (ϕ⁺ uses this for greedy trim)
 }
 
 impl ContextEntry {
@@ -74,7 +73,7 @@ impl AttentionBudgetEnforcer {
                     simplification_applied: true,
                 });
             }
-            entries.remove(0);  // drop the lowest-priority entry
+            entries.remove(0); // drop the lowest-priority entry
         }
 
         // Exhausted all entries and still over cap (only if all entries were huge)
@@ -88,7 +87,7 @@ impl AttentionBudgetEnforcer {
     pub fn cap_for_tier(tier: &RoutingTier) -> i64 {
         match tier {
             RoutingTier::Tier1RapidMLX => SLM_TOKEN_CAP,
-            _ => LLM_TOKEN_CAP,  // Tier2Sonnet and Tier3Opus both use 4096
+            _ => LLM_TOKEN_CAP, // Tier2Sonnet and Tier3Opus both use 4096
         }
     }
 }

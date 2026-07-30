@@ -7,7 +7,6 @@
 ///
 /// Status: RED phase — all tests FAIL initially (Inversion Development)
 /// Tests validate business logic, schema contracts, and state transitions.
-
 use serde_json::json;
 use uuid::Uuid;
 
@@ -18,8 +17,8 @@ use uuid::Uuid;
 /// TEST 01: RceEvent workflow_started variant exists and serializes correctly
 #[test]
 fn test_01_rce_event_workflow_started_serializes() {
-    use siss_graph_db::rce_event_broadcaster::RceEvent;
     use chrono::Utc;
+    use siss_graph_db::rce_event_broadcaster::RceEvent;
 
     let workflow_id = Uuid::new_v4();
     let event = RceEvent::WorkflowStarted {
@@ -37,8 +36,8 @@ fn test_01_rce_event_workflow_started_serializes() {
 /// TEST 02: RceEvent workflow_paused includes severity and interrupt_reason
 #[test]
 fn test_02_rce_event_workflow_paused_includes_interrupt_data() {
-    use siss_graph_db::rce_event_broadcaster::RceEvent;
     use chrono::Utc;
+    use siss_graph_db::rce_event_broadcaster::RceEvent;
 
     let workflow_id = Uuid::new_v4();
     let event = RceEvent::WorkflowPaused {
@@ -59,8 +58,8 @@ fn test_02_rce_event_workflow_paused_includes_interrupt_data() {
 /// TEST 03: RceEvent workflow_resumed includes decision field
 #[test]
 fn test_03_rce_event_workflow_resumed_includes_decision() {
-    use siss_graph_db::rce_event_broadcaster::RceEvent;
     use chrono::Utc;
+    use siss_graph_db::rce_event_broadcaster::RceEvent;
 
     let workflow_id = Uuid::new_v4();
     let event = RceEvent::WorkflowResumed {
@@ -77,8 +76,8 @@ fn test_03_rce_event_workflow_resumed_includes_decision() {
 /// TEST 04: RceEvent workflow_rejected includes reason
 #[test]
 fn test_04_rce_event_workflow_rejected_includes_reason() {
-    use siss_graph_db::rce_event_broadcaster::RceEvent;
     use chrono::Utc;
+    use siss_graph_db::rce_event_broadcaster::RceEvent;
 
     let workflow_id = Uuid::new_v4();
     let event = RceEvent::WorkflowRejected {
@@ -94,8 +93,8 @@ fn test_04_rce_event_workflow_rejected_includes_reason() {
 /// TEST 05: RceEvent workflow_completed includes total_steps
 #[test]
 fn test_05_rce_event_workflow_completed_includes_steps() {
-    use siss_graph_db::rce_event_broadcaster::RceEvent;
     use chrono::Utc;
+    use siss_graph_db::rce_event_broadcaster::RceEvent;
 
     let workflow_id = Uuid::new_v4();
     let event = RceEvent::WorkflowCompleted {
@@ -111,8 +110,8 @@ fn test_05_rce_event_workflow_completed_includes_steps() {
 /// TEST 06: RceEventBroadcaster can emit and subscribe to events
 #[tokio::test]
 async fn test_06_rce_event_broadcaster_emit_and_subscribe() {
-    use siss_graph_db::rce_event_broadcaster::{RceEvent, RceEventBroadcaster};
     use chrono::Utc;
+    use siss_graph_db::rce_event_broadcaster::{RceEvent, RceEventBroadcaster};
 
     let broadcaster = RceEventBroadcaster::new();
     let mut rx = broadcaster.subscribe();
@@ -125,12 +124,12 @@ async fn test_06_rce_event_broadcaster_emit_and_subscribe() {
 
     broadcaster.emit(event.clone());
 
-    let received = tokio::time::timeout(
-        std::time::Duration::from_millis(100),
-        rx.recv()
-    ).await;
+    let received = tokio::time::timeout(std::time::Duration::from_millis(100), rx.recv()).await;
 
-    assert!(received.is_ok(), "Broadcaster should emit event to subscribers");
+    assert!(
+        received.is_ok(),
+        "Broadcaster should emit event to subscribers"
+    );
     let received_event = received.unwrap().unwrap();
     assert_eq!(received_event.event_type(), "workflow_completed");
 }
@@ -155,7 +154,10 @@ fn test_07_decision_webhook_schema_accepts_approve() {
 
     // Validate against schema
     let result = SchemaContracts::validate_decision_webhook(&payload, "PENDING");
-    assert!(result.is_ok(), "APPROVE decision must be valid from PENDING state");
+    assert!(
+        result.is_ok(),
+        "APPROVE decision must be valid from PENDING state"
+    );
 }
 
 /// TEST 08: DecisionWebhookPayload schema validation accepts REJECT
@@ -173,7 +175,10 @@ fn test_08_decision_webhook_schema_accepts_reject() {
     };
 
     let result = SchemaContracts::validate_decision_webhook(&payload, "PENDING");
-    assert!(result.is_ok(), "REJECT decision must be valid from PENDING state");
+    assert!(
+        result.is_ok(),
+        "REJECT decision must be valid from PENDING state"
+    );
 }
 
 /// TEST 09: DecisionWebhookPayload schema validation accepts PAUSE
@@ -191,7 +196,10 @@ fn test_09_decision_webhook_schema_accepts_pause() {
     };
 
     let result = SchemaContracts::validate_decision_webhook(&payload, "PENDING");
-    assert!(result.is_ok(), "PAUSE decision must be valid from PENDING state");
+    assert!(
+        result.is_ok(),
+        "PAUSE decision must be valid from PENDING state"
+    );
 }
 
 /// TEST 10: DecisionWebhookPayload schema validation accepts MODIFY
@@ -209,7 +217,10 @@ fn test_10_decision_webhook_schema_accepts_modify() {
     };
 
     let result = SchemaContracts::validate_decision_webhook(&payload, "PENDING");
-    assert!(result.is_ok(), "MODIFY decision must be valid from PENDING state");
+    assert!(
+        result.is_ok(),
+        "MODIFY decision must be valid from PENDING state"
+    );
 }
 
 /// TEST 11: DecisionWebhookPayload rejects invalid decision variant
@@ -245,7 +256,10 @@ fn test_12_decision_webhook_schema_rejects_completed_state() {
     };
 
     let result = SchemaContracts::validate_decision_webhook(&payload, "COMPLETED");
-    assert!(result.is_err(), "Decisions must be rejected on COMPLETED state");
+    assert!(
+        result.is_err(),
+        "Decisions must be rejected on COMPLETED state"
+    );
 }
 
 // =============================================================================

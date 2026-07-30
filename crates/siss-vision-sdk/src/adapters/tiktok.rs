@@ -1,5 +1,5 @@
 use super::PlatformAdapter;
-use crate::{PlatformAuth, ActionResult, ActionStatus, ActionDefinition, Result};
+use crate::{ActionDefinition, ActionResult, ActionStatus, PlatformAuth, Result};
 use async_trait::async_trait;
 
 pub struct TiktokAdapter;
@@ -38,16 +38,14 @@ impl PlatformAdapter for TiktokAdapter {
     }
 
     async fn list_actions(&self, _platform_auth: &PlatformAuth) -> Result<Vec<ActionDefinition>> {
-        Ok(vec![
-            ActionDefinition {
-                name: "post_video".to_string(),
-                description: "Post a TikTok video".to_string(),
-                required_params: vec!["video".to_string()],
-                optional_params: vec!["caption".to_string()],
-                requires_approval: false,
-                estimated_blast_radius: 0.3,
-            },
-        ])
+        Ok(vec![ActionDefinition {
+            name: "post_video".to_string(),
+            description: "Post a TikTok video".to_string(),
+            required_params: vec!["video".to_string()],
+            optional_params: vec!["caption".to_string()],
+            requires_approval: false,
+            estimated_blast_radius: 0.3,
+        }])
     }
 
     async fn execute_action(

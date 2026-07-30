@@ -1,15 +1,15 @@
-pub mod types;
-pub mod provider;
 pub mod cache;
+pub mod provider;
 pub mod service;
+pub mod types;
 
 pub use service::FxService;
 
 #[cfg(test)]
 mod tests {
-    use crate::types::Currency;
     use crate::provider::MockProvider;
     use crate::service::FxService;
+    use crate::types::Currency;
 
     #[tokio::test]
     async fn test_fx_accurate_eur_to_usd() {

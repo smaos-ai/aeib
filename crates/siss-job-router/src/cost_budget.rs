@@ -9,10 +9,10 @@ pub struct TokenBudget {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CostMatrix {
-    pub tier1_cost_per_token: f64,      // $0 baseline
-    pub tier2_cost_per_token: f64,      // $0.003/1K
-    pub tier3_cost_per_token: f64,      // $0.015/1K
-    pub cache_hit_reduction: f64,       // Cache hit reduces cost by 90% (0.1x multiplier)
+    pub tier1_cost_per_token: f64, // $0 baseline
+    pub tier2_cost_per_token: f64, // $0.003/1K
+    pub tier3_cost_per_token: f64, // $0.015/1K
+    pub cache_hit_reduction: f64,  // Cache hit reduces cost by 90% (0.1x multiplier)
 }
 
 impl TokenBudget {
@@ -45,9 +45,9 @@ impl Default for CostMatrix {
     fn default() -> Self {
         CostMatrix {
             tier1_cost_per_token: 0.0,
-            tier2_cost_per_token: 0.000003,      // $0.003 per 1K tokens
-            tier3_cost_per_token: 0.000015,      // $0.015 per 1K tokens
-            cache_hit_reduction: 0.1,            // Cache hits reduce cost to 10% (90% savings)
+            tier2_cost_per_token: 0.000003, // $0.003 per 1K tokens
+            tier3_cost_per_token: 0.000015, // $0.015 per 1K tokens
+            cache_hit_reduction: 0.1,       // Cache hits reduce cost to 10% (90% savings)
         }
     }
 }
@@ -61,12 +61,7 @@ impl CostMatrix {
         }
     }
 
-    pub fn estimate_cost_with_cache(
-        &self,
-        tier: RoutingTier,
-        tokens: u32,
-        cache_hit: bool,
-    ) -> f64 {
+    pub fn estimate_cost_with_cache(&self, tier: RoutingTier, tokens: u32, cache_hit: bool) -> f64 {
         let base_cost = self.estimate_cost(tier, tokens);
         if cache_hit {
             base_cost * self.cache_hit_reduction
@@ -75,7 +70,12 @@ impl CostMatrix {
         }
     }
 
-    pub fn should_route_to_frontier(&self, tier: RoutingTier, tokens: u32, budget: &TokenBudget) -> bool {
+    pub fn should_route_to_frontier(
+        &self,
+        tier: RoutingTier,
+        tokens: u32,
+        budget: &TokenBudget,
+    ) -> bool {
         if !budget.has_capacity(tokens) {
             return false;
         }
@@ -84,11 +84,11 @@ impl CostMatrix {
             RoutingTier::Tier1RapidMLX => true,
             RoutingTier::Tier2Sonnet => {
                 let cost = self.estimate_cost(tier, tokens);
-                cost < 0.01  // Arbitrary threshold: < 1 cent
+                cost < 0.01 // Arbitrary threshold: < 1 cent
             }
             RoutingTier::Tier3Opus => {
                 let cost = self.estimate_cost(tier, tokens);
-                cost < 0.05  // Arbitrary threshold: < 5 cents
+                cost < 0.05 // Arbitrary threshold: < 5 cents
             }
         }
     }

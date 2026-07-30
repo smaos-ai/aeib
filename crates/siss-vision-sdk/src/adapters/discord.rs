@@ -1,5 +1,5 @@
 use super::PlatformAdapter;
-use crate::{PlatformAuth, ActionResult, ActionStatus, ActionDefinition, Result};
+use crate::{ActionDefinition, ActionResult, ActionStatus, PlatformAuth, Result};
 use async_trait::async_trait;
 
 pub struct DiscordAdapter;
@@ -38,16 +38,14 @@ impl PlatformAdapter for DiscordAdapter {
     }
 
     async fn list_actions(&self, _platform_auth: &PlatformAuth) -> Result<Vec<ActionDefinition>> {
-        Ok(vec![
-            ActionDefinition {
-                name: "send_message".to_string(),
-                description: "Send message to channel".to_string(),
-                required_params: vec!["channel_id".to_string(), "content".to_string()],
-                optional_params: vec![],
-                requires_approval: false,
-                estimated_blast_radius: 0.1,
-            },
-        ])
+        Ok(vec![ActionDefinition {
+            name: "send_message".to_string(),
+            description: "Send message to channel".to_string(),
+            required_params: vec!["channel_id".to_string(), "content".to_string()],
+            optional_params: vec![],
+            requires_approval: false,
+            estimated_blast_radius: 0.1,
+        }])
     }
 
     async fn execute_action(

@@ -1,15 +1,16 @@
-pub mod prepare;
 pub mod actor;
 pub mod orchestration;
 pub mod persistence;
+pub mod prepare;
 
-pub use prepare::{PrepareRequest, PrepareToken};
 pub use actor::{CapsuleCommitActor, CapsuleEntry};
 pub use orchestration::capsule_commit_actor::{
-    CommitmentCapsule, ClusterIntersection, MergeDecision, ActorError,
-    GitNexusCapsuleCommitActor,
+    ActorError, ClusterIntersection, CommitmentCapsule, GitNexusCapsuleCommitActor, MergeDecision,
 };
-pub use persistence::{CapsuleDB, CapsuleDBError, MultiRegionDB, Region, VectorClock, AuditLogEntry, SLAMonitor};
+pub use persistence::{
+    AuditLogEntry, CapsuleDB, CapsuleDBError, MultiRegionDB, Region, SLAMonitor, VectorClock,
+};
+pub use prepare::{PrepareRequest, PrepareToken};
 
 #[cfg(test)]
 mod tests {
@@ -36,12 +37,15 @@ mod tests {
         let req = PrepareRequest {
             capsule_id: Uuid::new_v4(),
             budget_limit: 100,
-            budget_spent: 100,  // equals limit → must reject (fail-closed)
+            budget_spent: 100, // equals limit → must reject (fail-closed)
             risk_class: 5,
         };
 
         let result = req.validate();
-        assert!(result.is_err(), "Budget exhausted must return Err (fail-closed)");
+        assert!(
+            result.is_err(),
+            "Budget exhausted must return Err (fail-closed)"
+        );
     }
 
     #[test]
@@ -58,7 +62,10 @@ mod tests {
 
         let token = req.validate().expect("Valid request");
         let commit_result = actor.commit(token);
-        assert!(commit_result.is_ok(), "Commit with valid token must succeed");
+        assert!(
+            commit_result.is_ok(),
+            "Commit with valid token must succeed"
+        );
         assert_eq!(actor.committed_count(), 1, "One commit recorded");
 
         let abort_token = req.validate().expect("Another valid request");

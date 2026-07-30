@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, Ordering};
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -35,7 +35,10 @@ impl AP2Ledger {
 
         let current = self.session_budget.load(Ordering::SeqCst);
         if amount_cents > current {
-            return Err(format!("Budget exceeded: {} cents remaining, {} cents requested", current, amount_cents));
+            return Err(format!(
+                "Budget exceeded: {} cents remaining, {} cents requested",
+                current, amount_cents
+            ));
         }
 
         let sovereign_fee = amount_usd * 0.01; // 1% to sovereign
@@ -50,7 +53,8 @@ impl AP2Ledger {
             created_at: Utc::now(),
         };
 
-        self.session_budget.fetch_sub(amount_cents, Ordering::SeqCst);
+        self.session_budget
+            .fetch_sub(amount_cents, Ordering::SeqCst);
         self.entries.write().push(entry.clone());
 
         Ok(entry)

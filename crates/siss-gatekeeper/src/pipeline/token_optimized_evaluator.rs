@@ -8,8 +8,8 @@
 //! 3. Cache miss → apply φ pruner to context → evaluate → cache result
 //! 4. Emit telemetry: token savings, hit rate, pruning effectiveness
 
-use crate::caching::{TokenCache, CacheTelemetryCollector};
-use serde::{Serialize, Deserialize};
+use crate::caching::{CacheTelemetryCollector, TokenCache};
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use uuid::Uuid;
 
@@ -35,20 +35,15 @@ impl TokenOptimizedEvaluator {
     /// Evaluate governance request with token optimization.
     ///
     /// Returns: (decision, was_cached, tokens_saved_estimate)
-    pub fn evaluate_optimized(
-        &self,
-        context_bytes: &[u8],
-    ) -> (GovernanceDecision, bool, u64) {
+    pub fn evaluate_optimized(&self, context_bytes: &[u8]) -> (GovernanceDecision, bool, u64) {
         // Step 1: Check cache
         if let Some(cached_payload) = self.cache.lookup_context(context_bytes) {
             self.telemetry.record_hit();
-            let decision: GovernanceDecision =
-                serde_json::from_slice(&cached_payload).unwrap_or_else(|_| {
-                    GovernanceDecision {
-                        id: Uuid::new_v4(),
-                        decision: "Deny".to_string(),
-                        reasons: vec!["Cache deserialization failed".to_string()],
-                    }
+            let decision: GovernanceDecision = serde_json::from_slice(&cached_payload)
+                .unwrap_or_else(|_| GovernanceDecision {
+                    id: Uuid::new_v4(),
+                    decision: "Deny".to_string(),
+                    reasons: vec!["Cache deserialization failed".to_string()],
                 });
 
             // Token savings: cached context (280 tokens) + pruning (70%) + output (120 tokens)

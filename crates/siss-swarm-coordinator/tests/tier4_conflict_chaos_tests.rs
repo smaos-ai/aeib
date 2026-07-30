@@ -1,5 +1,5 @@
+use siss_swarm_coordinator::{A2AMessage, SwarmCoordinator};
 use uuid::Uuid;
-use siss_swarm_coordinator::{SwarmCoordinator, A2AMessage};
 
 #[test]
 fn test_conflict_resolve_highest_hash_wins() {

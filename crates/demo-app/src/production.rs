@@ -1,18 +1,12 @@
 // Production Readiness Module
 // Implements all 8 checklist items for production deployment
 
-use axum::{
-    extract::State,
-    http::StatusCode,
-    response::IntoResponse,
-    routing::get,
-    Json, Router,
-};
+use axum::{Json, Router, extract::State, http::StatusCode, response::IntoResponse, routing::get};
 use sqlx::PgPool;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::RwLock;
-use tracing::{info, error};
+use tracing::{error, info};
 
 // 1. Health Check Response
 #[derive(Debug, Clone, serde::Serialize)]
@@ -67,11 +61,10 @@ pub struct ProductionConfig {
 
 impl ProductionConfig {
     pub fn from_env() -> Result<Self, ConfigError> {
-        let database_url = std::env::var("DATABASE_URL")
-            .map_err(|_| ConfigError::MissingDatabaseUrl)?;
+        let database_url =
+            std::env::var("DATABASE_URL").map_err(|_| ConfigError::MissingDatabaseUrl)?;
 
-        let bind_address = std::env::var("BIND_ADDRESS")
-            .unwrap_or_else(|_| "0.0.0.0".to_string());
+        let bind_address = std::env::var("BIND_ADDRESS").unwrap_or_else(|_| "0.0.0.0".to_string());
 
         let bind_port = std::env::var("BIND_PORT")
             .ok()
@@ -294,19 +287,19 @@ pub async fn startup_with_validations(
     let pool = create_database_pool(config).await?;
 
     // 3. Startup validation - verify database connectivity
-    validate_database_connection(&pool)
-        .await
-        .map_err(|e| Box::new(std::io::Error::new(std::io::ErrorKind::Other, e)) as Box<dyn std::error::Error>)?;
+    validate_database_connection(&pool).await.map_err(|e| {
+        Box::new(std::io::Error::new(std::io::ErrorKind::Other, e)) as Box<dyn std::error::Error>
+    })?;
 
     // 1. Startup validation - verify crypto keys
-    validate_crypto_keys()
-        .await
-        .map_err(|e| Box::new(std::io::Error::new(std::io::ErrorKind::Other, e)) as Box<dyn std::error::Error>)?;
+    validate_crypto_keys().await.map_err(|e| {
+        Box::new(std::io::Error::new(std::io::ErrorKind::Other, e)) as Box<dyn std::error::Error>
+    })?;
 
     // 1. Startup validation - verify network
-    validate_network_reachability()
-        .await
-        .map_err(|e| Box::new(std::io::Error::new(std::io::ErrorKind::Other, e)) as Box<dyn std::error::Error>)?;
+    validate_network_reachability().await.map_err(|e| {
+        Box::new(std::io::Error::new(std::io::ErrorKind::Other, e)) as Box<dyn std::error::Error>
+    })?;
 
     // 6. Error handling - setup panic handler
     setup_panic_handler();
@@ -314,9 +307,9 @@ pub async fn startup_with_validations(
     let state = Arc::new(AppState::new(pool));
 
     // 2. Graceful shutdown - setup signal handler
-    setup_graceful_shutdown(state.clone())
-        .await
-        .map_err(|e| Box::new(std::io::Error::new(std::io::ErrorKind::Other, e)) as Box<dyn std::error::Error>)?;
+    setup_graceful_shutdown(state.clone()).await.map_err(|e| {
+        Box::new(std::io::Error::new(std::io::ErrorKind::Other, e)) as Box<dyn std::error::Error>
+    })?;
 
     info!("All production validations completed successfully");
     Ok((state.pool.clone(), state))
@@ -345,9 +338,7 @@ fn validate_config(config: &ProductionConfig) -> Result<(), Box<dyn std::error::
     Ok(())
 }
 
-async fn create_database_pool(
-    config: &ProductionConfig,
-) -> Result<PgPool, sqlx::Error> {
+async fn create_database_pool(config: &ProductionConfig) -> Result<PgPool, sqlx::Error> {
     use sqlx::postgres::PgPoolOptions;
 
     info!(

@@ -1,4 +1,4 @@
-use siss_orchestrator::{ExecutionLatency, BottleneckType, CentralMonitoringOracle};
+use siss_orchestrator::{BottleneckType, CentralMonitoringOracle, ExecutionLatency};
 use uuid::Uuid;
 
 #[test]
@@ -27,7 +27,10 @@ fn test_phase_3_3_single_slow_agent_diagnosis() {
     let diagnosis = cmo.detect_bottleneck();
     assert!(diagnosis.is_some());
     let diag = diagnosis.unwrap();
-    assert!(matches!(diag.bottleneck_type, BottleneckType::SingleAgentSlow { .. }));
+    assert!(matches!(
+        diag.bottleneck_type,
+        BottleneckType::SingleAgentSlow { .. }
+    ));
     assert!(diag.confidence >= 0.9);
     assert!(diag.affected_agents.len() == 1);
 }
@@ -48,7 +51,10 @@ fn test_phase_3_3_cluster_congestion_diagnosis() {
     let diagnosis = cmo.detect_bottleneck();
     assert!(diagnosis.is_some());
     let diag = diagnosis.unwrap();
-    assert!(matches!(diag.bottleneck_type, BottleneckType::ClusterCongestion { .. }));
+    assert!(matches!(
+        diag.bottleneck_type,
+        BottleneckType::ClusterCongestion { .. }
+    ));
     assert!(diag.affected_agents.len() >= 2);
 }
 
@@ -95,7 +101,11 @@ fn test_phase_3_3_binary_search_depth_logarithmic_bound() {
     let diagnosis = cmo.detect_bottleneck();
     assert!(diagnosis.is_some());
     let diag = diagnosis.unwrap();
-    assert!(diag.binary_search_depth <= 9, "Binary search depth should be O(log n), got {}", diag.binary_search_depth);
+    assert!(
+        diag.binary_search_depth <= 9,
+        "Binary search depth should be O(log n), got {}",
+        diag.binary_search_depth
+    );
 }
 
 #[test]
@@ -151,7 +161,10 @@ fn test_phase_3_3_confidence_single_vs_cluster() {
     });
 
     let diag1 = cmo1.detect_bottleneck().unwrap();
-    assert_eq!(diag1.confidence, 0.95, "Single slow agent should have high confidence");
+    assert_eq!(
+        diag1.confidence, 0.95,
+        "Single slow agent should have high confidence"
+    );
 
     let mut cmo2 = CentralMonitoringOracle::new(3);
     for agent in &[agent1, agent2, agent3] {
@@ -163,7 +176,10 @@ fn test_phase_3_3_confidence_single_vs_cluster() {
     }
 
     let diag2 = cmo2.detect_bottleneck().unwrap();
-    assert_eq!(diag2.confidence, 0.85, "Cluster congestion should have lower confidence");
+    assert_eq!(
+        diag2.confidence, 0.85,
+        "Cluster congestion should have lower confidence"
+    );
 }
 
 #[test]
@@ -237,5 +253,8 @@ fn test_phase_3_3_anomaly_detection_threshold() {
     });
 
     let diagnosis = cmo.detect_bottleneck();
-    assert!(diagnosis.is_some(), "Should detect anomaly when latency exceeds threshold");
+    assert!(
+        diagnosis.is_some(),
+        "Should detect anomaly when latency exceeds threshold"
+    );
 }

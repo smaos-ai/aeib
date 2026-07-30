@@ -126,12 +126,8 @@ impl AuthorizationPipeline {
         decisions.insert("temporal".into(), "PASSED".into());
 
         let approval_timestamp = SystemTime::now();
-        let merkle_root = compute_merkle_root(
-            req.task_id,
-            req.actor,
-            &decisions,
-            approval_timestamp,
-        );
+        let merkle_root =
+            compute_merkle_root(req.task_id, req.actor, &decisions, approval_timestamp);
 
         Ok(AuthorizationProof {
             task_id: req.task_id,
@@ -198,13 +194,13 @@ impl AuthorizationPipeline {
     fn check_temporal(&self, actor: Uuid, _action: PolicyAction) -> Result<(), GatekeeperError> {
         let now = chrono::Utc::now();
         // Check rate limit: 60 requests per 60 seconds
-        self.temporal_guard
-            .check_rate_limit(actor)
-            .map_err(|e| GatekeeperError::TemporalViolation(format!("Rate limit exceeded: {}", e)))?;
+        self.temporal_guard.check_rate_limit(actor).map_err(|e| {
+            GatekeeperError::TemporalViolation(format!("Rate limit exceeded: {}", e))
+        })?;
         // Check time window: UTC only, no blackout dates configured in genesis
-        self.temporal_guard
-            .check_time_window(now)
-            .map_err(|e| GatekeeperError::TemporalViolation(format!("Time window check failed: {}", e)))?;
+        self.temporal_guard.check_time_window(now).map_err(|e| {
+            GatekeeperError::TemporalViolation(format!("Time window check failed: {}", e))
+        })?;
         Ok(())
     }
 }

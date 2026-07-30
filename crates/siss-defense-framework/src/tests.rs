@@ -1,23 +1,51 @@
 #[cfg(test)]
 mod stream8_itar_ear {
-    use crate::{ClassificationLevel, CountryDenyList, DefenseExportControl, EarCategory, ItarCategory};
+    use crate::{
+        ClassificationLevel, CountryDenyList, DefenseExportControl, EarCategory, ItarCategory,
+    };
 
     #[test]
     fn test_ear_category_defined() {
-        let cats = [EarCategory::Cat0, EarCategory::Cat1, EarCategory::Cat2, EarCategory::Cat3,
-                    EarCategory::Cat4, EarCategory::Cat5, EarCategory::Cat6, EarCategory::Cat7,
-                    EarCategory::Cat8, EarCategory::Cat9];
+        let cats = [
+            EarCategory::Cat0,
+            EarCategory::Cat1,
+            EarCategory::Cat2,
+            EarCategory::Cat3,
+            EarCategory::Cat4,
+            EarCategory::Cat5,
+            EarCategory::Cat6,
+            EarCategory::Cat7,
+            EarCategory::Cat8,
+            EarCategory::Cat9,
+        ];
         assert_eq!(cats.len(), 10);
     }
 
     #[test]
     fn test_itar_category_defined() {
-        let cats = [ItarCategory::I, ItarCategory::II, ItarCategory::III, ItarCategory::IV,
-                    ItarCategory::V, ItarCategory::VI, ItarCategory::VII, ItarCategory::VIII,
-                    ItarCategory::IX, ItarCategory::X, ItarCategory::XI, ItarCategory::XII,
-                    ItarCategory::XIII, ItarCategory::XIV, ItarCategory::XV, ItarCategory::XVI,
-                    ItarCategory::XVII, ItarCategory::XVIII, ItarCategory::XIX, ItarCategory::XX,
-                    ItarCategory::XXI];
+        let cats = [
+            ItarCategory::I,
+            ItarCategory::II,
+            ItarCategory::III,
+            ItarCategory::IV,
+            ItarCategory::V,
+            ItarCategory::VI,
+            ItarCategory::VII,
+            ItarCategory::VIII,
+            ItarCategory::IX,
+            ItarCategory::X,
+            ItarCategory::XI,
+            ItarCategory::XII,
+            ItarCategory::XIII,
+            ItarCategory::XIV,
+            ItarCategory::XV,
+            ItarCategory::XVI,
+            ItarCategory::XVII,
+            ItarCategory::XVIII,
+            ItarCategory::XIX,
+            ItarCategory::XX,
+            ItarCategory::XXI,
+        ];
         assert_eq!(cats.len(), 21);
     }
 

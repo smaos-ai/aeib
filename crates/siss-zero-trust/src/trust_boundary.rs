@@ -1,7 +1,7 @@
+use parking_lot::RwLock;
 use std::collections::HashMap;
 use std::sync::Arc;
 use thiserror::Error;
-use parking_lot::RwLock;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum AccessDecision {

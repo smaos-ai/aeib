@@ -69,10 +69,7 @@ impl PilotEnvironment {
     /// Create Biotech pilot environment: 2-node cluster, 20 agents, 500 hypotheses
     pub fn new_biotech() -> Self {
         Self {
-            id: format!(
-                "biotech-{}",
-                Uuid::new_v4().to_string()[0..8].to_string()
-            ),
+            id: format!("biotech-{}", Uuid::new_v4().to_string()[0..8].to_string()),
             customer: CustomerProfile::Biotech,
             num_agents: 20,
             num_nodes: 2,
@@ -87,10 +84,7 @@ impl PilotEnvironment {
     /// Create Manufacturing pilot environment: 2-node cluster, 15 agents, 1000 orders
     pub fn new_manufacturing() -> Self {
         Self {
-            id: format!(
-                "mfg-{}",
-                Uuid::new_v4().to_string()[0..8].to_string()
-            ),
+            id: format!("mfg-{}", Uuid::new_v4().to_string()[0..8].to_string()),
             customer: CustomerProfile::Manufacturing,
             num_agents: 15,
             num_nodes: 2,

@@ -2,13 +2,13 @@
 // TDD: All 15 tests written failing first, then implemented
 
 use siss_capsule::{
-    determinism::{DeterministicExecutor, CacheStats},
-    fallback::{RuleBasedFallback, FallbackAction},
-    types::ExecutionContext,
     ContextIsolation,
+    determinism::{CacheStats, DeterministicExecutor},
+    fallback::{FallbackAction, RuleBasedFallback},
+    types::ExecutionContext,
 };
-use uuid::Uuid;
 use std::time::Duration;
+use uuid::Uuid;
 
 // ============================================================================
 // TIER A: Prompt Caching (5 tests)
@@ -148,12 +148,8 @@ fn test_determinism_caching_integration() {
     let executor = DeterministicExecutor::new();
     let system_prompt = "You are deterministic";
 
-    let hash1 = executor
-        .cache_prompt(system_prompt)
-        .expect("first cache");
-    let cached1 = executor
-        .get_cached_prompt(&hash1)
-        .expect("first retrieval");
+    let hash1 = executor.cache_prompt(system_prompt).expect("first cache");
+    let cached1 = executor.get_cached_prompt(&hash1).expect("first retrieval");
 
     assert_eq!(cached1.content, system_prompt);
     assert!(cached1.hit_count >= 0);
@@ -165,11 +161,7 @@ fn test_determinism_fallback_integration() {
     let fallback = RuleBasedFallback::new();
 
     executor.cache_prompt("prompt").expect("cache");
-    fallback.add_rule(
-        "error".to_string(),
-        FallbackAction::FailClosed,
-        1,
-    );
+    fallback.add_rule("error".to_string(), FallbackAction::FailClosed, 1);
 
     assert_eq!(executor.cache_stats().total_hits, 0);
     assert_eq!(fallback.rule_count(), 1);

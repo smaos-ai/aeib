@@ -1,15 +1,11 @@
 /// Phase 26 Task 1: Axum Router Endpoint
 /// POST /api/router/route — Accept task_description, return tier routing decision + SSE metrics
-
-use axum::{
-    http::StatusCode,
-    Json,
-};
+use axum::{Json, http::StatusCode};
 use serde::{Deserialize, Serialize};
-use std::time::Instant;
 use siss_job_router::confidence_scorer::SimpleScorer;
-use siss_job_router::routing_engine::RoutingEngine;
 use siss_job_router::cost_budget::CostMatrix;
+use siss_job_router::routing_engine::RoutingEngine;
+use std::time::Instant;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RouteRequest {

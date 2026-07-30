@@ -2,10 +2,8 @@
 // TDD: All 20 tests written failing first, then implemented module-by-module
 
 use siss_capsule::{
-    signing::StateMutationSigner,
-    state_log::SignedStateLog,
+    ContextIsolation, signing::StateMutationSigner, state_log::SignedStateLog,
     types::ExecutionContext,
-    ContextIsolation,
 };
 use uuid::Uuid;
 
@@ -116,9 +114,7 @@ fn test_log_first_entry_genesis() {
         .sign_mutation("key_a", "value_b", context_id)
         .expect("sign_mutation should succeed");
 
-    let entry = log
-        .append(mutation)
-        .expect("append should succeed");
+    let entry = log.append(mutation).expect("append should succeed");
 
     assert_eq!(entry.parent_hash, [0u8; 32]);
     assert_eq!(entry.seq, 0);
@@ -133,23 +129,17 @@ fn test_log_chain_linkage() {
     let mutation1 = signer
         .sign_mutation("key_1", "value_1", context_id)
         .expect("sign_mutation should succeed");
-    let entry1 = log
-        .append(mutation1)
-        .expect("append should succeed");
+    let entry1 = log.append(mutation1).expect("append should succeed");
 
     let mutation2 = signer
         .sign_mutation("key_2", "value_2", context_id)
         .expect("sign_mutation should succeed");
-    let entry2 = log
-        .append(mutation2)
-        .expect("append should succeed");
+    let entry2 = log.append(mutation2).expect("append should succeed");
 
     let mutation3 = signer
         .sign_mutation("key_3", "value_3", context_id)
         .expect("sign_mutation should succeed");
-    let entry3 = log
-        .append(mutation3)
-        .expect("append should succeed");
+    let entry3 = log.append(mutation3).expect("append should succeed");
 
     // Verify chain linkage
     assert_eq!(entry1.parent_hash, [0u8; 32]);
@@ -166,14 +156,12 @@ fn test_log_tamper_detection() {
     let mutation1 = signer
         .sign_mutation("key_1", "value_1", context_id)
         .expect("sign_mutation should succeed");
-    log.append(mutation1)
-        .expect("append should succeed");
+    log.append(mutation1).expect("append should succeed");
 
     let mutation2 = signer
         .sign_mutation("key_2", "value_2", context_id)
         .expect("sign_mutation should succeed");
-    log.append(mutation2)
-        .expect("append should succeed");
+    log.append(mutation2).expect("append should succeed");
 
     // Verify chain is intact before tampering
     assert!(log.verify_chain());
@@ -232,23 +220,17 @@ fn test_log_append_increments_seq() {
     let mutation1 = signer
         .sign_mutation("key_1", "value_1", context_id)
         .expect("sign_mutation should succeed");
-    let entry1 = log
-        .append(mutation1)
-        .expect("append should succeed");
+    let entry1 = log.append(mutation1).expect("append should succeed");
 
     let mutation2 = signer
         .sign_mutation("key_2", "value_2", context_id)
         .expect("sign_mutation should succeed");
-    let entry2 = log
-        .append(mutation2)
-        .expect("append should succeed");
+    let entry2 = log.append(mutation2).expect("append should succeed");
 
     let mutation3 = signer
         .sign_mutation("key_3", "value_3", context_id)
         .expect("sign_mutation should succeed");
-    let entry3 = log
-        .append(mutation3)
-        .expect("append should succeed");
+    let entry3 = log.append(mutation3).expect("append should succeed");
 
     assert_eq!(entry1.seq, 0);
     assert_eq!(entry2.seq, 1);
@@ -274,8 +256,7 @@ fn test_log_len_matches_entries() {
         let mutation = signer
             .sign_mutation(&key, &value, context_id)
             .expect("sign should succeed");
-        log.append(mutation)
-            .expect("append should succeed");
+        log.append(mutation).expect("append should succeed");
     }
 
     assert_eq!(log.len(), 5);
@@ -288,7 +269,10 @@ fn test_log_len_matches_entries() {
 
 #[test]
 fn test_context_mutation_signed() {
-    let context = ExecutionContext::new("test_sovereign".to_string(), ContextIsolation::SovereignIsolation);
+    let context = ExecutionContext::new(
+        "test_sovereign".to_string(),
+        ContextIsolation::SovereignIsolation,
+    );
 
     context
         .record_state_mutation("key_a".to_string(), "value_b".to_string())
@@ -299,7 +283,10 @@ fn test_context_mutation_signed() {
 
 #[test]
 fn test_context_chain_verifiable() {
-    let context = ExecutionContext::new("test_sovereign".to_string(), ContextIsolation::SovereignIsolation);
+    let context = ExecutionContext::new(
+        "test_sovereign".to_string(),
+        ContextIsolation::SovereignIsolation,
+    );
 
     context
         .record_state_mutation("key_1".to_string(), "value_1".to_string())
@@ -316,7 +303,10 @@ fn test_context_chain_verifiable() {
 
 #[test]
 fn test_context_merkle_root_changes() {
-    let context = ExecutionContext::new("test_sovereign".to_string(), ContextIsolation::SovereignIsolation);
+    let context = ExecutionContext::new(
+        "test_sovereign".to_string(),
+        ContextIsolation::SovereignIsolation,
+    );
 
     context
         .record_state_mutation("key_1".to_string(), "value_1".to_string())
@@ -333,7 +323,10 @@ fn test_context_merkle_root_changes() {
 
 #[test]
 fn test_context_backward_compat() {
-    let context = ExecutionContext::new("test_sovereign".to_string(), ContextIsolation::SovereignIsolation);
+    let context = ExecutionContext::new(
+        "test_sovereign".to_string(),
+        ContextIsolation::SovereignIsolation,
+    );
 
     context
         .record_state_mutation("key_a".to_string(), "value_b".to_string())
@@ -347,7 +340,10 @@ fn test_context_backward_compat() {
 
 #[test]
 fn test_context_rollback_preserves_log() {
-    let context = ExecutionContext::new("test_sovereign".to_string(), ContextIsolation::SovereignIsolation);
+    let context = ExecutionContext::new(
+        "test_sovereign".to_string(),
+        ContextIsolation::SovereignIsolation,
+    );
 
     context
         .record_state_mutation("key_1".to_string(), "value_1".to_string())

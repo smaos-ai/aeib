@@ -34,11 +34,7 @@ impl BaselIiiMapper {
     /// With an empty mapper, returns 0.0 for any pillar.
     pub fn pillar_score(&self, pillar: BaselPillar) -> f64 {
         let tag = pillar_tag(pillar);
-        let total_for_pillar = self
-            .controls
-            .values()
-            .filter(|v| v.as_str() == tag)
-            .count();
+        let total_for_pillar = self.controls.values().filter(|v| v.as_str() == tag).count();
         if total_for_pillar == 0 {
             return 0.0;
         }

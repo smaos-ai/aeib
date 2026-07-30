@@ -1,11 +1,11 @@
+use crate::state::CockpitState;
 use axum::{
+    Json,
     extract::{Query, State},
     http::StatusCode,
-    Json,
 };
 use serde::Deserialize;
 use uuid::Uuid;
-use crate::state::CockpitState;
 
 #[derive(Debug, Deserialize)]
 pub struct ProjectionQueryParams {
@@ -25,13 +25,15 @@ pub async fn get_agent_actions(
     Query(params): Query<ProjectionQueryParams>,
 ) -> Result<Json<serde_json::Value>, StatusCode> {
     // Parse sovereign_id as UUID
-    let sovereign_id = Uuid::parse_str(&params.sovereign_id)
-        .map_err(|_| StatusCode::BAD_REQUEST)?;
+    let sovereign_id =
+        Uuid::parse_str(&params.sovereign_id).map_err(|_| StatusCode::BAD_REQUEST)?;
 
     let limit = params.limit.unwrap_or(100).min(500);
 
     // Extract pool from state
-    let pool = state.pool.lock()
+    let pool = state
+        .pool
+        .lock()
         .ok()
         .and_then(|p| p.clone())
         .ok_or(StatusCode::INTERNAL_SERVER_ERROR)?;
@@ -46,8 +48,9 @@ pub async fn get_agent_actions(
     .await
     .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    Ok(Json(serde_json::to_value(response)
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?))
+    Ok(Json(
+        serde_json::to_value(response).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?,
+    ))
 }
 
 /// GET /api/graph/projections/anomalies
@@ -57,13 +60,15 @@ pub async fn get_anomalies(
     Query(params): Query<ProjectionQueryParams>,
 ) -> Result<Json<serde_json::Value>, StatusCode> {
     // Parse sovereign_id as UUID
-    let sovereign_id = Uuid::parse_str(&params.sovereign_id)
-        .map_err(|_| StatusCode::BAD_REQUEST)?;
+    let sovereign_id =
+        Uuid::parse_str(&params.sovereign_id).map_err(|_| StatusCode::BAD_REQUEST)?;
 
     let limit = params.limit.unwrap_or(100).min(500);
 
     // Extract pool from state
-    let pool = state.pool.lock()
+    let pool = state
+        .pool
+        .lock()
         .ok()
         .and_then(|p| p.clone())
         .ok_or(StatusCode::INTERNAL_SERVER_ERROR)?;
@@ -79,8 +84,9 @@ pub async fn get_anomalies(
     .await
     .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    Ok(Json(serde_json::to_value(response)
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?))
+    Ok(Json(
+        serde_json::to_value(response).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?,
+    ))
 }
 
 /// GET /api/graph/projections/recovery
@@ -90,26 +96,26 @@ pub async fn get_recovery(
     Query(params): Query<ProjectionQueryParams>,
 ) -> Result<Json<serde_json::Value>, StatusCode> {
     // Parse sovereign_id as UUID
-    let sovereign_id = Uuid::parse_str(&params.sovereign_id)
-        .map_err(|_| StatusCode::BAD_REQUEST)?;
+    let sovereign_id =
+        Uuid::parse_str(&params.sovereign_id).map_err(|_| StatusCode::BAD_REQUEST)?;
 
     let limit = params.limit.unwrap_or(100).min(200);
 
     // Extract pool from state
-    let pool = state.pool.lock()
+    let pool = state
+        .pool
+        .lock()
         .ok()
         .and_then(|p| p.clone())
         .ok_or(StatusCode::INTERNAL_SERVER_ERROR)?;
 
     // Call projections_repo
-    let response = siss_graph_db::repo::projections_repo::fetch_recovery(
-        &pool,
-        &sovereign_id,
-        limit,
-    )
-    .await
-    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let response =
+        siss_graph_db::repo::projections_repo::fetch_recovery(&pool, &sovereign_id, limit)
+            .await
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    Ok(Json(serde_json::to_value(response)
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?))
+    Ok(Json(
+        serde_json::to_value(response).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?,
+    ))
 }

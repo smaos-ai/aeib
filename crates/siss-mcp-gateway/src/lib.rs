@@ -1,12 +1,12 @@
 pub mod registry;
 pub mod router;
 
-pub use registry::{SkillRegistry, RegistryError};
+pub use registry::{RegistryError, SkillRegistry};
 pub use router::{McpRouter, RouteDecision};
 
 #[cfg(test)]
 mod tests {
-    use crate::registry::{SkillRegistry, RegistryError};
+    use crate::registry::{RegistryError, SkillRegistry};
     use crate::router::{McpRouter, RouteDecision, RoutingRequest};
 
     #[test]
@@ -31,7 +31,9 @@ mod tests {
     #[test]
     fn test_skill_registry_loads_and_routes_valid_skill() {
         let mut registry = SkillRegistry::new();
-        registry.register_skill("test_skill".to_string(), "1.0.0".to_string()).unwrap();
+        registry
+            .register_skill("test_skill".to_string(), "1.0.0".to_string())
+            .unwrap();
 
         let result = registry.get_skill("test_skill");
         assert!(result.is_ok());

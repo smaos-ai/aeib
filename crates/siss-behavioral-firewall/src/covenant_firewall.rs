@@ -1,25 +1,25 @@
-use ed25519_dalek::{VerifyingKey, Signature, Verifier};
-use sha2::{Sha256, Digest};
+use ed25519_dalek::{Signature, Verifier, VerifyingKey};
+use sha2::{Digest, Sha256};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct EconomicIntent {
-    pub steward_pct: u8,      // Genesis Covenant: must be 1
-    pub beneficiary_pct: u8,  // Genesis Covenant: must be 99
+    pub steward_pct: u8,     // Genesis Covenant: must be 1
+    pub beneficiary_pct: u8, // Genesis Covenant: must be 99
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CovenantViolation {
-    IntentMismatch,    // Split is not 1/99 or does not sum to 100
-    SignatureInvalid,  // Ed25519 signature does not verify over payload
-    MalformedKey,      // Verifying key bytes are invalid length/format
+    IntentMismatch,   // Split is not 1/99 or does not sum to 100
+    SignatureInvalid, // Ed25519 signature does not verify over payload
+    MalformedKey,     // Verifying key bytes are invalid length/format
 }
 
 impl std::fmt::Display for CovenantViolation {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::IntentMismatch   => write!(f, "covenant intent mismatch: required 1%/99% split"),
+            Self::IntentMismatch => write!(f, "covenant intent mismatch: required 1%/99% split"),
             Self::SignatureInvalid => write!(f, "covenant signature invalid: Merkle root tampered"),
-            Self::MalformedKey     => write!(f, "covenant verifying key malformed"),
+            Self::MalformedKey => write!(f, "covenant verifying key malformed"),
         }
     }
 }
@@ -57,8 +57,7 @@ impl CovenantFirewall {
         let key_arr: [u8; 32] = verifying_key_bytes
             .try_into()
             .map_err(|_| CovenantViolation::MalformedKey)?;
-        let vk = VerifyingKey::from_bytes(&key_arr)
-            .map_err(|_| CovenantViolation::MalformedKey)?;
+        let vk = VerifyingKey::from_bytes(&key_arr).map_err(|_| CovenantViolation::MalformedKey)?;
         // Gate 3: Verify Ed25519 signature
         let sig_arr: [u8; 64] = signature_bytes
             .try_into()

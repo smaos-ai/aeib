@@ -1,9 +1,12 @@
-use uuid::Uuid;
-use serde::{Serialize, Deserialize};
-use std::sync::{Arc, atomic::{AtomicU32, Ordering}};
-use tokio::sync::{mpsc, Semaphore};
+use serde::{Deserialize, Serialize};
 use std::fmt;
+use std::sync::{
+    Arc,
+    atomic::{AtomicU32, Ordering},
+};
 use std::time::Instant;
+use tokio::sync::{Semaphore, mpsc};
+use uuid::Uuid;
 
 /// Backpressure signal returned when queue capacity is exceeded
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -57,7 +60,11 @@ pub struct RequestTimeoutError {
 
 impl fmt::Display for RequestTimeoutError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "RequestTimeoutError: {} (task_id: {})", self.reason, self.task_id)
+        write!(
+            f,
+            "RequestTimeoutError: {} (task_id: {})",
+            self.reason, self.task_id
+        )
     }
 }
 
@@ -188,12 +195,12 @@ impl AsyncTaskRouter {
     pub async fn submit_task(&self, task: MandateTask) -> RoutingResult<()> {
         match self.queue_tx.try_send(task) {
             Ok(_) => Ok(()),
-            Err(mpsc::error::TrySendError::Full(_)) => {
-                Err(RoutingError::Backpressure(BackpressureSignal::CapacityExhausted))
-            }
-            Err(mpsc::error::TrySendError::Closed(_)) => {
-                Err(RoutingError::Backpressure(BackpressureSignal::CapacityExhausted))
-            }
+            Err(mpsc::error::TrySendError::Full(_)) => Err(RoutingError::Backpressure(
+                BackpressureSignal::CapacityExhausted,
+            )),
+            Err(mpsc::error::TrySendError::Closed(_)) => Err(RoutingError::Backpressure(
+                BackpressureSignal::CapacityExhausted,
+            )),
         }
     }
 
@@ -213,8 +220,8 @@ impl AsyncTaskRouter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::atomic::{AtomicU32, Ordering};
     use std::sync::Arc as StdArc;
+    use std::sync::atomic::{AtomicU32, Ordering};
 
     fn sovereign(id: u64) -> Uuid {
         Uuid::from_u64_pair(id, 0)
@@ -239,7 +246,11 @@ mod tests {
                 resource_id: format!("resource_{}", i),
             };
             let result = router.submit_task(task).await;
-            assert!(result.is_ok(), "Task {} should succeed (queue not full yet)", i);
+            assert!(
+                result.is_ok(),
+                "Task {} should succeed (queue not full yet)",
+                i
+            );
         }
 
         // Next submission should fail with backpressure signal
@@ -381,7 +392,11 @@ mod tests {
         let detected_traces = collision_detector.lock().await;
 
         assert_eq!(final_count, 100, "All 100 tasks must complete");
-        assert_eq!(detected_traces.len(), 100, "Must detect exactly 100 distinct traces");
+        assert_eq!(
+            detected_traces.len(),
+            100,
+            "Must detect exactly 100 distinct traces"
+        );
     }
 
     #[tokio::test]
@@ -402,7 +417,10 @@ mod tests {
                     }
 
                     // Record my trace
-                    traces.lock().await.push((agent_id, trace_id, agent_id_uuid));
+                    traces
+                        .lock()
+                        .await
+                        .push((agent_id, trace_id, agent_id_uuid));
 
                     (trace_id, agent_id_uuid)
                 })
@@ -422,7 +440,11 @@ mod tests {
         let mut trace_ids: Vec<_> = recorded.iter().map(|(_, tid, _)| *tid).collect();
         trace_ids.sort();
         for i in 0..trace_ids.len() - 1 {
-            assert_ne!(trace_ids[i], trace_ids[i + 1], "No duplicate trace IDs allowed");
+            assert_ne!(
+                trace_ids[i],
+                trace_ids[i + 1],
+                "No duplicate trace IDs allowed"
+            );
         }
     }
 
@@ -474,7 +496,9 @@ mod tests {
             }
 
             (parent_context.trace_id, child_contexts.lock().await.len())
-        }).await.unwrap();
+        })
+        .await
+        .unwrap();
 
         assert_eq!(result.1, 10, "Must create exactly 10 child contexts");
     }
@@ -532,12 +556,19 @@ mod tests {
         let max_concurrent = router.get_max_concurrent();
 
         // With 5 semaphore permits, max concurrent execution should stay <= 15
-        assert!(max_concurrent <= (max_connections as u32) + 10,
-            "Connection pool overflow beyond limit+buffer: {}", max_concurrent);
+        assert!(
+            max_concurrent <= (max_connections as u32) + 10,
+            "Connection pool overflow beyond limit+buffer: {}",
+            max_concurrent
+        );
 
         // Verify most tasks succeeded (some might fail due to queue full)
-        assert!(success_count > (concurrent_tasks / 2) as u32,
-            "Majority of tasks must succeed, got {}/{}", success_count, concurrent_tasks);
+        assert!(
+            success_count > (concurrent_tasks / 2) as u32,
+            "Majority of tasks must succeed, got {}/{}",
+            success_count,
+            concurrent_tasks
+        );
     }
 
     #[tokio::test]
@@ -555,21 +586,21 @@ mod tests {
                 // Simulate a timeout scenario with a slow operation
                 let sleep_ms = 100 + (i * 50); // Increasing delays
 
-                let result: Result<(), RoutingError> = match tokio::time::timeout(
-                    tokio::time::Duration::from_millis(200),
-                    async {
+                let result: Result<(), RoutingError> =
+                    match tokio::time::timeout(tokio::time::Duration::from_millis(200), async {
                         tokio::time::sleep(tokio::time::Duration::from_millis(sleep_ms)).await;
-                    }
-                ).await {
-                    Ok(_) => Ok(()),
-                    Err(_) => {
-                        timeout_flag.fetch_add(1, Ordering::SeqCst);
-                        Err(RoutingError::Timeout(RequestTimeoutError {
-                            task_id: Uuid::new_v4(),
-                            reason: "Connection pool exhausted".to_string(),
-                        }))
-                    }
-                };
+                    })
+                    .await
+                    {
+                        Ok(_) => Ok(()),
+                        Err(_) => {
+                            timeout_flag.fetch_add(1, Ordering::SeqCst);
+                            Err(RoutingError::Timeout(RequestTimeoutError {
+                                task_id: Uuid::new_v4(),
+                                reason: "Connection pool exhausted".to_string(),
+                            }))
+                        }
+                    };
 
                 result
             });
@@ -618,7 +649,8 @@ mod tests {
                 task_id: task.task_id,
                 reason: "Database unavailable - failing closed".to_string(),
             }))
-        }.await;
+        }
+        .await;
 
         // Must NOT be success, must be error (deny/fail-closed)
         assert!(result.is_err(), "DB failure must fail-closed (deny)");
@@ -684,7 +716,10 @@ mod tests {
         let completed_count = tasks_completed.load(Ordering::SeqCst);
 
         assert_eq!(panic_count, 1, "Exactly one panic should be caught");
-        assert_eq!(completed_count, 9, "Remaining 9 tasks must complete despite panic");
+        assert_eq!(
+            completed_count, 9,
+            "Remaining 9 tasks must complete despite panic"
+        );
     }
 
     #[tokio::test]
@@ -710,7 +745,9 @@ mod tests {
                 if i < 5 {
                     // Simulate worker panic/failure
                     failures.fetch_add(1, Ordering::SeqCst);
-                    Err::<(), _>(RoutingError::WorkerPanic("Simulated worker failure".to_string()))
+                    Err::<(), _>(RoutingError::WorkerPanic(
+                        "Simulated worker failure".to_string(),
+                    ))
                 } else {
                     Ok::<(), _>(())
                 }
@@ -773,7 +810,10 @@ mod tests {
         let final_count = shared_counter.load(Ordering::SeqCst);
         // Task 2 incremented once before panic, tasks 0,1,3,4 incremented twice each = 9
         // But async is tricky, just verify we got *some* increments and it didn't crash
-        assert!(final_count > 0, "Shared state must be updated despite panic");
+        assert!(
+            final_count > 0,
+            "Shared state must be updated despite panic"
+        );
     }
 
     #[tokio::test]
@@ -872,8 +912,11 @@ mod tests {
         let max_concurrent = router.get_max_concurrent();
 
         // With 5 permits, max concurrent evaluation must stay ≤ 10 (5 permits + some buffer)
-        assert!(max_concurrent <= 10,
-            "Firewall evaluation semaphore not enforced: max_concurrent = {}", max_concurrent);
+        assert!(
+            max_concurrent <= 10,
+            "Firewall evaluation semaphore not enforced: max_concurrent = {}",
+            max_concurrent
+        );
     }
 
     #[tokio::test]
@@ -954,7 +997,8 @@ mod tests {
         // All submissions must complete within timeout (no deadlock)
         assert!(
             elapsed < timeout,
-            "Firewall integration deadlocked: took {:?}", elapsed
+            "Firewall integration deadlocked: took {:?}",
+            elapsed
         );
 
         let final_count = completed.load(Ordering::SeqCst);
@@ -978,7 +1022,10 @@ mod tests {
 
         // Submit and wait for evaluation
         let result = router.submit_task(task).await;
-        assert!(result.is_ok(), "Firewall integration must allow valid submissions");
+        assert!(
+            result.is_ok(),
+            "Firewall integration must allow valid submissions"
+        );
 
         // Wait for worker evaluation to complete
         tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
@@ -1036,16 +1083,22 @@ mod tests {
         let total = total_accepted + total_rejected;
 
         assert_eq!(total as usize, 10_000, "No tasks must be lost");
-        assert!(total_rejected >= 9_800,
-            "Expected >= 9800 backpressure rejections, got {}", total_rejected);
+        assert!(
+            total_rejected >= 9_800,
+            "Expected >= 9800 backpressure rejections, got {}",
+            total_rejected
+        );
 
         // Wait for workers to finish processing all queued tasks
         tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
 
         // Verify semaphore cap: peak active tasks must never exceed 5
         let peak = router.peak_active_task_count();
-        assert!(peak <= 5,
-            "Semaphore cap violated: {} active tasks exceeded 5-permit limit", peak);
+        assert!(
+            peak <= 5,
+            "Semaphore cap violated: {} active tasks exceeded 5-permit limit",
+            peak
+        );
     }
 
     // ============================================================================
@@ -1121,9 +1174,11 @@ mod tests {
             // With Atomic + SeqCst: peak will be high (all updates visible)
 
             // This assertion will FAIL if Atomic uses Relaxed, PASS if SeqCst
-            assert!(peak_value > 500,
+            assert!(
+                peak_value > 500,
                 "Peak concurrent tasks {} must be >500 (test needs SeqCst ordering, not Relaxed)",
-                peak_value);
+                peak_value
+            );
         }
 
         #[tokio::test]
@@ -1148,13 +1203,15 @@ mod tests {
             for i in 0..200 {
                 let router_clone = router.clone();
                 let handle = task::spawn(async move {
-                    let _result = router_clone.submit_task(MandateTask {
-                        trace_id: Uuid::new_v4(),
-                        agent_id: Uuid::new_v4(),
-                        task_id: Uuid::new_v4(),
-                        action: format!("race_task_{}", i),
-                        resource_id: format!("race_resource_{}", i),
-                    }).await;
+                    let _result = router_clone
+                        .submit_task(MandateTask {
+                            trace_id: Uuid::new_v4(),
+                            agent_id: Uuid::new_v4(),
+                            task_id: Uuid::new_v4(),
+                            action: format!("race_task_{}", i),
+                            resource_id: format!("race_resource_{}", i),
+                        })
+                        .await;
                 });
                 handles.push(handle);
             }
@@ -1174,12 +1231,12 @@ mod tests {
 
             let peak = router.peak_active_task_count();
             // This assertion documents the expected behavior post-refactor
-            assert!(peak > 0,
+            assert!(
+                peak > 0,
                 "Peak {} must be > 0 (indicates Relaxed ordering or broken tracking)",
-                peak);
-            assert!(peak <= 6,
-                "Peak {} must respect semaphore cap of 5",
-                peak);
+                peak
+            );
+            assert!(peak <= 6, "Peak {} must respect semaphore cap of 5", peak);
         }
 
         #[tokio::test]
@@ -1206,13 +1263,15 @@ mod tests {
                 let router_clone = router.clone();
                 let submitted_clone = submitted.clone();
                 let fut = async move {
-                    let _result = router_clone.submit_task(MandateTask {
-                        trace_id: Uuid::new_v4(),
-                        agent_id: Uuid::new_v4(),
-                        task_id: Uuid::new_v4(),
-                        action: format!("stress_task_{}", i),
-                        resource_id: format!("stress_resource_{}", i),
-                    }).await;
+                    let _result = router_clone
+                        .submit_task(MandateTask {
+                            trace_id: Uuid::new_v4(),
+                            agent_id: Uuid::new_v4(),
+                            task_id: Uuid::new_v4(),
+                            action: format!("stress_task_{}", i),
+                            resource_id: format!("stress_resource_{}", i),
+                        })
+                        .await;
                     submitted_clone.fetch_add(1, Ordering::SeqCst);
                 };
                 futs.push(fut);
@@ -1236,15 +1295,19 @@ mod tests {
 
             // This test FAILS if Atomic uses Relaxed (max_count = 0)
             // This test PASSES if Atomic uses SeqCst
-            assert!(max_count > 0,
+            assert!(
+                max_count > 0,
                 "Max concurrent {} must be > 0 after {} submissions (indicates lost updates or Relaxed ordering)",
-                max_count, total_submitted);
+                max_count,
+                total_submitted
+            );
 
             // Sanity bound: should not exceed 2x semaphore cap
-            assert!(max_count <= 10,
+            assert!(
+                max_count <= 10,
                 "Max concurrent {} exceeded 2x cap (indicates Relaxed ordering without bounds)",
-                max_count);
+                max_count
+            );
         }
     }
 }
-

@@ -15,15 +15,14 @@
 /// - Latency budget tracking per operation (analysis, approval, signing)
 /// - Latency alerts when approaching SLA limits
 /// - Compliance metrics for pilot customers (JPMorgan, Novartis, Energy)
-
 use crate::baseline_capsule::BaselineCapsule;
-use std::collections::HashMap;
-use sha2::{Sha256, Digest};
 use chrono::{DateTime, Utc};
-use serde::{Serialize, Deserialize};
-use ed25519_dalek::{SigningKey, Signature, Signer, Verifier};
-use std::time::Instant;
+use ed25519_dalek::{Signature, Signer, SigningKey, Verifier};
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+use std::collections::HashMap;
 use std::collections::VecDeque;
+use std::time::Instant;
 
 /// Risk Level Classification for Human Gate Policy
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -53,11 +52,11 @@ impl RiskLevel {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HumanGatePolicy {
     pub policy_id: String,
-    pub requires_approval_for: Vec<RiskLevel>,     // Risk levels that need human approval
-    pub ap2_charge_enabled: bool,                  // Whether to charge AP2 ledger
-    pub psi_drift_threshold: f64,                  // PSI threshold for auto-engagement (0.25)
-    pub max_concurrent_approvals: usize,           // Concurrency limit
-    pub approval_timeout_secs: u64,                // Timeout for approval response
+    pub requires_approval_for: Vec<RiskLevel>, // Risk levels that need human approval
+    pub ap2_charge_enabled: bool,              // Whether to charge AP2 ledger
+    pub psi_drift_threshold: f64,              // PSI threshold for auto-engagement (0.25)
+    pub max_concurrent_approvals: usize,       // Concurrency limit
+    pub approval_timeout_secs: u64,            // Timeout for approval response
 }
 
 impl HumanGatePolicy {
@@ -80,11 +79,11 @@ impl HumanGatePolicy {
 /// Signed proof returned when gate passes
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HumanGateProof {
-    pub merkle_root: String,                    // Merkle hash of all gate decisions
-    pub timestamp: DateTime<Utc>,               // When approval was granted
-    pub decision_id: String,                    // Reference to decision
-    pub approved_by: Option<String>,            // Human approver ID (if human approval)
-    pub auto_approved: bool,                    // Whether auto-approved due to low risk
+    pub merkle_root: String,         // Merkle hash of all gate decisions
+    pub timestamp: DateTime<Utc>,    // When approval was granted
+    pub decision_id: String,         // Reference to decision
+    pub approved_by: Option<String>, // Human approver ID (if human approval)
+    pub auto_approved: bool,         // Whether auto-approved due to low risk
 }
 
 /// Govern request for AP2 ledger charge
@@ -95,22 +94,22 @@ pub struct GovernRequest {
     pub blast_radius: f64,
     pub user_id: String,
     pub app_id: String,
-    pub human_approved: bool,                   // Whether human has approved
+    pub human_approved: bool, // Whether human has approved
     pub timestamp: DateTime<Utc>,
 }
 
 /// SLA compliance target for Vision API operations
-pub const SLA_TARGET_MS: f64 = 500.0;  // 500ms e2e latency limit
-pub const SLA_WARNING_THRESHOLD_MS: f64 = 100.0;  // Warn at 100ms (20% of budget)
-pub const SLA_CRITICAL_THRESHOLD_MS: f64 = 450.0;  // Critical at 450ms (90% of budget)
+pub const SLA_TARGET_MS: f64 = 500.0; // 500ms e2e latency limit
+pub const SLA_WARNING_THRESHOLD_MS: f64 = 100.0; // Warn at 100ms (20% of budget)
+pub const SLA_CRITICAL_THRESHOLD_MS: f64 = 450.0; // Critical at 450ms (90% of budget)
 
 /// Latency tracking per operation phase
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum LatencyPhase {
-    Analysis,      // Risk classification + policy lookup
-    Approval,      // Human gate decision + proof generation
-    Signing,       // Mutation signing + DAG update
-    Total,         // End-to-end
+    Analysis, // Risk classification + policy lookup
+    Approval, // Human gate decision + proof generation
+    Signing,  // Mutation signing + DAG update
+    Total,    // End-to-end
 }
 
 /// Latency measurement for a single operation
@@ -119,13 +118,13 @@ pub struct LatencyMeasurement {
     pub phase: LatencyPhase,
     pub duration_ms: f64,
     pub timestamp: DateTime<Utc>,
-    pub sla_compliant: bool,  // true if < SLA_TARGET_MS
+    pub sla_compliant: bool, // true if < SLA_TARGET_MS
 }
 
 /// Latency budget tracker for SLA compliance
 #[derive(Debug, Clone)]
 pub struct LatencyBudgetTracker {
-    measurements: VecDeque<LatencyMeasurement>,  // Last 100 measurements
+    measurements: VecDeque<LatencyMeasurement>, // Last 100 measurements
     avg_latency_ms: f64,
     max_latency_ms: f64,
     sla_breaches: usize,
@@ -224,8 +223,8 @@ pub struct DiffMutation {
 #[derive(Debug, Clone)]
 pub struct SignedMutation {
     pub mutation: DiffMutation,
-    pub signature: Vec<u8>,                     // Ed25519 signature bytes
-    pub signer_public_key: Vec<u8>,             // Ed25519 public key
+    pub signature: Vec<u8>,         // Ed25519 signature bytes
+    pub signer_public_key: Vec<u8>, // Ed25519 public key
     pub signed_at: DateTime<Utc>,
 }
 
@@ -233,18 +232,18 @@ pub struct SignedMutation {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PreExecuteCheckResult {
     pub allowed: bool,
-    pub charge_amount: i64,                     // AP2 ledger charge (0 if blocked)
-    pub proof: Option<HumanGateProof>,          // Signed proof if allowed
-    pub error: Option<String>,                  // Error if blocked
+    pub charge_amount: i64,            // AP2 ledger charge (0 if blocked)
+    pub proof: Option<HumanGateProof>, // Signed proof if allowed
+    pub error: Option<String>,         // Error if blocked
     pub reason: String,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct DecisionContext {
-    pub app_id: String,                    // e.g., "langchain-app-001"
-    pub decision_id: String,               // UUID
-    pub action: String,                    // what the app wants to do
-    pub blast_radius: f64,                 // risk score (0.0-1.0)
+    pub app_id: String,      // e.g., "langchain-app-001"
+    pub decision_id: String, // UUID
+    pub action: String,      // what the app wants to do
+    pub blast_radius: f64,   // risk score (0.0-1.0)
     pub timestamp: u64,
     pub user_id: String,
 }
@@ -271,17 +270,17 @@ pub enum DecisionGate {
 pub struct VisionAPI {
     baseline: BaselineCapsule,
     decisions: HashMap<String, DecisionContext>,
-    audit_trail: Vec<(String, String)>,  // (decision_id, merkle_proof)
+    audit_trail: Vec<(String, String)>, // (decision_id, merkle_proof)
     circuit_breaker_count: usize,
     human_gate_policy: HumanGatePolicy,
-    pending_approvals: HashMap<String, GovernRequest>,  // request_id -> GovernRequest
-    merkle_root: String,                 // Accumulated Merkle root of all gates
+    pending_approvals: HashMap<String, GovernRequest>, // request_id -> GovernRequest
+    merkle_root: String,                               // Accumulated Merkle root of all gates
     // Hardening v0.2
-    signing_key: Option<SigningKey>,      // Ed25519 signing key
+    signing_key: Option<SigningKey>,       // Ed25519 signing key
     signed_mutations: Vec<SignedMutation>, // All signed mutations
     diff_only_cache: HashMap<String, DiffMutation>, // diff_id -> diff mutation
-    merkle_dag_root: String,             // Merkle-DAG root of all decisions
-    e2e_latency_ms: f64,                 // End-to-end latency benchmark
+    merkle_dag_root: String,               // Merkle-DAG root of all decisions
+    e2e_latency_ms: f64,                   // End-to-end latency benchmark
     // Polish Phase v0.3: Latency hardening
     latency_tracker: LatencyBudgetTracker, // SLA compliance tracking
 }
@@ -358,7 +357,7 @@ impl VisionAPI {
         if approval_required && !request.human_approved {
             return PreExecuteCheckResult {
                 allowed: false,
-                charge_amount: 0,  // Zero charge on rejection
+                charge_amount: 0, // Zero charge on rejection
                 proof: None,
                 error: Some("HumanGateRequired".to_string()),
                 reason: format!(
@@ -482,9 +481,14 @@ impl VisionAPI {
 
     /// Post-decision regret scoring
     /// Compares actual outcome against counterfactual (what would have happened)
-    pub fn score_regret(&self, _decision_id: &str, actual_outcome: f64, counterfactual: f64) -> f64 {
+    pub fn score_regret(
+        &self,
+        _decision_id: &str,
+        actual_outcome: f64,
+        counterfactual: f64,
+    ) -> f64 {
         let regret = (counterfactual - actual_outcome).abs();
-        regret / actual_outcome.max(1.0)  // normalized regret
+        regret / actual_outcome.max(1.0) // normalized regret
     }
 
     /// Counterfactual replay: show what would have happened if you chose differently
@@ -576,12 +580,14 @@ impl VisionAPI {
 
     /// Sign a mutation payload with Ed25519
     pub fn sign_mutation(&mut self, mutation: DiffMutation) -> Result<SignedMutation, String> {
-        let key = self.signing_key.as_ref()
+        let key = self
+            .signing_key
+            .as_ref()
             .ok_or_else(|| "No signing key available".to_string())?;
 
         // Serialize mutation to sign
-        let mutation_json = serde_json::to_string(&mutation)
-            .map_err(|e| format!("Serialization error: {}", e))?;
+        let mutation_json =
+            serde_json::to_string(&mutation).map_err(|e| format!("Serialization error: {}", e))?;
 
         // Sign the mutation
         let signature = key.sign(mutation_json.as_bytes());
@@ -597,10 +603,8 @@ impl VisionAPI {
         };
 
         // Cache the diff
-        self.diff_only_cache.insert(
-            mutation.mutation_id.clone(),
-            mutation.clone(),
-        );
+        self.diff_only_cache
+            .insert(mutation.mutation_id.clone(), mutation.clone());
 
         // Update Merkle-DAG root with the new mutation
         self.update_merkle_dag(&signed_mutation);
@@ -615,12 +619,13 @@ impl VisionAPI {
 
         let verifying_key = VerifyingKey::from_bytes(
             &<[u8; 32]>::try_from(signed_mutation.signer_public_key.clone())
-                .map_err(|_| "Invalid public key size".to_string())?
-        ).map_err(|e| format!("Invalid verifying key: {}", e))?;
+                .map_err(|_| "Invalid public key size".to_string())?,
+        )
+        .map_err(|e| format!("Invalid verifying key: {}", e))?;
 
         let signature = Signature::from_bytes(
             &<[u8; 64]>::try_from(signed_mutation.signature.clone())
-                .map_err(|_| "Invalid signature size".to_string())?
+                .map_err(|_| "Invalid signature size".to_string())?,
         );
 
         let mutation_json = serde_json::to_string(&signed_mutation.mutation)
@@ -733,11 +738,20 @@ impl VisionAPI {
     /// Get latency status message for monitoring/alerting
     pub fn get_latency_status(&self) -> String {
         if self.is_latency_critical() {
-            format!("CRITICAL: latency {:.2}ms > {:.2}ms limit", self.e2e_latency_ms, SLA_TARGET_MS)
+            format!(
+                "CRITICAL: latency {:.2}ms > {:.2}ms limit",
+                self.e2e_latency_ms, SLA_TARGET_MS
+            )
         } else if self.is_latency_warning() {
-            format!("WARNING: latency {:.2}ms approaching limit ({:.2}ms)", self.e2e_latency_ms, SLA_TARGET_MS)
+            format!(
+                "WARNING: latency {:.2}ms approaching limit ({:.2}ms)",
+                self.e2e_latency_ms, SLA_TARGET_MS
+            )
         } else {
-            format!("OK: latency {:.2}ms < limit ({:.2}ms)", self.e2e_latency_ms, SLA_TARGET_MS)
+            format!(
+                "OK: latency {:.2}ms < limit ({:.2}ms)",
+                self.e2e_latency_ms, SLA_TARGET_MS
+            )
         }
     }
 }
@@ -795,10 +809,10 @@ mod tests {
         let request = GovernRequest {
             request_id: "req-001".to_string(),
             action: "read_data".to_string(),
-            blast_radius: 0.1,  // Low risk
+            blast_radius: 0.1, // Low risk
             user_id: "user-1".to_string(),
             app_id: "app-1".to_string(),
-            human_approved: false,  // Not explicitly approved by human
+            human_approved: false, // Not explicitly approved by human
             timestamp: Utc::now(),
         };
 
@@ -816,16 +830,16 @@ mod tests {
         let request = GovernRequest {
             request_id: "req-002".to_string(),
             action: "execute_system".to_string(),
-            blast_radius: 0.8,  // High risk
+            blast_radius: 0.8, // High risk
             user_id: "user-2".to_string(),
             app_id: "app-2".to_string(),
-            human_approved: false,  // NOT approved
+            human_approved: false, // NOT approved
             timestamp: Utc::now(),
         };
 
         let result = api.pre_execute_check(request, None);
         assert!(!result.allowed);
-        assert_eq!(result.charge_amount, 0);  // ZERO charge on rejection
+        assert_eq!(result.charge_amount, 0); // ZERO charge on rejection
         assert!(result.proof.is_none());
         assert_eq!(result.error, Some("HumanGateRequired".to_string()));
         // Reason should contain "High" or "requires human approval"
@@ -838,7 +852,7 @@ mod tests {
         let request = GovernRequest {
             request_id: "req-003".to_string(),
             action: "delete_critical_data".to_string(),
-            blast_radius: 0.95,  // Critical risk
+            blast_radius: 0.95, // Critical risk
             user_id: "user-3".to_string(),
             app_id: "app-3".to_string(),
             human_approved: false,
@@ -861,7 +875,7 @@ mod tests {
             blast_radius: 0.8,
             user_id: "admin-1".to_string(),
             app_id: "app-4".to_string(),
-            human_approved: true,  // APPROVED
+            human_approved: true, // APPROVED
             timestamp: Utc::now(),
         };
 
@@ -871,7 +885,7 @@ mod tests {
         assert!(result.proof.is_some());
         let proof = result.proof.unwrap();
         assert_eq!(proof.approved_by, Some("admin-1".to_string()));
-        assert!(!proof.auto_approved);  // Human-approved, not auto
+        assert!(!proof.auto_approved); // Human-approved, not auto
     }
 
     #[test]
@@ -901,20 +915,20 @@ mod tests {
         let api = VisionAPI::new();
         // Create two very similar distributions with some variance to match standard patterns
         let baseline = vec![100.0, 101.0, 99.0, 100.0, 101.0];
-        let current = vec![100.05, 101.05, 99.05, 100.05, 101.05];  // <0.1% shift
+        let current = vec![100.05, 101.05, 99.05, 100.05, 101.05]; // <0.1% shift
 
         let triggers_gate = api.check_drift_detection(&baseline, &current);
-        assert!(!triggers_gate);  // PSI should be very small, < 0.25
+        assert!(!triggers_gate); // PSI should be very small, < 0.25
     }
 
     #[test]
     fn test_drift_detection_significant_drift_triggers_gate() {
         let api = VisionAPI::new();
         let baseline = vec![100.0, 100.0, 100.0, 100.0, 100.0];
-        let current = vec![80.0, 80.0, 80.0, 80.0, 80.0];  // 20% shift
+        let current = vec![80.0, 80.0, 80.0, 80.0, 80.0]; // 20% shift
 
         let triggers_gate = api.check_drift_detection(&baseline, &current);
-        assert!(triggers_gate);  // PSI > 0.25
+        assert!(triggers_gate); // PSI > 0.25
     }
 
     #[test]
@@ -922,7 +936,7 @@ mod tests {
         let api = VisionAPI::new();
         // Two distributions with different means
         let baseline = vec![10.0, 11.0, 12.0, 13.0, 14.0];
-        let shifted = vec![20.0, 21.0, 22.0, 23.0, 24.0];  // Shifted by 10
+        let shifted = vec![20.0, 21.0, 22.0, 23.0, 24.0]; // Shifted by 10
 
         let psi = api.compute_psi(&baseline, &shifted);
         assert!(psi > 0.0);
@@ -937,7 +951,7 @@ mod tests {
         let current = vec![100.0];
 
         let triggers_gate = api.check_drift_detection(&baseline, &current);
-        assert!(!triggers_gate);  // Empty returns false
+        assert!(!triggers_gate); // Empty returns false
     }
 
     // ============ MERKLE ROOT AND PROOF TESTS ============
@@ -973,7 +987,7 @@ mod tests {
 
         api.pre_execute_check(request2, None);
         let root_after_2 = api.merkle_root.clone();
-        assert_ne!(root_after_1, root_after_2);  // Root changes with each request
+        assert_ne!(root_after_1, root_after_2); // Root changes with each request
     }
 
     #[test]
@@ -991,7 +1005,7 @@ mod tests {
 
         let proof1 = api.compute_govern_merkle(&request);
         let proof2 = api.compute_govern_merkle(&request);
-        assert_eq!(proof1, proof2);  // Same request = same proof
+        assert_eq!(proof1, proof2); // Same request = same proof
     }
 
     // ============ CUSTOM POLICY TESTS ============
@@ -999,8 +1013,8 @@ mod tests {
     #[test]
     fn test_custom_policy_overrides_default() {
         let mut custom_policy = HumanGatePolicy::new();
-        custom_policy.psi_drift_threshold = 0.5;  // Override threshold
-        custom_policy.ap2_charge_enabled = false;  // Disable AP2 charges
+        custom_policy.psi_drift_threshold = 0.5; // Override threshold
+        custom_policy.ap2_charge_enabled = false; // Disable AP2 charges
 
         let mut api = VisionAPI::new().with_policy(custom_policy.clone());
 
@@ -1016,7 +1030,7 @@ mod tests {
 
         let result = api.pre_execute_check(request, Some(&custom_policy));
         assert!(result.allowed);
-        assert_eq!(result.charge_amount, 0);  // No charge due to disabled AP2
+        assert_eq!(result.charge_amount, 0); // No charge due to disabled AP2
     }
 
     // ============ LEGACY TESTS (backward compatibility) ============
@@ -1063,7 +1077,7 @@ mod tests {
     fn test_regret_scoring() {
         let api = VisionAPI::new();
         let regret = api.score_regret("dec-001", 100.0, 120.0);
-        assert!(regret > 0.1);  // 20% regret
+        assert!(regret > 0.1); // 20% regret
     }
 
     #[test]
@@ -1117,7 +1131,7 @@ mod tests {
         };
 
         let proof2 = api.compute_decision_merkle(&context2);
-        assert_eq!(proof1, proof2);  // Same inputs = same proof
+        assert_eq!(proof1, proof2); // Same inputs = same proof
     }
 
     // ============ HARDENING v0.2 TESTS: Ed25519 SIGNING ============
@@ -1135,11 +1149,13 @@ mod tests {
 
         let signed = api.sign_mutation(mutation).expect("sign_mutation failed");
         assert!(!signed.signature.is_empty());
-        assert_eq!(signed.signature.len(), 64);  // Ed25519 sig is 64 bytes
-        assert_eq!(signed.signer_public_key.len(), 32);  // Ed25519 public key is 32 bytes
+        assert_eq!(signed.signature.len(), 64); // Ed25519 sig is 64 bytes
+        assert_eq!(signed.signer_public_key.len(), 32); // Ed25519 public key is 32 bytes
 
         // Verify the signature
-        let is_valid = api.verify_signature(&signed).expect("verify_signature failed");
+        let is_valid = api
+            .verify_signature(&signed)
+            .expect("verify_signature failed");
         assert!(is_valid);
     }
 
@@ -1160,7 +1176,9 @@ mod tests {
         signed.mutation.new_value = "4096".to_string();
 
         // Signature should now be invalid
-        let is_valid = api.verify_signature(&signed).expect("verify_signature failed");
+        let is_valid = api
+            .verify_signature(&signed)
+            .expect("verify_signature failed");
         assert!(!is_valid);
     }
 
@@ -1281,7 +1299,11 @@ mod tests {
         api.measure_e2e_latency_end(start);
         let latency = api.get_e2e_latency_ms();
         // Should be well under 500ms for this simple operation
-        assert!(latency < 500.0, "Latency {} ms exceeded 500ms gate", latency);
+        assert!(
+            latency < 500.0,
+            "Latency {} ms exceeded 500ms gate",
+            latency
+        );
     }
 
     #[test]
@@ -1304,7 +1326,11 @@ mod tests {
         api.measure_e2e_latency_end(start);
         let latency = api.get_e2e_latency_ms();
         // 10 signatures should still be under 500ms
-        assert!(latency < 500.0, "Latency {} ms exceeded 500ms gate for 10 sigs", latency);
+        assert!(
+            latency < 500.0,
+            "Latency {} ms exceeded 500ms gate for 10 sigs",
+            latency
+        );
     }
 
     // ============ POLISH PHASE v0.3 TESTS: LATENCY HARDENING ============
@@ -1322,7 +1348,7 @@ mod tests {
         assert!(avg > 0.0);
         assert_eq!(max, 75.0);
         assert!(compliance > 0.0);
-        assert_eq!(breaches, 0);  // All under 500ms
+        assert_eq!(breaches, 0); // All under 500ms
     }
 
     #[test]
@@ -1337,7 +1363,7 @@ mod tests {
         api.record_latency(LatencyPhase::Total, 550.0);
 
         let (_, _, compliance, breaches) = api.get_sla_metrics();
-        assert!(compliance < 100.0);  // Not all compliant
+        assert!(compliance < 100.0); // Not all compliant
         assert_eq!(breaches, 1);
     }
 
@@ -1355,7 +1381,7 @@ mod tests {
     #[test]
     fn test_latency_status_warning() {
         let mut api = VisionAPI::new();
-        api.e2e_latency_ms = 150.0;  // > 100ms warning threshold
+        api.e2e_latency_ms = 150.0; // > 100ms warning threshold
 
         assert!(api.is_latency_warning());
         assert!(!api.is_latency_critical());
@@ -1366,9 +1392,9 @@ mod tests {
     #[test]
     fn test_latency_status_critical() {
         let mut api = VisionAPI::new();
-        api.e2e_latency_ms = 480.0;  // > 450ms critical threshold
+        api.e2e_latency_ms = 480.0; // > 450ms critical threshold
 
-        assert!(!api.is_latency_warning());  // Critical takes precedence
+        assert!(!api.is_latency_warning()); // Critical takes precedence
         assert!(api.is_latency_critical());
         let status = api.get_latency_status();
         assert!(status.contains("CRITICAL"));

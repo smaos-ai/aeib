@@ -164,10 +164,17 @@ impl ReBAC {
             for rel in rels.iter() {
                 // Check if relationship is revoked in all_relationships (authoritative source)
                 if let Some(authoritative_rel) = self.all_relationships.get(&rel.id) {
-                    if authoritative_rel.is_active() && Self::action_allowed_for_relation(&action, authoritative_rel.rel_type) {
-                        return Ok(format!("{:?} permits {:?}", authoritative_rel.rel_type, action));
+                    if authoritative_rel.is_active()
+                        && Self::action_allowed_for_relation(&action, authoritative_rel.rel_type)
+                    {
+                        return Ok(format!(
+                            "{:?} permits {:?}",
+                            authoritative_rel.rel_type, action
+                        ));
                     }
-                } else if rel.is_active() && Self::action_allowed_for_relation(&action, rel.rel_type) {
+                } else if rel.is_active()
+                    && Self::action_allowed_for_relation(&action, rel.rel_type)
+                {
                     return Ok(format!("{:?} permits {:?}", rel.rel_type, action));
                 }
             }
@@ -200,10 +207,9 @@ impl ReBAC {
             }
 
             // Delegate can create/update policies
-            (
-                PolicyAction::CreatePolicy | PolicyAction::UpdatePolicy,
-                RelationType::Delegate,
-            ) => true,
+            (PolicyAction::CreatePolicy | PolicyAction::UpdatePolicy, RelationType::Delegate) => {
+                true
+            }
 
             // Participant can vote
             (PolicyAction::VoteConsent, RelationType::Participant) => true,
@@ -310,14 +316,40 @@ mod tests {
         let s1 = sovereign(1);
         let a1 = agent(1);
 
-        rebac.grant_relationship(s1, a1.clone(), RelationType::Owner, None).unwrap();
+        rebac
+            .grant_relationship(s1, a1.clone(), RelationType::Owner, None)
+            .unwrap();
 
-        assert!(rebac.verify_relationship(s1, a1.clone(), PolicyAction::Spawn).is_ok());
-        assert!(rebac.verify_relationship(s1, a1.clone(), PolicyAction::Pause).is_ok());
-        assert!(rebac.verify_relationship(s1, a1.clone(), PolicyAction::Resume).is_ok());
-        assert!(rebac.verify_relationship(s1, a1.clone(), PolicyAction::Abort).is_ok());
-        assert!(rebac.verify_relationship(s1, a1.clone(), PolicyAction::CreatePolicy).is_ok());
-        assert!(rebac.verify_relationship(s1, a1.clone(), PolicyAction::VoteConsent).is_ok());
+        assert!(
+            rebac
+                .verify_relationship(s1, a1.clone(), PolicyAction::Spawn)
+                .is_ok()
+        );
+        assert!(
+            rebac
+                .verify_relationship(s1, a1.clone(), PolicyAction::Pause)
+                .is_ok()
+        );
+        assert!(
+            rebac
+                .verify_relationship(s1, a1.clone(), PolicyAction::Resume)
+                .is_ok()
+        );
+        assert!(
+            rebac
+                .verify_relationship(s1, a1.clone(), PolicyAction::Abort)
+                .is_ok()
+        );
+        assert!(
+            rebac
+                .verify_relationship(s1, a1.clone(), PolicyAction::CreatePolicy)
+                .is_ok()
+        );
+        assert!(
+            rebac
+                .verify_relationship(s1, a1.clone(), PolicyAction::VoteConsent)
+                .is_ok()
+        );
     }
 
     // TEST 2: Operator relationship - can manage lifecycle
@@ -331,14 +363,38 @@ mod tests {
             .grant_relationship(s1, a1.clone(), RelationType::Operator, None)
             .unwrap();
 
-        assert!(rebac.verify_relationship(s1, a1.clone(), PolicyAction::Pause).is_ok());
-        assert!(rebac.verify_relationship(s1, a1.clone(), PolicyAction::Resume).is_ok());
-        assert!(rebac.verify_relationship(s1, a1.clone(), PolicyAction::Abort).is_ok());
-        assert!(rebac.verify_relationship(s1, a1.clone(), PolicyAction::AssignTask).is_ok());
-        assert!(rebac.verify_relationship(s1, a1.clone(), PolicyAction::CancelTask).is_ok());
+        assert!(
+            rebac
+                .verify_relationship(s1, a1.clone(), PolicyAction::Pause)
+                .is_ok()
+        );
+        assert!(
+            rebac
+                .verify_relationship(s1, a1.clone(), PolicyAction::Resume)
+                .is_ok()
+        );
+        assert!(
+            rebac
+                .verify_relationship(s1, a1.clone(), PolicyAction::Abort)
+                .is_ok()
+        );
+        assert!(
+            rebac
+                .verify_relationship(s1, a1.clone(), PolicyAction::AssignTask)
+                .is_ok()
+        );
+        assert!(
+            rebac
+                .verify_relationship(s1, a1.clone(), PolicyAction::CancelTask)
+                .is_ok()
+        );
 
         // Operator cannot spawn
-        assert!(rebac.verify_relationship(s1, a1.clone(), PolicyAction::Spawn).is_err());
+        assert!(
+            rebac
+                .verify_relationship(s1, a1.clone(), PolicyAction::Spawn)
+                .is_err()
+        );
     }
 
     // TEST 3: Observer relationship - read-only access
@@ -352,12 +408,28 @@ mod tests {
             .grant_relationship(s1, a1.clone(), RelationType::Observer, None)
             .unwrap();
 
-        assert!(rebac.verify_relationship(s1, a1.clone(), PolicyAction::ReadMetrics).is_ok());
-        assert!(rebac.verify_relationship(s1, a1.clone(), PolicyAction::StreamEvents).is_ok());
+        assert!(
+            rebac
+                .verify_relationship(s1, a1.clone(), PolicyAction::ReadMetrics)
+                .is_ok()
+        );
+        assert!(
+            rebac
+                .verify_relationship(s1, a1.clone(), PolicyAction::StreamEvents)
+                .is_ok()
+        );
 
         // Observer cannot modify
-        assert!(rebac.verify_relationship(s1, a1.clone(), PolicyAction::Pause).is_err());
-        assert!(rebac.verify_relationship(s1, a1.clone(), PolicyAction::Abort).is_err());
+        assert!(
+            rebac
+                .verify_relationship(s1, a1.clone(), PolicyAction::Pause)
+                .is_err()
+        );
+        assert!(
+            rebac
+                .verify_relationship(s1, a1.clone(), PolicyAction::Abort)
+                .is_err()
+        );
     }
 
     // TEST 4: Delegate relationship - can grant permissions
@@ -371,11 +443,23 @@ mod tests {
             .grant_relationship(s1, a1.clone(), RelationType::Delegate, None)
             .unwrap();
 
-        assert!(rebac.verify_relationship(s1, a1.clone(), PolicyAction::CreatePolicy).is_ok());
-        assert!(rebac.verify_relationship(s1, a1.clone(), PolicyAction::UpdatePolicy).is_ok());
+        assert!(
+            rebac
+                .verify_relationship(s1, a1.clone(), PolicyAction::CreatePolicy)
+                .is_ok()
+        );
+        assert!(
+            rebac
+                .verify_relationship(s1, a1.clone(), PolicyAction::UpdatePolicy)
+                .is_ok()
+        );
 
         // Delegate cannot spawn
-        assert!(rebac.verify_relationship(s1, a1.clone(), PolicyAction::Spawn).is_err());
+        assert!(
+            rebac
+                .verify_relationship(s1, a1.clone(), PolicyAction::Spawn)
+                .is_err()
+        );
     }
 
     // TEST 5: Participant relationship - can vote on consensus
@@ -389,10 +473,18 @@ mod tests {
             .grant_relationship(s1, g1.clone(), RelationType::Participant, None)
             .unwrap();
 
-        assert!(rebac.verify_relationship(s1, g1.clone(), PolicyAction::VoteConsent).is_ok());
+        assert!(
+            rebac
+                .verify_relationship(s1, g1.clone(), PolicyAction::VoteConsent)
+                .is_ok()
+        );
 
         // Participant cannot spawn
-        assert!(rebac.verify_relationship(s1, g1.clone(), PolicyAction::Spawn).is_err());
+        assert!(
+            rebac
+                .verify_relationship(s1, g1.clone(), PolicyAction::Spawn)
+                .is_err()
+        );
     }
 
     // TEST 6: Initiator relationship - can cancel own work
@@ -406,11 +498,23 @@ mod tests {
             .grant_relationship(s1, t1.clone(), RelationType::Initiator, None)
             .unwrap();
 
-        assert!(rebac.verify_relationship(s1, t1.clone(), PolicyAction::CancelTask).is_ok());
-        assert!(rebac.verify_relationship(s1, t1.clone(), PolicyAction::Abort).is_ok());
+        assert!(
+            rebac
+                .verify_relationship(s1, t1.clone(), PolicyAction::CancelTask)
+                .is_ok()
+        );
+        assert!(
+            rebac
+                .verify_relationship(s1, t1.clone(), PolicyAction::Abort)
+                .is_ok()
+        );
 
         // Initiator cannot spawn
-        assert!(rebac.verify_relationship(s1, t1.clone(), PolicyAction::Spawn).is_err());
+        assert!(
+            rebac
+                .verify_relationship(s1, t1.clone(), PolicyAction::Spawn)
+                .is_err()
+        );
     }
 
     // TEST 7: Expired relationship - fail-closed (DENY)
@@ -427,7 +531,11 @@ mod tests {
             .unwrap();
 
         // Must be denied (fail-closed)
-        assert!(rebac.verify_relationship(s1, a1.clone(), PolicyAction::Spawn).is_err());
+        assert!(
+            rebac
+                .verify_relationship(s1, a1.clone(), PolicyAction::Spawn)
+                .is_err()
+        );
     }
 
     // TEST 8: Revoked relationship - fail-closed (DENY)
@@ -442,13 +550,21 @@ mod tests {
             .unwrap();
 
         // Verify it works initially
-        assert!(rebac.verify_relationship(s1, a1.clone(), PolicyAction::Spawn).is_ok());
+        assert!(
+            rebac
+                .verify_relationship(s1, a1.clone(), PolicyAction::Spawn)
+                .is_ok()
+        );
 
         // Revoke it
         rebac.revoke_relationship(rel_id).unwrap();
 
         // Must be denied after revocation
-        assert!(rebac.verify_relationship(s1, a1.clone(), PolicyAction::Spawn).is_err());
+        assert!(
+            rebac
+                .verify_relationship(s1, a1.clone(), PolicyAction::Spawn)
+                .is_err()
+        );
     }
 
     // TEST 9: Unknown relationship - fail-closed (DENY)
@@ -466,7 +582,11 @@ mod tests {
             .unwrap();
 
         // s1 should be denied
-        assert!(rebac.verify_relationship(s1, a1.clone(), PolicyAction::Spawn).is_err());
+        assert!(
+            rebac
+                .verify_relationship(s1, a1.clone(), PolicyAction::Spawn)
+                .is_err()
+        );
     }
 
     // TEST 10: List relationships for a sovereign
@@ -505,12 +625,22 @@ mod tests {
 
         // A delegates to B (via Agent resource that represents B)
         rebac
-            .grant_relationship(s_a, PolicyResource::Agent(s_b.0), RelationType::Delegate, None)
+            .grant_relationship(
+                s_a,
+                PolicyResource::Agent(s_b.0),
+                RelationType::Delegate,
+                None,
+            )
             .unwrap();
 
         // B delegates to C (via Agent resource that represents C)
         rebac
-            .grant_relationship(s_b, PolicyResource::Agent(s_c.0), RelationType::Delegate, None)
+            .grant_relationship(
+                s_b,
+                PolicyResource::Agent(s_c.0),
+                RelationType::Delegate,
+                None,
+            )
             .unwrap();
 
         // No cycle (A -> B -> C is valid delegation chain at depth 2)
@@ -526,12 +656,22 @@ mod tests {
 
         // A delegates to B (via agent)
         rebac
-            .grant_relationship(s_a, PolicyResource::Agent(s_b.0), RelationType::Delegate, None)
+            .grant_relationship(
+                s_a,
+                PolicyResource::Agent(s_b.0),
+                RelationType::Delegate,
+                None,
+            )
             .unwrap();
 
         // B delegates back to A (creating cycle)
         rebac
-            .grant_relationship(s_b, PolicyResource::Agent(s_a.0), RelationType::Delegate, None)
+            .grant_relationship(
+                s_b,
+                PolicyResource::Agent(s_a.0),
+                RelationType::Delegate,
+                None,
+            )
             .unwrap();
 
         // Cycle must be detected
@@ -550,16 +690,36 @@ mod tests {
 
         // Chain: s1 -> s2 -> s3 -> s4 -> s5 (depth 4, exceeds limit 3)
         rebac
-            .grant_relationship(s1, PolicyResource::Agent(s2.0), RelationType::Delegate, None)
+            .grant_relationship(
+                s1,
+                PolicyResource::Agent(s2.0),
+                RelationType::Delegate,
+                None,
+            )
             .unwrap();
         rebac
-            .grant_relationship(s2, PolicyResource::Agent(s3.0), RelationType::Delegate, None)
+            .grant_relationship(
+                s2,
+                PolicyResource::Agent(s3.0),
+                RelationType::Delegate,
+                None,
+            )
             .unwrap();
         rebac
-            .grant_relationship(s3, PolicyResource::Agent(s4.0), RelationType::Delegate, None)
+            .grant_relationship(
+                s3,
+                PolicyResource::Agent(s4.0),
+                RelationType::Delegate,
+                None,
+            )
             .unwrap();
         rebac
-            .grant_relationship(s4, PolicyResource::Agent(s5.0), RelationType::Delegate, None)
+            .grant_relationship(
+                s4,
+                PolicyResource::Agent(s5.0),
+                RelationType::Delegate,
+                None,
+            )
             .unwrap();
 
         // Should detect max depth exceeded when traversing from s1 to s5
@@ -585,7 +745,11 @@ mod tests {
             .unwrap();
 
         // Should use the active Owner relationship
-        assert!(rebac.verify_relationship(s1, a1.clone(), PolicyAction::Spawn).is_ok());
+        assert!(
+            rebac
+                .verify_relationship(s1, a1.clone(), PolicyAction::Spawn)
+                .is_ok()
+        );
     }
 
     // TEST 15: Fail-closed on unrecognized action
@@ -600,7 +764,11 @@ mod tests {
             .grant_relationship(s1, a1.clone(), RelationType::Observer, None)
             .unwrap();
 
-        assert!(rebac.verify_relationship(s1, a1.clone(), PolicyAction::Spawn).is_err());
+        assert!(
+            rebac
+                .verify_relationship(s1, a1.clone(), PolicyAction::Spawn)
+                .is_err()
+        );
     }
 
     // TEST 16: Concurrent relationships from multiple sovereigns
@@ -619,13 +787,25 @@ mod tests {
             .unwrap();
 
         // s1 is Owner, can spawn
-        assert!(rebac.verify_relationship(s1, a1.clone(), PolicyAction::Spawn).is_ok());
+        assert!(
+            rebac
+                .verify_relationship(s1, a1.clone(), PolicyAction::Spawn)
+                .is_ok()
+        );
 
         // s2 is Observer, cannot spawn
-        assert!(rebac.verify_relationship(s2, a1.clone(), PolicyAction::Spawn).is_err());
+        assert!(
+            rebac
+                .verify_relationship(s2, a1.clone(), PolicyAction::Spawn)
+                .is_err()
+        );
 
         // s2 can read
-        assert!(rebac.verify_relationship(s2, a1.clone(), PolicyAction::ReadMetrics).is_ok());
+        assert!(
+            rebac
+                .verify_relationship(s2, a1.clone(), PolicyAction::ReadMetrics)
+                .is_ok()
+        );
     }
 }
 

@@ -7,22 +7,10 @@ pub type JobId = Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum SystemEvent {
-    JobDispatched {
-        job_id: Uuid,
-        mandate_id: Uuid,
-    },
-    JobCompleted {
-        job_id: Uuid,
-        result: String,
-    },
-    JobFailed {
-        job_id: Uuid,
-        error: String,
-    },
-    AccessDecision {
-        actor: Uuid,
-        decision: String,
-    },
+    JobDispatched { job_id: Uuid, mandate_id: Uuid },
+    JobCompleted { job_id: Uuid, result: String },
+    JobFailed { job_id: Uuid, error: String },
+    AccessDecision { actor: Uuid, decision: String },
 }
 
 impl fmt::Display for SystemEvent {

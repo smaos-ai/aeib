@@ -9,8 +9,8 @@
 /// Tests use shared test fixtures with isolated test data.
 use chrono::{DateTime, Duration, Utc};
 use serde_json::json;
-use siss_graph_db::repo::{correlation_repo, projections_repo};
 use siss_graph_db::migrations;
+use siss_graph_db::repo::{correlation_repo, projections_repo};
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{Pool, Postgres};
 use std::sync::Arc;

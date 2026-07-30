@@ -1,6 +1,6 @@
-use uuid::Uuid;
-use std::collections::HashMap;
 use chrono::{DateTime, Utc};
+use std::collections::HashMap;
+use uuid::Uuid;
 
 #[derive(Clone, Debug)]
 pub struct MarketVisionCapsule {
@@ -60,9 +60,7 @@ impl MarketVisionCapsule {
         let mut detected = Vec::new();
 
         let mean = data.iter().sum::<f64>() / data.len() as f64;
-        let variance = data.iter()
-            .map(|x| (x - mean).powi(2))
-            .sum::<f64>() / data.len() as f64;
+        let variance = data.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / data.len() as f64;
         let std_dev = variance.sqrt();
 
         for (idx, &value) in data.iter().enumerate() {
@@ -76,7 +74,10 @@ impl MarketVisionCapsule {
                     anomaly_id,
                     timestamp: Utc::now(),
                     confidence_score: confidence,
-                    insight: format!("Z-score anomaly detected at index {}: z={:.2}", idx, z_score),
+                    insight: format!(
+                        "Z-score anomaly detected at index {}: z={:.2}",
+                        idx, z_score
+                    ),
                     alerted: false,
                 };
 
@@ -97,13 +98,16 @@ impl MarketVisionCapsule {
     }
 
     pub fn generate_insights(&mut self, anomaly_id: Uuid) -> Result<String, String> {
-        let anomaly = self.anomalies.iter_mut()
+        let anomaly = self
+            .anomalies
+            .iter_mut()
             .find(|a| a.anomaly_id == anomaly_id)
             .ok_or("Anomaly not found".to_string())?;
 
         let insight = format!(
             "Market anomaly detected at {} with confidence {:.2}%. Recommend review of creator earnings data.",
-            anomaly.timestamp, anomaly.confidence_score * 100.0
+            anomaly.timestamp,
+            anomaly.confidence_score * 100.0
         );
 
         anomaly.insight = insight.clone();
@@ -116,7 +120,9 @@ impl MarketVisionCapsule {
     }
 
     pub fn trigger_alert(&mut self, anomaly_id: Uuid) -> Result<(), String> {
-        let anomaly = self.anomalies.iter_mut()
+        let anomaly = self
+            .anomalies
+            .iter_mut()
             .find(|a| a.anomaly_id == anomaly_id)
             .ok_or("Anomaly not found".to_string())?;
 
@@ -133,7 +139,11 @@ impl MarketVisionCapsule {
     }
 
     pub fn suppress_false_positive(&mut self, anomaly_id: Uuid) -> Result<(), String> {
-        if let Some(anomaly) = self.anomalies.iter_mut().find(|a| a.anomaly_id == anomaly_id) {
+        if let Some(anomaly) = self
+            .anomalies
+            .iter_mut()
+            .find(|a| a.anomaly_id == anomaly_id)
+        {
             anomaly.confidence_score *= 0.5;
             self.audit_trail.push(AuditEntry {
                 event: "False positive suppressed".to_string(),
@@ -155,7 +165,11 @@ impl MarketVisionCapsule {
         Ok(())
     }
 
-    pub fn incorporate_user_feedback(&mut self, anomaly_id: Uuid, is_accurate: bool) -> Result<(), String> {
+    pub fn incorporate_user_feedback(
+        &mut self,
+        anomaly_id: Uuid,
+        is_accurate: bool,
+    ) -> Result<(), String> {
         self.user_feedback.insert(anomaly_id, is_accurate);
         self.audit_trail.push(AuditEntry {
             event: "User feedback incorporated".to_string(),
@@ -177,8 +191,17 @@ impl MarketVisionCapsule {
         }
 
         let detected_count = self.anomalies.len();
-        let true_positives = self.anomalies.iter()
-            .filter(|a| a.confidence_score > 0.6 && !self.user_feedback.get(&a.anomaly_id).copied().unwrap_or(false))
+        let true_positives = self
+            .anomalies
+            .iter()
+            .filter(|a| {
+                a.confidence_score > 0.6
+                    && !self
+                        .user_feedback
+                        .get(&a.anomaly_id)
+                        .copied()
+                        .unwrap_or(false)
+            })
             .count();
 
         if true_positives == 0 {

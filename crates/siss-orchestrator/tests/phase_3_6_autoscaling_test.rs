@@ -1,5 +1,5 @@
-use uuid::Uuid;
 use std::collections::HashMap;
+use uuid::Uuid;
 
 #[derive(Clone, Debug)]
 struct ScalingMetrics {
@@ -48,7 +48,11 @@ impl AutoScalingEngine {
             let additional_agents = ((metrics.current_agents as f64 * 0.25).ceil() as usize).max(1);
             return ScalingAction::ScaleUp {
                 count: additional_agents.min(self.max_agents - metrics.current_agents),
-                reason: format!("Utilization {:.2}% exceeds threshold {:.2}%", utilization * 100.0, self.scale_up_threshold * 100.0),
+                reason: format!(
+                    "Utilization {:.2}% exceeds threshold {:.2}%",
+                    utilization * 100.0,
+                    self.scale_up_threshold * 100.0
+                ),
             };
         }
 
@@ -56,7 +60,11 @@ impl AutoScalingEngine {
             let agents_to_remove = ((metrics.current_agents as f64 * 0.15).ceil() as usize).max(1);
             return ScalingAction::ScaleDown {
                 count: agents_to_remove.min(metrics.current_agents - self.min_agents),
-                reason: format!("Utilization {:.2}% below threshold {:.2}%", utilization * 100.0, self.scale_down_threshold * 100.0),
+                reason: format!(
+                    "Utilization {:.2}% below threshold {:.2}%",
+                    utilization * 100.0,
+                    self.scale_down_threshold * 100.0
+                ),
             };
         }
 
@@ -69,7 +77,8 @@ impl AutoScalingEngine {
     }
 
     fn calculate_optimal_agent_count(&self, metrics: &ScalingMetrics) -> usize {
-        let ideal = (metrics.total_tasks as f64 / (100.0 * self.target_utilization)).ceil() as usize;
+        let ideal =
+            (metrics.total_tasks as f64 / (100.0 * self.target_utilization)).ceil() as usize;
         ideal.max(self.min_agents).min(self.max_agents)
     }
 }

@@ -1,13 +1,12 @@
-/// Phase 34: Security View Handler
-/// Integrates AoE session streams with A2UI components via streaming gateway
-
-use std::sync::Arc;
-use uuid::Uuid;
-use serde::{Deserialize, Serialize};
-use siss_agent_shell::ag_ui::sse_consumer::AoEEvent;
 use crate::a2ui::security_dashboard::SecurityDashboard;
 use crate::a2ui::streaming_gateway::A2UIStreamingGateway;
 use crate::handlers::aoe_cockpit::AoECockpit;
+use serde::{Deserialize, Serialize};
+use siss_agent_shell::ag_ui::sse_consumer::AoEEvent;
+/// Phase 34: Security View Handler
+/// Integrates AoE session streams with A2UI components via streaming gateway
+use std::sync::Arc;
+use uuid::Uuid;
 
 /// Request to initiate a security view stream
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -65,22 +64,15 @@ impl SecurityViewHandler {
     }
 
     /// Start security view for a session
-    pub async fn start_security_view(
-        &self,
-        session_id: &str,
-    ) -> Result<(), SecurityViewError> {
+    pub async fn start_security_view(&self, session_id: &str) -> Result<(), SecurityViewError> {
         // Validate session exists (in real implementation, check against persistent store)
-        Uuid::parse_str(session_id)
-            .map_err(|_| SecurityViewError::SessionNotFound)?;
+        Uuid::parse_str(session_id).map_err(|_| SecurityViewError::SessionNotFound)?;
 
         Ok(())
     }
 
     /// Process AoE event and publish to gateway
-    pub async fn process_aoe_event(
-        &self,
-        event: &AoEEvent,
-    ) -> Result<(), SecurityViewError> {
+    pub async fn process_aoe_event(&self, event: &AoEEvent) -> Result<(), SecurityViewError> {
         // Map AoEEvent to A2UIComponent
         let component = SecurityDashboard::aoe_event_to_component(event);
 

@@ -1,7 +1,5 @@
 use siss_defense_framework::{
-    generate_compliance_artifacts_to_disk,
-    ComplianceArtifacts,
-    ArtifactFormat,
+    generate_compliance_artifacts_to_disk, ArtifactFormat, ComplianceArtifacts,
 };
 
 fn main() -> Result<(), String> {
@@ -18,7 +16,10 @@ fn main() -> Result<(), String> {
     println!("🔨 Generating compliance artifacts...\n");
     let generated_files = generate_compliance_artifacts_to_disk(output_dir)?;
 
-    println!("✓ Generated {} compliance documents:\n", generated_files.len());
+    println!(
+        "✓ Generated {} compliance documents:\n",
+        generated_files.len()
+    );
     for file in &generated_files {
         println!("   ✓ {}", file);
     }
@@ -27,9 +28,18 @@ fn main() -> Result<(), String> {
     println!("\n╭─ COMPLIANCE SUMMARY ─────────────────────────────────────────╮");
     let artifacts = ComplianceArtifacts::new();
 
-    println!("│ CMMC Level 2 Practices:  {}/23 ✓", artifacts.mapper.practice_count());
-    println!("│ Network Segments:        {}/4  ✓", artifacts.topology.network.segment_count());
-    println!("│ Deployment Nodes:        {}/13 ✓", artifacts.topology.network.node_count());
+    println!(
+        "│ CMMC Level 2 Practices:  {}/23 ✓",
+        artifacts.mapper.practice_count()
+    );
+    println!(
+        "│ Network Segments:        {}/4  ✓",
+        artifacts.topology.network.segment_count()
+    );
+    println!(
+        "│ Deployment Nodes:        {}/13 ✓",
+        artifacts.topology.network.node_count()
+    );
     println!("│ Risk Items:              7 identified + mitigated ✓");
     println!("│ TLS Hardening:           5/5 requirements met ✓");
     println!("│ Cryptographic Controls:  6/10 approved (4 forbidden) ✓");

@@ -9,10 +9,10 @@ pub mod edge_gateway;
 pub mod edge_skills;
 pub mod executor;
 pub mod facility_ingress;
-pub mod iworld_bench;
-pub mod mlx_fleet;
 #[cfg(test)]
 mod integration_tests;
+pub mod iworld_bench;
+pub mod mlx_fleet;
 pub mod omni_route;
 pub mod pipeline;
 pub mod routing_engine;

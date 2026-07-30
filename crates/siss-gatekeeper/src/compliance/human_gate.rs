@@ -1,14 +1,14 @@
-use uuid::Uuid;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 /// Request for human approval on high-risk decisions
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HumanGateRequest {
     pub capsule_id: Uuid,
     pub approval_level: super::capsule::ApprovalLevel,
-    pub approval_threshold: f64,      // 0.7 = 70% required
-    pub timeout_secs: u64,             // Time allowed to respond
-    pub created_at: u64,               // Unix timestamp
+    pub approval_threshold: f64, // 0.7 = 70% required
+    pub timeout_secs: u64,       // Time allowed to respond
+    pub created_at: u64,         // Unix timestamp
 }
 
 /// Cryptographic attestation: human approval with signature
@@ -16,11 +16,11 @@ pub struct HumanGateRequest {
 pub struct HumanGateAttestation {
     pub capsule_id: Uuid,
     pub approved: bool,
-    pub approver_id: Uuid,             // Identity of human
-    pub approver_ed25519_key: String,  // Public key for verification
-    pub timestamp: u64,                 // Unix timestamp of approval
-    pub ed25519_signature: String,     // Cryptographic proof
-    pub reason: String,                 // Why approved/rejected
+    pub approver_id: Uuid,            // Identity of human
+    pub approver_ed25519_key: String, // Public key for verification
+    pub timestamp: u64,               // Unix timestamp of approval
+    pub ed25519_signature: String,    // Cryptographic proof
+    pub reason: String,               // Why approved/rejected
 }
 
 impl HumanGateRequest {
@@ -100,7 +100,11 @@ impl HumanGateAttestation {
         format!(
             "Capsule {}: {} by {} at {} UTC ({})",
             self.capsule_id,
-            if self.approved { "APPROVED" } else { "REJECTED" },
+            if self.approved {
+                "APPROVED"
+            } else {
+                "REJECTED"
+            },
             self.approver_id,
             self.timestamp,
             self.reason
@@ -129,11 +133,8 @@ mod tests {
     #[test]
     fn test_human_gate_request_valid_immediately_after_creation() {
         let capsule_id = Uuid::new_v4();
-        let request = HumanGateRequest::new(
-            capsule_id,
-            super::super::capsule::ApprovalLevel::High,
-            300,
-        );
+        let request =
+            HumanGateRequest::new(capsule_id, super::super::capsule::ApprovalLevel::High, 300);
 
         assert!(request.is_valid());
     }
@@ -141,8 +142,9 @@ mod tests {
     #[test]
     fn test_human_gate_request_custom_threshold() {
         let capsule_id = Uuid::new_v4();
-        let request = HumanGateRequest::new(capsule_id, super::super::capsule::ApprovalLevel::High, 300)
-            .with_threshold(0.9);
+        let request =
+            HumanGateRequest::new(capsule_id, super::super::capsule::ApprovalLevel::High, 300)
+                .with_threshold(0.9);
 
         assert_eq!(request.approval_threshold, 0.9);
     }

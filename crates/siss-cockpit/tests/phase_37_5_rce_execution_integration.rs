@@ -1,29 +1,28 @@
+use chrono::Utc;
+use std::sync::Arc;
 /// Phase 37.5: RCE Execution Layer — Integration Tests with Testcontainers
 ///
 /// 6 tests proving fail-closed invariants under concurrent load via PostgreSQL:
 /// - Atomic state mutation (exactly 1/10 concurrent decisions succeeds)
 /// - Audit-first execution (audit writes before mutation, never rolled back)
 /// - Synchronized broadcast (rollback on delivery failure)
-
 use std::sync::atomic::{AtomicU32, Ordering};
-use std::sync::Arc;
 use std::time::Duration;
 use tokio::time::timeout;
 use uuid::Uuid;
-use chrono::Utc;
 
+use sqlx::PgPool;
 use testcontainers::runners::AsyncRunner;
 use testcontainers::{GenericImage, ImageExt, core::WaitFor};
-use sqlx::PgPool;
 
-use siss_cockpit::state::CockpitState;
-use siss_cockpit::handlers::schema_contracts::DecisionWebhookPayload;
-use siss_cockpit::handlers::rce_decision::post_rce_decision;
-use siss_graph_db::rce::{ResumableCognitiveExecution, ExecutionState, Step, InterruptSignal};
-use siss_graph_db::repo::rce_checkpoint_repo;
-use axum::extract::State;
 use axum::Json;
+use axum::extract::State;
 use axum::http::StatusCode;
+use siss_cockpit::handlers::rce_decision::post_rce_decision;
+use siss_cockpit::handlers::schema_contracts::DecisionWebhookPayload;
+use siss_cockpit::state::CockpitState;
+use siss_graph_db::rce::{ExecutionState, InterruptSignal, ResumableCognitiveExecution, Step};
+use siss_graph_db::repo::rce_checkpoint_repo;
 
 // =============================================================================
 // HELPERS
@@ -76,7 +75,11 @@ fn make_paused_engine(workflow_id: Uuid) -> ResumableCognitiveExecution {
         .pause_workflow(interrupt, b"state_snapshot_bytes".to_vec())
         .expect("pause_workflow");
 
-    assert_eq!(engine.state, ExecutionState::Paused, "Engine should be Paused");
+    assert_eq!(
+        engine.state,
+        ExecutionState::Paused,
+        "Engine should be Paused"
+    );
     engine
 }
 
@@ -175,10 +178,17 @@ async fn test_01_concurrency_lock_exactly_one_succeeds() {
 
     // VERIFY: Exactly 1 SSE broadcast event
     let event_result = timeout(Duration::from_millis(100), rx.recv()).await;
-    assert!(event_result.is_ok(), "Should receive broadcast event within 100ms");
+    assert!(
+        event_result.is_ok(),
+        "Should receive broadcast event within 100ms"
+    );
 
     let event = event_result.unwrap().expect("recv succeeded");
-    assert_eq!(event.event_type(), "workflow_resumed", "Event type should be workflow_resumed");
+    assert_eq!(
+        event.event_type(),
+        "workflow_resumed",
+        "Event type should be workflow_resumed"
+    );
 
     // VERIFY: No more events
     let no_more = timeout(Duration::from_millis(50), rx.recv()).await;
@@ -225,7 +235,11 @@ async fn test_02_invalid_transition_idle_state() {
     let (status, _body) = post_rce_decision(State(state), Json(payload)).await;
 
     // VERIFY: 409 Conflict (engine not in Paused state)
-    assert_eq!(status, StatusCode::CONFLICT, "Should return 409 CONFLICT for non-Paused state");
+    assert_eq!(
+        status,
+        StatusCode::CONFLICT,
+        "Should return 409 CONFLICT for non-Paused state"
+    );
 
     // VERIFY: 0 audit rows (audit comes AFTER state guard, so rejected before audit)
     let audit_rows = rce_checkpoint_repo::fetch_audit_trail(&pool, workflow_id)
@@ -275,7 +289,10 @@ async fn test_03_broadcast_guarantee_event_delivered() {
 
     // VERIFY: Event received within 100ms
     let event_result = timeout(Duration::from_millis(100), rx.recv()).await;
-    assert!(event_result.is_ok(), "Event should be received within 100ms");
+    assert!(
+        event_result.is_ok(),
+        "Event should be received within 100ms"
+    );
 
     let event = event_result.unwrap().expect("recv succeeded");
     assert_eq!(
@@ -423,7 +440,10 @@ async fn test_05_audit_schema_validation_row_contents() {
     // Verify timestamp is recent
     let now = Utc::now();
     let diff = (now - *occurred_at).num_seconds();
-    assert!(diff >= 0 && diff <= 5, "occurred_at should be within 5s of now");
+    assert!(
+        diff >= 0 && diff <= 5,
+        "occurred_at should be within 5s of now"
+    );
 
     // Verify details contains workflow_id
     if let Some(workflow_id_in_details) = details.get("workflow_id") {

@@ -1,7 +1,7 @@
+use sha2::{Digest, Sha256};
 use sqlx::PgPool;
-use uuid::Uuid;
 use std::collections::HashMap;
-use sha2::{Sha256, Digest};
+use uuid::Uuid;
 
 #[derive(Debug, Clone)]
 pub struct SettlementReceipt {
@@ -43,13 +43,11 @@ pub async fn store_contract_state(
     }
 
     // Update contract's state_root in smart_contracts table
-    sqlx::query(
-        "UPDATE smart_contracts SET state_root = $1 WHERE contract_address = $2"
-    )
-    .bind(&merkle_root)
-    .bind(contract_address)
-    .execute(pool)
-    .await?;
+    sqlx::query("UPDATE smart_contracts SET state_root = $1 WHERE contract_address = $2")
+        .bind(&merkle_root)
+        .bind(contract_address)
+        .execute(pool)
+        .await?;
 
     Ok((Uuid::new_v4(), merkle_root))
 }
@@ -98,13 +96,11 @@ pub async fn commit_contract_state_to_dag(
     let merkle_proof_ref = compute_hash(&format!("{}:{}", contract_address, state_root));
 
     // Update contract record with merkle_proof_ref
-    sqlx::query(
-        "UPDATE smart_contracts SET merkle_proof_ref = $1 WHERE contract_address = $2"
-    )
-    .bind(&merkle_proof_ref)
-    .bind(contract_address)
-    .execute(pool)
-    .await?;
+    sqlx::query("UPDATE smart_contracts SET merkle_proof_ref = $1 WHERE contract_address = $2")
+        .bind(&merkle_proof_ref)
+        .bind(contract_address)
+        .execute(pool)
+        .await?;
 
     Ok(merkle_proof_ref)
 }
@@ -130,7 +126,7 @@ pub async fn settle_contract_execution(
 
     // Fetch execution to get state root
     let execution: (String, String) = sqlx::query_as(
-        "SELECT contract_address, status FROM contract_executions WHERE execution_id = $1"
+        "SELECT contract_address, status FROM contract_executions WHERE execution_id = $1",
     )
     .bind(&execution_id)
     .fetch_one(pool)
@@ -139,18 +135,17 @@ pub async fn settle_contract_execution(
     let (contract_address, _status) = execution;
 
     // Get current state root
-    let contract: (Option<String>,) = sqlx::query_as(
-        "SELECT state_root FROM smart_contracts WHERE contract_address = $1"
-    )
-    .bind(&contract_address)
-    .fetch_one(pool)
-    .await?;
+    let contract: (Option<String>,) =
+        sqlx::query_as("SELECT state_root FROM smart_contracts WHERE contract_address = $1")
+            .bind(&contract_address)
+            .fetch_one(pool)
+            .await?;
 
     let state_root_after = contract.0.unwrap_or_default();
 
     // Check for idempotency: if settlement already exists, return same receipt
     let existing: Option<(Uuid, String)> = sqlx::query_as(
-        "SELECT settlement_id, state_root_after FROM contract_settlements WHERE execution_id = $1"
+        "SELECT settlement_id, state_root_after FROM contract_settlements WHERE execution_id = $1",
     )
     .bind(&execution_id)
     .fetch_optional(pool)
@@ -225,6 +220,10 @@ mod tests {
         let proof_ref = compute_hash(&format!("{}:{}", contract, state_root));
 
         assert!(validate_merkle_proof(contract, state_root, &proof_ref));
-        assert!(!validate_merkle_proof(contract, "different_root", &proof_ref));
+        assert!(!validate_merkle_proof(
+            contract,
+            "different_root",
+            &proof_ref
+        ));
     }
 }

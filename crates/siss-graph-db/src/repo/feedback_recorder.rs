@@ -95,10 +95,15 @@ pub async fn record_feedback_for_anomaly(
         // If feedback matched (true positive), reinforce the signals and reset acceleration
         // Otherwise accelerate decay on false positives
         if matched {
-            let _ = crate::signal_reinforcement::reinforce_signals_for_feedback(pool, feedback_id).await?;
+            let _ = crate::signal_reinforcement::reinforce_signals_for_feedback(pool, feedback_id)
+                .await?;
             let _ = crate::signal_acceleration::reset_acceleration_mode(pool, feedback_id).await?;
         } else {
-            let _ = crate::signal_acceleration::accelerate_signal_decay_for_false_positive(pool, feedback_id).await?;
+            let _ = crate::signal_acceleration::accelerate_signal_decay_for_false_positive(
+                pool,
+                feedback_id,
+            )
+            .await?;
         }
 
         Ok(Some(feedback_id))

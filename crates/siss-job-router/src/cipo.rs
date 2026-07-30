@@ -1,6 +1,5 @@
 /// CIPO Trace Distillation: captures SLM failures from OmniRoute escalations and distills them
 /// into RefinementSignal lessons that teach the local SLM to handle previously failing tasks.
-
 use crate::confidence_scorer::RoutingTier;
 use chrono::{DateTime, Utc};
 
@@ -49,16 +48,8 @@ impl CipoDistiller {
                 let count = group.len();
                 let first = group[0];
 
-                let gate_err_snippet = first
-                    .gate_error_raw
-                    .chars()
-                    .take(60)
-                    .collect::<String>();
-                let payload_snippet = first
-                    .payload
-                    .chars()
-                    .take(40)
-                    .collect::<String>();
+                let gate_err_snippet = first.gate_error_raw.chars().take(60).collect::<String>();
+                let payload_snippet = first.payload.chars().take(40).collect::<String>();
 
                 let lesson = format!(
                     "SLM failed: {} → retrain on [{}]",

@@ -1,17 +1,14 @@
 pub mod error;
-pub mod types;
-pub mod model_loader;
 pub mod inference;
+pub mod model_loader;
+pub mod types;
 
 pub use error::{LocalLLMError, LocalLLMResult};
-pub use types::{
-    ModelType, InferenceRequest, InferenceResult, ModelMetadata,
-    LocalLLMConfig,
-};
-pub use model_loader::ModelCache;
 pub use inference::InferenceEngine;
+pub use model_loader::ModelCache;
+pub use types::{InferenceRequest, InferenceResult, LocalLLMConfig, ModelMetadata, ModelType};
 
-use siss_layer00::{Layer0Gate, CapabilityToken};
+use siss_layer00::{CapabilityToken, Layer0Gate};
 use std::sync::Arc;
 
 /// Main entry point for local LLM inference with Layer 0 gating
@@ -23,10 +20,7 @@ pub struct LocalLLMGate {
 }
 
 impl LocalLLMGate {
-    pub fn new(
-        layer0_gate: Arc<Layer0Gate>,
-        config: LocalLLMConfig,
-    ) -> Self {
+    pub fn new(layer0_gate: Arc<Layer0Gate>, config: LocalLLMConfig) -> Self {
         let model_cache = Arc::new(ModelCache::new(config));
         let inference_engine = Arc::new(InferenceEngine::new(
             layer0_gate.clone(),

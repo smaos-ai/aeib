@@ -600,7 +600,11 @@ async fn test_phase2_adapter_list_complete() {
         .expect("SDK build");
 
     let adapters = sdk.list_all_adapters().await.expect("List adapters");
-    assert!(adapters.len() >= 50, "Expected at least 50 total adapters, got {}", adapters.len());
+    assert!(
+        adapters.len() >= 50,
+        "Expected at least 50 total adapters, got {}",
+        adapters.len()
+    );
 }
 
 #[tokio::test]
@@ -678,17 +682,15 @@ async fn test_phase2_policy_enforcement_multi_platform() {
     let creator_id = Uuid::new_v4();
     let policy = CreatorPolicy {
         creator_id,
-        rules: vec![
-            PolicyRule {
-                id: "rule-tier1".to_string(),
-                description: "Allow content platforms".to_string(),
-                condition: PolicyCondition::Action {
-                    platform: "medium".to_string(),
-                    action: "publish".to_string(),
-                },
-                effect: PolicyEffect::Allow,
+        rules: vec![PolicyRule {
+            id: "rule-tier1".to_string(),
+            description: "Allow content platforms".to_string(),
+            condition: PolicyCondition::Action {
+                platform: "medium".to_string(),
+                action: "publish".to_string(),
             },
-        ],
+            effect: PolicyEffect::Allow,
+        }],
         version: 1,
     };
 
@@ -716,8 +718,8 @@ async fn test_phase2_policy_enforcement_multi_platform() {
 #[tokio::test]
 async fn test_phase2_json_ld_compliance_all_platforms() {
     let platforms = vec![
-        "medium", "linkedin", "bluesky", "gumroad", "telegram",
-        "hubspot", "brevo", "kick", "rumble", "mirror"
+        "medium", "linkedin", "bluesky", "gumroad", "telegram", "hubspot", "brevo", "kick",
+        "rumble", "mirror",
     ];
 
     for platform in platforms {
@@ -742,11 +744,16 @@ async fn test_phase2_json_ld_compliance_all_platforms() {
         };
 
         let json_ld = entry.to_json_ld();
-        assert!(json_ld.get("@context").is_some(), "Missing @context for {}", platform);
+        assert!(
+            json_ld.get("@context").is_some(),
+            "Missing @context for {}",
+            platform
+        );
         assert_eq!(
             json_ld.get("type").and_then(|v| v.as_str()),
             Some("CreatorDecision"),
-            "Invalid type for {}", platform
+            "Invalid type for {}",
+            platform
         );
     }
 }

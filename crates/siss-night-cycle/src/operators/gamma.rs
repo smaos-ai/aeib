@@ -1,4 +1,4 @@
-use super::{NightCycleOperator, OperatorResult, OntologyState};
+use super::{NightCycleOperator, OntologyState, OperatorResult};
 
 /// GammaOperator: Causal Validation — filter out entities below confidence threshold
 pub struct GammaOperator;
@@ -9,7 +9,9 @@ impl NightCycleOperator for GammaOperator {
 
         // Filter: keep only entities with confidence >= threshold
         let threshold = state.confidence_threshold;
-        state.entities.retain(|entity| entity.confidence >= threshold);
+        state
+            .entities
+            .retain(|entity| entity.confidence >= threshold);
 
         let entities_changed = initial_count - state.entities.len();
 

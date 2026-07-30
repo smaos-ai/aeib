@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use hex;
 use rand::Rng;
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
@@ -6,7 +7,6 @@ use std::sync::Arc;
 use thiserror::Error;
 use tokio::sync::RwLock;
 use uuid::Uuid;
-use hex;
 
 use crate::ZeroTrustConfig;
 
@@ -179,6 +179,8 @@ impl SessionManager {
             }
         }
 
-        Err(SessionError::ValidationFailed("Token not found".to_string()))
+        Err(SessionError::ValidationFailed(
+            "Token not found".to_string(),
+        ))
     }
 }

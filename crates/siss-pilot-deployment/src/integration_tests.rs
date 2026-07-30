@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod integration_tests {
     use crate::{
-        PilotEnvironment, DeploymentConfig, EnvironmentValidator, DeploymentManifest,
-        CustomerProfile, generate_terraform_config,
+        CustomerProfile, DeploymentConfig, DeploymentManifest, EnvironmentValidator,
+        PilotEnvironment, generate_terraform_config,
     };
 
     /// test_fintech_complete_deployment_flow: ensures FinTech environment can be validated and deployed
@@ -159,8 +159,8 @@ mod integration_tests {
             manifest.validation_status = "READY".to_string();
 
             // Serialize to JSON (idempotent operation)
-            let json = serde_json::to_string_pretty(&manifest)
-                .expect("Manifest should serialize to JSON");
+            let json =
+                serde_json::to_string_pretty(&manifest).expect("Manifest should serialize to JSON");
             assert!(!json.is_empty());
             assert!(json.contains(&env.id));
         }

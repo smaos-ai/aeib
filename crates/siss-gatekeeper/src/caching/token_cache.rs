@@ -12,8 +12,8 @@
 use dashmap::DashMap;
 use sha2::{Digest, Sha256};
 use std::sync::{
-    atomic::{AtomicU64, Ordering},
     Arc,
+    atomic::{AtomicU64, Ordering},
 };
 use std::time::{Duration, Instant};
 
@@ -203,7 +203,11 @@ mod tests {
         let cache = TokenCache::new(300);
         let ctx = b"expired_context";
         let key = TokenCache::cache_key(ctx);
-        cache.insert(key, b"stale_decision".to_vec(), Some(Duration::from_secs(0)));
+        cache.insert(
+            key,
+            b"stale_decision".to_vec(),
+            Some(Duration::from_secs(0)),
+        );
         let result = cache.lookup(&key);
         assert_eq!(result, None, "expired entry must return None");
     }
@@ -302,7 +306,10 @@ mod tests {
 
     #[test]
     fn test_distinct_contexts_produce_distinct_keys() {
-        assert_ne!(TokenCache::cache_key(b"context_A"), TokenCache::cache_key(b"context_B"));
+        assert_ne!(
+            TokenCache::cache_key(b"context_A"),
+            TokenCache::cache_key(b"context_B")
+        );
     }
 
     #[test]

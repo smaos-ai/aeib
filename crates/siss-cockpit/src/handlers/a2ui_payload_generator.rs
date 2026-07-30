@@ -1,8 +1,7 @@
 /// Phase 32: A2UI Payload Generation
 /// RED phase: Failing tests for A2UI schema enforcement (18 safe components)
-
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 /// The 18 safe A2UI component primitives
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -57,9 +56,24 @@ impl A2UIComponent {
     /// Get list of all 18 safe components
     pub fn all_safe_components() -> Vec<&'static str> {
         vec![
-            "card", "text_field", "text_area", "date_time_input", "number_input",
-            "select", "multi_select", "checkbox", "radio_group", "button", "link",
-            "progress", "badge", "alert", "modal", "tabs", "list", "grid",
+            "card",
+            "text_field",
+            "text_area",
+            "date_time_input",
+            "number_input",
+            "select",
+            "multi_select",
+            "checkbox",
+            "radio_group",
+            "button",
+            "link",
+            "progress",
+            "badge",
+            "alert",
+            "modal",
+            "tabs",
+            "list",
+            "grid",
         ]
     }
 }
@@ -68,15 +82,15 @@ impl A2UIComponent {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct A2UIPayload {
     pub component_type: String,
-    pub layout: serde_json::Value,  // UI structure (no data binding)
-    pub data_binding: serde_json::Value,  // Data payload (separate from layout)
+    pub layout: serde_json::Value, // UI structure (no data binding)
+    pub data_binding: serde_json::Value, // Data payload (separate from layout)
 }
 
 impl A2UIPayload {
     /// Generate A2UI payload from execution state
     pub fn from_execution_state(state: &str) -> Result<Self, PayloadError> {
-        let parsed: serde_json::Value = serde_json::from_str(state)
-            .map_err(|_| PayloadError::MalformedPayload)?;
+        let parsed: serde_json::Value =
+            serde_json::from_str(state).map_err(|_| PayloadError::MalformedPayload)?;
 
         // Map execution state to A2UI card component
         let layout = json!({
@@ -111,9 +125,19 @@ impl A2UIPayload {
         if let Some(layout_obj) = self.layout.as_object() {
             for key in layout_obj.keys() {
                 // Flag suspicious field names that might contain data
-                if matches!(key.as_str(),
-                    "username" | "email" | "password" | "token" | "api_key" | "secret" |
-                    "name" | "id" | "value" | "data") {
+                if matches!(
+                    key.as_str(),
+                    "username"
+                        | "email"
+                        | "password"
+                        | "token"
+                        | "api_key"
+                        | "secret"
+                        | "name"
+                        | "id"
+                        | "value"
+                        | "data"
+                ) {
                     return Err(PayloadError::DataLayoutCoupling);
                 }
             }
@@ -143,7 +167,11 @@ mod tests {
         // AND no hallucinated components present
 
         let safe = A2UIComponent::all_safe_components();
-        assert_eq!(safe.len(), 18, "A2UI must support exactly 18 safe components");
+        assert_eq!(
+            safe.len(),
+            18,
+            "A2UI must support exactly 18 safe components"
+        );
     }
 
     #[test]
@@ -168,7 +196,11 @@ mod tests {
 
         for component_name in safe_components {
             let result = A2UIComponent::from_string(component_name);
-            assert!(result.is_ok(), "Safe component {} should validate", component_name);
+            assert!(
+                result.is_ok(),
+                "Safe component {} should validate",
+                component_name
+            );
         }
     }
 
@@ -214,7 +246,10 @@ mod tests {
         }"#;
 
         let result = A2UIPayload::from_execution_state(execution_state);
-        assert!(result.is_ok(), "Execution state should generate valid A2UI payload");
+        assert!(
+            result.is_ok(),
+            "Execution state should generate valid A2UI payload"
+        );
     }
 
     #[test]

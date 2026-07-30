@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
-use siss_agent_shell::hooks::{HookResult, LifecycleHook, ToolUseContext, SessionContext};
+use siss_agent_shell::hooks::{HookResult, LifecycleHook, SessionContext, ToolUseContext};
 use siss_context_cartography::zones::ZonalContextMap;
 use siss_memory_plane::operators::CartographicOperatorSet;
+use uuid::Uuid;
 
 /// Output from skill execution that needs routing to memory plane
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -18,24 +18,28 @@ pub struct MemoryRoutingHook {
 }
 
 impl MemoryRoutingHook {
-    pub fn new(
-        ops: CartographicOperatorSet,
-        guard: String,
-        threshold: f64,
-    ) -> Self {
-        Self { ops, guard, threshold }
+    pub fn new(ops: CartographicOperatorSet, guard: String, threshold: f64) -> Self {
+        Self {
+            ops,
+            guard,
+            threshold,
+        }
     }
 
     /// Route tool use output to memory plane
     pub fn process_post_tool_use(&self, map: &ZonalContextMap) -> HookOutput {
         let ids = self.ops.rho_reconnaissance(map, map.gray_fog.len());
-        HookOutput { routed_memory_ids: ids }
+        HookOutput {
+            routed_memory_ids: ids,
+        }
     }
 
     /// Drain session state via rho reconnaissance on session end
     pub fn process_session_end(&self, map: &ZonalContextMap) -> HookOutput {
         let ids = self.ops.rho_reconnaissance(map, map.gray_fog.len());
-        HookOutput { routed_memory_ids: ids }
+        HookOutput {
+            routed_memory_ids: ids,
+        }
     }
 }
 

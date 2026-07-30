@@ -1,17 +1,17 @@
-use uuid::Uuid;
 use serde::{Deserialize, Serialize};
-use sha2::{Sha256, Digest};
+use sha2::{Digest, Sha256};
+use uuid::Uuid;
 
 /// Single entry in the Merkle-DAG audit trail (EXEC_LOG)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MerkleAuditEntry {
     pub capsule_id: Uuid,
-    pub timestamp: u64,                 // Unix seconds
+    pub timestamp: u64, // Unix seconds
 
     /// Model inference details
     pub model_name: String,
-    pub input_hash: String,             // SHA256(input)
-    pub output_hash: String,            // SHA256(output)
+    pub input_hash: String,  // SHA256(input)
+    pub output_hash: String, // SHA256(output)
 
     /// Safety gates executed
     pub safety_gates_passed: bool,
@@ -23,8 +23,8 @@ pub struct MerkleAuditEntry {
     pub approver_id: Option<Uuid>,
 
     /// Merkle chain
-    pub merkle_root: String,            // SHA256(this entry + parent)
-    pub parent_hash: String,            // SHA256(previous entry)
+    pub merkle_root: String, // SHA256(this entry + parent)
+    pub parent_hash: String, // SHA256(previous entry)
 
     /// Compliance claims
     pub compliance_claims: Vec<String>, // "OMB-M-24-10 § 4.2.1"
@@ -104,8 +104,16 @@ impl EXEC_LOG {
     /// Get summary stats
     pub fn summary(&self) -> String {
         let total = self.entries.len();
-        let gates_passed = self.entries.iter().filter(|e| e.safety_gates_passed).count();
-        let human_approved = self.entries.iter().filter(|e| e.human_gate_approved == Some(true)).count();
+        let gates_passed = self
+            .entries
+            .iter()
+            .filter(|e| e.safety_gates_passed)
+            .count();
+        let human_approved = self
+            .entries
+            .iter()
+            .filter(|e| e.human_gate_approved == Some(true))
+            .count();
 
         format!(
             "EXEC_LOG: {} entries | {} gates passed | {} human approvals | Root: {}",

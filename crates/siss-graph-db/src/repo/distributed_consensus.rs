@@ -101,7 +101,10 @@ pub async fn cast_vote(
 }
 
 /// Get vote count for a proposal.
-pub async fn get_vote_count(pool: &PgPool, proposal_id: Uuid) -> Result<(i64, i64), ConsensusError> {
+pub async fn get_vote_count(
+    pool: &PgPool,
+    proposal_id: Uuid,
+) -> Result<(i64, i64), ConsensusError> {
     let row = sqlx::query(
         r#"
         SELECT

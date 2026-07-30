@@ -1,5 +1,5 @@
-use crate::cmmc_level2::{CmmcLevel2Mapper, CmmcPracticeEvidence};
 use crate::cmmc_deployment::DeploymentTopology;
+use crate::cmmc_level2::{CmmcLevel2Mapper, CmmcPracticeEvidence};
 use crate::cmmc_risk_assessment::RiskAssessment;
 use std::collections::HashMap;
 
@@ -36,7 +36,8 @@ impl ComplianceArtifacts {
     }
 
     fn practice_mapping_html(&self) -> String {
-        let mut html = String::from(r#"
+        let mut html = String::from(
+            r#"
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -106,49 +107,68 @@ impl ComplianceArtifacts {
                 <p>Minimum Version</p>
             </div>
         </div>
-"#);
+"#,
+        );
 
         // Group practices by category
         let mut categories: HashMap<String, Vec<&CmmcPracticeEvidence>> = HashMap::new();
         for practice in self.mapper.all_practices() {
             let category = practice.practice_code.chars().take(2).collect::<String>();
-            categories.entry(category).or_insert_with(Vec::new).push(practice);
+            categories
+                .entry(category)
+                .or_insert_with(Vec::new)
+                .push(practice);
         }
 
         // Render each category
         let category_order = vec!["AC", "AM", "AT", "CM", "IR", "SC", "AU", "SD"];
         for cat in category_order {
             if let Some(practices) = categories.get(cat) {
-                html.push_str(&format!(r#"
+                html.push_str(&format!(
+                    r#"
         <div class="control-group">
             <h2>{} - {}</h2>
             <div class="practice-grid">
-"#, cat, self.category_name(cat)));
+"#,
+                    cat,
+                    self.category_name(cat)
+                ));
 
                 for practice in practices {
                     let css_class = cat.to_lowercase();
-                    html.push_str(&format!(r#"
+                    html.push_str(&format!(
+                        r#"
                 <div class="practice-card {}">
                     <div class="practice-code">{}</div>
                     <div class="practice-title">{}</div>
-"#, css_class, practice.practice_code, practice.practice_title));
+"#,
+                        css_class, practice.practice_code, practice.practice_title
+                    ));
 
                     for component in &practice.siss_implementation {
-                        html.push_str(&format!(r#"
+                        html.push_str(&format!(
+                            r#"
                     <div class="siss-component">{}</div>
-"#, component));
+"#,
+                            component
+                        ));
                     }
 
-                    html.push_str(&format!(r#"
+                    html.push_str(&format!(
+                        r#"
                     <div class="compliance-note">{}</div>
                 </div>
-"#, practice.compliance_notes));
+"#,
+                        practice.compliance_notes
+                    ));
                 }
 
-                html.push_str(r#"
+                html.push_str(
+                    r#"
             </div>
         </div>
-"#);
+"#,
+                );
             }
         }
 
@@ -167,7 +187,8 @@ impl ComplianceArtifacts {
     }
 
     fn practice_mapping_markdown(&self) -> String {
-        let mut md = String::from(r#"
+        let mut md = String::from(
+            r#"
 # CMMC Level 2 Practice Mapping - SISS Implementation
 
 ## Executive Summary
@@ -184,13 +205,17 @@ This document maps all **23 CMMC Level 2 practices** to SISS (Sovereign Intellig
 
 ---
 
-"#);
+"#,
+        );
 
         // Group by category
         let mut categories: HashMap<String, Vec<&CmmcPracticeEvidence>> = HashMap::new();
         for practice in self.mapper.all_practices() {
             let category = practice.practice_code.chars().take(2).collect::<String>();
-            categories.entry(category).or_insert_with(Vec::new).push(practice);
+            categories
+                .entry(category)
+                .or_insert_with(Vec::new)
+                .push(practice);
         }
 
         let category_order = vec!["AC", "AM", "AT", "CM", "IR", "SC", "AU", "SD"];
@@ -199,12 +224,18 @@ This document maps all **23 CMMC Level 2 practices** to SISS (Sovereign Intellig
                 md.push_str(&format!("## {} - {}\n\n", cat, self.category_name(cat)));
 
                 for practice in practices {
-                    md.push_str(&format!("### {} {}\n\n", practice.practice_code, practice.practice_title));
+                    md.push_str(&format!(
+                        "### {} {}\n\n",
+                        practice.practice_code, practice.practice_title
+                    ));
                     md.push_str("**SISS Implementation:**\n\n");
                     for component in &practice.siss_implementation {
                         md.push_str(&format!("- `{}`\n", component));
                     }
-                    md.push_str(&format!("\n**Compliance Notes:** {}\n\n", practice.compliance_notes));
+                    md.push_str(&format!(
+                        "\n**Compliance Notes:** {}\n\n",
+                        practice.compliance_notes
+                    ));
                 }
             }
         }
@@ -250,7 +281,8 @@ This document maps all **23 CMMC Level 2 practices** to SISS (Sovereign Intellig
         let topo = &self.topology;
         let diagram = &topo.network_diagram_ascii;
 
-        format!(r#"
+        format!(
+            r#"
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -324,7 +356,11 @@ This document maps all **23 CMMC Level 2 practices** to SISS (Sovereign Intellig
     </div>
 </body>
 </html>
-"#, diagram, topo.network.node_count(), topo.network.segment_count())
+"#,
+            diagram,
+            topo.network.node_count(),
+            topo.network.segment_count()
+        )
     }
 
     fn topology_markdown(&self) -> String {
@@ -443,7 +479,8 @@ CONTACT & ESCALATION
 Email: andrejlo123@gmail.com
 Expected Completion: June 15, 2026
 Audit Review: June 16-30, 2026
-"#)
+"#
+        )
     }
 }
 

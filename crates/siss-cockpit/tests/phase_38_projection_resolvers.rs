@@ -1,3 +1,4 @@
+use chrono::Utc;
 /// Phase 38: π⁺ Projection Resolvers — Read-Only RCE Cognitive State Surface
 ///
 /// 6 TDD tests covering:
@@ -8,24 +9,22 @@
 /// - Concurrent read-only isomorphism (multiple readers don't block each other)
 ///
 /// Status: RED phase — all tests FAIL initially (Inversion Development)
-
 use siss_cockpit::state::CockpitState;
-use siss_context_cartography::zones::ZonalContextMap;
 use siss_context_cartography::types::MemoryEntry;
-use siss_graph_db::rce::{ResumableCognitiveExecution, ExecutionState, Step, Checkpoint};
+use siss_context_cartography::zones::ZonalContextMap;
 use siss_graph_core::node::memory::ConsolidationTier;
+use siss_graph_db::rce::{Checkpoint, ExecutionState, ResumableCognitiveExecution, Step};
 use sqlx::PgPool;
-use uuid::Uuid;
-use chrono::Utc;
 use std::collections::HashSet;
+use uuid::Uuid;
 
 // ============================================================================
 // HELPER: Setup PostgreSQL and return PgPool
 // ============================================================================
 
 async fn setup_postgres() -> PgPool {
-    use testcontainers::{GenericImage, ImageExt, core::WaitFor};
     use testcontainers::runners::AsyncRunner;
+    use testcontainers::{GenericImage, ImageExt, core::WaitFor};
 
     let container = GenericImage::new("postgres", "16")
         .with_wait_for(WaitFor::message_on_stderr(
@@ -36,9 +35,15 @@ async fn setup_postgres() -> PgPool {
         .await
         .expect("Failed to start postgres container");
 
-    let host_port = container.get_host_port_ipv4(5432).await.expect("Failed to get port");
+    let host_port = container
+        .get_host_port_ipv4(5432)
+        .await
+        .expect("Failed to get port");
 
-    let connection_string = format!("postgresql://postgres:postgres@127.0.0.1:{}/postgres", host_port);
+    let connection_string = format!(
+        "postgresql://postgres:postgres@127.0.0.1:{}/postgres",
+        host_port
+    );
 
     PgPool::connect(&connection_string)
         .await
@@ -83,7 +88,10 @@ fn make_paused_engine(workflow_id: Uuid) -> ResumableCognitiveExecution {
 // HELPER: Create a paused engine with ZonalContextMap state_snapshot
 // ============================================================================
 
-fn make_paused_engine_with_context(workflow_id: Uuid, map: ZonalContextMap) -> ResumableCognitiveExecution {
+fn make_paused_engine_with_context(
+    workflow_id: Uuid,
+    map: ZonalContextMap,
+) -> ResumableCognitiveExecution {
     let step = Step {
         id: Uuid::new_v4(),
         name: "approval_step".to_string(),
@@ -118,7 +126,11 @@ fn make_paused_engine_with_context(workflow_id: Uuid, map: ZonalContextMap) -> R
 // HELPER: Wire engine in async context (avoids blocking_write in async tests)
 // ============================================================================
 
-async fn wire_engine_async(state: &CockpitState, engine: ResumableCognitiveExecution, pool: std::sync::Arc<PgPool>) {
+async fn wire_engine_async(
+    state: &CockpitState,
+    engine: ResumableCognitiveExecution,
+    pool: std::sync::Arc<PgPool>,
+) {
     let mut guard = state.rce_engine.write().await;
     *guard = Some(engine);
 
@@ -199,7 +211,11 @@ async fn test_03_projection_200_with_hydrated_step_and_checkpoint() {
     let engine = engine_guard.as_ref().unwrap();
 
     assert_eq!(engine.workflow_id, workflow_id, "Workflow ID should match");
-    assert_eq!(engine.state, ExecutionState::Paused, "State should be Paused");
+    assert_eq!(
+        engine.state,
+        ExecutionState::Paused,
+        "State should be Paused"
+    );
     assert_eq!(engine.current_step_index, 0, "Step index should be 0");
     assert_eq!(engine.plan.len(), 1, "Total steps should be 1");
 
@@ -207,7 +223,10 @@ async fn test_03_projection_200_with_hydrated_step_and_checkpoint() {
     assert_eq!(pending_step.name, "approval_step", "Step name should match");
 
     let checkpoint = engine.checkpoint.as_ref().unwrap();
-    assert_eq!(checkpoint.reason, "Awaiting human approval", "Checkpoint reason should match");
+    assert_eq!(
+        checkpoint.reason, "Awaiting human approval",
+        "Checkpoint reason should match"
+    );
 }
 
 // ============================================================================
@@ -255,15 +274,35 @@ async fn test_04_projection_zonal_context_map_serialization() {
     let engine = engine_guard.as_ref().unwrap();
     let checkpoint = engine.checkpoint.as_ref().unwrap();
 
-    let deserialized_map: ZonalContextMap = serde_json::from_slice(&checkpoint.state_snapshot)
-        .expect("deserialize ZonalContextMap");
+    let deserialized_map: ZonalContextMap =
+        serde_json::from_slice(&checkpoint.state_snapshot).expect("deserialize ZonalContextMap");
 
-    assert_eq!(deserialized_map.visible.len(), 1, "Visible entries should be 1");
-    assert_eq!(deserialized_map.visible[0].confidence_score, 0.95, "Visible confidence should be 0.95");
-    assert_eq!(deserialized_map.gray_fog.len(), 1, "Gray fog entries should be 1");
-    assert_eq!(deserialized_map.black_fog_count, 14, "Black fog count should be 14");
-    assert_eq!(deserialized_map.token_budget_used, 4200, "Token budget used should be 4200");
-    assert_eq!(deserialized_map.token_budget_total, 8192, "Token budget total should be 8192");
+    assert_eq!(
+        deserialized_map.visible.len(),
+        1,
+        "Visible entries should be 1"
+    );
+    assert_eq!(
+        deserialized_map.visible[0].confidence_score, 0.95,
+        "Visible confidence should be 0.95"
+    );
+    assert_eq!(
+        deserialized_map.gray_fog.len(),
+        1,
+        "Gray fog entries should be 1"
+    );
+    assert_eq!(
+        deserialized_map.black_fog_count, 14,
+        "Black fog count should be 14"
+    );
+    assert_eq!(
+        deserialized_map.token_budget_used, 4200,
+        "Token budget used should be 4200"
+    );
+    assert_eq!(
+        deserialized_map.token_budget_total, 8192,
+        "Token budget total should be 8192"
+    );
 }
 
 // ============================================================================
@@ -333,16 +372,28 @@ async fn test_05_projection_black_fog_no_content_leak() {
     let engine = engine_guard.as_ref().unwrap();
     let checkpoint = engine.checkpoint.as_ref().unwrap();
 
-    let context_json: serde_json::Value = serde_json::from_slice(&checkpoint.state_snapshot)
-        .expect("deserialize to JSON");
+    let context_json: serde_json::Value =
+        serde_json::from_slice(&checkpoint.state_snapshot).expect("deserialize to JSON");
 
     // Verify black_fog_count is a number
-    assert!(context_json["black_fog_count"].is_number(), "black_fog_count should be a number");
-    assert_eq!(context_json["black_fog_count"], 10, "black_fog_count should be 10");
+    assert!(
+        context_json["black_fog_count"].is_number(),
+        "black_fog_count should be a number"
+    );
+    assert_eq!(
+        context_json["black_fog_count"], 10,
+        "black_fog_count should be 10"
+    );
 
     // Verify NO black_fog array exists
-    assert!(context_json.get("black_fog").is_none(), "black_fog array should not exist");
-    assert!(context_json.get("black_fog_entries").is_none(), "black_fog_entries should not exist");
+    assert!(
+        context_json.get("black_fog").is_none(),
+        "black_fog array should not exist"
+    );
+    assert!(
+        context_json.get("black_fog_entries").is_none(),
+        "black_fog_entries should not exist"
+    );
 }
 
 // ============================================================================
@@ -401,6 +452,13 @@ async fn test_06_projection_concurrent_reads_non_blocking() {
     // Verify engine state is unchanged
     let engine_guard = state.rce_engine.read().await;
     let engine = engine_guard.as_ref().unwrap();
-    assert_eq!(engine.state, ExecutionState::Paused, "Engine should still be Paused");
-    assert_eq!(engine.current_step_index, 0, "Step index should be unchanged");
+    assert_eq!(
+        engine.state,
+        ExecutionState::Paused,
+        "Engine should still be Paused"
+    );
+    assert_eq!(
+        engine.current_step_index, 0,
+        "Step index should be unchanged"
+    );
 }

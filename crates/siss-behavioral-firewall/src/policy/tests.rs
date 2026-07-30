@@ -7,13 +7,13 @@
 
 #[cfg(test)]
 mod tests {
-    use crate::policy::engine::{PolicyEngine, PolicyComposer};
-    use crate::policy::cycles::{CycleDetector, Graph, Node};
-    use crate::rebac::{ReBAC, SovereignIdentity, PolicyResource, PolicyAction, RelationType};
     use crate::ap2::SovereignAttributeCache;
+    use crate::policy::cycles::{CycleDetector, Graph, Node};
+    use crate::policy::engine::{PolicyComposer, PolicyEngine};
+    use crate::rebac::{PolicyAction, PolicyResource, ReBAC, RelationType, SovereignIdentity};
     use crate::temporal::TemporalGuard;
-    use uuid::Uuid;
     use std::time::Duration;
+    use uuid::Uuid;
 
     // Helper to create sovereigns
     fn sovereign(id: u64) -> SovereignIdentity {
@@ -186,7 +186,9 @@ mod tests {
         let a1 = agent(1);
 
         // Grant Owner relationship
-        rebac.grant_relationship(s1, a1.clone(), RelationType::Owner, None).unwrap();
+        rebac
+            .grant_relationship(s1, a1.clone(), RelationType::Owner, None)
+            .unwrap();
 
         let engine = PolicyEngine::new(
             rebac,
@@ -194,7 +196,9 @@ mod tests {
             TemporalGuard::new(60, 60),
         );
 
-        let mandate = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
+        let mandate = engine
+            .verify_mandate(&s1, &PolicyAction::Spawn, &a1)
+            .unwrap();
         assert_eq!(mandate.decision, crate::policy_engine::Decision::Allow);
     }
 
@@ -212,7 +216,9 @@ mod tests {
             TemporalGuard::new(60, 60),
         );
 
-        let mandate = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
+        let mandate = engine
+            .verify_mandate(&s1, &PolicyAction::Spawn, &a1)
+            .unwrap();
         assert_eq!(mandate.decision, crate::policy_engine::Decision::Deny);
     }
 
@@ -223,7 +229,9 @@ mod tests {
         let s1 = sovereign(1);
         let a1 = agent(1);
 
-        rebac.grant_relationship(s1, a1.clone(), RelationType::Owner, None).unwrap();
+        rebac
+            .grant_relationship(s1, a1.clone(), RelationType::Owner, None)
+            .unwrap();
 
         let engine = PolicyEngine::new(
             rebac,
@@ -232,9 +240,13 @@ mod tests {
         );
 
         // First call
-        let m1 = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
+        let m1 = engine
+            .verify_mandate(&s1, &PolicyAction::Spawn, &a1)
+            .unwrap();
         // Second call (each gets new audit ID, but decision is consistent)
-        let m2 = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
+        let m2 = engine
+            .verify_mandate(&s1, &PolicyAction::Spawn, &a1)
+            .unwrap();
 
         assert_eq!(m1.decision, crate::policy_engine::Decision::Allow);
         assert_eq!(m2.decision, crate::policy_engine::Decision::Allow);
@@ -255,7 +267,9 @@ mod tests {
         );
 
         // Initially denied
-        let m1 = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
+        let m1 = engine
+            .verify_mandate(&s1, &PolicyAction::Spawn, &a1)
+            .unwrap();
         assert_eq!(m1.decision, crate::policy_engine::Decision::Deny);
 
         // Note: To truly test changing decisions, we'd need a mutable reference to rebac
@@ -274,17 +288,25 @@ mod tests {
         let a2 = agent(2);
 
         // Policy 1: s1 owns a1
-        rebac1.grant_relationship(s1, a1.clone(), RelationType::Owner, None).unwrap();
+        rebac1
+            .grant_relationship(s1, a1.clone(), RelationType::Owner, None)
+            .unwrap();
 
         // Policy 2: s1 operates a2
-        rebac2.grant_relationship(s1, a2.clone(), RelationType::Operator, None).unwrap();
+        rebac2
+            .grant_relationship(s1, a2.clone(), RelationType::Operator, None)
+            .unwrap();
 
         // Merge should combine both (currently just returns rebac1)
         let composer = PolicyComposer::new();
         let merged = composer.merge(rebac1, rebac2);
 
         // Verify relationship from rebac1 exists in merged
-        assert!(merged.verify_relationship(s1, a1, PolicyAction::Spawn).is_ok());
+        assert!(
+            merged
+                .verify_relationship(s1, a1, PolicyAction::Spawn)
+                .is_ok()
+        );
         // rebac2 relationships are not yet merged in our simple implementation
     }
 
@@ -296,8 +318,12 @@ mod tests {
         let s2 = sovereign(2);
 
         // Create cycle: s1 -> s2 -> s1
-        rebac.grant_relationship(s1, agent(2), RelationType::Delegate, None).unwrap();
-        rebac.grant_relationship(s2, agent(1), RelationType::Delegate, None).unwrap();
+        rebac
+            .grant_relationship(s1, agent(2), RelationType::Delegate, None)
+            .unwrap();
+        rebac
+            .grant_relationship(s2, agent(1), RelationType::Delegate, None)
+            .unwrap();
 
         // Cycle detection should catch this
         let result = rebac.detect_cycle(&s1, &s2);
@@ -314,17 +340,25 @@ mod tests {
         let a1 = agent(1);
 
         // Policy 1: s1 is Observer (read-only)
-        rebac1.grant_relationship(s1, a1.clone(), RelationType::Observer, None).unwrap();
+        rebac1
+            .grant_relationship(s1, a1.clone(), RelationType::Observer, None)
+            .unwrap();
 
         // Policy 2: s1 is Owner (full control) - higher priority
-        rebac2.grant_relationship(s1, a1.clone(), RelationType::Owner, None).unwrap();
+        rebac2
+            .grant_relationship(s1, a1.clone(), RelationType::Owner, None)
+            .unwrap();
 
         // Merge with priority: rebac2 > rebac1
         let composer = PolicyComposer::new();
         let merged = composer.merge_with_priority(rebac1, rebac2, true);
 
         // Owner permission should win (can spawn)
-        assert!(merged.verify_relationship(s1, a1, PolicyAction::Spawn).is_ok());
+        assert!(
+            merged
+                .verify_relationship(s1, a1, PolicyAction::Spawn)
+                .is_ok()
+        );
     }
 
     // TEST 16: Mandate audit tracking
@@ -334,7 +368,9 @@ mod tests {
         let s1 = sovereign(1);
         let a1 = agent(1);
 
-        rebac.grant_relationship(s1, a1.clone(), RelationType::Owner, None).unwrap();
+        rebac
+            .grant_relationship(s1, a1.clone(), RelationType::Owner, None)
+            .unwrap();
 
         let engine = PolicyEngine::new(
             rebac,
@@ -342,8 +378,12 @@ mod tests {
             TemporalGuard::new(60, 60),
         );
 
-        let m1 = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
-        let m2 = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
+        let m1 = engine
+            .verify_mandate(&s1, &PolicyAction::Spawn, &a1)
+            .unwrap();
+        let m2 = engine
+            .verify_mandate(&s1, &PolicyAction::Spawn, &a1)
+            .unwrap();
 
         // Each mandate should have a unique audit ID
         assert_ne!(m1.audit_id, m2.audit_id);
@@ -362,8 +402,14 @@ mod tests {
             TemporalGuard::new(60, 60),
         );
 
-        let mandate = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
-        assert_eq!(mandate.decision, crate::policy_engine::Decision::Deny, "Missing relationship should fail-close (deny)");
+        let mandate = engine
+            .verify_mandate(&s1, &PolicyAction::Spawn, &a1)
+            .unwrap();
+        assert_eq!(
+            mandate.decision,
+            crate::policy_engine::Decision::Deny,
+            "Missing relationship should fail-close (deny)"
+        );
     }
 
     // TEST 18: Graph with multiple independent cycles

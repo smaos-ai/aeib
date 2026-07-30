@@ -1,5 +1,5 @@
-use uuid::Uuid;
 use std::collections::{HashMap, VecDeque};
+use uuid::Uuid;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum RelationType {
@@ -79,12 +79,14 @@ pub fn build_graph(relationships: Vec<GraphRelationship>) -> HashMap<Uuid, Vec<(
 
     for rel in relationships {
         // Insert forward direction
-        graph.entry(rel.source_id)
+        graph
+            .entry(rel.source_id)
             .or_insert_with(Vec::new)
             .push((rel.target_id, rel.score));
 
         // Insert backward direction (bidirectional)
-        graph.entry(rel.target_id)
+        graph
+            .entry(rel.target_id)
             .or_insert_with(Vec::new)
             .push((rel.source_id, rel.score));
     }

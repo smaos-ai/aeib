@@ -1,7 +1,7 @@
-use serde::{Deserialize, Serialize};
-use siss_agent_shell::a2ui::A2UIComponent;
 use super::renderer::Renderer;
 use chrono::Utc;
+use serde::{Deserialize, Serialize};
+use siss_agent_shell::a2ui::A2UIComponent;
 use std::sync::{Arc, Mutex};
 
 /// Trait to extract id from any A2UIComponent
@@ -103,7 +103,11 @@ impl A2UISseHandler {
     }
 
     /// Render component to SSE message
-    pub fn render_component(&self, component: &A2UIComponent, form_id: &str) -> SseComponentMessage {
+    pub fn render_component(
+        &self,
+        component: &A2UIComponent,
+        form_id: &str,
+    ) -> SseComponentMessage {
         SseComponentMessage::from_component(component, form_id)
     }
 }

@@ -1,6 +1,6 @@
-use siss_orchestrator::{KalmanState, ImpactAnalyzer};
-use uuid::Uuid;
+use siss_orchestrator::{ImpactAnalyzer, KalmanState};
 use std::collections::HashMap;
+use uuid::Uuid;
 
 struct KGAwareAnalyzer {
     impact_chains: HashMap<(Uuid, Uuid), f64>,
@@ -94,7 +94,10 @@ fn test_phase_3_2_should_never_split_impact_chain_safe_migration() {
         1000,
     );
 
-    assert!(result.is_err(), "Should fail when impact chain would be split");
+    assert!(
+        result.is_err(),
+        "Should fail when impact chain would be split"
+    );
 }
 
 #[test]
@@ -145,7 +148,10 @@ fn test_phase_3_2_safe_migration_within_chain() {
         3000,
     );
 
-    assert!(result.is_ok(), "Should allow moving caller out if chain cost is low");
+    assert!(
+        result.is_ok(),
+        "Should allow moving caller out if chain cost is low"
+    );
 }
 
 #[test]

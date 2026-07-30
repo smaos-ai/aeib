@@ -3,7 +3,9 @@
 
 #[cfg(test)]
 mod integration_tests {
-    use crate::handlers::mcp_governance::{MCPGovernance, MCPToolRequest, AgentBehavioralState, MCPGovernanceError};
+    use crate::handlers::mcp_governance::{
+        AgentBehavioralState, MCPGovernance, MCPGovernanceError, MCPToolRequest,
+    };
     use serde_json::json;
 
     #[tokio::test]
@@ -103,11 +105,8 @@ mod integration_tests {
             "quarantine_reason": "Double-agent detected"
         });
 
-        let preserve_result = MCPGovernance::preserve_rce_state(
-            "agent-suspicious",
-            &execution_context,
-        )
-        .await;
+        let preserve_result =
+            MCPGovernance::preserve_rce_state("agent-suspicious", &execution_context).await;
 
         assert!(preserve_result.is_ok());
         let state_hash = preserve_result.unwrap();
@@ -142,7 +141,11 @@ mod integration_tests {
         for mandate in invalid_mandates {
             let result = MCPGovernance::verify_ap2_mandate(mandate).await;
             assert!(result.is_ok());
-            assert!(!result.unwrap(), "Invalid mandate {} should fail verification", mandate);
+            assert!(
+                !result.unwrap(),
+                "Invalid mandate {} should fail verification",
+                mandate
+            );
         }
     }
 
@@ -165,11 +168,7 @@ mod integration_tests {
             "timestamp": "2026-05-21T12:30:45Z"
         });
 
-        let result = MCPGovernance::preserve_rce_state(
-            "agent-012345",
-            &incident_context,
-        )
-        .await;
+        let result = MCPGovernance::preserve_rce_state("agent-012345", &incident_context).await;
 
         assert!(result.is_ok());
         let state_ledger_entry = result.unwrap();

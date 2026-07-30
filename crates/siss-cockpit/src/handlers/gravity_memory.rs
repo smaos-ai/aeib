@@ -1,9 +1,8 @@
+use reqwest::Client;
 /// Phase 40: Gravity Grid Memory & Claude-Mem Integration
 /// GREEN phase: Implementation of persistent memory system with fail-closed invariants
-
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
-use reqwest::Client;
 
 /// Lifecycle hook types (5 core hooks for memory capture)
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -46,11 +45,11 @@ pub struct WorkerStatus {
 /// Gravity Memory system error types
 #[derive(Debug, Clone)]
 pub enum GravityMemoryError {
-    WorkerUnreachable,              // 503: Memory worker unavailable
-    PrivateContentViolation,        // 400: Private content not stripped
-    HookBindingFailed,              // 400: Lifecycle hook binding failed
-    SearchIndexCorrupted,           // 500: Search index corrupted
-    ContextExhaustion,              // 429: Context limit exceeded
+    WorkerUnreachable,       // 503: Memory worker unavailable
+    PrivateContentViolation, // 400: Private content not stripped
+    HookBindingFailed,       // 400: Lifecycle hook binding failed
+    SearchIndexCorrupted,    // 500: Search index corrupted
+    ContextExhaustion,       // 429: Context limit exceeded
 }
 
 /// Gravity Memory handler (fail-closed invariants enforced)
@@ -59,7 +58,9 @@ pub struct GravityMemory;
 impl GravityMemory {
     /// Bind lifecycle hook and capture context to memory
     /// Fail-closed: Strip all <private> tags before storage, send to port 37777
-    pub async fn capture_memory_context(context: MemoryContext) -> Result<String, GravityMemoryError> {
+    pub async fn capture_memory_context(
+        context: MemoryContext,
+    ) -> Result<String, GravityMemoryError> {
         // Fail-closed: Validate hook type is in allowed list
         let allowed_hooks = vec![
             LifecycleHook::SessionStart,
@@ -108,8 +109,10 @@ impl GravityMemory {
 
         match tokio::time::timeout(
             Duration::from_secs(5),
-            client.post(url).json(payload).send()
-        ).await {
+            client.post(url).json(payload).send(),
+        )
+        .await
+        {
             Ok(Ok(response)) if response.status().is_success() => Ok(()),
             _ => Err(GravityMemoryError::WorkerUnreachable),
         }
@@ -117,7 +120,10 @@ impl GravityMemory {
 
     /// Search memory with hybrid semantic/keyword search
     /// Fail-closed: Enforce progressive disclosure (max 10 results)
-    pub async fn search_memory(query: &str, max_results: usize) -> Result<Vec<MemorySearchResult>, GravityMemoryError> {
+    pub async fn search_memory(
+        query: &str,
+        max_results: usize,
+    ) -> Result<Vec<MemorySearchResult>, GravityMemoryError> {
         // Fail-closed: Enforce progressive disclosure limit
         if max_results > 10 {
             return Err(GravityMemoryError::ContextExhaustion);
@@ -141,10 +147,7 @@ impl GravityMemory {
         let client = Client::new();
         let url = "http://localhost:37777/health";
 
-        match tokio::time::timeout(
-            Duration::from_secs(5),
-            client.get(url).send()
-        ).await {
+        match tokio::time::timeout(Duration::from_secs(5), client.get(url).send()).await {
             Ok(Ok(response)) if response.status().is_success() => {
                 match response.json::<WorkerStatus>().await {
                     Ok(status) => Ok(status),
@@ -212,7 +215,8 @@ mod tests {
             hook_type: LifecycleHook::UserPromptSubmit,
             session_id: "sess-002".to_string(),
             timestamp: "2026-05-21T12:00:01Z".to_string(),
-            content: "Public data\n<private>Secret API key: sk-12345</private>\nMore public data".to_string(),
+            content: "Public data\n<private>Secret API key: sk-12345</private>\nMore public data"
+                .to_string(),
             is_private: true,
         };
 
@@ -234,7 +238,10 @@ mod tests {
 
         // THEN: Search rejected with ContextExhaustion (fail-closed)
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), GravityMemoryError::ContextExhaustion));
+        assert!(matches!(
+            result.unwrap_err(),
+            GravityMemoryError::ContextExhaustion
+        ));
     }
 
     #[tokio::test]
@@ -261,6 +268,9 @@ mod tests {
         // THEN: Returns WorkerUnreachable error (graceful, no panic)
         // AND: Session continues uninterrupted (fail-closed, not crash-closed)
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), GravityMemoryError::WorkerUnreachable));
+        assert!(matches!(
+            result.unwrap_err(),
+            GravityMemoryError::WorkerUnreachable
+        ));
     }
 }

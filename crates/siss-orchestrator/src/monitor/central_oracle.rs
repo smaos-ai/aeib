@@ -1,6 +1,6 @@
-use uuid::Uuid;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+use uuid::Uuid;
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ExecutionLatency {
@@ -11,9 +11,18 @@ pub struct ExecutionLatency {
 
 #[derive(Clone, Debug)]
 pub enum BottleneckType {
-    SingleAgentSlow { agent_id: Uuid, latency_ms: u32 },
-    ClusterCongestion { avg_latency_ms: u32, affected_count: usize },
-    CascadingDelay { root_agent: Uuid, depth: usize },
+    SingleAgentSlow {
+        agent_id: Uuid,
+        latency_ms: u32,
+    },
+    ClusterCongestion {
+        avg_latency_ms: u32,
+        affected_count: usize,
+    },
+    CascadingDelay {
+        root_agent: Uuid,
+        depth: usize,
+    },
 }
 
 #[derive(Clone, Debug)]
@@ -62,29 +71,25 @@ impl CentralMonitoringOracle {
             search_depth += 1;
             let mid = (low + high) / 2;
 
-            let mid_timestamp = self
-                .timeline
-                .keys()
-                .nth(mid)
-                .copied()
-                .unwrap_or_default();
+            let mid_timestamp = self.timeline.keys().nth(mid).copied().unwrap_or_default();
             let mid_latencies = self.timeline.get(&mid_timestamp).unwrap_or(&empty_vec);
 
             if let Some(diagnosis) = self.analyze_latencies(mid_latencies, search_depth) {
                 return Some(diagnosis);
             }
 
-            let high_timestamp = self
-                .timeline
-                .keys()
-                .nth(high)
-                .copied()
-                .unwrap_or_default();
+            let high_timestamp = self.timeline.keys().nth(high).copied().unwrap_or_default();
             let high_latencies = self.timeline.get(&high_timestamp).unwrap_or(&empty_vec);
 
-            let avg_high = high_latencies.iter().map(|l| l.latency_ms as u64).sum::<u64>()
+            let avg_high = high_latencies
+                .iter()
+                .map(|l| l.latency_ms as u64)
+                .sum::<u64>()
                 / high_latencies.len().max(1) as u64;
-            let avg_mid = mid_latencies.iter().map(|l| l.latency_ms as u64).sum::<u64>()
+            let avg_mid = mid_latencies
+                .iter()
+                .map(|l| l.latency_ms as u64)
+                .sum::<u64>()
                 / mid_latencies.len().max(1) as u64;
 
             if avg_high > avg_mid {
@@ -94,12 +99,7 @@ impl CentralMonitoringOracle {
             }
         }
 
-        let final_timestamp = self
-            .timeline
-            .keys()
-            .nth(high)
-            .copied()
-            .unwrap_or_default();
+        let final_timestamp = self.timeline.keys().nth(high).copied().unwrap_or_default();
         let final_latencies = self.timeline.get(&final_timestamp).unwrap_or(&empty_vec);
         self.analyze_latencies(final_latencies, search_depth)
     }
@@ -113,8 +113,8 @@ impl CentralMonitoringOracle {
             return None;
         }
 
-        let avg = latencies.iter().map(|l| l.latency_ms as u64).sum::<u64>()
-            / latencies.len() as u64;
+        let avg =
+            latencies.iter().map(|l| l.latency_ms as u64).sum::<u64>() / latencies.len() as u64;
         let max_latency = latencies.iter().map(|l| l.latency_ms).max().unwrap_or(0);
 
         if max_latency > self.percentile_threshold {
@@ -236,7 +236,10 @@ mod tests {
         let diagnosis = cmo.detect_bottleneck();
         assert!(diagnosis.is_some());
         let diag = diagnosis.unwrap();
-        assert!(matches!(diag.bottleneck_type, BottleneckType::SingleAgentSlow { .. }));
+        assert!(matches!(
+            diag.bottleneck_type,
+            BottleneckType::SingleAgentSlow { .. }
+        ));
     }
 
     #[test]

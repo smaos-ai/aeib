@@ -1,4 +1,4 @@
-use sha2::{Sha256, Digest};
+use sha2::{Digest, Sha256};
 
 #[derive(Debug, Clone)]
 struct MerkleNode {
@@ -124,7 +124,12 @@ fn main() {
     println!("\n🔗 MERKLE-DAG STATE:");
     for (i, node) in dag.nodes.iter().enumerate() {
         if let Some(ref parent) = node.parent_hash {
-            println!("   Node {}: hash={}, parent={}", i, &node.self_hash[..16], &parent[..16]);
+            println!(
+                "   Node {}: hash={}, parent={}",
+                i,
+                &node.self_hash[..16],
+                &parent[..16]
+            );
         } else {
             println!("   Node {}: hash={} (genesis)", i, &node.self_hash[..16]);
         }

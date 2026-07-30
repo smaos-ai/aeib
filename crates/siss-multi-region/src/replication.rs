@@ -1,10 +1,10 @@
+use crate::errors::{MultiRegionError, MultiRegionResult};
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use uuid::Uuid;
-use serde::{Deserialize, Serialize};
-use sha2::{Sha256, Digest};
-use crate::errors::{MultiRegionError, MultiRegionResult};
 
 /// Represents a causality-tracking vector clock for eventual consistency
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -123,11 +123,15 @@ impl ReplicationState {
     }
 
     pub fn all_replicated(&self) -> bool {
-        self.replicated_to.values().all(|s| *s == ReplicationStatus::Completed)
+        self.replicated_to
+            .values()
+            .all(|s| *s == ReplicationStatus::Completed)
     }
 
     pub fn any_failed(&self) -> bool {
-        self.replicated_to.values().any(|s| *s == ReplicationStatus::Failed)
+        self.replicated_to
+            .values()
+            .any(|s| *s == ReplicationStatus::Failed)
     }
 
     pub fn mark_progress(&mut self, region: &str, status: ReplicationStatus) {
@@ -371,18 +375,14 @@ mod tests {
 
     #[tokio::test]
     async fn test_replicate_capsule_valid_hash() {
-        let replicator = MultiRegionReplicator::new(
-            "prague".to_string(),
-            vec!["frankfurt".to_string()],
-        );
+        let replicator =
+            MultiRegionReplicator::new("prague".to_string(), vec!["frankfurt".to_string()]);
 
         let data = "test-capsule-data";
         let hash = MultiRegionReplicator::compute_hash(data);
         let capsule_id = Uuid::new_v4();
 
-        let result = replicator
-            .replicate_capsule(capsule_id, data, &hash)
-            .await;
+        let result = replicator.replicate_capsule(capsule_id, data, &hash).await;
 
         assert!(result.is_ok());
         let state = result.unwrap();
@@ -391,10 +391,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_replicate_capsule_invalid_hash() {
-        let replicator = MultiRegionReplicator::new(
-            "prague".to_string(),
-            vec!["frankfurt".to_string()],
-        );
+        let replicator =
+            MultiRegionReplicator::new("prague".to_string(), vec!["frankfurt".to_string()]);
 
         let capsule_id = Uuid::new_v4();
         let result = replicator
@@ -406,10 +404,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_acknowledge_replication() {
-        let replicator = MultiRegionReplicator::new(
-            "prague".to_string(),
-            vec!["frankfurt".to_string()],
-        );
+        let replicator =
+            MultiRegionReplicator::new("prague".to_string(), vec!["frankfurt".to_string()]);
 
         let data = "test";
         let hash = MultiRegionReplicator::compute_hash(data);

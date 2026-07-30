@@ -5,7 +5,6 @@
 /// - Tmux session orchestration
 /// - Dependency queue enforcement
 /// - Fail-closed resource cleanup
-
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -47,7 +46,9 @@ impl MockEventLog {
 
     async fn has_completed(&self, job_id: Uuid) -> bool {
         let events = self.get_events(job_id).await;
-        events.iter().any(|e| matches!(e, MockSystemEvent::JobCompleted { .. }))
+        events
+            .iter()
+            .any(|e| matches!(e, MockSystemEvent::JobCompleted { .. }))
     }
 }
 
@@ -102,7 +103,11 @@ impl MockSwarmDispatcher {
         }
     }
 
-    async fn dispatch_job(&self, job_id: Uuid, depends_on: Vec<Uuid>) -> Result<MockJobSlot, String> {
+    async fn dispatch_job(
+        &self,
+        job_id: Uuid,
+        depends_on: Vec<Uuid>,
+    ) -> Result<MockJobSlot, String> {
         let active = self.active_slots.lock().await;
         if active.contains_key(&job_id) {
             return Err(format!("AlreadyDispatched: {}", job_id));
@@ -123,10 +128,13 @@ impl MockSwarmDispatcher {
 
         // Log dispatch
         self.event_log
-            .append_event(job_id, MockSystemEvent::JobDispatched {
+            .append_event(
                 job_id,
-                mandate_id: Uuid::nil(),
-            })
+                MockSystemEvent::JobDispatched {
+                    job_id,
+                    mandate_id: Uuid::nil(),
+                },
+            )
             .await;
 
         // Insert into active slots
@@ -138,39 +146,50 @@ impl MockSwarmDispatcher {
             status: SlotStatus::Running,
         };
 
-        self.active_slots
-            .lock()
-            .await
-            .insert(job_id, slot.clone());
+        self.active_slots.lock().await.insert(job_id, slot.clone());
 
         Ok(slot)
     }
 
     async fn complete_job(&self, job_id: Uuid) -> Result<(), String> {
-        let _slot = self.active_slots.lock().await.remove(&job_id)
+        let _slot = self
+            .active_slots
+            .lock()
+            .await
+            .remove(&job_id)
             .ok_or_else(|| format!("JobNotFound: {}", job_id))?;
 
         // Log completion
         self.event_log
-            .append_event(job_id, MockSystemEvent::JobCompleted {
+            .append_event(
                 job_id,
-                result: "success".to_string(),
-            })
+                MockSystemEvent::JobCompleted {
+                    job_id,
+                    result: "success".to_string(),
+                },
+            )
             .await;
 
         Ok(())
     }
 
     async fn fail_job(&self, job_id: Uuid, error: &str) -> Result<(), String> {
-        let _slot = self.active_slots.lock().await.remove(&job_id)
+        let _slot = self
+            .active_slots
+            .lock()
+            .await
+            .remove(&job_id)
             .ok_or_else(|| format!("JobNotFound: {}", job_id))?;
 
         // Log failure (fail-closed: cleanup always runs)
         self.event_log
-            .append_event(job_id, MockSystemEvent::JobFailed {
+            .append_event(
                 job_id,
-                error: error.to_string(),
-            })
+                MockSystemEvent::JobFailed {
+                    job_id,
+                    error: error.to_string(),
+                },
+            )
             .await;
 
         Ok(())
@@ -194,9 +213,18 @@ async fn test_swarm_dispatcher_mounts_isolated_worktree_per_job() {
     let job_b = Uuid::new_v4();
     let job_c = Uuid::new_v4();
 
-    let slot_a = dispatcher.dispatch_job(job_a, vec![]).await.expect("dispatch A");
-    let slot_b = dispatcher.dispatch_job(job_b, vec![]).await.expect("dispatch B");
-    let slot_c = dispatcher.dispatch_job(job_c, vec![]).await.expect("dispatch C");
+    let slot_a = dispatcher
+        .dispatch_job(job_a, vec![])
+        .await
+        .expect("dispatch A");
+    let slot_b = dispatcher
+        .dispatch_job(job_b, vec![])
+        .await
+        .expect("dispatch B");
+    let slot_c = dispatcher
+        .dispatch_job(job_c, vec![])
+        .await
+        .expect("dispatch C");
 
     // Verify isolation: unique worktree paths
     assert_ne!(slot_a.worktree_path, slot_b.worktree_path);
@@ -214,7 +242,10 @@ async fn test_swarm_dispatcher_cleans_up_worktree_on_completion() {
     let dispatcher = MockSwarmDispatcher::new(event_log.clone());
 
     let job_id = Uuid::new_v4();
-    let _slot = dispatcher.dispatch_job(job_id, vec![]).await.expect("dispatch");
+    let _slot = dispatcher
+        .dispatch_job(job_id, vec![])
+        .await
+        .expect("dispatch");
 
     assert_eq!(dispatcher.active_count().await, 1);
 
@@ -225,7 +256,11 @@ async fn test_swarm_dispatcher_cleans_up_worktree_on_completion() {
 
     // Verify JobCompleted event logged
     let events = event_log.get_events(job_id).await;
-    assert!(events.iter().any(|e| matches!(e, MockSystemEvent::JobCompleted { .. })));
+    assert!(
+        events
+            .iter()
+            .any(|e| matches!(e, MockSystemEvent::JobCompleted { .. }))
+    );
 }
 
 #[tokio::test]
@@ -234,18 +269,28 @@ async fn test_swarm_dispatcher_cleans_up_worktree_on_failure() {
     let dispatcher = MockSwarmDispatcher::new(event_log.clone());
 
     let job_id = Uuid::new_v4();
-    let _slot = dispatcher.dispatch_job(job_id, vec![]).await.expect("dispatch");
+    let _slot = dispatcher
+        .dispatch_job(job_id, vec![])
+        .await
+        .expect("dispatch");
 
     assert_eq!(dispatcher.active_count().await, 1);
 
     // Fail the job (fail-closed: cleanup always runs)
-    dispatcher.fail_job(job_id, "simulated error").await.expect("fail");
+    dispatcher
+        .fail_job(job_id, "simulated error")
+        .await
+        .expect("fail");
 
     assert_eq!(dispatcher.active_count().await, 0);
 
     // Verify JobFailed event logged
     let events = event_log.get_events(job_id).await;
-    assert!(events.iter().any(|e| matches!(e, MockSystemEvent::JobFailed { .. })));
+    assert!(
+        events
+            .iter()
+            .any(|e| matches!(e, MockSystemEvent::JobFailed { .. }))
+    );
 }
 
 #[tokio::test]
@@ -257,11 +302,17 @@ async fn test_swarm_dispatcher_enforces_dependency_queue() {
     let job_b = Uuid::new_v4();
 
     // Dispatch Job A
-    dispatcher.dispatch_job(job_a, vec![]).await.expect("dispatch A");
+    dispatcher
+        .dispatch_job(job_a, vec![])
+        .await
+        .expect("dispatch A");
 
     // Try to dispatch Job B (depends on A) before A is complete → should fail
     let result = dispatcher.dispatch_job(job_b, vec![job_a]).await;
-    assert!(result.is_err(), "should reject Job B when Job A not complete");
+    assert!(
+        result.is_err(),
+        "should reject Job B when Job A not complete"
+    );
 
     // Complete Job A
     dispatcher.complete_job(job_a).await.expect("complete A");

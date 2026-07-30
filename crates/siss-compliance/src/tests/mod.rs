@@ -1,21 +1,34 @@
 #[cfg(test)]
 mod stream7_regulatory_mappers {
     use crate::{
-        nist::{NistControlEvidence, NistControlMapper, NistControlFamily},
-        hipaa::HipaaSecurityMapper,
         basel3::BaselIiiMapper,
+        hipaa::HipaaSecurityMapper,
+        nist::{NistControlEvidence, NistControlFamily, NistControlMapper},
     };
 
     #[test]
     fn test_nist_20_families_defined() {
         let families = [
-            NistControlFamily::AC, NistControlFamily::AT, NistControlFamily::AU,
-            NistControlFamily::CA, NistControlFamily::CM, NistControlFamily::CP,
-            NistControlFamily::IA, NistControlFamily::IR, NistControlFamily::MA,
-            NistControlFamily::MP, NistControlFamily::PE, NistControlFamily::PL,
-            NistControlFamily::PM, NistControlFamily::PS, NistControlFamily::PT,
-            NistControlFamily::RA, NistControlFamily::SA, NistControlFamily::SC,
-            NistControlFamily::SI, NistControlFamily::SR,
+            NistControlFamily::AC,
+            NistControlFamily::AT,
+            NistControlFamily::AU,
+            NistControlFamily::CA,
+            NistControlFamily::CM,
+            NistControlFamily::CP,
+            NistControlFamily::IA,
+            NistControlFamily::IR,
+            NistControlFamily::MA,
+            NistControlFamily::MP,
+            NistControlFamily::PE,
+            NistControlFamily::PL,
+            NistControlFamily::PM,
+            NistControlFamily::PS,
+            NistControlFamily::PT,
+            NistControlFamily::RA,
+            NistControlFamily::SA,
+            NistControlFamily::SC,
+            NistControlFamily::SI,
+            NistControlFamily::SR,
         ];
         assert_eq!(families.len(), 20);
     }
@@ -39,7 +52,11 @@ mod stream7_regulatory_mappers {
             );
         }
         let score = mapper.score();
-        assert!((score - 0.9_f64).abs() < 1e-9, "expected 0.9, got {}", score);
+        assert!(
+            (score - 0.9_f64).abs() < 1e-9,
+            "expected 0.9, got {}",
+            score
+        );
     }
 
     #[test]
@@ -50,7 +67,9 @@ mod stream7_regulatory_mappers {
     #[test]
     fn test_basel_capital_ratio_8_percent() {
         let mapper = BaselIiiMapper::new();
-        let ratio = mapper.capital_adequacy_ratio(1_000_000_000, 80_000_000).unwrap();
+        let ratio = mapper
+            .capital_adequacy_ratio(1_000_000_000, 80_000_000)
+            .unwrap();
         assert!((ratio - 0.08).abs() < 1e-9, "expected 0.08, got {}", ratio);
         assert!(mapper.meets_minimum_capital(1_000_000_000, 80_000_000));
     }
@@ -58,7 +77,9 @@ mod stream7_regulatory_mappers {
     #[test]
     fn test_basel_capital_below_minimum() {
         let mapper = BaselIiiMapper::new();
-        let ratio = mapper.capital_adequacy_ratio(1_000_000_000, 50_000_000).unwrap();
+        let ratio = mapper
+            .capital_adequacy_ratio(1_000_000_000, 50_000_000)
+            .unwrap();
         assert!((ratio - 0.05).abs() < 1e-9, "expected 0.05, got {}", ratio);
         assert!(!mapper.meets_minimum_capital(1_000_000_000, 50_000_000));
     }

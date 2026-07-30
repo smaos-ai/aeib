@@ -1,6 +1,10 @@
 use siss_graph_db::repo::bft_consensus;
 use sqlx::PgPool;
-use testcontainers::{GenericImage, ImageExt, core::{WaitFor, ContainerPort}, runners::AsyncRunner};
+use testcontainers::{
+    GenericImage, ImageExt,
+    core::{ContainerPort, WaitFor},
+    runners::AsyncRunner,
+};
 use uuid::Uuid;
 
 async fn start_postgres() -> (testcontainers::ContainerAsync<GenericImage>, PgPool) {
@@ -70,7 +74,7 @@ async fn test_initiate_bft_quorum_computes_majority_formula() {
         .expect("initiate quorum");
 
     let quorum = sqlx::query_as::<_, (i64,)>(
-        "SELECT required_quorum FROM bft_quorum_rounds WHERE quorum_id = $1"
+        "SELECT required_quorum FROM bft_quorum_rounds WHERE quorum_id = $1",
     )
     .bind(quorum_id)
     .fetch_one(&pool)
@@ -91,7 +95,7 @@ async fn test_initiate_bft_quorum_with_single_participant() {
         .expect("initiate quorum");
 
     let quorum = sqlx::query_as::<_, (i64,)>(
-        "SELECT required_quorum FROM bft_quorum_rounds WHERE quorum_id = $1"
+        "SELECT required_quorum FROM bft_quorum_rounds WHERE quorum_id = $1",
     )
     .bind(quorum_id)
     .fetch_one(&pool)
@@ -112,7 +116,7 @@ async fn test_initiate_bft_quorum_stores_initiator() {
         .expect("initiate quorum");
 
     let quorum = sqlx::query_as::<_, (Uuid,)>(
-        "SELECT initiator_sovereign_id FROM bft_quorum_rounds WHERE quorum_id = $1"
+        "SELECT initiator_sovereign_id FROM bft_quorum_rounds WHERE quorum_id = $1",
     )
     .bind(quorum_id)
     .fetch_one(&pool)
@@ -132,7 +136,7 @@ async fn test_initiate_bft_quorum_with_seven_participants() {
         .expect("initiate quorum");
 
     let quorum = sqlx::query_as::<_, (i64,)>(
-        "SELECT required_quorum FROM bft_quorum_rounds WHERE quorum_id = $1"
+        "SELECT required_quorum FROM bft_quorum_rounds WHERE quorum_id = $1",
     )
     .bind(quorum_id)
     .fetch_one(&pool)
@@ -159,13 +163,12 @@ async fn test_cast_signed_vote_stores_vote() {
         .await
         .expect("cast vote");
 
-    let vote_count: (i64,) = sqlx::query_as(
-        "SELECT COUNT(*) FROM bft_quorum_signatures WHERE quorum_id = $1"
-    )
-    .bind(quorum_id)
-    .fetch_one(&pool)
-    .await
-    .expect("fetch vote count");
+    let vote_count: (i64,) =
+        sqlx::query_as("SELECT COUNT(*) FROM bft_quorum_signatures WHERE quorum_id = $1")
+            .bind(quorum_id)
+            .fetch_one(&pool)
+            .await
+            .expect("fetch vote count");
 
     assert_eq!(vote_count.0, 1);
 }
@@ -184,13 +187,12 @@ async fn test_cast_signed_vote_increments_yes_votes() {
         .await
         .expect("cast yes vote");
 
-    let quorum = sqlx::query_as::<_, (i64,)>(
-        "SELECT yes_votes FROM bft_quorum_rounds WHERE quorum_id = $1"
-    )
-    .bind(quorum_id)
-    .fetch_one(&pool)
-    .await
-    .expect("fetch yes votes");
+    let quorum =
+        sqlx::query_as::<_, (i64,)>("SELECT yes_votes FROM bft_quorum_rounds WHERE quorum_id = $1")
+            .bind(quorum_id)
+            .fetch_one(&pool)
+            .await
+            .expect("fetch yes votes");
 
     assert_eq!(quorum.0, 1);
 }
@@ -209,13 +211,12 @@ async fn test_cast_signed_vote_increments_no_votes() {
         .await
         .expect("cast no vote");
 
-    let quorum = sqlx::query_as::<_, (i64,)>(
-        "SELECT no_votes FROM bft_quorum_rounds WHERE quorum_id = $1"
-    )
-    .bind(quorum_id)
-    .fetch_one(&pool)
-    .await
-    .expect("fetch no votes");
+    let quorum =
+        sqlx::query_as::<_, (i64,)>("SELECT no_votes FROM bft_quorum_rounds WHERE quorum_id = $1")
+            .bind(quorum_id)
+            .fetch_one(&pool)
+            .await
+            .expect("fetch no votes");
 
     assert_eq!(quorum.0, 1);
 }
@@ -234,8 +235,8 @@ async fn test_cast_signed_vote_prevents_double_voting() {
         .await
         .expect("cast first vote");
 
-    let result = bft_consensus::cast_signed_vote(&pool, quorum_id, sovereigns[1], false, signature)
-        .await;
+    let result =
+        bft_consensus::cast_signed_vote(&pool, quorum_id, sovereigns[1], false, signature).await;
 
     assert!(result.is_err(), "double voting should be prevented");
 }
@@ -342,7 +343,11 @@ async fn test_merge_attestations_computes_merkle_root() {
         .expect("merge attestations");
 
     assert!(!merkle_proof_ref.is_empty());
-    assert_eq!(merkle_proof_ref.len(), 64, "merkle root should be 64 hex chars (256 bits)");
+    assert_eq!(
+        merkle_proof_ref.len(),
+        64,
+        "merkle root should be 64 hex chars (256 bits)"
+    );
 }
 
 #[tokio::test]
@@ -380,9 +385,10 @@ async fn test_merkle_root_deterministic() {
     let mut merkle_roots = Vec::new();
 
     for _iteration in 0..3 {
-        let quorum_id = bft_consensus::initiate_bft_quorum(&pool, sovereigns[0], sovereigns.clone())
-            .await
-            .expect("initiate quorum");
+        let quorum_id =
+            bft_consensus::initiate_bft_quorum(&pool, sovereigns[0], sovereigns.clone())
+                .await
+                .expect("initiate quorum");
 
         let signature = vec![1, 2, 3, 4];
         bft_consensus::cast_signed_vote(&pool, quorum_id, sovereigns[0], true, signature.clone())
@@ -464,8 +470,8 @@ async fn test_quorum_frozen_after_finalization() {
 
     // Try to cast a vote after finalization - try a new voter not in the list
     let new_sovereign = uuid::Uuid::new_v4();
-    let result = bft_consensus::cast_signed_vote(&pool, quorum_id, new_sovereign, true, signature)
-        .await;
+    let result =
+        bft_consensus::cast_signed_vote(&pool, quorum_id, new_sovereign, true, signature).await;
 
     assert!(result.is_err(), "voting after finalization should fail");
 }
@@ -494,13 +500,12 @@ async fn test_finalized_timestamp_recorded() {
         .await
         .expect("finalize quorum");
 
-    let finalized_at: (Option<chrono::DateTime<chrono::Utc>>,) = sqlx::query_as(
-        "SELECT finalized_at FROM bft_quorum_rounds WHERE quorum_id = $1"
-    )
-    .bind(quorum_id)
-    .fetch_one(&pool)
-    .await
-    .expect("fetch finalized_at");
+    let finalized_at: (Option<chrono::DateTime<chrono::Utc>>,) =
+        sqlx::query_as("SELECT finalized_at FROM bft_quorum_rounds WHERE quorum_id = $1")
+            .bind(quorum_id)
+            .fetch_one(&pool)
+            .await
+            .expect("fetch finalized_at");
 
     assert!(finalized_at.0.is_some(), "finalized_at should be recorded");
 }
@@ -526,13 +531,12 @@ async fn test_merge_attestations_updates_merkle_proof_ref() {
         .await
         .expect("merge attestations");
 
-    let stored_ref: (Option<String>,) = sqlx::query_as(
-        "SELECT merkle_proof_ref FROM bft_quorum_rounds WHERE quorum_id = $1"
-    )
-    .bind(quorum_id)
-    .fetch_one(&pool)
-    .await
-    .expect("fetch merkle_proof_ref");
+    let stored_ref: (Option<String>,) =
+        sqlx::query_as("SELECT merkle_proof_ref FROM bft_quorum_rounds WHERE quorum_id = $1")
+            .bind(quorum_id)
+            .fetch_one(&pool)
+            .await
+            .expect("fetch merkle_proof_ref");
 
     assert_eq!(stored_ref.0, Some(merkle_proof_ref));
 }
@@ -557,9 +561,12 @@ async fn test_quorum_timeout_enforced_at_24h() {
 
     // Try to cast a vote on the aged quorum
     let signature = vec![1, 2, 3, 4];
-    let result = bft_consensus::cast_signed_vote(&pool, quorum_id, sovereigns[1], true, signature)
-        .await;
+    let result =
+        bft_consensus::cast_signed_vote(&pool, quorum_id, sovereigns[1], true, signature).await;
 
     // Should fail due to timeout
-    assert!(result.is_err(), "voting on aged quorum (24h+) should fail due to timeout");
+    assert!(
+        result.is_err(),
+        "voting on aged quorum (24h+) should fail due to timeout"
+    );
 }

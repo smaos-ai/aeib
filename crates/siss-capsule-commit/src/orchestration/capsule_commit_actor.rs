@@ -1,11 +1,11 @@
-use crate::{CapsuleCommitActor, PrepareToken, CapsuleEntry};
-use siss_agent_shell::hooks::{
-    gitnexus_impact::{ImpactAnalyzer, ImpactReport},
-    blast_radius::BlastRiskLevel,
-};
-use siss_eval_court::{EvalCourt, ProposedUpdate, EvalVerdict};
-use sha2::{Sha256, Digest};
+use crate::{CapsuleCommitActor, CapsuleEntry, PrepareToken};
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+use siss_agent_shell::hooks::{
+    blast_radius::BlastRiskLevel,
+    gitnexus_impact::{ImpactAnalyzer, ImpactReport},
+};
+use siss_eval_court::{EvalCourt, EvalVerdict, ProposedUpdate};
 use std::collections::HashMap;
 use uuid::Uuid;
 
@@ -68,7 +68,10 @@ impl<A: ImpactAnalyzer> GitNexusCapsuleCommitActor<A> {
         }
     }
 
-    pub fn ingest_capsule(&mut self, capsule: CommitmentCapsule) -> Result<MergeDecision, ActorError> {
+    pub fn ingest_capsule(
+        &mut self,
+        capsule: CommitmentCapsule,
+    ) -> Result<MergeDecision, ActorError> {
         // Verify capsule hash integrity
         if !Self::verify_capsule_hash(&capsule) {
             return Err(ActorError::InvalidHash {
@@ -120,7 +123,11 @@ impl<A: ImpactAnalyzer> GitNexusCapsuleCommitActor<A> {
         None
     }
 
-    fn capsules_intersect(&self, a: &CommitmentCapsule, b: &CommitmentCapsule) -> Option<ClusterIntersection> {
+    fn capsules_intersect(
+        &self,
+        a: &CommitmentCapsule,
+        b: &CommitmentCapsule,
+    ) -> Option<ClusterIntersection> {
         // Level 1: cluster tag overlap
         let cluster_a: std::collections::HashSet<_> = a.cluster_tags.iter().collect();
         let cluster_b: std::collections::HashSet<_> = b.cluster_tags.iter().collect();
@@ -165,40 +172,38 @@ impl<A: ImpactAnalyzer> GitNexusCapsuleCommitActor<A> {
     fn phi_plus_review(&mut self, intersection: ClusterIntersection) -> MergeDecision {
         let eval = EvalCourt::new();
 
-        let capsule_a = self.pending_capsules.get(&intersection.capsule_a)
+        let capsule_a = self
+            .pending_capsules
+            .get(&intersection.capsule_a)
             .or_else(|| self.committed_capsules.get(&intersection.capsule_a))
             .cloned();
 
-        let capsule_b = self.pending_capsules.get(&intersection.capsule_b)
+        let capsule_b = self
+            .pending_capsules
+            .get(&intersection.capsule_b)
             .or_else(|| self.committed_capsules.get(&intersection.capsule_b))
             .cloned();
 
         let (capsule_a, capsule_b) = match (capsule_a, capsule_b) {
             (Some(a), Some(b)) => (a, b),
-            _ => return MergeDecision::Rejected {
-                capsule_id: intersection.capsule_a,
-                reason: "One or both capsules not found".to_string(),
-            },
+            _ => {
+                return MergeDecision::Rejected {
+                    capsule_id: intersection.capsule_a,
+                    reason: "One or both capsules not found".to_string(),
+                }
+            }
         };
 
         let update_a = ProposedUpdate {
             update_id: capsule_a.capsule_id,
             description: capsule_a.git_diff.clone(),
-            target_skill: capsule_a
-                .target_files
-                .first()
-                .cloned()
-                .unwrap_or_default(),
+            target_skill: capsule_a.target_files.first().cloned().unwrap_or_default(),
         };
 
         let update_b = ProposedUpdate {
             update_id: capsule_b.capsule_id,
             description: capsule_b.git_diff.clone(),
-            target_skill: capsule_b
-                .target_files
-                .first()
-                .cloned()
-                .unwrap_or_default(),
+            target_skill: capsule_b.target_files.first().cloned().unwrap_or_default(),
         };
 
         let verdict_a = eval.evaluate(update_a);
@@ -231,26 +236,30 @@ impl<A: ImpactAnalyzer> GitNexusCapsuleCommitActor<A> {
                     }
                 }
             }
-            (EvalVerdict::Safe, EvalVerdict::Unsafe(_)) => match self.commit_capsule(capsule_a.clone()) {
-                Ok(entry) => MergeDecision::Approved {
-                    capsule_id: capsule_a.capsule_id,
-                    entry,
-                },
-                Err(reason) => MergeDecision::Rejected {
-                    capsule_id: capsule_a.capsule_id,
-                    reason,
-                },
-            },
-            (EvalVerdict::Unsafe(_), EvalVerdict::Safe) => match self.commit_capsule(capsule_b.clone()) {
-                Ok(entry) => MergeDecision::Approved {
-                    capsule_id: capsule_b.capsule_id,
-                    entry,
-                },
-                Err(reason) => MergeDecision::Rejected {
-                    capsule_id: capsule_b.capsule_id,
-                    reason,
-                },
-            },
+            (EvalVerdict::Safe, EvalVerdict::Unsafe(_)) => {
+                match self.commit_capsule(capsule_a.clone()) {
+                    Ok(entry) => MergeDecision::Approved {
+                        capsule_id: capsule_a.capsule_id,
+                        entry,
+                    },
+                    Err(reason) => MergeDecision::Rejected {
+                        capsule_id: capsule_a.capsule_id,
+                        reason,
+                    },
+                }
+            }
+            (EvalVerdict::Unsafe(_), EvalVerdict::Safe) => {
+                match self.commit_capsule(capsule_b.clone()) {
+                    Ok(entry) => MergeDecision::Approved {
+                        capsule_id: capsule_b.capsule_id,
+                        entry,
+                    },
+                    Err(reason) => MergeDecision::Rejected {
+                        capsule_id: capsule_b.capsule_id,
+                        reason,
+                    },
+                }
+            }
             (EvalVerdict::Unsafe(_), EvalVerdict::Unsafe(_)) => {
                 // Fail-closed: reject both
                 self.pending_capsules.remove(&intersection.capsule_a);

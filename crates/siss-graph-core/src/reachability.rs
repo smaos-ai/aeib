@@ -160,6 +160,9 @@ mod tests {
         cache.add_edge(a, b);
 
         // The cache should be invalidated. Now a MUST be able to reach b
-        assert!(cache.reachable(a, b), "Cache was not invalidated on add_edge. Reachability is broken.");
+        assert!(
+            cache.reachable(a, b),
+            "Cache was not invalidated on add_edge. Reachability is broken."
+        );
     }
 }

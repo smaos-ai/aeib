@@ -1,7 +1,7 @@
-use thiserror::Error;
-use uuid::Uuid;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
+use uuid::Uuid;
 
 #[derive(Error, Debug)]
 pub enum FinancialError {
@@ -109,12 +109,13 @@ pub struct FinancialGovernanceCapsule {
 
 impl FinancialGovernanceCapsule {
     pub fn new() -> Self {
-        Self {
-            id: Uuid::new_v4(),
-        }
+        Self { id: Uuid::new_v4() }
     }
 
-    pub async fn enforce_trading_policy(&self, _order: &TradeOrder) -> Result<TradeApproval, FinancialError> {
+    pub async fn enforce_trading_policy(
+        &self,
+        _order: &TradeOrder,
+    ) -> Result<TradeApproval, FinancialError> {
         Ok(TradeApproval {
             approved: true,
             policy_checked: true,
@@ -122,7 +123,10 @@ impl FinancialGovernanceCapsule {
         })
     }
 
-    pub async fn automate_regulatory_reporting(&self, _period: &ReportingPeriod) -> Result<RegulatoryReport, FinancialError> {
+    pub async fn automate_regulatory_reporting(
+        &self,
+        _period: &ReportingPeriod,
+    ) -> Result<RegulatoryReport, FinancialError> {
         Ok(RegulatoryReport {
             transactions: vec![],
             compliant: true,
@@ -130,7 +134,10 @@ impl FinancialGovernanceCapsule {
         })
     }
 
-    pub async fn log_transaction_audit(&self, transaction: &FinancialTransaction) -> Result<AuditLogEntry, FinancialError> {
+    pub async fn log_transaction_audit(
+        &self,
+        transaction: &FinancialTransaction,
+    ) -> Result<AuditLogEntry, FinancialError> {
         Ok(AuditLogEntry {
             immutable: true,
             timestamped: true,
@@ -139,7 +146,10 @@ impl FinancialGovernanceCapsule {
         })
     }
 
-    pub async fn override_compliance_rule(&self, _request: &ComplianceOverrideRequest) -> Result<OverrideStatus, FinancialError> {
+    pub async fn override_compliance_rule(
+        &self,
+        _request: &ComplianceOverrideRequest,
+    ) -> Result<OverrideStatus, FinancialError> {
         Ok(OverrideStatus {
             approved: true,
             audit_logged: true,
@@ -147,7 +157,10 @@ impl FinancialGovernanceCapsule {
         })
     }
 
-    pub async fn pre_execution_safety_validation(&self, check: &PreExecutionCheck) -> Result<SafetyValidation, FinancialError> {
+    pub async fn pre_execution_safety_validation(
+        &self,
+        check: &PreExecutionCheck,
+    ) -> Result<SafetyValidation, FinancialError> {
         let safe = check.counterparty_credit_score >= 700;
         let warnings = if !safe {
             vec!["Low credit score".to_string()]
@@ -162,7 +175,10 @@ impl FinancialGovernanceCapsule {
         })
     }
 
-    pub async fn verify_settlement(&self, _settlement: &SettlementRequest) -> Result<SettlementVerification, FinancialError> {
+    pub async fn verify_settlement(
+        &self,
+        _settlement: &SettlementRequest,
+    ) -> Result<SettlementVerification, FinancialError> {
         Ok(SettlementVerification {
             verified: true,
             timestamp: Utc::now(),

@@ -5,4 +5,6 @@ pub mod zonal;
 
 pub use ephemeral::EphemeralBuffer;
 pub use operators::CartographicOperators;
-pub use zonal::{ConsolidatedEntry, GrayFog, LayeredFog, ObservationTier, RawObservation, ZonalMemory};
+pub use zonal::{
+    ConsolidatedEntry, GrayFog, LayeredFog, ObservationTier, RawObservation, ZonalMemory,
+};

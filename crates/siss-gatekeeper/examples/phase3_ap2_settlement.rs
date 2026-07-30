@@ -13,10 +13,10 @@
 //   - Signed AP2 settlement ledger
 //   - Cryptographic proof of 1%/99% immutability
 
-use serde::{Serialize, Deserialize};
+use ed25519_dalek::{Signer as DalekSigner, SigningKey};
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use uuid::Uuid;
-use ed25519_dalek::{SigningKey, Signer as DalekSigner};
-use sha2::{Sha256, Digest};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct AP2Settlement {
@@ -57,12 +57,18 @@ fn main() {
     println!("💰 SETTLEMENT PARAMETERS:");
     println!("   Settlement ID: {}", settlement_id);
     println!("   Total Revenue: ${:.2}", total_revenue);
-    println!("   Covenant Split: {}% architect, {}% beneficiaries\n",
-        1, 99);
+    println!(
+        "   Covenant Split: {}% architect, {}% beneficiaries\n",
+        1, 99
+    );
 
     println!("👤 ARCHITECT PAYOUT:");
     println!("   Address: {}", architect_address);
-    println!("   Amount: ${:.2} ({:.2}%)\n", architect_split, (architect_split / total_revenue) * 100.0);
+    println!(
+        "   Amount: ${:.2} ({:.2}%)\n",
+        architect_split,
+        (architect_split / total_revenue) * 100.0
+    );
 
     println!("👥 BENEFICIARY PAYOUTS:");
     for (address, amount) in &beneficiaries {
@@ -110,7 +116,8 @@ fn main() {
 
     // Verify covenant invariant
     let split_ok = settlement.architect_pct == 1 && settlement.beneficiary_pct == 99;
-    let balance_ok = (settlement.architect_payout + settlement.beneficiary_total - total_revenue).abs() < 0.01;
+    let balance_ok =
+        (settlement.architect_payout + settlement.beneficiary_total - total_revenue).abs() < 0.01;
 
     println!("🔐 COVENANT VERIFICATION:");
     println!("   Split is 1%/99%: {}", if split_ok { "✓" } else { "✗" });
@@ -125,13 +132,16 @@ fn main() {
     }
 
     // Serialize for audit trail
-    let settlement_json = serde_json::to_string_pretty(&settlement)
-        .expect("settlement must be serializable");
+    let settlement_json =
+        serde_json::to_string_pretty(&settlement).expect("settlement must be serializable");
 
     println!("📊 PHASE 3 DELIVERABLE:");
     println!("   Status: ✅ COMPLETE (6/6 hours)");
     println!("   Architect Payout: ${:.2}", settlement.architect_payout);
     println!("   Beneficiary Total: ${:.2}", settlement.beneficiary_total);
-    println!("   Cryptographic Proof: {}", &settlement.settlement_ledger_hash[..32]);
+    println!(
+        "   Cryptographic Proof: {}",
+        &settlement.settlement_ledger_hash[..32]
+    );
     println!("   Ready for Phase 4: Covenant Firewall Breach Test\n");
 }

@@ -48,14 +48,13 @@ impl ComplianceChecker {
 
     /// Record compliance evidence for a requirement
     pub fn record_evidence(&mut self, evidence: ComplianceEvidence) {
-        self.requirements.insert(evidence.requirement.clone(), evidence);
+        self.requirements
+            .insert(evidence.requirement.clone(), evidence);
     }
 
     /// Get compliance status for a requirement
     pub fn get_status(&self, requirement: &AnnexIIIRequirement) -> Option<ComplianceStatus> {
-        self.requirements
-            .get(requirement)
-            .map(|e| e.status.clone())
+        self.requirements.get(requirement).map(|e| e.status.clone())
     }
 
     /// Get all requirements and their statuses
@@ -69,7 +68,8 @@ impl ComplianceChecker {
             return 0.0;
         }
 
-        let met_count = self.requirements
+        let met_count = self
+            .requirements
             .values()
             .filter(|e| e.status == ComplianceStatus::Met)
             .count();
@@ -101,7 +101,8 @@ impl ComplianceChecker {
         report.push_str("# EU AI Act Annex III Compliance Report\n\n");
 
         report.push_str("## Overall Compliance Score\n");
-        report.push_str(&format!("**{:.1}%** - {}\n\n",
+        report.push_str(&format!(
+            "**{:.1}%** - {}\n\n",
             self.overall_compliance_score(),
             if self.are_critical_requirements_met() {
                 "COMPLIANT - All critical requirements met"

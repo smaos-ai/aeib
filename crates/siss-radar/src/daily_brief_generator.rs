@@ -70,10 +70,8 @@ impl BriefGenerator {
         // Calculate metrics
         let repos_monitored = snapshots.len() as u32;
         let deltas_detected = deltas.len() as u32;
-        let violations_detected = snapshots
-            .iter()
-            .flat_map(|s| &s.policy_violations)
-            .count() as u32;
+        let violations_detected =
+            snapshots.iter().flat_map(|s| &s.policy_violations).count() as u32;
 
         // Calculate compliance score (0-100)
         let compliant_repos = snapshots
@@ -155,10 +153,15 @@ impl BriefGenerator {
 
     /// Generate briefs for batch of creators
     #[allow(dead_code)]
-    pub fn generate_batch(&self, creator_snapshots: &[(Uuid, Vec<RepoSnapshot>, Vec<DeltaEvent>)]) -> Result<Vec<UserBrief>> {
+    pub fn generate_batch(
+        &self,
+        creator_snapshots: &[(Uuid, Vec<RepoSnapshot>, Vec<DeltaEvent>)],
+    ) -> Result<Vec<UserBrief>> {
         let briefs = creator_snapshots
             .iter()
-            .map(|(creator_id, snapshots, deltas)| Self::generate_brief(*creator_id, snapshots, deltas))
+            .map(|(creator_id, snapshots, deltas)| {
+                Self::generate_brief(*creator_id, snapshots, deltas)
+            })
             .collect::<Result<Vec<_>, _>>()?;
 
         Ok(briefs)
@@ -176,11 +179,7 @@ impl BriefGenerator {
         // Calculate next delivery (24 hours from last, or now if no prior delivery)
         let next_delivery = if let Some(last) = last_delivery {
             let next = last + Duration::hours(24);
-            if next <= now {
-                now
-            } else {
-                next
-            }
+            if next <= now { now } else { next }
         } else {
             now
         };
@@ -311,8 +310,7 @@ mod tests {
     #[test]
     fn test_schedule_delivery_first_time() {
         let user_id = Uuid::new_v4();
-        let schedule =
-            BriefGenerator::schedule_delivery(user_id, None, "UTC", "08:00");
+        let schedule = BriefGenerator::schedule_delivery(user_id, None, "UTC", "08:00");
 
         assert!(BriefGenerator::is_delivery_due(&schedule));
     }
@@ -321,7 +319,8 @@ mod tests {
     fn test_schedule_delivery_future() {
         let user_id = Uuid::new_v4();
         let last_delivery = Utc::now();
-        let schedule = BriefGenerator::schedule_delivery(user_id, Some(last_delivery), "UTC", "08:00");
+        let schedule =
+            BriefGenerator::schedule_delivery(user_id, Some(last_delivery), "UTC", "08:00");
 
         // Next delivery is in 24 hours, so not due yet
         assert!(!BriefGenerator::is_delivery_due(&schedule));

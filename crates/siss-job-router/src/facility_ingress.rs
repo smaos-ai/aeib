@@ -1,8 +1,7 @@
+use siss_gatekeeper::sneakernet_ingress::SneakernetGateway;
 /// Wave 1: Sneakernet Ingress Ritual & Chaos Petri Quarantine Zone
 /// External model weights and Skill Packs must pass four fail-closed rules to enter the facility.
-
 use uuid::Uuid;
-use siss_gatekeeper::sneakernet_ingress::SneakernetGateway;
 
 /// Compile-time facility admission policy. Cannot be modified at runtime.
 pub struct FacilityBounds {
@@ -58,7 +57,8 @@ impl FullIngressPipeline {
         let verdict = IngressRitual::admit(manifest, bounds)?;
 
         // Step 2: Call gateway.authorize_transfer
-        gateway.authorize_transfer(transfer_id)
+        gateway
+            .authorize_transfer(transfer_id)
             .map_err(|_| IngressRejection::MissingAttestation)?;
 
         Ok(verdict)
@@ -212,9 +212,6 @@ mod tests {
         };
 
         let result = IngressRitual::admit(&manifest, &bounds);
-        assert!(matches!(
-            result,
-            Err(IngressRejection::MissingAttestation)
-        ));
+        assert!(matches!(result, Err(IngressRejection::MissingAttestation)));
     }
 }

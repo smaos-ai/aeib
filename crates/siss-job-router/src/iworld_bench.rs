@@ -1,7 +1,6 @@
 /// iWorld-Bench: Compile-Time Geometric Trajectory Validation
 /// Type-state pattern ensures trajectories are validated before dispatch.
 /// Unvalidated trajectories cannot be passed to execution functions (compile error).
-
 use std::marker::PhantomData;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -164,7 +163,10 @@ mod tests {
 
         let unvalidated = TypedTrajectory::new(trajectory);
         let result = TrajectoryValidator::validate(unvalidated, &bounds);
-        assert!(matches!(result, Err(GeometricViolation::OutOfBounds { .. })));
+        assert!(matches!(
+            result,
+            Err(GeometricViolation::OutOfBounds { .. })
+        ));
     }
 
     #[test]
@@ -205,9 +207,7 @@ mod tests {
             obstacle_zones: &[],
         };
 
-        let trajectory = Trajectory {
-            waypoints: vec![],
-        };
+        let trajectory = Trajectory { waypoints: vec![] };
 
         let unvalidated = TypedTrajectory::new(trajectory);
         let result = TrajectoryValidator::validate(unvalidated, &bounds);

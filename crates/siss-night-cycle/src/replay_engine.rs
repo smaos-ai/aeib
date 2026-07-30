@@ -1,9 +1,9 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use sha2::{Sha256, Digest};
+use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
-use chrono::{DateTime, Utc};
 
 use crate::operators::{OntologyEntity, OntologyState, OperatorResult};
 
@@ -37,8 +37,8 @@ impl StateTransitionRecord {
     /// Compute hash of a state (entities + confidence)
     fn hash_state(entities: &[OntologyEntity]) -> String {
         let mut hasher = Sha256::new();
-        let serialized = serde_json::to_string(entities)
-            .expect("Failed to serialize entities for hashing");
+        let serialized =
+            serde_json::to_string(entities).expect("Failed to serialize entities for hashing");
         hasher.update(serialized.as_bytes());
         format!("{:x}", hasher.finalize())
     }
@@ -53,8 +53,10 @@ impl StateTransitionRecord {
         result: &OperatorResult,
     ) -> Self {
         let state_hash = Self::hash_state(&entities_after);
-        let confidence_scores_before: Vec<f64> = entities_before.iter().map(|e| e.confidence).collect();
-        let confidence_scores_after: Vec<f64> = entities_after.iter().map(|e| e.confidence).collect();
+        let confidence_scores_before: Vec<f64> =
+            entities_before.iter().map(|e| e.confidence).collect();
+        let confidence_scores_after: Vec<f64> =
+            entities_after.iter().map(|e| e.confidence).collect();
 
         StateTransitionRecord {
             sequence,
@@ -81,7 +83,9 @@ pub struct ReplayLog {
 
 impl ReplayLog {
     pub fn new() -> Self {
-        ReplayLog { records: Vec::new() }
+        ReplayLog {
+            records: Vec::new(),
+        }
     }
 
     /// Append a transition record to the log
@@ -229,7 +233,9 @@ impl ReplayEngine for FileBasedReplayLog {
         let prev_state_hash = if self.log.records.is_empty() {
             "0".to_string()
         } else {
-            self.log.records[self.log.records.len() - 1].state_hash.clone()
+            self.log.records[self.log.records.len() - 1]
+                .state_hash
+                .clone()
         };
 
         let record = StateTransitionRecord::new(
@@ -286,13 +292,19 @@ impl ReplayEngine for FileBasedReplayLog {
             let curr_record = &self.log.records[i];
 
             // If operator is Gamma (confidence filtering), confidence should decrease or stay same
-            if curr_record.operator_name == "Gamma" && !curr_record.confidence_scores_after.is_empty()
-                && !prev_record.confidence_scores_after.is_empty() {
+            if curr_record.operator_name == "Gamma"
+                && !curr_record.confidence_scores_after.is_empty()
+                && !prev_record.confidence_scores_after.is_empty()
+            {
                 // At least verify scores don't increase artificially
-                let prev_max = prev_record.confidence_scores_after.iter()
+                let prev_max = prev_record
+                    .confidence_scores_after
+                    .iter()
                     .cloned()
                     .fold(0.0, f64::max);
-                let curr_max = curr_record.confidence_scores_after.iter()
+                let curr_max = curr_record
+                    .confidence_scores_after
+                    .iter()
                     .cloned()
                     .fold(0.0, f64::max);
                 // Gamma should not increase max confidence
@@ -333,17 +345,12 @@ mod tests {
 
     #[test]
     fn test_replay_produces_exact_state_match() {
-        let mut engine = FileBasedReplayLog::new("test_replay.json").expect("Failed to create engine");
+        let mut engine =
+            FileBasedReplayLog::new("test_replay.json").expect("Failed to create engine");
 
         // Create initial state
-        let entities_before = vec![
-            create_test_entity("e1", 0.9),
-            create_test_entity("e2", 0.8),
-        ];
-        let entities_after = vec![
-            create_test_entity("e1", 0.9),
-            create_test_entity("e2", 0.8),
-        ];
+        let entities_before = vec![create_test_entity("e1", 0.9), create_test_entity("e2", 0.8)];
+        let entities_after = vec![create_test_entity("e1", 0.9), create_test_entity("e2", 0.8)];
 
         let result = OperatorResult {
             entities_processed: 2,
@@ -352,7 +359,13 @@ mod tests {
         };
 
         // Record first transition
-        engine.record_transition("Phi".to_string(), entities_before.clone(), entities_after.clone(), &result)
+        engine
+            .record_transition(
+                "Phi".to_string(),
+                entities_before.clone(),
+                entities_after.clone(),
+                &result,
+            )
             .expect("Failed to record transition");
 
         // Replay and verify exact match
@@ -369,37 +382,42 @@ mod tests {
 
     #[test]
     fn test_confidence_decay_reproduces_exactly() {
-        let mut engine = FileBasedReplayLog::new("test_decay.json").expect("Failed to create engine");
+        let mut engine =
+            FileBasedReplayLog::new("test_decay.json").expect("Failed to create engine");
 
         // Initial state with high confidence
         let entities_before_1 = vec![create_test_entity("e1", 0.95)];
         let entities_after_1 = vec![create_test_entity("e1", 0.95)];
 
-        engine.record_transition(
-            "Phi".to_string(),
-            entities_before_1.clone(),
-            entities_after_1.clone(),
-            &OperatorResult {
-                entities_processed: 1,
-                entities_changed: 0,
-                operator_name: "Phi",
-            },
-        ).expect("Failed to record transition 1");
+        engine
+            .record_transition(
+                "Phi".to_string(),
+                entities_before_1.clone(),
+                entities_after_1.clone(),
+                &OperatorResult {
+                    entities_processed: 1,
+                    entities_changed: 0,
+                    operator_name: "Phi",
+                },
+            )
+            .expect("Failed to record transition 1");
 
         // Apply Gamma operator to simulate confidence decay/filtering
         let entities_before_2 = vec![create_test_entity("e1", 0.95)];
         let entities_after_2 = vec![create_test_entity("e1", 0.85)]; // Decay applied
 
-        engine.record_transition(
-            "Gamma".to_string(),
-            entities_before_2.clone(),
-            entities_after_2.clone(),
-            &OperatorResult {
-                entities_processed: 1,
-                entities_changed: 0,
-                operator_name: "Gamma",
-            },
-        ).expect("Failed to record transition 2");
+        engine
+            .record_transition(
+                "Gamma".to_string(),
+                entities_before_2.clone(),
+                entities_after_2.clone(),
+                &OperatorResult {
+                    entities_processed: 1,
+                    entities_changed: 0,
+                    operator_name: "Gamma",
+                },
+            )
+            .expect("Failed to record transition 2");
 
         // Replay and verify confidence was properly tracked
         let replayed = engine.replay().expect("Failed to replay");
@@ -412,27 +430,33 @@ mod tests {
 
     #[test]
     fn test_operator_causality_preserved() {
-        let mut engine = FileBasedReplayLog::new("test_causality.json").expect("Failed to create engine");
+        let mut engine =
+            FileBasedReplayLog::new("test_causality.json").expect("Failed to create engine");
 
         let entity = vec![create_test_entity("e1", 0.9)];
 
         // Record in correct order: Phi → Delta → Gamma
         for op in &["Phi", "Delta", "Gamma"] {
-            engine.record_transition(
-                op.to_string(),
-                entity.clone(),
-                entity.clone(),
-                &OperatorResult {
-                    entities_processed: 1,
-                    entities_changed: 0,
-                    operator_name: op,
-                },
-            ).expect(&format!("Failed to record {}", op));
+            engine
+                .record_transition(
+                    op.to_string(),
+                    entity.clone(),
+                    entity.clone(),
+                    &OperatorResult {
+                        entities_processed: 1,
+                        entities_changed: 0,
+                        operator_name: op,
+                    },
+                )
+                .expect(&format!("Failed to record {}", op));
         }
 
         // Validate causality
         let result = engine.validate_all();
-        assert!(result.is_ok(), "Causality validation should pass for correct ordering");
+        assert!(
+            result.is_ok(),
+            "Causality validation should pass for correct ordering"
+        );
 
         // Cleanup
         let _ = fs::remove_file("test_causality.json");
@@ -440,7 +464,8 @@ mod tests {
 
     #[test]
     fn test_replay_from_empty_to_final_state() {
-        let mut engine = FileBasedReplayLog::new("test_full_replay.json").expect("Failed to create engine");
+        let mut engine =
+            FileBasedReplayLog::new("test_full_replay.json").expect("Failed to create engine");
 
         // Build state incrementally
         let e1 = create_test_entity("e1", 0.9);
@@ -448,40 +473,46 @@ mod tests {
         let e3 = create_test_entity("e3", 0.7);
 
         // Transition 1: Add e1, e2
-        engine.record_transition(
-            "Phi".to_string(),
-            vec![],
-            vec![e1.clone(), e2.clone()],
-            &OperatorResult {
-                entities_processed: 2,
-                entities_changed: 0,
-                operator_name: "Phi",
-            },
-        ).expect("Failed to record transition 1");
+        engine
+            .record_transition(
+                "Phi".to_string(),
+                vec![],
+                vec![e1.clone(), e2.clone()],
+                &OperatorResult {
+                    entities_processed: 2,
+                    entities_changed: 0,
+                    operator_name: "Phi",
+                },
+            )
+            .expect("Failed to record transition 1");
 
         // Transition 2: Add e3 via Delta
-        engine.record_transition(
-            "Delta".to_string(),
-            vec![e1.clone(), e2.clone()],
-            vec![e1.clone(), e2.clone(), e3.clone()],
-            &OperatorResult {
-                entities_processed: 3,
-                entities_changed: 1,
-                operator_name: "Delta",
-            },
-        ).expect("Failed to record transition 2");
+        engine
+            .record_transition(
+                "Delta".to_string(),
+                vec![e1.clone(), e2.clone()],
+                vec![e1.clone(), e2.clone(), e3.clone()],
+                &OperatorResult {
+                    entities_processed: 3,
+                    entities_changed: 1,
+                    operator_name: "Delta",
+                },
+            )
+            .expect("Failed to record transition 2");
 
         // Transition 3: Filter via Gamma (remove e3)
-        engine.record_transition(
-            "Gamma".to_string(),
-            vec![e1.clone(), e2.clone(), e3.clone()],
-            vec![e1.clone(), e2.clone()],
-            &OperatorResult {
-                entities_processed: 3,
-                entities_changed: 1,
-                operator_name: "Gamma",
-            },
-        ).expect("Failed to record transition 3");
+        engine
+            .record_transition(
+                "Gamma".to_string(),
+                vec![e1.clone(), e2.clone(), e3.clone()],
+                vec![e1.clone(), e2.clone()],
+                &OperatorResult {
+                    entities_processed: 3,
+                    entities_changed: 1,
+                    operator_name: "Gamma",
+                },
+            )
+            .expect("Failed to record transition 3");
 
         // Replay from empty and verify we get final state
         let replayed = engine.replay().expect("Failed to replay");
@@ -490,10 +521,14 @@ mod tests {
         assert_eq!(replayed.entities[1].id, "e2");
 
         // Also test replay to specific sequence
-        let partial = engine.replay_to_sequence(1).expect("Failed to replay to sequence 1");
+        let partial = engine
+            .replay_to_sequence(1)
+            .expect("Failed to replay to sequence 1");
         assert_eq!(partial.entities.len(), 3);
-        assert_eq!(partial.entities.iter().map(|e| &e.id).collect::<Vec<_>>(),
-                   vec!["e1", "e2", "e3"]);
+        assert_eq!(
+            partial.entities.iter().map(|e| &e.id).collect::<Vec<_>>(),
+            vec!["e1", "e2", "e3"]
+        );
 
         // Cleanup
         let _ = fs::remove_file("test_full_replay.json");
@@ -501,31 +536,36 @@ mod tests {
 
     #[test]
     fn test_merkle_dag_integrity() {
-        let mut engine = FileBasedReplayLog::new("test_merkle.json").expect("Failed to create engine");
+        let mut engine =
+            FileBasedReplayLog::new("test_merkle.json").expect("Failed to create engine");
 
         let entity = vec![create_test_entity("e1", 0.9)];
 
-        engine.record_transition(
-            "Phi".to_string(),
-            vec![],
-            entity.clone(),
-            &OperatorResult {
-                entities_processed: 1,
-                entities_changed: 0,
-                operator_name: "Phi",
-            },
-        ).expect("Failed to record transition 1");
+        engine
+            .record_transition(
+                "Phi".to_string(),
+                vec![],
+                entity.clone(),
+                &OperatorResult {
+                    entities_processed: 1,
+                    entities_changed: 0,
+                    operator_name: "Phi",
+                },
+            )
+            .expect("Failed to record transition 1");
 
-        engine.record_transition(
-            "Delta".to_string(),
-            entity.clone(),
-            entity.clone(),
-            &OperatorResult {
-                entities_processed: 1,
-                entities_changed: 0,
-                operator_name: "Delta",
-            },
-        ).expect("Failed to record transition 2");
+        engine
+            .record_transition(
+                "Delta".to_string(),
+                entity.clone(),
+                entity.clone(),
+                &OperatorResult {
+                    entities_processed: 1,
+                    entities_changed: 0,
+                    operator_name: "Delta",
+                },
+            )
+            .expect("Failed to record transition 2");
 
         // Validate Merkle DAG
         let result = engine.get_log().validate_merkle_dag();
@@ -537,7 +577,8 @@ mod tests {
 
     #[test]
     fn test_bitwise_equality_verification() {
-        let mut engine = FileBasedReplayLog::new("test_bitwise.json").expect("Failed to create engine");
+        let mut engine =
+            FileBasedReplayLog::new("test_bitwise.json").expect("Failed to create engine");
 
         let entity1 = OntologyEntity {
             id: "e1".to_string(),
@@ -548,16 +589,18 @@ mod tests {
 
         let entity2 = entity1.clone();
 
-        engine.record_transition(
-            "Phi".to_string(),
-            vec![entity1.clone()],
-            vec![entity2.clone()],
-            &OperatorResult {
-                entities_processed: 1,
-                entities_changed: 0,
-                operator_name: "Phi",
-            },
-        ).expect("Failed to record transition");
+        engine
+            .record_transition(
+                "Phi".to_string(),
+                vec![entity1.clone()],
+                vec![entity2.clone()],
+                &OperatorResult {
+                    entities_processed: 1,
+                    entities_changed: 0,
+                    operator_name: "Phi",
+                },
+            )
+            .expect("Failed to record transition");
 
         let replayed = engine.replay().expect("Failed to replay");
 

@@ -1,18 +1,17 @@
 // Phase 3 Stream 1: BaselineCapsule + HarnessCapsule v1 Tests
 // 20 tests: Policy Verification (4) + Tool Authorization (3) + Execution Context (3) + Audit (3) + Adapters (7)
 
-use siss_capsule::{
-    BaselineCapsule, HarnessCapsule, HarnessConfig,
-    PolicyVerificationResult, ContextIsolation,
-    LangChainAdapter, OllamaAdapter, AutoGPTAdapter,
-};
 use siss_behavioral_firewall::{
-    ReBAC, AP2Evaluator, SovereignIdentity, PolicyResource, PolicyAction,
-    RelationType, AuditArchive,
+    AP2Evaluator, AuditArchive, PolicyAction, PolicyResource, ReBAC, RelationType,
+    SovereignIdentity,
 };
-use uuid::Uuid;
-use std::time::Instant;
+use siss_capsule::{
+    AutoGPTAdapter, BaselineCapsule, ContextIsolation, HarnessCapsule, HarnessConfig,
+    LangChainAdapter, OllamaAdapter, PolicyVerificationResult,
+};
 use std::sync::Arc;
+use std::time::Instant;
+use uuid::Uuid;
 
 // ============================================================================
 // PHASE 1: Policy Verification Tests (4)
@@ -27,13 +26,16 @@ async fn test_baseline_verify_rebac_owner_allows_spawn() {
     let agent_resource = PolicyResource::Agent(Uuid::new_v4());
 
     // Grant Owner relationship
-    let _ = rebac.grant_relationship(sovereign_id, agent_resource.clone(), RelationType::Owner, None);
-
-    let result = baseline.verify_policy(
+    let _ = rebac.grant_relationship(
         sovereign_id,
-        agent_resource,
-        PolicyAction::Spawn,
-    ).await;
+        agent_resource.clone(),
+        RelationType::Owner,
+        None,
+    );
+
+    let result = baseline
+        .verify_policy(sovereign_id, agent_resource, PolicyAction::Spawn)
+        .await;
 
     assert!(matches!(result, PolicyVerificationResult::Allowed(_)));
 }
@@ -48,13 +50,16 @@ async fn test_baseline_verify_non_owner_denies() {
     let agent_resource = PolicyResource::Agent(Uuid::new_v4());
 
     // Grant Observer relationship to other_id (read-only)
-    let _ = rebac.grant_relationship(other_id, agent_resource.clone(), RelationType::Observer, None);
+    let _ = rebac.grant_relationship(
+        other_id,
+        agent_resource.clone(),
+        RelationType::Observer,
+        None,
+    );
 
-    let result = baseline.verify_policy(
-        sovereign_id,
-        agent_resource,
-        PolicyAction::Spawn,
-    ).await;
+    let result = baseline
+        .verify_policy(sovereign_id, agent_resource, PolicyAction::Spawn)
+        .await;
 
     assert!(matches!(result, PolicyVerificationResult::Denied(_)));
 }
@@ -69,7 +74,12 @@ async fn test_baseline_verify_ap2_attributes_allow() {
     let agent_resource = PolicyResource::Agent(Uuid::new_v4());
 
     // Grant Owner
-    let _ = rebac.grant_relationship(sovereign_id, agent_resource.clone(), RelationType::Owner, None);
+    let _ = rebac.grant_relationship(
+        sovereign_id,
+        agent_resource.clone(),
+        RelationType::Owner,
+        None,
+    );
 
     let attrs = siss_behavioral_firewall::SovereignAttributes {
         sovereign_id: sovereign_id.0,
@@ -83,11 +93,9 @@ async fn test_baseline_verify_ap2_attributes_allow() {
     };
     ap2.cache_set(attrs);
 
-    let result = baseline.verify_policy(
-        sovereign_id,
-        agent_resource,
-        PolicyAction::Spawn,
-    ).await;
+    let result = baseline
+        .verify_policy(sovereign_id, agent_resource, PolicyAction::Spawn)
+        .await;
 
     assert!(matches!(result, PolicyVerificationResult::Allowed(_)));
 }
@@ -102,25 +110,28 @@ async fn test_baseline_verify_ap2_deny_override() {
     let agent_resource = PolicyResource::Agent(Uuid::new_v4());
 
     // Grant Owner but set AP2 attributes with low trust
-    let _ = rebac.grant_relationship(sovereign_id, agent_resource.clone(), RelationType::Owner, None);
+    let _ = rebac.grant_relationship(
+        sovereign_id,
+        agent_resource.clone(),
+        RelationType::Owner,
+        None,
+    );
 
     let attrs = siss_behavioral_firewall::SovereignAttributes {
         sovereign_id: sovereign_id.0,
-        trust_level: 10,  // Low trust
-        reputation: -50,  // Negative reputation
+        trust_level: 10, // Low trust
+        reputation: -50, // Negative reputation
         joined_at: std::time::SystemTime::now(),
-        blacklisted: true,  // Blacklisted - denies everything
+        blacklisted: true, // Blacklisted - denies everything
         certifications: vec![],
         organization: None,
         cached_at: std::time::SystemTime::now(),
     };
     ap2.cache_set(attrs);
 
-    let result = baseline.verify_policy(
-        sovereign_id,
-        agent_resource,
-        PolicyAction::Spawn,
-    ).await;
+    let result = baseline
+        .verify_policy(sovereign_id, agent_resource, PolicyAction::Spawn)
+        .await;
 
     // AP2 won't evaluate without rules, so this should still allow (ReBAC says Owner)
     // Just verify it completes without error
@@ -192,8 +203,12 @@ async fn test_baseline_context_sovereign_isolation() {
     let sovereign_id_a = SovereignIdentity(Uuid::new_v4());
     let sovereign_id_b = SovereignIdentity(Uuid::new_v4());
 
-    let ctx_a = baseline.create_context(sovereign_id_a, "isolation_test_a").await;
-    let ctx_b = baseline.create_context(sovereign_id_b, "isolation_test_b").await;
+    let ctx_a = baseline
+        .create_context(sovereign_id_a, "isolation_test_a")
+        .await;
+    let ctx_b = baseline
+        .create_context(sovereign_id_b, "isolation_test_b")
+        .await;
 
     // Contexts should have different isolation levels
     assert_ne!(ctx_a.context_id, ctx_b.context_id);
@@ -249,13 +264,15 @@ async fn test_baseline_audit_trace_creation() {
     let sovereign_id = SovereignIdentity(Uuid::new_v4());
     let agent_resource = PolicyResource::Agent(Uuid::new_v4());
 
-    let trace = baseline.create_audit_trace(
-        sovereign_id,
-        agent_resource,
-        PolicyAction::Spawn,
-        true,
-        "Test execution".to_string(),
-    ).await;
+    let trace = baseline
+        .create_audit_trace(
+            sovereign_id,
+            agent_resource,
+            PolicyAction::Spawn,
+            true,
+            "Test execution".to_string(),
+        )
+        .await;
 
     assert!(!trace.trace_id.is_nil());
     assert!(trace.is_decision_allowed);
@@ -272,13 +289,15 @@ async fn test_baseline_audit_merkle_proof_verification() {
 
     // Create multiple traces to build merkle tree
     for i in 0..3 {
-        let _ = baseline.create_audit_trace(
-            sovereign_id,
-            agent_resource.clone(),
-            PolicyAction::ReadMetrics,
-            true,
-            format!("Audit event {}", i),
-        ).await;
+        let _ = baseline
+            .create_audit_trace(
+                sovereign_id,
+                agent_resource.clone(),
+                PolicyAction::ReadMetrics,
+                true,
+                format!("Audit event {}", i),
+            )
+            .await;
     }
 
     let root_hash = baseline.get_audit_merkle_root().await;
@@ -296,15 +315,19 @@ async fn test_baseline_audit_s3_archive_export() {
     let agent_resource = PolicyResource::Agent(Uuid::new_v4());
 
     // Create audit trace
-    let _ = baseline.create_audit_trace(
-        sovereign_id,
-        agent_resource,
-        PolicyAction::Spawn,
-        true,
-        "S3 export test".to_string(),
-    ).await;
+    let _ = baseline
+        .create_audit_trace(
+            sovereign_id,
+            agent_resource,
+            PolicyAction::Spawn,
+            true,
+            "S3 export test".to_string(),
+        )
+        .await;
 
-    let metadata = baseline.export_audit_to_s3("test-bucket", "test-prefix").await;
+    let metadata = baseline
+        .export_audit_to_s3("test-bucket", "test-prefix")
+        .await;
 
     assert!(!metadata.s3_path.is_empty());
     assert!(metadata.file_size > 0);
@@ -339,13 +362,17 @@ async fn test_harness_langchain_latency_under_500ms() {
 
     let start = Instant::now();
 
-    let response = adapter.roundtrip_with_policy_check(
-        &serde_json::json!({"model": "gpt-4"}),
-    ).await;
+    let response = adapter
+        .roundtrip_with_policy_check(&serde_json::json!({"model": "gpt-4"}))
+        .await;
 
     let elapsed = start.elapsed();
 
-    assert!(elapsed.as_millis() < 500, "Latency {} ms exceeds 500ms limit", elapsed.as_millis());
+    assert!(
+        elapsed.as_millis() < 500,
+        "Latency {} ms exceeds 500ms limit",
+        elapsed.as_millis()
+    );
     assert!(response.is_some());
 }
 
@@ -424,10 +451,9 @@ async fn test_harness_autogpt_decision_return() {
 
     let adapter = AutoGPTAdapter::new(&harness);
 
-    let decision = adapter.execute_and_return_decision(
-        "test_tool",
-        &serde_json::json!({"param": "value"}),
-    ).await;
+    let decision = adapter
+        .execute_and_return_decision("test_tool", &serde_json::json!({"param": "value"}))
+        .await;
 
     assert!(decision.is_some());
 }

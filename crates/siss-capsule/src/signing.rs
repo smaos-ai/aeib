@@ -1,11 +1,11 @@
 // Phase 26 Task 1: StateMutationSigner + Ed25519 cryptographic integrity
 // Reuses SovereignKeypair from siss-layer00::attestation
 
-use siss_layer00::attestation::{SovereignKeypair, verify_signature, sha256};
+use chrono::{DateTime, Utc};
+use siss_layer00::attestation::{SovereignKeypair, sha256, verify_signature};
 use std::sync::Arc;
 use thiserror::Error;
 use uuid::Uuid;
-use chrono::{DateTime, Utc};
 
 #[derive(Debug, Clone, Error)]
 pub enum SigningError {
@@ -125,12 +125,8 @@ impl StateMutationSigner {
         let hash = sha256(&message);
 
         // Verify signature
-        verify_signature(
-            &mutation.signer_public_key,
-            &hash,
-            &mutation.signature,
-        )
-        .map_err(|_| SigningError::InvalidSignature)
+        verify_signature(&mutation.signer_public_key, &hash, &mutation.signature)
+            .map_err(|_| SigningError::InvalidSignature)
     }
 }
 

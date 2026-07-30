@@ -40,7 +40,10 @@ pub struct ConsolidationPipeline {
 
 impl ConsolidationPipeline {
     pub fn new(compression_ratio: f64, gc_threshold: f64) -> Self {
-        ConsolidationPipeline { compression_ratio, gc_threshold }
+        ConsolidationPipeline {
+            compression_ratio,
+            gc_threshold,
+        }
     }
 
     pub fn compress_to_episodic(
@@ -57,7 +60,10 @@ impl ConsolidationPipeline {
         let tenant = siss_graph_core::node::NodeId::new();
 
         for chunk in observations.chunks(group_size) {
-            if let Some(best) = chunk.iter().max_by(|a, b| a.confidence.partial_cmp(&b.confidence).unwrap()) {
+            if let Some(best) = chunk
+                .iter()
+                .max_by(|a, b| a.confidence.partial_cmp(&b.confidence).unwrap())
+            {
                 result.push(siss_graph_core::node::memory::EpisodicMemory::new(
                     best.content.clone(),
                     best.confidence,

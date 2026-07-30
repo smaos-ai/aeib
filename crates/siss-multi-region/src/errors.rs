@@ -1,5 +1,5 @@
-use thiserror::Error;
 use std::fmt;
+use thiserror::Error;
 
 pub type MultiRegionResult<T> = Result<T, MultiRegionError>;
 

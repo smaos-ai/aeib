@@ -1,4 +1,4 @@
-use crate::{Tensor, InferenceError, Result, ModelMetadata};
+use crate::{InferenceError, ModelMetadata, Result, Tensor};
 use dashmap::DashMap;
 use std::sync::Arc;
 use std::time::SystemTime;
@@ -74,7 +74,10 @@ impl InferenceEngine {
     }
 
     pub fn list_models(&self) -> Vec<String> {
-        self.models.iter().map(|entry| entry.key().clone()).collect()
+        self.models
+            .iter()
+            .map(|entry| entry.key().clone())
+            .collect()
     }
 
     pub fn hardware_backend(&self) -> HardwareBackend {
@@ -98,10 +101,7 @@ impl InferenceEngine {
             input.matmul(&model.weights)
         } else if model.weights.shape().len() == 2 && input.shape().len() == 1 {
             // Handle 1D input by reshaping to 2D
-            let reshaped_input = Tensor::new(
-                input.flatten(),
-                vec![1, input.shape()[0]],
-            )?;
+            let reshaped_input = Tensor::new(input.flatten(), vec![1, input.shape()[0]])?;
             reshaped_input.matmul(&model.weights)
         } else {
             Err(InferenceError::InferenceFailed(
@@ -124,17 +124,12 @@ impl InferenceEngine {
         let output2 = self.infer(model_id, input).await?;
 
         let is_deterministic = output1.flatten() == output2.flatten();
-        self.determinism_cache
-            .insert(cache_key, is_deterministic);
+        self.determinism_cache.insert(cache_key, is_deterministic);
 
         Ok(is_deterministic)
     }
 
-    pub async fn batch_infer(
-        &self,
-        model_id: &str,
-        inputs: &[Tensor],
-    ) -> Result<Vec<Tensor>> {
+    pub async fn batch_infer(&self, model_id: &str, inputs: &[Tensor]) -> Result<Vec<Tensor>> {
         let mut outputs = Vec::new();
         for input in inputs {
             outputs.push(self.infer(model_id, input).await?);
@@ -157,7 +152,11 @@ impl InferenceEngine {
         self.models.len()
     }
 
-    pub async fn infer_with_latency(&self, model_id: &str, input: &Tensor) -> Result<(Tensor, u64)> {
+    pub async fn infer_with_latency(
+        &self,
+        model_id: &str,
+        input: &Tensor,
+    ) -> Result<(Tensor, u64)> {
         let start = std::time::Instant::now();
         let output = self.infer(model_id, input).await?;
         let latency_ms = start.elapsed().as_millis() as u64;
@@ -174,12 +173,8 @@ mod tests {
         // But we want output [1,2], so we need [2,2] weights
         // For [1,2] input x [2,2] weights = [1,2] output
         let weights = Tensor::new(vec![1.0, 2.0, 3.0, 4.0], vec![2, 2]).unwrap();
-        let metadata = ModelMetadata::new(
-            id.to_string(),
-            "1.0".to_string(),
-            vec![1, 2],
-            vec![1, 2],
-        );
+        let metadata =
+            ModelMetadata::new(id.to_string(), "1.0".to_string(), vec![1, 2], vec![1, 2]);
         InferenceModel::new(id.to_string(), weights, metadata, 42)
     }
 
@@ -196,7 +191,10 @@ mod tests {
         assert_eq!(engine_cpu.hardware_backend(), HardwareBackend::CPU);
 
         let engine_neural = InferenceEngine::with_backend(HardwareBackend::AppleNeuralEngine);
-        assert_eq!(engine_neural.hardware_backend(), HardwareBackend::AppleNeuralEngine);
+        assert_eq!(
+            engine_neural.hardware_backend(),
+            HardwareBackend::AppleNeuralEngine
+        );
 
         let _engine_metal = InferenceEngine::with_backend(HardwareBackend::MetalGPU);
         assert_eq!(_engine_metal.hardware_backend(), HardwareBackend::MetalGPU);
@@ -348,12 +346,7 @@ mod tests {
     #[test]
     fn test_inference_model_creation() {
         let weights = Tensor::new(vec![1.0, 2.0], vec![1, 2]).unwrap();
-        let metadata = ModelMetadata::new(
-            "test".to_string(),
-            "1.0".to_string(),
-            vec![2],
-            vec![2],
-        );
+        let metadata = ModelMetadata::new("test".to_string(), "1.0".to_string(), vec![2], vec![2]);
 
         let model = InferenceModel::new("model1".to_string(), weights, metadata, 42);
         assert_eq!(model.id, "model1");
@@ -364,6 +357,9 @@ mod tests {
     fn test_hardware_backend_equality() {
         assert_eq!(HardwareBackend::CPU, HardwareBackend::CPU);
         assert_ne!(HardwareBackend::CPU, HardwareBackend::MetalGPU);
-        assert_ne!(HardwareBackend::AppleNeuralEngine, HardwareBackend::MetalGPU);
+        assert_ne!(
+            HardwareBackend::AppleNeuralEngine,
+            HardwareBackend::MetalGPU
+        );
     }
 }

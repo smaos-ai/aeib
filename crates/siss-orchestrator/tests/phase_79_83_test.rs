@@ -1,10 +1,10 @@
 use siss_orchestrator::{
-    CommitmentCapsule, TwoPointerScheduler, DispatchTask, AgentBinaryTree, AgentHealth,
-    KalmanState, ExpertGateway, CapabilityLevel, ExpertTask, SwarmState,
+    AgentBinaryTree, AgentHealth, CapabilityLevel, CommitmentCapsule, DispatchTask, ExpertGateway,
+    ExpertTask, KalmanState, SwarmState, TwoPointerScheduler,
 };
-use uuid::Uuid;
 use std::collections::HashMap;
 use std::time::SystemTime;
+use uuid::Uuid;
 
 #[test]
 fn invariant_1_capsule_locality_bounded_scope() {
@@ -106,7 +106,9 @@ fn invariant_2_two_pointer_dependency_resolution() {
     }
 
     assert_eq!(scheduler.waiting_queue_len(), 1);
-    scheduler.resolve_dependency("resolved".to_string(), capsule_id).ok();
+    scheduler
+        .resolve_dependency("resolved".to_string(), capsule_id)
+        .ok();
     assert_eq!(scheduler.waiting_queue_len(), 0);
     assert_eq!(scheduler.ready_queue_len(), 100);
 }
@@ -125,7 +127,11 @@ fn invariant_3_binary_isolation_logarithmic_tree() {
     }
 
     let depth = tree.tree_depth();
-    assert!(depth <= 8, "Tree depth {} exceeds log(64) bound of 8", depth);
+    assert!(
+        depth <= 8,
+        "Tree depth {} exceeds log(64) bound of 8",
+        depth
+    );
 }
 
 #[test]
@@ -190,8 +196,7 @@ fn invariant_4_kalman_observer_rebalance_decision() {
 fn invariant_5_expert_handoff_bounded_escalation() {
     let mut gateway = ExpertGateway::new(10);
     let agent_id = Uuid::new_v4();
-    let token =
-        siss_orchestrator::CapabilityToken::new(agent_id, CapabilityLevel::Expert, 3600);
+    let token = siss_orchestrator::CapabilityToken::new(agent_id, CapabilityLevel::Expert, 3600);
     gateway.register_token(token).ok();
 
     let task = ExpertTask {
@@ -230,9 +235,7 @@ fn invariant_5_expert_handoff_timeout_guarantee() {
     };
 
     let result = gateway.escalate(&task, Uuid::new_v4());
-    let elapsed_ms = std::time::Instant::now()
-        .elapsed()
-        .as_millis() as u32;
+    let elapsed_ms = std::time::Instant::now().elapsed().as_millis() as u32;
     assert!(elapsed_ms < task.timeout_ms);
 }
 

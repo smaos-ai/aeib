@@ -1,6 +1,5 @@
 /// Phase 41: OpenClaw-RL & CIPO Continuous Learning Loop
 /// RED phase: Fail-closed invariants for asynchronous CIPO training pipeline
-
 use serde::{Deserialize, Serialize};
 
 /// Trajectory from claude-mem SQLite: failure-to-correction causal chain
@@ -44,11 +43,11 @@ pub struct UnifiedMemoryMetrics {
 /// OpenClaw-RL error types (fail-closed)
 #[derive(Debug, Clone)]
 pub enum OpenClawRLError {
-    TrajectoryMissingCausalChain,      // 400: No failure-to-correction link
-    LoRASafetyGateViolation,            // 403: Missing AP2 mandate signature
-    RewardSignalMalformed,              // 400: Missing/ambiguous reward fields
-    ResourceCircuitBreakerTriggered,    // 429: Memory pressure > 85%
-    MemoryPressureExceeded,             // 503: Cannot proceed with training
+    TrajectoryMissingCausalChain,    // 400: No failure-to-correction link
+    LoRASafetyGateViolation,         // 403: Missing AP2 mandate signature
+    RewardSignalMalformed,           // 400: Missing/ambiguous reward fields
+    ResourceCircuitBreakerTriggered, // 429: Memory pressure > 85%
+    MemoryPressureExceeded,          // 503: Cannot proceed with training
 }
 
 /// OpenClaw-RL handler (fail-closed invariants enforced)
@@ -57,7 +56,9 @@ pub struct OpenClawRL;
 impl OpenClawRL {
     /// Extract and verify trajectory has failure-to-correction causal chain
     /// Fail-closed: Reject payload if no clear failure event or correction event
-    pub async fn verify_trajectory_causality(trajectory: FailureToCorrection) -> Result<String, OpenClawRLError> {
+    pub async fn verify_trajectory_causality(
+        trajectory: FailureToCorrection,
+    ) -> Result<String, OpenClawRLError> {
         // Fail-closed: Both failure and correction events must be non-empty
         if trajectory.failure_event.is_empty() || trajectory.correction_event.is_empty() {
             return Err(OpenClawRLError::TrajectoryMissingCausalChain);
@@ -98,7 +99,9 @@ impl OpenClawRL {
 
     /// Check Apple Silicon unified memory pressure
     /// Fail-closed: Graceful pause if pressure > 85%
-    pub async fn check_memory_circuit_breaker(metrics: UnifiedMemoryMetrics) -> Result<(), OpenClawRLError> {
+    pub async fn check_memory_circuit_breaker(
+        metrics: UnifiedMemoryMetrics,
+    ) -> Result<(), OpenClawRLError> {
         // Fail-closed: Circuit breaker triggers if memory pressure exceeds 85%
         if metrics.memory_pressure_percent > 85.0 {
             return Err(OpenClawRLError::ResourceCircuitBreakerTriggered);
@@ -130,7 +133,10 @@ mod tests {
 
         // THEN: Rejects missing failure event (fail-closed)
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), OpenClawRLError::TrajectoryMissingCausalChain));
+        assert!(matches!(
+            result.unwrap_err(),
+            OpenClawRLError::TrajectoryMissingCausalChain
+        ));
     }
 
     #[tokio::test]
@@ -149,7 +155,10 @@ mod tests {
 
         // THEN: Rejects malformed signal (fail-closed)
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), OpenClawRLError::RewardSignalMalformed));
+        assert!(matches!(
+            result.unwrap_err(),
+            OpenClawRLError::RewardSignalMalformed
+        ));
     }
 
     #[tokio::test]
@@ -167,7 +176,10 @@ mod tests {
 
         // THEN: Rejects without AP2 mandate (fail-closed, 403)
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), OpenClawRLError::LoRASafetyGateViolation));
+        assert!(matches!(
+            result.unwrap_err(),
+            OpenClawRLError::LoRASafetyGateViolation
+        ));
     }
 
     #[tokio::test]
@@ -184,6 +196,9 @@ mod tests {
 
         // THEN: Triggers graceful pause (fail-closed, 429)
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), OpenClawRLError::ResourceCircuitBreakerTriggered));
+        assert!(matches!(
+            result.unwrap_err(),
+            OpenClawRLError::ResourceCircuitBreakerTriggered
+        ));
     }
 }

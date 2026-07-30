@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use uuid::Uuid;
 
-use siss_layer00::{Layer0Gate, CapabilityToken};
+use siss_layer00::{CapabilityToken, Layer0Gate};
 
 use crate::aml_checker::AMLChecker;
 use crate::error::{Stream6Error, Stream6Result};
@@ -58,10 +58,9 @@ impl Stream6Gate {
             .map_err(|e| Stream6Error::Layer0Error(format!("KYC check failed: {}", e)))?;
 
         // Step 3: Get creator name from KYC record for AML screening
-        let kyc_record = self
-            .kyc_verifier
-            .get_kyc_record(creator_id)
-            .map_err(|e| Stream6Error::Layer0Error(format!("KYC record retrieval failed: {}", e)))?;
+        let kyc_record = self.kyc_verifier.get_kyc_record(creator_id).map_err(|e| {
+            Stream6Error::Layer0Error(format!("KYC record retrieval failed: {}", e))
+        })?;
 
         // Step 4: Run AML sanctions check
         let _is_clean = self
@@ -107,8 +106,7 @@ impl Stream6Gate {
                 }
             }
         } else {
-            failure_reasons
-                .push(format!("KYC status is {:?}, not verified", kyc_status));
+            failure_reasons.push(format!("KYC status is {:?}, not verified", kyc_status));
         }
 
         // Step 2: Check AML sanctions

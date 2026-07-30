@@ -57,7 +57,7 @@ pub async fn execute_ap2_settlement(
 ) -> Result<SettlementReceipt, Box<dyn std::error::Error>> {
     // Check if settlement already exists (idempotency)
     let existing: Option<(Uuid,)> = sqlx::query_as(
-        "SELECT id FROM ap2_settlements WHERE mandate_id = $1 AND status = 'released' LIMIT 1"
+        "SELECT id FROM ap2_settlements WHERE mandate_id = $1 AND status = 'released' LIMIT 1",
     )
     .bind(mandate_id)
     .fetch_optional(pool)
@@ -89,7 +89,7 @@ pub async fn execute_ap2_settlement(
 
     // Step 2: Verify
     sqlx::query(
-        "UPDATE ap2_settlements SET verified_at = NOW(), status = 'verified' WHERE id = $1"
+        "UPDATE ap2_settlements SET verified_at = NOW(), status = 'verified' WHERE id = $1",
     )
     .bind(settlement_id)
     .execute(&mut *tx)
@@ -97,7 +97,7 @@ pub async fn execute_ap2_settlement(
 
     // Step 3: Release
     sqlx::query(
-        "UPDATE ap2_settlements SET released_at = NOW(), status = 'released' WHERE id = $1"
+        "UPDATE ap2_settlements SET released_at = NOW(), status = 'released' WHERE id = $1",
     )
     .bind(settlement_id)
     .execute(&mut *tx)

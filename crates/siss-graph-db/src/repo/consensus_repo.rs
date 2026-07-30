@@ -1027,7 +1027,7 @@ mod tests {
             // Manually insert a proposal with expires_at in the past
             let proposal_id = Uuid::new_v4();
             let created_at = Utc::now() - chrono::Duration::hours(2);
-            let expires_at = Utc::now() - chrono::Duration::hours(1);  // 1 hour in past
+            let expires_at = Utc::now() - chrono::Duration::hours(1); // 1 hour in past
             sqlx::query(
                 "INSERT INTO consensus_proposals (id, initiator_sovereign_id, proposal_type, peer_count, required_quorum, status, created_at, expires_at)
                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"

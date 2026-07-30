@@ -1,5 +1,5 @@
 use crate::{PiPlusPlusEngine, ProofObject};
-use sha2::{Sha256, Digest};
+use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 
 /// A caching layer for proof validation with hit/miss tracking
@@ -87,7 +87,9 @@ impl ProofCache {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{create_signing_key, create_test_projection, create_test_transformation, PiPlusPlusEngine};
+    use crate::{
+        PiPlusPlusEngine, create_signing_key, create_test_projection, create_test_transformation,
+    };
     use uuid::Uuid;
 
     #[test]
@@ -147,7 +149,10 @@ mod tests {
         let result3 = cache.get_or_validate(&tampered, &engine);
         assert!(result3.is_err(), "Tampered proof must still fail");
         // The hit ratio should reflect: 1 hit (first), 1 miss (second tamper), 1 miss (third tamper)
-        assert!(cache.hit_ratio() <= 0.5, "Hit ratio should be low after tamper");
+        assert!(
+            cache.hit_ratio() <= 0.5,
+            "Hit ratio should be low after tamper"
+        );
     }
 
     #[test]
@@ -173,7 +178,11 @@ mod tests {
             let result = cache.get_or_validate(proof, &engine);
             assert!(result.is_ok(), "Proof validation must succeed");
         }
-        assert_eq!(cache.hit_ratio(), 0.0, "After first 100 validations, hit ratio is 0%");
+        assert_eq!(
+            cache.hit_ratio(),
+            0.0,
+            "After first 100 validations, hit ratio is 0%"
+        );
 
         // Second pass: all 100 are hits (100% hits)
         for proof in &proofs {

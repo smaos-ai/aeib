@@ -1,11 +1,9 @@
 // Wave 3 Task 5: Audit Logging + S3 Archive Export Tests
 // TDD: All tests should FAIL initially, PASS after implementation
 
-use siss_behavioral_firewall::rebac::{
-    SovereignIdentity, PolicyAction, PolicyResource,
-};
 use siss_behavioral_firewall::audit::{AuditLogger, EventType};
-use std::time::{SystemTime, Duration};
+use siss_behavioral_firewall::rebac::{PolicyAction, PolicyResource, SovereignIdentity};
+use std::time::{Duration, SystemTime};
 use uuid::Uuid;
 
 // ============================================================================
@@ -26,7 +24,10 @@ fn test_audit_entry_creation_allow() {
         "Relationship verified".to_string(),
     );
 
-    assert!(audit_id.is_some(), "Should create audit entry for Allow decision");
+    assert!(
+        audit_id.is_some(),
+        "Should create audit entry for Allow decision"
+    );
     assert_eq!(logger.event_count(), 1, "Should have 1 event logged");
 }
 
@@ -48,7 +49,10 @@ fn test_audit_entry_creation_deny() {
         "No relationship found".to_string(),
     );
 
-    assert!(audit_id.is_some(), "Should create audit entry for Deny decision");
+    assert!(
+        audit_id.is_some(),
+        "Should create audit entry for Deny decision"
+    );
     assert_eq!(logger.event_count(), 1, "Should have 1 event logged");
 }
 
@@ -102,8 +106,14 @@ fn test_audit_log_date_range_query() {
     assert!(audit_id.is_some(), "Should create audit entry");
 
     let events = logger.get_events();
-    assert!(events[0].timestamp >= before, "Event timestamp should be >= before");
-    assert!(events[0].timestamp <= after, "Event timestamp should be <= after");
+    assert!(
+        events[0].timestamp >= before,
+        "Event timestamp should be >= before"
+    );
+    assert!(
+        events[0].timestamp <= after,
+        "Event timestamp should be <= after"
+    );
 }
 
 // ============================================================================
@@ -129,11 +139,17 @@ fn test_s3_export_jsonl_format() {
 
     // Verify event can be serialized to JSON
     let json_line = serde_json::to_string(&events[0]).expect("Should serialize to JSON");
-    assert!(!json_line.is_empty(), "JSON serialization should not be empty");
+    assert!(
+        !json_line.is_empty(),
+        "JSON serialization should not be empty"
+    );
 
     // Verify JSON contains expected fields
     assert!(json_line.contains("id"), "JSON should contain id field");
-    assert!(json_line.contains("event_type"), "JSON should contain event_type field");
+    assert!(
+        json_line.contains("event_type"),
+        "JSON should contain event_type field"
+    );
 }
 
 // ============================================================================
@@ -168,13 +184,18 @@ fn test_s3_export_gzip_compression() {
         .map(|json| format!("{}\n", json))
         .collect();
 
-    assert!(!jsonl_content.is_empty(), "JSONL content should not be empty");
+    assert!(
+        !jsonl_content.is_empty(),
+        "JSONL content should not be empty"
+    );
 
     // Verify each line is valid JSON (in a real implementation, gzip compression would follow)
     for line in jsonl_content.lines() {
         if !line.is_empty() {
-            assert!(serde_json::from_str::<serde_json::Value>(line).is_ok(),
-                    "Each JSONL line should be valid JSON");
+            assert!(
+                serde_json::from_str::<serde_json::Value>(line).is_ok(),
+                "Each JSONL line should be valid JSON"
+            );
         }
     }
 }
@@ -206,7 +227,10 @@ fn test_90day_ttl_enforcement() {
     let now = SystemTime::now();
 
     // Event should not be expired yet (created just now)
-    assert!(now < expires_at, "Event should not be expired immediately after creation");
+    assert!(
+        now < expires_at,
+        "Event should not be expired immediately after creation"
+    );
 }
 
 // ============================================================================
@@ -222,16 +246,14 @@ fn test_automatic_cleanup_after_export() {
         let action = PolicyAction::Resume;
         let resource = PolicyResource::Agent(Uuid::new_v4());
 
-        logger.log_rebac_decision(
-            sovereign_id,
-            action,
-            resource,
-            true,
-            format!("Event {}", i),
-        );
+        logger.log_rebac_decision(sovereign_id, action, resource, true, format!("Event {}", i));
     }
 
-    assert_eq!(logger.event_count(), 3, "Should have 3 events before export");
+    assert_eq!(
+        logger.event_count(),
+        3,
+        "Should have 3 events before export"
+    );
 
     // In a real implementation, after S3 export and 90-day window,
     // events would be deleted. For this test, we verify event count is accessible.
@@ -261,10 +283,15 @@ fn test_s3_export_idempotency() {
     let events_first = logger.get_events();
     let events_second = logger.get_events();
 
-    assert_eq!(events_first.len(), events_second.len(),
-               "Retrieving events multiple times should be idempotent");
-    assert_eq!(events_first[0].id, events_second[0].id,
-               "Event IDs should be stable across multiple retrievals");
+    assert_eq!(
+        events_first.len(),
+        events_second.len(),
+        "Retrieving events multiple times should be idempotent"
+    );
+    assert_eq!(
+        events_first[0].id, events_second[0].id,
+        "Event IDs should be stable across multiple retrievals"
+    );
 }
 
 // ============================================================================
@@ -305,7 +332,11 @@ fn test_concurrent_audit_writes() {
     }
 
     // Verify all events were written
-    assert_eq!(logger.event_count(), 20, "Should have 20 events from 5 threads * 4 events each");
+    assert_eq!(
+        logger.event_count(),
+        20,
+        "Should have 20 events from 5 threads * 4 events each"
+    );
 }
 
 // ============================================================================
@@ -333,7 +364,10 @@ fn test_archive_metadata_tracking() {
     // Verify metadata fields exist
     let event = &events[0];
     assert!(!event.id.is_nil(), "Event should have valid UUID");
-    assert!(event.timestamp <= SystemTime::now(), "Timestamp should be set");
+    assert!(
+        event.timestamp <= SystemTime::now(),
+        "Timestamp should be set"
+    );
 }
 
 // ============================================================================
@@ -360,7 +394,12 @@ fn test_multiple_event_types_logged() {
         true,
         "AP2".to_string(),
     );
-    logger.log_temporal_check(sovereign_id, PolicyAction::Resume, true, "Temporal".to_string());
+    logger.log_temporal_check(
+        sovereign_id,
+        PolicyAction::Resume,
+        true,
+        "Temporal".to_string(),
+    );
     logger.log_policy_decision(
         sovereign_id,
         PolicyAction::Abort,
@@ -372,8 +411,24 @@ fn test_multiple_event_types_logged() {
     assert_eq!(logger.event_count(), 4, "Should have 4 events");
 
     let events = logger.get_events();
-    assert_eq!(events[0].event_type, EventType::ReBAC, "First event should be ReBAC");
-    assert_eq!(events[1].event_type, EventType::AP2, "Second event should be AP2");
-    assert_eq!(events[2].event_type, EventType::Temporal, "Third event should be Temporal");
-    assert_eq!(events[3].event_type, EventType::Policy, "Fourth event should be Policy");
+    assert_eq!(
+        events[0].event_type,
+        EventType::ReBAC,
+        "First event should be ReBAC"
+    );
+    assert_eq!(
+        events[1].event_type,
+        EventType::AP2,
+        "Second event should be AP2"
+    );
+    assert_eq!(
+        events[2].event_type,
+        EventType::Temporal,
+        "Third event should be Temporal"
+    );
+    assert_eq!(
+        events[3].event_type,
+        EventType::Policy,
+        "Fourth event should be Policy"
+    );
 }

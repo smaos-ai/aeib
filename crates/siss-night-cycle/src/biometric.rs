@@ -110,18 +110,18 @@ pub struct ExerciseResponse {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ExerciseType {
-    pub activity: String,        // "walking", "running", "cycling", "swimming"
-    pub intensity: u32,          // 1-10
+    pub activity: String, // "walking", "running", "cycling", "swimming"
+    pub intensity: u32,   // 1-10
     pub duration_minutes: u32,
 }
 
 /// Distillation model reference: Qwen3.5-4B with OPLoRA for edge inference
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DistillationModelRef {
-    pub model_version: String,         // "qwen3.5-4b-v1.0"
-    pub checkpoint_hash: String,       // SHA256 of model weights
-    pub adapter_rank: u32,             // LoRA rank (4-32)
-    pub orthogonal_projection: bool,   // Use OPLoRA (orthogonal)
+    pub model_version: String,       // "qwen3.5-4b-v1.0"
+    pub checkpoint_hash: String,     // SHA256 of model weights
+    pub adapter_rank: u32,           // LoRA rank (4-32)
+    pub orthogonal_projection: bool, // Use OPLoRA (orthogonal)
     pub training_date: SystemTime,
 }
 
@@ -149,9 +149,9 @@ pub struct AP2ResearchCapsule {
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum ConsentLevel {
-    Basic,               // No data sharing
-    ResearchBasic,       // Anonymized data to non-profit research
-    ResearchAdvanced,    // Anonymized data to for-profit + pharma
+    Basic,            // No data sharing
+    ResearchBasic,    // Anonymized data to non-profit research
+    ResearchAdvanced, // Anonymized data to for-profit + pharma
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -196,8 +196,8 @@ impl BiometricCapsule {
 
         // Initialize personal metabolic model with defaults
         let personal_metabolic_model = PersonalMetabolicModel {
-            insulin_sensitivity: 50.0,  // mg/dL per unit insulin
-            carb_ratio: 10.0,           // grams carbs per unit
+            insulin_sensitivity: 50.0, // mg/dL per unit insulin
+            carb_ratio: 10.0,          // grams carbs per unit
             dawn_phenomenon_profile: DawnPhenomenonProfile {
                 baseline_glucose: 100,
                 peak_glucose: 130,
@@ -262,8 +262,8 @@ impl BiometricCapsule {
         }
 
         // Simple insulin sensitivity calculation using Clarke Error Grid approach
-        let avg_glucose: u32 = glucose_history.iter().map(|(_, g)| *g).sum::<u32>()
-            / glucose_history.len() as u32;
+        let avg_glucose: u32 =
+            glucose_history.iter().map(|(_, g)| *g).sum::<u32>() / glucose_history.len() as u32;
 
         // Estimate sensitivity from variance
         let variance = glucose_history
@@ -300,7 +300,10 @@ impl BiometricCapsule {
             .max_by_key(|(_, g)| *g)
             .map(|(h, _)| h)
             .unwrap_or(7);
-        let peak = glucose_history_by_hour.get(&peak_hour).copied().unwrap_or(130);
+        let peak = glucose_history_by_hour
+            .get(&peak_hour)
+            .copied()
+            .unwrap_or(130);
 
         // Update profile if pattern detected (>30 mg/dL rise)
         if peak > baseline + 30 {
@@ -392,9 +395,12 @@ mod tests {
             reading_quality: 0.95,
         };
 
-        let capsule =
-            BiometricCapsule::new(device_data.clone(), "capsule_1".to_string(), "key_1".to_string())
-                .expect("Failed to create capsule");
+        let capsule = BiometricCapsule::new(
+            device_data.clone(),
+            "capsule_1".to_string(),
+            "key_1".to_string(),
+        )
+        .expect("Failed to create capsule");
 
         assert_eq!(capsule.device_data.glucose_mg_dl, 120);
         assert_eq!(capsule.device_data.device_type, DeviceType::DexcomG7);
@@ -541,9 +547,9 @@ mod tests {
         // Populate with readings for each hour of the day from multiple days
         for hour in 0..24 {
             if hour == 6 {
-                glucose_by_hour.insert(hour, 100);  // Baseline at 6am
+                glucose_by_hour.insert(hour, 100); // Baseline at 6am
             } else if hour == 7 {
-                glucose_by_hour.insert(hour, 140);  // Peak at 7am (>30 mg/dL rise)
+                glucose_by_hour.insert(hour, 140); // Peak at 7am (>30 mg/dL rise)
             } else if hour == 8 {
                 glucose_by_hour.insert(hour, 135);
             } else {
@@ -553,7 +559,13 @@ mod tests {
 
         let result = capsule.detect_dawn_phenomenon(&glucose_by_hour);
         assert!(result.is_ok());
-        assert!(capsule.personal_metabolic_model.dawn_phenomenon_profile.peak_glucose > 130);
+        assert!(
+            capsule
+                .personal_metabolic_model
+                .dawn_phenomenon_profile
+                .peak_glucose
+                > 130
+        );
     }
 
     #[test]
@@ -742,9 +754,12 @@ mod tests {
             reading_quality: 0.95,
         };
 
-        let capsule =
-            BiometricCapsule::new(device_data, "capsule_1".to_string(), "patient_key".to_string())
-                .expect("Failed to create capsule");
+        let capsule = BiometricCapsule::new(
+            device_data,
+            "capsule_1".to_string(),
+            "patient_key".to_string(),
+        )
+        .expect("Failed to create capsule");
 
         assert_eq!(capsule.encryption_key_id, "patient_key");
     }

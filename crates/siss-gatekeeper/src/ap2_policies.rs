@@ -1,5 +1,5 @@
 use siss_behavioral_firewall::ap2::{
-    SovereignAttributes, AttributePredicate, PolicyRule, PolicyAction,
+    AttributePredicate, PolicyAction, PolicyRule, SovereignAttributes,
 };
 use uuid::Uuid;
 
@@ -24,11 +24,7 @@ impl PolicySet {
         self.rules.sort_by(|a, b| b.priority.cmp(&a.priority));
     }
 
-    pub fn evaluate(
-        &self,
-        attrs: &SovereignAttributes,
-        action: &PolicyAction,
-    ) -> PolicyDecision {
+    pub fn evaluate(&self, attrs: &SovereignAttributes, action: &PolicyAction) -> PolicyDecision {
         let mut allow_found = false;
 
         // Iterate rules in sorted order (highest priority first)
@@ -160,7 +156,10 @@ mod tests {
         let attrs = sovereign_attrs(80, true);
         let decision = policy_set.evaluate(&attrs, &PolicyAction::Spawn);
 
-        assert_eq!(decision, PolicyDecision::Deny("Policy 'deny_blacklisted' denied".to_string()));
+        assert_eq!(
+            decision,
+            PolicyDecision::Deny("Policy 'deny_blacklisted' denied".to_string())
+        );
     }
 
     // TEST 3: 1000 evaluations of same PolicySet complete under 10ms

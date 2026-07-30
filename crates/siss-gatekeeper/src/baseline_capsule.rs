@@ -1,18 +1,17 @@
+use sha2::{Digest, Sha256};
 /// BaselineCapsule — Sovereign Proof Engine (SPE) v1.0
 /// M3 Pro optimized personal truth baseline via MDC (Minimum Discernible Complexity)
 /// Covenant-aligned: local-first, cryptographically audited, fail-closed gates
-
 use std::collections::HashMap;
 use std::time::{SystemTime, UNIX_EPOCH};
-use sha2::{Sha256, Digest};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct PersonalTruth {
-    pub domain: String,           // e.g., "health", "decision", "market"
-    pub baseline: f64,            // baseline metric value (e.g., HRV, glucose, portfolio alpha)
-    pub timestamp: u64,           // Unix timestamp (secs)
-    pub source_hash: String,      // SHA-256 of raw source (gemba_proof)
-    pub confidence: f64,          // 0.0-1.0, γ-operator score
+    pub domain: String,      // e.g., "health", "decision", "market"
+    pub baseline: f64,       // baseline metric value (e.g., HRV, glucose, portfolio alpha)
+    pub timestamp: u64,      // Unix timestamp (secs)
+    pub source_hash: String, // SHA-256 of raw source (gemba_proof)
+    pub confidence: f64,     // 0.0-1.0, γ-operator score
 }
 
 #[derive(Debug, Clone)]
@@ -121,7 +120,10 @@ impl BaselineCapsule {
     /// Export as JSON for Trojan Every Day briefing
     pub fn export_json(&self) -> String {
         let mut output = String::from("{\n");
-        output.push_str(&format!("  \"capsule_id\": \"baseline-{}\",\n", self.last_updated));
+        output.push_str(&format!(
+            "  \"capsule_id\": \"baseline-{}\",\n",
+            self.last_updated
+        ));
         output.push_str(&format!("  \"merkle_root\": \"{}\",\n", self.merkle_root));
         output.push_str("  \"domains\": {\n");
 
@@ -203,12 +205,20 @@ mod tests {
     #[test]
     fn test_merkle_root_deterministic() {
         let mut capsule1 = BaselineCapsule::new();
-        capsule1.record_truth("health", 72.5, b"HRV 1", 0.85).unwrap();
-        capsule1.record_truth("market", 0.05, b"SPY alpha", 0.75).unwrap();
+        capsule1
+            .record_truth("health", 72.5, b"HRV 1", 0.85)
+            .unwrap();
+        capsule1
+            .record_truth("market", 0.05, b"SPY alpha", 0.75)
+            .unwrap();
 
         let mut capsule2 = BaselineCapsule::new();
-        capsule2.record_truth("health", 72.5, b"HRV 1", 0.85).unwrap();
-        capsule2.record_truth("market", 0.05, b"SPY alpha", 0.75).unwrap();
+        capsule2
+            .record_truth("health", 72.5, b"HRV 1", 0.85)
+            .unwrap();
+        capsule2
+            .record_truth("market", 0.05, b"SPY alpha", 0.75)
+            .unwrap();
 
         assert_eq!(capsule1.merkle_root(), capsule2.merkle_root());
     }
@@ -216,7 +226,9 @@ mod tests {
     #[test]
     fn test_export_json_valid() {
         let mut capsule = BaselineCapsule::new();
-        capsule.record_truth("health", 72.5, b"HRV sample", 0.85).unwrap();
+        capsule
+            .record_truth("health", 72.5, b"HRV sample", 0.85)
+            .unwrap();
         let json = capsule.export_json();
         assert!(json.contains("\"health\""));
         assert!(json.contains("\"baseline\": 72.5"));

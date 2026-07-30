@@ -1,8 +1,8 @@
-use serde_json::{json, Value};
+use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
 use sqlx::PgPool;
-use uuid::Uuid;
 use std::collections::HashMap;
-use sha2::{Sha256, Digest};
+use uuid::Uuid;
 
 pub use crate::contract_state_store::SettlementReceipt;
 
@@ -38,12 +38,11 @@ pub async fn execute_contract_function(
     }
 
     // Fetch contract from database
-    let contract: (String, Value) = sqlx::query_as(
-        "SELECT bytecode, abi FROM smart_contracts WHERE contract_address = $1"
-    )
-    .bind(contract_address)
-    .fetch_one(pool)
-    .await?;
+    let contract: (String, Value) =
+        sqlx::query_as("SELECT bytecode, abi FROM smart_contracts WHERE contract_address = $1")
+            .bind(contract_address)
+            .fetch_one(pool)
+            .await?;
 
     let (_bytecode, _abi) = contract;
 
@@ -53,14 +52,8 @@ pub async fn execute_contract_function(
     let mut state_changes = HashMap::new();
 
     // Simulate state change: store function call in state
-    state_changes.insert(
-        "last_caller".to_string(),
-        json!(sender_agent_id),
-    );
-    state_changes.insert(
-        "last_function".to_string(),
-        json!(function_sig),
-    );
+    state_changes.insert("last_caller".to_string(), json!(sender_agent_id));
+    state_changes.insert("last_function".to_string(), json!(function_sig));
 
     // Calculate mock gas: base 21000 + args size
     let gas_used = 21000u64 + (args.to_string().len() as u64 * 16);

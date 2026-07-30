@@ -6,7 +6,10 @@ fn test_dashboard_serves_html() {
     // The constant is the same string the handler returns as Html<&'static str>.
     // A 200 response with text/html is guaranteed by axum::response::Html
     // when the handler returns Html(DASHBOARD_HTML).
-    assert!(!DASHBOARD_HTML.is_empty(), "dashboard HTML must not be empty");
+    assert!(
+        !DASHBOARD_HTML.is_empty(),
+        "dashboard HTML must not be empty"
+    );
     assert!(
         DASHBOARD_HTML.contains("<!DOCTYPE html>"),
         "must be a full HTML document"

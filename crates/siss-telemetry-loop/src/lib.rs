@@ -32,7 +32,11 @@ impl TelemetryLoop {
     }
 
     /// Record a tool use interaction into a WorkflowCapsule
-    pub fn record(session_id: Uuid, ctx: &ToolUseContext, hook_output: HookOutput) -> WorkflowCapsule {
+    pub fn record(
+        session_id: Uuid,
+        ctx: &ToolUseContext,
+        hook_output: HookOutput,
+    ) -> WorkflowCapsule {
         WorkflowCapsule {
             capsule_id: Uuid::new_v4(),
             session_id,

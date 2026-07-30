@@ -1,24 +1,14 @@
-pub mod encryption;
-pub mod audit_trail;
 pub mod access_control;
+pub mod audit_trail;
 pub mod certificate_management;
 pub mod compliance;
+pub mod encryption;
 
-pub use encryption::{
-    CapsuleEncryption, EncryptionError, EncryptedPayload, KeyManager,
-};
-pub use audit_trail::{
-    AuditTrail, AuditLogEntry, TamperDetectionError, SignatureVerifier,
-};
-pub use access_control::{
-    AccessControl, AccessControlError, CustomerNamespace, Permission, Role,
-};
-pub use certificate_management::{
-    CertificateManager, CertificateError, TLSConfig,
-};
-pub use compliance::{
-    ComplianceChecker, ComplianceStatus, AnnexIIIRequirement,
-};
+pub use access_control::{AccessControl, AccessControlError, CustomerNamespace, Permission, Role};
+pub use audit_trail::{AuditLogEntry, AuditTrail, SignatureVerifier, TamperDetectionError};
+pub use certificate_management::{CertificateError, CertificateManager, TLSConfig};
+pub use compliance::{AnnexIIIRequirement, ComplianceChecker, ComplianceStatus};
+pub use encryption::{CapsuleEncryption, EncryptedPayload, EncryptionError, KeyManager};
 
 #[cfg(test)]
 mod tests {
@@ -31,8 +21,12 @@ mod tests {
         let encryption = CapsuleEncryption::new(key.clone());
 
         let plaintext = b"sensitive capsule data";
-        let encrypted = encryption.encrypt(plaintext).expect("Encrypt should succeed");
-        let decrypted = encryption.decrypt(&encrypted).expect("Decrypt should succeed");
+        let encrypted = encryption
+            .encrypt(plaintext)
+            .expect("Encrypt should succeed");
+        let decrypted = encryption
+            .decrypt(&encrypted)
+            .expect("Decrypt should succeed");
 
         assert_eq!(plaintext, decrypted.as_slice());
     }
@@ -43,7 +37,9 @@ mod tests {
         let encryption = CapsuleEncryption::new(key);
 
         let plaintext = b"secret";
-        let encrypted = encryption.encrypt(plaintext).expect("Encrypt should succeed");
+        let encrypted = encryption
+            .encrypt(plaintext)
+            .expect("Encrypt should succeed");
 
         // Create a new encryption instance with different key
         let different_key = KeyManager::generate_key();
@@ -59,32 +55,24 @@ mod tests {
         let customer_a = CustomerNamespace::new("customer_a".to_string());
         let customer_b = CustomerNamespace::new("customer_b".to_string());
 
-        access_control.grant_permission(
-            customer_a.clone(),
-            Permission::Query,
-            Role::Admin,
-        ).expect("Grant should succeed");
+        access_control
+            .grant_permission(customer_a.clone(), Permission::Query, Role::Admin)
+            .expect("Grant should succeed");
 
         // Customer A should not be able to query Customer B data
-        let can_access = access_control.check_access(
-            &customer_a,
-            &customer_b,
-            Permission::Query,
-        );
+        let can_access = access_control.check_access(&customer_a, &customer_b, Permission::Query);
         assert!(!can_access, "Cross-customer access must be denied");
     }
 
     #[test]
     fn test_audit_trail_signature() {
         let audit = AuditTrail::new();
-        let entry = AuditLogEntry::new_operation(
-            Uuid::new_v4(),
-            "capsule_commit",
-            "success",
-        );
+        let entry = AuditLogEntry::new_operation(Uuid::new_v4(), "capsule_commit", "success");
 
         let signed_entry = audit.sign_entry(&entry).expect("Sign should succeed");
-        let verified = audit.verify_signature(&signed_entry).expect("Verify should succeed");
+        let verified = audit
+            .verify_signature(&signed_entry)
+            .expect("Verify should succeed");
 
         assert_eq!(verified.operation, "capsule_commit");
     }
@@ -92,11 +80,7 @@ mod tests {
     #[test]
     fn test_audit_trail_tamper_detection() {
         let audit = AuditTrail::new();
-        let entry = AuditLogEntry::new_operation(
-            Uuid::new_v4(),
-            "capsule_commit",
-            "success",
-        );
+        let entry = AuditLogEntry::new_operation(Uuid::new_v4(), "capsule_commit", "success");
 
         let mut signed_entry = audit.sign_entry(&entry).expect("Sign should succeed");
 

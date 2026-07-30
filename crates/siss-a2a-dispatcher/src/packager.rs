@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use siss_memory_plane::operators::{ProjectedEntry, AnnotatedEntry, CartographicOperatorSet};
+use siss_memory_plane::operators::{AnnotatedEntry, CartographicOperatorSet, ProjectedEntry};
 
 /// A2A (Agent-to-Agent) payload containing packaged context for inter-agent communication
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -26,11 +26,17 @@ impl ContextPackager {
         namespace: &str,
         token_budget: usize,
     ) -> A2APayload {
-        let projected: Vec<ProjectedEntry> = annotated.into_iter().map(|a| self.ops.pi_project(a)).collect();
+        let projected: Vec<ProjectedEntry> = annotated
+            .into_iter()
+            .map(|a| self.ops.pi_project(a))
+            .collect();
         let mut filtered = self.ops.lambda_layer(projected, namespace);
         filtered.truncate(token_budget);
         let used = filtered.len();
-        A2APayload { entries: filtered, token_budget_used: used }
+        A2APayload {
+            entries: filtered,
+            token_budget_used: used,
+        }
     }
 
     /// Check if payload is within budget

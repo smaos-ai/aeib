@@ -1,6 +1,5 @@
 /// Wave 3: AP2-Governed Edge Actuation
 /// Physical device commands require authorization from an active, unexhausted IntentMandate.
-
 use crate::tokens::IntentMandate;
 use uuid::Uuid;
 

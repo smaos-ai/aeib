@@ -1,3 +1,5 @@
+use crate::ap2::SovereignAttributeCache;
+use crate::policy_engine::{Decision, Mandate};
 /// PolicyEngine: Three-phase policy evaluation engine.
 ///
 /// Evaluation pipeline: ReBAC → AP2 → Temporal
@@ -8,11 +10,8 @@
 /// - Decision caching with immediate invalidation
 /// - Cycle detection via Tarjan's algorithm
 /// - Audit trail per decision
-
-use crate::rebac::{ReBAC, SovereignIdentity, PolicyResource, PolicyAction, DenyReason};
-use crate::ap2::SovereignAttributeCache;
+use crate::rebac::{DenyReason, PolicyAction, PolicyResource, ReBAC, SovereignIdentity};
 use crate::temporal::TemporalGuard;
-use crate::policy_engine::{Mandate, Decision};
 use dashmap::DashMap;
 use std::sync::Arc;
 use uuid::Uuid;
@@ -53,7 +52,9 @@ impl PolicyEngine {
         let mut reasons = vec![];
 
         // Phase 1: ReBAC Evaluation (always enabled, required)
-        let rebac_result = self.rebac.verify_relationship(*requester, resource.clone(), action.clone());
+        let rebac_result =
+            self.rebac
+                .verify_relationship(*requester, resource.clone(), action.clone());
         match rebac_result {
             Ok(msg) => {
                 reasons.push(format!("ReBAC allowed: {}", msg));
@@ -116,7 +117,8 @@ impl PolicyEngine {
 
     /// Invalidate cache for a specific sovereign (called on relationship changes).
     pub fn invalidate_cache(&self, requester: &SovereignIdentity) {
-        self.decision_cache.retain(|k, _| !k.starts_with(&format!("{:?}:", requester)));
+        self.decision_cache
+            .retain(|k, _| !k.starts_with(&format!("{:?}:", requester)));
     }
 
     /// Clear entire decision cache.
@@ -141,12 +143,13 @@ impl PolicyComposer {
     }
 
     /// Merge with priority ordering (rebac2 takes precedence if true).
-    pub fn merge_with_priority(&self, rebac1: ReBAC, rebac2: ReBAC, rebac2_priority: bool) -> ReBAC {
-        if rebac2_priority {
-            rebac2
-        } else {
-            rebac1
-        }
+    pub fn merge_with_priority(
+        &self,
+        rebac1: ReBAC,
+        rebac2: ReBAC,
+        rebac2_priority: bool,
+    ) -> ReBAC {
+        if rebac2_priority { rebac2 } else { rebac1 }
     }
 }
 
@@ -176,7 +179,9 @@ mod tests {
         let s1 = sovereign(1);
         let a1 = agent(1);
 
-        rebac.grant_relationship(s1, a1.clone(), RelationType::Owner, None).unwrap();
+        rebac
+            .grant_relationship(s1, a1.clone(), RelationType::Owner, None)
+            .unwrap();
 
         let engine = PolicyEngine::new(
             rebac,
@@ -184,7 +189,9 @@ mod tests {
             TemporalGuard::new(60, 60),
         );
 
-        let mandate = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
+        let mandate = engine
+            .verify_mandate(&s1, &PolicyAction::Spawn, &a1)
+            .unwrap();
         assert_eq!(mandate.decision, Decision::Allow);
     }
 
@@ -200,7 +207,9 @@ mod tests {
             TemporalGuard::new(60, 60),
         );
 
-        let mandate = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
+        let mandate = engine
+            .verify_mandate(&s1, &PolicyAction::Spawn, &a1)
+            .unwrap();
         assert_eq!(mandate.decision, Decision::Deny);
     }
 
@@ -210,7 +219,9 @@ mod tests {
         let s1 = sovereign(1);
         let a1 = agent(1);
 
-        rebac.grant_relationship(s1, a1.clone(), RelationType::Owner, None).unwrap();
+        rebac
+            .grant_relationship(s1, a1.clone(), RelationType::Owner, None)
+            .unwrap();
 
         let engine = PolicyEngine::new(
             rebac,
@@ -218,8 +229,12 @@ mod tests {
             TemporalGuard::new(60, 60),
         );
 
-        let m1 = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
-        let m2 = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
+        let m1 = engine
+            .verify_mandate(&s1, &PolicyAction::Spawn, &a1)
+            .unwrap();
+        let m2 = engine
+            .verify_mandate(&s1, &PolicyAction::Spawn, &a1)
+            .unwrap();
 
         // Both should be Allow
         assert_eq!(m1.decision, Decision::Allow);
@@ -233,7 +248,9 @@ mod tests {
         let a1 = agent(1);
 
         // Grant and then create engine
-        rebac.grant_relationship(s1, a1.clone(), RelationType::Owner, None).unwrap();
+        rebac
+            .grant_relationship(s1, a1.clone(), RelationType::Owner, None)
+            .unwrap();
 
         let engine = PolicyEngine::new(
             rebac,
@@ -242,12 +259,16 @@ mod tests {
         );
 
         // Should allow since we granted
-        let m1 = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
+        let m1 = engine
+            .verify_mandate(&s1, &PolicyAction::Spawn, &a1)
+            .unwrap();
         assert_eq!(m1.decision, Decision::Allow);
         engine.invalidate_cache(&s1);
 
         // Now allow
-        let m2 = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
+        let m2 = engine
+            .verify_mandate(&s1, &PolicyAction::Spawn, &a1)
+            .unwrap();
         assert_eq!(m2.decision, Decision::Allow);
     }
 
@@ -269,7 +290,9 @@ mod tests {
             TemporalGuard::new(60, 60),
         );
 
-        let mandate = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
+        let mandate = engine
+            .verify_mandate(&s1, &PolicyAction::Spawn, &a1)
+            .unwrap();
         assert_eq!(mandate.decision, Decision::Deny);
         assert!(mandate.reasons.iter().any(|r| r.contains("ReBAC")));
         // Should have only ReBAC reason (phases 2 & 3 not evaluated)
@@ -284,7 +307,9 @@ mod tests {
         let a1 = agent(1);
 
         // Grant relationship so ReBAC passes
-        rebac.grant_relationship(s1, a1.clone(), RelationType::Owner, None).unwrap();
+        rebac
+            .grant_relationship(s1, a1.clone(), RelationType::Owner, None)
+            .unwrap();
 
         let engine = PolicyEngine::new(
             rebac,
@@ -292,7 +317,9 @@ mod tests {
             TemporalGuard::new(60, 60),
         );
 
-        let mandate = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
+        let mandate = engine
+            .verify_mandate(&s1, &PolicyAction::Spawn, &a1)
+            .unwrap();
         assert_eq!(mandate.decision, Decision::Allow);
         // Should have reasons from all 3 phases
         assert!(mandate.reasons.iter().any(|r| r.contains("ReBAC")));
@@ -308,7 +335,9 @@ mod tests {
         let s1 = sovereign(1);
         let a1 = agent(1);
 
-        rebac.grant_relationship(s1, a1.clone(), RelationType::Owner, None).unwrap();
+        rebac
+            .grant_relationship(s1, a1.clone(), RelationType::Owner, None)
+            .unwrap();
 
         let temporal = TemporalGuard::new(60, 60);
 
@@ -324,7 +353,9 @@ mod tests {
         );
 
         // 61st request should hit temporal rate limit
-        let mandate = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
+        let mandate = engine
+            .verify_mandate(&s1, &PolicyAction::Spawn, &a1)
+            .unwrap();
         assert_eq!(mandate.decision, Decision::Deny);
         assert!(mandate.reasons.iter().any(|r| r.contains("ReBAC")));
         assert!(mandate.reasons.iter().any(|r| r.contains("Temporal")));
@@ -337,7 +368,9 @@ mod tests {
         let s1 = sovereign(1);
         let a1 = agent(1);
 
-        rebac.grant_relationship(s1, a1.clone(), RelationType::Owner, None).unwrap();
+        rebac
+            .grant_relationship(s1, a1.clone(), RelationType::Owner, None)
+            .unwrap();
 
         let engine = PolicyEngine::new(
             rebac,
@@ -345,14 +378,27 @@ mod tests {
             TemporalGuard::new(60, 60),
         );
 
-        let mandate = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
+        let mandate = engine
+            .verify_mandate(&s1, &PolicyAction::Spawn, &a1)
+            .unwrap();
 
         // Audit trail should document each phase
-        assert!(mandate.reasons.len() >= 2, "Should have reasons from ReBAC and Temporal");
-        assert!(mandate.reasons.iter().all(|r| !r.is_empty()), "All reasons should be non-empty");
+        assert!(
+            mandate.reasons.len() >= 2,
+            "Should have reasons from ReBAC and Temporal"
+        );
+        assert!(
+            mandate.reasons.iter().all(|r| !r.is_empty()),
+            "All reasons should be non-empty"
+        );
 
         // Each call should have a unique audit ID
-        let mandate2 = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
-        assert_ne!(mandate.audit_id, mandate2.audit_id, "Each mandate should have unique audit ID");
+        let mandate2 = engine
+            .verify_mandate(&s1, &PolicyAction::Spawn, &a1)
+            .unwrap();
+        assert_ne!(
+            mandate.audit_id, mandate2.audit_id,
+            "Each mandate should have unique audit ID"
+        );
     }
 }

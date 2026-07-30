@@ -7,12 +7,12 @@
 //! - Validation result caching
 //! - Session cleanup (idle timeout)
 
-use std::sync::Arc;
-use std::collections::HashMap;
-use parking_lot::RwLock;
 use lru::LruCache;
+use parking_lot::RwLock;
+use std::collections::HashMap;
 use std::num::NonZeroUsize;
-use std::time::{SystemTime, UNIX_EPOCH, Duration};
+use std::sync::Arc;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 /// Renderer cache: ComponentId → Rendered HTML
 /// LRU eviction prevents unbounded memory growth
@@ -45,10 +45,7 @@ impl RenderCache {
     pub fn insert(&self, component_id: String, html: String) {
         let timestamp = current_timestamp();
         let mut cache = self.cache.write();
-        cache.put(
-            component_id,
-            CachedRender { html, timestamp },
-        );
+        cache.put(component_id, CachedRender { html, timestamp });
     }
 
     /// Invalidate cache entry (after component update)
@@ -151,10 +148,13 @@ impl SseEventRingBuffer {
     /// Create new ring buffer (capacity: default 1024 events)
     pub fn new(capacity: usize) -> Self {
         let mut buffer = Vec::with_capacity(capacity);
-        buffer.resize(capacity, SseEvent {
-            data: String::new(),
-            timestamp: 0,
-        });
+        buffer.resize(
+            capacity,
+            SseEvent {
+                data: String::new(),
+                timestamp: 0,
+            },
+        );
 
         Self {
             buffer: Arc::new(RwLock::new(buffer)),

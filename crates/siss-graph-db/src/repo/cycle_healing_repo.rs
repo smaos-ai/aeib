@@ -60,7 +60,8 @@ fn resolve_weakest_link_grant(
     let mut matching_edges: Vec<_> = outgoing
         .iter()
         .filter(|e| {
-            cycle_set.contains(&e.to_sovereign) && (e.ceiling_tier as u32) == cycle.weakest_link_ceiling
+            cycle_set.contains(&e.to_sovereign)
+                && (e.ceiling_tier as u32) == cycle.weakest_link_ceiling
         })
         .collect();
 
@@ -484,7 +485,9 @@ mod tests {
 
             // With deterministic tiebreaker, one of the three grants will be revoked
             // All three edges have identical ceiling_tier, so tiebreaker picks by destination UUID
-            let revoked_grant_id = result.grant_id_revoked.expect("grant_id_revoked should be Some");
+            let revoked_grant_id = result
+                .grant_id_revoked
+                .expect("grant_id_revoked should be Some");
             let valid_grants = vec![grant_ab, grant_bc, grant_ca];
             assert!(
                 valid_grants.contains(&revoked_grant_id),
@@ -570,13 +573,12 @@ mod tests {
             let proposal_id = result.proposal_id.expect("proposal_id");
 
             // Get which grant was selected for revocation in the proposal
-            let grant_id_str: String = sqlx::query_scalar(
-                "SELECT payload::text FROM consensus_proposals WHERE id = $1",
-            )
-            .bind(proposal_id)
-            .fetch_one(&pool)
-            .await
-            .expect("fetch proposal payload");
+            let grant_id_str: String =
+                sqlx::query_scalar("SELECT payload::text FROM consensus_proposals WHERE id = $1")
+                    .bind(proposal_id)
+                    .fetch_one(&pool)
+                    .await
+                    .expect("fetch proposal payload");
 
             let payload: serde_json::Value =
                 serde_json::from_str(&grant_id_str).expect("parse payload");
@@ -648,7 +650,10 @@ mod tests {
                 .await
                 .expect("heal all cycles");
 
-            eprintln!("heal_all_detected_cycles returned {} results", results.len());
+            eprintln!(
+                "heal_all_detected_cycles returned {} results",
+                results.len()
+            );
             if !results.is_empty() {
                 eprintln!("Result 0 action: {}", results[0].action_taken);
                 eprintln!("Result 0 revoked grant: {:?}", results[0].grant_id_revoked);

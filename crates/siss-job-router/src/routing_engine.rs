@@ -24,7 +24,10 @@ pub enum TierExecutionError {
 pub struct RoutingEngine;
 
 impl RoutingEngine {
-    pub fn decide(confidence: &ConfidenceScore, cost_budget: Option<u32>) -> Result<RoutingDecision, RoutingError> {
+    pub fn decide(
+        confidence: &ConfidenceScore,
+        cost_budget: Option<u32>,
+    ) -> Result<RoutingDecision, RoutingError> {
         // Verify confidence is in valid range
         if confidence.score < 0.0 || confidence.score > 1.0 {
             return Err(RoutingError::InvalidInput);
@@ -244,8 +247,10 @@ mod tests {
         let decision = RoutingEngine::decide(&score, None).unwrap();
 
         // Simulate Tier1 timeout
-        let result =
-            RoutingEngine::execute_with_fallback_simulation(&decision, Some(RoutingTier::Tier1RapidMLX));
+        let result = RoutingEngine::execute_with_fallback_simulation(
+            &decision,
+            Some(RoutingTier::Tier1RapidMLX),
+        );
 
         assert!(result.is_ok());
         assert!(result.unwrap().contains("Tier2Sonnet"));
@@ -261,8 +266,10 @@ mod tests {
         let decision = RoutingEngine::decide(&score, None).unwrap();
 
         // Simulate Tier2 timeout
-        let result =
-            RoutingEngine::execute_with_fallback_simulation(&decision, Some(RoutingTier::Tier2Sonnet));
+        let result = RoutingEngine::execute_with_fallback_simulation(
+            &decision,
+            Some(RoutingTier::Tier2Sonnet),
+        );
 
         assert!(result.is_ok());
         assert!(result.unwrap().contains("Tier3Opus"));
@@ -292,7 +299,10 @@ mod tests {
         let decision = RoutingEngine::decide(&score, None).unwrap();
 
         // Try to simulate Tier3 failure (should still succeed from fallback chain)
-        let result = RoutingEngine::execute_with_fallback_simulation(&decision, Some(RoutingTier::Tier3Opus));
+        let result = RoutingEngine::execute_with_fallback_simulation(
+            &decision,
+            Some(RoutingTier::Tier3Opus),
+        );
 
         // Tier3 has no fallback, so this should fail
         assert!(result.is_err());

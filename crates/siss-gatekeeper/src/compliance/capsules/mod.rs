@@ -3,5 +3,5 @@ pub mod hhs;
 pub mod treasury;
 
 pub use defense::{ClassificationLevel, DefenseCapsule};
-pub use hhs::{HHSCapsule, PhiClassification, PhiAccessEvent};
-pub use treasury::{TreasuryCapsule, RiskWeightClass, StressTestRecord, BiasDetectionRecord};
+pub use hhs::{HHSCapsule, PhiAccessEvent, PhiClassification};
+pub use treasury::{BiasDetectionRecord, RiskWeightClass, StressTestRecord, TreasuryCapsule};

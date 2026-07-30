@@ -1,6 +1,6 @@
-use uuid::Uuid;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::time::SystemTime;
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BandwidthSummary {
@@ -75,18 +75,20 @@ impl BandwidthMonitor {
         if connection_attempts > 0 {
             score += 0.7;
             if reason.is_none() {
-                reason = Some(
-                    format!(
-                        "{} unauthorized connection attempts blocked",
-                        connection_attempts
-                    )
-                );
+                reason = Some(format!(
+                    "{} unauthorized connection attempts blocked",
+                    connection_attempts
+                ));
             }
         }
 
         let is_anomalous = score > self.anomaly_threshold;
 
-        (score, is_anomalous, if is_anomalous { reason } else { None })
+        (
+            score,
+            is_anomalous,
+            if is_anomalous { reason } else { None },
+        )
     }
 
     pub fn is_critical_alert(&self, summary: &BandwidthSummary) -> bool {
@@ -99,7 +101,10 @@ impl BandwidthMonitor {
                 "CRITICAL: Agent {} anomaly_score {:.2}%: {}",
                 summary.agent_id,
                 summary.anomaly_score * 100.0,
-                summary.anomaly_reason.as_ref().unwrap_or(&"Unknown".to_string())
+                summary
+                    .anomaly_reason
+                    .as_ref()
+                    .unwrap_or(&"Unknown".to_string())
             ))
         } else {
             Err("Alert threshold not met".to_string())
@@ -121,12 +126,11 @@ mod tests {
         let agent_id = sovereign(1);
 
         let summary = monitor.analyze_bandwidth(
-            agent_id,
-            0,           // bytes_sent (no egress)
-            4096,        // bytes_received (ingress only)
-            0,           // packets_sent
-            8,           // packets_received
-            0,           // connection_attempts_blocked
+            agent_id, 0,    // bytes_sent (no egress)
+            4096, // bytes_received (ingress only)
+            0,    // packets_sent
+            8,    // packets_received
+            0,    // connection_attempts_blocked
         );
 
         assert!(!summary.is_anomalous);
@@ -140,15 +144,17 @@ mod tests {
         let agent_id = sovereign(1);
 
         let summary = monitor.analyze_bandwidth(
-            agent_id,
-            1024,        // bytes_sent (UNEXPECTED!)
-            4096,        // bytes_received
-            1,           // packets_sent
-            8,           // packets_received
-            0,           // connection_attempts_blocked
+            agent_id, 1024, // bytes_sent (UNEXPECTED!)
+            4096, // bytes_received
+            1,    // packets_sent
+            8,    // packets_received
+            0,    // connection_attempts_blocked
         );
 
-        assert!(summary.is_anomalous, "Unexpected egress should trigger anomaly");
+        assert!(
+            summary.is_anomalous,
+            "Unexpected egress should trigger anomaly"
+        );
         assert!(summary.anomaly_score > 0.5);
         assert!(summary.anomaly_reason.is_some());
     }
@@ -159,15 +165,17 @@ mod tests {
         let agent_id = sovereign(1);
 
         let summary = monitor.analyze_bandwidth(
-            agent_id,
-            0,           // bytes_sent
-            4096,        // bytes_received
-            0,           // packets_sent
-            8,           // packets_received
-            3,           // connection_attempts_blocked (ANOMALY)
+            agent_id, 0,    // bytes_sent
+            4096, // bytes_received
+            0,    // packets_sent
+            8,    // packets_received
+            3,    // connection_attempts_blocked (ANOMALY)
         );
 
-        assert!(summary.is_anomalous, "Connection attempts should trigger anomaly");
+        assert!(
+            summary.is_anomalous,
+            "Connection attempts should trigger anomaly"
+        );
         assert!(summary.connection_attempts_blocked == 3);
     }
 
@@ -177,12 +185,8 @@ mod tests {
         let agent_id = sovereign(1);
 
         let summary = monitor.analyze_bandwidth(
-            agent_id,
-            5120,        // Significant unexpected egress
-            4096,
-            2,
-            8,
-            0,
+            agent_id, 5120, // Significant unexpected egress
+            4096, 2, 8, 0,
         );
 
         let is_critical = monitor.is_critical_alert(&summary);
@@ -195,12 +199,8 @@ mod tests {
         let agent_id = sovereign(1);
 
         let summary = monitor.analyze_bandwidth(
-            agent_id,
-            2048,        // Unexpected egress
-            4096,
-            1,
-            8,
-            0,
+            agent_id, 2048, // Unexpected egress
+            4096, 1, 8, 0,
         );
 
         let alert = monitor.trigger_alert(&summary);
@@ -216,12 +216,8 @@ mod tests {
         let agent_id = sovereign(1);
 
         let summary = monitor.analyze_bandwidth(
-            agent_id,
-            512,         // Small unexpected egress
-            4096,
-            0,
-            8,
-            0,
+            agent_id, 512, // Small unexpected egress
+            4096, 0, 8, 0,
         );
 
         let alert = monitor.trigger_alert(&summary);
@@ -234,16 +230,15 @@ mod tests {
         let agent_id = sovereign(1);
 
         let summary = monitor.analyze_bandwidth(
-            agent_id,
-            1024,        // Unexpected egress
-            4096,
-            1,
-            8,
-            2,           // Multiple connection attempts
+            agent_id, 1024, // Unexpected egress
+            4096, 1, 8, 2, // Multiple connection attempts
         );
 
         assert!(summary.is_anomalous);
-        assert!(summary.anomaly_score > 0.7, "Multiple anomalies should compound");
+        assert!(
+            summary.anomaly_score > 0.7,
+            "Multiple anomalies should compound"
+        );
     }
 
     #[test]
@@ -251,14 +246,7 @@ mod tests {
         let monitor = BandwidthMonitor::new(0.5, false);
         let agent_id = sovereign(1);
 
-        let summary = monitor.analyze_bandwidth(
-            agent_id,
-            0,
-            4096,
-            0,
-            8,
-            0,
-        );
+        let summary = monitor.analyze_bandwidth(agent_id, 0, 4096, 0, 8, 0);
 
         let json = serde_json::to_string(&summary).expect("Serialization failed");
         assert!(json.contains("\"bytes_received\":4096"));
@@ -272,15 +260,14 @@ mod tests {
         let agent_id = sovereign(1);
 
         let summary = monitor.analyze_bandwidth(
-            agent_id,
-            1024,        // egress is normal now
-            4096,
-            1,
-            8,
-            0,
+            agent_id, 1024, // egress is normal now
+            4096, 1, 8, 0,
         );
 
-        assert!(!summary.is_anomalous, "Egress allowed should not trigger anomaly");
+        assert!(
+            !summary.is_anomalous,
+            "Egress allowed should not trigger anomaly"
+        );
     }
 
     #[test]
@@ -288,10 +275,7 @@ mod tests {
         let monitor = BandwidthMonitor::new(0.5, false);
         let agent_id = sovereign(1);
 
-        let summary = monitor.analyze_bandwidth(
-            agent_id,
-            0, 0, 0, 0, 0,
-        );
+        let summary = monitor.analyze_bandwidth(agent_id, 0, 0, 0, 0, 0);
 
         assert!(!summary.is_anomalous);
         assert_eq!(summary.anomaly_score, 0.0);
@@ -301,10 +285,7 @@ mod tests {
     fn test_bandwidth_sampling_window_constant() {
         let monitor = BandwidthMonitor::new(0.5, false);
 
-        let summary = monitor.analyze_bandwidth(
-            sovereign(1),
-            0, 4096, 0, 8, 0,
-        );
+        let summary = monitor.analyze_bandwidth(sovereign(1), 0, 4096, 0, 8, 0);
 
         assert_eq!(summary.sampling_window_secs, 60);
     }
@@ -315,11 +296,11 @@ mod tests {
 
         let summary = monitor.analyze_bandwidth(
             sovereign(1),
-            2048,        // Unexpected egress
+            2048, // Unexpected egress
             4096,
             1,
             8,
-            5,           // Multiple blocked attempts
+            5, // Multiple blocked attempts
         );
 
         assert!(summary.anomaly_reason.is_some());

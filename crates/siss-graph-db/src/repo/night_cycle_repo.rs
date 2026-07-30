@@ -1,6 +1,5 @@
 /// Production database interface for Night Cycle state management.
 /// Stub for Phase 43; implements atomic archive-and-prune pattern.
-
 use sqlx::PgPool;
 
 /// Archive COMPLETE rows to crystallized_archive, then purge from swarm_state.

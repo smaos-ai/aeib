@@ -397,7 +397,9 @@ async fn test_substack_split_enforcement() {
         "subscriber_tier": "free"
     });
 
-    let result = adapter.execute_action(&auth, "publish_newsletter", params, None).await;
+    let result = adapter
+        .execute_action(&auth, "publish_newsletter", params, None)
+        .await;
     // Should succeed or fail gracefully
     let _ = result;
 }
@@ -478,7 +480,9 @@ async fn test_patreon_split_tracking() {
         "tier": "pro"
     });
 
-    let result = adapter.execute_action(&auth, "create_post", params, None).await;
+    let result = adapter
+        .execute_action(&auth, "create_post", params, None)
+        .await;
     let _ = result;
 }
 
@@ -558,7 +562,9 @@ async fn test_youtube_earnings_reconciliation() {
         "description": "Test video"
     });
 
-    let result = adapter.execute_action(&auth, "publish_video", params, None).await;
+    let result = adapter
+        .execute_action(&auth, "publish_video", params, None)
+        .await;
     let _ = result;
 }
 
@@ -882,8 +888,7 @@ async fn test_multi_platform_simultaneous_decisions() {
         })
         .collect();
 
-    let results = futures::future::join_all(handles)
-        .await;
+    let results = futures::future::join_all(handles).await;
 
     // All should succeed
     for result in results {

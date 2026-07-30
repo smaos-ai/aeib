@@ -1,8 +1,8 @@
-use rusqlite::{Connection, params};
 use chrono::Utc;
+use rusqlite::{Connection, params};
+use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
 use thiserror::Error;
-use serde::{Deserialize, Serialize};
 
 #[derive(Error, Debug)]
 pub enum DbError {
@@ -143,7 +143,7 @@ impl TaskDb {
         let conn = self.conn.lock().unwrap();
         let mut stmt = conn.prepare(
             "SELECT id, title, status, stream, priority, assignee, created_at, updated_at
-             FROM tasks WHERE status = 'pending' ORDER BY priority DESC"
+             FROM tasks WHERE status = 'pending' ORDER BY priority DESC",
         )?;
         let tasks = stmt.query_map([], |row| {
             Ok(Task {
@@ -168,7 +168,7 @@ impl TaskDb {
         let conn = self.conn.lock().unwrap();
         let mut stmt = conn.prepare(
             "SELECT id, title, status, stream, priority, assignee, created_at, updated_at
-             FROM tasks WHERE stream = ?1 ORDER BY priority DESC"
+             FROM tasks WHERE stream = ?1 ORDER BY priority DESC",
         )?;
         let tasks = stmt.query_map(params![stream.as_str()], |row| {
             Ok(Task {
@@ -193,7 +193,7 @@ impl TaskDb {
         let conn = self.conn.lock().unwrap();
         let mut stmt = conn.prepare(
             "SELECT id, title, status, stream, priority, assignee, created_at, updated_at
-             FROM tasks ORDER BY priority DESC, created_at ASC"
+             FROM tasks ORDER BY priority DESC, created_at ASC",
         )?;
         let tasks = stmt.query_map([], |row| {
             Ok(Task {
@@ -216,12 +216,9 @@ impl TaskDb {
 
     pub fn get_merkle_root(&self) -> Result<Option<String>, DbError> {
         let conn = self.conn.lock().unwrap();
-        let mut stmt = conn.prepare(
-            "SELECT merkle_hash FROM decisions ORDER BY rowid DESC LIMIT 1"
-        )?;
-        let hash = stmt.query_row([], |row| {
-            row.get::<_, String>(0)
-        });
+        let mut stmt =
+            conn.prepare("SELECT merkle_hash FROM decisions ORDER BY rowid DESC LIMIT 1")?;
+        let hash = stmt.query_row([], |row| row.get::<_, String>(0));
         match hash {
             Ok(h) => Ok(Some(h)),
             Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
@@ -231,15 +228,13 @@ impl TaskDb {
 
     pub fn verify_chain(&self) -> Result<(), DbError> {
         let conn = self.conn.lock().unwrap();
-        let mut stmt = conn.prepare(
-            "SELECT merkle_hash, body FROM decisions ORDER BY rowid ASC"
-        )?;
-        let entries: Vec<(String, String)> = stmt.query_map([], |row| {
-            Ok((row.get(0)?, row.get(1)?))
-        })?.collect::<Result<Vec<_>, _>>()?;
+        let mut stmt =
+            conn.prepare("SELECT merkle_hash, body FROM decisions ORDER BY rowid ASC")?;
+        let entries: Vec<(String, String)> = stmt
+            .query_map([], |row| Ok((row.get(0)?, row.get(1)?)))?
+            .collect::<Result<Vec<_>, _>>()?;
 
-        crate::merkle::verify_chain(&entries)
-            .map_err(DbError::ChainIntegrityViolation)
+        crate::merkle::verify_chain(&entries).map_err(DbError::ChainIntegrityViolation)
     }
 
     pub fn archive_task(&self, task_id: &str) -> Result<(), DbError> {
@@ -291,7 +286,10 @@ mod tests {
             updated_at: Utc::now().to_rfc3339(),
         };
         db.create_task(task).unwrap();
-        assert!(db.update_task_status(&task_id, TaskStatus::InProgress).is_ok());
+        assert!(
+            db.update_task_status(&task_id, TaskStatus::InProgress)
+                .is_ok()
+        );
     }
 
     #[test]
@@ -467,8 +465,14 @@ mod tests {
         };
         db.create_task(task).unwrap();
 
-        assert!(db.update_task_status(&task_id, TaskStatus::InProgress).is_ok());
-        assert!(db.update_task_status(&task_id, TaskStatus::Completed).is_ok());
+        assert!(
+            db.update_task_status(&task_id, TaskStatus::InProgress)
+                .is_ok()
+        );
+        assert!(
+            db.update_task_status(&task_id, TaskStatus::Completed)
+                .is_ok()
+        );
         assert!(db.archive_task(&task_id).is_ok());
     }
 

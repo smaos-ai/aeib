@@ -1,5 +1,5 @@
 use super::PlatformAdapter;
-use crate::{PlatformAuth, ActionResult, ActionStatus, ActionDefinition, Result};
+use crate::{ActionDefinition, ActionResult, ActionStatus, PlatformAuth, Result};
 use async_trait::async_trait;
 
 pub struct TwitchAdapter;
@@ -38,16 +38,14 @@ impl PlatformAdapter for TwitchAdapter {
     }
 
     async fn list_actions(&self, _platform_auth: &PlatformAuth) -> Result<Vec<ActionDefinition>> {
-        Ok(vec![
-            ActionDefinition {
-                name: "start_stream".to_string(),
-                description: "Start streaming".to_string(),
-                required_params: vec!["title".to_string()],
-                optional_params: vec!["category".to_string()],
-                requires_approval: false,
-                estimated_blast_radius: 0.4,
-            },
-        ])
+        Ok(vec![ActionDefinition {
+            name: "start_stream".to_string(),
+            description: "Start streaming".to_string(),
+            required_params: vec!["title".to_string()],
+            optional_params: vec!["category".to_string()],
+            requires_approval: false,
+            estimated_blast_radius: 0.4,
+        }])
     }
 
     async fn execute_action(

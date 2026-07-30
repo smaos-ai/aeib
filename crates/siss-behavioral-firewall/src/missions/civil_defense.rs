@@ -4,10 +4,22 @@ use std::time::{Duration, SystemTime};
 /// Alert types for civil defense scenarios
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum AlertType {
-    Siren { frequency_hz: u32, duration_sec: u32 },
-    Seismic { magnitude_richter: f32, depth_km: f32 },
-    Chemical { agent: String, wind_direction: String },
-    Cyber { target_type: String, severity: AlertSeverity },
+    Siren {
+        frequency_hz: u32,
+        duration_sec: u32,
+    },
+    Seismic {
+        magnitude_richter: f32,
+        depth_km: f32,
+    },
+    Chemical {
+        agent: String,
+        wind_direction: String,
+    },
+    Cyber {
+        target_type: String,
+        severity: AlertSeverity,
+    },
 }
 
 /// Alert severity levels (Green < Yellow < Orange < Red)
@@ -23,7 +35,7 @@ pub enum AlertSeverity {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AlertEvent {
     pub alert_type: AlertType,
-    pub confidence: f32, // 0.0 - 1.0
+    pub confidence: f32,    // 0.0 - 1.0
     pub region: (f64, f64), // (latitude, longitude)
     pub affected_population: u32,
     pub timestamp: SystemTime,
@@ -33,9 +45,16 @@ pub struct AlertEvent {
 /// Circuit breaker state machine for alert fatigue prevention
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum CircuitBreakerState {
-    Closed { failure_count: u32 },
-    Open { opened_at: SystemTime, reset_timeout: Duration },
-    HalfOpen { probe_count: u32 },
+    Closed {
+        failure_count: u32,
+    },
+    Open {
+        opened_at: SystemTime,
+        reset_timeout: Duration,
+    },
+    HalfOpen {
+        probe_count: u32,
+    },
 }
 
 impl Default for CircuitBreakerState {
@@ -161,10 +180,7 @@ pub struct CivilDefenseCapsule {
 
 impl CivilDefenseCapsule {
     /// Create a new CivilDefenseCapsule from an alert event
-    pub fn new(
-        alert_event: AlertEvent,
-        sensor_signature: String,
-    ) -> Self {
+    pub fn new(alert_event: AlertEvent, sensor_signature: String) -> Self {
         let capsule_id = uuid::Uuid::new_v4().to_string();
 
         let gemba_proof = GembaProof {
@@ -186,8 +202,11 @@ impl CivilDefenseCapsule {
     /// Apply false alarm filter to evaluate alert viability
     pub fn apply_false_alarm_filter(&mut self) -> bool {
         // Check circuit breaker state first
-        if let CircuitBreakerState::Open { opened_at, reset_timeout } =
-            self.false_alarm_filter.alert_history.state.clone() {
+        if let CircuitBreakerState::Open {
+            opened_at,
+            reset_timeout,
+        } = self.false_alarm_filter.alert_history.state.clone()
+        {
             let elapsed = SystemTime::now()
                 .duration_since(opened_at)
                 .unwrap_or(Duration::from_secs(0));
@@ -204,13 +223,13 @@ impl CivilDefenseCapsule {
             self.false_alarm_filter.consecutive_false_alarms += 1;
 
             // If we reached the failure threshold, open the circuit breaker
-            if self.false_alarm_filter.consecutive_false_alarms >=
-                self.false_alarm_filter.alert_history.failure_threshold {
-                self.false_alarm_filter.alert_history.state =
-                    CircuitBreakerState::Open {
-                        opened_at: SystemTime::now(),
-                        reset_timeout: Duration::from_secs(300),
-                    };
+            if self.false_alarm_filter.consecutive_false_alarms
+                >= self.false_alarm_filter.alert_history.failure_threshold
+            {
+                self.false_alarm_filter.alert_history.state = CircuitBreakerState::Open {
+                    opened_at: SystemTime::now(),
+                    reset_timeout: Duration::from_secs(300),
+                };
             }
             return false;
         }
@@ -229,7 +248,8 @@ impl CivilDefenseCapsule {
         self.federation_sync.sync_status = SyncStatus::InProgress;
 
         // Filter hospitals by allowed list (zero data leakage)
-        self.federation_sync.hospital_sync_targets
+        self.federation_sync
+            .hospital_sync_targets
             .retain(|h| allowed_hospital_ids.contains(&h.hospital_id));
 
         // Update sync timestamps
@@ -288,7 +308,8 @@ impl CivilDefenseCapsule {
         };
 
         // Adjust for population density (lower population = faster dispatch)
-        let population_factor = (self.alert_event.affected_population as f32 / 100000.0).clamp(0.5, 1.5);
+        let population_factor =
+            (self.alert_event.affected_population as f32 / 100000.0).clamp(0.5, 1.5);
         let estimated_time = (base_dispatch_time as f32 * population_factor) as u32;
 
         for ambulance in &mut self.federation_sync.ambulance_routing_targets {
@@ -305,12 +326,16 @@ impl CivilDefenseCapsule {
 
     /// Add blood bank sync target
     pub fn add_blood_bank_target(&mut self, blood_bank: BloodBankTarget) {
-        self.federation_sync.blood_bank_sync_targets.push(blood_bank);
+        self.federation_sync
+            .blood_bank_sync_targets
+            .push(blood_bank);
     }
 
     /// Add ambulance routing target
     pub fn add_ambulance_target(&mut self, ambulance: AmbulanceTarget) {
-        self.federation_sync.ambulance_routing_targets.push(ambulance);
+        self.federation_sync
+            .ambulance_routing_targets
+            .push(ambulance);
     }
 
     /// Enable/disable encryption for federation sync
@@ -487,7 +512,10 @@ mod tests {
 
         let result = capsule.sync_blood_banks();
         assert!(result.is_ok());
-        assert_eq!(capsule.federation_sync.blood_bank_sync_targets[0].inventory_update_required, true);
+        assert_eq!(
+            capsule.federation_sync.blood_bank_sync_targets[0].inventory_update_required,
+            true
+        );
     }
 
     #[test]
@@ -512,7 +540,9 @@ mod tests {
 
         let _ = capsule.route_ambulances(&AlertSeverity::Red);
 
-        assert!(capsule.federation_sync.ambulance_routing_targets[0].estimated_dispatch_time_sec < 120);
+        assert!(
+            capsule.federation_sync.ambulance_routing_targets[0].estimated_dispatch_time_sec < 120
+        );
     }
 
     #[test]
@@ -649,7 +679,8 @@ mod tests {
 
         let _ = capsule.route_ambulances(&AlertSeverity::Red);
 
-        let dispatch_time = capsule.federation_sync.ambulance_routing_targets[0].estimated_dispatch_time_sec;
+        let dispatch_time =
+            capsule.federation_sync.ambulance_routing_targets[0].estimated_dispatch_time_sec;
         assert!(dispatch_time > 0 && dispatch_time <= 60);
     }
 }

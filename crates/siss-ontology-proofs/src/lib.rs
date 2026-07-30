@@ -1,7 +1,7 @@
-use uuid::Uuid;
-use serde::{Serialize, Deserialize};
-use sha2::{Sha256, Digest};
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::collections::HashMap;
+use uuid::Uuid;
 
 /// A transformation in the ontology graph
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -61,8 +61,8 @@ impl PiPlusPlusEngine {
     ) -> String {
         let t_json = serde_json::to_string(transformation)
             .expect("transformation serialization must succeed");
-        let j_json = serde_json::to_string(justification)
-            .expect("justification serialization must succeed");
+        let j_json =
+            serde_json::to_string(justification).expect("justification serialization must succeed");
         let canonical = format!("{}|{}|{}", t_json, j_json, attestation);
         let mut hasher = Sha256::new();
         hasher.update(canonical.as_bytes());
@@ -163,7 +163,8 @@ mod tests {
         let transformation = create_test_transformation();
         let projection = create_test_projection();
 
-        let proof = engine.generate_proof(transformation, projection, "allow".to_string())
+        let proof = engine
+            .generate_proof(transformation, projection, "allow".to_string())
             .expect("Proof generation must succeed");
 
         let mut tampered = proof.clone();
@@ -172,7 +173,11 @@ mod tests {
         let result = engine.validate_proof(&tampered);
         assert!(result.is_err(), "Tampered proof must be rejected");
         let err_msg = result.unwrap_err();
-        assert!(err_msg.contains("HASH_MISMATCH"), "Error must cite HASH_MISMATCH, got: {}", err_msg);
+        assert!(
+            err_msg.contains("HASH_MISMATCH"),
+            "Error must cite HASH_MISMATCH, got: {}",
+            err_msg
+        );
     }
 
     #[test]
@@ -181,46 +186,66 @@ mod tests {
         let engine = PiPlusPlusEngine::new(signing_key, Uuid::new_v4());
 
         // Vector 1: Low confidence
-        let low_conf = engine.generate_proof(
-            create_test_transformation(),
-            {
-                let mut proj = create_test_projection();
-                proj.confidence = 0.3;
-                proj
-            },
-            "allow".to_string(),
-        ).unwrap();
-        assert!(engine.validate_proof(&low_conf).is_err(), "Low confidence must reject");
+        let low_conf = engine
+            .generate_proof(
+                create_test_transformation(),
+                {
+                    let mut proj = create_test_projection();
+                    proj.confidence = 0.3;
+                    proj
+                },
+                "allow".to_string(),
+            )
+            .unwrap();
+        assert!(
+            engine.validate_proof(&low_conf).is_err(),
+            "Low confidence must reject"
+        );
 
         // Vector 2: Tampered hash
-        let valid = engine.generate_proof(
-            create_test_transformation(),
-            create_test_projection(),
-            "allow".to_string(),
-        ).unwrap();
+        let valid = engine
+            .generate_proof(
+                create_test_transformation(),
+                create_test_projection(),
+                "allow".to_string(),
+            )
+            .unwrap();
         let mut tampered = valid.clone();
         tampered.transformation.edge_type = "evil".to_string();
-        assert!(engine.validate_proof(&tampered).is_err(), "Tampered must reject");
+        assert!(
+            engine.validate_proof(&tampered).is_err(),
+            "Tampered must reject"
+        );
 
         // Vector 3: Future timestamp
-        let mut future = engine.generate_proof(
-            create_test_transformation(),
-            create_test_projection(),
-            "allow".to_string(),
-        ).unwrap();
+        let mut future = engine
+            .generate_proof(
+                create_test_transformation(),
+                create_test_projection(),
+                "allow".to_string(),
+            )
+            .unwrap();
         let future_time = chrono::Utc::now() + chrono::Duration::hours(2);
         future.transformation.timestamp_utc = future_time.to_rfc3339();
-        assert!(engine.validate_proof(&future).is_err(), "Future timestamp must reject");
+        assert!(
+            engine.validate_proof(&future).is_err(),
+            "Future timestamp must reject"
+        );
     }
 
     #[test]
     fn test_valid_proof_passes_validation() {
         let engine = PiPlusPlusEngine::new(create_signing_key(), Uuid::new_v4());
-        let proof = engine.generate_proof(
-            create_test_transformation(),
-            create_test_projection(),
-            "allow".to_string(),
-        ).unwrap();
-        assert!(engine.validate_proof(&proof).is_ok(), "Valid proof must pass");
+        let proof = engine
+            .generate_proof(
+                create_test_transformation(),
+                create_test_projection(),
+                "allow".to_string(),
+            )
+            .unwrap();
+        assert!(
+            engine.validate_proof(&proof).is_ok(),
+            "Valid proof must pass"
+        );
     }
 }

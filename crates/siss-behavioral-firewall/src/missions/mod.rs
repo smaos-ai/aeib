@@ -1,8 +1,7 @@
 pub mod civil_defense;
 
 pub use civil_defense::{
-    CivilDefenseCapsule, AlertEvent, AlertType, AlertSeverity,
-    FalseAlarmFilter, FederationSync, GembaProof,
-    HospitalTarget, BloodBankTarget, AmbulanceTarget,
-    CircuitBreakerState, AlertCircuitBreaker, SyncStatus,
+    AlertCircuitBreaker, AlertEvent, AlertSeverity, AlertType, AmbulanceTarget, BloodBankTarget,
+    CircuitBreakerState, CivilDefenseCapsule, FalseAlarmFilter, FederationSync, GembaProof,
+    HospitalTarget, SyncStatus,
 };

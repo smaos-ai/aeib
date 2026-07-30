@@ -1,4 +1,4 @@
-use ed25519_dalek::{SigningKey, VerifyingKey, Signer};
+use ed25519_dalek::{Signer, SigningKey, VerifyingKey};
 
 /// Wraps SMAOS Ed25519 key for C2PA manifest signing.
 /// Manages Ed25519 signatures for research result provenance.

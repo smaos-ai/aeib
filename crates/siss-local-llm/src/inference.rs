@@ -1,11 +1,11 @@
 use crate::error::{LocalLLMError, LocalLLMResult};
 use crate::model_loader::ModelCache;
 use crate::types::{InferenceRequest, InferenceResult, ModelType};
-use siss_layer00::{Layer0Gate, CapabilityToken};
-use sha2::{Sha256, Digest};
+use chrono::Utc;
+use sha2::{Digest, Sha256};
+use siss_layer00::{CapabilityToken, Layer0Gate};
 use std::sync::Arc;
 use std::time::Instant;
-use chrono::Utc;
 
 #[derive(Clone)]
 pub struct InferenceEngine {
@@ -43,12 +43,10 @@ impl InferenceEngine {
 
         // Verify action scope matches requested action
         if token.action_scope != request.action {
-            return Err(LocalLLMError::ActionScopeNotAllowed(
-                format!(
-                    "Token scope '{}' does not match requested action '{}'",
-                    token.action_scope, request.action
-                ),
-            ));
+            return Err(LocalLLMError::ActionScopeNotAllowed(format!(
+                "Token scope '{}' does not match requested action '{}'",
+                token.action_scope, request.action
+            )));
         }
 
         let start_time = Instant::now();
@@ -63,7 +61,8 @@ impl InferenceEngine {
         let result_hash = self.compute_result_hash(&output);
 
         // Log to Layer 0 Merkle ledger
-        let audit_id = self.layer0_gate
+        let audit_id = self
+            .layer0_gate
             .invoke_tool(
                 token,
                 &format!("local_llm_inference_{}", model_type),
@@ -107,4 +106,3 @@ impl InferenceEngine {
         hash
     }
 }
-

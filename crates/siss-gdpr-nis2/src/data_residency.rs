@@ -10,14 +10,16 @@ impl EUDataGuard {
         let mut allowed = HashSet::new();
         // EU-GDPR compliant storage domains
         allowed.insert("eu-central-1.amazonaws.com".to_string()); // AWS Frankfurt
-        allowed.insert("eu-west-1.amazonaws.com".to_string());    // AWS Ireland
-        allowed.insert("eu-north-1.amazonaws.com".to_string());   // AWS Stockholm
-        allowed.insert("europe-west1.gcp.com".to_string());       // GCP Brussels
-        allowed.insert("europe-west4.gcp.com".to_string());       // GCP Netherlands
-        allowed.insert("eu-de.cloud.ibm.com".to_string());        // IBM Frankfurt
-        allowed.insert("local-frankfurt".to_string());             // On-premise Frankfurt
+        allowed.insert("eu-west-1.amazonaws.com".to_string()); // AWS Ireland
+        allowed.insert("eu-north-1.amazonaws.com".to_string()); // AWS Stockholm
+        allowed.insert("europe-west1.gcp.com".to_string()); // GCP Brussels
+        allowed.insert("europe-west4.gcp.com".to_string()); // GCP Netherlands
+        allowed.insert("eu-de.cloud.ibm.com".to_string()); // IBM Frankfurt
+        allowed.insert("local-frankfurt".to_string()); // On-premise Frankfurt
 
-        Self { allowed_domains: allowed }
+        Self {
+            allowed_domains: allowed,
+        }
     }
 
     /// Validates that a domain/email belongs to EU residency
@@ -37,12 +39,17 @@ impl EUDataGuard {
         if self.is_eu_domain(domain) {
             Ok(())
         } else {
-            Err(format!("Non-EU domain detected: {}. Data must reside in Frankfurt region.", domain))
+            Err(format!(
+                "Non-EU domain detected: {}. Data must reside in Frankfurt region.",
+                domain
+            ))
         }
     }
 
     fn is_eu_domain(&self, domain: &str) -> bool {
-        self.allowed_domains.iter().any(|allowed| domain.contains(allowed))
+        self.allowed_domains
+            .iter()
+            .any(|allowed| domain.contains(allowed))
     }
 }
 
@@ -62,9 +69,9 @@ impl DomainValidator {
         let mut tlds = HashSet::new();
         // EU country TLDs
         for tld in &[
-            "de", "fr", "it", "es", "nl", "be", "at", "ch", "se", "dk", "no", "fi",
-            "pl", "cz", "ie", "pt", "gr", "hu", "ro", "bg", "hr", "si", "sk", "lt",
-            "lv", "ee", "cy", "lu", "mt", "eu" // EU generic TLD
+            "de", "fr", "it", "es", "nl", "be", "at", "ch", "se", "dk", "no", "fi", "pl", "cz",
+            "ie", "pt", "gr", "hu", "ro", "bg", "hr", "si", "sk", "lt", "lv", "ee", "cy", "lu",
+            "mt", "eu", // EU generic TLD
         ] {
             tlds.insert(tld.to_string());
         }
@@ -82,7 +89,10 @@ impl DomainValidator {
         if self.eu_tlds.contains(tld) {
             Ok(())
         } else {
-            Err(format!("Non-EU TLD detected: .{}. Data residency requires EU domains.", tld))
+            Err(format!(
+                "Non-EU TLD detected: .{}. Data residency requires EU domains.",
+                tld
+            ))
         }
     }
 }
@@ -100,13 +110,17 @@ mod tests {
     #[test]
     fn test_eu_data_guard_accepts_aws_frankfurt() {
         let guard = EUDataGuard::new();
-        assert!(guard.validate_frankfurt_residency("eu-central-1.amazonaws.com").is_ok());
+        assert!(guard
+            .validate_frankfurt_residency("eu-central-1.amazonaws.com")
+            .is_ok());
     }
 
     #[test]
     fn test_eu_data_guard_rejects_us_domain() {
         let guard = EUDataGuard::new();
-        assert!(guard.validate_frankfurt_residency("us-east-1.amazonaws.com").is_err());
+        assert!(guard
+            .validate_frankfurt_residency("us-east-1.amazonaws.com")
+            .is_err());
     }
 
     #[test]

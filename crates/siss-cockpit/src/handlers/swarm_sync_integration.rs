@@ -3,7 +3,7 @@
 
 #[cfg(test)]
 mod integration_tests {
-    use crate::handlers::swarm_sync::{SwarmSync, AgentState, AgentStateUpdate, SwarmSyncError};
+    use crate::handlers::swarm_sync::{AgentState, AgentStateUpdate, SwarmSync, SwarmSyncError};
 
     #[tokio::test]
     async fn test_swarm_sync_agent_lifecycle_online_to_orphaned_transition() {
@@ -13,23 +13,17 @@ mod integration_tests {
         // AND: No recovery hallucination occurs (fail-closed)
 
         // Agent comes online
-        let online_result = SwarmSync::sync_active_session(
-            "agent-lifecycle-001",
-            "session-123",
-            "sovereign-tmux",
-        )
-        .await;
+        let online_result =
+            SwarmSync::sync_active_session("agent-lifecycle-001", "session-123", "sovereign-tmux")
+                .await;
         assert!(online_result.is_ok());
         let online_update = online_result.unwrap();
         assert_eq!(online_update.state, AgentState::Online);
         assert!(online_update.swarm_consensus);
 
         // Session drops unexpectedly
-        let orphaned_result = SwarmSync::detect_session_drop(
-            "agent-lifecycle-001",
-            "session-123",
-        )
-        .await;
+        let orphaned_result =
+            SwarmSync::detect_session_drop("agent-lifecycle-001", "session-123").await;
         assert!(orphaned_result.is_ok());
         let orphaned_update = orphaned_result.unwrap();
         assert_eq!(orphaned_update.state, AgentState::Orphaned);
@@ -44,14 +38,13 @@ mod integration_tests {
         // AND: Authorized mutations succeed and reflect new state
 
         // Unauthorized: no mandate
-        let unauthorized = SwarmSync::mutate_agent_state(
-            "agent-401",
-            AgentState::Syncing,
-            None,
-        )
-        .await;
+        let unauthorized =
+            SwarmSync::mutate_agent_state("agent-401", AgentState::Syncing, None).await;
         assert!(unauthorized.is_err());
-        assert!(matches!(unauthorized.unwrap_err(), SwarmSyncError::UnauthorizedMutation));
+        assert!(matches!(
+            unauthorized.unwrap_err(),
+            SwarmSyncError::UnauthorizedMutation
+        ));
 
         // Authorized: valid mandate
         let authorized = SwarmSync::mutate_agent_state(
@@ -90,7 +83,10 @@ mod integration_tests {
 
         // Verify component count is within 18-component limit
         let obj = parsed.as_object().unwrap();
-        assert!(obj.len() <= 18, "AgentStateUpdate exceeds A2UI 18-component limit");
+        assert!(
+            obj.len() <= 18,
+            "AgentStateUpdate exceeds A2UI 18-component limit"
+        );
 
         // Verify all expected fields are present
         assert!(obj.contains_key("agent_id"));
@@ -124,8 +120,10 @@ mod integration_tests {
         }
 
         // All agents should have independent states
-        let agent1_online = SwarmSync::sync_active_session("agent-iso-001", "session-0", "tmux-0").await;
-        let agent2_online = SwarmSync::sync_active_session("agent-iso-002", "session-1", "tmux-1").await;
+        let agent1_online =
+            SwarmSync::sync_active_session("agent-iso-001", "session-0", "tmux-0").await;
+        let agent2_online =
+            SwarmSync::sync_active_session("agent-iso-002", "session-1", "tmux-1").await;
 
         assert!(agent1_online.is_ok());
         assert!(agent2_online.is_ok());
@@ -140,25 +138,26 @@ mod integration_tests {
         // THEN: Timestamp format is RFC3339 compatible
         // AND: Can be parsed by downstream SSE consumers
 
-        let result = SwarmSync::sync_active_session(
-            "agent-ts-001",
-            "session-ts",
-            "tmux-ts",
-        )
-        .await;
+        let result = SwarmSync::sync_active_session("agent-ts-001", "session-ts", "tmux-ts").await;
 
         assert!(result.is_ok());
         let update = result.unwrap();
 
         // Verify RFC3339 format: contains T and Z/timezone offset
-        assert!(update.timestamp.contains("T"), "Timestamp missing T separator");
         assert!(
-            update.timestamp.contains("Z") || update.timestamp.contains("+") || update.timestamp.contains("-"),
+            update.timestamp.contains("T"),
+            "Timestamp missing T separator"
+        );
+        assert!(
+            update.timestamp.contains("Z")
+                || update.timestamp.contains("+")
+                || update.timestamp.contains("-"),
             "Timestamp missing timezone indicator"
         );
 
         // Verify parseable as RFC3339
-        assert!(chrono::DateTime::parse_from_rfc3339(&update.timestamp).is_ok(),
+        assert!(
+            chrono::DateTime::parse_from_rfc3339(&update.timestamp).is_ok(),
             "Timestamp not valid RFC3339 format"
         );
     }
@@ -170,16 +169,16 @@ mod integration_tests {
         // THEN: swarm_consensus is false (no recovery attempt)
         // AND: State remains ORPHANED until explicitly mutated with AP2 mandate
 
-        let orphan_result = SwarmSync::detect_session_drop(
-            "agent-orphan-001",
-            "dropped-session",
-        )
-        .await;
+        let orphan_result =
+            SwarmSync::detect_session_drop("agent-orphan-001", "dropped-session").await;
 
         assert!(orphan_result.is_ok());
         let orphan = orphan_result.unwrap();
         assert_eq!(orphan.state, AgentState::Orphaned);
-        assert!(!orphan.swarm_consensus, "Orphaned agents must not have swarm consensus");
+        assert!(
+            !orphan.swarm_consensus,
+            "Orphaned agents must not have swarm consensus"
+        );
 
         // To change state, must provide AP2 mandate (recovery decision is human-driven)
         let recovery_attempt = SwarmSync::mutate_agent_state(

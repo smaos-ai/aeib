@@ -4,7 +4,7 @@
 
 use dashmap::DashMap;
 use std::sync::Arc;
-use std::time::{SystemTime, Duration};
+use std::time::{Duration, SystemTime};
 use uuid::Uuid;
 
 use super::mandate_verifier::Mandate;

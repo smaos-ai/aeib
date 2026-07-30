@@ -1,7 +1,6 @@
 /// Sovereign Telemetry Sidecar: Observer Plane
 /// Captures failure traces and routes them exclusively to the local CIPO loop.
 /// Zero cloud egress—all telemetry stays in-memory and feeds SLM retraining.
-
 use crate::cipo::{CipoDistiller, CipoTrace, RefinementSignal};
 use crate::confidence_scorer::RoutingTier;
 use chrono::{DateTime, Utc};
@@ -185,6 +184,10 @@ mod tests {
 
         let traces = sidecar.export_as_cipo_traces();
         assert_eq!(traces.len(), 5);
-        assert!(traces.iter().all(|t| t.tier_escalated_to == RoutingTier::Tier3Opus));
+        assert!(
+            traces
+                .iter()
+                .all(|t| t.tier_escalated_to == RoutingTier::Tier3Opus)
+        );
     }
 }

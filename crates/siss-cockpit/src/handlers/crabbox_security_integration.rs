@@ -23,8 +23,15 @@ mod integration_tests {
 
         for payload in lota_payloads {
             let result = CrabboxSecurity::execute_in_crabbox("container-test", payload).await;
-            assert!(result.is_err(), "LOTA payload {} should be rejected", payload);
-            assert!(matches!(result.unwrap_err(), CrabboxSecurityError::EscapeAttempt));
+            assert!(
+                result.is_err(),
+                "LOTA payload {} should be rejected",
+                payload
+            );
+            assert!(matches!(
+                result.unwrap_err(),
+                CrabboxSecurityError::EscapeAttempt
+            ));
         }
     }
 
@@ -47,7 +54,10 @@ mod integration_tests {
         for path in traversal_vectors {
             let result = CrabboxSecurity::validate_filesystem_access("container", path).await;
             assert!(result.is_err(), "Path {} should be rejected", path);
-            assert!(matches!(result.unwrap_err(), CrabboxSecurityError::PathTraversalAttempt));
+            assert!(matches!(
+                result.unwrap_err(),
+                CrabboxSecurityError::PathTraversalAttempt
+            ));
         }
     }
 
@@ -63,14 +73,23 @@ mod integration_tests {
 
         let result = CrabboxSecurity::validate_environment_variables(&malicious_env).await;
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), CrabboxSecurityError::EnvironmentInjection));
+        assert!(matches!(
+            result.unwrap_err(),
+            CrabboxSecurityError::EnvironmentInjection
+        ));
 
         let mut dyld_env = std::collections::HashMap::new();
-        dyld_env.insert("DYLD_INSERT_LIBRARIES".to_string(), "/tmp/evil.dylib".to_string());
+        dyld_env.insert(
+            "DYLD_INSERT_LIBRARIES".to_string(),
+            "/tmp/evil.dylib".to_string(),
+        );
 
         let result2 = CrabboxSecurity::validate_environment_variables(&dyld_env).await;
         assert!(result2.is_err());
-        assert!(matches!(result2.unwrap_err(), CrabboxSecurityError::EnvironmentInjection));
+        assert!(matches!(
+            result2.unwrap_err(),
+            CrabboxSecurityError::EnvironmentInjection
+        ));
     }
 
     #[tokio::test]
@@ -80,20 +99,17 @@ mod integration_tests {
         // THEN: Returns exit_code=0 and escaped_crabbox=false
         // AND: Execution remains within isolation boundaries
 
-        let safe_commands = vec![
-            "echo hello",
-            "ls -la",
-            "cat file.txt",
-            "pwd",
-            "id",
-        ];
+        let safe_commands = vec!["echo hello", "ls -la", "cat file.txt", "pwd", "id"];
 
         for cmd in safe_commands {
             let result = CrabboxSecurity::execute_in_crabbox("container-safe", cmd).await;
             assert!(result.is_ok(), "Safe command {} should succeed", cmd);
             let execution = result.unwrap();
             assert_eq!(execution.exit_code, 0);
-            assert!(!execution.escaped_crabbox, "Safe execution should not escape");
+            assert!(
+                !execution.escaped_crabbox,
+                "Safe execution should not escape"
+            );
         }
     }
 
@@ -124,6 +140,9 @@ mod integration_tests {
         let result = CrabboxSecurity::execute_in_crabbox("container-combined", command).await;
         assert!(result.is_err());
         // Would be caught by execute_in_crabbox as LOTA escape attempt
-        assert!(matches!(result.unwrap_err(), CrabboxSecurityError::EscapeAttempt));
+        assert!(matches!(
+            result.unwrap_err(),
+            CrabboxSecurityError::EscapeAttempt
+        ));
     }
 }

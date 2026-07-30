@@ -1,8 +1,7 @@
-/// Routing metrics and statistics tracking
-
-use std::sync::{Arc, Mutex};
-use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+/// Routing metrics and statistics tracking
+use std::sync::{Arc, Mutex};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RoutingMetrics {
@@ -39,7 +38,10 @@ impl RoutingMetrics {
 
         // Update average latency
         let count = self.tier_distribution[tier];
-        let current_avg = self.avg_latency_by_tier.entry(tier.to_string()).or_insert(0.0);
+        let current_avg = self
+            .avg_latency_by_tier
+            .entry(tier.to_string())
+            .or_insert(0.0);
         *current_avg = (*current_avg * (count - 1) as f64 + latency_ms as f64) / count as f64;
     }
 
@@ -120,7 +122,10 @@ impl MetricsCollector {
     }
 
     pub fn get_metrics(&self) -> RoutingMetrics {
-        self.metrics.lock().unwrap_or_else(|e| e.into_inner()).clone()
+        self.metrics
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clone()
     }
 }
 

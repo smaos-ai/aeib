@@ -6,15 +6,13 @@
 
 #[cfg(test)]
 mod tests {
-    use uuid::Uuid;
-    use chrono::{Utc, Duration};
-    use crate::repo::projections_repo::{
-        fetch_agent_actions, fetch_anomalies, fetch_recovery,
-    };
+    use crate::repo::projections_repo::{fetch_agent_actions, fetch_anomalies, fetch_recovery};
+    use chrono::{Duration, Utc};
     use serde_json::json;
     use sqlx::PgPool;
     use testcontainers::runners::AsyncRunner;
     use testcontainers::{GenericImage, ImageExt, core::WaitFor};
+    use uuid::Uuid;
 
     async fn setup_test_postgres() -> (
         testcontainers::ContainerAsync<testcontainers::GenericImage>,
@@ -48,12 +46,9 @@ mod tests {
         let nonexistent_id = Uuid::new_v4();
 
         // WHEN fetch_agent_actions() is called
-        let result = fetch_agent_actions(
-            &pool,
-            &nonexistent_id,
-            None,
-            100,
-        ).await.expect("query should not error");
+        let result = fetch_agent_actions(&pool, &nonexistent_id, None, 100)
+            .await
+            .expect("query should not error");
 
         // THEN returns AgentActionPageResponse with empty actions[]
         assert_eq!(result.actions.len(), 0, "actions should be empty");
@@ -117,12 +112,9 @@ mod tests {
         .expect("insert old");
 
         // WHEN fetch_agent_actions with after_timestamp
-        let result = fetch_agent_actions(
-            &pool,
-            &sovereign_id,
-            Some(now - Duration::hours(2)),
-            100,
-        ).await.expect("query should not error");
+        let result = fetch_agent_actions(&pool, &sovereign_id, Some(now - Duration::hours(2)), 100)
+            .await
+            .expect("query should not error");
 
         // THEN returns only recent action (within timestamp window)
         assert_eq!(result.actions.len(), 1, "should return only recent action");
@@ -164,12 +156,9 @@ mod tests {
         }
 
         // WHEN fetch with limit=100
-        let result = fetch_agent_actions(
-            &pool,
-            &sovereign_id,
-            None,
-            100,
-        ).await.expect("query should not error");
+        let result = fetch_agent_actions(&pool, &sovereign_id, None, 100)
+            .await
+            .expect("query should not error");
 
         // THEN returns exactly 100 actions, total=150, has_more=true
         assert_eq!(result.actions.len(), 100);
@@ -210,12 +199,9 @@ mod tests {
         }
 
         // WHEN fetch with limit=1000
-        let result = fetch_agent_actions(
-            &pool,
-            &sovereign_id,
-            None,
-            1000,
-        ).await.expect("query should not error");
+        let result = fetch_agent_actions(&pool, &sovereign_id, None, 1000)
+            .await
+            .expect("query should not error");
 
         // THEN limit is clamped to 500
         assert_eq!(result.actions.len(), 500);
@@ -237,10 +223,12 @@ mod tests {
         let result = fetch_anomalies(
             &pool,
             &nonexistent_id,
-            None,  // severity
-            None,  // anomaly_type
-            100,   // limit
-        ).await.expect("query should not error");
+            None, // severity
+            None, // anomaly_type
+            100,  // limit
+        )
+        .await
+        .expect("query should not error");
 
         // THEN returns AnomalyPageResponse with empty anomalies[]
         assert_eq!(result.anomalies.len(), 0);
@@ -281,16 +269,16 @@ mod tests {
         }
 
         // WHEN fetch_anomalies with severity="high"
-        let result = fetch_anomalies(
-            &pool,
-            &sovereign_id,
-            Some("high"),
-            None,
-            100,
-        ).await.expect("query should not error");
+        let result = fetch_anomalies(&pool, &sovereign_id, Some("high"), None, 100)
+            .await
+            .expect("query should not error");
 
         // THEN returns ONLY high and critical anomalies
-        assert_eq!(result.anomalies.len(), 2, "should return high and critical anomalies");
+        assert_eq!(
+            result.anomalies.len(),
+            2,
+            "should return high and critical anomalies"
+        );
     }
 
     #[tokio::test]
@@ -302,8 +290,14 @@ mod tests {
 
         // Insert 4 anomalies: 2 dispute_spam, 1 timeout_spam, 1 revocation_pattern
         for (i, atype) in vec![
-            "dispute_spam", "dispute_spam", "timeout_spam", "revocation_pattern"
-        ].iter().enumerate() {
+            "dispute_spam",
+            "dispute_spam",
+            "timeout_spam",
+            "revocation_pattern",
+        ]
+        .iter()
+        .enumerate()
+        {
             let node_id = Uuid::new_v4();
             let ts = now - Duration::hours(i as i64);
             sqlx::query(
@@ -328,13 +322,9 @@ mod tests {
         }
 
         // WHEN fetch_anomalies with type="dispute_spam"
-        let result = fetch_anomalies(
-            &pool,
-            &sovereign_id,
-            None,
-            Some("dispute_spam"),
-            100,
-        ).await.expect("query should not error");
+        let result = fetch_anomalies(&pool, &sovereign_id, None, Some("dispute_spam"), 100)
+            .await
+            .expect("query should not error");
 
         // THEN returns exactly 2 dispute_spam anomalies
         assert_eq!(result.anomalies.len(), 2);
@@ -373,16 +363,16 @@ mod tests {
         }
 
         // WHEN fetch_anomalies()
-        let result = fetch_anomalies(
-            &pool,
-            &sovereign_id,
-            None,
-            None,
-            100,
-        ).await.expect("query should not error");
+        let result = fetch_anomalies(&pool, &sovereign_id, None, None, 100)
+            .await
+            .expect("query should not error");
 
         // THEN returns only 1 and 7 day old anomalies (within 7-day window)
-        assert_eq!(result.anomalies.len(), 2, "should return only anomalies within 7 days");
+        assert_eq!(
+            result.anomalies.len(),
+            2,
+            "should return only anomalies within 7 days"
+        );
     }
 
     #[tokio::test]
@@ -419,13 +409,9 @@ mod tests {
         }
 
         // WHEN fetch_anomalies()
-        let result = fetch_anomalies(
-            &pool,
-            &sovereign_id,
-            None,
-            None,
-            100,
-        ).await.expect("query should not error");
+        let result = fetch_anomalies(&pool, &sovereign_id, None, None, 100)
+            .await
+            .expect("query should not error");
 
         // THEN active_recovery_count = 2
         assert_eq!(result.active_recovery_count, 2);
@@ -442,7 +428,9 @@ mod tests {
         let nonexistent_id = Uuid::new_v4();
 
         // WHEN fetch_recovery(sovereign_id)
-        let result = fetch_recovery(&pool, &nonexistent_id, 100).await.expect("query should not error");
+        let result = fetch_recovery(&pool, &nonexistent_id, 100)
+            .await
+            .expect("query should not error");
 
         // THEN returns RecoveryPageResponse with empty recoveries[]
         assert_eq!(result.recoveries.len(), 0);
@@ -475,7 +463,9 @@ mod tests {
         .expect("insert");
 
         // WHEN fetch_recovery()
-        let result = fetch_recovery(&pool, &sovereign_id, 100).await.expect("query should not error");
+        let result = fetch_recovery(&pool, &sovereign_id, 100)
+            .await
+            .expect("query should not error");
 
         // THEN weeks_elapsed = 2
         assert_eq!(result.recoveries.len(), 1);
@@ -508,7 +498,9 @@ mod tests {
         .expect("insert");
 
         // WHEN fetch_recovery()
-        let result = fetch_recovery(&pool, &sovereign_id, 100).await.expect("query should not error");
+        let result = fetch_recovery(&pool, &sovereign_id, 100)
+            .await
+            .expect("query should not error");
 
         // THEN expected_exit_at = entry_at + 4 weeks
         assert_eq!(result.recoveries.len(), 1);
@@ -534,7 +526,8 @@ mod tests {
             "recovery_to_quarantine",
         ]
         .iter()
-        .enumerate() {
+        .enumerate()
+        {
             let node_id = Uuid::new_v4();
             let entry_at = now - Duration::days(30 + i as i64);
             sqlx::query(
@@ -555,7 +548,9 @@ mod tests {
         }
 
         // WHEN fetch_recovery()
-        let result = fetch_recovery(&pool, &sovereign_id, 100).await.expect("query should not error");
+        let result = fetch_recovery(&pool, &sovereign_id, 100)
+            .await
+            .expect("query should not error");
 
         // THEN recovery_status correctly populated
         assert_eq!(result.recoveries.len(), 3);
@@ -567,11 +562,17 @@ mod tests {
             "should have in_progress status"
         );
         assert!(
-            result.recoveries.iter().any(|r| r.recovery_status == "success"),
+            result
+                .recoveries
+                .iter()
+                .any(|r| r.recovery_status == "success"),
             "should have success status"
         );
         assert!(
-            result.recoveries.iter().any(|r| r.recovery_status == "failed"),
+            result
+                .recoveries
+                .iter()
+                .any(|r| r.recovery_status == "failed"),
             "should have failed status"
         );
     }
@@ -604,9 +605,15 @@ mod tests {
         }
 
         // WHEN fetch_recovery()
-        let result = fetch_recovery(&pool, &sovereign_id, 100).await.expect("query should not error");
+        let result = fetch_recovery(&pool, &sovereign_id, 100)
+            .await
+            .expect("query should not error");
 
         // THEN returns only 30 and 90 day old records (within 90-day window)
-        assert_eq!(result.recoveries.len(), 2, "should return only anomalies within 90 days");
+        assert_eq!(
+            result.recoveries.len(),
+            2,
+            "should return only anomalies within 90 days"
+        );
     }
 }

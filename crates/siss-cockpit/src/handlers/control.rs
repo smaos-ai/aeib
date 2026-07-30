@@ -5,10 +5,7 @@ use axum::http::StatusCode;
 use chrono::Utc;
 use uuid::Uuid;
 
-pub async fn pause_agent(
-    Path(id): Path<Uuid>,
-    State(state): State<CockpitState>,
-) -> StatusCode {
+pub async fn pause_agent(Path(id): Path<Uuid>, State(state): State<CockpitState>) -> StatusCode {
     let event = CockpitEvent {
         event_type: "agent_paused".to_string(),
         agent_id: Some(id.to_string()),
@@ -19,10 +16,7 @@ pub async fn pause_agent(
     StatusCode::ACCEPTED
 }
 
-pub async fn resume_agent(
-    Path(id): Path<Uuid>,
-    State(state): State<CockpitState>,
-) -> StatusCode {
+pub async fn resume_agent(Path(id): Path<Uuid>, State(state): State<CockpitState>) -> StatusCode {
     let event = CockpitEvent {
         event_type: "agent_resumed".to_string(),
         agent_id: Some(id.to_string()),
@@ -33,10 +27,7 @@ pub async fn resume_agent(
     StatusCode::ACCEPTED
 }
 
-pub async fn abort_agent(
-    Path(id): Path<Uuid>,
-    State(state): State<CockpitState>,
-) -> StatusCode {
+pub async fn abort_agent(Path(id): Path<Uuid>, State(state): State<CockpitState>) -> StatusCode {
     let event = CockpitEvent {
         event_type: "agent_aborted".to_string(),
         agent_id: Some(id.to_string()),

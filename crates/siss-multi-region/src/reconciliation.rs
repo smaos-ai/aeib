@@ -1,10 +1,10 @@
+use crate::errors::{MultiRegionError, MultiRegionResult};
+use crate::replication::{ReplicationState, VectorClock};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use uuid::Uuid;
-use serde::{Deserialize, Serialize};
-use crate::errors::{MultiRegionError, MultiRegionResult};
-use crate::replication::{VectorClock, ReplicationState};
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum ReconciliationStrategy {
@@ -141,7 +141,10 @@ impl ReconciliationManager {
     }
 
     /// Get divergence by ID
-    pub async fn get_divergence(&self, divergence_id: Uuid) -> MultiRegionResult<Option<DivergenceEvent>> {
+    pub async fn get_divergence(
+        &self,
+        divergence_id: Uuid,
+    ) -> MultiRegionResult<Option<DivergenceEvent>> {
         let divergences = self.divergences.read().await;
         Ok(divergences.get(&divergence_id).cloned())
     }
@@ -183,10 +186,7 @@ impl ReconciliationManager {
     }
 
     /// Simulate gossip protocol: merge vector clocks across regions
-    pub async fn gossip_merge(
-        &self,
-        divergence_id: Uuid,
-    ) -> MultiRegionResult<VectorClock> {
+    pub async fn gossip_merge(&self, divergence_id: Uuid) -> MultiRegionResult<VectorClock> {
         let divergences = self.divergences.read().await;
 
         if let Some(divergence) = divergences.get(&divergence_id) {
@@ -255,7 +255,11 @@ mod tests {
         vcs.insert("frankfurt".to_string(), VectorClock::new());
 
         let result = manager
-            .detect_divergence(capsule_id, vec!["prague".to_string(), "frankfurt".to_string()], vcs)
+            .detect_divergence(
+                capsule_id,
+                vec!["prague".to_string(), "frankfurt".to_string()],
+                vcs,
+            )
             .await;
 
         assert!(result.is_ok());
@@ -273,12 +277,20 @@ mod tests {
         vcs.insert("frankfurt".to_string(), VectorClock::new());
 
         let divergence = manager
-            .detect_divergence(capsule_id, vec!["prague".to_string(), "frankfurt".to_string()], vcs)
+            .detect_divergence(
+                capsule_id,
+                vec!["prague".to_string(), "frankfurt".to_string()],
+                vcs,
+            )
             .await
             .unwrap();
 
         let result = manager
-            .resolve_lww(divergence.divergence_id, "canonical-data".to_string(), "prague".to_string())
+            .resolve_lww(
+                divergence.divergence_id,
+                "canonical-data".to_string(),
+                "prague".to_string(),
+            )
             .await;
 
         assert!(result.is_ok());
@@ -317,11 +329,18 @@ mod tests {
         vcs.insert("frankfurt".to_string(), vc2);
 
         let divergence = manager
-            .detect_divergence(capsule_id, vec!["prague".to_string(), "frankfurt".to_string()], vcs)
+            .detect_divergence(
+                capsule_id,
+                vec!["prague".to_string(), "frankfurt".to_string()],
+                vcs,
+            )
             .await
             .unwrap();
 
-        let merged = manager.gossip_merge(divergence.divergence_id).await.unwrap();
+        let merged = manager
+            .gossip_merge(divergence.divergence_id)
+            .await
+            .unwrap();
         assert_eq!(merged.get_timestamp("prague"), 1);
         assert_eq!(merged.get_timestamp("frankfurt"), 1);
     }

@@ -28,7 +28,7 @@ pub fn verify_proof_batch(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{create_signing_key, create_test_transformation, create_test_projection};
+    use crate::{create_signing_key, create_test_projection, create_test_transformation};
     use uuid::Uuid;
 
     #[test]
@@ -110,16 +110,8 @@ mod tests {
         let err_count = results.iter().filter(|r| r.is_err()).count();
 
         // First 10 should be Ok, last 1 should be Err
-        assert_eq!(
-            ok_count, 10,
-            "Expected 10 Ok results, got {}",
-            ok_count
-        );
-        assert_eq!(
-            err_count, 1,
-            "Expected 1 Err result, got {}",
-            err_count
-        );
+        assert_eq!(ok_count, 10, "Expected 10 Ok results, got {}", ok_count);
+        assert_eq!(err_count, 1, "Expected 1 Err result, got {}", err_count);
 
         // Verify the tampered proof is the one that failed
         assert!(

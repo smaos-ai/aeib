@@ -1,8 +1,8 @@
 pub mod migrations;
 pub mod repo;
-pub mod types;
 pub mod sse_multiplexer;
 pub mod stream_filter;
+pub mod types;
 
 // Public API
 pub use repo::EventLog;

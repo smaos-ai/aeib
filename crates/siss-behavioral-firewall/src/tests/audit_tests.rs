@@ -1,10 +1,8 @@
 // Phase 25 Wave 3: Audit + Archive Infrastructure Tests
 // Comprehensive TDD test suite for audit logging and merkle archive
 
-use crate::audit::{
-    AuditLogger, EventType, AuditArchive, MerkleArchive,
-};
-use crate::rebac::{SovereignIdentity, PolicyAction, PolicyResource, ReBAC, RelationType};
+use crate::audit::{AuditArchive, AuditLogger, EventType, MerkleArchive};
+use crate::rebac::{PolicyAction, PolicyResource, ReBAC, RelationType, SovereignIdentity};
 use std::time::Duration;
 use uuid::Uuid;
 
@@ -103,10 +101,33 @@ fn test_audit_logger_multiple_events() {
     let identity2 = test_identity(2);
     let resource = test_resource();
 
-    logger.log_rebac_decision(identity1, PolicyAction::Spawn, resource.clone(), true, "Ok".to_string());
-    logger.log_ap2_evaluation(identity2, PolicyAction::ReadMetrics, resource.clone(), true, "Ok".to_string());
-    logger.log_temporal_check(identity1, PolicyAction::AssignTask, false, "Rate limit exceeded".to_string());
-    logger.log_policy_decision(identity2, PolicyAction::DeletePolicy, resource, true, "Permitted".to_string());
+    logger.log_rebac_decision(
+        identity1,
+        PolicyAction::Spawn,
+        resource.clone(),
+        true,
+        "Ok".to_string(),
+    );
+    logger.log_ap2_evaluation(
+        identity2,
+        PolicyAction::ReadMetrics,
+        resource.clone(),
+        true,
+        "Ok".to_string(),
+    );
+    logger.log_temporal_check(
+        identity1,
+        PolicyAction::AssignTask,
+        false,
+        "Rate limit exceeded".to_string(),
+    );
+    logger.log_policy_decision(
+        identity2,
+        PolicyAction::DeletePolicy,
+        resource,
+        true,
+        "Permitted".to_string(),
+    );
 
     assert_eq!(logger.event_count(), 4);
 }
@@ -117,7 +138,13 @@ fn test_audit_logger_event_immutability() {
     let identity = test_identity(1);
     let resource = test_resource();
 
-    logger.log_rebac_decision(identity, PolicyAction::Spawn, resource, true, "Test".to_string());
+    logger.log_rebac_decision(
+        identity,
+        PolicyAction::Spawn,
+        resource,
+        true,
+        "Test".to_string(),
+    );
 
     let events = logger.get_events();
     assert_eq!(events.len(), 1);
@@ -130,7 +157,13 @@ fn test_audit_logger_get_events_immutable_copy() {
     let identity = test_identity(1);
     let resource = test_resource();
 
-    logger.log_rebac_decision(identity, PolicyAction::Spawn, resource, true, "Event1".to_string());
+    logger.log_rebac_decision(
+        identity,
+        PolicyAction::Spawn,
+        resource,
+        true,
+        "Event1".to_string(),
+    );
 
     let events1 = logger.get_events();
     let events2 = logger.get_events();
@@ -146,9 +179,27 @@ fn test_audit_logger_query_by_identity() {
     let identity2 = test_identity(2);
     let resource = test_resource();
 
-    logger.log_rebac_decision(identity1, PolicyAction::Spawn, resource.clone(), true, "Ev1".to_string());
-    logger.log_ap2_evaluation(identity2, PolicyAction::ReadMetrics, resource.clone(), true, "Ev2".to_string());
-    logger.log_rebac_decision(identity1, PolicyAction::Pause, resource, false, "Ev3".to_string());
+    logger.log_rebac_decision(
+        identity1,
+        PolicyAction::Spawn,
+        resource.clone(),
+        true,
+        "Ev1".to_string(),
+    );
+    logger.log_ap2_evaluation(
+        identity2,
+        PolicyAction::ReadMetrics,
+        resource.clone(),
+        true,
+        "Ev2".to_string(),
+    );
+    logger.log_rebac_decision(
+        identity1,
+        PolicyAction::Pause,
+        resource,
+        false,
+        "Ev3".to_string(),
+    );
 
     let identity1_events = logger.query_by_identity(identity1);
     assert_eq!(identity1_events.len(), 2);
@@ -163,9 +214,27 @@ fn test_audit_logger_query_by_action() {
     let identity = test_identity(1);
     let resource = test_resource();
 
-    logger.log_rebac_decision(identity, PolicyAction::Spawn, resource.clone(), true, "A".to_string());
-    logger.log_ap2_evaluation(identity, PolicyAction::ReadMetrics, resource.clone(), true, "B".to_string());
-    logger.log_rebac_decision(identity, PolicyAction::Spawn, resource, false, "C".to_string());
+    logger.log_rebac_decision(
+        identity,
+        PolicyAction::Spawn,
+        resource.clone(),
+        true,
+        "A".to_string(),
+    );
+    logger.log_ap2_evaluation(
+        identity,
+        PolicyAction::ReadMetrics,
+        resource.clone(),
+        true,
+        "B".to_string(),
+    );
+    logger.log_rebac_decision(
+        identity,
+        PolicyAction::Spawn,
+        resource,
+        false,
+        "C".to_string(),
+    );
 
     let spawn_events = logger.query_by_action(PolicyAction::Spawn);
     assert_eq!(spawn_events.len(), 2);
@@ -180,8 +249,20 @@ fn test_audit_logger_query_by_event_type() {
     let identity = test_identity(1);
     let resource = test_resource();
 
-    logger.log_rebac_decision(identity, PolicyAction::Spawn, resource.clone(), true, "A".to_string());
-    logger.log_ap2_evaluation(identity, PolicyAction::ReadMetrics, resource.clone(), true, "B".to_string());
+    logger.log_rebac_decision(
+        identity,
+        PolicyAction::Spawn,
+        resource.clone(),
+        true,
+        "A".to_string(),
+    );
+    logger.log_ap2_evaluation(
+        identity,
+        PolicyAction::ReadMetrics,
+        resource.clone(),
+        true,
+        "B".to_string(),
+    );
     logger.log_temporal_check(identity, PolicyAction::AssignTask, true, "C".to_string());
 
     let rebac_events = logger.query_by_event_type(EventType::ReBAC);
@@ -200,9 +281,27 @@ fn test_audit_logger_query_by_decision() {
     let identity = test_identity(1);
     let resource = test_resource();
 
-    logger.log_rebac_decision(identity, PolicyAction::Spawn, resource.clone(), true, "Allow".to_string());
-    logger.log_ap2_evaluation(identity, PolicyAction::ReadMetrics, resource.clone(), false, "Deny".to_string());
-    logger.log_rebac_decision(identity, PolicyAction::Pause, resource, true, "Allow".to_string());
+    logger.log_rebac_decision(
+        identity,
+        PolicyAction::Spawn,
+        resource.clone(),
+        true,
+        "Allow".to_string(),
+    );
+    logger.log_ap2_evaluation(
+        identity,
+        PolicyAction::ReadMetrics,
+        resource.clone(),
+        false,
+        "Deny".to_string(),
+    );
+    logger.log_rebac_decision(
+        identity,
+        PolicyAction::Pause,
+        resource,
+        true,
+        "Allow".to_string(),
+    );
 
     let allow_events = logger.query_by_decision(true);
     assert_eq!(allow_events.len(), 2);
@@ -229,7 +328,13 @@ fn test_merkle_archive_add_snapshot() {
     let identity = test_identity(1);
     let resource = test_resource();
 
-    logger.log_rebac_decision(identity, PolicyAction::Spawn, resource, true, "Test".to_string());
+    logger.log_rebac_decision(
+        identity,
+        PolicyAction::Spawn,
+        resource,
+        true,
+        "Test".to_string(),
+    );
 
     let root = archive.add_snapshot(logger.get_events());
     assert!(!root.is_empty());
@@ -244,10 +349,22 @@ fn test_merkle_archive_multiple_snapshots() {
     let identity = test_identity(1);
     let resource = test_resource();
 
-    logger1.log_rebac_decision(identity, PolicyAction::Spawn, resource.clone(), true, "Snap1".to_string());
+    logger1.log_rebac_decision(
+        identity,
+        PolicyAction::Spawn,
+        resource.clone(),
+        true,
+        "Snap1".to_string(),
+    );
     let root1 = archive.add_snapshot(logger1.get_events());
 
-    logger2.log_ap2_evaluation(identity, PolicyAction::ReadMetrics, resource, true, "Snap2".to_string());
+    logger2.log_ap2_evaluation(
+        identity,
+        PolicyAction::ReadMetrics,
+        resource,
+        true,
+        "Snap2".to_string(),
+    );
     let root2 = archive.add_snapshot(logger2.get_events());
 
     assert_ne!(root1, root2);
@@ -261,7 +378,13 @@ fn test_merkle_archive_root_hash_consistency() {
     let identity = test_identity(1);
     let resource = test_resource();
 
-    logger.log_rebac_decision(identity, PolicyAction::Spawn, resource, true, "Test".to_string());
+    logger.log_rebac_decision(
+        identity,
+        PolicyAction::Spawn,
+        resource,
+        true,
+        "Test".to_string(),
+    );
     archive.add_snapshot(logger.get_events());
 
     let root1 = archive.root_hash();
@@ -277,7 +400,13 @@ fn test_merkle_archive_verify_snapshot() {
     let identity = test_identity(1);
     let resource = test_resource();
 
-    logger.log_rebac_decision(identity, PolicyAction::Spawn, resource, true, "Test".to_string());
+    logger.log_rebac_decision(
+        identity,
+        PolicyAction::Spawn,
+        resource,
+        true,
+        "Test".to_string(),
+    );
     let root = archive.add_snapshot(logger.get_events());
 
     assert!(archive.verify_snapshot(0, &root).is_ok());
@@ -290,7 +419,13 @@ fn test_merkle_archive_verify_invalid_snapshot() {
     let identity = test_identity(1);
     let resource = test_resource();
 
-    logger.log_rebac_decision(identity, PolicyAction::Spawn, resource, true, "Test".to_string());
+    logger.log_rebac_decision(
+        identity,
+        PolicyAction::Spawn,
+        resource,
+        true,
+        "Test".to_string(),
+    );
     archive.add_snapshot(logger.get_events());
 
     let fake_root = vec![0u8; 32];
@@ -312,7 +447,7 @@ fn test_merkle_archive_snapshot_chain() {
             PolicyAction::Spawn,
             resource.clone(),
             true,
-            format!("Event {}", i)
+            format!("Event {}", i),
         );
         archive.add_snapshot(logger.get_events());
     }
@@ -331,7 +466,13 @@ fn test_merkle_archive_proof_generation() {
     let identity = test_identity(1);
     let resource = test_resource();
 
-    logger.log_rebac_decision(identity, PolicyAction::Spawn, resource, true, "Test".to_string());
+    logger.log_rebac_decision(
+        identity,
+        PolicyAction::Spawn,
+        resource,
+        true,
+        "Test".to_string(),
+    );
     archive.add_snapshot(logger.get_events());
 
     let proof = archive.get_proof(0);
@@ -474,10 +615,28 @@ fn test_audit_archive_diverse_event_types() {
     let identity = test_identity(1);
     let resource = test_resource();
 
-    audit_archive.log_rebac_decision(identity, PolicyAction::Spawn, resource.clone(), true, "R".to_string());
-    audit_archive.log_ap2_evaluation(identity, PolicyAction::ReadMetrics, resource.clone(), true, "A".to_string());
+    audit_archive.log_rebac_decision(
+        identity,
+        PolicyAction::Spawn,
+        resource.clone(),
+        true,
+        "R".to_string(),
+    );
+    audit_archive.log_ap2_evaluation(
+        identity,
+        PolicyAction::ReadMetrics,
+        resource.clone(),
+        true,
+        "A".to_string(),
+    );
     audit_archive.log_temporal_check(identity, PolicyAction::AssignTask, false, "T".to_string());
-    audit_archive.log_policy_decision(identity, PolicyAction::CreatePolicy, resource, true, "P".to_string());
+    audit_archive.log_policy_decision(
+        identity,
+        PolicyAction::CreatePolicy,
+        resource,
+        true,
+        "P".to_string(),
+    );
 
     assert_eq!(audit_archive.event_count(), 4);
 
@@ -678,12 +837,42 @@ fn test_audit_trail_completeness() {
     let resource = test_resource();
 
     // Create diverse audit trail
-    audit.log_rebac_decision(id1, PolicyAction::Spawn, resource.clone(), true, "R1".to_string());
-    audit.log_ap2_evaluation(id1, PolicyAction::ReadMetrics, resource.clone(), true, "A1".to_string());
+    audit.log_rebac_decision(
+        id1,
+        PolicyAction::Spawn,
+        resource.clone(),
+        true,
+        "R1".to_string(),
+    );
+    audit.log_ap2_evaluation(
+        id1,
+        PolicyAction::ReadMetrics,
+        resource.clone(),
+        true,
+        "A1".to_string(),
+    );
     audit.log_temporal_check(id1, PolicyAction::AssignTask, false, "T1".to_string());
-    audit.log_policy_decision(id1, PolicyAction::CreatePolicy, resource.clone(), true, "P1".to_string());
-    audit.log_rebac_decision(id2, PolicyAction::Pause, resource.clone(), false, "R2".to_string());
-    audit.log_ap2_evaluation(id2, PolicyAction::ReadMetrics, resource, false, "A2".to_string());
+    audit.log_policy_decision(
+        id1,
+        PolicyAction::CreatePolicy,
+        resource.clone(),
+        true,
+        "P1".to_string(),
+    );
+    audit.log_rebac_decision(
+        id2,
+        PolicyAction::Pause,
+        resource.clone(),
+        false,
+        "R2".to_string(),
+    );
+    audit.log_ap2_evaluation(
+        id2,
+        PolicyAction::ReadMetrics,
+        resource,
+        false,
+        "A2".to_string(),
+    );
 
     assert_eq!(audit.event_count(), 6);
 

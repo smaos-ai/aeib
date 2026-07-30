@@ -4,7 +4,11 @@ use crate::itar::ItarCategory;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ClassificationLevel {
-    Unclassified, CUI, Secret, TopSecret, TopSecretSCI,
+    Unclassified,
+    CUI,
+    Secret,
+    TopSecret,
+    TopSecretSCI,
 }
 
 #[derive(Debug, Clone)]
@@ -31,17 +35,21 @@ impl DefenseExportControl {
 
     pub fn check_country(&self, dest: &str) -> Result<(), String> {
         if self.country_check.is_denied(dest) {
-            return Err(format!("Export denied: destination '{}' is embargoed", dest));
+            return Err(format!(
+                "Export denied: destination '{}' is embargoed",
+                dest
+            ));
         }
         Ok(())
     }
 
     pub fn check_itar(&self) -> Result<(), String> {
-        if self.itar_category.is_some()
-            && self.classification != ClassificationLevel::Unclassified
+        if self.itar_category.is_some() && self.classification != ClassificationLevel::Unclassified
         {
-            return Err("ITAR controlled item requires export license for classified technology"
-                .to_string());
+            return Err(
+                "ITAR controlled item requires export license for classified technology"
+                    .to_string(),
+            );
         }
         Ok(())
     }
@@ -55,8 +63,9 @@ impl DefenseExportControl {
                     | ClassificationLevel::TopSecretSCI
             )
         {
-            return Err("EAR controlled item at Secret or above requires explicit EAR license"
-                .to_string());
+            return Err(
+                "EAR controlled item at Secret or above requires explicit EAR license".to_string(),
+            );
         }
         Ok(())
     }

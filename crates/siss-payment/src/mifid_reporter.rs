@@ -1,9 +1,9 @@
-use uuid::Uuid;
-use chrono::{DateTime, Utc, Duration};
-use serde::{Deserialize, Serialize};
-use dashmap::DashMap;
-use std::sync::Arc;
 use crate::settlement_builder::SettlementLeg;
+use chrono::{DateTime, Duration, Utc};
+use dashmap::DashMap;
+use serde::{Deserialize, Serialize};
+use std::sync::Arc;
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MifidIIReport {
@@ -45,10 +45,7 @@ impl MifidReporter {
     }
 
     pub fn get_all_reports(&self) -> Vec<MifidIIReport> {
-        self.reports
-            .iter()
-            .map(|e| e.value().clone())
-            .collect()
+        self.reports.iter().map(|e| e.value().clone()).collect()
     }
 
     pub fn count_reports(&self) -> usize {
@@ -66,7 +63,8 @@ impl MifidReporter {
 
     /// Archive reports that have expired (7 year retention enforced)
     pub fn cleanup_expired(&self) -> usize {
-        let expired: Vec<Uuid> = self.reports
+        let expired: Vec<Uuid> = self
+            .reports
             .iter()
             .filter(|e| Utc::now() > e.value().expires_at)
             .map(|e| *e.key())

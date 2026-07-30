@@ -1,6 +1,5 @@
 /// Split-Brain Across Regions: Simulates simultaneous loss of primary + network partition
 /// Tests: Deterministic winner elected via 2PC, no conflicting commits
-
 use std::time::Instant;
 
 pub struct SplitBrainScenario {

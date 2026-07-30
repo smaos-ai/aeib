@@ -1,6 +1,6 @@
-use thiserror::Error;
-use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum AirGappedError {
@@ -58,7 +58,7 @@ impl AirGappedDeployment {
     }
 
     pub async fn initialize_local_crypto_keys(&self) -> Result<CryptoKeys, AirGappedError> {
-        use sha2::{Sha256, Digest};
+        use sha2::{Digest, Sha256};
 
         let mut hasher = Sha256::new();
         hasher.update(self.id.as_bytes());
@@ -76,7 +76,10 @@ impl AirGappedDeployment {
         })
     }
 
-    pub async fn execute_zero_cloud(&self, _context: &ExecutionContext) -> Result<ExecutionResult, AirGappedError> {
+    pub async fn execute_zero_cloud(
+        &self,
+        _context: &ExecutionContext,
+    ) -> Result<ExecutionResult, AirGappedError> {
         Ok(ExecutionResult {
             cloud_api_calls: 0,
             local_only: true,
@@ -84,7 +87,10 @@ impl AirGappedDeployment {
         })
     }
 
-    pub async fn verify_cmmc_l3_isolation(&self, check: &IsolationCheck) -> Result<IsolationVerification, AirGappedError> {
+    pub async fn verify_cmmc_l3_isolation(
+        &self,
+        check: &IsolationCheck,
+    ) -> Result<IsolationVerification, AirGappedError> {
         let is_isolated = check.network_interfaces.iter().all(|iface| iface == "lo0");
 
         Ok(IsolationVerification {

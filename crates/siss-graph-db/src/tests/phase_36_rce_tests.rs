@@ -11,9 +11,9 @@
 
 #[cfg(test)]
 mod phase_36_rce_tests {
-    use uuid::Uuid;
     use chrono::Utc;
     use serde_json::json;
+    use uuid::Uuid;
 
     // =====================================================================
     // TEST HARNESS SETUP & MOCK TYPES
@@ -238,12 +238,7 @@ mod phase_36_rce_tests {
     /// Assertion: Critical processed first, then High, Medium, Low (priority ordering)
     #[tokio::test]
     async fn test_interrupt_severity_levels_respected() {
-        let interrupts = vec![
-            ("Low", 1),
-            ("Critical", 4),
-            ("Medium", 2),
-            ("High", 3),
-        ];
+        let interrupts = vec![("Low", 1), ("Critical", 4), ("Medium", 2), ("High", 3)];
 
         // RCE: process interrupts by severity
         //      if severity == Critical: process immediately

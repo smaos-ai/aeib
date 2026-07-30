@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
-    use siss_agent_shell::a2ui::{A2UIComponent, SelectOption};
     use crate::a2ui::renderer::Renderer;
+    use siss_agent_shell::a2ui::{A2UIComponent, SelectOption};
 
     #[test]
     fn test_render_text_sm() {
@@ -136,7 +136,11 @@ mod tests {
     fn test_render_breadcrumb() {
         let component = A2UIComponent::Breadcrumb {
             id: "breadcrumb1".to_string(),
-            items: vec!["Home".to_string(), "Products".to_string(), "Item".to_string()],
+            items: vec![
+                "Home".to_string(),
+                "Products".to_string(),
+                "Item".to_string(),
+            ],
         };
         let html = Renderer::render(&component);
         assert!(html.contains("Home"));
@@ -191,8 +195,14 @@ mod tests {
             id: "country".to_string(),
             label: "Select Country".to_string(),
             options: vec![
-                SelectOption { value: "us".to_string(), label: "United States".to_string() },
-                SelectOption { value: "uk".to_string(), label: "United Kingdom".to_string() },
+                SelectOption {
+                    value: "us".to_string(),
+                    label: "United States".to_string(),
+                },
+                SelectOption {
+                    value: "uk".to_string(),
+                    label: "United Kingdom".to_string(),
+                },
             ],
         };
         let html = Renderer::render(&component);
@@ -246,13 +256,11 @@ mod tests {
         let component = A2UIComponent::Card {
             id: "card1".to_string(),
             title: Some("Card Title".to_string()),
-            children: vec![
-                A2UIComponent::Text {
-                    id: "text_in_card".to_string(),
-                    content: "Card content".to_string(),
-                    size: None,
-                },
-            ],
+            children: vec![A2UIComponent::Text {
+                id: "text_in_card".to_string(),
+                content: "Card content".to_string(),
+                size: None,
+            }],
         };
         let html = Renderer::render(&component);
         assert!(html.contains("Card Title"));
@@ -276,8 +284,16 @@ mod tests {
             id: "grid1".to_string(),
             columns: 2,
             children: vec![
-                A2UIComponent::Text { id: "grid_text1".to_string(), content: "Item 1".to_string(), size: None },
-                A2UIComponent::Text { id: "grid_text2".to_string(), content: "Item 2".to_string(), size: None },
+                A2UIComponent::Text {
+                    id: "grid_text1".to_string(),
+                    content: "Item 1".to_string(),
+                    size: None,
+                },
+                A2UIComponent::Text {
+                    id: "grid_text2".to_string(),
+                    content: "Item 2".to_string(),
+                    size: None,
+                },
             ],
         };
         let html = Renderer::render(&component);
@@ -361,29 +377,105 @@ mod tests {
     fn test_render_all_18_primitives() {
         // Ensure each of the 18 primitives renders without panic
         let primitives = vec![
-            A2UIComponent::Text { id: "t1".to_string(), content: "text".to_string(), size: None },
-            A2UIComponent::Badge { id: "b1".to_string(), label: "badge".to_string(), color: None },
-            A2UIComponent::Alert { id: "a1".to_string(), message: "alert".to_string(), level: "info".to_string() },
-            A2UIComponent::Progress { id: "p1".to_string(), value: 50, max: 100, label: None },
-            A2UIComponent::Divider { id: "d1".to_string() },
-            A2UIComponent::Link { id: "l1".to_string(), label: "link".to_string(), href: "http://example.com".to_string() },
-            A2UIComponent::Tooltip { id: "tt1".to_string(), text: "tooltip".to_string(), content: "content".to_string() },
-            A2UIComponent::Breadcrumb { id: "bc1".to_string(), items: vec!["home".to_string()] },
-            A2UIComponent::Input { id: "input".to_string(), label: "input".to_string(), placeholder: None, required: false },
-            A2UIComponent::Textarea { id: "textarea".to_string(), label: "textarea".to_string(), rows: None },
-            A2UIComponent::Select { id: "select".to_string(), label: "select".to_string(), options: vec![] },
-            A2UIComponent::Checkbox { id: "checkbox".to_string(), label: "checkbox".to_string(), checked: false },
-            A2UIComponent::Radio { id: "radio".to_string(), label: "radio".to_string(), value: "v1".to_string(), checked: false },
-            A2UIComponent::Button { id: "button".to_string(), label: "button".to_string(), action: None },
-            A2UIComponent::Card { id: "c1".to_string(), title: None, children: vec![] },
-            A2UIComponent::Grid { id: "g1".to_string(), columns: 1, children: vec![] },
-            A2UIComponent::Modal { id: "m1".to_string(), title: "modal".to_string(), content: "content".to_string(), children: vec![] },
-            A2UIComponent::Table { id: "t2".to_string(), headers: vec![], rows: vec![] },
+            A2UIComponent::Text {
+                id: "t1".to_string(),
+                content: "text".to_string(),
+                size: None,
+            },
+            A2UIComponent::Badge {
+                id: "b1".to_string(),
+                label: "badge".to_string(),
+                color: None,
+            },
+            A2UIComponent::Alert {
+                id: "a1".to_string(),
+                message: "alert".to_string(),
+                level: "info".to_string(),
+            },
+            A2UIComponent::Progress {
+                id: "p1".to_string(),
+                value: 50,
+                max: 100,
+                label: None,
+            },
+            A2UIComponent::Divider {
+                id: "d1".to_string(),
+            },
+            A2UIComponent::Link {
+                id: "l1".to_string(),
+                label: "link".to_string(),
+                href: "http://example.com".to_string(),
+            },
+            A2UIComponent::Tooltip {
+                id: "tt1".to_string(),
+                text: "tooltip".to_string(),
+                content: "content".to_string(),
+            },
+            A2UIComponent::Breadcrumb {
+                id: "bc1".to_string(),
+                items: vec!["home".to_string()],
+            },
+            A2UIComponent::Input {
+                id: "input".to_string(),
+                label: "input".to_string(),
+                placeholder: None,
+                required: false,
+            },
+            A2UIComponent::Textarea {
+                id: "textarea".to_string(),
+                label: "textarea".to_string(),
+                rows: None,
+            },
+            A2UIComponent::Select {
+                id: "select".to_string(),
+                label: "select".to_string(),
+                options: vec![],
+            },
+            A2UIComponent::Checkbox {
+                id: "checkbox".to_string(),
+                label: "checkbox".to_string(),
+                checked: false,
+            },
+            A2UIComponent::Radio {
+                id: "radio".to_string(),
+                label: "radio".to_string(),
+                value: "v1".to_string(),
+                checked: false,
+            },
+            A2UIComponent::Button {
+                id: "button".to_string(),
+                label: "button".to_string(),
+                action: None,
+            },
+            A2UIComponent::Card {
+                id: "c1".to_string(),
+                title: None,
+                children: vec![],
+            },
+            A2UIComponent::Grid {
+                id: "g1".to_string(),
+                columns: 1,
+                children: vec![],
+            },
+            A2UIComponent::Modal {
+                id: "m1".to_string(),
+                title: "modal".to_string(),
+                content: "content".to_string(),
+                children: vec![],
+            },
+            A2UIComponent::Table {
+                id: "t2".to_string(),
+                headers: vec![],
+                rows: vec![],
+            },
         ];
 
         for component in primitives {
             let html = Renderer::render(&component);
-            assert!(!html.is_empty(), "Primitive should render to non-empty HTML");
+            assert!(
+                !html.is_empty(),
+                "Primitive should render to non-empty HTML"
+            );
         }
     }
 }

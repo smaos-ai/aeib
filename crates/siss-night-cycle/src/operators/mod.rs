@@ -1,18 +1,18 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-pub mod phi;
-pub mod phi_pruner;
 pub mod delta;
 pub mod gamma;
+pub mod phi;
+pub mod phi_pruner;
 
 #[cfg(test)]
 mod tests;
 
-pub use phi::PhiOperator;
-pub use phi_pruner::SafePruningPhiOperator;
 pub use delta::DeltaOperator;
 pub use gamma::GammaOperator;
+pub use phi::PhiOperator;
+pub use phi_pruner::SafePruningPhiOperator;
 
 /// OntologyEntity: core unit for night cycle operators
 #[derive(Clone, Debug, Serialize, Deserialize)]

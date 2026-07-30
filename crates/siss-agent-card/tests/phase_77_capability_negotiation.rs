@@ -1,14 +1,14 @@
 // Phase 77: Capability Negotiation & Agent-to-Agent (A2A) Discovery
 // 12 Integration Tests: Agent Cards, DIDs, Signatures, E2E Encryption, JSON-LD, JSON-RPC, SSE, Artifacts
 
-use serde_json::json;
-use tokio::sync::Mutex;
-use std::sync::Arc;
-use uuid::Uuid;
-use chrono::Utc;
-use ed25519_dalek::{SigningKey, VerifyingKey, Signature, Signer, Verifier};
-use rand::rngs::OsRng;
 use base64::Engine;
+use chrono::Utc;
+use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
+use rand::rngs::OsRng;
+use serde_json::json;
+use std::sync::Arc;
+use tokio::sync::Mutex;
+use uuid::Uuid;
 
 // ====== Mock Infrastructure for Protocol Testing ======
 
@@ -67,7 +67,10 @@ async fn test_agent_card_retrieval_from_well_known_endpoint() {
     assert!(card_json.get("agent_url").is_some());
     assert!(card_json.get("skills").is_some());
     assert!(card_json.get("capabilities").is_some());
-    assert_eq!(card_json.get("did").unwrap().as_str(), Some("did:smaos:agent-123"));
+    assert_eq!(
+        card_json.get("did").unwrap().as_str(),
+        Some("did:smaos:agent-123")
+    );
 
     // Verify capabilities are parseable
     let caps = card_json.get("capabilities").unwrap().as_object().unwrap();
@@ -83,7 +86,11 @@ async fn test_capability_parsing_from_agent_card() {
 
     let caps = card_json.get("capabilities").unwrap().as_object().unwrap();
     let can_stream = caps.get("can_stream").unwrap().as_bool().unwrap();
-    let can_push = caps.get("can_push_notifications").unwrap().as_bool().unwrap();
+    let can_push = caps
+        .get("can_push_notifications")
+        .unwrap()
+        .as_bool()
+        .unwrap();
 
     // Verify runtime behavior respects parsed flags
     assert!(can_stream, "should support SSE streaming");
@@ -115,7 +122,10 @@ async fn test_did_resolution_w3c_compliant() {
 
     // Verify DID format compliance
     assert!(did.starts_with("did:"), "DID must follow W3C format");
-    assert!(did.split(':').count() >= 3, "DID must have at least 3 parts");
+    assert!(
+        did.split(':').count() >= 3,
+        "DID must have at least 3 parts"
+    );
 
     // Mock DID document structure (would be fetched in real scenario)
     let did_document = json!({
@@ -154,7 +164,10 @@ async fn test_ed25519_signature_attestation() {
     // Verify tampering is detected
     let tampered_message = format!("authenticate:{}:{}", Uuid::new_v4(), Utc::now().timestamp());
     let tamper_result = verifying_key.verify(tampered_message.as_bytes(), &signature);
-    assert!(tamper_result.is_err(), "tampered message must fail verification (Fail-Closed)");
+    assert!(
+        tamper_result.is_err(),
+        "tampered message must fail verification (Fail-Closed)"
+    );
 }
 
 #[tokio::test]
@@ -171,7 +184,10 @@ async fn test_e2e_encryption_handshake() {
 
     // Verify no plaintext payloads
     let encrypted_payload = "encrypted_blob_not_readable";
-    assert!(!encrypted_payload.contains("plaintext"), "no plaintext allowed");
+    assert!(
+        !encrypted_payload.contains("plaintext"),
+        "no plaintext allowed"
+    );
 
     // Verify handshake would fail if encryption cannot be established
     let handshake_failure = true; // simulate negotiation failure
@@ -201,7 +217,10 @@ async fn test_jsonld_semantic_validation() {
     });
 
     // Verify @context is present and resolvable
-    assert!(valid_payload.get("@context").is_some(), "@context required for semantic validation");
+    assert!(
+        valid_payload.get("@context").is_some(),
+        "@context required for semantic validation"
+    );
 
     // Verify numeric fields carry semantic type annotations
     let price = valid_payload.get("price").unwrap().as_object().unwrap();
@@ -217,7 +236,10 @@ async fn test_jsonld_semantic_validation() {
     });
 
     let is_valid = invalid_payload.get("@context").is_some();
-    assert!(!is_valid, "semantically invalid payload must be rejected (Fail-Closed)");
+    assert!(
+        !is_valid,
+        "semantically invalid payload must be rejected (Fail-Closed)"
+    );
 }
 
 #[tokio::test]
@@ -235,7 +257,10 @@ async fn test_jsonrpc_envelope_format() {
     });
 
     // Verify JSON-RPC structure
-    assert_eq!(jsonrpc_request.get("jsonrpc").unwrap().as_str(), Some("2.0"));
+    assert_eq!(
+        jsonrpc_request.get("jsonrpc").unwrap().as_str(),
+        Some("2.0")
+    );
     assert!(jsonrpc_request.get("method").is_some());
     assert!(jsonrpc_request.get("params").is_some());
     assert!(jsonrpc_request.get("id").is_some());
@@ -251,7 +276,10 @@ async fn test_jsonrpc_envelope_format() {
     });
 
     // Verify response structure
-    assert_eq!(jsonrpc_response.get("jsonrpc").unwrap().as_str(), Some("2.0"));
+    assert_eq!(
+        jsonrpc_response.get("jsonrpc").unwrap().as_str(),
+        Some("2.0")
+    );
     assert!(jsonrpc_response.get("result").is_some() || jsonrpc_response.get("error").is_some());
     assert_eq!(
         jsonrpc_request.get("id").unwrap().as_str(),
@@ -268,7 +296,10 @@ async fn test_jsonrpc_envelope_format() {
     let is_valid_rpc = malformed.get("jsonrpc").is_some()
         && malformed.get("method").is_some()
         && malformed.get("id").is_some();
-    assert!(!is_valid_rpc, "malformed RPC envelope must be rejected (Fail-Closed)");
+    assert!(
+        !is_valid_rpc,
+        "malformed RPC envelope must be rejected (Fail-Closed)"
+    );
 }
 
 // ====== Group D: Task Delegation & Streaming (3 tests) ======
@@ -303,8 +334,15 @@ async fn test_state_transition_tracking() {
     // Verify linear progression (no backward transitions)
     {
         let states = task_states.lock().await;
-        let task_state = states.iter().find(|(id, _)| *id == task_id).map(|(_, s)| s.clone());
-        assert_eq!(task_state, Some(TaskState::Working), "task must transition to Working");
+        let task_state = states
+            .iter()
+            .find(|(id, _)| *id == task_id)
+            .map(|(_, s)| s.clone());
+        assert_eq!(
+            task_state,
+            Some(TaskState::Working),
+            "task must transition to Working"
+        );
     }
 
     // Test illegal transition (completed -> working)
@@ -314,7 +352,10 @@ async fn test_state_transition_tracking() {
     }
 
     let completed_to_working_allowed = false; // Enforce strict state machine
-    assert!(!completed_to_working_allowed, "illegal transitions must be rejected");
+    assert!(
+        !completed_to_working_allowed,
+        "illegal transitions must be rejected"
+    );
 }
 
 #[tokio::test]
@@ -352,7 +393,7 @@ async fn test_sse_stream_handling() {
 #[tokio::test]
 async fn test_artifact_handover_with_hash_verification() {
     // Test-15: File attachments and artifacts are securely handed over and hash-verified
-    use sha2::{Sha256, Digest};
+    use sha2::{Digest, Sha256};
 
     let artifact_content = "sensitive data content";
     let mut hasher = Sha256::new();
@@ -366,7 +407,10 @@ async fn test_artifact_handover_with_hash_verification() {
     let received_hash = format!("{:x}", hasher.finalize());
 
     // Verify hash match
-    assert_eq!(original_hash, received_hash, "artifact hashes must match exactly");
+    assert_eq!(
+        original_hash, received_hash,
+        "artifact hashes must match exactly"
+    );
 
     // Test tampered artifact detection
     let tampered_content = "tampered data content";
@@ -374,7 +418,10 @@ async fn test_artifact_handover_with_hash_verification() {
     hasher.update(tampered_content.as_bytes());
     let tampered_hash = format!("{:x}", hasher.finalize());
 
-    assert_ne!(original_hash, tampered_hash, "tampered artifacts must be detected (Fail-Closed)");
+    assert_ne!(
+        original_hash, tampered_hash,
+        "tampered artifacts must be detected (Fail-Closed)"
+    );
 }
 
 #[tokio::test]
@@ -426,12 +473,17 @@ async fn test_negotiation_timeout_and_deadlock_detection() {
 
     // Verify timeout behavior
     assert!(
-        state == NegotiationState::Accepted || state == NegotiationState::Expired || state == NegotiationState::Deadlocked,
+        state == NegotiationState::Accepted
+            || state == NegotiationState::Expired
+            || state == NegotiationState::Deadlocked,
         "negotiation must reach terminal state"
     );
 
     // Verify no partial commitments in expired/deadlocked state
     if state == NegotiationState::Expired || state == NegotiationState::Deadlocked {
-        assert!(true, "connection must be terminated; no AP2 operations initiated (Fail-Closed)");
+        assert!(
+            true,
+            "connection must be terminated; no AP2 operations initiated (Fail-Closed)"
+        );
     }
 }

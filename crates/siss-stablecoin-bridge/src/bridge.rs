@@ -1,7 +1,7 @@
-use std::sync::Arc;
-use tokio::sync::RwLock;
-use std::sync::atomic::{AtomicBool, Ordering};
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
+use tokio::sync::RwLock;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum BridgeStatus {

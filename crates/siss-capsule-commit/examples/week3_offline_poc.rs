@@ -1,3 +1,6 @@
+use chrono::Utc;
+use sha2::{Digest, Sha256};
+use std::collections::{HashMap, HashSet};
 /// Week 3 Offline PoC: All 5 Agents Committing in Parallel
 /// Demonstrates safe simultaneous commit orchestration through CapsuleCommitActor
 ///
@@ -6,11 +9,7 @@
 /// System approves all 5 in parallel (oldest-first ordering).
 ///
 /// Run with: cargo run --example week3_offline_poc
-
 use uuid::Uuid;
-use chrono::Utc;
-use sha2::{Sha256, Digest};
-use std::collections::{HashMap, HashSet};
 
 #[derive(Clone, Debug)]
 pub struct CommitmentCapsule {
@@ -94,24 +93,17 @@ impl CapsuleOrchestrator {
     }
 
     fn verify_hash(&self, capsule: &CommitmentCapsule) -> bool {
-        let expected = CommitmentCapsule::compute_hash(
-            &capsule.git_diff,
-            &capsule.affected_symbols,
-        );
+        let expected =
+            CommitmentCapsule::compute_hash(&capsule.git_diff, &capsule.affected_symbols);
         capsule.capsule_hash == expected
     }
 
-    fn check_intersection(
-        &self,
-        incoming: &CommitmentCapsule,
-    ) -> Option<(String, Vec<String>)> {
+    fn check_intersection(&self, incoming: &CommitmentCapsule) -> Option<(String, Vec<String>)> {
         // Check against pending capsules
         for pending in &self.pending_capsules {
             // Level 1: Cluster tag intersection
-            let incoming_clusters: HashSet<_> =
-                incoming.cluster_tags.iter().cloned().collect();
-            let pending_clusters: HashSet<_> =
-                pending.cluster_tags.iter().cloned().collect();
+            let incoming_clusters: HashSet<_> = incoming.cluster_tags.iter().cloned().collect();
+            let pending_clusters: HashSet<_> = pending.cluster_tags.iter().cloned().collect();
 
             let cluster_overlap: Vec<_> = incoming_clusters
                 .intersection(&pending_clusters)
@@ -129,10 +121,8 @@ impl CapsuleOrchestrator {
             }
 
             // Level 2: Symbol intersection
-            let incoming_symbols: HashSet<_> =
-                incoming.affected_symbols.iter().cloned().collect();
-            let pending_symbols: HashSet<_> =
-                pending.affected_symbols.iter().cloned().collect();
+            let incoming_symbols: HashSet<_> = incoming.affected_symbols.iter().cloned().collect();
+            let pending_symbols: HashSet<_> = pending.affected_symbols.iter().cloned().collect();
 
             let symbol_overlap: Vec<_> = incoming_symbols
                 .intersection(&pending_symbols)
@@ -157,7 +147,8 @@ impl CapsuleOrchestrator {
         // Step 1: Verify hash
         if !self.verify_hash(&capsule) {
             let reason = format!("Hash mismatch");
-            self.rejected_capsules.push((capsule.clone(), reason.clone()));
+            self.rejected_capsules
+                .push((capsule.clone(), reason.clone()));
             return MergeDecision::Rejected {
                 capsule_id: capsule.capsule_id,
                 reason,
@@ -255,7 +246,10 @@ fn main() {
     let capsule_a = CommitmentCapsule::new(
         agents[0].0,
         agents[0].1,
-        vec!["enforce_access_policy".to_string(), "verify_credentials".to_string()],
+        vec![
+            "enforce_access_policy".to_string(),
+            "verify_credentials".to_string(),
+        ],
         vec!["crates/siss-gatekeeper/src/lib.rs".to_string()],
         "diff --git a/crates/siss-gatekeeper/src/lib.rs".to_string(),
         vec!["access-control-cluster".to_string()],
@@ -285,7 +279,10 @@ fn main() {
     let capsule_d = CommitmentCapsule::new(
         agents[3].0,
         agents[3].1,
-        vec!["process_payment".to_string(), "authorize_mandate".to_string()],
+        vec![
+            "process_payment".to_string(),
+            "authorize_mandate".to_string(),
+        ],
         vec!["crates/siss-ap2-enforcer/src/mandates.rs".to_string()],
         "diff --git a/crates/siss-ap2-enforcer/src/mandates.rs".to_string(),
         vec!["mandates-cluster".to_string()],
@@ -295,7 +292,10 @@ fn main() {
     let capsule_e = CommitmentCapsule::new(
         agents[4].0,
         agents[4].1,
-        vec!["ingest_capsule".to_string(), "execute_decisions".to_string()],
+        vec![
+            "ingest_capsule".to_string(),
+            "execute_decisions".to_string(),
+        ],
         vec!["crates/siss-capsule-commit/src/orchestration/capsule_commit_actor.rs".to_string()],
         "diff --git a/crates/siss-capsule-commit/src/orchestration".to_string(),
         vec!["orchestration-cluster".to_string()],
@@ -382,10 +382,16 @@ fn main() {
             MergeDecision::Approved { agent_name, .. } => {
                 println!("  ✓ {} APPROVED", agent_name);
             }
-            MergeDecision::HaltForPhiPlus { capsule_id: _, reason } => {
+            MergeDecision::HaltForPhiPlus {
+                capsule_id: _,
+                reason,
+            } => {
                 println!("  ⚠ HALT: {}", reason);
             }
-            MergeDecision::Rejected { capsule_id: _, reason } => {
+            MergeDecision::Rejected {
+                capsule_id: _,
+                reason,
+            } => {
                 println!("  ✗ REJECTED: {}", reason);
             }
         }

@@ -1,7 +1,9 @@
-use siss_swarm_attestation::mcp::{MerkleSwarmState, compute_merkle_root, sign_state, verify_peer_attestation};
+use chrono::Utc;
 use ed25519_dalek::SigningKey;
 use rand::rngs::OsRng;
-use chrono::Utc;
+use siss_swarm_attestation::mcp::{
+    MerkleSwarmState, compute_merkle_root, sign_state, verify_peer_attestation,
+};
 
 #[test]
 fn test_compute_deterministic_merkle_root() {
@@ -53,7 +55,8 @@ fn test_sign_and_verify_attestation() {
     };
 
     let sig = sign_state(&state, &signing_key).expect("signing failed");
-    let valid = verify_peer_attestation("node1", "abc123", &sig, &verifying_key).expect("verification failed");
+    let valid = verify_peer_attestation("node1", "abc123", &sig, &verifying_key)
+        .expect("verification failed");
     assert!(valid, "Attestation must verify");
 }
 
@@ -77,6 +80,7 @@ fn test_reject_tampered_attestation() {
 
     let sig = sign_state(&state, &signing_key).expect("signing failed");
     // Tamper with merkle_root
-    let valid = verify_peer_attestation("node1", "xyz789", &sig, &verifying_key).expect("verification check failed");
+    let valid = verify_peer_attestation("node1", "xyz789", &sig, &verifying_key)
+        .expect("verification check failed");
     assert!(!valid, "Tampered attestation must fail");
 }

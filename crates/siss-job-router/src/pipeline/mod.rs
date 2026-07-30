@@ -7,8 +7,8 @@ use sqlx::PgPool;
 use crate::executor::{Executor, TaskContext};
 use crate::strategy::RoutingStrategy;
 use crate::types::{RouterError, RoutingRequest, RoutingResult};
-use siss_graph_core::node::NodeId;
 use siss_event_log::{EventLog, SystemEvent};
+use siss_graph_core::node::NodeId;
 
 /// The sole entry point for task routing and dispatch.
 /// Runs the full pipeline: validate → check dependencies → route → execute.
@@ -67,9 +67,9 @@ async fn validate_dependencies(
                     message: format!("Failed to check dependency {}: {}", dep_id, e),
                 })?;
 
-            let is_completed = events.iter().any(|event| {
-                matches!(event, SystemEvent::JobCompleted { .. })
-            });
+            let is_completed = events
+                .iter()
+                .any(|event| matches!(event, SystemEvent::JobCompleted { .. }));
 
             if !is_completed {
                 return Err(RouterError::ExecutionFailed {

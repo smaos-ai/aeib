@@ -449,7 +449,7 @@ mod tests {
 
         sqlx::query(
             "INSERT INTO graph_entities (id, label, properties, graph_id, created_at)
-             VALUES ($1, $2, $3, $4, $5)"
+             VALUES ($1, $2, $3, $4, $5)",
         )
         .bind(anomaly_id)
         .bind("AnomalyChainNode")

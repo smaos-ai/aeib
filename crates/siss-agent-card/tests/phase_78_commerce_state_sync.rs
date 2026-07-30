@@ -1,6 +1,10 @@
-use siss_gatekeeper::{commerce, acp};
+use siss_gatekeeper::{acp, commerce};
 use sqlx::PgPool;
-use testcontainers::{GenericImage, ImageExt, core::{WaitFor, ContainerPort}, runners::AsyncRunner};
+use testcontainers::{
+    GenericImage, ImageExt,
+    core::{ContainerPort, WaitFor},
+    runners::AsyncRunner,
+};
 use uuid::Uuid;
 
 async fn start_postgres() -> (testcontainers::ContainerAsync<GenericImage>, PgPool) {
@@ -89,7 +93,10 @@ async fn test_agent_card_not_found_error() {
     let agent_id = "nonexistent@example.com";
 
     let result = commerce::fetch_agent_card(&pool, endpoint, agent_id).await;
-    assert!(result.is_err(), "fetch_agent_card should fail for non-existent agent");
+    assert!(
+        result.is_err(),
+        "fetch_agent_card should fail for non-existent agent"
+    );
 }
 
 #[tokio::test]
@@ -102,7 +109,10 @@ async fn test_agent_card_signature_validation_failure() {
     let tampered_key = "0000000000000000000000000000000000000000000000000000000000000000";
 
     let result = commerce::verify_agent_card_signature(&pool, agent_id, tampered_key).await;
-    assert!(result.is_err(), "verify_agent_card_signature should reject invalid signatures");
+    assert!(
+        result.is_err(),
+        "verify_agent_card_signature should reject invalid signatures"
+    );
 }
 
 // Group B: UCP Checkout (4 tests)
@@ -154,7 +164,9 @@ async fn test_ucp_checkout_signed_by_buyer() {
 
     // Verify signature is valid
     let checkout = result.unwrap();
-    let sig_valid = commerce::verify_checkout_signature(&pool, &checkout).await.unwrap_or(false);
+    let sig_valid = commerce::verify_checkout_signature(&pool, &checkout)
+        .await
+        .unwrap_or(false);
     assert!(sig_valid, "checkout signature should be valid");
 }
 
@@ -169,7 +181,10 @@ async fn test_ucp_checkout_prevents_self_trade() {
     let amount = 50000;
 
     let result = commerce::create_checkout_request(&pool, agent, agent, items, amount).await;
-    assert!(result.is_err(), "create_checkout_request should reject self-trades");
+    assert!(
+        result.is_err(),
+        "create_checkout_request should reject self-trades"
+    );
 }
 
 // Group C: AP2 Intent Mandates (4 tests)
@@ -201,7 +216,8 @@ async fn test_create_ap2_intent_mandate() {
     .await
     .expect("insert checkout");
 
-    let result = commerce::create_intent_mandate(&pool, checkout_id, buyer_proof, ceiling_tier).await;
+    let result =
+        commerce::create_intent_mandate(&pool, checkout_id, buyer_proof, ceiling_tier).await;
     assert!(result.is_ok(), "create_intent_mandate should succeed");
 }
 
@@ -215,7 +231,8 @@ async fn test_ap2_intent_mandate_enforces_ceiling_tier() {
     let buyer_proof = "proof_signature_here";
     let ceiling_tier = "BRONZE"; // Lower tier, should constrain amount
 
-    let _result = commerce::create_intent_mandate(&pool, checkout_id, buyer_proof, ceiling_tier).await;
+    let _result =
+        commerce::create_intent_mandate(&pool, checkout_id, buyer_proof, ceiling_tier).await;
     // Depends on checkout amount; if too high, should fail
 }
 
@@ -279,7 +296,10 @@ async fn test_ap2_settlement_crash_recovery() {
     for _ in 0..100 {
         let result = commerce::execute_ap2_settlement(&pool, mandate_id, consensus_proof).await;
         // Each execution should be idempotent
-        assert!(result.is_ok() || result.is_err(), "settlement should be idempotent");
+        assert!(
+            result.is_ok() || result.is_err(),
+            "settlement should be idempotent"
+        );
     }
 }
 
@@ -296,7 +316,14 @@ async fn test_route_stateful_message_direct() {
     let message = "Hello, Agent2!".to_string();
     let context_state = serde_json::json!({"session": "12345", "auth": "verified"});
 
-    let result = acp::route_stateful_message(&pool, source_agent, target_agent, message, context_state.clone()).await;
+    let result = acp::route_stateful_message(
+        &pool,
+        source_agent,
+        target_agent,
+        message,
+        context_state.clone(),
+    )
+    .await;
     assert!(result.is_ok(), "route_stateful_message should succeed");
 }
 
@@ -313,18 +340,36 @@ async fn test_acp_context_preservation_multi_hop() {
     let context_state = serde_json::json!({"hops": 0, "auth": "verified"});
 
     // Route from source to intermediary
-    let result1 = acp::route_stateful_message(&pool, source_agent, intermediary_agent, message.clone(), context_state.clone()).await;
+    let result1 = acp::route_stateful_message(
+        &pool,
+        source_agent,
+        intermediary_agent,
+        message.clone(),
+        context_state.clone(),
+    )
+    .await;
     assert!(result1.is_ok());
 
     // Route from intermediary to target
     let routed1 = result1.unwrap();
-    let result2 = acp::route_stateful_message(&pool, intermediary_agent, target_agent, routed1.message, routed1.context_state).await;
+    let result2 = acp::route_stateful_message(
+        &pool,
+        intermediary_agent,
+        target_agent,
+        routed1.message,
+        routed1.context_state,
+    )
+    .await;
     assert!(result2.is_ok());
 
     // Verify context integrity (auth field unchanged)
     let routed2 = result2.unwrap();
     let auth_field = routed2.context_state.get("auth").and_then(|v| v.as_str());
-    assert_eq!(auth_field, Some("verified"), "context state should preserve auth field");
+    assert_eq!(
+        auth_field,
+        Some("verified"),
+        "context state should preserve auth field"
+    );
 }
 
 #[tokio::test]
@@ -348,12 +393,26 @@ async fn test_acp_message_routing_with_large_context() {
     }
     large_context = serde_json::Value::Object(data);
 
-    let result = acp::route_stateful_message(&pool, source_agent, target_agent, message, large_context.clone()).await;
-    assert!(result.is_ok(), "route_stateful_message should handle large context");
+    let result = acp::route_stateful_message(
+        &pool,
+        source_agent,
+        target_agent,
+        message,
+        large_context.clone(),
+    )
+    .await;
+    assert!(
+        result.is_ok(),
+        "route_stateful_message should handle large context"
+    );
 
     // Verify context wasn't corrupted
     let routed = result.unwrap();
-    assert_eq!(routed.context_state.as_object().map(|o| o.len()), Some(100), "context should preserve all fields");
+    assert_eq!(
+        routed.context_state.as_object().map(|o| o.len()),
+        Some(100),
+        "context should preserve all fields"
+    );
 }
 
 #[tokio::test]
@@ -367,7 +426,14 @@ async fn test_acp_message_log_persistence() {
     let message = "Logged message".to_string();
     let context_state = serde_json::json!({"log": true});
 
-    let result = acp::route_stateful_message(&pool, source_agent, target_agent, message.clone(), context_state).await;
+    let result = acp::route_stateful_message(
+        &pool,
+        source_agent,
+        target_agent,
+        message.clone(),
+        context_state,
+    )
+    .await;
     assert!(result.is_ok());
 
     let _routed = result.unwrap();
@@ -382,5 +448,8 @@ async fn test_acp_message_log_persistence() {
     .await
     .expect("query log");
 
-    assert!(log_entry.is_some(), "acp_message_log should record routing event");
+    assert!(
+        log_entry.is_some(),
+        "acp_message_log should record routing event"
+    );
 }

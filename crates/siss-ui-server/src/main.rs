@@ -1,4 +1,4 @@
-use siss_ui_server::{AppState, create_router};
+use siss_ui_server::{create_router, AppState};
 use std::net::SocketAddr;
 
 #[tokio::main]
@@ -13,7 +13,5 @@ async fn main() {
         .await
         .expect("Failed to bind to port 8080");
 
-    axum::serve(listener, app)
-        .await
-        .expect("Server error");
+    axum::serve(listener, app).await.expect("Server error");
 }

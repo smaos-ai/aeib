@@ -1,17 +1,17 @@
 // Phase 25 Wave 3: Audit + Archive Infrastructure
 // Immutable audit logging with merkle tree archival + S3 export
 
+mod archive;
 mod events;
 mod logger;
-mod archive;
 mod s3_exporter;
 
+pub use archive::MerkleArchive;
 pub use events::{AuditEvent, EventType};
 pub use logger::AuditLogger;
-pub use archive::MerkleArchive;
-pub use s3_exporter::{S3Exporter, S3ArchiveMetadata};
+pub use s3_exporter::{S3ArchiveMetadata, S3Exporter};
 
-use crate::rebac::{SovereignIdentity, PolicyAction, PolicyResource};
+use crate::rebac::{PolicyAction, PolicyResource, SovereignIdentity};
 
 /// Integrated audit archive combining logger + merkle archive
 pub struct AuditArchive {
@@ -35,7 +35,8 @@ impl AuditArchive {
         decision: bool,
         reason: String,
     ) -> Option<uuid::Uuid> {
-        self.logger.log_rebac_decision(sovereign_id, action, resource, decision, reason)
+        self.logger
+            .log_rebac_decision(sovereign_id, action, resource, decision, reason)
     }
 
     pub fn log_ap2_evaluation(
@@ -46,7 +47,8 @@ impl AuditArchive {
         decision: bool,
         reason: String,
     ) -> Option<uuid::Uuid> {
-        self.logger.log_ap2_evaluation(sovereign_id, action, resource, decision, reason)
+        self.logger
+            .log_ap2_evaluation(sovereign_id, action, resource, decision, reason)
     }
 
     pub fn log_temporal_check(
@@ -56,7 +58,8 @@ impl AuditArchive {
         decision: bool,
         reason: String,
     ) -> Option<uuid::Uuid> {
-        self.logger.log_temporal_check(sovereign_id, action, decision, reason)
+        self.logger
+            .log_temporal_check(sovereign_id, action, decision, reason)
     }
 
     pub fn log_policy_decision(
@@ -67,7 +70,8 @@ impl AuditArchive {
         decision: bool,
         reason: String,
     ) -> Option<uuid::Uuid> {
-        self.logger.log_policy_decision(sovereign_id, action, resource, decision, reason)
+        self.logger
+            .log_policy_decision(sovereign_id, action, resource, decision, reason)
     }
 
     pub fn event_count(&self) -> usize {

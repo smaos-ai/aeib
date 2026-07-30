@@ -73,11 +73,9 @@ impl LeaderElection {
             .collect();
 
         // Sort by count descending, then by candidate ID ascending (deterministic tiebreaker)
-        candidates_with_quorum.sort_by(|a, b| {
-            match b.1.cmp(&a.1) {
-                std::cmp::Ordering::Equal => a.0.cmp(&b.0),
-                other => other,
-            }
+        candidates_with_quorum.sort_by(|a, b| match b.1.cmp(&a.1) {
+            std::cmp::Ordering::Equal => a.0.cmp(&b.0),
+            other => other,
         });
 
         if let Some((ref candidate, _)) = candidates_with_quorum.first() {

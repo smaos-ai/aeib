@@ -1,10 +1,10 @@
-use ed25519_dalek::{VerifyingKey, Signature};
 use ed25519_dalek::Verifier;
-use sha2::{Sha256, Digest};
+use ed25519_dalek::{Signature, VerifyingKey};
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::collections::HashSet;
 use std::time::{SystemTime, UNIX_EPOCH};
-use tracing::{info, warn, error};
-use serde::{Deserialize, Serialize};
+use tracing::{error, info, warn};
 
 /// The exact lifecycle states of an AP2 Cryptographic Mandate.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -20,9 +20,9 @@ pub enum MandateState {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PaymentMandate {
     pub mandate_id: String,
-    pub nonce: String,           // Cryptographic salt to prevent replay attacks
+    pub nonce: String, // Cryptographic salt to prevent replay attacks
     pub timestamp_ms: u64,
-    pub ttl_ms: u64,             // Default: 72 hours (259,200,000 ms)
+    pub ttl_ms: u64,                 // Default: 72 hours (259,200,000 ms)
     pub operator_did_bytes: Vec<u8>, // The human orchestrator's Decentralized Identifier
     pub mandate_hash: Vec<u8>,
     pub signature_bytes: Vec<u8>,
@@ -54,26 +54,42 @@ impl Ap2Ledger {
 
         // 2. Cryptographic Proof of Intent: Verify the Operator's Signature
         let operator_did = VerifyingKey::from_bytes(
-            mandate.operator_did_bytes.as_slice().try_into()
-                .map_err(|_| "Invalid operator DID bytes")?
-        ).map_err(|_| "Failed to reconstruct operator DID")?;
+            mandate
+                .operator_did_bytes
+                .as_slice()
+                .try_into()
+                .map_err(|_| "Invalid operator DID bytes")?,
+        )
+        .map_err(|_| "Failed to reconstruct operator DID")?;
 
         let signature = Signature::try_from(mandate.signature_bytes.as_slice())
             .map_err(|_| "Invalid signature bytes")?;
 
-        if operator_did.verify(&mandate.mandate_hash, &signature).is_err() {
-            error!("AP2 Firewall: Invalid DID Signature on Mandate {}. Halting execution.", mandate.mandate_id);
+        if operator_did
+            .verify(&mandate.mandate_hash, &signature)
+            .is_err()
+        {
+            error!(
+                "AP2 Firewall: Invalid DID Signature on Mandate {}. Halting execution.",
+                mandate.mandate_id
+            );
             return Err("Cryptographic verification failed".into());
         }
 
         // 3. The Burn: Check for Nonce Collision (Replay Attack Prevention)
         if self.burned_nonces.contains(&mandate.nonce) {
-            warn!("AP2 Firewall: REPLAY ATTACK DETECTED. Nonce {} has already been burned.", mandate.nonce);
+            warn!(
+                "AP2 Firewall: REPLAY ATTACK DETECTED. Nonce {} has already been burned.",
+                mandate.nonce
+            );
             return Err("Nonce collision: Mandate already executed".into());
         }
 
         // 4. Execution and State Transition
-        info!("AP2 Firewall: Mandate {} authorized. Burning nonce...", mandate.mandate_id);
+        info!(
+            "AP2 Firewall: Mandate {} authorized. Burning nonce...",
+            mandate.mandate_id
+        );
         self.burned_nonces.insert(mandate.nonce.clone());
 
         // Hand off to the Merchant Endpoint / Payment Processor securely
@@ -82,7 +98,10 @@ impl Ap2Ledger {
 
     /// Revoke a mandate before execution (Strategic Orchestrator authority)
     pub fn revoke_mandate(&self, mandate_id: &str) -> Result<MandateState, String> {
-        info!("AP2 Firewall: Strategic Orchestrator revoked mandate {}.", mandate_id);
+        info!(
+            "AP2 Firewall: Strategic Orchestrator revoked mandate {}.",
+            mandate_id
+        );
         Ok(MandateState::Revoked)
     }
 

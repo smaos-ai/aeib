@@ -1,6 +1,5 @@
 /// Wave 3: AP2 Facility Mandate Syndication
 /// External agencies submit cryptographically-bound workloads to the facility.
-
 use crate::nonce::NonceLedger;
 use crate::signer::Signer;
 use thiserror::Error;
@@ -63,9 +62,7 @@ impl<S: Signer, N: NonceLedger> FacilityMandateEngine<S, N> {
 
         // RULE 2: Capability must be authorized
         if !agency.allowed_capability_ids.contains(&capability_id) {
-            return Err(FacilityMandateError::CapabilityNotAuthorized(
-                capability_id,
-            ));
+            return Err(FacilityMandateError::CapabilityNotAuthorized(capability_id));
         }
 
         // RULE 3: Nonce must not be replayed
@@ -75,7 +72,13 @@ impl<S: Signer, N: NonceLedger> FacilityMandateEngine<S, N> {
 
         // RULE 4: Sign the payload
         let mandate_id = Uuid::new_v4();
-        let payload = Self::build_payload(&mandate_id, &agency.agency_id, &capability_id, budget, nonce);
+        let payload = Self::build_payload(
+            &mandate_id,
+            &agency.agency_id,
+            &capability_id,
+            budget,
+            nonce,
+        );
         let signature = self
             .signer
             .sign(&payload)
@@ -106,7 +109,10 @@ impl<S: Signer, N: NonceLedger> FacilityMandateEngine<S, N> {
         }
 
         // RULE 2: Capability must be authorized
-        if !agency.allowed_capability_ids.contains(&mandate.capability_id) {
+        if !agency
+            .allowed_capability_ids
+            .contains(&mandate.capability_id)
+        {
             return Err(FacilityMandateError::CapabilityNotAuthorized(
                 mandate.capability_id,
             ));

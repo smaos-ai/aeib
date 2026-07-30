@@ -1,8 +1,8 @@
-use crate::{Result, ObservabilityError};
+use crate::{ObservabilityError, Result};
 use dashmap::DashMap;
 use std::sync::Arc;
-use uuid::Uuid;
 use std::time::SystemTime;
+use uuid::Uuid;
 
 #[derive(Debug, Clone)]
 pub struct LogEntry {
@@ -65,10 +65,7 @@ impl TraceLogger {
             context,
         };
 
-        self.logs
-            .entry(span_id)
-            .or_default()
-            .push(entry.clone());
+        self.logs.entry(span_id).or_default().push(entry.clone());
 
         self.global_logs.lock().push(entry);
 
@@ -138,7 +135,8 @@ impl TraceLogger {
     }
 
     pub fn export_logs_jsonl(&self, span_id: Uuid) -> Result<String> {
-        let logs = self.logs
+        let logs = self
+            .logs
             .get(&span_id)
             .ok_or(ObservabilityError::TraceNotFound(span_id.to_string()))?;
 
@@ -213,7 +211,11 @@ mod tests {
         let logger = TraceLogger::new();
         let span_id = Uuid::new_v4();
 
-        logger.info(span_id, "Info message".to_string(), Some("context".to_string()));
+        logger.info(
+            span_id,
+            "Info message".to_string(),
+            Some("context".to_string()),
+        );
         assert_eq!(logger.log_count(span_id), 1);
     }
 
@@ -222,7 +224,11 @@ mod tests {
         let logger = TraceLogger::new();
         let span_id = Uuid::new_v4();
 
-        logger.error(span_id, "Error occurred".to_string(), Some("error context".to_string()));
+        logger.error(
+            span_id,
+            "Error occurred".to_string(),
+            Some("error context".to_string()),
+        );
         let logs = logger.get_error_logs(span_id).unwrap();
         assert_eq!(logs.len(), 1);
         assert_eq!(logs[0].level, LogLevel::Error);
@@ -313,7 +319,11 @@ mod tests {
         let logger = TraceLogger::new();
         let span_id = Uuid::new_v4();
 
-        logger.info(span_id, "First message".to_string(), Some("ctx1".to_string()));
+        logger.info(
+            span_id,
+            "First message".to_string(),
+            Some("ctx1".to_string()),
+        );
         logger.error(span_id, "Error message".to_string(), None);
 
         let jsonl = logger.export_logs_jsonl(span_id).unwrap();
@@ -328,7 +338,11 @@ mod tests {
         let logger = TraceLogger::new();
         let span_id = Uuid::new_v4();
 
-        logger.warn(span_id, "Warning".to_string(), Some("warning context".to_string()));
+        logger.warn(
+            span_id,
+            "Warning".to_string(),
+            Some("warning context".to_string()),
+        );
         let logs = logger.get_logs(span_id).unwrap();
         assert_eq!(logs.len(), 1);
         assert_eq!(logs[0].context, Some("warning context".to_string()));

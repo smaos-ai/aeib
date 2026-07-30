@@ -41,7 +41,9 @@ pub struct ZoneAccessGuard {
 impl ZoneAccessGuard {
     /// Create a new ZoneAccessGuard with the specified confidence threshold
     pub fn new(confidence_threshold: f64) -> Self {
-        ZoneAccessGuard { confidence_threshold }
+        ZoneAccessGuard {
+            confidence_threshold,
+        }
     }
 
     /// Check if a zone transition is allowed
@@ -51,7 +53,10 @@ impl ZoneAccessGuard {
             ZoneTransition::BlackFogToGrayFog => Err(ZoneViolation::BlackFogBypass),
             ZoneTransition::GrayFogToVisible { confidence } => {
                 if confidence < self.confidence_threshold {
-                    Err(ZoneViolation::BelowThreshold(confidence, self.confidence_threshold))
+                    Err(ZoneViolation::BelowThreshold(
+                        confidence,
+                        self.confidence_threshold,
+                    ))
                 } else {
                     Ok(())
                 }
@@ -68,21 +73,19 @@ impl ZoneAccessGuard {
     ) -> Result<(), ZoneViolation> {
         let transition = match source_zone {
             ZoneClass::BlackFog => ZoneTransition::BlackFogToVisible,
-            ZoneClass::GrayFog => ZoneTransition::GrayFogToVisible { confidence: entry.confidence_score },
+            ZoneClass::GrayFog => ZoneTransition::GrayFogToVisible {
+                confidence: entry.confidence_score,
+            },
             ZoneClass::VisibleField => ZoneTransition::VisibleToVisible,
         };
         self.check_transition(transition)
     }
 
     /// Filter a batch of entries, returning only those that pass zone access checks
-    pub fn filter_batch(
-        &self,
-        entries: Vec<(MemoryEntry, ZoneClass)>,
-    ) -> Vec<MemoryEntry> {
-        entries.into_iter()
-            .filter_map(|(entry, zone)| {
-                self.guard_entry(&entry, &zone).ok().map(|_| entry)
-            })
+    pub fn filter_batch(&self, entries: Vec<(MemoryEntry, ZoneClass)>) -> Vec<MemoryEntry> {
+        entries
+            .into_iter()
+            .filter_map(|(entry, zone)| self.guard_entry(&entry, &zone).ok().map(|_| entry))
             .collect()
     }
 }

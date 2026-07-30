@@ -70,7 +70,10 @@ impl PayloadRenderer {
 
     /// Render a list of A2UI components to HTML strings
     pub fn render_all(&self, components: Vec<A2UIComponent>) -> Vec<String> {
-        components.into_iter().map(|c| Renderer::render(&c)).collect()
+        components
+            .into_iter()
+            .map(|c| Renderer::render(&c))
+            .collect()
     }
 }
 

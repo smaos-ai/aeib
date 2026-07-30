@@ -1,6 +1,5 @@
 /// Phase 42: Chaos Petri Validation Gate & Quad-Pillar Evaluation Doctrine
 /// RED phase: Fail-closed invariants for LoRA weight promotion air-lock
-
 use serde::{Deserialize, Serialize};
 
 /// Evaluation result from isolated Petri container
@@ -46,11 +45,11 @@ pub struct PetriNetworkTrace {
 /// Chaos Petri error types (fail-closed)
 #[derive(Debug, Clone)]
 pub enum ChaosPetriError {
-    AirGapViolation,                      // 403: Network escape detected
-    QuadPillarThresholdExceeded,         // 406: Performance degradation > 2%
-    CatastrophicForgettingDetected,      // 406: Failed previous trajectories
-    AP2AuditSignatureRequired,           // 400: Missing cryptographic signature
-    PromotionDenied,                     // 406: Ineligible for hot-swap
+    AirGapViolation,                // 403: Network escape detected
+    QuadPillarThresholdExceeded,    // 406: Performance degradation > 2%
+    CatastrophicForgettingDetected, // 406: Failed previous trajectories
+    AP2AuditSignatureRequired,      // 400: Missing cryptographic signature
+    PromotionDenied,                // 406: Ineligible for hot-swap
 }
 
 /// Chaos Petri handler (fail-closed evaluation air-lock)
@@ -59,7 +58,9 @@ pub struct ChaosPetri;
 impl ChaosPetri {
     /// Isolate evaluation in network-severed Petri container
     /// Fail-closed: Reject any network escape attempt
-    pub async fn verify_petri_air_gap(network_trace: PetriNetworkTrace) -> Result<(), ChaosPetriError> {
+    pub async fn verify_petri_air_gap(
+        network_trace: PetriNetworkTrace,
+    ) -> Result<(), ChaosPetriError> {
         // Fail-closed: Both conditions must be true for air-gap verification
         if network_trace.network_escaped || !network_trace.container_isolation_verified {
             return Err(ChaosPetriError::AirGapViolation);
@@ -153,7 +154,10 @@ mod tests {
 
         // THEN: Rejects network escape (fail-closed, 403)
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), ChaosPetriError::AirGapViolation));
+        assert!(matches!(
+            result.unwrap_err(),
+            ChaosPetriError::AirGapViolation
+        ));
     }
 
     #[tokio::test]
@@ -182,7 +186,10 @@ mod tests {
 
         // THEN: Rejects degradation >2% (fail-closed, 406)
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), ChaosPetriError::QuadPillarThresholdExceeded));
+        assert!(matches!(
+            result.unwrap_err(),
+            ChaosPetriError::QuadPillarThresholdExceeded
+        ));
     }
 
     #[tokio::test]
@@ -195,7 +202,10 @@ mod tests {
             mint_baseline_score: 0.90,
             mint_new_score: 0.89,
             catastrophic_forgetting_detected: true,
-            failed_trajectories: vec!["traj-workflow-001".to_string(), "traj-workflow-002".to_string()],
+            failed_trajectories: vec![
+                "traj-workflow-001".to_string(),
+                "traj-workflow-002".to_string(),
+            ],
         };
 
         // WHEN: Checking for catastrophic forgetting
@@ -203,7 +213,10 @@ mod tests {
 
         // THEN: Rejects model with catastrophic forgetting (fail-closed, 406)
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), ChaosPetriError::CatastrophicForgettingDetected));
+        assert!(matches!(
+            result.unwrap_err(),
+            ChaosPetriError::CatastrophicForgettingDetected
+        ));
     }
 
     #[tokio::test]
@@ -222,6 +235,9 @@ mod tests {
 
         // THEN: Rejects without signature (fail-closed, 400)
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), ChaosPetriError::AP2AuditSignatureRequired));
+        assert!(matches!(
+            result.unwrap_err(),
+            ChaosPetriError::AP2AuditSignatureRequired
+        ));
     }
 }

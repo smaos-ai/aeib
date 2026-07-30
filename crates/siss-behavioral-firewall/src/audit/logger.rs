@@ -1,9 +1,9 @@
 // Immutable event stream with query capabilities
 
 use super::events::{AuditEvent, EventType};
-use crate::rebac::{SovereignIdentity, PolicyAction, PolicyResource};
-use std::sync::RwLock;
+use crate::rebac::{PolicyAction, PolicyResource, SovereignIdentity};
 use std::sync::Arc;
+use std::sync::RwLock;
 use uuid::Uuid;
 
 pub struct AuditLogger {

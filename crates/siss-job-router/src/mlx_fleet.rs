@@ -1,6 +1,5 @@
 /// Wave 2: Rapid-MLX Fleet Topology
 /// Physical Apple Silicon compute nodes configured as a local-only fleet.
-
 use std::os::unix::net::UnixStream;
 use std::time::Duration;
 
@@ -77,7 +76,8 @@ impl FleetRouter {
 /// Proof that the fleet is local-only: no socket_path contains cloud endpoints.
 pub fn assert_no_cloud_leak(fleet: &MlxFleet) -> bool {
     fleet.nodes.iter().all(|n| {
-        !n.socket_path.contains("https://") && !n.socket_path.contains("http://")
+        !n.socket_path.contains("https://")
+            && !n.socket_path.contains("http://")
             && !n.socket_path.contains("cloud")
     })
 }

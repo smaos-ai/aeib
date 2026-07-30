@@ -1,10 +1,10 @@
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use crate::errors::{MultiRegionError, MultiRegionResult};
+use serde::{Deserialize, Serialize};
+use std::marker::PhantomData;
 use std::sync::Arc;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tokio::sync::RwLock;
 use uuid::Uuid;
-use serde::{Deserialize, Serialize};
-use crate::errors::{MultiRegionError, MultiRegionResult};
-use std::marker::PhantomData;
 
 // Type-state markers for CircuitBreaker
 #[doc = "Closed state: circuit breaker is functioning normally"]
@@ -31,7 +31,10 @@ impl CircuitBreaker<Closed> {
         }
     }
 
-    pub fn record_failure(self, _failure_threshold: u32) -> Result<CircuitBreaker<Closed>, CircuitBreaker<Open>> {
+    pub fn record_failure(
+        self,
+        _failure_threshold: u32,
+    ) -> Result<CircuitBreaker<Closed>, CircuitBreaker<Open>> {
         Err(CircuitBreaker {
             _state: PhantomData,
         })
@@ -39,7 +42,10 @@ impl CircuitBreaker<Closed> {
 }
 
 impl CircuitBreaker<Open> {
-    pub fn try_reset(self, _reset_timeout: Duration) -> Result<CircuitBreaker<Open>, CircuitBreaker<HalfOpen>> {
+    pub fn try_reset(
+        self,
+        _reset_timeout: Duration,
+    ) -> Result<CircuitBreaker<Open>, CircuitBreaker<HalfOpen>> {
         Err(CircuitBreaker {
             _state: PhantomData,
         })
@@ -62,9 +68,17 @@ impl CircuitBreaker<HalfOpen> {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum CircuitBreakerState {
-    Closed { failure_count: u32, failure_threshold: u32 },
-    Open { opened_at: SystemTime, reset_timeout: Duration },
-    HalfOpen { probe_count: u32 },
+    Closed {
+        failure_count: u32,
+        failure_threshold: u32,
+    },
+    Open {
+        opened_at: SystemTime,
+        reset_timeout: Duration,
+    },
+    HalfOpen {
+        probe_count: u32,
+    },
 }
 
 impl Default for CircuitBreakerState {
@@ -103,7 +117,11 @@ impl CircuitBreakerState {
     }
 
     pub fn try_reset(&mut self) {
-        if let CircuitBreakerState::Open { opened_at, reset_timeout } = self {
+        if let CircuitBreakerState::Open {
+            opened_at,
+            reset_timeout,
+        } = self
+        {
             if let Ok(elapsed) = SystemTime::now().duration_since(*opened_at) {
                 if elapsed >= *reset_timeout {
                     *self = CircuitBreakerState::HalfOpen { probe_count: 0 };
@@ -191,7 +209,11 @@ impl HealthChecker {
         Ok(())
     }
 
-    pub async fn record_success(&self, region_id: &str, response_time_ms: u64) -> MultiRegionResult<()> {
+    pub async fn record_success(
+        &self,
+        region_id: &str,
+        response_time_ms: u64,
+    ) -> MultiRegionResult<()> {
         let mut regions = self.regions.write().await;
 
         if let Some(health) = regions.get_mut(region_id) {
@@ -215,7 +237,9 @@ impl HealthChecker {
         if let Some(health) = regions.get_mut(region_id) {
             health.error_count += 1;
             health.consecutive_failures += 1;
-            health.circuit_breaker.record_failure(self.failure_threshold);
+            health
+                .circuit_breaker
+                .record_failure(self.failure_threshold);
 
             if health.circuit_breaker.is_open() {
                 health.status = HealthStatus::Unhealthy;
@@ -302,7 +326,10 @@ mod tests {
     async fn test_get_healthy_regions() {
         let checker = HealthChecker::new(Duration::from_secs(5));
         checker.register_region("prague".to_string()).await.unwrap();
-        checker.register_region("frankfurt".to_string()).await.unwrap();
+        checker
+            .register_region("frankfurt".to_string())
+            .await
+            .unwrap();
 
         checker.record_success("prague", 100).await.unwrap();
         checker.record_failure("frankfurt").await.unwrap();

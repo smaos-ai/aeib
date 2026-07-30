@@ -1,8 +1,11 @@
-use super::{Relationship, RelationType, ReBACError, SovereignIdentity, PolicyResource, PolicyAction, DenyReason};
-use sqlx::{postgres::PgPool, Row};
+use super::{
+    DenyReason, PolicyAction, PolicyResource, ReBACError, RelationType, Relationship,
+    SovereignIdentity,
+};
+use chrono::{DateTime, Utc};
+use sqlx::{Row, postgres::PgPool};
 use std::time::SystemTime;
 use uuid::Uuid;
-use chrono::{DateTime, Utc};
 
 pub struct ReBAC_PG {
     pool: PgPool,
@@ -47,7 +50,7 @@ impl ReBAC_PG {
 
     pub async fn revoke_relationship(&self, rel_id: Uuid) -> Result<(), ReBACError> {
         let rows_affected = sqlx::query(
-            "UPDATE relationships SET revoked_at = NOW() WHERE id = $1 AND revoked_at IS NULL"
+            "UPDATE relationships SET revoked_at = NOW() WHERE id = $1 AND revoked_at IS NULL",
         )
         .bind(rel_id)
         .execute(&self.pool)
@@ -120,15 +123,22 @@ impl ReBAC_PG {
                 | PolicyAction::CancelTask,
                 RelationType::Operator,
             ) => true,
-            (PolicyAction::ReadMetrics | PolicyAction::StreamEvents, RelationType::Observer) => true,
-            (PolicyAction::CreatePolicy | PolicyAction::UpdatePolicy, RelationType::Delegate) => true,
+            (PolicyAction::ReadMetrics | PolicyAction::StreamEvents, RelationType::Observer) => {
+                true
+            }
+            (PolicyAction::CreatePolicy | PolicyAction::UpdatePolicy, RelationType::Delegate) => {
+                true
+            }
             (PolicyAction::VoteConsent, RelationType::Participant) => true,
             (PolicyAction::CancelTask | PolicyAction::Abort, RelationType::Initiator) => true,
             _ => false,
         }
     }
 
-    pub async fn list_relationships(&self, from: SovereignIdentity) -> Result<Vec<Relationship>, ReBACError> {
+    pub async fn list_relationships(
+        &self,
+        from: SovereignIdentity,
+    ) -> Result<Vec<Relationship>, ReBACError> {
         let rows = sqlx::query(
             r#"
             SELECT id, from_sovereign, to_resource_type, to_resource_id, relationship_type, created_at, expires_at, revoked_at

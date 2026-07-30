@@ -12,9 +12,9 @@
 //   - Cryptographic root hash
 //   - Ready for Prague demo and post-filing audit trail
 
-use sha2::{Sha256, Digest};
-use serde::{Serialize, Deserialize};
 use ed25519_dalek::Signer as DalekSigner;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct ExecutionProof {
@@ -41,7 +41,8 @@ fn main() {
     let proofs = vec![
         ExecutionProof {
             phase: "Phase 1: Genesis Capsule".into(),
-            proof_hash: "sha256:9647fb973820b7944cfe29b93d9c7df66d7f7c9a3f33ae38e3f8b83aaf55f979".into(),
+            proof_hash: "sha256:9647fb973820b7944cfe29b93d9c7df66d7f7c9a3f33ae38e3f8b83aaf55f979"
+                .into(),
         },
         ExecutionProof {
             phase: "Phase 2: MongeGapGovernor".into(),
@@ -49,7 +50,8 @@ fn main() {
         },
         ExecutionProof {
             phase: "Phase 3: AP2 Settlement".into(),
-            proof_hash: "sha256:4e9285acc5b95c862e173d5b498fd0bcc1aa9c0a74a1952f478de6974def375f".into(),
+            proof_hash: "sha256:4e9285acc5b95c862e173d5b498fd0bcc1aa9c0a74a1952f478de6974def375f"
+                .into(),
         },
         ExecutionProof {
             phase: "Phase 4: Covenant Firewall".into(),
@@ -60,7 +62,10 @@ fn main() {
     println!("📋 COLLECTING EXECUTION PROOFS:\n");
     for (i, proof) in proofs.iter().enumerate() {
         println!("   {}. {}", i + 1, proof.phase);
-        println!("      Hash: {}...", &proof.proof_hash[..48.min(proof.proof_hash.len())]);
+        println!(
+            "      Hash: {}...",
+            &proof.proof_hash[..48.min(proof.proof_hash.len())]
+        );
     }
 
     // Build Merkle tree
@@ -91,7 +96,10 @@ fn main() {
                 hasher.update(&pair[0]); // Self-hash if odd
             }
             let combined_hash = hasher.finalize().to_vec();
-            println!("      → {}...", hex::encode(&combined_hash)[..32].to_string());
+            println!(
+                "      → {}...",
+                hex::encode(&combined_hash)[..32].to_string()
+            );
             next_level.push(combined_hash);
         }
 

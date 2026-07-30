@@ -1,9 +1,6 @@
 use siss_eu_compliance::{
-    gdpr_mapper::GDPRMapper,
-    nis2_enforcer::NIS2Enforcer,
-    ai_act_analyzer::AIActAnalyzer,
-    iso27001_audit::ISO27001Audit,
-    soc2_attestation::SOC2Attestation,
+    ai_act_analyzer::AIActAnalyzer, gdpr_mapper::GDPRMapper, iso27001_audit::ISO27001Audit,
+    nis2_enforcer::NIS2Enforcer, soc2_attestation::SOC2Attestation,
     tisax_validator::TISAXValidator,
 };
 
@@ -116,11 +113,8 @@ fn test_nis2_cloud_infrastructure_requirements() {
 #[test]
 fn test_nis2_incident_reporting_automation() {
     let enforcer = NIS2Enforcer::new();
-    let incident = enforcer.create_incident_report(
-        "security_breach",
-        "unauthorized_access",
-        "high",
-    );
+    let incident =
+        enforcer.create_incident_report("security_breach", "unauthorized_access", "high");
 
     assert_eq!(incident.incident_type, "security_breach");
     assert_eq!(incident.severity, "high");
@@ -131,10 +125,8 @@ fn test_nis2_incident_reporting_automation() {
 #[test]
 fn test_nis2_supply_chain_risk_assessment() {
     let enforcer = NIS2Enforcer::new();
-    let assessment = enforcer.assess_supply_chain_risk(
-        vec!["vendor_a", "vendor_b"],
-        vec!["software", "hosting"],
-    );
+    let assessment = enforcer
+        .assess_supply_chain_risk(vec!["vendor_a", "vendor_b"], vec!["software", "hosting"]);
 
     assert_eq!(assessment.vendors_count, 2);
     assert_eq!(assessment.service_categories_count, 2);
@@ -228,11 +220,7 @@ fn test_ai_act_social_credit_scoring_ban() {
 #[test]
 fn test_ai_act_audit_trail_logging() {
     let analyzer = AIActAnalyzer::new();
-    let audit_trail = analyzer.create_audit_trail(
-        "ai_system_xyz",
-        "high_risk_decision",
-        "user456",
-    );
+    let audit_trail = analyzer.create_audit_trail("ai_system_xyz", "high_risk_decision", "user456");
 
     assert_eq!(audit_trail.system_id, "ai_system_xyz");
     assert!(audit_trail.timestamp.is_some());
@@ -283,9 +271,7 @@ fn test_iso27001_gap_analysis() {
 #[test]
 fn test_iso27001_remediation_plan() {
     let audit = ISO27001Audit::new();
-    let plan = audit.generate_remediation_plan(
-        vec!["gap_auth_001", "gap_audit_002"],
-    );
+    let plan = audit.generate_remediation_plan(vec!["gap_auth_001", "gap_audit_002"]);
 
     assert_eq!(plan.gap_count, 2);
     assert!(plan.timeline_weeks.is_some());

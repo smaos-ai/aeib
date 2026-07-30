@@ -1,12 +1,8 @@
+use super::rate_limiting::RateLimiter;
 /// Phase 28 REFACTOR: Rate Limiting Middleware
 /// Axum middleware layer to enforce rate limits on SSE stream endpoints
-
-use axum::{
-    extract::ConnectInfo,
-    http::StatusCode,
-};
+use axum::{extract::ConnectInfo, http::StatusCode};
 use std::net::SocketAddr;
-use super::rate_limiting::RateLimiter;
 
 /// Apply rate limiting to incoming request
 /// Extracts client IP from ConnectInfo and checks against per-IP quota

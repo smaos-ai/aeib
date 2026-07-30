@@ -1,5 +1,5 @@
-use std::sync::Arc;
 use super::zonal::RawObservation;
+use std::sync::Arc;
 
 pub struct EphemeralBuffer {
     trajectory: Arc<tokio::sync::RwLock<Vec<String>>>,

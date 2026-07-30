@@ -1,6 +1,6 @@
 // Audit event schema (who, what, when, why)
 
-use crate::rebac::{SovereignIdentity, PolicyAction, PolicyResource};
+use crate::rebac::{PolicyAction, PolicyResource, SovereignIdentity};
 use serde::{Deserialize, Serialize};
 use std::time::SystemTime;
 use uuid::Uuid;

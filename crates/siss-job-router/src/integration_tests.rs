@@ -122,9 +122,7 @@ mod integration_tests {
         let task = "correlation analysis of drift patterns";
 
         // When: scoring multiple times
-        let scores: Vec<_> = (0..5)
-            .map(|_| SimpleScorer::score_task(task))
-            .collect();
+        let scores: Vec<_> = (0..5).map(|_| SimpleScorer::score_task(task)).collect();
 
         // Then: all scores are identical
         let first_score = scores[0].score;

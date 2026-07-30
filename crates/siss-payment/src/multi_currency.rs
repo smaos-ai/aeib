@@ -1,8 +1,8 @@
+use chrono::{DateTime, Utc};
 use dashmap::DashMap;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use uuid::Uuid;
-use serde::{Deserialize, Serialize};
-use chrono::{DateTime, Utc};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LedgerEntry {
@@ -52,10 +52,7 @@ impl MultiCurrencyLedger {
     }
 
     pub fn all_entries(&self) -> Vec<LedgerEntry> {
-        self.entries
-            .iter()
-            .map(|e| e.value().clone())
-            .collect()
+        self.entries.iter().map(|e| e.value().clone()).collect()
     }
 }
 
@@ -112,7 +109,9 @@ mod tests {
         };
 
         ledger.add_entry(entry);
-        ledger.update_entry_status(entry_id, "completed".to_string()).ok();
+        ledger
+            .update_entry_status(entry_id, "completed".to_string())
+            .ok();
 
         let updated = ledger.get_entry(entry_id).unwrap();
         assert_eq!(updated.status, "completed");

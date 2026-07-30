@@ -1,5 +1,5 @@
-use crate::types::{Vote, VoteType};
 use crate::errors::BftConsensusError;
+use crate::types::{Vote, VoteType};
 use dashmap::DashMap;
 use std::sync::Arc;
 use uuid::Uuid;
@@ -22,10 +22,7 @@ impl VotingEngine {
             ));
         }
 
-        let mut votes = self
-            .votes
-            .entry(vote.proposal_id)
-            .or_default();
+        let mut votes = self.votes.entry(vote.proposal_id).or_default();
 
         // Prevent duplicate votes from same voter
         if votes.iter().any(|v| v.voter_id == vote.voter_id) {

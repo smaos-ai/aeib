@@ -6,15 +6,17 @@
 //! - Tier 3: Decision cache with TTL and invalidation
 //! - Tier 3+: MandateVerifier for three-phase ReBAC + AP2 + Temporal evaluation
 
-pub mod mandate_verifier;
-pub mod cycle_detection;
 pub mod cache;
+pub mod cycle_detection;
+pub mod mandate_verifier;
 
 // Export new three-phase evaluation types (non-conflicting names)
-pub use mandate_verifier::{MandateVerifier, DefaultMandateVerifier, MandateDecision, AllowDeny, RequestContext};
-pub use mandate_verifier::Mandate as MandateV2;  // Alias to avoid conflict with legacy Mandate
-pub use cycle_detection::CycleDetector;
 pub use cache::MandateCache;
+pub use cycle_detection::CycleDetector;
+pub use mandate_verifier::Mandate as MandateV2; // Alias to avoid conflict with legacy Mandate
+pub use mandate_verifier::{
+    AllowDeny, DefaultMandateVerifier, MandateDecision, MandateVerifier, RequestContext,
+};
 
 use std::collections::{HashMap, HashSet};
 use std::sync::Mutex;

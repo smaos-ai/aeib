@@ -35,12 +35,10 @@ pub async fn detect_packet_loss(
     threshold_loss_pct: f64,
 ) -> Result<bool, sqlx::Error> {
     // Get all heartbeats for this agent
-    let count: (i64,) = sqlx::query_as(
-        "SELECT COUNT(*) FROM agent_heartbeats WHERE agent_id = $1"
-    )
-    .bind(agent_id)
-    .fetch_one(pool)
-    .await?;
+    let count: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM agent_heartbeats WHERE agent_id = $1")
+        .bind(agent_id)
+        .fetch_one(pool)
+        .await?;
 
     let actual_count = count.0;
 

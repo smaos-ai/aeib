@@ -1000,7 +1000,11 @@ mod tests {
         .await
         .unwrap();
 
-        assert_eq!(total.0, Some(1250), "Total tokens should be 500 + 750 = 1250");
+        assert_eq!(
+            total.0,
+            Some(1250),
+            "Total tokens should be 500 + 750 = 1250"
+        );
     }
 
     #[tokio::test]

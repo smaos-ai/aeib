@@ -1,7 +1,7 @@
-use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct OAuth2Token {
@@ -40,7 +40,10 @@ pub struct PolicyRule {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum PolicyCondition {
     Always,
-    Action { platform: String, action: String },
+    Action {
+        platform: String,
+        action: String,
+    },
     Attribute {
         attribute: String,
         operator: String,

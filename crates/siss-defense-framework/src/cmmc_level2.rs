@@ -225,7 +225,11 @@ mod tests {
     #[test]
     fn test_cmmc_practice_coverage_23() {
         let mapper = CmmcLevel2Mapper::seed_siss_framework();
-        assert_eq!(mapper.practice_count(), 23, "Must cover all 23 CMMC Level 2 practices");
+        assert_eq!(
+            mapper.practice_count(),
+            23,
+            "Must cover all 23 CMMC Level 2 practices"
+        );
     }
 
     #[test]
@@ -249,8 +253,11 @@ mod tests {
     fn test_siss_component_mapping_not_empty() {
         let mapper = CmmcLevel2Mapper::seed_siss_framework();
         for practice in mapper.all_practices() {
-            assert!(!practice.siss_implementation.is_empty(),
-                    "Practice {} must map to SISS components", practice.practice_code);
+            assert!(
+                !practice.siss_implementation.is_empty(),
+                "Practice {} must map to SISS components",
+                practice.practice_code
+            );
         }
     }
 
@@ -258,6 +265,9 @@ mod tests {
     fn test_coverage_score() {
         let mapper = CmmcLevel2Mapper::seed_siss_framework();
         let score = mapper.coverage_score();
-        assert!(score >= 0.99, "Coverage score must be near 100% for all 23 practices");
+        assert!(
+            score >= 0.99,
+            "Coverage score must be near 100% for all 23 practices"
+        );
     }
 }

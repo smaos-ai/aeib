@@ -1,16 +1,16 @@
 pub mod routing_hook;
 
-pub use routing_hook::{MemoryRoutingHook, HookOutput};
+pub use routing_hook::{HookOutput, MemoryRoutingHook};
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use siss_context_cartography::zones::ZonalContextMap;
-    use siss_memory_plane::operators::CartographicOperatorSet;
-    use siss_agent_shell::hooks::{ToolUseContext, HookResult, LifecycleHook};
-    use siss_graph_core::node::memory::ConsolidationTier;
-    use siss_graph_core::node::NodeId;
+    use siss_agent_shell::hooks::{HookResult, LifecycleHook, ToolUseContext};
     use siss_context_cartography::types::MemoryEntry;
+    use siss_context_cartography::zones::ZonalContextMap;
+    use siss_graph_core::node::NodeId;
+    use siss_graph_core::node::memory::ConsolidationTier;
+    use siss_memory_plane::operators::CartographicOperatorSet;
     use uuid::Uuid;
 
     fn make_memory_entry(content: &str, confidence: f64) -> MemoryEntry {
@@ -44,8 +44,15 @@ mod tests {
         let output = hook.process_post_tool_use(&map);
 
         // Verify that routed_memory_ids is not empty when gray_fog has entries
-        assert!(!output.routed_memory_ids.is_empty(), "routed_memory_ids should not be empty");
-        assert_eq!(output.routed_memory_ids.len(), 2, "should route all gray_fog entries");
+        assert!(
+            !output.routed_memory_ids.is_empty(),
+            "routed_memory_ids should not be empty"
+        );
+        assert_eq!(
+            output.routed_memory_ids.len(),
+            2,
+            "should route all gray_fog entries"
+        );
     }
 
     #[test]
@@ -70,7 +77,11 @@ mod tests {
         let output = hook.process_session_end(&map);
 
         // Verify that all 3 gray_fog entries are drained
-        assert_eq!(output.routed_memory_ids.len(), 3, "should route all 3 gray_fog entries");
+        assert_eq!(
+            output.routed_memory_ids.len(),
+            3,
+            "should route all 3 gray_fog entries"
+        );
     }
 
     #[test]

@@ -1,7 +1,7 @@
-pub mod types;
 pub mod guard;
 pub mod rate_limiter;
+pub mod types;
 
-pub use types::{TimeWindow, BlackoutDate, Decision, TemporalError};
 pub use guard::TemporalGuard;
 pub use rate_limiter::RateLimiter;
+pub use types::{BlackoutDate, Decision, TemporalError, TimeWindow};

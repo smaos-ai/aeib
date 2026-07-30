@@ -3,12 +3,17 @@
 //! With cycle detection and decision caching.
 
 use siss_behavioral_firewall::{
-    rebac::{ReBAC, SovereignIdentity, PolicyResource, PolicyAction, RelationType},
-    ap2::{AP2Evaluator, SovereignAttributes, SovereignAttributeCache, AttributePredicate, PolicyRule},
+    ap2::{
+        AP2Evaluator, AttributePredicate, PolicyRule, SovereignAttributeCache, SovereignAttributes,
+    },
+    policy_engine::{
+        AllowDeny, CycleDetector as PolicyEngineCycleDetector, DefaultMandateVerifier,
+        MandateCache, MandateVerifier, RequestContext,
+    },
+    rebac::{PolicyAction, PolicyResource, ReBAC, RelationType, SovereignIdentity},
     temporal::TemporalGuard,
-    policy_engine::{CycleDetector as PolicyEngineCycleDetector, MandateCache, MandateVerifier, DefaultMandateVerifier, RequestContext, AllowDeny},
 };
-use std::time::{SystemTime, Duration};
+use std::time::{Duration, SystemTime};
 use uuid::Uuid;
 
 // ===== TIER 1: Mandate Verification (3 tests) =====
@@ -23,7 +28,9 @@ fn test_mandate_verify_valid() {
     let action = PolicyAction::Spawn;
 
     let rebac = ReBAC::new();
-    rebac.grant_relationship(requester, resource.clone(), RelationType::Owner, None).unwrap();
+    rebac
+        .grant_relationship(requester, resource.clone(), RelationType::Owner, None)
+        .unwrap();
 
     let cache = SovereignAttributeCache::new(Duration::from_secs(300));
     let ap2 = AP2Evaluator::new(cache.clone(), vec![]);
@@ -67,7 +74,9 @@ fn test_mandate_verify_revoked() {
     let action = PolicyAction::Spawn;
 
     let rebac = ReBAC::new();
-    let rel_id = rebac.grant_relationship(requester, resource.clone(), RelationType::Owner, None).unwrap();
+    let rel_id = rebac
+        .grant_relationship(requester, resource.clone(), RelationType::Owner, None)
+        .unwrap();
     rebac.revoke_relationship(rel_id).unwrap();
 
     let cache = SovereignAttributeCache::new(Duration::from_secs(300));
@@ -114,7 +123,14 @@ fn test_mandate_verify_expired() {
     let rebac = ReBAC::new();
     // Grant with immediate expiration (in the past)
     let expires_at = SystemTime::now() - Duration::from_secs(1);
-    rebac.grant_relationship(requester, resource.clone(), RelationType::Owner, Some(expires_at)).unwrap();
+    rebac
+        .grant_relationship(
+            requester,
+            resource.clone(),
+            RelationType::Owner,
+            Some(expires_at),
+        )
+        .unwrap();
 
     let cache = SovereignAttributeCache::new(Duration::from_secs(300));
     let ap2 = AP2Evaluator::new(cache, vec![]);
@@ -215,7 +231,9 @@ fn test_phase2_ap2_deny() {
     let action = PolicyAction::Spawn;
 
     let rebac = ReBAC::new();
-    rebac.grant_relationship(requester, resource.clone(), RelationType::Owner, None).unwrap();
+    rebac
+        .grant_relationship(requester, resource.clone(), RelationType::Owner, None)
+        .unwrap();
 
     let cache = SovereignAttributeCache::new(Duration::from_secs(300));
     // Create a rule that denies low trust levels
@@ -232,7 +250,7 @@ fn test_phase2_ap2_deny() {
     // Set low trust attributes for the requester
     let attrs = SovereignAttributes {
         sovereign_id: requester_id,
-        trust_level: 30,  // Below required 50
+        trust_level: 30, // Below required 50
         reputation: 0,
         joined_at: SystemTime::now(),
         blacklisted: false,
@@ -255,7 +273,11 @@ fn test_phase2_ap2_deny() {
     let mandate = verifier.verify_mandate(&requester, &action, &resource, &context);
     assert!(mandate.is_ok());
     let mandate = mandate.unwrap();
-    assert_eq!(mandate.decision, AllowDeny::Deny, "AP2 should deny low trust");
+    assert_eq!(
+        mandate.decision,
+        AllowDeny::Deny,
+        "AP2 should deny low trust"
+    );
 }
 
 #[test]
@@ -268,7 +290,9 @@ fn test_phase3_temporal_deny() {
     let action = PolicyAction::Spawn;
 
     let rebac = ReBAC::new();
-    rebac.grant_relationship(requester, resource.clone(), RelationType::Owner, None).unwrap();
+    rebac
+        .grant_relationship(requester, resource.clone(), RelationType::Owner, None)
+        .unwrap();
 
     let cache = SovereignAttributeCache::new(Duration::from_secs(300));
     let ap2 = AP2Evaluator::new(cache, vec![]);
@@ -297,7 +321,9 @@ fn test_all_phases_allow() {
     let action = PolicyAction::Spawn;
 
     let rebac = ReBAC::new();
-    rebac.grant_relationship(requester, resource.clone(), RelationType::Owner, None).unwrap();
+    rebac
+        .grant_relationship(requester, resource.clone(), RelationType::Owner, None)
+        .unwrap();
 
     let cache = SovereignAttributeCache::new(Duration::from_secs(300));
     let ap2 = AP2Evaluator::new(cache.clone(), vec![]);
@@ -360,7 +386,10 @@ fn test_phase_evaluation_order() {
     let mandate = mandate.unwrap();
     // Should fail at ReBAC phase
     assert_eq!(mandate.decision, AllowDeny::Deny);
-    assert!(mandate.reasons.iter().any(|r| r.contains("ReBAC")), "Reason should mention ReBAC");
+    assert!(
+        mandate.reasons.iter().any(|r| r.contains("ReBAC")),
+        "Reason should mention ReBAC"
+    );
 }
 
 #[test]
@@ -373,7 +402,9 @@ fn test_fail_closed_semantic() {
     let action = PolicyAction::Spawn;
 
     let rebac = ReBAC::new();
-    rebac.grant_relationship(requester, resource.clone(), RelationType::Owner, None).unwrap();
+    rebac
+        .grant_relationship(requester, resource.clone(), RelationType::Owner, None)
+        .unwrap();
 
     let cache = SovereignAttributeCache::new(Duration::from_secs(300));
     let ap2 = AP2Evaluator::new(cache.clone(), vec![]);
@@ -485,7 +516,9 @@ fn test_audit_id_unique() {
     let action = PolicyAction::Spawn;
 
     let rebac = ReBAC::new();
-    rebac.grant_relationship(requester, resource.clone(), RelationType::Owner, None).unwrap();
+    rebac
+        .grant_relationship(requester, resource.clone(), RelationType::Owner, None)
+        .unwrap();
 
     let cache = SovereignAttributeCache::new(Duration::from_secs(300));
     let ap2 = AP2Evaluator::new(cache.clone(), vec![]);
@@ -513,10 +546,17 @@ fn test_audit_id_unique() {
         timestamp: SystemTime::now(),
     };
 
-    let mandate1 = verifier.verify_mandate(&requester, &action, &resource, &context).unwrap();
-    let mandate2 = verifier.verify_mandate(&requester, &action, &resource, &context).unwrap();
+    let mandate1 = verifier
+        .verify_mandate(&requester, &action, &resource, &context)
+        .unwrap();
+    let mandate2 = verifier
+        .verify_mandate(&requester, &action, &resource, &context)
+        .unwrap();
 
-    assert_ne!(mandate1.audit_id, mandate2.audit_id, "Each evaluation should have unique audit_id");
+    assert_ne!(
+        mandate1.audit_id, mandate2.audit_id,
+        "Each evaluation should have unique audit_id"
+    );
 }
 
 #[test]
@@ -543,7 +583,9 @@ fn test_deny_reason_preserved() {
         timestamp: SystemTime::now(),
     };
 
-    let mandate = verifier.verify_mandate(&requester, &action, &resource, &context).unwrap();
+    let mandate = verifier
+        .verify_mandate(&requester, &action, &resource, &context)
+        .unwrap();
     assert_eq!(mandate.decision, AllowDeny::Deny);
     assert!(!mandate.reasons.is_empty(), "Deny should include reasons");
 }
@@ -559,7 +601,9 @@ fn test_end_to_end_policy_flow() {
 
     // Setup: ReBAC grant, AP2 attributes, Temporal guard
     let rebac = ReBAC::new();
-    rebac.grant_relationship(requester, resource.clone(), RelationType::Owner, None).unwrap();
+    rebac
+        .grant_relationship(requester, resource.clone(), RelationType::Owner, None)
+        .unwrap();
 
     let cache = SovereignAttributeCache::new(Duration::from_secs(300));
     let ap2 = AP2Evaluator::new(cache.clone(), vec![]);
@@ -588,7 +632,9 @@ fn test_end_to_end_policy_flow() {
         timestamp: SystemTime::now(),
     };
 
-    let mandate = verifier.verify_mandate(&requester, &action, &resource, &context).unwrap();
+    let mandate = verifier
+        .verify_mandate(&requester, &action, &resource, &context)
+        .unwrap();
 
     // Cache the decision
     let mandate_cache = MandateCache::new(Duration::from_secs(300));
@@ -599,6 +645,12 @@ fn test_end_to_end_policy_flow() {
     let cached = mandate_cache.get(&cache_key);
     assert!(cached.is_some(), "Mandate should be cached");
     let cached = cached.unwrap();
-    assert_eq!(cached.decision, mandate.decision, "Cached decision should match");
-    assert_eq!(cached.audit_id, mandate.audit_id, "Audit ID should be preserved in cache");
+    assert_eq!(
+        cached.decision, mandate.decision,
+        "Cached decision should match"
+    );
+    assert_eq!(
+        cached.audit_id, mandate.audit_id,
+        "Audit ID should be preserved in cache"
+    );
 }

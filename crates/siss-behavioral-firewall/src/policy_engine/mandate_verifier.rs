@@ -3,12 +3,12 @@
 //! This module defines the `MandateVerifier` trait and its implementation,
 //! which orchestrates evaluation across ReBAC, AP2, and TemporalGuard phases.
 
-use crate::rebac::{ReBAC, SovereignIdentity, PolicyAction, PolicyResource, DenyReason};
 use crate::ap2::AP2Evaluator;
+use crate::rebac::{DenyReason, PolicyAction, PolicyResource, ReBAC, SovereignIdentity};
 use crate::temporal::TemporalGuard;
-use std::time::{SystemTime, Duration};
-use uuid::Uuid;
 use serde::{Deserialize, Serialize};
+use std::time::{Duration, SystemTime};
+use uuid::Uuid;
 
 /// MandateV2 represents the final authorization decision with cache TTL.
 /// (V2 to distinguish from legacy Mandate in policy_engine::Mandate)
@@ -57,12 +57,12 @@ pub struct DefaultMandateVerifier {
 }
 
 impl DefaultMandateVerifier {
-    pub fn new(
-        rebac: ReBAC,
-        ap2: AP2Evaluator,
-        temporal: TemporalGuard,
-    ) -> Self {
-        Self { rebac, ap2, temporal }
+    pub fn new(rebac: ReBAC, ap2: AP2Evaluator, temporal: TemporalGuard) -> Self {
+        Self {
+            rebac,
+            ap2,
+            temporal,
+        }
     }
 }
 
@@ -78,7 +78,9 @@ impl MandateVerifier for DefaultMandateVerifier {
         let mut reasons = Vec::new();
 
         // Phase 1: ReBAC - Verify relationship exists and is active
-        let rebac_result = self.rebac.verify_relationship(*requester, resource.clone(), action.clone());
+        let rebac_result =
+            self.rebac
+                .verify_relationship(*requester, resource.clone(), action.clone());
         let rebac_ok = match rebac_result {
             Ok(msg) => {
                 reasons.push(format!("ReBAC: {}", msg));
@@ -127,10 +129,15 @@ impl MandateVerifier for DefaultMandateVerifier {
         let now = chrono::Utc::now();
         match self.temporal.evaluate(requester.0, now) {
             Ok(crate::temporal::Decision::Allow) => {
-                reasons.push("TemporalGuard: Rate limit + time window + blackout checks passed".to_string());
+                reasons.push(
+                    "TemporalGuard: Rate limit + time window + blackout checks passed".to_string(),
+                );
             }
             Ok(crate::temporal::Decision::Deny) => {
-                reasons.push("TemporalGuard: Denied by rate limit, time window, or blackout date".to_string());
+                reasons.push(
+                    "TemporalGuard: Denied by rate limit, time window, or blackout date"
+                        .to_string(),
+                );
                 return Ok(Mandate {
                     decision: MandateDecision::Deny,
                     reasons,
@@ -161,8 +168,8 @@ impl MandateVerifier for DefaultMandateVerifier {
 
 // Conversion helpers for PolicyAction across different modules
 fn convert_policy_action(action: crate::rebac::PolicyAction) -> crate::ap2::PolicyAction {
-    use crate::rebac::PolicyAction as RebacAction;
     use crate::ap2::PolicyAction as Ap2Action;
+    use crate::rebac::PolicyAction as RebacAction;
 
     match action {
         RebacAction::Spawn => Ap2Action::Spawn,
@@ -183,7 +190,6 @@ fn convert_policy_action(action: crate::rebac::PolicyAction) -> crate::ap2::Poli
         RebacAction::DeletePolicy => Ap2Action::DeletePolicy,
     }
 }
-
 
 #[cfg(test)]
 mod tests {

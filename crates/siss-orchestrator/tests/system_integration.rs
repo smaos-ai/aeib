@@ -1,11 +1,12 @@
-use siss_orchestrator::{
-    TwoPointerScheduler, DispatchTask, WorkloadRebalancer, AgentLoad,
-    KalmanState, CentralMonitoringOracle, ExecutionLatency, CapabilityToken, CapabilityLevel, ExpertGateway, ExpertTask,
-};
-use uuid::Uuid;
-use std::fs;
-use sha2::{Sha256, Digest};
 use serde_json::{json, to_string_pretty};
+use sha2::{Digest, Sha256};
+use siss_orchestrator::{
+    AgentLoad, CapabilityLevel, CapabilityToken, CentralMonitoringOracle, DispatchTask,
+    ExecutionLatency, ExpertGateway, ExpertTask, KalmanState, TwoPointerScheduler,
+    WorkloadRebalancer,
+};
+use std::fs;
+use uuid::Uuid;
 
 fn compute_hash(data: &str) -> String {
     let mut hasher = Sha256::new();
@@ -21,9 +22,9 @@ fn test_evaluate_500_hypotheses() {
     for i in 0..500 {
         let measurement = [
             100.0 + (i as f64 * 0.1),  // velocity
-            50.0 + (i as f64 * 0.05),   // latency
-            30.0 + (i as f64 * 0.02),   // load
-            0.1 - (i as f64 * 0.0001),  // error_rate
+            50.0 + (i as f64 * 0.05),  // latency
+            30.0 + (i as f64 * 0.02),  // load
+            0.1 - (i as f64 * 0.0001), // error_rate
         ];
 
         let _innovation = kalman.update(measurement);
@@ -95,11 +96,17 @@ fn test_pilot_validator_detects_bottleneck() {
     // Detect bottleneck
     let diagnosis = oracle.detect_bottleneck();
 
-    assert!(diagnosis.is_some(), "Should detect bottleneck in slow agent");
+    assert!(
+        diagnosis.is_some(),
+        "Should detect bottleneck in slow agent"
+    );
 
     let diagnosis = diagnosis.unwrap();
     assert!(diagnosis.confidence > 0.7, "Confidence should be high");
-    assert!(diagnosis.root_cause_latency > 400, "Root cause latency should be the slow agent");
+    assert!(
+        diagnosis.root_cause_latency > 400,
+        "Root cause latency should be the slow agent"
+    );
 }
 
 #[test]
@@ -111,32 +118,44 @@ fn test_workload_rebalancer_scales_dynamically() {
     let agent_3 = Uuid::new_v4();
 
     // Register agents with unbalanced loads
-    rebalancer.register_agent(agent_1, AgentLoad {
-        agent_id: agent_1,
-        task_count: 1000,
-        latency_ms: 200,
-        cpu_percent: 95,
-    });
+    rebalancer.register_agent(
+        agent_1,
+        AgentLoad {
+            agent_id: agent_1,
+            task_count: 1000,
+            latency_ms: 200,
+            cpu_percent: 95,
+        },
+    );
 
-    rebalancer.register_agent(agent_2, AgentLoad {
-        agent_id: agent_2,
-        task_count: 100,
-        latency_ms: 50,
-        cpu_percent: 20,
-    });
+    rebalancer.register_agent(
+        agent_2,
+        AgentLoad {
+            agent_id: agent_2,
+            task_count: 100,
+            latency_ms: 50,
+            cpu_percent: 20,
+        },
+    );
 
-    rebalancer.register_agent(agent_3, AgentLoad {
-        agent_id: agent_3,
-        task_count: 200,
-        latency_ms: 75,
-        cpu_percent: 40,
-    });
+    rebalancer.register_agent(
+        agent_3,
+        AgentLoad {
+            agent_id: agent_3,
+            task_count: 200,
+            latency_ms: 75,
+            cpu_percent: 40,
+        },
+    );
 
     // Calculate rebalance plan
     let plan = rebalancer.calculate_rebalance_plan();
 
     // Should move tasks from agent_1 to agent_2 and agent_3
-    assert!(!plan.actions.is_empty(), "Rebalance plan should suggest actions");
+    assert!(
+        !plan.actions.is_empty(),
+        "Rebalance plan should suggest actions"
+    );
     assert!(plan.balance_score > 0.5, "Balance score should improve");
 }
 
@@ -154,9 +173,15 @@ fn test_expert_escalation_pilots_ready() {
     let token_3 = CapabilityToken::new(pilot_3_id, CapabilityLevel::Expert, 3600);
 
     // Register tokens
-    gateway.register_token(token_1).expect("Failed to register token 1");
-    gateway.register_token(token_2).expect("Failed to register token 2");
-    gateway.register_token(token_3).expect("Failed to register token 3");
+    gateway
+        .register_token(token_1)
+        .expect("Failed to register token 1");
+    gateway
+        .register_token(token_2)
+        .expect("Failed to register token 2");
+    gateway
+        .register_token(token_3)
+        .expect("Failed to register token 3");
 
     // Escalate expert tasks
     let task_1 = ExpertTask {
@@ -172,7 +197,10 @@ fn test_expert_escalation_pilots_ready() {
     };
 
     let result_1 = gateway.escalate(&task_1, pilot_1_id);
-    assert!(result_1.is_ok(), "Pilot 1 should be able to escalate Advanced task");
+    assert!(
+        result_1.is_ok(),
+        "Pilot 1 should be able to escalate Advanced task"
+    );
 
     let task_2 = ExpertTask {
         task_id: Uuid::new_v4(),
@@ -187,13 +215,19 @@ fn test_expert_escalation_pilots_ready() {
     };
 
     let result_2 = gateway.escalate(&task_2, pilot_3_id);
-    assert!(result_2.is_ok(), "Pilot 3 (Expert) should escalate Expert task");
+    assert!(
+        result_2.is_ok(),
+        "Pilot 3 (Expert) should escalate Expert task"
+    );
 }
 
 #[test]
 fn test_generate_integration_report() {
     let manifest_dir = env!("CARGO_MANIFEST_DIR");
-    let report_dir = format!("{}/../../.claude/reports/night-cycle/integration", manifest_dir);
+    let report_dir = format!(
+        "{}/../../.claude/reports/night-cycle/integration",
+        manifest_dir
+    );
     fs::create_dir_all(&report_dir).expect("Failed to create report directory");
 
     // Run all 5 test scenarios
@@ -244,11 +278,38 @@ fn test_generate_integration_report() {
     let a1 = Uuid::new_v4();
     let a2 = Uuid::new_v4();
     let a3 = Uuid::new_v4();
-    rebalancer.register_agent(a1, AgentLoad { agent_id: a1, task_count: 1000, latency_ms: 200, cpu_percent: 95 });
-    rebalancer.register_agent(a2, AgentLoad { agent_id: a2, task_count: 100, latency_ms: 50, cpu_percent: 20 });
-    rebalancer.register_agent(a3, AgentLoad { agent_id: a3, task_count: 200, latency_ms: 75, cpu_percent: 40 });
+    rebalancer.register_agent(
+        a1,
+        AgentLoad {
+            agent_id: a1,
+            task_count: 1000,
+            latency_ms: 200,
+            cpu_percent: 95,
+        },
+    );
+    rebalancer.register_agent(
+        a2,
+        AgentLoad {
+            agent_id: a2,
+            task_count: 100,
+            latency_ms: 50,
+            cpu_percent: 20,
+        },
+    );
+    rebalancer.register_agent(
+        a3,
+        AgentLoad {
+            agent_id: a3,
+            task_count: 200,
+            latency_ms: 75,
+            cpu_percent: 40,
+        },
+    );
     let plan = rebalancer.calculate_rebalance_plan();
-    results.push(("test_workload_rebalancer_scales_dynamically", !plan.actions.is_empty()));
+    results.push((
+        "test_workload_rebalancer_scales_dynamically",
+        !plan.actions.is_empty(),
+    ));
 
     // 5. Expert escalation
     let mut gateway = ExpertGateway::new(5);
@@ -280,7 +341,11 @@ fn test_generate_integration_report() {
     });
 
     let metrics_str = to_string_pretty(&metrics).unwrap();
-    fs::write(format!("{}/integration_metrics.json", report_dir), &metrics_str).ok();
+    fs::write(
+        format!("{}/integration_metrics.json", report_dir),
+        &metrics_str,
+    )
+    .ok();
 
     // Generate merkle_proof.json
     let merkle_hash = compute_hash(&metrics_str);
@@ -289,7 +354,11 @@ fn test_generate_integration_report() {
         "hash": merkle_hash,
         "source": "integration_metrics.json"
     });
-    fs::write(format!("{}/merkle_proof.json", report_dir), to_string_pretty(&proof).unwrap()).ok();
+    fs::write(
+        format!("{}/merkle_proof.json", report_dir),
+        to_string_pretty(&proof).unwrap(),
+    )
+    .ok();
 
     // Generate INTEGRATION_REPORT.md
     let markdown = format!(
@@ -303,13 +372,24 @@ fn test_generate_integration_report() {
          - Pilots Ready: 3/3\n\n\
          ## Merkle Proof\n\n\
          **SHA256:** `{}`\n",
-        results.iter().map(|(name, passed)| {
-            format!("- **{}**: {}", name, if *passed { "✓ PASS" } else { "✗ FAIL" })
-        }).collect::<Vec<_>>().join("\n"),
+        results
+            .iter()
+            .map(|(name, passed)| {
+                format!(
+                    "- **{}**: {}",
+                    name,
+                    if *passed { "✓ PASS" } else { "✗ FAIL" }
+                )
+            })
+            .collect::<Vec<_>>()
+            .join("\n"),
         merkle_hash
     );
 
     fs::write(format!("{}/INTEGRATION_REPORT.md", report_dir), markdown).ok();
 
-    assert!(results.iter().all(|(_, p)| *p), "All integration tests should pass");
+    assert!(
+        results.iter().all(|(_, p)| *p),
+        "All integration tests should pass"
+    );
 }

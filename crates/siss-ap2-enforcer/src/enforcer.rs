@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
+use siss_capsule_commit::{CapsuleCommitActor, PrepareRequest};
 use std::collections::HashMap;
 use thiserror::Error;
 use uuid::Uuid;
-use siss_capsule_commit::{CapsuleCommitActor, PrepareRequest};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToolInvokeRequest {
@@ -44,16 +44,12 @@ impl Ap2Enforcer {
         }
     }
 
-    pub fn invoke(
-        &mut self,
-        req: ToolInvokeRequest,
-    ) -> Result<ToolInvokeResult, EnforcementError> {
+    pub fn invoke(&mut self, req: ToolInvokeRequest) -> Result<ToolInvokeResult, EnforcementError> {
         // 1. Extract and validate token
         let token_str = req.token.ok_or(EnforcementError::MissingToken)?;
 
         // Parse token string to UUID (for capsule_id)
-        let capsule_id = Uuid::parse_str(&token_str)
-            .map_err(|_| EnforcementError::MissingToken)?;
+        let capsule_id = Uuid::parse_str(&token_str).map_err(|_| EnforcementError::MissingToken)?;
 
         // 2. Create and validate prepare request
         let prepare_req = PrepareRequest {
@@ -64,11 +60,14 @@ impl Ap2Enforcer {
         };
 
         // 3. Validate the prepare request (budget check)
-        let token = prepare_req.validate()
+        let token = prepare_req
+            .validate()
             .map_err(|_| EnforcementError::BudgetExceeded)?;
 
         // 4. Commit the token
-        let entry = self.actor.commit(token)
+        let entry = self
+            .actor
+            .commit(token)
             .map_err(|e| EnforcementError::CommitFailed(e))?;
 
         // Return result with capsule_id and tool_name

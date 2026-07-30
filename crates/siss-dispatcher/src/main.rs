@@ -1,7 +1,7 @@
-use clap::{Parser, Subcommand};
 use chrono::Utc;
-use siss_dispatcher::types::{ExecutorConfig, Task, TaskStatus};
+use clap::{Parser, Subcommand};
 use siss_dispatcher::Executor;
+use siss_dispatcher::types::{ExecutorConfig, Task, TaskStatus};
 use std::path::PathBuf;
 use uuid::Uuid;
 
@@ -73,8 +73,7 @@ async fn main() -> anyhow::Result<()> {
         }
 
         Commands::QueueAdd { task_json } => {
-            let task_spec: serde_json::Value =
-                serde_json::from_str(&task_json)?;
+            let task_spec: serde_json::Value = serde_json::from_str(&task_json)?;
 
             let task = Task {
                 id: Uuid::new_v4(),
@@ -102,8 +101,7 @@ async fn main() -> anyhow::Result<()> {
         }
 
         Commands::Status => {
-            let (pending, in_progress, completed) =
-                executor.queue_status();
+            let (pending, in_progress, completed) = executor.queue_status();
 
             println!("Queue Status:");
             println!("  Pending: {}", pending);

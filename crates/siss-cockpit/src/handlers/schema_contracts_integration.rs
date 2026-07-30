@@ -4,8 +4,8 @@
 #[cfg(test)]
 mod integration_tests {
     use crate::handlers::schema_contracts::{
-        SchemaContracts, SSEStreamEvent, DecisionWebhookPayload, ProjectionResolverResponse,
-        ProjectionMetadata, SchemaContractError,
+        DecisionWebhookPayload, ProjectionMetadata, ProjectionResolverResponse, SSEStreamEvent,
+        SchemaContractError, SchemaContracts,
     };
     use serde_json::json;
 
@@ -62,7 +62,8 @@ mod integration_tests {
 
         // Decision 2: Try to approve completed (should fail)
         let completed_state = "COMPLETED";
-        let result2 = SchemaContracts::validate_decision_webhook(&approval_decision, completed_state);
+        let result2 =
+            SchemaContracts::validate_decision_webhook(&approval_decision, completed_state);
         assert!(result2.is_err(), "COMPLETED → APPROVE should be invalid");
     }
 
@@ -206,7 +207,10 @@ mod integration_tests {
         };
 
         let validate_decision = SchemaContracts::validate_decision_webhook(&decision, "PENDING");
-        assert!(validate_decision.is_ok(), "Decision webhook should be valid");
+        assert!(
+            validate_decision.is_ok(),
+            "Decision webhook should be valid"
+        );
 
         // Stage 3: Projection Response returned
         let projection = ProjectionResolverResponse {
@@ -253,7 +257,10 @@ mod integration_tests {
 
         let result = SchemaContracts::validate_json_schema(&sse_style_payload, "decision_webhook");
         // event_type is not in decision_webhook schema
-        assert!(result.is_err(), "Cross-endpoint payload should fail schema validation");
+        assert!(
+            result.is_err(),
+            "Cross-endpoint payload should fail schema validation"
+        );
     }
 
     #[test]
@@ -276,6 +283,9 @@ mod integration_tests {
         };
 
         let result = SchemaContracts::validate_sse_stream_event(&event);
-        assert!(result.is_err(), "SSE with oversized payload should fail A2UI limit check");
+        assert!(
+            result.is_err(),
+            "SSE with oversized payload should fail A2UI limit check"
+        );
     }
 }

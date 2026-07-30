@@ -1,9 +1,9 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use chrono::{DateTime, Utc};
-use sha2::{Sha256, Digest};
 use uuid::Uuid;
 
 /// VisionSurvivalProtocol — Automated vault sync for vision resilience
@@ -57,7 +57,11 @@ impl VisionSurvivalProtocol {
 
                 // Match vault naming pattern: SMAOS_VAULT_A, SMAOS_VAULT_B, SMAOS_VAULT_C
                 if let Some(name_str) = name.to_str().filter(|s| s.starts_with("SMAOS_VAULT_")) {
-                    if let Some(location) = name_str.chars().last().filter(|&c| matches!(c, 'A' | 'B' | 'C')) {
+                    if let Some(location) = name_str
+                        .chars()
+                        .last()
+                        .filter(|&c| matches!(c, 'A' | 'B' | 'C'))
+                    {
                         vaults.push(location);
                         self.vault_mount_points.push(path);
                     }
@@ -200,9 +204,8 @@ impl VisionSurvivalProtocol {
         let vault_smaos = vault_path.join("smaos");
 
         // Ensure vault directory exists
-        fs::create_dir_all(&vault_smaos).map_err(|e| {
-            format!("Failed to create vault directory: {}", e)
-        })?;
+        fs::create_dir_all(&vault_smaos)
+            .map_err(|e| format!("Failed to create vault directory: {}", e))?;
 
         // Use rsync for efficient delta sync
         let output = Command::new("rsync")
@@ -268,15 +271,17 @@ impl VisionSurvivalProtocol {
     }
 
     /// Update vault manifest with sync information
-    pub fn update_manifest(&self, vault_path: &Path, sync_capsule: &SyncCapsule) -> Result<(), String> {
+    pub fn update_manifest(
+        &self,
+        vault_path: &Path,
+        sync_capsule: &SyncCapsule,
+    ) -> Result<(), String> {
         let manifest_path = vault_path.join("VAULT_MANIFEST.json");
 
         // Load existing manifest or create new one
         let mut manifest: serde_json::Value = if manifest_path.exists() {
-            serde_json::from_str(
-                &fs::read_to_string(&manifest_path).map_err(|e| e.to_string())?,
-            )
-            .unwrap_or_else(|_| serde_json::json!({}))
+            serde_json::from_str(&fs::read_to_string(&manifest_path).map_err(|e| e.to_string())?)
+                .unwrap_or_else(|_| serde_json::json!({}))
         } else {
             serde_json::json!({})
         };
@@ -324,7 +329,9 @@ impl VisionSurvivalProtocol {
             for file in &critical {
                 println!("   - {}", file);
             }
-            println!("   → Rotate Vault B or C within 72 hours to maintain geopolitical resilience.");
+            println!(
+                "   → Rotate Vault B or C within 72 hours to maintain geopolitical resilience."
+            );
         }
 
         // Step 5: Sync to all vaults

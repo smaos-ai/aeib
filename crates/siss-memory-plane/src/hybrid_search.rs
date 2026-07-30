@@ -1,6 +1,6 @@
 use siss_graph_core::reachability::ReachabilityCache;
-use uuid::Uuid;
 use std::collections::HashMap;
+use uuid::Uuid;
 
 /// Represents a document corpus indexed for search.
 pub struct Corpus {
@@ -103,8 +103,7 @@ impl BM25Scorer {
                             .and_then(|m| m.get(token))
                             .copied()
                             .unwrap_or(0.0);
-                        let doc_len =
-                            self.doc_lengths.get(doc_id).copied().unwrap_or(0) as f64;
+                        let doc_len = self.doc_lengths.get(doc_id).copied().unwrap_or(0) as f64;
                         let numerator = tf_val * (self.k1 + 1.0);
                         let denominator =
                             tf_val + self.k1 * (1.0 - self.b + self.b * (doc_len / self.avgdl));

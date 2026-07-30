@@ -1,7 +1,7 @@
+use chrono::{Duration as ChronoDuration, Utc};
+use siss_capsule_ecosystem::{AntiYouCapsule, MarketVisionCapsule, TimeCapsuleCapsule};
 use std::thread;
 use std::time::Duration;
-use chrono::{Utc, Duration as ChronoDuration};
-use siss_capsule_ecosystem::{AntiYouCapsule, TimeCapsuleCapsule, MarketVisionCapsule};
 
 // ============================================================================
 // AntiYou Capsule Tests (12 tests)
@@ -32,8 +32,14 @@ fn test_antiyou_version_control_linear_history() {
 
     let versions = capsule.get_versions();
     assert_eq!(versions.len(), 3, "Should have 3 versions");
-    assert!(versions[0].timestamp <= versions[1].timestamp, "Versions should be chronological");
-    assert!(versions[1].timestamp <= versions[2].timestamp, "Versions should be chronological");
+    assert!(
+        versions[0].timestamp <= versions[1].timestamp,
+        "Versions should be chronological"
+    );
+    assert!(
+        versions[1].timestamp <= versions[2].timestamp,
+        "Versions should be chronological"
+    );
 }
 
 #[test]
@@ -67,7 +73,11 @@ fn test_antiyou_rollback_state_restoration() {
 
     let result = capsule.rollback(&request);
     assert!(result.is_ok(), "State restoration should complete");
-    assert_eq!(result.unwrap().restored_version_id, version_id, "Correct version restored");
+    assert_eq!(
+        result.unwrap().restored_version_id,
+        version_id,
+        "Correct version restored"
+    );
 }
 
 #[test]
@@ -119,7 +129,10 @@ fn test_antiyou_regret_scoring_algorithm() {
 
     let result = capsule.rollback(&request);
     assert!(result.is_ok(), "Regret score calculation should succeed");
-    assert!(result.unwrap().regret_score >= 0.0, "Regret score should be non-negative");
+    assert!(
+        result.unwrap().regret_score >= 0.0,
+        "Regret score should be non-negative"
+    );
 }
 
 #[test]
@@ -135,7 +148,10 @@ fn test_antiyou_user_consent_enforcement() {
     };
 
     let result_no_consent = capsule.rollback(&request_without_consent);
-    assert!(result_no_consent.is_err(), "Rollback without consent must fail");
+    assert!(
+        result_no_consent.is_err(),
+        "Rollback without consent must fail"
+    );
 
     let request_with_consent = siss_capsule_ecosystem::antiyou_capsule::RollbackRequest {
         target_version_id: version,
@@ -144,7 +160,10 @@ fn test_antiyou_user_consent_enforcement() {
     };
 
     let result_with_consent = capsule.rollback(&request_with_consent);
-    assert!(result_with_consent.is_ok(), "Rollback with consent must succeed");
+    assert!(
+        result_with_consent.is_ok(),
+        "Rollback with consent must succeed"
+    );
 }
 
 #[test]
@@ -153,7 +172,10 @@ fn test_antiyou_audit_trail_immutable() {
     capsule.record_decision(vec![1]);
 
     assert!(capsule.verify_audit_immutable(), "Audit trail should exist");
-    assert!(!capsule.get_audit_trail().is_empty(), "Audit trail must not be empty");
+    assert!(
+        !capsule.get_audit_trail().is_empty(),
+        "Audit trail must not be empty"
+    );
 }
 
 #[test]
@@ -173,7 +195,11 @@ fn test_antiyou_latency_under_500ms() {
     let _ = capsule.rollback(&request);
     let elapsed = start.elapsed().as_millis();
 
-    assert!(elapsed < 500, "Rollback latency must be < 500ms, got {}ms", elapsed);
+    assert!(
+        elapsed < 500,
+        "Rollback latency must be < 500ms, got {}ms",
+        elapsed
+    );
 }
 
 #[test]
@@ -200,7 +226,11 @@ fn test_antiyou_data_persistence_integrity() {
     capsule.record_decision(test_data.clone());
 
     let version = capsule.get_versions()[0].version_id;
-    assert_eq!(capsule.get_versions()[0].state_data, test_data, "Data should be preserved");
+    assert_eq!(
+        capsule.get_versions()[0].state_data,
+        test_data,
+        "Data should be preserved"
+    );
 
     let request = siss_capsule_ecosystem::antiyou_capsule::RollbackRequest {
         target_version_id: version,
@@ -222,8 +252,13 @@ fn test_timecapsule_scheduled_publishing_on_time() {
     let now = Utc::now();
     let scheduled = now + ChronoDuration::seconds(1);
 
-    let publish_id = capsule.schedule_publish(vec![1, 2, 3], scheduled, "UTC").unwrap();
-    assert!(!publish_id.to_string().is_empty(), "Publish should be scheduled");
+    let publish_id = capsule
+        .schedule_publish(vec![1, 2, 3], scheduled, "UTC")
+        .unwrap();
+    assert!(
+        !publish_id.to_string().is_empty(),
+        "Publish should be scheduled"
+    );
 }
 
 #[test]
@@ -231,8 +266,13 @@ fn test_timecapsule_timezone_handling_utc() {
     let mut capsule = TimeCapsuleCapsule::new();
     let now = Utc::now();
 
-    let publish_id = capsule.schedule_publish(vec![1], now + ChronoDuration::seconds(1), "UTC").unwrap();
-    assert!(!publish_id.to_string().is_empty(), "Should handle UTC timezone");
+    let publish_id = capsule
+        .schedule_publish(vec![1], now + ChronoDuration::seconds(1), "UTC")
+        .unwrap();
+    assert!(
+        !publish_id.to_string().is_empty(),
+        "Should handle UTC timezone"
+    );
 }
 
 #[test]
@@ -240,11 +280,19 @@ fn test_timecapsule_content_versioning() {
     let mut capsule = TimeCapsuleCapsule::new();
     let now = Utc::now();
 
-    let id1 = capsule.schedule_publish(vec![1], now + ChronoDuration::seconds(1), "UTC").unwrap();
-    let id2 = capsule.schedule_publish(vec![2], now + ChronoDuration::seconds(2), "UTC").unwrap();
+    let id1 = capsule
+        .schedule_publish(vec![1], now + ChronoDuration::seconds(1), "UTC")
+        .unwrap();
+    let id2 = capsule
+        .schedule_publish(vec![2], now + ChronoDuration::seconds(2), "UTC")
+        .unwrap();
 
     assert_ne!(id1, id2, "Each publish should have unique ID");
-    assert_eq!(capsule.get_scheduled().len(), 2, "Should track multiple versions");
+    assert_eq!(
+        capsule.get_scheduled().len(),
+        2,
+        "Should track multiple versions"
+    );
 }
 
 #[test]
@@ -254,9 +302,15 @@ fn test_timecapsule_embargo_enforcement() {
 
     let publish_id = capsule.schedule_publish(vec![1], future, "UTC").unwrap();
     let scheduled = capsule.get_scheduled();
-    let publish = scheduled.iter().find(|p| p.publish_id == publish_id).unwrap();
+    let publish = scheduled
+        .iter()
+        .find(|p| p.publish_id == publish_id)
+        .unwrap();
 
-    assert!(!publish.published, "Should not be published before scheduled time");
+    assert!(
+        !publish.published,
+        "Should not be published before scheduled time"
+    );
 }
 
 #[test]
@@ -270,7 +324,10 @@ fn test_timecapsule_scheduling_accuracy_within_1s() {
     thread::sleep(Duration::from_millis(200));
 
     let published = capsule.execute_pending_publishes().unwrap();
-    assert!(published.contains(&publish_id), "Should publish scheduled content");
+    assert!(
+        published.contains(&publish_id),
+        "Should publish scheduled content"
+    );
 }
 
 #[test]
@@ -278,12 +335,21 @@ fn test_timecapsule_concurrent_publish_ordering() {
     let mut capsule = TimeCapsuleCapsule::new();
     let now = Utc::now();
 
-    let _id1 = capsule.schedule_publish(vec![1], now + ChronoDuration::seconds(1), "UTC").unwrap();
-    let _id2 = capsule.schedule_publish(vec![2], now + ChronoDuration::seconds(2), "UTC").unwrap();
-    let _id3 = capsule.schedule_publish(vec![3], now + ChronoDuration::seconds(3), "UTC").unwrap();
+    let _id1 = capsule
+        .schedule_publish(vec![1], now + ChronoDuration::seconds(1), "UTC")
+        .unwrap();
+    let _id2 = capsule
+        .schedule_publish(vec![2], now + ChronoDuration::seconds(2), "UTC")
+        .unwrap();
+    let _id3 = capsule
+        .schedule_publish(vec![3], now + ChronoDuration::seconds(3), "UTC")
+        .unwrap();
 
     let scheduled = capsule.get_scheduled();
-    assert_eq!(scheduled[0].scheduled_time, scheduled[0].scheduled_time, "Should maintain order");
+    assert_eq!(
+        scheduled[0].scheduled_time, scheduled[0].scheduled_time,
+        "Should maintain order"
+    );
 }
 
 #[test]
@@ -313,10 +379,15 @@ fn test_timecapsule_audit_trail_immutable() {
     let mut capsule = TimeCapsuleCapsule::new();
     let now = Utc::now();
 
-    capsule.schedule_publish(vec![1], now + ChronoDuration::seconds(1), "UTC").unwrap();
+    capsule
+        .schedule_publish(vec![1], now + ChronoDuration::seconds(1), "UTC")
+        .unwrap();
 
     assert!(capsule.verify_audit_immutable(), "Audit trail should exist");
-    assert!(!capsule.get_audit_trail().is_empty(), "Audit trail must not be empty");
+    assert!(
+        !capsule.get_audit_trail().is_empty(),
+        "Audit trail must not be empty"
+    );
 }
 
 #[test]
@@ -325,8 +396,13 @@ fn test_timecapsule_media_attachment_handling() {
     let now = Utc::now();
     let media_content = vec![0xFF, 0xD8, 0xFF, 0xE0]; // JPEG header
 
-    let publish_id = capsule.schedule_publish(media_content, now + ChronoDuration::seconds(1), "UTC").unwrap();
-    assert!(!publish_id.to_string().is_empty(), "Should handle media attachments");
+    let publish_id = capsule
+        .schedule_publish(media_content, now + ChronoDuration::seconds(1), "UTC")
+        .unwrap();
+    assert!(
+        !publish_id.to_string().is_empty(),
+        "Should handle media attachments"
+    );
 }
 
 #[test]
@@ -336,14 +412,20 @@ fn test_timecapsule_99_9_publish_accuracy() {
 
     for i in 0..10 {
         let scheduled = now + ChronoDuration::milliseconds((i * 10 + 100) as i64);
-        capsule.schedule_publish(vec![i as u8], scheduled, "UTC").unwrap();
+        capsule
+            .schedule_publish(vec![i as u8], scheduled, "UTC")
+            .unwrap();
     }
 
     thread::sleep(Duration::from_millis(200));
     capsule.execute_pending_publishes().unwrap();
 
     let accuracy = capsule.calculate_publish_accuracy();
-    assert!(accuracy >= 80.0, "Publish accuracy should be high: {}%", accuracy);
+    assert!(
+        accuracy >= 80.0,
+        "Publish accuracy should be high: {}%",
+        accuracy
+    );
 }
 
 #[test]
@@ -351,9 +433,15 @@ fn test_timecapsule_chronological_ordering_enforcement() {
     let mut capsule = TimeCapsuleCapsule::new();
     let now = Utc::now();
 
-    capsule.schedule_publish(vec![1], now + ChronoDuration::seconds(3), "UTC").unwrap();
-    capsule.schedule_publish(vec![2], now + ChronoDuration::seconds(1), "UTC").unwrap();
-    capsule.schedule_publish(vec![3], now + ChronoDuration::seconds(2), "UTC").unwrap();
+    capsule
+        .schedule_publish(vec![1], now + ChronoDuration::seconds(3), "UTC")
+        .unwrap();
+    capsule
+        .schedule_publish(vec![2], now + ChronoDuration::seconds(1), "UTC")
+        .unwrap();
+    capsule
+        .schedule_publish(vec![3], now + ChronoDuration::seconds(2), "UTC")
+        .unwrap();
 
     let is_ordered = capsule.verify_chronological_ordering();
     assert!(is_ordered || !is_ordered, "Ordering check should complete");
@@ -381,7 +469,10 @@ fn test_market_vision_confidence_scoring() {
     assert!(!anomalies.is_empty(), "Should detect anomaly");
 
     let anomaly = &capsule.get_anomalies()[0];
-    assert!(anomaly.confidence_score >= 0.0 && anomaly.confidence_score <= 1.0, "Confidence should be [0, 1]");
+    assert!(
+        anomaly.confidence_score >= 0.0 && anomaly.confidence_score <= 1.0,
+        "Confidence should be [0, 1]"
+    );
 }
 
 #[test]
@@ -393,7 +484,10 @@ fn test_market_vision_ai_insight_generation() {
     let insight = capsule.generate_insights(anomalies[0]).unwrap();
 
     assert!(!insight.is_empty(), "Should generate insight");
-    assert!(insight.contains("anomaly"), "Insight should describe anomaly");
+    assert!(
+        insight.contains("anomaly"),
+        "Insight should describe anomaly"
+    );
 }
 
 #[test]
@@ -404,7 +498,10 @@ fn test_market_vision_real_time_alert_trigger() {
     let anomalies = capsule.detect_anomalies(&data).unwrap();
     if !anomalies.is_empty() {
         let result = capsule.trigger_alert(anomalies[0]);
-        assert!(result.is_ok() || result.is_err(), "Alert trigger should complete");
+        assert!(
+            result.is_ok() || result.is_err(),
+            "Alert trigger should complete"
+        );
     }
 }
 
@@ -419,7 +516,10 @@ fn test_market_vision_false_positive_suppression() {
         capsule.suppress_false_positive(anomalies[0]).unwrap();
         let new_score = capsule.get_anomalies()[0].confidence_score;
 
-        assert!(new_score <= old_score, "Suppression should lower confidence");
+        assert!(
+            new_score <= old_score,
+            "Suppression should lower confidence"
+        );
     }
 }
 
@@ -431,7 +531,10 @@ fn test_market_vision_anomaly_recall_gt_95_percent() {
     capsule.detect_anomalies(&data).unwrap();
     let recall = capsule.calculate_anomaly_recall();
 
-    assert!(recall >= 0.0 && recall <= 100.0, "Recall should be percentage");
+    assert!(
+        recall >= 0.0 && recall <= 100.0,
+        "Recall should be percentage"
+    );
 }
 
 #[test]
@@ -443,7 +546,11 @@ fn test_market_vision_latency_under_500ms() {
     capsule.detect_anomalies(&data).unwrap();
     let elapsed = start.elapsed().as_millis();
 
-    assert!(elapsed < 500, "Detection latency must be < 500ms, got {}ms", elapsed);
+    assert!(
+        elapsed < 500,
+        "Detection latency must be < 500ms, got {}ms",
+        elapsed
+    );
 }
 
 #[test]
@@ -483,5 +590,8 @@ fn test_market_vision_audit_trail_immutable() {
     capsule.detect_anomalies(&data).unwrap();
 
     assert!(capsule.verify_audit_immutable(), "Audit trail should exist");
-    assert!(!capsule.get_audit_trail().is_empty(), "Audit trail must not be empty");
+    assert!(
+        !capsule.get_audit_trail().is_empty(),
+        "Audit trail must not be empty"
+    );
 }

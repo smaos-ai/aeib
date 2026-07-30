@@ -1,10 +1,10 @@
 pub mod enforcer;
 pub mod mandates;
 
-pub use enforcer::{Ap2Enforcer, ToolInvokeRequest, ToolInvokeResult, EnforcementError};
+pub use enforcer::{Ap2Enforcer, EnforcementError, ToolInvokeRequest, ToolInvokeResult};
 pub use mandates::{
-    IntentMandate, PaymentMandate, AP2MandateEngine, ResourceType, PaymentStatus, AuditEvent,
-    AuditEventType,
+    AP2MandateEngine, AuditEvent, AuditEventType, IntentMandate, PaymentMandate, PaymentStatus,
+    ResourceType,
 };
 
 #[cfg(test)]
@@ -27,7 +27,10 @@ mod tests {
 
         let result = enforcer.invoke(req);
         assert!(result.is_err(), "Should reject when token is missing");
-        assert!(matches!(result.unwrap_err(), EnforcementError::MissingToken));
+        assert!(matches!(
+            result.unwrap_err(),
+            EnforcementError::MissingToken
+        ));
     }
 
     #[test]
@@ -39,13 +42,16 @@ mod tests {
             agent_id: "agent_1".to_string(),
             token: Some(capsule_id.to_string()),
             budget_limit: 100,
-            budget_spent: 100,  // equals limit → must reject (fail-closed)
+            budget_spent: 100, // equals limit → must reject (fail-closed)
             parameters: HashMap::new(),
         };
 
         let result = enforcer.invoke(req);
         assert!(result.is_err(), "Should reject when budget is exhausted");
-        assert!(matches!(result.unwrap_err(), EnforcementError::BudgetExceeded));
+        assert!(matches!(
+            result.unwrap_err(),
+            EnforcementError::BudgetExceeded
+        ));
     }
 
     #[test]
@@ -62,7 +68,10 @@ mod tests {
         };
 
         let result = enforcer.invoke(req);
-        assert!(result.is_ok(), "Should authorize with valid token and budget");
+        assert!(
+            result.is_ok(),
+            "Should authorize with valid token and budget"
+        );
         let tool_result = result.unwrap();
         assert_eq!(tool_result.capsule_id, capsule_id);
         assert_eq!(tool_result.tool_name, "test_tool");

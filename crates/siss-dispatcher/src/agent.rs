@@ -20,11 +20,7 @@ pub struct AgentExecutor {
 
 impl AgentExecutor {
     /// Create new agent executor
-    pub fn new(
-        index: u32,
-        repo_path: String,
-        worktree_base: String,
-    ) -> Self {
+    pub fn new(index: u32, repo_path: String, worktree_base: String) -> Self {
         let agent = Agent {
             id: Uuid::new_v4(),
             index,
@@ -54,10 +50,7 @@ impl AgentExecutor {
         self.agent.assigned_task = Some(task.id);
 
         let branch_name = format!("agent-{}-task-{}", self.agent.index, task.id);
-        let worktree_path = format!(
-            "{}/{}",
-            self.worktree_base, branch_name
-        );
+        let worktree_path = format!("{}/{}", self.worktree_base, branch_name);
 
         self.git
             .create_worktree(&worktree_path, &branch_name)
@@ -71,13 +64,10 @@ impl AgentExecutor {
 
     /// Write task specification to worktree for agent to read
     pub async fn write_task_specification(&self, task: &Task) -> Result<()> {
-        let worktree_path = self
-            .agent
-            .worktree_path
-            .as_ref()
-            .ok_or_else(|| DispatchError::WorktreeError(
-                "No worktree initialized".to_string(),
-            ))?;
+        let worktree_path =
+            self.agent.worktree_path.as_ref().ok_or_else(|| {
+                DispatchError::WorktreeError("No worktree initialized".to_string())
+            })?;
 
         let spec_dir = PathBuf::from(worktree_path).join(".dispatcher");
         fs::create_dir_all(&spec_dir).await?;
@@ -93,13 +83,10 @@ impl AgentExecutor {
     pub async fn execute_task(&mut self, task: &Task) -> Result<()> {
         self.agent.status = AgentStatus::TaskInProgress;
 
-        let worktree_path = self
-            .agent
-            .worktree_path
-            .as_ref()
-            .ok_or_else(|| DispatchError::WorktreeError(
-                "No worktree initialized".to_string(),
-            ))?;
+        let worktree_path =
+            self.agent.worktree_path.as_ref().ok_or_else(|| {
+                DispatchError::WorktreeError("No worktree initialized".to_string())
+            })?;
 
         // Write task spec
         self.write_task_specification(task).await?;
@@ -135,20 +122,17 @@ impl AgentExecutor {
 
     /// Commit changes and prepare for merge
     pub async fn prepare_merge(&mut self) -> Result<()> {
-        let worktree_path = self
+        let worktree_path =
+            self.agent.worktree_path.as_ref().ok_or_else(|| {
+                DispatchError::WorktreeError("No worktree initialized".to_string())
+            })?;
+
+        let task_id = self
             .agent
-            .worktree_path
-            .as_ref()
-            .ok_or_else(|| DispatchError::WorktreeError(
-                "No worktree initialized".to_string(),
-            ))?;
+            .assigned_task
+            .ok_or_else(|| DispatchError::WorktreeError("No task assigned".to_string()))?;
 
-        let task_id = self.agent.assigned_task.ok_or_else(|| {
-            DispatchError::WorktreeError("No task assigned".to_string())
-        })?;
-
-        let commit_msg =
-            format!("Task {}: changes from agent {}", task_id, self.agent.index);
+        let commit_msg = format!("Task {}: changes from agent {}", task_id, self.agent.index);
 
         self.git.commit_changes(worktree_path, &commit_msg).await?;
 
@@ -158,13 +142,10 @@ impl AgentExecutor {
 
     /// Extract changed files from worktree
     pub async fn get_changed_files(&self) -> Result<Vec<String>> {
-        let worktree_path = self
-            .agent
-            .worktree_path
-            .as_ref()
-            .ok_or_else(|| DispatchError::WorktreeError(
-                "No worktree initialized".to_string(),
-            ))?;
+        let worktree_path =
+            self.agent.worktree_path.as_ref().ok_or_else(|| {
+                DispatchError::WorktreeError("No worktree initialized".to_string())
+            })?;
 
         self.git.get_modified_files(worktree_path).await
     }
@@ -190,11 +171,7 @@ mod tests {
 
     #[test]
     fn test_agent_creation() {
-        let executor = AgentExecutor::new(
-            0,
-            ".".to_string(),
-            "./.claude/worktrees".to_string(),
-        );
+        let executor = AgentExecutor::new(0, ".".to_string(), "./.claude/worktrees".to_string());
         assert_eq!(executor.agent.index, 0);
         assert_eq!(executor.agent.status, AgentStatus::Idle);
         assert!(executor.agent.assigned_task.is_none());
@@ -202,16 +179,8 @@ mod tests {
 
     #[test]
     fn test_agent_id_unique() {
-        let executor1 = AgentExecutor::new(
-            0,
-            ".".to_string(),
-            "./.claude/worktrees".to_string(),
-        );
-        let executor2 = AgentExecutor::new(
-            1,
-            ".".to_string(),
-            "./.claude/worktrees".to_string(),
-        );
+        let executor1 = AgentExecutor::new(0, ".".to_string(), "./.claude/worktrees".to_string());
+        let executor2 = AgentExecutor::new(1, ".".to_string(), "./.claude/worktrees".to_string());
         assert_ne!(executor1.agent.id, executor2.agent.id);
     }
 }

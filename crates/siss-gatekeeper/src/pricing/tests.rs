@@ -14,7 +14,11 @@ fn test_lookup_returns_correct_price() {
     cache.insert(tool_id, risk, price);
     let result = cache.lookup(tool_id, risk);
 
-    assert_eq!(result, Some(price), "lookup must return exact inserted price");
+    assert_eq!(
+        result,
+        Some(price),
+        "lookup must return exact inserted price"
+    );
 }
 
 /// test_missing_key_returns_none: Lookup for non-existent (tool, risk) pair returns None.
@@ -89,7 +93,8 @@ fn test_concurrent_reads_correct() {
                 for (tool_id, risk, expected_price) in entries_clone {
                     let result = cache_clone.lookup(tool_id, risk);
                     assert_eq!(
-                        result, Some(expected_price),
+                        result,
+                        Some(expected_price),
                         "concurrent read must return correct price"
                     );
                 }

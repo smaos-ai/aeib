@@ -1,7 +1,7 @@
-use uuid::Uuid;
 use serde::{Deserialize, Serialize};
-use sha2::{Sha256, Digest};
+use sha2::{Digest, Sha256};
 use std::collections::{HashMap, HashSet};
+use uuid::Uuid;
 
 const MAX_CAPSULE_SCOPE: usize = 50;
 
@@ -67,10 +67,7 @@ impl CommitmentCapsule {
             .unwrap_or_default()
             .as_secs();
 
-        let payload = format!(
-            "{:?}{}{}",
-            affected_symbols, git_diff, created_at
-        );
+        let payload = format!("{:?}{}{}", affected_symbols, git_diff, created_at);
         let capsule_hash = scope_hash(&payload);
 
         Ok(CommitmentCapsule {
@@ -86,9 +83,7 @@ impl CommitmentCapsule {
         })
     }
 
-    fn validate_acyclic(
-        dependencies: &HashMap<String, Vec<String>>,
-    ) -> Result<(), CapsuleError> {
+    fn validate_acyclic(dependencies: &HashMap<String, Vec<String>>) -> Result<(), CapsuleError> {
         let mut visited = HashSet::new();
         let mut rec_stack = HashSet::new();
 
@@ -182,42 +177,40 @@ macro_rules! invariant_capsule_locality {
 
 #[macro_export]
 macro_rules! invariant_acyclic {
-    ($dependencies:expr) => {
-        {
-            let mut visited = std::collections::HashSet::new();
-            let mut rec_stack = std::collections::HashSet::new();
-            for symbol in $dependencies.keys() {
-                if !visited.contains(symbol) {
-                    fn check_cycle(
-                        node: &str,
-                        deps: &std::collections::HashMap<String, Vec<String>>,
-                        visited: &mut std::collections::HashSet<String>,
-                        rec_stack: &mut std::collections::HashSet<String>,
-                    ) -> bool {
-                        visited.insert(node.to_string());
-                        rec_stack.insert(node.to_string());
-                        if let Some(node_deps) = deps.get(node) {
-                            for dep in node_deps {
-                                if !visited.contains(dep) {
-                                    if !check_cycle(dep, deps, visited, rec_stack) {
-                                        return false;
-                                    }
-                                } else if rec_stack.contains(dep) {
+    ($dependencies:expr) => {{
+        let mut visited = std::collections::HashSet::new();
+        let mut rec_stack = std::collections::HashSet::new();
+        for symbol in $dependencies.keys() {
+            if !visited.contains(symbol) {
+                fn check_cycle(
+                    node: &str,
+                    deps: &std::collections::HashMap<String, Vec<String>>,
+                    visited: &mut std::collections::HashSet<String>,
+                    rec_stack: &mut std::collections::HashSet<String>,
+                ) -> bool {
+                    visited.insert(node.to_string());
+                    rec_stack.insert(node.to_string());
+                    if let Some(node_deps) = deps.get(node) {
+                        for dep in node_deps {
+                            if !visited.contains(dep) {
+                                if !check_cycle(dep, deps, visited, rec_stack) {
                                     return false;
                                 }
+                            } else if rec_stack.contains(dep) {
+                                return false;
                             }
                         }
-                        rec_stack.remove(node);
-                        true
                     }
-                    assert!(
-                        check_cycle(symbol, $dependencies, &mut visited, &mut rec_stack),
-                        "Cyclic dependency detected"
-                    );
+                    rec_stack.remove(node);
+                    true
                 }
+                assert!(
+                    check_cycle(symbol, $dependencies, &mut visited, &mut rec_stack),
+                    "Cyclic dependency detected"
+                );
             }
         }
-    };
+    }};
 }
 
 #[cfg(test)]
@@ -287,7 +280,8 @@ mod tests {
             "diff".to_string(),
             vec![],
             HashMap::new(),
-        ).unwrap();
+        )
+        .unwrap();
         assert!(capsule.verify_hash().is_ok());
     }
 
@@ -300,7 +294,8 @@ mod tests {
             "diff".to_string(),
             vec![],
             HashMap::new(),
-        ).unwrap();
+        )
+        .unwrap();
         capsule.capsule_hash = "invalid_hash".to_string();
         assert!(capsule.verify_hash().is_err());
     }
@@ -349,7 +344,8 @@ mod tests {
             "diff".to_string(),
             vec![],
             HashMap::new(),
-        ).unwrap();
+        )
+        .unwrap();
         invariant_capsule_locality!(&capsule);
     }
 }

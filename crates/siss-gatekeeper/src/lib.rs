@@ -8,7 +8,10 @@ pub mod c2pa_compat {
 }
 pub mod ap2_policies;
 pub mod attestation;
+pub mod baseline_capsule;
 pub mod behavior_scorer;
+pub mod caching;
+pub mod capsules;
 pub mod commerce;
 pub mod compliance;
 pub mod constraint_resolver;
@@ -29,31 +32,26 @@ pub mod policy;
 pub mod pricing;
 pub mod refresh;
 pub mod reputation_blender;
+pub mod router;
 pub mod signer;
 pub mod sneakernet_ingress;
 pub mod tokens;
 pub mod transitive_resolver;
 pub mod types;
-pub mod router;
 pub mod vision_api;
-pub mod baseline_capsule;
-pub mod capsules;
-pub mod caching;
 
 // Re-export research gateway types for convenience
+pub use caching::TokenCache;
 pub use pipeline::research::{ResearchQuery, ResearchResult, ResearchSource};
 pub use pricing::BlastMatrixCache;
-pub use caching::TokenCache;
 pub use vision_api::{
-    RiskLevel, HumanGatePolicy, HumanGateProof, GovernRequest,
-    PreExecuteCheckResult, VisionAPI, DecisionContext, DecisionGate
+    DecisionContext, DecisionGate, GovernRequest, HumanGatePolicy, HumanGateProof,
+    PreExecuteCheckResult, RiskLevel, VisionAPI,
 };
 
 // Re-export Federal Compliance Capsule Pack types
 pub use compliance::{
-    ComplianceCapsule, ApprovalLevel, SafetyGateResult, SafetyGateType,
-    SafetyGateValidator, SafetyGateValidationResult,
-    HumanGateRequest, HumanGateAttestation,
-    MerkleAuditEntry, EXEC_LOG,
-    AP2SettlementRecord, CreatorPayoutSimulation, SettlementStatus
+    AP2SettlementRecord, ApprovalLevel, ComplianceCapsule, CreatorPayoutSimulation, EXEC_LOG,
+    HumanGateAttestation, HumanGateRequest, MerkleAuditEntry, SafetyGateResult, SafetyGateType,
+    SafetyGateValidationResult, SafetyGateValidator, SettlementStatus,
 };

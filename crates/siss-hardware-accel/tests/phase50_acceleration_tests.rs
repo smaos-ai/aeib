@@ -9,7 +9,10 @@ use std::time::Instant;
 #[tokio::test]
 async fn test_01_metal_backend_initialization() {
     let backend = MetalBackend::new();
-    assert!(backend.is_ok(), "Metal backend should initialize successfully");
+    assert!(
+        backend.is_ok(),
+        "Metal backend should initialize successfully"
+    );
 }
 
 #[tokio::test]
@@ -124,9 +127,8 @@ async fn test_09_neural_engine_throughput() {
     for _ in 0..10 {
         let engine_clone = engine.clone();
         let tensor_clone = tensor.clone();
-        let handle = tokio::spawn(async move {
-            engine_clone.accelerate_inference(&tensor_clone).await
-        });
+        let handle =
+            tokio::spawn(async move { engine_clone.accelerate_inference(&tensor_clone).await });
         handles.push(handle);
     }
 
@@ -140,10 +142,7 @@ async fn test_09_neural_engine_throughput() {
     let elapsed_secs = start.elapsed().as_secs_f64();
     let throughput = succeeded as f64 / elapsed_secs;
 
-    assert_eq!(
-        succeeded, 10,
-        "All concurrent inferences should succeed"
-    );
+    assert_eq!(succeeded, 10, "All concurrent inferences should succeed");
     assert!(throughput > 1.0, "Throughput should be >1 ops/sec");
 }
 
@@ -302,11 +301,7 @@ async fn test_17_error_recovery_inference() {
     // Multiple retries should work
     for i in 0..3 {
         let result = backend.accelerate_inference(&tensor).await;
-        assert!(
-            result.is_ok(),
-            "Attempt {} should succeed",
-            i + 1
-        );
+        assert!(result.is_ok(), "Attempt {} should succeed", i + 1);
     }
 }
 
@@ -361,10 +356,7 @@ async fn test_20_memory_pressure_under_load() {
     let final_mem = backend.get_memory_utilization().unwrap();
 
     // Memory should be deallocated after operations
-    assert!(
-        final_mem <= 100.0,
-        "Memory should stay within limits"
-    );
+    assert!(final_mem <= 100.0, "Memory should stay within limits");
 }
 
 // ============================================================================
@@ -440,9 +432,7 @@ async fn test_25_stress_sustained_load() {
         let backend_clone = backend.clone();
         let tensor = Tensor::new(vec![1.0; 256], vec![16, 16]);
 
-        let handle = tokio::spawn(async move {
-            backend_clone.accelerate_inference(&tensor).await
-        });
+        let handle = tokio::spawn(async move { backend_clone.accelerate_inference(&tensor).await });
 
         if let Ok(Ok(_)) = handle.await {
             count += 1;

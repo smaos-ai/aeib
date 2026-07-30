@@ -1,13 +1,12 @@
+use siss_job_router::attention_budget::{AttentionBudgetEnforcer, ContextEntry};
+use siss_job_router::confidence_scorer::RoutingTier;
 /// Phase 44: OmniRoute — Saliency-First Routing & Dual-Path Reasoning
 /// 8 TDD tests covering:
 /// - Dual-Path Orchestration: AP2/RAG always → SLM; token count → LLM (Invariant 1)
 /// - Attention Budget (σ⁺): hard caps 2k/4k with ϕ⁺ simplification (Invariant 2)
 /// - Smart Cloud Fallback: SLM output validation + gate-failure re-route (Invariant 3)
-
 use siss_job_router::saliency::{SaliencyFeatures, SaliencyScorer};
-use siss_job_router::attention_budget::{AttentionBudgetEnforcer, ContextEntry};
-use siss_job_router::verification_gate::{VerificationGate, GateError};
-use siss_job_router::confidence_scorer::RoutingTier;
+use siss_job_router::verification_gate::{GateError, VerificationGate};
 
 // ============================================================================
 // TEST 1: AP2 task routes to SLM
@@ -60,7 +59,7 @@ fn test_rag_fetch_routes_to_slm() {
 #[test]
 fn test_high_token_count_routes_to_llm() {
     let features = SaliencyFeatures {
-        estimated_tokens: 500,  // exceeds SALIENCY_COMPLEX_THRESHOLD (200)
+        estimated_tokens: 500, // exceeds SALIENCY_COMPLEX_THRESHOLD (200)
         reasoning_depth: 1,
         is_ap2_microtx: false,
         is_rag_fetch: false,
@@ -82,7 +81,7 @@ fn test_high_token_count_routes_to_llm() {
 #[test]
 fn test_ap2_overrides_high_token_count() {
     let features = SaliencyFeatures {
-        estimated_tokens: 500,  // high, but AP2 pattern wins
+        estimated_tokens: 500, // high, but AP2 pattern wins
         reasoning_depth: 1,
         is_ap2_microtx: true,
         is_rag_fetch: false,
@@ -104,7 +103,7 @@ fn test_ap2_overrides_high_token_count() {
 #[test]
 fn test_budget_passes_within_slm_cap() {
     let entries = vec![ContextEntry {
-        content: "x".repeat(1000),  // ~250 tokens
+        content: "x".repeat(1000), // ~250 tokens
         priority: 100,
     }];
 
@@ -124,17 +123,20 @@ fn test_budget_triggers_simplification_at_slm_cap() {
     // 1 token ≈ 4 chars, so 2048 tokens ≈ 8192 chars
     let entries = vec![
         ContextEntry {
-            content: "a".repeat(5000),  // ~1250 tokens
-            priority: 255,              // keep this one
+            content: "a".repeat(5000), // ~1250 tokens
+            priority: 255,             // keep this one
         },
         ContextEntry {
-            content: "b".repeat(5000),  // ~1250 tokens
-            priority: 0,                // drop this one first
+            content: "b".repeat(5000), // ~1250 tokens
+            priority: 0,               // drop this one first
         },
     ];
 
     let result = AttentionBudgetEnforcer::enforce(entries, &RoutingTier::Tier1RapidMLX);
-    assert!(result.is_ok(), "budget enforcement should succeed with simplification");
+    assert!(
+        result.is_ok(),
+        "budget enforcement should succeed with simplification"
+    );
     let context = result.unwrap();
     assert!(
         context.simplification_applied,

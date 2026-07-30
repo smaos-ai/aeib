@@ -1,7 +1,7 @@
-use thiserror::Error;
-use uuid::Uuid;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
+use uuid::Uuid;
 
 #[derive(Error, Debug)]
 pub enum PalantirError {
@@ -75,7 +75,10 @@ impl CreatorPalantirDashboard {
         })
     }
 
-    pub async fn export_decision_audit(&self, request: &AuditExportRequest) -> Result<AuditExport, PalantirError> {
+    pub async fn export_decision_audit(
+        &self,
+        request: &AuditExportRequest,
+    ) -> Result<AuditExport, PalantirError> {
         Ok(AuditExport {
             immutable: true,
             tenant_id: request.tenant_id,
@@ -84,7 +87,10 @@ impl CreatorPalantirDashboard {
         })
     }
 
-    pub async fn render_governance_dashboard(&self, tenant_id: Uuid) -> Result<DashboardRender, PalantirError> {
+    pub async fn render_governance_dashboard(
+        &self,
+        tenant_id: Uuid,
+    ) -> Result<DashboardRender, PalantirError> {
         let html = format!(
             "<html><body><h1>governance dashboard</h1><p>Tenant: {}</p></body></html>",
             tenant_id
@@ -96,7 +102,10 @@ impl CreatorPalantirDashboard {
         })
     }
 
-    pub async fn execute_policy_override(&self, _request: &RealtimePolicyOverride) -> Result<OverrideExecution, PalantirError> {
+    pub async fn execute_policy_override(
+        &self,
+        _request: &RealtimePolicyOverride,
+    ) -> Result<OverrideExecution, PalantirError> {
         Ok(OverrideExecution {
             executed: true,
             audit_logged: true,

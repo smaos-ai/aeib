@@ -1,6 +1,5 @@
 /// Phase 45: GitNexus Structural Awareness & LadybugDB Integration
 /// RED phase: Fail-closed invariants for MCP-native codebase intelligence engine
-
 use serde::{Deserialize, Serialize};
 
 /// Impact analysis result from GitNexus tool
@@ -61,12 +60,12 @@ pub struct SearchHit {
 /// GitNexus error types (fail-closed)
 #[derive(Debug, Clone)]
 pub enum GitNexusGraphError {
-    BlastRadiusExceeded,              // 403: Risk threshold exceeded, requires approval
-    SymbolNotFound,                   // 404: Target symbol missing
-    SkillGenerationFailed,            // 500: Dynamic skill generation error
-    PreCommitValidationFailed,        // 400: Dry-run validation failed
-    HybridSearchFailed,               // 503: RRF merge validation failed
-    ExternalNetworkDetected,          // 403: LadybugDB attempted external network access
+    BlastRadiusExceeded,       // 403: Risk threshold exceeded, requires approval
+    SymbolNotFound,            // 404: Target symbol missing
+    SkillGenerationFailed,     // 500: Dynamic skill generation error
+    PreCommitValidationFailed, // 400: Dry-run validation failed
+    HybridSearchFailed,        // 503: RRF merge validation failed
+    ExternalNetworkDetected,   // 403: LadybugDB attempted external network access
 }
 
 /// GitNexus graph handler (fail-closed structural awareness)
@@ -99,9 +98,11 @@ impl GitNexusGraph {
         ];
 
         // Calculate risk score from upstream callers (depth-weighted)
-        let risk_score = callers.iter()
+        let risk_score = callers
+            .iter()
             .map(|c| (1.0 / c.depth as f32) * c.confidence_score)
-            .sum::<f32>() / callers.len() as f32;
+            .sum::<f32>()
+            / callers.len() as f32;
 
         // Fail-closed: Risk evaluation requires human approval if threshold exceeded
         if risk_score > risk_threshold {
@@ -176,7 +177,10 @@ impl GitNexusGraph {
                 "error_handling".to_string(),
             ]
         } else if old_symbol.contains("handler") {
-            vec!["request_pipeline".to_string(), "response_formatting".to_string()]
+            vec![
+                "request_pipeline".to_string(),
+                "response_formatting".to_string(),
+            ]
         } else {
             vec!["utility_operations".to_string()]
         };
@@ -253,18 +257,21 @@ impl GitNexusGraph {
 
         // Merge results using Reciprocal Rank Fusion (RRF) = 1/(k+rank) for each result
         // RRF combines BM25 and semantic ranking without external network calls
-        let mut rrf_scores: std::collections::HashMap<String, f32> = std::collections::HashMap::new();
+        let mut rrf_scores: std::collections::HashMap<String, f32> =
+            std::collections::HashMap::new();
 
         for (rank, hit) in bm25_results.iter().enumerate() {
             let rrf_score = 1.0 / (60.0 + rank as f32 + 1.0);
-            rrf_scores.entry(hit.document_id.clone())
+            rrf_scores
+                .entry(hit.document_id.clone())
                 .and_modify(|s| *s += rrf_score)
                 .or_insert(rrf_score);
         }
 
         for (rank, hit) in semantic_results.iter().enumerate() {
             let rrf_score = 1.0 / (60.0 + rank as f32 + 1.0);
-            rrf_scores.entry(hit.document_id.clone())
+            rrf_scores
+                .entry(hit.document_id.clone())
                 .and_modify(|s| *s += rrf_score)
                 .or_insert(rrf_score);
         }
@@ -277,9 +284,11 @@ impl GitNexusGraph {
 
         // Build final merged results sorted by RRF score
         let mut rrf_merged_results: Vec<(String, f32)> = rrf_scores.into_iter().collect();
-        rrf_merged_results.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+        rrf_merged_results
+            .sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
 
-        let rrf_merged = rrf_merged_results.into_iter()
+        let rrf_merged = rrf_merged_results
+            .into_iter()
             .map(|(doc_id, score)| SearchHit {
                 document_id: doc_id,
                 relevance_score: score,
@@ -313,7 +322,10 @@ mod tests {
 
         // THEN: Rejects modification requiring approval (fail-closed, 403)
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), GitNexusGraphError::BlastRadiusExceeded));
+        assert!(matches!(
+            result.unwrap_err(),
+            GitNexusGraphError::BlastRadiusExceeded
+        ));
     }
 
     #[tokio::test]
@@ -342,7 +354,10 @@ mod tests {
 
         // THEN: Rejects low modularity (fail-closed, 500)
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), GitNexusGraphError::SkillGenerationFailed));
+        assert!(matches!(
+            result.unwrap_err(),
+            GitNexusGraphError::SkillGenerationFailed
+        ));
     }
 
     #[tokio::test]
@@ -356,7 +371,10 @@ mod tests {
 
         // THEN: Validates dry-run (fail-closed, 400)
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), GitNexusGraphError::PreCommitValidationFailed));
+        assert!(matches!(
+            result.unwrap_err(),
+            GitNexusGraphError::PreCommitValidationFailed
+        ));
     }
 
     #[tokio::test]
@@ -369,7 +387,10 @@ mod tests {
 
         // THEN: Validates RRF merge (fail-closed, 503)
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), GitNexusGraphError::HybridSearchFailed));
+        assert!(matches!(
+            result.unwrap_err(),
+            GitNexusGraphError::HybridSearchFailed
+        ));
     }
 
     #[tokio::test]

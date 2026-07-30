@@ -1,4 +1,4 @@
-use crate::{Metrics, Result, ObservabilityError};
+use crate::{Metrics, ObservabilityError, Result};
 use dashmap::DashMap;
 use std::sync::Arc;
 use uuid::Uuid;
@@ -46,20 +46,20 @@ impl MetricsAggregator {
     }
 
     pub fn record_metric(&self, span_id: Uuid, metric: Metrics) {
-        self.metrics
-            .entry(span_id)
-            .or_default()
-            .push(metric);
+        self.metrics.entry(span_id).or_default().push(metric);
     }
 
     pub fn aggregate(&self, span_id: Uuid) -> Result<AggregatedMetrics> {
-        let metrics_list = self.metrics
+        let metrics_list = self
+            .metrics
             .get(&span_id)
             .ok_or(ObservabilityError::TraceNotFound(span_id.to_string()))?
             .clone();
 
         if metrics_list.is_empty() {
-            return Err(ObservabilityError::InvalidSpan("No metrics for span".into()));
+            return Err(ObservabilityError::InvalidSpan(
+                "No metrics for span".into(),
+            ));
         }
 
         let total_requests: u64 = metrics_list.iter().map(|m| m.request_count).sum();
@@ -81,7 +81,8 @@ impl MetricsAggregator {
             .map(|m| m.latency_ms)
             .fold(0.0, f64::max);
 
-        let throughput = metrics_list.iter().map(|m| m.throughput).sum::<f64>() / metrics_list.len() as f64;
+        let throughput =
+            metrics_list.iter().map(|m| m.throughput).sum::<f64>() / metrics_list.len() as f64;
 
         let error_rate = if total_requests > 0 {
             (total_errors as f64 / total_requests as f64) * 100.0
@@ -93,14 +94,22 @@ impl MetricsAggregator {
         let mut latencies: Vec<f64> = metrics_list.iter().map(|m| m.latency_ms).collect();
         latencies.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
         let p99_idx = ((latencies.len() as f64 * 0.99) as usize).min(latencies.len() - 1);
-        let p99 = if latencies.is_empty() { 0.0 } else { latencies[p99_idx] };
+        let p99 = if latencies.is_empty() {
+            0.0
+        } else {
+            latencies[p99_idx]
+        };
 
         let agg = AggregatedMetrics {
             span_id,
             total_requests,
             total_errors,
             avg_latency_ms: avg_latency,
-            min_latency_ms: if min_latency == f64::INFINITY { 0.0 } else { min_latency },
+            min_latency_ms: if min_latency == f64::INFINITY {
+                0.0
+            } else {
+                min_latency
+            },
             max_latency_ms: max_latency,
             p99_latency_ms: p99,
             throughput_rps: throughput,
@@ -116,7 +125,10 @@ impl MetricsAggregator {
     }
 
     pub fn get_all_aggregated(&self) -> Vec<AggregatedMetrics> {
-        self.aggregated.iter().map(|entry| entry.value().clone()).collect()
+        self.aggregated
+            .iter()
+            .map(|entry| entry.value().clone())
+            .collect()
     }
 
     pub fn clear_metrics(&self, span_id: Uuid) {
@@ -150,7 +162,11 @@ mod tests {
         Metrics {
             latency_ms: latency,
             throughput: 100.0,
-            error_rate: if requests > 0 { (errors as f64 / requests as f64) * 100.0 } else { 0.0 },
+            error_rate: if requests > 0 {
+                (errors as f64 / requests as f64) * 100.0
+            } else {
+                0.0
+            },
             request_count: requests,
             error_count: errors,
         }

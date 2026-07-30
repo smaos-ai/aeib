@@ -64,8 +64,15 @@ pub enum DeploymentStatus {
 pub trait CloudAdapter: Send + Sync {
     async fn deploy(&self, config: &WorkloadConfig) -> Result<DeploymentProof, FederationError>;
     async fn verify_health(&self, workload_id: Uuid) -> Result<bool, FederationError>;
-    async fn failover(&self, workload_id: Uuid, target_region: String) -> Result<DeploymentProof, FederationError>;
-    async fn get_deployment_status(&self, workload_id: Uuid) -> Result<DeploymentStatus, FederationError>;
+    async fn failover(
+        &self,
+        workload_id: Uuid,
+        target_region: String,
+    ) -> Result<DeploymentProof, FederationError>;
+    async fn get_deployment_status(
+        &self,
+        workload_id: Uuid,
+    ) -> Result<DeploymentStatus, FederationError>;
 }
 
 /// Federation errors
@@ -118,17 +125,19 @@ impl FederationEngine {
     }
 
     /// Deploy workload across one or more cloud providers
-    pub async fn deploy_sovereign_workload(&self, config: WorkloadConfig) -> Result<DeploymentProof, FederationError> {
-        let adapter = self.providers
+    pub async fn deploy_sovereign_workload(
+        &self,
+        config: WorkloadConfig,
+    ) -> Result<DeploymentProof, FederationError> {
+        let adapter = self
+            .providers
             .get(&config.provider)
             .ok_or_else(|| FederationError::ProviderNotConfigured(config.provider.to_string()))?;
 
         let proof = adapter.deploy(&config).await?;
 
         // Store deployment proof
-        let mut deployments = self.deployments
-            .entry(config.id)
-            .or_insert_with(Vec::new);
+        let mut deployments = self.deployments.entry(config.id).or_default();
         deployments.push(proof.clone());
 
         Ok(proof)
@@ -147,7 +156,7 @@ impl FederationEngine {
             for proof in proofs {
                 if proof.workload_id != first_id {
                     return Err(FederationError::ConsistencyCheckFailed(
-                        "Workload ID mismatch across deployments".to_string()
+                        "Workload ID mismatch across deployments".to_string(),
                     ));
                 }
             }
@@ -156,17 +165,24 @@ impl FederationEngine {
     }
 
     /// Failover workload to target region
-    pub async fn failover_workload(&self, workload_id: Uuid, target_region: String) -> Result<DeploymentProof, FederationError> {
-        let deployments = self.deployments
-            .get(&workload_id)
-            .ok_or_else(|| FederationError::ProviderNotConfigured("workload not found".to_string()))?;
+    pub async fn failover_workload(
+        &self,
+        workload_id: Uuid,
+        target_region: String,
+    ) -> Result<DeploymentProof, FederationError> {
+        let deployments = self.deployments.get(&workload_id).ok_or_else(|| {
+            FederationError::ProviderNotConfigured("workload not found".to_string())
+        })?;
 
         if deployments.is_empty() {
-            return Err(FederationError::ProviderNotConfigured("no deployments found".to_string()));
+            return Err(FederationError::ProviderNotConfigured(
+                "no deployments found".to_string(),
+            ));
         }
 
         let current = &deployments[0];
-        let adapter = self.providers
+        let adapter = self
+            .providers
             .get(&current.provider)
             .ok_or_else(|| FederationError::ProviderNotConfigured(current.provider.to_string()))?;
 
@@ -175,7 +191,10 @@ impl FederationEngine {
     }
 
     /// Get all deployments for a workload
-    pub async fn get_deployments(&self, workload_id: Uuid) -> Result<Vec<DeploymentProof>, FederationError> {
+    pub async fn get_deployments(
+        &self,
+        workload_id: Uuid,
+    ) -> Result<Vec<DeploymentProof>, FederationError> {
         self.deployments
             .get(&workload_id)
             .map(|entry| entry.clone())
@@ -183,13 +202,18 @@ impl FederationEngine {
     }
 
     /// Enforce sovereignty across regions
-    pub async fn enforce_sovereignty(&self, workload_id: Uuid, allowed_regions: Vec<String>) -> Result<bool, FederationError> {
+    pub async fn enforce_sovereignty(
+        &self,
+        workload_id: Uuid,
+        allowed_regions: Vec<String>,
+    ) -> Result<bool, FederationError> {
         if let Some(deployments) = self.deployments.get(&workload_id) {
             for deployment in deployments.iter() {
                 if !allowed_regions.contains(&deployment.region) {
-                    return Err(FederationError::SovereigntyViolation(
-                        format!("Workload deployed in forbidden region: {}", deployment.region)
-                    ));
+                    return Err(FederationError::SovereigntyViolation(format!(
+                        "Workload deployed in forbidden region: {}",
+                        deployment.region
+                    )));
                 }
             }
         }
@@ -264,9 +288,7 @@ impl WorkloadMigrationManager {
         to_region: String,
     ) -> Result<DeploymentProof, FederationError> {
         // Record migration start
-        let mut events = self.migration_history
-            .entry(workload_id)
-            .or_insert_with(Vec::new);
+        let mut events = self.migration_history.entry(workload_id).or_default();
 
         let event = MigrationEvent {
             from_provider,
@@ -293,13 +315,10 @@ impl WorkloadMigrationManager {
         let proof = self.engine.deploy_sovereign_workload(target_config).await?;
 
         // Record completion
-        if let Some(mut history) = self.migration_history.get_mut(&workload_id) {
-            if let Some(last_event) = history.last_mut() {
-                *last_event = MigrationEvent {
-                    status: MigrationStatus::Completed,
-                    ..event.clone()
-                };
-            }
+        if let Some(mut history) = self.migration_history.get_mut(&workload_id)
+            && let Some(last_event) = history.last_mut()
+        {
+            last_event.status = MigrationStatus::Completed;
         }
 
         Ok(proof)
@@ -323,7 +342,10 @@ impl WorkloadMigrationManager {
     }
 
     /// Get migration history
-    pub fn get_migration_history(&self, workload_id: Uuid) -> Result<Vec<MigrationEvent>, FederationError> {
+    pub fn get_migration_history(
+        &self,
+        workload_id: Uuid,
+    ) -> Result<Vec<MigrationEvent>, FederationError> {
         self.migration_history
             .get(&workload_id)
             .map(|entry| entry.clone())
@@ -404,18 +426,23 @@ mod tests {
         let engine = Arc::new(FederationEngine::new(Duration::from_secs(10)));
 
         // Register adapters
-        engine.register_adapter(CloudProvider::GCP, Arc::new(MockCloudAdapter::new(CloudProvider::GCP)));
+        engine.register_adapter(
+            CloudProvider::GCP,
+            Arc::new(MockCloudAdapter::new(CloudProvider::GCP)),
+        );
 
         let manager = WorkloadMigrationManager::new(engine.clone());
 
         let workload_id = Uuid::new_v4();
-        let result = manager.migrate_workload(
-            workload_id,
-            CloudProvider::AWS,
-            "us-east-1".to_string(),
-            CloudProvider::GCP,
-            "us-central1".to_string(),
-        ).await;
+        let result = manager
+            .migrate_workload(
+                workload_id,
+                CloudProvider::AWS,
+                "us-east-1".to_string(),
+                CloudProvider::GCP,
+                "us-central1".to_string(),
+            )
+            .await;
 
         assert!(result.is_ok());
     }
@@ -426,17 +453,22 @@ mod tests {
         let engine = Arc::new(FederationEngine::new(Duration::from_secs(10)));
 
         // Register adapters
-        engine.register_adapter(CloudProvider::Azure, Arc::new(MockCloudAdapter::new(CloudProvider::Azure)));
+        engine.register_adapter(
+            CloudProvider::Azure,
+            Arc::new(MockCloudAdapter::new(CloudProvider::Azure)),
+        );
 
         let manager = WorkloadMigrationManager::new(engine.clone());
 
-        let result = manager.migrate_workload(
-            Uuid::new_v4(),
-            CloudProvider::AWS,
-            "us-east-1".to_string(),
-            CloudProvider::Azure,
-            "eastus".to_string(),
-        ).await;
+        let result = manager
+            .migrate_workload(
+                Uuid::new_v4(),
+                CloudProvider::AWS,
+                "us-east-1".to_string(),
+                CloudProvider::Azure,
+                "eastus".to_string(),
+            )
+            .await;
 
         assert!(result.is_ok());
     }
@@ -448,13 +480,15 @@ mod tests {
         let manager = WorkloadMigrationManager::new(engine.clone());
 
         let workload_id = Uuid::new_v4();
-        let _ = manager.migrate_workload(
-            workload_id,
-            CloudProvider::AWS,
-            "us-east-1".to_string(),
-            CloudProvider::GCP,
-            "us-central1".to_string(),
-        ).await;
+        let _ = manager
+            .migrate_workload(
+                workload_id,
+                CloudProvider::AWS,
+                "us-east-1".to_string(),
+                CloudProvider::GCP,
+                "us-central1".to_string(),
+            )
+            .await;
 
         let consistency = manager.verify_migration(workload_id).await;
         assert!(consistency.is_ok());
@@ -467,13 +501,15 @@ mod tests {
         let manager = WorkloadMigrationManager::new(engine.clone());
 
         let workload_id = Uuid::new_v4();
-        let _ = manager.migrate_workload(
-            workload_id,
-            CloudProvider::AWS,
-            "us-east-1".to_string(),
-            CloudProvider::GCP,
-            "us-central1".to_string(),
-        ).await;
+        let _ = manager
+            .migrate_workload(
+                workload_id,
+                CloudProvider::AWS,
+                "us-east-1".to_string(),
+                CloudProvider::GCP,
+                "us-central1".to_string(),
+            )
+            .await;
 
         let history = manager.get_migration_history(workload_id);
         assert!(history.is_ok());
@@ -485,30 +521,40 @@ mod tests {
         let engine = Arc::new(FederationEngine::new(Duration::from_secs(10)));
 
         // Register adapters
-        engine.register_adapter(CloudProvider::GCP, Arc::new(MockCloudAdapter::new(CloudProvider::GCP)));
-        engine.register_adapter(CloudProvider::Azure, Arc::new(MockCloudAdapter::new(CloudProvider::Azure)));
+        engine.register_adapter(
+            CloudProvider::GCP,
+            Arc::new(MockCloudAdapter::new(CloudProvider::GCP)),
+        );
+        engine.register_adapter(
+            CloudProvider::Azure,
+            Arc::new(MockCloudAdapter::new(CloudProvider::Azure)),
+        );
 
         let manager = WorkloadMigrationManager::new(engine.clone());
 
         let workload_id = Uuid::new_v4();
 
         // First migration AWS -> GCP
-        let _ = manager.migrate_workload(
-            workload_id,
-            CloudProvider::AWS,
-            "us-east-1".to_string(),
-            CloudProvider::GCP,
-            "us-central1".to_string(),
-        ).await;
+        let _ = manager
+            .migrate_workload(
+                workload_id,
+                CloudProvider::AWS,
+                "us-east-1".to_string(),
+                CloudProvider::GCP,
+                "us-central1".to_string(),
+            )
+            .await;
 
         // Second migration GCP -> Azure
-        let result = manager.migrate_workload(
-            workload_id,
-            CloudProvider::GCP,
-            "us-central1".to_string(),
-            CloudProvider::Azure,
-            "eastus".to_string(),
-        ).await;
+        let result = manager
+            .migrate_workload(
+                workload_id,
+                CloudProvider::GCP,
+                "us-central1".to_string(),
+                CloudProvider::Azure,
+                "eastus".to_string(),
+            )
+            .await;
 
         assert!(result.is_ok());
     }
@@ -521,10 +567,9 @@ mod tests {
         let start = std::time::Instant::now();
         let engine = FederationEngine::new(Duration::from_secs(10));
 
-        let _failover_result = engine.failover_workload(
-            Uuid::new_v4(),
-            "us-west-1".to_string(),
-        ).await;
+        let _failover_result = engine
+            .failover_workload(Uuid::new_v4(), "us-west-1".to_string())
+            .await;
 
         let elapsed = start.elapsed();
         assert!(elapsed.as_secs() < 10);
@@ -535,10 +580,9 @@ mod tests {
         // Test: Failover to alternate region
         let engine = FederationEngine::new(Duration::from_secs(10));
 
-        let result = engine.failover_workload(
-            Uuid::new_v4(),
-            "us-west-2".to_string(),
-        ).await;
+        let result = engine
+            .failover_workload(Uuid::new_v4(), "us-west-2".to_string())
+            .await;
 
         // Result should either succeed or fail gracefully
         assert!(result.is_ok() || result.is_err());
@@ -550,7 +594,10 @@ mod tests {
         let engine = Arc::new(FederationEngine::new(Duration::from_secs(10)));
 
         // Register AWS adapter
-        engine.register_adapter(CloudProvider::AWS, Arc::new(MockCloudAdapter::new(CloudProvider::AWS)));
+        engine.register_adapter(
+            CloudProvider::AWS,
+            Arc::new(MockCloudAdapter::new(CloudProvider::AWS)),
+        );
 
         let workload_id = Uuid::new_v4();
 
@@ -566,7 +613,9 @@ mod tests {
         };
 
         let _ = engine.deploy_sovereign_workload(config).await;
-        let failover = engine.failover_workload(workload_id, "us-west-2".to_string()).await;
+        let failover = engine
+            .failover_workload(workload_id, "us-west-2".to_string())
+            .await;
 
         assert!(failover.is_ok());
     }
@@ -577,8 +626,12 @@ mod tests {
         let engine = FederationEngine::new(Duration::from_secs(10));
         let workload_id = Uuid::new_v4();
 
-        let r1 = engine.failover_workload(workload_id, "us-west-1".to_string()).await;
-        let r2 = engine.failover_workload(workload_id, "eu-west-1".to_string()).await;
+        let r1 = engine
+            .failover_workload(workload_id, "us-west-1".to_string())
+            .await;
+        let r2 = engine
+            .failover_workload(workload_id, "eu-west-1".to_string())
+            .await;
 
         // Both should handle gracefully
         assert!(r1.is_ok() || r1.is_err());
@@ -591,7 +644,10 @@ mod tests {
         let engine = Arc::new(FederationEngine::new(Duration::from_secs(5)));
 
         // Register adapter to enable failover
-        engine.register_adapter(CloudProvider::AWS, Arc::new(MockCloudAdapter::new(CloudProvider::AWS)));
+        engine.register_adapter(
+            CloudProvider::AWS,
+            Arc::new(MockCloudAdapter::new(CloudProvider::AWS)),
+        );
 
         let workload_id = Uuid::new_v4();
 
@@ -609,7 +665,9 @@ mod tests {
 
         let _ = engine.deploy_sovereign_workload(config).await;
 
-        let failover = engine.failover_workload(workload_id, "us-east-1".to_string()).await;
+        let failover = engine
+            .failover_workload(workload_id, "us-east-1".to_string())
+            .await;
 
         // Should respect the configured timeout
         assert!(failover.is_ok() || matches!(failover, Err(FederationError::FailoverTimeout(_))));
@@ -622,10 +680,12 @@ mod tests {
         // Test: Enforce sovereignty constraints per region
         let engine = Arc::new(FederationEngine::new(Duration::from_secs(10)));
 
-        let result = engine.enforce_sovereignty(
-            Uuid::new_v4(),
-            vec!["eu-west-1".to_string(), "eu-central-1".to_string()],
-        ).await;
+        let result = engine
+            .enforce_sovereignty(
+                Uuid::new_v4(),
+                vec!["eu-west-1".to_string(), "eu-central-1".to_string()],
+            )
+            .await;
 
         assert!(result.is_ok());
     }
@@ -636,7 +696,10 @@ mod tests {
         let engine = Arc::new(FederationEngine::new(Duration::from_secs(10)));
 
         // Register AWS adapter
-        engine.register_adapter(CloudProvider::AWS, Arc::new(MockCloudAdapter::new(CloudProvider::AWS)));
+        engine.register_adapter(
+            CloudProvider::AWS,
+            Arc::new(MockCloudAdapter::new(CloudProvider::AWS)),
+        );
 
         let workload_id = Uuid::new_v4();
 
@@ -655,10 +718,9 @@ mod tests {
         let _ = engine.deploy_sovereign_workload(config).await;
 
         // Enforce EU-only regions - this should fail
-        let sovereignty = engine.enforce_sovereignty(
-            workload_id,
-            vec!["eu-west-1".to_string()],
-        ).await;
+        let sovereignty = engine
+            .enforce_sovereignty(workload_id, vec!["eu-west-1".to_string()])
+            .await;
 
         // Should detect sovereignty violation
         assert!(sovereignty.is_err());
@@ -713,7 +775,10 @@ mod tests {
 
     #[async_trait]
     impl CloudAdapter for MockCloudAdapter {
-        async fn deploy(&self, config: &WorkloadConfig) -> Result<DeploymentProof, FederationError> {
+        async fn deploy(
+            &self,
+            config: &WorkloadConfig,
+        ) -> Result<DeploymentProof, FederationError> {
             Ok(DeploymentProof {
                 workload_id: config.id,
                 provider: self.provider,
@@ -729,7 +794,11 @@ mod tests {
             Ok(true)
         }
 
-        async fn failover(&self, workload_id: Uuid, target_region: String) -> Result<DeploymentProof, FederationError> {
+        async fn failover(
+            &self,
+            workload_id: Uuid,
+            target_region: String,
+        ) -> Result<DeploymentProof, FederationError> {
             Ok(DeploymentProof {
                 workload_id,
                 provider: self.provider,
@@ -741,7 +810,10 @@ mod tests {
             })
         }
 
-        async fn get_deployment_status(&self, _workload_id: Uuid) -> Result<DeploymentStatus, FederationError> {
+        async fn get_deployment_status(
+            &self,
+            _workload_id: Uuid,
+        ) -> Result<DeploymentStatus, FederationError> {
             Ok(DeploymentStatus::Healthy)
         }
     }

@@ -1,3 +1,4 @@
+use chrono::Utc;
 /// Phase 37.5: RCE Execution Layer & State Mutation Engine
 ///
 /// 6 tests covering:
@@ -7,21 +8,19 @@
 ///
 /// Status: RED phase — all tests FAIL initially (Inversion Development)
 /// Tests validate Fail-Closed invariants: State Mutation, Broadcast, Audit Trail
-
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU32, Ordering};
 use tokio::sync::RwLock;
 use uuid::Uuid;
-use chrono::Utc;
 
-use siss_cockpit::state::CockpitState;
-use siss_cockpit::handlers::schema_contracts::DecisionWebhookPayload;
-use siss_cockpit::handlers::rce_decision::post_rce_decision;
-use siss_graph_db::rce::{ResumableCognitiveExecution, ExecutionState, Step};
-use siss_graph_db::rce_event_broadcaster::RceEventBroadcaster;
-use axum::extract::State;
 use axum::Json;
+use axum::extract::State;
 use axum::http::StatusCode;
+use siss_cockpit::handlers::rce_decision::post_rce_decision;
+use siss_cockpit::handlers::schema_contracts::DecisionWebhookPayload;
+use siss_cockpit::state::CockpitState;
+use siss_graph_db::rce::{ExecutionState, ResumableCognitiveExecution, Step};
+use siss_graph_db::rce_event_broadcaster::RceEventBroadcaster;
 
 // =============================================================================
 // TEST 1: Concurrency Lock — Atomic State Mutation Under Write Lock
@@ -129,7 +128,11 @@ async fn test_02_invalid_transition_idle_state_returns_409() {
 
     // Should return either 404 (engine not wired) or 500 (pool not wired)
     // PENDING: Once engine is properly wired, should return 409 for Idle state
-    assert_ne!(status, StatusCode::OK, "APPROVE on Idle should not return 200");
+    assert_ne!(
+        status,
+        StatusCode::OK,
+        "APPROVE on Idle should not return 200"
+    );
 }
 
 /// TEST 2b: APPROVE on Perform engine returns 409 Conflict
@@ -153,7 +156,11 @@ async fn test_02b_invalid_transition_perform_state_returns_409() {
     let (status, _body) = post_rce_decision(State(state), Json(payload)).await;
 
     // PENDING: Once engine is properly wired, should return 409 for Perform state
-    assert_ne!(status, StatusCode::OK, "APPROVE on Perform should not return 200");
+    assert_ne!(
+        status,
+        StatusCode::OK,
+        "APPROVE on Perform should not return 200"
+    );
 }
 
 /// TEST 2c: APPROVE on Resumed engine returns 409 Conflict
@@ -177,7 +184,11 @@ async fn test_02c_invalid_transition_resumed_state_returns_409() {
     let (status, _body) = post_rce_decision(State(state), Json(payload)).await;
 
     // PENDING: Once engine is properly wired, should return 409 for Resumed state
-    assert_ne!(status, StatusCode::OK, "APPROVE on Resumed should not return 200");
+    assert_ne!(
+        status,
+        StatusCode::OK,
+        "APPROVE on Resumed should not return 200"
+    );
 }
 
 // =============================================================================
@@ -213,13 +224,14 @@ async fn test_03_broadcast_guarantee_event_delivered() {
     // 1. status == 200 OK
     // 2. Event received within timeout
     if status == StatusCode::OK {
-        let received = tokio::time::timeout(
-            std::time::Duration::from_millis(100),
-            rx.recv()
-        ).await;
+        let received = tokio::time::timeout(std::time::Duration::from_millis(100), rx.recv()).await;
 
         if let Ok(Ok(event)) = received {
-            assert_eq!(event.event_type(), "workflow_resumed", "Should receive WorkflowResumed event");
+            assert_eq!(
+                event.event_type(),
+                "workflow_resumed",
+                "Should receive WorkflowResumed event"
+            );
         }
     }
 }
@@ -261,7 +273,11 @@ async fn test_04_rollback_on_broadcast_failure_no_subscribers() {
     // engine.state should still be Paused
 
     // For now, this will fail because engine is not wired
-    assert_ne!(status, StatusCode::OK, "Broadcast failure should not return 200");
+    assert_ne!(
+        status,
+        StatusCode::OK,
+        "Broadcast failure should not return 200"
+    );
 }
 
 // =============================================================================
@@ -320,5 +336,9 @@ async fn test_06_audit_first_execution_pool_unavailable() {
     // This would be verified in phase_37_5_rce_execution_integration.rs with testcontainers.
 
     // PLACEHOLDER: Full integration test requires testcontainer + PgPool
-    assert_eq!(initial_state, ExecutionState::Paused, "Engine should start in Paused state");
+    assert_eq!(
+        initial_state,
+        ExecutionState::Paused,
+        "Engine should start in Paused state"
+    );
 }

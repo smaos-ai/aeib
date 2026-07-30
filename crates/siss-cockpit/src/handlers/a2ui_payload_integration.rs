@@ -3,7 +3,7 @@
 
 #[cfg(test)]
 mod integration_tests {
-    use crate::handlers::a2ui_payload_generator::{A2UIPayload, A2UIComponent, PayloadError};
+    use crate::handlers::a2ui_payload_generator::{A2UIComponent, A2UIPayload, PayloadError};
     use serde_json::json;
 
     #[test]
@@ -94,9 +94,24 @@ mod integration_tests {
         // AND nested component references are validated via from_string()
 
         let valid_components = vec![
-            "card", "text_field", "text_area", "date_time_input", "number_input",
-            "select", "multi_select", "checkbox", "radio_group", "button", "link",
-            "progress", "badge", "alert", "modal", "tabs", "list", "grid",
+            "card",
+            "text_field",
+            "text_area",
+            "date_time_input",
+            "number_input",
+            "select",
+            "multi_select",
+            "checkbox",
+            "radio_group",
+            "button",
+            "link",
+            "progress",
+            "badge",
+            "alert",
+            "modal",
+            "tabs",
+            "list",
+            "grid",
         ];
 
         for component in valid_components {
@@ -106,7 +121,11 @@ mod integration_tests {
                 data_binding: json!({}),
             };
 
-            assert!(payload.validate().is_ok(), "Component {} should validate", component);
+            assert!(
+                payload.validate().is_ok(),
+                "Component {} should validate",
+                component
+            );
         }
     }
 

@@ -1,3 +1,5 @@
+use chrono::Utc;
+use sha2::{Digest, Sha256};
 /// Phase 1 Agent Integration Example
 /// Demonstrates single-agent commit orchestration through CapsuleCommitActor
 ///
@@ -6,10 +8,7 @@
 /// and receiving merge decision.
 ///
 /// Run with: cargo run --example phase1_agent_integration
-
 use uuid::Uuid;
-use chrono::Utc;
-use sha2::{Sha256, Digest};
 
 // Simulate the types from siss-capsule-commit
 #[derive(Clone, Debug)]
@@ -76,17 +75,12 @@ impl SimpleCapsuleActor {
     }
 
     fn verify_hash(&self, capsule: &CommitmentCapsule) -> bool {
-        let expected = CommitmentCapsule::compute_hash(
-            &capsule.git_diff,
-            &capsule.affected_symbols,
-        );
+        let expected =
+            CommitmentCapsule::compute_hash(&capsule.git_diff, &capsule.affected_symbols);
         capsule.capsule_hash == expected
     }
 
-    fn check_intersection(
-        &self,
-        incoming: &CommitmentCapsule,
-    ) -> Option<Vec<String>> {
+    fn check_intersection(&self, incoming: &CommitmentCapsule) -> Option<Vec<String>> {
         for pending in &self.pending_capsules {
             // Level 1: Cluster tag intersection
             let incoming_clusters: std::collections::HashSet<_> =

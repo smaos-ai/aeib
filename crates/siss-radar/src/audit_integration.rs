@@ -1,4 +1,6 @@
-use crate::models::{DeltaEvent, GovernanceStatus, PolicyViolation, RepoSnapshot, ViolationSeverity};
+use crate::models::{
+    DeltaEvent, GovernanceStatus, PolicyViolation, RepoSnapshot, ViolationSeverity,
+};
 use anyhow::Result;
 use chrono::Utc;
 use uuid::Uuid;
@@ -179,7 +181,10 @@ impl AuditIntegration {
 
     /// Filter logs by event type
     pub fn filter_logs(&self, event_type: AuditEventType) -> Vec<&AuditLog> {
-        self.logs.iter().filter(|log| log.event_type == event_type).collect()
+        self.logs
+            .iter()
+            .filter(|log| log.event_type == event_type)
+            .collect()
     }
 
     /// Filter logs by severity level (for user access control)
@@ -235,27 +240,15 @@ mod tests {
     #[test]
     fn test_policy_enable_disable() {
         let mut engine = GovernanceEngine::new();
-        let initial_enabled = engine
-            .list_policies()
-            .iter()
-            .filter(|p| p.enabled)
-            .count();
+        let initial_enabled = engine.list_policies().iter().filter(|p| p.enabled).count();
 
         engine.disable_policy("require_signed_commits");
-        let after_disable = engine
-            .list_policies()
-            .iter()
-            .filter(|p| p.enabled)
-            .count();
+        let after_disable = engine.list_policies().iter().filter(|p| p.enabled).count();
 
         assert_eq!(after_disable, initial_enabled - 1);
 
         engine.enable_policy("require_signed_commits");
-        let after_enable = engine
-            .list_policies()
-            .iter()
-            .filter(|p| p.enabled)
-            .count();
+        let after_enable = engine.list_policies().iter().filter(|p| p.enabled).count();
 
         assert_eq!(after_enable, initial_enabled);
     }

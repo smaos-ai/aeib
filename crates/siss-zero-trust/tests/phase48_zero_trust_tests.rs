@@ -91,9 +91,7 @@ async fn test_9_concurrent_requests_during_rotation() {
     // Perform rotation in background
     let rotation_handle = {
         let engine_clone = engine.clone();
-        tokio::spawn(async move {
-            engine_clone.rotate_keys_live().await
-        })
+        tokio::spawn(async move { engine_clone.rotate_keys_live().await })
     };
 
     // All requests should complete successfully

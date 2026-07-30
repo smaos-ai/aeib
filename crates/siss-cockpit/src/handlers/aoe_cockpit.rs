@@ -1,10 +1,9 @@
+use chrono::Utc;
 /// Phase 34: Operator Plane Visualization & AoE Integration
 /// RED phase: Failing tests for AoE session manager (tmux/worktree/docker orchestration)
-
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 use std::path::Path;
-use chrono::Utc;
+use uuid::Uuid;
 
 /// AoE Session — Agent of Empires orchestration context
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -76,7 +75,10 @@ impl AoECockpit {
         }
 
         // Generate container ID (SHA256-like hash)
-        let container_id = format!("sha256:{}", Uuid::new_v4().to_string().replace("-", "")[..24].to_string());
+        let container_id = format!(
+            "sha256:{}",
+            Uuid::new_v4().to_string().replace("-", "")[..24].to_string()
+        );
         Ok(container_id)
     }
 
@@ -86,10 +88,7 @@ impl AoECockpit {
         let token = bearer_token.ok_or(AoEError::Unauthorized)?;
 
         // Extract agent ID from "Bearer <agent_id>"
-        let agent_id = token
-            .strip_prefix("Bearer ")
-            .unwrap_or(&token)
-            .to_string();
+        let agent_id = token.strip_prefix("Bearer ").unwrap_or(&token).to_string();
 
         Ok(agent_id)
     }
@@ -97,11 +96,11 @@ impl AoECockpit {
 
 #[derive(Debug, Clone)]
 pub enum AoEError {
-    Unauthorized,           // 401: Missing/invalid bearer token
-    TooManySessions,        // 429: Concurrent sessions > 10
-    WorkspaceNotFound,      // 403: Invalid worktree path
-    BadRequest,             // 400: Invalid docker image
-    InternalError,          // 500: Unexpected error
+    Unauthorized,      // 401: Missing/invalid bearer token
+    TooManySessions,   // 429: Concurrent sessions > 10
+    WorkspaceNotFound, // 403: Invalid worktree path
+    BadRequest,        // 400: Invalid docker image
+    InternalError,     // 500: Unexpected error
 }
 
 #[cfg(test)]

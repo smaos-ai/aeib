@@ -8,15 +8,14 @@
 ///
 /// Critical invariant: Calling this endpoint zero or a thousand times leaves the
 /// engine in identical state. Any write lock acquisition is a test failure.
-
 use axum::{
+    Json,
     extract::{Path, State},
     http::StatusCode,
-    Json,
 };
 use serde::Serialize;
-use siss_context_cartography::zones::ZonalContextMap;
 use siss_context_cartography::inbound::project_to_task_context;
+use siss_context_cartography::zones::ZonalContextMap;
 use uuid::Uuid;
 
 use crate::state::CockpitState;
@@ -29,13 +28,13 @@ use crate::state::CockpitState;
 #[derive(Debug, Serialize)]
 pub struct ProjectionResponse {
     pub workflow_id: String,
-    pub state: String,                              // "Idle" | "Perform" | "Paused" | "Resumed"
+    pub state: String, // "Idle" | "Perform" | "Paused" | "Resumed"
     pub step_index: usize,
     pub total_steps: usize,
-    pub pending_step: Option<PendingStepPayload>,   // plan[step_index] when state == Paused
-    pub checkpoint: Option<CheckpointMeta>,         // when paused
-    pub context_map: Option<serde_json::Value>,     // ZonalContextMap → project_to_task_context()
-    pub updated_at: String,                         // RFC3339
+    pub pending_step: Option<PendingStepPayload>, // plan[step_index] when state == Paused
+    pub checkpoint: Option<CheckpointMeta>,       // when paused
+    pub context_map: Option<serde_json::Value>,   // ZonalContextMap → project_to_task_context()
+    pub updated_at: String,                       // RFC3339
 }
 
 /// Pending step metadata — hydrated from plan[current_step_index]
@@ -51,9 +50,9 @@ pub struct PendingStepPayload {
 #[derive(Debug, Serialize)]
 pub struct CheckpointMeta {
     pub step_index: usize,
-    pub reason: String,         // Captured interrupt reason
-    pub version: usize,         // OCC version
-    pub timestamp: String,      // RFC3339
+    pub reason: String,    // Captured interrupt reason
+    pub version: usize,    // OCC version
+    pub timestamp: String, // RFC3339
 }
 
 // ============================================================================
@@ -65,8 +64,12 @@ pub async fn get_rce_projection(
     Path(workflow_id_str): Path<String>,
 ) -> Result<(StatusCode, Json<ProjectionResponse>), (StatusCode, String)> {
     // [1] Parse {workflow_id} as UUID
-    let requested_workflow_id = Uuid::parse_str(&workflow_id_str)
-        .map_err(|_| (StatusCode::BAD_REQUEST, "Invalid workflow_id UUID".to_string()))?;
+    let requested_workflow_id = Uuid::parse_str(&workflow_id_str).map_err(|_| {
+        (
+            StatusCode::BAD_REQUEST,
+            "Invalid workflow_id UUID".to_string(),
+        )
+    })?;
 
     // [2] Acquire READ lock (NEVER write lock — π⁺ isomorphism invariant)
     let engine_guard = state.rce_engine.read().await;
@@ -82,12 +85,15 @@ pub async fn get_rce_projection(
     }
 
     // [5] Extract pending_step: engine.plan.get(engine.current_step_index)
-    let pending_step = engine.plan.get(engine.current_step_index).map(|step| PendingStepPayload {
-        id: step.id.to_string(),
-        name: step.name.clone(),
-        timeout_ms: step.timeout_ms,
-        idempotent: step.idempotent,
-    });
+    let pending_step = engine
+        .plan
+        .get(engine.current_step_index)
+        .map(|step| PendingStepPayload {
+            id: step.id.to_string(),
+            name: step.name.clone(),
+            timeout_ms: step.timeout_ms,
+            idempotent: step.idempotent,
+        });
 
     // [6] Extract checkpoint: engine.checkpoint.as_ref()
     let checkpoint = engine.checkpoint.as_ref().map(|cp| CheckpointMeta {

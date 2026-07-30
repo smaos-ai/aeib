@@ -1,6 +1,6 @@
 use std::collections::HashMap;
-use uuid::Uuid;
 use std::time::{SystemTime, UNIX_EPOCH};
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RightType {
@@ -109,7 +109,11 @@ impl DataSubjectRightsService {
     }
 
     /// GDPR Article 21: Right to object to processing
-    pub fn execute_right_to_object(&self, _subject_id: Uuid, grounds: String) -> Result<(), String> {
+    pub fn execute_right_to_object(
+        &self,
+        _subject_id: Uuid,
+        grounds: String,
+    ) -> Result<(), String> {
         if grounds.is_empty() {
             return Err("Objection grounds required".to_string());
         }
@@ -118,11 +122,7 @@ impl DataSubjectRightsService {
     }
 
     /// Records a GDPR request execution (for audit trail)
-    pub fn record_execution(
-        &mut self,
-        subject_id: Uuid,
-        right_type: RightType,
-    ) -> Uuid {
+    pub fn record_execution(&mut self, subject_id: Uuid, right_type: RightType) -> Uuid {
         let request_id = Uuid::new_v4();
         let now = self.current_timestamp();
         let deadline = now + (30 * 24 * 3600); // 30-day GDPR deadline
@@ -175,7 +175,10 @@ impl DataSubjectRightsService {
         let mut report = format!("GDPR Audit Report for {}\n", subject_id);
         report.push_str(&format!("Executions: {}\n", executions.len()));
         for exec in executions {
-            report.push_str(&format!("  - {:?} at {}\n", exec.right_type, exec.executed_at));
+            report.push_str(&format!(
+                "  - {:?} at {}\n",
+                exec.right_type, exec.executed_at
+            ));
         }
         Ok(report)
     }

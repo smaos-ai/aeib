@@ -74,7 +74,10 @@ async fn test_nightly_batch_settles_all_or_nothing() {
     let result = batch.settle_all(legs).await;
     assert!(result.is_ok(), "Settlement should succeed");
     let batch_result = result.unwrap();
-    assert!(batch_result.settled == 3 && batch_result.failed == 0, "All 3 legs should settle");
+    assert!(
+        batch_result.settled == 3 && batch_result.failed == 0,
+        "All 3 legs should settle"
+    );
 }
 
 #[tokio::test]
@@ -116,7 +119,10 @@ async fn test_nightly_batch_merkle_root_changes_per_run() {
     let legs2 = batch2.collect_pending().await;
     let result2 = batch2.settle_all(legs2).await.unwrap();
 
-    assert_ne!(result1.merkle_root, result2.merkle_root, "Merkle roots should differ for different batches");
+    assert_ne!(
+        result1.merkle_root, result2.merkle_root,
+        "Merkle roots should differ for different batches"
+    );
 }
 
 #[tokio::test]
@@ -153,15 +159,27 @@ async fn test_nightly_batch_mifid_reports_created() {
 
 #[tokio::test]
 async fn test_fx_reconciler_snapshot_captures_all_currencies() {
-    use siss_night_cycle::fx_reconciliation::{FxReconciler, Currency};
+    use siss_night_cycle::fx_reconciliation::{Currency, FxReconciler};
 
     let reconciler = FxReconciler::new();
     let snapshot = reconciler.snapshot_rates().await;
 
-    assert!(snapshot.contains_key(&(Currency::EUR, Currency::GBP)), "Should have EUR/GBP");
-    assert!(snapshot.contains_key(&(Currency::EUR, Currency::JPY)), "Should have EUR/JPY");
-    assert!(snapshot.contains_key(&(Currency::EUR, Currency::CNY)), "Should have EUR/CNY");
-    assert!(snapshot.contains_key(&(Currency::EUR, Currency::USD)), "Should have EUR/USD");
+    assert!(
+        snapshot.contains_key(&(Currency::EUR, Currency::GBP)),
+        "Should have EUR/GBP"
+    );
+    assert!(
+        snapshot.contains_key(&(Currency::EUR, Currency::JPY)),
+        "Should have EUR/JPY"
+    );
+    assert!(
+        snapshot.contains_key(&(Currency::EUR, Currency::CNY)),
+        "Should have EUR/CNY"
+    );
+    assert!(
+        snapshot.contains_key(&(Currency::EUR, Currency::USD)),
+        "Should have EUR/USD"
+    );
     assert_eq!(snapshot.len(), 4, "Should capture exactly 4 currency pairs");
 }
 
@@ -183,15 +201,21 @@ async fn test_fx_reconciler_detects_discrepancy() {
     let batch_result = batch.settle_all(legs).await.unwrap();
 
     let reconciler = FxReconciler::new();
-    let fx_report = reconciler.reconcile_settlements(&batch_result).await.unwrap();
+    let fx_report = reconciler
+        .reconcile_settlements(&batch_result)
+        .await
+        .unwrap();
 
     // A 1% discrepancy should be detected (in cents)
-    assert!(fx_report.discrepancy_cents >= 0, "Discrepancy should be measured");
+    assert!(
+        fx_report.discrepancy_cents >= 0,
+        "Discrepancy should be measured"
+    );
 }
 
 #[test]
 fn test_fx_reconciler_same_currency_no_conversion() {
-    use siss_night_cycle::fx_reconciliation::{FxReconciler, Currency};
+    use siss_night_cycle::fx_reconciliation::{Currency, FxReconciler};
 
     let reconciler = FxReconciler::new();
     assert!(reconciler.same_currency_short_circuit(Currency::EUR, Currency::EUR));
@@ -205,10 +229,10 @@ fn test_fx_reconciler_same_currency_no_conversion() {
 
 #[tokio::test]
 async fn test_nightly_report_merkle_root_deterministic() {
+    use chrono::Utc;
+    use siss_night_cycle::fx_reconciliation::ReconciliationReport;
     use siss_night_cycle::nightly_reporter::NightlyReport;
     use siss_night_cycle::settlement_batch::NightlyBatch;
-    use siss_night_cycle::fx_reconciliation::ReconciliationReport;
-    use chrono::Utc;
 
     let batch = NightlyBatch::new();
     let legs = batch.collect_pending().await;
@@ -225,15 +249,18 @@ async fn test_nightly_report_merkle_root_deterministic() {
     let report1 = NightlyReport::generate(date, batch_result.clone(), fx.clone());
     let report2 = NightlyReport::generate(date, batch_result.clone(), fx);
 
-    assert_eq!(report1.merkle_root, report2.merkle_root, "Merkle roots should be deterministic");
+    assert_eq!(
+        report1.merkle_root, report2.merkle_root,
+        "Merkle roots should be deterministic"
+    );
 }
 
 #[test]
 fn test_nightly_report_7_year_retention() {
+    use chrono::{Duration, Utc};
+    use siss_night_cycle::fx_reconciliation::ReconciliationReport;
     use siss_night_cycle::nightly_reporter::NightlyReport;
     use siss_night_cycle::settlement_batch::BatchResult;
-    use siss_night_cycle::fx_reconciliation::ReconciliationReport;
-    use chrono::{Utc, Duration};
 
     let batch = BatchResult {
         settled: 1,
@@ -253,22 +280,29 @@ fn test_nightly_report_7_year_retention() {
     let report = NightlyReport::generate(date, batch, fx);
 
     let expected_expiry = report.created_at + Duration::days(365 * 7);
-    assert_eq!(report.expires_at.date_naive(), expected_expiry.date_naive(), "Should expire in 7 years");
+    assert_eq!(
+        report.expires_at.date_naive(),
+        expected_expiry.date_naive(),
+        "Should expire in 7 years"
+    );
 }
 
 #[test]
 fn test_nightly_report_no_delete_method() {
     // Compile-time check: NightlyReport has no public delete() method
     // This is enforced at the type level (no delete method defined)
-    assert!(true, "7-year retention enforced at type level — no delete() method");
+    assert!(
+        true,
+        "7-year retention enforced at type level — no delete() method"
+    );
 }
 
 #[test]
 fn test_nightly_report_verify_integrity_passes() {
+    use chrono::Utc;
+    use siss_night_cycle::fx_reconciliation::ReconciliationReport;
     use siss_night_cycle::nightly_reporter::NightlyReport;
     use siss_night_cycle::settlement_batch::BatchResult;
-    use siss_night_cycle::fx_reconciliation::ReconciliationReport;
-    use chrono::Utc;
 
     let batch = BatchResult {
         settled: 1,
@@ -286,15 +320,18 @@ fn test_nightly_report_verify_integrity_passes() {
 
     let date = Utc::now().naive_utc().date();
     let report = NightlyReport::generate(date, batch, fx);
-    assert!(report.verify_integrity(), "Integrity check should pass for valid report");
+    assert!(
+        report.verify_integrity(),
+        "Integrity check should pass for valid report"
+    );
 }
 
 #[test]
 fn test_nightly_report_tampered_fails_verify() {
+    use chrono::Utc;
+    use siss_night_cycle::fx_reconciliation::ReconciliationReport;
     use siss_night_cycle::nightly_reporter::NightlyReport;
     use siss_night_cycle::settlement_batch::BatchResult;
-    use siss_night_cycle::fx_reconciliation::ReconciliationReport;
-    use chrono::Utc;
 
     let batch = BatchResult {
         settled: 1,
@@ -316,7 +353,10 @@ fn test_nightly_report_tampered_fails_verify() {
     // Tamper with the merkle root
     report.merkle_root[0] = report.merkle_root[0].wrapping_add(1);
 
-    assert!(!report.verify_integrity(), "Integrity check should fail for tampered report");
+    assert!(
+        !report.verify_integrity(),
+        "Integrity check should fail for tampered report"
+    );
 }
 
 // ============================================================================
@@ -351,9 +391,9 @@ fn test_consolidator_runs_settlement_batch_integration() {
 
 #[tokio::test]
 async fn test_scheduler_triggers_at_interval() {
-    use std::sync::atomic::{AtomicUsize, Ordering};
     use std::sync::Arc;
-    use tokio::time::{interval, sleep, Duration};
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use tokio::time::{Duration, interval, sleep};
 
     let call_count = Arc::new(AtomicUsize::new(0));
     let call_count_clone = call_count.clone();
@@ -375,5 +415,8 @@ async fn test_scheduler_triggers_at_interval() {
     let _ = handle.await;
 
     let final_count = call_count.load(Ordering::SeqCst);
-    assert!(final_count >= 2, "Scheduler should trigger at least 2 times in 200ms with 50ms interval");
+    assert!(
+        final_count >= 2,
+        "Scheduler should trigger at least 2 times in 200ms with 50ms interval"
+    );
 }

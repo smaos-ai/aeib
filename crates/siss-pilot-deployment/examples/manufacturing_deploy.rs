@@ -5,9 +5,8 @@
 /// - 99.5% uptime
 /// - <50ms decision latency
 /// - 1000 production orders for load testing
-
 use siss_pilot_deployment::{
-    PilotEnvironment, DeploymentConfig, DeploymentManifest, EnvironmentValidator,
+    DeploymentConfig, DeploymentManifest, EnvironmentValidator, PilotEnvironment,
     generate_terraform_config,
 };
 
@@ -21,7 +20,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let env = PilotEnvironment::new_manufacturing();
     println!("✓ Environment created: {}", env.id);
     println!("  - Nodes: {}", env.num_nodes);
-    println!("  - Agents: {} (robotic scheduling + downtime prediction)", env.num_agents);
+    println!(
+        "  - Agents: {} (robotic scheduling + downtime prediction)",
+        env.num_agents
+    );
     println!("  - Test data: {} production orders", env.test_data_count);
     println!();
 
@@ -37,7 +39,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let validator = EnvironmentValidator::new();
     let validation_report = validator.validate(&env)?;
     println!("✓ Environment validation: PASSED");
-    println!("  - All checks passed: {}", validation_report.all_checks_passed);
+    println!(
+        "  - All checks passed: {}",
+        validation_report.all_checks_passed
+    );
     println!("  - Errors: {}", validation_report.errors.len());
     println!("  - Warnings: {}", validation_report.warnings.len());
     println!();
@@ -47,7 +52,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("✓ Terraform configuration generated");
     println!("  - Size: {} bytes", terraform_config.len());
     println!("  - VPC CIDR: {}", env.network_config.vpc_cidr);
-    println!("  - Inter-node bandwidth: {}Gbps", env.network_config.inter_node_bandwidth_gbps);
+    println!(
+        "  - Inter-node bandwidth: {}Gbps",
+        env.network_config.inter_node_bandwidth_gbps
+    );
     println!();
 
     // Create deployment manifest
@@ -62,8 +70,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Uptime impact analysis
     println!("Uptime Impact Analysis:");
     println!("  - Target uptime: {}%", config.target_uptime_percent);
-    println!("  - Acceptable downtime per month: {} minutes", (100.0 - config.target_uptime_percent) * 60.0 * 24.0 / 100.0);
-    println!("  - Acceptable downtime per year: {} hours", (100.0 - config.target_uptime_percent) * 24.0 * 365.0 / 100.0);
+    println!(
+        "  - Acceptable downtime per month: {} minutes",
+        (100.0 - config.target_uptime_percent) * 60.0 * 24.0 / 100.0
+    );
+    println!(
+        "  - Acceptable downtime per year: {} hours",
+        (100.0 - config.target_uptime_percent) * 24.0 * 365.0 / 100.0
+    );
     println!();
 
     println!("╔════════════════════════════════════════════════════════════════╗");

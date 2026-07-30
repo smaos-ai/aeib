@@ -1,13 +1,12 @@
+use futures::future::join_all;
 /// Phase 27 Load Testing Suite — Multi-Agent Concurrency Under Load
 ///
 /// TDD Red Phase: All 6 tests define acceptance criteria for concurrent dispatch,
 /// dependency gating, and fail-closed cleanup under genuine tokio concurrency.
-
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use uuid::Uuid;
-use futures::future::join_all;
 
 // ============================================================================
 // MOCK FIXTURES (copied from Phase 26, unchanged)
@@ -44,7 +43,9 @@ impl MockEventLog {
 
     async fn has_completed(&self, job_id: Uuid) -> bool {
         let events = self.get_events(job_id).await;
-        events.iter().any(|e| matches!(e, MockSystemEvent::JobCompleted { .. }))
+        events
+            .iter()
+            .any(|e| matches!(e, MockSystemEvent::JobCompleted { .. }))
     }
 }
 
@@ -77,7 +78,11 @@ impl MockSwarmDispatcher {
         }
     }
 
-    async fn dispatch_job(&self, job_id: Uuid, depends_on: Vec<Uuid>) -> Result<MockJobSlot, String> {
+    async fn dispatch_job(
+        &self,
+        job_id: Uuid,
+        depends_on: Vec<Uuid>,
+    ) -> Result<MockJobSlot, String> {
         let active = self.active_slots.lock().await;
         if active.contains_key(&job_id) {
             return Err(format!("AlreadyDispatched: {}", job_id));
@@ -98,10 +103,13 @@ impl MockSwarmDispatcher {
 
         // Log dispatch
         self.event_log
-            .append_event(job_id, MockSystemEvent::JobDispatched {
+            .append_event(
                 job_id,
-                mandate_id: Uuid::nil(),
-            })
+                MockSystemEvent::JobDispatched {
+                    job_id,
+                    mandate_id: Uuid::nil(),
+                },
+            )
             .await;
 
         // Insert into active slots
@@ -113,39 +121,50 @@ impl MockSwarmDispatcher {
             status: SlotStatus::Running,
         };
 
-        self.active_slots
-            .lock()
-            .await
-            .insert(job_id, slot.clone());
+        self.active_slots.lock().await.insert(job_id, slot.clone());
 
         Ok(slot)
     }
 
     async fn complete_job(&self, job_id: Uuid) -> Result<(), String> {
-        let _slot = self.active_slots.lock().await.remove(&job_id)
+        let _slot = self
+            .active_slots
+            .lock()
+            .await
+            .remove(&job_id)
             .ok_or_else(|| format!("JobNotFound: {}", job_id))?;
 
         // Log completion
         self.event_log
-            .append_event(job_id, MockSystemEvent::JobCompleted {
+            .append_event(
                 job_id,
-                result: "success".to_string(),
-            })
+                MockSystemEvent::JobCompleted {
+                    job_id,
+                    result: "success".to_string(),
+                },
+            )
             .await;
 
         Ok(())
     }
 
     async fn fail_job(&self, job_id: Uuid, error: &str) -> Result<(), String> {
-        let _slot = self.active_slots.lock().await.remove(&job_id)
+        let _slot = self
+            .active_slots
+            .lock()
+            .await
+            .remove(&job_id)
             .ok_or_else(|| format!("JobNotFound: {}", job_id))?;
 
         // Log failure (fail-closed: cleanup always runs)
         self.event_log
-            .append_event(job_id, MockSystemEvent::JobFailed {
+            .append_event(
                 job_id,
-                error: error.to_string(),
-            })
+                MockSystemEvent::JobFailed {
+                    job_id,
+                    error: error.to_string(),
+                },
+            )
             .await;
 
         Ok(())
@@ -213,7 +232,11 @@ async fn test_10_concurrent_jobs_have_unique_worktree_paths() {
         branch_names.insert(dispatch_result.branch_name);
     }
 
-    assert_eq!(worktree_paths.len(), 10, "all worktree paths must be unique");
+    assert_eq!(
+        worktree_paths.len(),
+        10,
+        "all worktree paths must be unique"
+    );
     assert_eq!(branch_names.len(), 10, "all branch names must be unique");
 }
 
@@ -228,9 +251,7 @@ async fn test_duplicate_dispatch_exactly_one_succeeds_under_concurrent_load() {
     // Spawn 5 tasks all trying to dispatch the same job_id
     for _ in 0..5 {
         let dispatcher = dispatcher.clone();
-        let handle = tokio::spawn(async move {
-            dispatcher.dispatch_job(job_id, vec![]).await
-        });
+        let handle = tokio::spawn(async move { dispatcher.dispatch_job(job_id, vec![]).await });
         handles.push(handle);
     }
 
@@ -252,7 +273,10 @@ async fn test_duplicate_dispatch_exactly_one_succeeds_under_concurrent_load() {
     }
 
     assert_eq!(success_count, 1, "exactly one dispatch should succeed");
-    assert_eq!(already_dispatched_count, 4, "exactly four should be rejected");
+    assert_eq!(
+        already_dispatched_count, 4,
+        "exactly four should be rejected"
+    );
     assert_eq!(dispatcher.active_count().await, 1);
 }
 
@@ -264,7 +288,10 @@ async fn test_fan_out_dependency_gate_blocks_then_unblocks() {
     let gate_id = Uuid::new_v4();
 
     // Dispatch the gate job first
-    dispatcher.dispatch_job(gate_id, vec![]).await.expect("dispatch gate");
+    dispatcher
+        .dispatch_job(gate_id, vec![])
+        .await
+        .expect("dispatch gate");
 
     // Attempt to dispatch 9 fan-out jobs before gate completes
     let mut handles = vec![];
@@ -282,12 +309,23 @@ async fn test_fan_out_dependency_gate_blocks_then_unblocks() {
     // All should fail with DependencyNotMet
     for result in &results {
         let dispatch_result = result.as_ref().unwrap();
-        assert!(dispatch_result.is_err(), "should reject before gate completes");
-        assert!(dispatch_result.as_ref().unwrap_err().contains("DependencyNotMet"));
+        assert!(
+            dispatch_result.is_err(),
+            "should reject before gate completes"
+        );
+        assert!(
+            dispatch_result
+                .as_ref()
+                .unwrap_err()
+                .contains("DependencyNotMet")
+        );
     }
 
     // Complete the gate
-    dispatcher.complete_job(gate_id).await.expect("complete gate");
+    dispatcher
+        .complete_job(gate_id)
+        .await
+        .expect("complete gate");
 
     // Now dispatch all 9 fan-out jobs again
     let mut handles = vec![];
@@ -341,9 +379,7 @@ async fn test_concurrent_completions_drain_active_slots() {
     for job_id in &job_ids {
         let dispatcher = dispatcher.clone();
         let job_id = *job_id;
-        let handle = tokio::spawn(async move {
-            dispatcher.complete_job(job_id).await
-        });
+        let handle = tokio::spawn(async move { dispatcher.complete_job(job_id).await });
         handles.push(handle);
     }
 
@@ -360,7 +396,11 @@ async fn test_concurrent_completions_drain_active_slots() {
     // Verify JobCompleted events logged
     for job_id in &job_ids {
         let events = event_log.get_events(*job_id).await;
-        assert!(events.iter().any(|e| matches!(e, MockSystemEvent::JobCompleted { .. })));
+        assert!(
+            events
+                .iter()
+                .any(|e| matches!(e, MockSystemEvent::JobCompleted { .. }))
+        );
     }
 }
 
@@ -393,9 +433,8 @@ async fn test_fail_closed_under_concurrent_failures() {
     for job_id in &job_ids {
         let dispatcher = dispatcher.clone();
         let job_id = *job_id;
-        let handle = tokio::spawn(async move {
-            dispatcher.fail_job(job_id, "load test error").await
-        });
+        let handle =
+            tokio::spawn(async move { dispatcher.fail_job(job_id, "load test error").await });
         handles.push(handle);
     }
 
@@ -412,6 +451,10 @@ async fn test_fail_closed_under_concurrent_failures() {
     // Verify JobFailed events logged (fail-closed: every job logged)
     for job_id in &job_ids {
         let events = event_log.get_events(*job_id).await;
-        assert!(events.iter().any(|e| matches!(e, MockSystemEvent::JobFailed { .. })));
+        assert!(
+            events
+                .iter()
+                .any(|e| matches!(e, MockSystemEvent::JobFailed { .. }))
+        );
     }
 }

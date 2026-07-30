@@ -1,9 +1,8 @@
-/// Phase 33: A2UI Streaming Gateway
-/// Real-time component validation, rendering, and broadcast streaming
-
-use tokio::sync::broadcast;
 use chrono::{DateTime, Utc};
 use siss_agent_shell::a2ui::A2UIComponent;
+/// Phase 33: A2UI Streaming Gateway
+/// Real-time component validation, rendering, and broadcast streaming
+use tokio::sync::broadcast;
 
 use super::renderer::Renderer;
 
@@ -27,9 +26,9 @@ impl Default for AuditResult {
 #[derive(Debug, Clone)]
 pub struct ValidatedComponentEvent {
     pub component: A2UIComponent,
-    pub jsx: String,                          // Rendered HTML by Renderer
-    pub schema_valid: bool,                   // Always true for now (validated before emit)
-    pub accessibility: AuditResult,           // Audit results
+    pub jsx: String,                // Rendered HTML by Renderer
+    pub schema_valid: bool,         // Always true for now (validated before emit)
+    pub accessibility: AuditResult, // Audit results
     pub timestamp: DateTime<Utc>,
 }
 
@@ -64,9 +63,7 @@ impl A2UIStreamingGateway {
     /// Create a new streaming gateway with capacity
     pub fn new(capacity: usize) -> Self {
         let (tx, _rx) = broadcast::channel(capacity);
-        Self {
-            broadcaster: tx,
-        }
+        Self { broadcaster: tx }
     }
 
     /// Publish a component for streaming
@@ -202,7 +199,12 @@ mod tests {
 
         let audit = gateway.audit_component(&component);
         assert!(!audit.passed);
-        assert!(audit.violations.iter().any(|v| v.contains("Button missing label")));
+        assert!(
+            audit
+                .violations
+                .iter()
+                .any(|v| v.contains("Button missing label"))
+        );
     }
 
     #[test]

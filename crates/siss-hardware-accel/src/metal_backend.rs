@@ -48,7 +48,10 @@ impl MetalDevice {
             size,
             timestamp: std::time::Instant::now(),
         });
-        debug!("Allocated {} bytes on Metal device {}", size, self.device_id);
+        debug!(
+            "Allocated {} bytes on Metal device {}",
+            size, self.device_id
+        );
         Ok(())
     }
 
@@ -56,7 +59,8 @@ impl MetalDevice {
         let mut pool = self.memory_pool.lock().unwrap();
         if pool.allocated_bytes >= size {
             pool.allocated_bytes -= size;
-            pool.allocations.retain(|a| a.timestamp.elapsed().as_secs() > 0);
+            pool.allocations
+                .retain(|a| a.timestamp.elapsed().as_secs() > 0);
         }
     }
 
@@ -117,7 +121,8 @@ impl MetalBackend {
         let elapsed = start.elapsed().as_secs_f64() * 1000.0; // Convert to ms
         debug!(
             "Metal inference completed in {:.2}ms for tensor size {}",
-            elapsed, tensor.size()
+            elapsed,
+            tensor.size()
         );
 
         self.device.deallocate(tensor_size);

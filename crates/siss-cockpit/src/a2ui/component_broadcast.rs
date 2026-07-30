@@ -1,9 +1,8 @@
-/// Phase 33: Component Broadcast for SSE Streaming
-/// Converts validated component events to SSE (Server-Sent Events) format
-
-use std::sync::Arc;
 use axum::response::sse::{Event, Sse};
 use futures::stream::Stream;
+/// Phase 33: Component Broadcast for SSE Streaming
+/// Converts validated component events to SSE (Server-Sent Events) format
+use std::sync::Arc;
 use uuid::Uuid;
 
 use super::streaming_gateway::A2UIStreamingGateway;

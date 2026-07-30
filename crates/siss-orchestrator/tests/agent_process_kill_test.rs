@@ -1,8 +1,10 @@
-use siss_orchestrator::failure::{AgentBinaryTree, AgentProcessRegistry, AgentHealth, IsolationError};
-use uuid::Uuid;
+use siss_orchestrator::failure::{
+    AgentBinaryTree, AgentHealth, AgentProcessRegistry, IsolationError,
+};
 use std::process::Command;
 use std::thread;
 use std::time::Duration;
+use uuid::Uuid;
 
 #[test]
 fn test_kill_nonexistent_pid_returns_error() {
@@ -35,8 +37,10 @@ fn test_register_and_kill_spawned_sleep_process() {
         .args(&["-0", &pid.to_string()])
         .output();
 
-    assert!(check_alive.is_err() || !check_alive.unwrap().status.success(),
-        "Process should be dead after kill");
+    assert!(
+        check_alive.is_err() || !check_alive.unwrap().status.success(),
+        "Process should be dead after kill"
+    );
 }
 
 #[test]
@@ -62,5 +66,9 @@ fn test_isolate_and_kill_logs_correct_agent() {
 
     let result = tree.isolate_and_kill("test_symptom", &mut registry);
     assert!(result.is_ok(), "isolate_and_kill should succeed");
-    assert_eq!(result.unwrap(), agent_id, "Should isolate and kill correct agent");
+    assert_eq!(
+        result.unwrap(),
+        agent_id,
+        "Should isolate and kill correct agent"
+    );
 }

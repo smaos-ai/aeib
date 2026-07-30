@@ -1,8 +1,8 @@
 use chrono::{DateTime, Utc};
-use serde::{Serialize, Deserialize};
-use uuid::Uuid;
-use sha2::{Sha256, Digest};
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::collections::HashMap;
+use uuid::Uuid;
 
 /// AP2: Agent Payments Protocol
 /// Cryptographic mandates enforcing non-repudiatable authorization for all agent transactions.
@@ -111,7 +111,8 @@ impl AP2MandateEngine {
         }
 
         let mandate_id = Uuid::new_v4();
-        let signature = AP2MandateEngine::compute_mandate_signature(&mandate_id, &agent_id, &intent);
+        let signature =
+            AP2MandateEngine::compute_mandate_signature(&mandate_id, &agent_id, &intent);
 
         let mandate = IntentMandate {
             mandate_id,
@@ -168,11 +169,7 @@ impl AP2MandateEngine {
         Ok(())
     }
 
-    pub fn process_payment(
-        &mut self,
-        mandate_id: Uuid,
-        actual_cost: f64,
-    ) -> Result<Uuid, String> {
+    pub fn process_payment(&mut self, mandate_id: Uuid, actual_cost: f64) -> Result<Uuid, String> {
         let mandate = self
             .intent_mandates
             .get(&mandate_id)
@@ -205,7 +202,8 @@ impl AP2MandateEngine {
 
         let payment_id = Uuid::new_v4();
         let transaction_hash = Self::compute_transaction_hash(&payment_id, actual_cost);
-        let cryptographic_proof = Self::compute_cryptographic_proof(&mandate.signature, &transaction_hash);
+        let cryptographic_proof =
+            Self::compute_cryptographic_proof(&mandate.signature, &transaction_hash);
 
         let payment = PaymentMandate {
             payment_id,
@@ -394,9 +392,25 @@ mod tests {
         engine.process_payment(mandate_id, 450.0).ok();
 
         let audit = engine.audit_log();
-        assert!(audit.iter().any(|e| e.event_type == AuditEventType::MandateCreated));
-        assert!(audit.iter().any(|e| e.event_type == AuditEventType::MandateAuthorized));
-        assert!(audit.iter().any(|e| e.event_type == AuditEventType::PaymentProcessed));
-        assert!(audit.iter().any(|e| e.event_type == AuditEventType::ThresholdWarning));
+        assert!(
+            audit
+                .iter()
+                .any(|e| e.event_type == AuditEventType::MandateCreated)
+        );
+        assert!(
+            audit
+                .iter()
+                .any(|e| e.event_type == AuditEventType::MandateAuthorized)
+        );
+        assert!(
+            audit
+                .iter()
+                .any(|e| e.event_type == AuditEventType::PaymentProcessed)
+        );
+        assert!(
+            audit
+                .iter()
+                .any(|e| e.event_type == AuditEventType::ThresholdWarning)
+        );
     }
 }

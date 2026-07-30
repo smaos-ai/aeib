@@ -19,11 +19,7 @@ impl GitManager {
     }
 
     /// Create a new worktree for task execution
-    pub async fn create_worktree(
-        &self,
-        worktree_path: &str,
-        branch_name: &str,
-    ) -> Result<()> {
+    pub async fn create_worktree(&self, worktree_path: &str, branch_name: &str) -> Result<()> {
         let output = Command::new("git")
             .current_dir(&self.repo_path)
             .args(["worktree", "add", worktree_path, "-b", branch_name])
@@ -32,8 +28,7 @@ impl GitManager {
             .map_err(|e| DispatchError::ProcessError(e.to_string()))?;
 
         if !output.status.success() {
-            let stderr =
-                String::from_utf8_lossy(&output.stderr).to_string();
+            let stderr = String::from_utf8_lossy(&output.stderr).to_string();
             return Err(DispatchError::WorktreeError(format!(
                 "Failed to create worktree: {}",
                 stderr
@@ -53,8 +48,7 @@ impl GitManager {
             .map_err(|e| DispatchError::ProcessError(e.to_string()))?;
 
         if !output.status.success() {
-            let stderr =
-                String::from_utf8_lossy(&output.stderr).to_string();
+            let stderr = String::from_utf8_lossy(&output.stderr).to_string();
             return Err(DispatchError::WorktreeError(format!(
                 "Failed to remove worktree: {}",
                 stderr
@@ -104,11 +98,7 @@ impl GitManager {
     }
 
     /// Merge branch into target
-    pub async fn merge_branch(
-        &self,
-        merge_branch: &str,
-        target_branch: &str,
-    ) -> Result<()> {
+    pub async fn merge_branch(&self, merge_branch: &str, target_branch: &str) -> Result<()> {
         // Switch to target branch
         let output = Command::new("git")
             .current_dir(&self.repo_path)
@@ -132,8 +122,7 @@ impl GitManager {
             .map_err(|e| DispatchError::ProcessError(e.to_string()))?;
 
         if !output.status.success() {
-            let stderr =
-                String::from_utf8_lossy(&output.stderr).to_string();
+            let stderr = String::from_utf8_lossy(&output.stderr).to_string();
             if stderr.contains("CONFLICT") {
                 // TODO: Parse conflict markers to identify files
                 return Err(DispatchError::MergeConflict {
@@ -156,8 +145,7 @@ impl GitManager {
             .map_err(|e| DispatchError::ProcessError(e.to_string()))?;
 
         if !output.status.success() {
-            let stderr =
-                String::from_utf8_lossy(&output.stderr).to_string();
+            let stderr = String::from_utf8_lossy(&output.stderr).to_string();
             return Err(DispatchError::RollbackFailed(stderr));
         }
 
@@ -179,17 +167,11 @@ impl GitManager {
             ));
         }
 
-        Ok(String::from_utf8_lossy(&output.stdout)
-            .trim()
-            .to_string())
+        Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
     }
 
     /// Commit changes in worktree
-    pub async fn commit_changes(
-        &self,
-        worktree_path: &str,
-        message: &str,
-    ) -> Result<()> {
+    pub async fn commit_changes(&self, worktree_path: &str, message: &str) -> Result<()> {
         // Add all changes
         let output = Command::new("git")
             .current_dir(worktree_path)
@@ -214,8 +196,7 @@ impl GitManager {
 
         if !output.status.success() {
             // OK if nothing to commit
-            let stderr =
-                String::from_utf8_lossy(&output.stderr).to_string();
+            let stderr = String::from_utf8_lossy(&output.stderr).to_string();
             if !stderr.contains("nothing to commit") {
                 return Err(DispatchError::GitError(
                     "Failed to commit changes".to_string(),

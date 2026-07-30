@@ -1,6 +1,6 @@
-use uuid::Uuid;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use uuid::Uuid;
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 pub struct AgentLoad {
@@ -12,9 +12,17 @@ pub struct AgentLoad {
 
 #[derive(Clone, Debug)]
 pub enum RebalanceAction {
-    MoveTask { task_id: Uuid, from_agent: Uuid, to_agent: Uuid },
-    SpawnAgent { target_load: u32 },
-    TerminateAgent { agent_id: Uuid },
+    MoveTask {
+        task_id: Uuid,
+        from_agent: Uuid,
+        to_agent: Uuid,
+    },
+    SpawnAgent {
+        target_load: u32,
+    },
+    TerminateAgent {
+        agent_id: Uuid,
+    },
     NoOp,
 }
 

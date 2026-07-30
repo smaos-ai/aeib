@@ -3,7 +3,7 @@
 
 #[cfg(test)]
 mod integration_tests {
-    use crate::handlers::aoe_cockpit::{AoECockpit, AoESession, AoEError};
+    use crate::handlers::aoe_cockpit::{AoECockpit, AoEError, AoESession};
 
     #[tokio::test]
     async fn test_aoe_session_lifecycle_complete() {
@@ -119,12 +119,19 @@ mod integration_tests {
         let test_cases = vec![
             ("Bearer agent-001", "agent-001"),
             ("Bearer sovereign-operator-xyz", "sovereign-operator-xyz"),
-            ("Bearer token-with-hyphens-and-numbers-123", "token-with-hyphens-and-numbers-123"),
+            (
+                "Bearer token-with-hyphens-and-numbers-123",
+                "token-with-hyphens-and-numbers-123",
+            ),
         ];
 
         for (bearer_token, expected_agent_id) in test_cases {
             let result = AoECockpit::verify_agent_access(Some(bearer_token.to_string()));
-            assert!(result.is_ok(), "Bearer token {} should succeed", bearer_token);
+            assert!(
+                result.is_ok(),
+                "Bearer token {} should succeed",
+                bearer_token
+            );
             assert_eq!(
                 result.unwrap(),
                 expected_agent_id,
@@ -153,7 +160,10 @@ mod integration_tests {
         }
 
         // Verify all session IDs are unique
-        let unique_count = session_ids.iter().collect::<std::collections::HashSet<_>>().len();
+        let unique_count = session_ids
+            .iter()
+            .collect::<std::collections::HashSet<_>>()
+            .len();
         assert_eq!(unique_count, 5, "All session IDs should be unique");
     }
 

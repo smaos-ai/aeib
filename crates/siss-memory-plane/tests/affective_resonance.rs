@@ -1,4 +1,4 @@
-use siss_context_cartography::types::{MemoryEntry, AffectiveSignature};
+use siss_context_cartography::types::{AffectiveSignature, MemoryEntry};
 use siss_memory_plane::operators::CartographicOperatorSet;
 use uuid::Uuid;
 
@@ -16,8 +16,8 @@ fn test_high_valence_bypasses_token_truncation() {
         confidence_score: 0.9,
         tier: siss_graph_core::node::memory::ConsolidationTier::Semantic,
         affective_signature: Some(AffectiveSignature {
-            valence: 0.8,           // Positive (opportunity)
-            arousal: 0.9,            // High activation
+            valence: 0.8,             // Positive (opportunity)
+            arousal: 0.9,             // High activation
             sovereign_relevance: 0.8, // Highly relevant
         }),
     };
@@ -25,7 +25,11 @@ fn test_high_valence_bypasses_token_truncation() {
     let truncated = op_set.phi_simplify(vec![entry.clone()]);
 
     // High valence + high arousal + high sovereign_relevance → content preserved
-    assert_eq!(truncated[0].content.len(), 100, "High-valence fact should NOT be truncated");
+    assert_eq!(
+        truncated[0].content.len(),
+        100,
+        "High-valence fact should NOT be truncated"
+    );
 }
 
 #[test]
@@ -42,7 +46,7 @@ fn test_low_valence_truncated_normally() {
         confidence_score: 0.9,
         tier: siss_graph_core::node::memory::ConsolidationTier::Semantic,
         affective_signature: Some(AffectiveSignature {
-            valence: -0.8,           // Negative (threat/neutral)
+            valence: -0.8,            // Negative (threat/neutral)
             arousal: 0.3,             // Low activation
             sovereign_relevance: 0.2, // Low relevance
         }),
@@ -51,7 +55,10 @@ fn test_low_valence_truncated_normally() {
     let truncated = op_set.phi_simplify(vec![entry.clone()]);
 
     // Low valence + low arousal → content truncated to budget
-    assert!(truncated[0].content.len() <= 16, "Low-valence fact should be truncated");
+    assert!(
+        truncated[0].content.len() <= 16,
+        "Low-valence fact should be truncated"
+    );
 }
 
 #[test]
@@ -69,20 +76,24 @@ fn test_omega_operator_promotes_from_gray_fog() {
         confidence_score: 0.6, // Above threshold but in gray zone
         tier: siss_graph_core::node::memory::ConsolidationTier::Episodic,
         affective_signature: Some(AffectiveSignature {
-            valence: -0.95,          // Negative (threat — critical failure)
-            arousal: 0.95,            // Very high activation
+            valence: -0.95,            // Negative (threat — critical failure)
+            arousal: 0.95,             // Very high activation
             sovereign_relevance: 0.95, // Critical for system
         }),
     };
 
     // ω operator should promote high-arousal from GrayFog back to VisibleField
     let promoted = op_set.omega_resonate(
-        vec![], // empty visible field
+        vec![],                       // empty visible field
         vec![gray_fog_entry.clone()], // gray fog with 1 entry
-        1, // limit: return top 1
+        1,                            // limit: return top 1
     );
 
-    assert_eq!(promoted.len(), 1, "ω operator should rescue high-arousal fact from GrayFog");
+    assert_eq!(
+        promoted.len(),
+        1,
+        "ω operator should rescue high-arousal fact from GrayFog"
+    );
     assert_eq!(promoted[0].memory_id, gray_fog_entry.memory_id);
 }
 
@@ -108,7 +119,10 @@ fn test_affective_signature_survives_ebbinghaus_decay() {
     let sig = decayed.affective_signature.unwrap();
     assert_eq!(sig.valence, 0.7, "Valence should survive decay");
     assert_eq!(sig.arousal, 0.8, "Arousal should survive decay");
-    assert_eq!(sig.sovereign_relevance, 0.9, "Sovereign_relevance should survive decay");
+    assert_eq!(
+        sig.sovereign_relevance, 0.9,
+        "Sovereign_relevance should survive decay"
+    );
 }
 
 #[test]
@@ -135,7 +149,11 @@ fn test_sovereign_relevance_threshold_boundary_at_0_7() {
     let truncated = op_set.phi_simplify(vec![boundary_entry.clone()]);
 
     // At boundary (0.7), should NOT be truncated (>= 0.7 passes)
-    assert_eq!(truncated[0].content.len(), 100, "Boundary case 0.7 should NOT truncate");
+    assert_eq!(
+        truncated[0].content.len(),
+        100,
+        "Boundary case 0.7 should NOT truncate"
+    );
 
     // Just below boundary: sovereign_relevance = 0.69, arousal = 0.85 (passes > 0.8)
     let below_boundary_entry = MemoryEntry {
@@ -153,5 +171,8 @@ fn test_sovereign_relevance_threshold_boundary_at_0_7() {
     let truncated_below = op_set.phi_simplify(vec![below_boundary_entry.clone()]);
 
     // Below boundary (0.69), should be truncated
-    assert!(truncated_below[0].content.len() <= 16, "Below boundary 0.69 should truncate");
+    assert!(
+        truncated_below[0].content.len() <= 16,
+        "Below boundary 0.69 should truncate"
+    );
 }

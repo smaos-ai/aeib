@@ -1,8 +1,8 @@
+use serde::{Deserialize, Serialize};
 use siss_context_cartography::types::MemoryEntry;
 use siss_context_cartography::zones::ZonalContextMap;
-use uuid::Uuid;
-use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProjectedEntry {
@@ -40,30 +40,43 @@ impl CartographicOperatorSet {
     }
 
     pub fn rho_reconnaissance(&self, map: &ZonalContextMap, limit: usize) -> Vec<Uuid> {
-        let mut result: Vec<Uuid> = map.gray_fog
-            .iter()
-            .map(|entry| entry.memory_id)
-            .collect();
+        let mut result: Vec<Uuid> = map.gray_fog.iter().map(|entry| entry.memory_id).collect();
         result.sort_by(|a, b| {
-            let conf_a = map.gray_fog.iter().find(|e| e.memory_id == *a).map(|e| e.confidence_score).unwrap_or(0.0);
-            let conf_b = map.gray_fog.iter().find(|e| e.memory_id == *b).map(|e| e.confidence_score).unwrap_or(0.0);
-            conf_b.partial_cmp(&conf_a).unwrap_or(std::cmp::Ordering::Equal)
+            let conf_a = map
+                .gray_fog
+                .iter()
+                .find(|e| e.memory_id == *a)
+                .map(|e| e.confidence_score)
+                .unwrap_or(0.0);
+            let conf_b = map
+                .gray_fog
+                .iter()
+                .find(|e| e.memory_id == *b)
+                .map(|e| e.confidence_score)
+                .unwrap_or(0.0);
+            conf_b
+                .partial_cmp(&conf_a)
+                .unwrap_or(std::cmp::Ordering::Equal)
         });
         result.truncate(limit);
         result
     }
 
     pub fn sigma_selection(&self, entries: Vec<MemoryEntry>) -> Vec<MemoryEntry> {
-        entries.into_iter()
+        entries
+            .into_iter()
             .filter(|e| e.confidence_score >= self.confidence_threshold)
             .collect()
     }
 
     pub fn phi_simplify(&self, entries: Vec<MemoryEntry>) -> Vec<MemoryEntry> {
-        entries.into_iter()
+        entries
+            .into_iter()
             .map(|mut e| {
                 // Check affective bypass: high valence + high arousal + high sovereign_relevance
-                let should_bypass_truncation = e.affective_signature.as_ref()
+                let should_bypass_truncation = e
+                    .affective_signature
+                    .as_ref()
                     .map(|sig| sig.arousal > 0.8 && sig.sovereign_relevance >= 0.7)
                     .unwrap_or(false);
 
@@ -126,7 +139,8 @@ impl CartographicOperatorSet {
         entries: Vec<ProjectedEntry>,
         namespace: &str,
     ) -> Vec<ProjectedEntry> {
-        entries.into_iter()
+        entries
+            .into_iter()
             .filter(|e| e.namespace.as_deref() == Some(namespace))
             .collect()
     }
@@ -141,7 +155,8 @@ impl CartographicOperatorSet {
         let mut candidates: Vec<MemoryEntry> = gray_fog
             .into_iter()
             .filter(|e| {
-                e.affective_signature.as_ref()
+                e.affective_signature
+                    .as_ref()
                     .map(|sig| sig.arousal > 0.8)
                     .unwrap_or(false)
             })
@@ -149,9 +164,19 @@ impl CartographicOperatorSet {
 
         // Sort by arousal (descending)
         candidates.sort_by(|a, b| {
-            let arousal_a = a.affective_signature.as_ref().map(|s| s.arousal).unwrap_or(0.0);
-            let arousal_b = b.affective_signature.as_ref().map(|s| s.arousal).unwrap_or(0.0);
-            arousal_b.partial_cmp(&arousal_a).unwrap_or(std::cmp::Ordering::Equal)
+            let arousal_a = a
+                .affective_signature
+                .as_ref()
+                .map(|s| s.arousal)
+                .unwrap_or(0.0);
+            let arousal_b = b
+                .affective_signature
+                .as_ref()
+                .map(|s| s.arousal)
+                .unwrap_or(0.0);
+            arousal_b
+                .partial_cmp(&arousal_a)
+                .unwrap_or(std::cmp::Ordering::Equal)
         });
 
         candidates.truncate(limit);
@@ -165,5 +190,9 @@ fn jaccard(a: &str, b: &str) -> f64 {
     let words_b: HashSet<&str> = b.split_whitespace().collect();
     let intersection = words_a.intersection(&words_b).count() as f64;
     let union = words_a.union(&words_b).count() as f64;
-    if union == 0.0 { 0.0 } else { intersection / union }
+    if union == 0.0 {
+        0.0
+    } else {
+        intersection / union
+    }
 }

@@ -125,12 +125,8 @@ mod tests {
         let latencies = vec![50, 100, 150, 200, 250];
 
         for latency in latencies {
-            let result = DeltaDetector::detect(
-                repo_id,
-                Some("old".to_string()),
-                "new".to_string(),
-                latency,
-            );
+            let result =
+                DeltaDetector::detect(repo_id, Some("old".to_string()), "new".to_string(), latency);
 
             assert_eq!(result.detection_latency_ms, latency);
         }

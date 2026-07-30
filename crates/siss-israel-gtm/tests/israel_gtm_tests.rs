@@ -1,10 +1,20 @@
-use siss_israel_gtm::cyber_defense::{CyberDefenseCapsule, ThreatSignal, IncidentContext, ComplianceCheckRequest, AccessRequest};
-use siss_israel_gtm::medical_ai::{MedicalAICapsule, DataAccessLog, ConsentRequest, AIOutcomeDecision, DataSegregationPolicy, GovernanceOverrideRequest, RegulatoryReportRequest};
-use siss_israel_gtm::financial_governance::{FinancialGovernanceCapsule, TradeOrder, ReportingPeriod, FinancialTransaction, ComplianceOverrideRequest, PreExecutionCheck, SettlementRequest};
-use siss_israel_gtm::creator_palantir::{CreatorPalantirDashboard, AuditExportRequest, RealtimePolicyOverride};
-use siss_israel_gtm::air_gapped::{AirGappedDeployment, ExecutionContext, IsolationCheck};
-use uuid::Uuid;
 use chrono::Utc;
+use siss_israel_gtm::air_gapped::{AirGappedDeployment, ExecutionContext, IsolationCheck};
+use siss_israel_gtm::creator_palantir::{
+    AuditExportRequest, CreatorPalantirDashboard, RealtimePolicyOverride,
+};
+use siss_israel_gtm::cyber_defense::{
+    AccessRequest, ComplianceCheckRequest, CyberDefenseCapsule, IncidentContext, ThreatSignal,
+};
+use siss_israel_gtm::financial_governance::{
+    ComplianceOverrideRequest, FinancialGovernanceCapsule, FinancialTransaction, PreExecutionCheck,
+    ReportingPeriod, SettlementRequest, TradeOrder,
+};
+use siss_israel_gtm::medical_ai::{
+    AIOutcomeDecision, ConsentRequest, DataAccessLog, DataSegregationPolicy,
+    GovernanceOverrideRequest, MedicalAICapsule, RegulatoryReportRequest,
+};
+use uuid::Uuid;
 
 // Cyber Defense Capsule Tests
 
@@ -235,7 +245,9 @@ async fn test_financial_regulatory_reporting_automation() {
         exchange: "TASE".to_string(),
     };
 
-    let result = capsule.automate_regulatory_reporting(&reporting_period).await;
+    let result = capsule
+        .automate_regulatory_reporting(&reporting_period)
+        .await;
     assert!(result.is_ok());
     let report = result.unwrap();
     assert!(!report.transactions.is_empty() || true);
@@ -286,7 +298,9 @@ async fn test_financial_pre_execution_safety_net() {
         market_conditions: "volatile".to_string(),
     };
 
-    let result = capsule.pre_execution_safety_validation(&execution_check).await;
+    let result = capsule
+        .pre_execution_safety_validation(&execution_check)
+        .await;
     assert!(result.is_ok());
     let safety = result.unwrap();
     assert!(safety.safe_to_execute || !safety.safe_to_execute);

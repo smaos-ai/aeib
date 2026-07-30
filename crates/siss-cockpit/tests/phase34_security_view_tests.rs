@@ -4,9 +4,9 @@
 
 #[cfg(test)]
 mod phase34_security_view_tests {
+    use chrono::Utc;
     use std::sync::Arc;
     use uuid::Uuid;
-    use chrono::Utc;
 
     // Mock structures for testing (will be replaced with real implementations)
     #[derive(Debug, Clone)]
@@ -19,13 +19,34 @@ mod phase34_security_view_tests {
 
     #[derive(Debug, Clone, PartialEq)]
     enum A2UIComponentMock {
-        Alert { variant: String, title: String, message: String },
-        Badge { label: String, variant: String },
-        Text { content: String },
-        Card { title: String, content: String },
-        Grid { columns: u32, components: Vec<A2UIComponentMock> },
-        Table { headers: Vec<String>, rows: Vec<Vec<String>> },
-        Progress { value: u32, max: u32 },
+        Alert {
+            variant: String,
+            title: String,
+            message: String,
+        },
+        Badge {
+            label: String,
+            variant: String,
+        },
+        Text {
+            content: String,
+        },
+        Card {
+            title: String,
+            content: String,
+        },
+        Grid {
+            columns: u32,
+            components: Vec<A2UIComponentMock>,
+        },
+        Table {
+            headers: Vec<String>,
+            rows: Vec<Vec<String>>,
+        },
+        Progress {
+            value: u32,
+            max: u32,
+        },
     }
 
     struct SecurityDashboard;
@@ -122,7 +143,11 @@ mod phase34_security_view_tests {
 
         // THEN: Returns Alert with variant="destructive"
         match component {
-            A2UIComponentMock::Alert { variant, title, message } => {
+            A2UIComponentMock::Alert {
+                variant,
+                title,
+                message,
+            } => {
                 assert_eq!(variant, "destructive");
                 assert_eq!(title, "Security Anomaly");
                 assert_eq!(message, "Unauthorized access attempt detected");
@@ -254,9 +279,15 @@ mod phase34_security_view_tests {
         // THEN: Contains Alert, Badge components, and Progress
         assert!(view.len() >= 3);
 
-        let has_alert = view.iter().any(|c| matches!(c, A2UIComponentMock::Alert { .. }));
-        let has_badge = view.iter().any(|c| matches!(c, A2UIComponentMock::Badge { .. }));
-        let has_progress = view.iter().any(|c| matches!(c, A2UIComponentMock::Progress { .. }));
+        let has_alert = view
+            .iter()
+            .any(|c| matches!(c, A2UIComponentMock::Alert { .. }));
+        let has_badge = view
+            .iter()
+            .any(|c| matches!(c, A2UIComponentMock::Badge { .. }));
+        let has_progress = view
+            .iter()
+            .any(|c| matches!(c, A2UIComponentMock::Progress { .. }));
 
         assert!(has_alert, "View should contain Alert component");
         assert!(has_badge, "View should contain Badge component");
@@ -268,8 +299,12 @@ mod phase34_security_view_tests {
         // GIVEN: More than 5 events
         let events: Vec<MockAoEEvent> = (0..10)
             .map(|i| MockAoEEvent {
-                action_type: if i % 2 == 0 { "ANOMALY_DETECTED" } else { "ACTION_COMPLETED" }
-                    .to_string(),
+                action_type: if i % 2 == 0 {
+                    "ANOMALY_DETECTED"
+                } else {
+                    "ACTION_COMPLETED"
+                }
+                .to_string(),
                 id: Uuid::new_v4().to_string(),
                 content: Some(format!("Event {}", i)),
                 metadata: None,
@@ -280,8 +315,13 @@ mod phase34_security_view_tests {
         let view = SecurityDashboard::compose_security_view(events);
 
         // THEN: Contains Table component
-        let has_table = view.iter().any(|c| matches!(c, A2UIComponentMock::Table { .. }));
-        assert!(has_table, "View should contain Table component for >5 events");
+        let has_table = view
+            .iter()
+            .any(|c| matches!(c, A2UIComponentMock::Table { .. }));
+        assert!(
+            has_table,
+            "View should contain Table component for >5 events"
+        );
     }
 
     #[test]
@@ -351,7 +391,11 @@ mod phase34_security_view_tests {
 
         // THEN: Component is valid (not empty, has required fields)
         match component {
-            A2UIComponentMock::Alert { variant, title, message } => {
+            A2UIComponentMock::Alert {
+                variant,
+                title,
+                message,
+            } => {
                 assert!(!variant.is_empty());
                 assert!(!title.is_empty());
                 assert!(!message.is_empty());
@@ -387,23 +431,19 @@ mod phase34_security_view_tests {
     #[test]
     fn test_security_view_multiple_sessions_isolated() {
         // GIVEN: Two event streams with different session IDs
-        let session_1_events = vec![
-            MockAoEEvent {
-                action_type: "ANOMALY_DETECTED".to_string(),
-                id: Uuid::new_v4().to_string(),
-                content: Some("Session 1 anomaly".to_string()),
-                metadata: None,
-            },
-        ];
+        let session_1_events = vec![MockAoEEvent {
+            action_type: "ANOMALY_DETECTED".to_string(),
+            id: Uuid::new_v4().to_string(),
+            content: Some("Session 1 anomaly".to_string()),
+            metadata: None,
+        }];
 
-        let session_2_events = vec![
-            MockAoEEvent {
-                action_type: "ACTION_COMPLETED".to_string(),
-                id: Uuid::new_v4().to_string(),
-                content: Some("Session 2 action".to_string()),
-                metadata: None,
-            },
-        ];
+        let session_2_events = vec![MockAoEEvent {
+            action_type: "ACTION_COMPLETED".to_string(),
+            id: Uuid::new_v4().to_string(),
+            content: Some("Session 2 action".to_string()),
+            metadata: None,
+        }];
 
         // WHEN: Composing views for each session
         let view_1 = SecurityDashboard::compose_security_view(session_1_events);
@@ -414,8 +454,12 @@ mod phase34_security_view_tests {
         assert!(!view_2.is_empty());
 
         // Verify first has Alert, second has Badge
-        let view_1_has_alert = view_1.iter().any(|c| matches!(c, A2UIComponentMock::Alert { .. }));
-        let view_2_has_badge = view_2.iter().any(|c| matches!(c, A2UIComponentMock::Badge { .. }));
+        let view_1_has_alert = view_1
+            .iter()
+            .any(|c| matches!(c, A2UIComponentMock::Alert { .. }));
+        let view_2_has_badge = view_2
+            .iter()
+            .any(|c| matches!(c, A2UIComponentMock::Badge { .. }));
 
         assert!(view_1_has_alert, "Session 1 should have Alert");
         assert!(view_2_has_badge, "Session 2 should have Badge");
@@ -438,7 +482,11 @@ mod phase34_security_view_tests {
 
         // THEN: Total latency < 50ms
         let elapsed = start.elapsed();
-        assert!(elapsed.as_millis() < 50, "Event mapping + compose should be <50ms, got {}ms", elapsed.as_millis());
+        assert!(
+            elapsed.as_millis() < 50,
+            "Event mapping + compose should be <50ms, got {}ms",
+            elapsed.as_millis()
+        );
         assert!(!view.is_empty());
     }
 

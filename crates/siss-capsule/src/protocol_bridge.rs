@@ -84,7 +84,9 @@ impl ProtocolV2Bridge {
             if allow_pattern.ends_with("/**") {
                 let prefix = &allow_pattern[..allow_pattern.len() - 3];
                 // Check if file_path contains the directory with proper separators
-                if file_path.contains(&format!("/{}/", prefix)) || file_path.contains(&format!("{}/", prefix)) {
+                if file_path.contains(&format!("/{}/", prefix))
+                    || file_path.contains(&format!("{}/", prefix))
+                {
                     return true;
                 }
             } else if file_path == allow_pattern {

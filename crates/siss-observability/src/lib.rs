@@ -4,7 +4,7 @@ pub mod trace_logger;
 
 pub use merkle_tracer::{MerkleTracer, TraceSpan};
 pub use metrics_aggregator::MetricsAggregator;
-pub use trace_logger::{TraceLogger, LogLevel};
+pub use trace_logger::{LogLevel, TraceLogger};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SpanStatus {

@@ -1,4 +1,4 @@
-use super::{NightCycleOperator, OperatorResult, OntologyState};
+use super::{NightCycleOperator, OntologyState, OperatorResult};
 use std::collections::HashMap;
 
 /// DeltaOperator: Supersession — keep only the newest version (highest timestamp) for each id

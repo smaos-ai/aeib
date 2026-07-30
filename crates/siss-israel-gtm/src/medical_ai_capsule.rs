@@ -1,7 +1,7 @@
-use thiserror::Error;
-use uuid::Uuid;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
+use uuid::Uuid;
 
 #[derive(Error, Debug)]
 pub enum MedicalAIError {
@@ -107,14 +107,17 @@ pub struct MedicalAICapsule {
 
 impl MedicalAICapsule {
     pub fn new() -> Self {
-        Self {
-            id: Uuid::new_v4(),
-        }
+        Self { id: Uuid::new_v4() }
     }
 
-    pub async fn verify_hipaa_compliance(&self, access_log: &DataAccessLog) -> Result<HIPAAComplianceStatus, MedicalAIError> {
+    pub async fn verify_hipaa_compliance(
+        &self,
+        access_log: &DataAccessLog,
+    ) -> Result<HIPAAComplianceStatus, MedicalAIError> {
         if access_log.data_type != "PHI" {
-            return Err(MedicalAIError::HIPAAViolation("Non-PHI access log".to_string()));
+            return Err(MedicalAIError::HIPAAViolation(
+                "Non-PHI access log".to_string(),
+            ));
         }
 
         Ok(HIPAAComplianceStatus {
@@ -123,9 +126,14 @@ impl MedicalAICapsule {
         })
     }
 
-    pub async fn validate_patient_consent(&self, request: &ConsentRequest) -> Result<ConsentStatus, MedicalAIError> {
+    pub async fn validate_patient_consent(
+        &self,
+        request: &ConsentRequest,
+    ) -> Result<ConsentStatus, MedicalAIError> {
         if request.duration_days == 0 {
-            return Err(MedicalAIError::ConsentFailed("Invalid duration".to_string()));
+            return Err(MedicalAIError::ConsentFailed(
+                "Invalid duration".to_string(),
+            ));
         }
 
         Ok(ConsentStatus {
@@ -135,7 +143,10 @@ impl MedicalAICapsule {
         })
     }
 
-    pub async fn create_immutable_audit_trail(&self, decision: &AIOutcomeDecision) -> Result<AuditTrail, MedicalAIError> {
+    pub async fn create_immutable_audit_trail(
+        &self,
+        decision: &AIOutcomeDecision,
+    ) -> Result<AuditTrail, MedicalAIError> {
         Ok(AuditTrail {
             immutable: true,
             cryptographically_signed: true,
@@ -144,14 +155,20 @@ impl MedicalAICapsule {
         })
     }
 
-    pub async fn enforce_data_segregation(&self, _policy: &DataSegregationPolicy) -> Result<SegregationStatus, MedicalAIError> {
+    pub async fn enforce_data_segregation(
+        &self,
+        _policy: &DataSegregationPolicy,
+    ) -> Result<SegregationStatus, MedicalAIError> {
         Ok(SegregationStatus {
             enforced: true,
             timestamp: Utc::now(),
         })
     }
 
-    pub async fn override_ai_decision(&self, _request: &GovernanceOverrideRequest) -> Result<OverrideStatus, MedicalAIError> {
+    pub async fn override_ai_decision(
+        &self,
+        _request: &GovernanceOverrideRequest,
+    ) -> Result<OverrideStatus, MedicalAIError> {
         Ok(OverrideStatus {
             approved: true,
             audit_logged: true,
@@ -159,11 +176,13 @@ impl MedicalAICapsule {
         })
     }
 
-    pub async fn generate_regulatory_report(&self, request: &RegulatoryReportRequest) -> Result<RegulatoryReport, MedicalAIError> {
+    pub async fn generate_regulatory_report(
+        &self,
+        request: &RegulatoryReportRequest,
+    ) -> Result<RegulatoryReport, MedicalAIError> {
         let content = format!(
             "Regulatory Report for {} ({})",
-            request.jurisdiction,
-            request.period_start
+            request.jurisdiction, request.period_start
         );
 
         Ok(RegulatoryReport {

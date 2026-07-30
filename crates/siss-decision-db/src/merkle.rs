@@ -1,4 +1,4 @@
-use sha2::{Sha256, Digest};
+use sha2::{Digest, Sha256};
 
 /// Compute SHA256 hash of prev_hash || content
 pub fn compute_hash(prev_hash: &str, content: &str) -> String {
@@ -14,7 +14,10 @@ pub fn verify_chain(entries: &[(String, String)]) -> Result<(), String> {
     for (current_hash, content) in entries {
         let expected = compute_hash(&prev_hash, content);
         if expected != *current_hash {
-            return Err(format!("Hash mismatch at entry: {} != {}", expected, current_hash));
+            return Err(format!(
+                "Hash mismatch at entry: {} != {}",
+                expected, current_hash
+            ));
         }
         prev_hash = current_hash.clone();
     }

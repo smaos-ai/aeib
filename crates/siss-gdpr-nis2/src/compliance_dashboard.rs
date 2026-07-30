@@ -170,14 +170,20 @@ mod tests {
         metrics.gdpr_consent_percentage = 95.0;
         metrics.nis2_readiness_score = 90.0;
         metrics.breach_notifications_pending = 0;
-        assert_eq!(ComplianceStatus::from_metrics(&metrics), ComplianceStatus::Compliant);
+        assert_eq!(
+            ComplianceStatus::from_metrics(&metrics),
+            ComplianceStatus::Compliant
+        );
     }
 
     #[test]
     fn test_compliance_status_critical_on_breach() {
         let mut metrics = ComplianceMetrics::new();
         metrics.breach_notifications_pending = 1;
-        assert_eq!(ComplianceStatus::from_metrics(&metrics), ComplianceStatus::Critical);
+        assert_eq!(
+            ComplianceStatus::from_metrics(&metrics),
+            ComplianceStatus::Critical
+        );
     }
 
     #[test]

@@ -5,7 +5,11 @@ use std::time::Duration;
 fn test_trigger_view_change_on_timeout() {
     let manager = ViewChangeManager::new(
         "node-1".to_string(),
-        vec!["node-1".to_string(), "node-2".to_string(), "node-3".to_string()],
+        vec![
+            "node-1".to_string(),
+            "node-2".to_string(),
+            "node-3".to_string(),
+        ],
         Duration::from_secs(2),
     );
 
@@ -21,7 +25,11 @@ fn test_trigger_view_change_on_timeout() {
 fn test_view_change_state_machine() {
     let manager = ViewChangeManager::new(
         "node-1".to_string(),
-        vec!["node-1".to_string(), "node-2".to_string(), "node-3".to_string()],
+        vec![
+            "node-1".to_string(),
+            "node-2".to_string(),
+            "node-3".to_string(),
+        ],
         Duration::from_secs(2),
     );
 
@@ -40,7 +48,11 @@ fn test_view_change_state_machine() {
 fn test_new_leader_elected_after_view_change() {
     let manager = ViewChangeManager::new(
         "node-1".to_string(),
-        vec!["node-1".to_string(), "node-2".to_string(), "node-3".to_string()],
+        vec![
+            "node-1".to_string(),
+            "node-2".to_string(),
+            "node-3".to_string(),
+        ],
         Duration::from_secs(2),
     );
 
@@ -56,7 +68,11 @@ fn test_new_leader_elected_after_view_change() {
 fn test_old_leader_isolation() {
     let manager = ViewChangeManager::new(
         "node-1".to_string(),
-        vec!["node-1".to_string(), "node-2".to_string(), "node-3".to_string()],
+        vec![
+            "node-1".to_string(),
+            "node-2".to_string(),
+            "node-3".to_string(),
+        ],
         Duration::from_secs(2),
     );
 
@@ -71,7 +87,11 @@ fn test_old_leader_isolation() {
 fn test_view_change_quorum_validation() {
     let manager = ViewChangeManager::new(
         "node-1".to_string(),
-        vec!["node-1".to_string(), "node-2".to_string(), "node-3".to_string()],
+        vec![
+            "node-1".to_string(),
+            "node-2".to_string(),
+            "node-3".to_string(),
+        ],
         Duration::from_secs(2),
     );
 

@@ -290,7 +290,11 @@ mod tests {
         assert_eq!(wrongly_moved, 0, "non-removed-node keys must not move");
 
         // Fraction of moved keys should be ~1/N = ~10%; accept up to 25%
-        let moved = before.iter().zip(after.iter()).filter(|(a, b)| a != b).count();
+        let moved = before
+            .iter()
+            .zip(after.iter())
+            .filter(|(a, b)| a != b)
+            .count();
         let fraction = moved as f64 / 1000.0;
         assert!(
             fraction < 0.25,

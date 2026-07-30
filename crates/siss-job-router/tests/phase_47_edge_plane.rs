@@ -1,13 +1,14 @@
+use siss_gatekeeper::edge_actuation::{ActuationError, EdgeActuationCommand, EdgeActuationGuard};
+use siss_gatekeeper::tokens::IntentMandate;
 /// Phase 47: Edge Plane & OpenClaw Gateway Integration
 /// 8 TDD tests covering three physical deployment waves:
 /// - Wave 1: OpenClaw Loopback Membrane
 /// - Wave 2: Deterministic Skill Execution
 /// - Wave 3: AP2-Governed Edge Actuation
-
 use siss_job_router::edge_gateway::{GatewayConfig, GatewayMembraneValidator, GatewayViolation};
-use siss_job_router::edge_skills::{EdgeSkill, SkillRegistry, SkillExecutor, ToolInvocation, SkillError};
-use siss_gatekeeper::edge_actuation::{EdgeActuationCommand, EdgeActuationGuard, ActuationError};
-use siss_gatekeeper::tokens::IntentMandate;
+use siss_job_router::edge_skills::{
+    EdgeSkill, SkillError, SkillExecutor, SkillRegistry, ToolInvocation,
+};
 use uuid::Uuid;
 
 // ============================================================================
@@ -45,10 +46,13 @@ fn test_gateway_rejects_external_0_0_0_0() {
     };
 
     let result = GatewayMembraneValidator::validate(&config);
-    assert!(matches!(
-        result,
-        Err(GatewayViolation::ExternalBinding { address }) if address == "0.0.0.0"
-    ), "0.0.0.0 should be rejected");
+    assert!(
+        matches!(
+            result,
+            Err(GatewayViolation::ExternalBinding { address }) if address == "0.0.0.0"
+        ),
+        "0.0.0.0 should be rejected"
+    );
 }
 
 // ============================================================================
@@ -99,7 +103,10 @@ fn test_skill_validates_known_skill_known_arg() {
     };
 
     let result = SkillExecutor::validate_invocation(&invocation, &registry);
-    assert!(result.is_ok(), "known skill with valid arg prefix should pass");
+    assert!(
+        result.is_ok(),
+        "known skill with valid arg prefix should pass"
+    );
 
     let cmd = result.unwrap();
     assert_eq!(cmd.skill_name, "sensor_read");
@@ -113,13 +120,11 @@ fn test_skill_validates_known_skill_known_arg() {
 #[test]
 fn test_skill_rejects_unknown_skill() {
     let registry = SkillRegistry {
-        skills: &[
-            EdgeSkill {
-                name: "sensor_read",
-                command_template: "sensor_read {device_id}",
-                allowed_arg_prefixes: &["SENSOR_", "DEVICE_"],
-            },
-        ],
+        skills: &[EdgeSkill {
+            name: "sensor_read",
+            command_template: "sensor_read {device_id}",
+            allowed_arg_prefixes: &["SENSOR_", "DEVICE_"],
+        }],
     };
 
     let invocation = ToolInvocation {
@@ -128,10 +133,13 @@ fn test_skill_rejects_unknown_skill() {
     };
 
     let result = SkillExecutor::validate_invocation(&invocation, &registry);
-    assert!(matches!(
-        result,
-        Err(SkillError::SkillNotFound { name }) if name == "rm_rf"
-    ), "unknown skill should be rejected");
+    assert!(
+        matches!(
+            result,
+            Err(SkillError::SkillNotFound { name }) if name == "rm_rf"
+        ),
+        "unknown skill should be rejected"
+    );
 }
 
 // ============================================================================
@@ -141,13 +149,11 @@ fn test_skill_rejects_unknown_skill() {
 #[test]
 fn test_skill_rejects_hallucinated_arg() {
     let registry = SkillRegistry {
-        skills: &[
-            EdgeSkill {
-                name: "sensor_read",
-                command_template: "sensor_read {device_id}",
-                allowed_arg_prefixes: &["SENSOR_", "DEVICE_"],
-            },
-        ],
+        skills: &[EdgeSkill {
+            name: "sensor_read",
+            command_template: "sensor_read {device_id}",
+            allowed_arg_prefixes: &["SENSOR_", "DEVICE_"],
+        }],
     };
 
     let invocation = ToolInvocation {
@@ -156,10 +162,10 @@ fn test_skill_rejects_hallucinated_arg() {
     };
 
     let result = SkillExecutor::validate_invocation(&invocation, &registry);
-    assert!(matches!(
-        result,
-        Err(SkillError::HallucinatedArgs { .. })
-    ), "arg not starting with allowed prefix should be rejected");
+    assert!(
+        matches!(result, Err(SkillError::HallucinatedArgs { .. })),
+        "arg not starting with allowed prefix should be rejected"
+    );
 }
 
 // ============================================================================
@@ -220,11 +226,14 @@ fn test_edge_actuation_exceeds_mandate_budget() {
     };
 
     let result = EdgeActuationGuard::authorize(&command, &mandate, device_tool_id);
-    assert!(matches!(
-        result,
-        Err(ActuationError::InsufficientBudget {
-            required: 200,
-            available: 50
-        })
-    ), "command exceeding budget should be rejected");
+    assert!(
+        matches!(
+            result,
+            Err(ActuationError::InsufficientBudget {
+                required: 200,
+                available: 50
+            })
+        ),
+        "command exceeding budget should be rejected"
+    );
 }

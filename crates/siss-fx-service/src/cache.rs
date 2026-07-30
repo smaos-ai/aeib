@@ -1,5 +1,5 @@
-use crate::types::{Currency, FxRate, FxError};
 use crate::provider::RateProvider;
+use crate::types::{Currency, FxError, FxRate};
 use dashmap::DashMap;
 use std::sync::Arc;
 use std::time::{Duration, Instant};

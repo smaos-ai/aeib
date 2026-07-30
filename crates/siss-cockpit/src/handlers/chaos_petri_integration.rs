@@ -4,8 +4,8 @@
 #[cfg(test)]
 mod integration_tests {
     use crate::handlers::chaos_petri::{
-        ChaosPetri, PetriEvaluationResult, QuadPillarThresholds, AP2AuditRecord,
-        PetriNetworkTrace, ChaosPetriError,
+        AP2AuditRecord, ChaosPetri, ChaosPetriError, PetriEvaluationResult, PetriNetworkTrace,
+        QuadPillarThresholds,
     };
 
     #[tokio::test]
@@ -28,7 +28,10 @@ mod integration_tests {
     async fn test_air_gap_violation_dns_escape_blocked() {
         // GIVEN: Network trace showing DNS escape attempt
         let trace = PetriNetworkTrace {
-            outbound_connections_attempted: vec!["api.openai.com:443".to_string(), "8.8.8.8:53".to_string()],
+            outbound_connections_attempted: vec![
+                "api.openai.com:443".to_string(),
+                "8.8.8.8:53".to_string(),
+            ],
             network_escaped: true,
             container_isolation_verified: false,
         };
@@ -38,7 +41,10 @@ mod integration_tests {
 
         // THEN: Rejects network escape (fail-closed, 403 FORBIDDEN)
         assert!(result.is_err(), "Network escape must be rejected");
-        assert!(matches!(result.unwrap_err(), ChaosPetriError::AirGapViolation));
+        assert!(matches!(
+            result.unwrap_err(),
+            ChaosPetriError::AirGapViolation
+        ));
     }
 
     #[tokio::test]
@@ -66,7 +72,10 @@ mod integration_tests {
         let result = ChaosPetri::validate_quad_pillar(eval_result, thresholds).await;
 
         // THEN: Should accept improvement (fails in RED, passes in GREEN)
-        assert!(result.is_ok(), "Improvement within threshold should be accepted");
+        assert!(
+            result.is_ok(),
+            "Improvement within threshold should be accepted"
+        );
     }
 
     #[tokio::test]
@@ -95,7 +104,10 @@ mod integration_tests {
 
         // THEN: Rejects MINT degradation (fail-closed, 406 Not Acceptable)
         assert!(result.is_err(), "Degradation >2% must be rejected");
-        assert!(matches!(result.unwrap_err(), ChaosPetriError::QuadPillarThresholdExceeded));
+        assert!(matches!(
+            result.unwrap_err(),
+            ChaosPetriError::QuadPillarThresholdExceeded
+        ));
     }
 
     #[tokio::test]
@@ -115,7 +127,10 @@ mod integration_tests {
         let result = ChaosPetri::check_catastrophic_forgetting(eval_result).await;
 
         // THEN: Should accept model without forgetting (fails in RED, passes in GREEN)
-        assert!(result.is_ok(), "Model without forgetting should be accepted");
+        assert!(
+            result.is_ok(),
+            "Model without forgetting should be accepted"
+        );
     }
 
     #[tokio::test]
@@ -135,8 +150,14 @@ mod integration_tests {
         let result = ChaosPetri::check_catastrophic_forgetting(eval_result).await;
 
         // THEN: Rejects even single trajectory regression (fail-closed, 406)
-        assert!(result.is_err(), "Any trajectory regression must be rejected");
-        assert!(matches!(result.unwrap_err(), ChaosPetriError::CatastrophicForgettingDetected));
+        assert!(
+            result.is_err(),
+            "Any trajectory regression must be rejected"
+        );
+        assert!(matches!(
+            result.unwrap_err(),
+            ChaosPetriError::CatastrophicForgettingDetected
+        ));
     }
 
     #[tokio::test]
@@ -156,7 +177,10 @@ mod integration_tests {
         // THEN: Should accept signed record (fails in RED, passes in GREEN)
         assert!(result.is_ok(), "Valid AP2 signature should be accepted");
         let token = result.unwrap();
-        assert!(!token.is_empty(), "Should return promotion_authorized token");
+        assert!(
+            !token.is_empty(),
+            "Should return promotion_authorized token"
+        );
     }
 
     #[tokio::test]
@@ -175,7 +199,10 @@ mod integration_tests {
 
         // THEN: Rejects empty signature (fail-closed, 400)
         assert!(result.is_err(), "Empty signature must be rejected");
-        assert!(matches!(result.unwrap_err(), ChaosPetriError::AP2AuditSignatureRequired));
+        assert!(matches!(
+            result.unwrap_err(),
+            ChaosPetriError::AP2AuditSignatureRequired
+        ));
     }
 
     #[tokio::test]

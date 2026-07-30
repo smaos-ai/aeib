@@ -1,8 +1,8 @@
 use chrono::{DateTime, Utc};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::collections::{HashMap, HashSet};
 use uuid::Uuid;
-use sha2::{Sha256, Digest};
 
 /// Phase 82: Sovereign Knowledge Graph
 /// GitNexus-integrated knowledge graph tracking code symbols, relationships, and impact chains.
@@ -66,9 +66,9 @@ pub struct ImpactChain {
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 pub enum DepthLevel {
-    Direct,      // 1 hop
-    Indirect,    // 2 hops
-    Transitive,  // 3+ hops
+    Direct,     // 1 hop
+    Indirect,   // 2 hops
+    Transitive, // 3+ hops
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
@@ -116,7 +116,13 @@ impl SovereignKG {
         id
     }
 
-    pub fn add_edge(&mut self, source: Uuid, target: Uuid, edge_type: EdgeType, confidence: f64) -> Result<Uuid, String> {
+    pub fn add_edge(
+        &mut self,
+        source: Uuid,
+        target: Uuid,
+        edge_type: EdgeType,
+        confidence: f64,
+    ) -> Result<Uuid, String> {
         if !self.symbols.contains_key(&source) || !self.symbols.contains_key(&target) {
             return Err("Source or target symbol not found".to_string());
         }
@@ -150,7 +156,11 @@ impl SovereignKG {
         id
     }
 
-    pub fn add_symbol_to_cluster(&mut self, cluster_id: Uuid, symbol_id: Uuid) -> Result<(), String> {
+    pub fn add_symbol_to_cluster(
+        &mut self,
+        cluster_id: Uuid,
+        symbol_id: Uuid,
+    ) -> Result<(), String> {
         if !self.symbols.contains_key(&symbol_id) {
             return Err("Symbol not found".to_string());
         }
@@ -253,7 +263,10 @@ impl SovereignKG {
     }
 
     fn assess_risk(affected: &[(Uuid, DepthLevel)]) -> RiskLevel {
-        let direct_count = affected.iter().filter(|(_, d)| d == &DepthLevel::Direct).count();
+        let direct_count = affected
+            .iter()
+            .filter(|(_, d)| d == &DepthLevel::Direct)
+            .count();
         let total_count = affected.len();
 
         match (direct_count, total_count) {
@@ -313,7 +326,11 @@ mod tests {
     #[test]
     fn test_kg_creates_symbols() {
         let mut kg = SovereignKG::new();
-        let id = kg.add_symbol("function_a".to_string(), "lib.rs".to_string(), SymbolType::Function);
+        let id = kg.add_symbol(
+            "function_a".to_string(),
+            "lib.rs".to_string(),
+            SymbolType::Function,
+        );
         assert_eq!(kg.symbol_count(), 1);
         assert!(kg.symbols.contains_key(&id));
     }
@@ -321,8 +338,16 @@ mod tests {
     #[test]
     fn test_kg_adds_edges_between_symbols() {
         let mut kg = SovereignKG::new();
-        let a = kg.add_symbol("func_a".to_string(), "lib.rs".to_string(), SymbolType::Function);
-        let b = kg.add_symbol("func_b".to_string(), "lib.rs".to_string(), SymbolType::Function);
+        let a = kg.add_symbol(
+            "func_a".to_string(),
+            "lib.rs".to_string(),
+            SymbolType::Function,
+        );
+        let b = kg.add_symbol(
+            "func_b".to_string(),
+            "lib.rs".to_string(),
+            SymbolType::Function,
+        );
 
         let result = kg.add_edge(a, b, EdgeType::Calls, 0.95);
         assert!(result.is_ok());
@@ -332,7 +357,11 @@ mod tests {
     #[test]
     fn test_kg_rejects_edge_with_missing_symbol() {
         let mut kg = SovereignKG::new();
-        let a = kg.add_symbol("func_a".to_string(), "lib.rs".to_string(), SymbolType::Function);
+        let a = kg.add_symbol(
+            "func_a".to_string(),
+            "lib.rs".to_string(),
+            SymbolType::Function,
+        );
         let fake_id = Uuid::new_v4();
 
         let result = kg.add_edge(a, fake_id, EdgeType::Calls, 0.95);
@@ -343,7 +372,11 @@ mod tests {
     fn test_kg_organizes_symbols_into_clusters() {
         let mut kg = SovereignKG::new();
         let cluster_id = kg.create_cluster("auth".to_string(), "Authentication module".to_string());
-        let sym_id = kg.add_symbol("login".to_string(), "auth.rs".to_string(), SymbolType::Function);
+        let sym_id = kg.add_symbol(
+            "login".to_string(),
+            "auth.rs".to_string(),
+            SymbolType::Function,
+        );
 
         let result = kg.add_symbol_to_cluster(cluster_id, sym_id);
         assert!(result.is_ok());
@@ -355,9 +388,21 @@ mod tests {
         let mut kg = SovereignKG::new();
         let cluster = kg.create_cluster("auth".to_string(), "Auth module".to_string());
 
-        let sym1 = kg.add_symbol("login".to_string(), "auth.rs".to_string(), SymbolType::Function);
-        let sym2 = kg.add_symbol("logout".to_string(), "auth.rs".to_string(), SymbolType::Function);
-        let sym3 = kg.add_symbol("other".to_string(), "other.rs".to_string(), SymbolType::Function);
+        let sym1 = kg.add_symbol(
+            "login".to_string(),
+            "auth.rs".to_string(),
+            SymbolType::Function,
+        );
+        let sym2 = kg.add_symbol(
+            "logout".to_string(),
+            "auth.rs".to_string(),
+            SymbolType::Function,
+        );
+        let sym3 = kg.add_symbol(
+            "other".to_string(),
+            "other.rs".to_string(),
+            SymbolType::Function,
+        );
 
         kg.add_symbol_to_cluster(cluster, sym1).ok();
         kg.add_symbol_to_cluster(cluster, sym2).ok();
@@ -366,7 +411,10 @@ mod tests {
         assert!(intersects, "Should detect intersection in same cluster");
 
         let no_intersect = kg.cluster_intersection(&["login".to_string()], &["other".to_string()]);
-        assert!(!no_intersect, "Should not intersect across different clusters");
+        assert!(
+            !no_intersect,
+            "Should not intersect across different clusters"
+        );
     }
 
     #[test]
@@ -387,7 +435,11 @@ mod tests {
     #[test]
     fn test_kg_risk_level_increases_with_affected_count() {
         let mut kg = SovereignKG::new();
-        let root = kg.add_symbol("root".to_string(), "lib.rs".to_string(), SymbolType::Function);
+        let root = kg.add_symbol(
+            "root".to_string(),
+            "lib.rs".to_string(),
+            SymbolType::Function,
+        );
 
         for i in 0..15 {
             let id = kg.add_symbol(
@@ -408,9 +460,21 @@ mod tests {
     #[test]
     fn test_kg_detects_changes_across_symbols() {
         let mut kg = SovereignKG::new();
-        let login = kg.add_symbol("login".to_string(), "auth.rs".to_string(), SymbolType::Function);
-        let logout = kg.add_symbol("logout".to_string(), "auth.rs".to_string(), SymbolType::Function);
-        let other = kg.add_symbol("other".to_string(), "lib.rs".to_string(), SymbolType::Function);
+        let login = kg.add_symbol(
+            "login".to_string(),
+            "auth.rs".to_string(),
+            SymbolType::Function,
+        );
+        let logout = kg.add_symbol(
+            "logout".to_string(),
+            "auth.rs".to_string(),
+            SymbolType::Function,
+        );
+        let other = kg.add_symbol(
+            "other".to_string(),
+            "lib.rs".to_string(),
+            SymbolType::Function,
+        );
 
         kg.add_edge(login, other, EdgeType::Calls, 0.95).ok();
         kg.add_edge(logout, other, EdgeType::Calls, 0.90).ok();

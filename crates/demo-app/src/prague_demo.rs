@@ -1,17 +1,16 @@
+use siss_gatekeeper::latency::{ConstitutionVerdict, LatencyConstitution, LatencyTier};
+use siss_gatekeeper::pipeline::monge_gap::{
+    CMGComputeOperator, GoverningDecision, MongeGapGovernor, NOf1Experiment, TemporalDecay,
+};
 /// Prague PoC Demo — June 5, 2026
 ///
 /// Live demonstration of three constitutional governance proofs:
 /// 1. AP2 Micro-Royalty Settlement (1%/99% split, cryptographically enforced)
 /// 2. MongeGap Safety Validation (fail-closed agent gates, real-time breach detection)
 /// 3. LatencyConstitution (transparent governance, zero latency overhead)
-
 use siss_payment::AP2Ledger;
-use siss_gatekeeper::pipeline::monge_gap::{
-    CMGComputeOperator, MongeGapGovernor, TemporalDecay, NOf1Experiment, GoverningDecision,
-};
-use siss_gatekeeper::latency::{LatencyConstitution, LatencyTier, ConstitutionVerdict};
-use uuid::Uuid;
 use std::time::Instant;
+use uuid::Uuid;
 
 fn main() {
     println!("\n");
@@ -43,17 +42,23 @@ fn demo_1_ap2_settlement() {
     let creator_id = Uuid::new_v4();
 
     println!("│                                                                │");
-    println!("│ ✓ Creating settlement for creator {}…",
-        creator_id.to_string().chars().take(8).collect::<String>());
+    println!(
+        "│ ✓ Creating settlement for creator {}…",
+        creator_id.to_string().chars().take(8).collect::<String>()
+    );
 
     let settlement = ledger.settle(creator_id, 10000); // $100.00
 
     println!("│                                                                │");
     println!("│   Amount:           $100.00                                    │");
-    println!("│   Platform fee:     ${:>6.2}   (1% routed to Axiom stewards)",
-        settlement.platform_fee_cents as f64 / 100.0);
-    println!("│   Creator payout:   ${:>6.2}   (99% stays with creator)",
-        settlement.creator_payout_cents as f64 / 100.0);
+    println!(
+        "│   Platform fee:     ${:>6.2}   (1% routed to Axiom stewards)",
+        settlement.platform_fee_cents as f64 / 100.0
+    );
+    println!(
+        "│   Creator payout:   ${:>6.2}   (99% stays with creator)",
+        settlement.creator_payout_cents as f64 / 100.0
+    );
     println!("│                                                                │");
     println!("│ Merkle Root (Cryptographic Proof):                            │");
     println!("│   {}", hex::encode(settlement.merkle_root));
@@ -68,9 +73,14 @@ fn demo_1_ap2_settlement() {
     }
 
     let total_balance = ledger.get_creator_balance(creator_id);
-    println!("│ Creator balance after 5 settlements:  ${:>7.2}", total_balance as f64 / 100.0);
-    println!("│ Platform balance after 5 settlements: ${:>7.2}",
-        ledger.get_platform_balance() as f64 / 100.0);
+    println!(
+        "│ Creator balance after 5 settlements:  ${:>7.2}",
+        total_balance as f64 / 100.0
+    );
+    println!(
+        "│ Platform balance after 5 settlements: ${:>7.2}",
+        ledger.get_platform_balance() as f64 / 100.0
+    );
     println!("│                                                                │");
     println!("└────────────────────────────────────────────────────────────────┘");
 }
@@ -86,7 +96,9 @@ fn demo_2_monge_gap_safety() {
     println!("│ Answer:   MongeGap detects generalization drift in real-time. │");
 
     let mut governor = MongeGapGovernor::new(
-        TemporalDecay { half_life_secs: 60.0 },
+        TemporalDecay {
+            half_life_secs: 60.0,
+        },
         3, // Circuit breaker at 3 breaches
     );
 
@@ -106,7 +118,10 @@ fn demo_2_monge_gap_safety() {
 
     match decision {
         GoverningDecision::Safe(_) => {
-            println!("│   Gap Score:        {:.4}   (< 0.15 threshold)", safe_result.gap_score);
+            println!(
+                "│   Gap Score:        {:.4}   (< 0.15 threshold)",
+                safe_result.gap_score
+            );
             println!("│   Status:           ✅ APPROVED - Decision executes");
             println!("│   Reason:           Generalization gap is within bounds");
         }
@@ -125,11 +140,16 @@ fn demo_2_monge_gap_safety() {
     };
 
     let unsafe_result = CMGComputeOperator::compute(&unsafe_experiment).expect("must compute");
-    let decision = governor.evaluate(&unsafe_experiment).expect("must evaluate");
+    let decision = governor
+        .evaluate(&unsafe_experiment)
+        .expect("must evaluate");
 
     match decision {
         GoverningDecision::Quarantine(result) => {
-            println!("│   Gap Score:        {:.4}   (> 0.15 threshold)", result.gap_score);
+            println!(
+                "│   Gap Score:        {:.4}   (> 0.15 threshold)",
+                result.gap_score
+            );
             println!("│   Status:           🚫 QUARANTINED - Decision blocked");
             println!("│   Reason:           Generalization gap exceeds bounds");
             println!("│   Action:           Agent blocked BEFORE execution");
@@ -197,8 +217,14 @@ fn demo_3_latency_constitution() {
     println!("│                                                                │");
     println!("│ RESULTS:                                                       │");
     println!("│   Total decisions:     10,000                                  │");
-    println!("│   Tier1 compliant:     {:<6}   ({:.1}%)", tier1_count, compliance_rate);
-    println!("│   SLO violations:      {}                                       │", violations);
+    println!(
+        "│   Tier1 compliant:     {:<6}   ({:.1}%)",
+        tier1_count, compliance_rate
+    );
+    println!(
+        "│   SLO violations:      {}                                       │",
+        violations
+    );
     println!("│                                                                │");
     println!("│ LATENCY DISTRIBUTION:                                         │");
     println!("│   P50 (median):        {:>6.3} µs", (p50 as f64) / 1000.0);

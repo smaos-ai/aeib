@@ -1,5 +1,5 @@
-use uuid::Uuid;
 use std::collections::{HashMap, HashSet};
+use uuid::Uuid;
 
 #[derive(Clone, Debug, PartialEq)]
 struct TopicCluster {
@@ -32,18 +32,23 @@ impl ClusterManager {
     }
 
     fn add_agent_to_cluster(&mut self, agent_id: Uuid, cluster_id: &str) -> Result<(), String> {
-        let cluster = self.clusters.get_mut(cluster_id)
+        let cluster = self
+            .clusters
+            .get_mut(cluster_id)
             .ok_or("Cluster not found".to_string())?;
 
         if !cluster.members.contains(&agent_id) {
             cluster.members.push(agent_id);
         }
-        self.agent_to_cluster.insert(agent_id, cluster_id.to_string());
+        self.agent_to_cluster
+            .insert(agent_id, cluster_id.to_string());
         Ok(())
     }
 
     fn isolate_cluster(&self, cluster_id: &str) -> Result<Vec<Uuid>, String> {
-        let cluster = self.clusters.get(cluster_id)
+        let cluster = self
+            .clusters
+            .get(cluster_id)
             .ok_or("Cluster not found".to_string())?;
         Ok(cluster.members.clone())
     }
@@ -57,13 +62,15 @@ impl ClusterManager {
     }
 
     fn agents_in_cluster(&self, cluster_id: &str) -> Result<usize, String> {
-        self.clusters.get(cluster_id)
+        self.clusters
+            .get(cluster_id)
             .map(|c| c.members.len())
             .ok_or("Cluster not found".to_string())
     }
 
     fn get_fault_domain(&self, cluster_id: &str) -> Result<String, String> {
-        self.clusters.get(cluster_id)
+        self.clusters
+            .get(cluster_id)
             .map(|c| c.fault_domain.clone())
             .ok_or("Cluster not found".to_string())
     }
@@ -125,7 +132,11 @@ fn test_phase_3_5_agent_assignment_to_cluster() {
     manager.register_cluster(cluster).unwrap();
 
     let agent_id = Uuid::new_v4();
-    assert!(manager.add_agent_to_cluster(agent_id, "compute_cluster").is_ok());
+    assert!(
+        manager
+            .add_agent_to_cluster(agent_id, "compute_cluster")
+            .is_ok()
+    );
     assert_eq!(manager.agents_in_cluster("compute_cluster").unwrap(), 1);
 }
 
@@ -141,7 +152,9 @@ fn test_phase_3_5_agent_to_cluster_mapping() {
     manager.register_cluster(cluster).unwrap();
 
     let agent_id = Uuid::new_v4();
-    manager.add_agent_to_cluster(agent_id, "storage_cluster").unwrap();
+    manager
+        .add_agent_to_cluster(agent_id, "storage_cluster")
+        .unwrap();
 
     let cluster_id = manager.get_cluster_for_agent(agent_id);
     assert_eq!(cluster_id, Some("storage_cluster".to_string()));
@@ -162,9 +175,15 @@ fn test_phase_3_5_cluster_isolation() {
     };
     manager.register_cluster(cluster).unwrap();
 
-    manager.add_agent_to_cluster(agent1, "isolated_cluster").unwrap();
-    manager.add_agent_to_cluster(agent2, "isolated_cluster").unwrap();
-    manager.add_agent_to_cluster(agent3, "isolated_cluster").unwrap();
+    manager
+        .add_agent_to_cluster(agent1, "isolated_cluster")
+        .unwrap();
+    manager
+        .add_agent_to_cluster(agent2, "isolated_cluster")
+        .unwrap();
+    manager
+        .add_agent_to_cluster(agent3, "isolated_cluster")
+        .unwrap();
 
     let isolated_agents = manager.isolate_cluster("isolated_cluster").unwrap();
     assert_eq!(isolated_agents.len(), 3);
@@ -298,8 +317,12 @@ fn test_phase_3_5_duplicate_agent_idempotent() {
     manager.register_cluster(cluster).unwrap();
 
     let agent_id = Uuid::new_v4();
-    manager.add_agent_to_cluster(agent_id, "idempotent_cluster").unwrap();
-    manager.add_agent_to_cluster(agent_id, "idempotent_cluster").unwrap();
+    manager
+        .add_agent_to_cluster(agent_id, "idempotent_cluster")
+        .unwrap();
+    manager
+        .add_agent_to_cluster(agent_id, "idempotent_cluster")
+        .unwrap();
 
     assert_eq!(manager.agents_in_cluster("idempotent_cluster").unwrap(), 1);
 }

@@ -1,7 +1,7 @@
-use uuid::Uuid;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::process::Command;
+use uuid::Uuid;
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct AgentHealth {
@@ -35,7 +35,9 @@ impl AgentProcessRegistry {
     }
 
     pub fn kill_agent_process(&mut self, agent_id: Uuid) -> Result<(), IsolationError> {
-        let pid = self.pid_map.get(&agent_id)
+        let pid = self
+            .pid_map
+            .get(&agent_id)
             .copied()
             .ok_or(IsolationError::ProcessNotFound)?;
 
@@ -46,7 +48,7 @@ impl AgentProcessRegistry {
 
         if !output.status.success() {
             return Err(IsolationError::ProcessKillFailed(
-                String::from_utf8_lossy(&output.stderr).to_string()
+                String::from_utf8_lossy(&output.stderr).to_string(),
             ));
         }
 
@@ -113,7 +115,11 @@ impl AgentBinaryTree {
         }
     }
 
-    pub fn insert_agent(&mut self, agent_id: Uuid, health: AgentHealth) -> Result<(), IsolationError> {
+    pub fn insert_agent(
+        &mut self,
+        agent_id: Uuid,
+        health: AgentHealth,
+    ) -> Result<(), IsolationError> {
         if self.root.is_none() {
             self.root = Some(Box::new(AgentTreeNode::with_agent(0, agent_id, health)));
             self.node_count = 1;
@@ -144,13 +150,17 @@ impl AgentBinaryTree {
         let right_idx = node.node_id * 2 + 2;
 
         if insert_idx == left_idx {
-            node.left = Some(Box::new(AgentTreeNode::with_agent(left_idx, agent_id, health)));
+            node.left = Some(Box::new(AgentTreeNode::with_agent(
+                left_idx, agent_id, health,
+            )));
             node.aggregate_health();
             return;
         }
 
         if insert_idx == right_idx {
-            node.right = Some(Box::new(AgentTreeNode::with_agent(right_idx, agent_id, health)));
+            node.right = Some(Box::new(AgentTreeNode::with_agent(
+                right_idx, agent_id, health,
+            )));
             node.aggregate_health();
             return;
         }
@@ -185,7 +195,12 @@ impl AgentBinaryTree {
             })
     }
 
-    fn binary_search_isolate(&self, node: &AgentTreeNode, _symptom: &str, depth: usize) -> Option<Uuid> {
+    fn binary_search_isolate(
+        &self,
+        node: &AgentTreeNode,
+        _symptom: &str,
+        depth: usize,
+    ) -> Option<Uuid> {
         if depth > self.max_depth {
             return None;
         }
@@ -209,7 +224,11 @@ impl AgentBinaryTree {
         node.agent_id
     }
 
-    pub fn update_agent_health(&mut self, agent_id: Uuid, health: AgentHealth) -> Result<(), IsolationError> {
+    pub fn update_agent_health(
+        &mut self,
+        agent_id: Uuid,
+        health: AgentHealth,
+    ) -> Result<(), IsolationError> {
         if let Some(root) = self.root.as_mut() {
             Self::update_recursive(root, agent_id, health);
             Ok(())
@@ -240,10 +259,17 @@ impl AgentBinaryTree {
     }
 
     pub fn subtree_health_ok(&self) -> bool {
-        self.root.as_ref().map(|r| r.subtree_health_ok).unwrap_or(true)
+        self.root
+            .as_ref()
+            .map(|r| r.subtree_health_ok)
+            .unwrap_or(true)
     }
 
-    pub fn isolate_and_kill(&mut self, _symptom: &str, registry: &mut AgentProcessRegistry) -> Result<Uuid, IsolationError> {
+    pub fn isolate_and_kill(
+        &mut self,
+        _symptom: &str,
+        registry: &mut AgentProcessRegistry,
+    ) -> Result<Uuid, IsolationError> {
         let agent_id = self.isolate_failure(_symptom)?;
         registry.kill_agent_process(agent_id)?;
         Ok(agent_id)
@@ -263,7 +289,10 @@ mod tests {
     #[test]
     fn test_empty_tree_isolate_fails() {
         let tree = AgentBinaryTree::new();
-        assert!(matches!(tree.isolate_failure("symptom"), Err(IsolationError::EmptyTree)));
+        assert!(matches!(
+            tree.isolate_failure("symptom"),
+            Err(IsolationError::EmptyTree)
+        ));
     }
 
     #[test]

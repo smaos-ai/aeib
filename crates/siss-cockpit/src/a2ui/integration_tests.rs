@@ -13,11 +13,11 @@
 
 #[cfg(test)]
 mod integration_tests {
-    use siss_agent_shell::a2ui::{A2UIComponent, A2UIValidator, SelectOption, FormSubmission};
-    use crate::a2ui::renderer::Renderer;
-    use crate::a2ui::sse_handler::{SseComponentMessage, A2UISseHandler};
     use crate::a2ui::form_handler::FormHandler;
+    use crate::a2ui::renderer::Renderer;
+    use crate::a2ui::sse_handler::{A2UISseHandler, SseComponentMessage};
     use serde_json::json;
+    use siss_agent_shell::a2ui::{A2UIComponent, A2UIValidator, FormSubmission, SelectOption};
     use uuid::Uuid;
 
     // ========== TEST 1: Text Component End-to-End ==========
@@ -33,15 +33,24 @@ mod integration_tests {
 
         // Step 2: Validate component (agent-side)
         let validation_result = A2UIValidator::validate(&component);
-        assert!(validation_result.is_ok(), "Text component validation failed");
+        assert!(
+            validation_result.is_ok(),
+            "Text component validation failed"
+        );
 
         // Step 3: Render to HTML (cockpit-side)
         let html = Renderer::render(&component);
 
         // Step 4: Verify rendered output
-        assert!(html.contains("End-to-End Test Message"), "Content missing from HTML");
+        assert!(
+            html.contains("End-to-End Test Message"),
+            "Content missing from HTML"
+        );
         assert!(html.contains("text-lg"), "Size class missing from HTML");
-        assert!(html.contains("a2ui-text"), "Component class missing from HTML");
+        assert!(
+            html.contains("a2ui-text"),
+            "Component class missing from HTML"
+        );
     }
 
     // ========== TEST 2: Form Input Component Full Lifecycle ==========
@@ -176,7 +185,10 @@ mod integration_tests {
         assert!(html.contains("Confirm deletion?"));
         assert!(html.contains("confirm_btn"));
         assert!(html.contains("Confirm"));
-        assert!(html.contains("role=\"dialog\""), "Missing dialog role for accessibility");
+        assert!(
+            html.contains("role=\"dialog\""),
+            "Missing dialog role for accessibility"
+        );
     }
 
     // ========== TEST 5: Grid Layout with Children ==========
@@ -226,7 +238,10 @@ mod integration_tests {
         assert!(html.contains("Item 2"));
         assert!(html.contains("Item 3"));
         assert!(html.contains("Item 4"));
-        assert!(html.contains("grid-item"), "Grid item wrapper class missing");
+        assert!(
+            html.contains("grid-item"),
+            "Grid item wrapper class missing"
+        );
     }
 
     // ========== TEST 6: Table Component with Rows and Headers ==========
@@ -236,11 +251,27 @@ mod integration_tests {
         // Step 1: Create table with headers and rows
         let component = A2UIComponent::Table {
             id: "data_table".to_string(),
-            headers: vec!["Name".to_string(), "Email".to_string(), "Status".to_string()],
+            headers: vec![
+                "Name".to_string(),
+                "Email".to_string(),
+                "Status".to_string(),
+            ],
             rows: vec![
-                vec!["Alice".to_string(), "alice@example.com".to_string(), "Active".to_string()],
-                vec!["Bob".to_string(), "bob@example.com".to_string(), "Inactive".to_string()],
-                vec!["Charlie".to_string(), "charlie@example.com".to_string(), "Active".to_string()],
+                vec![
+                    "Alice".to_string(),
+                    "alice@example.com".to_string(),
+                    "Active".to_string(),
+                ],
+                vec![
+                    "Bob".to_string(),
+                    "bob@example.com".to_string(),
+                    "Inactive".to_string(),
+                ],
+                vec![
+                    "Charlie".to_string(),
+                    "charlie@example.com".to_string(),
+                    "Active".to_string(),
+                ],
             ],
         };
 
@@ -353,7 +384,10 @@ mod integration_tests {
 
         // Step 2: Validate all form components
         for component in &form_components {
-            assert!(A2UIValidator::validate(component).is_ok(), "Component validation failed");
+            assert!(
+                A2UIValidator::validate(component).is_ok(),
+                "Component validation failed"
+            );
         }
 
         // Step 3: Render all components to HTML
@@ -405,6 +439,9 @@ mod integration_tests {
         assert!(second_result.is_ok());
         let second_response = second_result.unwrap();
         assert_eq!(second_response.status, "accepted");
-        assert_ne!(response.submission_id, second_response.submission_id, "Submission IDs should differ");
+        assert_ne!(
+            response.submission_id, second_response.submission_id,
+            "Submission IDs should differ"
+        );
     }
 }

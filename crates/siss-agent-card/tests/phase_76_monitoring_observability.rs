@@ -1,7 +1,11 @@
 use siss_gatekeeper::anomaly_detection;
 use siss_graph_db::repo::{agent_heartbeat, observability_event_log};
 use sqlx::PgPool;
-use testcontainers::{GenericImage, ImageExt, core::{WaitFor, ContainerPort}, runners::AsyncRunner};
+use testcontainers::{
+    GenericImage, ImageExt,
+    core::{ContainerPort, WaitFor},
+    runners::AsyncRunner,
+};
 use uuid::Uuid;
 
 async fn start_postgres() -> (testcontainers::ContainerAsync<GenericImage>, PgPool) {
@@ -63,7 +67,7 @@ async fn test_record_heartbeat_inserts_into_database() {
 
     // Verify it was inserted
     let count: (i64,) = sqlx::query_as(
-        "SELECT COUNT(*) FROM agent_heartbeats WHERE agent_id = $1 AND sovereign_id = $2"
+        "SELECT COUNT(*) FROM agent_heartbeats WHERE agent_id = $1 AND sovereign_id = $2",
     )
     .bind(agent_id)
     .bind(sovereigns[0])
@@ -83,13 +87,12 @@ async fn test_record_heartbeat_sets_healthy_status_for_low_latency() {
         .await
         .expect("record heartbeat");
 
-    let status: (String,) = sqlx::query_as(
-        "SELECT status FROM agent_heartbeats WHERE agent_id = $1 LIMIT 1"
-    )
-    .bind(agent_id)
-    .fetch_one(&pool)
-    .await
-    .expect("fetch status");
+    let status: (String,) =
+        sqlx::query_as("SELECT status FROM agent_heartbeats WHERE agent_id = $1 LIMIT 1")
+            .bind(agent_id)
+            .fetch_one(&pool)
+            .await
+            .expect("fetch status");
 
     assert_eq!(status.0, "healthy");
 }
@@ -104,13 +107,12 @@ async fn test_record_heartbeat_sets_degraded_status_for_high_latency() {
         .await
         .expect("record heartbeat");
 
-    let status: (String,) = sqlx::query_as(
-        "SELECT status FROM agent_heartbeats WHERE agent_id = $1 LIMIT 1"
-    )
-    .bind(agent_id)
-    .fetch_one(&pool)
-    .await
-    .expect("fetch status");
+    let status: (String,) =
+        sqlx::query_as("SELECT status FROM agent_heartbeats WHERE agent_id = $1 LIMIT 1")
+            .bind(agent_id)
+            .fetch_one(&pool)
+            .await
+            .expect("fetch status");
 
     assert_eq!(status.0, "degraded");
 }
@@ -305,13 +307,11 @@ async fn test_verify_event_log_integrity_detects_tampering() {
     .expect("append event 2");
 
     // Tamper with the first event payload (cast to JSONB)
-    sqlx::query(
-        "UPDATE observability_event_log SET event_payload = $1::jsonb WHERE sequence = 1"
-    )
-    .bind(r#"{"latency_ms": 999}"#)
-    .execute(&pool)
-    .await
-    .expect("tamper event");
+    sqlx::query("UPDATE observability_event_log SET event_payload = $1::jsonb WHERE sequence = 1")
+        .bind(r#"{"latency_ms": 999}"#)
+        .execute(&pool)
+        .await
+        .expect("tamper event");
 
     let (is_valid, error_msg) =
         observability_event_log::verify_event_log_integrity(&pool, sovereign_id)
@@ -360,21 +360,24 @@ async fn test_start_distributed_trace_creates_trace_record() {
     let participants = vec![sovereigns[1], sovereigns[2]];
     let request_id = "req-12345";
 
-    let trace_id =
-        observability_event_log::start_distributed_trace(&pool, root_sovereign, participants, request_id)
-            .await
-            .expect("start distributed trace");
+    let trace_id = observability_event_log::start_distributed_trace(
+        &pool,
+        root_sovereign,
+        participants,
+        request_id,
+    )
+    .await
+    .expect("start distributed trace");
 
     assert!(!trace_id.is_nil());
 
     // Verify trace was created
-    let count: (i64,) = sqlx::query_as(
-        "SELECT COUNT(*) FROM distributed_traces WHERE trace_id = $1"
-    )
-    .bind(trace_id)
-    .fetch_one(&pool)
-    .await
-    .expect("count traces");
+    let count: (i64,) =
+        sqlx::query_as("SELECT COUNT(*) FROM distributed_traces WHERE trace_id = $1")
+            .bind(trace_id)
+            .fetch_one(&pool)
+            .await
+            .expect("count traces");
 
     assert_eq!(count.0, 1);
 }
@@ -402,26 +405,19 @@ async fn test_fire_alert_creates_alert_record() {
     let agent_id = "agent-1";
     let context = r#"{"latency_ms": 2500, "threshold": 1000}"#;
 
-    let alert_id = observability_event_log::fire_alert(
-        &pool,
-        rule_id,
-        sovereign_id,
-        agent_id,
-        context,
-    )
-    .await
-    .expect("fire alert");
+    let alert_id =
+        observability_event_log::fire_alert(&pool, rule_id, sovereign_id, agent_id, context)
+            .await
+            .expect("fire alert");
 
     assert!(!alert_id.is_nil());
 
     // Verify alert was created
-    let count: (i64,) = sqlx::query_as(
-        "SELECT COUNT(*) FROM agents_alerts WHERE alert_id = $1"
-    )
-    .bind(alert_id)
-    .fetch_one(&pool)
-    .await
-    .expect("count alerts");
+    let count: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM agents_alerts WHERE alert_id = $1")
+        .bind(alert_id)
+        .fetch_one(&pool)
+        .await
+        .expect("count alerts");
 
     assert_eq!(count.0, 1);
 }
@@ -434,14 +430,18 @@ async fn test_distributed_trace_with_multiple_sovereigns() {
     let participants = sovereigns[1..].to_vec();
     let request_id = "req-trace-multi";
 
-    let trace_id =
-        observability_event_log::start_distributed_trace(&pool, root, participants.clone(), request_id)
-            .await
-            .expect("start distributed trace");
+    let trace_id = observability_event_log::start_distributed_trace(
+        &pool,
+        root,
+        participants.clone(),
+        request_id,
+    )
+    .await
+    .expect("start distributed trace");
 
     // Verify participants were stored
     let stored_participants: (Vec<uuid::Uuid>,) = sqlx::query_as(
-        "SELECT participating_sovereigns FROM distributed_traces WHERE trace_id = $1"
+        "SELECT participating_sovereigns FROM distributed_traces WHERE trace_id = $1",
     )
     .bind(trace_id)
     .fetch_one(&pool)
@@ -465,7 +465,7 @@ async fn test_append_event_integrates_with_heartbeat() {
 
     // Verify event was created as well
     let event_count: (i64,) = sqlx::query_as(
-        "SELECT COUNT(*) FROM observability_event_log WHERE agent_id = $1 AND sovereign_id = $2"
+        "SELECT COUNT(*) FROM observability_event_log WHERE agent_id = $1 AND sovereign_id = $2",
     )
     .bind(agent_id)
     .bind(sovereign_id)

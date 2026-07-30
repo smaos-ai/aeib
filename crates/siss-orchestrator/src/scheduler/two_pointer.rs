@@ -1,6 +1,6 @@
-use uuid::Uuid;
 use serde::{Deserialize, Serialize};
-use std::collections::{VecDeque, HashMap};
+use std::collections::{HashMap, VecDeque};
+use uuid::Uuid;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DispatchTask {
@@ -48,7 +48,9 @@ impl TwoPointerScheduler {
             return Err(DispatchError::NoReadyTasks);
         }
 
-        let task = self.ready_queue.pop_front()
+        let task = self
+            .ready_queue
+            .pop_front()
             .ok_or(DispatchError::QueueEmpty)?;
         self.head += 1;
         self.total_ops += 1;
@@ -56,7 +58,11 @@ impl TwoPointerScheduler {
         Ok(task)
     }
 
-    pub fn resolve_dependency(&mut self, symbol: String, capsule_id: Uuid) -> Result<(), DispatchError> {
+    pub fn resolve_dependency(
+        &mut self,
+        symbol: String,
+        capsule_id: Uuid,
+    ) -> Result<(), DispatchError> {
         self.resolved_symbols.insert(symbol.clone());
         self.total_ops += 1;
 
@@ -70,11 +76,7 @@ impl TwoPointerScheduler {
         Ok(())
     }
 
-    pub fn enqueue_waiting(
-        &mut self,
-        task: DispatchTask,
-        capsule_id: Uuid,
-    ) {
+    pub fn enqueue_waiting(&mut self, task: DispatchTask, capsule_id: Uuid) {
         self.waiting_queue
             .entry(capsule_id)
             .or_insert_with(Vec::new)
@@ -140,7 +142,10 @@ mod tests {
     #[test]
     fn test_dispatch_empty_queue() {
         let mut scheduler = TwoPointerScheduler::new();
-        assert!(matches!(scheduler.dispatch_next(), Err(DispatchError::NoReadyTasks)));
+        assert!(matches!(
+            scheduler.dispatch_next(),
+            Err(DispatchError::NoReadyTasks)
+        ));
     }
 
     #[test]
@@ -155,7 +160,9 @@ mod tests {
         };
         scheduler.enqueue_waiting(task.clone(), capsule_id);
         assert_eq!(scheduler.waiting_queue_len(), 1);
-        scheduler.resolve_dependency("symbol".to_string(), capsule_id).unwrap();
+        scheduler
+            .resolve_dependency("symbol".to_string(), capsule_id)
+            .unwrap();
         assert_eq!(scheduler.waiting_queue_len(), 0);
         assert_eq!(scheduler.ready_queue_len(), 1);
     }
@@ -164,7 +171,9 @@ mod tests {
     fn test_symbol_resolution_tracking() {
         let mut scheduler = TwoPointerScheduler::new();
         assert!(!scheduler.is_symbol_resolved("foo"));
-        scheduler.resolve_dependency("foo".to_string(), Uuid::new_v4()).unwrap();
+        scheduler
+            .resolve_dependency("foo".to_string(), Uuid::new_v4())
+            .unwrap();
         assert!(scheduler.is_symbol_resolved("foo"));
     }
 
@@ -255,7 +264,9 @@ mod tests {
             };
             scheduler.enqueue_waiting(task, capsule_id);
         }
-        scheduler.resolve_dependency("symbol".to_string(), capsule_id).unwrap();
+        scheduler
+            .resolve_dependency("symbol".to_string(), capsule_id)
+            .unwrap();
         assert_eq!(scheduler.ready_queue_len(), 3);
         for expected_id in task_ids {
             let dispatched = scheduler.dispatch_next().unwrap();

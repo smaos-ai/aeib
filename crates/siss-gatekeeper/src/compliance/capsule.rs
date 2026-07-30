@@ -1,5 +1,5 @@
-use uuid::Uuid;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 /// Federal compliance proof: cryptographic envelope for every AI inference
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -12,8 +12,8 @@ pub struct ComplianceCapsule {
     pub model_version: String,
 
     /// Governance proof (cryptographic)
-    pub merkle_root: String,           // SHA256(lineage)
-    pub ed25519_signature: String,     // Architect attestation
+    pub merkle_root: String, // SHA256(lineage)
+    pub ed25519_signature: String, // Architect attestation
 
     /// Pre-execution constraints
     pub safety_gates: Vec<SafetyGateResult>,
@@ -22,31 +22,31 @@ pub struct ComplianceCapsule {
 
     /// Compliance claims
     pub compliance_claims: Vec<String>, // "OMB-M-24-10 § 4.2.1", etc.
-    pub audit_trail_hash: String,      // Points to EXEC_LOG
+    pub audit_trail_hash: String, // Points to EXEC_LOG
 
     /// Economic binding (AP2)
-    pub creator_fee_bps: u16,          // 100 = 1%
-    pub platform_fee_bps: u16,         // 9900 = 99%
+    pub creator_fee_bps: u16, // 100 = 1%
+    pub platform_fee_bps: u16, // 9900 = 99%
 
     /// Fail-closed fallback
     pub safe_policy_hash: String,
 
     /// Timestamp
-    pub created_at: u64,               // Unix seconds
+    pub created_at: u64, // Unix seconds
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ApprovalLevel {
-    Low,      // <30% confidence → no human gate
-    Medium,   // 30–70% confidence → optional human gate
-    High,     // >70% confidence → mandatory human gate
+    Low,    // <30% confidence → no human gate
+    Medium, // 30–70% confidence → optional human gate
+    High,   // >70% confidence → mandatory human gate
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SafetyGateResult {
     pub gate_type: SafetyGateType,
     pub passed: bool,
-    pub confidence: f64,               // 0.0–1.0
+    pub confidence: f64, // 0.0–1.0
     pub reason: String,
 }
 
@@ -62,11 +62,7 @@ pub enum SafetyGateType {
 
 impl ComplianceCapsule {
     /// Create a new capsule with minimal defaults
-    pub fn new(
-        model_name: String,
-        model_version: String,
-        approval_level: ApprovalLevel,
-    ) -> Self {
+    pub fn new(model_name: String, model_version: String, approval_level: ApprovalLevel) -> Self {
         Self {
             capsule_id: Uuid::new_v4(),
             model_name,
@@ -78,8 +74,8 @@ impl ComplianceCapsule {
             approval_level,
             compliance_claims: vec![],
             audit_trail_hash: String::new(),
-            creator_fee_bps: 100,      // 1%
-            platform_fee_bps: 9900,    // 99%
+            creator_fee_bps: 100,   // 1%
+            platform_fee_bps: 9900, // 99%
             safe_policy_hash: String::new(),
             created_at: std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
@@ -227,10 +223,7 @@ mod tests {
             reason: "Clean".to_string(),
         });
 
-        capsule.set_merkle_proof(
-            "sha256:abc123".to_string(),
-            "ed25519:sig456".to_string(),
-        );
+        capsule.set_merkle_proof("sha256:abc123".to_string(), "ed25519:sig456".to_string());
 
         capsule.set_audit_trail("sha256:def789".to_string());
         capsule.safe_policy_hash = "sha256:safe".to_string();

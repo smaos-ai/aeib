@@ -1,9 +1,9 @@
-use uuid::Uuid;
-use serde::{Serialize, Deserialize};
-use std::time::{SystemTime, UNIX_EPOCH, Duration};
-use std::sync::{Arc, Mutex};
-use std::collections::HashMap;
 use chrono::Datelike;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuditTrace {
@@ -93,11 +93,9 @@ impl AuditArchiver {
         age > ttl
     }
 
-    pub fn archive_to_s3(
-        &self,
-        trace: &AuditTrace,
-    ) -> Result<(String, String), String> {
-        let _created_at = trace.created_at
+    pub fn archive_to_s3(&self, trace: &AuditTrace) -> Result<(String, String), String> {
+        let _created_at = trace
+            .created_at
             .duration_since(UNIX_EPOCH)
             .unwrap_or_default();
         let date = chrono::DateTime::<chrono::Utc>::from(trace.created_at);
@@ -110,8 +108,8 @@ impl AuditArchiver {
             trace.trace_id
         );
 
-        let json = serde_json::to_string(&trace)
-            .map_err(|e| format!("Serialization failed: {}", e))?;
+        let json =
+            serde_json::to_string(&trace).map_err(|e| format!("Serialization failed: {}", e))?;
         let hash = self.compute_cryptographic_hash(&json);
 
         Ok((s3_path, hash))
@@ -164,13 +162,11 @@ mod tests {
             decision: "Deny".to_string(),
             deny_reason: Some("Rate limit exceeded".to_string()),
             evaluation_latency_ms: 42.5,
-            phase_outcomes: vec![
-                PhaseOutcome {
-                    phase: "ReBAC".to_string(),
-                    result: "Allow".to_string(),
-                    latency_ms: 2.1,
-                },
-            ],
+            phase_outcomes: vec![PhaseOutcome {
+                phase: "ReBAC".to_string(),
+                result: "Allow".to_string(),
+                latency_ms: 2.1,
+            }],
             created_at,
             archived_at: None,
             s3_path: None,
@@ -192,7 +188,10 @@ mod tests {
         let trace = create_trace(89); // 89 days old
 
         let should_archive = archiver.should_archive(trace.created_at);
-        assert!(!should_archive, "Traces under 90 days should not be archived");
+        assert!(
+            !should_archive,
+            "Traces under 90 days should not be archived"
+        );
     }
 
     #[test]
@@ -268,7 +267,10 @@ mod tests {
         let retrieved_hash = "sha256:xyz789uvw012";
 
         let result = archiver.verify_s3_integrity(original_hash, retrieved_hash);
-        assert!(result.is_err(), "Mismatched hashes should fail verification");
+        assert!(
+            result.is_err(),
+            "Mismatched hashes should fail verification"
+        );
     }
 
     #[test]
@@ -299,9 +301,7 @@ mod tests {
         assert!(archiver.should_archive(trace.created_at));
 
         // Step 2: Archive to S3
-        let (s3_path, original_hash) = archiver
-            .archive_to_s3(&trace)
-            .expect("Archive failed");
+        let (s3_path, original_hash) = archiver.archive_to_s3(&trace).expect("Archive failed");
         trace.s3_path = Some(s3_path.clone());
         trace.cryptographic_hash = Some(original_hash.clone());
         trace.archived_at = Some(SystemTime::now());
@@ -326,26 +326,36 @@ mod tests {
 
         // Add trace to hot storage first
         archiver.add_trace(trace.clone());
-        assert!(archiver.hot_storage_contains(trace.trace_id),
-            "Trace must be added to hot storage");
+        assert!(
+            archiver.hot_storage_contains(trace.trace_id),
+            "Trace must be added to hot storage"
+        );
 
         // Simulate S3 archival: get hash, then corrupt the retrieved hash
-        let (_path, original_hash) = archiver.archive_to_s3(&trace)
+        let (_path, original_hash) = archiver
+            .archive_to_s3(&trace)
             .expect("archive_to_s3 must succeed");
         let corrupted_retrieved = format!("{}_NETWORK_SEVER", original_hash);
 
         // Integrity check fails (simulates S3 timeout / bit-rot)
         let verification = archiver.verify_s3_integrity(&original_hash, &corrupted_retrieved);
-        assert!(verification.is_err(), "Corrupted hash must fail verification");
+        assert!(
+            verification.is_err(),
+            "Corrupted hash must fail verification"
+        );
 
         // Fail-closed: delete transaction must NOT commit after S3 failure
         let tx = archiver.delete_from_hot_storage_with_verification(trace.trace_id, verification);
         let commit_result = tx.commit();
-        assert!(commit_result.is_err(),
-            "DELETE must not commit after S3 failure");
+        assert!(
+            commit_result.is_err(),
+            "DELETE must not commit after S3 failure"
+        );
 
         // FAIL-CLOSED GUARANTEE: Trace must remain in hot storage after failed archival
-        assert!(archiver.hot_storage_contains(trace.trace_id),
-            "FAIL-CLOSED: Trace must remain in hot storage after failed archival");
+        assert!(
+            archiver.hot_storage_contains(trace.trace_id),
+            "FAIL-CLOSED: Trace must remain in hot storage after failed archival"
+        );
     }
 }

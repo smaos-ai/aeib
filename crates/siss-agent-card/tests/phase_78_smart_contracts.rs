@@ -1,9 +1,9 @@
+use siss_gatekeeper::{contract_state_store, evm_executor};
 use siss_graph_db::repo;
-use siss_gatekeeper::{evm_executor, contract_state_store};
 use sqlx::PgPool;
+use std::collections::HashMap;
 use testcontainers::{GenericImage, ImageExt, core::WaitFor, runners::AsyncRunner};
 use uuid::Uuid;
-use std::collections::HashMap;
 
 async fn start_postgres() -> (testcontainers::ContainerAsync<GenericImage>, PgPool) {
     let container = GenericImage::new("postgres", "16")
@@ -66,27 +66,21 @@ async fn test_deploy_contract_succeeds() {
     let bytecode = "6080604052348015600f575f80fd5b50";
     let abi = serde_json::json!([{"type": "constructor"}]);
 
-    let contract_address = evm_executor::deploy_contract(
-        &pool,
-        sovereign1,
-        bytecode,
-        abi.clone(),
-        "deployer-001",
-    )
-    .await
-    .expect("deploy contract");
+    let contract_address =
+        evm_executor::deploy_contract(&pool, sovereign1, bytecode, abi.clone(), "deployer-001")
+            .await
+            .expect("deploy contract");
 
     assert!(contract_address.starts_with("0x"));
     assert_eq!(contract_address.len(), 42);
 
     // Verify in database
-    let stored: (String,) = sqlx::query_as(
-        "SELECT contract_address FROM smart_contracts WHERE contract_address = $1"
-    )
-    .bind(&contract_address)
-    .fetch_one(&pool)
-    .await
-    .expect("query contract");
+    let stored: (String,) =
+        sqlx::query_as("SELECT contract_address FROM smart_contracts WHERE contract_address = $1")
+            .bind(&contract_address)
+            .fetch_one(&pool)
+            .await
+            .expect("query contract");
 
     assert_eq!(stored.0, contract_address);
 }
@@ -99,15 +93,10 @@ async fn test_execute_contract_function_returns_result() {
     // Deploy contract first
     let bytecode = "6080604052348015600f575f80fd5b50";
     let abi = serde_json::json!([{"type": "function", "name": "transfer"}]);
-    let contract_address = evm_executor::deploy_contract(
-        &pool,
-        sovereign1,
-        bytecode,
-        abi,
-        "deployer-001",
-    )
-    .await
-    .expect("deploy contract");
+    let contract_address =
+        evm_executor::deploy_contract(&pool, sovereign1, bytecode, abi, "deployer-001")
+            .await
+            .expect("deploy contract");
 
     // Execute function
     let args = serde_json::json!([]);
@@ -132,15 +121,10 @@ async fn test_contract_state_changes_captured() {
 
     let bytecode = "6080604052348015600f575f80fd5b50";
     let abi = serde_json::json!([]);
-    let contract_address = evm_executor::deploy_contract(
-        &pool,
-        sovereign1,
-        bytecode,
-        abi,
-        "deployer-001",
-    )
-    .await
-    .expect("deploy contract");
+    let contract_address =
+        evm_executor::deploy_contract(&pool, sovereign1, bytecode, abi, "deployer-001")
+            .await
+            .expect("deploy contract");
 
     let args = serde_json::json!([]);
     let result = evm_executor::execute_contract_function(
@@ -165,15 +149,10 @@ async fn test_gas_tracking_during_execution() {
 
     let bytecode = "6080604052348015600f575f80fd5b50";
     let abi = serde_json::json!([]);
-    let contract_address = evm_executor::deploy_contract(
-        &pool,
-        sovereign1,
-        bytecode,
-        abi,
-        "deployer-001",
-    )
-    .await
-    .expect("deploy contract");
+    let contract_address =
+        evm_executor::deploy_contract(&pool, sovereign1, bytecode, abi, "deployer-001")
+            .await
+            .expect("deploy contract");
 
     let args = serde_json::json!([]);
     let result = evm_executor::execute_contract_function(
@@ -196,38 +175,29 @@ async fn test_contract_state_committed_to_storage() {
 
     let bytecode = "6080604052348015600f575f80fd5b50";
     let abi = serde_json::json!([]);
-    let contract_address = evm_executor::deploy_contract(
-        &pool,
-        sovereign1,
-        bytecode,
-        abi,
-        "deployer-001",
-    )
-    .await
-    .expect("deploy contract");
+    let contract_address =
+        evm_executor::deploy_contract(&pool, sovereign1, bytecode, abi, "deployer-001")
+            .await
+            .expect("deploy contract");
 
     let mut state_slots = HashMap::new();
     state_slots.insert("slot_0".to_string(), "0x1234".to_string());
     state_slots.insert("slot_1".to_string(), "0x5678".to_string());
 
-    let (_id, merkle_root) = contract_state_store::store_contract_state(
-        &pool,
-        &contract_address,
-        state_slots,
-    )
-    .await
-    .expect("store state");
+    let (_id, merkle_root) =
+        contract_state_store::store_contract_state(&pool, &contract_address, state_slots)
+            .await
+            .expect("store state");
 
     assert!(!merkle_root.is_empty());
 
     // Verify in database
-    let stored: (Option<String>,) = sqlx::query_as(
-        "SELECT state_root FROM smart_contracts WHERE contract_address = $1"
-    )
-    .bind(&contract_address)
-    .fetch_one(&pool)
-    .await
-    .expect("query contract");
+    let stored: (Option<String>,) =
+        sqlx::query_as("SELECT state_root FROM smart_contracts WHERE contract_address = $1")
+            .bind(&contract_address)
+            .fetch_one(&pool)
+            .await
+            .expect("query contract");
 
     assert_eq!(stored.0.unwrap(), merkle_root);
 }
@@ -239,15 +209,10 @@ async fn test_execute_contract_with_invalid_function_fails() {
 
     let bytecode = "6080604052348015600f575f80fd5b50";
     let abi = serde_json::json!([]);
-    let _contract_address = evm_executor::deploy_contract(
-        &pool,
-        sovereign1,
-        bytecode,
-        abi,
-        "deployer-001",
-    )
-    .await
-    .expect("deploy contract");
+    let _contract_address =
+        evm_executor::deploy_contract(&pool, sovereign1, bytecode, abi, "deployer-001")
+            .await
+            .expect("deploy contract");
 
     // Try to execute on non-existent contract
     let args = serde_json::json!([]);
@@ -272,45 +237,33 @@ async fn test_commit_state_to_dag_generates_proof_ref() {
 
     let bytecode = "6080604052348015600f575f80fd5b50";
     let abi = serde_json::json!([]);
-    let contract_address = evm_executor::deploy_contract(
-        &pool,
-        sovereign1,
-        bytecode,
-        abi,
-        "deployer-001",
-    )
-    .await
-    .expect("deploy contract");
+    let contract_address =
+        evm_executor::deploy_contract(&pool, sovereign1, bytecode, abi, "deployer-001")
+            .await
+            .expect("deploy contract");
 
     let mut state_slots = HashMap::new();
     state_slots.insert("slot_0".to_string(), "0x1234".to_string());
 
-    let (_id, state_root) = contract_state_store::store_contract_state(
-        &pool,
-        &contract_address,
-        state_slots,
-    )
-    .await
-    .expect("store state");
+    let (_id, state_root) =
+        contract_state_store::store_contract_state(&pool, &contract_address, state_slots)
+            .await
+            .expect("store state");
 
-    let merkle_proof_ref = contract_state_store::commit_contract_state_to_dag(
-        &pool,
-        &contract_address,
-        &state_root,
-    )
-    .await
-    .expect("commit to dag");
+    let merkle_proof_ref =
+        contract_state_store::commit_contract_state_to_dag(&pool, &contract_address, &state_root)
+            .await
+            .expect("commit to dag");
 
     assert!(!merkle_proof_ref.is_empty());
 
     // Verify in database
-    let stored: (Option<String>,) = sqlx::query_as(
-        "SELECT merkle_proof_ref FROM smart_contracts WHERE contract_address = $1"
-    )
-    .bind(&contract_address)
-    .fetch_one(&pool)
-    .await
-    .expect("query contract");
+    let stored: (Option<String>,) =
+        sqlx::query_as("SELECT merkle_proof_ref FROM smart_contracts WHERE contract_address = $1")
+            .bind(&contract_address)
+            .fetch_one(&pool)
+            .await
+            .expect("query contract");
 
     assert_eq!(stored.0.unwrap(), merkle_proof_ref);
 }
@@ -322,34 +275,23 @@ async fn test_merkle_proof_validation_succeeds() {
 
     let bytecode = "6080604052348015600f575f80fd5b50";
     let abi = serde_json::json!([]);
-    let contract_address = evm_executor::deploy_contract(
-        &pool,
-        sovereign1,
-        bytecode,
-        abi,
-        "deployer-001",
-    )
-    .await
-    .expect("deploy contract");
+    let contract_address =
+        evm_executor::deploy_contract(&pool, sovereign1, bytecode, abi, "deployer-001")
+            .await
+            .expect("deploy contract");
 
     let mut state_slots = HashMap::new();
     state_slots.insert("slot_0".to_string(), "0x1234".to_string());
 
-    let (_id, state_root) = contract_state_store::store_contract_state(
-        &pool,
-        &contract_address,
-        state_slots,
-    )
-    .await
-    .expect("store state");
+    let (_id, state_root) =
+        contract_state_store::store_contract_state(&pool, &contract_address, state_slots)
+            .await
+            .expect("store state");
 
-    let merkle_proof_ref = contract_state_store::commit_contract_state_to_dag(
-        &pool,
-        &contract_address,
-        &state_root,
-    )
-    .await
-    .expect("commit to dag");
+    let merkle_proof_ref =
+        contract_state_store::commit_contract_state_to_dag(&pool, &contract_address, &state_root)
+            .await
+            .expect("commit to dag");
 
     // Validate the proof
     let is_valid = contract_state_store::validate_merkle_proof(
@@ -368,34 +310,23 @@ async fn test_state_root_consistency_across_commits() {
 
     let bytecode = "6080604052348015600f575f80fd5b50";
     let abi = serde_json::json!([]);
-    let contract_address = evm_executor::deploy_contract(
-        &pool,
-        sovereign1,
-        bytecode,
-        abi,
-        "deployer-001",
-    )
-    .await
-    .expect("deploy contract");
+    let contract_address =
+        evm_executor::deploy_contract(&pool, sovereign1, bytecode, abi, "deployer-001")
+            .await
+            .expect("deploy contract");
 
     let mut state_slots = HashMap::new();
     state_slots.insert("slot_0".to_string(), "0x1234".to_string());
 
-    let (_id1, state_root1) = contract_state_store::store_contract_state(
-        &pool,
-        &contract_address,
-        state_slots.clone(),
-    )
-    .await
-    .expect("store state 1");
+    let (_id1, state_root1) =
+        contract_state_store::store_contract_state(&pool, &contract_address, state_slots.clone())
+            .await
+            .expect("store state 1");
 
-    let (_id2, state_root2) = contract_state_store::store_contract_state(
-        &pool,
-        &contract_address,
-        state_slots,
-    )
-    .await
-    .expect("store state 2");
+    let (_id2, state_root2) =
+        contract_state_store::store_contract_state(&pool, &contract_address, state_slots)
+            .await
+            .expect("store state 2");
 
     assert_eq!(state_root1, state_root2);
 }
@@ -407,15 +338,10 @@ async fn test_chain_validation_with_proofs() {
 
     let bytecode = "6080604052348015600f575f80fd5b50";
     let abi = serde_json::json!([]);
-    let contract_address = evm_executor::deploy_contract(
-        &pool,
-        sovereign1,
-        bytecode,
-        abi,
-        "deployer-001",
-    )
-    .await
-    .expect("deploy contract");
+    let contract_address =
+        evm_executor::deploy_contract(&pool, sovereign1, bytecode, abi, "deployer-001")
+            .await
+            .expect("deploy contract");
 
     // First execution
     let args = serde_json::json!([]);
@@ -431,13 +357,10 @@ async fn test_chain_validation_with_proofs() {
 
     let mut state_slots1 = HashMap::new();
     state_slots1.insert("execution_count".to_string(), "1".to_string());
-    let (_id1, state_root1) = contract_state_store::store_contract_state(
-        &pool,
-        &contract_address,
-        state_slots1,
-    )
-    .await
-    .expect("store state 1");
+    let (_id1, state_root1) =
+        contract_state_store::store_contract_state(&pool, &contract_address, state_slots1)
+            .await
+            .expect("store state 1");
 
     // Second execution
     let _result2 = evm_executor::execute_contract_function(
@@ -452,41 +375,26 @@ async fn test_chain_validation_with_proofs() {
 
     let mut state_slots2 = HashMap::new();
     state_slots2.insert("execution_count".to_string(), "2".to_string());
-    let (_id2, state_root2) = contract_state_store::store_contract_state(
-        &pool,
-        &contract_address,
-        state_slots2,
-    )
-    .await
-    .expect("store state 2");
+    let (_id2, state_root2) =
+        contract_state_store::store_contract_state(&pool, &contract_address, state_slots2)
+            .await
+            .expect("store state 2");
 
     // Validate chain
-    let proof1 = contract_state_store::commit_contract_state_to_dag(
-        &pool,
-        &contract_address,
-        &state_root1,
-    )
-    .await
-    .expect("commit 1");
+    let proof1 =
+        contract_state_store::commit_contract_state_to_dag(&pool, &contract_address, &state_root1)
+            .await
+            .expect("commit 1");
 
-    let proof2 = contract_state_store::commit_contract_state_to_dag(
-        &pool,
-        &contract_address,
-        &state_root2,
-    )
-    .await
-    .expect("commit 2");
+    let proof2 =
+        contract_state_store::commit_contract_state_to_dag(&pool, &contract_address, &state_root2)
+            .await
+            .expect("commit 2");
 
-    let is_valid1 = contract_state_store::validate_merkle_proof(
-        &contract_address,
-        &state_root1,
-        &proof1,
-    );
-    let is_valid2 = contract_state_store::validate_merkle_proof(
-        &contract_address,
-        &state_root2,
-        &proof2,
-    );
+    let is_valid1 =
+        contract_state_store::validate_merkle_proof(&contract_address, &state_root1, &proof1);
+    let is_valid2 =
+        contract_state_store::validate_merkle_proof(&contract_address, &state_root2, &proof2);
 
     assert!(is_valid1);
     assert!(is_valid2);
@@ -512,44 +420,32 @@ async fn test_dag_binding_to_agent_registry() {
     // Deploy contract
     let bytecode = "6080604052348015600f575f80fd5b50";
     let abi = serde_json::json!([]);
-    let contract_address = evm_executor::deploy_contract(
-        &pool,
-        sovereign1,
-        bytecode,
-        abi,
-        &agent_id.to_string(),
-    )
-    .await
-    .expect("deploy contract");
+    let contract_address =
+        evm_executor::deploy_contract(&pool, sovereign1, bytecode, abi, &agent_id.to_string())
+            .await
+            .expect("deploy contract");
 
     // Store and commit state
     let mut state_slots = HashMap::new();
     state_slots.insert("slot_0".to_string(), "0x1234".to_string());
 
-    let (_id, state_root) = contract_state_store::store_contract_state(
-        &pool,
-        &contract_address,
-        state_slots,
-    )
-    .await
-    .expect("store state");
+    let (_id, state_root) =
+        contract_state_store::store_contract_state(&pool, &contract_address, state_slots)
+            .await
+            .expect("store state");
 
-    let _proof_ref = contract_state_store::commit_contract_state_to_dag(
-        &pool,
-        &contract_address,
-        &state_root,
-    )
-    .await
-    .expect("commit to dag");
+    let _proof_ref =
+        contract_state_store::commit_contract_state_to_dag(&pool, &contract_address, &state_root)
+            .await
+            .expect("commit to dag");
 
     // Verify contract is in smart_contracts table with deployer_agent_id
-    let stored: (String,) = sqlx::query_as(
-        "SELECT deployer_agent_id FROM smart_contracts WHERE contract_address = $1"
-    )
-    .bind(&contract_address)
-    .fetch_one(&pool)
-    .await
-    .expect("query contract");
+    let stored: (String,) =
+        sqlx::query_as("SELECT deployer_agent_id FROM smart_contracts WHERE contract_address = $1")
+            .bind(&contract_address)
+            .fetch_one(&pool)
+            .await
+            .expect("query contract");
 
     assert_eq!(stored.0, agent_id.to_string());
 }
@@ -563,15 +459,10 @@ async fn test_settle_execution_with_consensus_proof() {
 
     let bytecode = "6080604052348015600f575f80fd5b50";
     let abi = serde_json::json!([]);
-    let contract_address = evm_executor::deploy_contract(
-        &pool,
-        sovereign1,
-        bytecode,
-        abi,
-        "deployer-001",
-    )
-    .await
-    .expect("deploy contract");
+    let contract_address =
+        evm_executor::deploy_contract(&pool, sovereign1, bytecode, abi, "deployer-001")
+            .await
+            .expect("deploy contract");
 
     // Execute function
     let args = serde_json::json!([]);
@@ -588,13 +479,10 @@ async fn test_settle_execution_with_consensus_proof() {
     // Store state
     let mut state_slots = HashMap::new();
     state_slots.insert("slot_0".to_string(), "0x1234".to_string());
-    let (_id, _state_root) = contract_state_store::store_contract_state(
-        &pool,
-        &contract_address,
-        state_slots,
-    )
-    .await
-    .expect("store state");
+    let (_id, _state_root) =
+        contract_state_store::store_contract_state(&pool, &contract_address, state_slots)
+            .await
+            .expect("store state");
 
     // Settle with consensus proof
     let receipt = contract_state_store::settle_contract_execution(
@@ -616,15 +504,10 @@ async fn test_settlement_is_atomic_all_or_nothing() {
 
     let bytecode = "6080604052348015600f575f80fd5b50";
     let abi = serde_json::json!([]);
-    let contract_address = evm_executor::deploy_contract(
-        &pool,
-        sovereign1,
-        bytecode,
-        abi,
-        "deployer-001",
-    )
-    .await
-    .expect("deploy contract");
+    let contract_address =
+        evm_executor::deploy_contract(&pool, sovereign1, bytecode, abi, "deployer-001")
+            .await
+            .expect("deploy contract");
 
     let args = serde_json::json!([]);
     let result = evm_executor::execute_contract_function(
@@ -639,31 +522,24 @@ async fn test_settlement_is_atomic_all_or_nothing() {
 
     let mut state_slots = HashMap::new();
     state_slots.insert("slot_0".to_string(), "0x1234".to_string());
-    let (_id, _state_root) = contract_state_store::store_contract_state(
-        &pool,
-        &contract_address,
-        state_slots,
-    )
-    .await
-    .expect("store state");
+    let (_id, _state_root) =
+        contract_state_store::store_contract_state(&pool, &contract_address, state_slots)
+            .await
+            .expect("store state");
 
     // First settlement
-    let _receipt1 = contract_state_store::settle_contract_execution(
-        &pool,
-        result.execution_id,
-        "proof1",
-    )
-    .await
-    .expect("settle 1");
+    let _receipt1 =
+        contract_state_store::settle_contract_execution(&pool, result.execution_id, "proof1")
+            .await
+            .expect("settle 1");
 
     // Verify settlement record exists
-    let settlement_count: (i64,) = sqlx::query_as(
-        "SELECT COUNT(*) FROM contract_settlements WHERE execution_id = $1"
-    )
-    .bind(&result.execution_id)
-    .fetch_one(&pool)
-    .await
-    .expect("count");
+    let settlement_count: (i64,) =
+        sqlx::query_as("SELECT COUNT(*) FROM contract_settlements WHERE execution_id = $1")
+            .bind(&result.execution_id)
+            .fetch_one(&pool)
+            .await
+            .expect("count");
 
     assert_eq!(settlement_count.0, 1);
 }
@@ -675,15 +551,10 @@ async fn test_settlement_idempotency_same_receipt() {
 
     let bytecode = "6080604052348015600f575f80fd5b50";
     let abi = serde_json::json!([]);
-    let contract_address = evm_executor::deploy_contract(
-        &pool,
-        sovereign1,
-        bytecode,
-        abi,
-        "deployer-001",
-    )
-    .await
-    .expect("deploy contract");
+    let contract_address =
+        evm_executor::deploy_contract(&pool, sovereign1, bytecode, abi, "deployer-001")
+            .await
+            .expect("deploy contract");
 
     let args = serde_json::json!([]);
     let result = evm_executor::execute_contract_function(
@@ -698,38 +569,26 @@ async fn test_settlement_idempotency_same_receipt() {
 
     let mut state_slots = HashMap::new();
     state_slots.insert("slot_0".to_string(), "0x1234".to_string());
-    let (_id, _state_root) = contract_state_store::store_contract_state(
-        &pool,
-        &contract_address,
-        state_slots,
-    )
-    .await
-    .expect("store state");
+    let (_id, _state_root) =
+        contract_state_store::store_contract_state(&pool, &contract_address, state_slots)
+            .await
+            .expect("store state");
 
     // Settle 3 times with same execution_id
-    let receipt1 = contract_state_store::settle_contract_execution(
-        &pool,
-        result.execution_id,
-        "proof1",
-    )
-    .await
-    .expect("settle 1");
+    let receipt1 =
+        contract_state_store::settle_contract_execution(&pool, result.execution_id, "proof1")
+            .await
+            .expect("settle 1");
 
-    let receipt2 = contract_state_store::settle_contract_execution(
-        &pool,
-        result.execution_id,
-        "proof2",
-    )
-    .await
-    .expect("settle 2");
+    let receipt2 =
+        contract_state_store::settle_contract_execution(&pool, result.execution_id, "proof2")
+            .await
+            .expect("settle 2");
 
-    let receipt3 = contract_state_store::settle_contract_execution(
-        &pool,
-        result.execution_id,
-        "proof3",
-    )
-    .await
-    .expect("settle 3");
+    let receipt3 =
+        contract_state_store::settle_contract_execution(&pool, result.execution_id, "proof3")
+            .await
+            .expect("settle 3");
 
     // All should return same settlement_id
     assert_eq!(receipt1.settlement_id, receipt2.settlement_id);
@@ -743,15 +602,10 @@ async fn test_reentrancy_guard_blocks_concurrent_execution() {
 
     let bytecode = "6080604052348015600f575f80fd5b50";
     let abi = serde_json::json!([]);
-    let contract_address = evm_executor::deploy_contract(
-        &pool,
-        sovereign1,
-        bytecode,
-        abi,
-        "deployer-001",
-    )
-    .await
-    .expect("deploy contract");
+    let contract_address =
+        evm_executor::deploy_contract(&pool, sovereign1, bytecode, abi, "deployer-001")
+            .await
+            .expect("deploy contract");
 
     // First execution
     let args = serde_json::json!([]);
@@ -787,24 +641,17 @@ async fn test_finality_lock_prevents_state_modification() {
 
     let bytecode = "6080604052348015600f575f80fd5b50";
     let abi = serde_json::json!([]);
-    let contract_address = evm_executor::deploy_contract(
-        &pool,
-        sovereign1,
-        bytecode,
-        abi,
-        "deployer-001",
-    )
-    .await
-    .expect("deploy contract");
+    let contract_address =
+        evm_executor::deploy_contract(&pool, sovereign1, bytecode, abi, "deployer-001")
+            .await
+            .expect("deploy contract");
 
     // Update contract status to finalized
-    sqlx::query(
-        "UPDATE smart_contracts SET status = 'finalized' WHERE contract_address = $1"
-    )
-    .bind(&contract_address)
-    .execute(&pool)
-    .await
-    .expect("update status");
+    sqlx::query("UPDATE smart_contracts SET status = 'finalized' WHERE contract_address = $1")
+        .bind(&contract_address)
+        .execute(&pool)
+        .await
+        .expect("update status");
 
     // Try to execute function on finalized contract
     let args = serde_json::json!([]);
@@ -829,15 +676,10 @@ async fn test_settlement_locks_execution_during_phase() {
 
     let bytecode = "6080604052348015600f575f80fd5b50";
     let abi = serde_json::json!([]);
-    let contract_address = evm_executor::deploy_contract(
-        &pool,
-        sovereign1,
-        bytecode,
-        abi,
-        "deployer-001",
-    )
-    .await
-    .expect("deploy contract");
+    let contract_address =
+        evm_executor::deploy_contract(&pool, sovereign1, bytecode, abi, "deployer-001")
+            .await
+            .expect("deploy contract");
 
     let args = serde_json::json!([]);
     let result = evm_executor::execute_contract_function(
@@ -852,31 +694,24 @@ async fn test_settlement_locks_execution_during_phase() {
 
     let mut state_slots = HashMap::new();
     state_slots.insert("slot_0".to_string(), "0x1234".to_string());
-    let (_id, _state_root) = contract_state_store::store_contract_state(
-        &pool,
-        &contract_address,
-        state_slots,
-    )
-    .await
-    .expect("store state");
+    let (_id, _state_root) =
+        contract_state_store::store_contract_state(&pool, &contract_address, state_slots)
+            .await
+            .expect("store state");
 
     // Settle (this locks the execution)
-    let _receipt = contract_state_store::settle_contract_execution(
-        &pool,
-        result.execution_id,
-        "proof",
-    )
-    .await
-    .expect("settle");
+    let _receipt =
+        contract_state_store::settle_contract_execution(&pool, result.execution_id, "proof")
+            .await
+            .expect("settle");
 
     // Verify execution status changed to settled
-    let exec_status: (String,) = sqlx::query_as(
-        "SELECT status FROM contract_executions WHERE execution_id = $1"
-    )
-    .bind(&result.execution_id)
-    .fetch_one(&pool)
-    .await
-    .expect("query");
+    let exec_status: (String,) =
+        sqlx::query_as("SELECT status FROM contract_executions WHERE execution_id = $1")
+            .bind(&result.execution_id)
+            .fetch_one(&pool)
+            .await
+            .expect("query");
 
     assert_eq!(exec_status.0, "settled");
 }

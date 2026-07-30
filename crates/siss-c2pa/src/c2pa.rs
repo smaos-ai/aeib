@@ -1,11 +1,11 @@
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 /// SMAOS ResearchResult structure (from siss-gatekeeper/src/pipeline/research.rs)
 #[derive(Debug, Clone)]
 pub struct ResearchResult {
     pub query: String,
     pub answer: String,
-    pub source: String,        // "local_cache", "perplexity_mcp", etc.
+    pub source: String, // "local_cache", "perplexity_mcp", etc.
     pub timestamp: String,
     pub merkle_hash: String,
 }
@@ -79,9 +79,7 @@ pub fn c2pa_manifest_to_capsule(
     let claim = &claims[0];
 
     // Extract the custom assertion data
-    let data = claim
-        .get("data")
-        .ok_or("No data field in claim")?;
+    let data = claim.get("data").ok_or("No data field in claim")?;
 
     // Map JSON to ResearchResult
     let result = ResearchResult {

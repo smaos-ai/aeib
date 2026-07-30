@@ -58,7 +58,7 @@ impl AuditLogEntry {
 
     /// Compute the hash of this entry (excluding signature)
     pub fn compute_hash(&self) -> String {
-        use sha2::{Sha256, Digest};
+        use sha2::{Digest, Sha256};
 
         let mut hasher = Sha256::new();
         hasher.update(self.id.as_bytes());
@@ -132,7 +132,10 @@ impl AuditTrail {
     }
 
     /// Verify the signature of an audit log entry
-    pub fn verify_signature(&self, entry: &AuditLogEntry) -> Result<AuditLogEntry, TamperDetectionError> {
+    pub fn verify_signature(
+        &self,
+        entry: &AuditLogEntry,
+    ) -> Result<AuditLogEntry, TamperDetectionError> {
         let hash = entry.compute_hash();
 
         self.verifier
@@ -147,7 +150,10 @@ impl AuditTrail {
     }
 
     /// Verify blockchain-style chain integrity: each entry references the previous
-    pub fn verify_chain_integrity(&self, entries: &[AuditLogEntry]) -> Result<bool, TamperDetectionError> {
+    pub fn verify_chain_integrity(
+        &self,
+        entries: &[AuditLogEntry],
+    ) -> Result<bool, TamperDetectionError> {
         for i in 0..entries.len() {
             let current = &entries[i];
 
@@ -205,7 +211,9 @@ mod tests {
         let data = b"test data";
 
         let signature = verifier.sign_data(data).expect("Sign should succeed");
-        let verified = verifier.verify_data(data, &signature).expect("Verify should succeed");
+        let verified = verifier
+            .verify_data(data, &signature)
+            .expect("Verify should succeed");
 
         assert!(verified);
     }
@@ -216,7 +224,8 @@ mod tests {
         let data = b"test data";
 
         let signature = verifier.sign_data(data).expect("Sign should succeed");
-        let verified = verifier.verify_data(b"tampered data", &signature)
+        let verified = verifier
+            .verify_data(b"tampered data", &signature)
             .expect("Verify should succeed");
 
         assert!(!verified);
@@ -247,7 +256,8 @@ mod tests {
         audit.add_entry(entry1).expect("Add entry1");
         audit.add_entry(entry2).expect("Add entry2");
 
-        let is_valid = audit.verify_chain_integrity(audit.entries())
+        let is_valid = audit
+            .verify_chain_integrity(audit.entries())
             .expect("Verify should succeed");
         assert!(is_valid);
     }

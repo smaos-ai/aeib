@@ -4,7 +4,7 @@
 #[cfg(test)]
 mod integration_tests {
     use crate::handlers::gravity_memory::{
-        MemoryContext, LifecycleHook, GravityMemory, GravityMemoryError,
+        GravityMemory, GravityMemoryError, LifecycleHook, MemoryContext,
     };
 
     #[tokio::test]
@@ -34,7 +34,11 @@ mod integration_tests {
             let result = GravityMemory::capture_memory_context(context).await;
 
             // THEN: Capture succeeds for all hooks
-            assert!(result.is_ok(), "Hook {:?} should bind successfully", hook_type);
+            assert!(
+                result.is_ok(),
+                "Hook {:?} should bind successfully",
+                hook_type
+            );
         }
     }
 
@@ -64,7 +68,10 @@ More public query context
 
         // THEN: Private content is stripped before storage
         // AND: Memory storage succeeds (no privacy violations)
-        assert!(result.is_ok(), "Private content should be stripped and storage succeed");
+        assert!(
+            result.is_ok(),
+            "Private content should be stripped and storage succeed"
+        );
     }
 
     #[tokio::test]
@@ -77,16 +84,25 @@ More public query context
         // This test verifies the search enforces the limit
 
         let query = "important agent action";
-        
+
         // Attempt search requesting 10 results (at limit - allowed)
         let result_at_limit = GravityMemory::search_memory(query, 10).await;
-        assert!(result_at_limit.is_ok(), "Search at limit (10) should succeed");
+        assert!(
+            result_at_limit.is_ok(),
+            "Search at limit (10) should succeed"
+        );
 
         // Attempt search requesting 11 results (exceeds limit - rejected)
         let result_over_limit = GravityMemory::search_memory(query, 11).await;
-        assert!(result_over_limit.is_err(), "Search over limit (11) should fail");
         assert!(
-            matches!(result_over_limit.unwrap_err(), GravityMemoryError::ContextExhaustion),
+            result_over_limit.is_err(),
+            "Search over limit (11) should fail"
+        );
+        assert!(
+            matches!(
+                result_over_limit.unwrap_err(),
+                GravityMemoryError::ContextExhaustion
+            ),
             "Over-limit search should return ContextExhaustion error"
         );
     }
@@ -179,17 +195,26 @@ More public query context
             content: "Session initialized".to_string(),
             is_private: false,
         };
-        assert!(GravityMemory::capture_memory_context(start_context).await.is_ok());
+        assert!(
+            GravityMemory::capture_memory_context(start_context)
+                .await
+                .is_ok()
+        );
 
         // Stage 2: UserPromptSubmit
         let prompt_context = MemoryContext {
             hook_type: LifecycleHook::UserPromptSubmit,
             session_id: "wf-complete".to_string(),
             timestamp: "2026-05-21T12:00:01Z".to_string(),
-            content: "User asked about <private>API key: sk-xxx</private> configuration".to_string(),
+            content: "User asked about <private>API key: sk-xxx</private> configuration"
+                .to_string(),
             is_private: true,
         };
-        assert!(GravityMemory::capture_memory_context(prompt_context).await.is_ok());
+        assert!(
+            GravityMemory::capture_memory_context(prompt_context)
+                .await
+                .is_ok()
+        );
 
         // Stage 3: PostToolUse
         let tool_context = MemoryContext {
@@ -199,7 +224,11 @@ More public query context
             content: "Tool executed successfully".to_string(),
             is_private: false,
         };
-        assert!(GravityMemory::capture_memory_context(tool_context).await.is_ok());
+        assert!(
+            GravityMemory::capture_memory_context(tool_context)
+                .await
+                .is_ok()
+        );
 
         // Stage 4: Stop
         let stop_context = MemoryContext {
@@ -209,7 +238,11 @@ More public query context
             content: "Agent paused".to_string(),
             is_private: false,
         };
-        assert!(GravityMemory::capture_memory_context(stop_context).await.is_ok());
+        assert!(
+            GravityMemory::capture_memory_context(stop_context)
+                .await
+                .is_ok()
+        );
 
         // Stage 5: SessionEnd
         let end_context = MemoryContext {
@@ -219,7 +252,11 @@ More public query context
             content: "Session ended".to_string(),
             is_private: false,
         };
-        assert!(GravityMemory::capture_memory_context(end_context).await.is_ok());
+        assert!(
+            GravityMemory::capture_memory_context(end_context)
+                .await
+                .is_ok()
+        );
 
         // Stage 6: Search (should succeed with progressive disclosure)
         let search_result = GravityMemory::search_memory("session context", 10).await;

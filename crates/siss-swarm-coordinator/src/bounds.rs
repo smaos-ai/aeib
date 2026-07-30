@@ -1,5 +1,5 @@
-use uuid::Uuid;
 use crate::errors::SwarmCoordinatorError;
+use uuid::Uuid;
 
 #[derive(Debug, Clone)]
 pub struct MongeGapBound {
@@ -25,7 +25,10 @@ impl MongeGapBound {
         }
     }
 
-    pub fn add_delegation(&mut self, delegated_agent_id: Uuid) -> Result<(), SwarmCoordinatorError> {
+    pub fn add_delegation(
+        &mut self,
+        delegated_agent_id: Uuid,
+    ) -> Result<(), SwarmCoordinatorError> {
         if self.delegation_count >= self.max_agents {
             return Err(SwarmCoordinatorError::DelegationLimitExceeded);
         }

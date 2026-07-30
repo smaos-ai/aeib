@@ -1,9 +1,8 @@
+use siss_agent_shell::a2ui::A2UIComponent;
+use siss_cockpit::a2ui::component_broadcast::ComponentBroadcast;
 /// Phase 33: AG-UI Real-Time Streaming Tests (TDD Approach)
 /// 20 comprehensive tests covering streaming gateway, component broadcast, and SSE integration
-
 use siss_cockpit::a2ui::streaming_gateway::A2UIStreamingGateway;
-use siss_cockpit::a2ui::component_broadcast::ComponentBroadcast;
-use siss_agent_shell::a2ui::A2UIComponent;
 use std::sync::Arc;
 use uuid::Uuid;
 
@@ -14,7 +13,7 @@ use uuid::Uuid;
 #[tokio::test]
 async fn test_gateway_publishes_component() {
     let gateway = A2UIStreamingGateway::new(100);
-    let _rx = gateway.subscribe();  // Create at least one subscriber
+    let _rx = gateway.subscribe(); // Create at least one subscriber
 
     let component = A2UIComponent::Button {
         id: "btn1".to_string(),
@@ -30,11 +29,11 @@ async fn test_gateway_publishes_component() {
 #[tokio::test]
 async fn test_gateway_validates_schema_before_broadcast() {
     let gateway = A2UIStreamingGateway::new(100);
-    let _rx = gateway.subscribe();  // Create at least one subscriber
+    let _rx = gateway.subscribe(); // Create at least one subscriber
 
     let component = A2UIComponent::Button {
         id: "btn1".to_string(),
-        label: "".to_string(),  // Empty label may be caught by validator
+        label: "".to_string(), // Empty label may be caught by validator
         action: None,
     };
 
@@ -46,7 +45,7 @@ async fn test_gateway_validates_schema_before_broadcast() {
 #[tokio::test]
 async fn test_gateway_rejects_invalid_schema() {
     let gateway = A2UIStreamingGateway::new(100);
-    let _rx = gateway.subscribe();  // Create at least one subscriber
+    let _rx = gateway.subscribe(); // Create at least one subscriber
 
     let component = A2UIComponent::Input {
         id: "input1".to_string(),
@@ -63,7 +62,7 @@ async fn test_gateway_rejects_invalid_schema() {
 #[tokio::test]
 async fn test_gateway_runs_accessibility_audit() {
     let gateway = A2UIStreamingGateway::new(100);
-    let _rx = gateway.subscribe();  // Create at least one subscriber
+    let _rx = gateway.subscribe(); // Create at least one subscriber
 
     let component = A2UIComponent::Button {
         id: "btn1".to_string(),
@@ -269,7 +268,7 @@ async fn test_accessibility_violation_flagged_in_stream() {
     let gateway = A2UIStreamingGateway::new(100);
     let component = A2UIComponent::Input {
         id: "input1".to_string(),
-        label: "".to_string(),  // Missing label
+        label: "".to_string(), // Missing label
         placeholder: None,
         required: true,
     };

@@ -2,10 +2,10 @@
 //! Collects pending settlement legs and commits them atomically.
 
 use chrono::{DateTime, Utc};
+use parking_lot::RwLock;
 use sha2::{Digest, Sha256};
 use std::sync::Arc;
 use uuid::Uuid;
-use parking_lot::RwLock;
 
 /// A single settlement leg to be committed
 #[derive(Debug, Clone)]
@@ -63,10 +63,7 @@ impl NightlyBatch {
     }
 
     /// Settle all legs atomically
-    pub async fn settle_all(
-        &self,
-        legs: Vec<SettlementLeg>,
-    ) -> Result<BatchResult, BatchError> {
+    pub async fn settle_all(&self, legs: Vec<SettlementLeg>) -> Result<BatchResult, BatchError> {
         if legs.is_empty() {
             let merkle_root = self.compute_merkle(&[]);
             return Ok(BatchResult {

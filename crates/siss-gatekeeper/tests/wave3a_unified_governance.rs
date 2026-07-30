@@ -17,9 +17,7 @@ use siss_behavioral_firewall::covenant_firewall::EconomicIntent;
 use siss_behavioral_firewall::policy_engine::{Policy, PolicyComposition};
 use siss_behavioral_firewall::temporal::{PolicyAction, TemporalGuard, TimeWindow};
 
-use siss_gatekeeper::pipeline::authorization::{
-    AuthorizationPipeline, TaskAuthorizationRequest,
-};
+use siss_gatekeeper::pipeline::authorization::{AuthorizationPipeline, TaskAuthorizationRequest};
 use siss_gatekeeper::types::GatekeeperError;
 
 // ---------------------------------------------------------------------------

@@ -1,9 +1,9 @@
 // Phase 26 Task 2: CAPSULE v2.2 Swarm Coordination (Tier 4)
 // TDD: All 13 tests written failing first, then implemented
 
-use siss_capsule::swarm_link::{SwarmLink, StateEntry};
-use uuid::Uuid;
 use chrono::Utc;
+use siss_capsule::swarm_link::{StateEntry, SwarmLink};
+use uuid::Uuid;
 
 // ============================================================================
 // TIER A: Capsule Linking (4 tests)
@@ -112,7 +112,9 @@ fn test_swarm_link_sync_state_unknown_peer() {
     let unknown_peer = Uuid::new_v4();
 
     let swarm = SwarmLink::new(capsule_id);
-    swarm.register_peer(peer_id, [0x42u8; 32]).expect("register");
+    swarm
+        .register_peer(peer_id, [0x42u8; 32])
+        .expect("register");
 
     let merkle_hash = [0x04u8; 32];
     let state_entry = swarm
@@ -129,18 +131,16 @@ fn test_swarm_link_sync_consistency() {
     let peer_id = Uuid::new_v4();
 
     let swarm = SwarmLink::new(capsule_id);
-    swarm.register_peer(peer_id, [0x42u8; 32]).expect("register");
+    swarm
+        .register_peer(peer_id, [0x42u8; 32])
+        .expect("register");
 
     let merkle_hash1 = [0x05u8; 32];
-    let entry1 = swarm
-        .propose_state(merkle_hash1)
-        .expect("propose 1");
+    let entry1 = swarm.propose_state(merkle_hash1).expect("propose 1");
     swarm.sync_state(peer_id, entry1).expect("sync 1");
 
     let merkle_hash2 = [0x06u8; 32];
-    let entry2 = swarm
-        .propose_state(merkle_hash2)
-        .expect("propose 2");
+    let entry2 = swarm.propose_state(merkle_hash2).expect("propose 2");
     swarm.sync_state(peer_id, entry2).expect("sync 2");
 
     // Both states should be stored in ledger
@@ -209,8 +209,12 @@ fn test_swarm_link_resolve_conflict_multiple_peers() {
     let peer2 = Uuid::new_v4();
 
     let swarm = SwarmLink::new(capsule_id);
-    swarm.register_peer(peer1, [0x42u8; 32]).expect("register 1");
-    swarm.register_peer(peer2, [0x43u8; 32]).expect("register 2");
+    swarm
+        .register_peer(peer1, [0x42u8; 32])
+        .expect("register 1");
+    swarm
+        .register_peer(peer2, [0x43u8; 32])
+        .expect("register 2");
 
     let hash1 = [0x11u8; 32];
     let hash2 = [0x22u8; 32];

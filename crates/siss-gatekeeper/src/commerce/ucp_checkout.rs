@@ -43,7 +43,9 @@ pub async fn fetch_agent_card(
     .fetch_optional(pool)
     .await?;
 
-    if let Some((id, agent_id, endpoint_url, public_key, capabilities, signature, expires_at)) = card {
+    if let Some((id, agent_id, endpoint_url, public_key, capabilities, signature, expires_at)) =
+        card
+    {
         return Ok(AgentCard {
             id,
             agent_id,
@@ -64,12 +66,11 @@ pub async fn verify_agent_card_signature(
     agent_id: &str,
     public_key: &str,
 ) -> Result<bool, Box<dyn std::error::Error>> {
-    let card: Option<(String, String)> = sqlx::query_as(
-        "SELECT agent_id, signature FROM commerce_agent_cards WHERE agent_id = $1"
-    )
-    .bind(agent_id)
-    .fetch_optional(pool)
-    .await?;
+    let card: Option<(String, String)> =
+        sqlx::query_as("SELECT agent_id, signature FROM commerce_agent_cards WHERE agent_id = $1")
+            .bind(agent_id)
+            .fetch_optional(pool)
+            .await?;
 
     if let Some((_, signature)) = card {
         // Simple signature verification logic
@@ -125,12 +126,11 @@ pub async fn verify_checkout_signature(
     pool: &PgPool,
     checkout: &CheckoutRequest,
 ) -> Result<bool, Box<dyn std::error::Error>> {
-    let sig: Option<(String,)> = sqlx::query_as(
-        "SELECT signature FROM ucp_checkout_requests WHERE id = $1"
-    )
-    .bind(checkout.id)
-    .fetch_optional(pool)
-    .await?;
+    let sig: Option<(String,)> =
+        sqlx::query_as("SELECT signature FROM ucp_checkout_requests WHERE id = $1")
+            .bind(checkout.id)
+            .fetch_optional(pool)
+            .await?;
 
     if let Some((signature,)) = sig {
         Ok(!signature.is_empty())

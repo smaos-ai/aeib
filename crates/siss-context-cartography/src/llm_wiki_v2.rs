@@ -1,8 +1,8 @@
-use chrono::{DateTime, Utc, Duration};
-use serde::{Serialize, Deserialize};
+use chrono::{DateTime, Duration, Utc};
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use uuid::Uuid;
-use sha2::{Sha256, Digest};
 
 /// Phase 80: LLM Wiki v2 Crystallization
 /// Four-tier memory consolidation with Ebbinghaus decay, cryptographic supersession, and hybrid search.
@@ -43,22 +43,30 @@ pub enum MemoryTier {
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum EpistemicStatus {
     Unverified,
-    Verified { divergence_score: f64 },
-    Uncertain { divergence_score: f64, flagged_at: DateTime<Utc> },
-    HumanApproved { approved_by: String, at: DateTime<Utc> },
+    Verified {
+        divergence_score: f64,
+    },
+    Uncertain {
+        divergence_score: f64,
+        flagged_at: DateTime<Utc>,
+    },
+    HumanApproved {
+        approved_by: String,
+        at: DateTime<Utc>,
+    },
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SemanticFact {
     pub id: Uuid,
     pub fact: String,
-    pub confidence_score: f64,  // [0.0, 1.0]
+    pub confidence_score: f64, // [0.0, 1.0]
     pub created_at: DateTime<Utc>,
     pub last_accessed_at: DateTime<Utc>,
     pub access_count: u64,
-    pub superseded_by: Option<Uuid>,  // Link to newer fact if contradicted
+    pub superseded_by: Option<Uuid>, // Link to newer fact if contradicted
     pub is_stale: bool,
-    pub sources: Vec<String>,  // Audit trail
+    pub sources: Vec<String>, // Audit trail
     pub epistemic_status: EpistemicStatus,
 }
 
@@ -83,7 +91,7 @@ pub fn compute_ebbinghaus_retention(
 ) -> f64 {
     let elapsed_secs = (now - created_at).num_seconds() as f64;
     let elapsed_days = elapsed_secs / 86400.0;
-    let lambda = 7.0;  // 7-day decay constant
+    let lambda = 7.0; // 7-day decay constant
 
     let retention = initial_confidence * (-elapsed_days / lambda).exp();
     retention.max(0.0).min(1.0)
@@ -91,7 +99,7 @@ pub fn compute_ebbinghaus_retention(
 
 /// Update confidence after access/reinforcement
 pub fn reinforce_confidence(current_confidence: f64) -> f64 {
-    (current_confidence + 0.1).min(1.0)  // Boost by 10% on access, capped at 1.0
+    (current_confidence + 0.1).min(1.0) // Boost by 10% on access, capped at 1.0
 }
 
 /// Determine if a fact should be garbage collected (confidence < threshold)
@@ -131,7 +139,7 @@ pub struct SearchResult {
     pub bm25_score: f64,
     pub vector_similarity: f64,
     pub graph_relevance: f64,
-    pub rrf_fused_score: f64,  // Reciprocal Rank Fusion
+    pub rrf_fused_score: f64, // Reciprocal Rank Fusion
     pub confidence: f64,
 }
 
@@ -142,7 +150,8 @@ pub fn compute_bm25_score(query: &str, fact: &str, total_facts: u64) -> f64 {
     let fact_lower = fact.to_lowercase();
     let query_terms: Vec<&str> = query_lower.split_whitespace().collect();
 
-    let matches = query_terms.iter()
+    let matches = query_terms
+        .iter()
         .filter(|term| fact_lower.contains(*term))
         .count() as f64;
 
@@ -162,7 +171,8 @@ pub fn compute_vector_similarity(query: &str, fact: &str) -> f64 {
     let query_terms: Vec<&str> = query_lower.split_whitespace().collect();
     let fact_terms: Vec<&str> = fact_lower.split_whitespace().collect();
 
-    let intersection = query_terms.iter()
+    let intersection = query_terms
+        .iter()
         .filter(|t| fact_terms.contains(t))
         .count() as f64;
 
@@ -178,8 +188,11 @@ pub fn compute_vector_similarity(query: &str, fact: &str) -> f64 {
 /// Graph relevance: scored by relationship to other facts
 /// (placeholder: assumes well-connected facts are more relevant)
 pub fn compute_graph_relevance(fact_id: Uuid, graph_connections: &HashMap<Uuid, Vec<Uuid>>) -> f64 {
-    let connections = graph_connections.get(&fact_id).map(|v| v.len()).unwrap_or(0);
-    (connections as f64).min(10.0) / 10.0  // Normalized to [0, 1]
+    let connections = graph_connections
+        .get(&fact_id)
+        .map(|v| v.len())
+        .unwrap_or(0);
+    (connections as f64).min(10.0) / 10.0 // Normalized to [0, 1]
 }
 
 /// Reciprocal Rank Fusion (RRF)
@@ -197,7 +210,7 @@ pub fn compute_rrf_score(bm25_rank: usize, vector_rank: usize, graph_rank: usize
 #[derive(Debug, Clone)]
 pub struct HybridSearchEngine {
     pub facts: Vec<SemanticFact>,
-    pub graph: HashMap<Uuid, Vec<Uuid>>,  // fact_id -> [related_fact_ids]
+    pub graph: HashMap<Uuid, Vec<Uuid>>, // fact_id -> [related_fact_ids]
 }
 
 impl HybridSearchEngine {
@@ -221,7 +234,7 @@ impl HybridSearchEngine {
         // Compute scores for all facts
         for fact in self.facts.iter() {
             if fact.is_stale {
-                continue;  // Skip stale facts
+                continue; // Skip stale facts
             }
 
             let bm25 = compute_bm25_score(query, &fact.fact, total_facts);
@@ -237,11 +250,8 @@ impl HybridSearchEngine {
             let rrf = compute_rrf_score(bm25_rank, vector_rank, graph_rank);
 
             // Final score = RRF fused with current confidence (Ebbinghaus-decayed)
-            let decayed_confidence = compute_ebbinghaus_retention(
-                fact.confidence_score,
-                fact.created_at,
-                Utc::now(),
-            );
+            let decayed_confidence =
+                compute_ebbinghaus_retention(fact.confidence_score, fact.created_at, Utc::now());
 
             results.push(SearchResult {
                 fact_id: fact.id,
@@ -266,7 +276,9 @@ impl HybridSearchEngine {
         reason: String,
     ) -> Result<SuppressionChain, String> {
         // Compute hashes first
-        let old_fact_text = self.facts.iter()
+        let old_fact_text = self
+            .facts
+            .iter()
             .find(|f| f.id == old_fact_id)
             .map(|f| f.fact.clone())
             .ok_or_else(|| format!("Fact not found: {}", old_fact_id))?;
@@ -294,7 +306,8 @@ impl HybridSearchEngine {
     }
 
     pub fn garbage_collect(&mut self, confidence_threshold: f64) {
-        self.facts.retain(|f| !is_gc_eligible(f.confidence_score, confidence_threshold));
+        self.facts
+            .retain(|f| !is_gc_eligible(f.confidence_score, confidence_threshold));
     }
 
     pub fn reinforce_fact(&mut self, fact_id: Uuid) -> Result<(), String> {
@@ -325,7 +338,7 @@ mod tests {
 
         assert!(after_1w < initial);
         assert!(after_1m < after_1w);
-        assert!(after_1w > 0.3);  // After 7 days at lambda=7, retention ≈ 37%
+        assert!(after_1w > 0.3); // After 7 days at lambda=7, retention ≈ 37%
     }
 
     #[test]
@@ -354,14 +367,14 @@ mod tests {
 
     #[test]
     fn test_rrf_fuses_three_ranking_streams() {
-        let bm25_rank = 1;  // Top result
+        let bm25_rank = 1; // Top result
         let vector_rank = 3;
         let graph_rank = 5;
 
         let rrf = compute_rrf_score(bm25_rank, vector_rank, graph_rank);
 
         assert!(rrf > 0.0);
-        assert!(rrf < 0.1);  // RRF scores are small
+        assert!(rrf < 0.1); // RRF scores are small
     }
 
     #[test]
@@ -398,7 +411,11 @@ mod tests {
             epistemic_status: EpistemicStatus::Unverified,
         };
 
-        let result = engine.supersede_fact(old_id, new_fact, "BFT provides better guarantees".to_string());
+        let result = engine.supersede_fact(
+            old_id,
+            new_fact,
+            "BFT provides better guarantees".to_string(),
+        );
         assert!(result.is_ok());
 
         let old = engine.facts.iter().find(|f| f.id == old_id).unwrap();
@@ -433,7 +450,7 @@ mod tests {
             last_accessed_at: Utc::now(),
             access_count: 0,
             superseded_by: None,
-            is_stale: true,  // Stale
+            is_stale: true, // Stale
             sources: vec!["archive".to_string()],
             epistemic_status: EpistemicStatus::Unverified,
         };

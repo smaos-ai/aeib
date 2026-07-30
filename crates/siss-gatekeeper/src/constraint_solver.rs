@@ -35,7 +35,8 @@ impl ConstraintSolver {
         }
 
         // Not in cache, perform DFS transitive closure query
-        let result = self.transitive_closure_dfs(&key.entity_a, &key.entity_b, edges, self.max_depth);
+        let result =
+            self.transitive_closure_dfs(&key.entity_a, &key.entity_b, edges, self.max_depth);
 
         // Cache the result
         self.cache.insert(key, result);

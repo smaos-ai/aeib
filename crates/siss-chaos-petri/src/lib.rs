@@ -29,13 +29,13 @@
 pub mod scenarios;
 
 use chrono::{DateTime, Duration, Utc};
-use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
-use uuid::Uuid;
-use rand::SeedableRng;
 use rand::rngs::SmallRng;
 use rand::seq::SliceRandom;
 use rand::Rng;
+use rand::SeedableRng;
+use serde::{Deserialize, Serialize};
+use std::collections::{HashMap, HashSet};
+use uuid::Uuid;
 
 // ============================================================================
 // TYPES
@@ -103,14 +103,9 @@ pub enum FailureScenario {
         failover_target: String,
     },
     /// Scenario 14: Network partition between regions
-    NetworkPartition {
-        region_a: String,
-        region_b: String,
-    },
+    NetworkPartition { region_a: String, region_b: String },
     /// Scenario 15: Split-brain across regions
-    SplitBrainCrossRegion {
-        regions: Vec<String>,
-    },
+    SplitBrainCrossRegion { regions: Vec<String> },
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -221,7 +216,10 @@ impl ChaosScheduler {
     pub fn next_scenario(&mut self, agents: &[Uuid]) -> FailureScenario {
         let scenarios = vec![
             FailureScenario::NetworkTimeout {
-                agent_id: agents.choose(&mut self.rng).copied().unwrap_or_else(Uuid::new_v4),
+                agent_id: agents
+                    .choose(&mut self.rng)
+                    .copied()
+                    .unwrap_or_else(Uuid::new_v4),
                 timeout_ms: self.rng.gen_range(100..2000),
             },
             FailureScenario::DatabaseCrash {
@@ -233,7 +231,10 @@ impl ChaosScheduler {
                 writer_count: self.rng.gen_range(2..5),
             },
             FailureScenario::AgentPanic {
-                agent_id: agents.choose(&mut self.rng).copied().unwrap_or_else(Uuid::new_v4),
+                agent_id: agents
+                    .choose(&mut self.rng)
+                    .copied()
+                    .unwrap_or_else(Uuid::new_v4),
                 restart_time_ms: self.rng.gen_range(500..2000),
             },
             FailureScenario::MemoryExhaustion {
@@ -241,19 +242,31 @@ impl ChaosScheduler {
                 bytes_to_exhaust: self.rng.gen_range(500_000_000..1_000_000_000),
             },
             FailureScenario::CascadingFailure {
-                trigger_agent: agents.choose(&mut self.rng).copied().unwrap_or_else(Uuid::new_v4),
-                affected_agents: vec![agents.choose(&mut self.rng).copied().unwrap_or_else(Uuid::new_v4)],
+                trigger_agent: agents
+                    .choose(&mut self.rng)
+                    .copied()
+                    .unwrap_or_else(Uuid::new_v4),
+                affected_agents: vec![agents
+                    .choose(&mut self.rng)
+                    .copied()
+                    .unwrap_or_else(Uuid::new_v4)],
             },
             FailureScenario::ClockSkew {
                 node_id: self.rng.gen_range(0..5),
                 skew_ms: self.rng.gen_range(100..1000),
             },
             FailureScenario::PartialMessageLoss {
-                agent_id: agents.choose(&mut self.rng).copied().unwrap_or_else(Uuid::new_v4),
+                agent_id: agents
+                    .choose(&mut self.rng)
+                    .copied()
+                    .unwrap_or_else(Uuid::new_v4),
                 loss_percentage: self.rng.gen_range(10..50),
             },
             FailureScenario::DuplicateMessageInjection {
-                agent_id: agents.choose(&mut self.rng).copied().unwrap_or_else(Uuid::new_v4),
+                agent_id: agents
+                    .choose(&mut self.rng)
+                    .copied()
+                    .unwrap_or_else(Uuid::new_v4),
                 duplicate_count: self.rng.gen_range(1..20),
             },
             FailureScenario::CapsuleCorruption {
@@ -280,7 +293,10 @@ impl ChaosScheduler {
         for _ in 0..12 {
             let scenario_variants = vec![
                 FailureScenario::NetworkTimeout {
-                    agent_id: dummy_agents.choose(&mut rng).copied().unwrap_or_else(Uuid::new_v4),
+                    agent_id: dummy_agents
+                        .choose(&mut rng)
+                        .copied()
+                        .unwrap_or_else(Uuid::new_v4),
                     timeout_ms: rng.gen_range(100..2000),
                 },
                 FailureScenario::DatabaseCrash {
@@ -292,7 +308,10 @@ impl ChaosScheduler {
                     writer_count: rng.gen_range(2..5),
                 },
                 FailureScenario::AgentPanic {
-                    agent_id: dummy_agents.choose(&mut rng).copied().unwrap_or_else(Uuid::new_v4),
+                    agent_id: dummy_agents
+                        .choose(&mut rng)
+                        .copied()
+                        .unwrap_or_else(Uuid::new_v4),
                     restart_time_ms: rng.gen_range(500..2000),
                 },
                 FailureScenario::MemoryExhaustion {
@@ -300,19 +319,31 @@ impl ChaosScheduler {
                     bytes_to_exhaust: rng.gen_range(500_000_000..1_000_000_000),
                 },
                 FailureScenario::CascadingFailure {
-                    trigger_agent: dummy_agents.choose(&mut rng).copied().unwrap_or_else(Uuid::new_v4),
-                    affected_agents: vec![dummy_agents.choose(&mut rng).copied().unwrap_or_else(Uuid::new_v4)],
+                    trigger_agent: dummy_agents
+                        .choose(&mut rng)
+                        .copied()
+                        .unwrap_or_else(Uuid::new_v4),
+                    affected_agents: vec![dummy_agents
+                        .choose(&mut rng)
+                        .copied()
+                        .unwrap_or_else(Uuid::new_v4)],
                 },
                 FailureScenario::ClockSkew {
                     node_id: rng.gen_range(0..5),
                     skew_ms: rng.gen_range(100..1000),
                 },
                 FailureScenario::PartialMessageLoss {
-                    agent_id: dummy_agents.choose(&mut rng).copied().unwrap_or_else(Uuid::new_v4),
+                    agent_id: dummy_agents
+                        .choose(&mut rng)
+                        .copied()
+                        .unwrap_or_else(Uuid::new_v4),
                     loss_percentage: rng.gen_range(10..50),
                 },
                 FailureScenario::DuplicateMessageInjection {
-                    agent_id: dummy_agents.choose(&mut rng).copied().unwrap_or_else(Uuid::new_v4),
+                    agent_id: dummy_agents
+                        .choose(&mut rng)
+                        .copied()
+                        .unwrap_or_else(Uuid::new_v4),
                     duplicate_count: rng.gen_range(1..20),
                 },
                 FailureScenario::CapsuleCorruption {
@@ -616,11 +647,9 @@ impl ChaosPetriQuarantine {
                 let quorum_size = partition_a.len().max(1);
                 Ok(RecoveryStrategy::QuorumElection { quorum_size })
             }
-            FailureScenario::RegionDown { .. } => {
-                Ok(RecoveryStrategy::RegionFailover {
-                    target_region: "replica".to_string(),
-                })
-            }
+            FailureScenario::RegionDown { .. } => Ok(RecoveryStrategy::RegionFailover {
+                target_region: "replica".to_string(),
+            }),
             FailureScenario::NetworkPartition { .. } => {
                 Ok(RecoveryStrategy::QuorumElection { quorum_size: 2 })
             }
@@ -648,7 +677,12 @@ impl ChaosPetriQuarantine {
     }
 
     /// Execute scheduled failures with deterministic replay capability
-    pub fn execute_scheduled(&mut self, scheduler: &mut ChaosScheduler, rounds: u32, agents: &[Uuid]) -> Result<Vec<FailureInjectionResult>, String> {
+    pub fn execute_scheduled(
+        &mut self,
+        scheduler: &mut ChaosScheduler,
+        rounds: u32,
+        agents: &[Uuid],
+    ) -> Result<Vec<FailureInjectionResult>, String> {
         for _ in 0..rounds {
             let scenario = scheduler.next_scenario(agents);
             self.queue_failure(scenario);

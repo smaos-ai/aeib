@@ -51,11 +51,7 @@ impl SwarmDispatcher {
     /// Dispatch a job with dependency queue enforcement
     /// Returns UnmetDependencies if deps not complete
     /// Returns AssignmentFailed if job already running
-    pub async fn dispatch_job(
-        &self,
-        job_id: Uuid,
-        depends_on: Vec<Uuid>,
-    ) -> Result<JobSlot> {
+    pub async fn dispatch_job(&self, job_id: Uuid, depends_on: Vec<Uuid>) -> Result<JobSlot> {
         // Check: all dependencies completed (event-log query, outside lock)
         for dep_id in &depends_on {
             match self.event_log.get_events(*dep_id).await {
@@ -67,12 +63,7 @@ impl SwarmDispatcher {
                         return Err(DispatchError::UnmetDependencies);
                     }
                 }
-                Err(e) => {
-                    return Err(DispatchError::Other(format!(
-                        "Event log error: {}",
-                        e
-                    )))
-                }
+                Err(e) => return Err(DispatchError::Other(format!("Event log error: {}", e))),
             }
         }
 
@@ -211,12 +202,7 @@ impl SwarmDispatcher {
 
     /// List all active job slots
     pub async fn active_slots(&self) -> Vec<JobSlot> {
-        self.active_slots
-            .lock()
-            .await
-            .values()
-            .cloned()
-            .collect()
+        self.active_slots.lock().await.values().cloned().collect()
     }
 }
 

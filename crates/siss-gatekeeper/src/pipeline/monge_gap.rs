@@ -14,9 +14,9 @@
 //! - Drift-only serialization for state changes
 //! - Merkle-DAG root tracking for audit trail
 
-use serde::{Serialize, Deserialize};
-use uuid::Uuid;
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 /// Result of a causal intervention experiment measuring generalization gap.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -216,11 +216,7 @@ impl MongeGapGovernor {
 
         if result.breach_condition {
             // Track that we're now in breach state
-            self.track_mutation(
-                "breach_condition",
-                "false".to_string(),
-                "true".to_string(),
-            );
+            self.track_mutation("breach_condition", "false".to_string(), "true".to_string());
 
             self.breach_history.push(result.clone());
 
@@ -231,7 +227,9 @@ impl MongeGapGovernor {
                     (self.circuit_breaker_threshold - 1).to_string(),
                     self.breach_history.len().to_string(),
                 );
-                return Ok(GoverningDecision::CircuitBreaker(self.breach_history.clone()));
+                return Ok(GoverningDecision::CircuitBreaker(
+                    self.breach_history.clone(),
+                ));
             }
 
             Ok(GoverningDecision::Quarantine(result))
@@ -251,7 +249,7 @@ impl MongeGapGovernor {
 
     /// Track a diff-only mutation (file-scoped to @MongeGapGovernor)
     fn track_mutation(&mut self, field_name: &str, old_value: String, new_value: String) {
-        use sha2::{Sha256, Digest};
+        use sha2::{Digest, Sha256};
 
         let mutation = MongeGapMutation {
             mutation_id: uuid::Uuid::new_v4().to_string(),
@@ -364,7 +362,12 @@ mod tests {
 
         let corrupted = sampler.inject(&baseline);
         // With gaussian noise injected into all values, they should differ from baseline
-        assert!(corrupted.iter().zip(&baseline).any(|(c, b)| (c - b).abs() > 0.01));
+        assert!(
+            corrupted
+                .iter()
+                .zip(&baseline)
+                .any(|(c, b)| (c - b).abs() > 0.01)
+        );
     }
 
     #[test]
@@ -530,7 +533,8 @@ mod tests {
         assert!(mutations.len() >= 2);
 
         // One mutation should track the circuit breaker threshold crossing
-        let cb_mutation = mutations.iter()
+        let cb_mutation = mutations
+            .iter()
             .find(|m| m.field_name == "circuit_breaker_threshold_crossed");
         assert!(cb_mutation.is_some());
     }
@@ -562,6 +566,10 @@ mod tests {
 
         let mutations = governor.get_mutations();
         // Should have mutations for breach and then clearing breach history
-        assert!(mutations.iter().any(|m| m.field_name == "breach_history_cleared"));
+        assert!(
+            mutations
+                .iter()
+                .any(|m| m.field_name == "breach_history_cleared")
+        );
     }
 }

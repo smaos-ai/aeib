@@ -1,7 +1,7 @@
 use siss_graph_db::repo::cross_sovereign_delegation_repo;
 use sqlx::PgPool;
-use uuid::Uuid;
 use std::collections::{HashMap, VecDeque};
+use uuid::Uuid;
 
 #[derive(Debug, Clone)]
 pub struct RoutingDecision {
@@ -75,7 +75,10 @@ pub async fn route_request(
         for grant in grants {
             if !visited.contains(&grant.grantee_sovereign_id) {
                 visited.insert(grant.grantee_sovereign_id);
-                parent_map.insert(grant.grantee_sovereign_id, (current, grant.ceiling_tier as u32));
+                parent_map.insert(
+                    grant.grantee_sovereign_id,
+                    (current, grant.ceiling_tier as u32),
+                );
 
                 // Check depth limit
                 let depth = calculate_path_depth(&parent_map, grant.grantee_sovereign_id);
@@ -138,7 +141,10 @@ pub async fn route_request(
     })
 }
 
-fn calculate_path_depth(parent_map: &std::collections::HashMap<Uuid, (Uuid, u32)>, mut current: Uuid) -> usize {
+fn calculate_path_depth(
+    parent_map: &std::collections::HashMap<Uuid, (Uuid, u32)>,
+    mut current: Uuid,
+) -> usize {
     let mut depth = 1;
     while let Some((parent, _)) = parent_map.get(&current) {
         depth += 1;

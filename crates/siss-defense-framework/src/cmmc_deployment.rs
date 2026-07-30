@@ -3,10 +3,10 @@ use std::collections::HashMap;
 /// Network segmentation zones
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum NetworkZone {
-    AirGapped,           // Isolated from internet
-    InternalSegmented,   // Internal network, segmented
-    MilitaryNetwork,     // JWICS/NIPRNet/SIPRNet compatible
-    GovernmentCloud,     // FedRAMP authorized
+    AirGapped,         // Isolated from internet
+    InternalSegmented, // Internal network, segmented
+    MilitaryNetwork,   // JWICS/NIPRNet/SIPRNet compatible
+    GovernmentCloud,   // FedRAMP authorized
 }
 
 /// SISS node deployment in air-gapped topology
@@ -139,8 +139,12 @@ impl AirGappedNetwork {
         ];
 
         // Add all nodes
-        for node in control_nodes.iter().chain(data_nodes.iter())
-            .chain(monitor_nodes.iter()).chain(edge_nodes.iter()) {
+        for node in control_nodes
+            .iter()
+            .chain(data_nodes.iter())
+            .chain(monitor_nodes.iter())
+            .chain(edge_nodes.iter())
+        {
             net.nodes.insert(node.node_id.clone(), node.clone());
         }
 
@@ -175,7 +179,8 @@ impl AirGappedNetwork {
 
     pub fn get_nodes_in_segment(&self, segment: &str) -> Option<Vec<&SissNode>> {
         self.network_segments.get(segment).map(|node_ids| {
-            node_ids.iter()
+            node_ids
+                .iter()
                 .filter_map(|id| self.nodes.get(id))
                 .collect()
         })
@@ -238,7 +243,8 @@ CMMC Level 2 Air-Gapped Deployment Topology
                     [No Lateral Movement]                       │
                                                                 │
 └────────────────────────────────────────────────────────────────┘
-        "#.to_string();
+        "#
+        .to_string();
 
         Self {
             network,
@@ -255,7 +261,9 @@ CMMC Level 2 Air-Gapped Deployment Topology
         // Validate all nodes are in segments
         let all_node_ids: std::collections::HashSet<_> =
             self.network.nodes.keys().cloned().collect();
-        let segmented_ids: std::collections::HashSet<_> = self.network.network_segments
+        let segmented_ids: std::collections::HashSet<_> = self
+            .network
+            .network_segments
             .values()
             .flat_map(|ids| ids.iter().cloned())
             .collect();
@@ -301,7 +309,10 @@ mod tests {
     #[test]
     fn test_network_has_monitoring_plane() {
         let topo = DeploymentTopology::cmmc_level2();
-        assert!(topo.network.get_nodes_in_segment("monitoring_plane").is_some());
+        assert!(topo
+            .network
+            .get_nodes_in_segment("monitoring_plane")
+            .is_some());
     }
 
     #[test]
@@ -317,8 +328,11 @@ mod tests {
         let topo = DeploymentTopology::cmmc_level2();
         for node in topo.network.nodes.values() {
             assert!(!node.encryption.is_empty());
-            assert!(node.encryption.contains("TLS") || node.encryption.contains("AES")
-                    || node.encryption.contains("Suite B"));
+            assert!(
+                node.encryption.contains("TLS")
+                    || node.encryption.contains("AES")
+                    || node.encryption.contains("Suite B")
+            );
         }
     }
 
@@ -333,12 +347,19 @@ mod tests {
     #[test]
     fn test_network_node_count() {
         let topo = DeploymentTopology::cmmc_level2();
-        assert!(topo.network.node_count() >= 11, "Must have 11+ nodes for CMMC Level 2");
+        assert!(
+            topo.network.node_count() >= 11,
+            "Must have 11+ nodes for CMMC Level 2"
+        );
     }
 
     #[test]
     fn test_network_segment_count() {
         let topo = DeploymentTopology::cmmc_level2();
-        assert_eq!(topo.network.segment_count(), 4, "Must have 4 network segments");
+        assert_eq!(
+            topo.network.segment_count(),
+            4,
+            "Must have 4 network segments"
+        );
     }
 }

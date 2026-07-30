@@ -1,18 +1,17 @@
 /// Phase 38: Anomaly Stream Handler — SSE Endpoint for Real-Time Anomaly Events
 /// Server-Sent Events (SSE) endpoint for anomaly event streaming
 /// Follows Pattern B: Bearer auth → 401, subscribe, timeout keep-alive, emit JSON
-
 use axum::{
     extract::State,
-    http::{StatusCode, HeaderMap},
-    response::{sse::Event, Sse},
+    http::{HeaderMap, StatusCode},
+    response::{Sse, sse::Event},
 };
 use futures::stream::Stream;
 use serde_json::json;
 use std::convert::Infallible;
 use std::time::Duration;
 
-use crate::state::{CockpitState, AnomalyEvent};
+use crate::state::{AnomalyEvent, CockpitState};
 
 /// Anomaly Stream Handler
 /// Authenticates request via Bearer token, subscribes to anomaly broadcaster, streams events with 30s keep-alive
@@ -97,22 +96,19 @@ mod tests {
     #[tokio::test]
     async fn test_anomaly_stream_accepts_bearer_token() {
         let mut headers = axum::http::HeaderMap::new();
-        headers.insert(
-            "Authorization",
-            "Bearer test-token-12345".parse().unwrap(),
-        );
+        headers.insert("Authorization", "Bearer test-token-12345".parse().unwrap());
         let state = CockpitState::new();
         let result = get_anomaly_stream(headers, State(state)).await;
-        assert!(result.is_ok(), "Should accept valid Bearer token and return SSE stream");
+        assert!(
+            result.is_ok(),
+            "Should accept valid Bearer token and return SSE stream"
+        );
     }
 
     #[tokio::test]
     async fn test_anomaly_broadcaster_emits_to_stream() {
         let mut headers = axum::http::HeaderMap::new();
-        headers.insert(
-            "Authorization",
-            "Bearer test-token".parse().unwrap(),
-        );
+        headers.insert("Authorization", "Bearer test-token".parse().unwrap());
         let state = CockpitState::new();
 
         // Test that broadcaster can emit events
@@ -124,10 +120,16 @@ mod tests {
         };
         // Emit an event on the broadcaster
         let result = state.anomaly_broadcaster.send(event);
-        assert!(result.is_ok(), "Broadcaster should emit events without error");
+        assert!(
+            result.is_ok(),
+            "Broadcaster should emit events without error"
+        );
 
         // Stream should accept bearer token and establish connection
         let stream_result = get_anomaly_stream(headers, State(state)).await;
-        assert!(stream_result.is_ok(), "Should establish SSE connection with bearer token");
+        assert!(
+            stream_result.is_ok(),
+            "Should establish SSE connection with bearer token"
+        );
     }
 }

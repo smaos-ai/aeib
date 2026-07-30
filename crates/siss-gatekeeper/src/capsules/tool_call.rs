@@ -105,11 +105,7 @@ impl ToolCallCapsule {
         if state.call_log.is_empty() {
             return 0.0;
         }
-        let approved = state
-            .call_log
-            .iter()
-            .filter(|c| c.approved)
-            .count() as f64;
+        let approved = state.call_log.iter().filter(|c| c.approved).count() as f64;
         let total = state.call_log.len() as f64;
         approved / total
     }
@@ -146,14 +142,19 @@ mod tests {
         let capsule = ToolCallCapsule::new();
         capsule.authorize_tool("read_file").unwrap();
         let result = capsule.verify_authorization("delete_all", b"params");
-        assert!(matches!(result.unwrap_err(), CapsuleError::UnauthorizedTool));
+        assert!(matches!(
+            result.unwrap_err(),
+            CapsuleError::UnauthorizedTool
+        ));
     }
 
     #[test]
     fn test_merkle_proof_generation() {
         let capsule = ToolCallCapsule::new();
         capsule.authorize_tool("compute").unwrap();
-        let proof = capsule.verify_authorization("compute", b"test_params").unwrap();
+        let proof = capsule
+            .verify_authorization("compute", b"test_params")
+            .unwrap();
         assert_ne!(proof.hash, [0u8; 32]);
     }
 
@@ -186,7 +187,9 @@ mod tests {
 
         let capsule2 = ToolCallCapsule::new();
         capsule2.authorize_tool("hash_check").unwrap();
-        let proof_b = capsule2.verify_authorization("hash_check", b"data").unwrap();
+        let proof_b = capsule2
+            .verify_authorization("hash_check", b"data")
+            .unwrap();
 
         assert_eq!(proof_a.hash, proof_b.hash);
     }

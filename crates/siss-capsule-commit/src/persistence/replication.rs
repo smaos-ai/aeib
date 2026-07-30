@@ -1,10 +1,10 @@
-use rusqlite::{Connection, params};
-use uuid::Uuid;
+use super::capsule_db::CapsuleDBError;
+use crate::CommitmentCapsule;
+use rusqlite::{params, Connection};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::{SystemTime, UNIX_EPOCH};
-use crate::CommitmentCapsule;
-use super::capsule_db::CapsuleDBError;
+use uuid::Uuid;
 
 /// Represents a logical region for multi-region replication
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -132,7 +132,7 @@ pub struct MultiRegionDB {
 pub struct SLAMonitor {
     uptime_millis: u64,
     downtime_events: Vec<(u64, u64)>, // (start_time, duration)
-    target_uptime: f64, // 99.5% = 0.995
+    target_uptime: f64,               // 99.5% = 0.995
 }
 
 impl SLAMonitor {
@@ -151,7 +151,8 @@ impl SLAMonitor {
             .unwrap()
             .as_millis() as u64;
 
-        self.downtime_events.push((now - duration_millis, duration_millis));
+        self.downtime_events
+            .push((now - duration_millis, duration_millis));
     }
 
     /// Calculate current uptime percentage
@@ -261,12 +262,8 @@ impl MultiRegionDB {
         // Log the write operation
         {
             let mut audit = self.audit_log.lock().unwrap();
-            let entry = AuditLogEntry::new(
-                capsule.capsule_id,
-                "write",
-                tenant_id,
-                vc_snapshot.clone(),
-            );
+            let entry =
+                AuditLogEntry::new(capsule.capsule_id, "write", tenant_id, vc_snapshot.clone());
             audit.push(entry);
         }
 
@@ -301,9 +298,8 @@ impl MultiRegionDB {
         vector_clock: &VectorClock,
     ) -> Result<(), CapsuleDBError> {
         // Check duplicate
-        let mut stmt = conn.prepare(
-            "SELECT capsule_id FROM capsules WHERE tenant_id = ?1 AND capsule_id = ?2"
-        )?;
+        let mut stmt = conn
+            .prepare("SELECT capsule_id FROM capsules WHERE tenant_id = ?1 AND capsule_id = ?2")?;
         let exists = stmt.exists(params![tenant_id, capsule.capsule_id.to_string()])?;
 
         if exists {
@@ -311,25 +307,25 @@ impl MultiRegionDB {
         }
 
         // Serialize fields
-        let affected_symbols_json = serde_json::to_string(&capsule.affected_symbols)
-            .map_err(|e| CapsuleDBError::SerializationError(
-                format!("Failed to serialize affected_symbols: {}", e)
-            ))?;
+        let affected_symbols_json =
+            serde_json::to_string(&capsule.affected_symbols).map_err(|e| {
+                CapsuleDBError::SerializationError(format!(
+                    "Failed to serialize affected_symbols: {}",
+                    e
+                ))
+            })?;
 
-        let target_files_json = serde_json::to_string(&capsule.target_files)
-            .map_err(|e| CapsuleDBError::SerializationError(
-                format!("Failed to serialize target_files: {}", e)
-            ))?;
+        let target_files_json = serde_json::to_string(&capsule.target_files).map_err(|e| {
+            CapsuleDBError::SerializationError(format!("Failed to serialize target_files: {}", e))
+        })?;
 
-        let cluster_tags_json = serde_json::to_string(&capsule.cluster_tags)
-            .map_err(|e| CapsuleDBError::SerializationError(
-                format!("Failed to serialize cluster_tags: {}", e)
-            ))?;
+        let cluster_tags_json = serde_json::to_string(&capsule.cluster_tags).map_err(|e| {
+            CapsuleDBError::SerializationError(format!("Failed to serialize cluster_tags: {}", e))
+        })?;
 
-        let vc_json = serde_json::to_string(&vector_clock.clock)
-            .map_err(|e| CapsuleDBError::SerializationError(
-                format!("Failed to serialize vector_clock: {}", e)
-            ))?;
+        let vc_json = serde_json::to_string(&vector_clock.clock).map_err(|e| {
+            CapsuleDBError::SerializationError(format!("Failed to serialize vector_clock: {}", e))
+        })?;
 
         conn.execute(
             "INSERT INTO capsules
@@ -364,7 +360,11 @@ impl MultiRegionDB {
     }
 
     /// Read capsule with tenant isolation (customer A cannot read customer B)
-    pub fn read_capsule(&self, capsule_id: Uuid, tenant_id: &str) -> Result<CommitmentCapsule, CapsuleDBError> {
+    pub fn read_capsule(
+        &self,
+        capsule_id: Uuid,
+        tenant_id: &str,
+    ) -> Result<CommitmentCapsule, CapsuleDBError> {
         let conn = self.primary.lock().unwrap();
 
         let mut stmt = conn.prepare(
@@ -372,29 +372,28 @@ impl MultiRegionDB {
              FROM capsules WHERE tenant_id = ?1 AND capsule_id = ?2"
         )?;
 
-        let capsule = stmt.query_row(params![tenant_id, capsule_id.to_string()], |row| {
-            let affected_symbols: String = row.get(2)?;
-            let target_files: String = row.get(3)?;
-            let cluster_tags: String = row.get(5)?;
+        let capsule = stmt
+            .query_row(params![tenant_id, capsule_id.to_string()], |row| {
+                let affected_symbols: String = row.get(2)?;
+                let target_files: String = row.get(3)?;
+                let cluster_tags: String = row.get(5)?;
 
-            let affected_symbols = serde_json::from_str(&affected_symbols)
-                .unwrap_or_default();
-            let target_files = serde_json::from_str(&target_files)
-                .unwrap_or_default();
-            let cluster_tags = serde_json::from_str(&cluster_tags)
-                .unwrap_or_default();
+                let affected_symbols = serde_json::from_str(&affected_symbols).unwrap_or_default();
+                let target_files = serde_json::from_str(&target_files).unwrap_or_default();
+                let cluster_tags = serde_json::from_str(&cluster_tags).unwrap_or_default();
 
-            Ok(CommitmentCapsule {
-                capsule_id: Uuid::parse_str(&row.get::<_, String>(0)?).unwrap(),
-                agent_id: Uuid::parse_str(&row.get::<_, String>(1)?).unwrap(),
-                affected_symbols,
-                target_files,
-                git_diff: row.get(4)?,
-                cluster_tags,
-                created_at: row.get(6)?,
-                capsule_hash: row.get(7)?,
+                Ok(CommitmentCapsule {
+                    capsule_id: Uuid::parse_str(&row.get::<_, String>(0)?).unwrap(),
+                    agent_id: Uuid::parse_str(&row.get::<_, String>(1)?).unwrap(),
+                    affected_symbols,
+                    target_files,
+                    git_diff: row.get(4)?,
+                    cluster_tags,
+                    created_at: row.get(6)?,
+                    capsule_hash: row.get(7)?,
+                })
             })
-        }).map_err(|_| CapsuleDBError::NotFound(capsule_id))?;
+            .map_err(|_| CapsuleDBError::NotFound(capsule_id))?;
 
         Ok(capsule)
     }
@@ -406,7 +405,8 @@ impl MultiRegionDB {
         tenant_id: &str,
         region: &Region,
     ) -> Result<CommitmentCapsule, CapsuleDBError> {
-        let replica_conn = self.replicas
+        let replica_conn = self
+            .replicas
             .get(region)
             .ok_or_else(|| CapsuleDBError::NotFound(capsule_id))?;
 
@@ -417,29 +417,28 @@ impl MultiRegionDB {
              FROM capsules WHERE tenant_id = ?1 AND capsule_id = ?2"
         )?;
 
-        let capsule = stmt.query_row(params![tenant_id, capsule_id.to_string()], |row| {
-            let affected_symbols: String = row.get(2)?;
-            let target_files: String = row.get(3)?;
-            let cluster_tags: String = row.get(5)?;
+        let capsule = stmt
+            .query_row(params![tenant_id, capsule_id.to_string()], |row| {
+                let affected_symbols: String = row.get(2)?;
+                let target_files: String = row.get(3)?;
+                let cluster_tags: String = row.get(5)?;
 
-            let affected_symbols = serde_json::from_str(&affected_symbols)
-                .unwrap_or_default();
-            let target_files = serde_json::from_str(&target_files)
-                .unwrap_or_default();
-            let cluster_tags = serde_json::from_str(&cluster_tags)
-                .unwrap_or_default();
+                let affected_symbols = serde_json::from_str(&affected_symbols).unwrap_or_default();
+                let target_files = serde_json::from_str(&target_files).unwrap_or_default();
+                let cluster_tags = serde_json::from_str(&cluster_tags).unwrap_or_default();
 
-            Ok(CommitmentCapsule {
-                capsule_id: Uuid::parse_str(&row.get::<_, String>(0)?).unwrap(),
-                agent_id: Uuid::parse_str(&row.get::<_, String>(1)?).unwrap(),
-                affected_symbols,
-                target_files,
-                git_diff: row.get(4)?,
-                cluster_tags,
-                created_at: row.get(6)?,
-                capsule_hash: row.get(7)?,
+                Ok(CommitmentCapsule {
+                    capsule_id: Uuid::parse_str(&row.get::<_, String>(0)?).unwrap(),
+                    agent_id: Uuid::parse_str(&row.get::<_, String>(1)?).unwrap(),
+                    affected_symbols,
+                    target_files,
+                    git_diff: row.get(4)?,
+                    cluster_tags,
+                    created_at: row.get(6)?,
+                    capsule_hash: row.get(7)?,
+                })
             })
-        }).map_err(|_| CapsuleDBError::NotFound(capsule_id))?;
+            .map_err(|_| CapsuleDBError::NotFound(capsule_id))?;
 
         Ok(capsule)
     }
@@ -493,7 +492,7 @@ mod tests {
             git_diff: "test diff".to_string(),
             cluster_tags: vec!["test-cluster".to_string()],
             created_at: 1716566400,
-            capsule_hash: format!("sha256-{}", id),  // Unique per ID
+            capsule_hash: format!("sha256-{}", id), // Unique per ID
         }
     }
 
@@ -513,15 +512,30 @@ mod tests {
         db.write_capsule_replicated(&capsule, tenant_id).unwrap();
 
         // Verify write in primary (region A)
-        let primary_read = db.read_capsule(capsule_id, tenant_id).expect("Primary read failed");
-        assert_eq!(primary_read.capsule_id, capsule_id, "Primary capsule ID mismatch");
-        assert_eq!(primary_read.capsule_hash, capsule.capsule_hash, "Hash mismatch in primary");
+        let primary_read = db
+            .read_capsule(capsule_id, tenant_id)
+            .expect("Primary read failed");
+        assert_eq!(
+            primary_read.capsule_id, capsule_id,
+            "Primary capsule ID mismatch"
+        );
+        assert_eq!(
+            primary_read.capsule_hash, capsule.capsule_hash,
+            "Hash mismatch in primary"
+        );
 
         // Verify read from replica (region B) within <100ms (simulated)
-        let replica_read = db.read_from_replica(capsule_id, tenant_id, &region_b)
+        let replica_read = db
+            .read_from_replica(capsule_id, tenant_id, &region_b)
             .expect("Replica read failed");
-        assert_eq!(replica_read.capsule_id, capsule_id, "Replica capsule ID mismatch");
-        assert_eq!(replica_read.capsule_hash, capsule.capsule_hash, "Hash mismatch in replica");
+        assert_eq!(
+            replica_read.capsule_id, capsule_id,
+            "Replica capsule ID mismatch"
+        );
+        assert_eq!(
+            replica_read.capsule_hash, capsule.capsule_hash,
+            "Hash mismatch in replica"
+        );
     }
 
     #[test]
@@ -602,13 +616,22 @@ mod tests {
         assert_eq!(entry_1.operation, "write");
         assert_eq!(entry_1.tenant_id, tenant_id);
         assert!(!entry_1.signature.is_empty(), "Signature must be present");
-        assert!(entry_1.signature.starts_with("sig-"), "Signature must be signed");
+        assert!(
+            entry_1.signature.starts_with("sig-"),
+            "Signature must be signed"
+        );
 
         let entry_2 = &audit_trail[1];
         assert_eq!(entry_2.operation, "write");
-        assert!(!entry_2.signature.is_empty(), "Second entry must have signature");
+        assert!(
+            !entry_2.signature.is_empty(),
+            "Second entry must have signature"
+        );
 
         // Verify ordering by timestamp
-        assert!(entry_1.timestamp <= entry_2.timestamp, "Entries must be in temporal order");
+        assert!(
+            entry_1.timestamp <= entry_2.timestamp,
+            "Entries must be in temporal order"
+        );
     }
 }

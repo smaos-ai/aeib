@@ -1,7 +1,7 @@
-use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 use hmac::{Hmac, Mac};
+use serde::{Deserialize, Serialize};
 use sha2::Sha256;
+use uuid::Uuid;
 
 type HmacSha256 = Hmac<Sha256>;
 
@@ -113,9 +113,11 @@ mod tests {
         let signature = court.sign_decision(&decision, operator_key).unwrap();
 
         assert!(!signature.is_empty());
-        assert!(court
-            .verify_signature(&decision, &signature, operator_key)
-            .unwrap());
+        assert!(
+            court
+                .verify_signature(&decision, &signature, operator_key)
+                .unwrap()
+        );
     }
 
     #[test]
@@ -133,7 +135,9 @@ mod tests {
         let key_b = "secret-key-b";
 
         let signature = court.sign_decision(&decision, key_a).unwrap();
-        let is_valid = court.verify_signature(&decision, &signature, key_b).unwrap();
+        let is_valid = court
+            .verify_signature(&decision, &signature, key_b)
+            .unwrap();
 
         assert!(!is_valid, "Signature should fail with different key");
     }
@@ -154,7 +158,9 @@ mod tests {
 
         // Tamper with decision
         decision.reason = "tampered reason".to_string();
-        let is_valid = court.verify_signature(&decision, &signature, operator_key).unwrap();
+        let is_valid = court
+            .verify_signature(&decision, &signature, operator_key)
+            .unwrap();
 
         assert!(!is_valid, "Signature should fail if decision tampered");
     }
@@ -165,7 +171,12 @@ mod tests {
         let operator_key = "operator-key";
 
         let signed = court
-            .create_signed_decision(true, false, "A is safe, B is unsafe".to_string(), operator_key)
+            .create_signed_decision(
+                true,
+                false,
+                "A is safe, B is unsafe".to_string(),
+                operator_key,
+            )
             .unwrap();
 
         assert!(signed.decision.capsule_a_approved);

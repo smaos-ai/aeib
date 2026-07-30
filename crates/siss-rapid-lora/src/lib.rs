@@ -1,6 +1,6 @@
-use serde::{Serialize, Deserialize};
-use uuid::Uuid;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
+use uuid::Uuid;
 
 /// A request to update LoRA weights with memory pressure consideration
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -36,9 +36,7 @@ pub struct RapidLora {
 impl RapidLora {
     /// Create a new RapidLora instance with the specified pressure limit
     pub fn new(pressure_limit_pct: f64) -> Self {
-        RapidLora {
-            pressure_limit_pct,
-        }
+        RapidLora { pressure_limit_pct }
     }
 
     /// Process a LoRA update request

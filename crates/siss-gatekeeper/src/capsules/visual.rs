@@ -2,7 +2,6 @@
 /// Part of the 6-capsule Merkle-linked Unified Integrity Pipeline.
 /// Accepts image bytes, verifies cryptographically, produces a MerkleProof.
 /// Covenant-aligned: deterministic proofs, concurrent-safe, fail-closed on empty input.
-
 use sha2::{Digest, Sha256};
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
@@ -113,10 +112,7 @@ impl VisualGembaCapsule {
     /// Return the confidence score from the most recent verification.
     /// Returns 0.0 if no verification has been performed yet.
     pub fn get_confidence(&self) -> f64 {
-        self.state
-            .lock()
-            .map(|s| s.last_confidence)
-            .unwrap_or(0.0)
+        self.state.lock().map(|s| s.last_confidence).unwrap_or(0.0)
     }
 }
 

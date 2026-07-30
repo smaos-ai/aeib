@@ -1,18 +1,14 @@
 /// Phase 73 Integration Tests: Cycle Healing Determinism
 /// Verify that analyze_cycle() and heal_cycle() produce deterministic results
 /// when the same input is run multiple times or in different orders.
-
-use siss_graph_db::repo::{cycle_healing_repo, cross_sovereign_delegation_repo};
+use siss_graph_db::repo::{cross_sovereign_delegation_repo, cycle_healing_repo};
 use sqlx::postgres::PgPoolOptions;
 use testcontainers::core::WaitFor;
 use testcontainers::runners::AsyncRunner;
 use testcontainers::{GenericImage, ImageExt};
 use uuid::Uuid;
 
-async fn setup_postgres() -> (
-    testcontainers::ContainerAsync<GenericImage>,
-    sqlx::PgPool,
-) {
+async fn setup_postgres() -> (testcontainers::ContainerAsync<GenericImage>, sqlx::PgPool) {
     let container = GenericImage::new("postgres", "16")
         .with_wait_for(WaitFor::message_on_stderr(
             "database system is ready to accept connections",
@@ -95,9 +91,7 @@ async fn insert_grant(
     .expect("insert grant")
 }
 
-async fn setup_cycle_determinism(
-    pool: &sqlx::PgPool,
-) -> (Uuid, Uuid, Uuid) {
+async fn setup_cycle_determinism(pool: &sqlx::PgPool) -> (Uuid, Uuid, Uuid) {
     // Create 3-node cycle: A→B→C→A
     let a = Uuid::new_v4();
     let b = Uuid::new_v4();
@@ -170,11 +164,7 @@ async fn test_determinism_with_shuffled_node_order() {
         .expect("build graph");
 
     // Test 3 different orderings of the same cycle
-    let orderings = vec![
-        vec![a, b, c],
-        vec![b, c, a],
-        vec![c, a, b],
-    ];
+    let orderings = vec![vec![a, b, c], vec![b, c, a], vec![c, a, b]];
 
     let mut results = Vec::new();
     for cycle_nodes in orderings {
@@ -220,11 +210,9 @@ async fn test_2_node_cycle_tiebreaker_db() {
         .await
         .expect("build graph");
 
-    let cycle = siss_graph_db::repo::cycle_forensics::ReputationCycle::analyze_cycle(
-        vec![a, b],
-        &graph,
-    )
-    .expect("analyze cycle");
+    let cycle =
+        siss_graph_db::repo::cycle_forensics::ReputationCycle::analyze_cycle(vec![a, b], &graph)
+            .expect("analyze cycle");
 
     assert_eq!(cycle.weakest_link_ceiling, 100);
 
@@ -266,22 +254,19 @@ async fn test_fully_tied_10_node_cycle() {
         .expect("build graph");
 
     // All edges same ceiling; tiebreaker determines winner
-    let cycle = siss_graph_db::repo::cycle_forensics::ReputationCycle::analyze_cycle(
-        nodes.clone(),
-        &graph,
-    )
-    .expect("analyze cycle");
+    let cycle =
+        siss_graph_db::repo::cycle_forensics::ReputationCycle::analyze_cycle(nodes.clone(), &graph)
+            .expect("analyze cycle");
 
     assert_eq!(cycle.weakest_link_ceiling, 75);
 
     // Verify determinism
     for _ in 0..3 {
-        let cycle_repeat =
-            siss_graph_db::repo::cycle_forensics::ReputationCycle::analyze_cycle(
-                nodes.clone(),
-                &graph,
-            )
-            .expect("analyze cycle");
+        let cycle_repeat = siss_graph_db::repo::cycle_forensics::ReputationCycle::analyze_cycle(
+            nodes.clone(),
+            &graph,
+        )
+        .expect("analyze cycle");
 
         assert_eq!(
             cycle_repeat.weakest_link_id, cycle.weakest_link_id,
@@ -382,6 +367,9 @@ async fn test_concurrent_analysis_10_parallel() {
             result.weakest_link_ceiling, results[0].weakest_link_ceiling,
             "Ceiling should be identical"
         );
-        assert_eq!(result.severity, results[0].severity, "Severity should be identical");
+        assert_eq!(
+            result.severity, results[0].severity,
+            "Severity should be identical"
+        );
     }
 }

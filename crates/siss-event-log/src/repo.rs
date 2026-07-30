@@ -20,8 +20,8 @@ impl EventLog {
         event: SystemEvent,
     ) -> Result<EventId, LogError> {
         let event_id = Uuid::new_v4();
-        let payload = serde_json::to_value(&event)
-            .map_err(|e| LogError::DatabaseError(e.to_string()))?;
+        let payload =
+            serde_json::to_value(&event).map_err(|e| LogError::DatabaseError(e.to_string()))?;
 
         sqlx::query(
             "INSERT INTO event_log (id, job_id, event_type, payload, created_at)
@@ -103,7 +103,6 @@ impl EventLog {
 
 #[cfg(test)]
 mod tests {
-    
 
     #[tokio::test]
     async fn test_append_event_succeeds() {

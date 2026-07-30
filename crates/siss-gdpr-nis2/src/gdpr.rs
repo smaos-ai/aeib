@@ -2,7 +2,12 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum DataRegion { EuEea, Us, Ch, Other }
+pub enum DataRegion {
+    EuEea,
+    Us,
+    Ch,
+    Other,
+}
 
 pub struct DataResidencyPolicy {
     pub allowed_regions: Vec<DataRegion>,
@@ -11,7 +16,10 @@ pub struct DataResidencyPolicy {
 
 impl DataResidencyPolicy {
     pub fn new(allowed_regions: Vec<DataRegion>, dpia_required: bool) -> Self {
-        Self { allowed_regions, dpia_required }
+        Self {
+            allowed_regions,
+            dpia_required,
+        }
     }
 
     pub fn enforce(&self, data_location: DataRegion) -> Result<(), String> {
@@ -27,7 +35,11 @@ impl DataResidencyPolicy {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum DsarType { AccessRequest, ErasureRequest, ExportRequest }
+pub enum DsarType {
+    AccessRequest,
+    ErasureRequest,
+    ExportRequest,
+}
 
 pub struct DsarRequest {
     pub subject_id: Uuid,

@@ -27,7 +27,14 @@ impl TmuxSession {
     /// Spawn a new tmux session for the job (TDD stub)
     pub async fn spawn(&self, working_dir: &str) -> Result<()> {
         let output = Command::new("tmux")
-            .args(&["new-session", "-d", "-s", &self.session_name, "-c", working_dir])
+            .args(&[
+                "new-session",
+                "-d",
+                "-s",
+                &self.session_name,
+                "-c",
+                working_dir,
+            ])
             .output()
             .await
             .map_err(|e| DispatchError::ProcessError(format!("tmux spawn failed: {}", e)))?;

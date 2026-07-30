@@ -1,6 +1,5 @@
 /// Phase 29: Lean 4 Formal Verification & Skills 2.0
 /// RED phase: Failing tests for SKILL.md parsing, Goal-Driven Execution limits, formal verification
-
 use serde::{Deserialize, Serialize};
 
 /// SKILL.md Payload — Declarative skill specification
@@ -44,8 +43,8 @@ impl ExecutionContext {
 
     /// Parse and validate SKILL.md payload
     pub fn parse_skill_payload(payload: &str) -> Result<SkillPayload, ParseError> {
-        let parsed: serde_json::Value = serde_json::from_str(payload)
-            .map_err(|_| ParseError::InvalidJson)?;
+        let parsed: serde_json::Value =
+            serde_json::from_str(payload).map_err(|_| ParseError::InvalidJson)?;
 
         let name = parsed
             .get("name")

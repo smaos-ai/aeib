@@ -35,7 +35,8 @@ fn predict_contention(counters: &[u64; 3], thermal_slope: f64, unified_mem: f64)
     }
 
     // Algorithmic hardware-pressure prediction
-    let pressure_score = (counters[0] as f64 * 0.4) + ((counters[1] as f64 + counters[2] as f64) * 0.6);
+    let pressure_score =
+        (counters[0] as f64 * 0.4) + ((counters[1] as f64 + counters[2] as f64) * 0.6);
     pressure_score > 15_000.0 // Threshold mapped from 2W telemetry baseline
 }
 
@@ -59,7 +60,11 @@ mod tests {
             ctx.instructions_retired.load(Ordering::SeqCst),
         ];
 
-        assert!(predict_contention(&counters, ctx.thermal_slope, ctx.unified_mem_utilization));
+        assert!(predict_contention(
+            &counters,
+            ctx.thermal_slope,
+            ctx.unified_mem_utilization
+        ));
     }
 
     #[test]
@@ -78,7 +83,11 @@ mod tests {
             ctx.instructions_retired.load(Ordering::SeqCst),
         ];
 
-        assert!(!predict_contention(&counters, ctx.thermal_slope, ctx.unified_mem_utilization));
+        assert!(!predict_contention(
+            &counters,
+            ctx.thermal_slope,
+            ctx.unified_mem_utilization
+        ));
     }
 
     #[test]
@@ -93,6 +102,10 @@ mod tests {
         };
 
         let counters = [0, 0, 0];
-        assert!(!predict_contention(&counters, ctx.thermal_slope, ctx.unified_mem_utilization));
+        assert!(!predict_contention(
+            &counters,
+            ctx.thermal_slope,
+            ctx.unified_mem_utilization
+        ));
     }
 }

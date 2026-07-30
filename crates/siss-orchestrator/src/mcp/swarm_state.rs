@@ -1,6 +1,6 @@
-use uuid::Uuid;
+use crate::{AgentBinaryTree, KalmanState};
 use serde::{Deserialize, Serialize};
-use crate::{KalmanState, AgentBinaryTree};
+use uuid::Uuid;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SwarmState {

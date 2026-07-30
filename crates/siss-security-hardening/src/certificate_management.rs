@@ -1,7 +1,7 @@
 use chrono::{DateTime, Duration, Utc};
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use rand::Rng;
 
 #[derive(Debug, Clone, Error)]
 pub enum CertificateError {
@@ -20,14 +20,14 @@ pub enum CertificateError {
 /// X.509 Certificate representation
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Certificate {
-    pub subject: String,           // CN (Common Name)
-    pub issuer: String,            // Certificate issuer
+    pub subject: String, // CN (Common Name)
+    pub issuer: String,  // Certificate issuer
     pub not_before: DateTime<Utc>,
     pub not_after: DateTime<Utc>,
     pub serial_number: String,
     pub public_key: Vec<u8>,
     pub signature: Vec<u8>,
-    pub extensions: Vec<String>,   // SAN (Subject Alternative Names)
+    pub extensions: Vec<String>, // SAN (Subject Alternative Names)
 }
 
 impl Certificate {
@@ -71,11 +71,11 @@ impl Certificate {
 /// TLS Configuration with certificate pinning
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct TLSConfig {
-    pub tls_version: String,           // "1.3" or "1.2"
-    pub enable_mtls: bool,             // Mutual TLS
-    pub certificate_pinning: bool,     // Certificate pinning enabled
+    pub tls_version: String,              // "1.3" or "1.2"
+    pub enable_mtls: bool,                // Mutual TLS
+    pub certificate_pinning: bool,        // Certificate pinning enabled
     pub pinned_certificates: Vec<String>, // SHA256 hashes of pinned certs
-    pub cipher_suites: Vec<String>,    // Allowed cipher suites
+    pub cipher_suites: Vec<String>,       // Allowed cipher suites
 }
 
 impl TLSConfig {
@@ -159,7 +159,8 @@ impl CertificateManager {
     pub fn store_certificate(&self, cert: Certificate) -> Result<(), CertificateError> {
         cert.is_valid()?;
 
-        let mut certs = self.issued_certificates
+        let mut certs = self
+            .issued_certificates
             .lock()
             .map_err(|e| CertificateError::InvalidCertificate(e.to_string()))?;
         certs.push(cert);
@@ -169,7 +170,8 @@ impl CertificateManager {
 
     /// Get a certificate by subject
     pub fn get_certificate(&self, subject: &str) -> Result<Certificate, CertificateError> {
-        let certs = self.issued_certificates
+        let certs = self
+            .issued_certificates
             .lock()
             .map_err(|e| CertificateError::InvalidCertificate(e.to_string()))?;
 
@@ -204,7 +206,7 @@ impl CertificateManager {
 
     /// Compute SHA256 hash of certificate (for pinning)
     pub fn compute_certificate_hash(&self, cert: &Certificate) -> String {
-        use sha2::{Sha256, Digest};
+        use sha2::{Digest, Sha256};
 
         let mut hasher = Sha256::new();
         hasher.update(cert.subject.as_bytes());

@@ -1,8 +1,14 @@
 use sqlx::PgPool;
 
 const MIGRATIONS: &[(&str, &str)] = &[
-    ("001_create_event_log", include_str!("001_create_event_log.sql")),
-    ("002_add_immutability_trigger", include_str!("002_add_immutability_trigger.sql")),
+    (
+        "001_create_event_log",
+        include_str!("001_create_event_log.sql"),
+    ),
+    (
+        "002_add_immutability_trigger",
+        include_str!("002_add_immutability_trigger.sql"),
+    ),
 ];
 
 pub async fn run_all(pool: &PgPool) -> Result<(), sqlx::Error> {

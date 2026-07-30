@@ -1,8 +1,8 @@
+use crate::llm_wiki_v2::{ProceduralMemory, SemanticFact};
 use chrono::{DateTime, Utc};
-use serde::{Serialize, Deserialize};
-use uuid::Uuid;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::llm_wiki_v2::{SemanticFact, ProceduralMemory};
+use uuid::Uuid;
 
 /// Phase 81: Night Cycle Evolution Engine
 /// Autonomous hypothesis generation from consolidated memories.
@@ -131,7 +131,10 @@ impl NightCycleEngine {
         let matching_facts: Vec<&SemanticFact> = facts
             .iter()
             .filter(|f| {
-                template.facts_required.iter().any(|req| f.fact.contains(req.as_str()))
+                template
+                    .facts_required
+                    .iter()
+                    .any(|req| f.fact.contains(req.as_str()))
             })
             .collect();
 
@@ -271,7 +274,10 @@ mod tests {
         let facts = vec![test_fact("caller_pattern: maybe", 0.50)];
 
         let hypotheses = engine.generate_hypotheses(&facts, &[]);
-        assert!(hypotheses.is_empty(), "Low confidence facts should not generate hypotheses");
+        assert!(
+            hypotheses.is_empty(),
+            "Low confidence facts should not generate hypotheses"
+        );
     }
 
     #[test]

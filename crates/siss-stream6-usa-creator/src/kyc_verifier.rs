@@ -86,11 +86,7 @@ impl KYCVerifier {
     }
 
     /// Update KYC status for a creator.
-    pub fn update_kyc_status(
-        &self,
-        creator_id: Uuid,
-        status: KYCStatus,
-    ) -> Stream6Result<()> {
+    pub fn update_kyc_status(&self, creator_id: Uuid, status: KYCStatus) -> Stream6Result<()> {
         if let Some(mut record) = self.cache.get_mut(&creator_id) {
             record.status = status;
             if status == KYCStatus::Verified {

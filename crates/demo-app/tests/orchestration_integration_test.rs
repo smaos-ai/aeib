@@ -3,14 +3,13 @@
 /// Comprehensive test suite verifying 5 concurrent agents work without conflicts.
 /// Tests cover: independent tasks, dependency chains, concurrent writes, conflict detection,
 /// failure recovery, merge ordering, and end-to-end orchestration.
-
 use demo_app::models::{MemoryTier, MemoryWrite};
 use demo_app::orchestration::Agent;
 use std::collections::HashMap;
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::Arc;
 use std::sync::Mutex;
+use std::sync::atomic::{AtomicU32, Ordering};
 
 // ============================================================================
 // SHARED TEST UTILITIES & FIXTURES
@@ -373,18 +372,18 @@ async fn test_concurrent_writes_different_files_no_conflicts() {
                 &format!("write-nonce-{}", agent_id),
             );
 
-            if let Ok(()) = demo_app::orchestration::Agent::validate_and_commit(
-                &create_memory_write(&task),
-            ) {
+            if let Ok(()) =
+                demo_app::orchestration::Agent::validate_and_commit(&create_memory_write(&task))
+            {
                 queue.mark_completed(&task.id);
                 results
                     .lock()
                     .unwrap()
                     .insert(format!("write-task-{}", agent_id), "written".to_string());
-                writes.lock().unwrap().insert(
-                    format!("file-{}.rs", agent_id),
-                    agent_id as u32,
-                );
+                writes
+                    .lock()
+                    .unwrap()
+                    .insert(format!("file-{}.rs", agent_id), agent_id as u32);
             }
         });
         handles.push(handle);
@@ -463,7 +462,11 @@ async fn test_concurrent_writes_same_file_conflict_detection() {
     );
 
     // All writes attempted, but conflicts occurred
-    assert_eq!(harness.queue.completed_count(), 5, "All write attempts recorded");
+    assert_eq!(
+        harness.queue.completed_count(),
+        5,
+        "All write attempts recorded"
+    );
 }
 
 // ============================================================================
@@ -640,9 +643,7 @@ async fn test_end_to_end_queue_dispatch_execute_merge_verify() {
             }
 
             // Merge phase
-            mo.lock()
-                .unwrap()
-                .push(format!("e2e-agent-{}", agent_id));
+            mo.lock().unwrap().push(format!("e2e-agent-{}", agent_id));
         });
         handles.push(handle);
     }
@@ -734,10 +735,8 @@ fn verify_checklist_no_merge_conflicts() {
 fn verify_checklist_dependencies_respected() {
     // Create tasks with dependencies
     let task_a = Task::new("a", "agent", "A", "nonce-a");
-    let task_b = Task::new("b", "agent", "B", "nonce-b")
-        .with_dependencies(vec!["a".to_string()]);
-    let task_c = Task::new("c", "agent", "C", "nonce-c")
-        .with_dependencies(vec!["b".to_string()]);
+    let task_b = Task::new("b", "agent", "B", "nonce-b").with_dependencies(vec!["a".to_string()]);
+    let task_c = Task::new("c", "agent", "C", "nonce-c").with_dependencies(vec!["b".to_string()]);
 
     assert_eq!(task_b.dependencies, vec!["a".to_string()]);
     assert_eq!(task_c.dependencies, vec!["b".to_string()]);
@@ -792,8 +791,7 @@ fn verify_checklist_merged_code_works() {
     }
 
     assert_eq!(
-        module_count,
-        5,
+        module_count, 5,
         "All 5 merged modules must be present and valid"
     );
 }
@@ -875,21 +873,23 @@ async fn test_parallel_performance_vs_sequential() {
 async fn test_failure_scenario_agent_timeout() {
     let queue = TaskQueue::new();
 
-    let task = Task::new("timeout-task", "timeout-agent", "Will timeout", "timeout-nonce");
+    let task = Task::new(
+        "timeout-task",
+        "timeout-agent",
+        "Will timeout",
+        "timeout-nonce",
+    );
     queue.push(task);
 
     let queue_clone = queue.clone();
     let handle = tokio::spawn(async move {
         // Simulate timeout with very short duration
-        let timeout = tokio::time::timeout(
-            tokio::time::Duration::from_millis(10),
-            async {
-                tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
-                if let Some(task) = queue_clone.pop() {
-                    queue_clone.mark_completed(&task.id);
-                }
-            },
-        );
+        let timeout = tokio::time::timeout(tokio::time::Duration::from_millis(10), async {
+            tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+            if let Some(task) = queue_clone.pop() {
+                queue_clone.mark_completed(&task.id);
+            }
+        });
 
         // Timeout should occur
         assert!(
@@ -901,7 +901,11 @@ async fn test_failure_scenario_agent_timeout() {
     let _ = handle.await;
 
     // Task should not be marked complete if timeout occurred
-    assert_eq!(queue.completed_count(), 0, "Timed-out task should not complete");
+    assert_eq!(
+        queue.completed_count(),
+        0,
+        "Timed-out task should not complete"
+    );
 }
 
 #[test]
@@ -921,15 +925,12 @@ fn test_failure_scenario_merge_conflict_recovery() {
             // Conflict detected
             drop(w);
             // Simulate retry with backoff
-            writes
-                .lock()
-                .unwrap()
-                .insert(format!("{}-retry-{}", file_key, a_id), "resolved".to_string());
-        } else {
-            w.insert(
-                file_key.to_string(),
-                format!("content-from-agent-{}", a_id),
+            writes.lock().unwrap().insert(
+                format!("{}-retry-{}", file_key, a_id),
+                "resolved".to_string(),
             );
+        } else {
+            w.insert(file_key.to_string(), format!("content-from-agent-{}", a_id));
         }
     }
 
@@ -1001,12 +1002,12 @@ async fn test_edge_case_circular_dependencies() {
     // Tasks with circular dependencies should not deadlock
     let queue = TaskQueue::new();
 
-    let task_a = Task::new("circ-a", "agent", "A", "nonce-a")
-        .with_dependencies(vec!["circ-c".to_string()]);
-    let task_b = Task::new("circ-b", "agent", "B", "nonce-b")
-        .with_dependencies(vec!["circ-a".to_string()]);
-    let task_c = Task::new("circ-c", "agent", "C", "nonce-c")
-        .with_dependencies(vec!["circ-b".to_string()]);
+    let task_a =
+        Task::new("circ-a", "agent", "A", "nonce-a").with_dependencies(vec!["circ-c".to_string()]);
+    let task_b =
+        Task::new("circ-b", "agent", "B", "nonce-b").with_dependencies(vec!["circ-a".to_string()]);
+    let task_c =
+        Task::new("circ-c", "agent", "C", "nonce-c").with_dependencies(vec!["circ-b".to_string()]);
 
     queue.push(task_a);
     queue.push(task_b);
@@ -1014,19 +1015,16 @@ async fn test_edge_case_circular_dependencies() {
 
     // With circular dependency, no task can execute
     // Pop should eventually return None without deadlock
-    let timeout = tokio::time::timeout(
-        tokio::time::Duration::from_secs(1),
-        async {
-            let mut attempts = 0;
-            loop {
-                if queue.pop().is_none() && attempts > 10 {
-                    break;
-                }
-                attempts += 1;
-                tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
+    let timeout = tokio::time::timeout(tokio::time::Duration::from_secs(1), async {
+        let mut attempts = 0;
+        loop {
+            if queue.pop().is_none() && attempts > 10 {
+                break;
             }
-        },
-    );
+            attempts += 1;
+            tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
+        }
+    });
 
     // Should not timeout despite circular dependency
     assert!(
@@ -1098,7 +1096,10 @@ fn test_agent_orchestration_l2_semantic_commit() {
     // Result depends on database availability, but structure should be valid
     match result {
         Ok(msg) => {
-            assert!(msg.contains("Committed"), "Success message should contain 'Committed'");
+            assert!(
+                msg.contains("Committed"),
+                "Success message should contain 'Committed'"
+            );
         }
         Err(e) => {
             // Expected if DB not available in test environment

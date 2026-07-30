@@ -1,6 +1,6 @@
-use uuid::Uuid;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::time::Instant;
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SSEPayload {
@@ -76,8 +76,8 @@ impl SSERouter {
     }
 
     pub fn emit_to_stream(&self, payload: SSEPayload) -> Result<String, String> {
-        let serialized = serde_json::to_string(&payload)
-            .map_err(|e| format!("Serialization failed: {}", e))?;
+        let serialized =
+            serde_json::to_string(&payload).map_err(|e| format!("Serialization failed: {}", e))?;
         Ok(format!("data: {}\n\n", serialized))
     }
 
@@ -251,9 +251,7 @@ mod tests {
         let agent_id = sovereign(1);
         let task_id = Uuid::new_v4();
 
-        let phases = vec![
-            ("ReBAC".to_string(), "Allow".to_string(), 2.1),
-        ];
+        let phases = vec![("ReBAC".to_string(), "Allow".to_string(), 2.1)];
 
         let payload = router
             .transform_mandate_to_sse(
@@ -284,9 +282,7 @@ mod tests {
         ];
 
         for (phase, reason) in denials {
-            let phases = vec![
-                (phase.to_string(), "Deny".to_string(), 5.0),
-            ];
+            let phases = vec![(phase.to_string(), "Deny".to_string(), 5.0)];
 
             let payload = router
                 .transform_mandate_to_sse(

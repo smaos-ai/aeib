@@ -1,7 +1,6 @@
 /// Region Down Scenario: Simulates primary region becoming unavailable
 /// Triggers failover to secondary region
 /// Tests: RTO < 5 seconds, RPO = 0 (no data loss)
-
 use std::time::Instant;
 
 pub struct RegionDownScenario {
@@ -73,7 +72,11 @@ mod tests {
         assert!(result.success);
 
         // Verify RTO < 5 seconds
-        assert!(result.total_rto_ms < 5000, "RTO exceeded 5s: {}ms", result.total_rto_ms);
+        assert!(
+            result.total_rto_ms < 5000,
+            "RTO exceeded 5s: {}ms",
+            result.total_rto_ms
+        );
 
         // Verify no data loss (RPO = 0)
         assert_eq!(result.data_loss_bytes, 0);

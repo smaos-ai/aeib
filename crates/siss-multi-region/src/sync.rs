@@ -1,9 +1,9 @@
-use std::time::{Duration, Instant};
+use crate::errors::{MultiRegionError, MultiRegionResult};
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use std::time::{Duration, Instant};
 use tokio::sync::RwLock;
 use uuid::Uuid;
-use serde::{Deserialize, Serialize};
-use crate::errors::{MultiRegionError, MultiRegionResult};
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum SyncStatus {
@@ -164,9 +164,18 @@ impl CapsuleSyncManager {
         let records = self.sync_records.read().await;
 
         let total = records.len();
-        let completed = records.iter().filter(|r| r.status == SyncStatus::Completed).count();
-        let failed = records.iter().filter(|r| r.status == SyncStatus::Failed).count();
-        let in_progress = records.iter().filter(|r| r.status == SyncStatus::InProgress).count();
+        let completed = records
+            .iter()
+            .filter(|r| r.status == SyncStatus::Completed)
+            .count();
+        let failed = records
+            .iter()
+            .filter(|r| r.status == SyncStatus::Failed)
+            .count();
+        let in_progress = records
+            .iter()
+            .filter(|r| r.status == SyncStatus::InProgress)
+            .count();
 
         let avg_duration_ms = if completed > 0 {
             let total_duration: u64 = records
@@ -263,7 +272,12 @@ mod tests {
         let capsule_id = Uuid::new_v4();
 
         let result = manager
-            .initiate_sync(capsule_id, "prague".to_string(), "frankfurt".to_string(), 1000)
+            .initiate_sync(
+                capsule_id,
+                "prague".to_string(),
+                "frankfurt".to_string(),
+                1000,
+            )
             .await;
 
         assert!(result.is_ok());
@@ -278,7 +292,12 @@ mod tests {
         let capsule_id = Uuid::new_v4();
 
         let record = manager
-            .initiate_sync(capsule_id, "prague".to_string(), "frankfurt".to_string(), 1000)
+            .initiate_sync(
+                capsule_id,
+                "prague".to_string(),
+                "frankfurt".to_string(),
+                1000,
+            )
             .await
             .unwrap();
 
@@ -298,17 +317,32 @@ mod tests {
         let capsule3 = Uuid::new_v4();
 
         manager
-            .initiate_sync(capsule1, "prague".to_string(), "frankfurt".to_string(), 1000)
+            .initiate_sync(
+                capsule1,
+                "prague".to_string(),
+                "frankfurt".to_string(),
+                1000,
+            )
             .await
             .unwrap();
 
         manager
-            .initiate_sync(capsule2, "prague".to_string(), "frankfurt".to_string(), 1000)
+            .initiate_sync(
+                capsule2,
+                "prague".to_string(),
+                "frankfurt".to_string(),
+                1000,
+            )
             .await
             .unwrap();
 
         let result = manager
-            .initiate_sync(capsule3, "prague".to_string(), "frankfurt".to_string(), 1000)
+            .initiate_sync(
+                capsule3,
+                "prague".to_string(),
+                "frankfurt".to_string(),
+                1000,
+            )
             .await;
 
         assert!(result.is_err());
@@ -320,7 +354,12 @@ mod tests {
         let capsule_id = Uuid::new_v4();
 
         let record = manager
-            .initiate_sync(capsule_id, "prague".to_string(), "frankfurt".to_string(), 5000)
+            .initiate_sync(
+                capsule_id,
+                "prague".to_string(),
+                "frankfurt".to_string(),
+                5000,
+            )
             .await
             .unwrap();
 
@@ -338,7 +377,12 @@ mod tests {
         let capsule_id = Uuid::new_v4();
 
         manager
-            .initiate_sync(capsule_id, "prague".to_string(), "frankfurt".to_string(), 1000)
+            .initiate_sync(
+                capsule_id,
+                "prague".to_string(),
+                "frankfurt".to_string(),
+                1000,
+            )
             .await
             .unwrap();
 

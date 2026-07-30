@@ -1,8 +1,8 @@
 //! Task queue management with dependency tracking and persistence
 
+use crate::Result;
 use crate::lock::FileLock;
 use crate::types::{Id, Task, TaskStatus};
-use crate::Result;
 use std::collections::{HashMap, VecDeque};
 use std::path::Path;
 use std::time::Duration;
@@ -57,8 +57,7 @@ impl TaskQueue {
 
     /// Save queue to file
     pub async fn save(&self) -> Result<()> {
-        let _lock =
-            FileLock::acquire(&self.lock_path, Duration::from_secs(5)).await?;
+        let _lock = FileLock::acquire(&self.lock_path, Duration::from_secs(5)).await?;
 
         let tasks: Vec<_> = self.tasks.iter().cloned().collect();
         let content = serde_json::to_string_pretty(&tasks)?;
@@ -113,9 +112,7 @@ impl TaskQueue {
 
     /// Get task by ID
     pub fn get(&self, id: Id) -> Option<&Task> {
-        self.by_id
-            .get(&id)
-            .and_then(|idx| self.tasks.get(*idx))
+        self.by_id.get(&id).and_then(|idx| self.tasks.get(*idx))
     }
 
     /// Update task status

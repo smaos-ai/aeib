@@ -1,14 +1,13 @@
+use futures::future::join_all;
 /// Phase 29 Integration Test Suite — Inbound Pipeline & TaskContext Wiring
 ///
 /// TDD Red Phase: All 6 tests verify that the cartographic operators (σ, ϕ, π⁺)
 /// are correctly applied before data enters TaskContext, and the wiring from
 /// AgentSession → RoutingRequest → TaskContext preserves zonal information.
-
 use siss_context_cartography::inbound::{apply_inbound_pipeline, project_to_task_context};
 use siss_context_cartography::types::MemoryEntry;
 use siss_graph_core::node::memory::ConsolidationTier;
 use uuid::Uuid;
-use futures::future::join_all;
 
 // ============================================================================
 // TEST UTILITIES
@@ -37,9 +36,7 @@ fn test_apply_inbound_pipeline_all_operators_in_sequence() {
         make_entry("visible1", 0.9, ConsolidationTier::Semantic),
         make_entry("visible2", 0.9, ConsolidationTier::Semantic),
     ];
-    let above_gray = vec![
-        make_entry("gray1", 0.8, ConsolidationTier::Semantic),
-    ];
+    let above_gray = vec![make_entry("gray1", 0.8, ConsolidationTier::Semantic)];
 
     let mut all_candidates = below_threshold;
     all_candidates.extend(above_visible.clone());
@@ -47,9 +44,16 @@ fn test_apply_inbound_pipeline_all_operators_in_sequence() {
 
     let map = apply_inbound_pipeline(all_candidates, above_visible, 0.1, 10000, 4);
 
-    assert_eq!(map.visible.len(), 2, "σ/ϕ: only above-threshold + budgeted entries");
+    assert_eq!(
+        map.visible.len(),
+        2,
+        "σ/ϕ: only above-threshold + budgeted entries"
+    );
     assert_eq!(map.gray_fog.len(), 1, "ϕ: budget-cut entries in gray fog");
-    assert_eq!(map.black_fog_count, 2, "σ: below-threshold entries in black fog");
+    assert_eq!(
+        map.black_fog_count, 2,
+        "σ: below-threshold entries in black fog"
+    );
 }
 
 #[test]
@@ -66,7 +70,10 @@ fn test_project_to_task_context_serializes_zonal_map() {
     assert!(json.is_object(), "projected value must be a JSON object");
     let obj = json.as_object().unwrap();
     assert!(obj.contains_key("visible"), "JSON must have 'visible' key");
-    assert!(obj.contains_key("black_fog_count"), "JSON must have 'black_fog_count' key");
+    assert!(
+        obj.contains_key("black_fog_count"),
+        "JSON must have 'black_fog_count' key"
+    );
 
     // Verify round-trip: deserialize back and check counts
     if let Ok(deserialized) = serde_json::from_value::<serde_json::Value>(json.clone()) {
@@ -96,11 +103,7 @@ fn test_no_below_threshold_entry_enters_visible_field() {
 
     let map = apply_inbound_pipeline(all_candidates, above, 0.1, 10000, 4);
 
-    assert_eq!(
-        map.visible.len(),
-        2,
-        "only above-threshold entries visible"
-    );
+    assert_eq!(map.visible.len(), 2, "only above-threshold entries visible");
     assert_eq!(
         map.black_fog_count, 3,
         "σ operator filters all below-threshold to black fog"
@@ -136,12 +139,10 @@ fn test_no_budget_overflow_enters_visible_field() {
 
 #[test]
 fn test_routing_request_carries_zonal_context() {
-    use siss_job_router::types::RoutingRequest;
     use siss_graph_core::node::NodeId;
+    use siss_job_router::types::RoutingRequest;
 
-    let entries = vec![
-        make_entry("task_entry", 0.9, ConsolidationTier::Semantic),
-    ];
+    let entries = vec![make_entry("task_entry", 0.9, ConsolidationTier::Semantic)];
     let map = apply_inbound_pipeline(entries.clone(), entries, 0.1, 1000, 1);
     let zonal_json = project_to_task_context(&map);
 
@@ -155,8 +156,7 @@ fn test_routing_request_carries_zonal_context() {
 
     // Serialize and deserialize to verify serde round-trip
     let json_str = serde_json::to_string(&request).expect("serialize request");
-    let restored: RoutingRequest =
-        serde_json::from_str(&json_str).expect("deserialize request");
+    let restored: RoutingRequest = serde_json::from_str(&json_str).expect("deserialize request");
 
     assert!(
         restored.zonal_context.is_some(),

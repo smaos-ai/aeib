@@ -1,5 +1,5 @@
-use uuid::Uuid;
 use std::time::SystemTime;
+use uuid::Uuid;
 
 #[derive(Debug, Clone)]
 pub struct AgentMetadata {

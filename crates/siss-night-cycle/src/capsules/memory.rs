@@ -52,7 +52,9 @@ impl MemoryCapsule {
 
         // Detect state drift: duplicate hash in snapshots
         for existing in &state.snapshots {
-            if existing.state_hash == snapshot.state_hash && existing.timestamp != snapshot.timestamp {
+            if existing.state_hash == snapshot.state_hash
+                && existing.timestamp != snapshot.timestamp
+            {
                 return Err(CapsuleError::DriftDetected);
             }
         }

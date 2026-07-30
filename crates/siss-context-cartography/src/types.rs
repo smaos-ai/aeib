@@ -15,9 +15,9 @@ pub struct CartographyRequest {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AffectiveSignature {
-    pub valence: f64,              // [-1.0, +1.0] negative=threat, positive=opportunity
-    pub arousal: f64,              // [0.0, 1.0] activation intensity
-    pub sovereign_relevance: f64,  // [0.0, 1.0] alignment to user's core values
+    pub valence: f64,             // [-1.0, +1.0] negative=threat, positive=opportunity
+    pub arousal: f64,             // [0.0, 1.0] activation intensity
+    pub sovereign_relevance: f64, // [0.0, 1.0] alignment to user's core values
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -1,11 +1,10 @@
 /// OmniRoute: top-level orchestrator combining saliency routing, budget enforcement, and verification.
 /// Implements fail-closed semantics: on SLM output validation failure, deterministically escalate to frontier LLM.
-
 use crate::attention_budget::BudgetError;
-use crate::routing_engine::RoutingDecision;
-use crate::verification_gate::VerifiedOutput;
 use crate::cipo::CipoTrace;
 use crate::confidence_scorer::RoutingTier;
+use crate::routing_engine::RoutingDecision;
+use crate::verification_gate::VerifiedOutput;
 use chrono::Utc;
 use thiserror::Error;
 
@@ -39,8 +38,7 @@ impl OmniRoute {
     ) -> Result<VerifiedOutput, OmniRouteError> {
         // Execute on primary tier
         let result = crate::routing_engine::RoutingEngine::execute_with_fallback_simulation(
-            decision,
-            None,  // no failure injection in production path
+            decision, None, // no failure injection in production path
         )
         .map_err(|_| OmniRouteError::FrontierFailed)?;
 
@@ -67,11 +65,12 @@ impl OmniRoute {
                     reason: "slm_gate_failure_escalation".to_string(),
                 };
 
-                let frontier_result = crate::routing_engine::RoutingEngine::execute_with_fallback_simulation(
-                    &frontier_decision,
-                    None,
-                )
-                .map_err(|_| OmniRouteError::FrontierFailed)?;
+                let frontier_result =
+                    crate::routing_engine::RoutingEngine::execute_with_fallback_simulation(
+                        &frontier_decision,
+                        None,
+                    )
+                    .map_err(|_| OmniRouteError::FrontierFailed)?;
 
                 // Trust frontier result without re-verification (fail-closed: frontier is authoritative)
                 Ok(VerifiedOutput {
@@ -89,8 +88,8 @@ impl OmniRoute {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::routing_engine::RoutingDecision;
     use crate::confidence_scorer::RoutingTier;
+    use crate::routing_engine::RoutingDecision;
 
     #[test]
     fn test_omni_route_success() {

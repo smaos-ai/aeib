@@ -1,6 +1,6 @@
-use std::time::Instant;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+use std::time::Instant;
 
 /// Result of a single safety gate validation
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -25,24 +25,26 @@ impl SafetyGateValidator {
     pub fn new() -> Self {
         Self {
             // XSS patterns: <script>, javascript:, onerror, etc.
-            xss_regex: Regex::new(
-                r"(?i)<script|javascript:|onerror|onload|<iframe|<embed|<object"
-            ).unwrap(),
+            xss_regex: Regex::new(r"(?i)<script|javascript:|onerror|onload|<iframe|<embed|<object")
+                .unwrap(),
 
             // SQL injection patterns: UNION, DROP, INSERT, etc.
             sql_regex: Regex::new(
-                r"(?i)union\s+select|drop\s+table|insert\s+into|delete\s+from|\bor\b\s*1\s*=\s*1"
-            ).unwrap(),
+                r"(?i)union\s+select|drop\s+table|insert\s+into|delete\s+from|\bor\b\s*1\s*=\s*1",
+            )
+            .unwrap(),
 
             // Prompt injection patterns: "ignore previous", "disregard", etc.
             injection_regex: Regex::new(
-                r"(?i)ignore\s+previous|disregard|override|bypass|jailbreak|system\s+prompt"
-            ).unwrap(),
+                r"(?i)ignore\s+previous|disregard|override|bypass|jailbreak|system\s+prompt",
+            )
+            .unwrap(),
 
             // PII patterns: SSN, credit card, etc. (simplified)
             pii_regex: Regex::new(
-                r"\b\d{3}-\d{2}-\d{4}\b|\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b"
-            ).unwrap(),
+                r"\b\d{3}-\d{2}-\d{4}\b|\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b",
+            )
+            .unwrap(),
 
             toxicity_threshold: 0.7, // Toxicity score < 0.7 is safe
         }
@@ -130,9 +132,11 @@ impl SafetyGateValidator {
 
         // Simplified toxicity check: count offensive keywords
         let toxic_keywords = ["hate", "kill", "abuse", "harm"];
-        let toxicity_score = toxic_keywords.iter()
+        let toxicity_score = toxic_keywords
+            .iter()
             .filter(|kw| content.to_lowercase().contains(*kw))
-            .count() as f64 / toxic_keywords.len() as f64;
+            .count() as f64
+            / toxic_keywords.len() as f64;
 
         let passed = toxicity_score < self.toxicity_threshold;
         let latency = start.elapsed().as_micros();
@@ -155,7 +159,8 @@ impl SafetyGateValidator {
 
         // Simplified: check for classified/sensitive keywords
         let classified_keywords = ["classified", "secret", "confidential", "restricted"];
-        let has_classified = classified_keywords.iter()
+        let has_classified = classified_keywords
+            .iter()
             .any(|kw| content.to_lowercase().contains(*kw));
 
         let passed = !has_classified;
@@ -291,7 +296,11 @@ mod tests {
 
         let avg_latency = SafetyGateValidator::avg_latency_micros(&results);
         // P99 SLA: < 50ms = < 50,000 micros (per gate < 10ms average)
-        assert!(avg_latency < 10_000, "Average latency {:.0}µs exceeds 10ms SLA", avg_latency);
+        assert!(
+            avg_latency < 10_000,
+            "Average latency {:.0}µs exceeds 10ms SLA",
+            avg_latency
+        );
     }
 
     #[test]

@@ -201,7 +201,8 @@ impl KalmanState {
 
         match decision {
             RebalanceDecision::Stable => Ok(None),
-            RebalanceDecision::MinorAdjustment { .. } | RebalanceDecision::MajorRebalance { .. } => {
+            RebalanceDecision::MinorAdjustment { .. }
+            | RebalanceDecision::MajorRebalance { .. } => {
                 let cross_chain_cost: f64 = candidate_agents
                     .iter()
                     .map(|id| analyzer.cross_chain_weight(*id, &target_partition))
@@ -220,7 +221,8 @@ impl KalmanState {
                     ));
                 }
 
-                let state_sum = self.x[0].abs() + self.x[1].abs() + self.x[2].abs() + self.x[3].abs();
+                let state_sum =
+                    self.x[0].abs() + self.x[1].abs() + self.x[2].abs() + self.x[3].abs();
 
                 Ok(Some(RebalanceProposal {
                     timestamp: current_time,
@@ -455,8 +457,8 @@ mod tests {
         let mut ks = KalmanState::new();
         ks.x = [2.0, 2.0, 2.0, 2.0];
         let agent_id = Uuid::new_v4();
-        let analyzer = MockImpactAnalyzer::new()
-            .with_chain_weight(agent_id, "partition_b".to_string(), 0.5);
+        let analyzer =
+            MockImpactAnalyzer::new().with_chain_weight(agent_id, "partition_b".to_string(), 0.5);
 
         let result = ks.propose_rebalance(
             &analyzer,
@@ -479,8 +481,8 @@ mod tests {
         let mut ks = KalmanState::new();
         ks.x = [2.0, 2.0, 2.0, 2.0];
         let agent_id = Uuid::new_v4();
-        let analyzer = MockImpactAnalyzer::new()
-            .with_chain_weight(agent_id, "partition_b".to_string(), 3.0);
+        let analyzer =
+            MockImpactAnalyzer::new().with_chain_weight(agent_id, "partition_b".to_string(), 3.0);
 
         let result = ks.propose_rebalance(
             &analyzer,
@@ -614,7 +616,10 @@ mod tests {
         let proposal = result.unwrap();
         assert!(proposal.is_some());
         let p = proposal.unwrap();
-        assert!(p.is_safe, "Proposal should be safe when chains are not split");
+        assert!(
+            p.is_safe,
+            "Proposal should be safe when chains are not split"
+        );
         assert!(p.cross_chain_cost < MAX_CHAIN_SYNC_COST);
         assert_eq!(p.candidate_agents.len(), 2);
     }

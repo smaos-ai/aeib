@@ -1,13 +1,13 @@
 pub mod packager;
 
-pub use packager::{ContextPackager, A2APayload};
+pub use packager::{A2APayload, ContextPackager};
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use siss_memory_plane::operators::{CartographicOperatorSet, AnnotatedEntry, ProjectedEntry};
     use siss_context_cartography::types::MemoryEntry;
     use siss_graph_core::node::memory::ConsolidationTier;
+    use siss_memory_plane::operators::{AnnotatedEntry, CartographicOperatorSet, ProjectedEntry};
     use uuid::Uuid;
 
     #[test]

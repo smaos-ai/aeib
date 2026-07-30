@@ -48,7 +48,12 @@ impl ConsensusMonitor {
         self.cluster_size
     }
 
-    pub fn track_round(&mut self, _round_number: u64, latency_ms: u64, success: bool) -> crate::Result<()> {
+    pub fn track_round(
+        &mut self,
+        _round_number: u64,
+        latency_ms: u64,
+        success: bool,
+    ) -> crate::Result<()> {
         let mut metrics = self.metrics.write();
         metrics.record_round(latency_ms, success);
         Ok(())

@@ -1,5 +1,5 @@
 use super::PlatformAdapter;
-use crate::{PlatformAuth, ActionResult, ActionStatus, ActionDefinition, Result};
+use crate::{ActionDefinition, ActionResult, ActionStatus, PlatformAuth, Result};
 use async_trait::async_trait;
 
 pub struct TwitterAdapter;
@@ -38,16 +38,14 @@ impl PlatformAdapter for TwitterAdapter {
     }
 
     async fn list_actions(&self, _platform_auth: &PlatformAuth) -> Result<Vec<ActionDefinition>> {
-        Ok(vec![
-            ActionDefinition {
-                name: "post_tweet".to_string(),
-                description: "Post a tweet".to_string(),
-                required_params: vec!["text".to_string()],
-                optional_params: vec!["media".to_string()],
-                requires_approval: false,
-                estimated_blast_radius: 0.2,
-            },
-        ])
+        Ok(vec![ActionDefinition {
+            name: "post_tweet".to_string(),
+            description: "Post a tweet".to_string(),
+            required_params: vec!["text".to_string()],
+            optional_params: vec!["media".to_string()],
+            requires_approval: false,
+            estimated_blast_radius: 0.2,
+        }])
     }
 
     async fn execute_action(

@@ -8,8 +8,8 @@ use axum::{
 use siss_sla_monitor::{
     Alert, AlertSeverity, MetricSnapshot, SLAMonitor, SLAStatus, SLAThresholds,
 };
-use std::sync::Arc;
 use std::net::SocketAddr;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -20,7 +20,11 @@ pub struct AppState {
 async fn main() {
     tracing_subscriber::fmt::init();
 
-    let monitor = Arc::new(SLAMonitor::new().await.expect("Failed to create SLA Monitor"));
+    let monitor = Arc::new(
+        SLAMonitor::new()
+            .await
+            .expect("Failed to create SLA Monitor"),
+    );
     let state = AppState { monitor };
 
     let app = Router::new()
@@ -42,9 +46,7 @@ async fn main() {
         .await
         .expect("Failed to bind to port 9000");
 
-    axum::serve(listener, app)
-        .await
-        .expect("Server error");
+    axum::serve(listener, app).await.expect("Server error");
 }
 
 // HTML Dashboard
@@ -284,7 +286,11 @@ async fn get_status(State(state): State<AppState>) -> impl IntoResponse {
 async fn get_alerts(State(state): State<AppState>) -> impl IntoResponse {
     match state.monitor.get_alert_history(30).await {
         Ok(alerts) => (StatusCode::OK, Json(alerts)).into_response(),
-        Err(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Failed to retrieve alerts").into_response(),
+        Err(_) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Failed to retrieve alerts",
+        )
+            .into_response(),
     }
 }
 
@@ -311,9 +317,7 @@ async fn acknowledge_alert(
 }
 
 // API: Trigger failover (manual intervention)
-async fn trigger_failover(
-    State(_state): State<AppState>,
-) -> impl IntoResponse {
+async fn trigger_failover(State(_state): State<AppState>) -> impl IntoResponse {
     // In a real system, this would trigger a failover procedure
     (
         StatusCode::OK,

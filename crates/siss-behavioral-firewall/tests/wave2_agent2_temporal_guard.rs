@@ -1,11 +1,10 @@
+use chrono::{Datelike, Timelike, Utc};
+use siss_behavioral_firewall::temporal::{TemporalGuard, TimeWindow};
 /// Wave 2 Agent 2: TemporalGuard (Rate Limiting + UTC Windows)
 /// TDD Implementation Tests
 ///
 /// Comprehensive test suite for rate limiting (60 req/min), UTC windows, and blackout dates.
-
 use uuid::Uuid;
-use siss_behavioral_firewall::temporal::{TemporalGuard, TimeWindow};
-use chrono::{Utc, Datelike, Timelike};
 
 // ============================================================================
 // TIER 1: Rate Limiting (60 req/min sliding window) - 5 tests
@@ -313,7 +312,10 @@ fn test_temporal_guard_decision_cache_1min_ttl() {
     // Cache should have 1 entry
     // Note: We can't directly inspect cache in public API, but second identical request uses cache
     let result2 = guard.check_with_resource(actor, resource);
-    assert!(result2.is_ok(), "TemporalGuard decision cache (1-min TTL) not implemented");
+    assert!(
+        result2.is_ok(),
+        "TemporalGuard decision cache (1-min TTL) not implemented"
+    );
 }
 
 #[test]

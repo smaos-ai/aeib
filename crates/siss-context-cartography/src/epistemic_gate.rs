@@ -1,10 +1,13 @@
-use crate::llm_wiki_v2::{SemanticFact, EpistemicStatus};
-use siss_ontology_proofs::{PiPlusPlusEngine, GraphTransformation, ProjectionResult};
+use crate::llm_wiki_v2::{EpistemicStatus, SemanticFact};
+use siss_ontology_proofs::{GraphTransformation, PiPlusPlusEngine, ProjectionResult};
 use uuid::Uuid;
 
 pub enum GateResult {
     Allow,
-    Defer { reason: String, proof_hash: Option<String> },
+    Defer {
+        reason: String,
+        proof_hash: Option<String>,
+    },
 }
 
 pub struct EpistemicGateHook;
@@ -16,7 +19,9 @@ impl EpistemicGateHook {
         match &fact.epistemic_status {
             EpistemicStatus::Verified { .. } => GateResult::Allow,
             EpistemicStatus::HumanApproved { .. } => GateResult::Allow,
-            EpistemicStatus::Uncertain { divergence_score, .. } => {
+            EpistemicStatus::Uncertain {
+                divergence_score, ..
+            } => {
                 // Generate cryptographic proof for uncertain fact
                 let transformation = GraphTransformation {
                     source_entity: fact.id,
@@ -30,7 +35,10 @@ impl EpistemicGateHook {
                     projection_id: Uuid::new_v4(),
                     confidence: 1.0 - divergence_score,
                     outcome: "defer".to_string(),
-                    justification: format!("epistemic uncertainty at divergence={}", divergence_score),
+                    justification: format!(
+                        "epistemic uncertainty at divergence={}",
+                        divergence_score
+                    ),
                 };
 
                 let attestation = format!(
@@ -39,15 +47,13 @@ impl EpistemicGateHook {
                 );
 
                 match engine.generate_proof(transformation, justification, attestation) {
-                    Ok(proof) => {
-                        GateResult::Defer {
-                            reason: format!(
-                                "epistemic uncertainty at divergence={:.3}",
-                                divergence_score
-                            ),
-                            proof_hash: Some(proof.cryptography.proof_hash),
-                        }
-                    }
+                    Ok(proof) => GateResult::Defer {
+                        reason: format!(
+                            "epistemic uncertainty at divergence={:.3}",
+                            divergence_score
+                        ),
+                        proof_hash: Some(proof.cryptography.proof_hash),
+                    },
                     Err(_) => {
                         // Fallback if proof generation fails
                         GateResult::Defer {
@@ -60,12 +66,10 @@ impl EpistemicGateHook {
                     }
                 }
             }
-            EpistemicStatus::Unverified => {
-                GateResult::Defer {
-                    reason: "unverified fact, no proof available".to_string(),
-                    proof_hash: None,
-                }
-            }
+            EpistemicStatus::Unverified => GateResult::Defer {
+                reason: "unverified fact, no proof available".to_string(),
+                proof_hash: None,
+            },
         }
     }
 
@@ -74,24 +78,22 @@ impl EpistemicGateHook {
         match &fact.epistemic_status {
             EpistemicStatus::Verified { .. } => GateResult::Allow,
             EpistemicStatus::HumanApproved { .. } => GateResult::Allow,
-            EpistemicStatus::Uncertain { divergence_score, .. } => {
-                GateResult::Defer {
-                    reason: format!(
-                        "Fact '{}' flagged Uncertain (divergence={:.3}) pending human review",
-                        fact.fact, divergence_score
-                    ),
-                    proof_hash: None,
-                }
-            }
-            EpistemicStatus::Unverified => {
-                GateResult::Defer {
-                    reason: format!(
-                        "Fact '{}' is Unverified, requires validation before use",
-                        fact.fact
-                    ),
-                    proof_hash: None,
-                }
-            }
+            EpistemicStatus::Uncertain {
+                divergence_score, ..
+            } => GateResult::Defer {
+                reason: format!(
+                    "Fact '{}' flagged Uncertain (divergence={:.3}) pending human review",
+                    fact.fact, divergence_score
+                ),
+                proof_hash: None,
+            },
+            EpistemicStatus::Unverified => GateResult::Defer {
+                reason: format!(
+                    "Fact '{}' is Unverified, requires validation before use",
+                    fact.fact
+                ),
+                proof_hash: None,
+            },
         }
     }
 }
@@ -184,7 +186,10 @@ mod tests {
         match EpistemicGateHook::check_gate_with_proof(&fact, &engine) {
             GateResult::Defer { reason, proof_hash } => {
                 assert!(reason.contains("divergence=0.6"));
-                assert!(proof_hash.is_some(), "Expected proof_hash to be Some for Uncertain fact");
+                assert!(
+                    proof_hash.is_some(),
+                    "Expected proof_hash to be Some for Uncertain fact"
+                );
                 // Verify proof_hash is a valid SHA256 hex string (64 chars)
                 let hash = proof_hash.unwrap();
                 assert_eq!(hash.len(), 64, "proof_hash should be 64-char SHA256 hex");
@@ -204,7 +209,10 @@ mod tests {
         match EpistemicGateHook::check_gate_with_proof(&fact, &engine) {
             GateResult::Defer { reason, proof_hash } => {
                 assert!(reason.contains("unverified"));
-                assert!(proof_hash.is_none(), "Expected proof_hash to be None for Unverified fact");
+                assert!(
+                    proof_hash.is_none(),
+                    "Expected proof_hash to be None for Unverified fact"
+                );
             }
             _ => panic!("Expected Defer without proof_hash"),
         }

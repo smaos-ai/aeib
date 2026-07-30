@@ -1,3 +1,5 @@
+use serde_json::json;
+use siss_agent_shell::a2ui::{A2UIComponent, A2UIValidator, FormSubmission, SelectOption};
 /// Phase 32 Wave 3 Task 1: End-to-End Integration Tests
 /// Full pipeline verification: A2UIComponent → Validator → SSE stream → Renderer → React dashboard
 ///
@@ -17,12 +19,13 @@
 /// 13. Circular reference prevention
 /// 14. ID uniqueness enforcement
 /// 15. Dark theme rendering verification
-
-use siss_cockpit::a2ui::{form_handler::FormHandler, renderer::Renderer, sse_handler::{A2UISseHandler, SseComponentMessage, ComponentId}};
-use siss_agent_shell::a2ui::{A2UIComponent, FormSubmission, A2UIValidator, SelectOption};
-use serde_json::json;
-use std::time::Instant;
+use siss_cockpit::a2ui::{
+    form_handler::FormHandler,
+    renderer::Renderer,
+    sse_handler::{A2UISseHandler, ComponentId, SseComponentMessage},
+};
 use std::collections::{HashSet, VecDeque};
+use std::time::Instant;
 use uuid::Uuid;
 
 // ============================================================================
@@ -31,106 +34,168 @@ use uuid::Uuid;
 #[test]
 fn test_all_18_primitives_full_pipeline() {
     let primitives = vec![
-        ("text", A2UIComponent::Text {
-            id: "t1".to_string(),
-            content: "text component".to_string(),
-            size: Some("md".to_string()),
-        }),
-        ("badge", A2UIComponent::Badge {
-            id: "b1".to_string(),
-            label: "badge label".to_string(),
-            color: Some("blue".to_string()),
-        }),
-        ("alert", A2UIComponent::Alert {
-            id: "a1".to_string(),
-            message: "alert message".to_string(),
-            level: "warn".to_string(),
-        }),
-        ("progress", A2UIComponent::Progress {
-            id: "p1".to_string(),
-            value: 75,
-            max: 100,
-            label: Some("progress".to_string()),
-        }),
-        ("divider", A2UIComponent::Divider {
-            id: "d1".to_string(),
-        }),
-        ("link", A2UIComponent::Link {
-            id: "l1".to_string(),
-            label: "link text".to_string(),
-            href: "https://example.com".to_string(),
-        }),
-        ("tooltip", A2UIComponent::Tooltip {
-            id: "tt1".to_string(),
-            text: "hover me".to_string(),
-            content: "tooltip content".to_string(),
-        }),
-        ("breadcrumb", A2UIComponent::Breadcrumb {
-            id: "bc1".to_string(),
-            items: vec!["home".to_string(), "products".to_string(), "item".to_string()],
-        }),
-        ("input", A2UIComponent::Input {
-            id: "input1".to_string(),
-            label: "input field".to_string(),
-            placeholder: Some("enter text".to_string()),
-            required: true,
-        }),
-        ("textarea", A2UIComponent::Textarea {
-            id: "ta1".to_string(),
-            label: "textarea field".to_string(),
-            rows: Some(5),
-        }),
-        ("select", A2UIComponent::Select {
-            id: "sel1".to_string(),
-            label: "dropdown".to_string(),
-            options: vec![
-                SelectOption { value: "o1".to_string(), label: "Option 1".to_string() },
-                SelectOption { value: "o2".to_string(), label: "Option 2".to_string() },
-            ],
-        }),
-        ("checkbox", A2UIComponent::Checkbox {
-            id: "cb1".to_string(),
-            label: "checkbox".to_string(),
-            checked: false,
-        }),
-        ("radio", A2UIComponent::Radio {
-            id: "rad1".to_string(),
-            label: "radio".to_string(),
-            value: "r1".to_string(),
-            checked: true,
-        }),
-        ("button", A2UIComponent::Button {
-            id: "btn1".to_string(),
-            label: "button".to_string(),
-            action: Some("click".to_string()),
-        }),
-        ("card", A2UIComponent::Card {
-            id: "card1".to_string(),
-            title: Some("card title".to_string()),
-            children: vec![],
-        }),
-        ("grid", A2UIComponent::Grid {
-            id: "grid1".to_string(),
-            columns: 3,
-            children: vec![],
-        }),
-        ("modal", A2UIComponent::Modal {
-            id: "modal1".to_string(),
-            title: "modal title".to_string(),
-            content: "modal content".to_string(),
-            children: vec![
-                A2UIComponent::Button {
+        (
+            "text",
+            A2UIComponent::Text {
+                id: "t1".to_string(),
+                content: "text component".to_string(),
+                size: Some("md".to_string()),
+            },
+        ),
+        (
+            "badge",
+            A2UIComponent::Badge {
+                id: "b1".to_string(),
+                label: "badge label".to_string(),
+                color: Some("blue".to_string()),
+            },
+        ),
+        (
+            "alert",
+            A2UIComponent::Alert {
+                id: "a1".to_string(),
+                message: "alert message".to_string(),
+                level: "warn".to_string(),
+            },
+        ),
+        (
+            "progress",
+            A2UIComponent::Progress {
+                id: "p1".to_string(),
+                value: 75,
+                max: 100,
+                label: Some("progress".to_string()),
+            },
+        ),
+        (
+            "divider",
+            A2UIComponent::Divider {
+                id: "d1".to_string(),
+            },
+        ),
+        (
+            "link",
+            A2UIComponent::Link {
+                id: "l1".to_string(),
+                label: "link text".to_string(),
+                href: "https://example.com".to_string(),
+            },
+        ),
+        (
+            "tooltip",
+            A2UIComponent::Tooltip {
+                id: "tt1".to_string(),
+                text: "hover me".to_string(),
+                content: "tooltip content".to_string(),
+            },
+        ),
+        (
+            "breadcrumb",
+            A2UIComponent::Breadcrumb {
+                id: "bc1".to_string(),
+                items: vec![
+                    "home".to_string(),
+                    "products".to_string(),
+                    "item".to_string(),
+                ],
+            },
+        ),
+        (
+            "input",
+            A2UIComponent::Input {
+                id: "input1".to_string(),
+                label: "input field".to_string(),
+                placeholder: Some("enter text".to_string()),
+                required: true,
+            },
+        ),
+        (
+            "textarea",
+            A2UIComponent::Textarea {
+                id: "ta1".to_string(),
+                label: "textarea field".to_string(),
+                rows: Some(5),
+            },
+        ),
+        (
+            "select",
+            A2UIComponent::Select {
+                id: "sel1".to_string(),
+                label: "dropdown".to_string(),
+                options: vec![
+                    SelectOption {
+                        value: "o1".to_string(),
+                        label: "Option 1".to_string(),
+                    },
+                    SelectOption {
+                        value: "o2".to_string(),
+                        label: "Option 2".to_string(),
+                    },
+                ],
+            },
+        ),
+        (
+            "checkbox",
+            A2UIComponent::Checkbox {
+                id: "cb1".to_string(),
+                label: "checkbox".to_string(),
+                checked: false,
+            },
+        ),
+        (
+            "radio",
+            A2UIComponent::Radio {
+                id: "rad1".to_string(),
+                label: "radio".to_string(),
+                value: "r1".to_string(),
+                checked: true,
+            },
+        ),
+        (
+            "button",
+            A2UIComponent::Button {
+                id: "btn1".to_string(),
+                label: "button".to_string(),
+                action: Some("click".to_string()),
+            },
+        ),
+        (
+            "card",
+            A2UIComponent::Card {
+                id: "card1".to_string(),
+                title: Some("card title".to_string()),
+                children: vec![],
+            },
+        ),
+        (
+            "grid",
+            A2UIComponent::Grid {
+                id: "grid1".to_string(),
+                columns: 3,
+                children: vec![],
+            },
+        ),
+        (
+            "modal",
+            A2UIComponent::Modal {
+                id: "modal1".to_string(),
+                title: "modal title".to_string(),
+                content: "modal content".to_string(),
+                children: vec![A2UIComponent::Button {
                     id: "modal_btn".to_string(),
                     label: "Close".to_string(),
                     action: None,
-                }
-            ],
-        }),
-        ("table", A2UIComponent::Table {
-            id: "table1".to_string(),
-            headers: vec!["Col1".to_string(), "Col2".to_string()],
-            rows: vec![vec!["data1".to_string(), "data2".to_string()]],
-        }),
+                }],
+            },
+        ),
+        (
+            "table",
+            A2UIComponent::Table {
+                id: "table1".to_string(),
+                headers: vec!["Col1".to_string(), "Col2".to_string()],
+                rows: vec![vec!["data1".to_string(), "data2".to_string()]],
+            },
+        ),
     ];
 
     let start = Instant::now();
@@ -139,7 +204,12 @@ fn test_all_18_primitives_full_pipeline() {
     for (name, component) in &primitives {
         // Validate each primitive
         let validation = A2UIValidator::validate(component);
-        assert!(validation.is_ok(), "Validation failed for {}: {:?}", name, validation.err());
+        assert!(
+            validation.is_ok(),
+            "Validation failed for {}: {:?}",
+            name,
+            validation.err()
+        );
 
         // Render each primitive
         let html = Renderer::render(component);
@@ -210,7 +280,11 @@ fn test_nested_components_card_row_children() {
 
     // Validate nested structure
     let validation = A2UIValidator::validate(&nested);
-    assert!(validation.is_ok(), "Nested validation failed: {:?}", validation.err());
+    assert!(
+        validation.is_ok(),
+        "Nested validation failed: {:?}",
+        validation.err()
+    );
 
     // Render nested structure
     let html = Renderer::render(&nested);
@@ -259,9 +333,18 @@ fn test_form_submission_with_validation() {
                 id: "subject_select".to_string(),
                 label: "Subject".to_string(),
                 options: vec![
-                    SelectOption { value: "support".to_string(), label: "Support".to_string() },
-                    SelectOption { value: "sales".to_string(), label: "Sales".to_string() },
-                    SelectOption { value: "feedback".to_string(), label: "Feedback".to_string() },
+                    SelectOption {
+                        value: "support".to_string(),
+                        label: "Support".to_string(),
+                    },
+                    SelectOption {
+                        value: "sales".to_string(),
+                        label: "Sales".to_string(),
+                    },
+                    SelectOption {
+                        value: "feedback".to_string(),
+                        label: "Feedback".to_string(),
+                    },
                 ],
             },
             A2UIComponent::Textarea {
@@ -363,7 +446,12 @@ fn test_event_streaming_under_load() {
     );
 
     handler.stop_streaming();
-    println!("✓ Processed {} events in {}ms ({:.3}ms each)", event_count, elapsed.as_millis(), avg_ms);
+    println!(
+        "✓ Processed {} events in {}ms ({:.3}ms each)",
+        event_count,
+        elapsed.as_millis(),
+        avg_ms
+    );
 }
 
 // ============================================================================
@@ -377,7 +465,10 @@ fn test_error_handling_malformed_data() {
         content: "test".to_string(),
         size: None,
     };
-    assert!(A2UIValidator::validate(&empty_id).is_err(), "Empty ID should fail");
+    assert!(
+        A2UIValidator::validate(&empty_id).is_err(),
+        "Empty ID should fail"
+    );
 
     // Error case 2: XSS payload should be escaped in renderer
     let xss_component = A2UIComponent::Text {
@@ -385,10 +476,16 @@ fn test_error_handling_malformed_data() {
         content: "<script>alert('xss')</script>".to_string(),
         size: None,
     };
-    assert!(A2UIValidator::validate(&xss_component).is_ok(), "Validation passes");
+    assert!(
+        A2UIValidator::validate(&xss_component).is_ok(),
+        "Validation passes"
+    );
     let html = Renderer::render(&xss_component);
     assert!(!html.contains("<script>"), "Script tag should be escaped");
-    assert!(html.contains("&lt;") || html.contains("&gt;"), "Should have HTML entities");
+    assert!(
+        html.contains("&lt;") || html.contains("&gt;"),
+        "Should have HTML entities"
+    );
 
     // Error case 3: Invalid JSON in form submission (malformed data)
     let handler = FormHandler::new();
@@ -474,13 +571,11 @@ fn test_concurrent_users_simultaneous_dashboards() {
                 let component = A2UIComponent::Card {
                     id: format!("user_{}_card_{}", user_id, i),
                     title: Some(format!("Dashboard {}", user_id)),
-                    children: vec![
-                        A2UIComponent::Text {
-                            id: format!("user_{}_text_{}", user_id, i),
-                            content: format!("User {} - Item {}", user_id, i),
-                            size: None,
-                        }
-                    ],
+                    children: vec![A2UIComponent::Text {
+                        id: format!("user_{}_text_{}", user_id, i),
+                        content: format!("User {} - Item {}", user_id, i),
+                        size: None,
+                    }],
                 };
 
                 let _msg = handler.render_component(&component, &format!("user_{}_form", user_id));
@@ -504,7 +599,10 @@ fn test_concurrent_users_simultaneous_dashboards() {
         assert_eq!(*result, i);
     }
 
-    println!("✓ Concurrent users: {} simultaneous dashboards", concurrent_count);
+    println!(
+        "✓ Concurrent users: {} simultaneous dashboards",
+        concurrent_count
+    );
 }
 
 // ============================================================================
@@ -582,8 +680,11 @@ fn test_sse_event_ordering_fifo() {
 
     // Verify FIFO order
     for (i, msg) in events.iter().enumerate() {
-        assert!(msg.rendered_html.contains(&format!("Event #{}", i)),
-                "Event {} out of order", i);
+        assert!(
+            msg.rendered_html.contains(&format!("Event #{}", i)),
+            "Event {} out of order",
+            i
+        );
     }
 
     handler.stop_streaming();
@@ -632,7 +733,11 @@ fn test_buffer_overflow_handling_1000_events() {
     }
 
     handler.stop_streaming();
-    println!("✓ Buffer overflow handling: {} events in {}ms", event_count, elapsed.as_millis());
+    println!(
+        "✓ Buffer overflow handling: {} events in {}ms",
+        event_count,
+        elapsed.as_millis()
+    );
 }
 
 // ============================================================================
@@ -679,7 +784,10 @@ fn test_latency_tracking_full_pipeline() {
         max_latency_ms
     );
 
-    println!("✓ Latency tracking: avg {:.2}ms, max {:.2}ms", avg_latency_ms, max_latency_ms);
+    println!(
+        "✓ Latency tracking: avg {:.2}ms, max {:.2}ms",
+        avg_latency_ms, max_latency_ms
+    );
 }
 
 // ============================================================================
@@ -709,18 +817,33 @@ fn test_xss_prevention_dangerous_input_escaped() {
 
         // Verify dangerous raw tags don't appear in output
         // The escaper should convert < to &lt; and > to &gt; so raw tags are impossible
-        assert!(!html.contains("<script>") && !html.contains("</script>"), "Script tags should not appear raw");
-        assert!(!html.contains("<img") && !html.contains("<svg"), "Dangerous image/svg tags should not appear raw");
+        assert!(
+            !html.contains("<script>") && !html.contains("</script>"),
+            "Script tags should not appear raw"
+        );
+        assert!(
+            !html.contains("<img") && !html.contains("<svg"),
+            "Dangerous image/svg tags should not appear raw"
+        );
 
         // Verify HTML entities are used (payload is inside content, which is always escaped)
         // The payload content should be escaped, not present as-is
         if payload.contains("<") || payload.contains(">") || payload.contains("&") {
-            assert!(html.contains("&lt;") || html.contains("&gt;") || html.contains("&amp;") || html.contains("&#39;"),
-                    "Should contain escaped HTML for payload: {}", payload);
+            assert!(
+                html.contains("&lt;")
+                    || html.contains("&gt;")
+                    || html.contains("&amp;")
+                    || html.contains("&#39;"),
+                "Should contain escaped HTML for payload: {}",
+                payload
+            );
         }
     }
 
-    println!("✓ XSS prevention: {} dangerous payloads safely escaped", payload_count);
+    println!(
+        "✓ XSS prevention: {} dangerous payloads safely escaped",
+        payload_count
+    );
 }
 
 // ============================================================================
@@ -746,7 +869,10 @@ fn test_circular_reference_prevention() {
 
     // Should validate without stack overflow
     let validation = A2UIValidator::validate(&nested);
-    assert!(validation.is_ok(), "Deeply nested structure should validate");
+    assert!(
+        validation.is_ok(),
+        "Deeply nested structure should validate"
+    );
 
     // Should render without issue
     let html = Renderer::render(&nested);
@@ -823,26 +949,38 @@ fn test_id_uniqueness_enforcement() {
 #[test]
 fn test_dark_theme_rendering_verification() {
     let components = vec![
-        ("Text", A2UIComponent::Text {
-            id: "dark_text".to_string(),
-            content: "Dark mode text".to_string(),
-            size: Some("md".to_string()),
-        }),
-        ("Alert", A2UIComponent::Alert {
-            id: "dark_alert".to_string(),
-            message: "Dark mode alert".to_string(),
-            level: "info".to_string(),
-        }),
-        ("Card", A2UIComponent::Card {
-            id: "dark_card".to_string(),
-            title: Some("Dark Card".to_string()),
-            children: vec![],
-        }),
-        ("Button", A2UIComponent::Button {
-            id: "dark_button".to_string(),
-            label: "Dark Button".to_string(),
-            action: None,
-        }),
+        (
+            "Text",
+            A2UIComponent::Text {
+                id: "dark_text".to_string(),
+                content: "Dark mode text".to_string(),
+                size: Some("md".to_string()),
+            },
+        ),
+        (
+            "Alert",
+            A2UIComponent::Alert {
+                id: "dark_alert".to_string(),
+                message: "Dark mode alert".to_string(),
+                level: "info".to_string(),
+            },
+        ),
+        (
+            "Card",
+            A2UIComponent::Card {
+                id: "dark_card".to_string(),
+                title: Some("Dark Card".to_string()),
+                children: vec![],
+            },
+        ),
+        (
+            "Button",
+            A2UIComponent::Button {
+                id: "dark_button".to_string(),
+                label: "Dark Button".to_string(),
+                action: None,
+            },
+        ),
     ];
 
     for (name, component) in &components {
@@ -851,16 +989,28 @@ fn test_dark_theme_rendering_verification() {
         // Verify rendered HTML is valid
         assert!(!html.is_empty(), "HTML should not be empty for {}", name);
         assert!(html.contains("<"), "Should contain HTML tags for {}", name);
-        assert!(html.contains(">"), "Should contain closing brackets for {}", name);
+        assert!(
+            html.contains(">"),
+            "Should contain closing brackets for {}",
+            name
+        );
 
         // Verify component class is in HTML
-        assert!(html.contains("a2ui-"), "Should contain a2ui class for {}", name);
+        assert!(
+            html.contains("a2ui-"),
+            "Should contain a2ui class for {}",
+            name
+        );
 
         // For components that include their ID in output, verify it
         match name {
             &"Button" => {
                 let id = component.id();
-                assert!(html.contains(id) || html.contains(&id), "Component ID should be in HTML: {}", id);
+                assert!(
+                    html.contains(id) || html.contains(&id),
+                    "Component ID should be in HTML: {}",
+                    id
+                );
             }
             _ => {} // Card, Alert and other display components may not include ID
         }

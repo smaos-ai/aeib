@@ -1,7 +1,7 @@
-use crate::types::{AgentStatus, AgentState, ConsoleError};
+use crate::types::{AgentState, AgentStatus, ConsoleError};
+use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use std::collections::HashMap;
 use uuid::Uuid;
 
 pub type AgentStreamId = Uuid;
@@ -68,17 +68,21 @@ impl WsBridge {
             streams.remove(&stream_id);
             Ok(())
         } else {
-            Err(ConsoleError::WsError(format!("Agent {} not found", agent_id)))
+            Err(ConsoleError::WsError(format!(
+                "Agent {} not found",
+                agent_id
+            )))
         }
     }
 
-    pub async fn get_agent_status(&self, agent_id: &str) -> Result<Option<AgentStatus>, ConsoleError> {
+    pub async fn get_agent_status(
+        &self,
+        agent_id: &str,
+    ) -> Result<Option<AgentStatus>, ConsoleError> {
         match self.lookup_agent(agent_id).await {
             Ok(stream_id) => {
                 let streams = self.agent_streams.read().await;
-                Ok(streams
-                    .get(&stream_id)
-                    .and_then(|s| s.last_status.clone()))
+                Ok(streams.get(&stream_id).and_then(|s| s.last_status.clone()))
             }
             Err(_) => Ok(None), // Agent not found returns None, not an error
         }

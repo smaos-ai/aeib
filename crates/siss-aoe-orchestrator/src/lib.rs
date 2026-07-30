@@ -1,16 +1,15 @@
 /// Phase 71: AoeControlTower — Multi-Agent Orchestration Plane
 /// Wraps SwarmProvisioner for spawn/kill/status management of autonomous agents
-
 use async_trait::async_trait;
 use siss_agent_shell::orchestrator::{
-    ProvisionedAgent, ProvisionError, SwarmProvisioner, TmuxSpawner, WorktreeCreator,
+    ProvisionError, ProvisionedAgent, SwarmProvisioner, TmuxSpawner, WorktreeCreator,
 };
+#[allow(unused_imports)]
+use siss_graph_core::node::NodeId;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use thiserror::Error;
 use uuid::Uuid;
-#[allow(unused_imports)]
-use siss_graph_core::node::NodeId;
 
 /// Agent manifest for deployment
 #[derive(Debug, Clone)]
@@ -54,7 +53,9 @@ impl<T: TmuxSpawner, W: WorktreeCreator> AoeControlTower<T, W> {
     /// Spawn a new agent with the given manifest
     pub async fn spawn_agent(&mut self, manifest: AgentManifest) -> Result<Uuid, TowerError> {
         let id = manifest.agent_id;
-        let agent = self.provisioner.provision(NodeId(id))
+        let agent = self
+            .provisioner
+            .provision(NodeId(id))
             .await
             .map_err(|e| TowerError::ProvisionFailed(e.to_string()))?;
         self.agents.insert(id, agent);
@@ -63,7 +64,9 @@ impl<T: TmuxSpawner, W: WorktreeCreator> AoeControlTower<T, W> {
 
     /// Kill an agent by ID
     pub async fn kill_agent(&mut self, agent_id: Uuid) -> Result<(), TowerError> {
-        let agent = self.agents.get(&agent_id)
+        let agent = self
+            .agents
+            .get(&agent_id)
             .ok_or(TowerError::AgentNotFound(agent_id))?
             .clone();
         let _ = self.provisioner.deprovision(agent).await;

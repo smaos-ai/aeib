@@ -1,7 +1,7 @@
-use uuid::Uuid;
 use serde::{Deserialize, Serialize};
-use std::time::{SystemTime, UNIX_EPOCH, Duration};
-use sha2::{Sha256, Digest};
+use sha2::{Digest, Sha256};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use uuid::Uuid;
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum CapabilityLevel {
@@ -33,9 +33,17 @@ pub struct ExpertTask {
 
 #[derive(Clone, Debug)]
 pub enum EscalationResult {
-    Approved { task_id: Uuid, execution_time_ms: u32 },
-    Denied { reason: String },
-    Timeout { task_id: Uuid, elapsed_ms: u32 },
+    Approved {
+        task_id: Uuid,
+        execution_time_ms: u32,
+    },
+    Denied {
+        reason: String,
+    },
+    Timeout {
+        task_id: Uuid,
+        elapsed_ms: u32,
+    },
 }
 
 #[derive(Clone, Debug)]
@@ -376,7 +384,9 @@ mod tests {
 
         let result = gateway.escalate(&task, agent_id).unwrap();
         match result {
-            EscalationResult::Approved { execution_time_ms, .. } => {
+            EscalationResult::Approved {
+                execution_time_ms, ..
+            } => {
                 assert!(execution_time_ms <= 50);
             }
             _ => panic!("Expected Approved"),

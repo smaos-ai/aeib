@@ -1,10 +1,13 @@
 #[cfg(test)]
 mod stream6_gdpr_nis2 {
-    use uuid::Uuid;
     use crate::{
         gdpr::{DataRegion, DataResidencyPolicy, DsarRequest, DsarType},
-        nis2::{BreachNotification, IncidentSeverity, SecurityAuditEvent, SecurityAuditLogger, SecurityEventType},
+        nis2::{
+            BreachNotification, IncidentSeverity, SecurityAuditEvent, SecurityAuditLogger,
+            SecurityEventType,
+        },
     };
+    use uuid::Uuid;
 
     #[test]
     fn test_residency_policy_enforces_eu() {
@@ -37,7 +40,9 @@ mod stream6_gdpr_nis2 {
     fn test_fulfil_access_returns_data() {
         let id = Uuid::new_v4();
         let req = DsarRequest::new(id, DsarType::AccessRequest);
-        let data = req.fulfill_access().expect("access fulfillment must return data");
+        let data = req
+            .fulfill_access()
+            .expect("access fulfillment must return data");
         assert!(!data.is_empty());
         let text = String::from_utf8(data).expect("export must be valid UTF-8");
         assert!(text.contains(&id.to_string()));
@@ -103,13 +108,17 @@ mod stream6_gdpr_nis2 {
 
 #[cfg(test)]
 mod stream7_eu_data_residency {
-    use crate::data_residency::{EUDataGuard, DomainValidator};
+    use crate::data_residency::{DomainValidator, EUDataGuard};
 
     #[test]
     fn test_eu_data_residency_enforced() {
         let guard = EUDataGuard::new();
-        assert!(guard.validate_frankfurt_residency("eu-central-1.amazonaws.com").is_ok());
-        assert!(guard.validate_frankfurt_residency("user@us-east-1.amazonaws.com").is_err());
+        assert!(guard
+            .validate_frankfurt_residency("eu-central-1.amazonaws.com")
+            .is_ok());
+        assert!(guard
+            .validate_frankfurt_residency("user@us-east-1.amazonaws.com")
+            .is_err());
     }
 
     #[test]
@@ -122,7 +131,7 @@ mod stream7_eu_data_residency {
 
 #[cfg(test)]
 mod stream8_nis2_mapping {
-    use crate::nis2_mapping::{NIS2AssetMapper, CriticalAssetType};
+    use crate::nis2_mapping::{CriticalAssetType, NIS2AssetMapper};
 
     #[test]
     fn test_nis2_asset_mapping_complete() {
@@ -140,8 +149,8 @@ mod stream8_nis2_mapping {
 
 #[cfg(test)]
 mod stream9_gdpr_rights {
-    use uuid::Uuid;
     use crate::data_subject_rights::DataSubjectRightsService;
+    use uuid::Uuid;
 
     #[test]
     fn test_gdpr_right_to_be_forgotten() {

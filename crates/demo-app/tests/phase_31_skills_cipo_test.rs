@@ -1,11 +1,10 @@
+use siss_agent_shell::types::IntentParams;
 /// Phase 31 Skills 2.0 & CIPO-cycle Test Suite
 ///
 /// TDD Red Phase: All 6 tests verify Skills 2.0 integration and CIPO constraint enforcement.
 /// Tests cover: skill payload parsing, CIPO context creation, depth/budget verification,
 /// multi-step CIPO cycles, and serde round-trip for IntentParams carrying skill context.
-
 use siss_context_cartography::skill::{CipoContext, CipoError, SkillPayload};
-use siss_agent_shell::types::IntentParams;
 use siss_graph_core::node::NodeId;
 
 // ============================================================================
@@ -53,7 +52,10 @@ fn test_cipo_context_initial_state_always_passes() {
 
     assert_eq!(ctx.depth, 0, "initial depth must be 0");
     assert_eq!(ctx.tokens_consumed, 0, "initial tokens must be 0");
-    assert!(ctx.verify().is_ok(), "initial state must always pass verify()");
+    assert!(
+        ctx.verify().is_ok(),
+        "initial state must always pass verify()"
+    );
 }
 
 #[test]

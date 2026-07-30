@@ -1,11 +1,10 @@
+use siss_gatekeeper::sneakernet_ingress::{DualAuthTransfer, SneakernetGateway};
 /// C-3: Full Sneakernet Ingress Pipeline Tests
 /// Integration tests covering IngressRitual → SneakernetGateway → AP2 mandate validation
-
 use siss_job_router::facility_ingress::{
-    FullIngressPipeline, FacilityBounds, IngressRitual, SneakernetManifest, QuarantineVerdict,
-    IngressRejection,
+    FacilityBounds, FullIngressPipeline, IngressRejection, IngressRitual, QuarantineVerdict,
+    SneakernetManifest,
 };
-use siss_gatekeeper::sneakernet_ingress::{SneakernetGateway, DualAuthTransfer};
 use uuid::Uuid;
 
 #[test]
@@ -33,7 +32,11 @@ fn test_full_pipeline_passes_valid_transfer() {
 
     // Add a chunk so the transfer has content
     if let Some(transfer) = gateway.get_transfer_mut(transfer_id) {
-        transfer.add_chunk(0, vec![1u8; 100], DualAuthTransfer::compute_checksum(&vec![1u8; 100]));
+        transfer.add_chunk(
+            0,
+            vec![1u8; 100],
+            DualAuthTransfer::compute_checksum(&vec![1u8; 100]),
+        );
     }
 
     // Run full pipeline
@@ -69,7 +72,10 @@ fn test_full_pipeline_rejects_forbidden_origin_before_gateway() {
     // Pipeline should reject before reaching gateway
     let result = FullIngressPipeline::run(&manifest, &bounds, transfer_id, &mut gateway);
 
-    assert!(matches!(result, Err(IngressRejection::ForbiddenOrigin { .. })));
+    assert!(matches!(
+        result,
+        Err(IngressRejection::ForbiddenOrigin { .. })
+    ));
 }
 
 #[test]
@@ -96,7 +102,11 @@ fn test_full_pipeline_rejects_gateway_unsigned_transfer() {
 
     // Add chunk to transfer but don't sign it
     if let Some(transfer) = gateway.get_transfer_mut(transfer_id) {
-        transfer.add_chunk(0, vec![1u8; 100], DualAuthTransfer::compute_checksum(&vec![1u8; 100]));
+        transfer.add_chunk(
+            0,
+            vec![1u8; 100],
+            DualAuthTransfer::compute_checksum(&vec![1u8; 100]),
+        );
     }
 
     // Pipeline should pass IngressRitual but fail on gateway.authorize_transfer

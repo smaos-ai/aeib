@@ -1,7 +1,7 @@
-use rusqlite::{Connection, params};
-use uuid::Uuid;
-use std::collections::HashMap;
 use chrono::Utc;
+use rusqlite::{params, Connection};
+use std::collections::HashMap;
+use uuid::Uuid;
 
 #[derive(Debug, Clone)]
 pub struct DispatchMetrics {
@@ -33,7 +33,11 @@ impl KPIDashboard {
         })
     }
 
-    pub fn record_dispatch(&mut self, agent_id: Uuid, latency_us: u64) -> Result<(), rusqlite::Error> {
+    pub fn record_dispatch(
+        &mut self,
+        agent_id: Uuid,
+        latency_us: u64,
+    ) -> Result<(), rusqlite::Error> {
         let timestamp = Utc::now().timestamp();
         self.conn.execute(
             "INSERT INTO dispatch_latencies (agent_id, latency_us, timestamp)
@@ -50,13 +54,12 @@ impl KPIDashboard {
     }
 
     pub fn get_dispatch_metrics(&self) -> Result<DispatchMetrics, rusqlite::Error> {
-        let mut stmt = self.conn.prepare(
-            "SELECT latency_us FROM dispatch_latencies ORDER BY latency_us ASC"
-        )?;
+        let mut stmt = self
+            .conn
+            .prepare("SELECT latency_us FROM dispatch_latencies ORDER BY latency_us ASC")?;
 
-        let latencies: Vec<u64> = stmt.query_map([], |row| {
-            row.get(0)
-        })?
+        let latencies: Vec<u64> = stmt
+            .query_map([], |row| row.get(0))?
             .collect::<Result<Vec<_>, _>>()?;
 
         if latencies.is_empty() {
@@ -180,7 +183,13 @@ mod tests {
 
         let metrics = dashboard.get_dispatch_metrics().unwrap();
         assert_eq!(metrics.sample_count, 1000);
-        assert!(metrics.p99_us < 100, "P99 latency must stay <100µs under load");
-        assert!(metrics.mean_us >= 45 && metrics.mean_us <= 50, "Mean should be ~47µs");
+        assert!(
+            metrics.p99_us < 100,
+            "P99 latency must stay <100µs under load"
+        );
+        assert!(
+            metrics.mean_us >= 45 && metrics.mean_us <= 50,
+            "Mean should be ~47µs"
+        );
     }
 }

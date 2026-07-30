@@ -103,7 +103,10 @@ impl RceEventBroadcaster {
 
     /// Emit an event and return result (strict delivery check)
     /// Returns Ok(n_subscribers) or Err(SendError) if no subscribers
-    pub fn emit_checked(&self, event: RceEvent) -> Result<usize, broadcast::error::SendError<RceEvent>> {
+    pub fn emit_checked(
+        &self,
+        event: RceEvent,
+    ) -> Result<usize, broadcast::error::SendError<RceEvent>> {
         self.tx.send(event)
     }
 

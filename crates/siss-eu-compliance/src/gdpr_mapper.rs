@@ -42,28 +42,67 @@ impl GDPRMapper {
 
     pub fn article_4_definitions(&self) -> HashMap<&'static str, &'static str> {
         let mut definitions = HashMap::new();
-        definitions.insert("personal_data", "any information relating to an identified or identifiable natural person");
+        definitions.insert(
+            "personal_data",
+            "any information relating to an identified or identifiable natural person",
+        );
         definitions.insert("processing", "any operation performed on personal data");
-        definitions.insert("data_controller", "entity which determines the purposes and means of processing");
-        definitions.insert("data_processor", "entity which processes data on behalf of the controller");
+        definitions.insert(
+            "data_controller",
+            "entity which determines the purposes and means of processing",
+        );
+        definitions.insert(
+            "data_processor",
+            "entity which processes data on behalf of the controller",
+        );
         definitions.insert("consent", "any freely given, specific, informed and unambiguous indication of the data subject's wishes");
         definitions.insert("data_breach", "breach of security leading to accidental or unlawful destruction, loss, alteration or unauthorized disclosure of personal data");
         definitions.insert("special_categories", "processing of data revealing racial or ethnic origin, political opinions, religious or philosophical beliefs");
-        definitions.insert("profiling", "any form of automated processing intended to evaluate personal aspects");
+        definitions.insert(
+            "profiling",
+            "any form of automated processing intended to evaluate personal aspects",
+        );
         definitions.insert("pseudonymization", "processing of personal data in such a manner that it cannot be attributed to a data subject");
-        definitions.insert("data_subject", "identified or identifiable natural person to whom personal data relates");
+        definitions.insert(
+            "data_subject",
+            "identified or identifiable natural person to whom personal data relates",
+        );
         definitions.insert("recipient", "natural or legal person, public authority, agency or body to which personal data is disclosed");
         definitions.insert("restriction_of_processing", "marking of stored personal data with the aim of limiting their processing in the future");
-        definitions.insert("legitimate_interests", "interests pursued by a controller or third party");
+        definitions.insert(
+            "legitimate_interests",
+            "interests pursued by a controller or third party",
+        );
         definitions.insert("child", "any natural person below the age of 16 years");
-        definitions.insert("dpia", "description of processing operations and assessment of necessity and proportionality");
-        definitions.insert("binding_corporate_rules", "personal data protection policies adopted by a controller or processor");
-        definitions.insert("standard_contractual_clauses", "contracts between controller and processor ensuring adequate safeguards");
-        definitions.insert("appropriate_safeguards", "technical and organizational measures ensuring data protection");
+        definitions.insert(
+            "dpia",
+            "description of processing operations and assessment of necessity and proportionality",
+        );
+        definitions.insert(
+            "binding_corporate_rules",
+            "personal data protection policies adopted by a controller or processor",
+        );
+        definitions.insert(
+            "standard_contractual_clauses",
+            "contracts between controller and processor ensuring adequate safeguards",
+        );
+        definitions.insert(
+            "appropriate_safeguards",
+            "technical and organizational measures ensuring data protection",
+        );
         definitions.insert("sub_processor", "processor engaged by another processor");
-        definitions.insert("supervisory_authority", "independent public authority responsible for monitoring GDPR compliance");
-        definitions.insert("establishment", "stable arrangement for the exercise of activity");
-        definitions.insert("representative", "natural or legal person established in EU acting on behalf of controller");
+        definitions.insert(
+            "supervisory_authority",
+            "independent public authority responsible for monitoring GDPR compliance",
+        );
+        definitions.insert(
+            "establishment",
+            "stable arrangement for the exercise of activity",
+        );
+        definitions.insert(
+            "representative",
+            "natural or legal person established in EU acting on behalf of controller",
+        );
 
         definitions
     }
@@ -111,11 +150,7 @@ impl GDPRMapper {
         }
     }
 
-    pub fn initiate_right_to_be_forgotten(
-        &self,
-        subject_id: &str,
-        scope: &str,
-    ) -> DeletionRequest {
+    pub fn initiate_right_to_be_forgotten(&self, subject_id: &str, scope: &str) -> DeletionRequest {
         DeletionRequest {
             subject_id: subject_id.to_string(),
             scope: scope.to_string(),

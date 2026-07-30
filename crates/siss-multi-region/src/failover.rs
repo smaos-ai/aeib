@@ -1,16 +1,21 @@
-use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
-use std::sync::Arc;
-use tokio::sync::RwLock;
-use uuid::Uuid;
-use serde::{Deserialize, Serialize};
 use crate::errors::{MultiRegionError, MultiRegionResult};
 use crate::health_check::{HealthChecker, HealthStatus};
+use serde::{Deserialize, Serialize};
+use std::sync::Arc;
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+use tokio::sync::RwLock;
+use uuid::Uuid;
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum FailoverDecision {
     NoFailover,
-    FailoverToRegion { target_region: String, reason: String },
-    HaltOnSplitBrain { detected_regions: Vec<String> },
+    FailoverToRegion {
+        target_region: String,
+        reason: String,
+    },
+    HaltOnSplitBrain {
+        detected_regions: Vec<String>,
+    },
 }
 
 pub struct FailoverManager {
@@ -76,14 +81,20 @@ impl FailoverManager {
                         self.record_failover().await?;
                         return Ok(FailoverDecision::FailoverToRegion {
                             target_region: target,
-                            reason: format!("Primary region {} failed, promoting secondary", self.primary_region),
+                            reason: format!(
+                                "Primary region {} failed, promoting secondary",
+                                self.primary_region
+                            ),
                         });
                     }
                 }
             } else {
                 // No quorum, detect split-brain
                 return Ok(FailoverDecision::HaltOnSplitBrain {
-                    detected_regions: health_statuses.iter().map(|h| h.region_id.clone()).collect(),
+                    detected_regions: health_statuses
+                        .iter()
+                        .map(|h| h.region_id.clone())
+                        .collect(),
                 });
             }
         }
@@ -130,7 +141,10 @@ impl FailoverManager {
     }
 
     /// Force promotion of a specific region (use with caution)
-    pub async fn force_promotion(&self, target_region: &str) -> MultiRegionResult<FailoverDecision> {
+    pub async fn force_promotion(
+        &self,
+        target_region: &str,
+    ) -> MultiRegionResult<FailoverDecision> {
         if self.can_failover().await {
             self.record_failover().await?;
             Ok(FailoverDecision::FailoverToRegion {
@@ -159,11 +173,8 @@ mod tests {
     #[tokio::test]
     async fn test_failover_manager_initialization() {
         let checker = Arc::new(HealthChecker::new(Duration::from_secs(5)));
-        let manager = FailoverManager::new(
-            "prague".to_string(),
-            vec!["frankfurt".to_string()],
-            checker,
-        );
+        let manager =
+            FailoverManager::new("prague".to_string(), vec!["frankfurt".to_string()], checker);
 
         assert_eq!(manager.get_quorum_size(), 2);
     }
@@ -185,15 +196,15 @@ mod tests {
     async fn test_no_failover_when_primary_healthy() {
         let checker = Arc::new(HealthChecker::new(Duration::from_secs(5)));
         checker.register_region("prague".to_string()).await.unwrap();
-        checker.register_region("frankfurt".to_string()).await.unwrap();
+        checker
+            .register_region("frankfurt".to_string())
+            .await
+            .unwrap();
         checker.record_success("prague", 100).await.unwrap();
         checker.record_success("frankfurt", 150).await.unwrap();
 
-        let manager = FailoverManager::new(
-            "prague".to_string(),
-            vec!["frankfurt".to_string()],
-            checker,
-        );
+        let manager =
+            FailoverManager::new("prague".to_string(), vec!["frankfurt".to_string()], checker);
 
         let decision = manager.evaluate_failover().await.unwrap();
         assert_eq!(decision, FailoverDecision::NoFailover);
@@ -203,7 +214,10 @@ mod tests {
     async fn test_failover_on_primary_failure() {
         let checker = Arc::new(HealthChecker::new(Duration::from_secs(5)));
         checker.register_region("prague".to_string()).await.unwrap();
-        checker.register_region("frankfurt".to_string()).await.unwrap();
+        checker
+            .register_region("frankfurt".to_string())
+            .await
+            .unwrap();
         checker.register_region("london".to_string()).await.unwrap();
 
         // Primary fails

@@ -2,9 +2,9 @@ use aes_gcm::{
     aead::{Aead, KeyInit, Payload},
     Aes256Gcm, Nonce,
 };
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use rand::Rng;
 
 #[derive(Debug, Clone, Error)]
 pub enum EncryptionError {
@@ -42,7 +42,7 @@ impl KeyManager {
 
     /// Derive a key from a master key using a customer namespace
     pub fn derive_key_for_customer(master_key: &EncryptionKey, customer_id: &str) -> EncryptionKey {
-        use sha2::{Sha256, Digest};
+        use sha2::{Digest, Sha256};
 
         let mut hasher = Sha256::new();
         hasher.update(master_key.as_bytes());
@@ -71,8 +71,7 @@ pub struct CapsuleEncryption {
 
 impl CapsuleEncryption {
     pub fn new(key: EncryptionKey) -> Self {
-        let cipher = Aes256Gcm::new_from_slice(key.as_bytes())
-            .expect("Key size mismatch");
+        let cipher = Aes256Gcm::new_from_slice(key.as_bytes()).expect("Key size mismatch");
 
         Self { cipher, key }
     }
@@ -104,7 +103,9 @@ impl CapsuleEncryption {
     /// Decrypt ciphertext using stored nonce
     pub fn decrypt(&self, encrypted: &EncryptedPayload) -> Result<Vec<u8>, EncryptionError> {
         if encrypted.nonce.len() != 12 {
-            return Err(EncryptionError::DecryptionFailed("Invalid nonce length".to_string()));
+            return Err(EncryptionError::DecryptionFailed(
+                "Invalid nonce length".to_string(),
+            ));
         }
 
         let nonce = Nonce::from_slice(&encrypted.nonce);
@@ -157,8 +158,12 @@ mod tests {
         let cipher = CapsuleEncryption::new(key);
         let plaintext = b"same data";
 
-        let encrypted1 = cipher.encrypt(plaintext).expect("First encrypt should succeed");
-        let encrypted2 = cipher.encrypt(plaintext).expect("Second encrypt should succeed");
+        let encrypted1 = cipher
+            .encrypt(plaintext)
+            .expect("First encrypt should succeed");
+        let encrypted2 = cipher
+            .encrypt(plaintext)
+            .expect("Second encrypt should succeed");
 
         // Due to random nonce, ciphertexts should be different
         assert_ne!(encrypted1.nonce, encrypted2.nonce);
@@ -171,9 +176,11 @@ mod tests {
         let cipher = CapsuleEncryption::new(key);
 
         let large_plaintext = vec![0xAB; 1_000_000]; // 1MB
-        let encrypted = cipher.encrypt(&large_plaintext)
+        let encrypted = cipher
+            .encrypt(&large_plaintext)
             .expect("Encrypt large payload should succeed");
-        let decrypted = cipher.decrypt(&encrypted)
+        let decrypted = cipher
+            .decrypt(&encrypted)
             .expect("Decrypt large payload should succeed");
 
         assert_eq!(large_plaintext, decrypted);

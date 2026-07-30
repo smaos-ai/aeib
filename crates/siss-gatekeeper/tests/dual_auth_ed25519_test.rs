@@ -1,7 +1,7 @@
+use ed25519_dalek::{Signer, SigningKey};
+use rand::SeedableRng;
 /// C-2: Real Ed25519 Dual-Custodian Verification Tests
 use siss_gatekeeper::sneakernet_ingress::{DualAuthTransfer, SneakernetError};
-use ed25519_dalek::{SigningKey, Signer};
-use rand::SeedableRng;
 
 #[test]
 fn test_dual_auth_real_ed25519_both_sign_and_verify() {
@@ -65,7 +65,9 @@ fn test_dual_auth_rejects_wrong_custodian_b_signature() {
 
     // Verify should fail because sig_b doesn't match manifest_hash
     let result = transfer.verify_signatures();
-    assert!(matches!(result, Err(SneakernetError::InvalidSignature { custodian }) if custodian == "B"));
+    assert!(
+        matches!(result, Err(SneakernetError::InvalidSignature { custodian }) if custodian == "B")
+    );
 }
 
 #[test]
@@ -97,7 +99,10 @@ fn test_dual_auth_rejects_tampered_manifest_hash() {
 
     // Verification should fail because manifest no longer matches the signed hash
     let result = transfer.verify_signatures();
-    assert!(matches!(result, Err(SneakernetError::InvalidSignature { .. })));
+    assert!(matches!(
+        result,
+        Err(SneakernetError::InvalidSignature { .. })
+    ));
 }
 
 #[test]
@@ -126,8 +131,8 @@ fn test_aes256_encrypt_decrypt_roundtrip() {
     let encrypted = DualAuthTransfer::aes256_encrypt(plaintext, &key);
 
     // Decrypt
-    let decrypted = DualAuthTransfer::aes256_decrypt(&encrypted, &key)
-        .expect("Decryption should succeed");
+    let decrypted =
+        DualAuthTransfer::aes256_decrypt(&encrypted, &key).expect("Decryption should succeed");
 
     assert_eq!(decrypted, plaintext);
 }
@@ -146,5 +151,8 @@ fn test_aes256_rejects_tampered_ciphertext() {
 
     // Decryption should fail due to GCM auth tag failure
     let result = DualAuthTransfer::aes256_decrypt(&encrypted, &key);
-    assert!(result.is_none(), "Tampered ciphertext should fail GCM verification");
+    assert!(
+        result.is_none(),
+        "Tampered ciphertext should fail GCM verification"
+    );
 }

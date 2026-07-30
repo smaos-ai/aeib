@@ -1,8 +1,8 @@
 use super::*;
-use uuid::Uuid;
-use std::time::Instant;
+use crate::latency::{ConstitutionVerdict, LatencyConstitution, LatencyTier};
 use crate::signer::MockSigner;
-use crate::latency::{LatencyConstitution, LatencyTier, ConstitutionVerdict};
+use std::time::Instant;
+use uuid::Uuid;
 
 #[test]
 fn test_decision_store_creates_immutable_entry() {
@@ -127,7 +127,9 @@ fn test_decision_store_returns_audit_trail() {
     }
 
     // Get audit trail for task
-    let trail = store.audit_trail(task_id).expect("audit trail should exist");
+    let trail = store
+        .audit_trail(task_id)
+        .expect("audit trail should exist");
     assert_eq!(trail.len(), 5);
     assert!(trail.iter().all(|e| e.task_id == task_id));
 }
@@ -177,5 +179,8 @@ fn test_decision_store_detects_tampering() {
 
     // Attempt to get and verify
     let retrieved = store.get(Uuid::nil()).ok();
-    assert!(retrieved.is_none(), "tampered entry should not be retrievable");
+    assert!(
+        retrieved.is_none(),
+        "tampered entry should not be retrievable"
+    );
 }

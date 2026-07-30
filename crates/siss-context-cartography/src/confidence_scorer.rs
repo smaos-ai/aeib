@@ -1,6 +1,6 @@
+use crate::llm_wiki_v2::SemanticFact;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
-use crate::llm_wiki_v2::SemanticFact;
 
 #[derive(Clone, Debug)]
 pub enum SourceType {
@@ -58,15 +58,18 @@ pub fn calculate_confidence(
         return (0.0, None);
     }
 
-    let base_confidence = sources.iter()
+    let base_confidence = sources
+        .iter()
         .map(|s| compute_source_weight(s.source_type.clone()))
-        .sum::<f64>() / sources.len() as f64;
+        .sum::<f64>()
+        / sources.len() as f64;
 
     let corroboration_boost = compute_corroboration_boost(sources.len());
     let mut confidence = (base_confidence + corroboration_boost).min(1.0);
 
     // Apply Ebbinghaus decay based on first source timestamp
-    let earliest_timestamp = sources.iter()
+    let earliest_timestamp = sources
+        .iter()
         .map(|s| s.timestamp)
         .min()
         .unwrap_or_else(Utc::now);
@@ -154,10 +157,23 @@ fn contradicts(fact1: &str, fact2: &str) -> bool {
 fn has_negation(text: &str) -> bool {
     // Check for common negation patterns (not just "not" substring)
     let negation_markers = [
-        " not ", " isn't ", " aren't ", " wasn't ", " weren't ",
-        " doesn't ", " don't ", " didn't ",
-        " shouldn't ", " wouldn't ", " couldn't ", " can't ",
-        " won't ", " cannot ", " shan't ", "~", "¬",
+        " not ",
+        " isn't ",
+        " aren't ",
+        " wasn't ",
+        " weren't ",
+        " doesn't ",
+        " don't ",
+        " didn't ",
+        " shouldn't ",
+        " wouldn't ",
+        " couldn't ",
+        " can't ",
+        " won't ",
+        " cannot ",
+        " shan't ",
+        "~",
+        "¬",
     ];
 
     for marker in negation_markers.iter() {

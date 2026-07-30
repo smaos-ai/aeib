@@ -92,7 +92,9 @@ impl TimeCapsuleCapsule {
     }
 
     pub fn rollback_before_publish(&mut self, publish_id: Uuid) -> Result<(), String> {
-        let publish = self.scheduled_publishes.iter_mut()
+        let publish = self
+            .scheduled_publishes
+            .iter_mut()
             .find(|p| p.publish_id == publish_id)
             .ok_or("Publish not found".to_string())?;
 
@@ -106,7 +108,8 @@ impl TimeCapsuleCapsule {
             publish_id,
         });
 
-        self.scheduled_publishes.retain(|p| p.publish_id != publish_id);
+        self.scheduled_publishes
+            .retain(|p| p.publish_id != publish_id);
         Ok(())
     }
 
@@ -124,7 +127,9 @@ impl TimeCapsuleCapsule {
         }
 
         let accuracy_threshold_ms = 1000; // 1 second
-        let accurate = self.publish_accuracy_samples.iter()
+        let accurate = self
+            .publish_accuracy_samples
+            .iter()
             .filter(|&&latency| latency <= accuracy_threshold_ms)
             .count();
 
@@ -137,7 +142,9 @@ impl TimeCapsuleCapsule {
 
     pub fn verify_chronological_ordering(&self) -> bool {
         for i in 0..self.scheduled_publishes.len().saturating_sub(1) {
-            if self.scheduled_publishes[i].scheduled_time > self.scheduled_publishes[i + 1].scheduled_time {
+            if self.scheduled_publishes[i].scheduled_time
+                > self.scheduled_publishes[i + 1].scheduled_time
+            {
                 return false;
             }
         }

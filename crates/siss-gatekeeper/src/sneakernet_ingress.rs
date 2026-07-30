@@ -1,10 +1,10 @@
-use uuid::Uuid;
-use serde::{Deserialize, Serialize};
-use sha2::{Sha256, Digest};
-use std::collections::HashMap;
-use aes_gcm::{Aes256Gcm, Key, Nonce, KeyInit};
 use aes_gcm::aead::Aead;
+use aes_gcm::{Aes256Gcm, Key, KeyInit, Nonce};
 use rand::RngCore;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+use std::collections::HashMap;
+use uuid::Uuid;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DualAuthTransfer {
@@ -38,10 +38,20 @@ pub struct KeyAuthority {
 
 #[derive(Clone, Debug)]
 pub enum SneakernetError {
-    InvalidSignature { custodian: String },
-    MissingSignature { custodian: String },
-    ChecksumMismatch { chunk_id: usize, expected: String, actual: String },
-    DecryptionFailed { chunk_id: usize },
+    InvalidSignature {
+        custodian: String,
+    },
+    MissingSignature {
+        custodian: String,
+    },
+    ChecksumMismatch {
+        chunk_id: usize,
+        expected: String,
+        actual: String,
+    },
+    DecryptionFailed {
+        chunk_id: usize,
+    },
     NotBothSigned,
     ManifestTampered,
 }
@@ -153,14 +163,17 @@ impl DualAuthTransfer {
         sig.len() == 128 && sig.chars().all(|c| c.is_ascii_hexdigit())
     }
 
-    fn verify_ed25519_signature(sig_hex: &str, pubkey_bytes: &[u8; 32], message: &[u8]) -> Result<(), SneakernetError> {
-        use ed25519_dalek::{VerifyingKey, Signature};
+    fn verify_ed25519_signature(
+        sig_hex: &str,
+        pubkey_bytes: &[u8; 32],
+        message: &[u8],
+    ) -> Result<(), SneakernetError> {
+        use ed25519_dalek::{Signature, VerifyingKey};
 
         // Decode hex signature to 64 bytes
-        let sig_bytes = hex::decode(sig_hex)
-            .map_err(|_| SneakernetError::InvalidSignature {
-                custodian: "unknown".to_string(),
-            })?;
+        let sig_bytes = hex::decode(sig_hex).map_err(|_| SneakernetError::InvalidSignature {
+            custodian: "unknown".to_string(),
+        })?;
 
         if sig_bytes.len() != 64 {
             return Err(SneakernetError::InvalidSignature {
@@ -171,10 +184,11 @@ impl DualAuthTransfer {
         let mut sig_array = [0u8; 64];
         sig_array.copy_from_slice(&sig_bytes);
 
-        let vk = VerifyingKey::from_bytes(pubkey_bytes)
-            .map_err(|_| SneakernetError::InvalidSignature {
+        let vk = VerifyingKey::from_bytes(pubkey_bytes).map_err(|_| {
+            SneakernetError::InvalidSignature {
                 custodian: "unknown".to_string(),
-            })?;
+            }
+        })?;
 
         let signature = Signature::from_bytes(&sig_array);
         vk.verify_strict(message, &signature)
@@ -253,7 +267,10 @@ impl DualAuthTransfer {
     }
 
     pub fn total_size_bytes(&self) -> u64 {
-        self.model_chunks.iter().map(|c| c.encrypted_data.len() as u64).sum()
+        self.model_chunks
+            .iter()
+            .map(|c| c.encrypted_data.len() as u64)
+            .sum()
     }
 
     pub fn all_verified(&self) -> bool {

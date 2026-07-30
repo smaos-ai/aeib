@@ -9,15 +9,13 @@
 //!
 //! Test Count: 10+ tests covering all failure vectors
 
-use siss_swarm_consensus::{
-    BftEngine, Proposal, Vote, VoteType,
-};
-use uuid::Uuid;
+use siss_swarm_consensus::{BftEngine, Proposal, Vote, VoteType};
 use std::sync::Arc;
-use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Mutex;
-use std::time::{Duration, Instant};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::thread;
+use std::time::{Duration, Instant};
+use uuid::Uuid;
 
 // ============================================================================
 // Test 1: Leader Failure & Election Recovery
@@ -179,12 +177,7 @@ fn test_2_of_3_nodes_down() {
     let proposal2_id = proposal2.id;
 
     // Only register vote from 1 node (2 others are down)
-    let vote = Vote::new(
-        agent_ids[0],
-        proposal2_id,
-        VoteType::Commit,
-        vec![0x01; 64],
-    );
+    let vote = Vote::new(agent_ids[0], proposal2_id, VoteType::Commit, vec![0x01; 64]);
     engine.register_vote(vote).unwrap();
 
     let votes = engine.get_proposal_votes(proposal2_id);
@@ -236,7 +229,10 @@ async fn test_network_partition_recovery() {
 
     // Group A consensus fails (4 < 5 required)
     let result_a = engine.reach_consensus(proposal_a).await;
-    assert!(result_a.is_err(), "Group A (4 nodes) cannot reach consensus");
+    assert!(
+        result_a.is_err(),
+        "Group A (4 nodes) cannot reach consensus"
+    );
 
     // TEST 4B: Group B votes independently
     let proposal_b = Proposal::new(vec![0x22u8; 32], agent_ids[4]);
@@ -253,7 +249,10 @@ async fn test_network_partition_recovery() {
     }
 
     let result_b = engine.reach_consensus(proposal_b).await;
-    assert!(result_b.is_err(), "Group B (3 nodes) cannot reach consensus");
+    assert!(
+        result_b.is_err(),
+        "Group B (3 nodes) cannot reach consensus"
+    );
 
     // TEST 4C: Partition heals - all nodes voting on new proposal
     engine.clear_proposal(proposal_a_id);
@@ -408,10 +407,7 @@ async fn test_load_10k_txn_sec() {
         let txn_count_clone = txn_count.clone();
 
         let handle = tokio::spawn(async move {
-            let proposal = Proposal::new(
-                vec![(proposal_idx % 256) as u8; 32],
-                agent_ids_clone[0],
-            );
+            let proposal = Proposal::new(vec![(proposal_idx % 256) as u8; 32], agent_ids_clone[0]);
             let proposal_id = proposal.id;
 
             // Register 5 votes for quorum
@@ -482,10 +478,7 @@ async fn test_latency_percentiles() {
         let latencies_clone = latencies.clone();
 
         let handle = tokio::spawn(async move {
-            let proposal = Proposal::new(
-                vec![(proposal_idx % 256) as u8; 32],
-                agent_ids_clone[0],
-            );
+            let proposal = Proposal::new(vec![(proposal_idx % 256) as u8; 32], agent_ids_clone[0]);
             let proposal_id = proposal.id;
 
             // Register votes
@@ -554,10 +547,7 @@ async fn test_memory_stability_under_load() {
     // TEST 9A: Create 1000 proposals, register votes, clear between rounds
     for round in 0..100 {
         for proposal_idx in 0..10 {
-            let proposal = Proposal::new(
-                vec![(round * 10 + proposal_idx) as u8; 32],
-                agent_ids[0],
-            );
+            let proposal = Proposal::new(vec![(round * 10 + proposal_idx) as u8; 32], agent_ids[0]);
             let proposal_id = proposal.id;
 
             // Register votes
@@ -672,10 +662,7 @@ async fn test_concurrent_proposal_handling() {
         let agent_ids_clone = agent_ids.clone();
 
         let handle = tokio::spawn(async move {
-            let proposal = Proposal::new(
-                vec![(proposal_idx % 256) as u8; 32],
-                agent_ids_clone[0],
-            );
+            let proposal = Proposal::new(vec![(proposal_idx % 256) as u8; 32], agent_ids_clone[0]);
             let proposal_id = proposal.id;
 
             // Each proposal gets 5 votes

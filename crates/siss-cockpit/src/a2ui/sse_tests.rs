@@ -3,9 +3,9 @@
 
 #[cfg(test)]
 mod sse_tests {
-    use siss_agent_shell::a2ui::{A2UIComponent, SelectOption};
     use crate::a2ui::renderer::Renderer;
-    use crate::a2ui::sse_handler::{SseComponentMessage, A2UISseHandler};
+    use crate::a2ui::sse_handler::{A2UISseHandler, SseComponentMessage};
+    use siss_agent_shell::a2ui::{A2UIComponent, SelectOption};
 
     // === SSE MESSAGE TESTS ===
 
@@ -117,13 +117,11 @@ mod sse_tests {
         let component = A2UIComponent::Card {
             id: "card_1".to_string(),
             title: Some("Card Title".to_string()),
-            children: vec![
-                A2UIComponent::Text {
-                    id: "text_1".to_string(),
-                    content: "Child content".to_string(),
-                    size: None,
-                },
-            ],
+            children: vec![A2UIComponent::Text {
+                id: "text_1".to_string(),
+                content: "Child content".to_string(),
+                size: None,
+            }],
         };
 
         let html = Renderer::render(&component);

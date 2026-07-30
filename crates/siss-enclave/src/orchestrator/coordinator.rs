@@ -1,8 +1,8 @@
 use crate::memory::ZonalMemory;
 use crate::swarm::RecursiveMasDispatcher;
 use std::collections::HashMap;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
 use tokio::sync::RwLock;
 use uuid::Uuid;
 
@@ -154,9 +154,9 @@ impl Coordinator {
 #[cfg(test)]
 mod per_entry_lock_tests {
     use super::*;
-    use tokio::task;
-    use std::time::Instant;
     use std::time::Duration;
+    use std::time::Instant;
+    use tokio::task;
 
     #[tokio::test]
     async fn test_concurrent_fallback_dispatches_do_not_serialize() {

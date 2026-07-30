@@ -3,9 +3,9 @@ use thiserror::Error;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TimeWindow {
-    pub start_hour: u8,    // 0-23 UTC
-    pub end_hour: u8,      // 0-23 UTC
-    pub allowed: bool,     // true = allow in window, false = block
+    pub start_hour: u8, // 0-23 UTC
+    pub end_hour: u8,   // 0-23 UTC
+    pub allowed: bool,  // true = allow in window, false = block
 }
 
 impl TimeWindow {
@@ -35,8 +35,8 @@ impl TimeWindow {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BlackoutDate {
-    pub month: u8,         // 1-12
-    pub day: u8,           // 1-31
+    pub month: u8, // 1-12
+    pub day: u8,   // 1-31
     pub reason: String,
 }
 

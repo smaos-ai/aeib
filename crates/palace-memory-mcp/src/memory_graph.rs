@@ -1,14 +1,14 @@
 use chrono::{DateTime, Utc};
+use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
+use std::hash::{Hash, Hasher};
 use std::sync::Arc;
 use uuid::Uuid;
-use dashmap::DashMap;
-use std::hash::{Hash, Hasher};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum MemoryZone {
-    BlackFog,   // System internal
-    GrayFog,    // User restricted
+    BlackFog,     // System internal
+    GrayFog,      // User restricted
     VisibleField, // Public/agent accessible
 }
 
@@ -54,7 +54,9 @@ impl MemoryGraph {
     }
 
     pub async fn log_invocation(&self, tool_name: String) {
-        let _ = self.append(MemoryZone::VisibleField, format!("invoked:{}", tool_name)).await;
+        let _ = self
+            .append(MemoryZone::VisibleField, format!("invoked:{}", tool_name))
+            .await;
     }
 
     pub fn get(&self, id: Uuid) -> Option<MemoryEntry> {
@@ -62,7 +64,7 @@ impl MemoryGraph {
     }
 
     fn compute_merkle_hash(&self, data: &str) -> [u8; 32] {
-        use sha2::{Sha256, Digest};
+        use sha2::{Digest, Sha256};
         let mut hasher = Sha256::new();
         hasher.update(data.as_bytes());
         let result = hasher.finalize();
@@ -85,14 +87,19 @@ mod tests {
     #[tokio::test]
     async fn test_memory_append() {
         let graph = MemoryGraph::new();
-        let result = graph.append(MemoryZone::VisibleField, "test".to_string()).await;
+        let result = graph
+            .append(MemoryZone::VisibleField, "test".to_string())
+            .await;
         assert!(result.is_ok());
     }
 
     #[tokio::test]
     async fn test_memory_retrieve() {
         let graph = MemoryGraph::new();
-        let entry = graph.append(MemoryZone::BlackFog, "secret".to_string()).await.unwrap();
+        let entry = graph
+            .append(MemoryZone::BlackFog, "secret".to_string())
+            .await
+            .unwrap();
         let retrieved = graph.get(entry.id);
         assert!(retrieved.is_some());
     }

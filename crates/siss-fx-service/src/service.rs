@@ -1,6 +1,6 @@
-use crate::types::{Currency, FxRate, FxError};
-use crate::provider::RateProvider;
 use crate::cache::RateCache;
+use crate::provider::RateProvider;
+use crate::types::{Currency, FxError, FxRate};
 use std::marker::PhantomData;
 
 /// Banker's rounding: round to nearest even
@@ -44,10 +44,7 @@ impl<P: RateProvider> FxService<P> {
             return Ok(amount_cents);
         }
 
-        let rate = self
-            .cache
-            .get_or_refresh(from, to, &self.provider)
-            .await?;
+        let rate = self.cache.get_or_refresh(from, to, &self.provider).await?;
 
         // Convert: amount_cents -> amount_dollars -> converted_dollars -> converted_cents
         let amount_dollars = amount_cents as f64 / 100.0;

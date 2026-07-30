@@ -159,7 +159,11 @@ mod tests {
 
         assert!(proof.is_ok());
         assert_eq!(proof.unwrap().len(), 32);
-        assert!(elapsed_us < 1000.0, "Proof generation took {:.2}µs", elapsed_us);
+        assert!(
+            elapsed_us < 1000.0,
+            "Proof generation took {:.2}µs",
+            elapsed_us
+        );
     }
 
     #[test]

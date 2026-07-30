@@ -1,6 +1,6 @@
-use siss_cockpit::a2ui::{form_handler::FormHandler, renderer::Renderer};
-use siss_agent_shell::a2ui::{A2UIComponent, FormSubmission, A2UIValidator, SelectOption};
 use serde_json::json;
+use siss_agent_shell::a2ui::{A2UIComponent, A2UIValidator, FormSubmission, SelectOption};
+use siss_cockpit::a2ui::{form_handler::FormHandler, renderer::Renderer};
 use std::time::Instant;
 use uuid::Uuid;
 
@@ -111,7 +111,10 @@ fn test_renderer_xss_safety_through_pipeline() {
     // Renderer escapes the dangerous content
     let html = Renderer::render(&component);
     assert!(!html.contains("<script>"), "Script tag should be escaped");
-    assert!(html.contains("&lt;") || html.contains("&gt;"), "Should contain escaped HTML");
+    assert!(
+        html.contains("&lt;") || html.contains("&gt;"),
+        "Should contain escaped HTML"
+    );
 }
 
 /// Test 6: Latency all 18 primitives under 200ms
@@ -251,13 +254,11 @@ fn test_layout_nested_card_grid_modal_table() {
                     id: "modal".to_string(),
                     title: "Modal Title".to_string(),
                     content: "Modal content".to_string(),
-                    children: vec![
-                        A2UIComponent::Button {
-                            id: "modal_btn".to_string(),
-                            label: "Close".to_string(),
-                            action: None,
-                        }
-                    ],
+                    children: vec![A2UIComponent::Button {
+                        id: "modal_btn".to_string(),
+                        label: "Close".to_string(),
+                        action: None,
+                    }],
                 },
                 A2UIComponent::Table {
                     id: "table".to_string(),
@@ -331,7 +332,9 @@ fn test_rce_approval_flow() {
 
     // Form handler accepts it
     let handler = FormHandler::new();
-    let response = handler.process(&submission).expect("form processing should succeed");
+    let response = handler
+        .process(&submission)
+        .expect("form processing should succeed");
     assert_eq!(response.status, "accepted");
 
     // Response routed back to agent

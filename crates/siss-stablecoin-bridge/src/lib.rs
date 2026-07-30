@@ -1,7 +1,7 @@
 pub mod bridge;
 pub mod settlement_record;
 
-pub use bridge::{StablecoinBridge, BridgeStatus};
+pub use bridge::{BridgeStatus, StablecoinBridge};
 pub use settlement_record::{OnChainSettlement, SettlementState};
 
 #[cfg(test)]

@@ -8,7 +8,9 @@ pub struct GammaOperator {
 
 impl GammaOperator {
     pub fn new(divergence_threshold: f64) -> Self {
-        GammaOperator { divergence_threshold }
+        GammaOperator {
+            divergence_threshold,
+        }
     }
 
     pub fn check(

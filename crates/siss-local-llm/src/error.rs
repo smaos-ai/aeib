@@ -1,5 +1,5 @@
-use thiserror::Error;
 use siss_layer00::GateError;
+use thiserror::Error;
 
 #[derive(Debug, Clone, Error)]
 pub enum LocalLLMError {
@@ -38,7 +38,9 @@ impl From<GateError> for LocalLLMError {
     fn from(e: GateError) -> Self {
         match e {
             GateError::MandateExpired => LocalLLMError::TokenExpired,
-            GateError::InvalidSignature => LocalLLMError::TokenValidationFailed("Invalid signature".to_string()),
+            GateError::InvalidSignature => {
+                LocalLLMError::TokenValidationFailed("Invalid signature".to_string())
+            }
             GateError::CapabilityDenied(msg) => LocalLLMError::ActionScopeNotAllowed(msg),
             GateError::AuditLogFailure(msg) => LocalLLMError::AuditLogFailure(msg),
             _ => LocalLLMError::TokenValidationFailed(e.to_string()),

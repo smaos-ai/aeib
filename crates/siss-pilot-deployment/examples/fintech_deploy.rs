@@ -5,9 +5,8 @@
 /// - 10x latency improvement vs Kubernetes
 /// - <50ms veto latency
 /// - 1000 trade orders for load testing
-
 use siss_pilot_deployment::{
-    PilotEnvironment, DeploymentConfig, DeploymentManifest, EnvironmentValidator,
+    DeploymentConfig, DeploymentManifest, EnvironmentValidator, PilotEnvironment,
     generate_terraform_config,
 };
 
@@ -28,7 +27,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create deployment config
     let config = DeploymentConfig::for_fintech();
     println!("✓ Deployment config created");
-    println!("  - Target latency: {}ms (veto: {}ms)", config.target_max_latency_ms, config.veto_latency_ms);
+    println!(
+        "  - Target latency: {}ms (veto: {}ms)",
+        config.target_max_latency_ms, config.veto_latency_ms
+    );
     println!("  - Target uptime: {}%", config.target_uptime_percent);
     println!();
 
@@ -36,7 +38,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let validator = EnvironmentValidator::new();
     let validation_report = validator.validate(&env)?;
     println!("✓ Environment validation: PASSED");
-    println!("  - All checks passed: {}", validation_report.all_checks_passed);
+    println!(
+        "  - All checks passed: {}",
+        validation_report.all_checks_passed
+    );
     println!("  - Errors: {}", validation_report.errors.len());
     println!("  - Warnings: {}", validation_report.warnings.len());
     println!();

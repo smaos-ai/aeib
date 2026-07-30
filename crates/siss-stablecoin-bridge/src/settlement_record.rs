@@ -1,5 +1,5 @@
-use uuid::Uuid;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum SettlementState {
@@ -45,10 +45,7 @@ mod tests {
 
     #[test]
     fn test_settlement_creation() {
-        let settlement = OnChainSettlement::new(
-            10000,
-            "sha256:abcdef123456".to_string(),
-        );
+        let settlement = OnChainSettlement::new(10000, "sha256:abcdef123456".to_string());
         assert_eq!(settlement.amount_cents, 10000);
         assert_eq!(settlement.state, SettlementState::Active);
         assert!(settlement.is_active());
@@ -56,10 +53,7 @@ mod tests {
 
     #[test]
     fn test_settlement_archiving() {
-        let mut settlement = OnChainSettlement::new(
-            10000,
-            "sha256:abcdef123456".to_string(),
-        );
+        let mut settlement = OnChainSettlement::new(10000, "sha256:abcdef123456".to_string());
         settlement.archive();
         assert_eq!(settlement.state, SettlementState::Archived);
         assert!(!settlement.is_active());
@@ -67,10 +61,7 @@ mod tests {
 
     #[test]
     fn test_hash_validation() {
-        let settlement = OnChainSettlement::new(
-            10000,
-            "sha256:abcdef123456".to_string(),
-        );
+        let settlement = OnChainSettlement::new(10000, "sha256:abcdef123456".to_string());
         assert!(settlement.validate_hash());
 
         let invalid = OnChainSettlement {

@@ -115,8 +115,8 @@ pub fn spawn_shadow_worker(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::mock_adapter::MockAdapter;
+    use super::*;
 
     /// test_try_send_drops_on_full: Ensures try_send doesn't panic when queue is full.
     #[test]

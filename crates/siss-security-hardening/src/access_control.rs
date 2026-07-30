@@ -25,10 +25,10 @@ pub enum Permission {
 /// Roles with predefined permission sets
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Role {
-    Admin,      // All permissions
-    Analyst,    // Query, ViewAuditLog
-    Operator,   // Query, Write
-    Reader,     // Query only
+    Admin,    // All permissions
+    Analyst,  // Query, ViewAuditLog
+    Operator, // Query, Write
+    Reader,   // Query only
 }
 
 impl Role {
@@ -269,7 +269,8 @@ mod tests {
         ac.grant_permission(customer.clone(), Permission::Query, Role::Reader)
             .expect("Grant should succeed");
 
-        ac.revoke_customer(&customer).expect("Revoke should succeed");
+        ac.revoke_customer(&customer)
+            .expect("Revoke should succeed");
 
         let roles = ac.get_customer_roles(&customer);
         assert!(roles.is_empty());

@@ -101,13 +101,12 @@ pub async fn cast_signed_vote(
     signature: Vec<u8>,
 ) -> Result<(), BftError> {
     // Check if quorum exists, is still active, and hasn't expired (24h timeout)
-    let quorum_data: (String, DateTime<Utc>) = sqlx::query_as(
-        "SELECT status, created_at FROM bft_quorum_rounds WHERE quorum_id = $1"
-    )
-    .bind(quorum_id)
-    .fetch_optional(pool)
-    .await?
-    .ok_or(BftError::QuorumNotFound)?;
+    let quorum_data: (String, DateTime<Utc>) =
+        sqlx::query_as("SELECT status, created_at FROM bft_quorum_rounds WHERE quorum_id = $1")
+            .bind(quorum_id)
+            .fetch_optional(pool)
+            .await?
+            .ok_or(BftError::QuorumNotFound)?;
 
     let (quorum_status, created_at) = quorum_data;
 
@@ -120,7 +119,9 @@ pub async fn cast_signed_vote(
     let age = now.signed_duration_since(created_at);
     let twenty_four_hours = Duration::hours(24);
     if age > twenty_four_hours {
-        return Err(BftError::InvalidQuorum("Quorum has expired (24h timeout)".to_string()));
+        return Err(BftError::InvalidQuorum(
+            "Quorum has expired (24h timeout)".to_string(),
+        ));
     }
 
     // Check if this voter has already voted (UNIQUE constraint will catch this too)
@@ -178,10 +179,7 @@ pub async fn cast_signed_vote(
 
 /// Finalize a quorum if it has reached required majority.
 /// Returns QuorumState with computed merkle_root on success.
-pub async fn finalize_quorum(
-    pool: &PgPool,
-    quorum_id: Uuid,
-) -> Result<QuorumState, BftError> {
+pub async fn finalize_quorum(pool: &PgPool, quorum_id: Uuid) -> Result<QuorumState, BftError> {
     // Fetch current quorum state
     let quorum = sqlx::query(
         r#"
@@ -191,7 +189,7 @@ pub async fn finalize_quorum(
             merkle_proof_ref, created_at, finalized_at
         FROM bft_quorum_rounds
         WHERE quorum_id = $1
-        "#
+        "#,
     )
     .bind(quorum_id)
     .fetch_optional(pool)
@@ -223,7 +221,7 @@ pub async fn finalize_quorum(
         UPDATE bft_quorum_rounds
         SET status = 'finalized', merkle_root = $2, merkle_proof_ref = $3, finalized_at = NOW()
         WHERE quorum_id = $1
-        "#
+        "#,
     )
     .bind(quorum_id)
     .bind(&merkle_root)
@@ -240,7 +238,7 @@ pub async fn finalize_quorum(
             merkle_proof_ref, created_at, finalized_at
         FROM bft_quorum_rounds
         WHERE quorum_id = $1
-        "#
+        "#,
     )
     .bind(quorum_id)
     .fetch_one(pool)
@@ -263,20 +261,15 @@ pub async fn finalize_quorum(
 
 /// Merge attestations and compute Merkle root.
 /// Returns merkle_root as hex string (64 chars for SHA256).
-pub async fn merge_attestations(
-    pool: &PgPool,
-    quorum_id: Uuid,
-) -> Result<String, BftError> {
+pub async fn merge_attestations(pool: &PgPool, quorum_id: Uuid) -> Result<String, BftError> {
     let merkle_root = compute_merkle_root(pool, quorum_id).await?;
 
     // Update the quorum with merkle_proof_ref
-    sqlx::query(
-        "UPDATE bft_quorum_rounds SET merkle_proof_ref = $2 WHERE quorum_id = $1"
-    )
-    .bind(quorum_id)
-    .bind(&merkle_root)
-    .execute(pool)
-    .await?;
+    sqlx::query("UPDATE bft_quorum_rounds SET merkle_proof_ref = $2 WHERE quorum_id = $1")
+        .bind(quorum_id)
+        .bind(&merkle_root)
+        .execute(pool)
+        .await?;
 
     Ok(merkle_root)
 }
@@ -289,7 +282,7 @@ async fn compute_merkle_root(pool: &PgPool, quorum_id: Uuid) -> Result<String, B
         SELECT signature FROM bft_quorum_signatures
         WHERE quorum_id = $1
         ORDER BY voter_sovereign_id ASC
-        "#
+        "#,
     )
     .bind(quorum_id)
     .fetch_all(pool)

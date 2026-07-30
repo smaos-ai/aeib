@@ -1,5 +1,5 @@
 use super::PlatformAdapter;
-use crate::{PlatformAuth, ActionResult, ActionStatus, ActionDefinition, Result};
+use crate::{ActionDefinition, ActionResult, ActionStatus, PlatformAuth, Result};
 use async_trait::async_trait;
 
 pub struct BlueskyAdapter {

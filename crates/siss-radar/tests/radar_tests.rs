@@ -1,7 +1,7 @@
 use chrono::Utc;
 use siss_radar::{
-    CacheLayer, DeltaDetector, LocalCache, CommitInfo, DeltaEvent, DeltaDetectionResult,
-    GovernanceStatus, PolicyViolation, RepoHost, RepoSnapshot, ViolationSeverity,
+    CacheLayer, CommitInfo, DeltaDetectionResult, DeltaDetector, DeltaEvent, GovernanceStatus,
+    LocalCache, PolicyViolation, RepoHost, RepoSnapshot, ViolationSeverity,
 };
 use uuid::Uuid;
 
@@ -119,7 +119,11 @@ fn test_delta_sha_comparison_o1_efficiency() {
     let elapsed = start.elapsed();
 
     assert!(result.changed);
-    assert!(elapsed.as_micros() < 1000, "SHA comparison took {:?}", elapsed);
+    assert!(
+        elapsed.as_micros() < 1000,
+        "SHA comparison took {:?}",
+        elapsed
+    );
 }
 
 #[test]

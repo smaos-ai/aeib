@@ -1,7 +1,6 @@
 /// Cryptographic Inheritance: DelegatedMandate bounds child agents within parent mandate limits.
 ///
 /// Invariant 2: A child mandate cannot exceed parent's budget, tool scope, or delegation depth.
-
 use crate::tokens::IntentMandate;
 use thiserror::Error;
 use uuid::Uuid;
@@ -90,12 +89,7 @@ mod tests {
             risk_class: "low".to_string(),
         };
 
-        let result = DelegatedMandate::from_parent(
-            &parent,
-            vec![parent.allowed_tools[0]],
-            400,
-            1,
-        );
+        let result = DelegatedMandate::from_parent(&parent, vec![parent.allowed_tools[0]], 400, 1);
 
         assert!(result.is_ok());
         let delegate = result.unwrap();

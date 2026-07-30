@@ -1,12 +1,14 @@
 pub mod c2pa;
 pub mod signer;
 
-pub use c2pa::{capsule_to_c2pa_manifest, c2pa_manifest_to_capsule, ResearchResult};
+pub use c2pa::{ResearchResult, c2pa_manifest_to_capsule, capsule_to_c2pa_manifest};
 pub use signer::Ed25519C2PASigner;
 
 #[cfg(test)]
 mod tests {
-    use crate::{capsule_to_c2pa_manifest, c2pa_manifest_to_capsule, Ed25519C2PASigner, ResearchResult};
+    use crate::{
+        Ed25519C2PASigner, ResearchResult, c2pa_manifest_to_capsule, capsule_to_c2pa_manifest,
+    };
     use ed25519_dalek::SigningKey;
     use rand::thread_rng;
 
@@ -17,7 +19,7 @@ mod tests {
         let signer = Ed25519C2PASigner::new(signing_key);
 
         let pubkey_hex = signer.public_key_hex();
-        assert_eq!(pubkey_hex.len(), 64);  // 32 bytes = 64 hex chars
+        assert_eq!(pubkey_hex.len(), 64); // 32 bytes = 64 hex chars
     }
 
     #[test]
@@ -31,13 +33,13 @@ mod tests {
         };
 
         // Convert capsule → manifest
-        let manifest_bytes = capsule_to_c2pa_manifest(&capsule)
-            .expect("Failed to create C2PA manifest");
+        let manifest_bytes =
+            capsule_to_c2pa_manifest(&capsule).expect("Failed to create C2PA manifest");
         assert!(!manifest_bytes.is_empty());
 
         // Convert manifest → capsule
-        let recovered = c2pa_manifest_to_capsule(&manifest_bytes)
-            .expect("Failed to parse manifest");
+        let recovered =
+            c2pa_manifest_to_capsule(&manifest_bytes).expect("Failed to parse manifest");
 
         assert_eq!(recovered.query, capsule.query);
         assert_eq!(recovered.answer, capsule.answer);

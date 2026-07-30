@@ -1,6 +1,6 @@
-use rusqlite::{Connection, params};
-use uuid::Uuid;
 use crate::CommitmentCapsule;
+use rusqlite::{params, Connection};
+use uuid::Uuid;
 
 #[derive(Debug)]
 pub enum CapsuleDBError {
@@ -40,7 +40,9 @@ impl CapsuleDB {
 
     pub fn write_capsule(&mut self, capsule: &CommitmentCapsule) -> Result<(), CapsuleDBError> {
         // Check if capsule with this ID already exists (immutability check)
-        let mut stmt = self.conn.prepare("SELECT capsule_id FROM capsules WHERE capsule_id = ?1")?;
+        let mut stmt = self
+            .conn
+            .prepare("SELECT capsule_id FROM capsules WHERE capsule_id = ?1")?;
         let exists = stmt.exists(params![capsule.capsule_id.to_string()])?;
 
         if exists {
@@ -48,20 +50,21 @@ impl CapsuleDB {
         }
 
         // Serialize Vec fields as JSON strings
-        let affected_symbols_json = serde_json::to_string(&capsule.affected_symbols)
-            .map_err(|e| CapsuleDBError::SerializationError(
-                format!("Failed to serialize affected_symbols: {}", e)
-            ))?;
+        let affected_symbols_json =
+            serde_json::to_string(&capsule.affected_symbols).map_err(|e| {
+                CapsuleDBError::SerializationError(format!(
+                    "Failed to serialize affected_symbols: {}",
+                    e
+                ))
+            })?;
 
-        let target_files_json = serde_json::to_string(&capsule.target_files)
-            .map_err(|e| CapsuleDBError::SerializationError(
-                format!("Failed to serialize target_files: {}", e)
-            ))?;
+        let target_files_json = serde_json::to_string(&capsule.target_files).map_err(|e| {
+            CapsuleDBError::SerializationError(format!("Failed to serialize target_files: {}", e))
+        })?;
 
-        let cluster_tags_json = serde_json::to_string(&capsule.cluster_tags)
-            .map_err(|e| CapsuleDBError::SerializationError(
-                format!("Failed to serialize cluster_tags: {}", e)
-            ))?;
+        let cluster_tags_json = serde_json::to_string(&capsule.cluster_tags).map_err(|e| {
+            CapsuleDBError::SerializationError(format!("Failed to serialize cluster_tags: {}", e))
+        })?;
 
         self.conn.execute(
             "INSERT INTO capsules
@@ -88,29 +91,28 @@ impl CapsuleDB {
              FROM capsules WHERE capsule_id = ?1"
         )?;
 
-        let capsule = stmt.query_row(params![capsule_id.to_string()], |row| {
-            let affected_symbols: String = row.get(2)?;
-            let target_files: String = row.get(3)?;
-            let cluster_tags: String = row.get(5)?;
+        let capsule = stmt
+            .query_row(params![capsule_id.to_string()], |row| {
+                let affected_symbols: String = row.get(2)?;
+                let target_files: String = row.get(3)?;
+                let cluster_tags: String = row.get(5)?;
 
-            let affected_symbols = serde_json::from_str(&affected_symbols)
-                .unwrap_or_default();
-            let target_files = serde_json::from_str(&target_files)
-                .unwrap_or_default();
-            let cluster_tags = serde_json::from_str(&cluster_tags)
-                .unwrap_or_default();
+                let affected_symbols = serde_json::from_str(&affected_symbols).unwrap_or_default();
+                let target_files = serde_json::from_str(&target_files).unwrap_or_default();
+                let cluster_tags = serde_json::from_str(&cluster_tags).unwrap_or_default();
 
-            Ok(CommitmentCapsule {
-                capsule_id: Uuid::parse_str(&row.get::<_, String>(0)?).unwrap(),
-                agent_id: Uuid::parse_str(&row.get::<_, String>(1)?).unwrap(),
-                affected_symbols,
-                target_files,
-                git_diff: row.get(4)?,
-                cluster_tags,
-                created_at: row.get(6)?,
-                capsule_hash: row.get(7)?,
+                Ok(CommitmentCapsule {
+                    capsule_id: Uuid::parse_str(&row.get::<_, String>(0)?).unwrap(),
+                    agent_id: Uuid::parse_str(&row.get::<_, String>(1)?).unwrap(),
+                    affected_symbols,
+                    target_files,
+                    git_diff: row.get(4)?,
+                    cluster_tags,
+                    created_at: row.get(6)?,
+                    capsule_hash: row.get(7)?,
+                })
             })
-        }).map_err(|_| CapsuleDBError::NotFound(capsule_id))?;
+            .map_err(|_| CapsuleDBError::NotFound(capsule_id))?;
 
         Ok(capsule)
     }
@@ -126,12 +128,9 @@ impl CapsuleDB {
             let target_files: String = row.get(3)?;
             let cluster_tags: String = row.get(5)?;
 
-            let affected_symbols = serde_json::from_str(&affected_symbols)
-                .unwrap_or_default();
-            let target_files = serde_json::from_str(&target_files)
-                .unwrap_or_default();
-            let cluster_tags = serde_json::from_str(&cluster_tags)
-                .unwrap_or_default();
+            let affected_symbols = serde_json::from_str(&affected_symbols).unwrap_or_default();
+            let target_files = serde_json::from_str(&target_files).unwrap_or_default();
+            let cluster_tags = serde_json::from_str(&cluster_tags).unwrap_or_default();
 
             Ok(CommitmentCapsule {
                 capsule_id: Uuid::parse_str(&row.get::<_, String>(0)?).unwrap(),
@@ -297,13 +296,16 @@ mod tests {
 
         let capsule_2 = CommitmentCapsule {
             capsule_id: Uuid::new_v4(),
-            capsule_hash: "sha256-unique".to_string(),  // Same hash, different ID
+            capsule_hash: "sha256-unique".to_string(), // Same hash, different ID
             ..capsule_1.clone()
         };
 
         db.write_capsule(&capsule_1).unwrap();
         let result = db.write_capsule(&capsule_2);
-        assert!(result.is_err(), "Should reject duplicate hash (integrity constraint)");
+        assert!(
+            result.is_err(),
+            "Should reject duplicate hash (integrity constraint)"
+        );
     }
 
     #[test]
@@ -367,7 +369,7 @@ mod tests {
         let capsule_b = CommitmentCapsule {
             capsule_id: Uuid::new_v4(),
             agent_id: Uuid::new_v4(),
-            affected_symbols: vec!["validateUser".to_string()],  // Same symbol
+            affected_symbols: vec!["validateUser".to_string()], // Same symbol
             target_files: vec!["src/auth.rs".to_string()],
             git_diff: "diff from agent B".to_string(),
             cluster_tags: vec!["auth-cluster".to_string()],

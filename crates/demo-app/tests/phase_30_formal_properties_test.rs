@@ -5,11 +5,10 @@
 /// 1000+ randomized test cases, proving invariants hold for the live Rust implementation.
 ///
 /// Four core invariants + two bonus monotonicity properties.
-
 use proptest::prelude::*;
+use siss_context_cartography::budget::trim_to_budget;
 use siss_context_cartography::inbound::apply_inbound_pipeline;
 use siss_context_cartography::types::MemoryEntry;
-use siss_context_cartography::budget::trim_to_budget;
 use siss_graph_core::node::memory::ConsolidationTier;
 use uuid::Uuid;
 
@@ -35,12 +34,12 @@ fn arb_entry() -> impl Strategy<Value = MemoryEntry> {
         0.0f64..=1.0f64,
         arb_tier(),
     )
-    .prop_map(|(id_bytes, content, confidence, tier)| MemoryEntry {
-        memory_id: Uuid::from_bytes(id_bytes),
-        content,
-        confidence_score: confidence,
-        tier,
-    })
+        .prop_map(|(id_bytes, content, confidence, tier)| MemoryEntry {
+            memory_id: Uuid::from_bytes(id_bytes),
+            content,
+            confidence_score: confidence,
+            tier,
+        })
 }
 
 // ============================================================================

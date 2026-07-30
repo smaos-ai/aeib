@@ -1,6 +1,6 @@
-use chrono::{Utc, Timelike, Datelike};
+use chrono::{Datelike, Timelike, Utc};
+use siss_behavioral_firewall::temporal::{Decision, TemporalGuard};
 use uuid::Uuid;
-use siss_behavioral_firewall::temporal::{TemporalGuard, Decision};
 
 /// Tier 1: Rate Limiting Tests
 #[test]
@@ -133,7 +133,7 @@ fn test_time_window_outside_allowed() {
 fn test_time_window_multiple_windows() {
     let mut guard = TemporalGuard::new(60, 60);
     // Add overlapping windows
-    guard = guard.with_time_window(9, 12, true);  // 9-12am allowed
+    guard = guard.with_time_window(9, 12, true); // 9-12am allowed
     guard = guard.with_time_window(14, 17, true); // 2-5pm allowed
     guard = guard.with_time_window(10, 15, false); // 10am-3pm blocked (overlaps with both)
 

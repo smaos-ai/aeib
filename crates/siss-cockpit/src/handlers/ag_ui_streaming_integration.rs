@@ -3,10 +3,10 @@
 
 #[cfg(test)]
 mod integration_tests {
-    use crate::handlers::ag_ui_streaming::{get_rce_stream, StreamParams};
+    use crate::handlers::ag_ui_streaming::{StreamParams, get_rce_stream};
     use crate::state::CockpitState;
+    use axum::extract::{Query, State};
     use axum::http::{HeaderMap, StatusCode};
-    use axum::extract::{State, Query};
 
     #[tokio::test]
     async fn test_ag_ui_sse_endpoint_rejects_unauthenticated_requests() {

@@ -1,4 +1,3 @@
-
 #[derive(Debug, Clone)]
 pub struct SOC2Attestation;
 

@@ -1,8 +1,7 @@
+use siss_agent_shell::a2ui::A2UIComponent;
 /// Phase 34: Security Dashboard
 /// Maps AoEEvent to A2UIComponent and composes security views with Grid layout
-
 use siss_agent_shell::ag_ui::sse_consumer::AoEEvent;
-use siss_agent_shell::a2ui::A2UIComponent;
 
 pub struct SecurityDashboard;
 
@@ -19,12 +18,18 @@ impl SecurityDashboard {
         match event.action_type.as_str() {
             "ANOMALY_DETECTED" => A2UIComponent::Alert {
                 id: event.id.clone(),
-                message: event.content.clone().unwrap_or_else(|| "Security anomaly detected".to_string()),
+                message: event
+                    .content
+                    .clone()
+                    .unwrap_or_else(|| "Security anomaly detected".to_string()),
                 level: "error".to_string(),
             },
             "TOOL_CALL_START" => A2UIComponent::Badge {
                 id: event.id.clone(),
-                label: event.content.clone().unwrap_or_else(|| "Tool call".to_string()),
+                label: event
+                    .content
+                    .clone()
+                    .unwrap_or_else(|| "Tool call".to_string()),
                 color: Some("blue".to_string()),
             },
             "TEXT_MESSAGE" => A2UIComponent::Text {
@@ -34,7 +39,13 @@ impl SecurityDashboard {
             },
             "ACTION_COMPLETED" => A2UIComponent::Badge {
                 id: event.id.clone(),
-                label: format!("✓ {}", event.content.clone().unwrap_or_else(|| "Action".to_string())),
+                label: format!(
+                    "✓ {}",
+                    event
+                        .content
+                        .clone()
+                        .unwrap_or_else(|| "Action".to_string())
+                ),
                 color: Some("green".to_string()),
             },
             _ => A2UIComponent::Card {
@@ -76,7 +87,11 @@ impl SecurityDashboard {
 
         // Add table for >5 events
         if events.len() > 5 {
-            let headers = vec!["Event Type".to_string(), "Status".to_string(), "Time".to_string()];
+            let headers = vec![
+                "Event Type".to_string(),
+                "Status".to_string(),
+                "Time".to_string(),
+            ];
             let rows: Vec<Vec<String>> = events
                 .iter()
                 .take(10)
@@ -173,19 +188,19 @@ mod tests {
 
     #[test]
     fn test_compose_adds_progress() {
-        let events = vec![
-            AoEEvent {
-                action_type: "ACTION_COMPLETED".to_string(),
-                id: "evt-1".to_string(),
-                content: Some("task 1".to_string()),
-                metadata: None,
-            },
-        ];
+        let events = vec![AoEEvent {
+            action_type: "ACTION_COMPLETED".to_string(),
+            id: "evt-1".to_string(),
+            content: Some("task 1".to_string()),
+            metadata: None,
+        }];
 
         let view = SecurityDashboard::compose_security_view(events);
 
         // Should have Progress component
-        let has_progress = view.iter().any(|c| matches!(c, A2UIComponent::Progress { .. }));
+        let has_progress = view
+            .iter()
+            .any(|c| matches!(c, A2UIComponent::Progress { .. }));
         assert!(has_progress, "View should contain Progress component");
     }
 }

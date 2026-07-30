@@ -1,8 +1,7 @@
+use regex::Regex;
 /// Security hardening for A2UI renderer and form handlers
 /// Implements input validation, DoS prevention, session isolation, and cryptographic integrity checks
-
 use std::collections::HashSet;
-use regex::Regex;
 use std::sync::OnceLock;
 
 /// Security configuration with production-safe defaults
@@ -31,9 +30,9 @@ impl Default for SecurityConfig {
         Self {
             max_nesting_depth: 10,
             max_component_count: 1000,
-            max_payload_size: 10240,      // 10KB
+            max_payload_size: 10240, // 10KB
             rate_limit_per_min: 60,
-            session_timeout_secs: 300,    // 5 minutes
+            session_timeout_secs: 300, // 5 minutes
             max_concurrent_sessions: 1000,
             enforce_https: true,
             secure_cookies: true,
@@ -274,17 +273,13 @@ fn email_regex() -> &'static Regex {
 /// Helper function to get URL regex
 fn url_regex() -> &'static Regex {
     static REGEX: OnceLock<Regex> = OnceLock::new();
-    REGEX.get_or_init(|| {
-        Regex::new(r"^(https?://[^\s]+|/[^\s]*)$").unwrap()
-    })
+    REGEX.get_or_init(|| Regex::new(r"^(https?://[^\s]+|/[^\s]*)$").unwrap())
 }
 
 /// Helper function to get component ID regex
 fn component_id_regex() -> &'static Regex {
     static REGEX: OnceLock<Regex> = OnceLock::new();
-    REGEX.get_or_init(|| {
-        Regex::new(r"^[a-zA-Z0-9_-]+$").unwrap()
-    })
+    REGEX.get_or_init(|| Regex::new(r"^[a-zA-Z0-9_-]+$").unwrap())
 }
 
 /// Helper function to get UUID regex
@@ -431,7 +426,8 @@ mod tests {
     #[test]
     fn test_session_validator_valid_session() {
         let config = SecurityConfig::default();
-        let validator = SessionValidator::new("550e8400-e29b-41d4-a716-446655440000".to_string(), config);
+        let validator =
+            SessionValidator::new("550e8400-e29b-41d4-a716-446655440000".to_string(), config);
         assert!(validator.is_valid().is_ok());
     }
 

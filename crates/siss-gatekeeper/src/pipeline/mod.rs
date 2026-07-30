@@ -12,13 +12,16 @@ pub mod research;
 pub mod token_optimized_evaluator;
 pub mod validate;
 
-pub use authorization::{AuthorizationPipeline, AuthorizationProof, TaskAuthorizationRequest};
-pub use decision_store::{DecisionStore, DecisionEntry};
-pub use genesis::{GenesisCapsule, execute_genesis_with_generated_key};
-pub use monge_gap::{CMGComputeOperator, MongeGapResult, NOf1Experiment, MongeGapGovernor, TemporalDecay, AdversarialSampler, GoverningDecision};
-pub use token_optimized_evaluator::{TokenOptimizedEvaluator, GovernanceDecision};
-pub use crate::latency::{LatencyConstitution, LatencyTier, ConstitutionVerdict};
+pub use crate::latency::{ConstitutionVerdict, LatencyConstitution, LatencyTier};
 pub use crate::pricing::BlastMatrixCache;
+pub use authorization::{AuthorizationPipeline, AuthorizationProof, TaskAuthorizationRequest};
+pub use decision_store::{DecisionEntry, DecisionStore};
+pub use genesis::{GenesisCapsule, execute_genesis_with_generated_key};
+pub use monge_gap::{
+    AdversarialSampler, CMGComputeOperator, GoverningDecision, MongeGapGovernor, MongeGapResult,
+    NOf1Experiment, TemporalDecay,
+};
+pub use token_optimized_evaluator::{GovernanceDecision, TokenOptimizedEvaluator};
 
 use sqlx::PgPool;
 

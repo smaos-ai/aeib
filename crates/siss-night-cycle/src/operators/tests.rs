@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
     use crate::operators::{
-        NightCycleOperator, OntologyEntity, OntologyState, PhiOperator,
-        DeltaOperator, GammaOperator,
+        DeltaOperator, GammaOperator, NightCycleOperator, OntologyEntity, OntologyState,
+        PhiOperator,
     };
 
     /// Helper: create test entity with id, timestamp, confidence
@@ -44,7 +44,7 @@ mod tests {
             entities: vec![
                 test_entity("node_1", 100, 0.5),
                 test_entity("node_1", 110, 0.95),
-                test_entity("node_1", 90,  0.3),
+                test_entity("node_1", 90, 0.3),
             ],
             confidence_threshold: 0.1,
         };
@@ -113,7 +113,7 @@ mod tests {
         let mut state = OntologyState {
             entities: vec![
                 test_entity("entity_1", 100, 0.8),
-                test_entity("entity_1", 110, 0.9),  // dup, phi merges
+                test_entity("entity_1", 110, 0.9), // dup, phi merges
                 test_entity("config", 150, 0.3),   // gamma filters
                 test_entity("config", 200, 0.95),  // newer, delta keeps
                 test_entity("entity_2", 120, 0.75),
@@ -202,7 +202,7 @@ mod tests {
         let threshold = 0.6_f64;
         let mut state = OntologyState {
             entities: vec![
-                test_entity("at_threshold",    100, threshold),
+                test_entity("at_threshold", 100, threshold),
                 test_entity("above_threshold", 110, threshold + 0.01),
                 test_entity("below_threshold", 120, threshold - 0.01),
             ],
@@ -212,8 +212,15 @@ mod tests {
         let gamma = GammaOperator;
         let result = gamma.apply(&mut state);
 
-        assert_eq!(state.entities.len(), 2, "entities at and above threshold are kept");
-        assert_eq!(result.entities_changed, 1, "exactly one below-threshold entity removed");
+        assert_eq!(
+            state.entities.len(),
+            2,
+            "entities at and above threshold are kept"
+        );
+        assert_eq!(
+            result.entities_changed, 1,
+            "exactly one below-threshold entity removed"
+        );
         assert!(
             state.entities.iter().all(|e| e.confidence >= threshold),
             "no entity below threshold survives"

@@ -3,8 +3,8 @@ pub mod session_manager;
 pub mod trust_boundary;
 
 pub use key_rotation::{KeyRotationEngine, RotationProof, RotationSchedule};
-pub use session_manager::{SessionManager, SessionKey, SessionToken};
-pub use trust_boundary::{TrustBoundary, TrustContext, AccessDecision};
+pub use session_manager::{SessionKey, SessionManager, SessionToken};
+pub use trust_boundary::{AccessDecision, TrustBoundary, TrustContext};
 
 #[derive(Debug, Clone)]
 pub struct ZeroTrustConfig {
@@ -18,7 +18,7 @@ impl Default for ZeroTrustConfig {
     fn default() -> Self {
         Self {
             key_rotation_interval_secs: 86400, // 24 hours
-            session_timeout_secs: 3600, // 1 hour
+            session_timeout_secs: 3600,        // 1 hour
             max_concurrent_sessions: 1000,
             enable_replay_protection: true,
         }

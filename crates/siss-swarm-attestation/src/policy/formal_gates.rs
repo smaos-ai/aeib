@@ -63,7 +63,10 @@ mod tests {
             target_hash: "def456".to_string(),
         };
 
-        assert!(verify_safety_gate(&input), "human override must be accepted");
+        assert!(
+            verify_safety_gate(&input),
+            "human override must be accepted"
+        );
     }
 
     #[test]
@@ -74,7 +77,10 @@ mod tests {
             target_hash: "ghi789".to_string(),
         };
 
-        assert!(!verify_safety_gate(&input), "invalid input must be rejected (Fail-Closed)");
+        assert!(
+            !verify_safety_gate(&input),
+            "invalid input must be rejected (Fail-Closed)"
+        );
     }
 
     #[test]
@@ -94,6 +100,9 @@ mod tests {
             target_hash: "timeout_test".to_string(),
         };
 
-        assert!(verify_safety_gate(&input), "runtime fallback ensures safety");
+        assert!(
+            verify_safety_gate(&input),
+            "runtime fallback ensures safety"
+        );
     }
 }

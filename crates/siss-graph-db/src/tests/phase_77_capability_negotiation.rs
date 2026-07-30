@@ -3,12 +3,8 @@ mod phase_77_tests {
     use chrono::{Duration, Utc};
     use uuid::Uuid;
 
-    use crate::repo::capability_negotiation::{
-        CapabilityGrant, CapabilityRequestStatus,
-    };
-    use crate::repo::transitive_delegation_repo::{
-        DelegationChain,
-    };
+    use crate::repo::capability_negotiation::{CapabilityGrant, CapabilityRequestStatus};
+    use crate::repo::transitive_delegation_repo::DelegationChain;
 
     // =====================
     // Task 1: Capability Negotiation Protocol (4 tests)
@@ -83,7 +79,11 @@ mod phase_77_tests {
         };
 
         // Check that we can detect duplicates
-        let unique_count = chain.sovereigns.iter().collect::<std::collections::HashSet<_>>().len();
+        let unique_count = chain
+            .sovereigns
+            .iter()
+            .collect::<std::collections::HashSet<_>>()
+            .len();
         assert!(unique_count < chain.sovereigns.len()); // Indicates a cycle
     }
 

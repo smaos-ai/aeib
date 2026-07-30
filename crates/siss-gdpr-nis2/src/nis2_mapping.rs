@@ -177,10 +177,7 @@ impl NIS2AssetMapper {
 
     /// Retrieves critical assets by type
     pub fn get_assets_by_type(&self, asset_type: CriticalAssetType) -> Vec<CriticalAsset> {
-        self.assets
-            .get(&asset_type)
-            .cloned()
-            .unwrap_or_default()
+        self.assets.get(&asset_type).cloned().unwrap_or_default()
     }
 
     /// Retrieves all assets across all types
@@ -217,12 +214,24 @@ mod tests {
     #[test]
     fn test_mapper_has_all_asset_types() {
         let mapper = NIS2AssetMapper::new();
-        assert!(!mapper.get_assets_by_type(CriticalAssetType::Cryptography).is_empty());
-        assert!(!mapper.get_assets_by_type(CriticalAssetType::IncidentResponse).is_empty());
-        assert!(!mapper.get_assets_by_type(CriticalAssetType::SupplyChain).is_empty());
-        assert!(!mapper.get_assets_by_type(CriticalAssetType::Authentication).is_empty());
-        assert!(!mapper.get_assets_by_type(CriticalAssetType::AccessControl).is_empty());
-        assert!(!mapper.get_assets_by_type(CriticalAssetType::AuditLogging).is_empty());
+        assert!(!mapper
+            .get_assets_by_type(CriticalAssetType::Cryptography)
+            .is_empty());
+        assert!(!mapper
+            .get_assets_by_type(CriticalAssetType::IncidentResponse)
+            .is_empty());
+        assert!(!mapper
+            .get_assets_by_type(CriticalAssetType::SupplyChain)
+            .is_empty());
+        assert!(!mapper
+            .get_assets_by_type(CriticalAssetType::Authentication)
+            .is_empty());
+        assert!(!mapper
+            .get_assets_by_type(CriticalAssetType::AccessControl)
+            .is_empty());
+        assert!(!mapper
+            .get_assets_by_type(CriticalAssetType::AuditLogging)
+            .is_empty());
     }
 
     #[test]

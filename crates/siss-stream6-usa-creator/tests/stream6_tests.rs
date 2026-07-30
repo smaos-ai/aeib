@@ -2,17 +2,17 @@
 /// Following TDD pattern: tests written first, then implementation.
 #[cfg(test)]
 mod stream6_integration_tests {
+    use chrono::Utc;
+    use siss_layer00::{Layer0Gate, Mandate};
     use siss_stream6_usa_creator::{
         AMLChecker, AMLRiskLevel, KYCStatus, KYCVerifier, SanctionedEntity, Stream6Gate,
     };
-    use chrono::Utc;
     use std::sync::Arc;
     use uuid::Uuid;
-    use siss_layer00::{Layer0Gate, Mandate};
 
     // Mock MandateStore for testing
     use dashmap::DashMap;
-    use siss_layer00::{MandateStore, MandateError};
+    use siss_layer00::{MandateError, MandateStore};
 
     struct MockMandateStore {
         mandates: DashMap<Uuid, Mandate>,
@@ -150,10 +150,7 @@ mod stream6_integration_tests {
 
         // Cache miss: creator not in cache yet
         let result = verifier.get_kyc_status(creator_id);
-        assert!(
-            result.is_err(),
-            "get_kyc_status should error on cache miss"
-        );
+        assert!(result.is_err(), "get_kyc_status should error on cache miss");
 
         // Add creator to cache
         verifier
@@ -335,7 +332,10 @@ mod stream6_integration_tests {
             .await
             .expect("compliance_check should succeed");
 
-        assert!(!result.is_compliant, "unverified creator should fail compliance");
+        assert!(
+            !result.is_compliant,
+            "unverified creator should fail compliance"
+        );
         assert!(!result.kyc_verified, "kyc_verified should be false");
     }
 
@@ -371,6 +371,9 @@ mod stream6_integration_tests {
         // Verify all checks report correctly
         assert!(result.kyc_verified, "kyc_verified should be true");
         assert!(result.aml_clear, "aml_clear should be true");
-        assert!(result.is_compliant, "is_compliant should be true for verified creator");
+        assert!(
+            result.is_compliant,
+            "is_compliant should be true for verified creator"
+        );
     }
 }

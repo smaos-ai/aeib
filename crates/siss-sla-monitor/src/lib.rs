@@ -8,10 +8,10 @@ use uuid::Uuid;
 /// SLA Thresholds
 #[derive(Debug, Clone, Copy)]
 pub struct SLAThresholds {
-    pub uptime_percent: f64,      // e.g., 99.5
-    pub p99_latency_us: u64,      // e.g., 100
+    pub uptime_percent: f64,         // e.g., 99.5
+    pub p99_latency_us: u64,         // e.g., 100
     pub max_error_rate_percent: f64, // e.g., 0.1
-    pub max_data_loss_count: i32,  // e.g., 0
+    pub max_data_loss_count: i32,    // e.g., 0
 }
 
 impl Default for SLAThresholds {
@@ -97,7 +97,7 @@ impl SLAMonitor {
                 alert_type TEXT NOT NULL,
                 message TEXT NOT NULL,
                 acknowledged BOOLEAN NOT NULL DEFAULT 0
-            )"
+            )",
         )
         .execute(&pool)
         .await?;
@@ -130,7 +130,7 @@ impl SLAMonitor {
                 alert_type TEXT NOT NULL,
                 message TEXT NOT NULL,
                 acknowledged BOOLEAN NOT NULL DEFAULT 0
-            )"
+            )",
         )
         .execute(&pool)
         .await?;
@@ -156,7 +156,10 @@ impl SLAMonitor {
     }
 
     /// Record a metric snapshot and check for SLA violations
-    pub async fn record_metrics(&self, snapshot: MetricSnapshot) -> Result<Vec<Alert>, sqlx::Error> {
+    pub async fn record_metrics(
+        &self,
+        snapshot: MetricSnapshot,
+    ) -> Result<Vec<Alert>, sqlx::Error> {
         let mut metrics = self.current_metrics.lock().await;
         *metrics = snapshot.clone();
         drop(metrics);
@@ -253,7 +256,7 @@ impl SLAMonitor {
             "SELECT id, timestamp, severity, alert_type, message, acknowledged
              FROM alerts
              ORDER BY timestamp DESC
-             LIMIT ?"
+             LIMIT ?",
         )
         .bind(limit)
         .fetch_all(&self.db_pool)
@@ -310,7 +313,7 @@ impl SLAMonitor {
     async fn store_alert(&self, alert: &Alert) -> Result<(), sqlx::Error> {
         sqlx::query(
             "INSERT INTO alerts (id, timestamp, severity, alert_type, message, acknowledged)
-             VALUES (?, ?, ?, ?, ?, ?)"
+             VALUES (?, ?, ?, ?, ?, ?)",
         )
         .bind(&alert.id)
         .bind(alert.timestamp.timestamp())

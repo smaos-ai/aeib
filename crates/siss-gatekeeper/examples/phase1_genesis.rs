@@ -33,23 +33,32 @@ fn main() {
             println!("{}", capsule_json);
             println!("\n📋 PROOF SUMMARY:");
             println!("   Capsule ID: {}", capsule.capsule_id);
-            println!("   Covenant: {}%/{}{}",
+            println!(
+                "   Covenant: {}%/{}{}",
                 capsule.economist_pct,
                 capsule.beneficiary_pct,
-                if capsule.economist_pct + capsule.beneficiary_pct == 100 { " ✓" } else { " ✗" }
+                if capsule.economist_pct + capsule.beneficiary_pct == 100 {
+                    " ✓"
+                } else {
+                    " ✗"
+                }
             );
-            println!("   Signature: {}...", &capsule.signature_hex[..32.min(capsule.signature_hex.len())]);
+            println!(
+                "   Signature: {}...",
+                &capsule.signature_hex[..32.min(capsule.signature_hex.len())]
+            );
             println!("   Proof Root: {}", capsule.proof_merkle_root);
             println!("   Timestamp: {}\n", capsule.timestamp);
 
             // Save to file for reference
             let output_path = "/tmp/genesis_capsule_phase1.json";
-            fs::write(output_path, &capsule_json)
-                .expect("must write genesis capsule to file");
+            fs::write(output_path, &capsule_json).expect("must write genesis capsule to file");
             println!("💾 Saved to: {}\n", output_path);
 
             // Parse proof to show gate decisions
-            if let Ok(proof) = serde_json::from_str::<serde_json::Value>(&capsule.authorization_proof) {
+            if let Ok(proof) =
+                serde_json::from_str::<serde_json::Value>(&capsule.authorization_proof)
+            {
                 if let Some(gates) = proof.get("gate_decisions").and_then(|g| g.as_object()) {
                     println!("🔐 GATES PASSED:");
                     let mut gate_names: Vec<_> = gates.keys().collect();

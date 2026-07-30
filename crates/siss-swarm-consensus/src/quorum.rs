@@ -47,9 +47,10 @@ impl QuorumValidator {
     pub fn can_tolerate_failures(&self, failures: usize) -> Result<bool, BftConsensusError> {
         let max_failures = self.max_tolerated_failures();
         if failures > max_failures {
-            return Err(BftConsensusError::MaxFailuresExceeded(
-                format!("Failures ({}) exceed BFT tolerance ({})", failures, max_failures),
-            ));
+            return Err(BftConsensusError::MaxFailuresExceeded(format!(
+                "Failures ({}) exceed BFT tolerance ({})",
+                failures, max_failures
+            )));
         }
         Ok(true)
     }

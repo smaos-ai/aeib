@@ -1,6 +1,5 @@
 /// Phase 36: AoE Cockpit Security View — Crabbox Isolation
 /// RED phase: Failing tests for LOTA mitigation and environment escape prevention
-
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -35,8 +34,21 @@ impl CrabboxSecurity {
     ) -> Result<ShellExecutionResult, CrabboxSecurityError> {
         // Fail-closed: Detect common LOTA escape patterns
         let escape_patterns = vec![
-            "$(", "$(/", "`", ";&", "|&", "||", "&&",
-            "/bin/sh", "/bin/bash", "/bash", "exec", "eval", "bash", "sh -c", ">&"
+            "$(",
+            "$(/",
+            "`",
+            ";&",
+            "|&",
+            "||",
+            "&&",
+            "/bin/sh",
+            "/bin/bash",
+            "/bash",
+            "exec",
+            "eval",
+            "bash",
+            "sh -c",
+            ">&",
         ];
 
         for pattern in escape_patterns {
@@ -74,7 +86,12 @@ impl CrabboxSecurity {
         env_vars: &HashMap<String, String>,
     ) -> Result<(), CrabboxSecurityError> {
         // Fail-closed: Block dangerous env vars
-        let dangerous_vars = vec!["LD_PRELOAD", "LD_LIBRARY_PATH", "DYLD_INSERT_LIBRARIES", "DYLD_LIBRARY_PATH"];
+        let dangerous_vars = vec![
+            "LD_PRELOAD",
+            "LD_LIBRARY_PATH",
+            "DYLD_INSERT_LIBRARIES",
+            "DYLD_LIBRARY_PATH",
+        ];
 
         for (key, _value) in env_vars {
             if dangerous_vars.contains(&key.as_str()) {
@@ -91,17 +108,21 @@ impl CrabboxSecurity {
         _container_id: &str,
     ) -> Result<Vec<String>, CrabboxSecurityError> {
         // Placeholder: In real implementation, would monitor syscalls via seccomp
-        Ok(vec!["read".to_string(), "write".to_string(), "open".to_string()])
+        Ok(vec![
+            "read".to_string(),
+            "write".to_string(),
+            "open".to_string(),
+        ])
     }
 }
 
 #[derive(Debug, Clone)]
 pub enum CrabboxSecurityError {
-    EscapeAttempt,             // 403: LOTA escape detected
-    UnauthorizedSyscall,       // 403: Restricted syscall invoked
-    PathTraversalAttempt,      // 403: Filesystem breakout detected
-    EnvironmentInjection,      // 403: Malicious env var injection
-    InternalError,             // 500: Unexpected error
+    EscapeAttempt,        // 403: LOTA escape detected
+    UnauthorizedSyscall,  // 403: Restricted syscall invoked
+    PathTraversalAttempt, // 403: Filesystem breakout detected
+    EnvironmentInjection, // 403: Malicious env var injection
+    InternalError,        // 500: Unexpected error
 }
 
 #[cfg(test)]
@@ -117,12 +138,15 @@ mod tests {
 
         let result = CrabboxSecurity::execute_in_crabbox(
             "container-12345",
-            "$(cat /etc/passwd) || /bin/sh -i",  // LOTA escape attempt
+            "$(cat /etc/passwd) || /bin/sh -i", // LOTA escape attempt
         )
         .await;
 
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), CrabboxSecurityError::EscapeAttempt));
+        assert!(matches!(
+            result.unwrap_err(),
+            CrabboxSecurityError::EscapeAttempt
+        ));
     }
 
     #[tokio::test]
@@ -139,7 +163,10 @@ mod tests {
         .await;
 
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), CrabboxSecurityError::PathTraversalAttempt));
+        assert!(matches!(
+            result.unwrap_err(),
+            CrabboxSecurityError::PathTraversalAttempt
+        ));
     }
 
     #[tokio::test]
@@ -155,7 +182,10 @@ mod tests {
         let result = CrabboxSecurity::validate_environment_variables(&malicious_vars).await;
 
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), CrabboxSecurityError::EnvironmentInjection));
+        assert!(matches!(
+            result.unwrap_err(),
+            CrabboxSecurityError::EnvironmentInjection
+        ));
     }
 
     #[tokio::test]
@@ -178,11 +208,9 @@ mod tests {
         // THEN: Returns ShellExecutionResult with exit_code=0
         // AND: escaped_crabbox=false (stayed within isolation)
 
-        let result = CrabboxSecurity::execute_in_crabbox(
-            "container-safe",
-            "echo 'Hello from crabbox'",
-        )
-        .await;
+        let result =
+            CrabboxSecurity::execute_in_crabbox("container-safe", "echo 'Hello from crabbox'")
+                .await;
 
         assert!(result.is_ok());
         let execution = result.unwrap();

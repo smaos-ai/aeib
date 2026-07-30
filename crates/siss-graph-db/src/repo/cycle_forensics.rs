@@ -43,7 +43,7 @@ impl ReputationCycle {
         // Deterministic tiebreaker: when ceiling_tiers are equal, use destination UUID (lexicographically smallest wins)
         let mut weakest_link_id = cycle_nodes[0];
         let mut weakest_link_ceiling = u32::MAX;
-        let mut weakest_dest_id = Uuid::nil();  // overwritten on first valid edge
+        let mut weakest_dest_id = Uuid::nil(); // overwritten on first valid edge
 
         for node_id in &cycle_nodes {
             if let Some(outgoing) = graph.outgoing_edges(*node_id) {
@@ -359,9 +359,18 @@ mod tests {
 
         // Control UUIDs: a < b < c lexicographically
         // Create cycle where if tiebreaking isn't working, we'd get random results
-        let a = Uuid::from_bytes([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01]);
-        let b = Uuid::from_bytes([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02]);
-        let c = Uuid::from_bytes([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03]);
+        let a = Uuid::from_bytes([
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x01,
+        ]);
+        let b = Uuid::from_bytes([
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x02,
+        ]);
+        let c = Uuid::from_bytes([
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x03,
+        ]);
 
         graph.add_node(a, "a".to_string());
         graph.add_node(b, "b".to_string());
@@ -463,8 +472,8 @@ mod tests {
         // 2-node cycle A↔B with identical ceilings; verify dest UUID determines winner
         let mut graph = ReputationGraph::new();
 
-        let a = Uuid::from_bytes([0xff; 16]);  // largest UUID
-        let b = Uuid::from_bytes([0x00; 16]);  // smallest UUID
+        let a = Uuid::from_bytes([0xff; 16]); // largest UUID
+        let b = Uuid::from_bytes([0x00; 16]); // smallest UUID
 
         graph.add_node(a, "a".to_string());
         graph.add_node(b, "b".to_string());
@@ -506,11 +515,7 @@ mod tests {
         let mut graph = ReputationGraph::new();
 
         let nodes: Vec<Uuid> = (0..5)
-            .map(|i| {
-                Uuid::from_bytes([
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, i as u8,
-                ])
-            })
+            .map(|i| Uuid::from_bytes([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, i as u8]))
             .collect();
 
         for node in &nodes {
@@ -520,13 +525,7 @@ mod tests {
         // Create chain: 0→1(tier 10), 1→2(tier 10), 2→3(tier 50), 3→4(tier 20), 4→0(tier 30)
         // Edges 0→1 and 1→2 both tier 10. Tiebreaker: 1→2 has dest=2, 0→1 has dest=1.
         // So 0→1 (dest=1 < dest=2) should win.
-        let edges = vec![
-            (0, 1, 10),
-            (1, 2, 10),
-            (2, 3, 50),
-            (3, 4, 20),
-            (4, 0, 30),
-        ];
+        let edges = vec![(0, 1, 10), (1, 2, 10), (2, 3, 50), (3, 4, 20), (4, 0, 30)];
 
         for (from_idx, to_idx, tier) in edges {
             graph.add_edge(GraphEdge {
@@ -544,10 +543,7 @@ mod tests {
 
         assert!(result.is_ok());
         let cycle_data = result.unwrap();
-        assert_eq!(
-            cycle_data.weakest_link_ceiling, 10,
-            "Weakest tier is 10"
-        );
+        assert_eq!(cycle_data.weakest_link_ceiling, 10, "Weakest tier is 10");
         // Two edges with tier 10: 0→1 (dest=1) and 1→2 (dest=2)
         // 0→1 should win (dest=1 < dest=2)
         assert_eq!(

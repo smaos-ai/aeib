@@ -1,8 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::{
-        PilotEnvironment, DeploymentConfig, EnvironmentValidator, CustomerProfile,
-    };
+    use crate::{CustomerProfile, DeploymentConfig, EnvironmentValidator, PilotEnvironment};
 
     /// test_fintech_environment_creation: ensures FinTech pilot environment config is valid with 3-node cluster
     #[test]

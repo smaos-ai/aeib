@@ -88,7 +88,10 @@ impl ISO27001Audit {
         RemediationPlan {
             gap_count: gaps.len(),
             timeline_weeks: Some(12),
-            responsible_parties: vec!["security_team".to_string(), "infrastructure_team".to_string()],
+            responsible_parties: vec![
+                "security_team".to_string(),
+                "infrastructure_team".to_string(),
+            ],
         }
     }
 

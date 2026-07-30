@@ -1,15 +1,19 @@
+use siss_swarm_coordinator::{A2AMessage, SwarmCoordinator};
 use uuid::Uuid;
-use siss_swarm_coordinator::{SwarmCoordinator, A2AMessage};
 
 #[test]
 fn test_5_concurrent_agents_no_deadlock() {
     let coordinator = SwarmCoordinator::new(Uuid::new_v4());
 
-    let agents: Vec<_> = (0..5).map(|i| {
-        let agent_id = Uuid::new_v4();
-        coordinator.register_agent(agent_id, [i as u8 + 1; 32]).unwrap();
-        agent_id
-    }).collect();
+    let agents: Vec<_> = (0..5)
+        .map(|i| {
+            let agent_id = Uuid::new_v4();
+            coordinator
+                .register_agent(agent_id, [i as u8 + 1; 32])
+                .unwrap();
+            agent_id
+        })
+        .collect();
 
     for i in 1..5 {
         let result = coordinator.delegate(agents[0], agents[i]);
@@ -34,11 +38,7 @@ fn test_swarm_state_sync_consistency() {
     coordinator.register_agent(agent_b, [2u8; 32]).unwrap();
 
     for i in 0..3 {
-        let msg = A2AMessage::new(
-            agent_a,
-            agent_b,
-            format!("state {}", i),
-        );
+        let msg = A2AMessage::new(agent_a, agent_b, format!("state {}", i));
         coordinator.send_message(msg).unwrap();
     }
 
@@ -65,11 +65,7 @@ fn test_mcp_gateway_routing_a2a_message() {
     coordinator.register_agent(agent_local, [1u8; 32]).unwrap();
     coordinator.register_agent(agent_remote, [2u8; 32]).unwrap();
 
-    let msg = A2AMessage::new(
-        agent_local,
-        agent_remote,
-        "mcp routed message".to_string(),
-    );
+    let msg = A2AMessage::new(agent_local, agent_remote, "mcp routed message".to_string());
 
     assert!(coordinator.send_message(msg.clone()).is_ok());
     assert_eq!(coordinator.get_queue_depth(agent_remote).unwrap(), 1);
@@ -84,11 +80,15 @@ fn test_mcp_gateway_routing_a2a_message() {
 fn test_swarm_bounds_enforce_global_limits() {
     let coordinator = SwarmCoordinator::new(Uuid::new_v4());
 
-    let agents: Vec<_> = (0..6).map(|i| {
-        let agent_id = Uuid::new_v4();
-        coordinator.register_agent(agent_id, [i as u8 + 1; 32]).unwrap();
-        agent_id
-    }).collect();
+    let agents: Vec<_> = (0..6)
+        .map(|i| {
+            let agent_id = Uuid::new_v4();
+            coordinator
+                .register_agent(agent_id, [i as u8 + 1; 32])
+                .unwrap();
+            agent_id
+        })
+        .collect();
 
     for i in 1..6 {
         let result = coordinator.delegate(agents[0], agents[i]);

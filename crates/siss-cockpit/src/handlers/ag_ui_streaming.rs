@@ -3,23 +3,22 @@
 ///
 /// Phase 33: A2UI Streaming SSE Endpoint
 /// Real-time A2UI component streaming to frontend clients
-
 use axum::{
     extract::{Query, State},
-    http::{StatusCode, HeaderMap},
-    response::{sse::Event, Sse},
+    http::{HeaderMap, StatusCode},
+    response::{Sse, sse::Event},
 };
 use futures::stream::Stream;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use std::time::Duration;
 use std::sync::Arc;
+use std::time::Duration;
 use uuid::Uuid;
 
+use crate::a2ui::component_broadcast::ComponentBroadcast;
+use crate::a2ui::streaming_gateway::A2UIStreamingGateway;
 use crate::state::CockpitState;
 use siss_graph_db::rce_event_broadcaster::RceEvent;
-use crate::a2ui::streaming_gateway::A2UIStreamingGateway;
-use crate::a2ui::component_broadcast::ComponentBroadcast;
 
 #[derive(Debug, Deserialize)]
 pub struct StreamParams {
@@ -288,26 +287,23 @@ mod tests {
     #[tokio::test]
     async fn test_ag_ui_stream_establishes_sse_connection() {
         let mut headers = axum::http::HeaderMap::new();
-        headers.insert(
-            "Authorization",
-            "Bearer test-token-12345".parse().unwrap(),
-        );
+        headers.insert("Authorization", "Bearer test-token-12345".parse().unwrap());
         let state = CockpitState::new();
         let params = Query(StreamParams {
             workflow_id: None,
             severity_min: None,
         });
         let result = get_rce_stream(headers, State(state), params).await;
-        assert!(result.is_ok(), "Should accept valid Bearer token and return SSE stream");
+        assert!(
+            result.is_ok(),
+            "Should accept valid Bearer token and return SSE stream"
+        );
     }
 
     #[tokio::test]
     async fn test_sse_invalid_workflow_id_returns_400() {
         let mut headers = axum::http::HeaderMap::new();
-        headers.insert(
-            "Authorization",
-            "Bearer test-token".parse().unwrap(),
-        );
+        headers.insert("Authorization", "Bearer test-token".parse().unwrap());
         let state = CockpitState::new();
         let params = Query(StreamParams {
             workflow_id: Some("not-a-uuid".to_string()),
@@ -320,10 +316,7 @@ mod tests {
     #[tokio::test]
     async fn test_sse_invalid_severity_min_returns_400() {
         let mut headers = axum::http::HeaderMap::new();
-        headers.insert(
-            "Authorization",
-            "Bearer test-token".parse().unwrap(),
-        );
+        headers.insert("Authorization", "Bearer test-token".parse().unwrap());
         let state = CockpitState::new();
         let params = Query(StreamParams {
             workflow_id: None,
@@ -414,22 +407,19 @@ mod a2ui_streaming_tests {
     #[tokio::test]
     async fn test_a2ui_stream_establishes_sse_connection() {
         let mut headers = axum::http::HeaderMap::new();
-        headers.insert(
-            "Authorization",
-            "Bearer test-token-a2ui".parse().unwrap(),
-        );
+        headers.insert("Authorization", "Bearer test-token-a2ui".parse().unwrap());
         let params = Query(A2UIStreamParams { agent_id: None });
         let result = get_a2ui_stream(headers, params).await;
-        assert!(result.is_ok(), "Should accept valid Bearer token and return SSE stream");
+        assert!(
+            result.is_ok(),
+            "Should accept valid Bearer token and return SSE stream"
+        );
     }
 
     #[tokio::test]
     async fn test_a2ui_stream_invalid_agent_id_returns_400() {
         let mut headers = axum::http::HeaderMap::new();
-        headers.insert(
-            "Authorization",
-            "Bearer test-token".parse().unwrap(),
-        );
+        headers.insert("Authorization", "Bearer test-token".parse().unwrap());
         let params = Query(A2UIStreamParams {
             agent_id: Some("not-a-uuid".to_string()),
         });
@@ -440,10 +430,7 @@ mod a2ui_streaming_tests {
     #[tokio::test]
     async fn test_a2ui_stream_accepts_valid_agent_id() {
         let mut headers = axum::http::HeaderMap::new();
-        headers.insert(
-            "Authorization",
-            "Bearer test-token".parse().unwrap(),
-        );
+        headers.insert("Authorization", "Bearer test-token".parse().unwrap());
         let valid_uuid = Uuid::new_v4().to_string();
         let params = Query(A2UIStreamParams {
             agent_id: Some(valid_uuid),

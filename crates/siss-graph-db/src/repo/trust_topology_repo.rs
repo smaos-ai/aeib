@@ -303,12 +303,7 @@ pub async fn compute_and_upsert_trust_score_with_pos(
     .await?;
 
     let (explicit_base, implicit_adj, decay_penalty, transitive_boost) = match row {
-        Some((e, i, d, t)) => (
-            e.unwrap_or(0),
-            i.unwrap_or(0),
-            d.unwrap_or(0),
-            t,
-        ),
+        Some((e, i, d, t)) => (e.unwrap_or(0), i.unwrap_or(0), d.unwrap_or(0), t),
         None => (0, 0, 0, None),
     };
 

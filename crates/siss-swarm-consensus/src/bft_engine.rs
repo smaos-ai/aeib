@@ -1,7 +1,7 @@
 use crate::errors::BftConsensusError;
+use crate::quorum::QuorumValidator;
 use crate::types::{Agent, ConsensusProof, Proposal, Vote};
 use crate::voting::VotingEngine;
-use crate::quorum::QuorumValidator;
 use dashmap::DashMap;
 use std::sync::Arc;
 use uuid::Uuid;
@@ -13,10 +13,7 @@ pub struct BftEngine {
 }
 
 impl BftEngine {
-    pub fn new(
-        total_agents: usize,
-        consensus_threshold: f64,
-    ) -> Result<Self, BftConsensusError> {
+    pub fn new(total_agents: usize, consensus_threshold: f64) -> Result<Self, BftConsensusError> {
         let quorum_validator = QuorumValidator::new(total_agents, consensus_threshold)?;
 
         Ok(Self {
@@ -26,7 +23,11 @@ impl BftEngine {
         })
     }
 
-    pub fn register_agent(&self, agent_id: Uuid, public_key: [u8; 32]) -> Result<(), BftConsensusError> {
+    pub fn register_agent(
+        &self,
+        agent_id: Uuid,
+        public_key: [u8; 32],
+    ) -> Result<(), BftConsensusError> {
         if self.agents.contains_key(&agent_id) {
             return Err(BftConsensusError::AgentNotFound(
                 "Agent already registered".to_string(),
@@ -50,14 +51,18 @@ impl BftEngine {
 
     pub fn register_vote(&self, vote: Vote) -> Result<(), BftConsensusError> {
         if !self.agents.contains_key(&vote.voter_id) {
-            return Err(BftConsensusError::AgentNotFound(
-                format!("Voter {} not registered", vote.voter_id),
-            ));
+            return Err(BftConsensusError::AgentNotFound(format!(
+                "Voter {} not registered",
+                vote.voter_id
+            )));
         }
         self.voting_engine.register_vote(vote)
     }
 
-    pub async fn reach_consensus(&self, proposal: Proposal) -> Result<ConsensusProof, BftConsensusError> {
+    pub async fn reach_consensus(
+        &self,
+        proposal: Proposal,
+    ) -> Result<ConsensusProof, BftConsensusError> {
         if proposal.content.is_empty() {
             return Err(BftConsensusError::InvalidProposal(
                 "Proposal content cannot be empty".to_string(),

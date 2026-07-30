@@ -5,9 +5,8 @@
 /// - Cost < $10/hypothesis (vs baseline $50)
 /// - 500 molecular hypotheses for testing
 /// - Night Cycle hypothesis evaluation
-
 use siss_pilot_deployment::{
-    PilotEnvironment, DeploymentConfig, DeploymentManifest, EnvironmentValidator,
+    DeploymentConfig, DeploymentManifest, EnvironmentValidator, PilotEnvironment,
     generate_terraform_config,
 };
 
@@ -22,7 +21,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("✓ Environment created: {}", env.id);
     println!("  - Nodes: {}", env.num_nodes);
     println!("  - Agents: {} (molecular simulation)", env.num_agents);
-    println!("  - Test data: {} molecular hypotheses", env.test_data_count);
+    println!(
+        "  - Test data: {} molecular hypotheses",
+        env.test_data_count
+    );
     println!();
 
     // Create deployment config
@@ -37,7 +39,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let validator = EnvironmentValidator::new();
     let validation_report = validator.validate(&env)?;
     println!("✓ Environment validation: PASSED");
-    println!("  - All checks passed: {}", validation_report.all_checks_passed);
+    println!(
+        "  - All checks passed: {}",
+        validation_report.all_checks_passed
+    );
     println!("  - Errors: {}", validation_report.errors.len());
     println!("  - Warnings: {}", validation_report.warnings.len());
     println!();
@@ -62,7 +67,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Cost Analysis:");
     println!("  - Cost per hypothesis: ${}", config.max_cost_per_unit);
     println!("  - Baseline cost: $50/hypothesis");
-    println!("  - Savings per 500 hypotheses: ${}", (50.0 - config.max_cost_per_unit) * config.max_cost_per_unit as f64 / config.max_cost_per_unit);
+    println!(
+        "  - Savings per 500 hypotheses: ${}",
+        (50.0 - config.max_cost_per_unit) * config.max_cost_per_unit as f64
+            / config.max_cost_per_unit
+    );
     println!();
 
     println!("╔════════════════════════════════════════════════════════════════╗");

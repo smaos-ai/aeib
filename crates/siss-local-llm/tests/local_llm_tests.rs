@@ -1,13 +1,8 @@
-use siss_local_llm::{
-    LocalLLMGate, LocalLLMConfig, InferenceRequest, ModelType,
-    LocalLLMError,
-};
-use siss_layer00::{
-    Layer0Gate, DashMapStore, Mandate, SovereignKeypair, sha256,
-};
-use uuid::Uuid;
 use chrono::Utc;
+use siss_layer00::{DashMapStore, Layer0Gate, Mandate, SovereignKeypair, sha256};
+use siss_local_llm::{InferenceRequest, LocalLLMConfig, LocalLLMError, LocalLLMGate, ModelType};
 use std::sync::Arc;
+use uuid::Uuid;
 
 fn create_test_mandate() -> (Mandate, SovereignKeypair) {
     let keypair = SovereignKeypair::generate();
@@ -37,7 +32,9 @@ fn setup_llm_gate() -> (Arc<LocalLLMGate>, Uuid) {
     let (mandate, _keypair) = create_test_mandate();
     let mandate_id = mandate.id;
 
-    layer0_gate.register_mandate(mandate).expect("Failed to register mandate");
+    layer0_gate
+        .register_mandate(mandate)
+        .expect("Failed to register mandate");
 
     let config = LocalLLMConfig::default();
     let llm_gate = Arc::new(LocalLLMGate::new(layer0_gate, config));
@@ -72,7 +69,10 @@ async fn test_llm_gate_requires_valid_token() {
 
     assert!(result.is_ok(), "Inference should succeed with valid token");
     let inference_result = result.unwrap();
-    assert!(inference_result.merkle_logged, "Result should be logged to Merkle");
+    assert!(
+        inference_result.merkle_logged,
+        "Result should be logged to Merkle"
+    );
 
     // Now test with expired token by manually creating one
     let mut expired_token = token.clone();
@@ -123,9 +123,7 @@ async fn test_llm_inference_logs_to_merkle() {
     assert!(chain_valid, "Merkle chain should be valid");
 
     // Verify we can get Merkle root
-    let root = llm_gate
-        .merkle_root()
-        .expect("Failed to get Merkle root");
+    let root = llm_gate.merkle_root().expect("Failed to get Merkle root");
     assert_ne!(root, [0u8; 32], "Merkle root should not be zero");
 }
 
@@ -160,7 +158,11 @@ async fn test_llm_model_load_from_disk() {
     // Clear all
     let _ = cache.load_model(ModelType::MistralMoE);
     cache.clear_all();
-    assert_eq!(cache.cache_size(), 0, "Cache should be empty after clear_all");
+    assert_eq!(
+        cache.cache_size(),
+        0,
+        "Cache should be empty after clear_all"
+    );
 }
 
 /// Test 4: Verify action scope is enforced
@@ -205,7 +207,10 @@ async fn test_llm_inference_respects_action_scope() {
         .await;
 
     assert!(
-        matches!(result_mismatch, Err(LocalLLMError::ActionScopeNotAllowed(_))),
+        matches!(
+            result_mismatch,
+            Err(LocalLLMError::ActionScopeNotAllowed(_))
+        ),
         "Should reject mismatched action scope"
     );
 }
@@ -250,7 +255,10 @@ async fn test_llm_concurrent_inference() {
     for result in results {
         assert!(result.is_ok(), "Concurrent task should succeed");
         let inference_result = result.unwrap().expect("Inference should be ok");
-        assert!(inference_result.merkle_logged, "Each inference should be logged");
+        assert!(
+            inference_result.merkle_logged,
+            "Each inference should be logged"
+        );
     }
 }
 
@@ -283,8 +291,15 @@ async fn test_llm_inference_result_completeness() {
     assert!(result.tokens_used > 0, "Should have used tokens");
     assert!(result.merkle_logged, "Should be logged");
     assert!(result.audit_id.is_some(), "Should have audit ID");
-    assert_eq!(result.model_type, ModelType::MistralMoE, "Should match requested model");
-    assert!(result.inference_time_ms > 0 || result.inference_time_ms == 0, "Should have timing");
+    assert_eq!(
+        result.model_type,
+        ModelType::MistralMoE,
+        "Should match requested model"
+    );
+    assert!(
+        result.inference_time_ms > 0 || result.inference_time_ms == 0,
+        "Should have timing"
+    );
 }
 
 /// Test 7: Model type enum conversion

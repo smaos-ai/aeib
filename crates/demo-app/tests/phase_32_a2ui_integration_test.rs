@@ -1,3 +1,4 @@
+use serde_json::json;
 /// Phase 32 Wave 3, Task 5: End-to-End A2UI Integration Tests
 /// Validates complete flow: agent emits components → cockpit renders → operator submits form → agent receives response
 ///
@@ -9,9 +10,7 @@
 /// 5. All 18 component types work end-to-end
 /// 6. Invalid components are rejected gracefully
 /// 7. XSS payloads are escaped
-
 use siss_agent_shell::a2ui::{A2UIComponent, FormSubmission, SelectOption};
-use serde_json::json;
 use uuid::Uuid;
 
 /// Mock Renderer (simplified for demo-app tests)
@@ -89,9 +88,7 @@ impl MockRenderer {
             } => {
                 let title_html = title
                     .as_ref()
-                    .map(|t| {
-                        format!(r#"<div class="card-title">{}</div>"#, escape_html(t))
-                    })
+                    .map(|t| format!(r#"<div class="card-title">{}</div>"#, escape_html(t)))
                     .unwrap_or_default();
                 let children_html = children
                     .iter()
@@ -246,7 +243,9 @@ impl MockValidator {
                 }
                 Ok(())
             }
-            A2UIComponent::Modal { id, title, content, .. } => {
+            A2UIComponent::Modal {
+                id, title, content, ..
+            } => {
                 if id.is_empty() {
                     return Err("Modal id must not be empty".to_string());
                 }
@@ -395,11 +394,27 @@ fn test_a2ui_select_component_with_options() {
 fn test_a2ui_table_component_renders_rows_and_headers() {
     let component = A2UIComponent::Table {
         id: "audit_log".to_string(),
-        headers: vec!["Timestamp".to_string(), "Action".to_string(), "User".to_string()],
+        headers: vec![
+            "Timestamp".to_string(),
+            "Action".to_string(),
+            "User".to_string(),
+        ],
         rows: vec![
-            vec!["2026-06-04 10:00".to_string(), "Approved".to_string(), "Alice".to_string()],
-            vec!["2026-06-04 11:15".to_string(), "Rejected".to_string(), "Bob".to_string()],
-            vec!["2026-06-04 12:30".to_string(), "Pending".to_string(), "Charlie".to_string()],
+            vec![
+                "2026-06-04 10:00".to_string(),
+                "Approved".to_string(),
+                "Alice".to_string(),
+            ],
+            vec![
+                "2026-06-04 11:15".to_string(),
+                "Rejected".to_string(),
+                "Bob".to_string(),
+            ],
+            vec![
+                "2026-06-04 12:30".to_string(),
+                "Pending".to_string(),
+                "Charlie".to_string(),
+            ],
         ],
     };
 
@@ -606,7 +621,10 @@ fn test_a2ui_xss_payload_escaping() {
     // Render escapes dangerous content
     let html = MockRenderer::render(&component);
     assert!(!html.contains("<script>"), "Script tag should be escaped");
-    assert!(html.contains("&lt;") || html.contains("&gt;"), "Should contain escaped HTML");
+    assert!(
+        html.contains("&lt;") || html.contains("&gt;"),
+        "Should contain escaped HTML"
+    );
 }
 
 /// Test 10: Complete end-to-end approval flow (integration test)
@@ -643,15 +661,27 @@ fn test_a2ui_complete_end_to_end_approval_flow() {
     };
 
     // Step 2: Validator checks component
-    assert!(MockValidator::validate(&approval_form).is_ok(), "Form should pass validation");
+    assert!(
+        MockValidator::validate(&approval_form).is_ok(),
+        "Form should pass validation"
+    );
 
     // Step 3: Cockpit renders it
     let html = MockRenderer::render(&approval_form);
     assert!(html.contains("rce_approval"), "Card ID should be in HTML");
-    assert!(html.contains("RCE Approval Required"), "Title should be in HTML");
+    assert!(
+        html.contains("RCE Approval Required"),
+        "Title should be in HTML"
+    );
     assert!(html.contains("command"), "Command field should be in HTML");
-    assert!(html.contains("signature"), "Signature field should be in HTML");
-    assert!(html.contains("Approve Execution"), "Button should be in HTML");
+    assert!(
+        html.contains("signature"),
+        "Signature field should be in HTML"
+    );
+    assert!(
+        html.contains("Approve Execution"),
+        "Button should be in HTML"
+    );
 
     // Step 4: Operator submits form
     let task_id = Uuid::new_v4();
@@ -667,7 +697,10 @@ fn test_a2ui_complete_end_to_end_approval_flow() {
     // Step 5: Form handler accepts
     let response = MockFormHandler::process(&submission).expect("Form processing should succeed");
     assert_eq!(response.status, "accepted", "Response should be accepted");
-    assert!(!response.submission_id.is_empty(), "submission_id should not be empty");
+    assert!(
+        !response.submission_id.is_empty(),
+        "submission_id should not be empty"
+    );
 
     // Step 6: Verify submission_id is valid UUID
     Uuid::parse_str(&response.submission_id).expect("submission_id should be valid UUID");

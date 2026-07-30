@@ -3,21 +3,21 @@
 //! Implements the tripartite zonal model with enforcement mechanisms
 //! for BlackFog, GrayFog, and VisibleField memory classifications.
 
-pub mod zone_guard;
 pub mod consolidation;
 pub mod hybrid_search;
 pub mod operators;
+pub mod zone_guard;
 
-pub use zone_guard::{ZoneAccessGuard, ZoneTransition, ZoneViolation};
 pub use consolidation::{ConsolidationPipeline, SupersessionRecord, WorkingObservation};
 pub use hybrid_search::{BM25Scorer, Corpus, HybridSearchEngine, RrfFuser, SearchResult};
 pub use operators::{AnnotatedEntry, CartographicOperatorSet, ProjectedEntry};
+pub use zone_guard::{ZoneAccessGuard, ZoneTransition, ZoneViolation};
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use uuid::Uuid;
     use chrono::Utc;
+    use uuid::Uuid;
 
     #[test]
     fn test_black_fog_raw_data_rejected_from_visible_field() {
@@ -32,7 +32,10 @@ mod tests {
         let guard = ZoneAccessGuard::new(0.1);
         let result = guard.check_transition(ZoneTransition::GrayFogToVisible { confidence: 0.05 });
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err(), ZoneViolation::BelowThreshold(0.05, 0.1));
+        assert_eq!(
+            result.unwrap_err(),
+            ZoneViolation::BelowThreshold(0.05, 0.1)
+        );
     }
 
     #[test]
@@ -120,7 +123,10 @@ mod tests {
         let projected = ops.pi_project(annotated);
 
         assert_eq!(projected.relational_links.len(), 1);
-        assert_eq!(projected.relational_links[0], (related_id, "Supports".to_string()));
+        assert_eq!(
+            projected.relational_links[0],
+            (related_id, "Supports".to_string())
+        );
     }
 
     #[test]
@@ -175,34 +181,36 @@ mod tests {
             WorkingObservation::new("obs10", 0.6),
         ];
         let result = pipeline.compress_to_episodic(observations);
-        assert!(result.len() <= 5, "Expected at most 5 compressed summaries, got {}", result.len());
+        assert!(
+            result.len() <= 5,
+            "Expected at most 5 compressed summaries, got {}",
+            result.len()
+        );
     }
 
     #[test]
     fn test_supersession_marks_contradicting_fact_deprecated() {
         use siss_graph_core::node::NodeId;
 
-        let mut existing = vec![
-            siss_graph_core::node::memory::EpisodicMemory::new(
-                "old fact".to_string(),
-                0.8,
-                NodeId::new(),
-            ),
-        ];
+        let mut existing = vec![siss_graph_core::node::memory::EpisodicMemory::new(
+            "old fact".to_string(),
+            0.8,
+            NodeId::new(),
+        )];
         let old_node_id = existing[0].id;
         let old_uuid = old_node_id.0;
 
-        let new_obs = vec![
-            WorkingObservation::new("new fact", 0.9).with_contradiction(old_uuid),
-        ];
+        let new_obs = vec![WorkingObservation::new("new fact", 0.9).with_contradiction(old_uuid)];
 
         let pipeline = ConsolidationPipeline::new(0.5, 0.3);
         let records = pipeline.apply_supersession(&new_obs, &mut existing);
 
         assert_eq!(records.len(), 1);
-        assert!((records[0].deprecated_confidence_after - 0.4).abs() < 0.01,
+        assert!(
+            (records[0].deprecated_confidence_after - 0.4).abs() < 0.01,
             "Expected deprecated_confidence_after ≈ 0.4, got {}",
-            records[0].deprecated_confidence_after);
+            records[0].deprecated_confidence_after
+        );
     }
 
     #[test]
@@ -210,7 +218,10 @@ mod tests {
         let pipeline = ConsolidationPipeline::new(0.5, 0.3);
         let thirty_days_ago = Utc::now() - chrono::Duration::days(30);
         let is_eligible = pipeline.is_gc_eligible_episodic(0.9, thirty_days_ago);
-        assert!(is_eligible, "Expected 30-day-old episodic memory to be GC eligible");
+        assert!(
+            is_eligible,
+            "Expected 30-day-old episodic memory to be GC eligible"
+        );
     }
 
     #[test]

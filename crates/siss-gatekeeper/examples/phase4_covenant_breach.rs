@@ -14,9 +14,11 @@
 //   - Proof that all breach attempts are rejected (fail-closed)
 //   - Human gate signature requirement verified
 
-use siss_behavioral_firewall::covenant_firewall::{CovenantFirewall, EconomicIntent, CovenantViolation};
-use ed25519_dalek::{SigningKey, Signer as DalekSigner};
-use sha2::{Sha256, Digest};
+use ed25519_dalek::{Signer as DalekSigner, SigningKey};
+use sha2::{Digest, Sha256};
+use siss_behavioral_firewall::covenant_firewall::{
+    CovenantFirewall, CovenantViolation, EconomicIntent,
+};
 
 fn main() {
     println!("\n╔════════════════════════════════════════════════════════════╗");
@@ -122,7 +124,8 @@ fn main() {
     println!("🔴 TEST 4: Attempt with tampered signature\n");
     let bad_signature = vec![0u8; 64]; // Invalid signature
 
-    let result = CovenantFirewall::verify(&merkle_root, &intent_1_99, &bad_signature, &verifying_key);
+    let result =
+        CovenantFirewall::verify(&merkle_root, &intent_1_99, &bad_signature, &verifying_key);
     match result {
         Err(CovenantViolation::SignatureInvalid) => {
             println!("✅ BLOCKED: Tampered signature rejected");

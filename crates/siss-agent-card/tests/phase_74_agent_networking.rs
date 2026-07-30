@@ -1,9 +1,8 @@
 use chrono::Utc;
-use siss_graph_db::repo::{
-    agent_discovery, distributed_consensus, federation_repo,
-    cross_sovereign_delegation_repo,
-};
 use siss_gatekeeper::delegation_routing;
+use siss_graph_db::repo::{
+    agent_discovery, cross_sovereign_delegation_repo, distributed_consensus, federation_repo,
+};
 use sqlx::PgPool;
 use testcontainers::{GenericImage, ImageExt, core::WaitFor, runners::AsyncRunner};
 use uuid::Uuid;
@@ -466,7 +465,7 @@ async fn test_transitive_depth_limit() {
     let placeholder_key = "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA\n-----END PUBLIC KEY-----";
 
     sqlx::query(
-        "INSERT INTO sovereigns (id, name, public_key_pem, status) VALUES ($1, $2, $3, $4)"
+        "INSERT INTO sovereigns (id, name, public_key_pem, status) VALUES ($1, $2, $3, $4)",
     )
     .bind(s4)
     .bind("Sovereign4")
@@ -477,7 +476,7 @@ async fn test_transitive_depth_limit() {
     .ok();
 
     sqlx::query(
-        "INSERT INTO sovereigns (id, name, public_key_pem, status) VALUES ($1, $2, $3, $4)"
+        "INSERT INTO sovereigns (id, name, public_key_pem, status) VALUES ($1, $2, $3, $4)",
     )
     .bind(s5)
     .bind("Sovereign5")

@@ -1,11 +1,10 @@
+use serde_json::json;
 /// Integration test for Night Cycle Deterministic Replay Engine
 /// Demonstrates end-to-end replay workflow with φ/δ/γ operators
-
 use siss_night_cycle::operators::{
-    OntologyEntity, OntologyState, PhiOperator, DeltaOperator, GammaOperator, NightCycleOperator,
+    DeltaOperator, GammaOperator, NightCycleOperator, OntologyEntity, OntologyState, PhiOperator,
 };
 use siss_night_cycle::replay_engine::{FileBasedReplayLog, ReplayEngine};
-use serde_json::json;
 
 fn create_entity(id: &str, timestamp: i64, confidence: f64) -> OntologyEntity {
     OntologyEntity {
@@ -19,8 +18,8 @@ fn create_entity(id: &str, timestamp: i64, confidence: f64) -> OntologyEntity {
 #[test]
 fn test_full_night_cycle_replay_workflow() {
     // Initialize replay engine
-    let mut replay = FileBasedReplayLog::new("test_full_workflow.json")
-        .expect("Failed to create replay engine");
+    let mut replay =
+        FileBasedReplayLog::new("test_full_workflow.json").expect("Failed to create replay engine");
 
     // Create initial ontology state with duplicates and varying confidence
     let initial_entities = vec![
@@ -50,7 +49,10 @@ fn test_full_night_cycle_replay_workflow() {
         )
         .expect("Failed to record Phi transition");
 
-    println!("Phi operator result: {} entities processed, {} changed", result.entities_processed, result.entities_changed);
+    println!(
+        "Phi operator result: {} entities processed, {} changed",
+        result.entities_processed, result.entities_changed
+    );
     assert_eq!(state.entities.len(), 3); // Should consolidate duplicates by keeping highest confidence
 
     // === PHASE 2: DELTA OPERATOR (Supersession) ===
@@ -67,7 +69,10 @@ fn test_full_night_cycle_replay_workflow() {
         )
         .expect("Failed to record Delta transition");
 
-    println!("Delta operator result: {} entities processed, {} changed", result.entities_processed, result.entities_changed);
+    println!(
+        "Delta operator result: {} entities processed, {} changed",
+        result.entities_processed, result.entities_changed
+    );
 
     // === PHASE 3: GAMMA OPERATOR (Causal Validation / Confidence Filtering) ===
     let entities_before_gamma = state.entities.clone();
@@ -85,7 +90,10 @@ fn test_full_night_cycle_replay_workflow() {
         )
         .expect("Failed to record Gamma transition");
 
-    println!("Gamma operator result: {} entities processed, {} changed", result.entities_processed, result.entities_changed);
+    println!(
+        "Gamma operator result: {} entities processed, {} changed",
+        result.entities_processed, result.entities_changed
+    );
     println!("Final state: {} entities", state.entities.len());
 
     // === VALIDATION ===
@@ -99,18 +107,25 @@ fn test_full_night_cycle_replay_workflow() {
     );
 
     // 2. Replay from empty and verify exact match
-    let replayed_state = replay
-        .replay()
-        .expect("Failed to replay to final state");
+    let replayed_state = replay.replay().expect("Failed to replay to final state");
 
-    assert_eq!(replayed_state.entities.len(), state.entities.len(),
-        "Replayed state should match final state (entity count)");
+    assert_eq!(
+        replayed_state.entities.len(),
+        state.entities.len(),
+        "Replayed state should match final state (entity count)"
+    );
 
     for (i, entity) in state.entities.iter().enumerate() {
         let replayed_entity = &replayed_state.entities[i];
         assert_eq!(replayed_entity.id, entity.id, "Entity ID should match");
-        assert_eq!(replayed_entity.timestamp, entity.timestamp, "Timestamp should match");
-        assert_eq!(replayed_entity.confidence, entity.confidence, "Confidence should match");
+        assert_eq!(
+            replayed_entity.timestamp, entity.timestamp,
+            "Timestamp should match"
+        );
+        assert_eq!(
+            replayed_entity.confidence, entity.confidence,
+            "Confidence should match"
+        );
     }
 
     // 3. Test replay to intermediate sequence (after Delta)
@@ -118,8 +133,14 @@ fn test_full_night_cycle_replay_workflow() {
         .replay_to_sequence(1) // After Delta operator (sequence 1)
         .expect("Failed to replay to sequence 1");
 
-    println!("Partial state (after Delta): {} entities", partial_state.entities.len());
-    assert!(partial_state.entities.len() > 0, "Partial state should have entities");
+    println!(
+        "Partial state (after Delta): {} entities",
+        partial_state.entities.len()
+    );
+    assert!(
+        partial_state.entities.len() > 0,
+        "Partial state should have entities"
+    );
 
     // 4. Verify Merkle DAG
     let log = replay.get_log();
@@ -142,9 +163,21 @@ fn test_full_night_cycle_replay_workflow() {
 
     println!("\n=== TEST PASSED ===");
     println!("Successfully replayed night cycle:");
-    println!("  - Phi (Consolidation): {} → {} entities", initial_entities.len(), entities_before_delta.len());
-    println!("  - Delta (Supersession): {} → {} entities", entities_before_delta.len(), entities_before_gamma.len());
-    println!("  - Gamma (Causal Validation): {} → {} entities", entities_before_gamma.len(), state.entities.len());
+    println!(
+        "  - Phi (Consolidation): {} → {} entities",
+        initial_entities.len(),
+        entities_before_delta.len()
+    );
+    println!(
+        "  - Delta (Supersession): {} → {} entities",
+        entities_before_delta.len(),
+        entities_before_gamma.len()
+    );
+    println!(
+        "  - Gamma (Causal Validation): {} → {} entities",
+        entities_before_gamma.len(),
+        state.entities.len()
+    );
     println!("  - Merkle DAG: Valid");
     println!("  - Causality: Valid");
     println!("  - Deterministic Replay: ✓ Exact match");
@@ -155,8 +188,8 @@ fn test_full_night_cycle_replay_workflow() {
 
 #[test]
 fn test_replay_bitwise_equality_with_complex_data() {
-    let mut replay = FileBasedReplayLog::new("test_complex_data.json")
-        .expect("Failed to create replay engine");
+    let mut replay =
+        FileBasedReplayLog::new("test_complex_data.json").expect("Failed to create replay engine");
 
     // Create entity with complex nested data
     let entity = OntologyEntity {
@@ -232,8 +265,8 @@ fn test_replay_persistence_across_sessions() {
 
     // Session 2: Load from disk and continue
     {
-        let mut replay = FileBasedReplayLog::load_from_file(db_path)
-            .expect("Failed to load replay engine");
+        let mut replay =
+            FileBasedReplayLog::load_from_file(db_path).expect("Failed to load replay engine");
 
         assert_eq!(replay.get_log().len(), 1, "Should load persisted log");
 
@@ -256,8 +289,8 @@ fn test_replay_persistence_across_sessions() {
 
     // Session 3: Verify full log
     {
-        let replay = FileBasedReplayLog::load_from_file(db_path)
-            .expect("Failed to load replay engine");
+        let replay =
+            FileBasedReplayLog::load_from_file(db_path).expect("Failed to load replay engine");
 
         assert_eq!(replay.get_log().len(), 2);
         assert_eq!(replay.get_log().records[0].operator_name, "Phi");

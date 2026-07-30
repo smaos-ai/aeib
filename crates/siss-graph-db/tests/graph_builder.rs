@@ -1,8 +1,8 @@
-use uuid::Uuid;
 use siss_graph_db::graph_builder::{
-    Fact, GraphRelationship, RelationType, extract_relationships,
-    determine_relationship_type, build_graph, traverse_graph,
+    Fact, GraphRelationship, RelationType, build_graph, determine_relationship_type,
+    extract_relationships, traverse_graph,
 };
+use uuid::Uuid;
 
 // Test 1: Relationship extraction finds relevant pairs
 #[test]
@@ -30,12 +30,15 @@ fn test_relationship_extraction_finds_relevant_pairs() {
     let relationships = extract_relationships(&facts);
 
     // Should find relationship between fact1 and fact2 (similar)
-    let has_relevant_pair = relationships.iter()
-        .any(|r| (r.source_id == id1 && r.target_id == id2) ||
-                 (r.source_id == id2 && r.target_id == id1));
+    let has_relevant_pair = relationships.iter().any(|r| {
+        (r.source_id == id1 && r.target_id == id2) || (r.source_id == id2 && r.target_id == id1)
+    });
 
     assert!(has_relevant_pair, "Should detect similar facts");
-    assert!(relationships.len() >= 1, "Should find at least one relationship");
+    assert!(
+        relationships.len() >= 1,
+        "Should find at least one relationship"
+    );
 }
 
 // Test 2: Graph insertion maintains bidirectional links
@@ -44,14 +47,12 @@ fn test_graph_insertion_maintains_bidirectional_links() {
     let id_a = Uuid::new_v4();
     let id_b = Uuid::new_v4();
 
-    let relationships = vec![
-        GraphRelationship {
-            source_id: id_a,
-            target_id: id_b,
-            relationship_type: RelationType::SemanticSimilar,
-            score: 0.85,
-        }
-    ];
+    let relationships = vec![GraphRelationship {
+        source_id: id_a,
+        target_id: id_b,
+        relationship_type: RelationType::SemanticSimilar,
+        score: 0.85,
+    }];
 
     let graph = build_graph(relationships);
 
@@ -68,8 +69,16 @@ fn test_graph_insertion_maintains_bidirectional_links() {
     assert!(a_has_b, "A should link to B");
     assert!(b_has_a, "B should link to A (bidirectional)");
 
-    let a_to_b_score = a_neighbors.iter().find(|(id, _)| *id == id_b).map(|(_, score)| *score).unwrap();
-    let b_to_a_score = b_neighbors.iter().find(|(id, _)| *id == id_a).map(|(_, score)| *score).unwrap();
+    let a_to_b_score = a_neighbors
+        .iter()
+        .find(|(id, _)| *id == id_b)
+        .map(|(_, score)| *score)
+        .unwrap();
+    let b_to_a_score = b_neighbors
+        .iter()
+        .find(|(id, _)| *id == id_a)
+        .map(|(_, score)| *score)
+        .unwrap();
 
     assert_eq!(a_to_b_score, 0.85, "Scores should match");
     assert_eq!(b_to_a_score, 0.85, "Scores should match in both directions");
@@ -111,7 +120,10 @@ fn test_graph_traversal_returns_ranked_neighbors() {
 
     // Results should be ranked by score
     if results.len() >= 2 {
-        assert!(results[0].1 >= results[1].1, "Results should be sorted by score DESC");
+        assert!(
+            results[0].1 >= results[1].1,
+            "Results should be sorted by score DESC"
+        );
     }
 }
 
@@ -122,14 +134,12 @@ fn test_search_ranking_incorporates_graph_relevance() {
     let id_b = Uuid::new_v4();
 
     // A and B are related
-    let relationships = vec![
-        GraphRelationship {
-            source_id: id_a,
-            target_id: id_b,
-            relationship_type: RelationType::SemanticSimilar,
-            score: 0.85,
-        }
-    ];
+    let relationships = vec![GraphRelationship {
+        source_id: id_a,
+        target_id: id_b,
+        relationship_type: RelationType::SemanticSimilar,
+        score: 0.85,
+    }];
 
     let graph = build_graph(relationships);
 
@@ -137,7 +147,10 @@ fn test_search_ranking_incorporates_graph_relevance() {
     let neighbors_of_a = traverse_graph(id_a, &graph, 1);
     let b_appears = neighbors_of_a.iter().any(|(id, _)| *id == id_b);
 
-    assert!(b_appears, "Related fact B should appear in traversal from A");
+    assert!(
+        b_appears,
+        "Related fact B should appear in traversal from A"
+    );
 }
 
 // Test 5: Graph integration is deterministic
@@ -164,8 +177,12 @@ fn test_graph_integration_deterministic() {
 
     // All graphs should be identical
     for i in 1..results.len() {
-        assert_eq!(results[0].len(), results[i].len(),
-            "Graph size must be deterministic, iteration {} differs", i);
+        assert_eq!(
+            results[0].len(),
+            results[i].len(),
+            "Graph size must be deterministic, iteration {} differs",
+            i
+        );
     }
 }
 
@@ -182,8 +199,13 @@ fn test_determine_relationship_type_varies() {
     let rel_type_2 = determine_relationship_type(contradicts1, contradicts2);
 
     // Relationship types should be detected
-    assert!(rel_type_1 == RelationType::SemanticSimilar || rel_type_1 == RelationType::Related,
-        "Similar facts should be detected as related or similar");
-    assert_eq!(rel_type_2, RelationType::Contradicts,
-        "Contradictory facts should be detected");
+    assert!(
+        rel_type_1 == RelationType::SemanticSimilar || rel_type_1 == RelationType::Related,
+        "Similar facts should be detected as related or similar"
+    );
+    assert_eq!(
+        rel_type_2,
+        RelationType::Contradicts,
+        "Contradictory facts should be detected"
+    );
 }

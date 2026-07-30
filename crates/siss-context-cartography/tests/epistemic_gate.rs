@@ -1,7 +1,7 @@
-use siss_context_cartography::gamma_operator::GammaOperator;
-use siss_context_cartography::epistemic_gate::{EpistemicGateHook, GateResult};
-use siss_context_cartography::llm_wiki_v2::{SemanticFact, EpistemicStatus};
 use chrono::Utc;
+use siss_context_cartography::epistemic_gate::{EpistemicGateHook, GateResult};
+use siss_context_cartography::gamma_operator::GammaOperator;
+use siss_context_cartography::llm_wiki_v2::{EpistemicStatus, SemanticFact};
 use uuid::Uuid;
 
 #[test]
@@ -10,13 +10,20 @@ fn test_gamma_flags_divergent_paths() {
     let primary_path = vec!["fact A", "fact B", "fact C"];
     let adversarial_path = vec!["opposite X", "opposite Y", "opposite Z"];
 
-    let status = gamma.check(&primary_path.iter().map(|s| *s).collect::<Vec<_>>(),
-                             &adversarial_path.iter().map(|s| *s).collect::<Vec<_>>(),
-                             Utc::now());
+    let status = gamma.check(
+        &primary_path.iter().map(|s| *s).collect::<Vec<_>>(),
+        &adversarial_path.iter().map(|s| *s).collect::<Vec<_>>(),
+        Utc::now(),
+    );
 
     match status {
-        EpistemicStatus::Uncertain { divergence_score, .. } => {
-            assert!(divergence_score > 0.4, "Divergent paths should have divergence > 0.4");
+        EpistemicStatus::Uncertain {
+            divergence_score, ..
+        } => {
+            assert!(
+                divergence_score > 0.4,
+                "Divergent paths should have divergence > 0.4"
+            );
         }
         _ => panic!("Expected Uncertain status for highly divergent paths"),
     }
@@ -25,16 +32,27 @@ fn test_gamma_flags_divergent_paths() {
 #[test]
 fn test_gamma_passes_convergent_paths() {
     let gamma = GammaOperator::new(0.4);
-    let primary_path = vec!["machine learning requires data", "deep learning needs datasets"];
-    let adversarial_path = vec!["machine learning requires data", "deep learning needs datasets"];
+    let primary_path = vec![
+        "machine learning requires data",
+        "deep learning needs datasets",
+    ];
+    let adversarial_path = vec![
+        "machine learning requires data",
+        "deep learning needs datasets",
+    ];
 
-    let status = gamma.check(&primary_path.iter().map(|s| *s).collect::<Vec<_>>(),
-                             &adversarial_path.iter().map(|s| *s).collect::<Vec<_>>(),
-                             Utc::now());
+    let status = gamma.check(
+        &primary_path.iter().map(|s| *s).collect::<Vec<_>>(),
+        &adversarial_path.iter().map(|s| *s).collect::<Vec<_>>(),
+        Utc::now(),
+    );
 
     match status {
         EpistemicStatus::Verified { divergence_score } => {
-            assert!(divergence_score < 0.1, "Convergent identical paths should have very low divergence");
+            assert!(
+                divergence_score < 0.1,
+                "Convergent identical paths should have very low divergence"
+            );
         }
         _ => panic!("Expected Verified status for convergent paths"),
     }
@@ -101,9 +119,17 @@ fn test_epistemic_status_persists_serialization() {
     let now = Utc::now();
 
     let unverified = EpistemicStatus::Unverified;
-    let verified = EpistemicStatus::Verified { divergence_score: 0.35 };
-    let uncertain = EpistemicStatus::Uncertain { divergence_score: 0.55, flagged_at: now };
-    let approved = EpistemicStatus::HumanApproved { approved_by: "alice".to_string(), at: now };
+    let verified = EpistemicStatus::Verified {
+        divergence_score: 0.35,
+    };
+    let uncertain = EpistemicStatus::Uncertain {
+        divergence_score: 0.55,
+        flagged_at: now,
+    };
+    let approved = EpistemicStatus::HumanApproved {
+        approved_by: "alice".to_string(),
+        at: now,
+    };
 
     // Test serialization and deserialization
     let unverified_json = serde_json::to_string(&unverified).unwrap();

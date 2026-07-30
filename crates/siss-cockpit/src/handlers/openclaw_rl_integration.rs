@@ -4,8 +4,8 @@
 #[cfg(test)]
 mod integration_tests {
     use crate::handlers::openclaw_rl::{
-        OpenClawRL, FailureToCorrection, RewardSignal, LoRAWeights, UnifiedMemoryMetrics,
-        OpenClawRLError,
+        FailureToCorrection, LoRAWeights, OpenClawRL, OpenClawRLError, RewardSignal,
+        UnifiedMemoryMetrics,
     };
 
     #[tokio::test]
@@ -26,7 +26,10 @@ mod integration_tests {
         // THEN: Should accept complete causal chain (fails in RED phase, passes in GREEN)
         assert!(result.is_ok(), "Complete trajectory should be accepted");
         let trajectory_id = result.unwrap();
-        assert_eq!(trajectory_id, "traj-integration-001", "Should return trajectory ID");
+        assert_eq!(
+            trajectory_id, "traj-integration-001",
+            "Should return trajectory ID"
+        );
     }
 
     #[tokio::test]
@@ -45,9 +48,15 @@ mod integration_tests {
         let result = OpenClawRL::verify_trajectory_causality(trajectory).await;
 
         // THEN: Rejects broken causal chain (fail-closed)
-        assert!(result.is_err(), "Trajectory with empty correction should be rejected");
         assert!(
-            matches!(result.unwrap_err(), OpenClawRLError::TrajectoryMissingCausalChain),
+            result.is_err(),
+            "Trajectory with empty correction should be rejected"
+        );
+        assert!(
+            matches!(
+                result.unwrap_err(),
+                OpenClawRLError::TrajectoryMissingCausalChain
+            ),
             "Should return TrajectoryMissingCausalChain error"
         );
     }
@@ -87,7 +96,10 @@ mod integration_tests {
         let result = OpenClawRL::validate_reward_signal(signal).await;
 
         // THEN: Rejects ambiguous signal (fail-closed)
-        assert!(result.is_err(), "Reward signal with error exit code should be rejected");
+        assert!(
+            result.is_err(),
+            "Reward signal with error exit code should be rejected"
+        );
         assert!(
             matches!(result.unwrap_err(), OpenClawRLError::RewardSignalMalformed),
             "Should return RewardSignalMalformed error"
@@ -108,9 +120,15 @@ mod integration_tests {
         let result = OpenClawRL::hot_swap_lora_weights(weights).await;
 
         // THEN: Rejects hot-swap (fail-closed, 403 FORBIDDEN)
-        assert!(result.is_err(), "LoRA hot-swap without AP2 mandate should fail");
         assert!(
-            matches!(result.unwrap_err(), OpenClawRLError::LoRASafetyGateViolation),
+            result.is_err(),
+            "LoRA hot-swap without AP2 mandate should fail"
+        );
+        assert!(
+            matches!(
+                result.unwrap_err(),
+                OpenClawRLError::LoRASafetyGateViolation
+            ),
             "Should return LoRASafetyGateViolation error"
         );
     }
@@ -129,9 +147,15 @@ mod integration_tests {
         let result = OpenClawRL::hot_swap_lora_weights(weights).await;
 
         // THEN: Should accept hot-swap (fails in RED phase, passes in GREEN)
-        assert!(result.is_ok(), "LoRA weights with AP2 mandate should be accepted");
+        assert!(
+            result.is_ok(),
+            "LoRA weights with AP2 mandate should be accepted"
+        );
         let capsule_id = result.unwrap();
-        assert_eq!(capsule_id, "capsule-safe-001", "Should load correct capsule into Rapid-MLX");
+        assert_eq!(
+            capsule_id, "capsule-safe-001",
+            "Should load correct capsule into Rapid-MLX"
+        );
     }
 
     #[tokio::test]
@@ -147,7 +171,10 @@ mod integration_tests {
         let result = OpenClawRL::check_memory_circuit_breaker(metrics).await;
 
         // THEN: Should allow training to continue (fails in RED phase, passes in GREEN)
-        assert!(result.is_ok(), "Memory pressure at 70% should allow training to continue");
+        assert!(
+            result.is_ok(),
+            "Memory pressure at 70% should allow training to continue"
+        );
     }
 
     #[tokio::test]
@@ -163,7 +190,10 @@ mod integration_tests {
         let result = OpenClawRL::check_memory_circuit_breaker(metrics).await;
 
         // THEN: Should allow at threshold - circuit breaks only if > 85% (fails in RED, passes in GREEN)
-        assert!(result.is_ok(), "Memory pressure at exactly 85% should allow training to continue");
+        assert!(
+            result.is_ok(),
+            "Memory pressure at exactly 85% should allow training to continue"
+        );
     }
 
     #[tokio::test]
@@ -179,9 +209,15 @@ mod integration_tests {
         let result = OpenClawRL::check_memory_circuit_breaker(metrics).await;
 
         // THEN: Triggers graceful pause (fail-closed, 429 backpressure)
-        assert!(result.is_err(), "Memory pressure at 92% should trigger circuit breaker");
         assert!(
-            matches!(result.unwrap_err(), OpenClawRLError::ResourceCircuitBreakerTriggered),
+            result.is_err(),
+            "Memory pressure at 92% should trigger circuit breaker"
+        );
+        assert!(
+            matches!(
+                result.unwrap_err(),
+                OpenClawRLError::ResourceCircuitBreakerTriggered
+            ),
             "Should return ResourceCircuitBreakerTriggered error"
         );
     }
@@ -202,7 +238,10 @@ mod integration_tests {
 
         // Verify trajectory causality
         let traj_result = OpenClawRL::verify_trajectory_causality(trajectory).await;
-        assert!(traj_result.is_ok(), "Stage 1: Trajectory with complete causal chain should be verified");
+        assert!(
+            traj_result.is_ok(),
+            "Stage 1: Trajectory with complete causal chain should be verified"
+        );
 
         // Stage 2: Compute reward signal from corrected trajectory
         let reward = RewardSignal {
@@ -215,8 +254,15 @@ mod integration_tests {
 
         // Validate reward strictness
         let reward_result = OpenClawRL::validate_reward_signal(reward).await;
-        assert!(reward_result.is_ok(), "Stage 2: Valid reward signal should be accepted");
-        assert_eq!(reward_result.unwrap(), 0.92, "Should return correct reward score");
+        assert!(
+            reward_result.is_ok(),
+            "Stage 2: Valid reward signal should be accepted"
+        );
+        assert_eq!(
+            reward_result.unwrap(),
+            0.92,
+            "Should return correct reward score"
+        );
 
         // Stage 3: Generate LoRA weights with AP2 mandate
         let weights = LoRAWeights {
@@ -228,8 +274,15 @@ mod integration_tests {
 
         // Hot-swap into Rapid-MLX with mandate
         let swap_result = OpenClawRL::hot_swap_lora_weights(weights).await;
-        assert!(swap_result.is_ok(), "Stage 3: LoRA weights with AP2 mandate should be hot-swapped");
-        assert_eq!(swap_result.unwrap(), "capsule-workflow-001", "Should load correct capsule ID");
+        assert!(
+            swap_result.is_ok(),
+            "Stage 3: LoRA weights with AP2 mandate should be hot-swapped"
+        );
+        assert_eq!(
+            swap_result.unwrap(),
+            "capsule-workflow-001",
+            "Should load correct capsule ID"
+        );
 
         // Stage 4: Check memory pressure before next iteration
         let metrics = UnifiedMemoryMetrics {
@@ -240,7 +293,10 @@ mod integration_tests {
 
         // Verify circuit breaker allows continued training
         let circuit_result = OpenClawRL::check_memory_circuit_breaker(metrics).await;
-        assert!(circuit_result.is_ok(), "Stage 4: Safe memory pressure should allow training to continue");
+        assert!(
+            circuit_result.is_ok(),
+            "Stage 4: Safe memory pressure should allow training to continue"
+        );
 
         // THEN: Complete workflow executes without blocking the active agent (fails in RED, passes in GREEN)
     }

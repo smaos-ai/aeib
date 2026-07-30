@@ -16,10 +16,7 @@ pub struct FileLock {
 
 impl FileLock {
     /// Acquire a lock with timeout
-    pub async fn acquire<P: AsRef<Path>>(
-        path: P,
-        timeout: Duration,
-    ) -> Result<Self> {
+    pub async fn acquire<P: AsRef<Path>>(path: P, timeout: Duration) -> Result<Self> {
         let path = path.as_ref().to_path_buf();
         let start = Instant::now();
 

@@ -8,17 +8,38 @@
 //! - Memory per session: <5MB
 //! - CPU per session: <1%
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
+use criterion::{BenchmarkId, Criterion, black_box, criterion_group, criterion_main};
 use std::time::Instant;
 
 // Mock types for benchmarking (avoid dependency on full siss-cockpit)
 #[derive(Debug, Clone)]
 enum MockA2UIComponent {
-    Text { id: String, content: String, size: Option<String> },
-    Badge { id: String, label: String, color: Option<String> },
-    Button { id: String, label: String, action: Option<String> },
-    Input { id: String, label: String, placeholder: Option<String>, required: bool },
-    Card { id: String, title: Option<String>, children: Vec<MockA2UIComponent> },
+    Text {
+        id: String,
+        content: String,
+        size: Option<String>,
+    },
+    Badge {
+        id: String,
+        label: String,
+        color: Option<String>,
+    },
+    Button {
+        id: String,
+        label: String,
+        action: Option<String>,
+    },
+    Input {
+        id: String,
+        label: String,
+        placeholder: Option<String>,
+        required: bool,
+    },
+    Card {
+        id: String,
+        title: Option<String>,
+        children: Vec<MockA2UIComponent>,
+    },
 }
 
 // ===== BENCHMARK HELPERS =====
@@ -27,25 +48,42 @@ enum MockA2UIComponent {
 fn mock_render(component: &MockA2UIComponent) -> String {
     match component {
         MockA2UIComponent::Text { content, .. } => {
-            format!(r#"<div class="a2ui-text"><p>{}</p></div>"#, html_escape(content))
+            format!(
+                r#"<div class="a2ui-text"><p>{}</p></div>"#,
+                html_escape(content)
+            )
         }
         MockA2UIComponent::Badge { label, .. } => {
             format!(r#"<span class="a2ui-badge">{}</span>"#, html_escape(label))
         }
         MockA2UIComponent::Button { label, .. } => {
-            format!(r#"<button class="a2ui-button">{}</button>"#, html_escape(label))
+            format!(
+                r#"<button class="a2ui-button">{}</button>"#,
+                html_escape(label)
+            )
         }
         MockA2UIComponent::Input { label, .. } => {
-            format!(r#"<div class="a2ui-input"><label>{}</label><input /></div>"#, html_escape(label))
+            format!(
+                r#"<div class="a2ui-input"><label>{}</label><input /></div>"#,
+                html_escape(label)
+            )
         }
-        MockA2UIComponent::Card { title, children, .. } => {
-            let title_html = title.as_ref().map(|t| format!(r#"<h3>{}</h3>"#, html_escape(t)))
+        MockA2UIComponent::Card {
+            title, children, ..
+        } => {
+            let title_html = title
+                .as_ref()
+                .map(|t| format!(r#"<h3>{}</h3>"#, html_escape(t)))
                 .unwrap_or_default();
-            let children_html = children.iter()
+            let children_html = children
+                .iter()
                 .map(|c| mock_render(c))
                 .collect::<Vec<_>>()
                 .join("");
-            format!(r#"<div class="a2ui-card">{}{}</div>"#, title_html, children_html)
+            format!(
+                r#"<div class="a2ui-card">{}{}</div>"#,
+                title_html, children_html
+            )
         }
     }
 }
@@ -90,15 +128,22 @@ fn bench_validator_scaling(c: &mut Criterion) {
     let mut group = c.benchmark_group("validator_scaling");
 
     for size in [10, 100, 1000].iter() {
-        group.bench_with_input(BenchmarkId::from_parameter(format!("{}_components", size)), size, |b, &size| {
-            let components: Vec<_> = (0..size).map(create_test_component).collect();
-            b.iter(|| {
-                // Simulate validation: check each component
-                black_box(&components).iter().all(|comp| {
-                    matches!(comp, MockA2UIComponent::Card { .. } | MockA2UIComponent::Text { .. })
-                })
-            });
-        });
+        group.bench_with_input(
+            BenchmarkId::from_parameter(format!("{}_components", size)),
+            size,
+            |b, &size| {
+                let components: Vec<_> = (0..size).map(create_test_component).collect();
+                b.iter(|| {
+                    // Simulate validation: check each component
+                    black_box(&components).iter().all(|comp| {
+                        matches!(
+                            comp,
+                            MockA2UIComponent::Card { .. } | MockA2UIComponent::Text { .. }
+                        )
+                    })
+                });
+            },
+        );
     }
 
     group.finish();
@@ -137,9 +182,10 @@ fn bench_validator_caching(c: &mut Criterion) {
         }
 
         b.iter(|| {
-            black_box(&components).iter().enumerate().all(|(i, _)| {
-                cache.get(&i).copied().unwrap_or(false)
-            })
+            black_box(&components)
+                .iter()
+                .enumerate()
+                .all(|(i, _)| cache.get(&i).copied().unwrap_or(false))
         });
     });
 
@@ -192,7 +238,10 @@ fn bench_sse_streaming_compression(c: &mut Criterion) {
 
         b.iter(|| {
             // Measure total payload size (compression metric)
-            black_box(&html_parts).iter().map(|s| s.len()).sum::<usize>()
+            black_box(&html_parts)
+                .iter()
+                .map(|s| s.len())
+                .sum::<usize>()
         });
     });
 
@@ -239,10 +288,7 @@ fn bench_react_rendering_scaling(c: &mut Criterion) {
             |b, &size| {
                 let components: Vec<_> = (0..size).map(create_test_component).collect();
                 b.iter(|| {
-                    let html: Vec<_> = black_box(&components)
-                        .iter()
-                        .map(mock_render)
-                        .collect();
+                    let html: Vec<_> = black_box(&components).iter().map(mock_render).collect();
                     html.iter().map(|s| s.len()).sum::<usize>()
                 });
             },
@@ -260,7 +306,8 @@ fn bench_react_memoization(c: &mut Criterion) {
         let component = create_test_component(1);
 
         b.iter(|| {
-            let mut cache: std::collections::HashMap<String, String> = std::collections::HashMap::new();
+            let mut cache: std::collections::HashMap<String, String> =
+                std::collections::HashMap::new();
 
             // First render: cache miss
             cache.insert("comp_1".to_string(), mock_render(&component));
@@ -285,16 +332,20 @@ fn bench_memory_per_session(c: &mut Criterion) {
         b.iter(|| {
             // Simulate session storage: component map + state
             let components: Vec<_> = (0..1000).map(create_test_component).collect();
-            let mut state: std::collections::HashMap<String, String> = std::collections::HashMap::new();
+            let mut state: std::collections::HashMap<String, String> =
+                std::collections::HashMap::new();
 
             for comp in components {
                 match comp {
                     MockA2UIComponent::Card { id, .. } => {
-                        state.insert(id, mock_render(&MockA2UIComponent::Card {
-                            id: "".to_string(),
-                            title: None,
-                            children: vec![],
-                        }));
+                        state.insert(
+                            id,
+                            mock_render(&MockA2UIComponent::Card {
+                                id: "".to_string(),
+                                title: None,
+                                children: vec![],
+                            }),
+                        );
                     }
                     _ => {}
                 }
@@ -318,8 +369,10 @@ fn bench_concurrent_sessions(c: &mut Criterion) {
             |b, &concurrency| {
                 b.iter(|| {
                     // Simulate multiple sessions processing events
-                    let mut sessions: Vec<std::collections::HashMap<String, String>> =
-                        (0..concurrency).map(|_| std::collections::HashMap::new()).collect();
+                    let mut sessions: Vec<std::collections::HashMap<String, String>> = (0
+                        ..concurrency)
+                        .map(|_| std::collections::HashMap::new())
+                        .collect();
 
                     for (session_idx, session) in sessions.iter_mut().enumerate() {
                         for comp_idx in 0..10 {
@@ -398,9 +451,7 @@ fn bench_html_escape_optimization(c: &mut Criterion) {
             BenchmarkId::from_parameter(test_str),
             &test_str,
             |b, &input| {
-                b.iter(|| {
-                    black_box(html_escape(input))
-                });
+                b.iter(|| black_box(html_escape(input)));
             },
         );
     }

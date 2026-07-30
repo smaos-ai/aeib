@@ -1,6 +1,6 @@
-use chrono::{DateTime, Utc, Duration};
+use chrono::{DateTime, Duration, Utc};
+use sha2::{Digest, Sha256};
 use uuid::Uuid;
-use sha2::{Sha256, Digest};
 
 #[derive(Clone, Debug)]
 pub struct AntiYouCapsule {
@@ -78,7 +78,9 @@ impl AntiYouCapsule {
             return Err("User consent required for rollback".to_string());
         }
 
-        let target = self.versions.iter()
+        let target = self
+            .versions
+            .iter()
             .find(|v| v.version_id == request.target_version_id)
             .ok_or("Version not found".to_string())?;
 

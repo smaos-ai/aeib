@@ -1,8 +1,8 @@
 use chrono::{DateTime, Utc};
-use sha2::{Sha256, Digest};
+use serde_json::{Value as JsonValue, json};
+use sha2::{Digest, Sha256};
 use sqlx::PgPool;
 use uuid::Uuid;
-use serde_json::{json, Value as JsonValue};
 
 /// Append an event to the observability log with hash chain verification.
 /// Returns the event UUID.
@@ -17,8 +17,8 @@ pub async fn append_event(
     let now = Utc::now();
 
     // Parse payload as JSON
-    let payload_value: JsonValue = serde_json::from_str(payload_json)
-        .unwrap_or(json!({"raw": payload_json}));
+    let payload_value: JsonValue =
+        serde_json::from_str(payload_json).unwrap_or(json!({"raw": payload_json}));
 
     // Get previous event hash if exists
     let prev_hash_result: Option<(String,)> = sqlx::query_as(
@@ -83,7 +83,9 @@ pub async fn verify_event_log_integrity(
 
     let mut expected_prev_hash: Option<String> = None;
 
-    for (seq, event_type, agent_id, payload, stored_prev_hash, stored_curr_hash, created_at) in events {
+    for (seq, event_type, agent_id, payload, stored_prev_hash, stored_curr_hash, created_at) in
+        events
+    {
         // Check that prev_hash matches expected
         if stored_prev_hash != expected_prev_hash {
             let msg = format!(

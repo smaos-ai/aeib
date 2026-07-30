@@ -1,4 +1,4 @@
-use sha2::{Sha256, Digest};
+use sha2::{Digest, Sha256};
 use std::sync::{Arc, Mutex};
 
 #[derive(Debug, Clone)]
@@ -87,9 +87,7 @@ impl AtomicSettlement {
                 // Idempotent: return existing root
                 Ok(*root)
             }
-            SettlementState::Aborted => {
-                Err("Cannot commit aborted settlement".to_string())
-            }
+            SettlementState::Aborted => Err("Cannot commit aborted settlement".to_string()),
         }
     }
 
@@ -202,10 +200,7 @@ mod tests {
 
         let settlement = AtomicSettlement::new();
 
-        let legs = vec![
-            SettlementLeg::new("eu", 100),
-            SettlementLeg::new("us", 200),
-        ];
+        let legs = vec![SettlementLeg::new("eu", 100), SettlementLeg::new("us", 200)];
 
         let start = Instant::now();
         assert!(settlement.prepare(legs).is_ok());

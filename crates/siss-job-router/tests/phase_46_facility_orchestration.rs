@@ -1,14 +1,17 @@
+use siss_gatekeeper::facility_mandate::{
+    ExternalAgency, FacilityMandateEngine, FacilityMandateError,
+};
+use siss_gatekeeper::nonce::InMemoryNonceLedger;
+use siss_gatekeeper::signer::MockSigner;
 /// Phase 46: Sovereign AI Facility Orchestration
 /// 8 TDD tests covering three physical deployment waves:
 /// - Wave 1: Sneakernet Ingress Ritual & Chaos Petri Quarantine
 /// - Wave 2: Rapid-MLX Fleet Topology
 /// - Wave 3: AP2 Facility Mandate Syndication
-
-use siss_job_router::facility_ingress::{FacilityBounds, IngressRejection, IngressRitual, SneakernetManifest};
+use siss_job_router::facility_ingress::{
+    FacilityBounds, IngressRejection, IngressRitual, SneakernetManifest,
+};
 use siss_job_router::mlx_fleet::{FleetError, FleetRouter, MlxFleet, MlxNode, NodeId};
-use siss_gatekeeper::facility_mandate::{ExternalAgency, FacilityMandateEngine, FacilityMandateError};
-use siss_gatekeeper::nonce::InMemoryNonceLedger;
-use siss_gatekeeper::signer::MockSigner;
 use uuid::Uuid;
 
 // ============================================================================
@@ -37,7 +40,10 @@ fn test_ingress_approves_sovereign_il_origin() {
     };
 
     let result = IngressRitual::admit(&manifest, &bounds);
-    assert!(result.is_ok(), "IL origin with sovereign attestation should be approved");
+    assert!(
+        result.is_ok(),
+        "IL origin with sovereign attestation should be approved"
+    );
     assert!(result.unwrap().approved);
 }
 
@@ -63,10 +69,13 @@ fn test_ingress_rejects_forbidden_cn_origin() {
     };
 
     let result = IngressRitual::admit(&manifest, &bounds);
-    assert!(matches!(
-        result,
-        Err(IngressRejection::ForbiddenOrigin { origin }) if origin == "CN"
-    ), "CN origin should be rejected");
+    assert!(
+        matches!(
+            result,
+            Err(IngressRejection::ForbiddenOrigin { origin }) if origin == "CN"
+        ),
+        "CN origin should be rejected"
+    );
 }
 
 // ============================================================================
@@ -91,10 +100,10 @@ fn test_ingress_rejects_oversized_artifact() {
     };
 
     let result = IngressRitual::admit(&manifest, &bounds);
-    assert!(matches!(
-        result,
-        Err(IngressRejection::OversizedArtifact { .. })
-    ), "oversized artifact should be rejected");
+    assert!(
+        matches!(result, Err(IngressRejection::OversizedArtifact { .. })),
+        "oversized artifact should be rejected"
+    );
 }
 
 // ============================================================================
@@ -119,10 +128,10 @@ fn test_ingress_rejects_missing_attestation() {
     };
 
     let result = IngressRitual::admit(&manifest, &bounds);
-    assert!(matches!(
-        result,
-        Err(IngressRejection::MissingAttestation)
-    ), "missing sovereign attestation should be rejected");
+    assert!(
+        matches!(result, Err(IngressRejection::MissingAttestation)),
+        "missing sovereign attestation should be rejected"
+    );
 }
 
 // ============================================================================
@@ -158,7 +167,10 @@ fn test_fleet_routes_to_largest_memory_node() {
     };
 
     let result = FleetRouter::route(&fleet, 500);
-    assert!(result.is_ok(), "fleet with available nodes should route successfully");
+    assert!(
+        result.is_ok(),
+        "fleet with available nodes should route successfully"
+    );
 
     let selected = result.unwrap();
     assert_eq!(
@@ -179,7 +191,11 @@ fn test_fleet_error_on_empty_fleet() {
     };
 
     let result = FleetRouter::route(&fleet, 500);
-    assert_eq!(result, Err(FleetError::FleetEmpty), "empty fleet should error");
+    assert_eq!(
+        result,
+        Err(FleetError::FleetEmpty),
+        "empty fleet should error"
+    );
 }
 
 // ============================================================================
@@ -215,7 +231,10 @@ fn test_facility_mandate_within_agency_credit() {
     assert_eq!(mandate.budget_limit, 500, "budget should be 500");
     assert!(!mandate.signature.is_empty(), "signature should be present");
     assert_eq!(mandate.agency_id, agency_id, "agency_id should match");
-    assert_eq!(mandate.capability_id, capability_id, "capability_id should match");
+    assert_eq!(
+        mandate.capability_id, capability_id,
+        "capability_id should match"
+    );
 }
 
 // ============================================================================
@@ -241,11 +260,14 @@ fn test_facility_mandate_exceeds_agency_credit() {
     };
 
     let result = engine.issue(&agency, capability_id, 1500, "test_nonce_wave3_2");
-    assert!(matches!(
-        result,
-        Err(FacilityMandateError::BudgetExceedsAgencyCredit {
-            requested: 1500,
-            available: 1000
-        })
-    ), "mandate exceeding credit should be rejected");
+    assert!(
+        matches!(
+            result,
+            Err(FacilityMandateError::BudgetExceedsAgencyCredit {
+                requested: 1500,
+                available: 1000
+            })
+        ),
+        "mandate exceeding credit should be rejected"
+    );
 }

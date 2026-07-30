@@ -4,13 +4,13 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use uuid::Uuid;
 
-pub mod memory_graph;
-pub mod mcp_server;
 pub mod ap2_ledger;
+pub mod mcp_server;
+pub mod memory_graph;
 
-pub use memory_graph::{MemoryGraph, MemoryZone, MemoryEntry};
+pub use ap2_ledger::{AP2Entry, AP2Ledger};
 pub use mcp_server::{PalaceServer, ToolRequest, ToolResponse};
-pub use ap2_ledger::{AP2Ledger, AP2Entry};
+pub use memory_graph::{MemoryEntry, MemoryGraph, MemoryZone};
 
 #[derive(Debug, Clone)]
 pub struct PalaceState {
@@ -34,7 +34,9 @@ impl PalaceState {
 
     pub async fn invoke_tool(&self, request: &ToolRequest) -> Result<ToolResponse, String> {
         self.ap2_ledger.charge_budget(0.01).await?;
-        self.memory_graph.log_invocation(request.tool_name.clone()).await;
+        self.memory_graph
+            .log_invocation(request.tool_name.clone())
+            .await;
         Ok(ToolResponse {
             id: Uuid::new_v4(),
             result: format!("Executed {}", request.tool_name),

@@ -1,6 +1,4 @@
-use siss_observability::{
-    MerkleTracer, TraceSpan, MetricsAggregator, TraceLogger, Metrics,
-};
+use siss_observability::{MerkleTracer, Metrics, MetricsAggregator, TraceLogger, TraceSpan};
 use uuid::Uuid;
 
 // Group 1-5: Span recording and parent-child linkage
@@ -31,13 +29,22 @@ async fn test_3_trace_chain_reconstruction() {
     let tracer = MerkleTracer::new();
 
     let g_id = Uuid::new_v4();
-    tracer.record_span(TraceSpan::new(g_id, None)).await.unwrap();
+    tracer
+        .record_span(TraceSpan::new(g_id, None))
+        .await
+        .unwrap();
 
     let p_id = Uuid::new_v4();
-    tracer.record_span(TraceSpan::new(p_id, Some(g_id))).await.unwrap();
+    tracer
+        .record_span(TraceSpan::new(p_id, Some(g_id)))
+        .await
+        .unwrap();
 
     let c_id = Uuid::new_v4();
-    tracer.record_span(TraceSpan::new(c_id, Some(p_id))).await.unwrap();
+    tracer
+        .record_span(TraceSpan::new(c_id, Some(p_id)))
+        .await
+        .unwrap();
 
     let chain = tracer.get_trace_chain(c_id).unwrap();
     assert_eq!(chain.len(), 3);
@@ -50,7 +57,10 @@ async fn test_3_trace_chain_reconstruction() {
 async fn test_4_multiple_children_single_parent() {
     let tracer = MerkleTracer::new();
     let parent_id = Uuid::new_v4();
-    tracer.record_span(TraceSpan::new(parent_id, None)).await.unwrap();
+    tracer
+        .record_span(TraceSpan::new(parent_id, None))
+        .await
+        .unwrap();
 
     for _ in 0..5 {
         let child = TraceSpan::new(Uuid::new_v4(), Some(parent_id));
@@ -156,21 +166,27 @@ async fn test_10_throughput_aggregation() {
     let agg = MetricsAggregator::new();
     let span_id = Uuid::new_v4();
 
-    agg.record_metric(span_id, Metrics {
-        latency_ms: 50.0,
-        throughput: 1000.0,
-        error_rate: 0.0,
-        request_count: 100,
-        error_count: 0,
-    });
+    agg.record_metric(
+        span_id,
+        Metrics {
+            latency_ms: 50.0,
+            throughput: 1000.0,
+            error_rate: 0.0,
+            request_count: 100,
+            error_count: 0,
+        },
+    );
 
-    agg.record_metric(span_id, Metrics {
-        latency_ms: 60.0,
-        throughput: 500.0,
-        error_rate: 0.0,
-        request_count: 100,
-        error_count: 0,
-    });
+    agg.record_metric(
+        span_id,
+        Metrics {
+            latency_ms: 60.0,
+            throughput: 500.0,
+            error_rate: 0.0,
+            request_count: 100,
+            error_count: 0,
+        },
+    );
 
     let result = agg.aggregate(span_id).unwrap();
     assert!(result.throughput_rps > 0.0);
@@ -181,7 +197,10 @@ async fn test_10_throughput_aggregation() {
 async fn test_11_merkle_integrity_valid() {
     let tracer = MerkleTracer::new();
 
-    tracer.record_span(TraceSpan::new(Uuid::new_v4(), None)).await.unwrap();
+    tracer
+        .record_span(TraceSpan::new(Uuid::new_v4(), None))
+        .await
+        .unwrap();
     let is_valid = tracer.verify_trace_integrity().await.unwrap();
 
     assert!(is_valid);
@@ -192,7 +211,10 @@ async fn test_12_merkle_root_uniqueness() {
     let tracer = MerkleTracer::new();
     let root1 = tracer.get_merkle_root();
 
-    tracer.record_span(TraceSpan::new(Uuid::new_v4(), None)).await.unwrap();
+    tracer
+        .record_span(TraceSpan::new(Uuid::new_v4(), None))
+        .await
+        .unwrap();
     let root2 = tracer.get_merkle_root();
 
     assert_ne!(root1, root2);
@@ -214,8 +236,14 @@ async fn test_13_merkle_hash_deterministic() {
 async fn test_14_tampering_detection_clean() {
     let tracer = MerkleTracer::new();
 
-    tracer.record_span(TraceSpan::new(Uuid::new_v4(), None)).await.unwrap();
-    tracer.record_span(TraceSpan::new(Uuid::new_v4(), None)).await.unwrap();
+    tracer
+        .record_span(TraceSpan::new(Uuid::new_v4(), None))
+        .await
+        .unwrap();
+    tracer
+        .record_span(TraceSpan::new(Uuid::new_v4(), None))
+        .await
+        .unwrap();
 
     let is_tampered = tracer.detect_tampering().unwrap();
     assert!(!is_tampered);
@@ -228,9 +256,18 @@ async fn test_15_chain_integrity_multispan() {
     let span2_id = Uuid::new_v4();
     let span3_id = Uuid::new_v4();
 
-    tracer.record_span(TraceSpan::new(span1_id, None)).await.unwrap();
-    tracer.record_span(TraceSpan::new(span2_id, Some(span1_id))).await.unwrap();
-    tracer.record_span(TraceSpan::new(span3_id, Some(span2_id))).await.unwrap();
+    tracer
+        .record_span(TraceSpan::new(span1_id, None))
+        .await
+        .unwrap();
+    tracer
+        .record_span(TraceSpan::new(span2_id, Some(span1_id)))
+        .await
+        .unwrap();
+    tracer
+        .record_span(TraceSpan::new(span3_id, Some(span2_id)))
+        .await
+        .unwrap();
 
     let valid = tracer.verify_trace_integrity().await.unwrap();
     assert!(valid);
@@ -305,7 +342,10 @@ async fn test_19_query_all_spans() {
     let tracer = MerkleTracer::new();
 
     for _ in 0..50 {
-        tracer.record_span(TraceSpan::new(Uuid::new_v4(), None)).await.unwrap();
+        tracer
+            .record_span(TraceSpan::new(Uuid::new_v4(), None))
+            .await
+            .unwrap();
     }
 
     let all_spans = tracer.get_all_spans();
@@ -323,26 +363,36 @@ async fn test_20_integrated_tracing_and_logging() {
     tracer.record_span(span1).await.unwrap();
 
     logger.info(span1_id, "Span 1 started".to_string(), None);
-    agg.record_metric(span1_id, Metrics {
-        latency_ms: 45.0,
-        throughput: 500.0,
-        error_rate: 0.0,
-        request_count: 500,
-        error_count: 0,
-    });
+    agg.record_metric(
+        span1_id,
+        Metrics {
+            latency_ms: 45.0,
+            throughput: 500.0,
+            error_rate: 0.0,
+            request_count: 500,
+            error_count: 0,
+        },
+    );
 
     let span2_id = Uuid::new_v4();
     let span2 = TraceSpan::new(span2_id, Some(span1_id));
     tracer.record_span(span2).await.unwrap();
 
-    logger.info(span2_id, "Span 2 started".to_string(), Some("child".to_string()));
-    agg.record_metric(span2_id, Metrics {
-        latency_ms: 25.0,
-        throughput: 1000.0,
-        error_rate: 0.0,
-        request_count: 1000,
-        error_count: 0,
-    });
+    logger.info(
+        span2_id,
+        "Span 2 started".to_string(),
+        Some("child".to_string()),
+    );
+    agg.record_metric(
+        span2_id,
+        Metrics {
+            latency_ms: 25.0,
+            throughput: 1000.0,
+            error_rate: 0.0,
+            request_count: 1000,
+            error_count: 0,
+        },
+    );
 
     // Verify integration
     assert_eq!(tracer.span_count(), 2);

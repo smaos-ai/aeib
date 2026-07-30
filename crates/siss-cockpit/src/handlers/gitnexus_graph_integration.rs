@@ -4,8 +4,8 @@
 #[cfg(test)]
 mod integration_tests {
     use crate::handlers::gitnexus_graph::{
-        GitNexusGraph, ImpactAnalysisResult, CallerInfo, SkillMetadata, PreCommitChanges,
-        HybridSearchResult, SearchHit, GitNexusGraphError,
+        CallerInfo, GitNexusGraph, GitNexusGraphError, HybridSearchResult, ImpactAnalysisResult,
+        PreCommitChanges, SearchHit, SkillMetadata,
     };
 
     #[tokio::test]
@@ -32,7 +32,10 @@ mod integration_tests {
 
         // THEN: Rejects modification requiring approval (fail-closed, 403)
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), GitNexusGraphError::BlastRadiusExceeded));
+        assert!(matches!(
+            result.unwrap_err(),
+            GitNexusGraphError::BlastRadiusExceeded
+        ));
     }
 
     #[tokio::test]
@@ -64,7 +67,10 @@ mod integration_tests {
 
         // THEN: Rejects low modularity (fail-closed, 500)
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), GitNexusGraphError::SkillGenerationFailed));
+        assert!(matches!(
+            result.unwrap_err(),
+            GitNexusGraphError::SkillGenerationFailed
+        ));
     }
 
     #[tokio::test]
@@ -91,7 +97,10 @@ mod integration_tests {
 
         // THEN: Validates dry-run (fail-closed, 400)
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), GitNexusGraphError::PreCommitValidationFailed));
+        assert!(matches!(
+            result.unwrap_err(),
+            GitNexusGraphError::PreCommitValidationFailed
+        ));
     }
 
     #[tokio::test]
@@ -116,7 +125,10 @@ mod integration_tests {
 
         // THEN: Validates RRF merge (fail-closed, 503)
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), GitNexusGraphError::HybridSearchFailed));
+        assert!(matches!(
+            result.unwrap_err(),
+            GitNexusGraphError::HybridSearchFailed
+        ));
     }
 
     #[tokio::test]
@@ -129,7 +141,10 @@ mod integration_tests {
 
         // THEN: Blocks external network access (fail-closed, 403)
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), GitNexusGraphError::ExternalNetworkDetected | GitNexusGraphError::HybridSearchFailed));
+        assert!(matches!(
+            result.unwrap_err(),
+            GitNexusGraphError::ExternalNetworkDetected | GitNexusGraphError::HybridSearchFailed
+        ));
     }
 
     #[tokio::test]
@@ -152,15 +167,28 @@ mod integration_tests {
         let rename_result = GitNexusGraph::preview_rename_changes(
             "old_handler".to_string(),
             "new_handler".to_string(),
-        ).await;
+        )
+        .await;
 
         // Stage 4: Execute hybrid search
         let search_result = GitNexusGraph::hybrid_search_query("handler_*".to_string()).await;
 
         // THEN: Workflow stages should complete (fails in RED, passes in GREEN)
-        assert!(impact_result.is_ok() || impact_result.is_err(), "Impact analysis should complete");
-        assert!(skill_result.is_ok() || skill_result.is_err(), "Skill generation should complete");
-        assert!(rename_result.is_ok() || rename_result.is_err(), "Rename preview should complete");
-        assert!(search_result.is_ok() || search_result.is_err(), "Hybrid search should complete");
+        assert!(
+            impact_result.is_ok() || impact_result.is_err(),
+            "Impact analysis should complete"
+        );
+        assert!(
+            skill_result.is_ok() || skill_result.is_err(),
+            "Skill generation should complete"
+        );
+        assert!(
+            rename_result.is_ok() || rename_result.is_err(),
+            "Rename preview should complete"
+        );
+        assert!(
+            search_result.is_ok() || search_result.is_err(),
+            "Hybrid search should complete"
+        );
     }
 }

@@ -1,7 +1,7 @@
 use crate::settlement_builder::SettlementLeg;
-use sha2::{Sha256, Digest};
-use std::sync::Arc;
 use parking_lot::RwLock;
+use sha2::{Digest, Sha256};
+use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 pub struct AtomicSettlement {
@@ -81,15 +81,13 @@ mod tests {
 
     #[test]
     fn test_merkle_root_computed() {
-        let legs = vec![
-            SettlementLeg {
-                id: Uuid::new_v4(),
-                from_currency: "EUR".to_string(),
-                to_currency: "USD".to_string(),
-                amount_cents: 10000,
-                status: "pending".to_string(),
-            },
-        ];
+        let legs = vec![SettlementLeg {
+            id: Uuid::new_v4(),
+            from_currency: "EUR".to_string(),
+            to_currency: "USD".to_string(),
+            amount_cents: 10000,
+            status: "pending".to_string(),
+        }];
 
         let settlement = AtomicSettlement::new(legs).unwrap();
         assert_ne!(settlement.merkle_root, [0u8; 32]);
@@ -97,15 +95,13 @@ mod tests {
 
     #[test]
     fn test_commitment() {
-        let legs = vec![
-            SettlementLeg {
-                id: Uuid::new_v4(),
-                from_currency: "EUR".to_string(),
-                to_currency: "USD".to_string(),
-                amount_cents: 10000,
-                status: "pending".to_string(),
-            },
-        ];
+        let legs = vec![SettlementLeg {
+            id: Uuid::new_v4(),
+            from_currency: "EUR".to_string(),
+            to_currency: "USD".to_string(),
+            amount_cents: 10000,
+            status: "pending".to_string(),
+        }];
 
         let settlement = AtomicSettlement::new(legs).unwrap();
         assert!(!settlement.is_committed());

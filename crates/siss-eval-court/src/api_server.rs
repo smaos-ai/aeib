@@ -90,8 +90,7 @@ impl VetoFlowAPI {
                 .as_secs(),
         };
 
-        serde_json::to_string(&response)
-            .map_err(|e| format!("JSON serialization error: {}", e))
+        serde_json::to_string(&response).map_err(|e| format!("JSON serialization error: {}", e))
     }
 
     pub fn validate_veto_submission(&self, submission: &VetoSubmission) -> Result<bool, String> {
@@ -124,8 +123,7 @@ impl VetoFlowAPI {
                 .as_secs()
         });
 
-        serde_json::to_string(&status)
-            .map_err(|e| format!("JSON serialization error: {}", e))
+        serde_json::to_string(&status).map_err(|e| format!("JSON serialization error: {}", e))
     }
 }
 

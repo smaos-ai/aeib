@@ -1,12 +1,12 @@
-use uuid::Uuid;
-use serde::{Serialize, Deserialize};
+use ed25519_dalek::{Signer, SigningKey, Verifier};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use ed25519_dalek::{SigningKey, Signer, Verifier};
 use std::time::Instant;
+use uuid::Uuid;
 
 // Phase 74.5: HPC-Yield scheduling + Formal verification
-pub mod scheduler;
 pub mod policy;
+pub mod scheduler;
 
 /// Node identifier in the swarm
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -69,13 +69,17 @@ impl SwarmState {
         // PHASE 63 CONSTRAINT: Append-only, no overwrites
         // Check if this entry_id already exists
         if self.entries.iter().any(|e| e.entry_id == entry.entry_id) {
-            return Err("STATE_OVERWRITE_ATTEMPT: Cannot overwrite existing state entry".to_string());
+            return Err(
+                "STATE_OVERWRITE_ATTEMPT: Cannot overwrite existing state entry".to_string(),
+            );
         }
 
         // Verify parent hash chain
         if let Some(parent) = &entry.parent_hash {
             if parent != &self.last_hash {
-                return Err("MERKLE_DAG_VIOLATION: Parent hash does not match chain head".to_string());
+                return Err(
+                    "MERKLE_DAG_VIOLATION: Parent hash does not match chain head".to_string(),
+                );
             }
         }
 
@@ -85,13 +89,8 @@ impl SwarmState {
     }
 
     /// Sign a state update with the node's private key
-    pub fn sign_state(
-        &self,
-        node_id: NodeId,
-        state_hash: &str,
-    ) -> Result<Vec<u8>, String> {
-        let key = self.node_keys.get(&node_id)
-            .ok_or("Node not registered")?;
+    pub fn sign_state(&self, node_id: NodeId, state_hash: &str) -> Result<Vec<u8>, String> {
+        let key = self.node_keys.get(&node_id).ok_or("Node not registered")?;
 
         let message = state_hash.as_bytes();
         let signature = key.sign(message);
@@ -101,15 +100,21 @@ impl SwarmState {
     /// Verify a peer's attestation signature
     pub fn verify_peer_attestation(&self, attestation: &NodeAttestation) -> Result<(), String> {
         // PHASE 63: Lookup peer's public key and verify signature
-        let public_key = self.peer_public_keys.get(&attestation.node_id)
+        let public_key = self
+            .peer_public_keys
+            .get(&attestation.node_id)
             .ok_or("Peer public key not found in registry")?;
 
         let signature = ed25519_dalek::Signature::from_bytes(
-            &attestation.signature.as_slice().try_into()
-                .map_err(|_| "Invalid signature format")?
+            &attestation
+                .signature
+                .as_slice()
+                .try_into()
+                .map_err(|_| "Invalid signature format")?,
         );
 
-        public_key.verify(attestation.state_hash.as_bytes(), &signature)
+        public_key
+            .verify(attestation.state_hash.as_bytes(), &signature)
             .map_err(|_| "Signature verification failed".to_string())
     }
 
@@ -140,7 +145,7 @@ impl SwarmState {
 
 pub mod mcp {
     use super::*;
-    use sha2::{Sha256, Digest};
+    use sha2::{Digest, Sha256};
 
     // ====== Phase 74: SwarmState with Merkle root + attestation ======
     #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -208,7 +213,12 @@ pub mod mcp {
         peer_key: &ed25519_dalek::VerifyingKey,
     ) -> Result<bool, String> {
         use ed25519_dalek::Verifier;
-        let msg = format!("{}:{}:{}", node_id, merkle_root, chrono::Utc::now().timestamp());
+        let msg = format!(
+            "{}:{}:{}",
+            node_id,
+            merkle_root,
+            chrono::Utc::now().timestamp()
+        );
         let sig_bytes = hex::decode(sig_hex).map_err(|e| e.to_string())?;
         let sig = ed25519_dalek::Signature::from_slice(&sig_bytes)
             .map_err(|_| "Invalid Ed25519 signature format".to_string())?;
@@ -277,27 +287,39 @@ mod tests {
 
         // Measure signing latency
         let sign_start = Instant::now();
-        let _signature = state.sign_state(node_id, state_hash)
+        let _signature = state
+            .sign_state(node_id, state_hash)
             .expect("Signing must succeed");
         let sign_latency_ms = sign_start.elapsed().as_secs_f64() * 1000.0;
 
-        assert!(sign_latency_ms < 0.5,
-            "ED25519 LATENCY VIOLATION: Signing took {}ms, must be < 0.5ms (strict budget)", sign_latency_ms);
+        assert!(
+            sign_latency_ms < 0.5,
+            "ED25519 LATENCY VIOLATION: Signing took {}ms, must be < 0.5ms (strict budget)",
+            sign_latency_ms
+        );
 
         // Measure attestation generation latency
         let attest_start = Instant::now();
-        let _attestation = state.get_node_attestation(node_id)
+        let _attestation = state
+            .get_node_attestation(node_id)
             .expect("Attestation generation must succeed");
         let attest_latency_ms = attest_start.elapsed().as_secs_f64() * 1000.0;
 
-        assert!(attest_latency_ms < 0.5,
-            "ED25519 ATTESTATION LATENCY VIOLATION: Generation took {}ms, must be < 0.5ms", attest_latency_ms);
+        assert!(
+            attest_latency_ms < 0.5,
+            "ED25519 ATTESTATION LATENCY VIOLATION: Generation took {}ms, must be < 0.5ms",
+            attest_latency_ms
+        );
 
         // Both operations combined must still be < 0.8ms (strict budget enforcement)
         let total_latency = sign_latency_ms + attest_latency_ms;
-        assert!(total_latency < 0.8,
+        assert!(
+            total_latency < 0.8,
             "ED25519 TOTAL LATENCY VIOLATION: {}ms + {}ms = {}ms, must be < 0.8ms (RED PHASE CONSTRAINT)",
-            sign_latency_ms, attest_latency_ms, total_latency);
+            sign_latency_ms,
+            attest_latency_ms,
+            total_latency
+        );
     }
 
     #[test]
@@ -325,12 +347,14 @@ mod tests {
 
         // ASSERTION 1: Appending a new entry succeeds
         let result = state.append_state(entry1.clone());
-        assert!(result.is_ok(),
-            "MERKLE DAG VIOLATION: Initial state append must succeed");
+        assert!(
+            result.is_ok(),
+            "MERKLE DAG VIOLATION: Initial state append must succeed"
+        );
 
         // ASSERTION 2: Attempting to append the same entry_id again must fail
         let entry2 = StateEntry {
-            entry_id,  // Same ID - this is an overwrite attempt
+            entry_id, // Same ID - this is an overwrite attempt
             node_id,
             state_hash: "hash_v2_modified".to_string(),
             parent_hash: Some(state_hash.to_string()),
@@ -339,13 +363,18 @@ mod tests {
         };
 
         let overwrite_result = state.append_state(entry2);
-        assert!(overwrite_result.is_err(),
-            "MERKLE DAG VIOLATION: Overwrite attempt must be rejected");
+        assert!(
+            overwrite_result.is_err(),
+            "MERKLE DAG VIOLATION: Overwrite attempt must be rejected"
+        );
 
         match overwrite_result {
             Err(msg) => {
-                assert!(msg.contains("OVERWRITE"),
-                    "MERKLE DAG VIOLATION: Error must mention STATE_OVERWRITE_ATTEMPT, got: {}", msg);
+                assert!(
+                    msg.contains("OVERWRITE"),
+                    "MERKLE DAG VIOLATION: Error must mention STATE_OVERWRITE_ATTEMPT, got: {}",
+                    msg
+                );
             }
             Ok(_) => {
                 panic!("MERKLE DAG VIOLATION: Overwrite must fail-close (return Err)");
@@ -354,8 +383,15 @@ mod tests {
 
         // ASSERTION 3: Verify ledger integrity - chain is unbroken
         let entries = state.entries();
-        assert_eq!(entries.len(), 1, "MERKLE DAG VIOLATION: Ledger must contain exactly 1 entry");
-        assert_eq!(entries[0].state_hash, state_hash, "MERKLE DAG VIOLATION: Entry state_hash must match");
+        assert_eq!(
+            entries.len(),
+            1,
+            "MERKLE DAG VIOLATION: Ledger must contain exactly 1 entry"
+        );
+        assert_eq!(
+            entries[0].state_hash, state_hash,
+            "MERKLE DAG VIOLATION: Entry state_hash must match"
+        );
     }
 
     #[test]
@@ -377,40 +413,49 @@ mod tests {
             timestamp: 1000,
         };
 
-        state.append_state(entry1).expect("First append must succeed");
+        state
+            .append_state(entry1)
+            .expect("First append must succeed");
 
         // Entry 2: correct parent hash
         let entry2 = StateEntry {
             entry_id: Uuid::new_v4(),
             node_id,
             state_hash: "hash_v2".to_string(),
-            parent_hash: Some("hash_v1".to_string()),  // Correct parent
+            parent_hash: Some("hash_v1".to_string()), // Correct parent
             attestation: None,
             timestamp: 2000,
         };
 
         let result2 = state.append_state(entry2);
-        assert!(result2.is_ok(),
-            "MERKLE DAG VIOLATION: Entry with correct parent_hash must be appended");
+        assert!(
+            result2.is_ok(),
+            "MERKLE DAG VIOLATION: Entry with correct parent_hash must be appended"
+        );
 
         // Entry 3: WRONG parent hash (breaks chain)
         let entry3 = StateEntry {
             entry_id: Uuid::new_v4(),
             node_id,
             state_hash: "hash_v3".to_string(),
-            parent_hash: Some("wrong_hash".to_string()),  // Wrong parent!
+            parent_hash: Some("wrong_hash".to_string()), // Wrong parent!
             attestation: None,
             timestamp: 3000,
         };
 
         let result3 = state.append_state(entry3);
-        assert!(result3.is_err(),
-            "MERKLE DAG VIOLATION: Entry with wrong parent_hash must be rejected");
+        assert!(
+            result3.is_err(),
+            "MERKLE DAG VIOLATION: Entry with wrong parent_hash must be rejected"
+        );
 
         match result3 {
             Err(msg) => {
-                assert!(msg.contains("MERKLE_DAG_VIOLATION"),
-                    "MERKLE DAG VIOLATION: Error must mention DAG violation, got: {}", msg);
+                assert!(
+                    msg.contains("MERKLE_DAG_VIOLATION"),
+                    "MERKLE DAG VIOLATION: Error must mention DAG violation, got: {}",
+                    msg
+                );
             }
             Ok(_) => {
                 panic!("MERKLE DAG VIOLATION: Chain integrity check must fail");
@@ -428,18 +473,27 @@ mod tests {
         let signing_key = create_signing_key();
         state.register_node(node_id, signing_key);
 
-        let attestation = state.get_node_attestation(node_id)
+        let attestation = state
+            .get_node_attestation(node_id)
             .expect("get_node_attestation must succeed");
 
         // ASSERTION 1: Attestation struct must have all required fields
-        assert!(!attestation.state_hash.is_empty(),
-            "MCP CONTRACT VIOLATION: state_hash must not be empty");
-        assert!(!attestation.signature.is_empty(),
-            "MCP CONTRACT VIOLATION: signature must not be empty");
-        assert!(attestation.timestamp > 0,
-            "MCP CONTRACT VIOLATION: timestamp must be > 0");
-        assert_eq!(attestation.node_id, node_id,
-            "MCP CONTRACT VIOLATION: node_id must match request");
+        assert!(
+            !attestation.state_hash.is_empty(),
+            "MCP CONTRACT VIOLATION: state_hash must not be empty"
+        );
+        assert!(
+            !attestation.signature.is_empty(),
+            "MCP CONTRACT VIOLATION: signature must not be empty"
+        );
+        assert!(
+            attestation.timestamp > 0,
+            "MCP CONTRACT VIOLATION: timestamp must be > 0"
+        );
+        assert_eq!(
+            attestation.node_id, node_id,
+            "MCP CONTRACT VIOLATION: node_id must match request"
+        );
 
         // ASSERTION 2: Verify JSON serialization to MCP output schema
         let output = mcp::GetNodeAttestationOutput {
@@ -449,16 +503,27 @@ mod tests {
             timestamp: attestation.timestamp,
         };
 
-        let json = serde_json::to_string(&output)
-            .expect("Serialization must succeed");
-        assert!(json.contains("\"node_id\""), "MCP CONTRACT VIOLATION: Output must have node_id field");
-        assert!(json.contains("\"state_hash\""), "MCP CONTRACT VIOLATION: Output must have state_hash field");
-        assert!(json.contains("\"signature\""), "MCP CONTRACT VIOLATION: Output must have signature field");
-        assert!(json.contains("\"timestamp\""), "MCP CONTRACT VIOLATION: Output must have timestamp field");
+        let json = serde_json::to_string(&output).expect("Serialization must succeed");
+        assert!(
+            json.contains("\"node_id\""),
+            "MCP CONTRACT VIOLATION: Output must have node_id field"
+        );
+        assert!(
+            json.contains("\"state_hash\""),
+            "MCP CONTRACT VIOLATION: Output must have state_hash field"
+        );
+        assert!(
+            json.contains("\"signature\""),
+            "MCP CONTRACT VIOLATION: Output must have signature field"
+        );
+        assert!(
+            json.contains("\"timestamp\""),
+            "MCP CONTRACT VIOLATION: Output must have timestamp field"
+        );
 
         // ASSERTION 3: Verify deserialization round-trip
-        let _deserialized: mcp::GetNodeAttestationOutput = serde_json::from_str(&json)
-            .expect("MCP schema must be deserializable");
+        let _deserialized: mcp::GetNodeAttestationOutput =
+            serde_json::from_str(&json).expect("MCP schema must be deserializable");
     }
 
     #[test]
@@ -472,7 +537,8 @@ mod tests {
         let signing_key = create_signing_key();
         state.register_node(node_id, signing_key);
 
-        let attestation = state.get_node_attestation(node_id)
+        let attestation = state
+            .get_node_attestation(node_id)
             .expect("get_node_attestation must succeed");
 
         // ASSERTION 1: Construct proper MCP input schema
@@ -484,12 +550,23 @@ mod tests {
         };
 
         // ASSERTION 2: Verify input schema serialization
-        let input_json = serde_json::to_string(&verify_input)
-            .expect("Input schema must serialize");
-        assert!(input_json.contains("\"node_id\""), "MCP INPUT VIOLATION: node_id required");
-        assert!(input_json.contains("\"state_hash\""), "MCP INPUT VIOLATION: state_hash required");
-        assert!(input_json.contains("\"signature\""), "MCP INPUT VIOLATION: signature required");
-        assert!(input_json.contains("\"timestamp\""), "MCP INPUT VIOLATION: timestamp required");
+        let input_json = serde_json::to_string(&verify_input).expect("Input schema must serialize");
+        assert!(
+            input_json.contains("\"node_id\""),
+            "MCP INPUT VIOLATION: node_id required"
+        );
+        assert!(
+            input_json.contains("\"state_hash\""),
+            "MCP INPUT VIOLATION: state_hash required"
+        );
+        assert!(
+            input_json.contains("\"signature\""),
+            "MCP INPUT VIOLATION: signature required"
+        );
+        assert!(
+            input_json.contains("\"timestamp\""),
+            "MCP INPUT VIOLATION: timestamp required"
+        );
 
         // ASSERTION 3: Verify output schema structure
         let verify_output = mcp::VerifyPeerAttestationOutput {
@@ -497,15 +574,23 @@ mod tests {
             reason: Some("Stub implementation not yet ready".to_string()),
         };
 
-        let output_json = serde_json::to_string(&verify_output)
-            .expect("Output schema must serialize");
-        assert!(output_json.contains("\"valid\""), "MCP OUTPUT VIOLATION: valid field required");
-        assert!(output_json.contains("\"reason\""), "MCP OUTPUT VIOLATION: reason field required");
+        let output_json =
+            serde_json::to_string(&verify_output).expect("Output schema must serialize");
+        assert!(
+            output_json.contains("\"valid\""),
+            "MCP OUTPUT VIOLATION: valid field required"
+        );
+        assert!(
+            output_json.contains("\"reason\""),
+            "MCP OUTPUT VIOLATION: reason field required"
+        );
 
         // ASSERTION 4: Verify attestation with the implementation
         let verify_result = state.verify_peer_attestation(&attestation);
-        assert!(verify_result.is_ok(),
-            "PHASE 63 GREEN: verify_peer_attestation must successfully verify valid attestations");
+        assert!(
+            verify_result.is_ok(),
+            "PHASE 63 GREEN: verify_peer_attestation must successfully verify valid attestations"
+        );
     }
 
     #[test]
@@ -519,14 +604,17 @@ mod tests {
         let signing_key = create_signing_key();
         state.register_node(node_id, signing_key);
 
-        let attestation = state.get_node_attestation(node_id)
+        let attestation = state
+            .get_node_attestation(node_id)
             .expect("get_node_attestation must work");
 
         // ASSERTION: verify_peer_attestation must succeed for valid attestations
         let verify_result = state.verify_peer_attestation(&attestation);
-        assert!(verify_result.is_ok(),
+        assert!(
+            verify_result.is_ok(),
             "PHASE 63 RED CONSTRAINT: verify_peer_attestation must be fully implemented, not stubbed. Got Err: {:?}",
-            verify_result);
+            verify_result
+        );
     }
 
     #[test]
@@ -550,8 +638,9 @@ mod tests {
             timestamp: 1234567890,
         };
         let get_output_json = serde_json::to_string(&get_output).expect("Must serialize");
-        let _get_output_parsed: mcp::GetNodeAttestationOutput = serde_json::from_str(&get_output_json)
-            .expect("MCP SCHEMA VIOLATION: GetNodeAttestationOutput must round-trip");
+        let _get_output_parsed: mcp::GetNodeAttestationOutput =
+            serde_json::from_str(&get_output_json)
+                .expect("MCP SCHEMA VIOLATION: GetNodeAttestationOutput must round-trip");
 
         // Test VerifyPeerAttestationInput schema
         let verify_input = mcp::VerifyPeerAttestationInput {
@@ -561,8 +650,9 @@ mod tests {
             timestamp: 1234567890,
         };
         let verify_input_json = serde_json::to_string(&verify_input).expect("Must serialize");
-        let _verify_input_parsed: mcp::VerifyPeerAttestationInput = serde_json::from_str(&verify_input_json)
-            .expect("MCP SCHEMA VIOLATION: VerifyPeerAttestationInput must round-trip");
+        let _verify_input_parsed: mcp::VerifyPeerAttestationInput =
+            serde_json::from_str(&verify_input_json)
+                .expect("MCP SCHEMA VIOLATION: VerifyPeerAttestationInput must round-trip");
 
         // Test VerifyPeerAttestationOutput schema
         let verify_output = mcp::VerifyPeerAttestationOutput {
@@ -570,8 +660,9 @@ mod tests {
             reason: None,
         };
         let verify_output_json = serde_json::to_string(&verify_output).expect("Must serialize");
-        let _verify_output_parsed: mcp::VerifyPeerAttestationOutput = serde_json::from_str(&verify_output_json)
-            .expect("MCP SCHEMA VIOLATION: VerifyPeerAttestationOutput must round-trip");
+        let _verify_output_parsed: mcp::VerifyPeerAttestationOutput =
+            serde_json::from_str(&verify_output_json)
+                .expect("MCP SCHEMA VIOLATION: VerifyPeerAttestationOutput must round-trip");
 
         // All schemas must pass - if any fail, the test fails
         assert!(true, "All MCP schemas are compliant");

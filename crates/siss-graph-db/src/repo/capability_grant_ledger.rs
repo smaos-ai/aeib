@@ -34,11 +34,7 @@ pub async fn record_grant(
     Ok(hash)
 }
 
-pub async fn revoke_grant(
-    pool: &PgPool,
-    grant_id: Uuid,
-    _reason: &str,
-) -> Result<(), sqlx::Error> {
+pub async fn revoke_grant(pool: &PgPool, grant_id: Uuid, _reason: &str) -> Result<(), sqlx::Error> {
     sqlx::query(
         r#"
         UPDATE grant_ledger SET status = $1 WHERE grant_id = $2
@@ -52,10 +48,7 @@ pub async fn revoke_grant(
     Ok(())
 }
 
-pub async fn verify_grant_active(
-    pool: &PgPool,
-    grant_id: Uuid,
-) -> Result<bool, sqlx::Error> {
+pub async fn verify_grant_active(pool: &PgPool, grant_id: Uuid) -> Result<bool, sqlx::Error> {
     let result: Option<(String, DateTime<Utc>)> = sqlx::query_as(
         r#"
         SELECT status, expires_at FROM grant_ledger WHERE grant_id = $1

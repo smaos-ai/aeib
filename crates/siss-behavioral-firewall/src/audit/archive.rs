@@ -1,12 +1,12 @@
 // Merkle tree archive for historical state snapshots
 
 use super::events::AuditEvent;
-use sha2::{Sha256, Digest};
-use std::sync::RwLock;
+use sha2::{Digest, Sha256};
 use std::sync::Arc;
+use std::sync::RwLock;
 
 pub struct MerkleArchive {
-    snapshots: Arc<RwLock<Vec<Vec<u8>>>>,     // List of snapshot roots
+    snapshots: Arc<RwLock<Vec<Vec<u8>>>>, // List of snapshot roots
     snapshot_hashes: Arc<RwLock<Vec<Vec<u8>>>>, // Individual event hashes per snapshot
 }
 
@@ -125,16 +125,13 @@ impl MerkleArchive {
     pub fn get_proof(&self, _index: usize) -> Option<Vec<u8>> {
         // Simplified: return snapshot root as proof
         // Full merkle proof would include sibling hashes
-        self.snapshots
-            .read()
-            .ok()
-            .and_then(|s| {
-                if _index < s.len() {
-                    Some(s[_index].clone())
-                } else {
-                    None
-                }
-            })
+        self.snapshots.read().ok().and_then(|s| {
+            if _index < s.len() {
+                Some(s[_index].clone())
+            } else {
+                None
+            }
+        })
     }
 }
 

@@ -54,7 +54,9 @@ fn test_report_generation() {
     let mut monitor = ConsensusMonitor::new("node-5".to_string(), 7);
 
     for i in 1..=10 {
-        monitor.track_round(i, 250 + (i % 3) as u64 * 50, true).unwrap();
+        monitor
+            .track_round(i, 250 + (i % 3) as u64 * 50, true)
+            .unwrap();
     }
 
     let report = monitor.generate_health_report();
@@ -73,21 +75,33 @@ fn test_health_status_degradation() {
         monitor.track_round(i, 200, true).unwrap();
     }
     let status = monitor.health_status();
-    assert!(matches!(status, siss_consensus_monitor::HealthStatus::Healthy), "Expected Healthy, got {:?}", status);
+    assert!(
+        matches!(status, siss_consensus_monitor::HealthStatus::Healthy),
+        "Expected Healthy, got {:?}",
+        status
+    );
 
     // Degraded: some failures
     for i in 6..=10 {
         monitor.track_round(i, 600, false).unwrap();
     }
     let status = monitor.health_status();
-    assert!(matches!(status, siss_consensus_monitor::HealthStatus::Degraded), "Expected Degraded, got {:?}", status);
+    assert!(
+        matches!(status, siss_consensus_monitor::HealthStatus::Degraded),
+        "Expected Degraded, got {:?}",
+        status
+    );
 
     // Unhealthy: many failures
     for i in 11..=20 {
         monitor.track_round(i, 1000, false).unwrap();
     }
     let status = monitor.health_status();
-    assert!(matches!(status, siss_consensus_monitor::HealthStatus::Unhealthy), "Expected Unhealthy, got {:?}", status);
+    assert!(
+        matches!(status, siss_consensus_monitor::HealthStatus::Unhealthy),
+        "Expected Unhealthy, got {:?}",
+        status
+    );
 }
 
 #[test]

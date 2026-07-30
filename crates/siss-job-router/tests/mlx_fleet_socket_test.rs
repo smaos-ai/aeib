@@ -1,4 +1,6 @@
-use siss_job_router::mlx_fleet::{MlxFleet, MlxNode, NodeId, FleetRouter, FleetError, MlxNodeClient};
+use siss_job_router::mlx_fleet::{
+    FleetError, FleetRouter, MlxFleet, MlxNode, MlxNodeClient, NodeId,
+};
 
 #[test]
 fn test_route_skips_unreachable_node() {

@@ -1,5 +1,5 @@
-use crate::types::ExecutorConfig;
 use crate::Result;
+use crate::types::ExecutorConfig;
 use std::path::Path;
 use tokio::fs;
 
@@ -15,10 +15,7 @@ pub async fn load_config<P: AsRef<Path>>(path: Option<P>) -> Result<ExecutorConf
 }
 
 /// Save executor configuration to file
-pub async fn save_config<P: AsRef<Path>>(
-    config: &ExecutorConfig,
-    path: P,
-) -> Result<()> {
+pub async fn save_config<P: AsRef<Path>>(config: &ExecutorConfig, path: P) -> Result<()> {
     let content = serde_json::to_string_pretty(config)?;
     fs::write(path, content).await?;
     Ok(())

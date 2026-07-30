@@ -56,7 +56,10 @@ impl AMLChecker {
 
     /// Get sanctioned entity details if present.
     pub fn get_sanctioned_entity(&self, name: &str) -> Stream6Result<Option<SanctionedEntity>> {
-        Ok(self.sanctioned_list.get(&name.to_lowercase()).map(|e| e.clone()))
+        Ok(self
+            .sanctioned_list
+            .get(&name.to_lowercase())
+            .map(|e| e.clone()))
     }
 
     /// Sync sanctioned list from external AML provider.

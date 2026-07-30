@@ -3,9 +3,9 @@ use std::collections::HashMap;
 /// Cryptographic algorithm status
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CryptographicStatus {
-    Approved,        // NIST/NSA approved
-    Deprecated,      // Still acceptable but phasing out
-    Forbidden,       // Should not be used
+    Approved,   // NIST/NSA approved
+    Deprecated, // Still acceptable but phasing out
+    Forbidden,  // Should not be used
 }
 
 /// Cryptographic control item
@@ -31,8 +31,8 @@ pub struct TlsHardeningRequirement {
 /// Secret management control
 #[derive(Debug, Clone)]
 pub struct SecretManagementControl {
-    pub secret_type: String,          // e.g., "API_KEY", "PRIVATE_KEY", "PASSWORD"
-    pub storage_location: String,     // e.g., "siss-enclave", "hardware-tpm"
+    pub secret_type: String,      // e.g., "API_KEY", "PRIVATE_KEY", "PASSWORD"
+    pub storage_location: String, // e.g., "siss-enclave", "hardware-tpm"
     pub rotation_interval_days: u32,
     pub access_logging: bool,
 }
@@ -80,16 +80,66 @@ impl RiskAssessment {
 
         // Cryptographic controls (OpenSSL/TLS hardening)
         let crypto_controls: &[(&str, CryptographicStatus, &str, &str)] = &[
-            ("AES-256-GCM", CryptographicStatus::Approved, "siss-enclave", "siss-enclave/src/security.rs"),
-            ("ChaCha20-Poly1305", CryptographicStatus::Approved, "siss-enclave", "siss-enclave/src/security.rs"),
-            ("SHA-256", CryptographicStatus::Approved, "siss-audit-archiver", "siss-audit-archiver/src/lib.rs"),
-            ("ECDSA-P256", CryptographicStatus::Approved, "siss-trust-mesh", "siss-trust-mesh/src/lib.rs"),
-            ("RSA-4096", CryptographicStatus::Approved, "siss-agent-card", "siss-agent-card/src/lib.rs"),
-            ("TLS 1.3", CryptographicStatus::Approved, "siss-enclave", "siss-enclave/src/security.rs"),
-            ("DES", CryptographicStatus::Forbidden, "none", "DO NOT USE - Legacy"),
-            ("RC4", CryptographicStatus::Forbidden, "none", "DO NOT USE - Broken"),
-            ("MD5", CryptographicStatus::Forbidden, "none", "DO NOT USE - Deprecated"),
-            ("SSL 3.0", CryptographicStatus::Forbidden, "none", "DO NOT USE - Legacy"),
+            (
+                "AES-256-GCM",
+                CryptographicStatus::Approved,
+                "siss-enclave",
+                "siss-enclave/src/security.rs",
+            ),
+            (
+                "ChaCha20-Poly1305",
+                CryptographicStatus::Approved,
+                "siss-enclave",
+                "siss-enclave/src/security.rs",
+            ),
+            (
+                "SHA-256",
+                CryptographicStatus::Approved,
+                "siss-audit-archiver",
+                "siss-audit-archiver/src/lib.rs",
+            ),
+            (
+                "ECDSA-P256",
+                CryptographicStatus::Approved,
+                "siss-trust-mesh",
+                "siss-trust-mesh/src/lib.rs",
+            ),
+            (
+                "RSA-4096",
+                CryptographicStatus::Approved,
+                "siss-agent-card",
+                "siss-agent-card/src/lib.rs",
+            ),
+            (
+                "TLS 1.3",
+                CryptographicStatus::Approved,
+                "siss-enclave",
+                "siss-enclave/src/security.rs",
+            ),
+            (
+                "DES",
+                CryptographicStatus::Forbidden,
+                "none",
+                "DO NOT USE - Legacy",
+            ),
+            (
+                "RC4",
+                CryptographicStatus::Forbidden,
+                "none",
+                "DO NOT USE - Broken",
+            ),
+            (
+                "MD5",
+                CryptographicStatus::Forbidden,
+                "none",
+                "DO NOT USE - Deprecated",
+            ),
+            (
+                "SSL 3.0",
+                CryptographicStatus::Forbidden,
+                "none",
+                "DO NOT USE - Legacy",
+            ),
         ];
 
         for (algo, status, component, path) in crypto_controls {
@@ -183,9 +233,12 @@ impl RiskAssessment {
             RiskItem {
                 risk_id: "CRYPTO-001".to_string(),
                 category: "Cryptographic Algorithm".to_string(),
-                description: "Legacy cryptographic algorithms (DES, RC4, MD5) must not be used".to_string(),
+                description: "Legacy cryptographic algorithms (DES, RC4, MD5) must not be used"
+                    .to_string(),
                 severity: RiskSeverity::Critical,
-                mitigation: "Enforce OpenSSL security policy, code review for deprecated algorithms".to_string(),
+                mitigation:
+                    "Enforce OpenSSL security policy, code review for deprecated algorithms"
+                        .to_string(),
                 responsible_component: "siss-security-hardening".to_string(),
             },
             RiskItem {
@@ -201,7 +254,8 @@ impl RiskAssessment {
                 category: "Secret Management".to_string(),
                 description: "Secrets stored in plaintext or hardcoded".to_string(),
                 severity: RiskSeverity::Critical,
-                mitigation: "All secrets stored in siss-enclave with encryption at-rest".to_string(),
+                mitigation: "All secrets stored in siss-enclave with encryption at-rest"
+                    .to_string(),
                 responsible_component: "siss-enclave".to_string(),
             },
             RiskItem {
@@ -209,7 +263,8 @@ impl RiskAssessment {
                 category: "Lateral Movement".to_string(),
                 description: "Compromised node could pivot to other nodes".to_string(),
                 severity: RiskSeverity::High,
-                mitigation: "Network segmentation via edge gateways; EdgesMonitor detection".to_string(),
+                mitigation: "Network segmentation via edge gateways; EdgesMonitor detection"
+                    .to_string(),
                 responsible_component: "siss-job-router/siss-behavioral-firewall".to_string(),
             },
             RiskItem {
@@ -217,15 +272,18 @@ impl RiskAssessment {
                 category: "Covert Channel".to_string(),
                 description: "Timing side-channels could leak sensitive information".to_string(),
                 severity: RiskSeverity::Medium,
-                mitigation: "LatencyConstitution timing validation; chaos-petri verification".to_string(),
+                mitigation: "LatencyConstitution timing validation; chaos-petri verification"
+                    .to_string(),
                 responsible_component: "siss-gatekeeper/siss-job-router".to_string(),
             },
             RiskItem {
                 risk_id: "AUDIT-001".to_string(),
                 category: "Audit Trail".to_string(),
-                description: "Missing or incomplete audit logs prevent incident reconstruction".to_string(),
+                description: "Missing or incomplete audit logs prevent incident reconstruction"
+                    .to_string(),
                 severity: RiskSeverity::High,
-                mitigation: "Immutable audit logs via siss-audit-archiver with 7-year retention".to_string(),
+                mitigation: "Immutable audit logs via siss-audit-archiver with 7-year retention"
+                    .to_string(),
                 responsible_component: "siss-audit-archiver".to_string(),
             },
             RiskItem {
@@ -233,7 +291,8 @@ impl RiskAssessment {
                 category: "Incident Detection".to_string(),
                 description: "Slow detection of security incidents".to_string(),
                 severity: RiskSeverity::High,
-                mitigation: "Real-time behavioral detection via siss-behavioral-firewall".to_string(),
+                mitigation: "Real-time behavioral detection via siss-behavioral-firewall"
+                    .to_string(),
                 responsible_component: "siss-behavioral-firewall/siss-otel-tracer".to_string(),
             },
         ];
@@ -245,25 +304,38 @@ impl RiskAssessment {
     pub fn validate_tls_hardening(&self) -> Result<String, String> {
         for req in &self.tls_hardening {
             if !req.validated {
-                return Err(format!("TLS requirement not validated: {}", req.requirement));
+                return Err(format!(
+                    "TLS requirement not validated: {}",
+                    req.requirement
+                ));
             }
         }
-        Ok(format!("All {} TLS requirements validated", self.tls_hardening.len()))
+        Ok(format!(
+            "All {} TLS requirements validated",
+            self.tls_hardening.len()
+        ))
     }
 
     /// Count critical risks
     pub fn critical_risk_count(&self) -> usize {
-        self.risks.iter().filter(|r| r.severity == RiskSeverity::Critical).count()
+        self.risks
+            .iter()
+            .filter(|r| r.severity == RiskSeverity::Critical)
+            .count()
     }
 
     /// Count high risks
     pub fn high_risk_count(&self) -> usize {
-        self.risks.iter().filter(|r| r.severity == RiskSeverity::High).count()
+        self.risks
+            .iter()
+            .filter(|r| r.severity == RiskSeverity::High)
+            .count()
     }
 
     /// Cryptographic control coverage
     pub fn crypto_control_coverage(&self) -> f64 {
-        let approved = self.crypto_controls
+        let approved = self
+            .crypto_controls
             .values()
             .filter(|c| c.status == CryptographicStatus::Approved)
             .count();
@@ -296,14 +368,32 @@ mod tests {
         let ra = RiskAssessment::cmmc_level2_assessment();
 
         // Approved algorithms
-        assert_eq!(ra.crypto_controls.get("AES-256-GCM").unwrap().status, CryptographicStatus::Approved);
-        assert_eq!(ra.crypto_controls.get("SHA-256").unwrap().status, CryptographicStatus::Approved);
-        assert_eq!(ra.crypto_controls.get("TLS 1.3").unwrap().status, CryptographicStatus::Approved);
+        assert_eq!(
+            ra.crypto_controls.get("AES-256-GCM").unwrap().status,
+            CryptographicStatus::Approved
+        );
+        assert_eq!(
+            ra.crypto_controls.get("SHA-256").unwrap().status,
+            CryptographicStatus::Approved
+        );
+        assert_eq!(
+            ra.crypto_controls.get("TLS 1.3").unwrap().status,
+            CryptographicStatus::Approved
+        );
 
         // Forbidden algorithms
-        assert_eq!(ra.crypto_controls.get("DES").unwrap().status, CryptographicStatus::Forbidden);
-        assert_eq!(ra.crypto_controls.get("RC4").unwrap().status, CryptographicStatus::Forbidden);
-        assert_eq!(ra.crypto_controls.get("MD5").unwrap().status, CryptographicStatus::Forbidden);
+        assert_eq!(
+            ra.crypto_controls.get("DES").unwrap().status,
+            CryptographicStatus::Forbidden
+        );
+        assert_eq!(
+            ra.crypto_controls.get("RC4").unwrap().status,
+            CryptographicStatus::Forbidden
+        );
+        assert_eq!(
+            ra.crypto_controls.get("MD5").unwrap().status,
+            CryptographicStatus::Forbidden
+        );
     }
 
     #[test]
@@ -326,14 +416,20 @@ mod tests {
     fn test_critical_risks_identified() {
         let ra = RiskAssessment::cmmc_level2_assessment();
         let critical_count = ra.critical_risk_count();
-        assert!(critical_count >= 3, "Must identify at least 3 critical risks");
+        assert!(
+            critical_count >= 3,
+            "Must identify at least 3 critical risks"
+        );
     }
 
     #[test]
     fn test_high_risks_identified() {
         let ra = RiskAssessment::cmmc_level2_assessment();
         let high_count = ra.high_risk_count();
-        assert!(high_count >= 3, "Must identify at least 3 high-severity risks");
+        assert!(
+            high_count >= 3,
+            "Must identify at least 3 high-severity risks"
+        );
     }
 
     #[test]

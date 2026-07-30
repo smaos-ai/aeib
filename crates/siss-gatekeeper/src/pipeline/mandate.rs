@@ -1,8 +1,7 @@
+use crate::tokens::{AuthorizedJob, IntentMandate};
 /// AP2 Mandate validation pipeline stage.
 /// Validates that the mandate is valid, budget is available, and tools are authorized.
-
 use crate::types::GatekeeperError;
-use crate::tokens::{AuthorizedJob, IntentMandate};
 use uuid::Uuid;
 
 /// Validate an IntentMandate and authorize a task.

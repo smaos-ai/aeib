@@ -1,6 +1,5 @@
 /// Network Partition Scenario: Simulates network link failure between regions
 /// Tests: Merkle chain detects split, quorum prevents split-brain
-
 use std::time::Instant;
 
 pub struct NetworkPartitionScenario {

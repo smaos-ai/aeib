@@ -2,7 +2,6 @@
 ///
 /// Consumes batches of WorkflowCapsules and distills them into RefinementSignals
 /// that teach local SLMs to handle previously failing tasks.
-
 use chrono::Utc;
 use siss_job_router::cipo::{CipoDistiller, CipoTrace, RefinementSignal};
 use siss_job_router::confidence_scorer::RoutingTier;
@@ -69,7 +68,7 @@ mod tests {
         let result = CipoEngine::extract_signals(&batch);
         assert!(result.is_err());
         match result {
-            Err(CipoError::EmptyBatch) => {},
+            Err(CipoError::EmptyBatch) => {}
             _ => panic!("Expected EmptyBatch error"),
         }
     }

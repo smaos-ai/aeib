@@ -9,20 +9,10 @@
 //! - Concurrency (1+)
 
 use siss_behavioral_firewall::{
-    ReBAC,
-    AP2Evaluator,
-    SovereignAttributes,
-    TemporalGuard,
-    SovereignIdentity,
-    PolicyAction,
-    PolicyResource,
-    MandateVerifier,
-    DefaultMandateVerifier,
-    RequestContext,
-    AllowDeny,
-    MandateCache,
+    AP2Evaluator, AllowDeny, DefaultMandateVerifier, MandateCache, MandateVerifier, PolicyAction,
+    PolicyResource, ReBAC, RequestContext, SovereignAttributes, SovereignIdentity, TemporalGuard,
 };
-use std::time::{SystemTime, Duration};
+use std::time::{Duration, SystemTime};
 use uuid::Uuid;
 
 // ===========================================================================
@@ -50,18 +40,19 @@ fn create_request_context(
     }
 }
 
-fn setup_mandate_verifier() -> (
-    DefaultMandateVerifier,
-    SovereignIdentity,
-    PolicyResource,
-) {
+fn setup_mandate_verifier() -> (DefaultMandateVerifier, SovereignIdentity, PolicyResource) {
     let requester = create_requester();
     let resource = create_resource();
 
     // Setup ReBAC: grant relationship
     let rebac = ReBAC::new();
     rebac
-        .grant_relationship(requester, resource.clone(), siss_behavioral_firewall::RelationType::Owner, None)
+        .grant_relationship(
+            requester,
+            resource.clone(),
+            siss_behavioral_firewall::RelationType::Owner,
+            None,
+        )
         .expect("grant_relationship failed");
 
     // Setup AP2Evaluator with cached attributes
@@ -97,12 +88,17 @@ fn test_three_phase_all_pass() {
     let context = create_request_context(requester, PolicyAction::ReadMetrics, resource.clone());
 
     // When we verify mandate
-    let result = verifier.verify_mandate(&requester, &PolicyAction::ReadMetrics, &resource, &context);
+    let result =
+        verifier.verify_mandate(&requester, &PolicyAction::ReadMetrics, &resource, &context);
 
     // Then it should Allow
     assert!(result.is_ok(), "mandate_verifier should succeed");
     let mandate = result.unwrap();
-    assert_eq!(mandate.decision, AllowDeny::Allow, "Expected Allow decision");
+    assert_eq!(
+        mandate.decision,
+        AllowDeny::Allow,
+        "Expected Allow decision"
+    );
     assert!(!mandate.reasons.is_empty());
 }
 
@@ -119,7 +115,11 @@ fn test_three_phase_rebac_deny() {
     let temporal = TemporalGuard::new(60, 60);
     let verifier = DefaultMandateVerifier::new(rebac, ap2, temporal);
 
-    let context = create_request_context(requester, PolicyAction::ReadMetrics, unrelated_resource.clone());
+    let context = create_request_context(
+        requester,
+        PolicyAction::ReadMetrics,
+        unrelated_resource.clone(),
+    );
 
     // When we verify mandate
     let result = verifier.verify_mandate(
@@ -146,7 +146,8 @@ fn test_three_phase_ap2_deny() {
     // When AP2 has blacklist rules in future, we can simulate denial here.
     let context = create_request_context(requester, PolicyAction::ReadMetrics, resource.clone());
 
-    let result = verifier.verify_mandate(&requester, &PolicyAction::ReadMetrics, &resource, &context);
+    let result =
+        verifier.verify_mandate(&requester, &PolicyAction::ReadMetrics, &resource, &context);
 
     // Currently passes, but test structure is ready for AP2 denial simulation
     assert!(result.is_ok());
@@ -160,7 +161,12 @@ fn test_three_phase_temporal_deny() {
 
     let rebac = ReBAC::new();
     rebac
-        .grant_relationship(requester, resource.clone(), siss_behavioral_firewall::RelationType::Owner, None)
+        .grant_relationship(
+            requester,
+            resource.clone(),
+            siss_behavioral_firewall::RelationType::Owner,
+            None,
+        )
         .expect("grant_relationship failed");
 
     let ap2 = AP2Evaluator::with_defaults();
@@ -187,7 +193,8 @@ fn test_three_phase_temporal_deny() {
     let context = create_request_context(requester, PolicyAction::ReadMetrics, resource.clone());
 
     // When we try one more request (should exceed rate limit)
-    let result = verifier.verify_mandate(&requester, &PolicyAction::ReadMetrics, &resource, &context);
+    let result =
+        verifier.verify_mandate(&requester, &PolicyAction::ReadMetrics, &resource, &context);
 
     // Then it should Deny due to rate limit
     assert!(result.is_ok());
@@ -290,7 +297,12 @@ fn test_cycle_detection_no_cycle() {
     let resource = create_resource();
 
     rebac
-        .grant_relationship(a, resource.clone(), siss_behavioral_firewall::RelationType::Delegate, None)
+        .grant_relationship(
+            a,
+            resource.clone(),
+            siss_behavioral_firewall::RelationType::Delegate,
+            None,
+        )
         .expect("grant_relationship failed");
 
     // When we check for cycles (depth 2)
@@ -338,7 +350,8 @@ fn test_audit_id_included_in_response() {
     let (verifier, requester, resource) = setup_mandate_verifier();
     let context = create_request_context(requester, PolicyAction::ReadMetrics, resource.clone());
 
-    let result = verifier.verify_mandate(&requester, &PolicyAction::ReadMetrics, &resource, &context);
+    let result =
+        verifier.verify_mandate(&requester, &PolicyAction::ReadMetrics, &resource, &context);
 
     // Then mandate should include a non-nil audit_id
     let mandate = result.unwrap();
@@ -361,9 +374,18 @@ fn test_deny_reason_rebac_message() {
     let temporal = TemporalGuard::new(60, 60);
     let verifier = DefaultMandateVerifier::new(rebac, ap2, temporal);
 
-    let context = create_request_context(requester, PolicyAction::ReadMetrics, unrelated_resource.clone());
+    let context = create_request_context(
+        requester,
+        PolicyAction::ReadMetrics,
+        unrelated_resource.clone(),
+    );
 
-    let result = verifier.verify_mandate(&requester, &PolicyAction::ReadMetrics, &unrelated_resource, &context);
+    let result = verifier.verify_mandate(
+        &requester,
+        &PolicyAction::ReadMetrics,
+        &unrelated_resource,
+        &context,
+    );
 
     // Then deny reason should mention ReBAC clearly
     let mandate = result.unwrap();
@@ -385,7 +407,12 @@ fn test_deny_reason_temporal_message() {
 
     let rebac = ReBAC::new();
     rebac
-        .grant_relationship(requester, resource.clone(), siss_behavioral_firewall::RelationType::Owner, None)
+        .grant_relationship(
+            requester,
+            resource.clone(),
+            siss_behavioral_firewall::RelationType::Owner,
+            None,
+        )
         .expect("grant_relationship failed");
 
     let ap2 = AP2Evaluator::with_defaults();
@@ -411,7 +438,8 @@ fn test_deny_reason_temporal_message() {
     let verifier = DefaultMandateVerifier::new(rebac, ap2, temporal);
     let context = create_request_context(requester, PolicyAction::ReadMetrics, resource.clone());
 
-    let result = verifier.verify_mandate(&requester, &PolicyAction::ReadMetrics, &resource, &context);
+    let result =
+        verifier.verify_mandate(&requester, &PolicyAction::ReadMetrics, &resource, &context);
 
     // Then deny reason should mention Temporal clearly
     let mandate = result.unwrap();
@@ -434,10 +462,16 @@ fn test_concurrent_mandate_verification() {
             let verifier = verifier.clone();
             let requester = requester;
             let resource = resource.clone();
-            let context = create_request_context(requester, PolicyAction::ReadMetrics, resource.clone());
+            let context =
+                create_request_context(requester, PolicyAction::ReadMetrics, resource.clone());
 
             std::thread::spawn(move || {
-                let result = verifier.verify_mandate(&requester, &PolicyAction::ReadMetrics, &resource, &context);
+                let result = verifier.verify_mandate(
+                    &requester,
+                    &PolicyAction::ReadMetrics,
+                    &resource,
+                    &context,
+                );
                 result.is_ok()
             })
         })
@@ -463,4 +497,3 @@ fn create_test_mandate() -> siss_behavioral_firewall::policy_engine::mandate_ver
         cache_ttl: Duration::from_secs(60),
     }
 }
-

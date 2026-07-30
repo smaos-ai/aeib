@@ -1,10 +1,10 @@
 use crate::{Metrics, ObservabilityError, Result};
 use dashmap::DashMap;
-use sha2::{Sha256, Digest};
+use sha2::{Digest, Sha256};
 use std::sync::Arc;
 use std::sync::Mutex;
-use uuid::Uuid;
 use std::time::SystemTime;
+use uuid::Uuid;
 
 #[derive(Debug, Clone)]
 pub struct TraceSpan {
@@ -30,7 +30,11 @@ impl TraceSpan {
         }
     }
 
-    pub fn compute_hash(span_id: &Uuid, parent_id: Option<&Uuid>, previous_hash: &[u8; 32]) -> [u8; 32] {
+    pub fn compute_hash(
+        span_id: &Uuid,
+        parent_id: Option<&Uuid>,
+        previous_hash: &[u8; 32],
+    ) -> [u8; 32] {
         let mut hasher = Sha256::new();
         hasher.update(span_id.as_bytes());
         if let Some(pid) = parent_id {
@@ -72,7 +76,8 @@ impl MerkleTracer {
 
         // Compute merkle hash based on parent linkage
         if let Some(parent_id) = span.parent_id {
-            let previous_hash = self.traces
+            let previous_hash = self
+                .traces
                 .get(&parent_id)
                 .map(|s| s.merkle_hash)
                 .ok_or(ObservabilityError::TraceNotFound(parent_id.to_string()))?;
@@ -106,7 +111,8 @@ impl MerkleTracer {
         let mut current_id = Some(span_id);
 
         while let Some(id) = current_id {
-            let span = self.traces
+            let span = self
+                .traces
                 .get(&id)
                 .ok_or(ObservabilityError::TraceNotFound(id.to_string()))?
                 .clone();
@@ -139,7 +145,11 @@ impl MerkleTracer {
                     // For child spans, verify against parent
                     if let Some(parent_id) = span.parent_id {
                         if let Some(parent) = self.traces.get(&parent_id) {
-                            let expected_hash = TraceSpan::compute_hash(span_id, Some(&parent_id), &parent.merkle_hash);
+                            let expected_hash = TraceSpan::compute_hash(
+                                span_id,
+                                Some(&parent_id),
+                                &parent.merkle_hash,
+                            );
                             if expected_hash != span.merkle_hash {
                                 return Ok(false);
                             }
@@ -163,7 +173,10 @@ impl MerkleTracer {
     }
 
     pub fn get_all_spans(&self) -> Vec<TraceSpan> {
-        self.traces.iter().map(|entry| entry.value().clone()).collect()
+        self.traces
+            .iter()
+            .map(|entry| entry.value().clone())
+            .collect()
     }
 
     pub fn detect_tampering(&self) -> Result<bool> {
@@ -178,11 +191,11 @@ impl MerkleTracer {
                         return Ok(true); // Tampering detected
                     }
                     // For child spans, verify against parent's hash
-                    let parent_hash = self.traces
-                        .get(&parent_id)
-                        .map(|s| s.merkle_hash)
-                        .ok_or(ObservabilityError::IntegrityCheckFailed("Parent not found".into()))?;
-                    let expected_hash = TraceSpan::compute_hash(span_id, Some(&parent_id), &parent_hash);
+                    let parent_hash = self.traces.get(&parent_id).map(|s| s.merkle_hash).ok_or(
+                        ObservabilityError::IntegrityCheckFailed("Parent not found".into()),
+                    )?;
+                    let expected_hash =
+                        TraceSpan::compute_hash(span_id, Some(&parent_id), &parent_hash);
                     if expected_hash != span.merkle_hash {
                         return Ok(true);
                     }

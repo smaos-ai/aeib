@@ -1,18 +1,17 @@
+use chrono::Utc;
 /// Phase 48: Chaos Petri & The Twin Pillars of Sovereignty
 /// 8 TDD tests covering three fail-closed invariants:
 /// - Invariant 1: Type-State RCE Failure Machine (Chaos Petri)
 /// - Invariant 2: Compile-Time Geometric Trajectory Validation (iWorld-Bench)
 /// - Invariant 3: Sovereign Telemetry Sidecar + CIPO Loop Closure
-
-use siss_job_router::chaos_petri::{RceStateMachine, ChaosInjection};
+use siss_job_router::chaos_petri::{ChaosInjection, RceStateMachine};
 use siss_job_router::iworld_bench::{
-    Point3D, Trajectory, TypedTrajectory, TrajectoryValidator, GeometricBounds, BoundingBox,
-    GeometricViolation, Unvalidated,
+    BoundingBox, GeometricBounds, GeometricViolation, Point3D, Trajectory, TrajectoryValidator,
+    TypedTrajectory, Unvalidated,
 };
 use siss_job_router::telemetry_sidecar::{
     SovereignTelemetrySidecar, TelemetryEvent, TelemetryEventKind,
 };
-use chrono::Utc;
 use uuid::Uuid;
 
 // ============================================================================
@@ -28,9 +27,7 @@ fn test_chaos_network_dropout_pauses_rce() {
     let agent_id = Uuid::new_v4();
     let rce = RceStateMachine::new(agent_id);
 
-    let chaos = ChaosInjection::NetworkDropout {
-        duration_ms: 100,
-    };
+    let chaos = ChaosInjection::NetworkDropout { duration_ms: 100 };
 
     let paused = rce.inject_failure(chaos);
     // Paused type should be returned; no panic
@@ -89,9 +86,7 @@ fn test_chaos_resume_drains_queue_fifo() {
     rce.add_command("cmd2".to_string());
     rce.add_command("cmd3".to_string());
 
-    let chaos = ChaosInjection::NetworkDropout {
-        duration_ms: 100,
-    };
+    let chaos = ChaosInjection::NetworkDropout { duration_ms: 100 };
     let paused = rce.inject_failure(chaos);
 
     let (resumed, drained) = paused.resume();
@@ -165,10 +160,13 @@ fn test_iworld_trajectory_out_of_bounds_rejected() {
     let unvalidated = TypedTrajectory::new(trajectory);
     let result = TrajectoryValidator::validate(unvalidated, &CHAOS_ARENA);
 
-    assert!(matches!(
-        result,
-        Err(GeometricViolation::OutOfBounds { point }) if point.x == 150.0
-    ), "out-of-bounds waypoint should be rejected");
+    assert!(
+        matches!(
+            result,
+            Err(GeometricViolation::OutOfBounds { point }) if point.x == 150.0
+        ),
+        "out-of-bounds waypoint should be rejected"
+    );
 }
 
 // ============================================================================
@@ -188,10 +186,13 @@ fn test_iworld_obstacle_collision_rejected() {
     let unvalidated = TypedTrajectory::new(trajectory);
     let result = TrajectoryValidator::validate(unvalidated, &CHAOS_ARENA);
 
-    assert!(matches!(
-        result,
-        Err(GeometricViolation::ObstacleCollision { zone_index: 0, .. })
-    ), "obstacle collision should be rejected");
+    assert!(
+        matches!(
+            result,
+            Err(GeometricViolation::ObstacleCollision { zone_index: 0, .. })
+        ),
+        "obstacle collision should be rejected"
+    );
 }
 
 // ============================================================================
@@ -215,7 +216,9 @@ fn test_telemetry_cipo_loop_closes() {
             payload_summary: format!("gate_failure_{i}"),
             timestamp: Utc::now(),
         };
-        sidecar.log_event(event).expect("event logging should succeed");
+        sidecar
+            .log_event(event)
+            .expect("event logging should succeed");
     }
 
     // Export as CipoTrace
@@ -225,9 +228,15 @@ fn test_telemetry_cipo_loop_closes() {
     // Distill signals via CIPO
     let signals = sidecar.distill_signals();
     assert!(!signals.is_empty(), "should produce signals");
-    assert_eq!(signals[0].confidence, 0.5, "confidence should be 0.5 for 5 traces");
+    assert_eq!(
+        signals[0].confidence, 0.5,
+        "confidence should be 0.5 for 5 traces"
+    );
     assert!(!signals[0].lesson.is_empty(), "lesson should be non-empty");
 
     // Verify no cloud telemetry
-    assert!(sidecar.assert_no_cloud_telemetry(), "no cloud endpoints should be present");
+    assert!(
+        sidecar.assert_no_cloud_telemetry(),
+        "no cloud endpoints should be present"
+    );
 }

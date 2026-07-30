@@ -1,5 +1,5 @@
-use crate::telecom_policy::{NetworkSliceType, IsolationLevel, SliceConfig};
 use crate::error::PolicyError;
+use crate::telecom_policy::{IsolationLevel, NetworkSliceType, SliceConfig};
 use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -63,9 +63,9 @@ pub struct IsolationProof {
 impl IsolationProof {
     pub fn is_valid(&self) -> bool {
         match self.isolation_level {
-            IsolationLevel::Strict => self.cross_slice_interference < 0.01,    // <1% tolerance
-            IsolationLevel::Moderate => self.cross_slice_interference < 0.10,  // <10% tolerance
-            IsolationLevel::Best => self.cross_slice_interference < 0.50,      // <50% tolerance
+            IsolationLevel::Strict => self.cross_slice_interference < 0.01, // <1% tolerance
+            IsolationLevel::Moderate => self.cross_slice_interference < 0.10, // <10% tolerance
+            IsolationLevel::Best => self.cross_slice_interference < 0.50,   // <50% tolerance
         }
     }
 }
@@ -93,8 +93,8 @@ impl SlicingOrchestrator {
         let urllc = Slice::new(
             "URLLC".to_string(),
             NetworkSliceType::URLLC,
-            300,  // 300 Mbps
-            10,   // 10ms SLA
+            300, // 300 Mbps
+            10,  // 10ms SLA
             IsolationLevel::Strict,
             255,
         );
@@ -102,8 +102,8 @@ impl SlicingOrchestrator {
         let embb = Slice::new(
             "eMBB".to_string(),
             NetworkSliceType::eMBB,
-            500,  // 500 Mbps
-            100,  // 100ms SLA
+            500, // 500 Mbps
+            100, // 100ms SLA
             IsolationLevel::Moderate,
             128,
         );
@@ -128,27 +128,40 @@ impl SlicingOrchestrator {
         // Allocate slice based on request characteristics
         // For now, allocate eMBB as default; in production, use ML/heuristics
 
-        let slice = self.slices
+        let slice = self
+            .slices
             .get("eMBB")
-            .ok_or(PolicyError::ValidationFailed("No slices available".to_string()))?;
+            .ok_or(PolicyError::ValidationFailed(
+                "No slices available".to_string(),
+            ))?;
 
-        self.allocations.insert(req_id.to_string(), slice.name.clone());
+        self.allocations
+            .insert(req_id.to_string(), slice.name.clone());
 
         Ok(slice.clone())
     }
 
-    pub async fn allocate_slice_by_type(&self, req_id: &str, slice_type: NetworkSliceType) -> Result<Slice, PolicyError> {
+    pub async fn allocate_slice_by_type(
+        &self,
+        req_id: &str,
+        slice_type: NetworkSliceType,
+    ) -> Result<Slice, PolicyError> {
         let slice_name = match slice_type {
             NetworkSliceType::URLLC => "URLLC",
             NetworkSliceType::eMBB => "eMBB",
             NetworkSliceType::mMTC => "mMTC",
         };
 
-        let slice = self.slices
+        let slice = self
+            .slices
             .get(slice_name)
-            .ok_or(PolicyError::ValidationFailed(format!("Slice type not found: {:?}", slice_type)))?;
+            .ok_or(PolicyError::ValidationFailed(format!(
+                "Slice type not found: {:?}",
+                slice_type
+            )))?;
 
-        self.allocations.insert(req_id.to_string(), slice.name.clone());
+        self.allocations
+            .insert(req_id.to_string(), slice.name.clone());
 
         Ok(slice.clone())
     }
@@ -160,14 +173,16 @@ impl SlicingOrchestrator {
             isolation_level: slice.isolation_level,
             verified_at: std::time::SystemTime::now(),
             cross_slice_interference: match slice.isolation_level {
-                IsolationLevel::Strict => 0.005,    // 0.5% interference
-                IsolationLevel::Moderate => 0.05,   // 5% interference
-                IsolationLevel::Best => 0.25,       // 25% interference
+                IsolationLevel::Strict => 0.005,  // 0.5% interference
+                IsolationLevel::Moderate => 0.05, // 5% interference
+                IsolationLevel::Best => 0.25,     // 25% interference
             },
         };
 
         if !proof.is_valid() {
-            return Err(PolicyError::ValidationFailed("Isolation constraint violated".to_string()));
+            return Err(PolicyError::ValidationFailed(
+                "Isolation constraint violated".to_string(),
+            ));
         }
 
         self.isolation_proofs.insert(slice.id, proof.clone());
@@ -177,9 +192,10 @@ impl SlicingOrchestrator {
 
     pub fn register_slice(&self, slice: Slice) -> Result<(), PolicyError> {
         if self.slices.contains_key(&slice.name) {
-            return Err(PolicyError::ValidationFailed(
-                format!("Slice already exists: {}", slice.name)
-            ));
+            return Err(PolicyError::ValidationFailed(format!(
+                "Slice already exists: {}",
+                slice.name
+            )));
         }
 
         self.slices.insert(slice.name.clone(), slice);
@@ -190,21 +206,24 @@ impl SlicingOrchestrator {
         self.slices
             .get(slice_name)
             .map(|entry| entry.clone())
-            .ok_or(PolicyError::ValidationFailed(format!("Slice not found: {}", slice_name)))
+            .ok_or(PolicyError::ValidationFailed(format!(
+                "Slice not found: {}",
+                slice_name
+            )))
     }
 
     pub fn get_allocation(&self, req_id: &str) -> Result<String, PolicyError> {
         self.allocations
             .get(req_id)
             .map(|entry| entry.clone())
-            .ok_or(PolicyError::ValidationFailed(format!("No allocation for request: {}", req_id)))
+            .ok_or(PolicyError::ValidationFailed(format!(
+                "No allocation for request: {}",
+                req_id
+            )))
     }
 
     pub fn list_slices(&self) -> Vec<Slice> {
-        self.slices
-            .iter()
-            .map(|entry| entry.clone())
-            .collect()
+        self.slices.iter().map(|entry| entry.clone()).collect()
     }
 
     pub fn list_active_slices(&self) -> Vec<Slice> {
@@ -228,7 +247,10 @@ impl SlicingOrchestrator {
             entry.active = false;
             Ok(())
         } else {
-            Err(PolicyError::ValidationFailed(format!("Slice not found: {}", slice_name)))
+            Err(PolicyError::ValidationFailed(format!(
+                "Slice not found: {}",
+                slice_name
+            )))
         }
     }
 
@@ -237,18 +259,25 @@ impl SlicingOrchestrator {
             entry.active = true;
             Ok(())
         } else {
-            Err(PolicyError::ValidationFailed(format!("Slice not found: {}", slice_name)))
+            Err(PolicyError::ValidationFailed(format!(
+                "Slice not found: {}",
+                slice_name
+            )))
         }
     }
 
     pub fn get_isolation_proof(&self, slice_id: Uuid) -> Option<IsolationProof> {
-        self.isolation_proofs.get(&slice_id).map(|entry| entry.clone())
+        self.isolation_proofs
+            .get(&slice_id)
+            .map(|entry| entry.clone())
     }
 
     pub fn verify_isolation_valid(&self, slice_id: Uuid) -> Result<bool, PolicyError> {
         match self.isolation_proofs.get(&slice_id) {
             Some(proof) => Ok(proof.is_valid()),
-            None => Err(PolicyError::ValidationFailed("No isolation proof found".to_string())),
+            None => Err(PolicyError::ValidationFailed(
+                "No isolation proof found".to_string(),
+            )),
         }
     }
 }

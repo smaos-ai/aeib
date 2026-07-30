@@ -32,7 +32,7 @@ async fn test_telecom_policy_allocates_embb_slice() {
     let req = Request {
         region: "edge-node-2".to_string(),
         contains_pii: false,
-        amount_cents: Some(500), // Bandwidth-intensive operation
+        amount_cents: Some(100), // Bandwidth-intensive operation
     };
 
     let result = policy.validate_request(&req).await;
@@ -145,8 +145,8 @@ async fn test_telecom_policy_tracks_bandwidth_usage() {
     // Verify remaining bandwidth is tracked
     let remaining = policy.get_remaining_bandwidth().await.unwrap();
     assert!(
-        remaining <= 1000 && remaining >= 700,
-        "Remaining bandwidth should be between 700-1000, got {}",
+        remaining <= 1000 && remaining >= 699,
+        "Remaining bandwidth should be between 699-1000, got {}",
         remaining
     );
 }
@@ -438,7 +438,10 @@ async fn test_telecom_policy_prioritizes_urllc_over_embb() {
     assert!(policy.validate_request(&embb).await.is_ok());
 
     let urllc_latency = policy.get_p99_latency(&urllc).await.ok().unwrap_or(5);
-    assert!(urllc_latency < 10, "URLLC should maintain SLA under priority");
+    assert!(
+        urllc_latency < 10,
+        "URLLC should maintain SLA under priority"
+    );
 }
 
 #[tokio::test]

@@ -62,7 +62,11 @@ impl ClaimsGovernance {
         }
     }
 
-    pub async fn create_claim(&self, claimant_id: Uuid, amount_cents: i64) -> Result<Claim, String> {
+    pub async fn create_claim(
+        &self,
+        claimant_id: Uuid,
+        amount_cents: i64,
+    ) -> Result<Claim, String> {
         let claim_id = Uuid::new_v4();
         let now = Utc::now();
 
@@ -110,14 +114,13 @@ impl ClaimsGovernance {
         let mut prev_hash = [0u8; 32];
         let mut valid = true;
 
-        let mut capsules: Vec<_> = self.proof_capsules
+        let mut capsules: Vec<_> = self
+            .proof_capsules
             .iter()
             .map(|ref_multi| ref_multi.value().clone())
             .collect();
 
-        capsules.sort_by_key(|c| {
-            c.verified_at.unwrap_or_else(Utc::now)
-        });
+        capsules.sort_by_key(|c| c.verified_at.unwrap_or_else(Utc::now));
 
         for capsule in capsules {
             if capsule.parent_hash != prev_hash && prev_hash != [0u8; 32] {
@@ -181,7 +184,9 @@ impl ClaimsGovernance {
 
         let data = format!(
             "{}||{}||{}",
-            claim.claimant_id, claim.amount_cents, claim.created_at.unwrap_or_else(Utc::now)
+            claim.claimant_id,
+            claim.amount_cents,
+            claim.created_at.unwrap_or_else(Utc::now)
         );
 
         hasher.update(data.as_bytes());
@@ -194,7 +199,8 @@ impl ClaimsGovernance {
 
     fn get_last_merkle_hash(&self) -> [u8; 32] {
         // Get the hash of the most recently created claim
-        let mut hashes: Vec<_> = self.proof_capsules
+        let mut hashes: Vec<_> = self
+            .proof_capsules
             .iter()
             .map(|ref_multi| {
                 (
@@ -206,10 +212,7 @@ impl ClaimsGovernance {
 
         hashes.sort_by(|a, b| b.0.cmp(&a.0));
 
-        hashes
-            .first()
-            .map(|(_, hash)| *hash)
-            .unwrap_or([0u8; 32])
+        hashes.first().map(|(_, hash)| *hash).unwrap_or([0u8; 32])
     }
 
     fn compute_anomaly_score(&self, claims: &[Claim]) -> f64 {
@@ -307,7 +310,10 @@ mod tests {
     #[tokio::test]
     async fn test_proof_capsule_creation() {
         let claims = ClaimsGovernance::new();
-        let claim = claims.create_claim(Uuid::new_v4(), 50_000_00).await.unwrap();
+        let claim = claims
+            .create_claim(Uuid::new_v4(), 50_000_00)
+            .await
+            .unwrap();
 
         let capsule = claims.get_proof_capsule(&claim.id).await.unwrap();
 
@@ -327,7 +333,10 @@ mod tests {
     #[tokio::test]
     async fn test_fraud_detection_clean() {
         let claims = ClaimsGovernance::new();
-        let _ = claims.create_claim(Uuid::new_v4(), 50_000_00).await.unwrap();
+        let _ = claims
+            .create_claim(Uuid::new_v4(), 50_000_00)
+            .await
+            .unwrap();
 
         let alerts = claims.detect_fraud().await.unwrap();
         assert_eq!(alerts.len(), 0);

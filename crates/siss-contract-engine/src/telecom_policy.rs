@@ -7,9 +7,9 @@ use std::sync::atomic::{AtomicU64, Ordering};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum NetworkSliceType {
-    URLLC,  // Ultra-Reliable Low-Latency Communications (<10ms)
-    eMBB,   // Enhanced Mobile Broadband (<100ms)
-    mMTC,   // Massive Machine-Type Communications (sensor networks)
+    URLLC, // Ultra-Reliable Low-Latency Communications (<10ms)
+    eMBB,  // Enhanced Mobile Broadband (<100ms)
+    mMTC,  // Massive Machine-Type Communications (sensor networks)
 }
 
 impl std::fmt::Display for NetworkSliceType {
@@ -24,9 +24,9 @@ impl std::fmt::Display for NetworkSliceType {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum IsolationLevel {
-    Strict,      // No cross-slice interference
-    Moderate,    // Priority-based resource sharing
-    Best,        // Opportunistic sharing
+    Strict,   // No cross-slice interference
+    Moderate, // Priority-based resource sharing
+    Best,     // Opportunistic sharing
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -157,11 +157,14 @@ impl TelecomPolicy {
 
     pub fn new_with_bandwidth(total_mbps: u64) -> Self {
         let bw_tracker = Arc::new(DashMap::new());
+        let per_slice = total_mbps / 3;
+        let remainder = total_mbps % 3;
+
         bw_tracker.insert(
             "URLLC".to_string(),
             BandwidthMetric {
                 used_mbps: Arc::new(AtomicU64::new(0)),
-                total_mbps: total_mbps / 3,
+                total_mbps: per_slice + remainder,
                 timestamp: std::time::SystemTime::now(),
             },
         );
@@ -169,7 +172,7 @@ impl TelecomPolicy {
             "eMBB".to_string(),
             BandwidthMetric {
                 used_mbps: Arc::new(AtomicU64::new(0)),
-                total_mbps: total_mbps / 3,
+                total_mbps: per_slice,
                 timestamp: std::time::SystemTime::now(),
             },
         );
@@ -177,7 +180,7 @@ impl TelecomPolicy {
             "mMTC".to_string(),
             BandwidthMetric {
                 used_mbps: Arc::new(AtomicU64::new(0)),
-                total_mbps: total_mbps / 3,
+                total_mbps: per_slice,
                 timestamp: std::time::SystemTime::now(),
             },
         );
@@ -230,7 +233,10 @@ impl TelecomPolicy {
         self.bandwidth_tracker
             .get(slice_name)
             .map(|entry| entry.total_mbps)
-            .ok_or(PolicyError::ValidationFailed(format!("Slice not found: {}", slice_name)))
+            .ok_or(PolicyError::ValidationFailed(format!(
+                "Slice not found: {}",
+                slice_name
+            )))
     }
 
     // SLA metrics
@@ -248,7 +254,11 @@ impl TelecomPolicy {
     }
 
     // Degradation and congestion detection
-    pub async fn simulate_latency_increase(&self, req: &Request, latency_ms: u64) -> Result<(), PolicyError> {
+    pub async fn simulate_latency_increase(
+        &self,
+        req: &Request,
+        latency_ms: u64,
+    ) -> Result<(), PolicyError> {
         if latency_ms > 10 {
             self.degraded_zones.insert(req.region.clone(), true);
         }
@@ -284,7 +294,9 @@ impl VerticalPolicy for TelecomPolicy {
     async fn validate_request(&self, req: &Request) -> Result<bool, PolicyError> {
         // 1. Validate slicing is enabled
         if !self.slicing_enabled {
-            return Err(PolicyError::ValidationFailed("Slicing disabled".to_string()));
+            return Err(PolicyError::ValidationFailed(
+                "Slicing disabled".to_string(),
+            ));
         }
 
         // 2. Allocate appropriate network slice
@@ -294,7 +306,9 @@ impl VerticalPolicy for TelecomPolicy {
         if let Some(metric) = self.bandwidth_tracker.get(&slice) {
             let needed_mbps = req.amount_cents.unwrap_or(0) as u64;
             if needed_mbps > 0 && metric.remaining() < needed_mbps {
-                return Err(PolicyError::ValidationFailed("Insufficient bandwidth".to_string()));
+                return Err(PolicyError::ValidationFailed(
+                    "Insufficient bandwidth".to_string(),
+                ));
             }
 
             // Allocate bandwidth
@@ -305,9 +319,10 @@ impl VerticalPolicy for TelecomPolicy {
         let latency = self.get_p99_latency(req).await?;
         if let Some(slice_config) = self.network_slices.get(&slice) {
             if latency > slice_config.latency_target_ms {
-                return Err(PolicyError::ValidationFailed(
-                    format!("Latency SLA violated: {}ms > {}ms", latency, slice_config.latency_target_ms)
-                ));
+                return Err(PolicyError::ValidationFailed(format!(
+                    "Latency SLA violated: {}ms > {}ms",
+                    latency, slice_config.latency_target_ms
+                )));
             }
         }
 

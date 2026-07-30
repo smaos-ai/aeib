@@ -1,6 +1,6 @@
 use crate::error::ContractError;
-use crate::vertical_policy::VerticalPolicy;
 use crate::pilot_sla_enforcer::PilotSlaEnforcer;
+use crate::vertical_policy::VerticalPolicy;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -70,7 +70,12 @@ pub struct ContractBuilder {
 }
 
 impl ContractBuilder {
-    pub fn new(customer_id: Uuid, vertical: VerticalType, policy: Arc<dyn VerticalPolicy>, sla_enforcer: Arc<PilotSlaEnforcer>) -> Self {
+    pub fn new(
+        customer_id: Uuid,
+        vertical: VerticalType,
+        policy: Arc<dyn VerticalPolicy>,
+        sla_enforcer: Arc<PilotSlaEnforcer>,
+    ) -> Self {
         Self {
             customer_id,
             vertical,
@@ -145,7 +150,9 @@ impl Contract {
                 }
             }
             VerticalType::Government => {
-                if !region.to_lowercase().contains("us-gov") && !region.to_lowercase().contains("govcloud") {
+                if !region.to_lowercase().contains("us-gov")
+                    && !region.to_lowercase().contains("govcloud")
+                {
                     return Err(ContractError::InvalidRegion {
                         vertical: vertical.to_string(),
                         required: "US GovCloud region".to_string(),
@@ -223,7 +230,9 @@ impl Contract {
         }
     }
 
-    pub async fn enforce_slas(&self) -> Result<crate::pilot_sla_enforcer::SlaReport, crate::error::SlaError> {
+    pub async fn enforce_slas(
+        &self,
+    ) -> Result<crate::pilot_sla_enforcer::SlaReport, crate::error::SlaError> {
         self.sla_enforcer.check_compliance().await
     }
 

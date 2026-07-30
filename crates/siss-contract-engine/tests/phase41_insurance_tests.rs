@@ -1,5 +1,7 @@
 use chrono::Utc;
-use siss_contract_engine::{InsurancePolicy, ClaimsGovernance, ZkUnderwritingProof, Request, VerticalPolicy};
+use siss_contract_engine::{
+    ClaimsGovernance, InsurancePolicy, Request, VerticalPolicy, ZkUnderwritingProof,
+};
 use uuid::Uuid;
 
 // ==============================================================================
@@ -25,9 +27,7 @@ async fn test_claims_merkle_linkage() {
     let claims = ClaimsGovernance::new();
     let claimant_id = Uuid::new_v4();
 
-    let claim = claims.create_claim(claimant_id, 100_000_00)
-        .await
-        .unwrap();
+    let claim = claims.create_claim(claimant_id, 100_000_00).await.unwrap();
 
     // Verify proof capsule created
     let capsule = claims.get_proof_capsule(&claim.id).await;
@@ -76,7 +76,8 @@ async fn test_claims_fraud_detection_high_anomaly() {
 
     // Multiple claims in rapid succession (anomaly)
     for i in 0..6 {
-        let _ = claims.create_claim(claimant_id, 100_000_00 + (i as i64 * 10_000))
+        let _ = claims
+            .create_claim(claimant_id, 100_000_00 + (i as i64 * 10_000))
             .await;
     }
 
@@ -84,8 +85,15 @@ async fn test_claims_fraud_detection_high_anomaly() {
     assert!(alerts.is_ok());
     // Should detect multiple claims from same claimant
     let alert_list = alerts.unwrap();
-    assert!(alert_list.len() > 0, "Expected fraud alerts but got none with 6 claims from same claimant");
-    assert!(alert_list[0].anomaly_score >= 0.5, "Expected anomaly score >= 0.5, got {}", alert_list[0].anomaly_score);
+    assert!(
+        alert_list.len() > 0,
+        "Expected fraud alerts but got none with 6 claims from same claimant"
+    );
+    assert!(
+        alert_list[0].anomaly_score >= 0.5,
+        "Expected anomaly score >= 0.5, got {}",
+        alert_list[0].anomaly_score
+    );
 }
 
 // ==============================================================================
@@ -174,7 +182,8 @@ async fn test_insurance_policy_audit_trail() {
 #[tokio::test]
 async fn test_zk_proof_generation() {
     let claims = ClaimsGovernance::new();
-    let claim = claims.create_claim(Uuid::new_v4(), 100_000_00)
+    let claim = claims
+        .create_claim(Uuid::new_v4(), 100_000_00)
         .await
         .unwrap();
 
@@ -189,7 +198,8 @@ async fn test_zk_proof_generation() {
 #[tokio::test]
 async fn test_zk_proof_verification() {
     let claims = ClaimsGovernance::new();
-    let claim = claims.create_claim(Uuid::new_v4(), 75_000_00)
+    let claim = claims
+        .create_claim(Uuid::new_v4(), 75_000_00)
         .await
         .unwrap();
 
@@ -205,7 +215,8 @@ async fn test_zk_proof_verification() {
 #[tokio::test]
 async fn test_zk_proof_no_disclosure() {
     let claims = ClaimsGovernance::new();
-    let claim = claims.create_claim(Uuid::new_v4(), 100_000_00)
+    let claim = claims
+        .create_claim(Uuid::new_v4(), 100_000_00)
         .await
         .unwrap();
 
@@ -223,15 +234,15 @@ async fn test_zk_proof_roundtrip() {
     let claims = ClaimsGovernance::new();
     let claimant = Uuid::new_v4();
 
-    let claim1 = claims.create_claim(claimant, 100_000_00)
-        .await
-        .unwrap();
-    let claim2 = claims.create_claim(claimant, 150_000_00)
-        .await
-        .unwrap();
+    let claim1 = claims.create_claim(claimant, 100_000_00).await.unwrap();
+    let claim2 = claims.create_claim(claimant, 150_000_00).await.unwrap();
 
-    let proof1 = ZkUnderwritingProof::generate_claim_proof(&claim1).await.unwrap();
-    let proof2 = ZkUnderwritingProof::generate_claim_proof(&claim2).await.unwrap();
+    let proof1 = ZkUnderwritingProof::generate_claim_proof(&claim1)
+        .await
+        .unwrap();
+    let proof2 = ZkUnderwritingProof::generate_claim_proof(&claim2)
+        .await
+        .unwrap();
 
     // Different claims produce different proofs
     assert_ne!(proof1.proof, proof2.proof);
@@ -267,7 +278,8 @@ async fn test_naic_reserve_adequacy() {
 
     // Create multiple claims to test reserve adequacy
     for i in 0..10 {
-        let _ = claims.create_claim(Uuid::new_v4(), 50_000_00 + (i as i64 * 10_000))
+        let _ = claims
+            .create_claim(Uuid::new_v4(), 50_000_00 + (i as i64 * 10_000))
             .await;
     }
 
@@ -280,9 +292,7 @@ async fn test_claims_settlement_sla_30_days() {
     let claims = ClaimsGovernance::new();
     let claimant = Uuid::new_v4();
 
-    let claim = claims.create_claim(claimant, 100_000_00)
-        .await
-        .unwrap();
+    let claim = claims.create_claim(claimant, 100_000_00).await.unwrap();
 
     // Check settlement SLA (30 days)
     let created_at = claim.created_at.unwrap();
@@ -296,9 +306,18 @@ async fn test_claims_settlement_sla_30_days() {
 async fn test_claims_audit_trail_7_year_retention() {
     let claims = ClaimsGovernance::new();
 
-    let claim1 = claims.create_claim(Uuid::new_v4(), 50_000_00).await.unwrap();
-    let claim2 = claims.create_claim(Uuid::new_v4(), 75_000_00).await.unwrap();
-    let claim3 = claims.create_claim(Uuid::new_v4(), 100_000_00).await.unwrap();
+    let claim1 = claims
+        .create_claim(Uuid::new_v4(), 50_000_00)
+        .await
+        .unwrap();
+    let claim2 = claims
+        .create_claim(Uuid::new_v4(), 75_000_00)
+        .await
+        .unwrap();
+    let claim3 = claims
+        .create_claim(Uuid::new_v4(), 100_000_00)
+        .await
+        .unwrap();
 
     // All claims should be retrievable (7-year audit trail)
     let capsule1 = claims.get_proof_capsule(&claim1.id).await.unwrap();
@@ -315,13 +334,12 @@ async fn test_reinsurance_settlement_governance() {
     let claims = ClaimsGovernance::new();
 
     // Create large claim for reinsurance threshold
-    let large_claim = claims.create_claim(Uuid::new_v4(), 5_000_000_00)
+    let large_claim = claims
+        .create_claim(Uuid::new_v4(), 5_000_000_00)
         .await
         .unwrap();
 
-    let capsule = claims.get_proof_capsule(&large_claim.id)
-        .await
-        .unwrap();
+    let capsule = claims.get_proof_capsule(&large_claim.id).await.unwrap();
 
     // Large claims should have reinsurance governance metadata
     assert!(capsule.claim_id == large_claim.id);
@@ -331,7 +349,8 @@ async fn test_reinsurance_settlement_governance() {
 async fn test_subrogation_governance() {
     let claims = ClaimsGovernance::new();
 
-    let claim = claims.create_claim(Uuid::new_v4(), 100_000_00)
+    let claim = claims
+        .create_claim(Uuid::new_v4(), 100_000_00)
         .await
         .unwrap();
 

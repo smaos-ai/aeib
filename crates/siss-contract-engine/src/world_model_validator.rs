@@ -22,12 +22,7 @@ pub struct SensorReading {
 }
 
 impl SensorReading {
-    pub fn new(
-        sensor_type: SensorType,
-        object_id: &str,
-        distance_m: f64,
-        confidence: f64,
-    ) -> Self {
+    pub fn new(sensor_type: SensorType, object_id: &str, distance_m: f64, confidence: f64) -> Self {
         Self {
             id: Uuid::new_v4(),
             sensor_type,
@@ -56,14 +51,15 @@ impl WorldModel {
     }
 
     pub fn add_reading(&self, reading: SensorReading) {
-        let mut entries = self.readings.entry(reading.object_id.clone()).or_insert_with(Vec::new);
+        let mut entries = self
+            .readings
+            .entry(reading.object_id.clone())
+            .or_insert_with(Vec::new);
         entries.push(reading);
     }
 
     pub fn get_readings(&self, object_id: &str) -> Option<Vec<SensorReading>> {
-        self.readings
-            .get(object_id)
-            .map(|entry| entry.clone())
+        self.readings.get(object_id).map(|entry| entry.clone())
     }
 
     pub fn clear(&self) {
@@ -132,17 +128,11 @@ impl WorldModelValidator {
 
             // If we have readings from multiple sensors, check consistency
             if by_sensor.len() > 1 {
-                let distances: Vec<f64> = readings
-                    .iter()
-                    .map(|r| r.distance_m)
-                    .collect();
+                let distances: Vec<f64> = readings.iter().map(|r| r.distance_m).collect();
 
                 if !distances.is_empty() {
                     let mean = distances.iter().sum::<f64>() / distances.len() as f64;
-                    let std_dev = (distances
-                        .iter()
-                        .map(|d| (d - mean).powi(2))
-                        .sum::<f64>()
+                    let std_dev = (distances.iter().map(|d| (d - mean).powi(2)).sum::<f64>()
                         / distances.len() as f64)
                         .sqrt();
 
@@ -197,8 +187,8 @@ impl WorldModelValidator {
             }
 
             // Check confidence degradation
-            let avg_confidence = readings.iter().map(|r| r.confidence).sum::<f64>()
-                / readings.len() as f64;
+            let avg_confidence =
+                readings.iter().map(|r| r.confidence).sum::<f64>() / readings.len() as f64;
             if avg_confidence < 0.70 {
                 report.sensor_confidence_degraded = true;
             }
@@ -309,7 +299,11 @@ mod tests {
 
         let report = validator.detect_world_model_drift().await.unwrap();
         assert!(report.hallucination_detected);
-        assert!(report.objects_without_consensus.contains(&"ghost_car".to_string()));
+        assert!(
+            report
+                .objects_without_consensus
+                .contains(&"ghost_car".to_string())
+        );
     }
 
     #[tokio::test]

@@ -31,7 +31,10 @@ impl FedRampGate {
         self.controls.get(control_id).map(|entry| *entry.value())
     }
 
-    pub async fn audit_compliance(&self, contract_id: Uuid) -> Result<FedRampAuditReport, crate::error::ContractError> {
+    pub async fn audit_compliance(
+        &self,
+        contract_id: Uuid,
+    ) -> Result<FedRampAuditReport, crate::error::ContractError> {
         let mut failed_controls = Vec::new();
 
         for entry in self.controls.iter() {
@@ -61,17 +64,11 @@ impl FedRampGate {
     }
 
     pub fn get_compliant_count(&self) -> usize {
-        self.controls
-            .iter()
-            .filter(|entry| *entry.value())
-            .count()
+        self.controls.iter().filter(|entry| *entry.value()).count()
     }
 
     pub fn get_non_compliant_count(&self) -> usize {
-        self.controls
-            .iter()
-            .filter(|entry| !*entry.value())
-            .count()
+        self.controls.iter().filter(|entry| !*entry.value()).count()
     }
 }
 

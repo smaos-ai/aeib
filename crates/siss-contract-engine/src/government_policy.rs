@@ -74,27 +74,34 @@ impl GovernmentPolicy {
     }
 
     pub fn enable_cjis_compliance(&self) {
-        self.cjis_compliant.store(true, std::sync::atomic::Ordering::SeqCst);
+        self.cjis_compliant
+            .store(true, std::sync::atomic::Ordering::SeqCst);
     }
 
     pub fn is_cjis_compliant(&self) -> bool {
-        self.cjis_compliant.load(std::sync::atomic::Ordering::SeqCst)
+        self.cjis_compliant
+            .load(std::sync::atomic::Ordering::SeqCst)
     }
 
     pub fn bind_nist_control(&self, control_id: &str) {
-        self.nist_controls.insert(control_id.to_string(), ControlStatus::Unknown);
+        self.nist_controls
+            .insert(control_id.to_string(), ControlStatus::Unknown);
     }
 
     pub fn mark_control_compliant(&self, control_id: &str) {
-        self.nist_controls.insert(control_id.to_string(), ControlStatus::Compliant);
+        self.nist_controls
+            .insert(control_id.to_string(), ControlStatus::Compliant);
     }
 
     pub fn mark_control_non_compliant(&self, control_id: &str) {
-        self.nist_controls.insert(control_id.to_string(), ControlStatus::NonCompliant);
+        self.nist_controls
+            .insert(control_id.to_string(), ControlStatus::NonCompliant);
     }
 
     pub fn get_control_status(&self, control_id: &str) -> Option<ControlStatus> {
-        self.nist_controls.get(control_id).map(|entry| *entry.value())
+        self.nist_controls
+            .get(control_id)
+            .map(|entry| *entry.value())
     }
 
     pub fn get_control_count(&self) -> usize {

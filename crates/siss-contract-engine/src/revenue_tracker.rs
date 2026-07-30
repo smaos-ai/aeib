@@ -149,7 +149,7 @@ mod tests {
     use super::*;
     use crate::contract::{Contract, VerticalType};
     use crate::pilot_sla_enforcer::PilotSlaEnforcer;
-    use crate::vertical_policy::{DefensePolicy, HealthcarePolicy, FinancePolicy};
+    use crate::vertical_policy::{DefensePolicy, FinancePolicy, HealthcarePolicy};
 
     fn create_test_contract(vertical: VerticalType, arr: i64) -> Contract {
         let (policy, region) = match vertical {
@@ -158,7 +158,8 @@ mod tests {
                 "Military-Zone-West".to_string(),
             ),
             VerticalType::Healthcare => (
-                Arc::new(HealthcarePolicy::new()) as Arc<dyn crate::vertical_policy::VerticalPolicy>,
+                Arc::new(HealthcarePolicy::new())
+                    as Arc<dyn crate::vertical_policy::VerticalPolicy>,
                 "eu-central-1".to_string(),
             ),
             VerticalType::Finance => (
@@ -166,7 +167,8 @@ mod tests {
                 "eu-west-1".to_string(),
             ),
             VerticalType::Government => (
-                Arc::new(crate::government_policy::GovernmentPolicy::new_high()) as Arc<dyn crate::vertical_policy::VerticalPolicy>,
+                Arc::new(crate::government_policy::GovernmentPolicy::new_high())
+                    as Arc<dyn crate::vertical_policy::VerticalPolicy>,
                 "us-gov-west-1".to_string(),
             ),
         };

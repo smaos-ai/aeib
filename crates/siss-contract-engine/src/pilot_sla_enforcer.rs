@@ -31,9 +31,9 @@ pub struct SlaReport {
 
 pub struct PilotSlaEnforcer {
     contract_id: Uuid,
-    uptime_target: f64,            // 99.99%
-    latency_target_ms: u64,         // 100ms p99
-    breach_threshold: usize,        // 3 consecutive breaches
+    uptime_target: f64,      // 99.99%
+    latency_target_ms: u64,  // 100ms p99
+    breach_threshold: usize, // 3 consecutive breaches
     metrics: Arc<DashMap<DateTime<Utc>, SlaMetric>>,
     breach_count: Arc<AtomicUsize>,
     last_latency_p99: Arc<AtomicU64>,
@@ -53,8 +53,7 @@ impl PilotSlaEnforcer {
     }
 
     pub async fn record_metric(&self, metric: SlaMetric) -> Result<(), SlaError> {
-        self.metrics
-            .insert(metric.timestamp, metric);
+        self.metrics.insert(metric.timestamp, metric);
         Ok(())
     }
 
@@ -136,14 +135,8 @@ impl PilotSlaEnforcer {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RemediationAction {
-    IssueCredit {
-        percentage: u64,
-        reason: String,
-    },
-    LogBreach {
-        count: usize,
-        reason: String,
-    },
+    IssueCredit { percentage: u64, reason: String },
+    LogBreach { count: usize, reason: String },
 }
 
 #[cfg(test)]
@@ -196,7 +189,11 @@ mod tests {
         enforcer.record_metric(metric).await.unwrap();
 
         let report = enforcer.check_compliance().await.unwrap();
-        assert!(report.uptime < 99.99, "Expected uptime < 99.99%, got {}", report.uptime);
+        assert!(
+            report.uptime < 99.99,
+            "Expected uptime < 99.99%, got {}",
+            report.uptime
+        );
     }
 
     #[tokio::test]
@@ -229,7 +226,12 @@ mod tests {
         }
 
         // Verify breach count increased
-        assert_eq!(enforcer.breach_count.load(std::sync::atomic::Ordering::SeqCst), 3);
+        assert_eq!(
+            enforcer
+                .breach_count
+                .load(std::sync::atomic::Ordering::SeqCst),
+            3
+        );
     }
 
     #[tokio::test]

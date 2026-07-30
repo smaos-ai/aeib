@@ -1,5 +1,5 @@
-use siss_contract_engine::*;
 use chrono::Utc;
+use siss_contract_engine::*;
 use std::sync::Arc;
 use uuid::Uuid;
 
@@ -66,7 +66,11 @@ async fn test_government_policy_accepts_govcloud_regions() {
             contains_pii: false,
             amount_cents: None,
         };
-        assert!(policy.validate_request(&req).await.is_ok(), "Region {} should be accepted", region);
+        assert!(
+            policy.validate_request(&req).await.is_ok(),
+            "Region {} should be accepted",
+            region
+        );
     }
 }
 
@@ -154,7 +158,8 @@ async fn test_government_contract_lifecycle_draft_to_active() {
         2_000_000_00, // €2M pilot
         policy,
         sla,
-    ).unwrap();
+    )
+    .unwrap();
 
     assert_eq!(contract.state, ContractState::Draft);
 
@@ -176,7 +181,8 @@ async fn test_government_contract_state_transitions() {
         2_000_000_00,
         policy,
         sla,
-    ).unwrap();
+    )
+    .unwrap();
 
     // Draft -> Active
     contract.activate().await.unwrap();
@@ -206,7 +212,8 @@ async fn test_government_contract_sla_99_95_compliance() {
         2_000_000_00,
         policy,
         sla,
-    ).unwrap();
+    )
+    .unwrap();
 
     // SLA target for government is 99.95%
     let report = contract.enforce_slas().await;
@@ -228,7 +235,8 @@ async fn test_government_contract_arr_locked() {
         2_000_000_00,
         policy,
         sla,
-    ).unwrap();
+    )
+    .unwrap();
 
     let initial_arr = contract.arr_commitment;
 
@@ -252,7 +260,8 @@ async fn test_government_contract_arr_progress_draft() {
         2_000_000_00,
         policy,
         sla,
-    ).unwrap();
+    )
+    .unwrap();
 
     let (amount, percent) = contract.calculate_arr_progress();
     assert_eq!(amount, 0); // No ARR in Draft
@@ -273,7 +282,8 @@ async fn test_government_contract_arr_progress_active() {
         2_000_000_00,
         policy,
         sla,
-    ).unwrap();
+    )
+    .unwrap();
 
     contract.activate().await.unwrap();
 
@@ -303,7 +313,8 @@ async fn test_government_contracts_multi_agency_isolation() {
         1_000_000_00,
         policy1,
         sla1,
-    ).unwrap();
+    )
+    .unwrap();
 
     let contract2 = Contract::new(
         customer2,
@@ -314,7 +325,8 @@ async fn test_government_contracts_multi_agency_isolation() {
         1_000_000_00,
         policy2,
         sla2,
-    ).unwrap();
+    )
+    .unwrap();
 
     // Different customers should have isolated contracts
     assert_ne!(contract1.customer_id, contract2.customer_id);
@@ -345,7 +357,8 @@ async fn test_government_contract_audit_trail_completeness() {
         2_000_000_00,
         policy,
         sla,
-    ).unwrap();
+    )
+    .unwrap();
 
     contract.activate().await.unwrap();
     contract.suspend().await.unwrap();
@@ -421,7 +434,8 @@ async fn test_government_revenue_tracker() {
         2_000_000_00,
         policy,
         sla,
-    ).unwrap();
+    )
+    .unwrap();
 
     contract.activate().await.unwrap();
 

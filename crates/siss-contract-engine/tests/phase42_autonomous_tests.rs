@@ -1,6 +1,6 @@
-use uuid::Uuid;
-use std::time::{Duration, SystemTime};
 use std::sync::Arc;
+use std::time::{Duration, SystemTime};
+use uuid::Uuid;
 
 // Tests for Phase 42: Autonomous Systems & Physical AI
 
@@ -8,7 +8,10 @@ use std::sync::Arc;
 async fn test_asil_d_safety_integrity_level() {
     // Verify ASIL-D (highest safety integrity level) configuration
     let asil = AssilLevel::D;
-    assert_eq!(asil_level_to_mtbf(&asil), Duration::from_secs(1_000_000 * 3600)); // 1M hours
+    assert_eq!(
+        asil_level_to_mtbf(&asil),
+        Duration::from_secs(1_000_000 * 3600)
+    ); // 1M hours
     assert_eq!(asil_severity_max(&asil), HazardLevel::Critical);
 }
 
@@ -22,14 +25,20 @@ async fn test_asil_c_safety_integrity_level() {
 #[tokio::test]
 async fn test_asil_b_safety_integrity_level() {
     let asil = AssilLevel::B;
-    assert_eq!(asil_level_to_mtbf(&asil), Duration::from_secs(100_000 * 3600)); // 100k hours
+    assert_eq!(
+        asil_level_to_mtbf(&asil),
+        Duration::from_secs(100_000 * 3600)
+    ); // 100k hours
     assert_eq!(asil_severity_max(&asil), HazardLevel::Major);
 }
 
 #[tokio::test]
 async fn test_asil_a_safety_integrity_level() {
     let asil = AssilLevel::A;
-    assert_eq!(asil_level_to_mtbf(&asil), Duration::from_secs(10_000 * 3600)); // 10k hours
+    assert_eq!(
+        asil_level_to_mtbf(&asil),
+        Duration::from_secs(10_000 * 3600)
+    ); // 10k hours
     assert_eq!(asil_severity_max(&asil), HazardLevel::Minor);
 }
 
@@ -424,7 +433,9 @@ async fn test_edge_case_system_degradation() {
 async fn test_edge_case_network_latency() {
     // Decisions must not depend on network for safety
     let enforcer = create_safety_enforcer(AssilLevel::D);
-    enforcer.simulate_network_latency(Duration::from_secs(5)).await;
+    enforcer
+        .simulate_network_latency(Duration::from_secs(5))
+        .await;
 
     let decision = AutonomousDecision {
         id: Uuid::new_v4(),
@@ -639,7 +650,10 @@ impl SafetyEnforcer {
 
     async fn simulate_network_failure(&self) {}
 
-    async fn validate_decision(&self, _decision: &AutonomousDecision) -> Result<SafetyProof, String> {
+    async fn validate_decision(
+        &self,
+        _decision: &AutonomousDecision,
+    ) -> Result<SafetyProof, String> {
         Ok(SafetyProof { approved: true })
     }
 

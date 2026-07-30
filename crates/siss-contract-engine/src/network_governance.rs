@@ -40,8 +40,8 @@ impl BandwidthMetric {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ThrottleAction {
     Allow,
-    Degrade,    // Reduce bandwidth allocation
-    Reject,     // Deny request
+    Degrade, // Reduce bandwidth allocation
+    Reject,  // Deny request
 }
 
 #[derive(Clone)]
@@ -86,7 +86,11 @@ impl NetworkGovernance {
         );
     }
 
-    pub async fn check_bandwidth_available(&self, slice: &str, needed_mbps: u64) -> Result<bool, PolicyError> {
+    pub async fn check_bandwidth_available(
+        &self,
+        slice: &str,
+        needed_mbps: u64,
+    ) -> Result<bool, PolicyError> {
         if !self.enforcement_enabled {
             return Ok(true);
         }
@@ -96,41 +100,58 @@ impl NetworkGovernance {
                 if metric.available(needed_mbps) {
                     Ok(true)
                 } else {
-                    Err(PolicyError::ValidationFailed(
-                        format!(
-                            "Insufficient bandwidth on {}: need {}Mbps, available {}Mbps",
-                            slice,
-                            needed_mbps,
-                            metric.remaining_mbps()
-                        )
-                    ))
+                    Err(PolicyError::ValidationFailed(format!(
+                        "Insufficient bandwidth on {}: need {}Mbps, available {}Mbps",
+                        slice,
+                        needed_mbps,
+                        metric.remaining_mbps()
+                    )))
                 }
             }
-            None => Err(PolicyError::ValidationFailed(format!("Slice not found: {}", slice))),
+            None => Err(PolicyError::ValidationFailed(format!(
+                "Slice not found: {}",
+                slice
+            ))),
         }
     }
 
-    pub async fn allocate_bandwidth(&self, slice: &str, needed_mbps: u64) -> Result<(), PolicyError> {
+    pub async fn allocate_bandwidth(
+        &self,
+        slice: &str,
+        needed_mbps: u64,
+    ) -> Result<(), PolicyError> {
         if let Some(metric) = self.bandwidth_tracker.get(slice) {
             if metric.available(needed_mbps) {
                 metric.used_mbps.fetch_add(needed_mbps, Ordering::SeqCst);
                 Ok(())
             } else {
-                Err(PolicyError::ValidationFailed("Insufficient bandwidth".to_string()))
+                Err(PolicyError::ValidationFailed(
+                    "Insufficient bandwidth".to_string(),
+                ))
             }
         } else {
-            Err(PolicyError::ValidationFailed(format!("Slice not found: {}", slice)))
+            Err(PolicyError::ValidationFailed(format!(
+                "Slice not found: {}",
+                slice
+            )))
         }
     }
 
-    pub async fn release_bandwidth(&self, slice: &str, released_mbps: u64) -> Result<(), PolicyError> {
+    pub async fn release_bandwidth(
+        &self,
+        slice: &str,
+        released_mbps: u64,
+    ) -> Result<(), PolicyError> {
         if let Some(metric) = self.bandwidth_tracker.get(slice) {
             let current = metric.used_mbps.load(Ordering::SeqCst);
             let new = current.saturating_sub(released_mbps);
             metric.used_mbps.store(new, Ordering::SeqCst);
             Ok(())
         } else {
-            Err(PolicyError::ValidationFailed(format!("Slice not found: {}", slice)))
+            Err(PolicyError::ValidationFailed(format!(
+                "Slice not found: {}",
+                slice
+            )))
         }
     }
 
@@ -154,7 +175,10 @@ impl NetworkGovernance {
                     Ok(ThrottleAction::Allow)
                 }
             }
-            None => Err(PolicyError::ValidationFailed(format!("Slice not found: {}", slice))),
+            None => Err(PolicyError::ValidationFailed(format!(
+                "Slice not found: {}",
+                slice
+            ))),
         }
     }
 
@@ -162,7 +186,10 @@ impl NetworkGovernance {
         self.bandwidth_tracker
             .get(slice)
             .map(|entry| entry.clone())
-            .ok_or(PolicyError::ValidationFailed(format!("Slice not found: {}", slice)))
+            .ok_or(PolicyError::ValidationFailed(format!(
+                "Slice not found: {}",
+                slice
+            )))
     }
 
     pub fn get_all_metrics(&self) -> Vec<BandwidthMetric> {
@@ -224,7 +251,10 @@ impl NetworkGovernance {
             metric.used_mbps.store(0, Ordering::SeqCst);
             Ok(())
         } else {
-            Err(PolicyError::ValidationFailed(format!("Slice not found: {}", slice)))
+            Err(PolicyError::ValidationFailed(format!(
+                "Slice not found: {}",
+                slice
+            )))
         }
     }
 }

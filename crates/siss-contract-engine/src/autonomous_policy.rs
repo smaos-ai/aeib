@@ -1,5 +1,5 @@
 use crate::error::PolicyError;
-use crate::vertical_policy::{VerticalPolicy, Request};
+use crate::vertical_policy::{Request, VerticalPolicy};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -56,10 +56,10 @@ impl AutonomousPolicy {
     #[allow(dead_code)]
     fn asil_max_hazard_severity(&self) -> u8 {
         match self.iso26262_asil {
-            AssilLevel::A => 1,     // Minor
-            AssilLevel::B => 2,     // Major
-            AssilLevel::C => 2,     // Major
-            AssilLevel::D => 3,     // Critical
+            AssilLevel::A => 1, // Minor
+            AssilLevel::B => 2, // Major
+            AssilLevel::C => 2, // Major
+            AssilLevel::D => 3, // Critical
         }
     }
 
@@ -148,9 +148,9 @@ impl VerticalPolicy for AutonomousPolicy {
 
 pub struct FmeaEntry {
     pub failure_mode: String,
-    pub severity: u8,      // 1-3
-    pub occurrence: u8,    // 1-3
-    pub detection: u8,     // 1-3
+    pub severity: u8,   // 1-3
+    pub occurrence: u8, // 1-3
+    pub detection: u8,  // 1-3
 }
 
 #[cfg(test)]

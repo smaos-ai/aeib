@@ -73,14 +73,21 @@ fn is_valid_insurance_region(region: &str) -> bool {
     // Validate region for insurance compliance
     // Typically: US states, EU regions, other regulated markets
     let valid_regions = vec![
-        "US-East", "US-Central", "US-West", "US-South",
-        "eu-west-1", "eu-central-1", "eu-south-1",
+        "US-East",
+        "US-Central",
+        "US-West",
+        "US-South",
+        "eu-west-1",
+        "eu-central-1",
+        "eu-south-1",
     ];
 
     valid_regions
         .iter()
         .any(|r| region.to_lowercase().contains(&r.to_lowercase()))
-        || region.contains("US") || region.contains("EU") || region.contains("Europe")
+        || region.contains("US")
+        || region.contains("EU")
+        || region.contains("Europe")
 }
 
 fn validate_naic_reserve_adequacy(amount_cents: i64) -> bool {

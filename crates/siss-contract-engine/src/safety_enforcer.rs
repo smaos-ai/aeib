@@ -1,8 +1,8 @@
 use crate::autonomous_policy::AssilLevel;
+use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::Duration;
-use parking_lot::RwLock;
 
 #[derive(Clone, Debug, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum HazardLevel {
@@ -81,7 +81,10 @@ impl SafetyEnforcer {
     }
 
     /// Validate autonomous decision against ISO 26262 + SOTIF bounds
-    pub async fn validate_decision(&self, decision: &AutonomousDecision) -> Result<SafetyProof, String> {
+    pub async fn validate_decision(
+        &self,
+        decision: &AutonomousDecision,
+    ) -> Result<SafetyProof, String> {
         // ISO 26262: Verify decision is within ASIL bounds
         if !decision.is_safety_critical() {
             return Ok(SafetyProof {
@@ -307,12 +310,18 @@ mod tests {
     #[tokio::test]
     async fn test_mtbf_asil_a() {
         let enforcer = SafetyEnforcer::new(AssilLevel::A);
-        assert_eq!(enforcer.get_mtbf_target(), Duration::from_secs(10_000 * 3600));
+        assert_eq!(
+            enforcer.get_mtbf_target(),
+            Duration::from_secs(10_000 * 3600)
+        );
     }
 
     #[tokio::test]
     async fn test_mtbf_asil_b() {
         let enforcer = SafetyEnforcer::new(AssilLevel::B);
-        assert_eq!(enforcer.get_mtbf_target(), Duration::from_secs(100_000 * 3600));
+        assert_eq!(
+            enforcer.get_mtbf_target(),
+            Duration::from_secs(100_000 * 3600)
+        );
     }
 }

@@ -1434,6 +1434,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "dashmap"
+version = "6.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e6361d5c062261c78a176addb82d4c821ae42bed6089de0e12603cd25de2059c"
+dependencies = [
+ "cfg-if",
+ "crossbeam-utils",
+ "hashbrown 0.14.5",
+ "lock_api",
+ "once_cell",
+ "parking_lot_core",
+]
+
+[[package]]
 name = "data-encoding"
 version = "2.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3240,6 +3254,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "num_cpus"
+version = "1.17.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "91df4bbde75afed763b708b7eee1e8e7651e02d97f6d5dd763e89367e957b23b"
+dependencies = [
+ "hermit-abi",
+ "libc",
+]
+
+[[package]]
 name = "number_prefix"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3458,7 +3482,7 @@ version = "0.1.0"
 dependencies = [
  "base64 0.22.1",
  "chrono",
- "dashmap",
+ "dashmap 5.5.3",
  "ed25519-dalek",
  "hex",
  "parking_lot",
@@ -5204,7 +5228,7 @@ name = "siss-behavioral-firewall"
 version = "0.1.0"
 dependencies = [
  "chrono",
- "dashmap",
+ "dashmap 5.5.3",
  "ed25519-dalek",
  "flate2",
  "regex",
@@ -5226,7 +5250,7 @@ version = "0.1.0"
 dependencies = [
  "blake3",
  "chrono",
- "dashmap",
+ "dashmap 5.5.3",
  "lru",
  "serde",
  "serde_json",
@@ -5258,7 +5282,7 @@ version = "0.1.0"
 dependencies = [
  "base64 0.22.1",
  "chrono",
- "dashmap",
+ "dashmap 5.5.3",
  "ed25519-dalek",
  "futures",
  "hex",
@@ -5270,6 +5294,7 @@ dependencies = [
  "siss-audit-archiver",
  "siss-behavioral-firewall",
  "siss-graph-core",
+ "siss-layer00",
  "thiserror 2.0.18",
  "tokio",
  "tracing",
@@ -5572,6 +5597,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "siss-federation-layer"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "dashmap 5.5.3",
+ "futures",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "siss-feedback-router"
 version = "0.1.0"
 dependencies = [
@@ -5593,7 +5635,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "chrono",
- "dashmap",
+ "dashmap 5.5.3",
  "hex",
  "parking_lot",
  "reqwest 0.12.28",
@@ -5612,7 +5654,7 @@ dependencies = [
  "aes-gcm",
  "base64 0.22.1",
  "chrono",
- "dashmap",
+ "dashmap 5.5.3",
  "ed25519-dalek",
  "hex",
  "md5",
@@ -5789,7 +5831,7 @@ dependencies = [
  "base64 0.22.1",
  "chrono",
  "criterion",
- "dashmap",
+ "dashmap 5.5.3",
  "ed25519-dalek",
  "hex",
  "rand 0.8.6",
@@ -5808,7 +5850,7 @@ name = "siss-local-llm"
 version = "0.1.0"
 dependencies = [
  "chrono",
- "dashmap",
+ "dashmap 5.5.3",
  "futures",
  "hex",
  "serde",
@@ -5881,6 +5923,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "siss-ml-inference"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "dashmap 5.5.3",
+ "num_cpus",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "siss-multi-region"
 version = "0.1.0"
 dependencies = [
@@ -5906,6 +5964,8 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "crossterm",
+ "dashmap 5.5.3",
+ "parking_lot",
  "ratatui",
  "rusqlite",
  "serde",
@@ -5913,6 +5973,25 @@ dependencies = [
  "sha2",
  "tempfile",
  "tokio",
+ "uuid",
+]
+
+[[package]]
+name = "siss-observability"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "dashmap 6.2.1",
+ "hex",
+ "parking_lot",
+ "serde",
+ "serde_json",
+ "sha2",
+ "sqlx",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
  "uuid",
 ]
 
@@ -5972,7 +6051,7 @@ name = "siss-payment"
 version = "0.1.0"
 dependencies = [
  "chrono",
- "dashmap",
+ "dashmap 5.5.3",
  "hex",
  "parking_lot",
  "rand 0.8.6",
@@ -6002,7 +6081,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "chrono",
- "dashmap",
+ "dashmap 5.5.3",
  "redis",
  "reqwest 0.12.28",
  "ring",
@@ -6140,7 +6219,7 @@ name = "siss-stream6-usa-creator"
 version = "0.1.0"
 dependencies = [
  "chrono",
- "dashmap",
+ "dashmap 5.5.3",
  "serde",
  "serde_json",
  "siss-layer00",
@@ -6162,6 +6241,40 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
+name = "siss-swarm-consensus"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "dashmap 5.5.3",
+ "ed25519-dalek",
+ "hex",
+ "parking_lot",
+ "serde",
+ "serde_json",
+ "sha2",
+ "siss-swarm-coordinator",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "siss-swarm-coordinator"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "dashmap 5.5.3",
+ "parking_lot",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror 2.0.18",
  "tokio",
  "uuid",
 ]
@@ -6248,6 +6361,25 @@ dependencies = [
  "reqwest 0.12.28",
  "serde",
  "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
+name = "siss-zero-trust"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "ed25519-dalek",
+ "hex",
+ "parking_lot",
+ "rand 0.8.6",
+ "serde",
+ "serde_json",
+ "sha2",
+ "siss-gatekeeper",
+ "siss-graph-core",
  "thiserror 2.0.18",
  "tokio",
  "uuid",

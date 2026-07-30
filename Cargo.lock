@@ -5140,6 +5140,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "siss-ai-factory"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "dashmap",
+ "ed25519-dalek",
+ "hex",
+ "parking_lot",
+ "rand 0.8.6",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "siss-aoe-orchestrator"
 version = "0.1.0"
 dependencies = [

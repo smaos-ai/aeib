@@ -71,31 +71,28 @@ impl MerkleTracer {
         let span_id = span.span_id;
 
         // Compute merkle hash based on parent linkage
-        let previous_hash = if let Some(parent_id) = span.parent_id {
-            self.traces
+        if let Some(parent_id) = span.parent_id {
+            let previous_hash = self.traces
                 .get(&parent_id)
                 .map(|s| s.merkle_hash)
-                .ok_or(ObservabilityError::TraceNotFound(parent_id.to_string()))?
+                .ok_or(ObservabilityError::TraceNotFound(parent_id.to_string()))?;
+            span.merkle_hash = TraceSpan::compute_hash(&span_id, Some(&parent_id), &previous_hash);
         } else {
-            *self.merkle_root.lock().unwrap()
-        };
+            // For root spans, use current merkle_root as the previous_hash
+            let merkle_root = self.merkle_root.lock().unwrap();
+            span.merkle_hash = TraceSpan::compute_hash(&span_id, None, &*merkle_root);
+        }
 
-        span.merkle_hash = TraceSpan::compute_hash(&span_id, span.parent_id.as_ref(), &previous_hash);
-
-        self.traces.insert(span_id, span);
+        self.traces.insert(span_id, span.clone());
 
         // Update global order
         self.span_order.lock().unwrap().push(span_id);
 
-        // Update merkle root
-        let mut root = self.merkle_root.lock().unwrap();
-        let mut hasher = Sha256::new();
-        hasher.update(&*root);
-        if let Some(span) = self.traces.get(&span_id) {
-            hasher.update(span.merkle_hash);
+        // Update merkle root for root-level spans only
+        if span.parent_id.is_none() {
+            let mut root = self.merkle_root.lock().unwrap();
+            root.copy_from_slice(&span.merkle_hash);
         }
-        let result = hasher.finalize();
-        root.copy_from_slice(&result[..32]);
 
         Ok(())
     }

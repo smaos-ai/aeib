@@ -234,6 +234,6 @@ async fn test_20_trust_boundary_enforced_post_rotation() {
 
     // Trust boundary should still be enforced
     let context = TrustContext::new("user_789".to_string(), "agent_999".to_string());
-    let decision = boundary.evaluate(&context).unwrap();
+    let decision = boundary.evaluate_with_policies(&context).unwrap();
     assert_eq!(decision, siss_zero_trust::AccessDecision::Deny);
 }

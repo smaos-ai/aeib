@@ -147,7 +147,7 @@ impl Default for RevenueTracker {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::contract::{Contract, ContractState, VerticalType};
+    use crate::contract::{Contract, VerticalType};
     use crate::pilot_sla_enforcer::PilotSlaEnforcer;
     use crate::vertical_policy::{DefensePolicy, HealthcarePolicy, FinancePolicy};
 
@@ -164,6 +164,10 @@ mod tests {
             VerticalType::Finance => (
                 Arc::new(FinancePolicy::new()) as Arc<dyn crate::vertical_policy::VerticalPolicy>,
                 "eu-west-1".to_string(),
+            ),
+            VerticalType::Government => (
+                Arc::new(crate::government_policy::GovernmentPolicy::new_high()) as Arc<dyn crate::vertical_policy::VerticalPolicy>,
+                "us-gov-west-1".to_string(),
             ),
         };
         let sla = Arc::new(PilotSlaEnforcer::new(Uuid::new_v4()));

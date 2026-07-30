@@ -30,6 +30,7 @@ pub enum VerticalType {
     Defense,
     Healthcare,
     Finance,
+    Government,
 }
 
 impl std::fmt::Display for VerticalType {
@@ -38,6 +39,7 @@ impl std::fmt::Display for VerticalType {
             VerticalType::Defense => write!(f, "Defense"),
             VerticalType::Healthcare => write!(f, "Healthcare"),
             VerticalType::Finance => write!(f, "Finance"),
+            VerticalType::Government => write!(f, "Government"),
         }
     }
 }
@@ -139,6 +141,14 @@ impl Contract {
                     return Err(ContractError::InvalidRegion {
                         vertical: vertical.to_string(),
                         required: "EU or US region".to_string(),
+                    });
+                }
+            }
+            VerticalType::Government => {
+                if !region.to_lowercase().contains("us-gov") && !region.to_lowercase().contains("govcloud") {
+                    return Err(ContractError::InvalidRegion {
+                        vertical: vertical.to_string(),
+                        required: "US GovCloud region".to_string(),
                     });
                 }
             }

@@ -28,3 +28,6 @@ pub use world_model_validator::{WorldModelValidator, SensorReading, SensorType, 
 pub use insurance_policy::InsurancePolicy;
 pub use claims_governance::{Claim, ClaimsGovernance, ProofCapsule, FraudAlert, ClaimStatus, FraudAlertType};
 pub use zk_underwriting::ZkUnderwritingProof;
+pub use telecom_policy::{TelecomPolicy, NetworkSliceType, IsolationLevel, SliceConfig};
+pub use slicing_orchestrator::{SlicingOrchestrator, Slice, IsolationProof};
+pub use network_governance::{NetworkGovernance, BandwidthMetric, ThrottleAction};

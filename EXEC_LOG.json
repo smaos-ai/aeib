@@ -911,3 +911,17 @@
 {"timestamp":"2026-07-16T14:30:28.416862+00:00","event":"watchdog_alert","message":"Test failed (attempt 2/2)","source":"siss-night-cycle"}
 {"timestamp":"2026-07-16T14:30:28.479009+00:00","event":"watchdog_alert","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
 {"timestamp":"2026-07-16T14:30:28.479160+00:00","event":"watchdog","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle"}
+{"event":"nightly_settlement_initiated","message":"Settlement batch created at 2026-07-30 18:09:06.092718 UTC","source":"siss-night-cycle","timestamp":"2026-07-30T18:09:06.092724+00:00"}
+{"event":"fx_reconciliation_initiated","message":"FX reconciler created at 2026-07-30 18:09:06.093045 UTC","source":"siss-night-cycle","timestamp":"2026-07-30T18:09:06.093047+00:00"}
+{"event":"nightly_settlement_initiated","message":"Settlement batch created at 2026-07-30 18:09:22.715317 UTC","source":"siss-night-cycle","timestamp":"2026-07-30T18:09:22.715321+00:00"}
+{"event":"fx_reconciliation_initiated","message":"FX reconciler created at 2026-07-30 18:09:22.715644 UTC","source":"siss-night-cycle","timestamp":"2026-07-30T18:09:22.715652+00:00"}
+{"event":"test_event","message":"test message","source":"siss-night-cycle","timestamp":"2026-07-30T18:09:28.160753+00:00"}
+{"event":"nightly_settlement_initiated","message":"Settlement batch created at 2026-07-30 18:09:28.166101 UTC","source":"siss-night-cycle","timestamp":"2026-07-30T18:09:28.166104+00:00"}
+{"event":"fx_reconciliation_initiated","message":"FX reconciler created at 2026-07-30 18:09:28.166232 UTC","source":"siss-night-cycle","timestamp":"2026-07-30T18:09:28.166234+00:00"}
+{"event":"watchdog","message":"test passed","source":"siss-night-cycle","timestamp":"2026-07-30T18:09:28.168641+00:00"}
+{"event":"watchdog_alert","message":"Test failed (attempt 1/2)","source":"siss-night-cycle","timestamp":"2026-07-30T18:09:28.260847+00:00"}
+{"event":"watchdog_alert","message":"Test failed (attempt 2/2)","source":"siss-night-cycle","timestamp":"2026-07-30T18:09:28.348034+00:00"}
+{"event":"watchdog_alert","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle","timestamp":"2026-07-30T18:09:28.419402+00:00"}
+{"event":"watchdog","message":"Max retries reached. Halting for human review.","source":"siss-night-cycle","timestamp":"2026-07-30T18:09:28.419540+00:00"}
+{"event":"nightly_settlement_initiated","message":"Settlement batch created at 2026-07-30 18:09:34.305992 UTC","source":"siss-night-cycle","timestamp":"2026-07-30T18:09:34.305993+00:00"}
+{"event":"fx_reconciliation_initiated","message":"FX reconciler created at 2026-07-30 18:09:34.306054 UTC","source":"siss-night-cycle","timestamp":"2026-07-30T18:09:34.306055+00:00"}

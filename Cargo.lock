@@ -5865,6 +5865,8 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "crossterm",
+ "dashmap",
+ "parking_lot",
  "ratatui",
  "rusqlite",
  "serde",

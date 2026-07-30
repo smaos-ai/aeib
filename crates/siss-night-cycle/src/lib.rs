@@ -12,6 +12,9 @@ pub mod replay_engine;
 pub mod tui;
 pub mod watchdog;
 pub mod vision_survival_protocol;
+pub mod settlement_batch;
+pub mod fx_reconciliation;
+pub mod nightly_reporter;
 
 pub use biometric::{
     BiometricCapsule, DeviceData, DeviceType, PersonalMetabolicModel, AP2ResearchCapsule,

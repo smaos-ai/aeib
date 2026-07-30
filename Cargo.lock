@@ -5392,6 +5392,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "siss-consensus-monitor"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "ed25519-dalek",
+ "parking_lot",
+ "serde",
+ "serde_json",
+ "sha2",
+ "sqlx",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "siss-console"
 version = "0.1.0"
 dependencies = [

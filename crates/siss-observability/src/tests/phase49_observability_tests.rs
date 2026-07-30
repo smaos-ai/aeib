@@ -1,5 +1,5 @@
 use siss_observability::{
-    MerkleTracer, TraceSpan, MetricsAggregator, TraceLogger, Metrics, LogLevel,
+    MerkleTracer, TraceSpan, MetricsAggregator, TraceLogger, Metrics,
 };
 use uuid::Uuid;
 

@@ -59,8 +59,11 @@ pub enum KeyRotationError {
 #[derive(Clone)]
 struct KeyEntry {
     id: String,
+    #[allow(dead_code)]
     key: SigningKey,
+    #[allow(dead_code)]
     verifying_key: VerifyingKey,
+    #[allow(dead_code)]
     created_at: DateTime<Utc>,
 }
 

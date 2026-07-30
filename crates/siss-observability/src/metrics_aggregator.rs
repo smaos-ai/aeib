@@ -48,7 +48,7 @@ impl MetricsAggregator {
     pub fn record_metric(&self, span_id: Uuid, metric: Metrics) {
         self.metrics
             .entry(span_id)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(metric);
     }
 

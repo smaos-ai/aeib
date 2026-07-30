@@ -80,7 +80,7 @@ impl MerkleTracer {
         } else {
             // For root spans, use current merkle_root as the previous_hash
             let merkle_root = self.merkle_root.lock().unwrap();
-            span.merkle_hash = TraceSpan::compute_hash(&span_id, None, &*merkle_root);
+            span.merkle_hash = TraceSpan::compute_hash(&span_id, None, &merkle_root);
         }
 
         self.traces.insert(span_id, span.clone());
@@ -119,21 +119,39 @@ impl MerkleTracer {
     }
 
     pub async fn verify_trace_integrity(&self) -> Result<bool> {
-        let root = *self.merkle_root.lock().unwrap();
+        let stored_root = *self.merkle_root.lock().unwrap();
         let order = self.span_order.lock().unwrap();
 
-        let mut computed_root = [0u8; 32];
+        let mut previous_hash = [0u8; 32];
+        let mut last_root_hash = [0u8; 32];
+
         for span_id in order.iter() {
             if let Some(span) = self.traces.get(span_id) {
-                let mut hasher = Sha256::new();
-                hasher.update(&computed_root);
-                hasher.update(span.merkle_hash);
-                let result = hasher.finalize();
-                computed_root.copy_from_slice(&result[..32]);
+                // For root-level spans, verify and update last_root_hash
+                if span.parent_id.is_none() {
+                    let expected_hash = TraceSpan::compute_hash(&span_id, None, &previous_hash);
+                    if expected_hash != span.merkle_hash {
+                        return Ok(false);
+                    }
+                    previous_hash = span.merkle_hash;
+                    last_root_hash = span.merkle_hash;
+                } else {
+                    // For child spans, verify against parent
+                    if let Some(parent_id) = span.parent_id {
+                        if let Some(parent) = self.traces.get(&parent_id) {
+                            let expected_hash = TraceSpan::compute_hash(&span_id, Some(&parent_id), &parent.merkle_hash);
+                            if expected_hash != span.merkle_hash {
+                                return Ok(false);
+                            }
+                        } else {
+                            return Ok(false); // Parent not found
+                        }
+                    }
+                }
             }
         }
 
-        Ok(computed_root == root)
+        Ok(last_root_hash == stored_root)
     }
 
     pub fn get_merkle_root(&self) -> [u8; 32] {

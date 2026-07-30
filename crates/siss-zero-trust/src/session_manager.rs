@@ -6,6 +6,7 @@ use std::sync::Arc;
 use thiserror::Error;
 use tokio::sync::RwLock;
 use uuid::Uuid;
+use hex;
 
 use crate::ZeroTrustConfig;
 
@@ -43,6 +44,7 @@ pub enum SessionError {
 
 struct SessionEntry {
     key: SessionKey,
+    #[allow(dead_code)]
     used_nonces: Vec<Vec<u8>>,
 }
 
@@ -114,6 +116,17 @@ impl SessionManager {
             let expected_token = format!("token_{}", hex::encode(hash));
 
             if token == &expected_token {
+                // Record this token in the replay cache
+                let mut nonce_cache = self.nonce_cache.write().await;
+                let mut hasher = Sha256::new();
+                hasher.update(token.as_bytes());
+                let token_hash = hex::encode(hasher.finalize());
+                let token_bytes = token_hash.as_bytes().to_vec();
+
+                if !nonce_cache.contains(&token_bytes) {
+                    nonce_cache.push(token_bytes);
+                }
+
                 return Ok(true);
             }
         }
@@ -126,14 +139,17 @@ impl SessionManager {
     pub async fn is_replay_attack(&self, token: &str) -> Result<bool, SessionError> {
         let mut nonce_cache = self.nonce_cache.write().await;
 
-        // Extract nonce from token (simplified for testing)
-        let token_bytes = token.as_bytes();
+        // Use full token as replay detection key via SHA256
+        let mut hasher = Sha256::new();
+        hasher.update(token.as_bytes());
+        let token_hash = hex::encode(hasher.finalize());
+        let token_bytes = token_hash.as_bytes().to_vec();
 
-        if nonce_cache.contains(&token_bytes.to_vec()) {
+        if nonce_cache.contains(&token_bytes) {
             return Ok(true); // Replay detected
         }
 
-        nonce_cache.push(token_bytes.to_vec());
+        nonce_cache.push(token_bytes);
 
         // Keep cache size bounded
         if nonce_cache.len() > 10000 {

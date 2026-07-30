@@ -67,7 +67,7 @@ impl TraceLogger {
 
         self.logs
             .entry(span_id)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(entry.clone());
 
         self.global_logs.lock().push(entry);

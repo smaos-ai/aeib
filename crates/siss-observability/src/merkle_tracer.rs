@@ -129,7 +129,7 @@ impl MerkleTracer {
             if let Some(span) = self.traces.get(span_id) {
                 // For root-level spans, verify and update last_root_hash
                 if span.parent_id.is_none() {
-                    let expected_hash = TraceSpan::compute_hash(&span_id, None, &previous_hash);
+                    let expected_hash = TraceSpan::compute_hash(span_id, None, &previous_hash);
                     if expected_hash != span.merkle_hash {
                         return Ok(false);
                     }
@@ -139,7 +139,7 @@ impl MerkleTracer {
                     // For child spans, verify against parent
                     if let Some(parent_id) = span.parent_id {
                         if let Some(parent) = self.traces.get(&parent_id) {
-                            let expected_hash = TraceSpan::compute_hash(&span_id, Some(&parent_id), &parent.merkle_hash);
+                            let expected_hash = TraceSpan::compute_hash(span_id, Some(&parent_id), &parent.merkle_hash);
                             if expected_hash != span.merkle_hash {
                                 return Ok(false);
                             }
@@ -182,13 +182,13 @@ impl MerkleTracer {
                         .get(&parent_id)
                         .map(|s| s.merkle_hash)
                         .ok_or(ObservabilityError::IntegrityCheckFailed("Parent not found".into()))?;
-                    let expected_hash = TraceSpan::compute_hash(&span_id, Some(&parent_id), &parent_hash);
+                    let expected_hash = TraceSpan::compute_hash(span_id, Some(&parent_id), &parent_hash);
                     if expected_hash != span.merkle_hash {
                         return Ok(true);
                     }
                 } else {
                     // For root spans, verify against accumulated previous_hash
-                    let expected_hash = TraceSpan::compute_hash(&span_id, None, &previous_hash);
+                    let expected_hash = TraceSpan::compute_hash(span_id, None, &previous_hash);
                     if expected_hash != span.merkle_hash {
                         return Ok(true);
                     }

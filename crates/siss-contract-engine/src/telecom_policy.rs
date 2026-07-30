@@ -6,6 +6,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[allow(non_camel_case_types)]
 pub enum NetworkSliceType {
     URLLC, // Ultra-Reliable Low-Latency Communications (<10ms)
     eMBB,  // Enhanced Mobile Broadband (<100ms)
@@ -100,7 +101,6 @@ pub struct TelecomPolicy {
     slicing_enabled: bool,
     network_slices: Arc<DashMap<String, SliceConfig>>,
     bandwidth_tracker: Arc<DashMap<String, BandwidthMetric>>,
-    routes: Arc<DashMap<String, String>>,
     availability_pct: Arc<AtomicU64>, // Stored as basis points (0-10000 = 0-100%)
     has_failover: bool,
     failed_slices: Arc<DashMap<String, bool>>,
@@ -146,7 +146,6 @@ impl TelecomPolicy {
             slicing_enabled: true,
             network_slices: slices,
             bandwidth_tracker: bw_tracker,
-            routes: Arc::new(DashMap::new()),
             availability_pct: Arc::new(AtomicU64::new(9995)), // 99.95%
             has_failover: false,
             failed_slices: Arc::new(DashMap::new()),

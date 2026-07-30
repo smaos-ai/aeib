@@ -61,11 +61,18 @@ impl NetworkGovernance {
     }
 
     pub fn with_threshold(threshold_pct: f64) -> Self {
-        Self {
+        let governance = Self {
             bandwidth_tracker: Arc::new(DashMap::new()),
-            throttle_threshold_pct: threshold_pct.max(0.0).min(100.0),
+            throttle_threshold_pct: threshold_pct.clamp(0.0, 100.0),
             enforcement_enabled: true,
-        }
+        };
+
+        // Register standard 5G slices
+        governance.register_slice("URLLC", 300);
+        governance.register_slice("eMBB", 500);
+        governance.register_slice("mMTC", 200);
+
+        governance
     }
 
     pub fn with_default_slices() -> Self {

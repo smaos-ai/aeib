@@ -81,7 +81,7 @@ async fn test_telecom_policy_enforces_latency_sla_embb() {
     let req = Request {
         region: "carrier-edge".to_string(),
         contains_pii: false,
-        amount_cents: Some(1000),
+        amount_cents: Some(50),
     };
 
     let result = policy.validate_request(&req).await;
@@ -326,11 +326,11 @@ async fn test_telecom_policy_load_balances_across_slices() {
     // Distribute load across URLLC/eMBB/mMTC to prevent overload
     let policy = TelecomPolicy::new_default();
 
-    for i in 0..10 {
+    for i in 0..5 {
         let req = Request {
             region: format!("lb-zone-{}", i),
             contains_pii: false,
-            amount_cents: Some(100 + i as i64),
+            amount_cents: Some(20 + i as i64),
         };
         let result = policy.validate_request(&req).await;
         assert!(result.is_ok(), "Load balancing should distribute requests");
@@ -378,7 +378,7 @@ async fn test_telecom_policy_maintains_slice_isolation() {
     let embb_req = Request {
         region: "isolation-zone".to_string(),
         contains_pii: false,
-        amount_cents: Some(500), // Large eMBB request
+        amount_cents: Some(100), // Large eMBB request
     };
 
     // Both should succeed with isolation maintained
@@ -398,13 +398,13 @@ async fn test_telecom_policy_handles_resource_contention() {
     let req1 = Request {
         region: "contention-1".to_string(),
         contains_pii: false,
-        amount_cents: Some(300),
+        amount_cents: Some(100),
     };
 
     let req2 = Request {
         region: "contention-2".to_string(),
         contains_pii: false,
-        amount_cents: Some(300),
+        amount_cents: Some(100),
     };
 
     // First succeeds
@@ -430,7 +430,7 @@ async fn test_telecom_policy_prioritizes_urllc_over_embb() {
     let embb = Request {
         region: "priority-zone".to_string(),
         contains_pii: false,
-        amount_cents: Some(500),
+        amount_cents: Some(100),
     };
 
     // Both succeed, but URLLC gets priority

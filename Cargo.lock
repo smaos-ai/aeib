@@ -6077,6 +6077,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "siss-swarm-coordinator"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "dashmap",
+ "ed25519-dalek",
+ "hex",
+ "parking_lot",
+ "serde",
+ "serde_json",
+ "sha2",
+ "siss-a2a-dispatcher",
+ "siss-behavioral-firewall",
+ "siss-capsule",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "siss-task-router"
 version = "0.1.0"
 dependencies = [

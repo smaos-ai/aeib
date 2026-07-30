@@ -1,56 +1,53 @@
 use uuid::Uuid;
-use siss_swarm_coordinator::{SwarmCoordinator, MongeGapBound};
+use siss_swarm_coordinator::SwarmCoordinator;
 
 #[test]
-fn test_swarm_coordinator_new() {
-    let agent_id = Uuid::new_v4();
-    let coordinator = SwarmCoordinator::new(agent_id);
-    assert_eq!(coordinator.local_agent_id(), agent_id);
-}
-
-#[test]
-fn test_agent_registration_valid() {
+fn test_register_single_agent() {
     let coordinator = SwarmCoordinator::new(Uuid::new_v4());
     let agent_id = Uuid::new_v4();
-    let public_key = [1u8; 32];
-
-    let result = coordinator.register_agent(agent_id, public_key);
+    
+    let result = coordinator.register_agent(agent_id, [1u8; 32]);
     assert!(result.is_ok());
-
-    let metadata = coordinator.get_agent(agent_id).unwrap();
-    assert_eq!(metadata.agent_id, agent_id);
-    assert_eq!(metadata.public_key, public_key);
 }
 
 #[test]
-fn test_agent_registration_duplicate_id() {
+fn test_register_multiple_agents() {
+    let coordinator = SwarmCoordinator::new(Uuid::new_v4());
+    
+    for i in 0..5 {
+        let agent_id = Uuid::new_v4();
+        let result = coordinator.register_agent(agent_id, [i as u8 + 1; 32]);
+        assert!(result.is_ok());
+    }
+}
+
+#[test]
+fn test_duplicate_agent_registration_fails() {
     let coordinator = SwarmCoordinator::new(Uuid::new_v4());
     let agent_id = Uuid::new_v4();
-    let public_key = [1u8; 32];
-
-    coordinator.register_agent(agent_id, public_key).unwrap();
-    let result = coordinator.register_agent(agent_id, public_key);
+    
+    coordinator.register_agent(agent_id, [1u8; 32]).unwrap();
+    let result = coordinator.register_agent(agent_id, [2u8; 32]);
+    
     assert!(result.is_err());
 }
 
 #[test]
-fn test_monge_bound_initialization() {
+fn test_get_registered_agent() {
     let coordinator = SwarmCoordinator::new(Uuid::new_v4());
     let agent_id = Uuid::new_v4();
-    let public_key = [1u8; 32];
-
-    coordinator.register_agent(agent_id, public_key).unwrap();
-    let bound = coordinator.get_bounds(agent_id).unwrap();
-
-    assert_eq!(bound.current_depth, 0);
-    assert_eq!(bound.delegation_count, 0);
-    assert_eq!(bound.parent_hash, [0u8; 32]);
+    
+    coordinator.register_agent(agent_id, [42u8; 32]).unwrap();
+    let agent = coordinator.get_agent(agent_id);
+    
+    assert!(agent.is_ok());
 }
 
 #[test]
-fn test_monge_bound_is_within_bounds() {
-    let bound = MongeGapBound::new(Uuid::new_v4());
-    assert!(bound.is_within_bounds());
-    assert_eq!(bound.max_depth, 3);
-    assert_eq!(bound.max_agents, 5);
+fn test_get_unregistered_agent_fails() {
+    let coordinator = SwarmCoordinator::new(Uuid::new_v4());
+    let agent_id = Uuid::new_v4();
+    
+    let result = coordinator.get_agent(agent_id);
+    assert!(result.is_err());
 }

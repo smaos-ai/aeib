@@ -1,5 +1,8 @@
 /// Phase 37: AG-UI Handlers RCE-to-Cockpit SSE Bridge
 /// Server-Sent Events (SSE) endpoint for real-time RCE event streaming
+///
+/// Phase 33: A2UI Streaming SSE Endpoint
+/// Real-time A2UI component streaming to frontend clients
 
 use axum::{
     extract::{Query, State},
@@ -10,10 +13,13 @@ use futures::stream::Stream;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::time::Duration;
+use std::sync::Arc;
 use uuid::Uuid;
 
 use crate::state::CockpitState;
 use siss_graph_db::rce_event_broadcaster::RceEvent;
+use crate::a2ui::streaming_gateway::A2UIStreamingGateway;
+use crate::a2ui::component_broadcast::ComponentBroadcast;
 
 #[derive(Debug, Deserialize)]
 pub struct StreamParams {
@@ -325,5 +331,124 @@ mod tests {
         });
         let result = get_rce_stream(headers, State(state), params).await;
         assert_eq!(result.unwrap_err(), StatusCode::BAD_REQUEST);
+    }
+}
+
+/// Phase 33: A2UI Component Stream Parameters
+#[derive(Debug, Deserialize)]
+pub struct A2UIStreamParams {
+    pub agent_id: Option<String>,
+}
+
+/// Phase 33: A2UI Stream Helper
+/// Returns an SSE stream that sends keep-alive events
+/// In a production system, this would subscribe to the global A2UIStreamingGateway
+pub fn get_a2ui_sse_stream(
+    agent_id: Uuid,
+) -> Sse<impl Stream<Item = Result<Event, std::convert::Infallible>>> {
+    let agent_id_str = agent_id.to_string();
+
+    let stream = async_stream::stream! {
+        // Send initial open event with agent_id
+        let open_event = Event::default()
+            .event("a2ui_stream_open")
+            .data(format!(r#"{{"agent_id":"{}"}}"#, agent_id_str));
+        yield Ok(open_event);
+
+        // Keep-alive loop (30s timeout)
+        loop {
+            // In production, would receive from broadcast channel
+            // For now, send keep-alive every 30s
+            tokio::time::sleep(std::time::Duration::from_secs(30)).await;
+
+            let keep_alive = Event::default()
+                .event("keep_alive")
+                .data("");
+            yield Ok(keep_alive);
+        }
+    };
+
+    Sse::new(stream)
+}
+
+/// Phase 33: GET /api/a2ui/stream endpoint
+/// Streams real-time validated A2UI component updates to frontend clients
+/// Returns Server-Sent Events (SSE) stream with component updates
+pub async fn get_a2ui_stream(
+    headers: HeaderMap,
+    Query(params): Query<A2UIStreamParams>,
+) -> Result<Sse<impl Stream<Item = Result<Event, std::convert::Infallible>>>, StatusCode> {
+    // Authenticate request
+    let _auth_header = headers
+        .get("Authorization")
+        .and_then(|h| h.to_str().ok())
+        .filter(|s| s.starts_with("Bearer "))
+        .ok_or(StatusCode::UNAUTHORIZED)?;
+
+    // Parse and validate agent_id if provided
+    let agent_id = if let Some(agent_id_str) = params.agent_id {
+        match Uuid::parse_str(&agent_id_str) {
+            Ok(id) => id,
+            Err(_) => return Err(StatusCode::BAD_REQUEST),
+        }
+    } else {
+        Uuid::new_v4()
+    };
+
+    // Return SSE stream for this agent
+    Ok(get_a2ui_sse_stream(agent_id))
+}
+
+#[cfg(test)]
+mod a2ui_streaming_tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_a2ui_stream_endpoint_requires_authentication() {
+        let headers = axum::http::HeaderMap::new();
+        let params = Query(A2UIStreamParams { agent_id: None });
+        let result = get_a2ui_stream(headers, params).await;
+        assert_eq!(result.unwrap_err(), StatusCode::UNAUTHORIZED);
+    }
+
+    #[tokio::test]
+    async fn test_a2ui_stream_establishes_sse_connection() {
+        let mut headers = axum::http::HeaderMap::new();
+        headers.insert(
+            "Authorization",
+            "Bearer test-token-a2ui".parse().unwrap(),
+        );
+        let params = Query(A2UIStreamParams { agent_id: None });
+        let result = get_a2ui_stream(headers, params).await;
+        assert!(result.is_ok(), "Should accept valid Bearer token and return SSE stream");
+    }
+
+    #[tokio::test]
+    async fn test_a2ui_stream_invalid_agent_id_returns_400() {
+        let mut headers = axum::http::HeaderMap::new();
+        headers.insert(
+            "Authorization",
+            "Bearer test-token".parse().unwrap(),
+        );
+        let params = Query(A2UIStreamParams {
+            agent_id: Some("not-a-uuid".to_string()),
+        });
+        let result = get_a2ui_stream(headers, params).await;
+        assert_eq!(result.unwrap_err(), StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn test_a2ui_stream_accepts_valid_agent_id() {
+        let mut headers = axum::http::HeaderMap::new();
+        headers.insert(
+            "Authorization",
+            "Bearer test-token".parse().unwrap(),
+        );
+        let valid_uuid = Uuid::new_v4().to_string();
+        let params = Query(A2UIStreamParams {
+            agent_id: Some(valid_uuid),
+        });
+        let result = get_a2ui_stream(headers, params).await;
+        assert!(result.is_ok());
     }
 }

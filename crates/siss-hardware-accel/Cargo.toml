@@ -1,0 +1,29 @@
+[package]
+name = "siss-hardware-accel"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+tokio = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+tracing = { workspace = true }
+sha2 = { workspace = true }
+hex = { workspace = true }
+
+# SIMD operations (for Merkle proofs)
+parking_lot = { workspace = true }
+lru = { workspace = true }
+
+# Benchmarking
+criterion = { workspace = true }
+
+[dev-dependencies]
+criterion = { workspace = true }
+tokio-test = "0.4"
+
+[lib]
+name = "siss_hardware_accel"
+path = "src/lib.rs"
+

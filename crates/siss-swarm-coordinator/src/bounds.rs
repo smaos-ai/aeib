@@ -9,7 +9,7 @@ pub struct MongeGapBound {
     pub parent_hash: [u8; 32],
     pub max_depth: usize,
     pub max_agents: usize,
-    pub delegated_to: Vec<Uuid>,  // Track delegations for cycle detection
+    pub delegated_to: Vec<Uuid>,
 }
 
 impl MongeGapBound {
@@ -25,38 +25,14 @@ impl MongeGapBound {
         }
     }
 
-    pub fn is_within_bounds(&self) -> bool {
-        self.current_depth <= self.max_depth && self.delegation_count <= self.max_agents
-    }
-
-    pub fn add_delegation(&mut self, target_agent_id: Uuid) -> Result<(), SwarmCoordinatorError> {
-        if !self.is_within_bounds() {
-            return Err(SwarmCoordinatorError::BoundsExceeded(
-                format!(
-                    "depth {} > max {}, agents {} >= max {}",
-                    self.current_depth, self.max_depth, self.delegation_count, self.max_agents
-                ),
-            ));
-        }
-
+    pub fn add_delegation(&mut self, delegated_agent_id: Uuid) -> Result<(), SwarmCoordinatorError> {
         if self.delegation_count >= self.max_agents {
-            return Err(SwarmCoordinatorError::DelegationLimitReached);
+            return Err(SwarmCoordinatorError::DelegationLimitExceeded);
         }
 
-        self.delegated_to.push(target_agent_id);
+        self.delegated_to.push(delegated_agent_id);
         self.delegation_count += 1;
-        Ok(())
-    }
 
-    pub fn can_delegate_to(&self, _target_agent_id: Uuid) -> Result<(), SwarmCoordinatorError> {
-        if !self.is_within_bounds() {
-            return Err(SwarmCoordinatorError::BoundsExceeded(
-                format!(
-                    "depth {} > max {}, agents {} >= max {}",
-                    self.current_depth, self.max_depth, self.delegation_count, self.max_agents
-                ),
-            ));
-        }
         Ok(())
     }
 }

@@ -17,7 +17,6 @@ impl ConflictResolver {
     pub fn resolve(&self, entry1: &A2AMessage, entry2: &A2AMessage) -> A2AMessage {
         match self.strategy {
             ConflictStrategy::HighestHash => {
-                // Compare hashes as big-endian integers
                 if bytes_to_u256(&entry2.merkle_hash) >= bytes_to_u256(&entry1.merkle_hash) {
                     entry2.clone()
                 } else {
@@ -25,7 +24,6 @@ impl ConflictResolver {
                 }
             }
             ConflictStrategy::VectorClock => {
-                // Newer timestamp wins
                 if entry2.timestamp > entry1.timestamp {
                     entry2.clone()
                 } else {

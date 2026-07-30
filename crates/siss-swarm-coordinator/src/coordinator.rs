@@ -71,14 +71,12 @@ impl SwarmCoordinator {
         from_agent_id: Uuid,
         to_agent_id: Uuid,
     ) -> Result<(), SwarmCoordinatorError> {
-        // Cannot delegate to self
         if from_agent_id == to_agent_id {
             return Err(SwarmCoordinatorError::CycleDetected(
                 "Agent cannot delegate to itself".to_string(),
             ));
         }
 
-        // Verify both agents exist
         if !self.agents.contains_key(&from_agent_id) {
             return Err(SwarmCoordinatorError::AgentNotFound(from_agent_id.to_string()));
         }
@@ -87,14 +85,12 @@ impl SwarmCoordinator {
             return Err(SwarmCoordinatorError::AgentNotFound(to_agent_id.to_string()));
         }
 
-        // Check for cycles
         if self.detect_cycle(to_agent_id, from_agent_id, 0)? {
             return Err(SwarmCoordinatorError::CycleDetected(
                 "Delegation would create a cycle".to_string(),
             ));
         }
 
-        // Add delegation from source
         {
             let mut from_bound = self
                 .monge_bounds
@@ -104,7 +100,6 @@ impl SwarmCoordinator {
             from_bound.add_delegation(to_agent_id)?;
         }
 
-        // Update target depth
         {
             let from_bound = self.monge_bounds.get(&from_agent_id).unwrap();
             let new_depth = from_bound.current_depth + 1;
@@ -142,17 +137,14 @@ impl SwarmCoordinator {
     }
 
     pub fn send_message(&self, msg: A2AMessage) -> Result<(), SwarmCoordinatorError> {
-        // Verify sender exists
         if !self.agents.contains_key(&msg.from_agent_id) {
             return Err(SwarmCoordinatorError::AgentNotFound(msg.from_agent_id.to_string()));
         }
 
-        // Verify recipient exists
         if !self.agents.contains_key(&msg.to_agent_id) {
             return Err(SwarmCoordinatorError::AgentNotFound(msg.to_agent_id.to_string()));
         }
 
-        // Get or create queue for recipient
         let queue = self.message_queues
             .entry(msg.to_agent_id)
             .or_insert_with(|| Arc::new(Mutex::new(VecDeque::new())))
@@ -160,7 +152,6 @@ impl SwarmCoordinator {
 
         let mut q = queue.lock();
 
-        // Auto-drop oldest if queue > 1000
         if q.len() >= 1000 {
             q.pop_front();
         }
@@ -212,7 +203,6 @@ impl SwarmCoordinator {
         msg: A2AMessage,
         _timeout: Duration,
     ) -> Result<(), SwarmCoordinatorError> {
-        // Send with timeout (in real implementation, would use tokio::time::timeout)
         self.send_message(msg)
     }
 }

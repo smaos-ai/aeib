@@ -1,9 +1,9 @@
-mod coordinator;
-mod bounds;
-mod agent_metadata;
-mod errors;
-mod a2a_protocol;
-mod conflict_resolver;
+pub mod coordinator;
+pub mod bounds;
+pub mod agent_metadata;
+pub mod errors;
+pub mod a2a_protocol;
+pub mod conflict_resolver;
 
 pub use coordinator::SwarmCoordinator;
 pub use bounds::MongeGapBound;

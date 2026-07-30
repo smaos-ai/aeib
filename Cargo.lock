@@ -5700,6 +5700,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "siss-hardware-accel"
+version = "0.1.0"
+dependencies = [
+ "criterion",
+ "hex",
+ "lru",
+ "parking_lot",
+ "serde",
+ "sha2",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-test",
+ "tracing",
+]
+
+[[package]]
 name = "siss-israel-gtm"
 version = "0.1.0"
 dependencies = [

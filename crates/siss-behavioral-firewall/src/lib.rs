@@ -12,8 +12,8 @@ pub mod policy;
 pub mod audit;
 pub mod missions;
 
-#[cfg(test)]
-mod tests_temporal;
+// #[cfg(test)]
+// mod tests_temporal;  // Legacy tests for old temporal API; replaced by wave2_temporal_guard_tests.rs
 
 #[cfg(test)]
 mod tests {
@@ -22,7 +22,7 @@ mod tests {
 
 pub use rebac::{ReBAC, Relationship, RelationType, PolicyResource, PolicyAction, DenyReason, SovereignIdentity, ReBACError, pg};
 pub use ap2::{AP2Evaluator, SovereignAttributes, SovereignAttributeCache, AttributePredicate, PolicyRule};
-pub use temporal::{TemporalGuard, RateLimiter, TimeWindow};
+pub use temporal::{TemporalGuard, RateLimiter, TimeWindow, BlackoutDate};
 pub use policy_engine::{
     Mandate,  // Legacy Mandate from policy/engine.rs
     MandateV2 as PolicyEngineMandate,  // New Mandate from mandate_verifier

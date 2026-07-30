@@ -79,7 +79,7 @@ fn setup_mandate_verifier() -> (
     ap2.cache_set(attrs);
 
     // Setup TemporalGuard
-    let temporal = TemporalGuard::new(vec![]);
+    let temporal = TemporalGuard::new(60, 60);
 
     let verifier = DefaultMandateVerifier::new(rebac, ap2, temporal);
 
@@ -116,7 +116,7 @@ fn test_three_phase_rebac_deny() {
     // Do NOT grant any relationship
 
     let ap2 = AP2Evaluator::with_defaults();
-    let temporal = TemporalGuard::new(vec![]);
+    let temporal = TemporalGuard::new(60, 60);
     let verifier = DefaultMandateVerifier::new(rebac, ap2, temporal);
 
     let context = create_request_context(requester, PolicyAction::ReadMetrics, unrelated_resource.clone());
@@ -176,7 +176,7 @@ fn test_three_phase_temporal_deny() {
     };
     ap2.cache_set(attrs);
 
-    let temporal = TemporalGuard::new(vec![]);
+    let temporal = TemporalGuard::new(60, 60);
 
     // Exhaust rate limit by making many requests
     for _ in 0..60 {
@@ -358,7 +358,7 @@ fn test_deny_reason_rebac_message() {
     let rebac = ReBAC::new();
     // Grant NO relationship
     let ap2 = AP2Evaluator::with_defaults();
-    let temporal = TemporalGuard::new(vec![]);
+    let temporal = TemporalGuard::new(60, 60);
     let verifier = DefaultMandateVerifier::new(rebac, ap2, temporal);
 
     let context = create_request_context(requester, PolicyAction::ReadMetrics, unrelated_resource.clone());
@@ -401,7 +401,7 @@ fn test_deny_reason_temporal_message() {
     };
     ap2.cache_set(attrs);
 
-    let temporal = TemporalGuard::new(vec![]);
+    let temporal = TemporalGuard::new(60, 60);
 
     // Exhaust rate limit
     for _ in 0..60 {

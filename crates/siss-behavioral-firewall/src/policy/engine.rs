@@ -79,16 +79,22 @@ impl PolicyEngine {
         reasons.push("AP2 skipped (no evaluator)".to_string());
 
         // Phase 3: Temporal Evaluation (optional - check rate limits)
-        match self.temporal.check_rate_limit(requester.0) {
-            Ok(()) => {
+        let now = chrono::Utc::now();
+        match self.temporal.evaluate(requester.0, now) {
+            Ok(crate::temporal::Decision::Allow) => {
                 reasons.push("Temporal allowed (rate OK)".to_string());
             }
-            Err(e) => {
-                let denied = match e {
-                    DenyReason::TemporalViolation(msg) => msg,
-                    _ => "Temporal: Unknown error".to_string(),
+            Ok(crate::temporal::Decision::Deny) => {
+                reasons.push("Temporal denied (rate/time/blackout check failed)".to_string());
+                let mandate = Mandate {
+                    decision: Decision::Deny,
+                    reasons,
+                    audit_id: Uuid::new_v4(),
                 };
-                reasons.push(format!("Temporal denied: {}", denied));
+                return Ok(mandate);
+            }
+            Err(e) => {
+                reasons.push(format!("Temporal error: {}", e));
                 let mandate = Mandate {
                     decision: Decision::Deny,
                     reasons,
@@ -175,7 +181,7 @@ mod tests {
         let engine = PolicyEngine::new(
             rebac,
             SovereignAttributeCache::new(Duration::from_secs(300)),
-            TemporalGuard::new(vec![]),
+            TemporalGuard::new(60, 60),
         );
 
         let mandate = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
@@ -191,7 +197,7 @@ mod tests {
         let engine = PolicyEngine::new(
             rebac,
             SovereignAttributeCache::new(Duration::from_secs(300)),
-            TemporalGuard::new(vec![]),
+            TemporalGuard::new(60, 60),
         );
 
         let mandate = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
@@ -209,7 +215,7 @@ mod tests {
         let engine = PolicyEngine::new(
             rebac,
             SovereignAttributeCache::new(Duration::from_secs(300)),
-            TemporalGuard::new(vec![]),
+            TemporalGuard::new(60, 60),
         );
 
         let m1 = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
@@ -232,7 +238,7 @@ mod tests {
         let engine = PolicyEngine::new(
             rebac,
             SovereignAttributeCache::new(Duration::from_secs(300)),
-            TemporalGuard::new(vec![]),
+            TemporalGuard::new(60, 60),
         );
 
         // Should allow since we granted
@@ -260,7 +266,7 @@ mod tests {
         let engine = PolicyEngine::new(
             rebac,
             SovereignAttributeCache::new(Duration::from_secs(300)),
-            TemporalGuard::new(vec![]),
+            TemporalGuard::new(60, 60),
         );
 
         let mandate = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
@@ -283,7 +289,7 @@ mod tests {
         let engine = PolicyEngine::new(
             rebac,
             SovereignAttributeCache::new(Duration::from_secs(300)),
-            TemporalGuard::new(vec![]),
+            TemporalGuard::new(60, 60),
         );
 
         let mandate = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
@@ -304,7 +310,7 @@ mod tests {
 
         rebac.grant_relationship(s1, a1.clone(), RelationType::Owner, None).unwrap();
 
-        let temporal = TemporalGuard::new(vec![]);
+        let temporal = TemporalGuard::new(60, 60);
 
         // Consume rate limit (60 is the max)
         for _ in 0..60 {
@@ -336,7 +342,7 @@ mod tests {
         let engine = PolicyEngine::new(
             rebac,
             SovereignAttributeCache::new(Duration::from_secs(300)),
-            TemporalGuard::new(vec![]),
+            TemporalGuard::new(60, 60),
         );
 
         let mandate = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();

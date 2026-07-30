@@ -97,7 +97,7 @@ fn test_rate_limiter_partial_refill() {
 
 #[test]
 fn test_temporal_guard_rate_limit_60_allowed() {
-    let guard = TemporalGuard::new(vec![]);
+    let guard = TemporalGuard::new(60, 60);
     let s1 = sovereign(1);
 
     for i in 0..60 {
@@ -108,7 +108,7 @@ fn test_temporal_guard_rate_limit_60_allowed() {
 
 #[test]
 fn test_temporal_guard_rate_limit_61st_denied() {
-    let guard = TemporalGuard::new(vec![]);
+    let guard = TemporalGuard::new(60, 60);
     let s1 = sovereign(1);
 
     for _ in 0..60 {
@@ -121,7 +121,7 @@ fn test_temporal_guard_rate_limit_61st_denied() {
 
 #[test]
 fn test_temporal_guard_sliding_window_boundary() {
-    let guard = TemporalGuard::new(vec![]);
+    let guard = TemporalGuard::new(60, 60);
     let s1 = sovereign(1);
 
     for _ in 0..60 {
@@ -136,7 +136,7 @@ fn test_temporal_guard_sliding_window_boundary() {
 
 #[test]
 fn test_temporal_guard_independent_rate_limits() {
-    let guard = TemporalGuard::new(vec![]);
+    let guard = TemporalGuard::new(60, 60);
     let s1 = sovereign(1);
     let s2 = sovereign(2);
 
@@ -202,7 +202,7 @@ fn test_temporal_guard_no_applicable_time_window() {
 
 #[test]
 fn test_temporal_guard_composite_check_both_pass() {
-    let guard = TemporalGuard::new(vec![]);
+    let guard = TemporalGuard::new(60, 60);
     let s1 = sovereign(1);
 
     let result = guard.check(s1, PolicyAction::Spawn);
@@ -211,7 +211,7 @@ fn test_temporal_guard_composite_check_both_pass() {
 
 #[test]
 fn test_temporal_guard_composite_check_rate_limit_fail() {
-    let guard = TemporalGuard::new(vec![]);
+    let guard = TemporalGuard::new(60, 60);
     let s1 = sovereign(1);
 
     for _ in 0..60 {
@@ -243,13 +243,13 @@ fn test_temporal_guard_composite_check_time_window_fail() {
 
 #[test]
 fn test_temporal_guard_utc_only_time() {
-    let guard = TemporalGuard::new(vec![]);
+    let guard = TemporalGuard::new(60, 60);
     let _ = guard.check_time_window(PolicyAction::Spawn);
 }
 
 #[test]
 fn test_temporal_guard_concurrent_rate_checks() {
-    let guard = Arc::new(TemporalGuard::new(vec![]));
+    let guard = Arc::new(TemporalGuard::new(60, 60));
     let s1 = sovereign(1);
 
     let mut handles = vec![];
@@ -278,7 +278,7 @@ fn test_temporal_guard_concurrent_rate_checks() {
 
 #[test]
 fn test_temporal_guard_deadline_not_exceeded() {
-    let guard = TemporalGuard::new(vec![]);
+    let guard = TemporalGuard::new(60, 60);
     let s1 = sovereign(1);
 
     let deadline = std::time::SystemTime::now() + Duration::from_secs(10);
@@ -288,7 +288,7 @@ fn test_temporal_guard_deadline_not_exceeded() {
 
 #[test]
 fn test_temporal_guard_deadline_exceeded() {
-    let guard = TemporalGuard::new(vec![]);
+    let guard = TemporalGuard::new(60, 60);
     let s1 = sovereign(1);
 
     let deadline = std::time::SystemTime::now() - Duration::from_secs(1);
@@ -302,7 +302,7 @@ fn test_temporal_guard_deadline_exceeded() {
 
 #[test]
 fn test_temporal_guard_scheduled_revocation_not_active() {
-    let guard = TemporalGuard::new(vec![]);
+    let guard = TemporalGuard::new(60, 60);
     let s1 = sovereign(1);
 
     let revoke_time = std::time::SystemTime::now() + Duration::from_secs(10);
@@ -314,7 +314,7 @@ fn test_temporal_guard_scheduled_revocation_not_active() {
 
 #[test]
 fn test_temporal_guard_scheduled_revocation_active() {
-    let guard = TemporalGuard::new(vec![]);
+    let guard = TemporalGuard::new(60, 60);
     let s1 = sovereign(1);
 
     let revoke_time = std::time::SystemTime::now() - Duration::from_secs(1);
@@ -330,7 +330,7 @@ fn test_temporal_guard_scheduled_revocation_active() {
 
 #[test]
 fn test_temporal_guard_rate_limit_exactly_at_capacity() {
-    let guard = TemporalGuard::new(vec![]);
+    let guard = TemporalGuard::new(60, 60);
     let s1 = sovereign(1);
 
     for _ in 0..60 {
@@ -360,7 +360,7 @@ fn test_rate_limiter_very_short_refill_period() {
 
 #[test]
 fn test_temporal_guard_multiple_sovereigns_independent() {
-    let guard = TemporalGuard::new(vec![]);
+    let guard = TemporalGuard::new(60, 60);
     let s1 = sovereign(1);
     let s2 = sovereign(2);
     let s3 = sovereign(3);

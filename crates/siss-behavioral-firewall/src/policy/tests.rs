@@ -191,7 +191,7 @@ mod tests {
         let engine = PolicyEngine::new(
             rebac,
             SovereignAttributeCache::new(Duration::from_secs(300)),
-            TemporalGuard::new(vec![]),
+            TemporalGuard::new(60, 60),
         );
 
         let mandate = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
@@ -209,7 +209,7 @@ mod tests {
         let engine = PolicyEngine::new(
             rebac,
             SovereignAttributeCache::new(Duration::from_secs(300)),
-            TemporalGuard::new(vec![]),
+            TemporalGuard::new(60, 60),
         );
 
         let mandate = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
@@ -228,7 +228,7 @@ mod tests {
         let engine = PolicyEngine::new(
             rebac,
             SovereignAttributeCache::new(Duration::from_secs(300)),
-            TemporalGuard::new(vec![]),
+            TemporalGuard::new(60, 60),
         );
 
         // First call
@@ -251,7 +251,7 @@ mod tests {
         let engine = PolicyEngine::new(
             rebac,
             SovereignAttributeCache::new(Duration::from_secs(300)),
-            TemporalGuard::new(vec![]),
+            TemporalGuard::new(60, 60),
         );
 
         // Initially denied
@@ -339,7 +339,7 @@ mod tests {
         let engine = PolicyEngine::new(
             rebac,
             SovereignAttributeCache::new(Duration::from_secs(300)),
-            TemporalGuard::new(vec![]),
+            TemporalGuard::new(60, 60),
         );
 
         let m1 = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();
@@ -359,7 +359,7 @@ mod tests {
         let engine = PolicyEngine::new(
             rebac,
             SovereignAttributeCache::new(Duration::from_secs(300)),
-            TemporalGuard::new(vec![]),
+            TemporalGuard::new(60, 60),
         );
 
         let mandate = engine.verify_mandate(&s1, &PolicyAction::Spawn, &a1).unwrap();

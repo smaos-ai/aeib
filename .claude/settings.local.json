@@ -99,7 +99,13 @@
       "WebFetch(domain:claude.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:www.quinnemanuel.com)",
-      "WebFetch(domain:www.gunder.com)"
+      "WebFetch(domain:www.gunder.com)",
+      "WebFetch(domain:notebook.google.com)",
+      "Bash(notebooklm auth *)",
+      "Bash(notebooklm use *)",
+      "Bash(notebooklm ask *)",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_navigate"
     ],
     "defaultMode": "acceptEdits"
   },

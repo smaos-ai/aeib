@@ -14,7 +14,7 @@ use chrono::{Utc, Datelike, Timelike};
 #[test]
 fn test_temporal_guard_rate_limit_capacity_60() {
     // RateLimiter allows exactly 60 requests in 60 seconds per (actor, resource) pair
-    let guard = TemporalGuard::new(vec![]);
+    let guard = TemporalGuard::new(60, 60);
     let actor = Uuid::new_v4();
     let resource = Uuid::new_v4();
 
@@ -31,7 +31,7 @@ fn test_temporal_guard_rate_limit_capacity_60() {
 #[test]
 fn test_temporal_guard_rate_limit_exceeded() {
     // 61st request in same window is rejected
-    let guard = TemporalGuard::new(vec![]);
+    let guard = TemporalGuard::new(60, 60);
     let actor = Uuid::new_v4();
     let resource = Uuid::new_v4();
 
@@ -49,7 +49,7 @@ fn test_temporal_guard_rate_limit_exceeded() {
 #[test]
 fn test_temporal_guard_sliding_window_refill() {
     // At T=61s, new request allowed (60s window expires, new tokens available)
-    let guard = TemporalGuard::new(vec![]);
+    let guard = TemporalGuard::new(60, 60);
     let actor = Uuid::new_v4();
     let resource = Uuid::new_v4();
 
@@ -73,7 +73,7 @@ fn test_temporal_guard_sliding_window_refill() {
 #[test]
 fn test_temporal_guard_per_actor_isolation() {
     // Actor A gets 60 req/min independently from Actor B
-    let guard = TemporalGuard::new(vec![]);
+    let guard = TemporalGuard::new(60, 60);
     let actor_a = Uuid::new_v4();
     let actor_b = Uuid::new_v4();
     let resource = Uuid::new_v4();
@@ -97,7 +97,7 @@ fn test_temporal_guard_per_actor_isolation() {
 #[test]
 fn test_temporal_guard_per_resource_isolation() {
     // Same actor can make 60 req/min to Resource 1 AND 60 req/min to Resource 2
-    let guard = TemporalGuard::new(vec![]);
+    let guard = TemporalGuard::new(60, 60);
     let actor = Uuid::new_v4();
     let resource1 = Uuid::new_v4();
     let resource2 = Uuid::new_v4();
@@ -303,7 +303,7 @@ fn test_temporal_guard_blackout_date_bypass_window() {
 fn test_temporal_guard_decision_cache_1min_ttl() {
     // Decision cached for 1 minute (allow → cached, deny → cached)
     // Avoids re-evaluating rate limit + window on every request
-    let guard = TemporalGuard::new(vec![]);
+    let guard = TemporalGuard::new(60, 60);
     let actor = Uuid::new_v4();
     let resource = Uuid::new_v4();
 
@@ -319,7 +319,7 @@ fn test_temporal_guard_decision_cache_1min_ttl() {
 #[test]
 fn test_temporal_guard_cache_invalidation_on_policy_change() {
     // Policy update (e.g., new window or blackout date) immediately invalidates cache
-    let guard = TemporalGuard::new(vec![]);
+    let guard = TemporalGuard::new(60, 60);
     let actor = Uuid::new_v4();
     let resource = Uuid::new_v4();
 
@@ -341,7 +341,7 @@ fn test_temporal_guard_cache_invalidation_on_policy_change() {
 #[test]
 fn test_temporal_guard_concurrent_rate_limit_threads() {
     // 100 concurrent threads attempt requests → exactly 60 succeed, 40 rejected
-    let guard = std::sync::Arc::new(TemporalGuard::new(vec![]));
+    let guard = std::sync::Arc::new(TemporalGuard::new(60, 60));
     let actor = Uuid::new_v4();
     let resource = Uuid::new_v4();
 

@@ -123,32 +123,31 @@ impl MandateVerifier for DefaultMandateVerifier {
             });
         }
 
-        // Phase 3: TemporalGuard - Check rate limit and time windows
-        let temporal_result = self.temporal.check_rate_limit(requester.0);
-        if let Err(e) = temporal_result {
-            reasons.push(format!("Temporal denied: {:?}", e));
-            return Ok(Mandate {
-                decision: MandateDecision::Deny,
-                reasons,
-                audit_id,
-                cache_ttl: Duration::from_secs(60),
-            });
+        // Phase 3: TemporalGuard - Check rate limit, time windows, and blackout dates
+        let now = chrono::Utc::now();
+        match self.temporal.evaluate(requester.0, now) {
+            Ok(crate::temporal::Decision::Allow) => {
+                reasons.push("TemporalGuard: Rate limit + time window + blackout checks passed".to_string());
+            }
+            Ok(crate::temporal::Decision::Deny) => {
+                reasons.push("TemporalGuard: Denied by rate limit, time window, or blackout date".to_string());
+                return Ok(Mandate {
+                    decision: MandateDecision::Deny,
+                    reasons,
+                    audit_id,
+                    cache_ttl: Duration::from_secs(60),
+                });
+            }
+            Err(e) => {
+                reasons.push(format!("TemporalGuard error: {}", e));
+                return Ok(Mandate {
+                    decision: MandateDecision::Deny,
+                    reasons,
+                    audit_id,
+                    cache_ttl: Duration::from_secs(60),
+                });
+            }
         }
-        reasons.push("TemporalGuard: Rate limit OK".to_string());
-
-        // Convert rebac::PolicyAction to temporal::PolicyAction
-        let temporal_action = convert_policy_action_temporal(action.clone());
-        let temporal_window = self.temporal.check_time_window(temporal_action);
-        if let Err(e) = temporal_window {
-            reasons.push(format!("Temporal window denied: {:?}", e));
-            return Ok(Mandate {
-                decision: MandateDecision::Deny,
-                reasons,
-                audit_id,
-                cache_ttl: Duration::from_secs(60),
-            });
-        }
-        reasons.push("TemporalGuard: Time window OK".to_string());
 
         // All three phases passed
         Ok(Mandate {
@@ -185,29 +184,6 @@ fn convert_policy_action(action: crate::rebac::PolicyAction) -> crate::ap2::Poli
     }
 }
 
-fn convert_policy_action_temporal(action: crate::rebac::PolicyAction) -> crate::temporal::PolicyAction {
-    use crate::rebac::PolicyAction as RebacAction;
-    use crate::temporal::PolicyAction as TemporalAction;
-
-    match action {
-        RebacAction::Spawn => TemporalAction::Spawn,
-        RebacAction::Pause => TemporalAction::Pause,
-        RebacAction::Resume => TemporalAction::Resume,
-        RebacAction::Abort => TemporalAction::Abort,
-        RebacAction::Terminate => TemporalAction::Terminate,
-        RebacAction::AssignTask => TemporalAction::AssignTask,
-        RebacAction::CancelTask => TemporalAction::CancelTask,
-        RebacAction::FinalizeTask => TemporalAction::FinalizeTask,
-        RebacAction::InitiateConsent => TemporalAction::InitiateConsent,
-        RebacAction::VoteConsent => TemporalAction::VoteConsent,
-        RebacAction::RevokeGrant => TemporalAction::RevokeGrant,
-        RebacAction::ReadMetrics => TemporalAction::ReadMetrics,
-        RebacAction::StreamEvents => TemporalAction::StreamEvents,
-        RebacAction::CreatePolicy => TemporalAction::CreatePolicy,
-        RebacAction::UpdatePolicy => TemporalAction::UpdatePolicy,
-        RebacAction::DeletePolicy => TemporalAction::DeletePolicy,
-    }
-}
 
 #[cfg(test)]
 mod tests {

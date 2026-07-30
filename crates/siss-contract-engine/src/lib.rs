@@ -11,6 +11,9 @@ pub mod world_model_validator;
 pub mod insurance_policy;
 pub mod claims_governance;
 pub mod zk_underwriting;
+pub mod telecom_policy;
+pub mod slicing_orchestrator;
+pub mod network_governance;
 
 pub use contract::{Contract, ContractBuilder, ContractState, VerticalType};
 pub use error::{ContractError, PolicyError, RevenueError, SlaError};

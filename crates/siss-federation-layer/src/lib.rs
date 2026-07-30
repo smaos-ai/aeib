@@ -100,7 +100,7 @@ pub enum FederationError {
 pub struct FederationEngine {
     providers: Arc<DashMap<CloudProvider, Arc<dyn CloudAdapter>>>,
     deployments: Arc<DashMap<Uuid, Vec<DeploymentProof>>>,
-    failover_timeout: Duration,
+    _failover_timeout: Duration,
 }
 
 impl FederationEngine {
@@ -108,7 +108,7 @@ impl FederationEngine {
         FederationEngine {
             providers: Arc::new(DashMap::new()),
             deployments: Arc::new(DashMap::new()),
-            failover_timeout,
+            _failover_timeout: failover_timeout,
         }
     }
 
@@ -334,7 +334,6 @@ impl WorkloadMigrationManager {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::atomic::{AtomicUsize, Ordering};
 
     // ============ Multi-Cloud Abstraction Tests (1-5) ============
 
@@ -522,7 +521,7 @@ mod tests {
         let start = std::time::Instant::now();
         let engine = FederationEngine::new(Duration::from_secs(10));
 
-        let failover_result = engine.failover_workload(
+        let _failover_result = engine.failover_workload(
             Uuid::new_v4(),
             "us-west-1".to_string(),
         ).await;
@@ -726,7 +725,7 @@ mod tests {
             })
         }
 
-        async fn verify_health(&self, workload_id: Uuid) -> Result<bool, FederationError> {
+        async fn verify_health(&self, _workload_id: Uuid) -> Result<bool, FederationError> {
             Ok(true)
         }
 
@@ -742,7 +741,7 @@ mod tests {
             })
         }
 
-        async fn get_deployment_status(&self, workload_id: Uuid) -> Result<DeploymentStatus, FederationError> {
+        async fn get_deployment_status(&self, _workload_id: Uuid) -> Result<DeploymentStatus, FederationError> {
             Ok(DeploymentStatus::Healthy)
         }
     }

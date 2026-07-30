@@ -5851,17 +5851,14 @@ dependencies = [
 name = "siss-local-llm"
 version = "0.1.0"
 dependencies = [
- "chrono",
- "dashmap 5.5.3",
- "futures",
- "hex",
+ "anyhow",
+ "async-trait",
+ "reqwest 0.12.28",
  "serde",
  "serde_json",
- "sha2",
- "siss-layer00",
  "thiserror 2.0.18",
  "tokio",
- "uuid",
+ "tracing",
 ]
 
 [[package]]

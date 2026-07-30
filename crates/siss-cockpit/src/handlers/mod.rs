@@ -20,6 +20,7 @@ pub mod a2ui_payload_generator;
 pub mod a2ui_payload_integration;
 pub mod aoe_cockpit;
 pub mod aoe_cockpit_integration;
+pub mod security_view;
 pub mod swarm_sync;
 pub mod swarm_sync_integration;
 pub mod crabbox_security;

@@ -1,0 +1,8 @@
+[package]
+name = "siss-ap2-replicator"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[dependencies]
+sha2.workspace = true

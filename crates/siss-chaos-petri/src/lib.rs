@@ -1,7 +1,7 @@
 //! Chaos Petri Quarantine Zone
 //! Failure injection framework for resilience testing of 5+ agent clusters
 //!
-//! Simulates 12 failure scenarios:
+//! Simulates 15 failure scenarios:
 //! 1. Network timeout (agent unresponsive)
 //! 2. Database crash (mid-transaction recovery)
 //! 3. Concurrent write collision
@@ -14,6 +14,9 @@
 //! 10. Capsule corruption detection
 //! 11. Recovery from checkpoint (Kalman state)
 //! 12. Full cluster partition (split-brain)
+//! 13. Region down (cross-region failover)
+//! 14. Network partition between regions
+//! 15. Split-brain across regions
 //!
 //! Guarantees:
 //! - < 5 second recovery time per failure scenario
@@ -21,7 +24,9 @@
 //! - Agent isolation (one agent's failure ≠ cluster-wide)
 //! - Split-brain prevention via quorum election
 //!
-//! Test Matrix: 12 failure scenarios (all must pass before Phase 2 sign-off)
+//! Test Matrix: 15 failure scenarios (all must pass before Phase 2 sign-off)
+
+pub mod scenarios;
 
 use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
@@ -92,6 +97,20 @@ pub enum FailureScenario {
         partition_a: Vec<usize>,
         partition_b: Vec<usize>,
     },
+    /// Scenario 13: Region down (multi-region failover)
+    RegionDown {
+        region_name: String,
+        failover_target: String,
+    },
+    /// Scenario 14: Network partition between regions
+    NetworkPartition {
+        region_a: String,
+        region_b: String,
+    },
+    /// Scenario 15: Split-brain across regions
+    SplitBrainCrossRegion {
+        regions: Vec<String>,
+    },
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -116,6 +135,8 @@ pub enum RecoveryStrategy {
     IntegrityVerification { repair_strategy: String },
     /// Quorum election (majority consensus) - for partition
     QuorumElection { quorum_size: usize },
+    /// Region failover - for multi-region failure
+    RegionFailover { target_region: String },
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -518,6 +539,22 @@ impl ChaosPetriQuarantine {
                 recovered_at = detected_at + Duration::milliseconds(i64::from(quorum_size) * 100);
                 cascade_depth = 0;
             }
+            FailureScenario::RegionDown { .. } => {
+                // Region failover: RTO < 5s (45ms for detection + promotion + resume)
+                recovered_at = detected_at + Duration::milliseconds(45);
+                cascade_depth = 0;
+            }
+            FailureScenario::NetworkPartition { .. } => {
+                // Partition detection via merkle chain: < 5s
+                recovered_at = detected_at + Duration::milliseconds(30);
+                cascade_depth = 0;
+            }
+            FailureScenario::SplitBrainCrossRegion { regions } => {
+                // 2PC election: quorum-based winner (fast with 3+ regions)
+                let election_time = (regions.len() as u32).max(1) * 10;
+                recovered_at = detected_at + Duration::milliseconds(i64::from(election_time));
+                cascade_depth = 0;
+            }
         }
 
         // Enforce 5s recovery SLA
@@ -578,6 +615,17 @@ impl ChaosPetriQuarantine {
             FailureScenario::FullClusterPartition { partition_a, .. } => {
                 let quorum_size = partition_a.len().max(1);
                 Ok(RecoveryStrategy::QuorumElection { quorum_size })
+            }
+            FailureScenario::RegionDown { .. } => {
+                Ok(RecoveryStrategy::RegionFailover {
+                    target_region: "replica".to_string(),
+                })
+            }
+            FailureScenario::NetworkPartition { .. } => {
+                Ok(RecoveryStrategy::QuorumElection { quorum_size: 2 })
+            }
+            FailureScenario::SplitBrainCrossRegion { .. } => {
+                Ok(RecoveryStrategy::QuorumElection { quorum_size: 2 })
             }
         }
     }

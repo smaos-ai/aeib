@@ -1,0 +1,25 @@
+[package]
+name = "siss-swarm-consensus"
+edition = "2024"
+version = "0.1.0"
+license = "MIT"
+
+[dependencies]
+uuid = { workspace = true }
+chrono = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+ed25519-dalek = { workspace = true }
+sha2 = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+parking_lot = { workspace = true }
+dashmap = "5.5"
+hex = { workspace = true }
+
+# Internal dependencies
+siss-swarm-coordinator = { path = "../siss-swarm-coordinator" }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full"] }

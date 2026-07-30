@@ -22,8 +22,8 @@ use uuid::Uuid;
 use siss_behavioral_firewall::ap2::{AttributePredicate, SovereignAttributes};
 use siss_behavioral_firewall::covenant_firewall::{CovenantFirewall, EconomicIntent};
 use siss_behavioral_firewall::policy_engine::PolicyComposition;
-use siss_behavioral_firewall::rebac::DenyReason;
-use siss_behavioral_firewall::temporal::{PolicyAction, TemporalGuard};
+use siss_behavioral_firewall::rebac::{DenyReason, PolicyAction};
+use siss_behavioral_firewall::temporal::TemporalGuard;
 
 use crate::types::GatekeeperError;
 
@@ -122,7 +122,7 @@ impl AuthorizationPipeline {
         }
 
         // Gate 4: Temporal
-        self.check_temporal(req.actor, req.action)?;
+        self.check_temporal(req.actor, req.action.clone())?;
         decisions.insert("temporal".into(), "PASSED".into());
 
         let approval_timestamp = SystemTime::now();
@@ -195,13 +195,16 @@ impl AuthorizationPipeline {
         }
     }
 
-    fn check_temporal(&self, actor: Uuid, action: PolicyAction) -> Result<(), GatekeeperError> {
+    fn check_temporal(&self, actor: Uuid, _action: PolicyAction) -> Result<(), GatekeeperError> {
+        let now = chrono::Utc::now();
+        // Check rate limit: 60 requests per 60 seconds
         self.temporal_guard
             .check_rate_limit(actor)
-            .map_err(deny_to_temporal)?;
+            .map_err(|e| GatekeeperError::TemporalViolation(format!("Rate limit exceeded: {}", e)))?;
+        // Check time window: UTC only, no blackout dates configured in genesis
         self.temporal_guard
-            .check_time_window(action)
-            .map_err(deny_to_temporal)?;
+            .check_time_window(now)
+            .map_err(|e| GatekeeperError::TemporalViolation(format!("Time window check failed: {}", e)))?;
         Ok(())
     }
 }

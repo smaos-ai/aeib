@@ -17,7 +17,7 @@ use serde::{Serialize, Deserialize};
 
 use siss_behavioral_firewall::ap2::{SovereignAttributes, AttributePredicate};
 use siss_behavioral_firewall::covenant_firewall::EconomicIntent;
-use siss_behavioral_firewall::temporal::PolicyAction;
+use siss_behavioral_firewall::rebac::PolicyAction;
 
 use crate::pipeline::authorization::{TaskAuthorizationRequest, AuthorizationPipeline};
 use crate::types::GatekeeperError;
@@ -96,8 +96,8 @@ pub fn execute_genesis(signing_key: &SigningKey) -> Result<GenesisCapsule, Gatek
         policy_composition: None,
     };
 
-    // 7. Run authorization pipeline (empty time windows = no temporal restrictions)
-    let temporal_guard = siss_behavioral_firewall::temporal::TemporalGuard::new(vec![]);
+    // 7. Run authorization pipeline (60 req/min, no time windows)
+    let temporal_guard = siss_behavioral_firewall::temporal::TemporalGuard::new(60, 60);
     let pipeline = AuthorizationPipeline::new(temporal_guard);
 
     let proof = pipeline.authorize(&auth_req)?;

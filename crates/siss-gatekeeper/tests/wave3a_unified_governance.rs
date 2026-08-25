@@ -15,7 +15,8 @@ use siss_behavioral_firewall::ap2::{
 };
 use siss_behavioral_firewall::covenant_firewall::EconomicIntent;
 use siss_behavioral_firewall::policy_engine::{Policy, PolicyComposition};
-use siss_behavioral_firewall::temporal::{PolicyAction, TemporalGuard, TimeWindow};
+use siss_behavioral_firewall::rebac::PolicyAction;
+use siss_behavioral_firewall::temporal::{TemporalGuard, TimeWindow};
 
 use siss_gatekeeper::pipeline::authorization::{AuthorizationPipeline, TaskAuthorizationRequest};
 use siss_gatekeeper::types::GatekeeperError;
@@ -150,7 +151,7 @@ fn test_unified_policy_gate_rejects_invalid_composition() {
 
 #[test]
 fn test_unified_temporal_gate_rejects_rate_limit() {
-    let guard = TemporalGuard::new(vec![]);
+    let guard = TemporalGuard::new(60, 60);
     let actor = Uuid::new_v4();
 
     for _ in 0..60 {
@@ -158,29 +159,22 @@ fn test_unified_temporal_gate_rejects_rate_limit() {
     }
 
     let result = guard.check_rate_limit(actor);
-    assert!(result.is_err(), "Temporal gate must reject 61st request");
+    assert!(!result.unwrap(), "Temporal gate must reject 61st request");
 }
 
 #[test]
 fn test_unified_temporal_gate_rejects_outside_window() {
     // 0-1 hour window — any current UTC hour outside this band should reject.
-    let window = TimeWindow {
-        id: Uuid::new_v4(),
-        name: "narrow".to_string(),
-        applies_to: PolicyAction::Spawn,
-        allowed_hours: vec![(0, 1)],
-        blackout_dates: vec![],
-    };
-    let guard = TemporalGuard::new(vec![window]);
+    let guard = TemporalGuard::new(50, 60).with_time_window(0, 1, true);
 
     // We can't deterministically prove a specific UTC hour, but we can verify
     // that the gate produces an error for at least one hour outside [0,1).
     // Run during any hour 1..=23 (true 23/24 of the time); test_utc_only_time
     // in the temporal crate already covers the hour-0 boundary case.
-    let result = guard.check_time_window(PolicyAction::Spawn);
+    let result = guard.check_time_window(chrono::Utc::now());
     if chrono::Utc::now().timestamp() % 86_400 >= 3_600 {
         assert!(
-            result.is_err(),
+            result.is_ok() && !result.unwrap(),
             "Temporal gate must reject hour outside allowed window"
         );
     }
@@ -192,7 +186,7 @@ fn test_unified_temporal_gate_rejects_outside_window() {
 
 #[test]
 fn test_pipeline_all_gates_pass() {
-    let pipeline = AuthorizationPipeline::new(TemporalGuard::new(vec![]));
+    let pipeline = AuthorizationPipeline::new(TemporalGuard::new(50, 60));
     let req = base_request();
 
     let result = pipeline.authorize(&req);
@@ -205,7 +199,7 @@ fn test_pipeline_all_gates_pass() {
 
 #[test]
 fn test_pipeline_covenant_gate_fail_blocks_downstream() {
-    let pipeline = AuthorizationPipeline::new(TemporalGuard::new(vec![]));
+    let pipeline = AuthorizationPipeline::new(TemporalGuard::new(50, 60));
 
     let mut req = base_request();
     // Force covenant failure: invalidate signature.
@@ -225,7 +219,7 @@ fn test_pipeline_covenant_gate_fail_blocks_downstream() {
 
 #[test]
 fn test_pipeline_ap2_gate_fail_blocks_temporal() {
-    let pipeline = AuthorizationPipeline::new(TemporalGuard::new(vec![]));
+    let pipeline = AuthorizationPipeline::new(TemporalGuard::new(50, 60));
 
     let mut req = base_request();
     // Covenant passes (signed), AP2 fails (trust 80 < 200), Policy would fail too.
@@ -243,7 +237,7 @@ fn test_pipeline_ap2_gate_fail_blocks_temporal() {
 
 #[test]
 fn test_pipeline_human_gate_required_on_temporal_violation() {
-    let guard = TemporalGuard::new(vec![]);
+    let guard = TemporalGuard::new(50, 60);
     let actor = Uuid::new_v4();
     for _ in 0..60 {
         let _ = guard.check_rate_limit(actor);
@@ -274,7 +268,7 @@ fn test_pipeline_human_gate_required_on_temporal_violation() {
 #[test]
 fn test_pipeline_gate_order_covenant_before_ap2() {
     // Both gates would fail. The first error must be Covenant, not AP2.
-    let pipeline = AuthorizationPipeline::new(TemporalGuard::new(vec![]));
+    let pipeline = AuthorizationPipeline::new(TemporalGuard::new(50, 60));
 
     let mut req = base_request();
     req.capsule_signature = vec![0u8; 64]; // covenant fail
@@ -295,7 +289,7 @@ fn test_pipeline_deterministic_gate_sequence() {
 #[test]
 fn test_pipeline_no_silent_pass() {
     // Every failure mode must return Err. There is no "warn and continue".
-    let pipeline = AuthorizationPipeline::new(TemporalGuard::new(vec![]));
+    let pipeline = AuthorizationPipeline::new(TemporalGuard::new(50, 60));
 
     // covenant failure
     let mut req = base_request();
@@ -319,7 +313,7 @@ fn test_pipeline_no_silent_pass() {
     );
 
     // temporal failure
-    let guard = TemporalGuard::new(vec![]);
+    let guard = TemporalGuard::new(50, 60);
     let actor = Uuid::new_v4();
     for _ in 0..60 {
         let _ = guard.check_rate_limit(actor);
@@ -335,7 +329,7 @@ fn test_pipeline_no_silent_pass() {
 
 #[test]
 fn test_pipeline_audit_trail_on_each_gate() {
-    let pipeline = AuthorizationPipeline::new(TemporalGuard::new(vec![]));
+    let pipeline = AuthorizationPipeline::new(TemporalGuard::new(50, 60));
     let mut req = base_request();
     req.ap2_predicate = Some(AttributePredicate::TrustLevel(50));
     req.policy_composition = Some(passing_policy());
@@ -367,7 +361,7 @@ fn test_pipeline_audit_trail_on_each_gate() {
 fn test_pipeline_concurrent_authorization_independent() {
     // 8 parallel actors, each issuing 60 requests under their own rate limit.
     // Independent buckets ⇒ no actor's exhaustion affects another.
-    let pipeline = Arc::new(AuthorizationPipeline::new(TemporalGuard::new(vec![])));
+    let pipeline = Arc::new(AuthorizationPipeline::new(TemporalGuard::new(50, 60)));
 
     let mut handles = vec![];
     for i in 0..8u64 {
@@ -394,7 +388,7 @@ fn test_pipeline_concurrent_authorization_independent() {
 
 #[test]
 fn test_pipeline_merkle_proof_on_approval() {
-    let pipeline = AuthorizationPipeline::new(TemporalGuard::new(vec![]));
+    let pipeline = AuthorizationPipeline::new(TemporalGuard::new(50, 60));
     let req = base_request();
 
     let proof = pipeline.authorize(&req).expect("approval expected");
@@ -425,7 +419,7 @@ fn base_request_with_ids(
     TaskAuthorizationRequest {
         task_id,
         actor,
-        action: template.action,
+        action: template.action.clone(),
         capsule_merkle_root: template.capsule_merkle_root,
         capsule_intent: template.capsule_intent.clone(),
         capsule_signature: template.capsule_signature.clone(),

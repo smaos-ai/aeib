@@ -2,7 +2,6 @@
 // All tests initially fail, implementation follows
 
 use crate::*;
-use std::collections::HashMap;
 use chrono::Utc;
 
 #[test]
@@ -82,14 +81,16 @@ fn test_fedramp_low_baseline_completeness() {
 #[test]
 fn test_fedramp_moderate_baseline_completeness() {
     let orchestrator = FedRAMPOrchestrator::new_with_baseline("test", FedRAMPLevel::Moderate);
-    assert!(orchestrator.control_count() > orchestrator.new_with_baseline("test", FedRAMPLevel::Low).control_count());
+    let low_orchestrator = FedRAMPOrchestrator::new_with_baseline("test", FedRAMPLevel::Low);
+    assert!(orchestrator.control_count() > low_orchestrator.control_count());
     assert_eq!(orchestrator.level(), FedRAMPLevel::Moderate);
 }
 
 #[test]
 fn test_fedramp_high_baseline_completeness() {
     let orchestrator = FedRAMPOrchestrator::new_with_baseline("test", FedRAMPLevel::High);
-    assert!(orchestrator.control_count() > orchestrator.new_with_baseline("test", FedRAMPLevel::Moderate).control_count());
+    let moderate_orchestrator = FedRAMPOrchestrator::new_with_baseline("test", FedRAMPLevel::Moderate);
+    assert!(orchestrator.control_count() > moderate_orchestrator.control_count());
     assert_eq!(orchestrator.level(), FedRAMPLevel::High);
 }
 
@@ -152,4 +153,20 @@ fn test_incident_response_coordination() {
     };
     orchestrator.log_incident(incident);
     assert_eq!(orchestrator.incident_count(), 1);
+}
+
+#[test]
+fn test_evidence_audit_trail_completeness() {
+    let mut orchestrator = FedRAMPOrchestrator::new("test");
+    let evidence = ControlEvidence {
+        control_id: "SC-7".to_string(),
+        implementation_path: "docs/controls/SC-7.md".to_string(),
+        timestamp: Utc::now(),
+        validated: true,
+    };
+    orchestrator.register_control("SC-7", evidence);
+    let controls = orchestrator.controls();
+    assert!(controls.contains_key("SC-7"));
+    let ctrl = &controls["SC-7"];
+    assert!(ctrl.validated);
 }

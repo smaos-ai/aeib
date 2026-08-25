@@ -5997,6 +5997,7 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "dashmap 5.5.3",
+ "hex",
  "serde",
  "serde_json",
  "sha2",
@@ -6040,7 +6041,9 @@ dependencies = [
 name = "siss-job-router"
 version = "0.1.0"
 dependencies = [
+ "base64 0.22.1",
  "chrono",
+ "dashmap 5.5.3",
  "futures",
  "rand 0.8.6",
  "serde",
@@ -6049,6 +6052,7 @@ dependencies = [
  "siss-gatekeeper",
  "siss-graph-core",
  "siss-graph-db",
+ "siss-swarm-coordinator",
  "sqlx",
  "thiserror 2.0.18",
  "tokio",

@@ -42,9 +42,9 @@ pub struct Policy {
     pub id: Uuid,
     pub policy_holder_id: Uuid,
     pub policy_type: String, // e.g., "parametric", "indemnity"
-    pub coverage_limit: u64,  // in cents
-    pub deductible: u64,      // in cents
-    pub premium_paid: u64,    // in cents
+    pub coverage_limit: u64, // in cents
+    pub deductible: u64,     // in cents
+    pub premium_paid: u64,   // in cents
     pub active: bool,
     pub issued_at: DateTime<Utc>,
     pub expires_at: DateTime<Utc>,
@@ -63,9 +63,9 @@ pub struct ParametricPayout {
 /// Merkle ledger node (claim history chain)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MerkleNode {
-    pub hash: String,           // Hex-encoded SHA-256
+    pub hash: String, // Hex-encoded SHA-256
     pub claim_id: Uuid,
-    pub claim_hash: String,     // Hash of claim data
+    pub claim_hash: String,          // Hash of claim data
     pub parent_hash: Option<String>, // Previous node hash (chain)
     pub position: u64,
     pub created_at: DateTime<Utc>,
@@ -76,7 +76,7 @@ pub struct MerkleNode {
 pub struct FraudProof {
     pub id: Uuid,
     pub claim_id: Uuid,
-    pub proof_data: Vec<u8>,   // Serialized proof (implementation-specific)
+    pub proof_data: Vec<u8>, // Serialized proof (implementation-specific)
     pub verified: bool,
     pub created_at: DateTime<Utc>,
 }

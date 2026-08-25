@@ -108,7 +108,13 @@
       "mcp__playwright__browser_navigate",
       "Bash(mkdir -p /Volumes/EXTssd/cargo)",
       "Bash(mv ~/.cargo/registry /Volumes/EXTssd/cargo/registry)",
-      "Bash(ln -s /Volumes/EXTssd/cargo/registry ~/.cargo/registry)"
+      "Bash(ln -s /Volumes/EXTssd/cargo/registry ~/.cargo/registry)",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_find",
+      "mcp__playwright__browser_press_key",
+      "mcp__playwright__browser_fill_form",
+      "mcp__playwright__browser_type",
+      "mcp__playwright__browser_evaluate"
     ],
     "defaultMode": "acceptEdits"
   },

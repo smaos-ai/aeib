@@ -14,3 +14,4 @@ tokio.workspace = true
 sqlx.workspace = true
 thiserror.workspace = true
 dashmap.workspace = true
+hex = "0.4"

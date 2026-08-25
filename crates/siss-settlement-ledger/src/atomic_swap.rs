@@ -14,7 +14,7 @@ pub enum SwapPhase {
 
 impl SwapPhase {
     pub fn is_terminal(&self) -> bool {
-        matches!(SwapPhase::Settled | SwapPhase::Failed)
+        matches!(self, SwapPhase::Settled | SwapPhase::Failed)
     }
 }
 

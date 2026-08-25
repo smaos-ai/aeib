@@ -892,3 +892,13 @@ impl A2UIValidator {
         }
     }
 }
+
+/// Fail-closed validation implementation for A2UIComponent
+/// This allows components to validate themselves with Result<(), ValidationError>
+impl A2UIComponent {
+    /// Validate this component with fail-closed semantics
+    /// Returns Ok(()) if valid, or descriptive ValidationError if invalid
+    pub fn validate(&self) -> Result<(), ValidationError> {
+        A2UIValidator::default().validate_component(self)
+    }
+}

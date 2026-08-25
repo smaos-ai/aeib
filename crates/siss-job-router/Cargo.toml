@@ -8,6 +8,7 @@ siss-gatekeeper = { path = "../siss-gatekeeper" }
 siss-graph-core = { path = "../siss-graph-core" }
 siss-graph-db = { path = "../siss-graph-db" }
 siss-event-log = { path = "../siss-event-log" }
+siss-swarm-coordinator = { path = "../siss-swarm-coordinator" }
 uuid.workspace = true
 chrono.workspace = true
 serde.workspace = true
@@ -17,6 +18,8 @@ tokio.workspace = true
 sqlx.workspace = true
 rand.workspace = true
 futures = "0.3"
+base64.workspace = true
+dashmap.workspace = true
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["full", "test-util"] }

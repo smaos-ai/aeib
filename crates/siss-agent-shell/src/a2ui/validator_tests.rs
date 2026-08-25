@@ -1379,3 +1379,369 @@ fn test_validation_error_display_messages() {
         );
     }
 }
+
+// === A2UIComponent::validate() Method Tests (Fail-Closed Validation) ===
+
+#[test]
+fn test_component_validate_method_returns_validation_error() {
+    // Valid component should validate via instance method
+    let valid_input = A2UIComponent::Input {
+        id: "field1".to_string(),
+        label: "Name".to_string(),
+        placeholder: Some("Enter name".to_string()),
+        required: true,
+    };
+    assert!(valid_input.validate().is_ok());
+
+    // Invalid component (empty id) should fail
+    let invalid_input = A2UIComponent::Input {
+        id: "".to_string(),
+        label: "Name".to_string(),
+        placeholder: None,
+        required: false,
+    };
+    let result = invalid_input.validate();
+    assert!(result.is_err());
+    match result {
+        Err(ValidationError::MissingRequiredField(_)) => {},
+        _ => panic!("Expected MissingRequiredField error"),
+    }
+}
+
+#[test]
+fn test_form_components_validate_empty_label() {
+    // Input with empty label should fail
+    let invalid = A2UIComponent::Input {
+        id: "field".to_string(),
+        label: "".to_string(),
+        placeholder: None,
+        required: false,
+    };
+    assert!(invalid.validate().is_err());
+
+    // Textarea with empty label should fail
+    let invalid = A2UIComponent::Textarea {
+        id: "area".to_string(),
+        label: "".to_string(),
+        rows: None,
+    };
+    assert!(invalid.validate().is_err());
+
+    // Select with empty label should fail
+    let invalid = A2UIComponent::Select {
+        id: "select".to_string(),
+        label: "".to_string(),
+        options: vec![SelectOption {
+            value: "v".to_string(),
+            label: "opt".to_string(),
+        }],
+    };
+    assert!(invalid.validate().is_err());
+
+    // Checkbox with empty label should fail
+    let invalid = A2UIComponent::Checkbox {
+        id: "check".to_string(),
+        label: "".to_string(),
+        checked: false,
+    };
+    assert!(invalid.validate().is_err());
+
+    // Radio with empty label should fail
+    let invalid = A2UIComponent::Radio {
+        id: "radio".to_string(),
+        label: "".to_string(),
+        value: "v".to_string(),
+        checked: false,
+    };
+    assert!(invalid.validate().is_err());
+
+    // Button with empty label should fail
+    let invalid = A2UIComponent::Button {
+        id: "btn".to_string(),
+        label: "".to_string(),
+        action: None,
+    };
+    assert!(invalid.validate().is_err());
+}
+
+#[test]
+fn test_form_components_validate_empty_id() {
+    // Input with empty id should fail
+    let invalid = A2UIComponent::Input {
+        id: "".to_string(),
+        label: "Name".to_string(),
+        placeholder: None,
+        required: false,
+    };
+    assert!(invalid.validate().is_err());
+
+    // Textarea with empty id should fail
+    let invalid = A2UIComponent::Textarea {
+        id: "".to_string(),
+        label: "Textarea".to_string(),
+        rows: None,
+    };
+    assert!(invalid.validate().is_err());
+
+    // Select with empty id should fail
+    let invalid = A2UIComponent::Select {
+        id: "".to_string(),
+        label: "Select".to_string(),
+        options: vec![SelectOption {
+            value: "v".to_string(),
+            label: "opt".to_string(),
+        }],
+    };
+    assert!(invalid.validate().is_err());
+
+    // Checkbox with empty id should fail
+    let invalid = A2UIComponent::Checkbox {
+        id: "".to_string(),
+        label: "Check".to_string(),
+        checked: false,
+    };
+    assert!(invalid.validate().is_err());
+
+    // Radio with empty id should fail
+    let invalid = A2UIComponent::Radio {
+        id: "".to_string(),
+        label: "Radio".to_string(),
+        value: "v".to_string(),
+        checked: false,
+    };
+    assert!(invalid.validate().is_err());
+
+    // Button with empty id should fail
+    let invalid = A2UIComponent::Button {
+        id: "".to_string(),
+        label: "Button".to_string(),
+        action: None,
+    };
+    assert!(invalid.validate().is_err());
+}
+
+#[test]
+fn test_form_components_validate_radio_value() {
+    // Radio with empty value should fail
+    let invalid = A2UIComponent::Radio {
+        id: "radio".to_string(),
+        label: "Radio".to_string(),
+        value: "".to_string(),
+        checked: false,
+    };
+    assert!(invalid.validate().is_err());
+
+    // Radio with non-empty value should pass
+    let valid = A2UIComponent::Radio {
+        id: "radio".to_string(),
+        label: "Radio".to_string(),
+        value: "option1".to_string(),
+        checked: false,
+    };
+    assert!(valid.validate().is_ok());
+}
+
+#[test]
+fn test_form_components_validate_select_options() {
+    // Select with empty options should fail
+    let invalid = A2UIComponent::Select {
+        id: "select".to_string(),
+        label: "Select".to_string(),
+        options: vec![],
+    };
+    assert!(invalid.validate().is_err());
+
+    // Select with options should pass
+    let valid = A2UIComponent::Select {
+        id: "select".to_string(),
+        label: "Select".to_string(),
+        options: vec![SelectOption {
+            value: "v".to_string(),
+            label: "opt".to_string(),
+        }],
+    };
+    assert!(valid.validate().is_ok());
+}
+
+#[test]
+fn test_all_18_components_validate_successfully() {
+    // Display components (8)
+    let display = vec![
+        A2UIComponent::Text {
+            id: "1".to_string(),
+            content: "t".to_string(),
+            size: None,
+        },
+        A2UIComponent::Badge {
+            id: "2".to_string(),
+            label: "b".to_string(),
+            color: None,
+        },
+        A2UIComponent::Alert {
+            id: "3".to_string(),
+            message: "a".to_string(),
+            level: "info".to_string(),
+        },
+        A2UIComponent::Progress {
+            id: "4".to_string(),
+            value: 50,
+            max: 100,
+            label: None,
+        },
+        A2UIComponent::Divider {
+            id: "5".to_string(),
+        },
+        A2UIComponent::Link {
+            id: "6".to_string(),
+            label: "l".to_string(),
+            href: "http://x".to_string(),
+        },
+        A2UIComponent::Tooltip {
+            id: "7".to_string(),
+            text: "t".to_string(),
+            content: "tip".to_string(),
+        },
+        A2UIComponent::Breadcrumb {
+            id: "8".to_string(),
+            items: vec![],
+        },
+    ];
+    for comp in display {
+        assert!(
+            comp.validate().is_ok(),
+            "Component validation failed: {:?}",
+            comp
+        );
+    }
+
+    // Form components (6)
+    let forms = vec![
+        A2UIComponent::Input {
+            id: "9".to_string(),
+            label: "i".to_string(),
+            placeholder: None,
+            required: false,
+        },
+        A2UIComponent::Textarea {
+            id: "10".to_string(),
+            label: "ta".to_string(),
+            rows: None,
+        },
+        A2UIComponent::Select {
+            id: "11".to_string(),
+            label: "s".to_string(),
+            options: vec![SelectOption {
+                value: "opt".to_string(),
+                label: "o".to_string(),
+            }],
+        },
+        A2UIComponent::Checkbox {
+            id: "12".to_string(),
+            label: "c".to_string(),
+            checked: false,
+        },
+        A2UIComponent::Radio {
+            id: "13".to_string(),
+            label: "r".to_string(),
+            value: "v".to_string(),
+            checked: false,
+        },
+        A2UIComponent::Button {
+            id: "14".to_string(),
+            label: "btn".to_string(),
+            action: None,
+        },
+    ];
+    for comp in forms {
+        assert!(
+            comp.validate().is_ok(),
+            "Component validation failed: {:?}",
+            comp
+        );
+    }
+
+    // Layout components (4)
+    let layout = vec![
+        A2UIComponent::Card {
+            id: "15".to_string(),
+            title: None,
+            children: vec![],
+        },
+        A2UIComponent::Grid {
+            id: "16".to_string(),
+            columns: 2,
+            children: vec![],
+        },
+        A2UIComponent::Modal {
+            id: "17".to_string(),
+            title: "m".to_string(),
+            content: "c".to_string(),
+            children: vec![A2UIComponent::Button {
+                id: "mbtn".to_string(),
+                label: "OK".to_string(),
+                action: None,
+            }],
+        },
+        A2UIComponent::Table {
+            id: "18".to_string(),
+            headers: vec![],
+            rows: vec![],
+        },
+    ];
+    for comp in layout {
+        assert!(
+            comp.validate().is_ok(),
+            "Component validation failed: {:?}",
+            comp
+        );
+    }
+}
+
+#[test]
+fn test_nested_components_validate_with_child_errors() {
+    // Card with invalid child should fail
+    let invalid_card = A2UIComponent::Card {
+        id: "card".to_string(),
+        title: Some("Title".to_string()),
+        children: vec![A2UIComponent::Input {
+            id: "".to_string(), // Invalid: empty id
+            label: "Field".to_string(),
+            placeholder: None,
+            required: false,
+        }],
+    };
+    assert!(invalid_card.validate().is_err());
+
+    // Card with valid children should pass
+    let valid_card = A2UIComponent::Card {
+        id: "card".to_string(),
+        title: Some("Title".to_string()),
+        children: vec![A2UIComponent::Input {
+            id: "f1".to_string(),
+            label: "Field".to_string(),
+            placeholder: None,
+            required: false,
+        }],
+    };
+    assert!(valid_card.validate().is_ok());
+}
+
+#[test]
+fn test_validate_method_uses_validation_error_type() {
+    let invalid = A2UIComponent::Input {
+        id: "".to_string(),
+        label: "Field".to_string(),
+        placeholder: None,
+        required: false,
+    };
+
+    let result = invalid.validate();
+    assert!(result.is_err());
+
+    // Verify it returns ValidationError, not String
+    match result {
+        Err(ValidationError::MissingRequiredField(_)) => {}, // Expected
+        Err(e) => panic!("Unexpected error type: {:?}", e),
+        Ok(_) => panic!("Expected validation error"),
+    }
+}

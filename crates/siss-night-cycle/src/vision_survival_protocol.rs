@@ -141,7 +141,7 @@ impl VisionSurvivalProtocol {
     pub fn compute_delta(&self, current_checksum: &str) -> Result<Vec<String>, String> {
         let mut delta = vec![];
 
-        if let Some(ref last_hash) = self.last_sync_hash.filter(|h| h == current_checksum) {
+        if self.last_sync_hash.as_ref().map_or(false, |h| h == current_checksum) {
             // No changes
             return Ok(delta);
         }

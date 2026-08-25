@@ -1,0 +1,52 @@
+- main [ref=f25e2]:
+  - generic [ref=f25e3]:
+    - generic [ref=f25e4]:
+      - heading "🌍 SISS Dashboard" [level=1] [ref=f25e5]
+      - paragraph [ref=f25e6]: Sovereign Intelligence Sovereign Systems — Governance, Compliance, and Real-Time Monitoring.
+    - generic [ref=f25e7]:
+      - link "Governance Dashboard Production Real-time governance membrane for AI action oversight. AP2 Distribution (Pie Chart) Decision Ownership (Ed25519 Table) Merkle Chain Visualizer PSI Drift Gauge Monitor Governance ROI Metrics Compliance Export (JSON/CSV)" [ref=f25e8] [cursor=pointer]:
+        - /url: /governance-dashboard
+        - generic [ref=f25e9]:
+          - heading "Governance Dashboard" [level=2] [ref=f25e10]
+          - generic [ref=f25e11]: Production
+        - generic [ref=f25e12]:
+          - paragraph [ref=f25e13]: Real-time governance membrane for AI action oversight.
+          - list [ref=f25e14]:
+            - listitem [ref=f25e15]: AP2 Distribution (Pie Chart)
+            - listitem [ref=f25e16]: Decision Ownership (Ed25519 Table)
+            - listitem [ref=f25e17]: Merkle Chain Visualizer
+            - listitem [ref=f25e18]: PSI Drift Gauge Monitor
+            - listitem [ref=f25e19]: Governance ROI Metrics
+            - listitem [ref=f25e20]: Compliance Export (JSON/CSV)
+      - link "Creator Platform MVP Real-time royalty tracking and payments for content creators. Creator Profiles & Onboarding Real-Time MRR Dashboard Royalty Settlement Ledger Stripe Payment Integration WebSocket Live Updates Monthly Breakdown Analytics" [ref=f25e21] [cursor=pointer]:
+        - /url: /creator-platform
+        - generic [ref=f25e22]:
+          - heading "Creator Platform" [level=2] [ref=f25e23]
+          - generic [ref=f25e24]: MVP
+        - generic [ref=f25e25]:
+          - paragraph [ref=f25e26]: Real-time royalty tracking and payments for content creators.
+          - list [ref=f25e27]:
+            - listitem [ref=f25e28]: Creator Profiles & Onboarding
+            - listitem [ref=f25e29]: Real-Time MRR Dashboard
+            - listitem [ref=f25e30]: Royalty Settlement Ledger
+            - listitem [ref=f25e31]: Stripe Payment Integration
+            - listitem [ref=f25e32]: WebSocket Live Updates
+            - listitem [ref=f25e33]: Monthly Breakdown Analytics
+      - generic [ref=f25e34]:
+        - generic [ref=f25e35]:
+          - heading "System Status" [level=2] [ref=f25e36]
+          - generic [ref=f25e37]: Connected
+        - generic [ref=f25e38]:
+          - generic [ref=f25e39]:
+            - generic [ref=f25e40]: "Vision API Endpoint:"
+            - code [ref=f25e41]: http://localhost:8000/v1
+          - generic [ref=f25e42]:
+            - generic [ref=f25e43]: "WebSocket Support:"
+            - code [ref=f25e44]: ws://localhost:8000/ws
+          - generic [ref=f25e45]:
+            - generic [ref=f25e46]: "Dashboard Version:"
+            - code [ref=f25e47]: 2.0.0 (React/Next.js)
+          - generic [ref=f25e48]:
+            - generic [ref=f25e49]: "Compliance Standard:"
+            - code [ref=f25e50]: EU AI Act Article 12
+    - paragraph [ref=f25e52]: Production Ready • ISO 42001 Compliant • Ed25519 Non-Repudiation

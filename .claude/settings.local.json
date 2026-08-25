@@ -105,7 +105,10 @@
       "Bash(notebooklm use *)",
       "Bash(notebooklm ask *)",
       "mcp__playwright__browser_take_screenshot",
-      "mcp__playwright__browser_navigate"
+      "mcp__playwright__browser_navigate",
+      "Bash(mkdir -p /Volumes/EXTssd/cargo)",
+      "Bash(mv ~/.cargo/registry /Volumes/EXTssd/cargo/registry)",
+      "Bash(ln -s /Volumes/EXTssd/cargo/registry ~/.cargo/registry)"
     ],
     "defaultMode": "acceptEdits"
   },

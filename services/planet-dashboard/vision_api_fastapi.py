@@ -8,13 +8,14 @@ Routes:
   GET  /metrics         — Audit trail + latency metrics
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List, Set
 import uvicorn
 import time
 import json
 from datetime import datetime, timezone
+import asyncio
 
 # Import pure-Python backend
 from vision_api import (
@@ -84,6 +85,32 @@ _requests_processed = 0
 
 
 # ═════════════════════════════════════════════════════════════
+# WebSocket Manager
+# ═════════════════════════════════════════════════════════════
+
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+
+    async def broadcast(self, message: dict):
+        for connection in self.active_connections:
+            try:
+                await connection.send_json(message)
+            except Exception:
+                pass
+
+
+manager = ConnectionManager()
+
+
+# ═════════════════════════════════════════════════════════════
 # 3. ROUTES
 # ═════════════════════════════════════════════════════════════
 
@@ -128,7 +155,7 @@ async def govern(request: GovernRequestModel) -> GovernResponseModel:
                 auto_approved=result.proof.auto_approved,
             )
 
-        return GovernResponseModel(
+        response = GovernResponseModel(
             approved=result.allowed,
             charge_amount=result.charge_amount,
             merkle_proof=proof_model,
@@ -137,6 +164,19 @@ async def govern(request: GovernRequestModel) -> GovernResponseModel:
             request_id=request.request_id,
             timestamp=datetime.now(timezone.utc).isoformat(),
         )
+
+        # Broadcast to WebSocket clients
+        await manager.broadcast({
+            "type": "governance_decision",
+            "approved": result.allowed,
+            "charge_amount": result.charge_amount,
+            "reason": result.reason,
+            "request_id": request.request_id,
+            "merkle_root": proof_model.merkle_root if proof_model else None,
+            "timestamp": response.timestamp,
+        })
+
+        return response
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
@@ -162,6 +202,27 @@ async def metrics():
         "requests_processed": _requests_processed,
         "avg_request_time_ms": (uptime / max(_requests_processed, 1)) * 1000,
     }
+
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    """
+    WebSocket endpoint for real-time governance event streaming.
+
+    Client connects: ws://localhost:8000/ws
+    Server broadcasts governance decisions in real-time.
+    """
+    await manager.connect(websocket)
+    try:
+        while True:
+            # Keep connection alive, wait for client messages (heartbeat)
+            data = await websocket.receive_text()
+            if data == "ping":
+                await websocket.send_json({"type": "pong", "timestamp": datetime.now(timezone.utc).isoformat()})
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+    except Exception as e:
+        manager.disconnect(websocket)
 
 
 # ═════════════════════════════════════════════════════════════

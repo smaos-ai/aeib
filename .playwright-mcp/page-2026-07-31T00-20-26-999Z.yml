@@ -1,0 +1,13 @@
+- generic [active] [ref=f27e1]:
+  - generic [ref=f27e2]:
+    - generic [ref=f27e4]:
+      - heading "Security Dashboard" [level=1] [ref=f27e5]
+      - paragraph [ref=f27e6]: Real-time monitoring of agent operations, anomalies, and security events
+    - main [ref=f27e7]:
+      - generic [ref=f27e8]:
+        - generic [ref=f27e10]:
+          - generic [ref=f27e12]: Connecting...
+          - generic [ref=f27e13]: "Session: 57de6168..."
+        - generic [ref=f27e14]: Waiting for events...
+  - button "Open Next.js Dev Tools" [ref=f27e22] [cursor=pointer]
+  - alert [ref=f27e26]

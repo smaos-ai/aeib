@@ -1,0 +1,18 @@
+[package]
+name = "siss-settlement-ledger"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[dependencies]
+uuid.workspace = true
+chrono.workspace = true
+serde = { version = "1", features = ["derive"] }
+serde_json.workspace = true
+dashmap.workspace = true
+tokio = { workspace = true, features = ["rt", "sync", "time"] }
+thiserror.workspace = true
+parking_lot.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt", "macros"] }

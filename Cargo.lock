@@ -1062,6 +1062,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "l3-permit-gates"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "env_logger",
+ "log",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "l4-orchestration"
 version = "0.1.0"
 dependencies = [

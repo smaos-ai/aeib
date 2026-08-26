@@ -2,6 +2,7 @@
 members = [
   "crates/l1-reasoning",
   "crates/l2-knowledge",
+  "crates/l3-permit-gates",
   "crates/l4-orchestration",
   "crates/l6-infrastructure",
   "crates/l8-proof",

@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "crates/l1-reasoning",
+  "crates/l2-knowledge",
   "crates/l4-orchestration",
   "crates/l6-infrastructure",
   "crates/l8-proof",
@@ -25,7 +26,6 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sqlx = { version = "0.8", features = ["postgres", "json"] }
 pgvector = "0.3"
-pgvector-sqlx = "0.0.2"
 uuid = { version = "1", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 log = "0.4"

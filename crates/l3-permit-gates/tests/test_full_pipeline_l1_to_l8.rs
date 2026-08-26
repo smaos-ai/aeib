@@ -83,7 +83,6 @@ fn test_hotel_credit_decision_l1_to_l8() {
 fn test_glass_manufacturing_safety_l1_to_l8() {
     // Glass manufacturing: high-risk Annex I use case
     let policy = "Article51_safety_critical";
-    let approval_required = true;
 
     let mut enforcer = GateEnforcer::new();
     let gate = PermitGate::new(
@@ -169,14 +168,8 @@ fn test_permit_gate_enforcement_blocks_unbound_tools() {
 
     enforcer.register_gate(gate);
 
-    let invocation = ToolInvocation {
-        tool_name: "unbound_tool".to_string(),
-        function_name: "execute".to_string(),
-        arguments: "{}".to_string(),
-    };
-
     // Should be denied before approval
-    let result = enforcer.enforce_invocation(&invocation);
+    let result = enforcer.check_permit("unbound_tool", "execute");
     assert!(result.is_err(), "L3 blocks unapproved invocation");
 }
 

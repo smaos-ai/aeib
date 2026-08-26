@@ -114,7 +114,8 @@
       "mcp__playwright__browser_press_key",
       "mcp__playwright__browser_fill_form",
       "mcp__playwright__browser_type",
-      "mcp__playwright__browser_evaluate"
+      "mcp__playwright__browser_evaluate",
+      "mcp__notebooklm__source_add"
     ],
     "defaultMode": "acceptEdits"
   },

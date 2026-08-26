@@ -1,12 +1,9 @@
-use l8_proof::{ProofLayer, WorkReceipt, LedgerEntry};
+use l8_proof::ProofLayer;
 
 #[test]
 fn test_create_work_receipt() {
     let mut proof = ProofLayer::new();
-    let receipt = proof.create_work_receipt(
-        "evaluate_credit".to_string(),
-        "approved".to_string(),
-    );
+    let receipt = proof.create_work_receipt("evaluate_credit".to_string(), "approved".to_string());
 
     assert!(!receipt.id.is_empty());
     assert_eq!(receipt.action, "evaluate_credit");
@@ -17,7 +14,8 @@ fn test_create_work_receipt() {
 fn test_sign_ledger_entry() {
     let mut proof = ProofLayer::new();
     let result = proof.sign_ledger_entry(
-        r#"{"request_id":"abc123","action":"approve","timestamp":"2026-09-01T00:00:00Z"}"#.to_string()
+        r#"{"request_id":"abc123","action":"approve","timestamp":"2026-09-01T00:00:00Z"}"#
+            .to_string(),
     );
 
     assert!(result.is_ok());
@@ -29,7 +27,9 @@ fn test_sign_ledger_entry() {
 #[test]
 fn test_verify_immutable() {
     let mut proof = ProofLayer::new();
-    let entry = proof.sign_ledger_entry("immutable_test_data".to_string()).unwrap();
+    let entry = proof
+        .sign_ledger_entry("immutable_test_data".to_string())
+        .unwrap();
 
     assert!(proof.verify_immutable(&entry.id));
 }
@@ -52,7 +52,9 @@ fn test_multiple_receipts_audit_trail() {
 #[test]
 fn test_ledger_immutability() {
     let mut proof = ProofLayer::new();
-    let entry = proof.sign_ledger_entry("sensitive_decision".to_string()).unwrap();
+    let entry = proof
+        .sign_ledger_entry("sensitive_decision".to_string())
+        .unwrap();
     let original_digest = entry.digest.clone();
 
     // Verify entry cannot be modified after creation

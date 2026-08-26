@@ -3,4 +3,4 @@
 
 pub mod policy;
 
-pub use policy::{PolicyRouter, PolicyBound};
+pub use policy::{PolicyBound, PolicyRouter};

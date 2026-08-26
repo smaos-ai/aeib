@@ -52,7 +52,11 @@ impl HybridSearcher {
         vec![]
     }
 
-    pub fn rrf_combine(&self, semantic: Vec<SearchResult>, keyword: Vec<SearchResult>) -> Vec<SearchResult> {
+    pub fn rrf_combine(
+        &self,
+        semantic: Vec<SearchResult>,
+        keyword: Vec<SearchResult>,
+    ) -> Vec<SearchResult> {
         let mut combined = vec![];
         let mut seen = std::collections::HashSet::new();
 
@@ -111,22 +115,18 @@ mod tests {
     #[test]
     fn test_rrf_ranking() {
         let searcher = HybridSearcher::default();
-        let semantic = vec![
-            SearchResult {
-                article_id: "A1".to_string(),
-                title: "Title 1".to_string(),
-                score: 0.9,
-                rank: 1,
-            },
-        ];
-        let keyword = vec![
-            SearchResult {
-                article_id: "A2".to_string(),
-                title: "Title 2".to_string(),
-                score: 0.8,
-                rank: 1,
-            },
-        ];
+        let semantic = vec![SearchResult {
+            article_id: "A1".to_string(),
+            title: "Title 1".to_string(),
+            score: 0.9,
+            rank: 1,
+        }];
+        let keyword = vec![SearchResult {
+            article_id: "A2".to_string(),
+            title: "Title 2".to_string(),
+            score: 0.8,
+            rank: 1,
+        }];
 
         let combined = searcher.rrf_combine(semantic, keyword);
         assert_eq!(combined.len(), 2);

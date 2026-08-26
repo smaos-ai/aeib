@@ -1,4 +1,4 @@
-use l4_orchestration::{HotelPilot, GlassPilot, SchoolPilot, Pilot};
+use l4_orchestration::{GlassPilot, HotelPilot, Pilot, SchoolPilot};
 
 #[test]
 fn test_hotel_to_glass_communication() {
@@ -30,7 +30,7 @@ fn test_parallel_pilot_execution_no_conflict() {
 
     assert_eq!(results.len(), 3);
     for result in results {
-        assert!(result.len() > 0);
+        assert!(!result.is_empty());
     }
 }
 
@@ -74,9 +74,13 @@ fn test_cross_pilot_audit_trail_completeness() {
     let glass_flow = glass.flow().unwrap();
     let school_flow = school.flow().unwrap();
 
-    for flow in vec![&hotel_flow, &glass_flow, &school_flow] {
-        let has_l1 = flow.iter().any(|cp| cp.layer.as_ref().map_or(false, |l| l == "L1"));
-        let has_l8 = flow.iter().any(|cp| cp.layer.as_ref().map_or(false, |l| l == "L8"));
+    for flow in [&hotel_flow, &glass_flow, &school_flow] {
+        let has_l1 = flow
+            .iter()
+            .any(|cp| cp.layer.as_ref().is_some_and(|l| l == "L1"));
+        let has_l8 = flow
+            .iter()
+            .any(|cp| cp.layer.as_ref().is_some_and(|l| l == "L8"));
         assert!(has_l1);
         assert!(has_l8);
     }
@@ -87,10 +91,22 @@ fn test_pilot_communication_context() {
     let hotel = HotelPilot::new();
     let hotel_state = hotel.state();
 
-    assert!(hotel_state.policy_context.as_ref().unwrap().contains("Article 50"));
-    assert!(hotel_state.knowledge_context.as_ref().unwrap().contains("L2"));
+    assert!(hotel_state
+        .policy_context
+        .as_ref()
+        .unwrap()
+        .contains("Article 50"));
+    assert!(hotel_state
+        .knowledge_context
+        .as_ref()
+        .unwrap()
+        .contains("L2"));
     assert!(hotel_state.permit_decision.as_ref().unwrap().contains("L3"));
-    assert!(hotel_state.proof_trail.as_ref().unwrap().contains("ed25519"));
+    assert!(hotel_state
+        .proof_trail
+        .as_ref()
+        .unwrap()
+        .contains("ed25519"));
 }
 
 #[test]

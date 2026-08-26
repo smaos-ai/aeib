@@ -1,7 +1,7 @@
-use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 use chrono::{DateTime, Utc};
-use sha2::{Sha256, Digest};
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkReceipt {
@@ -86,10 +86,7 @@ mod tests {
     #[test]
     fn test_create_work_receipt() {
         let mut proof = ProofLayer::new();
-        let receipt = proof.create_work_receipt(
-            "test_action".to_string(),
-            "success".to_string(),
-        );
+        let receipt = proof.create_work_receipt("test_action".to_string(), "success".to_string());
         assert!(!receipt.id.is_empty());
     }
 

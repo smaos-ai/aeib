@@ -1,5 +1,5 @@
+use crate::permit::{GateDecision, PermitGate};
 use serde::{Deserialize, Serialize};
-use crate::permit::{PermitGate, GateDecision};
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -29,7 +29,9 @@ impl GateEnforcer {
             match gate.decision {
                 GateDecision::Approved => Ok(true),
                 GateDecision::Denied => Err(format!("Tool {} is denied by permit gate", tool_name)),
-                GateDecision::PendingApproval => Err(format!("Tool {} is pending approval", tool_name)),
+                GateDecision::PendingApproval => {
+                    Err(format!("Tool {} is pending approval", tool_name))
+                }
             }
         } else {
             Ok(true)
@@ -84,13 +86,9 @@ mod tests {
     #[test]
     fn test_register_and_check_gate() {
         let mut enforcer = GateEnforcer::new();
-        let gate = PermitGate::new(
-            "database_write".to_string(),
-            "Article50".to_string(),
-            1,
-        );
+        let gate = PermitGate::new("database_write".to_string(), "Article50".to_string(), 1);
 
-        let gate_id = gate.id.clone();
+        let _gate_id = gate.id.clone();
         enforcer.register_gate(gate);
 
         let result = enforcer.check_permit("database_write", "insert");
@@ -100,11 +98,7 @@ mod tests {
     #[test]
     fn test_enforce_invocation() {
         let mut enforcer = GateEnforcer::new();
-        let gate = PermitGate::new(
-            "api_call".to_string(),
-            "Article50".to_string(),
-            1,
-        );
+        let gate = PermitGate::new("api_call".to_string(), "Article50".to_string(), 1);
 
         enforcer.register_gate(gate);
 
@@ -121,11 +115,7 @@ mod tests {
     #[test]
     fn test_approve_gate() {
         let mut enforcer = GateEnforcer::new();
-        let gate = PermitGate::new(
-            "test_gate".to_string(),
-            "Article50".to_string(),
-            1,
-        );
+        let gate = PermitGate::new("test_gate".to_string(), "Article50".to_string(), 1);
 
         let gate_id = gate.id.clone();
         enforcer.register_gate(gate);

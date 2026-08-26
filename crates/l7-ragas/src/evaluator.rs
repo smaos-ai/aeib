@@ -1,6 +1,6 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use chrono::{DateTime, Utc};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EvaluationResult {
@@ -62,10 +62,7 @@ impl Evaluator {
         let a1_words: Vec<&str> = a1_lower.split_whitespace().collect();
         let a2_words: Vec<&str> = a2_lower.split_whitespace().collect();
 
-        let common_words: usize = a1_words
-            .iter()
-            .filter(|w| a2_words.contains(w))
-            .count();
+        let common_words: usize = a1_words.iter().filter(|w| a2_words.contains(w)).count();
 
         let total_words = (a1_words.len() + a2_words.len()) / 2;
 
@@ -162,7 +159,11 @@ mod tests {
     #[test]
     fn test_get_accuracy() {
         let mut eval = Evaluator::new();
-        eval.evaluate_answer("q1".to_string(), "perfect".to_string(), "perfect".to_string());
+        eval.evaluate_answer(
+            "q1".to_string(),
+            "perfect".to_string(),
+            "perfect".to_string(),
+        );
         eval.evaluate_answer(
             "q2".to_string(),
             "wrong answer".to_string(),
@@ -176,8 +177,16 @@ mod tests {
     #[test]
     fn test_generate_report() {
         let mut eval = Evaluator::new();
-        eval.evaluate_answer("q1".to_string(), "correct".to_string(), "correct".to_string());
-        eval.evaluate_answer("q2".to_string(), "correct".to_string(), "correct".to_string());
+        eval.evaluate_answer(
+            "q1".to_string(),
+            "correct".to_string(),
+            "correct".to_string(),
+        );
+        eval.evaluate_answer(
+            "q2".to_string(),
+            "correct".to_string(),
+            "correct".to_string(),
+        );
 
         let report = eval.generate_report();
         assert_eq!(report.total_evaluations, 2);

@@ -35,12 +35,12 @@ impl HardwareDetector {
     }
 
     pub fn can_run_qwen_on_this_hardware(&self) -> bool {
-        self.spec.gpu_vram_gb.map_or(false, |vram| vram >= 8)
+        self.spec.gpu_vram_gb.is_some_and(|vram| vram >= 8)
     }
 
     pub fn get_hardware_tier(&self) -> HardwareTier {
         if let Some(vram) = self.spec.gpu_vram_gb {
-            if vram >= 8 && vram <= 16 {
+            if (8..=16).contains(&vram) {
                 HardwareTier::Specialized
             } else if vram > 16 {
                 HardwareTier::Full

@@ -1,7 +1,7 @@
-use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct A2aMessage {
@@ -103,7 +103,8 @@ mod tests {
     #[test]
     fn test_register_agent() {
         let mut router = A2aRouter::new();
-        let agent = router.register_agent("policy_agent".to_string(), "policy_enforcer".to_string());
+        let agent =
+            router.register_agent("policy_agent".to_string(), "policy_enforcer".to_string());
 
         assert_eq!(agent.name, "policy_agent");
         assert_eq!(agent.role, "policy_enforcer");
@@ -131,12 +132,14 @@ mod tests {
         let agent1 = router.register_agent("agent1".to_string(), "orchestrator".to_string());
         let agent2 = router.register_agent("agent2".to_string(), "evaluator".to_string());
 
-        router.send_message(
-            agent1.id.clone(),
-            agent2.id.clone(),
-            "message1".to_string(),
-            serde_json::json!({}),
-        ).ok();
+        router
+            .send_message(
+                agent1.id.clone(),
+                agent2.id.clone(),
+                "message1".to_string(),
+                serde_json::json!({}),
+            )
+            .ok();
 
         let messages = router.get_messages_for_agent(&agent2.id);
         assert_eq!(messages.len(), 1);

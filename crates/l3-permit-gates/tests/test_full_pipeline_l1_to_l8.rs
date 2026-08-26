@@ -1,4 +1,4 @@
-use l3_permit_gates::{PermitGate, GateEnforcer};
+use l3_permit_gates::{GateEnforcer, PermitGate};
 
 /// Full L1→L8 pipeline: Policy → Knowledge → Permit → Orchestration → Communication → Hardware → Evaluation → Proof
 #[test]
@@ -10,15 +10,14 @@ fn test_hotel_credit_decision_l1_to_l8() {
 
     // L2: Knowledge lookup — retrieve compliance rules
     let knowledge_retrieved = true;
-    assert!(knowledge_retrieved, "L2: Knowledge layer must return policy text");
+    assert!(
+        knowledge_retrieved,
+        "L2: Knowledge layer must return policy text"
+    );
 
     // L3: Permit gates — decision before execution
     let mut enforcer = GateEnforcer::new();
-    let gate = PermitGate::new(
-        "hotel_credit_decision".to_string(),
-        policy.to_string(),
-        2,
-    );
+    let gate = PermitGate::new("hotel_credit_decision".to_string(), policy.to_string(), 2);
     let gate_id = gate.id.clone();
     enforcer.register_gate(gate);
 
@@ -29,7 +28,10 @@ fn test_hotel_credit_decision_l1_to_l8() {
 
     enforcer.approve_gate(&gate_id).ok();
     let permit_check = enforcer.check_permit("hotel_credit_decision", "execute");
-    assert!(permit_check.is_ok(), "L3: Permit approved after 2 approvals");
+    assert!(
+        permit_check.is_ok(),
+        "L3: Permit approved after 2 approvals"
+    );
 
     // L4: Orchestration — deterministic flow with checkpoints
     let mut checkpoints = vec![];
@@ -39,10 +41,14 @@ fn test_hotel_credit_decision_l1_to_l8() {
     checkpoints.push(("PERMIT_CHECK", "Permit gate approved"));
     checkpoints.push(("EVALUATE", "Credit evaluation in progress"));
     checkpoints.push(("DECIDE", "Decision rendered"));
-    assert_eq!(checkpoints.len(), 6, "L4: All orchestration checkpoints executed");
+    assert_eq!(
+        checkpoints.len(),
+        6,
+        "L4: All orchestration checkpoints executed"
+    );
 
     // L5: Communication — agent-to-agent messaging
-    let messages = vec![
+    let messages = [
         ("orchestrator", "evaluator", "evaluate_request"),
         ("evaluator", "feedback_router", "evaluation_complete"),
     ];
@@ -53,13 +59,17 @@ fn test_hotel_credit_decision_l1_to_l8() {
     assert!(hardware_ok, "L6: Hardware supports decision execution");
 
     // L7: RAGAS evaluation — citation and accuracy check
-    let model_answer = "Approved for 100k EUR credit line (Article 50 compliant)";
-    let expected_answer = "Credit decision: 100k EUR (policy-bound)";
+    let _model_answer = "Approved for 100k EUR credit line (Article 50 compliant)";
+    let _expected_answer = "Credit decision: 100k EUR (policy-bound)";
     let accuracy = 0.85;
-    assert!(accuracy >= 0.8, "L7: RAGAS accuracy {}% meets 80% threshold", accuracy as u32 * 100);
+    assert!(
+        accuracy >= 0.8,
+        "L7: RAGAS accuracy {}% meets 80% threshold",
+        accuracy as u32 * 100
+    );
 
     // L8: Proof trail — immutable audit log
-    let proof_artifacts = vec![
+    let proof_artifacts = [
         "work_receipt_credit_decision",
         "ledger_entry_sha256_hash",
         "ed25519_signature",
@@ -85,11 +95,7 @@ fn test_glass_manufacturing_safety_l1_to_l8() {
     let policy = "Article51_safety_critical";
 
     let mut enforcer = GateEnforcer::new();
-    let gate = PermitGate::new(
-        "glass_safety_control".to_string(),
-        policy.to_string(),
-        3,
-    );
+    let gate = PermitGate::new("glass_safety_control".to_string(), policy.to_string(), 3);
     let gate_id = gate.id.clone();
     enforcer.register_gate(gate);
 
@@ -98,7 +104,9 @@ fn test_glass_manufacturing_safety_l1_to_l8() {
         enforcer.approve_gate(&gate_id).ok();
     }
 
-    let decision_allowed = enforcer.check_permit("glass_safety_control", "execute").is_ok();
+    let decision_allowed = enforcer
+        .check_permit("glass_safety_control", "execute")
+        .is_ok();
     assert!(decision_allowed, "Glass safety decision approved");
 
     // Verify proof trail exists
@@ -113,11 +121,7 @@ fn test_school_access_control_l1_to_l8() {
     let biometric_consent = true;
 
     let mut enforcer = GateEnforcer::new();
-    let gate = PermitGate::new(
-        "school_access_decision".to_string(),
-        policy.to_string(),
-        1,
-    );
+    let gate = PermitGate::new("school_access_decision".to_string(), policy.to_string(), 1);
     let gate_id = gate.id.clone();
     enforcer.register_gate(gate);
 
@@ -160,11 +164,7 @@ fn test_layer_dependencies_and_order() {
 fn test_permit_gate_enforcement_blocks_unbound_tools() {
     // Verify L3 blocks execution before approval
     let mut enforcer = GateEnforcer::new();
-    let gate = PermitGate::new(
-        "unbound_tool".to_string(),
-        "Article50".to_string(),
-        1,
-    );
+    let gate = PermitGate::new("unbound_tool".to_string(), "Article50".to_string(), 1);
 
     enforcer.register_gate(gate);
 
@@ -206,7 +206,11 @@ fn test_all_eight_layers_present_in_flow() {
     assert_eq!(layers.len(), 8, "All 8 layers accounted for");
 
     for (layer_id, description) in layers {
-        assert!(!description.is_empty(), "{} must have implementation", layer_id);
+        assert!(
+            !description.is_empty(),
+            "{} must have implementation",
+            layer_id
+        );
         println!("✓ {} implemented: {}", layer_id, description);
     }
 }
@@ -215,11 +219,7 @@ fn test_all_eight_layers_present_in_flow() {
 fn test_escalation_path_human_oversight() {
     // Test escalation when decision is uncertain
     let mut enforcer = GateEnforcer::new();
-    let gate = PermitGate::new(
-        "uncertain_decision".to_string(),
-        "Article50".to_string(),
-        2,
-    );
+    let gate = PermitGate::new("uncertain_decision".to_string(), "Article50".to_string(), 2);
     let gate_id = gate.id.clone();
     enforcer.register_gate(gate);
 

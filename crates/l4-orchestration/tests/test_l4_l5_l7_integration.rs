@@ -29,9 +29,7 @@ fn test_pilot_state_transitions() {
 
 #[test]
 fn test_parallel_pilot_execution() {
-    let pilots: Vec<HotelPilot> = (0..3)
-        .map(|_| HotelPilot::new())
-        .collect();
+    let pilots: Vec<HotelPilot> = (0..3).map(|_| HotelPilot::new()).collect();
 
     for pilot in pilots.iter() {
         let result = pilot.flow();

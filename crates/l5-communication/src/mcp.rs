@@ -1,6 +1,6 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use chrono::{DateTime, Utc};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ServerType {
@@ -99,10 +99,7 @@ mod tests {
     #[test]
     fn test_get_server() {
         let mut registry = McpRegistry::new();
-        registry.register_server(
-            ServerType::Audit,
-            "http://localhost:8003/audit".to_string(),
-        );
+        registry.register_server(ServerType::Audit, "http://localhost:8003/audit".to_string());
 
         let server = registry.get_server(ServerType::Audit);
         assert!(server.is_some());

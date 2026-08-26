@@ -5,4 +5,4 @@ pub mod database;
 pub mod search;
 
 pub use database::KnowledgeDb;
-pub use search::{SearchResult, HybridSearcher};
+pub use search::{HybridSearcher, SearchResult};

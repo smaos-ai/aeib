@@ -1,6 +1,6 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use chrono::{DateTime, Utc};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum GateDecision {
@@ -78,11 +78,7 @@ mod tests {
 
     #[test]
     fn test_permit_gate_creation() {
-        let gate = PermitGate::new(
-            "credit_decision".to_string(),
-            "Article50".to_string(),
-            2,
-        );
+        let gate = PermitGate::new("credit_decision".to_string(), "Article50".to_string(), 2);
 
         assert_eq!(gate.gate_name, "credit_decision");
         assert_eq!(gate.required_approvals, 2);
@@ -91,11 +87,7 @@ mod tests {
 
     #[test]
     fn test_add_approval() {
-        let mut gate = PermitGate::new(
-            "test_gate".to_string(),
-            "Article50".to_string(),
-            2,
-        );
+        let mut gate = PermitGate::new("test_gate".to_string(), "Article50".to_string(), 2);
 
         assert_eq!(gate.add_approval(), GateDecision::PendingApproval);
         assert_eq!(gate.add_approval(), GateDecision::Approved);
@@ -104,11 +96,7 @@ mod tests {
 
     #[test]
     fn test_deny_gate() {
-        let mut gate = PermitGate::new(
-            "test_gate".to_string(),
-            "Article50".to_string(),
-            2,
-        );
+        let mut gate = PermitGate::new("test_gate".to_string(), "Article50".to_string(), 2);
 
         gate.deny();
         assert!(gate.is_denied());
@@ -116,11 +104,7 @@ mod tests {
 
     #[test]
     fn test_approval_status() {
-        let gate = PermitGate::new(
-            "test_gate".to_string(),
-            "Article50".to_string(),
-            2,
-        );
+        let gate = PermitGate::new("test_gate".to_string(), "Article50".to_string(), 2);
 
         let status = gate.approval_status();
         assert!(status.contains("0/2"));

@@ -1,18 +1,17 @@
-use l3_permit_gates::{PermitGate, GateEnforcer};
+use l3_permit_gates::{GateEnforcer, PermitGate};
 
 #[test]
 fn test_policy_to_permit_gate_flow() {
     let mut enforcer = GateEnforcer::new();
 
-    let gate = PermitGate::new(
-        "credit_scoring".to_string(),
-        "Article50".to_string(),
-        1,
-    );
+    let gate = PermitGate::new("credit_scoring".to_string(), "Article50".to_string(), 1);
 
     enforcer.register_gate(gate.clone());
 
-    assert_eq!(gate.approval_status(), "0/1 approvals required for credit_scoring");
+    assert_eq!(
+        gate.approval_status(),
+        "0/1 approvals required for credit_scoring"
+    );
 
     let enforce_result = enforcer.check_permit("credit_scoring", "evaluate");
     assert!(enforce_result.is_err());
@@ -41,11 +40,7 @@ fn test_multi_layer_decision_flow() {
 #[test]
 fn test_escalation_when_gate_denied() {
     let mut enforcer = GateEnforcer::new();
-    let gate = PermitGate::new(
-        "sensitive_decision".to_string(),
-        "Article50".to_string(),
-        1,
-    );
+    let gate = PermitGate::new("sensitive_decision".to_string(), "Article50".to_string(), 1);
 
     let gate_id = gate.id.clone();
     enforcer.register_gate(gate);
@@ -61,11 +56,7 @@ fn test_escalation_when_gate_denied() {
 fn test_audit_trail_from_gate_decisions() {
     let mut enforcer = GateEnforcer::new();
 
-    let gate = PermitGate::new(
-        "audit_test".to_string(),
-        "Article50".to_string(),
-        1,
-    );
+    let gate = PermitGate::new("audit_test".to_string(), "Article50".to_string(), 1);
 
     let gate_id = gate.id.clone();
     enforcer.register_gate(gate);

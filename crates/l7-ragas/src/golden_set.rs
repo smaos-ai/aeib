@@ -66,7 +66,8 @@ impl GoldenSet {
             },
             GoldenQuestion {
                 id: Uuid::new_v4().to_string(),
-                question: "Who is responsible for compliance with Annex III requirements?".to_string(),
+                question: "Who is responsible for compliance with Annex III requirements?"
+                    .to_string(),
                 expected_answer: "The deployer and operator of the AI system".to_string(),
                 category: "Responsibility".to_string(),
                 article_reference: "Annex III".to_string(),
@@ -74,7 +75,8 @@ impl GoldenSet {
             },
             GoldenQuestion {
                 id: Uuid::new_v4().to_string(),
-                question: "What is the compliance deadline for Annex III (employment use cases)?".to_string(),
+                question: "What is the compliance deadline for Annex III (employment use cases)?"
+                    .to_string(),
                 expected_answer: "December 2, 2027".to_string(),
                 category: "Deadlines".to_string(),
                 article_reference: "Annex III".to_string(),
@@ -82,8 +84,10 @@ impl GoldenSet {
             },
             GoldenQuestion {
                 id: Uuid::new_v4().to_string(),
-                question: "What must be documented for every AI decision in high-risk scenarios?".to_string(),
-                expected_answer: "The decision rationale, inputs used, and human oversight approval".to_string(),
+                question: "What must be documented for every AI decision in high-risk scenarios?"
+                    .to_string(),
+                expected_answer:
+                    "The decision rationale, inputs used, and human oversight approval".to_string(),
                 category: "Documentation".to_string(),
                 article_reference: "Article 51".to_string(),
                 difficulty: 3,
@@ -132,14 +136,14 @@ mod tests {
     fn test_get_questions_by_category() {
         let set = GoldenSet::create_default_golden_set();
         let transparency_qs = set.get_questions_by_category("Transparency");
-        assert!(transparency_qs.len() > 0);
+        assert!(!transparency_qs.is_empty());
     }
 
     #[test]
     fn test_get_questions_by_article() {
         let set = GoldenSet::create_default_golden_set();
         let article_50_qs = set.get_questions_by_article("Article 50");
-        assert!(article_50_qs.len() > 0);
+        assert!(!article_50_qs.is_empty());
     }
 
     #[test]

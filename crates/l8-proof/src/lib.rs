@@ -3,4 +3,4 @@
 
 pub mod proof;
 
-pub use proof::{ProofLayer, WorkReceipt, LedgerEntry};
+pub use proof::{LedgerEntry, ProofLayer, WorkReceipt};

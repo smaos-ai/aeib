@@ -1,6 +1,6 @@
-use l7_ragas::{GoldenSet, GoldenQuestion, Evaluator};
-use uuid::Uuid;
+use l7_ragas::{Evaluator, GoldenQuestion, GoldenSet};
 use std::time::Instant;
+use uuid::Uuid;
 
 #[test]
 fn test_edge_case_ambiguous_article_reference() {
@@ -98,8 +98,10 @@ fn test_edge_case_hypothetical_scenario() {
     let mut set = GoldenSet::new();
     let q = GoldenQuestion {
         id: Uuid::new_v4().to_string(),
-        question: "If an AI system is deployed across EU and US, which regulations apply?".to_string(),
-        expected_answer: "EU AI Act applies to EU operations; US NIST RMF applies to US operations".to_string(),
+        question: "If an AI system is deployed across EU and US, which regulations apply?"
+            .to_string(),
+        expected_answer: "EU AI Act applies to EU operations; US NIST RMF applies to US operations"
+            .to_string(),
         category: "Jurisdiction".to_string(),
         article_reference: "Article 50 + NIST AI RMF".to_string(),
         difficulty: 4,
@@ -113,7 +115,8 @@ fn test_edge_case_retroactive_compliance() {
     let mut set = GoldenSet::new();
     let q = GoldenQuestion {
         id: Uuid::new_v4().to_string(),
-        question: "Must existing AI systems deployed before Dec 2, 2027 comply with Annex III?".to_string(),
+        question: "Must existing AI systems deployed before Dec 2, 2027 comply with Annex III?"
+            .to_string(),
         expected_answer: "Yes, existing systems must be updated to comply".to_string(),
         category: "Timing".to_string(),
         article_reference: "Annex III".to_string(),
@@ -180,11 +183,7 @@ fn test_accuracy_target_87_percent() {
             ("wrong answer".to_string(), "correct answer".to_string())
         };
 
-        evaluator.evaluate_answer(
-            format!("q{}", i),
-            model_ans,
-            expected_ans,
-        );
+        evaluator.evaluate_answer(format!("q{}", i), model_ans, expected_ans);
     }
 
     let accuracy = evaluator.get_accuracy();
@@ -197,7 +196,8 @@ fn test_citation_verification_multi_article() {
 
     let result = evaluator.evaluate_answer(
         "q1".to_string(),
-        "According to Article 50 and Article 51, transparency and documentation are required".to_string(),
+        "According to Article 50 and Article 51, transparency and documentation are required"
+            .to_string(),
         "Article 50 mandates transparency, Article 51 mandates documentation".to_string(),
     );
 
@@ -208,7 +208,13 @@ fn test_citation_verification_multi_article() {
 fn test_multi_article_category_distribution() {
     let mut set = GoldenSet::new();
 
-    let articles = vec!["Article 50", "Article 51", "Article 52", "Annex I", "Annex III"];
+    let articles = vec![
+        "Article 50",
+        "Article 51",
+        "Article 52",
+        "Annex I",
+        "Annex III",
+    ];
     for (i, article) in articles.iter().enumerate() {
         set.add_question(GoldenQuestion {
             id: Uuid::new_v4().to_string(),
@@ -222,7 +228,12 @@ fn test_multi_article_category_distribution() {
 
     for article in &articles {
         let qs = set.get_questions_by_article(article);
-        assert_eq!(qs.len(), 1, "Article {} should have exactly 1 question", article);
+        assert_eq!(
+            qs.len(),
+            1,
+            "Article {} should have exactly 1 question",
+            article
+        );
     }
 }
 
@@ -265,7 +276,11 @@ fn test_evaluator_throughput_measurement() {
     let elapsed = start.elapsed();
     let throughput = (500.0 / elapsed.as_secs_f32()).round() as u32;
 
-    assert!(throughput > 100, "Throughput {} evals/sec too low", throughput);
+    assert!(
+        throughput > 100,
+        "Throughput {} evals/sec too low",
+        throughput
+    );
 }
 
 #[test]

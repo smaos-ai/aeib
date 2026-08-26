@@ -1,6 +1,4 @@
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
-use chrono::{DateTime, Utc};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PolicyDocument {
@@ -52,8 +50,12 @@ impl KnowledgeDb {
         self.policies
             .iter()
             .filter(|p| {
-                p.article_text.to_lowercase().contains(&query.to_lowercase())
-                    || p.keywords.iter().any(|k| k.to_lowercase().contains(&query.to_lowercase()))
+                p.article_text
+                    .to_lowercase()
+                    .contains(&query.to_lowercase())
+                    || p.keywords
+                        .iter()
+                        .any(|k| k.to_lowercase().contains(&query.to_lowercase()))
             })
             .collect()
     }

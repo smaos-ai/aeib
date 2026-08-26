@@ -3,4 +3,4 @@
 
 pub mod orchestration;
 
-pub use orchestration::{Pilot, HotelPilot, GlassPilot, SchoolPilot};
+pub use orchestration::{GlassPilot, HotelPilot, Pilot, SchoolPilot};

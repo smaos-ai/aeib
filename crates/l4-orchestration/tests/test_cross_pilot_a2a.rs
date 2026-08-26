@@ -19,17 +19,14 @@ fn test_hotel_to_glass_communication() {
 
 #[test]
 fn test_parallel_pilot_execution_no_conflict() {
-    let pilots = vec![
-        ("hotel", HotelPilot::new()),
-        ("glass", GlassPilot::new()),
-        ("school", SchoolPilot::new()),
-    ];
+    let hotel = HotelPilot::new();
+    let glass = GlassPilot::new();
+    let school = SchoolPilot::new();
 
     let mut results = vec![];
-    for (_name, pilot) = pilots.iter() {
-        let flow = pilot.flow().unwrap();
-        results.push(flow);
-    }
+    results.push(hotel.flow().unwrap());
+    results.push(glass.flow().unwrap());
+    results.push(school.flow().unwrap());
 
     assert_eq!(results.len(), 3);
     for result in results {

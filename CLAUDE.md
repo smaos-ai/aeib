@@ -1,5 +1,5 @@
 # CLAUDE.md — SMAOS Phase 1 (12 weeks, 1 engineer, 120k KARP)
-**Execution Mode: Parallel Tracks A-D, TDD-Disciplined, Sep 1 - May 31 2026**
+**Execution Mode: Parallel Tracks A-D, TDD-Disciplined, Sep 1, 2026 - May 31, 2027**
 
 ## PHASE 1 THESIS
 Agent = Model + Harness. **Harness is the moat.** Governance Membrane (proof layer) is competitive advantage.
@@ -8,9 +8,9 @@ This phase delivers: Natural-Language Harness (1500+ lines) + 3 pilots + Annex I
 ## CRITICAL DATES (immovable)
 - **Sep 1, 2026:** Phase 1 starts (Monday)
 - **Sep 16-22, 2026:** KARP voucher submission deadline (Romana Cernikova)
-- **May 31, 2026:** Phase 1 delivery date (triggers Phase 2 + BIC Plzeń 1M)
-- **Dec 2, 2027:** Annex III compliance (hotels/spas) — 16 months away
-- **Aug 2, 2028:** Annex I compliance (glass/auto) — 22 months away
+- **May 31, 2027:** Phase 1 delivery date (triggers Phase 2 + BIC Plzeń 1M)
+- **Dec 2, 2027:** Annex III compliance (hotels/spas) — 3 months after Phase 1
+- **Aug 2, 2028:** Annex I compliance (glass/auto) — 14 months after Phase 1
 
 ## PARALLEL EXECUTION (4 tracks, all simultaneous)
 

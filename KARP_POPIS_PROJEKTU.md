@@ -54,7 +54,7 @@
 
 ---
 
-## 4. DODÁVKY (do 31. května 2026)
+## 4. DODÁVKY (do 31. května 2027)
 
 ### POVINNÉ (bez toho se neposílá Phase 2)
 1. **Natural-Language Harness** — 1500+ řádků Python/Rust, všech 8 vrstev, čitelné, testovatelné

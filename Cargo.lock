@@ -1092,6 +1092,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "l5-communication"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "env_logger",
+ "log",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "l6-infrastructure"
 version = "0.1.0"
 dependencies = [
@@ -1104,6 +1119,21 @@ dependencies = [
  "sysinfo",
  "thiserror 1.0.69",
  "tokio",
+]
+
+[[package]]
+name = "l7-ragas"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "env_logger",
+ "log",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+ "tokio",
+ "uuid",
 ]
 
 [[package]]

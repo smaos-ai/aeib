@@ -4,7 +4,9 @@ members = [
   "crates/l2-knowledge",
   "crates/l3-permit-gates",
   "crates/l4-orchestration",
+  "crates/l5-communication",
   "crates/l6-infrastructure",
+  "crates/l7-ragas",
   "crates/l8-proof",
 ]
 resolver = "2"

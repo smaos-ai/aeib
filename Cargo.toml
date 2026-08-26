@@ -1,69 +1,34 @@
 [workspace]
-resolver = "2"
 members = [
-    "crates/siss-governance",
-    "crates/siss-graph-core",
-    "crates/siss-graph-db",
-    "crates/siss-graph-brain",
-    "crates/siss-gatekeeper",
-    "crates/siss-gatekeeper-py",
-    "crates/siss-insurance-claims",
-    "crates/siss-job-router",
-    "crates/siss-event-log",
-    "crates/siss-context-cartography",
-    "crates/siss-behavioral-firewall",
-    "crates/siss-layer00",
-    "crates/siss-feedback-router",
-    "crates/siss-agent-shell",
-    "crates/crafter-runtime",
-    "crates/siss-agent-card",
-    "crates/siss-mcp-gitnexus",
-    "crates/siss-enclave",
-    "crates/siss-os-sidecar",
-    "crates/siss-dispatcher",
-    "crates/demo-app",
-    "crates/siss-build-accelerator",
-    "crates/siss-console",
-    "crates/siss-command-center",
-    "crates/siss-cockpit", "crates/siss-otel-tracer", "crates/siss-telemetry-router", "crates/siss-audit-archiver", "crates/siss-bandwidth-monitor", "crates/siss-task-router", "crates/siss-ontology-proofs", "crates/siss-capsule-commit", "crates/siss-capsule", "crates/siss-capsule-ecosystem", "crates/siss-memory-plane", "crates/siss-mcp-gateway", "crates/siss-ap2-enforcer", "crates/siss-a2a-dispatcher", "crates/siss-skill-hooks", "crates/siss-aoe-orchestrator", "crates/siss-a2ui-renderer", "crates/siss-remote-gateway", "crates/siss-swarm-attestation", "crates/siss-telemetry-loop", "crates/siss-cipo-engine", "crates/siss-eval-court", "crates/siss-rapid-lora", "crates/siss-skill-crystallizer", "crates/siss-sovereign-kg", "crates/siss-chaos-petri", "crates/siss-orchestrator", "crates/siss-metrics", "crates/siss-ui-server", "crates/siss-sla-monitor", "crates/siss-multi-region", "crates/siss-pilot-deployment", "crates/siss-security-hardening", "crates/siss-night-cycle", "crates/siss-trust-mesh", "crates/siss-decision-db", "crates/siss-compliance", "crates/siss-c2pa", "crates/siss-payment", "crates/siss-fx-service", "crates/siss-stablecoin-bridge", "crates/siss-defense-framework", "crates/siss-gdpr-nis2", "crates/siss-radar", "crates/siss-vision-sdk", "crates/siss-eu-compliance", "crates/siss-israel-gtm", "crates/siss-apac", "crates/siss-stream6-usa-creator", "crates/palace-memory-mcp", "crates/siss-database-layer", "crates/siss-merkle-replicator", "crates/siss-ap2-replicator", "crates/siss-hardware-accel", "crates/siss-consensus-monitor", "crates/siss-ml-inference", "crates/siss-federation-layer", "crates/siss-swarm-consensus", "crates/siss-zero-trust", "crates/siss-observability", "crates/siss-local-llm", "crates/siss-argocd-controller", "crates/siss-vault-integration", "crates/siss-sovereign-ai-factory", "crates/siss-autonomous-safety", "crates/siss-mifid2-engine", "crates/siss-settlement-ledger", "crates/siss-regulatory-reporter", "crates/siss-contract-engine", "crates/siss-fedramp-orchestrator", "crates/siss-cjis-gateway",
+  "crates/l1-reasoning",
+  "crates/l4-orchestration",
+  "crates/l6-infrastructure",
+  "crates/l8-proof",
 ]
+resolver = "2"
 
 [workspace.package]
-edition = "2024"
 version = "0.1.0"
-license = "MIT"
+edition = "2021"
+authors = ["Andrei Leukhin <andrejlo123@gmail.com>"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/sovreignnexus/smaos"
 
 [workspace.dependencies]
-uuid = { version = "1", features = ["v4", "serde"] }
-chrono = { version = "0.4", features = ["serde"] }
+langchain = "0.1"
+langgraph = "0.1"
+pyo3 = "0.21"
+tokio = { version = "1", features = ["full"] }
+anyhow = "1"
+thiserror = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-serde_yaml = "0.9"
-thiserror = "2"
-tokio = { version = "1", features = ["full"] }
-sqlx = { version = "0.8", features = ["runtime-tokio", "postgres", "uuid", "chrono", "json"] }
-ed25519-dalek = { version = "2", features = ["serde", "rand_core"] }
-rand = "0.8"
-regex = "1"
-tower           = { version = "0.4", features = ["util"] }
-http-body-util  = "0.1"
-testcontainers = "0.23"
-hex = "0.4"
-base64 = "0.22"
-sha2 = "0.10"
-ratatui = "0.29"
-crossterm = "0.28"
-tracing = "0.1"
-tracing-subscriber = "0.3"
-reqwest = { version = "0.12", features = ["stream", "json"] }
-futures = "0.3"
-axum = { version = "0.7", features = ["json", "macros"] }
-tokio-stream = "0.1"
-async-stream = "0.3"
-parking_lot = "0.12"
-lru = "0.12"
-criterion = "0.5"
-async-trait = "0.1"
-anyhow = "1.0"
-dashmap = "5.5"
-siss-local-llm = { path = "crates/siss-local-llm" }
+sqlx = { version = "0.8", features = ["postgres", "json"] }
+pgvector = "0.3"
+pgvector-sqlx = "0.0.2"
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+log = "0.4"
+env_logger = "0.11"
+clap = { version = "4", features = ["derive"] }
+reqwest = { version = "0.11", features = ["json"] }

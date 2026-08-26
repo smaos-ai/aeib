@@ -1,0 +1,19 @@
+[package]
+name = "l6-infrastructure"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+log = { workspace = true }
+env_logger = { workspace = true }
+sysinfo = "0.30"
+reqwest = { workspace = true }
+
+[dev-dependencies]

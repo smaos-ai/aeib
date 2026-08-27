@@ -1,5 +1,6 @@
 use super::error::{
-    validate_compliance_level, validate_policy_id, validate_request, L1AuditEntry, L1Error,
+    validate_article_reference, validate_compliance_level, validate_policy_id, validate_request,
+    L1AuditEntry, L1Error,
 };
 use serde::{Deserialize, Serialize};
 
@@ -27,6 +28,20 @@ impl PolicyRouter {
 
     pub fn cite_article_50(&self) -> String {
         "Article 50: EU AI Act transparency - documented in decision trail".to_string()
+    }
+
+    pub fn cite_article_13(&self) -> String {
+        "Article 13: EU AI Act transparency obligations - real-time disclosure required".to_string()
+    }
+
+    pub fn cite_article_6(&self) -> String {
+        "Article 6: EU AI Act prohibited practices - automated bans enforced".to_string()
+    }
+
+    pub fn add_article_reference(&mut self, article: String) -> Result<(), L1Error> {
+        validate_article_reference(&article)?;
+        self.article_references.push(article);
+        Ok(())
     }
 
     pub fn route_to_policy(&self) -> String {
@@ -116,5 +131,44 @@ mod tests {
         let large_request = "x".repeat(11_000);
         let result = router.enforce_bound(&large_request);
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_cite_article_13() {
+        let router = PolicyRouter::new("transparency".to_string()).unwrap();
+        let citation = router.cite_article_13();
+        assert!(citation.contains("Article 13"));
+    }
+
+    #[test]
+    fn test_cite_article_6() {
+        let router = PolicyRouter::new("prohibited".to_string()).unwrap();
+        let citation = router.cite_article_6();
+        assert!(citation.contains("Article 6"));
+    }
+
+    #[test]
+    fn test_add_article_reference_article_13() {
+        let mut router = PolicyRouter::new("transparency".to_string()).unwrap();
+        assert!(router.add_article_reference("Article 13".to_string()).is_ok());
+        assert!(router.article_references.contains(&"Article 13".to_string()));
+    }
+
+    #[test]
+    fn test_add_article_reference_article_6() {
+        let mut router = PolicyRouter::new("prohibited".to_string()).unwrap();
+        assert!(router.add_article_reference("Article 6".to_string()).is_ok());
+        assert!(router.article_references.contains(&"Article 6".to_string()));
+    }
+
+    #[test]
+    fn test_multi_article_routing_50_13_6() {
+        let mut router = PolicyRouter::new("multi_article".to_string()).unwrap();
+        assert!(router.add_article_reference("Article 50".to_string()).is_ok());
+        assert!(router.add_article_reference("Article 13".to_string()).is_ok());
+        assert!(router.add_article_reference("Article 6".to_string()).is_ok());
+        assert_eq!(router.article_references.len(), 3);
+        let result = router.validate_policy();
+        assert!(result.is_ok());
     }
 }

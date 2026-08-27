@@ -1,8 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::Arc;
 use std::time::Instant;
 use uuid::Uuid;
 
@@ -58,6 +56,7 @@ pub struct LoadTestResult {
     pub system_stats: HashMap<String, f64>,
 }
 
+#[allow(unused_variables)]
 fn run_pilot_iterations<T: Pilot + Default>(pilot_name: &str, iterations: usize) -> PilotMetrics {
     let mut latencies = Vec::new();
     let mut errors = 0;

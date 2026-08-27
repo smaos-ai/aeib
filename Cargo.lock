@@ -1031,7 +1031,7 @@ dependencies = [
 
 [[package]]
 name = "l1-reasoning"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1047,7 +1047,7 @@ dependencies = [
 
 [[package]]
 name = "l2-knowledge"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1064,7 +1064,7 @@ dependencies = [
 
 [[package]]
 name = "l3-permit-gates"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1079,7 +1079,7 @@ dependencies = [
 
 [[package]]
 name = "l4-orchestration"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1094,7 +1094,7 @@ dependencies = [
 
 [[package]]
 name = "l5-communication"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1109,7 +1109,7 @@ dependencies = [
 
 [[package]]
 name = "l6-infrastructure"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1126,7 +1126,7 @@ dependencies = [
 
 [[package]]
 name = "l7-ragas"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1141,7 +1141,7 @@ dependencies = [
 
 [[package]]
 name = "l8-proof"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "anyhow",
  "chrono",

@@ -1,8 +1,8 @@
 # KARP Submission Package — SMAOS Phase 1
 **Recipient:** Romana Cernikova (romana.cernikova@karp-kv.cz)  
-**Deadline:** Sep 16-22, 2025  
+**Deadline:** Sep 16-22, 2026  
 **Budget:** 120k CZK (60% KARP grant)  
-**Delivery Date:** May 31, 2026
+**Delivery Date:** May 31, 2027
 
 ---
 
@@ -13,7 +13,7 @@
   - Problem statement: 60% governance gap in agentic AI
   - Solution: 8-layer SMAOS harness (L1-L8)
   - Budget breakdown: 60k engineer + 8k hardware + 12k testing + 40k contingency
-  - Timeline: Sep 1, 2026 - May 31, 2026
+  - Timeline: Sep 1, 2026 - May 31, 2027
   - Deliverables: Harness + 3 pilots + Annex IV dossier
   - **Status:** ✅ Ready
 

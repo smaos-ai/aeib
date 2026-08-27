@@ -16,4 +16,8 @@ env_logger = { workspace = true }
 uuid = { workspace = true }
 chrono = { workspace = true }
 
+[[bin]]
+name = "load_test"
+path = "src/bin/load_test.rs"
+
 [dev-dependencies]

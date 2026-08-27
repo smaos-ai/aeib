@@ -143,4 +143,71 @@ mod tests {
         let pending = enforcer.get_pending_gates();
         assert_eq!(pending.len(), 2);
     }
+
+    #[test]
+    fn test_enforce_invocation_denied_gate() {
+        let mut enforcer = GateEnforcer::new();
+        let mut gate = PermitGate::new("dangerous_op".to_string(), "Article6".to_string(), 1);
+        gate.deny();
+
+        enforcer.register_gate(gate);
+
+        let invocation = ToolInvocation {
+            tool_name: "dangerous_op".to_string(),
+            function_name: "execute".to_string(),
+            arguments: "{}".to_string(),
+        };
+
+        let result = enforcer.enforce_invocation(&invocation);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_approve_nonexistent_gate() {
+        let mut enforcer = GateEnforcer::new();
+        let result = enforcer.approve_gate("nonexistent_gate_id");
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("not found"));
+    }
+
+    #[test]
+    fn test_deny_nonexistent_gate() {
+        let mut enforcer = GateEnforcer::new();
+        let result = enforcer.deny_gate("nonexistent_gate_id");
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("not found"));
+    }
+
+    #[test]
+    fn test_check_permit_multiple_gates_all_denied() {
+        let mut enforcer = GateEnforcer::new();
+        let mut gate1 = PermitGate::new("tool_a".to_string(), "Article6".to_string(), 1);
+        let mut gate2 = PermitGate::new("tool_b".to_string(), "Article13".to_string(), 1);
+        gate1.deny();
+        gate2.deny();
+
+        enforcer.register_gate(gate1);
+        enforcer.register_gate(gate2);
+
+        let result = enforcer.check_permit("tool_a", "action");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_enforce_with_approved_gate() {
+        let mut enforcer = GateEnforcer::new();
+        let mut gate = PermitGate::new("safe_op".to_string(), "Article50".to_string(), 1);
+        gate.add_approval();
+
+        enforcer.register_gate(gate);
+
+        let invocation = ToolInvocation {
+            tool_name: "safe_op".to_string(),
+            function_name: "read".to_string(),
+            arguments: "{}".to_string(),
+        };
+
+        let result = enforcer.enforce_invocation(&invocation);
+        assert!(result.is_ok());
+    }
 }

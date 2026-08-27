@@ -1,10 +1,10 @@
-# KARP Startovací vouchery 2025 — Popis projektu
+# KARP Startovací vouchery 2026 — Popis projektu
 
 **Název:** SMAOS — Sovereign Agentic Operating System
-**Nositel:** Ostrov micro, s.r.o.
+**Nositel:** SMAOS s.r.o.
 **Odpovědný:** Andrei Leukhin (andrejlo123@gmail.com)
 **Kontakt:** Romana Cernikova (romana.cernikova@karp-kv.cz) +420 724 858 335
-**Deadline:** 16-22 září 2025 (podání 10 dnů předem)
+**Deadline:** 16-22 září 2026 (podání 10 dnů předem)
 
 ---
 
@@ -144,10 +144,10 @@
 ## 10. PODPIS
 
 Andrei Leukhin
-Ostrov micro, s.r.o.
+SMAOS s.r.o.
 andrejlo123@gmail.com
 
-**Podání:** 16-22 září 2025
+**Podání:** 16-22 září 2026
 **Kontakt:** Romana Cernikova, KARP (romana.cernikova@karp-kv.cz)
 
 ---

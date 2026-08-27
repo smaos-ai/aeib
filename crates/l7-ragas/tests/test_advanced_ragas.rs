@@ -144,9 +144,10 @@ fn test_edge_case_exception_handling() {
 #[test]
 fn test_stress_evaluate_100_questions() {
     let mut evaluator = Evaluator::new();
-    let mut gold_set = GoldenSet::create_default_golden_set();
+    let mut gold_set = GoldenSet::new();
 
-    for i in 0..95 {
+    // Add exactly 100 questions to test
+    for i in 0..100 {
         gold_set.add_question(GoldenQuestion {
             id: Uuid::new_v4().to_string(),
             question: format!("Test question {}", i),

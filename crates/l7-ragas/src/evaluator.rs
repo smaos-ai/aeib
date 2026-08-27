@@ -11,17 +11,35 @@ pub struct EvaluationResult {
     pub accuracy_score: f32,
     pub citation_correct: bool,
     pub timestamp: DateTime<Utc>,
+    pub proof_anchor: Option<String>, // L8 ledger entry ID for immutability
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProofAnchoredEvaluation {
+    pub result: EvaluationResult,
+    pub proof_digest: String,      // SHA256 of evaluation
+    pub proof_signature: String,   // ed25519 signature
+    pub ledger_entry_id: String,   // Reference to L8 ledger
 }
 
 pub struct Evaluator {
     results: Vec<EvaluationResult>,
+    anchored_results: Vec<ProofAnchoredEvaluation>,
+    proof_enabled: bool,
 }
 
 impl Evaluator {
     pub fn new() -> Self {
         Self {
             results: Vec::new(),
+            anchored_results: Vec::new(),
+            proof_enabled: false,
         }
+    }
+
+    pub fn enable_proof_anchoring(mut self) -> Self {
+        self.proof_enabled = true;
+        self
     }
 
     pub fn evaluate_answer(
@@ -33,7 +51,7 @@ impl Evaluator {
         let accuracy_score = self.calculate_similarity(&model_answer, &expected_answer);
         let citation_correct = self.check_citation(&model_answer);
 
-        let result = EvaluationResult {
+        let mut result = EvaluationResult {
             eval_id: Uuid::new_v4().to_string(),
             question_id,
             model_answer,
@@ -41,10 +59,47 @@ impl Evaluator {
             accuracy_score,
             citation_correct,
             timestamp: Utc::now(),
+            proof_anchor: None,
         };
+
+        // If proof anchoring enabled, generate proof anchor
+        if self.proof_enabled {
+            let proof_digest = self.generate_evaluation_digest(&result);
+            result.proof_anchor = Some(proof_digest);
+        }
 
         self.results.push(result.clone());
         result
+    }
+
+    pub fn evaluate_with_proof(
+        &mut self,
+        question_id: String,
+        model_answer: String,
+        expected_answer: String,
+        proof_digest: String,
+        proof_signature: String,
+        ledger_entry_id: String,
+    ) -> ProofAnchoredEvaluation {
+        let result = self.evaluate_answer(question_id, model_answer, expected_answer);
+
+        let anchored = ProofAnchoredEvaluation {
+            result: result.clone(),
+            proof_digest,
+            proof_signature,
+            ledger_entry_id,
+        };
+
+        self.anchored_results.push(anchored.clone());
+        anchored
+    }
+
+    fn generate_evaluation_digest(&self, result: &EvaluationResult) -> String {
+        use sha2::{Digest, Sha256};
+        let mut hasher = Sha256::new();
+        let eval_json = serde_json::to_string(&result).unwrap_or_default();
+        hasher.update(eval_json.as_bytes());
+        format!("{:x}", hasher.finalize())
     }
 
     pub fn calculate_similarity(&self, answer1: &str, answer2: &str) -> f32 {
@@ -97,6 +152,14 @@ impl Evaluator {
 
     pub fn get_results(&self) -> &[EvaluationResult] {
         &self.results
+    }
+
+    pub fn get_anchored_results(&self) -> &[ProofAnchoredEvaluation] {
+        &self.anchored_results
+    }
+
+    pub fn anchored_results_count(&self) -> usize {
+        self.anchored_results.len()
     }
 
     pub fn generate_report(&self) -> EvaluationReport {
@@ -197,5 +260,53 @@ mod tests {
     fn test_empty_evaluator_accuracy() {
         let eval = Evaluator::new();
         assert_eq!(eval.get_accuracy(), 0.0);
+    }
+
+    #[test]
+    fn test_proof_anchoring_enabled() {
+        let mut eval = Evaluator::new().enable_proof_anchoring();
+        let result = eval.evaluate_answer(
+            "q1".to_string(),
+            "transparency".to_string(),
+            "transparency".to_string(),
+        );
+        assert!(result.proof_anchor.is_some());
+    }
+
+    #[test]
+    fn test_evaluate_with_proof() {
+        let mut eval = Evaluator::new();
+        let anchored = eval.evaluate_with_proof(
+            "q1".to_string(),
+            "answer".to_string(),
+            "expected".to_string(),
+            "proof_digest_123".to_string(),
+            "proof_sig_456".to_string(),
+            "ledger_entry_789".to_string(),
+        );
+        assert_eq!(anchored.ledger_entry_id, "ledger_entry_789");
+        assert_eq!(eval.anchored_results_count(), 1);
+    }
+
+    #[test]
+    fn test_get_anchored_results() {
+        let mut eval = Evaluator::new();
+        eval.evaluate_with_proof(
+            "q1".to_string(),
+            "ans1".to_string(),
+            "exp1".to_string(),
+            "pd1".to_string(),
+            "ps1".to_string(),
+            "le1".to_string(),
+        );
+        eval.evaluate_with_proof(
+            "q2".to_string(),
+            "ans2".to_string(),
+            "exp2".to_string(),
+            "pd2".to_string(),
+            "ps2".to_string(),
+            "le2".to_string(),
+        );
+        assert_eq!(eval.get_anchored_results().len(), 2);
     }
 }

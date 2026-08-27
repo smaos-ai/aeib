@@ -6,5 +6,5 @@ pub mod evaluator;
 pub mod golden_set;
 
 pub use error::{L7AuditEntry, L7Error};
-pub use evaluator::{EvaluationResult, Evaluator};
+pub use evaluator::{EvaluationResult, Evaluator, ProofAnchoredEvaluation};
 pub use golden_set::{GoldenQuestion, GoldenSet};

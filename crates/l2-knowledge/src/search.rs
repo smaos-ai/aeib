@@ -10,7 +10,9 @@ pub struct SearchResult {
 }
 
 pub struct HybridSearcher {
+    #[allow(dead_code)]
     semantic_weight: f32,
+    #[allow(dead_code)]
     keyword_weight: f32,
 }
 
@@ -102,14 +104,14 @@ mod tests {
         let searcher = HybridSearcher::default();
         let embedding = vec![0.1, 0.2, 0.3];
         let results = searcher.semantic_search(&embedding);
-        assert!(results.len() >= 0);
+        assert_eq!(results.len(), 0);
     }
 
     #[test]
     fn test_keyword_search() {
         let searcher = HybridSearcher::default();
         let results = searcher.keyword_search(&["transparency", "compliance"]);
-        assert!(results.len() >= 0);
+        assert_eq!(results.len(), 0);
     }
 
     #[test]

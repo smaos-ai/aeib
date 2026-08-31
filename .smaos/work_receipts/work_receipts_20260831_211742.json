@@ -1,0 +1,11 @@
+[
+  {
+    "action_id": "integration_test_001",
+    "prompt": "Process hotel credit approval",
+    "tokens_used": 250,
+    "cost": 0.005,
+    "timestamp": "2026-08-31T21:17:42.063025",
+    "signature": "f4e93aaf35acc722fe3d9ae624b92960ee7c1ab0b546a57d374a2195b335747ce71870e5893f754e8234a8b03b124f95470911a120b675e99779cc0c50c1e4e4",
+    "public_key": "ed25519_key_001"
+  }
+]

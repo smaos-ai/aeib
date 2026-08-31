@@ -1,0 +1,47 @@
+[
+  {
+    "action_id": "action_000",
+    "prompt": "Prompt 0",
+    "tokens_used": 100,
+    "cost": 0.001,
+    "timestamp": "2026-08-31T21:17:25.370305",
+    "signature": "daf65649ca21bdc2e3be5be8c05e3fc9bb56d7bafc98b11a8a59f8fb6c44687195eca9bc74db2f3b0a4ec5e909d140715aeee9df09360be42c2dfd7b3ce8e2c0",
+    "public_key": "ed25519_key_001"
+  },
+  {
+    "action_id": "action_001",
+    "prompt": "Prompt 1",
+    "tokens_used": 110,
+    "cost": 0.002,
+    "timestamp": "2026-08-31T21:17:25.370396",
+    "signature": "e09f51326f13c0313e4e090b59063280ebf3d395d7f81ab3cd04bed5a6c6a720e2513da01c13b1da1b2ad14480b32868466c2f61a0578920398288bda46c089b",
+    "public_key": "ed25519_key_001"
+  },
+  {
+    "action_id": "action_002",
+    "prompt": "Prompt 2",
+    "tokens_used": 120,
+    "cost": 0.003,
+    "timestamp": "2026-08-31T21:17:25.370487",
+    "signature": "eac2887b5db34f660c2311c7168f19b3669d6e86b3931d8bd2375a29a45ec80483a409a37b5ebe876d3f7ca199bc4e1d0771e74ed7589557fda79cf853a1b4b9",
+    "public_key": "ed25519_key_001"
+  },
+  {
+    "action_id": "action_003",
+    "prompt": "Prompt 3",
+    "tokens_used": 130,
+    "cost": 0.004,
+    "timestamp": "2026-08-31T21:17:25.370568",
+    "signature": "5eea6cbf8129742e1459c2007786360b597ba006088746e0c2f28dc81b726ffecd11bc71ae7b821167bbd7994364e899d19c287cb24545efd10dd6269201ac9b",
+    "public_key": "ed25519_key_001"
+  },
+  {
+    "action_id": "action_004",
+    "prompt": "Prompt 4",
+    "tokens_used": 140,
+    "cost": 0.005,
+    "timestamp": "2026-08-31T21:17:25.370647",
+    "signature": "adf35e213afcaf32151090d654416ecc316ae2645e4821ea916e92ecb2231d78bb340c8d2fdb1eab5a9bf21c5748f5380aa017e776d53266807754e1c0bfa5cb",
+    "public_key": "ed25519_key_001"
+  }
+]

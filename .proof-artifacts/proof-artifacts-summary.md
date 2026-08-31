@@ -1,7 +1,7 @@
 
 # Stream E: L7 Evaluation & Proof Artifacts - Summary Report
 
-**Generated:** 2026-08-31T21:10:12.888975
+**Generated:** 2026-08-31T21:13:29.456937
 **KARP Submission Deadline:** Sep 16-22, 2026
 **Status:** READY FOR SUBMISSION
 
@@ -55,7 +55,7 @@ Failed: 0
 ### 6. AP2 Ledger Proof
 - **File:** `ap2-merkle-proof.json`
 - **Entries:** 12
-- **Root Hash:** 82e747716bc7657a...
+- **Root Hash:** e98da58e2d3b38bb...
 - **Verified:** True
 - **Integrity Score:** 0.99
 - **Status:** ✓ PASS

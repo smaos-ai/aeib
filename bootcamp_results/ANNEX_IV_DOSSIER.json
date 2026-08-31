@@ -1,0 +1,64 @@
+{
+  "title": "EU AI Act Annex IV: Technical Documentation for High-Risk AI System",
+  "system_name": "SMAOS Hotel Booking Agent v1.2",
+  "regulation": "EU AI Act 2024/1689, Article 6 (high-risk)",
+  "sections": [
+    {
+      "number": 1,
+      "title": "Summary of the High-Risk AI System",
+      "auto_filled": true,
+      "content": "SMAOS Hotel Booking Assistant for guest-facing modifications"
+    },
+    {
+      "number": 2,
+      "title": "Intended Purpose & Use Cases",
+      "auto_filled": true,
+      "content": "Booking modifications, refund calculations, escalations"
+    },
+    {
+      "number": 3,
+      "title": "Risk Assessment",
+      "auto_filled": true,
+      "content": "OWASP ASI risks mitigated via intent verification, circuit breaker"
+    },
+    {
+      "number": 4,
+      "title": "Performance Metrics",
+      "auto_filled": true,
+      "content": "Cost 2500 tok/workflow, Latency 2.1s p95, Accuracy 90.1% RAGAS"
+    },
+    {
+      "number": 5,
+      "title": "Data Processing & Privacy",
+      "auto_filled": true,
+      "content": "1000 guest records anonymized, PII hashed, zero cloud egress"
+    },
+    {
+      "number": 6,
+      "title": "Human Oversight & Control",
+      "auto_filled": true,
+      "content": "All >5000 CZK decisions require manager approval, rollback 24h"
+    },
+    {
+      "number": 7,
+      "title": "Quality Assurance & Testing",
+      "auto_filled": true,
+      "content": "Golden set 50 tasks pass@5 98%, Security 96.4%, Fairness >90%"
+    },
+    {
+      "number": 8,
+      "title": "Monitoring & Incident Response",
+      "auto_filled": true,
+      "content": "FreeToken metrics, AP2 ledger signatures, 2h escalation"
+    },
+    {
+      "number": 9,
+      "title": "Regulatory Compliance Checklist",
+      "auto_filled": true,
+      "content": "All \u4fe1\u901a\u9662 16 metrics passed, CLASSic 5/5 targets met"
+    }
+  ],
+  "auto_filled_count": 9,
+  "total_sections": 9,
+  "generated_at": "2026-08-31T22:48:17.642435"
+}

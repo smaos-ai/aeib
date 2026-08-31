@@ -1,0 +1,78 @@
+{
+  "test_date": "2026-08-31T22:48:16.314313",
+  "framework_version": "1.0",
+  "total_tests": 28,
+  "passed": 28,
+  "failed": 0,
+  "pass_rate": "100.0%",
+  "severity": {
+    "P0": {
+      "passed": 9,
+      "total": 9,
+      "pass_rate": "100.0%"
+    },
+    "P1": {
+      "passed": 10,
+      "total": 10,
+      "pass_rate": "100.0%"
+    },
+    "P2": {
+      "passed": 9,
+      "total": 9,
+      "pass_rate": "100.0%"
+    }
+  },
+  "categories": {
+    "spoofing": {
+      "passed": 3,
+      "total": 3
+    },
+    "tampering": {
+      "passed": 3,
+      "total": 3
+    },
+    "injection": {
+      "passed": 4,
+      "total": 4
+    },
+    "pii": {
+      "passed": 5,
+      "total": 5
+    },
+    "agency": {
+      "passed": 3,
+      "total": 3
+    },
+    "access": {
+      "passed": 3,
+      "total": 3
+    },
+    "reasoning": {
+      "passed": 2,
+      "total": 2
+    },
+    "dos": {
+      "passed": 2,
+      "total": 2
+    },
+    "monitoring": {
+      "passed": 2,
+      "total": 2
+    },
+    "supply_chain": {
+      "passed": 1,
+      "total": 1
+    }
+  },
+  "failures": [],
+  "recommendations": [
+    "All critical security controls are functioning correctly"
+  ],
+  "summary": {
+    "p0_critical": "100.0%",
+    "p1_high": "100.0%",
+    "p2_medium": "100.0%",
+    "overall": "100.0%",
+    "target_met": true
+  }
+}

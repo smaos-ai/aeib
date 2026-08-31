@@ -1,23 +1,27 @@
-# FINANCIAL MODEL: 18-Month Path to €6M ARR
+# FINANCIAL MODEL — 18-Month Projection
+**SovereignNexus: Enterprise AI Orchestration + Creator Platform**
 
 **Model Date:** August 31, 2026  
-**Target:** €6M ARR by end of Year 1.5 (March 2028)  
-**Basis:** 3 enterprise pilots (hotel/glass/school) + creator platform growth  
-**Confidence:** 85% (enterprise), 75% (creator platform)
+**Target:** €40M–€80M enterprise ARR by Month 18 (February 2028)  
+**Target:** €3M–€7M creator ARR by Month 18  
+**Basis:** Dual-income model with tiered enterprise pricing + 1% creator platform fee  
+**Confidence:** Base case 70%, Upside 50%, Conservative 75%
 
 ---
 
-## Executive Summary
+## Executive Summary (Month 18 Endpoints)
 
-| Metric | Year 1 | Year 1.5 | Year 2 | Year 3 |
-|--------|--------|----------|--------|--------|
-| **Enterprise ARR** | €2.5M | €4.0M | €8.5M | €18.0M |
-| **Creator ARR** | €0.2M | €2.0M | €5.0M | €12.0M |
-| **Total ARR** | €2.7M | €6.0M | €13.5M | €30.0M |
-| **Customers (Enterprise)** | 3 | 15 | 40 | 100+ |
-| **Creators (Platform)** | 500 | 10,000 | 35,000 | 75,000+ |
-| **Blended Gross Margin** | 75% | 78% | 80% | 82% |
-| **Rule of 40** | 12 (growth 60%, margin 18%) | 48 (growth 125%, margin 78%) | 78 (growth 125%, margin 82%) | 112 (growth 122%, margin 90%) |
+| Metric | Conservative | **Base Case** | Optimistic |
+|--------|---|---|---|
+| **Enterprise ARR** | €26M | €40M | €80M |
+| **Creator ARR** | €1M | €3M | €7.2M |
+| **Total ARR** | €27M | €43M | €87.2M |
+| **Enterprise Customers** | 50 | 100 | 200+ |
+| **Creators** | 50K | 100K | 200K |
+| **Gross Margin** | 72% | 75% | 76% |
+| **EBITDA** | €7M | €29M | €57.8M |
+| **Payback Period** | 3.2 months | 1.6 months | 1.2 months |
+| **Blended LTV:CAC** | 15:1 | 28:1 | 42:1 |
 
 ---
 

@@ -91,6 +91,32 @@ CRITICAL PATH RESOLVED:
 
 ---
 
+### WEEK 4 (Sep 1-4) — STRATEGIC REFRAMING ✅ COMPLETE
+**Mission:** Apply modern tech + institutional rigor for KARP + Series A + EU regulators
+
+| Document | Purpose | Size | Audience |
+|-----------|---------|------|----------|
+| **GOLDEN_SET_50_TASKS.md** | 50 real tasks (hotel/glass/school) + pass@k/pass^k framework | 45 KB | KARP + LPs |
+| **SECURITY_TEST_HARNESS.md** | 28 tests (spoofing, tampering, injection), ExploitGym style | 38 KB | CISOs + Regulators |
+| **CLASSIC_AND_CHINESE_ALIGNMENT.md** | CLASSic 5D + 信通院 16 metrics/70 items mapping | 52 KB | EU + CAICT standards |
+| **KARP_5DAY_BOOTCAMP.md** | 5-day execution playbook (Palantir-style governance) | 48 KB | KARP committee + CIOs |
+| **ANNEX_IV_REFRAME_SLIDE.md** | 1-page decision-maker summary (6 controls + 7 artifacts) | 12 KB | All stakeholders |
+
+**WEEK 4 TOTALS:** 5 strategic documents, 195 KB, 100% KARP submission bundle ready
+
+**Reframing (Not "AI Governance" but "Control Plane That Makes Agents Measurable"):**
+- **6 Controls:** Agent / Tool Access / Policy / Approval / Action / Audit (installed in software)
+- **7 Artifacts:** agentacct / unlazy / AP2 / RAGAS / Golden Set / Security Harness / CanIRun (cryptographic proof)
+- **CLASSic Targets:** Cost ✓ / Latency ✓ / Accuracy ✓ / Stability ✓ / Security ✓
+- **信通院 Pillars:** 功能可信 (Trusted) / 权限可靠 (Reliable) / 操作透明 (Transparent) / 行为可干预 (Controllable)
+- **Series A Narrative:** "Palantir does zero-to-use-case in 5 days. We do zero-to-GOVERNED use case in 5 days."
+
+**KARP Submission (Sep 16-22):** Email to romana.cernikova@karp-kv.cz (all 5 documents + metrics JSON)
+
+**Commit:** Applied strategic reframing: CLASSic + 信通院 alignment for KARP submission
+
+---
+
 ## Next Actions (Week 2: Sep 8-14)
 
 1. **L5 Communication Scaffolding** (2 weeks, parallel)

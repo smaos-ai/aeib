@@ -7,4 +7,4 @@ pub mod mcp;
 
 pub use a2a::{A2aMessage, A2aRouter};
 pub use error::{L5AuditEntry, L5Error};
-pub use mcp::{McpServer, ServerType};
+pub use mcp::{McpRegistry, McpRequest, McpResponse, McpServer, ServerType};

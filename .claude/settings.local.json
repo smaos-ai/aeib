@@ -177,7 +177,9 @@
       "WebFetch(domain:tracxn.com)",
       "WebFetch(domain:fundpop.co)",
       "WebFetch(domain:citizencapital.eu)",
-      "WebFetch(domain:www.bcorporation.net)"
+      "WebFetch(domain:www.bcorporation.net)",
+      "WebFetch(domain:cz.linkedin.com)",
+      "mcp__notebooklm__note"
     ],
     "defaultMode": "acceptEdits"
   },

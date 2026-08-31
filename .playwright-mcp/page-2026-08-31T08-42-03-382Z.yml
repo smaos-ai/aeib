@@ -1,0 +1,379 @@
+- generic [ref=e1]:
+  - iframe [ref=e2]:
+    
+  - generic [ref=e2723]: None selected
+  - generic [ref=e10]:
+    - generic [ref=e12]:
+      - generic [ref=e13]:
+        - link "Skip to content" [ref=e14] [cursor=pointer]:
+          - /url: ""
+        - link "Using Gmail with screen readers" [ref=e15] [cursor=pointer]:
+          - /url: ""
+      - heading [level=1] [ref=e17]:
+        - banner [ref=e18]:
+          - generic [ref=e19]:
+            - generic [ref=e20]:
+              - button "Main menu" [expanded] [ref=e21] [cursor=pointer]
+              - link "Gmail" [ref=e26] [cursor=pointer]:
+                - /url: "#inbox"
+            - generic [ref=e28]:
+              - search [ref=e30]:
+                - heading "Search" [level=2] [ref=e31]
+                - table [ref=e2724]:
+                  - rowgroup [ref=e2725]:
+                    - row [ref=e2726]:
+                      - cell [ref=e2727]:
+                        - textbox "Search mail" [ref=e2728]
+                - button "Advanced search options" [ref=e34] [cursor=pointer]
+                - button "Search mail" [disabled] [ref=e37] [cursor=pointer]
+              - generic [ref=e41]:
+                - button "Support" [ref=e2730] [cursor=pointer]
+                - button "Settings" [ref=e45] [cursor=pointer]
+                - generic [ref=e49]:
+                  - generic:
+                    - button "Ask Gemini" [ref=e56] [cursor=pointer]
+                    - tooltip [ref=e59]: Ask Gemini
+            - generic [ref=e61]:
+              - button "Google apps" [ref=e65] [cursor=pointer]
+              - 'button "Google Account: Andrey Leo (andrejlo123@gmail.com), Google membership" [ref=e2734] [cursor=pointer]'
+      - alert [ref=e76]
+    - generic [ref=e79]:
+      - navigation [ref=e80]:
+        - button "Compose" [ref=e83] [cursor=pointer]
+        - generic [ref=e89]:
+          - generic [ref=e91]:
+            - heading "Labels" [level=2] [ref=e92]
+            - generic [ref=e93]:
+              - generic [ref=e94]:
+                - generic [ref=e96]:
+                  - generic [ref=e5462]:
+                    - link "Inbox 5395 unread" [ref=e5464] [cursor=pointer]:
+                      - /url: https://mail.google.com/mail/u/0/#inbox
+                      - text: Inbox
+                    - generic [ref=e5465]: 5,395
+                  - link "Starred" [ref=e2750] [cursor=pointer]:
+                    - /url: https://mail.google.com/mail/u/0/#starred
+                  - link "Snoozed" [ref=e2757] [cursor=pointer]:
+                    - /url: https://mail.google.com/mail/u/0/#snoozed
+                  - link "Important" [ref=e2764] [cursor=pointer]:
+                    - /url: https://mail.google.com/mail/u/0/#imp
+                  - link "Sent" [ref=e2771] [cursor=pointer]:
+                    - /url: https://mail.google.com/mail/u/0/#sent
+                  - generic [ref=e2776]:
+                    - link "Drafts 227 unread" [ref=e2778] [cursor=pointer]:
+                      - /url: https://mail.google.com/mail/u/0/#drafts
+                      - text: Drafts
+                    - generic [ref=e2779]: "227"
+                  - generic [ref=e2784]:
+                    - link "Spam 17 unread" [ref=e2786] [cursor=pointer]:
+                      - /url: https://mail.google.com/mail/u/0/#spam
+                      - text: Spam
+                    - generic [ref=e2787]: "17"
+                - generic [ref=e150]:
+                  - generic [ref=e2792]:
+                    - link "Purchases 130 unread has menu" [ref=e2794] [cursor=pointer]:
+                      - /url: https://mail.google.com/mail/u/0/#category/purchases
+                      - text: Purchases
+                    - generic [ref=e2795]: "130"
+                  - generic [ref=e2800]:
+                    - link "Social 449 unread has menu" [ref=e2802] [cursor=pointer]:
+                      - /url: https://mail.google.com/mail/u/0/#category/social
+                      - text: Social
+                    - generic [ref=e2803]: "449"
+                  - generic [ref=e5470]:
+                    - link "Updates 10577 unread has menu" [ref=e5472] [cursor=pointer]:
+                      - /url: https://mail.google.com/mail/u/0/#category/updates
+                      - text: Updates
+                    - generic [ref=e5473]: 10,577
+                  - generic [ref=e2816]:
+                    - link "Forums 101 unread has menu" [ref=e2818] [cursor=pointer]:
+                      - /url: https://mail.google.com/mail/u/0/#category/forums
+                      - text: Forums
+                    - generic [ref=e2819]: "101"
+                  - generic [ref=e2824]:
+                    - link "Promotions 2712 unread has menu" [ref=e2826] [cursor=pointer]:
+                      - /url: https://mail.google.com/mail/u/0/#category/promotions
+                      - text: Promotions
+                    - generic [ref=e2827]: 2,712
+              - button "More labels" [ref=e192] [cursor=pointer]:
+                - generic [ref=e193]: More
+          - generic [ref=e196]:
+            - heading "Labels" [ref=e197]
+            - button "Create new label" [ref=e198] [cursor=pointer]
+          - generic [ref=e200]:
+            - heading "Labels" [level=2] [ref=e201]
+            - generic [ref=e202]:
+              - generic [ref=e205]:
+                - generic [ref=e2832]:
+                  - link "forum 163 unread has menu" [ref=e2834] [cursor=pointer]:
+                    - /url: https://mail.google.com/mail/u/0/#label/forum
+                    - text: forum
+                  - generic [ref=e2835]: "163"
+                - generic [ref=e2840]:
+                  - link "Job proposes 5680 unread has menu" [ref=e2842] [cursor=pointer]:
+                    - /url: https://mail.google.com/mail/u/0/#label/Job+proposes
+                    - text: Job proposes
+                  - generic [ref=e2843]: 5,680
+                - generic [ref=e2848]:
+                  - link "linkedin 459 unread has menu" [ref=e2850] [cursor=pointer]:
+                    - /url: https://mail.google.com/mail/u/0/#label/linkedin
+                    - text: linkedin
+                  - generic [ref=e2851]: "459"
+                - link "Notes has menu" [ref=e2858] [cursor=pointer]:
+                  - /url: https://mail.google.com/mail/u/0/#label/Notes
+                  - text: Notes
+                - generic [ref=e2863]:
+                  - link "techArticle 292 unread has menu" [ref=e2865] [cursor=pointer]:
+                    - /url: https://mail.google.com/mail/u/0/#label/techArticle
+                    - text: techArticle
+                  - generic [ref=e2866]: "292"
+                - link "Особисті has menu" [ref=e2873] [cursor=pointer]:
+                  - /url: https://mail.google.com/mail/u/0/#label/%D0%9E%D1%81%D0%BE%D0%B1%D0%B8%D1%81%D1%82%D1%96
+                  - text: Особисті
+                - link "Подорожі has menu" [ref=e2880] [cursor=pointer]:
+                  - /url: https://mail.google.com/mail/u/0/#label/%D0%9F%D0%BE%D0%B4%D0%BE%D1%80%D0%BE%D0%B6%D1%96
+                  - text: Подорожі
+              - button "More labels" [ref=e260] [cursor=pointer]:
+                - generic [ref=e261]: More
+      - generic [ref=e268]:
+        - generic [ref=e5474]:
+          - generic [ref=e5476]:
+            - button "Back to Inbox" [ref=e5478] [cursor=pointer]
+            - generic [ref=e5481]:
+              - button "Archive" [ref=e5482] [cursor=pointer]
+              - button "Report spam" [ref=e5485] [cursor=pointer]
+              - button "Delete" [ref=e5488] [cursor=pointer]
+            - generic [ref=e5491]:
+              - button "Mark as unread" [ref=e5492] [cursor=pointer]
+              - button "Move to" [ref=e5496] [cursor=pointer]
+            - button "More email options" [ref=e5500] [cursor=pointer]
+          - generic [ref=e5503]:
+            - generic [ref=e5505]:
+              - generic [ref=e5506]: 4 of 12,711
+              - button "Newer" [ref=e5507] [cursor=pointer]
+              - button "Older" [ref=e5508] [cursor=pointer]
+            - generic [ref=e5512]:
+              - button "Input tools on/off (Ctrl-Shift-K)" [ref=e5513] [cursor=pointer]
+              - button "Select input tool" [ref=e5515] [cursor=pointer]
+        - main [ref=e5517]:
+          - generic [ref=e5519]:
+            - generic [ref=e5521]:
+              - generic [ref=e5523]:
+                - generic [ref=e5524]:
+                  - button "Print all" [ref=e5525] [cursor=pointer]
+                  - tooltip [ref=e5531]: Print all
+                - generic [ref=e5532]:
+                  - button "In new window" [ref=e5533] [cursor=pointer]
+                  - tooltip [ref=e5539]: In new window
+              - generic [ref=e5541]:
+                - heading "You shared some Google Account data with Claude" [active] [level=2] [ref=e5542]
+                - generic [ref=e5543]:
+                  - button "Not important" [ref=e5545] [cursor=pointer]
+                  - generic [ref=e5550] [cursor=pointer]:
+                    - generic [ref=e5551]:
+                      - button "Search for all messages with label Inbox" [ref=e5553]: Inbox
+                      - tooltip [ref=e5554]: Search for all messages with label Inbox
+                    - generic [ref=e5555]:
+                      - button "Remove label Inbox from this conversation" [ref=e5557]: ×
+                      - tooltip [ref=e5558]: Remove label Inbox from this conversation
+            - list [ref=e5561]:
+              - listitem [ref=e5562]:
+                - generic [ref=e5573]:
+                  - table [ref=e5575]:
+                    - rowgroup [ref=e5576]:
+                      - row [ref=e5577]:
+                        - cell [ref=e5578]:
+                          - table [ref=e5579]:
+                            - rowgroup [ref=e5580]:
+                              - row [ref=e5581]:
+                                - cell [ref=e5582]:
+                                  - heading [level=3] [ref=e5583]:
+                                    - gridcell "Google noreply-accounts@google.com" [ref=e5584]:
+                                      - generic [ref=e5585]: Google
+                                      - generic [ref=e5586]: <noreply-accounts@google.com>
+                                  - heading [level=3]
+                        - cell [ref=e5587]:
+                          - generic [ref=e5588]:
+                            - gridcell "9:33 AM (1 hour ago)" [ref=e5589]
+                            - checkbox "Not starred" [ref=e5591] [cursor=pointer]
+                        - cell
+                        - cell [ref=e5593]:
+                          - generic [ref=e5595]:
+                            - button "You can't react with an emoji to a group" [disabled] [ref=e5596]
+                            - tooltip [ref=e5602]: You can't react with an emoji to a group
+                          - generic [ref=e5603]:
+                            - button "Reply" [ref=e5604] [cursor=pointer]
+                            - tooltip [ref=e5610]: Reply
+                          - generic [ref=e5613]:
+                            - button "More message options" [ref=e5614] [cursor=pointer]
+                            - tooltip [ref=e5619]: More
+                      - row [ref=e5620]:
+                        - cell [ref=e5621]:
+                          - table [ref=e5622]:
+                            - rowgroup [ref=e5623]:
+                              - row [ref=e5624]:
+                                - cell "to me Show details" [ref=e5625]:
+                                  - generic [ref=e5626]: to me
+                                  - button "Show details" [ref=e5628]
+                  - generic [ref=e5633]:
+                    - paragraph [ref=e5637]: Keep track of your Google Account data
+                    - generic [ref=e5638]: andrejlo123@gmail.com
+                    - generic [ref=e5641]:
+                      - img [ref=e5642] [cursor=pointer]
+                      - generic [ref=e5644]:
+                        - button "Download attachment" [ref=e5645] [cursor=pointer]
+                        - tooltip [ref=e5651]: Download
+                    - table [ref=e5653]:
+                      - rowgroup [ref=e5654]:
+                        - row [ref=e5655]:
+                          - cell [ref=e5656]:
+                            - table [ref=e5657]:
+                              - rowgroup [ref=e5658]:
+                                - row [ref=e5659]:
+                                  - cell [ref=e5660]:
+                                    - table [ref=e5661]:
+                                      - rowgroup [ref=e5662]:
+                                        - row [ref=e5663]:
+                                          - cell [ref=e5664]:
+                                            - paragraph [ref=e5665]
+                                          - cell [ref=e5667]:
+                                            - paragraph [ref=e5668]:
+                                              - text: You're receiving this email because you used Sign in with Google to sign in to
+                                              - link "Claude" [ref=e5670] [cursor=pointer]:
+                                                - /url: https://c.gle/ACT4xYyGAlvTWCezUHEPOPa53tgIPbsKzpDLJ7gUzLuCc6V3bVQfW_ljmJi-uxxu15xuVGj9ln8bRjBtgmKRD3FQLwOI41xbY0MPACFOFMOC6BHcIhn6xxuQfhd1NvbMbb0TIUVeUggX
+                                              - text: on August 31 at 9:33 AM.
+                                            - paragraph [ref=e5671]: This email summarizes the info you shared. There’s nothing you need to do right now.
+                    - table [ref=e5673]:
+                      - rowgroup [ref=e5674]:
+                        - row [ref=e5675]:
+                          - cell [ref=e5676]:
+                            - table [ref=e5677]:
+                              - rowgroup [ref=e5678]:
+                                - row [ref=e5679]:
+                                  - cell [ref=e5680]:
+                                    - table [ref=e5681]:
+                                      - rowgroup [ref=e5682]:
+                                        - row [ref=e5683]:
+                                          - cell "Claude received this profile info" [ref=e5684]
+                    - table [ref=e5686]:
+                      - rowgroup [ref=e5687]:
+                        - row [ref=e5688]:
+                          - cell [ref=e5689]:
+                            - table [ref=e5690]:
+                              - rowgroup [ref=e5691]:
+                                - row [ref=e5692]:
+                                  - cell [ref=e5693]:
+                                    - table [ref=e5694]:
+                                      - rowgroup [ref=e5695]:
+                                        - row [ref=e5696]:
+                                          - cell [ref=e5697]
+                                          - cell [ref=e5699]:
+                                            - table [ref=e5700]:
+                                              - rowgroup [ref=e5701]:
+                                                - row [ref=e5702]:
+                                                  - cell "Andrey Leo" [ref=e5703]
+                                                - row [ref=e5704]:
+                                                  - cell "Name and profile picture" [ref=e5705]
+                    - table [ref=e5707]:
+                      - rowgroup [ref=e5708]:
+                        - row [ref=e5709]:
+                          - cell [ref=e5710]:
+                            - table [ref=e5711]:
+                              - rowgroup [ref=e5712]:
+                                - row [ref=e5713]:
+                                  - cell [ref=e5714]:
+                                    - table [ref=e5715]:
+                                      - rowgroup [ref=e5716]:
+                                        - row [ref=e5717]:
+                                          - cell [ref=e5718]
+                                          - cell [ref=e5720]:
+                                            - table [ref=e5721]:
+                                              - rowgroup [ref=e5722]:
+                                                - row [ref=e5723]:
+                                                  - cell "andrejlo123@gmail.com" [ref=e5724]
+                                                - row [ref=e5725]:
+                                                  - cell "Email address" [ref=e5726]
+                    - table [ref=e5728]:
+                      - rowgroup [ref=e5729]:
+                        - row [ref=e5730]:
+                          - cell [ref=e5731]:
+                            - table [ref=e5732]:
+                              - rowgroup [ref=e5733]:
+                                - row [ref=e5734]:
+                                  - cell [ref=e5735]
+                    - table [ref=e5738]:
+                      - rowgroup [ref=e5739]:
+                        - row [ref=e5740]:
+                          - cell [ref=e5741]:
+                            - table [ref=e5742]:
+                              - rowgroup [ref=e5743]:
+                                - row [ref=e5744]:
+                                  - cell [ref=e5745]:
+                                    - table [ref=e5746]:
+                                      - rowgroup [ref=e5747]:
+                                        - row [ref=e5748]:
+                                          - cell "This email includes the info you shared on August 31 at 9:33 AM" [ref=e5749]
+                    - generic [ref=e5750]: If you want to stop using Sign in with Google with Claude, go to your Google Account.
+                    - link "Go to your Google Account" [ref=e5753] [cursor=pointer]:
+                      - /url: https://c.gle/ACT4xYxQ9K7CTj5bma_O-kmNFEXxAtYxQy6GLO-wEnqiEC1zGxb1AkTYwHet2lKzT6BpvI28rxmC3ce_EjrrsTVrm8gVD1RqjZZGUAnKERKN-Bx8ArFWNFOoPzrc3BMuWkhWFeg6ejl9hfcYg0AfngXEC48KPs5J_SzwaaoiQq5-oyJS4qmdmwjUP-IRWvIu2_ZkBJcTiYYNdn-e4bkk8wA3reNtdgWSem1EXIzAocijail77JIVXNAbdh_lCTCFEgXsJwjkaZyLM3JgRJpJEW_mQLRfrUJsbiPVXziRGeEe4fgkI2x_6fuybdrDrp1SdGFsb1iatzZxCEjtRE63y-o4nt5cpQR1cQHQhHObdlw3uz8brp356M3YseWkMj5-pp61sp8mw0X2NaxNG76mATly-5_xGQHBo_pnCqxTI4tKpCWcx5A3gJhMH_Jy-K9uxBb9ZgMHMeMqwjUZKzTf5BKvEk172zjsuaVxJpIB9ZDNvfcB3QZWRCrQtTNBQK4Ge1i5MLcF6jTA-ZLBZYLBc63v8O8xuY66SihQi2K3D5nZXlFv1tWHU46fVNJCygwnqdZoEyHtdant9y83JvYQWhza3aYsnJKRsX90xtpJRW0AwnyN3s5mnP_aDhTt2jfXMWXUPFQYvSPX0_6n5SMY-798CAI4CK35vpytYW-R4o01rhs-z0onkyaZMYNhvStm-1K4mHF13LdOjMZ8wppcs0x_H4-GjVw9cQYoijzqbtFBq9CPlFA1G2gGwVNKPTpXTBNyfiM_QNpkCw
+                    - generic [ref=e5755]: Review Claude’s Privacy Policy and Terms of Service to understand how Claude will process and protect your data.
+                    - generic [ref=e5757]: If you want to delete the data you shared with Claude, visit Claude.
+                    - table [ref=e5760]:
+                      - rowgroup [ref=e5761]:
+                        - row [ref=e5762]:
+                          - cell [ref=e5763]:
+                            - table [ref=e5764]:
+                              - rowgroup [ref=e5765]:
+                                - row [ref=e5766]:
+                                  - cell [ref=e5767]:
+                                    - table [ref=e5768]:
+                                      - rowgroup [ref=e5769]:
+                                        - row [ref=e5770]:
+                                          - cell [ref=e5771]:
+                                            - paragraph [ref=e5772]
+                                          - cell [ref=e5774]:
+                                            - table [ref=e5775]:
+                                              - rowgroup [ref=e5776]:
+                                                - row [ref=e5777]:
+                                                  - cell "Safer with Google" [ref=e5778]
+                                                - row [ref=e5779]:
+                                                  - cell "Your Google Account protects your privacy with advanced security designed to keep your data safe" [ref=e5780]
+                    - paragraph [ref=e5783]: You received this email to let you know about important changes to your Google Account and services.
+                    - generic [ref=e5784]:
+                      - paragraph [ref=e5785]:
+                        - generic [ref=e5786]:
+                          - text: If you want to stop receiving these emails, you can
+                          - link "unsubscribe" [ref=e5787] [cursor=pointer]:
+                            - /url: https://myaccount.google.com/communication-preferences/unsubscribe/gt/ACT4xYxMl1ld2aYdvq5vk0b6Wabbey96Fh6kzViD6-9-Li7SqxEjSEAB4-9-c2eklSP4Ap13_BnB2FjBtBIT1AGorEG8742IUO57epr1-CZxJTz4t9flziFp6GfudjBxkBu5bpzpls2nHTj_HlICxKkXGj3EYhTp457ERiW-9n-2SBV6N_NjFesX98jl3IfrPc-RKlmxlVhh6kbh45iA8HhssnZbTAPlkeRltj5XqulNp5dV1o52eJcRNEw_YfzIyrZ_3d4oDTYuDbosqlPhJdH8Sq-a0ML-6XZ9VUHI7xs?utm_source=gm&utm_medium=email&auto=true
+                          - text: .
+                      - paragraph [ref=e5788]: Even if you unsubscribe from these emails, you’ll continue to receive security alerts.
+                    - paragraph [ref=e5790]:
+                      - text: © 2026 Google Ireland Ltd, Gordon House,
+                      - link "Barrow Street, Dublin 4, Ireland" [ref=e5791] [cursor=pointer]:
+                        - /url: https://www.google.com/maps/search/Barrow+Street,+Dublin+4,+Ireland?entry=gmail&source=g
+                      - text: .
+            - generic [ref=e5797]:
+              - link "Reply" [ref=e5798] [cursor=pointer]
+              - link "Forward" [ref=e5799] [cursor=pointer]
+              - generic [ref=e5801]:
+                - button "You can't react with an emoji to a group" [disabled] [ref=e5802]
+                - tooltip [ref=e5808]: You can't react with an emoji to a group
+      - generic [ref=e2715]:
+        - complementary "Side panel" [ref=e2716]:
+          - tablist [ref=e3096]:
+            - tab "Calendar":
+              - generic [ref=e2719] [cursor=pointer]
+            - tab "Keep":
+              - generic [ref=e2720] [cursor=pointer]
+            - tab "Tasks":
+              - generic [ref=e2721] [cursor=pointer]
+            - tab "Contacts":
+              - generic [ref=e2722] [cursor=pointer]
+            - separator [disabled] [ref=e3097]
+            - tab "Wordzen":
+              - generic [ref=e3098] [cursor=pointer]
+            - tab "Get Add-ons":
+              - generic [ref=e3099] [cursor=pointer]
+        - generic:
+          - button "Hide side panel":
+            - generic [ref=e3100] [cursor=pointer]

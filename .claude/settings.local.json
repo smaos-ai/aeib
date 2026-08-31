@@ -183,7 +183,9 @@
       "WebFetch(domain:www.openlayer.com)",
       "WebFetch(domain:labs.cloudsecurityalliance.org)",
       "Bash(rm -f /Users/andriileukhin/Documents/SovereignNexus/.git/index.lock)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(rm -rf ~/.cargo/registry/cache)",
+      "Bash(cargo build *)"
     ],
     "defaultMode": "acceptEdits"
   },

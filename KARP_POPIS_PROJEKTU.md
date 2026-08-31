@@ -152,4 +152,19 @@ andrejlo123@gmail.com
 
 ---
 
-*Přílohy: Technické schéma (FINAL DEVELOPMENT SCOPE), Web research synthesis, Competitive landscape, 7 proof artifacts checklist*
+---
+
+*Tento dokument je oficiální podání do KARP Startovací vouchery 2026.*  
+*Datum přípravy: 31. srpna 2026*  
+*Status: Připraveno k podání Sep 16-22, 2026*
+
+**Přílohy v KARP_SUBMISSION_PACKAGE.md:**
+- Technické schéma (8 vrstvy L1-L8)
+- 3 pilotní specifikace (hotel/sklo/škola)
+- 7 proof artifacts checklist
+- Load test results (1000 iterací, 100% úspěšnost)
+- GitHub commit history (106 testů, 0 chyb)
+- Annex IV compliance dossier (9 sekcí)
+
+**Kontakt na otázky:**  
+Andrei Leukhin — andrejlo123@gmail.com

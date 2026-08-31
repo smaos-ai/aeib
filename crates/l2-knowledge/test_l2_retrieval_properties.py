@@ -281,7 +281,10 @@ def test_score_conservation_in_fusion(results):
     if len(results) <= 1:
         return
 
-    searcher = HybridSearcher()
+    try:
+        searcher = HybridSearcher()
+    except ConnectionError:
+        pytest.skip("Database not available")
 
     # Split results into semantic and keyword (artificial)
     mid = len(results) // 2
@@ -315,7 +318,10 @@ def test_score_conservation_in_fusion(results):
 @settings(max_examples=50)
 def test_top_k_limit_respected(query, top_k):
     """Property: Search results don't exceed top_k limit."""
-    searcher = HybridSearcher()
+    try:
+        searcher = HybridSearcher()
+    except ConnectionError:
+        pytest.skip("Database not available")
 
     try:
         results, _ = searcher.search(query, top_k=top_k)
@@ -336,8 +342,11 @@ def test_top_k_limit_respected(query, top_k):
 @settings(max_examples=50)
 def test_search_reproducibility(query):
     """Property: Same query produces same output (deterministic)."""
-    searcher1 = HybridSearcher()
-    searcher2 = HybridSearcher()
+    try:
+        searcher1 = HybridSearcher()
+        searcher2 = HybridSearcher()
+    except ConnectionError:
+        pytest.skip("Database not available")
 
     try:
         results1, time1 = searcher1.search(query, top_k=5)
@@ -392,7 +401,10 @@ def test_weight_normalization(semantic_weight, keyword_weight):
 @settings(max_examples=50)
 def test_null_embedding_handling(embeddings):
     """Property: Null/malformed embeddings don't crash."""
-    searcher = HybridSearcher()
+    try:
+        searcher = HybridSearcher()
+    except ConnectionError:
+        pytest.skip("Database not available")
 
     try:
         # Test cosine similarity with various embedding states

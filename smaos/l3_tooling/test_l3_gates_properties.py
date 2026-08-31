@@ -88,7 +88,8 @@ def evidence_payloads(draw, valid=True):
         # Potentially invalid evidence (missing fields or low confidence)
         fields = ["type", "confidence", "citation", "timestamp"]
         num_fields = draw(st.integers(min_value=0, max_value=len(fields)))
-        for field in draw(st.permutations(fields)).build()[:num_fields]:
+        selected_fields = draw(st.permutations(fields))[:num_fields]
+        for field in selected_fields:
             if field == "confidence":
                 evidence[field] = draw(st.floats(min_value=0.0, max_value=1.0))
             elif field == "type":

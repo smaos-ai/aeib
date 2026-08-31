@@ -7,16 +7,18 @@ pub struct SearchResult {
     pub title: String,
     pub score: f32,
     pub rank: u32,
+    pub source: String,
 }
 
+/// Hybrid search combiner for BM25 keyword + semantic search
+/// Uses Reciprocal Rank Fusion (RRF) to combine results
 pub struct HybridSearcher {
-    #[allow(dead_code)]
     semantic_weight: f32,
-    #[allow(dead_code)]
     keyword_weight: f32,
 }
 
 impl HybridSearcher {
+    /// Create new hybrid searcher with configurable weights
     pub fn new(semantic_weight: f32, keyword_weight: f32) -> Self {
         Self {
             semantic_weight,
@@ -24,26 +26,59 @@ impl HybridSearcher {
         }
     }
 
-    pub fn search(&self, _query: &str) -> (Vec<SearchResult>, u64) {
+    /// Hybrid search: semantic + keyword + RRF fusion
+    /// Returns results and elapsed time in milliseconds
+    pub fn search(&self, query: &str) -> (Vec<SearchResult>, u64) {
         let start = Instant::now();
 
-        let results = vec![
+        // In production, these would query the PostgreSQL database
+        // For now, return example results demonstrating hybrid search
+        let semantic_results = self.semantic_search_results(query);
+        let keyword_results = self.keyword_search_results(query);
+
+        let fused = self.rrf_combine(semantic_results, keyword_results);
+        let elapsed = start.elapsed().as_millis() as u64;
+        (fused, elapsed)
+    }
+
+    /// Semantic search on policy embeddings
+    fn semantic_search_results(&self, _query: &str) -> Vec<SearchResult> {
+        vec![
             SearchResult {
                 article_id: "Article50".to_string(),
-                title: "Transparency obligations".to_string(),
+                title: "Transparency obligations on providers of high-risk AI systems".to_string(),
                 score: 0.92,
                 rank: 1,
+                source: "semantic".to_string(),
             },
             SearchResult {
                 article_id: "Article51".to_string(),
-                title: "Documentation requirements".to_string(),
+                title: "Documentation and record-keeping requirements".to_string(),
                 score: 0.87,
                 rank: 2,
+                source: "semantic".to_string(),
             },
-        ];
+        ]
+    }
 
-        let elapsed = start.elapsed().as_millis() as u64;
-        (results, elapsed)
+    /// BM25 keyword search on policy keywords
+    fn keyword_search_results(&self, _query: &str) -> Vec<SearchResult> {
+        vec![
+            SearchResult {
+                article_id: "Article50".to_string(),
+                title: "Transparency obligations on providers of high-risk AI systems".to_string(),
+                score: 0.88,
+                rank: 1,
+                source: "keyword".to_string(),
+            },
+            SearchResult {
+                article_id: "GDPR-Article32".to_string(),
+                title: "Security of processing - appropriate technical and organizational measures".to_string(),
+                score: 0.75,
+                rank: 2,
+                source: "keyword".to_string(),
+            },
+        ]
     }
 
     pub fn semantic_search(&self, _embedding: &[f32]) -> Vec<SearchResult> {
@@ -54,31 +89,79 @@ impl HybridSearcher {
         vec![]
     }
 
+    /// Reciprocal Rank Fusion combines semantic and keyword results
+    /// Formula: score = sum(1 / (k + rank)) where k=60 by default
     pub fn rrf_combine(
         &self,
         semantic: Vec<SearchResult>,
         keyword: Vec<SearchResult>,
     ) -> Vec<SearchResult> {
-        let mut combined = vec![];
-        let mut seen = std::collections::HashSet::new();
+        use std::collections::HashMap;
 
-        for (rank, result) in semantic.iter().enumerate() {
-            if !seen.contains(&result.article_id) {
-                let mut combined_result = result.clone();
-                combined_result.rank = (rank + 1) as u32;
-                combined.push(combined_result.clone());
-                seen.insert(combined_result.article_id.clone());
-            }
+        let k = 60;
+        let mut rrf_scores: HashMap<String, (SearchResult, Vec<String>, f32)> = HashMap::new();
+
+        // Add semantic results
+        for result in semantic {
+            let rrf_score = 1.0 / (k as f32 + result.rank as f32) * self.semantic_weight;
+            rrf_scores
+                .entry(result.article_id.clone())
+                .or_insert_with(|| {
+                    (
+                        SearchResult {
+                            article_id: result.article_id.clone(),
+                            title: result.title.clone(),
+                            score: 0.0,
+                            rank: 0,
+                            source: String::new(),
+                        },
+                        vec![],
+                        0.0,
+                    )
+                })
+                .2 += rrf_score;
+            rrf_scores.get_mut(&result.article_id).unwrap().1.push("semantic".to_string());
         }
 
+        // Add keyword results
         for result in keyword {
-            if !seen.contains(&result.article_id) {
-                seen.insert(result.article_id.clone());
-                combined.push(result);
-            }
+            let rrf_score = 1.0 / (k as f32 + result.rank as f32) * self.keyword_weight;
+            rrf_scores
+                .entry(result.article_id.clone())
+                .or_insert_with(|| {
+                    (
+                        SearchResult {
+                            article_id: result.article_id.clone(),
+                            title: result.title.clone(),
+                            score: 0.0,
+                            rank: 0,
+                            source: String::new(),
+                        },
+                        vec![],
+                        0.0,
+                    )
+                })
+                .2 += rrf_score;
+            rrf_scores.get_mut(&result.article_id).unwrap().1.push("keyword".to_string());
         }
 
-        combined
+        // Sort by RRF score and assign ranks
+        let mut results: Vec<_> = rrf_scores
+            .into_iter()
+            .map(|(_, (mut result, sources, score))| {
+                result.score = score;
+                result.source = sources.join("+");
+                result
+            })
+            .collect();
+
+        results.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+
+        for (i, result) in results.iter_mut().enumerate() {
+            result.rank = (i + 1) as u32;
+        }
+
+        results
     }
 }
 

@@ -181,7 +181,9 @@
       "WebFetch(domain:cz.linkedin.com)",
       "mcp__notebooklm__note",
       "WebFetch(domain:www.openlayer.com)",
-      "WebFetch(domain:labs.cloudsecurityalliance.org)"
+      "WebFetch(domain:labs.cloudsecurityalliance.org)",
+      "Bash(rm -f /Users/andriileukhin/Documents/SovereignNexus/.git/index.lock)",
+      "Bash(git add *)"
     ],
     "defaultMode": "acceptEdits"
   },

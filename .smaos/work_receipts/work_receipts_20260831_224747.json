@@ -1,0 +1,56 @@
+[
+  {
+    "action_id": "test_001",
+    "prompt": "MODIFIED_PROMPT",
+    "tokens_used": 100,
+    "cost": 0.05,
+    "timestamp": "2026-08-31T22:47:47.118199",
+    "signature": "6492185a67025595e97489579439154c5fadeb1f4715ad4262a495106b50f355c307e4afe05cde667caf2467b459795c46a32a021f25f31c5159efcbaa9f9f1f",
+    "public_key": "ed25519_key_001"
+  },
+  {
+    "action_id": "test_002",
+    "prompt": "Approve refund",
+    "tokens_used": 50,
+    "cost": 0.02,
+    "timestamp": "2026-08-30T22:47:47.118441",
+    "signature": "cdc7c1d6a1e0ac926d3f8d055b3db169d607d67d7f21b22d58f8a6d61c705f9431054f0a15ce8f6eeed6e30de3bdd12dbb552c654d06871c58a48e51c90455f4",
+    "public_key": "ed25519_key_001"
+  },
+  {
+    "action_id": "test_003",
+    "prompt": "Decide on refund (55% confidence)",
+    "tokens_used": 75,
+    "cost": 0.03,
+    "timestamp": "2026-08-31T22:47:47.118606",
+    "signature": "fa39e4a7e6b5d9bd6e173d8c6ca0627b8a021e4ad47e87eee845782ee7ba838cd1b7250f6e594c4ab6822d1e7606654de05a54e62d097f2647bd34296e267418",
+    "public_key": "ed25519_key_001"
+  },
+  {
+    "action_id": "test_004",
+    "prompt": "Process booking for [GUEST]",
+    "tokens_used": 100,
+    "cost": 0.05,
+    "timestamp": "2026-08-31T22:47:47.118772",
+    "signature": "863fc40499d8b163b811859007db7c1f6298c317e1bdd4c469fac2eccb836d30cf113b91bf71188ad3a2b33e525f8b748a7c4ed76d9825210ae0c96cd02bd2a8",
+    "public_key": "ed25519_key_001"
+  },
+  {
+    "action_id": "test_005",
+    "prompt": "Payment with ****-****-****-9012",
+    "tokens_used": 50,
+    "cost": 0.02,
+    "timestamp": "2026-08-31T22:47:47.118889",
+    "signature": "984bd748d4dd4bf0fdb27cd65b7a6b524956b1918318bdd80f7d6a42cdc4a75256032679bcbf04969acd60145d68f8f3986faf1d8c9630a3ee49d29ba76c342e",
+    "public_key": "ed25519_key_001"
+  },
+  {
+    "action_id": "test_006",
+    "prompt": "Escalate to manager, contact [EMAIL]",
+    "tokens_used": 75,
+    "cost": 0.03,
+    "timestamp": "2026-08-31T22:47:47.118995",
+    "signature": "670ea5f5a72f4a536c609aabdacaa6f21b609021181c80fa42b9451813e9e59db4773f94030df91a3175530dbfa82eba5ceff8b19adad84b164c3c59d9367281",
+    "public_key": "ed25519_key_001"
+  }
+]

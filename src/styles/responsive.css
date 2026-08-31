@@ -1,0 +1,283 @@
+/* SMAOS Osiris — Responsive Design (Mobile-First, WCAG AA) */
+
+/* Mobile first: default styles apply to small screens */
+@media screen and (max-width: 640px) {
+  /* Adjust 3-panel grid to stacked layout */
+  .command-center {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  .panel-telemetry,
+  .panel-canvas,
+  .panel-ledger {
+    width: 100%;
+    min-height: 30vh;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  /* Reduce padding on small screens */
+  .card {
+    padding: var(--spacing-md);
+  }
+
+  /* Typography scaling */
+  h1 {
+    font-size: 32px;
+  }
+
+  h2 {
+    font-size: 24px;
+  }
+
+  h3 {
+    font-size: 18px;
+  }
+
+  p {
+    font-size: 13px;
+  }
+
+  /* Touch-friendly buttons (min 44x44px) */
+  .btn {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px 16px;
+  }
+
+  /* Input fields larger on mobile */
+  input, textarea {
+    font-size: 16px; /* Prevent zoom on iOS */
+    padding: 12px;
+  }
+
+  /* Proof gallery: single column on mobile */
+  .proof-gallery {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Tablet: 640px - 1024px */
+@media screen and (min-width: 641px) and (max-width: 1024px) {
+  /* 2-panel layout on tablets */
+  .command-center {
+    grid-template-columns: 1fr 2fr;
+  }
+
+  .panel-ledger {
+    display: none; /* Hide ledger on tablets, show in sidebar */
+  }
+
+  .sidebar-ledger {
+    display: block;
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 300px;
+    height: 100vh;
+    overflow-y: auto;
+    background: var(--color-bg-secondary);
+    border-left: 1px solid var(--color-border-primary);
+    padding: var(--spacing-lg);
+  }
+
+  /* Typography scaling */
+  h1 {
+    font-size: 40px;
+  }
+
+  h2 {
+    font-size: 28px;
+  }
+
+  /* Reduce gaps on tablet */
+  .glass-panel {
+    gap: var(--spacing-md);
+  }
+
+  /* Proof gallery: 2 columns */
+  .proof-gallery {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Desktop: 1025px+ */
+@media screen and (min-width: 1025px) {
+  /* Full 3-panel layout */
+  .command-center {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: var(--spacing-lg);
+  }
+
+  .sidebar-ledger {
+    display: none;
+  }
+
+  /* Proof gallery: 2-3 columns */
+  .proof-gallery {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  }
+
+  /* Full typography */
+  h1 {
+    font-size: 48px;
+  }
+
+  h2 {
+    font-size: 32px;
+  }
+}
+
+/* Large desktop: 1440px+ */
+@media screen and (min-width: 1440px) {
+  /* Increase max width */
+  .container {
+    max-width: 1920px;
+    margin: 0 auto;
+  }
+
+  /* Larger panels */
+  .glass-panel {
+    padding: var(--spacing-xl);
+  }
+
+  /* Proof gallery: 3-4 columns */
+  .proof-gallery {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-lg);
+  }
+}
+
+/* High DPI / Retina displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  /* Sharper text rendering */
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Thinner borders */
+  .glass-panel,
+  .card {
+    border-width: 0.5px;
+  }
+}
+
+/* Reduced motion (accessibility) */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  /* Disable smooth scroll */
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Dark mode detection (already default, but explicit) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+}
+
+/* Light mode fallback (not recommended, but supported) */
+@media (prefers-color-scheme: light) {
+  :root {
+    --color-bg-primary: #f9fafb;
+    --color-bg-secondary: #f3f4f6;
+    --color-bg-tertiary: #e5e7eb;
+    --color-surface: #ffffff;
+    --color-text-primary: #111827;
+    --color-text-secondary: #374151;
+    --color-text-tertiary: #6b7280;
+  }
+}
+
+/* Print styles */
+@media print {
+  * {
+    background: transparent !important;
+    color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  a, a:visited {
+    text-decoration: underline;
+  }
+
+  a[href]:after {
+    content: " (" attr(href) ")";
+  }
+
+  .no-print {
+    display: none;
+  }
+}
+
+/* Landscape orientation on mobile */
+@media screen and (max-height: 500px) and (orientation: landscape) {
+  .command-center {
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .panel-telemetry,
+  .panel-canvas,
+  .panel-ledger {
+    min-height: auto;
+  }
+
+  /* Reduce padding in landscape */
+  .glass-panel {
+    padding: var(--spacing-md);
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Larger touch targets */
+  button, a, input[type="button"], input[type="submit"] {
+    min-height: 48px;
+    min-width: 48px;
+  }
+
+  /* Remove hover effects (not applicable on touch) */
+  .btn:hover,
+  .card:hover {
+    transform: none;
+  }
+
+  /* Add active state instead */
+  .btn:active,
+  .card:active {
+    opacity: 0.8;
+  }
+}
+
+/* Pointer device (mouse/trackpad) */
+@media (hover: hover) and (pointer: fine) {
+  /* Enable hover effects */
+  .btn:hover,
+  .card:hover {
+    transition: all var(--transition-base);
+  }
+
+  /* Show tooltips on hover */
+  .tooltip {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .tooltip-trigger:hover .tooltip {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}

@@ -179,7 +179,9 @@
       "WebFetch(domain:citizencapital.eu)",
       "WebFetch(domain:www.bcorporation.net)",
       "WebFetch(domain:cz.linkedin.com)",
-      "mcp__notebooklm__note"
+      "mcp__notebooklm__note",
+      "WebFetch(domain:www.openlayer.com)",
+      "WebFetch(domain:labs.cloudsecurityalliance.org)"
     ],
     "defaultMode": "acceptEdits"
   },

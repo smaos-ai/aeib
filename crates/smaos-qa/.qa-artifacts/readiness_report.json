@@ -1,0 +1,32 @@
+{
+  "agents": [
+    {
+      "agent_id": 1,
+      "gate_1_tests_passed": 27,
+      "gate_2_latency_p99_ms": 40.0,
+      "gate_2_memory_peak_mb": 1250.0,
+      "gate_3_signature": "sig1",
+      "layers": "L1L2 (Reasoning)"
+    },
+    {
+      "agent_id": 2,
+      "gate_1_tests_passed": 32,
+      "gate_2_latency_p99_ms": 45.0,
+      "gate_2_memory_peak_mb": 1300.0,
+      "gate_3_signature": "sig2",
+      "layers": "L3L4 (Enforcement)"
+    }
+  ],
+  "gate_4": {
+    "adversarial_attacks_detected": 1,
+    "adversarial_tests": [
+      {
+        "detected": true,
+        "name": "timeout"
+      }
+    ]
+  },
+  "root_hash": "ccfa93088f45fa2b19ce7bb36a0b96ce0e77b1c7c96bcabec9759ccd066339be",
+  "signature": "51d7def2a098f71909fb346f67608c10062a9f865eab7e621ede12d4e753736083f5cf70a1b023b1355e7a3bd0a55ee0f5356e1ef14d4e86a0418d5899ef860a",
+  "timestamp": "2026-08-31T23:53:48.362836+00:00"
+}

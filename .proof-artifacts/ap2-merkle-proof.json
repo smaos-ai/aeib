@@ -1,0 +1,170 @@
+{
+  "timestamp": "2026-08-31T21:10:12.888621",
+  "entries": [
+    {
+      "ledger_id": 0,
+      "timestamp": "2026-08-19T21:10:12.888535",
+      "action": "agent_decision_0",
+      "data": {
+        "decision_id": "e3a8cc78-9117-49dd-810b-6bf6ca7db070",
+        "model_version": "L7.0.1",
+        "input_hash": "271492d97940c21d",
+        "output": "decision_result_0"
+      },
+      "parent_hash": "genesis",
+      "entry_hash": "ecf35e55740824ff"
+    },
+    {
+      "ledger_id": 1,
+      "timestamp": "2026-08-20T21:10:12.888549",
+      "action": "agent_decision_1",
+      "data": {
+        "decision_id": "fbc3bd52-46be-4e77-8ee5-5677f9d75cce",
+        "model_version": "L7.0.1",
+        "input_hash": "8d13b7efd851b02d",
+        "output": "decision_result_1"
+      },
+      "parent_hash": "ecf35e55740824ff",
+      "entry_hash": "45b6c15b928c0cd8"
+    },
+    {
+      "ledger_id": 2,
+      "timestamp": "2026-08-21T21:10:12.888560",
+      "action": "agent_decision_2",
+      "data": {
+        "decision_id": "aa935339-c3cf-4f1c-94d5-be7baedec127",
+        "model_version": "L7.0.1",
+        "input_hash": "1f5e0094b563bc42",
+        "output": "decision_result_2"
+      },
+      "parent_hash": "45b6c15b928c0cd8",
+      "entry_hash": "d644cd398fd70e68"
+    },
+    {
+      "ledger_id": 3,
+      "timestamp": "2026-08-22T21:10:12.888567",
+      "action": "agent_decision_3",
+      "data": {
+        "decision_id": "ab590ea5-1393-4c94-a918-4a03f7df1a92",
+        "model_version": "L7.0.1",
+        "input_hash": "87abc10796825420",
+        "output": "decision_result_3"
+      },
+      "parent_hash": "d644cd398fd70e68",
+      "entry_hash": "0bbfd53e537b1af6"
+    },
+    {
+      "ledger_id": 4,
+      "timestamp": "2026-08-23T21:10:12.888573",
+      "action": "agent_decision_4",
+      "data": {
+        "decision_id": "43d5ffbc-ecc8-48f7-bcbb-5e0d22f2c660",
+        "model_version": "L7.0.1",
+        "input_hash": "c6e85e6c2be1cde7",
+        "output": "decision_result_4"
+      },
+      "parent_hash": "0bbfd53e537b1af6",
+      "entry_hash": "bf1925e4c9a0c698"
+    },
+    {
+      "ledger_id": 5,
+      "timestamp": "2026-08-24T21:10:12.888579",
+      "action": "agent_decision_5",
+      "data": {
+        "decision_id": "88be340c-f191-4c95-b4ea-be9a6f8175c5",
+        "model_version": "L7.0.1",
+        "input_hash": "7ddeb5c2a867195c",
+        "output": "decision_result_5"
+      },
+      "parent_hash": "bf1925e4c9a0c698",
+      "entry_hash": "e491ee957c8aaf02"
+    },
+    {
+      "ledger_id": 6,
+      "timestamp": "2026-08-25T21:10:12.888584",
+      "action": "agent_decision_6",
+      "data": {
+        "decision_id": "8456d362-4d58-40ff-a5b3-e5d8eba3245f",
+        "model_version": "L7.0.1",
+        "input_hash": "c4510a5b5d55b01c",
+        "output": "decision_result_6"
+      },
+      "parent_hash": "e491ee957c8aaf02",
+      "entry_hash": "6fdac0048e616c5b"
+    },
+    {
+      "ledger_id": 7,
+      "timestamp": "2026-08-26T21:10:12.888589",
+      "action": "agent_decision_7",
+      "data": {
+        "decision_id": "fc91efb2-c785-47d9-8a43-362249340ad7",
+        "model_version": "L7.0.1",
+        "input_hash": "fd2301f5195b17a7",
+        "output": "decision_result_7"
+      },
+      "parent_hash": "6fdac0048e616c5b",
+      "entry_hash": "8644ea34620ca8d3"
+    },
+    {
+      "ledger_id": 8,
+      "timestamp": "2026-08-27T21:10:12.888594",
+      "action": "agent_decision_8",
+      "data": {
+        "decision_id": "be497acc-74e9-406d-97b6-d679e54035b0",
+        "model_version": "L7.0.1",
+        "input_hash": "28a19c07baf25114",
+        "output": "decision_result_8"
+      },
+      "parent_hash": "8644ea34620ca8d3",
+      "entry_hash": "6c4be588a165c80d"
+    },
+    {
+      "ledger_id": 9,
+      "timestamp": "2026-08-28T21:10:12.888599",
+      "action": "agent_decision_9",
+      "data": {
+        "decision_id": "5e3aae78-dcaf-458e-8277-d96601f30506",
+        "model_version": "L7.0.1",
+        "input_hash": "6ae0e0fbe287aca6",
+        "output": "decision_result_9"
+      },
+      "parent_hash": "6c4be588a165c80d",
+      "entry_hash": "fbc122d3e65db007"
+    },
+    {
+      "ledger_id": 10,
+      "timestamp": "2026-08-29T21:10:12.888604",
+      "action": "agent_decision_10",
+      "data": {
+        "decision_id": "e177225e-5504-4b23-97f5-71878a28621b",
+        "model_version": "L7.0.1",
+        "input_hash": "16c24486b154a04f",
+        "output": "decision_result_10"
+      },
+      "parent_hash": "fbc122d3e65db007",
+      "entry_hash": "dc138a0b31dc386e"
+    },
+    {
+      "ledger_id": 11,
+      "timestamp": "2026-08-30T21:10:12.888609",
+      "action": "agent_decision_11",
+      "data": {
+        "decision_id": "155b15c9-9a0b-4d45-8370-b56b1aa76dbc",
+        "model_version": "L7.0.1",
+        "input_hash": "3e7d5edc4e10a07b",
+        "output": "decision_result_11"
+      },
+      "parent_hash": "dc138a0b31dc386e",
+      "entry_hash": "82e747716bc7657a"
+    }
+  ],
+  "root_hash": "82e747716bc7657a",
+  "total_entries": 12,
+  "verified": true,
+  "verification_method": "Merkle chain immutability verification",
+  "verification_result": {
+    "hash_chain_valid": true,
+    "no_tampering_detected": true,
+    "integrity_score": 0.99
+  }
+}

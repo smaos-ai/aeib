@@ -1,8 +1,7 @@
 -- L2 Knowledge Layer Schema
 -- EU AI Act compliance, evidence tracking, policy management
--- Uses pgvector for semantic search + BM25 for keyword search + RRF for reranking
+-- Uses JSON for semantic embeddings + BM25 for keyword search + RRF for reranking
 
-CREATE EXTENSION IF NOT EXISTS vector;
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 -- 1. Compliance Timeline (regulatory deadlines)
@@ -52,22 +51,20 @@ CREATE TABLE evidence_by_process (
     human_oversight_required BOOLEAN,
     human_oversight_completed BOOLEAN,
     digest_git_sha256 VARCHAR(64),
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_request_id (request_id),
-    INDEX idx_timestamp (timestamp)
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 5. Policy Documents (EU AI Act text + interpretations)
 CREATE TABLE policy_documents (
     id SERIAL PRIMARY KEY,
-    article_id VARCHAR(50),
-    article_text TEXT,
-    embedding vector(1536),
+    article_id VARCHAR(50) UNIQUE NOT NULL,
+    article_text TEXT NOT NULL,
+    embedding JSONB,
     interpretation TEXT,
     annex_reference VARCHAR(100),
     keywords TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(article_id)
+    keywords_tsvector tsvector,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 6. Permit Gates (authorization decisions)
@@ -83,10 +80,12 @@ CREATE TABLE permit_gates (
 );
 
 -- Indexes for performance
-CREATE INDEX idx_policy_embedding ON policy_documents USING ivfflat (embedding vector_cosine_ops);
-CREATE INDEX idx_policy_keywords ON policy_documents USING gin(keywords gin_trgm_ops);
+CREATE INDEX idx_policy_keywords_tsvector ON policy_documents USING gin(keywords_tsvector);
+CREATE INDEX idx_policy_keywords_trgm ON policy_documents USING gin(keywords gin_trgm_ops);
 CREATE INDEX idx_compliance_deadline ON compliance_timeline(deadline);
 CREATE INDEX idx_governance_severity ON governance_risks(severity);
+CREATE INDEX idx_evidence_request_id ON evidence_by_process(request_id);
+CREATE INDEX idx_evidence_timestamp ON evidence_by_process(timestamp);
 
 -- Views for common queries
 CREATE VIEW compliance_alerts AS

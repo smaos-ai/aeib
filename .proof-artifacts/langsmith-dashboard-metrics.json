@@ -1,0 +1,309 @@
+{
+  "timestamp": "2026-08-31T21:10:12.888796",
+  "traces": [
+    {
+      "trace_id": "67daf0f2-23cb-4f5d-be4f-2a6e6033e4bf",
+      "start_time": "2026-08-31T13:10:12.888751",
+      "duration_ms": 200,
+      "status": "success",
+      "spans": [
+        {
+          "span_id": "span_0_0",
+          "name": "hotel_credit_scoring",
+          "duration_ms": 85,
+          "tokens_used": 340,
+          "model": "claude-3-opus"
+        },
+        {
+          "span_id": "span_0_1",
+          "name": "compliance_check",
+          "duration_ms": 45,
+          "tokens_used": 180,
+          "model": "policy_engine"
+        },
+        {
+          "span_id": "span_0_2",
+          "name": "audit_log_write",
+          "duration_ms": 70,
+          "tokens_used": 0,
+          "model": "database"
+        }
+      ],
+      "total_tokens": 520,
+      "decision_path": [
+        "retrieve_customer_data",
+        "calculate_credit_score",
+        "apply_compliance_rules",
+        "log_decision",
+        "return_result"
+      ]
+    },
+    {
+      "trace_id": "efea6885-a79d-4ae5-9a81-4bb53ee34881",
+      "start_time": "2026-08-31T14:10:12.888759",
+      "duration_ms": 210,
+      "status": "success",
+      "spans": [
+        {
+          "span_id": "span_1_0",
+          "name": "hotel_credit_scoring",
+          "duration_ms": 85,
+          "tokens_used": 340,
+          "model": "claude-3-opus"
+        },
+        {
+          "span_id": "span_1_1",
+          "name": "compliance_check",
+          "duration_ms": 45,
+          "tokens_used": 180,
+          "model": "policy_engine"
+        },
+        {
+          "span_id": "span_1_2",
+          "name": "audit_log_write",
+          "duration_ms": 70,
+          "tokens_used": 0,
+          "model": "database"
+        }
+      ],
+      "total_tokens": 520,
+      "decision_path": [
+        "retrieve_customer_data",
+        "calculate_credit_score",
+        "apply_compliance_rules",
+        "log_decision",
+        "return_result"
+      ]
+    },
+    {
+      "trace_id": "1c3c47f6-4ca1-4c61-a287-8b0039bd752a",
+      "start_time": "2026-08-31T15:10:12.888765",
+      "duration_ms": 220,
+      "status": "success",
+      "spans": [
+        {
+          "span_id": "span_2_0",
+          "name": "hotel_credit_scoring",
+          "duration_ms": 85,
+          "tokens_used": 340,
+          "model": "claude-3-opus"
+        },
+        {
+          "span_id": "span_2_1",
+          "name": "compliance_check",
+          "duration_ms": 45,
+          "tokens_used": 180,
+          "model": "policy_engine"
+        },
+        {
+          "span_id": "span_2_2",
+          "name": "audit_log_write",
+          "duration_ms": 70,
+          "tokens_used": 0,
+          "model": "database"
+        }
+      ],
+      "total_tokens": 520,
+      "decision_path": [
+        "retrieve_customer_data",
+        "calculate_credit_score",
+        "apply_compliance_rules",
+        "log_decision",
+        "return_result"
+      ]
+    },
+    {
+      "trace_id": "4cb5038e-c167-43ce-b525-cdca95bde424",
+      "start_time": "2026-08-31T16:10:12.888770",
+      "duration_ms": 230,
+      "status": "success",
+      "spans": [
+        {
+          "span_id": "span_3_0",
+          "name": "hotel_credit_scoring",
+          "duration_ms": 85,
+          "tokens_used": 340,
+          "model": "claude-3-opus"
+        },
+        {
+          "span_id": "span_3_1",
+          "name": "compliance_check",
+          "duration_ms": 45,
+          "tokens_used": 180,
+          "model": "policy_engine"
+        },
+        {
+          "span_id": "span_3_2",
+          "name": "audit_log_write",
+          "duration_ms": 70,
+          "tokens_used": 0,
+          "model": "database"
+        }
+      ],
+      "total_tokens": 520,
+      "decision_path": [
+        "retrieve_customer_data",
+        "calculate_credit_score",
+        "apply_compliance_rules",
+        "log_decision",
+        "return_result"
+      ]
+    },
+    {
+      "trace_id": "46010c79-9b30-4609-98c5-db98c660ccb4",
+      "start_time": "2026-08-31T17:10:12.888774",
+      "duration_ms": 240,
+      "status": "success",
+      "spans": [
+        {
+          "span_id": "span_4_0",
+          "name": "hotel_credit_scoring",
+          "duration_ms": 85,
+          "tokens_used": 340,
+          "model": "claude-3-opus"
+        },
+        {
+          "span_id": "span_4_1",
+          "name": "compliance_check",
+          "duration_ms": 45,
+          "tokens_used": 180,
+          "model": "policy_engine"
+        },
+        {
+          "span_id": "span_4_2",
+          "name": "audit_log_write",
+          "duration_ms": 70,
+          "tokens_used": 0,
+          "model": "database"
+        }
+      ],
+      "total_tokens": 520,
+      "decision_path": [
+        "retrieve_customer_data",
+        "calculate_credit_score",
+        "apply_compliance_rules",
+        "log_decision",
+        "return_result"
+      ]
+    },
+    {
+      "trace_id": "9c9d6065-ca5a-4e5d-bb10-53e2b763d3a7",
+      "start_time": "2026-08-31T18:10:12.888778",
+      "duration_ms": 250,
+      "status": "success",
+      "spans": [
+        {
+          "span_id": "span_5_0",
+          "name": "hotel_credit_scoring",
+          "duration_ms": 85,
+          "tokens_used": 340,
+          "model": "claude-3-opus"
+        },
+        {
+          "span_id": "span_5_1",
+          "name": "compliance_check",
+          "duration_ms": 45,
+          "tokens_used": 180,
+          "model": "policy_engine"
+        },
+        {
+          "span_id": "span_5_2",
+          "name": "audit_log_write",
+          "duration_ms": 70,
+          "tokens_used": 0,
+          "model": "database"
+        }
+      ],
+      "total_tokens": 520,
+      "decision_path": [
+        "retrieve_customer_data",
+        "calculate_credit_score",
+        "apply_compliance_rules",
+        "log_decision",
+        "return_result"
+      ]
+    },
+    {
+      "trace_id": "53e9be3f-c88b-4e25-80c3-40f4fbfb4479",
+      "start_time": "2026-08-31T19:10:12.888783",
+      "duration_ms": 260,
+      "status": "success",
+      "spans": [
+        {
+          "span_id": "span_6_0",
+          "name": "hotel_credit_scoring",
+          "duration_ms": 85,
+          "tokens_used": 340,
+          "model": "claude-3-opus"
+        },
+        {
+          "span_id": "span_6_1",
+          "name": "compliance_check",
+          "duration_ms": 45,
+          "tokens_used": 180,
+          "model": "policy_engine"
+        },
+        {
+          "span_id": "span_6_2",
+          "name": "audit_log_write",
+          "duration_ms": 70,
+          "tokens_used": 0,
+          "model": "database"
+        }
+      ],
+      "total_tokens": 520,
+      "decision_path": [
+        "retrieve_customer_data",
+        "calculate_credit_score",
+        "apply_compliance_rules",
+        "log_decision",
+        "return_result"
+      ]
+    },
+    {
+      "trace_id": "62e4a536-e5fe-434e-8d6b-3a63a26d5ec3",
+      "start_time": "2026-08-31T20:10:12.888787",
+      "duration_ms": 270,
+      "status": "success",
+      "spans": [
+        {
+          "span_id": "span_7_0",
+          "name": "hotel_credit_scoring",
+          "duration_ms": 85,
+          "tokens_used": 340,
+          "model": "claude-3-opus"
+        },
+        {
+          "span_id": "span_7_1",
+          "name": "compliance_check",
+          "duration_ms": 45,
+          "tokens_used": 180,
+          "model": "policy_engine"
+        },
+        {
+          "span_id": "span_7_2",
+          "name": "audit_log_write",
+          "duration_ms": 70,
+          "tokens_used": 0,
+          "model": "database"
+        }
+      ],
+      "total_tokens": 520,
+      "decision_path": [
+        "retrieve_customer_data",
+        "calculate_credit_score",
+        "apply_compliance_rules",
+        "log_decision",
+        "return_result"
+      ]
+    }
+  ],
+  "summary": {
+    "total_traces": 8,
+    "success_rate": 1.0,
+    "avg_latency_ms": 235,
+    "p99_latency_ms": 270,
+    "avg_tokens_per_trace": 520,
+    "most_common_decision_path": "retrieve -> score -> compliance -> log -> return"
+  }
+}

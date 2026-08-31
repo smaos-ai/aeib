@@ -18,7 +18,7 @@ Example:
         escalations = tracker.get_escalations_pending_review()
 """
 
-from action_velocity import (
+from .action_velocity import (
     ActionVelocityTracker,
     VelocityThreshold,
     ActionRecord,

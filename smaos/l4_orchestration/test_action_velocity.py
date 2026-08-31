@@ -19,7 +19,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
-from action_velocity import (
+from .action_velocity import (
     ActionVelocityTracker,
     VelocityThreshold,
     ViolationSeverity,

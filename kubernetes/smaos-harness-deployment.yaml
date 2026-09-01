@@ -1,0 +1,242 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smaos-config
+  namespace: smaos-prod
+data:
+  # Database configuration
+  DB_POOL_SIZE: "20"
+  DB_STATEMENT_CACHE_SIZE: "100"
+
+  # Model serving
+  MODEL_NAME: "qwen2.5:7b"
+  EMBEDDING_MODEL: "nomic-embed-text"
+
+  # Logging
+  RUST_LOG: "info,smaos=debug,l4=debug,l7=debug,l8=debug"
+  LOG_LEVEL: "info"
+
+  # Feature flags
+  ENABLE_PROOF_LAYER: "true"
+  ENABLE_MCP_SERVERS: "true"
+  ENABLE_RAGAS_EVAL: "true"
+  ENABLE_PROMETHEUS_METRICS: "true"
+
+  # Checkpoint configuration
+  CHECKPOINT_INTERVAL_MS: "1000"
+
+  # Timeouts
+  DECISION_TIMEOUT_MS: "5000"
+  DB_QUERY_TIMEOUT_MS: "2000"
+
+  # Security
+  ENABLE_TLS: "false"  # Set to true for production
+  CORS_ORIGINS: "http://localhost:3000,http://dashboard:3000"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: smaos-secrets
+  namespace: smaos-prod
+type: Opaque
+stringData:
+  DATABASE_URL: "postgresql://smaos:${DB_PASSWORD}@postgresql.smaos-prod.svc.cluster.local:5432/smaos_phase1"
+  FREETOKEN_ENDPOINT: "http://freetoken:8001"
+  OLLAMA_ENDPOINT: "http://ollama:11434"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: smaos-harness
+  namespace: smaos-prod
+  labels:
+    app: smaos-harness
+    tier: application
+spec:
+  type: LoadBalancer  # Use ClusterIP for internal-only, LoadBalancer for external access
+  ports:
+  - port: 8080
+    targetPort: 8080
+    protocol: TCP
+    name: api
+  - port: 9999
+    targetPort: 9999
+    protocol: TCP
+    name: checkpoint-stream
+  selector:
+    app: smaos-harness
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smaos-harness
+  namespace: smaos-prod
+  labels:
+    app: smaos-harness
+    version: v1
+spec:
+  replicas: 2  # Scale horizontally (Phase 2: auto-scale based on decision queue)
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: smaos-harness
+  template:
+    metadata:
+      labels:
+        app: smaos-harness
+        tier: application
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: smaos-harness
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      affinity:
+        # Prefer spreading replicas across nodes
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - smaos-harness
+              topologyKey: kubernetes.io/hostname
+      containers:
+      - name: harness
+        image: smaos/harness:latest  # Change to your registry
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          name: api
+          protocol: TCP
+        - containerPort: 9999
+          name: checkpoint-stream
+          protocol: TCP
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: smaos-secrets
+              key: DATABASE_URL
+        - name: FREETOKEN_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              name: smaos-secrets
+              key: FREETOKEN_ENDPOINT
+        - name: OLLAMA_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              name: smaos-secrets
+              key: OLLAMA_ENDPOINT
+        - name: LOG_DIR
+          value: /var/log/smaos
+        - name: CHECKPOINT_DIR
+          value: /var/lib/smaos/checkpoints
+        - name: NODE_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.pod.name
+        envFrom:
+        - configMapRef:
+            name: smaos-config
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 2
+          failureThreshold: 2
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          failureThreshold: 12  # 12 * 5s = 60s to start
+        volumeMounts:
+        - name: logs
+          mountPath: /var/log/smaos
+        - name: checkpoints
+          mountPath: /var/lib/smaos/checkpoints
+        - name: proofs
+          mountPath: /var/lib/smaos/proofs
+        - name: tmp
+          mountPath: /tmp
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+            add:
+              - NET_BIND_SERVICE
+      volumes:
+      - name: logs
+        emptyDir: {}
+      - name: checkpoints
+        emptyDir: {}  # Or use PVC for persistence
+      - name: proofs
+        emptyDir: {}
+      - name: tmp
+        emptyDir: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: smaos-harness
+  namespace: smaos-prod
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: smaos-harness
+  namespace: smaos-prod
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["pods/log"]
+  verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: smaos-harness
+  namespace: smaos-prod
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: smaos-harness
+subjects:
+- kind: ServiceAccount
+  name: smaos-harness
+  namespace: smaos-prod

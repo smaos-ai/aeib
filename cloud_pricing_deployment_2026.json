@@ -1,0 +1,586 @@
+{
+  "metadata": {
+    "date_compiled": "2026-09-01",
+    "currency": "USD",
+    "billing_period": "monthly_on_demand",
+    "region_primary": "us-east-1_n_virginia",
+    "note": "All prices reflect on-demand pricing in primary US region. Reserved instances offer 29-53% savings."
+  },
+  "platforms": {
+    "aws_ec2_rds": {
+      "name": "AWS EC2 + RDS PostgreSQL",
+      "pricing": {
+        "compute_instance_examples": {
+          "t3_medium": {
+            "specs": "2 vCPU, 4 GiB memory",
+            "hourly_rate": 0.0416,
+            "monthly_cost": 30.37,
+            "use_case": "General purpose, web app servers, light workloads"
+          },
+          "g4dn_xlarge": {
+            "specs": "4 vCPU, 16 GiB memory, 1x NVIDIA T4 GPU",
+            "hourly_rate": 0.526,
+            "monthly_cost": 384.04,
+            "use_case": "GPU-accelerated LLM inference, ML training, video processing",
+            "alternatives": {
+              "spot_instance": 0.346,
+              "1yr_reserved": 0.331,
+              "3yr_reserved": 0.227
+            }
+          }
+        },
+        "rds_postgresql_examples": {
+          "db_t4g_micro": {
+            "specs": "2 vCPU, 1 GiB memory",
+            "hourly_rate": 0.016,
+            "monthly_compute_cost": 11.68,
+            "use_case": "Small dev/staging databases, minimal traffic"
+          },
+          "db_t3_medium": {
+            "specs": "2 vCPU, 4 GiB memory",
+            "hourly_rate": 0.072,
+            "monthly_compute_cost": 52.56,
+            "use_case": "Production-ready small database, CPU bursting"
+          },
+          "db_m5_large": {
+            "specs": "2 vCPU, 8 GiB memory",
+            "hourly_rate": 0.178,
+            "monthly_compute_cost": 129.94,
+            "use_case": "Medium production database"
+          }
+        },
+        "storage_and_additional": {
+          "gp3_storage": {
+            "rate": 0.115,
+            "unit": "per GiB-month",
+            "baseline_iops": "3000 IOPS included",
+            "additional_iops": 0.02,
+            "additional_throughput_mbs": 0.08
+          },
+          "backups": {
+            "automated_backups": "Free up to 100% of provisioned size",
+            "excess_backup": 0.095,
+            "unit": "per GiB-month",
+            "manual_snapshots": 0.023,
+            "snapshot_unit": "per GB-month"
+          },
+          "data_transfer": {
+            "same_az": "Free",
+            "cross_az_intra_region": 0.01,
+            "internet_egress_after_100gb_free": 0.09,
+            "unit": "per GB"
+          }
+        },
+        "multi_az_impact": "Doubles compute and storage costs (e.g., $129.94 → $259.88/mo for db.m5.large)"
+      },
+      "deployment": {
+        "setup_time_hours": 1,
+        "estimated_first_deploy": "< 1 hour for basic setup via console or Terraform",
+        "scaling_approach": "Vertical (instance type change, brief downtime) or Read Replicas for horizontal"
+      },
+      "managed_vs_self": {
+        "managed_rds_pros": [
+          "Automated backups and point-in-time recovery",
+          "Multi-AZ automatic failover",
+          "Automated minor version patches",
+          "AWS handles security patches",
+          "CloudWatch monitoring included"
+        ],
+        "managed_rds_cons": [
+          "Limited customization of PostgreSQL config",
+          "Data transfer costs between EC2 and RDS across AZ",
+          "Backup storage not included in instance price",
+          "Cannot directly SSH into database host"
+        ],
+        "self_managed_cons": [
+          "Manual backup management",
+          "Operator responsible for patching/updates",
+          "High availability requires custom replication setup"
+        ]
+      },
+      "scaling": {
+        "approach": "Vertical scaling for RDS (instance type change with brief downtime)",
+        "read_replicas": "Available for read scaling, cross-region supported",
+        "autoscaling": "RDS Autoscaling not available; manual scaling required"
+      },
+      "postgresql_capabilities": {
+        "backup_restore": "Automated daily snapshots, point-in-time recovery to any second",
+        "recovery_window": "Up to 35 days configurable",
+        "snapshot_export": "Export snapshots to S3 for external processing"
+      },
+      "network_isolation": {
+        "vpc_deployment": "Launch RDS in custom VPC with security group rules",
+        "no_public_endpoint": "Can disable public accessibility, force private subnet-only",
+        "vpc_peering": "Supported for cross-VPC access without internet"
+      },
+      "gpu_support": {
+        "ec2_gpu": "Yes - g4dn.xlarge, g4dn.12xlarge for T4 GPUs; p3/p4 for training",
+        "rds_gpu": "No GPU support in RDS; use EC2 for inference"
+      },
+      "typical_monthly_cost": {
+        "small_app": "EC2 t3.medium ($30) + db.t4g.micro ($11.68) + storage/transfer ($5-10) ≈ $47-52/month",
+        "medium_app": "EC2 m5.large ($70) + db.m5.large ($130) + storage/transfer ($15-20) ≈ $215-220/month",
+        "with_gpu_inference": "g4dn.xlarge ($384) + db.m5.large ($130) + storage ($20-30) ≈ $534-544/month"
+      }
+    },
+    "digitalocean": {
+      "name": "DigitalOcean Droplets + Managed PostgreSQL",
+      "pricing": {
+        "droplet_examples": {
+          "basic_2gb": {
+            "specs": "1 vCPU, 2 GiB memory, 50 GiB SSD",
+            "monthly_cost": 12,
+            "billing": "Hourly minimum, $0.0178/hr",
+            "use_case": "Light web apps, static sites"
+          },
+          "standard_4gb": {
+            "specs": "2 vCPU, 4 GiB memory, 80 GiB SSD",
+            "monthly_cost": 24,
+            "billing": "Hourly minimum, $0.0357/hr",
+            "use_case": "Standard web applications"
+          },
+          "standard_8gb": {
+            "specs": "4 vCPU, 8 GiB memory, 160 GiB SSD",
+            "monthly_cost": 48,
+            "billing": "Hourly minimum, $0.0714/hr",
+            "use_case": "Medium production apps"
+          }
+        },
+        "managed_postgresql_basic_tier": {
+          "1gb_shared_cpu": {
+            "ram": "1 GiB",
+            "storage": "10 GiB",
+            "monthly_cost": 15.15,
+            "cpu_type": "Shared"
+          },
+          "2gb_shared_cpu": {
+            "ram": "2 GiB",
+            "storage": "25 GiB",
+            "monthly_cost": 30.45,
+            "cpu_type": "Shared"
+          },
+          "4gb_shared_cpu": {
+            "ram": "4 GiB",
+            "storage": "38 GiB",
+            "monthly_cost": 60.90,
+            "cpu_type": "Shared"
+          },
+          "8gb_shared_cpu": {
+            "ram": "8 GiB",
+            "storage": "115 GiB",
+            "monthly_cost": 122.10,
+            "cpu_type": "Shared"
+          },
+          "16gb_shared_cpu": {
+            "ram": "16 GiB",
+            "storage": "270 GiB",
+            "monthly_cost": 244.35,
+            "cpu_type": "Shared"
+          }
+        },
+        "managed_postgresql_general_purpose": {
+          "note": "Dedicated CPU tier; pricing similar to Basic tier at equivalent memory sizes",
+          "8gb_dedicated": {
+            "monthly_cost_range": "120-130"
+          },
+          "16gb_dedicated": {
+            "monthly_cost_range": "240-260"
+          }
+        },
+        "additional_costs": {
+          "storage_overage": 0.21,
+          "storage_overage_unit": "per GiB-month (billed in 10 GiB increments)",
+          "read_replica": 15,
+          "read_replica_note": "Per replica per month; can span regions"
+        },
+        "included_features": [
+          "Automated daily backups",
+          "Point-in-time recovery",
+          "No per-I/O charges (IOPS unlimited)",
+          "No IOPS provisioning fees",
+          "Per-second billing with 60-second minimum",
+          "Free intra-region bandwidth between Droplets and DB"
+        ]
+      },
+      "deployment": {
+        "setup_time_hours": 0.5,
+        "estimated_first_deploy": "< 30 minutes via web console"
+      },
+      "managed_vs_self": {
+        "pros": [
+          "Simpler, more affordable pricing model",
+          "Free intra-region data transfer (EC2↔DB)",
+          "Automated backups and PITR included",
+          "No hidden I/O or IOPS charges",
+          "User-friendly dashboard",
+          "Per-second billing (not per-hour)"
+        ],
+        "cons": [
+          "Storage can only increase, not decrease (requires migration)",
+          "Limited customization of PostgreSQL parameters",
+          "Smaller instance size options vs AWS",
+          "Regional pricing not as aggressive as some competitors"
+        ]
+      },
+      "scaling": {
+        "approach": "Vertical only (must migrate to larger cluster)",
+        "read_replicas": "Available; billed at same rate as primary",
+        "failover": "Standby HA option doubles cost (primary + standby)"
+      },
+      "postgresql_capabilities": {
+        "backup_restore": "Automated daily snapshots; point-in-time recovery included",
+        "no_additional_backup_cost": true
+      },
+      "network_isolation": {
+        "vpc_equivalent": "VPC network (shared, not isolated)",
+        "private_connection": "Droplets connect to DB over private network, no internet exposure needed"
+      },
+      "gpu_support": {
+        "droplet_gpu": "No GPU-enabled droplets (compute only)",
+        "managed_db_gpu": "No GPU support"
+      },
+      "typical_monthly_cost": {
+        "small_app": "Droplet $12 + DB $15.15 + storage overages ($2-5) ≈ $29-32/month",
+        "medium_app": "Droplet $24 + DB $122.10 + storage ($5-10) ≈ $151-159/month",
+        "with_ha": "Droplet $24 + DB Primary $122.10 + DB Standby $122.10 ≈ $268/month (no app GPU support)"
+      }
+    },
+    "gcp_cloud_run": {
+      "name": "GCP Cloud Run (Serverless) + Cloud SQL PostgreSQL",
+      "pricing": {
+        "cloud_run_request_based_billing": {
+          "per_request_cost": 0.00000040,
+          "per_vcpu_second": 0.00002400,
+          "per_gib_second": 0.00000250,
+          "region": "us-central1",
+          "free_tier": {
+            "requests_per_month": 2000000,
+            "vcpu_seconds_per_month": 180000,
+            "gib_seconds_per_month": 360000
+          },
+          "note": "Pricing varies by region; other regions may cost 10-25% more"
+        },
+        "cloud_run_monthly_example_small": {
+          "assumptions": "100,000 requests/month, 1 vCPU allocated, 512 MiB memory, avg request duration 1 second",
+          "request_charges": 0.04,
+          "vcpu_charges": 2.4,
+          "memory_charges": 0.3,
+          "monthly_total": 2.74,
+          "note": "Under free tier, actual cost would be $0"
+        },
+        "cloud_run_monthly_example_medium": {
+          "assumptions": "1M requests/month, 2 vCPU, 2 GiB memory, avg request duration 2 seconds",
+          "request_charges": 0.40,
+          "vcpu_charges": 96,
+          "memory_charges": 10,
+          "monthly_total": 106.40,
+          "note": "Does not include free tier reduction"
+        },
+        "cloud_sql_postgresql_examples": {
+          "db4_small_shared_cpu": {
+            "specs": "Shared CPU, 614 MB memory",
+            "monthly_compute": "~$8-10",
+            "use_case": "Dev/test"
+          },
+          "db_f1_micro": {
+            "specs": "Shared CPU, 614 MB memory",
+            "monthly_compute": "~$8-10"
+          },
+          "db_n1_standard_2": {
+            "specs": "2 vCPU, 7.5 GiB memory",
+            "hourly_rate": 0.1076,
+            "monthly_compute": "~$78.5",
+            "use_case": "Small-medium production"
+          },
+          "db_n1_standard_4": {
+            "specs": "4 vCPU, 15 GiB memory",
+            "hourly_rate": 0.197,
+            "monthly_compute": 143.81,
+            "use_case": "Medium production"
+          }
+        },
+        "cloud_sql_storage": {
+          "ssd": 0.22,
+          "ssd_unit": "per GB-month (approximate)",
+          "hdd": 0.05,
+          "hdd_unit": "per GB-month"
+        },
+        "cloud_sql_high_availability": {
+          "note": "Doubles vCPU and memory charges for standby instance",
+          "example_db_n1_standard_4_ha": {
+            "single_az": 143.81,
+            "high_availability": 287.62,
+            "storage_increase": "Slight increase depending on replica location"
+          }
+        },
+        "data_transfer": {
+          "cloud_run_to_cloud_sql_same_region": "Free",
+          "internet_egress": "First 1 GB/month free, then $0.12/GB (varies by region)"
+        }
+      },
+      "deployment": {
+        "setup_time_hours": 0.5,
+        "estimated_first_deploy": "Container build + deploy < 30 minutes",
+        "scaling": "Automatic - scales from 0 to thousands based on requests"
+      },
+      "managed_vs_self": {
+        "cloud_run_pros": [
+          "Fully serverless - pay only for execution time",
+          "Automatic scaling, from zero to thousands",
+          "No cold start charges (only latency impact)",
+          "No need to manage infrastructure",
+          "Built-in logging and monitoring",
+          "Easy multi-region deployment"
+        ],
+        "cloud_run_cons": [
+          "Cold starts introduce latency (not billed but impacts UX)",
+          "15-minute request timeout limit",
+          "Ephemeral storage (/tmp) is 512 MB max",
+          "Stateful services not ideal (request-based)"
+        ],
+        "cloud_sql_pros": [
+          "Fully managed backups and patching",
+          "Automatic failover with HA option",
+          "CloudSQL Auth for passwordless connections"
+        ],
+        "cloud_sql_cons": [
+          "More expensive than self-managed for sustained traffic",
+          "Limited parameter group customization",
+          "IP allowlisting less flexible than VPC"
+        ]
+      },
+      "scaling": {
+        "cloud_run": "Automatic horizontal scaling based on request concurrency",
+        "cloud_sql": "Vertical scaling only; requires instance type change",
+        "read_replicas": "Available in Cloud SQL; different pricing tier"
+      },
+      "postgresql_capabilities": {
+        "backup_restore": "Automated daily backups; point-in-time recovery available",
+        "on_demand_backups": "Manual backups supported",
+        "export": "Export to Cloud Storage or BigQuery"
+      },
+      "network_isolation": {
+        "cloud_run": "Global endpoint (public); no direct VPC integration (Cloud Run 2nd gen supports VPC connectors)",
+        "cloud_sql": "IP allowlist or VPC service peering for private access",
+        "vpc_connector": "Cloud Run 2nd gen can use VPC Connector for private Cloud SQL access"
+      },
+      "gpu_support": {
+        "cloud_run_gpu": "No - Cloud Run is CPU-only",
+        "cloud_sql_gpu": "No",
+        "alternative_for_gpu": "Use Compute Engine (GCE) or Google Cloud's Vertex AI for GPU workloads"
+      },
+      "typical_monthly_cost": {
+        "small_app": "Cloud Run ~$5-10 (under free tier) + Cloud SQL db.f1.micro ($8) + storage ($2) ≈ $15-20/month",
+        "medium_app": "Cloud Run $50-100 + Cloud SQL db.n1.standard.2 ($78) + storage ($10) ≈ $138-188/month",
+        "note": "Very cost-effective for bursty/intermittent workloads; breaks even with VMs around 30-40% sustained utilization"
+      }
+    },
+    "docker_compose_local": {
+      "name": "Docker Compose (Local/Self-Managed Production)",
+      "pricing": {
+        "compute": "0 (your own hardware)",
+        "storage": "0 (depends on hardware)",
+        "managed_service_costs": 0,
+        "note": "Only hardware electricity and maintenance; no cloud fees"
+      },
+      "deployment": {
+        "setup_time_hours": 2,
+        "estimated_first_deploy": "2-4 hours for production-ready setup",
+        "complexity": "High - you manage everything"
+      },
+      "managed_vs_self": {
+        "pros": [
+          "Zero cloud service costs (hardware only)",
+          "Full control over PostgreSQL configuration",
+          "Identical dev/staging/prod environments",
+          "No cold starts, no request latency penalties",
+          "Data stays on your servers (compliance advantage)",
+          "No vendor lock-in"
+        ],
+        "cons": [
+          "Operator responsible for backups (scripting required)",
+          "Manual patching and security updates",
+          "No automatic failover without custom setup",
+          "Network/security setup falls to you",
+          "Hardware procurement and maintenance cost (opex)",
+          "Disaster recovery more complex"
+        ]
+      },
+      "best_practices_production_ready": {
+        "networking": [
+          "Do NOT expose database port to the internet",
+          "Use internal Docker network for app ↔ DB communication",
+          "Use reverse proxy (nginx/Traefik) for external ingress only"
+        ],
+        "secrets_management": [
+          "Use .env files (gitignored) or external secrets manager",
+          "Docker Compose 1.40+: secrets support for mounted files",
+          "Avoid hardcoding passwords in compose files"
+        ],
+        "health_checks": [
+          "Define healthcheck policy for all services",
+          "Database healthcheck: 'pg_isready -U user'",
+          "App healthcheck: HTTP liveness probe endpoint"
+        ],
+        "profiles_and_environments": [
+          "Use Docker Compose profiles for conditional services",
+          "Separate compose files: docker-compose.prod.yml with different resource limits",
+          "Environment variables from .env.production"
+        ],
+        "data_persistence": [
+          "Mount PostgreSQL /var/lib/postgresql/data to named volume",
+          "Volumes survive container restart, upgrade, or accidental rm",
+          "Named volume example: volumes: postgres_data:"
+        ],
+        "backups": [
+          "Script daily pg_dump to persistent storage",
+          "Use cron inside sidecar container or host cron",
+          "Store backups on separate disk/NAS for redundancy",
+          "Test restore regularly (backup is not backup without restore)"
+        ],
+        "restart_policies": [
+          "always: Restart unless explicitly stopped",
+          "unless-stopped: Survive host reboot",
+          "on-failure: Retry failed services"
+        ],
+        "resource_limits": [
+          "Set memory limits to prevent runaway containers",
+          "CPU limits/shares to prevent single service monopolizing",
+          "PostgreSQL max_connections tuned to memory available"
+        ],
+        "logging": [
+          "Aggregate logs to stdout (Docker captures for inspection)",
+          "Use log drivers (json-file, syslog) for rotation",
+          "Limit log file size to prevent disk exhaustion"
+        ],
+        "docker_files": [
+          "Multi-stage Dockerfile to keep image size small",
+          "Use specific version tags, not latest",
+          "Non-root user for app container (security)"
+        ]
+      },
+      "postgresql_capabilities": {
+        "backup_restore": "pg_dump (logical backup) or pg_basebackup (physical), user-managed script",
+        "point_in_time_recovery": "Requires WAL archiving setup (complex)",
+        "on_disk_storage": "Full control; can use raw partitions, NAS, or cloud storage mounts"
+      },
+      "network_isolation": {
+        "default": "Docker network isolation by default (containers invisible to internet)",
+        "custom_networks": "Create overlay networks for multi-host setups",
+        "firewall_rules": "Host OS firewall (ufw, firewalld) controls external access"
+      },
+      "gpu_support": {
+        "docker_gpu": "Yes - nvidia-docker or docker --gpus flag",
+        "compose_gpu": "Docker Compose 1.40+ supports runtime: nvidia for GPU containers",
+        "use_case": "LLM inference on local GPU (e.g., RTX 3090, A100)"
+      },
+      "scaling": {
+        "approach": "Vertical only (upgrade hardware) or horizontal with docker-compose scale (stateless app only)",
+        "replication": "Manual PostgreSQL replication setup required (complex)"
+      },
+      "typical_monthly_cost": {
+        "hardware_only_example": "Server purchase $2000 amortized over 48 months = $41/mo (plus electricity ~$30-50/mo, maintenance)",
+        "vs_cloud": "Competitive with cloud at >$100/month sustained usage; cheaper for bursty workloads if hardware already owned"
+      }
+    }
+  },
+  "comparison_matrix": {
+    "setup_effort_hours": {
+      "aws_ec2_rds": "1 hour",
+      "digitalocean": "0.5 hours",
+      "gcp_cloud_run": "0.5 hours",
+      "docker_compose_local": "2-4 hours"
+    },
+    "monthly_cost_small_app": {
+      "aws_ec2_rds": "$47-52",
+      "digitalocean": "$29-32",
+      "gcp_cloud_run": "$15-20 (under free tier)",
+      "docker_compose_local": "$0 (hardware only)"
+    },
+    "monthly_cost_medium_app": {
+      "aws_ec2_rds": "$215-220",
+      "digitalocean": "$151-159",
+      "gcp_cloud_run": "$138-188",
+      "docker_compose_local": "$0 (hardware only)"
+    },
+    "auto_scaling": {
+      "aws_ec2_rds": "Partial (RDS: vertical only; EC2: horizontal with ALB)",
+      "digitalocean": "Manual vertical only",
+      "gcp_cloud_run": "Full horizontal auto-scale",
+      "docker_compose_local": "Manual only"
+    },
+    "backup_automation": {
+      "aws_ec2_rds": "Yes - automated to 35 days",
+      "digitalocean": "Yes - automated daily PITR",
+      "gcp_cloud_run": "Yes - automated daily PITR",
+      "docker_compose_local": "Manual - operator responsible"
+    },
+    "gpu_support": {
+      "aws_ec2_rds": "Yes (EC2 g4dn, p3, p4 instances)",
+      "digitalocean": "No",
+      "gcp_cloud_run": "No (use Vertex AI)",
+      "docker_compose_local": "Yes (nvidia-docker)"
+    },
+    "vendor_lock_in_risk": {
+      "aws_ec2_rds": "High (RDS proprietary, AWS-specific APIs)",
+      "digitalocean": "Medium (standard PostgreSQL, moderate costs to migrate)",
+      "gcp_cloud_run": "Medium (Cloud Run specific; Cloud SQL is standard PostgreSQL)",
+      "docker_compose_local": "None (100% portable)"
+    },
+    "ops_burden": {
+      "aws_ec2_rds": "Low (AWS handles RDS; you manage EC2)",
+      "digitalocean": "Low (fully managed DB; simple droplet management)",
+      "gcp_cloud_run": "Very low (Cloud Run fully managed; Cloud SQL mostly managed)",
+      "docker_compose_local": "Very high (backup, patching, failover all manual)"
+    }
+  },
+  "recommendations_by_use_case": {
+    "startup_mvp": {
+      "recommended": "GCP Cloud Run + Cloud SQL",
+      "reason": "Free tier covers initial load; pay-as-you-grow; minimal ops burden; easy to migrate later"
+    },
+    "production_small_team": {
+      "recommended": "DigitalOcean",
+      "reason": "Transparent pricing, no hidden costs, solid managed DB, user-friendly dashboard"
+    },
+    "production_large_scale": {
+      "recommended": "AWS EC2 + RDS",
+      "reason": "Widest instance options, best for GPU-accelerated workloads, mature ecosystem"
+    },
+    "compliance_data_residency": {
+      "recommended": "Docker Compose (self-hosted) or AWS with dedicated hardware",
+      "reason": "Full control over data location; Docker for on-prem, AWS Dedicated Instances for compliance"
+    },
+    "llm_inference_with_gpu": {
+      "recommended": "AWS EC2 g4dn.xlarge or Docker Compose with local GPU",
+      "reason": "AWS: best GPU variety and cost; Docker: cheapest if hardware already owned"
+    },
+    "burstable_workloads": {
+      "recommended": "GCP Cloud Run",
+      "reason": "Scale to zero cost; serverless pricing ideal for intermittent traffic"
+    }
+  },
+  "hidden_costs_watch_list": {
+    "aws": [
+      "Data transfer between EC2 and RDS across AZ ($0.01/GB)",
+      "Internet egress ($0.09/GB after 100GB free)",
+      "RDS backup storage beyond 100% of instance size ($0.095/GiB-month)",
+      "Elastic IP charges if static IP not in use"
+    ],
+    "digitalocean": [
+      "Storage overages billed in 10 GiB increments (not linear)",
+      "Storage can only grow, not shrink (forces migration to reduce)"
+    ],
+    "gcp": [
+      "Internet egress ($0.12/GB after 1GB free) scales per region",
+      "Cloud SQL High Availability doubles compute without warning",
+      "Cloud Run custom domains don't have separate charges but Cloud CDN does",
+      "Idle IPv4 address charges accumulate"
+    ],
+    "docker_compose": [
+      "Power consumption (60W+ server ≈ $8-12/month electricity)",
+      "NAS/backup storage maintenance (often overlooked)",
+      "Unplanned downtime costs (no SLA, no failover)"
+    ]
+  }
+}

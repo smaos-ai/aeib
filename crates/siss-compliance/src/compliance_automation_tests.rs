@@ -37,6 +37,7 @@ impl MockDecision {
         self
     }
 
+    #[allow(dead_code)]
     fn hash(&self) -> String {
         let mut hasher = Sha256::new();
         hasher.update(format!("{}{}{}{}", self.decision_id, self.timestamp, self.outcome, self.score).as_bytes());

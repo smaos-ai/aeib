@@ -15,5 +15,10 @@ log = { workspace = true }
 env_logger = { workspace = true }
 uuid = { workspace = true }
 chrono = { workspace = true }
+sha2 = { workspace = true }
+ed25519-dalek = { workspace = true }
+hex = { workspace = true }
+rand = { workspace = true }
 
 [dev-dependencies]
+tokio = { workspace = true, features = ["full"] }

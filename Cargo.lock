@@ -1211,10 +1211,14 @@ version = "1.0.0"
 dependencies = [
  "anyhow",
  "chrono",
+ "ed25519-dalek",
  "env_logger",
+ "hex",
  "log",
+ "rand",
  "serde",
  "serde_json",
+ "sha2",
  "thiserror 1.0.69",
  "tokio",
  "uuid",
@@ -2084,6 +2088,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "siss-compliance"
+version = "1.0.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror 1.0.69",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "slab"
 version = "0.4.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2116,6 +2134,7 @@ dependencies = [
  "tempfile",
  "thiserror 1.0.69",
  "tokio",
+ "uuid",
 ]
 
 [[package]]

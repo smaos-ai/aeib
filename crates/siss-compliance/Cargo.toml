@@ -1,8 +1,23 @@
 [package]
 name = "siss-compliance"
-version = "0.1.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
 
 [dependencies]
-serde = { version = "1.0", features = ["derive"] }
-uuid = { version = "1.0", features = ["v4", "serde"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+sha2 = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+
+[[test]]
+name = "compliance_automation_tests"
+path = "src/compliance_automation_tests.rs"
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full"] }

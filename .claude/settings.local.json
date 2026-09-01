@@ -185,7 +185,8 @@
       "Bash(rm -f /Users/andriileukhin/Documents/SovereignNexus/.git/index.lock)",
       "Bash(git add *)",
       "Bash(rm -rf ~/.cargo/registry/cache)",
-      "Bash(cargo build *)"
+      "Bash(cargo build *)",
+      "Skill(spec)"
     ],
     "defaultMode": "acceptEdits"
   },

@@ -1,0 +1,49 @@
+{
+  "hardware_profiles": {
+    "RTX_4060_8GB": {
+      "description": "Entry-level edge deployment (current production)",
+      "inference_engine": "FreeToken / Colibri",
+      "batch_size": 1,
+      "kv_cache_limit_mb": 2048,
+      "max_active_agents": 3,
+      "max_context_tokens": 4096,
+      "target_tps": 39.3,
+      "suitable_for": ["hotel", "glass_small", "school_single"]
+    },
+    "RTX_4090_24GB": {
+      "description": "Mid-range datacenter deployment",
+      "inference_engine": "FreeToken / vLLM",
+      "batch_size": 4,
+      "kv_cache_limit_mb": 12288,
+      "max_active_agents": 12,
+      "max_context_tokens": 16384,
+      "target_tps": 85.0,
+      "suitable_for": ["hotel_regional", "glass_factory", "school_district"]
+    },
+    "JETSON_THOR_128GB": {
+      "description": "High-end edge + autonomous systems",
+      "inference_engine": "Cosmos / Rapid-MLX",
+      "batch_size": 8,
+      "kv_cache_limit_mb": 65536,
+      "max_active_agents": 32,
+      "max_context_tokens": 32768,
+      "target_tps": 95.0,
+      "suitable_for": ["manufacturing_complex", "regional_school", "multi_tenant"]
+    },
+    "A100_80GB": {
+      "description": "Enterprise datacenter (Annex III/I scale)",
+      "inference_engine": "vLLM / TensorRT-LLM",
+      "batch_size": 16,
+      "kv_cache_limit_mb": 40960,
+      "max_active_agents": 64,
+      "max_context_tokens": 65536,
+      "target_tps": 140.0,
+      "suitable_for": ["eu_regional_deployment", "multi_country_federation", "insurance_backend"]
+    }
+  },
+  "auto_tuning_rules": {
+    "scale_up": "If avg_queue_depth > 5 AND free_vram > threshold, increase batch_size",
+    "scale_down": "If latency_p99 > 2000ms OR memory_pressure > 95%, reduce batch_size",
+    "fallback_tier": "On OOM, restart with next-lower hardware profile configuration"
+  }
+}

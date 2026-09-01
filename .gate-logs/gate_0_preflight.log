@@ -2956,3 +2956,1043 @@
 [2026-09-01 01:55:31] [GATE-0] [INFO] =========================================
 [2026-09-01 01:55:31] [GATE-0] [INFO] TOTAL: 17/22 checks passed
 [2026-09-01 01:55:31] [GATE-0] [INFO] Gate 0 PASSED: Pre-flight verification complete
+[2026-09-01 02:07:05] [GATE-0] [INFO] === Gate 0 Pre-Flight Verification ===
+[2026-09-01 02:07:05] [GATE-0] [INFO] CHECK 1: Verifying proof artifacts...
+[2026-09-01 02:07:05] [GATE-0] [INFO]   ✓ Found: 1_agentacct_config.json
+[2026-09-01 02:07:05] [GATE-0] [WARN]   ✗ Missing: 2_unlazy_gates.md (will be generated during execution)
+[2026-09-01 02:07:05] [GATE-0] [WARN]   ✗ Missing: 3_is_agentic.json (will be generated during execution)
+[2026-09-01 02:07:05] [GATE-0] [WARN]   ✗ Missing: 4_canirun_grades.json (will be generated during execution)
+[2026-09-01 02:07:05] [GATE-0] [INFO]   ✓ Found: 5_ap2_ledger_pqc.md
+[2026-09-01 02:07:05] [GATE-0] [INFO]   ✓ Found: 6_ragas_golden_set.json
+[2026-09-01 02:07:05] [GATE-0] [INFO]   ✓ Found: 7_freetoken_benchmark.json
+[2026-09-01 02:07:05] [GATE-0] [INFO] CHECK 2: Verifying git state...
+[2026-09-01 02:07:05] [GATE-0] [INFO]   ✓ Valid git repository
+[2026-09-01 02:07:05] [GATE-0] [INFO] === Gate 0 Pre-Flight Verification ===
+[2026-09-01 02:07:05] [GATE-0] [INFO] CHECK 1: Verifying proof artifacts...
+[2026-09-01 02:07:05] [GATE-0] [INFO]   ✓ Found: 1_agentacct_config.json
+[2026-09-01 02:07:05] [GATE-0] [WARN]   ✗ Missing: 2_unlazy_gates.md (will be generated during execution)
+[2026-09-01 02:07:05] [GATE-0] [WARN]   ✗ Missing: 3_is_agentic.json (will be generated during execution)
+[2026-09-01 02:07:05] [GATE-0] [WARN]   ✗ Missing: 4_canirun_grades.json (will be generated during execution)
+[2026-09-01 02:07:05] [GATE-0] [INFO]   ✓ Found: 5_ap2_ledger_pqc.md
+[2026-09-01 02:07:05] [GATE-0] [INFO]   ✓ Found: 6_ragas_golden_set.json
+[2026-09-01 02:07:05] [GATE-0] [INFO]   ✓ Found: 7_freetoken_benchmark.json
+[2026-09-01 02:07:05] [GATE-0] [INFO] CHECK 2: Verifying git state...
+[2026-09-01 02:07:05] [GATE-0] [INFO]   ✓ Valid git repository
+[2026-09-01 02:07:05] [GATE-0] [INFO] === Gate 0 Pre-Flight Verification ===
+[2026-09-01 02:07:05] [GATE-0] [INFO] CHECK 1: Verifying proof artifacts...
+[2026-09-01 02:07:06] [GATE-0] [INFO]   ✓ Found: 1_agentacct_config.json
+[2026-09-01 02:07:06] [GATE-0] [WARN]   ✗ Missing: 2_unlazy_gates.md (will be generated during execution)
+[2026-09-01 02:07:06] [GATE-0] [WARN]   ✗ Missing: 3_is_agentic.json (will be generated during execution)
+[2026-09-01 02:07:06] [GATE-0] [WARN]   ✗ Missing: 4_canirun_grades.json (will be generated during execution)
+[2026-09-01 02:07:06] [GATE-0] [INFO]   ✓ Found: 5_ap2_ledger_pqc.md
+[2026-09-01 02:07:06] [GATE-0] [INFO]   ✓ Found: 6_ragas_golden_set.json
+[2026-09-01 02:07:06] [GATE-0] [INFO]   ✓ Found: 7_freetoken_benchmark.json
+[2026-09-01 02:07:06] [GATE-0] [INFO] CHECK 2: Verifying git state...
+[2026-09-01 02:07:06] [GATE-0] [INFO]   ✓ Valid git repository
+[2026-09-01 02:07:08] [GATE-0] [WARN]   ⚠ Uncommitted changes detected (non-blocking)
+[2026-09-01 02:07:08] [GATE-0] [WARN]   ⚠ Uncommitted changes detected (non-blocking)
+[2026-09-01 02:07:08] [GATE-0] [WARN]   ⚠ Uncommitted changes detected (non-blocking)
+[2026-09-01 02:07:08] [GATE-0] [WARN]   ⚠ Last commit not signed (warning only)
+[2026-09-01 02:07:08] [GATE-0] [WARN]   ⚠ Last commit not signed (warning only)
+[2026-09-01 02:07:08] [GATE-0] [INFO] CHECK 3: Verifying AP2 ledger structure...
+[2026-09-01 02:07:08] [GATE-0] [WARN]   ⚠ Last commit not signed (warning only)
+[2026-09-01 02:07:08] [GATE-0] [INFO] CHECK 3: Verifying AP2 ledger structure...
+[2026-09-01 02:07:08] [GATE-0] [INFO] CHECK 3: Verifying AP2 ledger structure...
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ AP2 ledger directory exists
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ AP2 ledger directory exists
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ AP2 ledger directory exists
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ Found        6 ledger entries
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ Found        6 ledger entries
+[2026-09-01 02:07:08] [GATE-0] [INFO] CHECK 4: Verifying work receipts directory...
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ Found        6 ledger entries
+[2026-09-01 02:07:08] [GATE-0] [INFO] CHECK 4: Verifying work receipts directory...
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ Work receipts directory exists
+[2026-09-01 02:07:08] [GATE-0] [INFO] CHECK 4: Verifying work receipts directory...
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ Work receipts directory exists
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ Work receipts directory exists
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ Found       60 work receipt files
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ Found       60 work receipt files
+[2026-09-01 02:07:08] [GATE-0] [INFO] CHECK 5: Verifying Python dependencies...
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ Found       60 work receipt files
+[2026-09-01 02:07:08] [GATE-0] [INFO] CHECK 5: Verifying Python dependencies...
+[2026-09-01 02:07:08] [GATE-0] [INFO] CHECK 5: Verifying Python dependencies...
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ Python module available: json
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ Python module available: json
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ Python module available: json
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ Python module available: hashlib
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ Python module available: hashlib
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ Python module available: hashlib
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ Python module available: dataclasses
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ Python module available: dataclasses
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ Python module available: dataclasses
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ Python module available: pathlib
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ Python module available: pathlib
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ Python module available: pathlib
+[2026-09-01 02:07:08] [GATE-0] [INFO] CHECK 6: Verifying gate dependencies...
+[2026-09-01 02:07:08] [GATE-0] [INFO] CHECK 6: Verifying gate dependencies...
+[2026-09-01 02:07:08] [GATE-0] [INFO] CHECK 6: Verifying gate dependencies...
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ Gate 1-3 validator script ready
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ Gate 1-3 validator script ready
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ Gate 1-3 validator script ready
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ Gate 4-5 validator script ready
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ Gate 4-5 validator script ready
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ Gate 4-5 validator script ready
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ agentacct capture module available
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ agentacct capture module available
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ agentacct capture module available
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ unlazy gates module available
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ unlazy gates module available
+[2026-09-01 02:07:08] [GATE-0] [INFO]   ✓ unlazy gates module available
+[2026-09-01 02:07:08] [GATE-0] [INFO] =========================================
+[2026-09-01 02:07:08] [GATE-0] [INFO] =========================================
+[2026-09-01 02:07:08] [GATE-0] [INFO] =========================================
+[2026-09-01 02:07:08] [GATE-0] [INFO] Gate 0 Summary:
+[2026-09-01 02:07:08] [GATE-0] [INFO] Gate 0 Summary:
+[2026-09-01 02:07:08] [GATE-0] [INFO] Gate 0 Summary:
+[2026-09-01 02:07:08] [GATE-0] [INFO]   Proof Artifacts: 4/7
+[2026-09-01 02:07:08] [GATE-0] [INFO]   Proof Artifacts: 4/7
+[2026-09-01 02:07:08] [GATE-0] [INFO]   Proof Artifacts: 4/7
+[2026-09-01 02:07:08] [GATE-0] [INFO]   Git State:       1/3
+[2026-09-01 02:07:08] [GATE-0] [INFO]   Git State:       1/3
+[2026-09-01 02:07:08] [GATE-0] [INFO]   Git State:       1/3
+[2026-09-01 02:07:08] [GATE-0] [INFO]   AP2 Ledger:      2/2
+[2026-09-01 02:07:08] [GATE-0] [INFO]   AP2 Ledger:      2/2
+[2026-09-01 02:07:08] [GATE-0] [INFO]   AP2 Ledger:      2/2
+[2026-09-01 02:07:08] [GATE-0] [INFO]   Work Receipts:   2/2
+[2026-09-01 02:07:08] [GATE-0] [INFO]   Work Receipts:   2/2
+[2026-09-01 02:07:08] [GATE-0] [INFO]   Work Receipts:   2/2
+[2026-09-01 02:07:08] [GATE-0] [INFO]   Python Modules:  4/4
+[2026-09-01 02:07:08] [GATE-0] [INFO]   Python Modules:  4/4
+[2026-09-01 02:07:08] [GATE-0] [INFO]   Python Modules:  4/4
+[2026-09-01 02:07:08] [GATE-0] [INFO]   Dependencies:    4/4
+[2026-09-01 02:07:08] [GATE-0] [INFO]   Dependencies:    4/4
+[2026-09-01 02:07:08] [GATE-0] [INFO]   Dependencies:    4/4
+[2026-09-01 02:07:08] [GATE-0] [INFO] =========================================
+[2026-09-01 02:07:08] [GATE-0] [INFO] =========================================
+[2026-09-01 02:07:08] [GATE-0] [INFO] =========================================
+[2026-09-01 02:07:08] [GATE-0] [INFO] TOTAL: 17/22 checks passed
+[2026-09-01 02:07:08] [GATE-0] [INFO] TOTAL: 17/22 checks passed
+[2026-09-01 02:07:08] [GATE-0] [INFO] TOTAL: 17/22 checks passed
+[2026-09-01 02:07:08] [GATE-0] [INFO] Gate 0 PASSED: Pre-flight verification complete
+[2026-09-01 02:07:08] [GATE-0] [INFO] Gate 0 PASSED: Pre-flight verification complete
+[2026-09-01 02:07:08] [GATE-0] [INFO] Gate 0 PASSED: Pre-flight verification complete
+[2026-09-01 02:07:18] [GATE-0] [INFO] === Gate 0 Pre-Flight Verification ===
+[2026-09-01 02:07:18] [GATE-0] [INFO] CHECK 1: Verifying proof artifacts...
+[2026-09-01 02:07:18] [GATE-0] [INFO]   ✓ Found: 1_agentacct_config.json
+[2026-09-01 02:07:18] [GATE-0] [WARN]   ✗ Missing: 2_unlazy_gates.md (will be generated during execution)
+[2026-09-01 02:07:18] [GATE-0] [WARN]   ✗ Missing: 3_is_agentic.json (will be generated during execution)
+[2026-09-01 02:07:18] [GATE-0] [WARN]   ✗ Missing: 4_canirun_grades.json (will be generated during execution)
+[2026-09-01 02:07:18] [GATE-0] [INFO]   ✓ Found: 5_ap2_ledger_pqc.md
+[2026-09-01 02:07:18] [GATE-0] [INFO]   ✓ Found: 6_ragas_golden_set.json
+[2026-09-01 02:07:18] [GATE-0] [INFO]   ✓ Found: 7_freetoken_benchmark.json
+[2026-09-01 02:07:18] [GATE-0] [INFO] CHECK 2: Verifying git state...
+[2026-09-01 02:07:18] [GATE-0] [INFO]   ✓ Valid git repository
+[2026-09-01 02:07:18] [GATE-0] [INFO] === Gate 0 Pre-Flight Verification ===
+[2026-09-01 02:07:18] [GATE-0] [INFO] CHECK 1: Verifying proof artifacts...
+[2026-09-01 02:07:18] [GATE-0] [INFO]   ✓ Found: 1_agentacct_config.json
+[2026-09-01 02:07:18] [GATE-0] [WARN]   ✗ Missing: 2_unlazy_gates.md (will be generated during execution)
+[2026-09-01 02:07:18] [GATE-0] [WARN]   ✗ Missing: 3_is_agentic.json (will be generated during execution)
+[2026-09-01 02:07:18] [GATE-0] [WARN]   ✗ Missing: 4_canirun_grades.json (will be generated during execution)
+[2026-09-01 02:07:18] [GATE-0] [INFO]   ✓ Found: 5_ap2_ledger_pqc.md
+[2026-09-01 02:07:18] [GATE-0] [INFO]   ✓ Found: 6_ragas_golden_set.json
+[2026-09-01 02:07:18] [GATE-0] [INFO]   ✓ Found: 7_freetoken_benchmark.json
+[2026-09-01 02:07:18] [GATE-0] [INFO] CHECK 2: Verifying git state...
+[2026-09-01 02:07:18] [GATE-0] [INFO]   ✓ Valid git repository
+[2026-09-01 02:07:19] [GATE-0] [INFO] === Gate 0 Pre-Flight Verification ===
+[2026-09-01 02:07:19] [GATE-0] [INFO] CHECK 1: Verifying proof artifacts...
+[2026-09-01 02:07:19] [GATE-0] [INFO]   ✓ Found: 1_agentacct_config.json
+[2026-09-01 02:07:19] [GATE-0] [WARN]   ✗ Missing: 2_unlazy_gates.md (will be generated during execution)
+[2026-09-01 02:07:19] [GATE-0] [WARN]   ✗ Missing: 3_is_agentic.json (will be generated during execution)
+[2026-09-01 02:07:19] [GATE-0] [WARN]   ✗ Missing: 4_canirun_grades.json (will be generated during execution)
+[2026-09-01 02:07:19] [GATE-0] [INFO]   ✓ Found: 5_ap2_ledger_pqc.md
+[2026-09-01 02:07:19] [GATE-0] [INFO]   ✓ Found: 6_ragas_golden_set.json
+[2026-09-01 02:07:19] [GATE-0] [INFO]   ✓ Found: 7_freetoken_benchmark.json
+[2026-09-01 02:07:19] [GATE-0] [INFO] CHECK 2: Verifying git state...
+[2026-09-01 02:07:19] [GATE-0] [INFO]   ✓ Valid git repository
+[2026-09-01 02:07:20] [GATE-0] [WARN]   ⚠ Uncommitted changes detected (non-blocking)
+[2026-09-01 02:07:20] [GATE-0] [WARN]   ⚠ Last commit not signed (warning only)
+[2026-09-01 02:07:20] [GATE-0] [INFO] CHECK 3: Verifying AP2 ledger structure...
+[2026-09-01 02:07:20] [GATE-0] [INFO]   ✓ AP2 ledger directory exists
+[2026-09-01 02:07:20] [GATE-0] [INFO]   ✓ Found        6 ledger entries
+[2026-09-01 02:07:20] [GATE-0] [INFO] CHECK 4: Verifying work receipts directory...
+[2026-09-01 02:07:20] [GATE-0] [INFO]   ✓ Work receipts directory exists
+[2026-09-01 02:07:20] [GATE-0] [INFO]   ✓ Found       62 work receipt files
+[2026-09-01 02:07:20] [GATE-0] [INFO] CHECK 5: Verifying Python dependencies...
+[2026-09-01 02:07:20] [GATE-0] [INFO]   ✓ Python module available: json
+[2026-09-01 02:07:20] [GATE-0] [INFO]   ✓ Python module available: hashlib
+[2026-09-01 02:07:20] [GATE-0] [INFO]   ✓ Python module available: dataclasses
+[2026-09-01 02:07:20] [GATE-0] [INFO]   ✓ Python module available: pathlib
+[2026-09-01 02:07:20] [GATE-0] [INFO] CHECK 6: Verifying gate dependencies...
+[2026-09-01 02:07:20] [GATE-0] [INFO]   ✓ Gate 1-3 validator script ready
+[2026-09-01 02:07:20] [GATE-0] [INFO]   ✓ Gate 4-5 validator script ready
+[2026-09-01 02:07:20] [GATE-0] [INFO]   ✓ agentacct capture module available
+[2026-09-01 02:07:20] [GATE-0] [INFO]   ✓ unlazy gates module available
+[2026-09-01 02:07:20] [GATE-0] [INFO] =========================================
+[2026-09-01 02:07:20] [GATE-0] [INFO] Gate 0 Summary:
+[2026-09-01 02:07:20] [GATE-0] [INFO]   Proof Artifacts: 4/7
+[2026-09-01 02:07:20] [GATE-0] [INFO]   Git State:       1/3
+[2026-09-01 02:07:20] [GATE-0] [INFO]   AP2 Ledger:      2/2
+[2026-09-01 02:07:20] [GATE-0] [INFO]   Work Receipts:   2/2
+[2026-09-01 02:07:20] [GATE-0] [INFO]   Python Modules:  4/4
+[2026-09-01 02:07:20] [GATE-0] [INFO]   Dependencies:    4/4
+[2026-09-01 02:07:20] [GATE-0] [INFO] =========================================
+[2026-09-01 02:07:20] [GATE-0] [INFO] TOTAL: 17/22 checks passed
+[2026-09-01 02:07:20] [GATE-0] [INFO] Gate 0 PASSED: Pre-flight verification complete
+[2026-09-01 02:07:20] [GATE-0] [WARN]   ⚠ Uncommitted changes detected (non-blocking)
+[2026-09-01 02:07:20] [GATE-0] [WARN]   ⚠ Last commit not signed (warning only)
+[2026-09-01 02:07:20] [GATE-0] [INFO] CHECK 3: Verifying AP2 ledger structure...
+[2026-09-01 02:07:20] [GATE-0] [INFO]   ✓ AP2 ledger directory exists
+[2026-09-01 02:07:20] [GATE-0] [INFO]   ✓ Found        6 ledger entries
+[2026-09-01 02:07:20] [GATE-0] [INFO] CHECK 4: Verifying work receipts directory...
+[2026-09-01 02:07:20] [GATE-0] [INFO]   ✓ Work receipts directory exists
+[2026-09-01 02:07:20] [GATE-0] [INFO]   ✓ Found       62 work receipt files
+[2026-09-01 02:07:20] [GATE-0] [INFO] CHECK 5: Verifying Python dependencies...
+[2026-09-01 02:07:20] [GATE-0] [INFO]   ✓ Python module available: json
+[2026-09-01 02:07:20] [GATE-0] [INFO]   ✓ Python module available: hashlib
+[2026-09-01 02:07:20] [GATE-0] [INFO]   ✓ Python module available: dataclasses
+[2026-09-01 02:07:20] [GATE-0] [INFO]   ✓ Python module available: pathlib
+[2026-09-01 02:07:20] [GATE-0] [INFO] CHECK 6: Verifying gate dependencies...
+[2026-09-01 02:07:20] [GATE-0] [INFO]   ✓ Gate 1-3 validator script ready
+[2026-09-01 02:07:20] [GATE-0] [INFO]   ✓ Gate 4-5 validator script ready
+[2026-09-01 02:07:20] [GATE-0] [INFO]   ✓ agentacct capture module available
+[2026-09-01 02:07:20] [GATE-0] [INFO]   ✓ unlazy gates module available
+[2026-09-01 02:07:20] [GATE-0] [INFO] =========================================
+[2026-09-01 02:07:20] [GATE-0] [INFO] Gate 0 Summary:
+[2026-09-01 02:07:20] [GATE-0] [INFO]   Proof Artifacts: 4/7
+[2026-09-01 02:07:20] [GATE-0] [INFO]   Git State:       1/3
+[2026-09-01 02:07:20] [GATE-0] [INFO]   AP2 Ledger:      2/2
+[2026-09-01 02:07:20] [GATE-0] [INFO]   Work Receipts:   2/2
+[2026-09-01 02:07:20] [GATE-0] [INFO]   Python Modules:  4/4
+[2026-09-01 02:07:20] [GATE-0] [INFO]   Dependencies:    4/4
+[2026-09-01 02:07:20] [GATE-0] [INFO] =========================================
+[2026-09-01 02:07:20] [GATE-0] [INFO] TOTAL: 17/22 checks passed
+[2026-09-01 02:07:20] [GATE-0] [INFO] Gate 0 PASSED: Pre-flight verification complete
+[2026-09-01 02:07:21] [GATE-0] [WARN]   ⚠ Uncommitted changes detected (non-blocking)
+[2026-09-01 02:07:21] [GATE-0] [WARN]   ⚠ Last commit not signed (warning only)
+[2026-09-01 02:07:21] [GATE-0] [INFO] CHECK 3: Verifying AP2 ledger structure...
+[2026-09-01 02:07:21] [GATE-0] [INFO]   ✓ AP2 ledger directory exists
+[2026-09-01 02:07:21] [GATE-0] [INFO]   ✓ Found        6 ledger entries
+[2026-09-01 02:07:21] [GATE-0] [INFO] CHECK 4: Verifying work receipts directory...
+[2026-09-01 02:07:21] [GATE-0] [INFO]   ✓ Work receipts directory exists
+[2026-09-01 02:07:21] [GATE-0] [INFO]   ✓ Found       63 work receipt files
+[2026-09-01 02:07:21] [GATE-0] [INFO] CHECK 5: Verifying Python dependencies...
+[2026-09-01 02:07:21] [GATE-0] [INFO]   ✓ Python module available: json
+[2026-09-01 02:07:21] [GATE-0] [INFO]   ✓ Python module available: hashlib
+[2026-09-01 02:07:21] [GATE-0] [INFO]   ✓ Python module available: dataclasses
+[2026-09-01 02:07:21] [GATE-0] [INFO]   ✓ Python module available: pathlib
+[2026-09-01 02:07:21] [GATE-0] [INFO] CHECK 6: Verifying gate dependencies...
+[2026-09-01 02:07:21] [GATE-0] [INFO]   ✓ Gate 1-3 validator script ready
+[2026-09-01 02:07:21] [GATE-0] [INFO]   ✓ Gate 4-5 validator script ready
+[2026-09-01 02:07:21] [GATE-0] [INFO]   ✓ agentacct capture module available
+[2026-09-01 02:07:21] [GATE-0] [INFO]   ✓ unlazy gates module available
+[2026-09-01 02:07:21] [GATE-0] [INFO] =========================================
+[2026-09-01 02:07:21] [GATE-0] [INFO] Gate 0 Summary:
+[2026-09-01 02:07:21] [GATE-0] [INFO]   Proof Artifacts: 4/7
+[2026-09-01 02:07:21] [GATE-0] [INFO]   Git State:       1/3
+[2026-09-01 02:07:21] [GATE-0] [INFO]   AP2 Ledger:      2/2
+[2026-09-01 02:07:21] [GATE-0] [INFO]   Work Receipts:   2/2
+[2026-09-01 02:07:21] [GATE-0] [INFO]   Python Modules:  4/4
+[2026-09-01 02:07:21] [GATE-0] [INFO]   Dependencies:    4/4
+[2026-09-01 02:07:21] [GATE-0] [INFO] =========================================
+[2026-09-01 02:07:21] [GATE-0] [INFO] TOTAL: 17/22 checks passed
+[2026-09-01 02:07:21] [GATE-0] [INFO] Gate 0 PASSED: Pre-flight verification complete
+[2026-09-01 02:07:26] [GATE-0] [INFO] === Gate 0 Pre-Flight Verification ===
+[2026-09-01 02:07:26] [GATE-0] [INFO] CHECK 1: Verifying proof artifacts...
+[2026-09-01 02:07:26] [GATE-0] [INFO]   ✓ Found: 1_agentacct_config.json
+[2026-09-01 02:07:26] [GATE-0] [WARN]   ✗ Missing: 2_unlazy_gates.md (will be generated during execution)
+[2026-09-01 02:07:26] [GATE-0] [WARN]   ✗ Missing: 3_is_agentic.json (will be generated during execution)
+[2026-09-01 02:07:26] [GATE-0] [WARN]   ✗ Missing: 4_canirun_grades.json (will be generated during execution)
+[2026-09-01 02:07:26] [GATE-0] [INFO]   ✓ Found: 5_ap2_ledger_pqc.md
+[2026-09-01 02:07:26] [GATE-0] [INFO]   ✓ Found: 6_ragas_golden_set.json
+[2026-09-01 02:07:26] [GATE-0] [INFO]   ✓ Found: 7_freetoken_benchmark.json
+[2026-09-01 02:07:26] [GATE-0] [INFO] CHECK 2: Verifying git state...
+[2026-09-01 02:07:26] [GATE-0] [INFO]   ✓ Valid git repository
+[2026-09-01 02:07:27] [GATE-0] [WARN]   ⚠ Uncommitted changes detected (non-blocking)
+[2026-09-01 02:07:27] [GATE-0] [WARN]   ⚠ Last commit not signed (warning only)
+[2026-09-01 02:07:27] [GATE-0] [INFO] CHECK 3: Verifying AP2 ledger structure...
+[2026-09-01 02:07:27] [GATE-0] [INFO]   ✓ AP2 ledger directory exists
+[2026-09-01 02:07:27] [GATE-0] [INFO]   ✓ Found        6 ledger entries
+[2026-09-01 02:07:27] [GATE-0] [INFO] CHECK 4: Verifying work receipts directory...
+[2026-09-01 02:07:27] [GATE-0] [INFO]   ✓ Work receipts directory exists
+[2026-09-01 02:07:27] [GATE-0] [INFO]   ✓ Found       65 work receipt files
+[2026-09-01 02:07:27] [GATE-0] [INFO] CHECK 5: Verifying Python dependencies...
+[2026-09-01 02:07:27] [GATE-0] [INFO]   ✓ Python module available: json
+[2026-09-01 02:07:27] [GATE-0] [INFO]   ✓ Python module available: hashlib
+[2026-09-01 02:07:27] [GATE-0] [INFO]   ✓ Python module available: dataclasses
+[2026-09-01 02:07:27] [GATE-0] [INFO]   ✓ Python module available: pathlib
+[2026-09-01 02:07:27] [GATE-0] [INFO] CHECK 6: Verifying gate dependencies...
+[2026-09-01 02:07:27] [GATE-0] [INFO]   ✓ Gate 1-3 validator script ready
+[2026-09-01 02:07:27] [GATE-0] [INFO]   ✓ Gate 4-5 validator script ready
+[2026-09-01 02:07:27] [GATE-0] [INFO]   ✓ agentacct capture module available
+[2026-09-01 02:07:27] [GATE-0] [INFO]   ✓ unlazy gates module available
+[2026-09-01 02:07:27] [GATE-0] [INFO] =========================================
+[2026-09-01 02:07:27] [GATE-0] [INFO] Gate 0 Summary:
+[2026-09-01 02:07:27] [GATE-0] [INFO]   Proof Artifacts: 4/7
+[2026-09-01 02:07:27] [GATE-0] [INFO]   Git State:       1/3
+[2026-09-01 02:07:27] [GATE-0] [INFO]   AP2 Ledger:      2/2
+[2026-09-01 02:07:27] [GATE-0] [INFO]   Work Receipts:   2/2
+[2026-09-01 02:07:27] [GATE-0] [INFO]   Python Modules:  4/4
+[2026-09-01 02:07:27] [GATE-0] [INFO]   Dependencies:    4/4
+[2026-09-01 02:07:27] [GATE-0] [INFO] =========================================
+[2026-09-01 02:07:27] [GATE-0] [INFO] TOTAL: 17/22 checks passed
+[2026-09-01 02:07:27] [GATE-0] [INFO] Gate 0 PASSED: Pre-flight verification complete
+[2026-09-01 02:07:31] [GATE-0] [INFO] === Gate 0 Pre-Flight Verification ===
+[2026-09-01 02:07:31] [GATE-0] [INFO] CHECK 1: Verifying proof artifacts...
+[2026-09-01 02:07:31] [GATE-0] [INFO]   ✓ Found: 1_agentacct_config.json
+[2026-09-01 02:07:31] [GATE-0] [WARN]   ✗ Missing: 2_unlazy_gates.md (will be generated during execution)
+[2026-09-01 02:07:31] [GATE-0] [WARN]   ✗ Missing: 3_is_agentic.json (will be generated during execution)
+[2026-09-01 02:07:31] [GATE-0] [WARN]   ✗ Missing: 4_canirun_grades.json (will be generated during execution)
+[2026-09-01 02:07:31] [GATE-0] [INFO]   ✓ Found: 5_ap2_ledger_pqc.md
+[2026-09-01 02:07:31] [GATE-0] [INFO]   ✓ Found: 6_ragas_golden_set.json
+[2026-09-01 02:07:31] [GATE-0] [INFO]   ✓ Found: 7_freetoken_benchmark.json
+[2026-09-01 02:07:31] [GATE-0] [INFO] CHECK 2: Verifying git state...
+[2026-09-01 02:07:31] [GATE-0] [INFO]   ✓ Valid git repository
+[2026-09-01 02:07:33] [GATE-0] [WARN]   ⚠ Uncommitted changes detected (non-blocking)
+[2026-09-01 02:07:33] [GATE-0] [WARN]   ⚠ Last commit not signed (warning only)
+[2026-09-01 02:07:33] [GATE-0] [INFO] CHECK 3: Verifying AP2 ledger structure...
+[2026-09-01 02:07:33] [GATE-0] [INFO]   ✓ AP2 ledger directory exists
+[2026-09-01 02:07:33] [GATE-0] [INFO]   ✓ Found        6 ledger entries
+[2026-09-01 02:07:33] [GATE-0] [INFO] CHECK 4: Verifying work receipts directory...
+[2026-09-01 02:07:33] [GATE-0] [INFO]   ✓ Work receipts directory exists
+[2026-09-01 02:07:33] [GATE-0] [INFO]   ✓ Found       66 work receipt files
+[2026-09-01 02:07:33] [GATE-0] [INFO] CHECK 5: Verifying Python dependencies...
+[2026-09-01 02:07:33] [GATE-0] [INFO]   ✓ Python module available: json
+[2026-09-01 02:07:33] [GATE-0] [INFO]   ✓ Python module available: hashlib
+[2026-09-01 02:07:33] [GATE-0] [INFO]   ✓ Python module available: dataclasses
+[2026-09-01 02:07:33] [GATE-0] [INFO]   ✓ Python module available: pathlib
+[2026-09-01 02:07:33] [GATE-0] [INFO] CHECK 6: Verifying gate dependencies...
+[2026-09-01 02:07:33] [GATE-0] [INFO]   ✓ Gate 1-3 validator script ready
+[2026-09-01 02:07:33] [GATE-0] [INFO]   ✓ Gate 4-5 validator script ready
+[2026-09-01 02:07:33] [GATE-0] [INFO]   ✓ agentacct capture module available
+[2026-09-01 02:07:33] [GATE-0] [INFO]   ✓ unlazy gates module available
+[2026-09-01 02:07:33] [GATE-0] [INFO] =========================================
+[2026-09-01 02:07:33] [GATE-0] [INFO] Gate 0 Summary:
+[2026-09-01 02:07:33] [GATE-0] [INFO]   Proof Artifacts: 4/7
+[2026-09-01 02:07:33] [GATE-0] [INFO]   Git State:       1/3
+[2026-09-01 02:07:33] [GATE-0] [INFO]   AP2 Ledger:      2/2
+[2026-09-01 02:07:33] [GATE-0] [INFO]   Work Receipts:   2/2
+[2026-09-01 02:07:33] [GATE-0] [INFO]   Python Modules:  4/4
+[2026-09-01 02:07:33] [GATE-0] [INFO]   Dependencies:    4/4
+[2026-09-01 02:07:33] [GATE-0] [INFO] =========================================
+[2026-09-01 02:07:33] [GATE-0] [INFO] TOTAL: 17/22 checks passed
+[2026-09-01 02:07:33] [GATE-0] [INFO] Gate 0 PASSED: Pre-flight verification complete
+[2026-09-01 02:07:35] [GATE-0] [INFO] === Gate 0 Pre-Flight Verification ===
+[2026-09-01 02:07:35] [GATE-0] [INFO] CHECK 1: Verifying proof artifacts...
+[2026-09-01 02:07:35] [GATE-0] [INFO]   ✓ Found: 1_agentacct_config.json
+[2026-09-01 02:07:35] [GATE-0] [WARN]   ✗ Missing: 2_unlazy_gates.md (will be generated during execution)
+[2026-09-01 02:07:35] [GATE-0] [WARN]   ✗ Missing: 3_is_agentic.json (will be generated during execution)
+[2026-09-01 02:07:35] [GATE-0] [WARN]   ✗ Missing: 4_canirun_grades.json (will be generated during execution)
+[2026-09-01 02:07:35] [GATE-0] [INFO]   ✓ Found: 5_ap2_ledger_pqc.md
+[2026-09-01 02:07:35] [GATE-0] [INFO]   ✓ Found: 6_ragas_golden_set.json
+[2026-09-01 02:07:35] [GATE-0] [INFO]   ✓ Found: 7_freetoken_benchmark.json
+[2026-09-01 02:07:35] [GATE-0] [INFO] CHECK 2: Verifying git state...
+[2026-09-01 02:07:35] [GATE-0] [INFO]   ✓ Valid git repository
+[2026-09-01 02:07:36] [GATE-0] [WARN]   ⚠ Uncommitted changes detected (non-blocking)
+[2026-09-01 02:07:36] [GATE-0] [WARN]   ⚠ Last commit not signed (warning only)
+[2026-09-01 02:07:36] [GATE-0] [INFO] CHECK 3: Verifying AP2 ledger structure...
+[2026-09-01 02:07:36] [GATE-0] [INFO]   ✓ AP2 ledger directory exists
+[2026-09-01 02:07:36] [GATE-0] [INFO]   ✓ Found        6 ledger entries
+[2026-09-01 02:07:36] [GATE-0] [INFO] CHECK 4: Verifying work receipts directory...
+[2026-09-01 02:07:36] [GATE-0] [INFO]   ✓ Work receipts directory exists
+[2026-09-01 02:07:36] [GATE-0] [INFO]   ✓ Found       66 work receipt files
+[2026-09-01 02:07:36] [GATE-0] [INFO] CHECK 5: Verifying Python dependencies...
+[2026-09-01 02:07:36] [GATE-0] [INFO]   ✓ Python module available: json
+[2026-09-01 02:07:36] [GATE-0] [INFO]   ✓ Python module available: hashlib
+[2026-09-01 02:07:36] [GATE-0] [INFO]   ✓ Python module available: dataclasses
+[2026-09-01 02:07:36] [GATE-0] [INFO]   ✓ Python module available: pathlib
+[2026-09-01 02:07:36] [GATE-0] [INFO] CHECK 6: Verifying gate dependencies...
+[2026-09-01 02:07:36] [GATE-0] [INFO]   ✓ Gate 1-3 validator script ready
+[2026-09-01 02:07:36] [GATE-0] [INFO]   ✓ Gate 4-5 validator script ready
+[2026-09-01 02:07:36] [GATE-0] [INFO]   ✓ agentacct capture module available
+[2026-09-01 02:07:36] [GATE-0] [INFO]   ✓ unlazy gates module available
+[2026-09-01 02:07:36] [GATE-0] [INFO] =========================================
+[2026-09-01 02:07:36] [GATE-0] [INFO] Gate 0 Summary:
+[2026-09-01 02:07:36] [GATE-0] [INFO]   Proof Artifacts: 4/7
+[2026-09-01 02:07:36] [GATE-0] [INFO]   Git State:       1/3
+[2026-09-01 02:07:36] [GATE-0] [INFO]   AP2 Ledger:      2/2
+[2026-09-01 02:07:36] [GATE-0] [INFO]   Work Receipts:   2/2
+[2026-09-01 02:07:36] [GATE-0] [INFO]   Python Modules:  4/4
+[2026-09-01 02:07:36] [GATE-0] [INFO]   Dependencies:    4/4
+[2026-09-01 02:07:36] [GATE-0] [INFO] =========================================
+[2026-09-01 02:07:36] [GATE-0] [INFO] TOTAL: 17/22 checks passed
+[2026-09-01 02:07:36] [GATE-0] [INFO] Gate 0 PASSED: Pre-flight verification complete
+[2026-09-01 02:07:38] [GATE-0] [INFO] === Gate 0 Pre-Flight Verification ===
+[2026-09-01 02:07:38] [GATE-0] [INFO] CHECK 1: Verifying proof artifacts...
+[2026-09-01 02:07:38] [GATE-0] [INFO]   ✓ Found: 1_agentacct_config.json
+[2026-09-01 02:07:38] [GATE-0] [WARN]   ✗ Missing: 2_unlazy_gates.md (will be generated during execution)
+[2026-09-01 02:07:38] [GATE-0] [WARN]   ✗ Missing: 3_is_agentic.json (will be generated during execution)
+[2026-09-01 02:07:38] [GATE-0] [WARN]   ✗ Missing: 4_canirun_grades.json (will be generated during execution)
+[2026-09-01 02:07:38] [GATE-0] [INFO]   ✓ Found: 5_ap2_ledger_pqc.md
+[2026-09-01 02:07:38] [GATE-0] [INFO]   ✓ Found: 6_ragas_golden_set.json
+[2026-09-01 02:07:38] [GATE-0] [INFO]   ✓ Found: 7_freetoken_benchmark.json
+[2026-09-01 02:07:38] [GATE-0] [INFO] CHECK 2: Verifying git state...
+[2026-09-01 02:07:38] [GATE-0] [INFO]   ✓ Valid git repository
+[2026-09-01 02:07:40] [GATE-0] [WARN]   ⚠ Uncommitted changes detected (non-blocking)
+[2026-09-01 02:07:40] [GATE-0] [WARN]   ⚠ Last commit not signed (warning only)
+[2026-09-01 02:07:40] [GATE-0] [INFO] CHECK 3: Verifying AP2 ledger structure...
+[2026-09-01 02:07:40] [GATE-0] [INFO]   ✓ AP2 ledger directory exists
+[2026-09-01 02:07:40] [GATE-0] [INFO]   ✓ Found        6 ledger entries
+[2026-09-01 02:07:40] [GATE-0] [INFO] CHECK 4: Verifying work receipts directory...
+[2026-09-01 02:07:40] [GATE-0] [INFO]   ✓ Work receipts directory exists
+[2026-09-01 02:07:40] [GATE-0] [INFO]   ✓ Found       67 work receipt files
+[2026-09-01 02:07:40] [GATE-0] [INFO] CHECK 5: Verifying Python dependencies...
+[2026-09-01 02:07:40] [GATE-0] [INFO]   ✓ Python module available: json
+[2026-09-01 02:07:40] [GATE-0] [INFO]   ✓ Python module available: hashlib
+[2026-09-01 02:07:40] [GATE-0] [INFO]   ✓ Python module available: dataclasses
+[2026-09-01 02:07:40] [GATE-0] [INFO]   ✓ Python module available: pathlib
+[2026-09-01 02:07:40] [GATE-0] [INFO] CHECK 6: Verifying gate dependencies...
+[2026-09-01 02:07:40] [GATE-0] [INFO]   ✓ Gate 1-3 validator script ready
+[2026-09-01 02:07:40] [GATE-0] [INFO]   ✓ Gate 4-5 validator script ready
+[2026-09-01 02:07:40] [GATE-0] [INFO]   ✓ agentacct capture module available
+[2026-09-01 02:07:40] [GATE-0] [INFO]   ✓ unlazy gates module available
+[2026-09-01 02:07:40] [GATE-0] [INFO] =========================================
+[2026-09-01 02:07:40] [GATE-0] [INFO] Gate 0 Summary:
+[2026-09-01 02:07:40] [GATE-0] [INFO]   Proof Artifacts: 4/7
+[2026-09-01 02:07:40] [GATE-0] [INFO]   Git State:       1/3
+[2026-09-01 02:07:40] [GATE-0] [INFO]   AP2 Ledger:      2/2
+[2026-09-01 02:07:40] [GATE-0] [INFO]   Work Receipts:   2/2
+[2026-09-01 02:07:40] [GATE-0] [INFO]   Python Modules:  4/4
+[2026-09-01 02:07:40] [GATE-0] [INFO]   Dependencies:    4/4
+[2026-09-01 02:07:40] [GATE-0] [INFO] =========================================
+[2026-09-01 02:07:40] [GATE-0] [INFO] TOTAL: 17/22 checks passed
+[2026-09-01 02:07:40] [GATE-0] [INFO] Gate 0 PASSED: Pre-flight verification complete
+[2026-09-01 02:07:43] [GATE-0] [INFO] === Gate 0 Pre-Flight Verification ===
+[2026-09-01 02:07:43] [GATE-0] [INFO] CHECK 1: Verifying proof artifacts...
+[2026-09-01 02:07:43] [GATE-0] [INFO]   ✓ Found: 1_agentacct_config.json
+[2026-09-01 02:07:43] [GATE-0] [WARN]   ✗ Missing: 2_unlazy_gates.md (will be generated during execution)
+[2026-09-01 02:07:43] [GATE-0] [WARN]   ✗ Missing: 3_is_agentic.json (will be generated during execution)
+[2026-09-01 02:07:43] [GATE-0] [WARN]   ✗ Missing: 4_canirun_grades.json (will be generated during execution)
+[2026-09-01 02:07:43] [GATE-0] [INFO]   ✓ Found: 5_ap2_ledger_pqc.md
+[2026-09-01 02:07:43] [GATE-0] [INFO]   ✓ Found: 6_ragas_golden_set.json
+[2026-09-01 02:07:43] [GATE-0] [INFO]   ✓ Found: 7_freetoken_benchmark.json
+[2026-09-01 02:07:43] [GATE-0] [INFO] CHECK 2: Verifying git state...
+[2026-09-01 02:07:43] [GATE-0] [INFO]   ✓ Valid git repository
+[2026-09-01 02:07:45] [GATE-0] [WARN]   ⚠ Uncommitted changes detected (non-blocking)
+[2026-09-01 02:07:45] [GATE-0] [WARN]   ⚠ Last commit not signed (warning only)
+[2026-09-01 02:07:45] [GATE-0] [INFO] CHECK 3: Verifying AP2 ledger structure...
+[2026-09-01 02:07:45] [GATE-0] [INFO]   ✓ AP2 ledger directory exists
+[2026-09-01 02:07:45] [GATE-0] [INFO]   ✓ Found        6 ledger entries
+[2026-09-01 02:07:45] [GATE-0] [INFO] CHECK 4: Verifying work receipts directory...
+[2026-09-01 02:07:45] [GATE-0] [INFO]   ✓ Work receipts directory exists
+[2026-09-01 02:07:45] [GATE-0] [INFO]   ✓ Found       67 work receipt files
+[2026-09-01 02:07:45] [GATE-0] [INFO] CHECK 5: Verifying Python dependencies...
+[2026-09-01 02:07:45] [GATE-0] [INFO]   ✓ Python module available: json
+[2026-09-01 02:07:45] [GATE-0] [INFO]   ✓ Python module available: hashlib
+[2026-09-01 02:07:45] [GATE-0] [INFO]   ✓ Python module available: dataclasses
+[2026-09-01 02:07:45] [GATE-0] [INFO]   ✓ Python module available: pathlib
+[2026-09-01 02:07:45] [GATE-0] [INFO] CHECK 6: Verifying gate dependencies...
+[2026-09-01 02:07:45] [GATE-0] [INFO]   ✓ Gate 1-3 validator script ready
+[2026-09-01 02:07:45] [GATE-0] [INFO]   ✓ Gate 4-5 validator script ready
+[2026-09-01 02:07:45] [GATE-0] [INFO]   ✓ agentacct capture module available
+[2026-09-01 02:07:45] [GATE-0] [INFO]   ✓ unlazy gates module available
+[2026-09-01 02:07:45] [GATE-0] [INFO] =========================================
+[2026-09-01 02:07:45] [GATE-0] [INFO] Gate 0 Summary:
+[2026-09-01 02:07:45] [GATE-0] [INFO]   Proof Artifacts: 4/7
+[2026-09-01 02:07:45] [GATE-0] [INFO]   Git State:       1/3
+[2026-09-01 02:07:45] [GATE-0] [INFO]   AP2 Ledger:      2/2
+[2026-09-01 02:07:45] [GATE-0] [INFO]   Work Receipts:   2/2
+[2026-09-01 02:07:45] [GATE-0] [INFO]   Python Modules:  4/4
+[2026-09-01 02:07:45] [GATE-0] [INFO]   Dependencies:    4/4
+[2026-09-01 02:07:45] [GATE-0] [INFO] =========================================
+[2026-09-01 02:07:45] [GATE-0] [INFO] TOTAL: 17/22 checks passed
+[2026-09-01 02:07:45] [GATE-0] [INFO] Gate 0 PASSED: Pre-flight verification complete
+[2026-09-01 02:07:47] [GATE-0] [INFO] === Gate 0 Pre-Flight Verification ===
+[2026-09-01 02:07:47] [GATE-0] [INFO] CHECK 1: Verifying proof artifacts...
+[2026-09-01 02:07:47] [GATE-0] [INFO]   ✓ Found: 1_agentacct_config.json
+[2026-09-01 02:07:47] [GATE-0] [WARN]   ✗ Missing: 2_unlazy_gates.md (will be generated during execution)
+[2026-09-01 02:07:47] [GATE-0] [WARN]   ✗ Missing: 3_is_agentic.json (will be generated during execution)
+[2026-09-01 02:07:47] [GATE-0] [WARN]   ✗ Missing: 4_canirun_grades.json (will be generated during execution)
+[2026-09-01 02:07:47] [GATE-0] [INFO]   ✓ Found: 5_ap2_ledger_pqc.md
+[2026-09-01 02:07:47] [GATE-0] [INFO]   ✓ Found: 6_ragas_golden_set.json
+[2026-09-01 02:07:47] [GATE-0] [INFO]   ✓ Found: 7_freetoken_benchmark.json
+[2026-09-01 02:07:47] [GATE-0] [INFO] CHECK 2: Verifying git state...
+[2026-09-01 02:07:47] [GATE-0] [INFO]   ✓ Valid git repository
+[2026-09-01 02:07:48] [GATE-0] [WARN]   ⚠ Uncommitted changes detected (non-blocking)
+[2026-09-01 02:07:48] [GATE-0] [WARN]   ⚠ Last commit not signed (warning only)
+[2026-09-01 02:07:48] [GATE-0] [INFO] CHECK 3: Verifying AP2 ledger structure...
+[2026-09-01 02:07:48] [GATE-0] [INFO]   ✓ AP2 ledger directory exists
+[2026-09-01 02:07:48] [GATE-0] [INFO]   ✓ Found        6 ledger entries
+[2026-09-01 02:07:48] [GATE-0] [INFO] CHECK 4: Verifying work receipts directory...
+[2026-09-01 02:07:48] [GATE-0] [INFO]   ✓ Work receipts directory exists
+[2026-09-01 02:07:48] [GATE-0] [INFO]   ✓ Found       68 work receipt files
+[2026-09-01 02:07:48] [GATE-0] [INFO] CHECK 5: Verifying Python dependencies...
+[2026-09-01 02:07:48] [GATE-0] [INFO]   ✓ Python module available: json
+[2026-09-01 02:07:48] [GATE-0] [INFO]   ✓ Python module available: hashlib
+[2026-09-01 02:07:49] [GATE-0] [INFO]   ✓ Python module available: dataclasses
+[2026-09-01 02:07:49] [GATE-0] [INFO]   ✓ Python module available: pathlib
+[2026-09-01 02:07:49] [GATE-0] [INFO] CHECK 6: Verifying gate dependencies...
+[2026-09-01 02:07:49] [GATE-0] [INFO]   ✓ Gate 1-3 validator script ready
+[2026-09-01 02:07:49] [GATE-0] [INFO]   ✓ Gate 4-5 validator script ready
+[2026-09-01 02:07:49] [GATE-0] [INFO]   ✓ agentacct capture module available
+[2026-09-01 02:07:49] [GATE-0] [INFO]   ✓ unlazy gates module available
+[2026-09-01 02:07:49] [GATE-0] [INFO] =========================================
+[2026-09-01 02:07:49] [GATE-0] [INFO] Gate 0 Summary:
+[2026-09-01 02:07:49] [GATE-0] [INFO]   Proof Artifacts: 4/7
+[2026-09-01 02:07:49] [GATE-0] [INFO]   Git State:       1/3
+[2026-09-01 02:07:49] [GATE-0] [INFO]   AP2 Ledger:      2/2
+[2026-09-01 02:07:49] [GATE-0] [INFO]   Work Receipts:   2/2
+[2026-09-01 02:07:49] [GATE-0] [INFO]   Python Modules:  4/4
+[2026-09-01 02:07:49] [GATE-0] [INFO]   Dependencies:    4/4
+[2026-09-01 02:07:49] [GATE-0] [INFO] =========================================
+[2026-09-01 02:07:49] [GATE-0] [INFO] TOTAL: 17/22 checks passed
+[2026-09-01 02:07:49] [GATE-0] [INFO] Gate 0 PASSED: Pre-flight verification complete
+[2026-09-01 02:07:55] [GATE-0] [INFO] === Gate 0 Pre-Flight Verification ===
+[2026-09-01 02:07:55] [GATE-0] [INFO] CHECK 1: Verifying proof artifacts...
+[2026-09-01 02:07:55] [GATE-0] [INFO]   ✓ Found: 1_agentacct_config.json
+[2026-09-01 02:07:55] [GATE-0] [WARN]   ✗ Missing: 2_unlazy_gates.md (will be generated during execution)
+[2026-09-01 02:07:55] [GATE-0] [WARN]   ✗ Missing: 3_is_agentic.json (will be generated during execution)
+[2026-09-01 02:07:55] [GATE-0] [WARN]   ✗ Missing: 4_canirun_grades.json (will be generated during execution)
+[2026-09-01 02:07:55] [GATE-0] [INFO]   ✓ Found: 5_ap2_ledger_pqc.md
+[2026-09-01 02:07:55] [GATE-0] [INFO]   ✓ Found: 6_ragas_golden_set.json
+[2026-09-01 02:07:55] [GATE-0] [INFO]   ✓ Found: 7_freetoken_benchmark.json
+[2026-09-01 02:07:55] [GATE-0] [INFO] CHECK 2: Verifying git state...
+[2026-09-01 02:07:55] [GATE-0] [INFO]   ✓ Valid git repository
+[2026-09-01 02:07:56] [GATE-0] [WARN]   ⚠ Uncommitted changes detected (non-blocking)
+[2026-09-01 02:07:56] [GATE-0] [WARN]   ⚠ Last commit not signed (warning only)
+[2026-09-01 02:07:56] [GATE-0] [INFO] CHECK 3: Verifying AP2 ledger structure...
+[2026-09-01 02:07:56] [GATE-0] [INFO]   ✓ AP2 ledger directory exists
+[2026-09-01 02:07:56] [GATE-0] [INFO]   ✓ Found        6 ledger entries
+[2026-09-01 02:07:56] [GATE-0] [INFO] CHECK 4: Verifying work receipts directory...
+[2026-09-01 02:07:56] [GATE-0] [INFO]   ✓ Work receipts directory exists
+[2026-09-01 02:07:56] [GATE-0] [INFO]   ✓ Found       69 work receipt files
+[2026-09-01 02:07:56] [GATE-0] [INFO] CHECK 5: Verifying Python dependencies...
+[2026-09-01 02:07:56] [GATE-0] [INFO]   ✓ Python module available: json
+[2026-09-01 02:07:56] [GATE-0] [INFO]   ✓ Python module available: hashlib
+[2026-09-01 02:07:56] [GATE-0] [INFO]   ✓ Python module available: dataclasses
+[2026-09-01 02:07:56] [GATE-0] [INFO]   ✓ Python module available: pathlib
+[2026-09-01 02:07:56] [GATE-0] [INFO] CHECK 6: Verifying gate dependencies...
+[2026-09-01 02:07:56] [GATE-0] [INFO]   ✓ Gate 1-3 validator script ready
+[2026-09-01 02:07:56] [GATE-0] [INFO]   ✓ Gate 4-5 validator script ready
+[2026-09-01 02:07:56] [GATE-0] [INFO]   ✓ agentacct capture module available
+[2026-09-01 02:07:56] [GATE-0] [INFO]   ✓ unlazy gates module available
+[2026-09-01 02:07:56] [GATE-0] [INFO] =========================================
+[2026-09-01 02:07:56] [GATE-0] [INFO] Gate 0 Summary:
+[2026-09-01 02:07:56] [GATE-0] [INFO]   Proof Artifacts: 4/7
+[2026-09-01 02:07:56] [GATE-0] [INFO]   Git State:       1/3
+[2026-09-01 02:07:56] [GATE-0] [INFO]   AP2 Ledger:      2/2
+[2026-09-01 02:07:56] [GATE-0] [INFO]   Work Receipts:   2/2
+[2026-09-01 02:07:56] [GATE-0] [INFO]   Python Modules:  4/4
+[2026-09-01 02:07:56] [GATE-0] [INFO]   Dependencies:    4/4
+[2026-09-01 02:07:56] [GATE-0] [INFO] =========================================
+[2026-09-01 02:07:56] [GATE-0] [INFO] TOTAL: 17/22 checks passed
+[2026-09-01 02:07:56] [GATE-0] [INFO] Gate 0 PASSED: Pre-flight verification complete
+[2026-09-01 02:08:05] [GATE-0] [INFO] === Gate 0 Pre-Flight Verification ===
+[2026-09-01 02:08:05] [GATE-0] [INFO] CHECK 1: Verifying proof artifacts...
+[2026-09-01 02:08:05] [GATE-0] [INFO]   ✓ Found: 1_agentacct_config.json
+[2026-09-01 02:08:05] [GATE-0] [WARN]   ✗ Missing: 2_unlazy_gates.md (will be generated during execution)
+[2026-09-01 02:08:05] [GATE-0] [WARN]   ✗ Missing: 3_is_agentic.json (will be generated during execution)
+[2026-09-01 02:08:05] [GATE-0] [WARN]   ✗ Missing: 4_canirun_grades.json (will be generated during execution)
+[2026-09-01 02:08:05] [GATE-0] [INFO]   ✓ Found: 5_ap2_ledger_pqc.md
+[2026-09-01 02:08:05] [GATE-0] [INFO]   ✓ Found: 6_ragas_golden_set.json
+[2026-09-01 02:08:05] [GATE-0] [INFO]   ✓ Found: 7_freetoken_benchmark.json
+[2026-09-01 02:08:05] [GATE-0] [INFO] CHECK 2: Verifying git state...
+[2026-09-01 02:08:05] [GATE-0] [INFO]   ✓ Valid git repository
+[2026-09-01 02:08:06] [GATE-0] [WARN]   ⚠ Uncommitted changes detected (non-blocking)
+[2026-09-01 02:08:06] [GATE-0] [WARN]   ⚠ Last commit not signed (warning only)
+[2026-09-01 02:08:06] [GATE-0] [INFO] CHECK 3: Verifying AP2 ledger structure...
+[2026-09-01 02:08:06] [GATE-0] [INFO]   ✓ AP2 ledger directory exists
+[2026-09-01 02:08:06] [GATE-0] [INFO]   ✓ Found        6 ledger entries
+[2026-09-01 02:08:06] [GATE-0] [INFO] CHECK 4: Verifying work receipts directory...
+[2026-09-01 02:08:06] [GATE-0] [INFO]   ✓ Work receipts directory exists
+[2026-09-01 02:08:06] [GATE-0] [INFO]   ✓ Found       70 work receipt files
+[2026-09-01 02:08:06] [GATE-0] [INFO] CHECK 5: Verifying Python dependencies...
+[2026-09-01 02:08:06] [GATE-0] [INFO]   ✓ Python module available: json
+[2026-09-01 02:08:06] [GATE-0] [INFO]   ✓ Python module available: hashlib
+[2026-09-01 02:08:06] [GATE-0] [INFO]   ✓ Python module available: dataclasses
+[2026-09-01 02:08:07] [GATE-0] [INFO]   ✓ Python module available: pathlib
+[2026-09-01 02:08:07] [GATE-0] [INFO] CHECK 6: Verifying gate dependencies...
+[2026-09-01 02:08:07] [GATE-0] [INFO]   ✓ Gate 1-3 validator script ready
+[2026-09-01 02:08:07] [GATE-0] [INFO]   ✓ Gate 4-5 validator script ready
+[2026-09-01 02:08:07] [GATE-0] [INFO]   ✓ agentacct capture module available
+[2026-09-01 02:08:07] [GATE-0] [INFO]   ✓ unlazy gates module available
+[2026-09-01 02:08:07] [GATE-0] [INFO] =========================================
+[2026-09-01 02:08:07] [GATE-0] [INFO] Gate 0 Summary:
+[2026-09-01 02:08:07] [GATE-0] [INFO]   Proof Artifacts: 4/7
+[2026-09-01 02:08:07] [GATE-0] [INFO]   Git State:       1/3
+[2026-09-01 02:08:07] [GATE-0] [INFO]   AP2 Ledger:      2/2
+[2026-09-01 02:08:07] [GATE-0] [INFO]   Work Receipts:   2/2
+[2026-09-01 02:08:07] [GATE-0] [INFO]   Python Modules:  4/4
+[2026-09-01 02:08:07] [GATE-0] [INFO]   Dependencies:    4/4
+[2026-09-01 02:08:07] [GATE-0] [INFO] =========================================
+[2026-09-01 02:08:07] [GATE-0] [INFO] TOTAL: 17/22 checks passed
+[2026-09-01 02:08:07] [GATE-0] [INFO] Gate 0 PASSED: Pre-flight verification complete
+[2026-09-01 02:08:09] [GATE-0] [INFO] === Gate 0 Pre-Flight Verification ===
+[2026-09-01 02:08:09] [GATE-0] [INFO] CHECK 1: Verifying proof artifacts...
+[2026-09-01 02:08:09] [GATE-0] [INFO]   ✓ Found: 1_agentacct_config.json
+[2026-09-01 02:08:09] [GATE-0] [WARN]   ✗ Missing: 2_unlazy_gates.md (will be generated during execution)
+[2026-09-01 02:08:09] [GATE-0] [WARN]   ✗ Missing: 3_is_agentic.json (will be generated during execution)
+[2026-09-01 02:08:09] [GATE-0] [WARN]   ✗ Missing: 4_canirun_grades.json (will be generated during execution)
+[2026-09-01 02:08:09] [GATE-0] [INFO]   ✓ Found: 5_ap2_ledger_pqc.md
+[2026-09-01 02:08:09] [GATE-0] [INFO]   ✓ Found: 6_ragas_golden_set.json
+[2026-09-01 02:08:09] [GATE-0] [INFO]   ✓ Found: 7_freetoken_benchmark.json
+[2026-09-01 02:08:09] [GATE-0] [INFO] CHECK 2: Verifying git state...
+[2026-09-01 02:08:09] [GATE-0] [INFO]   ✓ Valid git repository
+[2026-09-01 02:08:10] [GATE-0] [WARN]   ⚠ Uncommitted changes detected (non-blocking)
+[2026-09-01 02:08:10] [GATE-0] [WARN]   ⚠ Last commit not signed (warning only)
+[2026-09-01 02:08:10] [GATE-0] [INFO] CHECK 3: Verifying AP2 ledger structure...
+[2026-09-01 02:08:10] [GATE-0] [INFO]   ✓ AP2 ledger directory exists
+[2026-09-01 02:08:10] [GATE-0] [INFO]   ✓ Found        6 ledger entries
+[2026-09-01 02:08:10] [GATE-0] [INFO] CHECK 4: Verifying work receipts directory...
+[2026-09-01 02:08:10] [GATE-0] [INFO]   ✓ Work receipts directory exists
+[2026-09-01 02:08:10] [GATE-0] [INFO]   ✓ Found       71 work receipt files
+[2026-09-01 02:08:10] [GATE-0] [INFO] CHECK 5: Verifying Python dependencies...
+[2026-09-01 02:08:10] [GATE-0] [INFO]   ✓ Python module available: json
+[2026-09-01 02:08:11] [GATE-0] [INFO]   ✓ Python module available: hashlib
+[2026-09-01 02:08:11] [GATE-0] [INFO]   ✓ Python module available: dataclasses
+[2026-09-01 02:08:11] [GATE-0] [INFO]   ✓ Python module available: pathlib
+[2026-09-01 02:08:11] [GATE-0] [INFO] CHECK 6: Verifying gate dependencies...
+[2026-09-01 02:08:11] [GATE-0] [INFO]   ✓ Gate 1-3 validator script ready
+[2026-09-01 02:08:11] [GATE-0] [INFO]   ✓ Gate 4-5 validator script ready
+[2026-09-01 02:08:11] [GATE-0] [INFO]   ✓ agentacct capture module available
+[2026-09-01 02:08:11] [GATE-0] [INFO]   ✓ unlazy gates module available
+[2026-09-01 02:08:11] [GATE-0] [INFO] =========================================
+[2026-09-01 02:08:11] [GATE-0] [INFO] Gate 0 Summary:
+[2026-09-01 02:08:11] [GATE-0] [INFO]   Proof Artifacts: 4/7
+[2026-09-01 02:08:11] [GATE-0] [INFO]   Git State:       1/3
+[2026-09-01 02:08:11] [GATE-0] [INFO]   AP2 Ledger:      2/2
+[2026-09-01 02:08:11] [GATE-0] [INFO]   Work Receipts:   2/2
+[2026-09-01 02:08:11] [GATE-0] [INFO]   Python Modules:  4/4
+[2026-09-01 02:08:11] [GATE-0] [INFO]   Dependencies:    4/4
+[2026-09-01 02:08:11] [GATE-0] [INFO] =========================================
+[2026-09-01 02:08:11] [GATE-0] [INFO] TOTAL: 17/22 checks passed
+[2026-09-01 02:08:11] [GATE-0] [INFO] Gate 0 PASSED: Pre-flight verification complete
+[2026-09-01 02:08:13] [GATE-0] [INFO] === Gate 0 Pre-Flight Verification ===
+[2026-09-01 02:08:13] [GATE-0] [INFO] CHECK 1: Verifying proof artifacts...
+[2026-09-01 02:08:13] [GATE-0] [INFO]   ✓ Found: 1_agentacct_config.json
+[2026-09-01 02:08:13] [GATE-0] [WARN]   ✗ Missing: 2_unlazy_gates.md (will be generated during execution)
+[2026-09-01 02:08:13] [GATE-0] [WARN]   ✗ Missing: 3_is_agentic.json (will be generated during execution)
+[2026-09-01 02:08:13] [GATE-0] [WARN]   ✗ Missing: 4_canirun_grades.json (will be generated during execution)
+[2026-09-01 02:08:13] [GATE-0] [INFO]   ✓ Found: 5_ap2_ledger_pqc.md
+[2026-09-01 02:08:13] [GATE-0] [INFO]   ✓ Found: 6_ragas_golden_set.json
+[2026-09-01 02:08:13] [GATE-0] [INFO]   ✓ Found: 7_freetoken_benchmark.json
+[2026-09-01 02:08:13] [GATE-0] [INFO] CHECK 2: Verifying git state...
+[2026-09-01 02:08:13] [GATE-0] [INFO]   ✓ Valid git repository
+[2026-09-01 02:08:14] [GATE-0] [WARN]   ⚠ Uncommitted changes detected (non-blocking)
+[2026-09-01 02:08:14] [GATE-0] [WARN]   ⚠ Last commit not signed (warning only)
+[2026-09-01 02:08:14] [GATE-0] [INFO] CHECK 3: Verifying AP2 ledger structure...
+[2026-09-01 02:08:14] [GATE-0] [INFO]   ✓ AP2 ledger directory exists
+[2026-09-01 02:08:14] [GATE-0] [INFO]   ✓ Found        6 ledger entries
+[2026-09-01 02:08:14] [GATE-0] [INFO] CHECK 4: Verifying work receipts directory...
+[2026-09-01 02:08:14] [GATE-0] [INFO]   ✓ Work receipts directory exists
+[2026-09-01 02:08:14] [GATE-0] [INFO]   ✓ Found       72 work receipt files
+[2026-09-01 02:08:14] [GATE-0] [INFO] CHECK 5: Verifying Python dependencies...
+[2026-09-01 02:08:14] [GATE-0] [INFO]   ✓ Python module available: json
+[2026-09-01 02:08:14] [GATE-0] [INFO]   ✓ Python module available: hashlib
+[2026-09-01 02:08:14] [GATE-0] [INFO]   ✓ Python module available: dataclasses
+[2026-09-01 02:08:14] [GATE-0] [INFO]   ✓ Python module available: pathlib
+[2026-09-01 02:08:14] [GATE-0] [INFO] CHECK 6: Verifying gate dependencies...
+[2026-09-01 02:08:15] [GATE-0] [INFO]   ✓ Gate 1-3 validator script ready
+[2026-09-01 02:08:15] [GATE-0] [INFO]   ✓ Gate 4-5 validator script ready
+[2026-09-01 02:08:15] [GATE-0] [INFO]   ✓ agentacct capture module available
+[2026-09-01 02:08:15] [GATE-0] [INFO]   ✓ unlazy gates module available
+[2026-09-01 02:08:15] [GATE-0] [INFO] =========================================
+[2026-09-01 02:08:15] [GATE-0] [INFO] Gate 0 Summary:
+[2026-09-01 02:08:15] [GATE-0] [INFO]   Proof Artifacts: 4/7
+[2026-09-01 02:08:15] [GATE-0] [INFO]   Git State:       1/3
+[2026-09-01 02:08:15] [GATE-0] [INFO]   AP2 Ledger:      2/2
+[2026-09-01 02:08:15] [GATE-0] [INFO]   Work Receipts:   2/2
+[2026-09-01 02:08:15] [GATE-0] [INFO]   Python Modules:  4/4
+[2026-09-01 02:08:15] [GATE-0] [INFO]   Dependencies:    4/4
+[2026-09-01 02:08:15] [GATE-0] [INFO] =========================================
+[2026-09-01 02:08:15] [GATE-0] [INFO] TOTAL: 17/22 checks passed
+[2026-09-01 02:08:15] [GATE-0] [INFO] Gate 0 PASSED: Pre-flight verification complete
+[2026-09-01 02:08:17] [GATE-0] [INFO] === Gate 0 Pre-Flight Verification ===
+[2026-09-01 02:08:17] [GATE-0] [INFO] CHECK 1: Verifying proof artifacts...
+[2026-09-01 02:08:17] [GATE-0] [INFO]   ✓ Found: 1_agentacct_config.json
+[2026-09-01 02:08:17] [GATE-0] [WARN]   ✗ Missing: 2_unlazy_gates.md (will be generated during execution)
+[2026-09-01 02:08:17] [GATE-0] [WARN]   ✗ Missing: 3_is_agentic.json (will be generated during execution)
+[2026-09-01 02:08:17] [GATE-0] [WARN]   ✗ Missing: 4_canirun_grades.json (will be generated during execution)
+[2026-09-01 02:08:17] [GATE-0] [INFO]   ✓ Found: 5_ap2_ledger_pqc.md
+[2026-09-01 02:08:17] [GATE-0] [INFO]   ✓ Found: 6_ragas_golden_set.json
+[2026-09-01 02:08:17] [GATE-0] [INFO]   ✓ Found: 7_freetoken_benchmark.json
+[2026-09-01 02:08:17] [GATE-0] [INFO] CHECK 2: Verifying git state...
+[2026-09-01 02:08:17] [GATE-0] [INFO]   ✓ Valid git repository
+[2026-09-01 02:08:19] [GATE-0] [WARN]   ⚠ Uncommitted changes detected (non-blocking)
+[2026-09-01 02:08:19] [GATE-0] [WARN]   ⚠ Last commit not signed (warning only)
+[2026-09-01 02:08:19] [GATE-0] [INFO] CHECK 3: Verifying AP2 ledger structure...
+[2026-09-01 02:08:19] [GATE-0] [INFO]   ✓ AP2 ledger directory exists
+[2026-09-01 02:08:19] [GATE-0] [INFO]   ✓ Found        6 ledger entries
+[2026-09-01 02:08:19] [GATE-0] [INFO] CHECK 4: Verifying work receipts directory...
+[2026-09-01 02:08:19] [GATE-0] [INFO]   ✓ Work receipts directory exists
+[2026-09-01 02:08:19] [GATE-0] [INFO]   ✓ Found       72 work receipt files
+[2026-09-01 02:08:19] [GATE-0] [INFO] CHECK 5: Verifying Python dependencies...
+[2026-09-01 02:08:19] [GATE-0] [INFO]   ✓ Python module available: json
+[2026-09-01 02:08:19] [GATE-0] [INFO]   ✓ Python module available: hashlib
+[2026-09-01 02:08:19] [GATE-0] [INFO]   ✓ Python module available: dataclasses
+[2026-09-01 02:08:19] [GATE-0] [INFO]   ✓ Python module available: pathlib
+[2026-09-01 02:08:19] [GATE-0] [INFO] CHECK 6: Verifying gate dependencies...
+[2026-09-01 02:08:19] [GATE-0] [INFO]   ✓ Gate 1-3 validator script ready
+[2026-09-01 02:08:19] [GATE-0] [INFO]   ✓ Gate 4-5 validator script ready
+[2026-09-01 02:08:19] [GATE-0] [INFO]   ✓ agentacct capture module available
+[2026-09-01 02:08:19] [GATE-0] [INFO]   ✓ unlazy gates module available
+[2026-09-01 02:08:19] [GATE-0] [INFO] =========================================
+[2026-09-01 02:08:19] [GATE-0] [INFO] Gate 0 Summary:
+[2026-09-01 02:08:19] [GATE-0] [INFO]   Proof Artifacts: 4/7
+[2026-09-01 02:08:19] [GATE-0] [INFO]   Git State:       1/3
+[2026-09-01 02:08:19] [GATE-0] [INFO]   AP2 Ledger:      2/2
+[2026-09-01 02:08:19] [GATE-0] [INFO]   Work Receipts:   2/2
+[2026-09-01 02:08:19] [GATE-0] [INFO]   Python Modules:  4/4
+[2026-09-01 02:08:19] [GATE-0] [INFO]   Dependencies:    4/4
+[2026-09-01 02:08:19] [GATE-0] [INFO] =========================================
+[2026-09-01 02:08:19] [GATE-0] [INFO] TOTAL: 17/22 checks passed
+[2026-09-01 02:08:19] [GATE-0] [INFO] Gate 0 PASSED: Pre-flight verification complete
+[2026-09-01 02:08:21] [GATE-0] [INFO] === Gate 0 Pre-Flight Verification ===
+[2026-09-01 02:08:21] [GATE-0] [INFO] CHECK 1: Verifying proof artifacts...
+[2026-09-01 02:08:21] [GATE-0] [INFO]   ✓ Found: 1_agentacct_config.json
+[2026-09-01 02:08:21] [GATE-0] [WARN]   ✗ Missing: 2_unlazy_gates.md (will be generated during execution)
+[2026-09-01 02:08:21] [GATE-0] [WARN]   ✗ Missing: 3_is_agentic.json (will be generated during execution)
+[2026-09-01 02:08:21] [GATE-0] [WARN]   ✗ Missing: 4_canirun_grades.json (will be generated during execution)
+[2026-09-01 02:08:21] [GATE-0] [INFO]   ✓ Found: 5_ap2_ledger_pqc.md
+[2026-09-01 02:08:21] [GATE-0] [INFO]   ✓ Found: 6_ragas_golden_set.json
+[2026-09-01 02:08:21] [GATE-0] [INFO]   ✓ Found: 7_freetoken_benchmark.json
+[2026-09-01 02:08:21] [GATE-0] [INFO] CHECK 2: Verifying git state...
+[2026-09-01 02:08:21] [GATE-0] [INFO]   ✓ Valid git repository
+[2026-09-01 02:08:23] [GATE-0] [WARN]   ⚠ Uncommitted changes detected (non-blocking)
+[2026-09-01 02:08:23] [GATE-0] [WARN]   ⚠ Last commit not signed (warning only)
+[2026-09-01 02:08:23] [GATE-0] [INFO] CHECK 3: Verifying AP2 ledger structure...
+[2026-09-01 02:08:23] [GATE-0] [INFO]   ✓ AP2 ledger directory exists
+[2026-09-01 02:08:23] [GATE-0] [INFO]   ✓ Found        6 ledger entries
+[2026-09-01 02:08:23] [GATE-0] [INFO] CHECK 4: Verifying work receipts directory...
+[2026-09-01 02:08:23] [GATE-0] [INFO]   ✓ Work receipts directory exists
+[2026-09-01 02:08:23] [GATE-0] [INFO]   ✓ Found       72 work receipt files
+[2026-09-01 02:08:23] [GATE-0] [INFO] CHECK 5: Verifying Python dependencies...
+[2026-09-01 02:08:23] [GATE-0] [INFO]   ✓ Python module available: json
+[2026-09-01 02:08:23] [GATE-0] [INFO]   ✓ Python module available: hashlib
+[2026-09-01 02:08:23] [GATE-0] [INFO]   ✓ Python module available: dataclasses
+[2026-09-01 02:08:23] [GATE-0] [INFO]   ✓ Python module available: pathlib
+[2026-09-01 02:08:23] [GATE-0] [INFO] CHECK 6: Verifying gate dependencies...
+[2026-09-01 02:08:23] [GATE-0] [INFO]   ✓ Gate 1-3 validator script ready
+[2026-09-01 02:08:23] [GATE-0] [INFO]   ✓ Gate 4-5 validator script ready
+[2026-09-01 02:08:23] [GATE-0] [INFO]   ✓ agentacct capture module available
+[2026-09-01 02:08:23] [GATE-0] [INFO]   ✓ unlazy gates module available
+[2026-09-01 02:08:23] [GATE-0] [INFO] =========================================
+[2026-09-01 02:08:23] [GATE-0] [INFO] Gate 0 Summary:
+[2026-09-01 02:08:23] [GATE-0] [INFO]   Proof Artifacts: 4/7
+[2026-09-01 02:08:23] [GATE-0] [INFO]   Git State:       1/3
+[2026-09-01 02:08:23] [GATE-0] [INFO]   AP2 Ledger:      2/2
+[2026-09-01 02:08:23] [GATE-0] [INFO]   Work Receipts:   2/2
+[2026-09-01 02:08:23] [GATE-0] [INFO]   Python Modules:  4/4
+[2026-09-01 02:08:23] [GATE-0] [INFO]   Dependencies:    4/4
+[2026-09-01 02:08:23] [GATE-0] [INFO] =========================================
+[2026-09-01 02:08:23] [GATE-0] [INFO] TOTAL: 17/22 checks passed
+[2026-09-01 02:08:23] [GATE-0] [INFO] Gate 0 PASSED: Pre-flight verification complete
+[2026-09-01 02:08:25] [GATE-0] [INFO] === Gate 0 Pre-Flight Verification ===
+[2026-09-01 02:08:25] [GATE-0] [INFO] CHECK 1: Verifying proof artifacts...
+[2026-09-01 02:08:25] [GATE-0] [INFO]   ✓ Found: 1_agentacct_config.json
+[2026-09-01 02:08:25] [GATE-0] [WARN]   ✗ Missing: 2_unlazy_gates.md (will be generated during execution)
+[2026-09-01 02:08:25] [GATE-0] [WARN]   ✗ Missing: 3_is_agentic.json (will be generated during execution)
+[2026-09-01 02:08:25] [GATE-0] [WARN]   ✗ Missing: 4_canirun_grades.json (will be generated during execution)
+[2026-09-01 02:08:25] [GATE-0] [INFO]   ✓ Found: 5_ap2_ledger_pqc.md
+[2026-09-01 02:08:25] [GATE-0] [INFO]   ✓ Found: 6_ragas_golden_set.json
+[2026-09-01 02:08:25] [GATE-0] [INFO]   ✓ Found: 7_freetoken_benchmark.json
+[2026-09-01 02:08:25] [GATE-0] [INFO] CHECK 2: Verifying git state...
+[2026-09-01 02:08:25] [GATE-0] [INFO]   ✓ Valid git repository
+[2026-09-01 02:08:27] [GATE-0] [WARN]   ⚠ Uncommitted changes detected (non-blocking)
+[2026-09-01 02:08:27] [GATE-0] [WARN]   ⚠ Last commit not signed (warning only)
+[2026-09-01 02:08:27] [GATE-0] [INFO] CHECK 3: Verifying AP2 ledger structure...
+[2026-09-01 02:08:27] [GATE-0] [INFO]   ✓ AP2 ledger directory exists
+[2026-09-01 02:08:27] [GATE-0] [INFO]   ✓ Found        6 ledger entries
+[2026-09-01 02:08:27] [GATE-0] [INFO] CHECK 4: Verifying work receipts directory...
+[2026-09-01 02:08:27] [GATE-0] [INFO]   ✓ Work receipts directory exists
+[2026-09-01 02:08:27] [GATE-0] [INFO]   ✓ Found       73 work receipt files
+[2026-09-01 02:08:27] [GATE-0] [INFO] CHECK 5: Verifying Python dependencies...
+[2026-09-01 02:08:27] [GATE-0] [INFO]   ✓ Python module available: json
+[2026-09-01 02:08:27] [GATE-0] [INFO]   ✓ Python module available: hashlib
+[2026-09-01 02:08:27] [GATE-0] [INFO]   ✓ Python module available: dataclasses
+[2026-09-01 02:08:27] [GATE-0] [INFO]   ✓ Python module available: pathlib
+[2026-09-01 02:08:27] [GATE-0] [INFO] CHECK 6: Verifying gate dependencies...
+[2026-09-01 02:08:27] [GATE-0] [INFO]   ✓ Gate 1-3 validator script ready
+[2026-09-01 02:08:27] [GATE-0] [INFO]   ✓ Gate 4-5 validator script ready
+[2026-09-01 02:08:27] [GATE-0] [INFO]   ✓ agentacct capture module available
+[2026-09-01 02:08:27] [GATE-0] [INFO]   ✓ unlazy gates module available
+[2026-09-01 02:08:27] [GATE-0] [INFO] =========================================
+[2026-09-01 02:08:27] [GATE-0] [INFO] Gate 0 Summary:
+[2026-09-01 02:08:27] [GATE-0] [INFO]   Proof Artifacts: 4/7
+[2026-09-01 02:08:27] [GATE-0] [INFO]   Git State:       1/3
+[2026-09-01 02:08:27] [GATE-0] [INFO]   AP2 Ledger:      2/2
+[2026-09-01 02:08:27] [GATE-0] [INFO]   Work Receipts:   2/2
+[2026-09-01 02:08:27] [GATE-0] [INFO]   Python Modules:  4/4
+[2026-09-01 02:08:27] [GATE-0] [INFO]   Dependencies:    4/4
+[2026-09-01 02:08:27] [GATE-0] [INFO] =========================================
+[2026-09-01 02:08:27] [GATE-0] [INFO] TOTAL: 17/22 checks passed
+[2026-09-01 02:08:27] [GATE-0] [INFO] Gate 0 PASSED: Pre-flight verification complete
+[2026-09-01 02:08:30] [GATE-0] [INFO] === Gate 0 Pre-Flight Verification ===
+[2026-09-01 02:08:30] [GATE-0] [INFO] CHECK 1: Verifying proof artifacts...
+[2026-09-01 02:08:30] [GATE-0] [INFO]   ✓ Found: 1_agentacct_config.json
+[2026-09-01 02:08:30] [GATE-0] [WARN]   ✗ Missing: 2_unlazy_gates.md (will be generated during execution)
+[2026-09-01 02:08:30] [GATE-0] [WARN]   ✗ Missing: 3_is_agentic.json (will be generated during execution)
+[2026-09-01 02:08:30] [GATE-0] [WARN]   ✗ Missing: 4_canirun_grades.json (will be generated during execution)
+[2026-09-01 02:08:30] [GATE-0] [INFO]   ✓ Found: 5_ap2_ledger_pqc.md
+[2026-09-01 02:08:30] [GATE-0] [INFO]   ✓ Found: 6_ragas_golden_set.json
+[2026-09-01 02:08:30] [GATE-0] [INFO]   ✓ Found: 7_freetoken_benchmark.json
+[2026-09-01 02:08:30] [GATE-0] [INFO] CHECK 2: Verifying git state...
+[2026-09-01 02:08:30] [GATE-0] [INFO]   ✓ Valid git repository
+[2026-09-01 02:08:32] [GATE-0] [WARN]   ⚠ Uncommitted changes detected (non-blocking)
+[2026-09-01 02:08:32] [GATE-0] [WARN]   ⚠ Last commit not signed (warning only)
+[2026-09-01 02:08:32] [GATE-0] [INFO] CHECK 3: Verifying AP2 ledger structure...
+[2026-09-01 02:08:32] [GATE-0] [INFO]   ✓ AP2 ledger directory exists
+[2026-09-01 02:08:32] [GATE-0] [INFO]   ✓ Found        6 ledger entries
+[2026-09-01 02:08:32] [GATE-0] [INFO] CHECK 4: Verifying work receipts directory...
+[2026-09-01 02:08:32] [GATE-0] [INFO]   ✓ Work receipts directory exists
+[2026-09-01 02:08:32] [GATE-0] [INFO]   ✓ Found       73 work receipt files
+[2026-09-01 02:08:32] [GATE-0] [INFO] CHECK 5: Verifying Python dependencies...
+[2026-09-01 02:08:32] [GATE-0] [INFO]   ✓ Python module available: json
+[2026-09-01 02:08:32] [GATE-0] [INFO]   ✓ Python module available: hashlib
+[2026-09-01 02:08:32] [GATE-0] [INFO]   ✓ Python module available: dataclasses
+[2026-09-01 02:08:32] [GATE-0] [INFO]   ✓ Python module available: pathlib
+[2026-09-01 02:08:32] [GATE-0] [INFO] CHECK 6: Verifying gate dependencies...
+[2026-09-01 02:08:32] [GATE-0] [INFO]   ✓ Gate 1-3 validator script ready
+[2026-09-01 02:08:32] [GATE-0] [INFO]   ✓ Gate 4-5 validator script ready
+[2026-09-01 02:08:32] [GATE-0] [INFO]   ✓ agentacct capture module available
+[2026-09-01 02:08:32] [GATE-0] [INFO]   ✓ unlazy gates module available
+[2026-09-01 02:08:32] [GATE-0] [INFO] =========================================
+[2026-09-01 02:08:32] [GATE-0] [INFO] Gate 0 Summary:
+[2026-09-01 02:08:32] [GATE-0] [INFO]   Proof Artifacts: 4/7
+[2026-09-01 02:08:32] [GATE-0] [INFO]   Git State:       1/3
+[2026-09-01 02:08:32] [GATE-0] [INFO]   AP2 Ledger:      2/2
+[2026-09-01 02:08:32] [GATE-0] [INFO]   Work Receipts:   2/2
+[2026-09-01 02:08:32] [GATE-0] [INFO]   Python Modules:  4/4
+[2026-09-01 02:08:32] [GATE-0] [INFO]   Dependencies:    4/4
+[2026-09-01 02:08:32] [GATE-0] [INFO] =========================================
+[2026-09-01 02:08:32] [GATE-0] [INFO] TOTAL: 17/22 checks passed
+[2026-09-01 02:08:32] [GATE-0] [INFO] Gate 0 PASSED: Pre-flight verification complete
+[2026-09-01 02:08:34] [GATE-0] [INFO] === Gate 0 Pre-Flight Verification ===
+[2026-09-01 02:08:34] [GATE-0] [INFO] CHECK 1: Verifying proof artifacts...
+[2026-09-01 02:08:34] [GATE-0] [INFO]   ✓ Found: 1_agentacct_config.json
+[2026-09-01 02:08:34] [GATE-0] [WARN]   ✗ Missing: 2_unlazy_gates.md (will be generated during execution)
+[2026-09-01 02:08:34] [GATE-0] [WARN]   ✗ Missing: 3_is_agentic.json (will be generated during execution)
+[2026-09-01 02:08:34] [GATE-0] [WARN]   ✗ Missing: 4_canirun_grades.json (will be generated during execution)
+[2026-09-01 02:08:34] [GATE-0] [INFO]   ✓ Found: 5_ap2_ledger_pqc.md
+[2026-09-01 02:08:34] [GATE-0] [INFO]   ✓ Found: 6_ragas_golden_set.json
+[2026-09-01 02:08:34] [GATE-0] [INFO]   ✓ Found: 7_freetoken_benchmark.json
+[2026-09-01 02:08:34] [GATE-0] [INFO] CHECK 2: Verifying git state...
+[2026-09-01 02:08:34] [GATE-0] [INFO]   ✓ Valid git repository
+[2026-09-01 02:08:35] [GATE-0] [WARN]   ⚠ Uncommitted changes detected (non-blocking)
+[2026-09-01 02:08:35] [GATE-0] [WARN]   ⚠ Last commit not signed (warning only)
+[2026-09-01 02:08:35] [GATE-0] [INFO] CHECK 3: Verifying AP2 ledger structure...
+[2026-09-01 02:08:35] [GATE-0] [INFO]   ✓ AP2 ledger directory exists
+[2026-09-01 02:08:35] [GATE-0] [INFO]   ✓ Found        6 ledger entries
+[2026-09-01 02:08:35] [GATE-0] [INFO] CHECK 4: Verifying work receipts directory...
+[2026-09-01 02:08:35] [GATE-0] [INFO]   ✓ Work receipts directory exists
+[2026-09-01 02:08:35] [GATE-0] [INFO]   ✓ Found       73 work receipt files
+[2026-09-01 02:08:35] [GATE-0] [INFO] CHECK 5: Verifying Python dependencies...
+[2026-09-01 02:08:35] [GATE-0] [INFO]   ✓ Python module available: json
+[2026-09-01 02:08:35] [GATE-0] [INFO]   ✓ Python module available: hashlib
+[2026-09-01 02:08:35] [GATE-0] [INFO]   ✓ Python module available: dataclasses
+[2026-09-01 02:08:35] [GATE-0] [INFO]   ✓ Python module available: pathlib
+[2026-09-01 02:08:35] [GATE-0] [INFO] CHECK 6: Verifying gate dependencies...
+[2026-09-01 02:08:35] [GATE-0] [INFO]   ✓ Gate 1-3 validator script ready
+[2026-09-01 02:08:35] [GATE-0] [INFO]   ✓ Gate 4-5 validator script ready
+[2026-09-01 02:08:35] [GATE-0] [INFO]   ✓ agentacct capture module available
+[2026-09-01 02:08:35] [GATE-0] [INFO]   ✓ unlazy gates module available
+[2026-09-01 02:08:35] [GATE-0] [INFO] =========================================
+[2026-09-01 02:08:35] [GATE-0] [INFO] Gate 0 Summary:
+[2026-09-01 02:08:35] [GATE-0] [INFO]   Proof Artifacts: 4/7
+[2026-09-01 02:08:35] [GATE-0] [INFO]   Git State:       1/3
+[2026-09-01 02:08:35] [GATE-0] [INFO]   AP2 Ledger:      2/2
+[2026-09-01 02:08:35] [GATE-0] [INFO]   Work Receipts:   2/2
+[2026-09-01 02:08:35] [GATE-0] [INFO]   Python Modules:  4/4
+[2026-09-01 02:08:35] [GATE-0] [INFO]   Dependencies:    4/4
+[2026-09-01 02:08:35] [GATE-0] [INFO] =========================================
+[2026-09-01 02:08:35] [GATE-0] [INFO] TOTAL: 17/22 checks passed
+[2026-09-01 02:08:35] [GATE-0] [INFO] Gate 0 PASSED: Pre-flight verification complete
+[2026-09-01 02:08:37] [GATE-0] [INFO] === Gate 0 Pre-Flight Verification ===
+[2026-09-01 02:08:37] [GATE-0] [INFO] CHECK 1: Verifying proof artifacts...
+[2026-09-01 02:08:37] [GATE-0] [INFO]   ✓ Found: 1_agentacct_config.json
+[2026-09-01 02:08:37] [GATE-0] [WARN]   ✗ Missing: 2_unlazy_gates.md (will be generated during execution)
+[2026-09-01 02:08:37] [GATE-0] [WARN]   ✗ Missing: 3_is_agentic.json (will be generated during execution)
+[2026-09-01 02:08:37] [GATE-0] [WARN]   ✗ Missing: 4_canirun_grades.json (will be generated during execution)
+[2026-09-01 02:08:37] [GATE-0] [INFO]   ✓ Found: 5_ap2_ledger_pqc.md
+[2026-09-01 02:08:37] [GATE-0] [INFO]   ✓ Found: 6_ragas_golden_set.json
+[2026-09-01 02:08:37] [GATE-0] [INFO]   ✓ Found: 7_freetoken_benchmark.json
+[2026-09-01 02:08:37] [GATE-0] [INFO] CHECK 2: Verifying git state...
+[2026-09-01 02:08:37] [GATE-0] [INFO]   ✓ Valid git repository
+[2026-09-01 02:08:39] [GATE-0] [WARN]   ⚠ Uncommitted changes detected (non-blocking)
+[2026-09-01 02:08:39] [GATE-0] [WARN]   ⚠ Last commit not signed (warning only)
+[2026-09-01 02:08:39] [GATE-0] [INFO] CHECK 3: Verifying AP2 ledger structure...
+[2026-09-01 02:08:39] [GATE-0] [INFO]   ✓ AP2 ledger directory exists
+[2026-09-01 02:08:39] [GATE-0] [INFO]   ✓ Found        6 ledger entries
+[2026-09-01 02:08:39] [GATE-0] [INFO] CHECK 4: Verifying work receipts directory...
+[2026-09-01 02:08:39] [GATE-0] [INFO]   ✓ Work receipts directory exists
+[2026-09-01 02:08:39] [GATE-0] [INFO]   ✓ Found       74 work receipt files
+[2026-09-01 02:08:39] [GATE-0] [INFO] CHECK 5: Verifying Python dependencies...
+[2026-09-01 02:08:39] [GATE-0] [INFO]   ✓ Python module available: json
+[2026-09-01 02:08:39] [GATE-0] [INFO]   ✓ Python module available: hashlib
+[2026-09-01 02:08:39] [GATE-0] [INFO]   ✓ Python module available: dataclasses
+[2026-09-01 02:08:39] [GATE-0] [INFO]   ✓ Python module available: pathlib
+[2026-09-01 02:08:39] [GATE-0] [INFO] CHECK 6: Verifying gate dependencies...
+[2026-09-01 02:08:39] [GATE-0] [INFO]   ✓ Gate 1-3 validator script ready
+[2026-09-01 02:08:39] [GATE-0] [INFO]   ✓ Gate 4-5 validator script ready
+[2026-09-01 02:08:39] [GATE-0] [INFO]   ✓ agentacct capture module available
+[2026-09-01 02:08:39] [GATE-0] [INFO]   ✓ unlazy gates module available
+[2026-09-01 02:08:39] [GATE-0] [INFO] =========================================
+[2026-09-01 02:08:39] [GATE-0] [INFO] Gate 0 Summary:
+[2026-09-01 02:08:39] [GATE-0] [INFO]   Proof Artifacts: 4/7
+[2026-09-01 02:08:39] [GATE-0] [INFO]   Git State:       1/3
+[2026-09-01 02:08:39] [GATE-0] [INFO]   AP2 Ledger:      2/2
+[2026-09-01 02:08:39] [GATE-0] [INFO]   Work Receipts:   2/2
+[2026-09-01 02:08:39] [GATE-0] [INFO]   Python Modules:  4/4
+[2026-09-01 02:08:39] [GATE-0] [INFO]   Dependencies:    4/4
+[2026-09-01 02:08:39] [GATE-0] [INFO] =========================================
+[2026-09-01 02:08:39] [GATE-0] [INFO] TOTAL: 17/22 checks passed
+[2026-09-01 02:08:39] [GATE-0] [INFO] Gate 0 PASSED: Pre-flight verification complete
+[2026-09-01 02:08:44] [GATE-0] [INFO] === Gate 0 Pre-Flight Verification ===
+[2026-09-01 02:08:44] [GATE-0] [INFO] CHECK 1: Verifying proof artifacts...
+[2026-09-01 02:08:44] [GATE-0] [INFO]   ✓ Found: 1_agentacct_config.json
+[2026-09-01 02:08:44] [GATE-0] [WARN]   ✗ Missing: 2_unlazy_gates.md (will be generated during execution)
+[2026-09-01 02:08:44] [GATE-0] [WARN]   ✗ Missing: 3_is_agentic.json (will be generated during execution)
+[2026-09-01 02:08:44] [GATE-0] [WARN]   ✗ Missing: 4_canirun_grades.json (will be generated during execution)
+[2026-09-01 02:08:44] [GATE-0] [INFO]   ✓ Found: 5_ap2_ledger_pqc.md
+[2026-09-01 02:08:44] [GATE-0] [INFO]   ✓ Found: 6_ragas_golden_set.json
+[2026-09-01 02:08:44] [GATE-0] [INFO]   ✓ Found: 7_freetoken_benchmark.json
+[2026-09-01 02:08:44] [GATE-0] [INFO] CHECK 2: Verifying git state...
+[2026-09-01 02:08:44] [GATE-0] [INFO]   ✓ Valid git repository
+[2026-09-01 02:08:45] [GATE-0] [WARN]   ⚠ Uncommitted changes detected (non-blocking)
+[2026-09-01 02:08:45] [GATE-0] [WARN]   ⚠ Last commit not signed (warning only)
+[2026-09-01 02:08:45] [GATE-0] [INFO] CHECK 3: Verifying AP2 ledger structure...
+[2026-09-01 02:08:45] [GATE-0] [INFO]   ✓ AP2 ledger directory exists
+[2026-09-01 02:08:45] [GATE-0] [INFO]   ✓ Found        6 ledger entries
+[2026-09-01 02:08:45] [GATE-0] [INFO] CHECK 4: Verifying work receipts directory...
+[2026-09-01 02:08:46] [GATE-0] [INFO]   ✓ Work receipts directory exists
+[2026-09-01 02:08:46] [GATE-0] [INFO]   ✓ Found       74 work receipt files
+[2026-09-01 02:08:46] [GATE-0] [INFO] CHECK 5: Verifying Python dependencies...
+[2026-09-01 02:08:46] [GATE-0] [INFO]   ✓ Python module available: json
+[2026-09-01 02:08:46] [GATE-0] [INFO]   ✓ Python module available: hashlib
+[2026-09-01 02:08:46] [GATE-0] [INFO]   ✓ Python module available: dataclasses
+[2026-09-01 02:08:46] [GATE-0] [INFO]   ✓ Python module available: pathlib
+[2026-09-01 02:08:46] [GATE-0] [INFO] CHECK 6: Verifying gate dependencies...
+[2026-09-01 02:08:46] [GATE-0] [INFO]   ✓ Gate 1-3 validator script ready
+[2026-09-01 02:08:46] [GATE-0] [INFO]   ✓ Gate 4-5 validator script ready
+[2026-09-01 02:08:46] [GATE-0] [INFO]   ✓ agentacct capture module available
+[2026-09-01 02:08:46] [GATE-0] [INFO]   ✓ unlazy gates module available
+[2026-09-01 02:08:46] [GATE-0] [INFO] =========================================
+[2026-09-01 02:08:46] [GATE-0] [INFO] Gate 0 Summary:
+[2026-09-01 02:08:46] [GATE-0] [INFO]   Proof Artifacts: 4/7
+[2026-09-01 02:08:46] [GATE-0] [INFO]   Git State:       1/3
+[2026-09-01 02:08:46] [GATE-0] [INFO]   AP2 Ledger:      2/2
+[2026-09-01 02:08:46] [GATE-0] [INFO]   Work Receipts:   2/2
+[2026-09-01 02:08:46] [GATE-0] [INFO]   Python Modules:  4/4
+[2026-09-01 02:08:46] [GATE-0] [INFO]   Dependencies:    4/4
+[2026-09-01 02:08:46] [GATE-0] [INFO] =========================================
+[2026-09-01 02:08:46] [GATE-0] [INFO] TOTAL: 17/22 checks passed
+[2026-09-01 02:08:46] [GATE-0] [INFO] Gate 0 PASSED: Pre-flight verification complete
+[2026-09-01 02:08:48] [GATE-0] [INFO] === Gate 0 Pre-Flight Verification ===
+[2026-09-01 02:08:48] [GATE-0] [INFO] CHECK 1: Verifying proof artifacts...
+[2026-09-01 02:08:48] [GATE-0] [INFO]   ✓ Found: 1_agentacct_config.json
+[2026-09-01 02:08:48] [GATE-0] [WARN]   ✗ Missing: 2_unlazy_gates.md (will be generated during execution)
+[2026-09-01 02:08:48] [GATE-0] [WARN]   ✗ Missing: 3_is_agentic.json (will be generated during execution)
+[2026-09-01 02:08:48] [GATE-0] [WARN]   ✗ Missing: 4_canirun_grades.json (will be generated during execution)
+[2026-09-01 02:08:48] [GATE-0] [INFO]   ✓ Found: 5_ap2_ledger_pqc.md
+[2026-09-01 02:08:48] [GATE-0] [INFO]   ✓ Found: 6_ragas_golden_set.json
+[2026-09-01 02:08:48] [GATE-0] [INFO]   ✓ Found: 7_freetoken_benchmark.json
+[2026-09-01 02:08:48] [GATE-0] [INFO] CHECK 2: Verifying git state...
+[2026-09-01 02:08:48] [GATE-0] [INFO]   ✓ Valid git repository
+[2026-09-01 02:08:49] [GATE-0] [WARN]   ⚠ Uncommitted changes detected (non-blocking)
+[2026-09-01 02:08:49] [GATE-0] [WARN]   ⚠ Last commit not signed (warning only)
+[2026-09-01 02:08:49] [GATE-0] [INFO] CHECK 3: Verifying AP2 ledger structure...
+[2026-09-01 02:08:49] [GATE-0] [INFO]   ✓ AP2 ledger directory exists
+[2026-09-01 02:08:49] [GATE-0] [INFO]   ✓ Found        6 ledger entries
+[2026-09-01 02:08:49] [GATE-0] [INFO] CHECK 4: Verifying work receipts directory...
+[2026-09-01 02:08:49] [GATE-0] [INFO]   ✓ Work receipts directory exists
+[2026-09-01 02:08:49] [GATE-0] [INFO]   ✓ Found       75 work receipt files
+[2026-09-01 02:08:49] [GATE-0] [INFO] CHECK 5: Verifying Python dependencies...
+[2026-09-01 02:08:49] [GATE-0] [INFO]   ✓ Python module available: json
+[2026-09-01 02:08:49] [GATE-0] [INFO]   ✓ Python module available: hashlib
+[2026-09-01 02:08:49] [GATE-0] [INFO]   ✓ Python module available: dataclasses
+[2026-09-01 02:08:49] [GATE-0] [INFO]   ✓ Python module available: pathlib
+[2026-09-01 02:08:49] [GATE-0] [INFO] CHECK 6: Verifying gate dependencies...
+[2026-09-01 02:08:49] [GATE-0] [INFO]   ✓ Gate 1-3 validator script ready
+[2026-09-01 02:08:49] [GATE-0] [INFO]   ✓ Gate 4-5 validator script ready
+[2026-09-01 02:08:49] [GATE-0] [INFO]   ✓ agentacct capture module available
+[2026-09-01 02:08:49] [GATE-0] [INFO]   ✓ unlazy gates module available
+[2026-09-01 02:08:49] [GATE-0] [INFO] =========================================
+[2026-09-01 02:08:49] [GATE-0] [INFO] Gate 0 Summary:
+[2026-09-01 02:08:50] [GATE-0] [INFO]   Proof Artifacts: 4/7
+[2026-09-01 02:08:50] [GATE-0] [INFO]   Git State:       1/3
+[2026-09-01 02:08:50] [GATE-0] [INFO]   AP2 Ledger:      2/2
+[2026-09-01 02:08:50] [GATE-0] [INFO]   Work Receipts:   2/2
+[2026-09-01 02:08:50] [GATE-0] [INFO]   Python Modules:  4/4
+[2026-09-01 02:08:50] [GATE-0] [INFO]   Dependencies:    4/4
+[2026-09-01 02:08:50] [GATE-0] [INFO] =========================================
+[2026-09-01 02:08:50] [GATE-0] [INFO] TOTAL: 17/22 checks passed
+[2026-09-01 02:08:50] [GATE-0] [INFO] Gate 0 PASSED: Pre-flight verification complete
+[2026-09-01 02:08:55] [GATE-0] [INFO] === Gate 0 Pre-Flight Verification ===
+[2026-09-01 02:08:55] [GATE-0] [INFO] CHECK 1: Verifying proof artifacts...
+[2026-09-01 02:08:55] [GATE-0] [INFO]   ✓ Found: 1_agentacct_config.json
+[2026-09-01 02:08:55] [GATE-0] [WARN]   ✗ Missing: 2_unlazy_gates.md (will be generated during execution)
+[2026-09-01 02:08:55] [GATE-0] [WARN]   ✗ Missing: 3_is_agentic.json (will be generated during execution)
+[2026-09-01 02:08:55] [GATE-0] [WARN]   ✗ Missing: 4_canirun_grades.json (will be generated during execution)
+[2026-09-01 02:08:55] [GATE-0] [INFO]   ✓ Found: 5_ap2_ledger_pqc.md
+[2026-09-01 02:08:55] [GATE-0] [INFO]   ✓ Found: 6_ragas_golden_set.json
+[2026-09-01 02:08:55] [GATE-0] [INFO]   ✓ Found: 7_freetoken_benchmark.json
+[2026-09-01 02:08:55] [GATE-0] [INFO] CHECK 2: Verifying git state...
+[2026-09-01 02:08:55] [GATE-0] [INFO]   ✓ Valid git repository
+[2026-09-01 02:08:56] [GATE-0] [WARN]   ⚠ Uncommitted changes detected (non-blocking)
+[2026-09-01 02:08:56] [GATE-0] [WARN]   ⚠ Last commit not signed (warning only)
+[2026-09-01 02:08:56] [GATE-0] [INFO] CHECK 3: Verifying AP2 ledger structure...
+[2026-09-01 02:08:56] [GATE-0] [INFO]   ✓ AP2 ledger directory exists
+[2026-09-01 02:08:56] [GATE-0] [INFO]   ✓ Found        6 ledger entries
+[2026-09-01 02:08:56] [GATE-0] [INFO] CHECK 4: Verifying work receipts directory...
+[2026-09-01 02:08:56] [GATE-0] [INFO]   ✓ Work receipts directory exists
+[2026-09-01 02:08:56] [GATE-0] [INFO]   ✓ Found       76 work receipt files
+[2026-09-01 02:08:56] [GATE-0] [INFO] CHECK 5: Verifying Python dependencies...
+[2026-09-01 02:08:56] [GATE-0] [INFO]   ✓ Python module available: json
+[2026-09-01 02:08:56] [GATE-0] [INFO]   ✓ Python module available: hashlib
+[2026-09-01 02:08:56] [GATE-0] [INFO]   ✓ Python module available: dataclasses
+[2026-09-01 02:08:56] [GATE-0] [INFO]   ✓ Python module available: pathlib
+[2026-09-01 02:08:56] [GATE-0] [INFO] CHECK 6: Verifying gate dependencies...
+[2026-09-01 02:08:56] [GATE-0] [INFO]   ✓ Gate 1-3 validator script ready
+[2026-09-01 02:08:56] [GATE-0] [INFO]   ✓ Gate 4-5 validator script ready
+[2026-09-01 02:08:56] [GATE-0] [INFO]   ✓ agentacct capture module available
+[2026-09-01 02:08:56] [GATE-0] [INFO]   ✓ unlazy gates module available
+[2026-09-01 02:08:56] [GATE-0] [INFO] =========================================
+[2026-09-01 02:08:56] [GATE-0] [INFO] Gate 0 Summary:
+[2026-09-01 02:08:56] [GATE-0] [INFO]   Proof Artifacts: 4/7
+[2026-09-01 02:08:56] [GATE-0] [INFO]   Git State:       1/3
+[2026-09-01 02:08:56] [GATE-0] [INFO]   AP2 Ledger:      2/2
+[2026-09-01 02:08:56] [GATE-0] [INFO]   Work Receipts:   2/2
+[2026-09-01 02:08:56] [GATE-0] [INFO]   Python Modules:  4/4
+[2026-09-01 02:08:56] [GATE-0] [INFO]   Dependencies:    4/4
+[2026-09-01 02:08:56] [GATE-0] [INFO] =========================================
+[2026-09-01 02:08:56] [GATE-0] [INFO] TOTAL: 17/22 checks passed
+[2026-09-01 02:08:56] [GATE-0] [INFO] Gate 0 PASSED: Pre-flight verification complete
+[2026-09-01 02:09:00] [GATE-0] [INFO] === Gate 0 Pre-Flight Verification ===
+[2026-09-01 02:09:00] [GATE-0] [INFO] CHECK 1: Verifying proof artifacts...
+[2026-09-01 02:09:00] [GATE-0] [INFO]   ✓ Found: 1_agentacct_config.json
+[2026-09-01 02:09:00] [GATE-0] [WARN]   ✗ Missing: 2_unlazy_gates.md (will be generated during execution)
+[2026-09-01 02:09:00] [GATE-0] [WARN]   ✗ Missing: 3_is_agentic.json (will be generated during execution)
+[2026-09-01 02:09:00] [GATE-0] [WARN]   ✗ Missing: 4_canirun_grades.json (will be generated during execution)
+[2026-09-01 02:09:00] [GATE-0] [INFO]   ✓ Found: 5_ap2_ledger_pqc.md
+[2026-09-01 02:09:00] [GATE-0] [INFO]   ✓ Found: 6_ragas_golden_set.json
+[2026-09-01 02:09:00] [GATE-0] [INFO]   ✓ Found: 7_freetoken_benchmark.json
+[2026-09-01 02:09:00] [GATE-0] [INFO] CHECK 2: Verifying git state...
+[2026-09-01 02:09:00] [GATE-0] [INFO]   ✓ Valid git repository
+[2026-09-01 02:09:02] [GATE-0] [WARN]   ⚠ Uncommitted changes detected (non-blocking)
+[2026-09-01 02:09:02] [GATE-0] [WARN]   ⚠ Last commit not signed (warning only)
+[2026-09-01 02:09:02] [GATE-0] [INFO] CHECK 3: Verifying AP2 ledger structure...
+[2026-09-01 02:09:02] [GATE-0] [INFO]   ✓ AP2 ledger directory exists
+[2026-09-01 02:09:02] [GATE-0] [INFO]   ✓ Found        6 ledger entries
+[2026-09-01 02:09:02] [GATE-0] [INFO] CHECK 4: Verifying work receipts directory...
+[2026-09-01 02:09:02] [GATE-0] [INFO]   ✓ Work receipts directory exists
+[2026-09-01 02:09:02] [GATE-0] [INFO]   ✓ Found       77 work receipt files
+[2026-09-01 02:09:02] [GATE-0] [INFO] CHECK 5: Verifying Python dependencies...
+[2026-09-01 02:09:02] [GATE-0] [INFO]   ✓ Python module available: json
+[2026-09-01 02:09:02] [GATE-0] [INFO]   ✓ Python module available: hashlib
+[2026-09-01 02:09:02] [GATE-0] [INFO]   ✓ Python module available: dataclasses
+[2026-09-01 02:09:02] [GATE-0] [INFO]   ✓ Python module available: pathlib
+[2026-09-01 02:09:02] [GATE-0] [INFO] CHECK 6: Verifying gate dependencies...
+[2026-09-01 02:09:02] [GATE-0] [INFO]   ✓ Gate 1-3 validator script ready
+[2026-09-01 02:09:02] [GATE-0] [INFO]   ✓ Gate 4-5 validator script ready
+[2026-09-01 02:09:02] [GATE-0] [INFO]   ✓ agentacct capture module available
+[2026-09-01 02:09:02] [GATE-0] [INFO]   ✓ unlazy gates module available
+[2026-09-01 02:09:02] [GATE-0] [INFO] =========================================
+[2026-09-01 02:09:02] [GATE-0] [INFO] Gate 0 Summary:
+[2026-09-01 02:09:02] [GATE-0] [INFO]   Proof Artifacts: 4/7
+[2026-09-01 02:09:02] [GATE-0] [INFO]   Git State:       1/3
+[2026-09-01 02:09:02] [GATE-0] [INFO]   AP2 Ledger:      2/2
+[2026-09-01 02:09:02] [GATE-0] [INFO]   Work Receipts:   2/2
+[2026-09-01 02:09:02] [GATE-0] [INFO]   Python Modules:  4/4
+[2026-09-01 02:09:02] [GATE-0] [INFO]   Dependencies:    4/4
+[2026-09-01 02:09:02] [GATE-0] [INFO] =========================================
+[2026-09-01 02:09:02] [GATE-0] [INFO] TOTAL: 17/22 checks passed
+[2026-09-01 02:09:02] [GATE-0] [INFO] Gate 0 PASSED: Pre-flight verification complete

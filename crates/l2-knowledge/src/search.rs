@@ -205,12 +205,14 @@ mod tests {
             title: "Title 1".to_string(),
             score: 0.9,
             rank: 1,
+            source: "pgvector".to_string(),
         }];
         let keyword = vec![SearchResult {
             article_id: "A2".to_string(),
             title: "Title 2".to_string(),
             score: 0.8,
             rank: 1,
+            source: "bm25".to_string(),
         }];
 
         let combined = searcher.rrf_combine(semantic, keyword);

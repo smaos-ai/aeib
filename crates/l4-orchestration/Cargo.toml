@@ -15,6 +15,9 @@ log = { workspace = true }
 env_logger = { workspace = true }
 uuid = { workspace = true }
 chrono = { workspace = true }
+l3-permit-gates = { path = "../l3-permit-gates" }
+ed25519-dalek = { workspace = true }
+rand = { workspace = true }
 
 [[bin]]
 name = "load_test"

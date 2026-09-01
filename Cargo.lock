@@ -1206,6 +1206,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "l2b-federated-consensus"
+version = "1.0.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "ed25519-dalek",
+ "hex",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror 1.0.69",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "l3-permit-gates"
 version = "1.0.0"
 dependencies = [
@@ -1230,8 +1246,11 @@ version = "1.0.0"
 dependencies = [
  "anyhow",
  "chrono",
+ "ed25519-dalek",
  "env_logger",
+ "l3-permit-gates",
  "log",
+ "rand",
  "serde",
  "serde_json",
  "thiserror 1.0.69",

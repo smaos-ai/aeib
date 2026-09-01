@@ -1175,3 +1175,63 @@
 [2026-09-01 04:55:12] [GATE-4-5] [INFO]   Compliance Report:       compliance_check_1788231273.json
 [2026-09-01 04:55:12] [GATE-4-5] [INFO] =========================================
 [2026-09-01 04:55:12] [GATE-4-5] [INFO] Gate 4-5 PASSED: Session compliance verified, ready for shutdown
+[2026-09-01 04:55:54] [GATE-4-5] [INFO] === Gate 4-5 Serial Verification ===
+[2026-09-01 04:55:54] [GATE-4-5] [INFO] GATE 4: AP2 Merkle ledger anchoring...
+[2026-09-01 04:55:54] [GATE-4-5] [INFO]   ✓ Collected      402 work receipts for Merkle tree
+[2026-09-01 04:55:54] [GATE-4-5] [INFO]   ✓ AP2 Merkle tree entry created
+[2026-09-01 04:55:54] [GATE-4-5] [INFO]   ✓ AP2 ledger entry integrity verified (SHA256: d95c0d76da2e5615...)
+[2026-09-01 04:55:54] [GATE-4-5] [INFO]   ✓ AP2 ledger staged for commit
+[2026-09-01 04:55:55] [GATE-4-5] [INFO]   ✓ AP2 ledger committed to git
+[2026-09-01 04:55:55] [GATE-4-5] [INFO] GATE 5: Final compliance check...
+[2026-09-01 04:56:31] [GATE-4-5] [INFO]   ✓ Git policy compliance verified
+[2026-09-01 04:56:31] [GATE-4-5] [INFO]   ✓ Found 4/7 proof artifacts
+[2026-09-01 04:56:31] [GATE-4-5] [INFO]   ✓ Evidence integrity verified (     411 files)
+[2026-09-01 04:56:31] [GATE-4-5] [INFO]   ✓ Session validation passed (1788231391s duration)
+[2026-09-01 04:56:31] [GATE-4-5] [INFO] Compliance report written to: /Users/andriileukhin/Documents/SovereignNexus/.smaos/compliance_check_1788231354.json
+[2026-09-01 04:56:31] [GATE-4-5] [INFO] =========================================
+[2026-09-01 04:56:31] [GATE-4-5] [INFO] Gate 4-5 Summary:
+[2026-09-01 04:56:31] [GATE-4-5] [INFO]   Gate 4 (AP2 anchor):     PASS (4/4)
+[2026-09-01 04:56:31] [GATE-4-5] [INFO]   Gate 5 (compliance):     PASS (4/5)
+[2026-09-01 04:56:31] [GATE-4-5] [INFO]   Compliance Report:       compliance_check_1788231354.json
+[2026-09-01 04:56:31] [GATE-4-5] [INFO] =========================================
+[2026-09-01 04:56:31] [GATE-4-5] [INFO] Gate 4-5 PASSED: Session compliance verified, ready for shutdown
+[2026-09-01 04:56:45] [GATE-4-5] [INFO] === Gate 4-5 Serial Verification ===
+[2026-09-01 04:56:45] [GATE-4-5] [INFO] GATE 4: AP2 Merkle ledger anchoring...
+[2026-09-01 04:56:45] [GATE-4-5] [INFO]   ✓ Collected      402 work receipts for Merkle tree
+[2026-09-01 04:56:45] [GATE-4-5] [INFO]   ✓ AP2 Merkle tree entry created
+[2026-09-01 04:56:45] [GATE-4-5] [INFO]   ✓ AP2 ledger entry integrity verified (SHA256: 23a896cb765613f9...)
+[2026-09-01 04:56:45] [GATE-4-5] [INFO]   ✓ AP2 ledger staged for commit
+[2026-09-01 04:56:47] [GATE-4-5] [INFO]   ✓ AP2 ledger committed to git
+[2026-09-01 04:56:47] [GATE-4-5] [INFO] GATE 5: Final compliance check...
+[2026-09-01 04:57:23] [GATE-4-5] [INFO]   ✓ Git policy compliance verified
+[2026-09-01 04:57:23] [GATE-4-5] [INFO]   ✓ Found 4/7 proof artifacts
+[2026-09-01 04:57:23] [GATE-4-5] [INFO]   ✓ Evidence integrity verified (     411 files)
+[2026-09-01 04:57:23] [GATE-4-5] [INFO]   ✓ Session validation passed (1788231443s duration)
+[2026-09-01 04:57:23] [GATE-4-5] [INFO] Compliance report written to: /Users/andriileukhin/Documents/SovereignNexus/.smaos/compliance_check_1788231405.json
+[2026-09-01 04:57:23] [GATE-4-5] [INFO] =========================================
+[2026-09-01 04:57:23] [GATE-4-5] [INFO] Gate 4-5 Summary:
+[2026-09-01 04:57:23] [GATE-4-5] [INFO]   Gate 4 (AP2 anchor):     PASS (4/4)
+[2026-09-01 04:57:23] [GATE-4-5] [INFO]   Gate 5 (compliance):     PASS (4/5)
+[2026-09-01 04:57:23] [GATE-4-5] [INFO]   Compliance Report:       compliance_check_1788231405.json
+[2026-09-01 04:57:23] [GATE-4-5] [INFO] =========================================
+[2026-09-01 04:57:23] [GATE-4-5] [INFO] Gate 4-5 PASSED: Session compliance verified, ready for shutdown
+[2026-09-01 04:57:57] [GATE-4-5] [INFO] === Gate 4-5 Serial Verification ===
+[2026-09-01 04:57:57] [GATE-4-5] [INFO] GATE 4: AP2 Merkle ledger anchoring...
+[2026-09-01 04:57:57] [GATE-4-5] [INFO]   ✓ Collected      402 work receipts for Merkle tree
+[2026-09-01 04:57:57] [GATE-4-5] [INFO]   ✓ AP2 Merkle tree entry created
+[2026-09-01 04:57:57] [GATE-4-5] [INFO]   ✓ AP2 ledger entry integrity verified (SHA256: 3ee80106d65f7134...)
+[2026-09-01 04:57:57] [GATE-4-5] [INFO]   ✓ AP2 ledger staged for commit
+[2026-09-01 04:57:59] [GATE-4-5] [INFO]   ✓ AP2 ledger committed to git
+[2026-09-01 04:57:59] [GATE-4-5] [INFO] GATE 5: Final compliance check...
+[2026-09-01 04:58:34] [GATE-4-5] [INFO]   ✓ Git policy compliance verified
+[2026-09-01 04:58:34] [GATE-4-5] [INFO]   ✓ Found 4/7 proof artifacts
+[2026-09-01 04:58:34] [GATE-4-5] [INFO]   ✓ Evidence integrity verified (     411 files)
+[2026-09-01 04:58:34] [GATE-4-5] [INFO]   ✓ Session validation passed (1788231514s duration)
+[2026-09-01 04:58:34] [GATE-4-5] [INFO] Compliance report written to: /Users/andriileukhin/Documents/SovereignNexus/.smaos/compliance_check_1788231477.json
+[2026-09-01 04:58:34] [GATE-4-5] [INFO] =========================================
+[2026-09-01 04:58:34] [GATE-4-5] [INFO] Gate 4-5 Summary:
+[2026-09-01 04:58:34] [GATE-4-5] [INFO]   Gate 4 (AP2 anchor):     PASS (4/4)
+[2026-09-01 04:58:34] [GATE-4-5] [INFO]   Gate 5 (compliance):     PASS (4/5)
+[2026-09-01 04:58:34] [GATE-4-5] [INFO]   Compliance Report:       compliance_check_1788231477.json
+[2026-09-01 04:58:34] [GATE-4-5] [INFO] =========================================
+[2026-09-01 04:58:34] [GATE-4-5] [INFO] Gate 4-5 PASSED: Session compliance verified, ready for shutdown

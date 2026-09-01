@@ -1,0 +1,55 @@
+{
+  "substrate": "RTX_4060_8GB",
+  "hardware": {
+    "device_type": "RTX_4060",
+    "vram_gb": 8,
+    "ram_gb": 16,
+    "nvme_cache_available": true
+  },
+  "tier_vram_mb": 6144,
+  "tier_ram_mb": 16384,
+  "tier_nvme_path": "/var/lib/smaos/colibri_cache",
+  "caching_policy": "routing_aware_prefetch",
+  "semantic_guarantee": "strict_fp16",
+  "governance_hook": "http://127.0.0.1:8000/api/rce/check",
+  "memory_hierarchy": {
+    "l1_vram": {
+      "mb": 6144,
+      "bandwidth_gbs": 384,
+      "latency_us": 0.001
+    },
+    "l2_ram": {
+      "mb": 16384,
+      "bandwidth_gbs": 25,
+      "latency_us": 0.05
+    },
+    "l3_nvme": {
+      "path": "/var/lib/smaos/colibri_cache",
+      "bandwidth_gbs": 3,
+      "latency_us": 5
+    }
+  },
+  "prefetch_rules": [
+    {
+      "pattern": "routing_*",
+      "tier": "l1_vram",
+      "ttl_seconds": 3600
+    },
+    {
+      "pattern": "semantic_*",
+      "tier": "l1_vram",
+      "ttl_seconds": 7200
+    },
+    {
+      "pattern": "*",
+      "tier": "l2_ram",
+      "ttl_seconds": 14400
+    }
+  ],
+  "semantic_config": {
+    "guarantee_level": "strict_fp16",
+    "routing_aware": true,
+    "prefetch_enabled": true,
+    "cache_alignment": "fp16"
+  }
+}

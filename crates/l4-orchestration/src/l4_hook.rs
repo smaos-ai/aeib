@@ -215,4 +215,42 @@ mod tests {
         assert!(!result.execution_permitted);
         assert!(!result.metadata.delegation_chain_valid);
     }
+
+    #[test]
+    fn test_l4_hook_timeout_fail_closed() {
+        let mut verifier = IntentVerificationGate::new();
+        verifier.add_delegation_policy("user_alice".to_string(), "agent_bot".to_string());
+
+        let hook = L4Hook::new(verifier).with_timeout(0); // 0ms timeout
+
+        let mut seed = [0u8; 32];
+        rand::thread_rng().fill_bytes(&mut seed);
+        let signing_key = SigningKey::from_bytes(&seed);
+
+        let commitment = create_test_commitment("l4_req_004".to_string(), 24, &signing_key);
+        let result = hook.execute_with_verification(&commitment);
+
+        // Timeout should fail-closed
+        assert!(!result.execution_permitted);
+        assert!(result.metadata.l3b_validation_time_ms >= 0);
+    }
+
+    #[test]
+    fn test_l4_hook_metadata_validation_time() {
+        let mut verifier = IntentVerificationGate::new();
+        verifier.add_delegation_policy("user_alice".to_string(), "agent_bot".to_string());
+
+        let hook = L4Hook::new(verifier);
+
+        let mut seed = [0u8; 32];
+        rand::thread_rng().fill_bytes(&mut seed);
+        let signing_key = SigningKey::from_bytes(&seed);
+
+        let commitment = create_test_commitment("l4_req_005".to_string(), 24, &signing_key);
+        let result = hook.execute_with_verification(&commitment);
+
+        // Metadata should record validation time
+        assert!(result.metadata.l3b_validation_time_ms < 100);
+        assert!(!result.metadata.hook_id.is_empty());
+    }
 }

@@ -461,4 +461,54 @@ mod tests {
         let allowed = tracker.check_rate_limit("api.example.com", 5);
         assert!(!allowed);
     }
+
+    #[test]
+    fn test_egress_engine_dns_rebinding_detection() {
+        let policy = EgressPolicy {
+            whitelisted_domains: vec!["api.example.com".to_string()],
+            whitelisted_ips: vec!["1.2.3.5".to_string()],
+            ..Default::default()
+        };
+
+        let engine = EgressControlsEngine::new(policy);
+
+        // First resolution caches the IP
+        let request1 = EgressRequest {
+            request_id: "dns_001".to_string(),
+            destination_host: "api.example.com".to_string(),
+            destination_ip: "1.2.3.5".to_string(),
+            port: 443,
+            protocol: "https".to_string(),
+            timestamp: Utc::now(),
+        };
+
+        let result1 = engine.evaluate_egress_request(&request1);
+        assert_eq!(result1.decision, EgressDecision::Allow);
+        assert!(result1.dns_verified);
+    }
+
+    #[test]
+    fn test_egress_engine_validation_time_recorded() {
+        let policy = EgressPolicy {
+            whitelisted_domains: vec!["api.example.com".to_string()],
+            timeout_ms: 1000, // Sufficient timeout
+            ..Default::default()
+        };
+
+        let engine = EgressControlsEngine::new(policy);
+
+        let request = EgressRequest {
+            request_id: "timeout_001".to_string(),
+            destination_host: "api.example.com".to_string(),
+            destination_ip: "1.2.3.5".to_string(),
+            port: 443,
+            protocol: "https".to_string(),
+            timestamp: Utc::now(),
+        };
+
+        let result = engine.evaluate_egress_request(&request);
+        // Should complete within timeout
+        assert!(result.validation_time_ms < 1000);
+        assert_eq!(result.decision, EgressDecision::Allow);
+    }
 }

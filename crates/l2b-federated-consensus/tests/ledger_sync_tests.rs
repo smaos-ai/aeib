@@ -1,4 +1,4 @@
-use l2b_federated_consensus::ledger::{LedgerSync, LedgerEntry, LedgerError};
+use l2b_federated_consensus::ledger::{LedgerSync, LedgerEntry};
 use serde_json::json;
 
 #[tokio::test]

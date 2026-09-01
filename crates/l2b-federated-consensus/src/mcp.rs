@@ -8,7 +8,7 @@ use tokio::sync::RwLock;
 use thiserror::Error;
 use uuid::Uuid;
 
-use crate::consensus::{ConsensusGateway, ConsensusVote, AggregatedVotes};
+use crate::consensus::ConsensusGateway;
 
 #[derive(Error, Debug)]
 pub enum McpError {

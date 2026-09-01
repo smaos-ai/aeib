@@ -1,4 +1,4 @@
-use l2b_federated_consensus::consensus::{ConsensusVote, ConsensusGateway, ConsensusError};
+use l2b_federated_consensus::consensus::{ConsensusVote, ConsensusGateway};
 use serde_json::json;
 
 #[tokio::test]

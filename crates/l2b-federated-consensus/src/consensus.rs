@@ -43,13 +43,16 @@ pub struct AggregatedVotes {
 }
 
 pub struct ConsensusGateway {
+    #[allow(dead_code)]
     region: String,
     proposals: HashMap<String, ProposalState>,
     votes: HashMap<String, Vec<ConsensusVote>>,
 }
 
 struct ProposalState {
+    #[allow(dead_code)]
     decision: Value,
+    #[allow(dead_code)]
     timestamp: chrono::DateTime<Utc>,
 }
 

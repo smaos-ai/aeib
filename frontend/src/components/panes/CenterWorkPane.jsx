@@ -20,6 +20,7 @@ export default function CenterWorkPane() {
   const [nodeList, setNodeList] = useState([])
   const [executionPhase, setExecutionPhase] = useState('idle') // idle, preparing, executing, decision, complete
   const [startTime, setStartTime] = useState(null)
+  const executionTimeoutRef = useRef(null)
 
   useEffect(() => {
     const currentIntent = state.intents[state.intents.length - 1]
@@ -99,7 +100,6 @@ export default function CenterWorkPane() {
     }
 
     setExecutionPhase('executing')
-    const executionTimeout = useRef(null)
     const nodeOrder = nodeList.filter(n => n.kind !== 'gate').map(n => n.id) // Execute non-gate nodes
 
     let nodeIndex = 0
@@ -116,7 +116,7 @@ export default function CenterWorkPane() {
 
       // Simulate work (500-800ms per node)
       const delay = 500 + Math.random() * 300
-      executionTimeout.current = setTimeout(() => {
+      executionTimeoutRef.current = setTimeout(() => {
         // Mark as success
         setNodeList(prev => prev.map(n => n.id === nodeId ? { ...n, status: 'success' } : n))
         nodeIndex++
@@ -127,7 +127,7 @@ export default function CenterWorkPane() {
     animateNextNode()
 
     return () => {
-      if (executionTimeout.current) clearTimeout(executionTimeout.current)
+      if (executionTimeoutRef.current) clearTimeout(executionTimeoutRef.current)
     }
   }, [state.resolvedIntentId, state.currentIntentId, nodeList.length])
 

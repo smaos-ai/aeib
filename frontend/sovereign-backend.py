@@ -17,6 +17,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 import os
 
+# Import tracing infrastructure
+from tracing_models import collector, SpanType
+from tracing_api import router as tracing_router
+
 # ============================================================================
 # INITIALIZATION
 # ============================================================================
@@ -31,6 +35,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include tracing router
+app.include_router(tracing_router)
 
 DB_PATH = os.getenv("SMAOS_DB_PATH", "/tmp/agentacct.db")
 
@@ -77,19 +84,42 @@ async def health():
 async def execute(request: ExecuteRequest):
     """Start 12-layer execution and return stream ID"""
     mandate_id = f"mandate-{str(uuid.uuid4())[:8]}"
+
+    # Start trace
+    intent = {
+        "query": f"{request.capsule} execution",
+        "session_id": mandate_id,
+        "agent_id": "smaos-governance-engine",
+    }
+    trace = collector.start_trace(intent)
+
+    # Add classification span
+    rules = request.classification.get("matchedRules", [])
+    rule_names = [r.get("classification", "unknown") for r in rules]
+    collector.add_classification_span(trace, rule_names, 0.92)
+
+    # Store trace_id in mandate for retrieval
     return {
         "mandate_id": mandate_id,
-        "stream_url": f"/api/rce/stream?mandate_id={mandate_id}",
+        "trace_id": trace.trace_id,
+        "stream_url": f"/api/rce/stream?mandate_id={mandate_id}&trace_id={trace.trace_id}",
         "status": "ready"
     }
 
 @app.get("/api/rce/stream")
-async def execute_stream(mandate_id: str):
+async def execute_stream(mandate_id: str, trace_id: str = None):
     """Stream 12-layer execution results via Server-Sent Events"""
+
+    # Get or create trace
+    trace = None
+    if trace_id and trace_id in collector.traces:
+        trace = collector.traces[trace_id]
 
     async def event_generator():
         # Layer 0-6: All pass
+        layers = []
         for layer in range(7):
+            layers.append(f"Layer {layer:02d}: PASS")
             yield f"data: {json.dumps({'layer': layer, 'status': 'PASS', 'message': f'Layer {layer:02d} passed'})}\n\n"
             await asyncio.sleep(0.2)
 
@@ -111,13 +141,22 @@ async def execute_stream(mandate_id: str):
         }
         yield f"data: {json.dumps(veto_card)}\n\n"
 
-        # Wait for decision (simulated - in real scenario, would wait for POST to /api/rce/decision)
+        # Add veto gate span to trace
+        if trace:
+            collector.add_veto_gate_span(trace, 0.72, 0.80, "HUMAN_GATE")
+
+        # Wait for decision (simulated)
         await asyncio.sleep(2)
 
         # Layer 8-12: Resume after decision
         for layer in range(8, 13):
+            layers.append(f"Layer {layer:02d}: PASS")
             yield f"data: {json.dumps({'layer': layer, 'status': 'PASS', 'message': f'Layer {layer:02d} passed'})}\n\n"
             await asyncio.sleep(0.2)
+
+        # Add execution span to trace
+        if trace:
+            collector.add_execution_span(trace, layers, 0, "All layers passed successfully")
 
         # Final completion
         yield f"data: {json.dumps({'status': 'COMPLETE', 'mandate_id': mandate_id})}\n\n"
@@ -138,6 +177,25 @@ async def make_decision(request: DecisionRequest):
     if request.decision not in ["authorize", "veto"]:
         raise HTTPException(status_code=400, detail="Decision must be 'authorize' or 'veto'")
 
+    # Find trace for this mandate (try to find it by mandate_id)
+    trace = None
+    for t in collector.traces.values():
+        for span in t.spans.values():
+            if request.mandate_id in str(span.payload):
+                trace = t
+                break
+        if trace:
+            break
+
+    # Add authorization span
+    if trace:
+        collector.add_authorization_span(
+            trace,
+            endpoint="/api/rce/decision",
+            method="POST",
+            signature=request.signature
+        )
+
     # Write decision to ledger
     conn = get_db()
     cursor = conn.cursor()
@@ -150,6 +208,8 @@ async def make_decision(request: DecisionRequest):
     else:
         status = "REJECTED_BY_CRO"
         cet1_projected = None
+
+    merkle_hash = hashlib.sha256(f"{request.mandate_id}{request.decision}".encode()).hexdigest()
 
     cursor.execute("""
     INSERT INTO agentacct_ledger
@@ -168,19 +228,24 @@ async def make_decision(request: DecisionRequest):
         10.50,  # Minimum
         "CET1_RATIO_BREACH",
         f"sig:ed25519:{request.signature[:16]}",
-        hashlib.sha256(f"{request.mandate_id}{request.decision}".encode()).hexdigest(),
+        merkle_hash,
         "5430f8d2"
     ))
 
     conn.commit()
     conn.close()
 
+    # Add receipt span
+    if trace:
+        collector.add_receipt_span(trace, receipt_id, merkle_hash)
+
     return {
         "receipt_id": receipt_id,
         "mandate_id": request.mandate_id,
         "decision": request.decision,
         "status": status,
-        "timestamp": datetime.now(timezone.utc).isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "trace_id": trace.trace_id if trace else None
     }
 
 @app.get("/api/receipts")

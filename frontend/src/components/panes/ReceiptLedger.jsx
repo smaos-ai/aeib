@@ -21,10 +21,11 @@ export default function ReceiptLedger() {
   }
 
   const actionIcon = (action) => {
-    if (!action) return '📝'
-    if (action.includes('authorize')) return '✅'
-    if (action.includes('revise')) return '🚫'
-    if (action.includes('submit')) return '📤'
+    const actionStr = action || ''
+    if (!actionStr) return '📝'
+    if (actionStr.includes('authorize')) return '✅'
+    if (actionStr.includes('revise')) return '🚫'
+    if (actionStr.includes('submit')) return '📤'
     return '📝'
   }
 
@@ -95,7 +96,7 @@ export default function ReceiptLedger() {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontWeight: '600', fontSize: '12px' }}>
-                        {receipt.timestamp?.slice(11, 19)} · {receipt.action.toUpperCase().replace(/\./g, ' ')}
+                        {receipt.timestamp?.slice(11, 19)} · {(receipt.action || receipt.payload?.action || 'unknown').toUpperCase().replace(/\./g, ' ')}
                       </div>
                       <div style={{ fontSize: '10px', color: '#666', marginTop: '2px' }}>
                         {receipt.alg} signature · {verifyStatus === true ? '✓ Verified' : verifyStatus === false ? '✗ Invalid' : '⏳ Unverified'}
@@ -114,7 +115,7 @@ export default function ReceiptLedger() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                       <span style={{ fontSize: '16px' }}>{actionIcon(receipt.action)}</span>
                       <div>
-                        <div style={{ fontWeight: 'bold', fontSize: '11px' }}>{receipt.action.toUpperCase()}</div>
+                        <div style={{ fontWeight: 'bold', fontSize: '11px' }}>{(receipt.action || receipt.payload?.action || 'unknown').toUpperCase()}</div>
                         <div style={{ fontSize: '9px', color: '#666' }}>{receipt.timestamp}</div>
                       </div>
                       <div style={{ marginLeft: 'auto' }}>

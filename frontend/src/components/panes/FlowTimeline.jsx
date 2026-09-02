@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { Card, H4, Tag, Button } from '@blueprintjs/core'
 
 const STATUS_CONFIG = {
@@ -37,7 +37,7 @@ export default function FlowTimeline() {
       try {
         const res = await fetch('http://127.0.0.1:8000/api/traces/?limit=20')
         const data = await res.json()
-        setTraces(data)
+        setTraces(data || [])
       } catch (err) {
         console.error('Failed to fetch traces:', err)
       }
@@ -48,7 +48,7 @@ export default function FlowTimeline() {
   }, [])
 
   // Load full trace
-  const loadTrace = useCallback(async (traceId) => {
+  const loadTrace = async (traceId) => {
     try {
       const res = await fetch(`http://127.0.0.1:8000/api/traces/${traceId}`)
       const data = await res.json()
@@ -58,10 +58,10 @@ export default function FlowTimeline() {
     } catch (err) {
       console.error('Failed to load trace:', err)
     }
-  }, [])
+  }
 
   // SSE live streaming
-  const startLiveStream = useCallback((traceId) => {
+  const startLiveStream = (traceId) => {
     if (eventSourceRef.current) {
       eventSourceRef.current.close()
     }
@@ -78,7 +78,7 @@ export default function FlowTimeline() {
     }
     es.onerror = () => es.close()
     eventSourceRef.current = es
-  }, [])
+  }
 
   // Toggle span expansion
   const toggleSpan = (spanId) => {
@@ -95,7 +95,7 @@ export default function FlowTimeline() {
     if (timelineRef.current) {
       timelineRef.current.scrollTop = timelineRef.current.scrollHeight
     }
-  }, [liveSpans, selectedTrace])
+  }, [liveSpans])
 
   const spans = selectedTrace?.spans
     ? Object.values(selectedTrace.spans).sort((a, b) => a.sequence - b.sequence)

@@ -87,6 +87,7 @@ export default function CenterWorkPane() {
         timestamp: new Date().toISOString(),
       })
       addReceipt(receipt)
+      resolveIntent(state.currentIntentId)
     } catch (error) {
       console.error('Revise failed:', error)
     }

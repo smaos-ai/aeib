@@ -213,7 +213,7 @@ export default function LeftIntentPane() {
           <div style={{ fontSize: '12px', fontWeight: '600', color: severityColor }}>
             {previewClassification.badgeLabel}
           </div>
-          {previewClassification.matchedRules.length > 0 && (
+          {previewClassification?.matchedRules?.length > 0 && (
             <div style={{ fontSize: '10px', color: '#333333', marginTop: '8px' }}>
               <strong>Rules triggered:</strong>
               {previewClassification.matchedRules.slice(0, 2).map((rule, i) => (
@@ -242,9 +242,9 @@ export default function LeftIntentPane() {
           <div style={{ fontSize: '13px', fontWeight: '600', color: severityColor, marginBottom: '8px' }}>
             {classification.badgeLabel}
           </div>
-          {classification.matchedRules.length > 0 && (
+          {classification?.matchedRules?.length > 0 && (
             <div style={{ fontSize: '11px', color: '#333333', lineHeight: '1.6' }}>
-              <strong>Triggered Rules ({classification.matchedRules.length}):</strong>
+              <strong>Triggered Rules ({classification?.matchedRules?.length}):</strong>
               {classification.matchedRules.map((rule, i) => (
                 <div key={i} style={{ marginTop: '5px', paddingLeft: '10px', borderLeft: `2px solid ${severityColor}` }}>
                   <strong>{rule.classification}</strong>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { Card, H4, ProgressBar, Tag, Button } from '@blueprintjs/core'
 import { buildDiamondGraph } from '../../lib/graphBuilder'
 import { getCapsule } from '../../lib/capsules'
@@ -91,6 +91,45 @@ export default function CenterWorkPane() {
       console.error('Revise failed:', error)
     }
   }
+
+  // Execution simulation: animate node progression after veto resolution
+  useEffect(() => {
+    if (!state.resolvedIntentId || state.resolvedIntentId !== state.currentIntentId || nodeList.length === 0) {
+      return // Wait for veto to be resolved
+    }
+
+    setExecutionPhase('executing')
+    const executionTimeout = useRef(null)
+    const nodeOrder = nodeList.filter(n => n.kind !== 'gate').map(n => n.id) // Execute non-gate nodes
+
+    let nodeIndex = 0
+    const animateNextNode = () => {
+      if (nodeIndex >= nodeOrder.length) {
+        setExecutionPhase('complete')
+        return
+      }
+
+      const nodeId = nodeOrder[nodeIndex]
+
+      // Mark as running
+      setNodeList(prev => prev.map(n => n.id === nodeId ? { ...n, status: 'running' } : n))
+
+      // Simulate work (500-800ms per node)
+      const delay = 500 + Math.random() * 300
+      executionTimeout.current = setTimeout(() => {
+        // Mark as success
+        setNodeList(prev => prev.map(n => n.id === nodeId ? { ...n, status: 'success' } : n))
+        nodeIndex++
+        animateNextNode()
+      }, delay)
+    }
+
+    animateNextNode()
+
+    return () => {
+      if (executionTimeout.current) clearTimeout(executionTimeout.current)
+    }
+  }, [state.resolvedIntentId, state.currentIntentId, nodeList.length])
 
   return (
     <div style={{ padding: '16px', overflowY: 'auto', height: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>

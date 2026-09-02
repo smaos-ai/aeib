@@ -1,11 +1,6 @@
 import React from 'react'
 import ReceiptLedger from './ReceiptLedger'
 import FlowTrace from './FlowTrace'
-import BoardDashboard from './BoardDashboard'
-import KillSwitch from './KillSwitch'
-import NetworkStatusWidget from './NetworkStatusWidget'
-import PoolStatusWidget from './PoolStatusWidget'
-import DriftIndicator from './DriftIndicator'
 
 export default function RightInspectorPane() {
   return (
@@ -17,19 +12,6 @@ export default function RightInspectorPane() {
 
       {/* Receipt Ledger (proof layer) */}
       <ReceiptLedger />
-
-      <hr style={{ margin: '8px 0', border: 'none', borderTop: '1px solid #cccccc' }} />
-
-      {/* Board Dashboard */}
-      <BoardDashboard />
-
-      <hr style={{ margin: '8px 0', border: 'none', borderTop: '1px solid #cccccc' }} />
-
-      {/* Control & monitoring widgets */}
-      <KillSwitch />
-      <NetworkStatusWidget />
-      <PoolStatusWidget />
-      <DriftIndicator />
     </div>
   )
 }

@@ -150,22 +150,45 @@ export default function LeftIntentPane() {
                   labelInfo={field.required ? '(required)' : '(optional)'}
                   style={{ marginBottom: '0' }}
                 >
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    {field.type === 'select' ? (
-                      <HTMLSelect
-                        value={fields[field.name] || ''}
-                        onChange={(e) => handleFieldChange(field.name, e.target.value)}
-                        onFocus={() => setFocusedField(field.name)}
-                        onBlur={() => setFocusedField(null)}
-                        disabled={submitting}
-                        style={{ flex: 1 }}
-                      >
-                        <option value="">— Select —</option>
-                        {field.options?.map(opt => (
-                          <option key={opt} value={opt}>{opt}</option>
-                        ))}
-                      </HTMLSelect>
-                    ) : field.type === 'number' ? (
+                  {field.type === 'select' ? (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px' }}>
+                      {field.options?.map(opt => (
+                        <div
+                          key={opt}
+                          onClick={() => handleFieldChange(field.name, opt)}
+                          style={{
+                            padding: '10px 12px',
+                            border: fields[field.name] === opt ? '2px solid #0066cc' : '1px solid #cccccc',
+                            borderRadius: '6px',
+                            background: fields[field.name] === opt ? '#e8f4ff' : '#ffffff',
+                            cursor: submitting ? 'not-allowed' : 'pointer',
+                            opacity: submitting ? 0.6 : 1,
+                            textAlign: 'center',
+                            fontSize: '12px',
+                            fontWeight: fields[field.name] === opt ? '600' : '500',
+                            color: fields[field.name] === opt ? '#0066cc' : '#333333',
+                            transition: 'all 0.2s ease',
+                            userSelect: 'none',
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!submitting) {
+                              e.target.style.borderColor = '#0066cc'
+                              e.target.style.background = '#f5f5f5'
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (fields[field.name] !== opt) {
+                              e.target.style.borderColor = '#cccccc'
+                              e.target.style.background = '#ffffff'
+                            }
+                          }}
+                        >
+                          {opt} {fields[field.name] === opt && '✓'}
+                        </div>
+                      ))}
+                    </div>
+                  ) : field.type === 'number' ? (
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                       <InputGroup
                         type="number"
                         value={fields[field.name] || ''}
@@ -176,7 +199,10 @@ export default function LeftIntentPane() {
                         placeholder={`Enter ${field.label.toLowerCase()}`}
                         style={{ flex: 1 }}
                       />
-                    ) : (
+                      {filled && <span style={{ color: '#00aa00', fontSize: '14px' }}>✓</span>}
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                       <InputGroup
                         type="text"
                         value={fields[field.name] || ''}
@@ -187,9 +213,9 @@ export default function LeftIntentPane() {
                         placeholder={`Enter ${field.label.toLowerCase()}`}
                         style={{ flex: 1 }}
                       />
-                    )}
-                    {filled && <span style={{ color: '#00aa00', fontSize: '14px' }}>✓</span>}
-                  </div>
+                      {filled && <span style={{ color: '#00aa00', fontSize: '14px' }}>✓</span>}
+                    </div>
+                  )}
                 </FormGroup>
               </div>
             )

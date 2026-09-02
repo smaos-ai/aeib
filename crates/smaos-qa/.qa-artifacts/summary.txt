@@ -1,7 +1,7 @@
 SMAOS QA Pipeline Completion Report
 =====================================
-Timestamp: 2026-09-02T14:05:24.935734+00:00
-Root Hash: af2cb689f246f7eadb36cd3eb15dce44bf165b1237fac334e62fe9999cc2bc3c
+Timestamp: 2026-09-02T14:11:03.825388+00:00
+Root Hash: 1b487d888e8fa1f9f379ef7b06a5777c5a188d539e76c4b046a0d4f99c677348
 Consensus: 2/4 agents passed
 Readiness: Ready
 Gate 4 Duration: 5000ms

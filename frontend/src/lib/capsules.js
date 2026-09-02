@@ -55,7 +55,7 @@ export const treasuryBaselIII = {
   intentFields: [
     { name: 'counterpartyName', label: 'Counterparty Name', type: 'text', required: true },
     { name: 'instrumentType', label: 'Instrument Type', type: 'select', options: ['Loan', 'Bond', 'Derivative', 'Equity'], required: true },
-    { name: 'amountEUR', label: 'Amount (EUR)', type: 'number', required: true },
+    { name: 'amountEUR', label: 'Amount (EUR)', type: 'select', options: ['€10M', '€25M', '€50M', '€75M', '€100M', '€250M'], required: true },
     { name: 'capitalImpact', label: 'Capital Impact', type: 'select', options: ['CAR-Impacting', 'Non-Impacting'], required: true },
   ],
   toolCatalog: [
@@ -67,7 +67,12 @@ export const treasuryBaselIII = {
   riskRules: [
     {
       id: 'large_amount_threshold',
-      test: (fields) => parseInt(fields.amountEUR) > 50000000, // EUR 50M threshold
+      test: (fields) => {
+        const amt = fields.amountEUR || ''
+        const numStr = amt.replace(/€|M/g, '')
+        const numVal = parseInt(numStr) * 1000000
+        return numVal > 50000000
+      },
       classification: 'Basel III / CAR-Impacting Decision',
       citation: `Basel III Capital Requirements Directive (CRD IV/V)
 Clause: Transactions exceeding EUR 50M in notional amount require governance review.

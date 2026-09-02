@@ -20,7 +20,6 @@ export default function CenterWorkPane() {
   const [nodeList, setNodeList] = useState([])
   const [executionPhase, setExecutionPhase] = useState('idle') // idle, preparing, executing, decision, complete
   const [startTime, setStartTime] = useState(null)
-  const executionTimeoutRef = useRef(null)
 
   useEffect(() => {
     const currentIntent = state.intents[state.intents.length - 1]
@@ -93,43 +92,6 @@ export default function CenterWorkPane() {
     }
   }
 
-  // Execution simulation: animate node progression after veto resolution
-  useEffect(() => {
-    if (!state.resolvedIntentId || state.resolvedIntentId !== state.currentIntentId || nodeList.length === 0) {
-      return // Wait for veto to be resolved
-    }
-
-    setExecutionPhase('executing')
-    const nodeOrder = nodeList.filter(n => n.kind !== 'gate').map(n => n.id) // Execute non-gate nodes
-
-    let nodeIndex = 0
-    const animateNextNode = () => {
-      if (nodeIndex >= nodeOrder.length) {
-        setExecutionPhase('complete')
-        return
-      }
-
-      const nodeId = nodeOrder[nodeIndex]
-
-      // Mark as running
-      setNodeList(prev => prev.map(n => n.id === nodeId ? { ...n, status: 'running' } : n))
-
-      // Simulate work (500-800ms per node)
-      const delay = 500 + Math.random() * 300
-      executionTimeoutRef.current = setTimeout(() => {
-        // Mark as success
-        setNodeList(prev => prev.map(n => n.id === nodeId ? { ...n, status: 'success' } : n))
-        nodeIndex++
-        animateNextNode()
-      }, delay)
-    }
-
-    animateNextNode()
-
-    return () => {
-      if (executionTimeoutRef.current) clearTimeout(executionTimeoutRef.current)
-    }
-  }, [state.resolvedIntentId, state.currentIntentId, nodeList.length])
 
   return (
     <div style={{ padding: '16px', overflowY: 'auto', height: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>

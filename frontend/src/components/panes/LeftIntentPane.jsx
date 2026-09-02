@@ -153,9 +153,10 @@ export default function LeftIntentPane() {
                   {field.type === 'select' ? (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px' }}>
                       {field.options?.map(opt => (
-                        <div
+                        <button
                           key={opt}
                           onClick={() => handleFieldChange(field.name, opt)}
+                          disabled={submitting}
                           style={{
                             padding: '10px 12px',
                             border: fields[field.name] === opt ? '2px solid #0066cc' : '1px solid #cccccc',
@@ -170,21 +171,9 @@ export default function LeftIntentPane() {
                             transition: 'all 0.2s ease',
                             userSelect: 'none',
                           }}
-                          onMouseEnter={(e) => {
-                            if (!submitting) {
-                              e.target.style.borderColor = '#0066cc'
-                              e.target.style.background = '#f5f5f5'
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            if (fields[field.name] !== opt) {
-                              e.target.style.borderColor = '#cccccc'
-                              e.target.style.background = '#ffffff'
-                            }
-                          }}
                         >
                           {opt} {fields[field.name] === opt && '✓'}
-                        </div>
+                        </button>
                       ))}
                     </div>
                   ) : field.type === 'number' ? (

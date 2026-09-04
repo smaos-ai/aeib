@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-09-04T23:38:59.780348",
+  "merkle_root": "628c8fb79bbaef6a687b8e61d98f9556159c2305659fcdfa571865feb98c41b8",
+  "work_receipt_count": 1260,
+  "leaf_count": 1260,
+  "signature": "8f3131dda679c8c127b2b81c8097b7c340262aa3f9081890238bf1c55d0082f2e39c68df0a468356847b82f89343cb7820e5d1197c14216679dd6580027bf02b",
+  "signature_algorithm": "Ed25519",
+  "public_key": "ed25519_key_001",
+  "git_project": "SovereignNexus",
+  "compliance_checkpoint": "RAGAS_87_target"
+}

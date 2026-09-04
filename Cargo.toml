@@ -10,6 +10,15 @@ members = [
   "crates/l8-proof",
   "crates/smaos-qa",
   "crates/siss-compliance", "crates/l2b-federated-consensus", "crates/l9-governance-api", "crates/l10-did-registry", "crates/l11-ap2-settlement",
+  "crates/siss-a2a-ipc",
+  "crates/siss-a2a-protocol",
+  "crates/siss-planner-agent",
+  "crates/siss-compliance-agent",
+  "crates/siss-evidence-agent",
+  "crates/siss-local-llm",
+  "crates/siss-chaos-petri",
+  "crates/siss-ai-factory",
+  "crates/siss-hardware-accel",
 ]
 resolver = "2"
 
@@ -41,3 +50,13 @@ sha2 = "0.10"
 ed25519-dalek = "2.1"
 hex = "0.4"
 rand = "0.8"
+async-trait = "0.1"
+dashmap = "5"
+base64 = "0.21"
+testcontainers = "0.18"
+serde_yaml = "0.9"
+futures = "0.3"
+regex = "1"
+tracing = "0.1"
+parking_lot = "0.12"
+lru = "0.12"

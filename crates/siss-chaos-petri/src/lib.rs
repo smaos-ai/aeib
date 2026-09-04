@@ -26,6 +26,7 @@
 //!
 //! Test Matrix: 15 failure scenarios (all must pass before Phase 2 sign-off)
 
+pub mod physics_validator;
 pub mod scenarios;
 
 use chrono::{DateTime, Duration, Utc};

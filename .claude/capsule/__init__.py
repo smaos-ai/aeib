@@ -1,1 +1,0 @@
-"""CAPSULE cryptographic integrity module."""

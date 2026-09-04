@@ -1,8 +1,0 @@
-[
-  {
-    "event": "kanban_init",
-    "timestamp": "2026-05-30T18:00:00Z",
-    "merkle_root": "d7d4e7dc81de68af40ab3a1422cf10c53c1bcf4fb7d7221cd7ea33fde65b7c84",
-    "source": "test"
-  }
-]{"event":"AXIOM_PATENT_FILING_TRANSMITTED","timestamp":"2026-06-02T00:18:11Z","counsel":"Zysman Law (Pearl Cohen Zedek)","families":"RCE+NightCycle+IVB","status":"transmitted_to_counsel_awaiting_USPTO_ILPO_filing","ukraine_deployment_plan":"July-October 2026","merkle_root":"e63c3a6738e97fdb126c6a22b1995489b983155b","covenant":"1%/99% sealed","mode":"personal-only_air-gapped"}

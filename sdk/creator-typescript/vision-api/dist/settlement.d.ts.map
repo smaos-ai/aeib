@@ -1,1 +1,0 @@
-{"version":3,"file":"settlement.d.ts","sourceRoot":"","sources":["../src/settlement.ts"],"names":[],"mappings":"AAAA,MAAM,WAAW,gBAAgB;IAC/B,OAAO,EAAE,MAAM,CAAC;IAChB,QAAQ,EAAE,MAAM,CAAC;CAClB;AAED,wBAAgB,cAAc,CAAC,WAAW,EAAE,MAAM,GAAG,gBAAgB,CAKpE"}

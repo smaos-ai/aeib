@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: ai.sovereign.code.controller.IngestionControllerTest
--------------------------------------------------------------------------------
-Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.116 s -- in ai.sovereign.code.controller.IngestionControllerTest

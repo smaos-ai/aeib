@@ -1,5 +1,0 @@
-- generic [active] [ref=f26e1]:
-  - main [ref=f26e2]:
-    - paragraph [ref=f26e7]: Loading governance dashboard...
-  - button "Open Next.js Dev Tools" [ref=f26e13] [cursor=pointer]
-  - alert [ref=f26e17]

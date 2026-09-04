@@ -1,9 +1,0 @@
-[package]
-name = "siss-merkle-replicator"
-edition.workspace = true
-version.workspace = true
-license.workspace = true
-
-[dependencies]
-sha2.workspace = true
-chrono.workspace = true

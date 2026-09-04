@@ -19,12 +19,16 @@ pub mod state_snapshot;
 pub mod chaos_scenarios;
 pub mod recovery_validator;
 pub mod machine_registry;
+pub mod expert_router;
+pub mod expert_cache;
 
 pub use deterministic_replayer::{DeterministicReplayer, ExecutionTrace, ExecutionResult, ToolCall, ToolResult};
 pub use state_snapshot::{StateSnapshot, AgentState};
 pub use chaos_scenarios::{AiFactoryChaosScenario, ChaosInjectionResult};
 pub use recovery_validator::RecoveryValidator;
 pub use machine_registry::{MachineRegistry, MachineMeta, HealthReport};
+pub use expert_router::{ExpertRouter, ExpertDomain, ModelId};
+pub use expert_cache::{ExpertCache, MockInferenceModel};
 
 pub mod error;
 pub use error::{AiFactoryError, Result};

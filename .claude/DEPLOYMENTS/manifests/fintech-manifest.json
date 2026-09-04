@@ -1,9 +1,0 @@
-{
-  "deployment_id": "pilot-20260527-090150",
-  "customer": "fintech",
-  "timestamp": "2026-05-27T09:02:15+02:00",
-  "status": "deployed",
-  "test_data_file": "/Users/andriileukhin/Documents/SovereignNexus/.claude/DEPLOYMENTS/manifests/fintech-testdata.json",
-  "terraform_logs": "/Users/andriileukhin/Documents/SovereignNexus/.claude/DEPLOYMENTS/logs/fintech-terraform.log",
-  "validation_status": "PASSED"
-}

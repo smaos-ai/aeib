@@ -9,7 +9,7 @@ members = [
   "crates/l7-ragas",
   "crates/l8-proof",
   "crates/smaos-qa",
-  "crates/siss-compliance", "crates/l2b-federated-consensus",
+  "crates/siss-compliance", "crates/l2b-federated-consensus", "crates/l9-governance-api", "crates/l10-did-registry", "crates/l11-ap2-settlement",
 ]
 resolver = "2"
 

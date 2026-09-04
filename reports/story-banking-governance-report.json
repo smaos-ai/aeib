@@ -1,0 +1,43 @@
+{
+  "receipt_id": "rcpt-e3f78efc",
+  "story_id": "Basel III Treasury Veto Gate Verification",
+  "status": "COMPLETED",
+  "verdict": "PARTIAL_FAILURE",
+  "steps_total": 3,
+  "steps_passed": 1,
+  "merkle_root": "664b813b0dae98323d52b0dde63b3290eb7c83bae95bb51975d3fa8277d7be4a",
+  "signature": "sig:ed25519:609eed168b21566c5fc7f6f53b96e869",
+  "spans": [
+    {
+      "span_id": "span-96be0c99",
+      "name": "Step 1: Trigger Capital Optimization Scenario",
+      "type": "API_CALL",
+      "status": "FAILED",
+      "duration_ms": 1,
+      "leaf_hash": "97dfba14a5d7615de2441f420ab46ee9dc5ef2f693cb0d2b7f10750ea4c955d9",
+      "error": "Expected status 200, got 422",
+      "timestamp": 1788557958
+    },
+    {
+      "span_id": "span-4a0a2330",
+      "name": "Step 2: SSE Stream Intercept & Layer 7 Veto Halt Detection",
+      "type": "EVENT_LISTENER",
+      "status": "SUCCESS",
+      "duration_ms": 501,
+      "leaf_hash": "e44ed7191d91d7807ef055ef6892ca7dd0db808ba5d7083bb5f95c716f913247",
+      "error": "",
+      "timestamp": 1788557958
+    },
+    {
+      "span_id": "span-8592e628",
+      "name": "Step 3: CRO Authorization & Ed25519 Signature Override",
+      "type": "USER_INTERACTION",
+      "status": "FAILED",
+      "duration_ms": 5,
+      "leaf_hash": "47ed29e10bd43f228ef64fed71a720184210f8ae4180f5291a050af84789412b",
+      "error": "Expected status 200, got 422",
+      "timestamp": 1788557958
+    }
+  ],
+  "timestamp": "2026-09-04T21:39:18.734756+00:00"
+}

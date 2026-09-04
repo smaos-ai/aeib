@@ -1,0 +1,93 @@
+{
+  "timestamp": "2026-09-04T19:02:11.222023",
+  "total_available": 5000,
+  "verified_for_banking": 10,
+  "categories": {
+    "compliance": 4,
+    "risk": 3,
+    "security": 1,
+    "governance": 2
+  },
+  "sample_skills": [
+    {
+      "id": "skill_aml_001",
+      "name": "AML Transaction Check",
+      "category": "compliance",
+      "verified": true,
+      "verified_by": "DisCo AREX",
+      "description": "Check transaction against AML/CFT rules"
+    },
+    {
+      "id": "skill_credit_001",
+      "name": "Credit Risk Assessment",
+      "category": "risk",
+      "verified": true,
+      "verified_by": "DisCo AREX",
+      "description": "Assess creditworthiness of counterparty"
+    },
+    {
+      "id": "skill_kyc_001",
+      "name": "KYC Verification",
+      "category": "compliance",
+      "verified": true,
+      "verified_by": "DisCo AREX",
+      "description": "Verify customer identity and documents"
+    },
+    {
+      "id": "skill_fraud_001",
+      "name": "Fraud Detection",
+      "category": "security",
+      "verified": true,
+      "verified_by": "DisCo AREX",
+      "description": "Detect fraudulent transaction patterns"
+    },
+    {
+      "id": "skill_settlement_001",
+      "name": "Settlement Risk Check",
+      "category": "risk",
+      "verified": true,
+      "verified_by": "DisCo AREX",
+      "description": "Assess settlement risk for payment"
+    },
+    {
+      "id": "skill_fx_001",
+      "name": "FX Rate Validation",
+      "category": "compliance",
+      "verified": true,
+      "verified_by": "DisCo AREX",
+      "description": "Validate FX rates against market data"
+    },
+    {
+      "id": "skill_counterparty_001",
+      "name": "Counterparty Risk Rating",
+      "category": "risk",
+      "verified": true,
+      "verified_by": "DisCo AREX",
+      "description": "Rate counterparty credit risk"
+    },
+    {
+      "id": "skill_compliance_001",
+      "name": "Regulatory Reporting",
+      "category": "compliance",
+      "verified": true,
+      "verified_by": "DisCo AREX",
+      "description": "Generate regulatory compliance reports"
+    },
+    {
+      "id": "skill_audit_001",
+      "name": "Audit Trail Generation",
+      "category": "governance",
+      "verified": true,
+      "verified_by": "DisCo AREX",
+      "description": "Generate immutable audit trail"
+    },
+    {
+      "id": "skill_authorization_001",
+      "name": "Authorization Gate",
+      "category": "governance",
+      "verified": true,
+      "verified_by": "DisCo AREX",
+      "description": "Enforce human authorization requirements"
+    }
+  ]
+}

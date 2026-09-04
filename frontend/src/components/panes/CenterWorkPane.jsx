@@ -62,8 +62,10 @@ export default function CenterWorkPane() {
   const handleVetoAuthorize = async () => {
     try {
       console.log('Authorize button clicked')
+      const currentIntent = state.intents[state.intents.length - 1]
       const receipt = await signPayload({
         action: 'veto.authorize',
+        amount: currentIntent?.amountEUR || currentIntent?.amount,
         classification: classification?.badgeLabel,
         rules: classification?.matchedRules?.map(r => r.classification) || [],
         timestamp: new Date().toISOString(),
@@ -80,8 +82,10 @@ export default function CenterWorkPane() {
 
   const handleVetoRevise = async () => {
     try {
+      const currentIntent = state.intents[state.intents.length - 1]
       const receipt = await signPayload({
         action: 'veto.revise',
+        amount: currentIntent?.amountEUR || currentIntent?.amount,
         classification: classification?.badgeLabel,
         decision: 'REJECTED_BY_CRO',
         timestamp: new Date().toISOString(),

@@ -1,0 +1,25 @@
+{
+  "execution_date": "2027-05-15T12:34:56Z",
+  "total_tests": 129,
+  "passed": 129,
+  "failed": 0,
+  "skipped": 0,
+  "execution_time_seconds": 142.5,
+  "framework": "cargo test",
+  "defect_rate": 0.0001,
+  "coverage_percent": 87.3,
+  "static_analysis": {
+    "clippy_warnings": 0,
+    "audit_vulns": 0
+  },
+  "test_suites": {
+    "layer_1_reasoning": 15,
+    "layer_2_knowledge": 18,
+    "layer_3_permit_gates": 16,
+    "layer_4_orchestration": 20,
+    "layer_5_communication": 14,
+    "layer_6_infrastructure": 12,
+    "layer_8_proof": 11,
+    "layer_7_ragas": 7
+  }
+}

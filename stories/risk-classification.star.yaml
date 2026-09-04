@@ -1,0 +1,49 @@
+story: "Risk Classification Engine Verification"
+description: "Verify that the classification engine correctly identifies high-risk intents"
+
+setup:
+  database: "/tmp/agentacct_star_test.db"
+  backend_url: "http://127.0.0.1:8000"
+  capsule: "Treasury"
+
+trace:
+  - step: 1
+    name: "Submit low-risk intent"
+    action: "POST /api/execute"
+    payload:
+      capsule: "treasuryBaselIII"
+      intent:
+        amount: "€100000"
+        description: "Routine transfer"
+    expect:
+      status_code: 200
+    timeout_seconds: 5
+
+  - step: 2
+    name: "Verify classification returns low severity"
+    action: "GET /api/traces/{trace_id}"
+    expect:
+      status_code: 200
+    timeout_seconds: 5
+
+  - step: 3
+    name: "Record classification result"
+    action: "POST /api/rce/decision"
+    payload:
+      decision: "accept"
+    expect:
+      status_code: 200
+    timeout_seconds: 5
+
+assertions:
+  - name: "Low-risk intent classified correctly"
+    type: "classification"
+    validation: "Span type contains 'classification' with severity != 'block'"
+
+success_criteria:
+  steps_passed: 3
+  no_false_positives: true
+
+metadata:
+  created_at: "2026-09-04T00:00:00Z"
+  version: "1.0.0"

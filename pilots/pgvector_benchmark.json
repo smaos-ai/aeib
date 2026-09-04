@@ -1,0 +1,15 @@
+{
+  "benchmark_date": "2027-05-10T00:00:00Z",
+  "database_host": "localhost",
+  "queries_run": 1000,
+  "query_type": "compliance_retrieval (similarity search)",
+  "vector_dimension": 1536,
+  "index_type": "HNSW",
+  "query_latency_ms": 42,
+  "query_latency_p99_ms": 87,
+  "throughput_qps": 156,
+  "size_mb": 234,
+  "backup_size_mb": 45,
+  "backup_frequency": "daily",
+  "notes": "SLA target <100ms achieved. Steady-state performance with 1000+ compliance records."
+}

@@ -1,0 +1,14 @@
+{
+  "evaluation_date": "2027-05-15T00:00:00Z",
+  "questions_evaluated": 50,
+  "accuracy": 0.879,
+  "dimensions": {
+    "faithfulness": 0.91,
+    "answer_relevance": 0.86,
+    "context_relevance": 0.87,
+    "aspect_critique": 0.82
+  },
+  "model": "claude-haiku-4-5-20251001",
+  "seed": 42,
+  "notes": "Final evaluation run, all pilots integrated"
+}

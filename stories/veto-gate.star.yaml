@@ -1,0 +1,48 @@
+story: "Veto Gate Halt Verification"
+description: "Verify that Layer 7 veto gate halts execution correctly"
+
+setup:
+  database: "/tmp/agentacct_star_test.db"
+  backend_url: "http://127.0.0.1:8000"
+  capsule: "Treasury"
+
+trace:
+  - step: 1
+    name: "Submit high-risk intent"
+    action: "POST /api/execute"
+    payload:
+      capsule: "treasuryBaselIII"
+      intent:
+        amount: "€5000000"
+        description: "Large transfer CAR breach"
+    expect:
+      status_code: 200
+    timeout_seconds: 5
+
+  - step: 2
+    name: "Stream SSE and detect veto halt"
+    action: "STREAM /api/rce/stream"
+    expect:
+      event_type: "veto_halt"
+      layer: 7
+    timeout_seconds: 5
+
+  - step: 3
+    name: "Confirm execution suspended"
+    action: "GET /api/traces/{trace_id}"
+    expect:
+      status_code: 200
+    timeout_seconds: 5
+
+assertions:
+  - name: "Veto gate triggered on high-risk"
+    type: "gate_halt"
+    validation: "Span contains veto_halt event with layer=7"
+
+success_criteria:
+  steps_passed: 3
+  veto_halt_detected: true
+
+metadata:
+  created_at: "2026-09-04T00:00:00Z"
+  version: "1.0.0"

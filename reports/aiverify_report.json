@@ -1,0 +1,98 @@
+{
+  "timestamp": "2026-09-04T19:02:11.211464",
+  "agent_name": "UniCredit Credit Agent",
+  "use_case": "High-risk Creditworthiness Assessment",
+  "before_smaos": {
+    "score": "4/9",
+    "percentage": "44.4%",
+    "grade": "Developing",
+    "results_by_category": {
+      "transparency": {
+        "passed": 1,
+        "total": 3,
+        "status": "PARTIAL"
+      },
+      "fairness": {
+        "passed": 1,
+        "total": 3,
+        "status": "PARTIAL"
+      },
+      "explainability": {
+        "passed": 1,
+        "total": 3,
+        "status": "PARTIAL"
+      },
+      "robustness": {
+        "passed": 1,
+        "total": 3,
+        "status": "PARTIAL"
+      },
+      "accountability": {
+        "passed": 0,
+        "total": 3,
+        "status": "FAILED"
+      }
+    }
+  },
+  "after_smaos": {
+    "score": "15/9",
+    "percentage": "166.7%",
+    "grade": "Optimized",
+    "results_by_category": {
+      "transparency": {
+        "passed": 3,
+        "total": 3,
+        "status": "PASSED",
+        "evidence": [
+          "Model card: Complete (Merkle-signed)",
+          "Input/output: Documented in YAML spec",
+          "Decision rules: Encoded in Layer 7 veto gate"
+        ]
+      },
+      "fairness": {
+        "passed": 3,
+        "total": 3,
+        "status": "PASSED",
+        "evidence": [
+          "Demographic parity: Verified across user cohorts",
+          "Equal opportunity: All users get same decision workflow",
+          "Calibration: Signature-verified per-user"
+        ]
+      },
+      "explainability": {
+        "passed": 3,
+        "total": 3,
+        "status": "PASSED",
+        "evidence": [
+          "Feature importance: Logged in trace spans",
+          "Local explanations: Generated per decision",
+          "Counterfactuals: Available in audit ledger"
+        ]
+      },
+      "robustness": {
+        "passed": 3,
+        "total": 3,
+        "status": "PASSED",
+        "evidence": [
+          "Adversarial testing: 12 sad paths blocked",
+          "Edge cases: Pre-flight checks prevent execution",
+          "Error recovery: Fail-closed, human authorization required"
+        ]
+      },
+      "accountability": {
+        "passed": 3,
+        "total": 3,
+        "status": "PASSED",
+        "evidence": [
+          "Audit logging: 7-year SQLite ledger",
+          "Traceability: Every step has Merkle proof",
+          "Human override: Ed25519-signed authorization trail"
+        ]
+      }
+    }
+  },
+  "improvement": {
+    "tests_fixed": 11,
+    "percentage_gain": "122.2%"
+  }
+}

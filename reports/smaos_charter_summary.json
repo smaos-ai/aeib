@@ -1,0 +1,124 @@
+{
+  "entity": {
+    "name": "SMAOS s.r.o.",
+    "legal_form": "Společnost s ručením omezeným (LLC)",
+    "jurisdiction": "Czech Republic",
+    "registered_address": "Dykova 1117/21, 130 00 Praha 3, Czech Republic",
+    "registration_number": "TBD (in preparation for notary filing)",
+    "registered_capital": "20,000 CZK",
+    "currency": "Czech Koruna (CZK)"
+  },
+  "business_purpose": [
+    "Development and operation of autonomous governance systems",
+    "AI agent orchestration and risk classification",
+    "Regulatory compliance automation",
+    "Cryptographic proof layer for financial systems"
+  ],
+  "founders": [
+    {
+      "name": "Andrej Leukhin",
+      "email": "andrejlo123@gmail.com",
+      "role": "Founder & Lead Engineer",
+      "equity_percent": 100
+    }
+  ],
+  "governance_structure": {
+    "managing_partner": "Andrej Leukhin",
+    "board": "Single managing partner",
+    "audit_required": false,
+    "accounting_simplified": true
+  },
+  "compliance_framework": {
+    "eu_ai_act": {
+      "classification": "High-Risk AI System (Article 6)",
+      "annex_iii_triggers": [
+        "Creditworthiness assessment",
+        "Personal data processing"
+      ],
+      "controls_implemented": [
+        "Transparency (Layer 7)",
+        "Human oversight gate",
+        "Audit logging (Layer 8)",
+        "Adversarial testing (12 attack scenarios)"
+      ]
+    },
+    "gdpr": {
+      "data_controller": "SMAOS s.r.o.",
+      "processing_bases": [
+        "Explicit user consent (Annex III)",
+        "Legitimate business interest (treasury risk)"
+      ],
+      "retention": "7-year audit trail (cryptographically sealed)"
+    },
+    "basel_iii": {
+      "applicable": "Yes (treasury pilots)",
+      "cet1_minimum": "8.0%",
+      "monitoring": "Real-time via Layer 6 circuit breaker"
+    }
+  },
+  "intellectual_property": {
+    "source_code": "Proprietary (not open-source)",
+    "licensed_under": "SMAOS Company Proprietary License v1.0",
+    "third_party_licenses": [
+      "Blueprint.js (Apache 2.0)",
+      "@xyflow/react (MIT)",
+      "FastAPI (MIT)",
+      "SQLite (Public Domain)"
+    ]
+  },
+  "financial_summary": {
+    "registered_capital_czk": 20000,
+    "phase_1_budget": "Undisclosed (Series A preparation)",
+    "karp_voucher": {
+      "status": "In preparation",
+      "amount_czk": 120000,
+      "submission_deadline": "2026-09-22",
+      "contact": "Romana Cernikova"
+    },
+    "next_funding": {
+      "target": "BIC Plzeń 1M CZK investment",
+      "timeline": "Post Phase 1 completion (Jun 2027)",
+      "use_case": "Production deployment + 3 live pilots"
+    }
+  },
+  "key_dates": {
+    "entity_formation": "2026-08-31",
+    "phase_1_delivery": "2026-05-31",
+    "phase_2_start": "2026-06-01",
+    "annex_iii_compliance": "2027-12-02",
+    "annex_i_compliance": "2028-08-02",
+    "eu_database_registration": "2027-Q4"
+  },
+  "notary_filing_checklist": {
+    "document_name": "SMAOS s.r.o. Charter & Memorandum of Association",
+    "notary": "JUDr. Kamil Hradský",
+    "filing_date": "2026-09-08",
+    "required_documents": [
+      "Charter text (Czech language)",
+      "Founder identification",
+      "Registered capital proof",
+      "HQ lease agreement (Dykova 1117/21)",
+      "Compliance framework summary",
+      "WIRING_MANIFEST.json (5 systems)",
+      "EU Compliance Report (541→1161 score)",
+      "Performance baseline metrics",
+      "Sample cryptographic receipt (Ed25519)",
+      "RAGAS golden set (50 questions, 87%+ accuracy)"
+    ]
+  },
+  "regulatory_contacts": {
+    "czech_ministry_of_industry_and_trade": {
+      "entity": "Czech Ministry of Industry and Trade",
+      "contact": "TBD",
+      "purpose": "EU AI Act notification (high-risk system)"
+    },
+    "office_for_personal_data_protection": {
+      "entity": "Office for Personal Data Protection (UOOOU)",
+      "dpia_reference": "Data Protection Impact Assessment (DPIA) pending"
+    },
+    "czech_national_bank": {
+      "entity": "Czech National Bank (CNB)",
+      "notification": "Basel III compliance monitoring (treasury pilots)"
+    }
+  }
+}

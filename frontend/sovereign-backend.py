@@ -313,6 +313,255 @@ async def get_receipt(mandate_id: str):
     }
 
 # ============================================================================
+# PHASE 3: SSE STREAMING ENDPOINTS
+# ============================================================================
+
+@app.get("/sse/compliance")
+async def sse_compliance():
+    """Stream EU compliance checker results in real-time"""
+
+    reports_dir = Path(__file__).parent.parent / "reports"
+    report_path = reports_dir / "eu_compliance_report.json"
+
+    async def event_generator():
+        try:
+            with open(report_path, 'r') as f:
+                report = json.load(f)
+
+            # Stream header
+            yield f"data: {json.dumps({'type': 'header', 'message': 'EU Compliance Check Starting'})}\n\n"
+            await asyncio.sleep(0.2)
+
+            # Stream before state
+            yield f"data: {json.dumps({'type': 'before', 'data': report.get('before_smaos', {})})}\n\n"
+            await asyncio.sleep(0.5)
+
+            # Stream improvements progressively
+            improvements = report.get('after_smaos', {}).get('improvements', {})
+            for key, value in improvements.items():
+                yield f"data: {json.dumps({'type': 'improvement', 'key': key, 'value': value})}\n\n"
+                await asyncio.sleep(0.3)
+
+            # Stream final after state
+            yield f"data: {json.dumps({'type': 'after', 'data': report.get('after_smaos', {})})}\n\n"
+            await asyncio.sleep(0.2)
+
+            # Stream compliance lift
+            yield f"data: {json.dumps({'type': 'summary', 'compliance_lift': report.get('compliance_lift', {})})}\n\n"
+
+            # Complete
+            yield f"data: {json.dumps({'type': 'complete', 'status': 'EU_COMPLIANCE_VERIFIED'})}\n\n"
+
+        except FileNotFoundError:
+            yield f"data: {json.dumps({'type': 'error', 'message': 'Report not found'})}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no"
+        }
+    )
+
+@app.get("/sse/verify")
+async def sse_verify():
+    """Stream AI Verify test progression in real-time"""
+
+    reports_dir = Path(__file__).parent.parent / "reports"
+    report_path = reports_dir / "aiverify_report.json"
+
+    async def event_generator():
+        try:
+            with open(report_path, 'r') as f:
+                report = json.load(f)
+
+            # Stream header
+            yield f"data: {json.dumps({'type': 'header', 'message': 'AI Verify Test Suite Running'})}\n\n"
+            await asyncio.sleep(0.3)
+
+            # Stream test categories
+            categories = ['transparency', 'fairness', 'explainability', 'robustness', 'accountability']
+            before_results = report.get('before_smaos', {}).get('results_by_category', {})
+
+            for category in categories:
+                before_cat = before_results.get(category, {})
+                yield f"data: {json.dumps({'type': 'before_test', 'category': category, 'status': before_cat.get('status', 'UNKNOWN')})}\n\n"
+                await asyncio.sleep(0.3)
+
+            # Stream after results
+            after_results = report.get('after_smaos', {}).get('results_by_category', {})
+            for category, result in after_results.items():
+                yield f"data: {json.dumps({'type': 'after_test', 'category': category, 'result': result})}\n\n"
+                await asyncio.sleep(0.4)
+
+            # Stream improvement summary
+            improvement = report.get('improvement', {})
+            yield f"data: {json.dumps({'type': 'summary', 'improvement': improvement})}\n\n"
+
+            # Complete
+            yield f"data: {json.dumps({'type': 'complete', 'status': 'AI_VERIFY_OPTIMIZED'})}\n\n"
+
+        except FileNotFoundError:
+            yield f"data: {json.dumps({'type': 'error', 'message': 'Report not found'})}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no"
+        }
+    )
+
+@app.get("/sse/adversarial")
+async def sse_adversarial():
+    """Stream adversarial attack test results in real-time"""
+
+    reports_dir = Path(__file__).parent.parent / "reports"
+    report_path = reports_dir / "sad_paths_report.json"
+
+    async def event_generator():
+        try:
+            with open(report_path, 'r') as f:
+                report = json.load(f)
+
+            # Stream header
+            yield f"data: {json.dumps({'type': 'header', 'message': 'Running Adversarial Attack Tests'})}\n\n"
+            await asyncio.sleep(0.2)
+
+            # Stream test summary
+            yield f"data: {json.dumps({'type': 'summary', 'total_tests': report.get('total_tests'), 'blocked': report.get('blocked')})}\n\n"
+            await asyncio.sleep(0.3)
+
+            # Stream each attack test
+            tests = report.get('tests', [])
+            for test in tests:
+                yield f"data: {json.dumps({'type': 'attack_blocked', 'test': test})}\n\n"
+                await asyncio.sleep(0.25)
+
+            # Complete
+            yield f"data: {json.dumps({'type': 'complete', 'status': 'ALL_ATTACKS_BLOCKED', 'total_blocked': len(tests)})}\n\n"
+
+        except FileNotFoundError:
+            yield f"data: {json.dumps({'type': 'error', 'message': 'Report not found'})}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no"
+        }
+    )
+
+@app.get("/sse/fraud")
+async def sse_fraud():
+    """Stream fraud detection results on payment stream in real-time"""
+
+    reports_dir = Path(__file__).parent.parent / "reports"
+    report_path = reports_dir / "granite_fraud_report.json"
+
+    async def event_generator():
+        try:
+            with open(report_path, 'r') as f:
+                report = json.load(f)
+
+            # Stream header
+            yield f"data: {json.dumps({'type': 'header', 'message': 'Granite Fraud Detection Running'})}\n\n"
+            await asyncio.sleep(0.2)
+
+            # Stream analysis summary
+            yield f"data: {json.dumps({'type': 'analysis', 'transactions_analyzed': report.get('transactions_analyzed'), 'anomalies_detected': report.get('anomalies_detected')})}\n\n"
+            await asyncio.sleep(0.3)
+
+            # Stream each anomaly detection
+            anomalies = report.get('anomalies', [])
+            for i, anomaly in enumerate(anomalies):
+                yield f"data: {json.dumps({'type': 'fraud_detected', 'transaction': anomaly, 'progress': f'{i+1}/{len(anomalies)}'})}\n\n"
+                await asyncio.sleep(0.15)
+
+            # Stream inference stats
+            yield f"data: {json.dumps({'type': 'stats', 'inference_time_ms': report.get('inference_time_ms')})}\n\n"
+
+            # Complete
+            yield f"data: {json.dumps({'type': 'complete', 'status': 'FRAUD_ANALYSIS_COMPLETE'})}\n\n"
+
+        except FileNotFoundError:
+            yield f"data: {json.dumps({'type': 'error', 'message': 'Report not found'})}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no"
+        }
+    )
+
+@app.get("/sse/execution")
+async def sse_execution():
+    """Stream Layer 1-12 execution transitions with veto gate halt (HIGHEST DEMO VALUE)"""
+
+    async def event_generator():
+        # Layer 0-6: All pass
+        for layer in range(7):
+            yield f"data: {json.dumps({'layer': layer, 'status': 'PASS', 'message': f'Layer {layer:02d}: Pre-flight checks passed', 'timestamp': datetime.now(timezone.utc).isoformat()})}\n\n"
+            await asyncio.sleep(0.2)
+
+        # Layer 7: Human Veto Gate (HALT) — DEMO FOCAL POINT
+        veto_card = {
+            "layer": 7,
+            "status": "HALT",
+            "event_type": "VETO_GATE_TRIGGERED",
+            "mandate_id": f"mandate-{str(uuid.uuid4())[:8]}",
+            "violation": "CET1_RATIO_BREACH",
+            "current_ratio": 11.2,
+            "projected_ratio": 10.18,
+            "minimum_ratio": 10.50,
+            "message": "CET1 ratio breach detected: 10.18% < 10.50%",
+            "requires_decision": True,
+            "alternatives": [
+                "Option A: Unhedged high-risk bond purchase",
+                "Option B: Raw interest rate swap without FX hedge"
+            ],
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        yield f"data: {json.dumps(veto_card)}\n\n"
+        await asyncio.sleep(0.5)
+
+        # Simulate human decision delay
+        await asyncio.sleep(1.5)
+
+        # Layer 8-12: Resume after authorization
+        for layer in range(8, 13):
+            yield f"data: {json.dumps({'layer': layer, 'status': 'PASS', 'message': f'Layer {layer:02d}: Post-authorization execution', 'timestamp': datetime.now(timezone.utc).isoformat()})}\n\n"
+            await asyncio.sleep(0.2)
+
+        # Signature generation (Layer 8 component)
+        yield f"data: {json.dumps({'layer': 8, 'status': 'SIGNATURE_GENERATED', 'signature': 'ed25519:5430f8d2a1b9c8e7f6d4c3b2a1f0e9d8c7b6a5f4', 'timestamp': datetime.now(timezone.utc).isoformat()})}\n\n"
+        await asyncio.sleep(0.3)
+
+        # Ledger write (Layer 12 finalization)
+        receipt_id = f"rcpt-{str(uuid.uuid4())[:8]}"
+        merkle_root = hashlib.sha256(f"authorization-{datetime.now(timezone.utc).isoformat()}".encode()).hexdigest()
+
+        yield f"data: {json.dumps({'layer': 12, 'status': 'LEDGER_WRITE', 'receipt': {'id': receipt_id, 'merkle_root': merkle_root, 'timestamp': datetime.now(timezone.utc).isoformat()}, 'timestamp': datetime.now(timezone.utc).isoformat()})}\n\n"
+        await asyncio.sleep(0.2)
+
+        # Final completion with full proof trail
+        yield f"data: {json.dumps({'status': 'EXECUTION_COMPLETE', 'summary': {'layers_passed': 12, 'veto_gate_triggered': True, 'human_decision': 'AUTHORIZED', 'receipt_id': receipt_id, 'merkle_root': merkle_root}, 'timestamp': datetime.now(timezone.utc).isoformat()})}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no"
+        }
+    )
+
+# ============================================================================
 # STARTUP
 # ============================================================================
 

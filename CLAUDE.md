@@ -252,6 +252,17 @@ Reason: L3 needs policy rules from L2 to test gate enforcement
 
 ## TESTING REQUIREMENTS
 
+### Level 0: STAR Story Tests (Complete User Journeys)
+- **When:** Every feature that affects user journeys (intent submission, authorization, ledger writes)
+- **How:** Story → Trace → Assert → Receipt (STAR framework)
+- **What it tests:** Complete end-to-end flow, not isolated functions
+- **Coverage target:** 100% of critical user stories (minimum 5 per phase)
+- **MMV Required:** YES — manually walk through story in browser before merging
+- **Example story:** "Treasury Officer Submits Intent → Classification Runs → Veto Gate Triggers → User Signs → Receipt Persists"
+- **Tools:** Playwright, pytest, sqlite3, HTTP client
+- **Key difference:** TDD tests parts; STAR tests the whole
+- **Failure recovery:** If STAR fails, revert commit immediately; story is more important than any single function
+
 ### Level 1: Unit Tests (Pure Logic)
 - **When:** Every function, every calculation
 - **How:** Vitest + chai, focus on edge cases

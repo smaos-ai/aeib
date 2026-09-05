@@ -1,20 +1,28 @@
-"""L4 Orchestration: LangGraph Integration with Action Velocity Tracking
+"""L4 Orchestration: LangGraph Integration with Deterministic State Machine
 
-Demonstrates how to integrate ActionVelocityTracker into LangGraph workflows.
-Hooks into node execution to enforce per-pilot velocity constraints.
+Integrates DeterministicWorkflow with ActionVelocityTracker for formal LangGraph orchestration.
+Provides fault-tolerant, checkpoint-recoverable workflows with human authorization gates.
 
 Usage:
-    from smaos.l4_orchestration import ActionVelocityTracker
-    from smaos.l4_orchestration.l4_langgraph_integration import VelocityCheckedWorkflow
+    from smaos.l4_orchestration.l4_langgraph_integration import L4WorkflowOrchestrator
 
-    workflow = VelocityCheckedWorkflow(pilot_name="hotel")
-    result = workflow.execute(workflow_id="wf_001", tools=[...])
+    orchestrator = L4WorkflowOrchestrator(pilot_name="hotel")
+    result = orchestrator.execute_intent(
+        intent={"guest_id": "g_001", "amount": 100},
+        classification={"risk_level": "low"},
+        nodes=[("fetch_pms", tool_fetch_pms), ...],
+        approver="John Doe"
+    )
 """
 
 import logging
 import uuid
-from typing import Any, Dict, List, Optional, Callable
+from typing import Any, Dict, List, Optional, Callable, Tuple
 from .action_velocity import ActionVelocityTracker, ActionVelocityStatus
+from .deterministic_state_machine import (
+    DeterministicWorkflow,
+    WorkflowState,
+)
 
 logger = logging.getLogger(__name__)
 

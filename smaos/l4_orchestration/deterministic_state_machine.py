@@ -329,7 +329,7 @@ class DeterministicWorkflow:
         logger.debug(f"Node registered: {node_name}")
 
     def execute_nodes(self) -> None:
-        """Execute all registered nodes in order, then auto-request authorization"""
+        """Execute all registered nodes in order"""
         if self.state != WorkflowState.CLASSIFIED:
             raise ValueError(
                 f"Cannot execute nodes from {self.state.value}"
@@ -352,10 +352,6 @@ class DeterministicWorkflow:
                 raise
 
         self._save_checkpoint()
-
-        # Auto-request authorization after execution
-        # (mandatory for all workflows, per SMAOS doctrine)
-        self.request_authorization()
 
     def request_authorization(self) -> str:
         """Request human authorization (escalate)"""

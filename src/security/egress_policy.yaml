@@ -1,0 +1,122 @@
+version: "1.0"
+updated_at: "2027-06-01T10:00:00Z"
+owner: "smaos-governance@org.tld"
+reload_interval_sec: 60
+
+# Global rate limits (overridable per destination)
+default_rate_limits:
+  requests_per_sec: 100
+  bytes_per_sec: 10_000_000  # 10 MB/s
+  burst_capacity: 1000
+
+# Destinations: whitelist
+destinations:
+
+  # Example 1: External API with strict controls
+  - id: "ext_payment_api"
+    description: "Stripe payment processing"
+    enabled: true
+
+    # Hostnames (primary whitelist)
+    hostnames:
+      - "api.stripe.com"
+      - "api.stripe.test"  # Testing
+
+    # IP addresses (backup, used if DNS fails)
+    # CIDR blocks not allowed—only specific IPs
+    ips:
+      - "18.216.1.100"  # Stripe primary
+      - "18.216.1.101"  # Stripe secondary
+      - "2600:1f15:e78:e600::1"  # IPv6 (no IPv4-mapped!)
+
+    # Ports
+    ports:
+      - 443  # HTTPS only
+
+    # Protocols
+    protocols:
+      - "https"
+
+    # TLS enforcement
+    tls:
+      min_version: "1.3"
+      require_cert_pinning: true
+      cert_pins:
+        - "sha256/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+        - "sha256/BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB="
+      require_valid_hostname: true
+
+    # DNS options
+    dns:
+      resolver_type: "stub"  # Not recursive
+      nameservers:  # Override global
+        - "8.8.8.8"
+        - "1.1.1.1"
+      require_dnssec: true
+      cache_ttl_sec: 300
+
+    # Rate limits (per destination)
+    rate_limits:
+      requests_per_sec: 50
+      bytes_per_sec: 5_000_000
+      burst_capacity: 500
+
+    # Agent-specific overrides
+    agent_overrides:
+      - agent_id: "hotel-scoring-l4"
+        rate_limits:
+          requests_per_sec: 20
+          bytes_per_sec: 1_000_000
+      - agent_id: "glass-ml-l4"
+        rate_limits:
+          requests_per_sec: 100
+          bytes_per_sec: 10_000_000
+
+    # Geofence (optional)
+    geofence:
+      allowed_source_ips: ["203.0.113.0/24"]  # Our data center only
+
+    # SPF/DKIM verification (for email if applicable)
+    spf_record: "v=spf1 include:sendgrid.net ~all"
+    dkim_selector: "sendgrid"
+
+  # Example 2: Internal API (strict, same-DC only)
+  - id: "int_user_db"
+    description: "Internal PostgreSQL (user data)"
+    enabled: true
+    hostnames: []  # No DNS; IP-only
+    ips:
+      - "10.0.1.50"  # Same VPC
+    ports:
+      - 5432
+    protocols:
+      - "postgresql"
+      - "tcp"
+    tls:
+      min_version: "1.3"
+      require_cert_pinning: true
+      cert_pins:
+        - "sha256/CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC="
+    geofence:
+      allowed_source_ips: ["10.0.0.0/8"]  # VPC only
+    rate_limits:
+      requests_per_sec: 200
+      bytes_per_sec: 50_000_000
+
+  # Example 3: Denied (deny-list for clarity)
+  - id: "localhost_denied"
+    enabled: false
+    description: "Localhost disallowed (prevents blind SSRF)"
+    ips:
+      - "127.0.0.1"
+      - "::1"
+    ports: [1, 65535]  # All ports
+    protocols: ["*"]
+
+# Reload hooks (optional)
+reload_hooks:
+  - type: "webhook"
+    url: "https://governance.org.tld/egress-reload"
+    method: "POST"
+    headers:
+      Authorization: "Bearer ${EGRESS_RELOAD_TOKEN}"

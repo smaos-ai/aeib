@@ -22,3 +22,5 @@ rand = "0.8"
 sqlx = { version = "0.8", features = ["sqlite", "json", "uuid", "chrono", "runtime-tokio-native-tls"] }
 
 [dev-dependencies]
+criterion = "0.5"
+tokio-test = "0.4"

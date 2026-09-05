@@ -3,12 +3,14 @@ mod neural_engine;
 mod simd_ops;
 mod jetson_target;
 mod hardware_detection;
+mod hardware_emulation;
 
 pub use metal_backend::{MetalBackend, MetalDevice};
 pub use neural_engine::{NeuralEngine, NeuralEngineHandle};
 pub use simd_ops::{SimdOps, SimdProofGenerator};
 pub use jetson_target::{JetsonTarget, QuantizationConfig};
 pub use hardware_detection::{HardwareBackend, HardwareDetector, MetricsSample};
+pub use hardware_emulation::HardwareEmulator;
 
 use std::sync::Arc;
 use thiserror::Error;

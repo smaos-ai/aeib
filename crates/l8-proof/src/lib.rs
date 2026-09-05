@@ -14,4 +14,3 @@ pub use error::{L8AuditEntry, L8Error};
 pub use kms::KmsVault;
 pub use l8_egress_ledger::{EgressDecision, EgressLedger, EgressLedgerEntry, KmsSignature};
 pub use proof::{LedgerEntry, ProofLayer, WorkReceipt};
-pub use kms::{KmsKey, KmsVault};

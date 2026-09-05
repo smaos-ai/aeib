@@ -1,5 +1,6 @@
 [workspace]
 members = [
+  "crates/l0-deterministic-llm",
   "crates/l1-reasoning",
   "crates/l2-knowledge",
   "crates/l3-permit-gates",
@@ -24,6 +25,7 @@ members = [
   "crates/siss-otel-bridge",
   "crates/siss-chronicle-drift",
   "crates/siss-robotics-control", "crates/siss-swarm-safety-core", "crates/siss-semantic-cache-compactor", "crates/siss-dag-orchestrator", "crates/siss-cost-optimizer",
+  "crates/siss-capsule",
 ]
 resolver = "2"
 
@@ -65,3 +67,4 @@ regex = "1"
 tracing = "0.1"
 parking_lot = "0.12"
 lru = "0.12"
+criterion = "0.5"

@@ -311,5 +311,160 @@ def example_school_workflow():
         print(f"Clearance level: {result.get('clearance_level')}")
 
 
+class L4WorkflowOrchestrator:
+    """High-level L4 orchestrator using deterministic state machine + velocity tracking"""
+
+    def __init__(self, pilot_name: str,
+                 checkpoint_dir: str = "/tmp/smaos_checkpoints",
+                 audit_log_path: Optional[str] = None):
+        """Initialize orchestrator"""
+        self.pilot_name = pilot_name
+        self.checkpoint_dir = checkpoint_dir
+        self.velocity_tracker = ActionVelocityTracker(
+            audit_log_path=audit_log_path
+        )
+
+    def execute_intent(
+        self,
+        intent: Dict[str, Any],
+        classification: Dict[str, Any],
+        nodes: List[Tuple[str, Callable]],
+        approver: str,
+        workflow_id: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Execute full intent-to-ledger workflow with checkpoints and escalation.
+
+        Args:
+            intent: User intent (validated by L3)
+            classification: Risk classification from L1
+            nodes: List of (node_name, executor_func) tuples
+            approver: Human approver name
+            workflow_id: Optional workflow ID (auto-generated if None)
+
+        Returns:
+            {
+                "workflow_id": str,
+                "state": str,
+                "escalation_id": Optional[str],
+                "execution_results": Dict,
+                "status": "complete" | "pending_authorization" | "denied"
+            }
+        """
+        # Create workflow
+        wf = DeterministicWorkflow(
+            pilot_name=self.pilot_name,
+            workflow_id=workflow_id,
+            checkpoint_dir=self.checkpoint_dir,
+            velocity_tracker=self.velocity_tracker
+        )
+
+        # Execute intent → classify → execute nodes → authorize → complete
+        try:
+            # Receive and validate intent
+            wf.receive_intent(intent)
+            wf.validate_intent()
+
+            # Classify
+            wf.classify_intent(classification)
+
+            # Register nodes
+            for node_name, node_func in nodes:
+                wf.add_node(node_name, node_func)
+
+            # Execute
+            wf.execute_nodes()
+
+            # Request authorization
+            escalation_id = wf.request_authorization()
+
+            # Approve (human-in-the-loop)
+            wf.approve_authorization(escalation_id, f"Approved by {approver}")
+
+            # Write ledger
+            ledger_entry = {
+                "workflow_id": wf.workflow_id,
+                "pilot_name": self.pilot_name,
+                "intent": intent,
+                "classification": classification,
+                "approver": approver,
+                "timestamp": None  # Would be set by L6 ledger
+            }
+            wf.write_ledger(ledger_entry)
+
+            # Mark complete
+            wf.mark_complete()
+
+            return {
+                "workflow_id": wf.workflow_id,
+                "state": wf.state.value,
+                "status": "complete",
+                "execution_results": wf.context.execution_results
+            }
+
+        except Exception as e:
+            logger.error(f"Workflow {wf.workflow_id} failed: {e}")
+            return {
+                "workflow_id": wf.workflow_id,
+                "state": wf.state.value,
+                "status": "failed",
+                "error": str(e)
+            }
+
+    def resume_from_escalation(self, workflow_id: str, approver: str,
+                               approved: bool) -> Dict[str, Any]:
+        """
+        Resume workflow that's awaiting authorization.
+
+        Args:
+            workflow_id: Workflow to resume
+            approver: Human approver name
+            approved: True to approve, False to deny
+
+        Returns:
+            Updated workflow status
+        """
+        # Load workflow from checkpoint
+        wf = DeterministicWorkflow(
+            pilot_name=self.pilot_name,
+            workflow_id=workflow_id,
+            checkpoint_dir=self.checkpoint_dir,
+            velocity_tracker=self.velocity_tracker,
+            auto_restore=True
+        )
+
+        if wf.state != WorkflowState.AWAITING_AUTHORIZATION:
+            return {
+                "workflow_id": workflow_id,
+                "error": f"Workflow not in AWAITING_AUTHORIZATION state (currently {wf.state.value})"
+            }
+
+        try:
+            if approved:
+                escalation_id = wf.escalation_id
+                wf.approve_authorization(escalation_id, approver)
+                wf.write_ledger({"approver": approver, "approved": True})
+                wf.mark_complete()
+                status = "complete"
+            else:
+                escalation_id = wf.escalation_id
+                wf.deny_authorization(escalation_id, f"Denied by {approver}")
+                status = "denied"
+
+            return {
+                "workflow_id": wf.workflow_id,
+                "state": wf.state.value,
+                "status": status,
+                "escalation_id": wf.escalation_id
+            }
+
+        except Exception as e:
+            logger.error(f"Resume failed for {workflow_id}: {e}")
+            return {
+                "workflow_id": workflow_id,
+                "error": str(e)
+            }
+
+
 if __name__ == "__main__":
     example_hotel_workflow()

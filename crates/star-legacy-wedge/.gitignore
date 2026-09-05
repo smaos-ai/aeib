@@ -1,0 +1,4 @@
+golden_baseline.json
+*.pyc
+__pycache__/
+.pytest_cache/

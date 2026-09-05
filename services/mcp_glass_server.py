@@ -7,8 +7,9 @@ Provides tools for glass safety review and compliance verification
 import json
 import sys
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from datetime import datetime
 from typing import Any, Dict
+
+from mcp_core import GlassSafetyEngine
 
 
 class GlassMCPHandler(BaseHTTPRequestHandler):
@@ -17,19 +18,19 @@ class GlassMCPHandler(BaseHTTPRequestHandler):
     glass_tools = {
         "check_safety_policy": {
             "description": "Check safety policy",
-            "handler": "handle_check_safety_policy",
+            "handler": "check_safety_policy",
         },
         "analyze_safety_risk": {
             "description": "Analyze safety risk",
-            "handler": "handle_analyze_safety_risk",
+            "handler": "analyze_safety_risk",
         },
         "approve_safety_review": {
             "description": "Approve safety review",
-            "handler": "handle_approve_safety_review",
+            "handler": "approve_safety_review",
         },
         "log_safety_decision": {
             "description": "Log safety decision",
-            "handler": "handle_log_safety_decision",
+            "handler": "log_safety_decision",
         },
     }
 
@@ -58,77 +59,29 @@ class GlassMCPHandler(BaseHTTPRequestHandler):
         params = request.get("params", {})
 
         if method == "check_safety_policy":
-            return self.handle_check_safety_policy(params)
+            return GlassSafetyEngine.check_safety_policy(
+                params.get("product_id", "unknown"),
+                params.get("category", "general"),
+            )
         elif method == "analyze_safety_risk":
-            return self.handle_analyze_safety_risk(params)
+            return GlassSafetyEngine.analyze_safety_risk(
+                params.get("product_id", "unknown"),
+                params.get("specs", {}),
+            )
         elif method == "approve_safety_review":
-            return self.handle_approve_safety_review(params)
+            return GlassSafetyEngine.approve_safety_review(
+                params.get("product_id", "unknown"),
+                params.get("certifications", []),
+            )
         elif method == "log_safety_decision":
-            return self.handle_log_safety_decision(params)
+            return GlassSafetyEngine.log_safety_decision(
+                params.get("product_id", "unknown"),
+                params.get("decision", "pending"),
+            )
         elif method == "list_tools":
             return self.handle_list_tools()
         else:
             return {"error": f"Unknown method: {method}"}
-
-    def handle_check_safety_policy(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Check if product meets safety policy"""
-        product_id = params.get("product_id", "unknown")
-        category = params.get("category", "general")
-
-        return {
-            "status": "compliant",
-            "product_id": product_id,
-            "category": category,
-            "policy": "standard_glass_safety",
-            "certified": True,
-        }
-
-    def handle_analyze_safety_risk(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Analyze safety risk for glass product"""
-        product_id = params.get("product_id", "unknown")
-        specs = params.get("specs", {})
-
-        # Analyze specs
-        risk_score = 0.2  # Default low risk
-
-        if "breakage_resistance" in specs:
-            risk_score -= 0.1  # Lower risk if resistant
-
-        return {
-            "product_id": product_id,
-            "risk_score": max(0.0, min(1.0, risk_score)),
-            "risk_level": "low" if risk_score < 0.5 else "medium",
-            "safe": risk_score < 0.7,
-        }
-
-    def handle_approve_safety_review(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Approve safety review for product"""
-        product_id = params.get("product_id", "unknown")
-        certifications = params.get("certifications", [])
-
-        review_id = f"review_{product_id}_{int(datetime.utcnow().timestamp())}"
-
-        return {
-            "review_id": review_id,
-            "product_id": product_id,
-            "certifications": certifications,
-            "timestamp": datetime.utcnow().isoformat(),
-            "status": "approved",
-        }
-
-    def handle_log_safety_decision(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Log safety decision to audit trail"""
-        product_id = params.get("product_id", "unknown")
-        decision = params.get("decision", "pending")
-
-        log_entry = {
-            "product_id": product_id,
-            "decision": decision,
-            "timestamp": datetime.utcnow().isoformat(),
-            "logged": True,
-        }
-
-        return log_entry
 
     def handle_list_tools(self) -> Dict[str, Any]:
         """List all available tools"""
@@ -157,3 +110,4 @@ def run_glass_server(port: int = 8002):
 if __name__ == "__main__":
     port = int(sys.argv[1]) if len(sys.argv) > 1 else 8002
     run_glass_server(port)
+

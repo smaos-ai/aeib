@@ -9,12 +9,24 @@ import hashlib
 import time
 import logging
 from dataclasses import dataclass, asdict, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any, Tuple
 from enum import Enum
 import uuid
 
 logger = logging.getLogger(__name__)
+
+def utcnow_iso() -> str:
+    """Return current UTC timestamp in ISO format (timezone-aware)."""
+    return datetime.now(timezone.utc).isoformat()
+
+# Try to import real crypto signer; fall back to placeholder if not available
+try:
+    from smaos.l6_infrastructure.kms_signer import KMSSigner
+    _kms_signer: Optional[KMSSigner] = None  # Will be lazily initialized
+except ImportError:
+    logger.warning("KMSSigner not available; using placeholder signatures")
+    _kms_signer = None
 
 
 class IntentType(Enum):
@@ -61,7 +73,7 @@ class IntentCommitment:
     Hash-binds the agent to specific goal + plan + constraints.
     """
     commitment_id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = field(default_factory=utcnow_iso)
     agent_name: str = "unknown"
     intent_type: IntentType = IntentType.GOAL
 
@@ -124,7 +136,7 @@ class ExecutionAction:
     """Records an action taken during execution."""
     action_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     commitment_id: str = ""
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = field(default_factory=utcnow_iso)
     action_type: str = ""  # "data_access", "api_call", "computation", etc.
     resource_accessed: str = ""
     duration_ms: float = 0.0
@@ -140,7 +152,7 @@ class HijackingDetection:
     detection_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     commitment_id: str = ""
     hijacking_type: HijackingType = HijackingType.GOAL_DRIFT
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = field(default_factory=utcnow_iso)
     severity: EscalationLevel = EscalationLevel.WARNING
     description: str = ""
     evidence: Dict[str, Any] = field(default_factory=dict)
@@ -161,7 +173,7 @@ class IntentVerifier:
         self.commitment = commitment
         self.actions: List[ExecutionAction] = []
         self.detections: List[HijackingDetection] = []
-        self.started_at = datetime.utcnow()
+        self.started_at = datetime.now(timezone.utc)
         self._verification_done = False
 
     def record_action(
@@ -192,7 +204,7 @@ class IntentVerifier:
             if d.hijacking_type == HijackingType.LATENCY_VIOLATION:
                 return None  # Already detected
 
-        elapsed_ms = (datetime.utcnow() - self.started_at).total_seconds() * 1000
+        elapsed_ms = (datetime.now(timezone.utc) - self.started_at).total_seconds() * 1000
         max_latency = constraint.value
 
         if elapsed_ms > max_latency:
@@ -330,13 +342,28 @@ class IntentCommitmentManager:
     """
     Manages intent commitments and execution verification.
     Integrates with AP2 ledger for immutable proof.
+    Uses KMSSigner for real Ed25519 cryptographic signatures.
     """
 
-    def __init__(self, ap2_ledger=None):
+    def __init__(self, ap2_ledger=None, kms_signer: Optional['KMSSigner'] = None):
         self.commitments: Dict[str, IntentCommitment] = {}
         self.verifiers: Dict[str, IntentVerifier] = {}
         self.ap2_ledger = ap2_ledger
         self.commitment_queue: List[IntentCommitment] = []
+        self.kms_signer = kms_signer
+        self._init_kms_if_needed()
+
+    def _init_kms_if_needed(self) -> None:
+        """Initialize KMS signer if available and not already initialized."""
+        if self.kms_signer is None and 'KMSSigner' in globals():
+            try:
+                self.kms_signer = KMSSigner()
+                # Generate a key pair for signing
+                self.kms_signer.generate_key_pair("ed25519")
+                logger.info("KMS signer initialized with Ed25519 key")
+            except Exception as e:
+                logger.warning(f"Failed to initialize KMS signer: {e}")
+                self.kms_signer = None
 
     def propose_intent(
         self,
@@ -373,10 +400,24 @@ class IntentCommitmentManager:
     def commit_intent(self, commitment: IntentCommitment, ap2_ledger_id: str = "", signature: str = "") -> IntentCommitment:
         """
         Lock in commitment with cryptographic signature.
-        This should happen before execution begins.
+        Uses real Ed25519 signing via KMS if available.
         """
         commitment.ap2_ledger_id = ap2_ledger_id or str(uuid.uuid4())
-        commitment.ed25519_signature = signature or self._generate_placeholder_signature(commitment)
+
+        # Try to sign with real KMS signer
+        if signature:
+            commitment.ed25519_signature = signature
+        elif self.kms_signer and self.kms_signer.keys:
+            try:
+                commitment_dict = commitment.to_dict()
+                sig_obj = self.kms_signer.sign_json(commitment_dict)
+                commitment.ed25519_signature = sig_obj.signature
+                logger.info(f"Intent signed with real Ed25519 key: {sig_obj.key_id}")
+            except Exception as e:
+                logger.warning(f"KMS signing failed, using placeholder: {e}")
+                commitment.ed25519_signature = self._generate_placeholder_signature(commitment)
+        else:
+            commitment.ed25519_signature = self._generate_placeholder_signature(commitment)
 
         # Store in commitment registry
         self.commitments[commitment.commitment_id] = commitment
@@ -386,15 +427,18 @@ class IntentCommitmentManager:
 
         # Log to AP2 ledger if available
         if self.ap2_ledger:
-            from smaos.l6_infrastructure.ap2_ledger import ActionType
-            self.ap2_ledger.record_action(
-                action_type=ActionType.GOVERNANCE_DECISION,
-                agent=commitment.agent_name,
-                model=commitment.model,
-                prompt=f"Intent: {commitment.goal}",
-                decision=commitment.to_dict(),
-                metadata={"commitment_hash": commitment.commitment_hash},
-            )
+            try:
+                from smaos.l6_infrastructure.ap2_ledger import ActionType
+                self.ap2_ledger.record_action(
+                    action_type=ActionType.GOVERNANCE_DECISION,
+                    agent=commitment.agent_name,
+                    model=commitment.model,
+                    prompt=f"Intent: {commitment.goal}",
+                    decision=commitment.to_dict(),
+                    metadata={"commitment_hash": commitment.commitment_hash},
+                )
+            except Exception as e:
+                logger.warning(f"AP2 ledger recording failed: {e}")
 
         return commitment
 

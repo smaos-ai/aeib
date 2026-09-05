@@ -46,7 +46,7 @@ mod discovery_registry_tests {
     fn test_capability_query() {
         // GIVEN: discovery with multiple agents registered
         let registry = std::sync::Arc::new(AgentRegistry::new());
-        let mut discovery = PeerDiscovery::new(registry);
+        let discovery = PeerDiscovery::new(registry);
 
         let veto_manifest = create_test_manifest("compliance-1", vec!["veto", "evaluate"]);
         let plan_manifest = create_test_manifest("planner-1", vec!["planning", "delegate"]);
@@ -145,7 +145,7 @@ mod discovery_registry_tests {
     fn test_discover_multiple_agents_same_capability() {
         // GIVEN: multiple agents with same capability
         let registry = std::sync::Arc::new(AgentRegistry::new());
-        let mut discovery = PeerDiscovery::new(registry);
+        let discovery = PeerDiscovery::new(registry);
         let agent1 = create_test_manifest("agent-1", vec!["execute"]);
         let agent2 = create_test_manifest("agent-2", vec!["execute"]);
         let agent3 = create_test_manifest("agent-3", vec!["execute"]);

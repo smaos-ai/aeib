@@ -9,7 +9,7 @@
 /// IPCMessage → A2ARouter → Handler → Agent Logic → A2AEnvelope → IPCMessage (signed)
 
 use crate::integration::AgentRegistry;
-use crate::protocol::{MessageType, MessageStatus};
+use crate::protocol::MessageType;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use siss_a2a_ipc::{A2AMessage as IPCMessage, MessageType as IPCMessageType};

@@ -6,10 +6,8 @@
 use crate::protocol::{A2AMessage, A2AEnvelope, MessageType, MessageStatus};
 use crate::discovery::PeerManifest;
 use crate::error::{A2AError, Result};
-use anyhow::anyhow;
-use ed25519_dalek::VerifyingKey;
 use serde::{Deserialize, Serialize};
-use siss_a2a_ipc::{A2AMessage as IPCMessage, IPCConfig, LocalIPCClient};
+use siss_a2a_ipc::A2AMessage as IPCMessage;
 use std::collections::HashMap;
 use std::sync::Arc;
 use uuid::Uuid;

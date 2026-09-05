@@ -4,7 +4,7 @@
 mod handoff_validation_tests {
     use crate::handoff::{CryptographicHandoff, TaskState, TraceEntry};
     use crate::protocol::{A2AEnvelope, A2AMessage, MessageType};
-    use chrono::Utc;
+    
     use uuid::Uuid;
 
     #[test]

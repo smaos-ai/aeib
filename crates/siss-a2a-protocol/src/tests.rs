@@ -8,7 +8,7 @@
 #[cfg(test)]
 mod protocol_conformance {
     use crate::protocol::{A2AMessage, A2AEnvelope, MessageType, MessageStatus};
-    use crate::handoff::CryptographicHandoff;
+    
     use crate::discovery::{PeerDiscovery, PeerManifest, PeerCapability};
     use chrono::Utc;
 
@@ -52,7 +52,7 @@ mod protocol_conformance {
     fn test_peer_capability_discovery() {
         use crate::integration::AgentRegistry;
         let registry = std::sync::Arc::new(AgentRegistry::new());
-        let mut discovery = PeerDiscovery::new(registry);
+        let discovery = PeerDiscovery::new(registry);
 
         let manifest = PeerManifest {
             agent_id: "compliance-1".to_string(),

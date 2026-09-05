@@ -5,9 +5,11 @@
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use ed25519_dalek::{Signature, SigningKey, VerifyingKey, Signer};
+use ed25519_dalek::{SigningKey, Signer};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
+use std::sync::{atomic::{AtomicU32, AtomicU64, Ordering}, Arc, Mutex};
+use std::time::Duration;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{UnixListener, UnixStream};
 use uuid::Uuid;
@@ -44,6 +46,71 @@ impl Default for IPCConfig {
             socket_path: PathBuf::from("/tmp/siss-a2a.sock"),
             max_message_size: 16 * 1024 * 1024, // 16 MB
             timeout_secs: 30,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CircuitBreakerStatus {
+    pub state: String, // "open" | "closed" | "half-open"
+    pub failure_count: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MessageMetrics {
+    pub sent: u64,
+    pub received: u64,
+    pub failures: u64,
+}
+
+struct CircuitBreaker {
+    state: Mutex<String>,
+    failure_count: AtomicU32,
+    last_failure_time: Mutex<Option<DateTime<Utc>>>,
+    threshold: u32,
+    timeout_secs: u64,
+}
+
+impl CircuitBreaker {
+    fn new() -> Self {
+        Self {
+            state: Mutex::new("closed".to_string()),
+            failure_count: AtomicU32::new(0),
+            last_failure_time: Mutex::new(None),
+            threshold: 5,
+            timeout_secs: 60,
+        }
+    }
+
+    fn record_failure(&self) {
+        self.failure_count.fetch_add(1, Ordering::SeqCst);
+        *self.last_failure_time.lock().unwrap() = Some(Utc::now());
+        if self.failure_count.load(Ordering::SeqCst) >= self.threshold {
+            *self.state.lock().unwrap() = "open".to_string();
+        }
+    }
+
+    fn record_success(&self) {
+        self.failure_count.store(0, Ordering::SeqCst);
+        *self.state.lock().unwrap() = "closed".to_string();
+    }
+
+    fn is_open(&self) -> bool {
+        let state = self.state.lock().unwrap();
+        if state.as_str() == "open" {
+            if let Some(last_fail) = *self.last_failure_time.lock().unwrap() {
+                let elapsed = Utc::now().signed_duration_since(last_fail).num_seconds();
+                return elapsed < self.timeout_secs as i64;
+            }
+            return true;
+        }
+        false
+    }
+
+    fn get_status(&self) -> CircuitBreakerStatus {
+        CircuitBreakerStatus {
+            state: self.state.lock().unwrap().clone(),
+            failure_count: self.failure_count.load(Ordering::SeqCst),
         }
     }
 }
@@ -157,6 +224,9 @@ pub struct LocalIPCClient {
     config: IPCConfig,
     signing_key: SigningKey,
     agent_id: Uuid,
+    circuit_breaker: Arc<CircuitBreaker>,
+    metrics: Arc<(AtomicU64, AtomicU64, AtomicU64)>, // sent, received, failures
+    message_sequence: AtomicU64,
 }
 
 impl LocalIPCClient {
@@ -165,20 +235,26 @@ impl LocalIPCClient {
             config,
             signing_key,
             agent_id,
+            circuit_breaker: Arc::new(CircuitBreaker::new()),
+            metrics: Arc::new((AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0))),
+            message_sequence: AtomicU64::new(0),
         }
     }
 
     pub async fn send_message(&self, msg: A2AMessage) -> Result<A2AMessage> {
+        let _seq = self.message_sequence.fetch_add(1, Ordering::SeqCst);
         let mut socket = UnixStream::connect(&self.config.socket_path).await?;
         let signed_msg = self.sign_message(msg).await?;
         let msg_bytes = serde_json::to_vec(&signed_msg)?;
         socket.write_all(&msg_bytes).await?;
         socket.flush().await?;
+        self.metrics.0.fetch_add(1, Ordering::SeqCst);
 
         let mut buf = vec![0u8; self.config.max_message_size];
         let n = socket.read(&mut buf).await?;
         let response_bytes = &buf[..n];
         let response = serde_json::from_slice(response_bytes)?;
+        self.metrics.1.fetch_add(1, Ordering::SeqCst);
         Ok(response)
     }
 
@@ -187,6 +263,50 @@ impl LocalIPCClient {
         let signature = self.signing_key.sign(&payload_bytes);
         msg.signature = hex::encode(signature.to_bytes());
         Ok(msg)
+    }
+
+    pub async fn send_with_retry(&self, msg: A2AMessage) -> Result<A2AMessage> {
+        if self.circuit_breaker.is_open() {
+            self.metrics.2.fetch_add(1, Ordering::SeqCst);
+            return Err(anyhow!("Circuit breaker is open"));
+        }
+
+        let max_retries = 3;
+        let mut backoff_ms = 100u64;
+
+        for attempt in 0..max_retries {
+            match self.send_message(msg.clone()).await {
+                Ok(response) => {
+                    self.circuit_breaker.record_success();
+                    self.metrics.1.fetch_add(1, Ordering::SeqCst);
+                    return Ok(response);
+                }
+                Err(e) => {
+                    self.circuit_breaker.record_failure();
+                    self.metrics.2.fetch_add(1, Ordering::SeqCst);
+                    if attempt < max_retries - 1 {
+                        tokio::time::sleep(Duration::from_millis(backoff_ms)).await;
+                        backoff_ms = (backoff_ms * 2).min(5000);
+                    } else {
+                        return Err(e);
+                    }
+                }
+            }
+        }
+
+        Err(anyhow!("Max retries exceeded"))
+    }
+
+    pub fn get_circuit_breaker_status(&self) -> CircuitBreakerStatus {
+        self.circuit_breaker.get_status()
+    }
+
+    pub fn get_metrics(&self) -> MessageMetrics {
+        MessageMetrics {
+            sent: self.metrics.0.load(Ordering::SeqCst),
+            received: self.metrics.1.load(Ordering::SeqCst),
+            failures: self.metrics.2.load(Ordering::SeqCst),
+        }
     }
 }
 

@@ -1,0 +1,88 @@
+{
+  "annex_iv": {
+    "metadata": {
+      "system": "SMAOS",
+      "regulation": "EU AI Act",
+      "generated": "2026-09-05T03:18:21.680729",
+      "ledger_entries": 0,
+      "merkle_root": "unknown"
+    },
+    "sections": [
+      {
+        "section_id": "Doc1",
+        "title": "System Description",
+        "citation": "Art 11 \u00a71-2",
+        "timestamp": "2026-09-05T03:18:21.680729",
+        "status": "auto-generated",
+        "content": "Content for System Description per Art 11 \u00a71-2"
+      },
+      {
+        "section_id": "Doc2",
+        "title": "Risk Management",
+        "citation": "Art 9",
+        "timestamp": "2026-09-05T03:18:21.680729",
+        "status": "auto-generated",
+        "content": "Content for Risk Management per Art 9"
+      },
+      {
+        "section_id": "Doc3",
+        "title": "Data Governance",
+        "citation": "Art 10",
+        "timestamp": "2026-09-05T03:18:21.680729",
+        "status": "auto-generated",
+        "content": "Content for Data Governance per Art 10"
+      },
+      {
+        "section_id": "Doc4",
+        "title": "Human Oversight",
+        "citation": "Art 14",
+        "timestamp": "2026-09-05T03:18:21.680729",
+        "status": "auto-generated",
+        "content": "Content for Human Oversight per Art 14"
+      },
+      {
+        "section_id": "Doc5",
+        "title": "Logging & Audit Trail",
+        "citation": "Art 12",
+        "timestamp": "2026-09-05T03:18:21.680729",
+        "status": "auto-generated",
+        "content": "Content for Logging & Audit Trail per Art 12"
+      },
+      {
+        "section_id": "Doc6",
+        "title": "Performance & Accuracy",
+        "citation": "Art 15/17",
+        "timestamp": "2026-09-05T03:18:21.680729",
+        "status": "auto-generated",
+        "content": "Content for Performance & Accuracy per Art 15/17"
+      },
+      {
+        "section_id": "Doc7",
+        "title": "Transparency",
+        "citation": "Art 13",
+        "timestamp": "2026-09-05T03:18:21.680729",
+        "status": "auto-generated",
+        "content": "Content for Transparency per Art 13"
+      },
+      {
+        "section_id": "Doc8",
+        "title": "Post-Market Monitoring",
+        "citation": "Art 72",
+        "timestamp": "2026-09-05T03:18:21.680729",
+        "status": "auto-generated",
+        "content": "Content for Post-Market Monitoring per Art 72"
+      },
+      {
+        "section_id": "Doc9",
+        "title": "Conformity Assessment",
+        "citation": "Art 6",
+        "timestamp": "2026-09-05T03:18:21.680729",
+        "status": "auto-generated",
+        "content": "Content for Conformity Assessment per Art 6"
+      }
+    ]
+  },
+  "signature": "ed25519:71952e232b1a136222aad761baf0d0265bbbc676d12342d6913c7a46483a23b3",
+  "signature_algorithm": "Ed25519",
+  "export_timestamp": "2026-09-05T03:18:21.680729"
+}

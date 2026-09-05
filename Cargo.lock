@@ -2057,6 +2057,7 @@ version = "1.0.0"
 dependencies = [
  "anyhow",
  "chrono",
+ "criterion",
  "ed25519-dalek",
  "env_logger",
  "hex",
@@ -2068,6 +2069,7 @@ dependencies = [
  "sqlx",
  "thiserror 1.0.69",
  "tokio",
+ "tokio-test",
  "uuid",
 ]
 

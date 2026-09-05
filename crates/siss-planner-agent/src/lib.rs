@@ -248,6 +248,167 @@ impl PlannerAgent {
             }
         }
     }
+
+    pub async fn traverse_dependencies(&self, root: &str) -> Result<Vec<CodebaseNode>> {
+        log::debug!("Traversing dependencies from root: {}", root);
+
+        let mut nodes = Vec::new();
+        let mut visited = std::collections::HashSet::new();
+        let mut stack = vec![root.to_string()];
+
+        while let Some(node_id) = stack.pop() {
+            if visited.contains(&node_id) {
+                continue;
+            }
+            visited.insert(node_id.clone());
+
+            let dependencies = self.get_node_dependencies(&node_id);
+            let node = CodebaseNode {
+                node_id: node_id.clone(),
+                node_type: "module".to_string(),
+                dependencies: dependencies.clone(),
+                risk_level: self.estimate_node_risk(&node_id),
+            };
+
+            nodes.push(node);
+
+            for dep in dependencies {
+                if !visited.contains(&dep) {
+                    stack.push(dep);
+                }
+            }
+        }
+
+        log::info!("Traversed {} nodes from root: {}", nodes.len(), root);
+        Ok(nodes)
+    }
+
+    fn get_node_dependencies(&self, node_id: &str) -> Vec<String> {
+        match node_id {
+            "compliance_check" => vec!["l3_permit_gates".to_string()],
+            "evidence_collection" => vec!["l8_proof".to_string()],
+            "authorization_gate" => {
+                vec!["l7_ragas".to_string(), "l3_permit_gates".to_string()]
+            }
+            _ => vec![],
+        }
+    }
+
+    fn estimate_node_risk(&self, node_id: &str) -> RiskLevel {
+        match node_id {
+            "compliance_check" => RiskLevel::High,
+            "authorization_gate" => RiskLevel::Critical,
+            "evidence_collection" => RiskLevel::Medium,
+            _ => RiskLevel::Low,
+        }
+    }
+
+    pub fn validate_plan(&self, plan: &ImplementationPlan) -> Result<()> {
+        if plan.plan_id == Uuid::nil() {
+            return Err(anyhow!("plan_id cannot be nil"));
+        }
+        if plan.intent_id == Uuid::nil() {
+            return Err(anyhow!("intent_id cannot be nil"));
+        }
+        if plan.mandated_steps.is_empty() {
+            return Err(anyhow!("plan must have at least one mandated step"));
+        }
+
+        for (idx, step) in plan.mandated_steps.iter().enumerate() {
+            if step.action.is_empty() {
+                return Err(anyhow!("Step {} has empty action", idx));
+            }
+            if step.agent_type.is_empty() {
+                return Err(anyhow!("Step {} has empty agent_type", idx));
+            }
+        }
+
+        log::info!("Plan {} validated successfully", plan.plan_id);
+        Ok(())
+    }
+
+    pub async fn refine_plan(&self, plan: &mut ImplementationPlan) -> Result<()> {
+        log::debug!("Refining plan {}", plan.plan_id);
+
+        let max_risk = plan
+            .mandated_steps
+            .iter()
+            .map(|_| plan.risk_assessment.overall_risk)
+            .max()
+            .unwrap_or(RiskLevel::Low);
+
+        plan.risk_assessment.overall_risk = max_risk;
+        plan.risk_assessment.requires_human_approval = max_risk >= RiskLevel::High;
+
+        if plan.mandated_steps.len() > 10 {
+            log::warn!(
+                "Plan {} has {} steps; may be too complex",
+                plan.plan_id,
+                plan.mandated_steps.len()
+            );
+        }
+
+        log::info!("Plan {} refined; overall_risk: {:?}", plan.plan_id, max_risk);
+        Ok(())
+    }
+
+    pub fn compose_plan_from_steps(&self, steps: Vec<PlanStep>) -> Result<ImplementationPlan> {
+        if steps.is_empty() {
+            return Err(anyhow!("Cannot compose plan from zero steps"));
+        }
+
+        let max_risk = steps
+            .iter()
+            .enumerate()
+            .map(|(idx, _)| {
+                if idx == 0 {
+                    RiskLevel::Low
+                } else if idx < steps.len() / 2 {
+                    RiskLevel::Medium
+                } else {
+                    RiskLevel::High
+                }
+            })
+            .max()
+            .unwrap_or(RiskLevel::Low);
+
+        let plan = ImplementationPlan {
+            plan_id: Uuid::new_v4(),
+            intent_id: Uuid::new_v4(),
+            mandated_steps: steps,
+            risk_assessment: RiskAssessment {
+                overall_risk: max_risk,
+                requires_human_approval: max_risk >= RiskLevel::High,
+                compliance_gates: vec!["l3_permit_gates".to_string()],
+            },
+            created_at: Utc::now(),
+        };
+
+        log::info!("Composed plan {} from {} steps", plan.plan_id, plan.mandated_steps.len());
+        Ok(plan)
+    }
+
+    pub async fn estimate_execution_cost(&self, plan: &ImplementationPlan) -> Result<i64> {
+        log::debug!("Estimating execution cost for plan {}", plan.plan_id);
+
+        let base_cost = 100_000_i64; // 100K baseline
+        let step_multiplier = plan.mandated_steps.len() as i64 * 50_000; // 50K per step
+        let risk_multiplier = match plan.risk_assessment.overall_risk {
+            RiskLevel::Low => 1_000_000,
+            RiskLevel::Medium => 2_000_000,
+            RiskLevel::High => 5_000_000,
+            RiskLevel::Critical => 10_000_000,
+        };
+
+        let total_cost = base_cost + step_multiplier + risk_multiplier;
+
+        log::info!(
+            "Estimated cost for plan {}: {} tokens",
+            plan.plan_id,
+            total_cost
+        );
+        Ok(total_cost)
+    }
 }
 
 #[cfg(test)]
@@ -328,5 +489,165 @@ mod tests {
             .unwrap();
         assert_eq!(plan.intent_id, intent.intent_id);
         assert!(!plan.mandated_steps.is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_traverse_dependencies() {
+        let signing_key = create_test_signing_key();
+        let agent = PlannerAgent::new(signing_key);
+        let nodes = agent.traverse_dependencies("compliance_check").await.unwrap();
+        assert!(!nodes.is_empty());
+        assert!(nodes.iter().any(|n| n.node_id == "compliance_check"));
+    }
+
+    #[test]
+    fn test_validate_plan_valid() {
+        let signing_key = create_test_signing_key();
+        let agent = PlannerAgent::new(signing_key);
+        let plan = ImplementationPlan {
+            plan_id: Uuid::new_v4(),
+            intent_id: Uuid::new_v4(),
+            mandated_steps: vec![PlanStep {
+                step_id: 0,
+                action: "test".to_string(),
+                agent_type: "compliance".to_string(),
+                parameters: serde_json::json!({}),
+            }],
+            risk_assessment: RiskAssessment {
+                overall_risk: RiskLevel::Low,
+                requires_human_approval: false,
+                compliance_gates: vec![],
+            },
+            created_at: Utc::now(),
+        };
+        assert!(agent.validate_plan(&plan).is_ok());
+    }
+
+    #[test]
+    fn test_validate_plan_empty_steps() {
+        let signing_key = create_test_signing_key();
+        let agent = PlannerAgent::new(signing_key);
+        let plan = ImplementationPlan {
+            plan_id: Uuid::new_v4(),
+            intent_id: Uuid::new_v4(),
+            mandated_steps: vec![],
+            risk_assessment: RiskAssessment {
+                overall_risk: RiskLevel::Low,
+                requires_human_approval: false,
+                compliance_gates: vec![],
+            },
+            created_at: Utc::now(),
+        };
+        assert!(agent.validate_plan(&plan).is_err());
+    }
+
+    #[tokio::test]
+    async fn test_refine_plan() {
+        let signing_key = create_test_signing_key();
+        let agent = PlannerAgent::new(signing_key);
+        let mut plan = ImplementationPlan {
+            plan_id: Uuid::new_v4(),
+            intent_id: Uuid::new_v4(),
+            mandated_steps: vec![PlanStep {
+                step_id: 0,
+                action: "test".to_string(),
+                agent_type: "compliance".to_string(),
+                parameters: serde_json::json!({}),
+            }],
+            risk_assessment: RiskAssessment {
+                overall_risk: RiskLevel::Low,
+                requires_human_approval: false,
+                compliance_gates: vec![],
+            },
+            created_at: Utc::now(),
+        };
+        agent.refine_plan(&mut plan).await.unwrap();
+        assert_eq!(plan.risk_assessment.overall_risk, RiskLevel::Low);
+    }
+
+    #[test]
+    fn test_compose_plan_from_steps() {
+        let signing_key = create_test_signing_key();
+        let agent = PlannerAgent::new(signing_key);
+        let steps = vec![PlanStep {
+            step_id: 0,
+            action: "initialize".to_string(),
+            agent_type: "compliance".to_string(),
+            parameters: serde_json::json!({}),
+        }];
+        let plan = agent.compose_plan_from_steps(steps).unwrap();
+        assert!(!plan.mandated_steps.is_empty());
+    }
+
+    #[test]
+    fn test_compose_plan_empty_steps() {
+        let signing_key = create_test_signing_key();
+        let agent = PlannerAgent::new(signing_key);
+        assert!(agent.compose_plan_from_steps(vec![]).is_err());
+    }
+
+    #[tokio::test]
+    async fn test_estimate_execution_cost_low_risk() {
+        let signing_key = create_test_signing_key();
+        let agent = PlannerAgent::new(signing_key);
+        let plan = ImplementationPlan {
+            plan_id: Uuid::new_v4(),
+            intent_id: Uuid::new_v4(),
+            mandated_steps: vec![PlanStep {
+                step_id: 0,
+                action: "test".to_string(),
+                agent_type: "compliance".to_string(),
+                parameters: serde_json::json!({}),
+            }],
+            risk_assessment: RiskAssessment {
+                overall_risk: RiskLevel::Low,
+                requires_human_approval: false,
+                compliance_gates: vec![],
+            },
+            created_at: Utc::now(),
+        };
+        let cost = agent.estimate_execution_cost(&plan).await.unwrap();
+        assert!(cost > 0);
+    }
+
+    #[tokio::test]
+    async fn test_estimate_execution_cost_critical_risk() {
+        let signing_key = create_test_signing_key();
+        let agent = PlannerAgent::new(signing_key);
+        let plan = ImplementationPlan {
+            plan_id: Uuid::new_v4(),
+            intent_id: Uuid::new_v4(),
+            mandated_steps: vec![PlanStep {
+                step_id: 0,
+                action: "critical_action".to_string(),
+                agent_type: "compliance".to_string(),
+                parameters: serde_json::json!({}),
+            }],
+            risk_assessment: RiskAssessment {
+                overall_risk: RiskLevel::Critical,
+                requires_human_approval: true,
+                compliance_gates: vec![],
+            },
+            created_at: Utc::now(),
+        };
+        let cost = agent.estimate_execution_cost(&plan).await.unwrap();
+        let low_risk_plan = ImplementationPlan {
+            plan_id: Uuid::new_v4(),
+            intent_id: Uuid::new_v4(),
+            mandated_steps: vec![PlanStep {
+                step_id: 0,
+                action: "test".to_string(),
+                agent_type: "compliance".to_string(),
+                parameters: serde_json::json!({}),
+            }],
+            risk_assessment: RiskAssessment {
+                overall_risk: RiskLevel::Low,
+                requires_human_approval: false,
+                compliance_gates: vec![],
+            },
+            created_at: Utc::now(),
+        };
+        let low_cost = agent.estimate_execution_cost(&low_risk_plan).await.unwrap();
+        assert!(cost > low_cost);
     }
 }

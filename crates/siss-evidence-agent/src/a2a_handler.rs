@@ -112,6 +112,7 @@ impl EvidenceA2AHandler {
             signing_key: self.agent.signing_key.clone(),
             ipc_client: self.agent.ipc_client.clone(),
             execution_traces: Vec::new(),
+            precedent_cache: Vec::new(),
         };
 
         agent_mut.process_evaluation(&evaluation).await?;

@@ -42,7 +42,7 @@ impl PeerManifest {
         let elapsed = Utc::now()
             .signed_duration_since(self.updated_at)
             .num_seconds() as u64;
-        elapsed > self.ttl_secs
+        elapsed >= self.ttl_secs
     }
 
     /// Check if agent has specific capability

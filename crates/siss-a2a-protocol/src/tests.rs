@@ -107,7 +107,7 @@ mod cryptographic_verification {
     fn test_signature_generation_and_verification() {
         let handoff = CryptographicHandoff::new("agent-1".to_string()).expect("create");
         let pubkey = handoff.public_key();
-        assert_eq!(pubkey.len(), 128); // 64 bytes hex
+        assert_eq!(pubkey.len(), 64); // 32 bytes hex
 
         let payload = serde_json::json!({"task": "test"});
         let msg = A2AMessage::new(
@@ -224,10 +224,10 @@ mod handoff_stress {
         let state1 = TaskState::new("task-1".to_string(), intent.clone());
         let state2 = TaskState::new("task-1".to_string(), intent);
 
-        let digest1 = state1.digest().expect("digest");
-        let digest2 = state2.digest().expect("digest");
+        let digest1 = state1.content_digest().expect("digest");
+        let digest2 = state2.content_digest().expect("digest");
 
-        // Same task state should produce same digest
+        // Same task state should produce same content digest
         assert_eq!(digest1, digest2);
     }
 

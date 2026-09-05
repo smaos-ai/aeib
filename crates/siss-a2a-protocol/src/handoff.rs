@@ -77,7 +77,26 @@ impl TaskState {
         Ok(serde_json::from_slice(bytes)?)
     }
 
-    /// Compute SHA256 digest for ledger anchoring
+    /// Compute content digest (excludes captured_at for deterministic hashing)
+    pub fn content_digest(&self) -> anyhow::Result<String> {
+        // Create a canonical representation excluding timestamp
+        let content = serde_json::json!({
+            "task_id": self.task_id,
+            "intent": self.intent,
+            "trace": self.trace,
+            "checkpoint": self.checkpoint,
+            "context_vector": self.context_vector,
+            "pgvector_embedding": self.pgvector_embedding,
+            "source_agent_pubkey": self.source_agent_pubkey,
+            "checkpoint_hash": self.checkpoint_hash,
+        });
+        let json_str = serde_json::to_string(&content)?;
+        let mut hasher = Sha256::new();
+        hasher.update(json_str.as_bytes());
+        Ok(format!("{:x}", hasher.finalize()))
+    }
+
+    /// Compute full digest (includes captured_at timestamp)
     pub fn digest(&self) -> anyhow::Result<String> {
         let bytes = self.to_bytes()?;
         let mut hasher = Sha256::new();
@@ -401,7 +420,7 @@ mod tests {
         let handoff = CryptographicHandoff::new("agent-1".to_string()).expect("create");
         let pubkey = handoff.public_key();
         assert!(!pubkey.is_empty());
-        assert_eq!(pubkey.len(), 128); // 64 bytes = 128 hex chars
+        assert_eq!(pubkey.len(), 64); // 32 bytes = 64 hex chars
     }
 
     #[test]

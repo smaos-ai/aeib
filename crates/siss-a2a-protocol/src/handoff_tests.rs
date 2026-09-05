@@ -45,9 +45,9 @@ mod handoff_validation_tests {
         let state1 = TaskState::new("task-1".to_string(), intent.clone());
         let state2 = TaskState::new("task-1".to_string(), intent);
 
-        // WHEN: we compute digests
-        let digest1 = state1.digest().expect("digest1");
-        let digest2 = state2.digest().expect("digest2");
+        // WHEN: we compute content digests (excludes timestamp)
+        let digest1 = state1.content_digest().expect("digest1");
+        let digest2 = state2.content_digest().expect("digest2");
 
         // THEN: digests are identical
         assert_eq!(digest1, digest2);
@@ -109,7 +109,7 @@ mod handoff_validation_tests {
         // THEN: manager has valid public key
         let pubkey = handoff.public_key();
         assert!(!pubkey.is_empty());
-        assert_eq!(pubkey.len(), 128); // 64 bytes = 128 hex chars
+        assert_eq!(pubkey.len(), 64); // 32 bytes = 64 hex chars
     }
 
     #[test]

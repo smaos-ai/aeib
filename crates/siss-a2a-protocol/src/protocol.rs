@@ -148,13 +148,20 @@ impl A2AEnvelope {
     /// Verify signature against signer's public key
     pub fn verify_signature(&self) -> anyhow::Result<bool> {
         use ed25519_dalek::VerifyingKey;
-        use std::str::FromStr;
 
         let pubkey_bytes = hex::decode(&self.signer_pubkey)?;
         let pubkey = VerifyingKey::from_bytes(&pubkey_bytes.as_slice().try_into()?)?;
 
         let message_bytes = self.message.to_cbor()?;
-        let signature_bytes = hex::decode(&self.signature)?;
+
+        // Strip "ed25519:" prefix if present (8 characters)
+        let sig_hex = if self.signature.starts_with("ed25519:") {
+            &self.signature[8..]
+        } else {
+            &self.signature
+        };
+
+        let signature_bytes = hex::decode(sig_hex)?;
         let signature_array: [u8; 64] = signature_bytes.as_slice().try_into()?;
         let signature = ed25519_dalek::Signature::from_bytes(&signature_array);
 

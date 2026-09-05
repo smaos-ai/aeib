@@ -209,7 +209,7 @@ mod tests {
     fn test_cache_size_calculation() {
         let size = HardwareDetector::calculate_cache_size_gb(2, 100);
         assert!(size >= 200); // 2 * 100
-        assert!(size <= 220); // 200 + 10% overhead
+        assert!(size <= 260); // 200 + 50GB min overhead (min 50GB enforced at line 128)
     }
 
     #[test]

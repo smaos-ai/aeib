@@ -9,6 +9,7 @@ pub mod determinism;
 pub mod errors;
 pub mod fallback;
 // pub mod harness;
+pub mod proof_integration;
 pub mod protocol_bridge;
 // Stub implementations to bypass external dependencies
 pub mod signing;
@@ -22,6 +23,7 @@ pub use determinism::{CacheStats, CachedPrompt, DeterministicExecutor};
 pub use errors::CapsuleError;
 pub use fallback::{FallbackAction, FallbackRule, RuleBasedFallback};
 // pub use harness::HarnessCapsule;
+pub use proof_integration::{CryptoMutation, MutationLedger, TestGate};
 pub use protocol_bridge::{ProtocolV2Bridge, ScopeError, ScopeRule};
 // Temporarily commented to bypass compilation errors in dependencies
 // pub use signing::{SignedMutation, SigningError, StateMutationSigner};

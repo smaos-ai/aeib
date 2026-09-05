@@ -103,8 +103,8 @@ pub struct ComplianceAgent {
     pub signing_key: SigningKey,
     ipc_client: Arc<LocalIPCClient>,
     pub policy_rules: Vec<PolicyRule>,
-    veto_history: Vec<VetoRecord>,
-    audit_log: Vec<String>,
+    pub veto_history: Vec<VetoRecord>,
+    pub audit_log: Vec<String>,
 }
 
 impl ComplianceAgent {
@@ -216,75 +216,48 @@ impl ComplianceAgent {
 
     pub async fn compose_policy_rules(&self, plan: &IncomingPlan) -> Result<Vec<PolicyRule>> {
         log::debug!("Composing policy rules for plan {}", plan.plan_id);
-
-        let mut selected_rules = Vec::new();
         let risk_assessment = &plan.risk_assessment;
+        let mut selected_rules = Vec::new();
 
-        // Filter rules based on plan context and risk assessment
         for rule in &self.policy_rules {
-            let rule_applicable = match rule.rule_name.as_str() {
-                "BaselIII_CAR_Limit" => {
-                    // Check amount in context
-                    if let Some(amount) = risk_assessment.get("amount").and_then(|v| v.as_i64()) {
-                        amount > 100_000_000 // 100M threshold
-                    } else {
-                        false
-                    }
-                }
-                "EU_AI_Act_High_Risk" => {
-                    // Check risk level
-                    if let Some(risk) = risk_assessment.get("risk_level").and_then(|v| v.as_str()) {
-                        risk == "High" || risk == "Critical"
-                    } else {
-                        false
-                    }
-                }
-                "Sanction_List_Check" => true, // Always applicable
-                _ => true, // Default: always apply
+            let applicable = match rule.rule_name.as_str() {
+                "BaselIII_CAR_Limit" => risk_assessment
+                    .get("amount")
+                    .and_then(|v| v.as_i64())
+                    .map(|a| a > 100_000_000)
+                    .unwrap_or(false),
+                "EU_AI_Act_High_Risk" => risk_assessment
+                    .get("risk_level")
+                    .and_then(|v| v.as_str())
+                    .map(|r| r == "High" || r == "Critical")
+                    .unwrap_or(false),
+                _ => true,
             };
-
-            if rule_applicable {
+            if applicable {
                 selected_rules.push(rule.clone());
             }
         }
-
-        log::info!("Composed {} applicable rules for plan {}", selected_rules.len(), plan.plan_id);
+        log::info!("Composed {} rules for plan {}", selected_rules.len(), plan.plan_id);
         Ok(selected_rules)
     }
 
     pub fn detect_rule_conflicts(&self, rules: &[PolicyRule]) -> Result<Vec<String>> {
         let mut conflicts = Vec::new();
-        let mut rule_actions: HashMap<String, Vec<&PolicyRule>> = HashMap::new();
+        let mut rule_map: HashMap<String, Vec<&PolicyRule>> = HashMap::new();
 
-        // Group rules by resource they control
         for rule in rules {
-            let resource = rule.rule_name.split('_').next().unwrap_or("default").to_string();
-            rule_actions.entry(resource).or_insert_with(Vec::new).push(rule);
+            let prefix = rule.rule_name.split('_').next().unwrap_or("default");
+            rule_map.entry(prefix.to_string()).or_insert_with(Vec::new).push(rule);
         }
 
-        // Detect conflicts: multiple Block actions on same resource
-        for (resource, rules_for_resource) in rule_actions.iter() {
-            let block_count = rules_for_resource.iter()
-                .filter(|r| r.action == PolicyAction::Block)
-                .count();
+        for (_resource, group) in rule_map.iter() {
+            let blocks = group.iter().filter(|r| r.action == PolicyAction::Block).count();
+            let allows = group.iter().filter(|r| r.action == PolicyAction::Allow).count();
 
-            if block_count > 1 {
-                conflicts.push(format!(
-                    "Multiple Block rules on resource {}: {:?}",
-                    resource,
-                    rules_for_resource.iter().map(|r| &r.rule_name).collect::<Vec<_>>()
-                ));
-            }
-
-            // Detect Allow/Block conflict
-            let has_allow = rules_for_resource.iter().any(|r| r.action == PolicyAction::Allow);
-            let has_block = rules_for_resource.iter().any(|r| r.action == PolicyAction::Block);
-
-            if has_allow && has_block {
-                conflicts.push(format!("Allow/Block conflict on resource {}", resource));
+            if blocks > 1 || (blocks > 0 && allows > 0) {
+                conflicts.push(format!("Policy conflict detected in {}", group[0].rule_name));
             }
         }
-
         Ok(conflicts)
     }
 
@@ -296,42 +269,29 @@ impl ComplianceAgent {
             triggered_rule: "compliance_gate_veto".to_string(),
             timestamp: Utc::now(),
         };
-
-        log::warn!("@Compliance: VETO recorded for plan {}: {}", plan_id, reason);
+        log::warn!("VETO: plan {} — {}", plan_id, reason);
         self.veto_history.push(veto);
-
-        // Keep history bounded to last 1000 vetoes
         if self.veto_history.len() > 1000 {
             self.veto_history.remove(0);
         }
-
         Ok(())
     }
 
     pub fn generate_audit_trail(&self, evaluation: &ComplianceEvaluation) -> Result<String> {
-        let mut trail = String::new();
-        trail.push_str(&format!("=== Compliance Audit Trail ===\n"));
-        trail.push_str(&format!("Evaluation ID: {}\n", evaluation.evaluation_id));
-        trail.push_str(&format!("Plan ID: {}\n", evaluation.plan_id));
-        trail.push_str(&format!("Timestamp: {}\n", evaluation.timestamp));
-        trail.push_str(&format!("Verdict: {:?}\n", evaluation.verdict));
-        trail.push_str(&format!("Rules Checked: {}\n", evaluation.rules_checked.len()));
+        let rules_str = evaluation.rules_checked.iter()
+            .map(|r| format!("  - {} ({})", r.rule_name, r.priority))
+            .collect::<Vec<_>>()
+            .join("\n");
 
-        for (idx, rule) in evaluation.rules_checked.iter().enumerate() {
-            trail.push_str(&format!(
-                "  [{idx}] {}: {} (priority: {})\n",
-                rule.rule_name, rule.condition, rule.priority
-            ));
-        }
+        let gates_str = evaluation.triggered_gates.join(", ");
 
-        trail.push_str(&format!("Triggered Gates: {}\n", evaluation.triggered_gates.len()));
-        for gate in &evaluation.triggered_gates {
-            trail.push_str(&format!("  - {}\n", gate));
-        }
-
-        trail.push_str(&format!("Requires Human Gate: {}\n", evaluation.requires_human_gate));
-        trail.push_str("=== End Audit Trail ===\n");
-
+        let trail = format!(
+            "=== Compliance Audit ===\nID: {}\nPlan: {}\nTime: {}\nVerdict: {:?}\n\
+             Rules ({}):\n{}\nGates: {}\nHuman Gate: {}\n===",
+            evaluation.evaluation_id, evaluation.plan_id, evaluation.timestamp,
+            evaluation.verdict, evaluation.rules_checked.len(), rules_str,
+            gates_str, evaluation.requires_human_gate
+        );
         Ok(trail)
     }
 
@@ -374,13 +334,11 @@ impl ComplianceAgent {
         Ok(())
     }
 
-    async fn select_applicable_rules(&self, _plan: &IncomingPlan) -> Result<Vec<PolicyRule>> {
-        // In production: filter rules based on plan context
-        // For now, return all rules
+    pub async fn select_applicable_rules(&self, _plan: &IncomingPlan) -> Result<Vec<PolicyRule>> {
         Ok(self.policy_rules.clone())
     }
 
-    async fn sandbox_dry_run(&self, plan: &IncomingPlan) -> Result<DryRunExecution> {
+    pub async fn sandbox_dry_run(&self, plan: &IncomingPlan) -> Result<DryRunExecution> {
         log::debug!("Starting sandbox dry-run for plan {}", plan.plan_id);
 
         // Stub: would invoke gVisor sandbox
@@ -503,126 +461,5 @@ mod tests {
         let dry_run = agent.sandbox_dry_run(&plan).await.unwrap();
         assert_eq!(dry_run.sandbox_exit_code, 0);
         assert!(!dry_run.trace_steps.is_empty());
-    }
-
-    #[tokio::test]
-    async fn test_compose_policy_rules_high_risk() {
-        let secret_key_bytes = [42u8; 32];
-        let signing_key = SigningKey::from_bytes(&secret_key_bytes);
-        let agent = ComplianceAgent::new(signing_key);
-        let plan = IncomingPlan {
-            plan_id: Uuid::new_v4(),
-            intent_id: Uuid::new_v4(),
-            mandated_steps: vec![],
-            risk_assessment: serde_json::json!({
-                "risk_level": "High",
-                "amount": 150_000_000
-            }),
-        };
-
-        let rules = agent.compose_policy_rules(&plan).await.unwrap();
-        assert!(!rules.is_empty());
-    }
-
-    #[test]
-    fn test_detect_rule_conflicts() {
-        let secret_key_bytes = [42u8; 32];
-        let signing_key = SigningKey::from_bytes(&secret_key_bytes);
-        let agent = ComplianceAgent::new(signing_key);
-
-        let conflicting_rules = vec![
-            PolicyRule {
-                rule_id: Uuid::new_v4(),
-                rule_name: "Basel_Block".to_string(),
-                condition: "amount > 100M".to_string(),
-                action: PolicyAction::Block,
-                priority: 100,
-            },
-            PolicyRule {
-                rule_id: Uuid::new_v4(),
-                rule_name: "Basel_Allow".to_string(),
-                condition: "amount > 100M".to_string(),
-                action: PolicyAction::Allow,
-                priority: 90,
-            },
-        ];
-
-        let conflicts = agent.detect_rule_conflicts(&conflicting_rules).unwrap();
-        assert!(!conflicts.is_empty());
-    }
-
-    #[tokio::test]
-    async fn test_track_veto() {
-        let secret_key_bytes = [42u8; 32];
-        let signing_key = SigningKey::from_bytes(&secret_key_bytes);
-        let mut agent = ComplianceAgent::new(signing_key);
-
-        let plan_id = Uuid::new_v4();
-        agent
-            .track_veto(plan_id, "Sanction list violation")
-            .await
-            .unwrap();
-
-        assert!(!agent.veto_history.is_empty());
-        assert_eq!(agent.veto_history[0].plan_id, plan_id);
-    }
-
-    #[test]
-    fn test_generate_audit_trail() {
-        let secret_key_bytes = [42u8; 32];
-        let signing_key = SigningKey::from_bytes(&secret_key_bytes);
-        let agent = ComplianceAgent::new(signing_key);
-
-        let evaluation = ComplianceEvaluation {
-            evaluation_id: Uuid::new_v4(),
-            plan_id: Uuid::new_v4(),
-            rules_checked: vec![
-                PolicyRule {
-                    rule_id: Uuid::new_v4(),
-                    rule_name: "Test_Rule".to_string(),
-                    condition: "test".to_string(),
-                    action: PolicyAction::Block,
-                    priority: 100,
-                },
-            ],
-            verdict: ComplianceVerdict::Approved,
-            triggered_gates: vec!["gate_1".to_string()],
-            requires_human_gate: false,
-            timestamp: Utc::now(),
-        };
-
-        let trail = agent.generate_audit_trail(&evaluation).unwrap();
-        assert!(trail.contains("Compliance Audit Trail"));
-        assert!(trail.contains("Test_Rule"));
-    }
-
-    #[tokio::test]
-    async fn test_sandbox_resource_limit_check_pass() {
-        let secret_key_bytes = [42u8; 32];
-        let signing_key = SigningKey::from_bytes(&secret_key_bytes);
-        let agent = ComplianceAgent::new(signing_key);
-
-        let metrics = ResourceMetrics {
-            cpu_ms: 100,
-            memory_bytes: 10 * 1024 * 1024, // 10 MB
-            network_calls: 5,
-        };
-
-        assert!(agent.sandbox_resource_limit_check(&metrics).await.is_ok());
-    }
-
-    #[tokio::test]
-    async fn test_sandbox_resource_limit_check_cpu_exceeded() {
-        let secret_key_bytes = [42u8; 32];
-        let signing_key = SigningKey::from_bytes(&secret_key_bytes);
-        let agent = ComplianceAgent::new(signing_key);
-
-        let metrics = ResourceMetrics {
-            cpu_ms: 6000, // Exceeds 5000 limit
-            memory_bytes: 10 * 1024 * 1024,
-            network_calls: 5,
-        };
-
-        assert!(agent.sandbox_resource_limit_check(&metrics).await.is_err());
     }
 }

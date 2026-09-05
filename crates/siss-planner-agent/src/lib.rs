@@ -122,7 +122,7 @@ impl PlannerAgent {
         Ok(())
     }
 
-    fn validate_intent(&self, intent: &IntentSpec) -> Result<()> {
+    pub fn validate_intent(&self, intent: &IntentSpec) -> Result<()> {
         if intent.intent_id == Uuid::nil() {
             return Err(anyhow!("intent_id cannot be nil"));
         }
@@ -132,7 +132,7 @@ impl PlannerAgent {
         Ok(())
     }
 
-    async fn generate_codebase_graph(&self, intent: &IntentSpec) -> Result<Vec<CodebaseNode>> {
+    pub async fn generate_codebase_graph(&self, intent: &IntentSpec) -> Result<Vec<CodebaseNode>> {
         // Stub: in production, call siss-mcp-gitnexus to generate codebase graph
         // For now, return mock graph based on intent action
         log::debug!("Generating codebase graph for action: {}", intent.action);
@@ -155,7 +155,7 @@ impl PlannerAgent {
         Ok(nodes)
     }
 
-    async fn draft_implementation_plan(
+    pub async fn draft_implementation_plan(
         &self,
         intent: &IntentSpec,
         codebase_nodes: &[CodebaseNode],
@@ -207,7 +207,7 @@ impl PlannerAgent {
         Ok(plan)
     }
 
-    fn create_mandate(&self, intent: &IntentSpec, plan: &ImplementationPlan) -> Result<IntentMandate> {
+    pub fn create_mandate(&self, intent: &IntentSpec, plan: &ImplementationPlan) -> Result<IntentMandate> {
         // Stub: create an IntentMandate
         // In production, would use siss-gatekeeper to create formal mandate
         log::debug!("Creating mandate for plan {}", plan.plan_id);

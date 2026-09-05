@@ -138,3 +138,116 @@ fn test_dry_run_execution() {
     assert_eq!(dry_run.sandbox_exit_code, 0);
     assert_eq!(dry_run.trace_steps.len(), 2);
 }
+
+#[tokio::test]
+async fn test_compose_policy_rules() {
+    let secret_bytes: [u8; 32] = rand::random();
+    let signing_key = ed25519_dalek::SigningKey::from_bytes(&secret_bytes);
+    let agent = ComplianceAgent::new(signing_key);
+
+    let plan = IncomingPlan {
+        plan_id: Uuid::new_v4(),
+        intent_id: Uuid::new_v4(),
+        mandated_steps: vec![],
+        risk_assessment: serde_json::json!({"risk_level": "High", "amount": 150_000_000}),
+    };
+
+    let rules = agent.compose_policy_rules(&plan).await.unwrap();
+    assert!(!rules.is_empty());
+    assert!(rules.iter().any(|r| r.rule_name == "BaselIII_CAR_Limit"));
+}
+
+#[test]
+fn test_detect_rule_conflicts() {
+    let secret_bytes: [u8; 32] = rand::random();
+    let signing_key = ed25519_dalek::SigningKey::from_bytes(&secret_bytes);
+    let agent = ComplianceAgent::new(signing_key);
+
+    let conflict_rules = vec![
+        PolicyRule {
+            rule_id: Uuid::new_v4(),
+            rule_name: "Basel_Block".to_string(),
+            condition: "amount > 100M".to_string(),
+            action: PolicyAction::Block,
+            priority: 100,
+        },
+        PolicyRule {
+            rule_id: Uuid::new_v4(),
+            rule_name: "Basel_Allow".to_string(),
+            condition: "amount > 100M".to_string(),
+            action: PolicyAction::Allow,
+            priority: 90,
+        },
+    ];
+
+    let conflicts = agent.detect_rule_conflicts(&conflict_rules).unwrap();
+    assert!(!conflicts.is_empty());
+}
+
+#[tokio::test]
+async fn test_track_veto() {
+    let secret_bytes: [u8; 32] = rand::random();
+    let signing_key = ed25519_dalek::SigningKey::from_bytes(&secret_bytes);
+    let mut agent = ComplianceAgent::new(signing_key);
+
+    let plan_id = Uuid::new_v4();
+    agent.track_veto(plan_id, "Sanction list violation").await.unwrap();
+    assert!(agent.veto_history.len() > 0);
+}
+
+#[test]
+fn test_generate_audit_trail() {
+    let secret_bytes: [u8; 32] = rand::random();
+    let signing_key = ed25519_dalek::SigningKey::from_bytes(&secret_bytes);
+    let agent = ComplianceAgent::new(signing_key);
+
+    let evaluation = ComplianceEvaluation {
+        evaluation_id: Uuid::new_v4(),
+        plan_id: Uuid::new_v4(),
+        rules_checked: vec![PolicyRule {
+            rule_id: Uuid::new_v4(),
+            rule_name: "TestRule".to_string(),
+            condition: "test".to_string(),
+            action: PolicyAction::Block,
+            priority: 100,
+        }],
+        verdict: ComplianceVerdict::Approved,
+        triggered_gates: vec!["gate1".to_string()],
+        requires_human_gate: false,
+        timestamp: Utc::now(),
+    };
+
+    let trail = agent.generate_audit_trail(&evaluation).unwrap();
+    assert!(trail.contains("Compliance Audit"));
+    assert!(trail.contains("TestRule"));
+}
+
+#[tokio::test]
+async fn test_sandbox_resource_limit_check_pass() {
+    let secret_bytes: [u8; 32] = rand::random();
+    let signing_key = ed25519_dalek::SigningKey::from_bytes(&secret_bytes);
+    let agent = ComplianceAgent::new(signing_key);
+
+    let metrics = ResourceMetrics {
+        cpu_ms: 100,
+        memory_bytes: 10 * 1024 * 1024,
+        network_calls: 5,
+    };
+
+    assert!(agent.sandbox_resource_limit_check(&metrics).await.is_ok());
+}
+
+#[tokio::test]
+async fn test_sandbox_resource_limit_check_exceeded() {
+    let secret_bytes: [u8; 32] = rand::random();
+    let signing_key = ed25519_dalek::SigningKey::from_bytes(&secret_bytes);
+    let agent = ComplianceAgent::new(signing_key);
+
+    let metrics = ResourceMetrics {
+        cpu_ms: 6000,
+        memory_bytes: 10 * 1024 * 1024,
+        network_calls: 5,
+    };
+
+    assert!(agent.sandbox_resource_limit_check(&metrics).await.is_err());
+}

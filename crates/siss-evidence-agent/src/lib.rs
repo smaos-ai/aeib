@@ -126,7 +126,7 @@ impl EvidenceAgent {
         Ok(())
     }
 
-    async fn collect_traces(&mut self, evaluation: &IncomingEvaluation) -> Result<()> {
+    pub async fn collect_traces(&mut self, evaluation: &IncomingEvaluation) -> Result<()> {
         log::debug!(
             "Collecting execution traces for evaluation {}",
             evaluation.evaluation_id
@@ -161,7 +161,7 @@ impl EvidenceAgent {
         Ok(())
     }
 
-    async fn query_compliance_precedents(&self, gates: &[String]) -> Result<Vec<CompliancePrecedent>> {
+    pub async fn query_compliance_precedents(&self, gates: &[String]) -> Result<Vec<CompliancePrecedent>> {
         log::debug!("Querying l2-knowledge for {} compliance gates", gates.len());
 
         // Stub: in production, would query pgvector
@@ -185,7 +185,7 @@ impl EvidenceAgent {
         Ok(precedents)
     }
 
-    async fn generate_merkle_proof(
+    pub async fn generate_merkle_proof(
         &self,
         evaluation: &IncomingEvaluation,
         traces: &[ExecutionTraceEvent],

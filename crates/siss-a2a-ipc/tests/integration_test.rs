@@ -1,6 +1,6 @@
 /// Phase 2B Part 1: Integration tests for A2A IPC layer
 use chrono::Utc;
-use ed25519_dalek::SigningKey;
+use ed25519_dalek::{SigningKey, Signer};
 use siss_a2a_ipc::{A2AMessage, IPCConfig, MessageType};
 use std::path::PathBuf;
 use uuid::Uuid;
@@ -66,8 +66,10 @@ fn test_ipc_config_custom() {
 
 #[tokio::test]
 async fn test_signing_key_generation() {
-    let key1 = SigningKey::generate(&mut rand::thread_rng());
-    let key2 = SigningKey::generate(&mut rand::thread_rng());
+    let secret_bytes1: [u8; 32] = rand::random();
+    let key1 = SigningKey::from_bytes(&secret_bytes1);
+    let secret_bytes2: [u8; 32] = rand::random();
+    let key2 = SigningKey::from_bytes(&secret_bytes2);
 
     // Keys should be different
     let bytes1 = key1.to_bytes();
@@ -77,7 +79,8 @@ async fn test_signing_key_generation() {
 
 #[test]
 fn test_message_signature_hex_encoding() {
-    let signing_key = SigningKey::generate(&mut rand::thread_rng());
+    let secret_bytes: [u8; 32] = rand::random();
+    let signing_key = SigningKey::from_bytes(&secret_bytes);
     let payload = b"test payload";
     let signature = signing_key.sign(payload);
     let sig_hex = hex::encode(signature.to_bytes());

@@ -5,6 +5,7 @@ import { ComplianceReport, SigningResult } from './types';
 interface Keypair {
   publicKey: Uint8Array;
   secretKey: Uint8Array;
+  privateKey?: Uint8Array;
 }
 
 interface StoredSignature {
@@ -26,7 +27,12 @@ export class KMSSigningService {
   }
 
   async generateKeyPair(): Promise<Keypair> {
-    return nacl.sign.keyPair();
+    const kp = nacl.sign.keyPair();
+    return {
+      publicKey: kp.publicKey,
+      secretKey: kp.secretKey,
+      privateKey: kp.secretKey
+    };
   }
 
   getPublicKey(): string {
@@ -56,10 +62,15 @@ export class KMSSigningService {
     const signatureBytes = nacl.sign.detached(messageBytes, this.keypair.secretKey);
     const signature = Buffer.from(signatureBytes).toString('hex');
 
+    const timestamp = new Date();
+    const publicKey = this.getPublicKey();
+
     const result: SigningResult = {
       signature,
-      publicKey: this.getPublicKey(),
-      timestamp: new Date(),
+      publicKey,
+      signedBy: publicKey,
+      timestamp,
+      signatureTimestamp: timestamp,
       isValid: true
     };
 

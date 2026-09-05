@@ -2660,6 +2660,40 @@ dependencies = [
 ]
 
 [[package]]
+name = "siss-cost-optimizer"
+version = "1.0.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "criterion",
+ "env_logger",
+ "log",
+ "parking_lot",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
+name = "siss-dag-orchestrator"
+version = "1.0.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "criterion",
+ "env_logger",
+ "log",
+ "parking_lot",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "siss-evidence-agent"
 version = "1.0.0"
 dependencies = [
@@ -2765,6 +2799,43 @@ dependencies = [
  "thiserror 1.0.69",
  "tokio",
  "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "siss-semantic-cache-compactor"
+version = "1.0.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "criterion",
+ "env_logger",
+ "fnv",
+ "log",
+ "parking_lot",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
+name = "siss-swarm-safety-core"
+version = "1.0.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "criterion",
+ "env_logger",
+ "log",
+ "parking_lot",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+ "tokio",
+ "tokio-test",
  "uuid",
 ]
 

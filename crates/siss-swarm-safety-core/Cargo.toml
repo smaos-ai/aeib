@@ -1,0 +1,24 @@
+[package]
+name = "siss-swarm-safety-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+tokio = { workspace = true, features = ["full"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+log = { workspace = true }
+env_logger = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true, features = ["v4", "serde"] }
+async-trait = "0.1"
+parking_lot = "0.12"
+
+[dev-dependencies]
+criterion = "0.5"
+tokio-test = "0.4"

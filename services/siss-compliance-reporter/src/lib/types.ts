@@ -57,8 +57,10 @@ export interface ComplianceReport {
 export interface SigningResult {
   signature: string;
   publicKey: string;
+  signedBy?: string;
   timestamp: Date;
   isValid: boolean;
+  signatureTimestamp?: Date;
 }
 
 export interface FrameworkMapping {

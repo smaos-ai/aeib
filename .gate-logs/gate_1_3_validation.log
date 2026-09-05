@@ -34738,3 +34738,2379 @@
 [2026-09-05 02:08:29] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
 [2026-09-05 02:08:29] [GATE-1-3] [INFO] =========================================
 [2026-09-05 02:08:29] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:08:35] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:08:35] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566915834540000 | Tool Exit: 0
+[2026-09-05 02:08:35] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:08:35] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:08:35] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:08:35] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:08:35] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:08:35] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:08:35] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:08:35] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:08:35] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:08:35] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:08:35] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:08:35] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:08:35] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:08:35] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:08:35] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:08:35] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:08:39] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:08:39] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566919768932000 | Tool Exit: 0
+[2026-09-05 02:08:39] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:08:39] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:08:39] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:08:39] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:08:39] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:08:39] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:08:39] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:08:39] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:08:39] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:08:39] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:08:39] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:08:39] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:08:39] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:08:39] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:08:39] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:08:39] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:08:44] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:08:44] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566924095499000 | Tool Exit: 0
+[2026-09-05 02:08:44] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:08:44] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:08:44] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:08:44] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:08:44] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:08:44] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:08:44] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:08:44] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:08:44] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:08:44] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:08:44] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:08:44] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:08:44] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:08:44] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:08:44] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:08:44] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:08:45] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:08:45] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566925315104000 | Tool Exit: 0
+[2026-09-05 02:08:45] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:08:45] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:08:45] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:08:45] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:08:45] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:08:45] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:08:45] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:08:45] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:08:45] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:08:45] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:08:45] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:08:45] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:08:45] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:08:45] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:08:45] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:08:45] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:08:49] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:08:49] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566929653602000 | Tool Exit: 0
+[2026-09-05 02:08:49] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:08:49] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:08:49] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:08:49] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:08:49] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:08:49] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:08:49] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:08:49] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:08:49] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:08:49] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:08:49] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:08:49] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:08:49] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:08:49] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:08:49] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:08:49] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:08:50] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:08:50] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566930287451000 | Tool Exit: 0
+[2026-09-05 02:08:50] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:08:50] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:08:50] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:08:50] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:08:50] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:08:50] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:08:50] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:08:50] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:08:50] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:08:50] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:08:50] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:08:50] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:08:50] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:08:50] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:08:50] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:08:50] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:08:50] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:08:50] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566930532058000 | Tool Exit: 0
+[2026-09-05 02:08:50] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:08:50] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:08:50] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:08:50] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:08:50] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:08:50] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:08:50] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:08:50] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:08:50] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:08:50] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:08:50] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:08:50] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:08:50] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:08:50] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:08:50] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:08:50] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:08:53] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:08:53] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566933340204000 | Tool Exit: 0
+[2026-09-05 02:08:53] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:08:53] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:08:53] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:08:53] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:08:53] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:08:53] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:08:53] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:08:53] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:08:53] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:08:53] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:08:53] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:08:53] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:08:53] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:08:53] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:08:53] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:08:53] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:08:54] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:08:54] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566934377224000 | Tool Exit: 0
+[2026-09-05 02:08:54] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:08:54] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:08:54] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:08:54] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:08:54] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:08:54] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:08:54] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:08:54] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:08:54] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:08:54] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:08:54] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:08:54] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:08:54] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:08:54] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:08:54] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:08:54] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:08:56] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:08:56] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566936565367000 | Tool Exit: 0
+[2026-09-05 02:08:56] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:08:56] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:08:56] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:08:56] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:08:56] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:08:56] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:08:56] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:08:56] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:08:56] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:08:56] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:08:56] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:08:56] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:08:56] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:08:56] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:08:56] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:08:56] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:08:58] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:08:58] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566938028646000 | Tool Exit: 0
+[2026-09-05 02:08:58] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:08:58] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:08:58] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:08:58] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:08:58] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:08:58] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:08:58] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:08:58] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:08:58] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:08:58] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:08:58] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:08:58] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:08:58] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:08:58] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:08:58] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:08:58] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:08:59] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:08:59] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566939528678000 | Tool Exit: 0
+[2026-09-05 02:08:59] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:08:59] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:08:59] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:08:59] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:08:59] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:08:59] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:08:59] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:08:59] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:08:59] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:08:59] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:08:59] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:08:59] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:08:59] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:08:59] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:08:59] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:08:59] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:09:04] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:09:04] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566944616969000 | Tool Exit: 0
+[2026-09-05 02:09:04] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:09:04] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:09:04] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:09:04] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:09:04] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:09:04] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:09:04] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:09:04] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:09:04] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:09:04] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:04] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:09:04] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:09:04] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:09:04] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:09:04] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:04] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:09:09] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:09:09] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566949613241000 | Tool Exit: 0
+[2026-09-05 02:09:09] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:09:09] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:09:09] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:09:09] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:09:09] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:09:09] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:09:09] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:09:09] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:09:09] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:09:09] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:09] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:09:09] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:09:09] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566949678499000 | Tool Exit: 0
+[2026-09-05 02:09:09] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:09:09] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:09:09] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:09:09] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:09:09] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:09] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:09:09] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:09:09] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:09:09] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:09:09] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:09:09] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:09:09] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:09:09] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:09:09] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:09:09] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:09] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:09:09] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:09:09] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:09:09] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:09:09] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:09] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:09:13] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:09:13] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566953840854000 | Tool Exit: 0
+[2026-09-05 02:09:13] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:09:13] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:09:13] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:09:13] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:09:13] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:09:13] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:09:13] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:09:13] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:09:13] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:09:13] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:13] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:09:13] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:09:13] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:09:13] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:09:13] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:13] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:09:14] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:09:14] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566954849752000 | Tool Exit: 0
+[2026-09-05 02:09:14] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:09:14] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:09:14] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:09:14] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:09:14] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:09:14] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:09:14] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:09:14] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:09:14] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:09:14] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:14] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:09:14] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:09:14] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:09:14] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:09:14] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:14] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:09:17] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:09:17] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566957599620000 | Tool Exit: 0
+[2026-09-05 02:09:17] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:09:17] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:09:17] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:09:17] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:09:17] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:09:17] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:09:17] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:09:17] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:09:17] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:09:17] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:17] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:09:17] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:09:17] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:09:17] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:09:17] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:17] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:09:22] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:09:22] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566962353329000 | Tool Exit: 0
+[2026-09-05 02:09:22] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:09:22] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:09:22] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:09:22] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:09:22] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:09:22] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:09:22] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:09:22] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:09:22] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:09:22] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:22] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:09:22] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:09:22] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:09:22] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:09:22] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:22] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:09:23] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:09:23] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566963391220000 | Tool Exit: 0
+[2026-09-05 02:09:23] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:09:23] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:09:23] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:09:23] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:09:23] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:09:23] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:09:23] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:09:23] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:09:23] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:09:23] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:23] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:09:23] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:09:23] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:09:23] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:09:23] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:23] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:09:26] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:09:26] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566966403622000 | Tool Exit: 0
+[2026-09-05 02:09:26] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:09:26] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:09:26] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:09:26] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:09:26] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:09:26] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:09:26] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:09:26] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:09:26] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:09:26] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:26] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:09:26] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:09:26] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:09:26] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:09:26] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:26] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:09:26] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:09:26] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566966726982000 | Tool Exit: 0
+[2026-09-05 02:09:26] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:09:26] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:09:26] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:09:26] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:09:26] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:09:26] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:09:26] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:09:26] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:09:26] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:09:26] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:26] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:09:26] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:09:26] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:09:26] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:09:26] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:26] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:09:28] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:09:28] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566968935151000 | Tool Exit: 0
+[2026-09-05 02:09:28] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:09:28] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:09:28] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:09:28] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:09:28] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:09:28] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:09:28] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:09:28] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:09:28] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:09:28] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:29] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:09:29] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:09:29] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:09:29] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:09:29] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:29] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:09:31] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:09:31] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566971829489000 | Tool Exit: 0
+[2026-09-05 02:09:31] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:09:31] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:09:31] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:09:31] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:09:31] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:09:31] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:09:31] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:09:31] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:09:31] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:09:31] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:31] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:09:31] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:09:31] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:09:31] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:09:31] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:31] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:09:32] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:09:32] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566972876134000 | Tool Exit: 0
+[2026-09-05 02:09:32] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:09:32] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:09:32] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:09:32] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:09:32] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:09:32] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:09:32] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:09:32] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:09:32] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:09:32] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:32] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:09:32] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:09:32] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:09:32] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:09:32] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:32] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:09:34] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:09:34] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566974290348000 | Tool Exit: 0
+[2026-09-05 02:09:34] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:09:34] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:09:34] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:09:34] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:09:34] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:09:34] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:09:34] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:09:34] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:09:34] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:09:34] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:34] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:09:34] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:09:34] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:09:34] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:09:34] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:34] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:09:36] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:09:36] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566976252290000 | Tool Exit: 0
+[2026-09-05 02:09:36] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:09:36] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:09:36] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:09:36] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:09:36] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:09:36] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:09:36] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:09:36] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:09:36] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:09:36] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:36] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:09:36] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:09:36] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:09:36] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:09:36] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:36] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:09:36] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:09:36] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566976611132000 | Tool Exit: 0
+[2026-09-05 02:09:36] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:09:36] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:09:36] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:09:36] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:09:36] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:09:36] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:09:36] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:09:36] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:09:36] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:09:36] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:36] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:09:36] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:09:36] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:09:36] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:09:36] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:36] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:09:38] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:09:38] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566978754585000 | Tool Exit: 0
+[2026-09-05 02:09:38] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:09:38] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:09:38] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:09:38] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:09:38] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:09:38] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:09:38] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:09:38] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:09:38] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:09:38] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:38] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:09:38] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:09:38] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:09:38] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:09:38] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:38] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:09:40] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:09:40] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566980153026000 | Tool Exit: 0
+[2026-09-05 02:09:40] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:09:40] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:09:40] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:09:40] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:09:40] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:09:40] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:09:40] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:09:40] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:09:40] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:09:40] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:40] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:09:40] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:09:40] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:09:40] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:09:40] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:40] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:09:42] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:09:42] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566982069867000 | Tool Exit: 0
+[2026-09-05 02:09:42] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:09:42] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:09:42] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:09:42] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:09:42] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:09:42] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:09:42] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:09:42] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:09:42] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:09:42] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:42] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:09:42] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:09:42] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:09:42] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:09:42] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:42] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:09:44] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:09:44] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566984441081000 | Tool Exit: 0
+[2026-09-05 02:09:44] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:09:44] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:09:44] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:09:44] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:09:44] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:09:44] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:09:44] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:09:44] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:09:44] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:09:44] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:44] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:09:44] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:09:44] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:09:44] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:09:44] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:44] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:09:46] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:09:46] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566986652412000 | Tool Exit: 0
+[2026-09-05 02:09:46] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:09:46] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:09:46] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:09:46] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:09:46] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:09:46] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:09:46] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:09:46] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:09:46] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:09:46] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:46] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:09:46] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:09:46] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:09:46] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:09:46] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:46] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:09:49] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:09:49] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566989465960000 | Tool Exit: 0
+[2026-09-05 02:09:49] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:09:49] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:09:49] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:09:49] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:09:49] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:09:49] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:09:49] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:09:49] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:09:49] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:09:49] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:49] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:09:49] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:09:49] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:09:49] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:09:49] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:49] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:09:49] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:09:49] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566989587059000 | Tool Exit: 0
+[2026-09-05 02:09:49] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:09:49] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:09:49] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:09:49] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:09:49] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:09:49] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:09:49] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:09:49] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:09:49] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:09:49] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:49] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:09:49] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:09:49] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:09:49] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:09:49] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:49] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:09:54] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:09:54] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566994842845000 | Tool Exit: 0
+[2026-09-05 02:09:54] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:09:54] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:09:54] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:09:54] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:09:54] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:09:54] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:09:54] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:09:54] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:09:54] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:09:54] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:54] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:09:54] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:09:54] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:09:54] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:09:54] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:54] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:09:58] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:09:58] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788566998899193000 | Tool Exit: 0
+[2026-09-05 02:09:58] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:09:58] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:09:58] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:09:58] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:09:58] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:09:58] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:09:58] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:09:58] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:09:58] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:09:58] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:58] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:09:58] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:09:58] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:09:58] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:09:58] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:09:58] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:10:03] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:10:03] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788567003676113000 | Tool Exit: 0
+[2026-09-05 02:10:03] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:10:03] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:10:03] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:10:03] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:10:03] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:10:03] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:10:03] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:10:03] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:10:03] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:10:03] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:03] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:10:03] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:10:03] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:10:03] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:10:03] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:03] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:10:04] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:10:04] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788567004338843000 | Tool Exit: 0
+[2026-09-05 02:10:04] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:10:04] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:10:04] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:10:04] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:10:04] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:10:04] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:10:04] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:10:04] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:10:04] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:10:04] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:04] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:10:04] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:10:04] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:10:04] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:10:04] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:04] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:10:10] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:10:10] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788567010095410000 | Tool Exit: 0
+[2026-09-05 02:10:10] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:10:10] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:10:10] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:10:10] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:10:10] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:10:10] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:10:10] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:10:10] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:10:10] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:10:10] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:10] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:10:10] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:10:10] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:10:10] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:10:10] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:10] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:10:12] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:10:12] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788567012502508000 | Tool Exit: 0
+[2026-09-05 02:10:12] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:10:12] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:10:12] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:10:12] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:10:12] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:10:12] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:10:12] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:10:12] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:10:12] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:10:12] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:12] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:10:12] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:10:12] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:10:12] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:10:12] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:12] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:10:13] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:10:13] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788567013179068000 | Tool Exit: 0
+[2026-09-05 02:10:13] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:10:13] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:10:13] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:10:13] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:10:13] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:10:13] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:10:13] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:10:13] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:10:13] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:10:13] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:13] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:10:13] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:10:13] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:10:13] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:10:13] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:13] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:10:15] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:10:15] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788567015948357000 | Tool Exit: 0
+[2026-09-05 02:10:15] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:10:15] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:10:15] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:10:15] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:10:15] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:10:16] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:10:16] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:10:16] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:10:16] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:10:16] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:16] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:10:16] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:10:16] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:10:16] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:10:16] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:16] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:10:18] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:10:18] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788567018133310000 | Tool Exit: 0
+[2026-09-05 02:10:18] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:10:18] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:10:18] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:10:18] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:10:18] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:10:18] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:10:18] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:10:18] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:10:18] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:10:18] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:18] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:10:18] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:10:18] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:10:18] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:10:18] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:18] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:10:20] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:10:20] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788567020552714000 | Tool Exit: 0
+[2026-09-05 02:10:20] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:10:20] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:10:20] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:10:20] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:10:20] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:10:20] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:10:20] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:10:20] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:10:20] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:10:20] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:20] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:10:20] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:10:20] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:10:20] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:10:20] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:20] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:10:25] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:10:25] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788567025330480000 | Tool Exit: 0
+[2026-09-05 02:10:25] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:10:25] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:10:25] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:10:25] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:10:25] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:10:25] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:10:25] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:10:25] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:10:25] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:10:25] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:25] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:10:25] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:10:25] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:10:25] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:10:25] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:25] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:10:29] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:10:29] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788567029895562000 | Tool Exit: 0
+[2026-09-05 02:10:29] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:10:29] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:10:29] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:10:29] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:10:29] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:10:29] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:10:29] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:10:29] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:10:29] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:10:29] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:29] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:10:29] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:10:29] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:10:29] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:10:29] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:29] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:10:41] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:10:41] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788567041940427000 | Tool Exit: 0
+[2026-09-05 02:10:41] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:10:41] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:10:41] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:10:41] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:10:41] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:10:41] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:10:41] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:10:41] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:10:41] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:10:42] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:42] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:10:42] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:10:42] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:10:42] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:10:42] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:42] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:10:45] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:10:45] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788567045682941000 | Tool Exit: 0
+[2026-09-05 02:10:45] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:10:45] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:10:45] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:10:45] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:10:45] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:10:45] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:10:45] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:10:45] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:10:45] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:10:45] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:45] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:10:45] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:10:45] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:10:45] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:10:45] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:45] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:10:48] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:10:48] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788567048783652000 | Tool Exit: 0
+[2026-09-05 02:10:48] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:10:48] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:10:48] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:10:48] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:10:48] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:10:48] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:10:48] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:10:48] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:10:48] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:10:48] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:48] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:10:48] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:10:48] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:10:48] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:10:48] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:48] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:10:52] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:10:52] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788567052914851000 | Tool Exit: 0
+[2026-09-05 02:10:52] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:10:52] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:10:52] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:10:52] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:10:52] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:10:52] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:10:52] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:10:52] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:10:52] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:10:52] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:52] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:10:52] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:10:52] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:10:52] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:10:52] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:52] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:10:57] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:10:57] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788567057914285000 | Tool Exit: 0
+[2026-09-05 02:10:57] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:10:57] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:10:57] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:10:57] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:10:57] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:10:57] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:10:57] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:10:57] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:10:57] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:10:57] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:57] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:10:57] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:10:57] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:10:57] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:10:57] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:57] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:10:59] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:10:59] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788567059397267000 | Tool Exit: 0
+[2026-09-05 02:10:59] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:10:59] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:10:59] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:10:59] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:10:59] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:10:59] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:10:59] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:10:59] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:10:59] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:10:59] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:59] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:10:59] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:10:59] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:10:59] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:10:59] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:10:59] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:11:03] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:11:03] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788567063929871000 | Tool Exit: 0
+[2026-09-05 02:11:03] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:11:03] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:11:04] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:11:04] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:11:04] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:11:04] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:11:04] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:11:04] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:11:04] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:11:04] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:11:04] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:11:04] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:11:04] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:11:04] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:11:04] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:11:04] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:11:06] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:11:06] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788567066970260000 | Tool Exit: 0
+[2026-09-05 02:11:06] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:11:07] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:11:07] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:11:07] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:11:07] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:11:07] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:11:07] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:11:07] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:11:07] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:11:07] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:11:07] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:11:07] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:11:07] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:11:07] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:11:07] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:11:07] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:11:08] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:11:08] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788567068603193000 | Tool Exit: 0
+[2026-09-05 02:11:08] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:11:08] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:11:08] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:11:08] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:11:08] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:11:08] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:11:08] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:11:08] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:11:08] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:11:08] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:11:08] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:11:08] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:11:08] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:11:08] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:11:08] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:11:08] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:11:10] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:11:10] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788567070953824000 | Tool Exit: 0
+[2026-09-05 02:11:10] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:11:10] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:11:10] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:11:10] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:11:10] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:11:11] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:11:11] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:11:11] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:11:11] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:11:11] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:11:11] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:11:11] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:11:11] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:11:11] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:11:11] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:11:11] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:11:11] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:11:11] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788567071832758000 | Tool Exit: 0
+[2026-09-05 02:11:11] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:11:11] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:11:11] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:11:11] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:11:11] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:11:11] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:11:11] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:11:11] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:11:11] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:11:11] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:11:11] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:11:11] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:11:11] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:11:11] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:11:11] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:11:11] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:11:14] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:11:14] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788567074674736000 | Tool Exit: 0
+[2026-09-05 02:11:14] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:11:14] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:11:14] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:11:14] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:11:14] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:11:14] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:11:14] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:11:14] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:11:14] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:11:14] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:11:14] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:11:14] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:11:14] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:11:14] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:11:14] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:11:14] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:11:16] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:11:16] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788567076602542000 | Tool Exit: 0
+[2026-09-05 02:11:16] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:11:16] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:11:16] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:11:16] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:11:16] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:11:16] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:11:16] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:11:16] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:11:16] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:11:16] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:11:16] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:11:16] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:11:16] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:11:16] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:11:16] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:11:16] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:11:20] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:11:21] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788567080997709000 | Tool Exit: 0
+[2026-09-05 02:11:21] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:11:21] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:11:21] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:11:21] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:11:21] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:11:21] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:11:21] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:11:21] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:11:21] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:11:21] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:11:21] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:11:21] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:11:21] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:11:21] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:11:21] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:11:21] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:11:23] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:11:23] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788567083756208000 | Tool Exit: 0
+[2026-09-05 02:11:23] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:11:23] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:11:23] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:11:23] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:11:23] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:11:23] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:11:23] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:11:23] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:11:23] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:11:23] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:11:23] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:11:23] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:11:23] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:11:23] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:11:23] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:11:23] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:11:28] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:11:28] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788567088328360000 | Tool Exit: 0
+[2026-09-05 02:11:28] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:11:28] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:11:28] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:11:28] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:11:28] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:11:28] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:11:28] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:11:28] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:11:28] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:11:28] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:11:28] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:11:28] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:11:28] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:11:28] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:11:28] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:11:28] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 02:11:32] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 02:11:32] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788567092253057000 | Tool Exit: 0
+[2026-09-05 02:11:32] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 02:11:32] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 02:11:32] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 02:11:32] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 02:11:32] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 02:11:32] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 02:11:32] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 02:11:32] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 02:11:32] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 02:11:32] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:11:32] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 02:11:32] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 02:11:32] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 02:11:32] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 02:11:32] [GATE-1-3] [INFO] =========================================
+[2026-09-05 02:11:32] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:00:26] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:00:26] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570026699311000 | Tool Exit: 0
+[2026-09-05 03:00:26] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:00:26] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:00:26] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:00:26] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:00:26] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:00:26] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:00:26] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:00:26] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:00:26] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:00:26] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:00:26] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:00:26] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:00:26] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:00:26] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:00:26] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:00:26] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:00:31] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:00:31] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570031006365000 | Tool Exit: 0
+[2026-09-05 03:00:31] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:00:31] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:00:31] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:00:31] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:00:31] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:00:31] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:00:31] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:00:31] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:00:31] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:00:31] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:00:31] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:00:31] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:00:31] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:00:31] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:00:31] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:00:31] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:00:35] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:00:35] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570035290848000 | Tool Exit: 0
+[2026-09-05 03:00:35] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:00:35] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:00:35] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:00:35] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:00:35] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:00:35] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:00:35] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:00:35] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:00:35] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:00:35] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:00:35] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:00:35] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:00:35] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:00:35] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:00:35] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:00:35] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:00:39] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:00:39] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570039474404000 | Tool Exit: 0
+[2026-09-05 03:00:39] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:00:39] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:00:39] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:00:39] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:00:39] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:00:39] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:00:39] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:00:39] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:00:39] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:00:39] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:00:39] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:00:39] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:00:39] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:00:39] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:00:39] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:00:39] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:00:42] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:00:42] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570042626504000 | Tool Exit: 0
+[2026-09-05 03:00:42] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:00:42] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:00:42] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:00:42] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:00:42] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:00:42] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:00:42] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:00:42] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:00:42] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:00:42] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:00:42] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:00:42] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:00:42] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:00:42] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:00:42] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:00:42] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:00:47] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:00:47] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570047561277000 | Tool Exit: 0
+[2026-09-05 03:00:47] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:00:47] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:00:47] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:00:47] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:00:47] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:00:47] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:00:47] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:00:47] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:00:47] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:00:47] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:00:47] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:00:47] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:00:47] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:00:47] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:00:47] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:00:47] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:00:50] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:00:50] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570050875785000 | Tool Exit: 0
+[2026-09-05 03:00:50] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:00:50] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:00:50] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:00:50] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:00:50] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:00:50] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:00:50] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:00:50] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:00:50] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:00:50] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:00:50] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:00:50] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:00:50] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:00:50] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:00:50] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:00:50] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:01:02] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:01:02] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570062933963000 | Tool Exit: 0
+[2026-09-05 03:01:02] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:01:02] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:01:02] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:01:02] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:01:02] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:01:02] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:01:02] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:01:02] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:01:02] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:01:02] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:01:02] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:01:03] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:01:03] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:01:03] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:01:03] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:01:03] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:01:09] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:01:09] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570069983395000 | Tool Exit: 0
+[2026-09-05 03:01:09] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:01:10] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:01:10] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:01:10] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:01:10] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:01:10] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:01:10] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:01:10] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:01:10] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:01:10] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:01:10] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:01:10] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:01:10] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:01:10] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:01:10] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:01:10] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:01:13] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:01:13] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570073665634000 | Tool Exit: 0
+[2026-09-05 03:01:13] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:01:13] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:01:13] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:01:13] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:01:13] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:01:13] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:01:13] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:01:13] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:01:13] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:01:13] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:01:13] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:01:13] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:01:13] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:01:13] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:01:13] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:01:13] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:01:20] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:01:20] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570080521009000 | Tool Exit: 0
+[2026-09-05 03:01:20] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:01:20] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:01:20] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:01:20] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:01:20] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:01:20] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:01:20] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:01:20] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:01:20] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:01:20] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:01:20] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:01:20] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:01:20] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:01:20] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:01:20] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:01:20] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:01:31] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:01:31] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570091262693000 | Tool Exit: 0
+[2026-09-05 03:01:31] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:01:31] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:01:31] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:01:31] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:01:31] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:01:31] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:01:31] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:01:31] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:01:31] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:01:31] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:01:31] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:01:31] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:01:31] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:01:31] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:01:31] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:01:31] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:01:43] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:01:43] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570103964135000 | Tool Exit: 0
+[2026-09-05 03:01:43] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:01:44] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:01:44] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:01:44] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:01:44] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:01:44] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:01:44] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:01:44] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:01:44] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:01:44] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:01:44] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:01:44] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:01:44] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:01:44] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:01:44] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:01:44] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:02:00] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:02:00] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570120288170000 | Tool Exit: 0
+[2026-09-05 03:02:00] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:02:00] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:02:00] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:02:00] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:02:00] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:02:00] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:02:00] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:02:00] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:02:00] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:02:00] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:02:00] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:02:00] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:02:00] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:02:00] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:02:00] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:02:00] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:02:02] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:02:02] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570122715889000 | Tool Exit: 0
+[2026-09-05 03:02:02] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:02:02] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:02:02] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:02:02] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:02:02] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:02:02] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:02:02] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:02:02] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:02:02] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:02:02] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:02:02] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:02:02] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:02:02] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:02:02] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:02:02] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:02:02] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:02:05] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:02:05] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570125617976000 | Tool Exit: 0
+[2026-09-05 03:02:05] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:02:05] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:02:05] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:02:05] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:02:05] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:02:05] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:02:05] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:02:05] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:02:05] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:02:05] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:02:05] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:02:05] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:02:05] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:02:05] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:02:05] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:02:05] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:02:10] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:02:10] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570130844174000 | Tool Exit: 0
+[2026-09-05 03:02:10] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:02:10] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:02:10] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:02:10] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:02:10] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:02:10] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:02:10] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:02:10] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:02:10] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:02:10] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:02:10] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:02:10] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:02:10] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:02:10] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:02:10] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:02:10] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:02:14] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:02:14] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570134712146000 | Tool Exit: 0
+[2026-09-05 03:02:14] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:02:14] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:02:14] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:02:14] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:02:14] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:02:14] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:02:14] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:02:14] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:02:14] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:02:14] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:02:14] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:02:14] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:02:14] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:02:14] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:02:14] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:02:14] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:02:19] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:02:19] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570139244071000 | Tool Exit: 0
+[2026-09-05 03:02:19] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:02:19] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:02:19] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:02:19] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:02:19] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:02:19] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:02:19] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:02:19] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:02:19] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:02:19] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:02:19] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:02:19] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:02:19] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:02:19] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:02:19] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:02:19] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:02:22] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:02:22] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570142185072000 | Tool Exit: 0
+[2026-09-05 03:02:22] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:02:22] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:02:22] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:02:22] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:02:22] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:02:22] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:02:22] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:02:22] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:02:22] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:02:22] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:02:22] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:02:22] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:02:22] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:02:22] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:02:22] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:02:22] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:02:24] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:02:24] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570144946443000 | Tool Exit: 0
+[2026-09-05 03:02:24] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:02:24] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:02:24] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:02:24] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:02:24] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:02:24] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:02:25] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:02:25] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:02:25] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:02:25] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:02:25] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:02:25] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:02:25] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:02:25] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:02:25] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:02:25] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:02:28] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:02:28] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570148653709000 | Tool Exit: 0
+[2026-09-05 03:02:28] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:02:28] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:02:28] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:02:28] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:02:28] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:02:28] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:02:28] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:02:28] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:02:28] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:02:28] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:02:28] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:02:28] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:02:28] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:02:28] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:02:28] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:02:28] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:02:31] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:02:31] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570151789083000 | Tool Exit: 0
+[2026-09-05 03:02:31] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:02:31] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:02:31] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:02:31] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:02:31] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:02:31] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:02:31] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:02:31] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:02:31] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:02:31] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:02:31] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:02:31] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:02:31] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:02:31] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:02:31] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:02:31] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:02:39] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:02:39] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570159726436000 | Tool Exit: 0
+[2026-09-05 03:02:39] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:02:39] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:02:39] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:02:39] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:02:39] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:02:39] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:02:39] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:02:39] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:02:39] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:02:39] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:02:39] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:02:39] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:02:39] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:02:39] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:02:39] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:02:39] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:02:47] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:02:47] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570167712992000 | Tool Exit: 0
+[2026-09-05 03:02:47] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:02:47] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:02:47] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:02:47] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:02:47] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:02:47] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:02:47] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:02:47] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:02:47] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:02:47] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:02:47] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:02:47] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:02:47] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:02:47] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:02:47] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:02:47] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:02:51] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:02:51] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570171433731000 | Tool Exit: 0
+[2026-09-05 03:02:51] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:02:51] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:02:51] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:02:51] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:02:51] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:02:51] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:02:51] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:02:51] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:02:51] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:02:51] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:02:51] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:02:51] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:02:51] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:02:51] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:02:51] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:02:51] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:02:57] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:02:57] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570177531992000 | Tool Exit: 0
+[2026-09-05 03:02:57] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:02:57] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:02:57] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:02:57] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:02:57] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:02:57] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:02:57] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:02:57] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:02:57] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:02:57] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:02:57] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:02:57] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:02:57] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:02:57] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:02:57] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:02:57] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:03:09] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:03:09] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570189432882000 | Tool Exit: 0
+[2026-09-05 03:03:09] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:03:09] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:03:09] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:03:09] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:03:09] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:03:09] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:03:09] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:03:09] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:03:09] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:03:09] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:03:09] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:03:09] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:03:09] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:03:09] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:03:09] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:03:09] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:03:22] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:03:22] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570202788209000 | Tool Exit: 0
+[2026-09-05 03:03:22] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:03:22] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:03:22] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:03:22] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:03:22] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:03:22] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:03:22] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:03:22] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:03:22] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:03:22] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:03:22] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:03:22] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:03:22] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:03:22] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:03:22] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:03:22] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:03:34] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:03:34] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570214446747000 | Tool Exit: 0
+[2026-09-05 03:03:34] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:03:34] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:03:34] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:03:34] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:03:34] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:03:34] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:03:34] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:03:34] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:03:34] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:03:34] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:03:34] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:03:34] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:03:34] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:03:34] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:03:34] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:03:34] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:03:37] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:03:37] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570217538635000 | Tool Exit: 0
+[2026-09-05 03:03:37] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:03:37] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:03:37] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:03:37] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:03:37] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:03:37] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:03:37] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:03:37] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:03:37] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:03:37] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:03:37] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:03:37] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:03:37] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:03:37] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:03:37] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:03:37] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:03:40] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:03:40] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570220295255000 | Tool Exit: 0
+[2026-09-05 03:03:40] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:03:40] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:03:40] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:03:40] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:03:40] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:03:40] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:03:40] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:03:40] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:03:40] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:03:40] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:03:40] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:03:40] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:03:40] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:03:40] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:03:40] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:03:40] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:03:43] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:03:43] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570223010626000 | Tool Exit: 0
+[2026-09-05 03:03:43] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:03:43] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:03:43] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:03:43] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:03:43] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:03:43] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:03:43] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:03:43] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:03:43] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:03:43] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:03:43] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:03:43] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:03:43] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:03:43] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:03:43] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:03:43] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:03:45] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:03:45] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570225923442000 | Tool Exit: 0
+[2026-09-05 03:03:45] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:03:45] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:03:45] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:03:45] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:03:45] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:03:45] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:03:45] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:03:45] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:03:45] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:03:45] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:03:45] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:03:45] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:03:45] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:03:45] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:03:45] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:03:45] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:03:50] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:03:50] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570230250477000 | Tool Exit: 0
+[2026-09-05 03:03:50] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:03:50] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:03:50] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:03:50] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:03:50] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:03:50] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:03:50] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:03:50] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:03:50] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:03:50] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:03:50] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:03:50] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:03:50] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:03:50] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:03:50] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:03:50] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:03:52] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:03:52] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570232567161000 | Tool Exit: 0
+[2026-09-05 03:03:52] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:03:52] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:03:52] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:03:52] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:03:52] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:03:52] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:03:52] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:03:52] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:03:52] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:03:52] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:03:52] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:03:52] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:03:52] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:03:52] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:03:52] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:03:52] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:03:55] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:03:55] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570235069913000 | Tool Exit: 0
+[2026-09-05 03:03:55] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:03:55] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:03:55] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:03:55] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:03:55] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:03:55] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:03:55] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:03:55] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:03:55] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:03:55] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:03:55] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:03:55] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:03:55] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:03:55] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:03:55] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:03:55] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:04:01] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:04:01] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570241327920000 | Tool Exit: 0
+[2026-09-05 03:04:01] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:04:01] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:04:01] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:04:01] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:04:01] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:04:01] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:04:01] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:04:01] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:04:01] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:04:01] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:04:01] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:04:01] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:04:01] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:04:01] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:04:01] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:04:01] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:04:05] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:04:05] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570245185892000 | Tool Exit: 0
+[2026-09-05 03:04:05] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:04:05] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:04:05] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:04:05] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:04:05] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:04:05] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:04:05] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:04:05] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:04:05] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:04:05] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:04:05] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:04:05] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:04:05] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:04:05] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:04:05] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:04:05] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:04:08] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:04:08] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570248824500000 | Tool Exit: 0
+[2026-09-05 03:04:08] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:04:08] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:04:08] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:04:08] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:04:08] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:04:08] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:04:08] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:04:08] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:04:08] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:04:08] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:04:08] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:04:08] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:04:08] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:04:08] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:04:08] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:04:08] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:04:15] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:04:15] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570255185303000 | Tool Exit: 0
+[2026-09-05 03:04:15] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:04:15] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:04:15] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:04:15] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:04:15] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:04:15] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:04:15] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:04:15] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:04:15] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:04:15] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:04:15] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:04:15] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:04:15] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:04:15] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:04:15] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:04:15] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:04:23] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:04:23] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570263824541000 | Tool Exit: 0
+[2026-09-05 03:04:23] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:04:23] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:04:23] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:04:23] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:04:23] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:04:23] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:04:23] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:04:23] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:04:23] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:04:23] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:04:23] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:04:23] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:04:23] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:04:23] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:04:23] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:04:23] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:04:27] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:04:27] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570267312205000 | Tool Exit: 0
+[2026-09-05 03:04:27] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:04:27] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:04:27] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:04:27] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:04:27] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:04:27] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:04:27] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:04:27] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:04:27] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:04:27] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:04:27] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:04:27] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:04:27] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:04:27] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:04:27] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:04:27] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:04:34] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:04:34] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570274082983000 | Tool Exit: 0
+[2026-09-05 03:04:34] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:04:34] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:04:34] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:04:34] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:04:34] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:04:34] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:04:34] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:04:34] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:04:34] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:04:34] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:04:34] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:04:34] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:04:34] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:04:34] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:04:34] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:04:34] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:04:46] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:04:46] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570285999719000 | Tool Exit: 0
+[2026-09-05 03:04:46] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:04:46] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:04:46] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:04:46] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:04:46] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:04:46] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:04:46] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:04:46] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:04:46] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:04:46] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:04:46] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:04:46] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:04:46] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:04:46] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:04:46] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:04:46] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:04:57] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:04:57] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570297083608000 | Tool Exit: 0
+[2026-09-05 03:04:57] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:04:57] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:04:57] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:04:57] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:04:57] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:04:57] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:04:57] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:04:57] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:04:57] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:04:57] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:04:57] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:04:57] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:04:57] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:04:57] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:04:57] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:04:57] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:05:07] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:05:07] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570307206574000 | Tool Exit: 0
+[2026-09-05 03:05:07] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:05:07] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:05:07] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:05:07] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:05:07] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:05:07] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:05:07] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:05:07] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:05:07] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:05:07] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:05:07] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:05:07] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:05:07] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:05:07] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:05:07] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:05:07] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:05:11] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:05:11] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570311443377000 | Tool Exit: 0
+[2026-09-05 03:05:11] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:05:11] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:05:11] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:05:11] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:05:11] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:05:11] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:05:11] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:05:11] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:05:11] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:05:11] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:05:11] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:05:11] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:05:11] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:05:11] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:05:11] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:05:11] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:05:14] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:05:14] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570314138835000 | Tool Exit: 0
+[2026-09-05 03:05:14] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:05:14] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:05:14] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:05:14] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:05:14] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:05:14] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:05:14] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:05:14] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:05:14] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:05:14] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:05:14] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:05:14] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:05:14] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:05:14] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:05:14] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:05:14] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:05:18] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:05:18] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570318120325000 | Tool Exit: 0
+[2026-09-05 03:05:18] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:05:18] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:05:18] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:05:18] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:05:18] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:05:18] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:05:18] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:05:18] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:05:18] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:05:18] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:05:18] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:05:18] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:05:18] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:05:18] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:05:18] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:05:18] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:05:20] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:05:20] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570320504383000 | Tool Exit: 0
+[2026-09-05 03:05:20] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:05:20] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:05:20] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:05:20] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:05:20] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:05:20] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:05:20] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:05:20] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:05:20] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:05:20] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:05:20] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:05:20] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:05:20] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:05:20] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:05:20] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:05:20] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:05:23] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:05:23] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570323170098000 | Tool Exit: 0
+[2026-09-05 03:05:23] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:05:23] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:05:23] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:05:23] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:05:23] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:05:23] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:05:23] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:05:23] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:05:23] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:05:23] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:05:23] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:05:23] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:05:23] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:05:23] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:05:23] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:05:23] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:05:25] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:05:25] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570325992278000 | Tool Exit: 0
+[2026-09-05 03:05:25] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:05:26] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:05:26] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:05:26] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:05:26] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:05:26] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:05:26] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:05:26] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:05:26] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:05:26] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:05:26] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:05:26] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:05:26] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:05:26] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:05:26] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:05:26] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:05:28] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:05:28] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570328362608000 | Tool Exit: 0
+[2026-09-05 03:05:28] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:05:28] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:05:28] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:05:28] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:05:28] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:05:28] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:05:28] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:05:28] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:05:28] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:05:28] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:05:28] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:05:28] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:05:28] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:05:28] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:05:28] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:05:28] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:05:31] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:05:31] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570331133759000 | Tool Exit: 0
+[2026-09-05 03:05:31] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:05:31] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:05:31] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:05:31] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:05:31] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:05:31] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:05:31] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:05:31] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:05:31] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:05:31] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:05:31] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:05:31] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:05:31] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:05:31] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:05:31] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:05:31] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:05:33] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:05:33] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570333923228000 | Tool Exit: 0
+[2026-09-05 03:05:33] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:05:33] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:05:33] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:05:33] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:05:33] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:05:33] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:05:33] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:05:33] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:05:33] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:05:33] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:05:33] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:05:34] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:05:34] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:05:34] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:05:34] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:05:34] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:05:40] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:05:40] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570340934851000 | Tool Exit: 0
+[2026-09-05 03:05:40] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:05:40] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:05:40] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:05:40] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:05:40] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:05:40] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:05:40] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:05:40] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:05:40] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:05:40] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:05:40] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:05:40] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:05:40] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:05:41] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:05:41] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:05:41] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:05:48] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:05:48] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570348165199000 | Tool Exit: 0
+[2026-09-05 03:05:48] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:05:48] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:05:48] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:05:48] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:05:48] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:05:48] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:05:48] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:05:48] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:05:48] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:05:48] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:05:48] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:05:48] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:05:48] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:05:48] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:05:48] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:05:48] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:05:51] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:05:51] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570351774041000 | Tool Exit: 0
+[2026-09-05 03:05:51] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:05:51] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:05:51] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:05:51] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:05:51] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:05:51] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:05:51] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:05:51] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:05:51] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:05:51] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:05:51] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:05:51] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:05:51] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:05:51] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:05:51] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:05:51] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:05:56] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:05:56] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570356613045000 | Tool Exit: 0
+[2026-09-05 03:05:56] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:05:56] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:05:56] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:05:56] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:05:56] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:05:56] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:05:56] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:05:56] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:05:56] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:05:56] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:05:56] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:05:56] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:05:56] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:05:56] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:05:56] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:05:56] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:06:06] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:06:06] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570366040320000 | Tool Exit: 0
+[2026-09-05 03:06:06] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:06:06] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:06:06] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:06:06] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:06:06] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:06:06] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:06:06] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:06:06] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:06:06] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:06:06] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:06:06] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:06:06] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:06:06] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:06:06] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:06:06] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:06:06] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:06:17] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:06:17] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570377374195000 | Tool Exit: 0
+[2026-09-05 03:06:17] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:06:17] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:06:17] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:06:17] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:06:17] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:06:17] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:06:17] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:06:17] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:06:17] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:06:17] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:06:17] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:06:17] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:06:17] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:06:17] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:06:17] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:06:17] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:06:30] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:06:30] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570390872143000 | Tool Exit: 0
+[2026-09-05 03:06:30] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:06:30] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:06:30] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:06:30] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:06:30] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:06:30] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:06:30] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:06:30] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:06:30] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:06:30] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:06:30] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:06:30] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:06:30] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:06:30] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:06:30] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:06:30] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:06:34] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:06:34] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570394904861000 | Tool Exit: 0
+[2026-09-05 03:06:34] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:06:34] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:06:34] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:06:34] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:06:34] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:06:34] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:06:34] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:06:34] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:06:34] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:06:34] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:06:34] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:06:34] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:06:34] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:06:34] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:06:34] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:06:34] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:06:39] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:06:39] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570399342804000 | Tool Exit: 0
+[2026-09-05 03:06:39] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:06:39] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:06:39] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:06:39] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:06:39] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:06:39] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:06:39] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:06:39] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:06:39] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:06:39] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:06:39] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:06:39] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:06:39] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:06:39] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:06:39] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:06:39] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:06:42] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:06:42] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570402409358000 | Tool Exit: 0
+[2026-09-05 03:06:42] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:06:42] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:06:42] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:06:42] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:06:42] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:06:42] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:06:42] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:06:42] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:06:42] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:06:42] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:06:42] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:06:42] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:06:42] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:06:42] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:06:42] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:06:42] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:06:45] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:06:45] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570405376939000 | Tool Exit: 0
+[2026-09-05 03:06:45] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:06:45] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:06:45] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:06:45] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:06:45] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:06:45] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:06:45] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:06:45] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:06:45] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:06:45] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:06:45] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:06:45] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:06:45] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:06:45] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:06:45] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:06:45] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete
+[2026-09-05 03:06:51] [GATE-1-3] [INFO] === Gate 1-3 Parallel Validation ===
+[2026-09-05 03:06:51] [GATE-1-3] [INFO] Tool: unknown | Action ID: 1788570410999517000 | Tool Exit: 0
+[2026-09-05 03:06:51] [GATE-1-3] [INFO] GATE 1: agentacct work receipt capture...
+[2026-09-05 03:06:51] [GATE-1-3] [INFO]   ✓ Work receipt captured with Ed25519 signature
+[2026-09-05 03:06:51] [GATE-1-3] [INFO] GATE 2: unlazy fail-closed gate enforcement...
+[2026-09-05 03:06:51] [GATE-1-3] [INFO]   ✓ Tool exit code safe: 0
+[2026-09-05 03:06:51] [GATE-1-3] [WARN]   ⚠ Tool not in predefined safe list: unknown (manual verification needed)
+[2026-09-05 03:06:51] [GATE-1-3] [INFO]   ✓ Success criteria declared in evidence file
+[2026-09-05 03:06:51] [GATE-1-3] [INFO] GATE 3: Tool output schema validation...
+[2026-09-05 03:06:51] [GATE-1-3] [WARN]   ⚠ Tool output empty or default (may be expected)
+[2026-09-05 03:06:51] [GATE-1-3] [INFO]   ✓ Output validation skipped (not a file)
+[2026-09-05 03:06:51] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:06:51] [GATE-1-3] [INFO] Gate 1-3 Summary:
+[2026-09-05 03:06:51] [GATE-1-3] [INFO]   Gate 1 (agentacct):  PASS (1/1)
+[2026-09-05 03:06:51] [GATE-1-3] [INFO]   Gate 2 (unlazy):     FAIL (2/5)
+[2026-09-05 03:06:51] [GATE-1-3] [INFO]   Gate 3 (output):     PASS (1/3)
+[2026-09-05 03:06:51] [GATE-1-3] [INFO] =========================================
+[2026-09-05 03:06:51] [GATE-1-3] [INFO] Gate 1-3 PASSED: Parallel validation complete

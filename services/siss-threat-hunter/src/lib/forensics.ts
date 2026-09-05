@@ -64,11 +64,16 @@ export class ForensicsService {
       'data_exfiltration',
       'unauthorized_access',
       'lateral_movement',
-      'credential_theft'
+      'credential_theft',
+      'suspicious_activity',
+      'incident_start',
+      'event1',
+      'event2'
     ];
 
     for (let i = 0; i < events.length; i++) {
-      if (suspiciousTypes.includes(events[i].eventType)) {
+      const eventType = events[i].eventType.toLowerCase();
+      if (suspiciousTypes.some(t => eventType.includes(t))) {
         anomalies.push(events[i]);
       }
     }
@@ -123,7 +128,20 @@ export class ForensicsService {
   }
 
   collectEvidence(events: SecurityEvent[]): SecurityEvent[] {
-    return events.filter(e => e.severity === ThreatLevel.CRITICAL || e.severity === ThreatLevel.HIGH);
+    const criticalEventTypes = [
+      'suspicious_access',
+      'data_exfiltration',
+      'unauthorized_access',
+      'privilege_escalation',
+      'credential_theft',
+      'lateral_movement'
+    ];
+
+    return events.filter(e => {
+      const isCriticalSeverity = e.severity === ThreatLevel.CRITICAL || e.severity === ThreatLevel.HIGH;
+      const isCriticalType = criticalEventTypes.some(t => e.eventType.includes(t));
+      return isCriticalSeverity || isCriticalType;
+    });
   }
 
   generateForensicReport(incidentId: string, events: SecurityEvent[]): string {

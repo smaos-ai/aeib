@@ -23,7 +23,7 @@ members = [
   "crates/siss-agent-pool",
   "crates/siss-otel-bridge",
   "crates/siss-chronicle-drift",
-  "crates/siss-robotics-control",
+  "crates/siss-robotics-control", "crates/siss-swarm-safety-core", "crates/siss-semantic-cache-compactor", "crates/siss-dag-orchestrator", "crates/siss-cost-optimizer",
 ]
 resolver = "2"
 

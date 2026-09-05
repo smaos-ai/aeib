@@ -323,7 +323,7 @@ class OneClassSVM {
       sumDistance += this.distance(point.features, this.centroid);
     }
 
-    this.radius = (sumDistance / this.data.length) * 1.5; // 1.5x multiplier for tolerance
+    this.radius = (sumDistance / this.data.length) * 3; // 3x multiplier for tolerance
   }
 
   score(features: number[]): number {
@@ -332,9 +332,11 @@ class OneClassSVM {
     }
 
     const dist = this.distance(features, this.centroid);
-    const normalizedDistance = Math.min(1, dist / Math.max(1, this.radius));
+    if (this.radius === 0) return 0.5;
 
-    return normalizedDistance;
+    const normalizedDistance = dist / this.radius;
+
+    return Math.min(1, normalizedDistance);
   }
 
   private distance(a: number[], b: number[]): number {

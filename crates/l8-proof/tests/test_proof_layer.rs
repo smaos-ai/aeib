@@ -127,9 +127,7 @@ fn test_compression_reduces_ledger_entries() {
     let mut proof = ProofLayer::new().with_compression_threshold(5);
 
     for i in 0..10 {
-        proof
-            .sign_ledger_entry(format!("entry_{}", i))
-            .unwrap();
+        proof.sign_ledger_entry(format!("entry_{}", i)).unwrap();
     }
 
     assert!(!proof.get_compressed_checkpoints().is_empty());

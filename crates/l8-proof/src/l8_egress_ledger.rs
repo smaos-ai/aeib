@@ -118,7 +118,10 @@ impl EgressLedger {
 
     /// Get entry by ID
     pub fn get_entry(&self, entry_id: &str) -> Option<EgressLedgerEntry> {
-        self.entries.iter().find(|e| e.entry_id == entry_id).cloned()
+        self.entries
+            .iter()
+            .find(|e| e.entry_id == entry_id)
+            .cloned()
     }
 
     /// Get all entries
@@ -192,21 +195,26 @@ mod tests {
 
         assert!(result.is_ok());
         let entry = ledger.get_entry(&result.unwrap()).unwrap();
-        assert_eq!(entry.execution_decision, EgressDecision::Deny("Domain not whitelisted".to_string()));
+        assert_eq!(
+            entry.execution_decision,
+            EgressDecision::Deny("Domain not whitelisted".to_string())
+        );
     }
 
     #[test]
     fn test_egress_ledger_kms_signature() {
         let mut ledger = EgressLedger::new("kms_key_001".to_string());
 
-        ledger.record_decision(
-            "req_003".to_string(),
-            "hook_003".to_string(),
-            EgressDecision::RateLimit,
-            "hash_003".to_string(),
-            2,
-            vec![3u8; 64],
-        ).ok();
+        ledger
+            .record_decision(
+                "req_003".to_string(),
+                "hook_003".to_string(),
+                EgressDecision::RateLimit,
+                "hash_003".to_string(),
+                2,
+                vec![3u8; 64],
+            )
+            .ok();
 
         let entries = ledger.get_entries();
         assert_eq!(entries[0].kms_signature.key_id, "kms_key_001");
@@ -218,14 +226,16 @@ mod tests {
         let mut ledger = EgressLedger::new("kms_key_001".to_string());
 
         for i in 0..3 {
-            ledger.record_decision(
-                format!("req_{:03}", i),
-                format!("hook_{:03}", i),
-                EgressDecision::Allow,
-                format!("hash_{:03}", i),
-                5,
-                vec![i as u8; 64],
-            ).ok();
+            ledger
+                .record_decision(
+                    format!("req_{:03}", i),
+                    format!("hook_{:03}", i),
+                    EgressDecision::Allow,
+                    format!("hash_{:03}", i),
+                    5,
+                    vec![i as u8; 64],
+                )
+                .ok();
         }
 
         assert!(ledger.verify_integrity());
@@ -235,14 +245,16 @@ mod tests {
     fn test_egress_ledger_merkle_root() {
         let mut ledger = EgressLedger::new("kms_key_001".to_string());
 
-        ledger.record_decision(
-            "req_004".to_string(),
-            "hook_004".to_string(),
-            EgressDecision::Allow,
-            "hash_004".to_string(),
-            4,
-            vec![4u8; 64],
-        ).ok();
+        ledger
+            .record_decision(
+                "req_004".to_string(),
+                "hook_004".to_string(),
+                EgressDecision::Allow,
+                "hash_004".to_string(),
+                4,
+                vec![4u8; 64],
+            )
+            .ok();
 
         let root = ledger.calculate_merkle_root();
         assert!(!root.is_empty());
@@ -253,14 +265,16 @@ mod tests {
     fn test_egress_ledger_export_json() {
         let mut ledger = EgressLedger::new("kms_key_001".to_string());
 
-        ledger.record_decision(
-            "req_005".to_string(),
-            "hook_005".to_string(),
-            EgressDecision::Allow,
-            "hash_005".to_string(),
-            6,
-            vec![5u8; 64],
-        ).ok();
+        ledger
+            .record_decision(
+                "req_005".to_string(),
+                "hook_005".to_string(),
+                EgressDecision::Allow,
+                "hash_005".to_string(),
+                6,
+                vec![5u8; 64],
+            )
+            .ok();
 
         let json = ledger.export_json();
         assert!(json.is_ok());

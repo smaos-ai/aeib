@@ -74,12 +74,11 @@ impl AP2Ledger {
 
     /// Calculate Merkle root hash of all entries in the ledger
     pub async fn calculate_merkle_root(&self) -> Result<AP2MerkleRoot, String> {
-        let entries: Vec<(String,)> = sqlx::query_as(
-            "SELECT id FROM ap2_entries ORDER BY created_at ASC"
-        )
-        .fetch_all(&self.pool)
-        .await
-        .map_err(|e| format!("Failed to fetch entries: {}", e))?;
+        let entries: Vec<(String,)> =
+            sqlx::query_as("SELECT id FROM ap2_entries ORDER BY created_at ASC")
+                .fetch_all(&self.pool)
+                .await
+                .map_err(|e| format!("Failed to fetch entries: {}", e))?;
 
         let mut hasher = Sha256::new();
         for (id,) in &entries {
@@ -105,8 +104,7 @@ impl AP2Ledger {
             "timestamp": root.created_at.to_rfc3339(),
         });
 
-        serde_json::to_string(&export)
-            .map_err(|e| format!("Failed to serialize git anchor: {}", e))
+        serde_json::to_string(&export).map_err(|e| format!("Failed to serialize git anchor: {}", e))
     }
 
     /// Helper: Calculate Merkle proof path for an entry
@@ -176,7 +174,11 @@ mod tests {
 
         let root = root.unwrap();
         assert_eq!(root.entries_count, 2, "Should have 2 entries");
-        assert_eq!(root.root_hash.len(), 64, "SHA256 hash should be 64 hex chars");
+        assert_eq!(
+            root.root_hash.len(),
+            64,
+            "SHA256 hash should be 64 hex chars"
+        );
     }
 
     #[tokio::test]
@@ -197,7 +199,10 @@ mod tests {
             serde_json::from_str(&export.unwrap()).expect("Failed to parse JSON");
 
         assert!(export_json["root_hash"].is_string(), "Missing root_hash");
-        assert!(export_json["entries_count"].is_number(), "Missing entries_count");
+        assert!(
+            export_json["entries_count"].is_number(),
+            "Missing entries_count"
+        );
         assert!(export_json["timestamp"].is_string(), "Missing timestamp");
     }
 }

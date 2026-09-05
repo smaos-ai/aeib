@@ -1,0 +1,31 @@
+[package]
+name = "siss-gatekeeper"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+siss-graph-core = { path = "../siss-graph-core" }
+siss-graph-db = { path = "../siss-graph-db" }
+siss-event-log = { path = "../siss-event-log" }
+siss-behavioral-firewall = { path = "../siss-behavioral-firewall" }
+siss-c2pa = { path = "../siss-c2pa" }
+uuid.workspace = true
+chrono.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+sqlx.workspace = true
+ed25519-dalek.workspace = true
+rand.workspace = true
+sha2 = "0.10"
+hex.workspace = true
+base64.workspace = true
+aes-gcm = { version = "0.10", features = ["aes"] }
+md5 = "0.7"
+dashmap = "5.5"
+rand_distr = "0.4"
+regex.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full", "test-util"] }

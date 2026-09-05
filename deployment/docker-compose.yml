@@ -1,0 +1,111 @@
+version: '3.9'
+
+# ═════════════════════════════════════════════════════════════════════
+# Phase 2C Part 1: FreeToken + Jetson Thor Local Deployment
+# Services: Ollama (LLM serving), App (FreeToken + MoE), SLA Monitor
+# Network: phase2c-net (localhost bridge)
+# ═════════════════════════════════════════════════════════════════════
+
+services:
+
+  # ─────────────────────────────────────────────────────────────────
+  # Ollama: Local LLM inference engine (port 11434)
+  # ─────────────────────────────────────────────────────────────────
+  ollama:
+    image: ollama/ollama:latest
+    container_name: phase2c-ollama
+    ports:
+      - "11434:11434"
+    environment:
+      OLLAMA_HOST: "0.0.0.0:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - phase2c-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 5s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: always
+
+  # ─────────────────────────────────────────────────────────────────
+  # FreeToken + MoE Router: Phase 2C inference app (port 5173)
+  # ─────────────────────────────────────────────────────────────────
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: phase2c-app
+    ports:
+      - "5173:5173"
+    environment:
+      RUST_LOG: "info,siss=debug"
+      OLLAMA_HOST: "http://ollama:11434"
+      LOCAL_LLM_MODEL: "qwen2.5-coder:14b"
+      FRETOKEN_MAX_BUFFERS: "2"
+      FRETOKEN_PREFILL_TOKENS: "100"
+      BUDGET_POLICY_NORMAL_THRESHOLD: "0.3"
+      BUDGET_POLICY_WARNING_THRESHOLD: "0.8"
+      BUDGET_POLICY_CRITICAL_THRESHOLD: "1.5"
+      KV_CACHE_SIZE_MB: "128"
+      EXPERT_HOTEL_MODEL: "qwen2.5-coder:14b"
+      EXPERT_GLASS_MODEL: "qwen2.5-coder:14b"
+      EXPERT_AUTO_MODEL: "qwen2.5-coder:14b"
+      JETSON_EMULATION_MODE: "true"
+      PHYSICS_VALIDATION_ENABLED: "true"
+      PHYSICS_MAX_VELOCITY: "0.2"
+    depends_on:
+      ollama:
+        condition: service_healthy
+    volumes:
+      - ..:/app
+      - phase2c_cache:/var/cache/phase2c
+    working_dir: /app
+    networks:
+      - phase2c-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5173/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    restart: always
+    entrypoint: ["/app/deployment/scripts/entrypoint.sh"]
+    command: ["cargo", "run", "--release"]
+
+  # ─────────────────────────────────────────────────────────────────
+  # SLA Monitor: Health and performance tracking (port 9000)
+  # ─────────────────────────────────────────────────────────────────
+  sla-monitor:
+    image: ollama/ollama:latest
+    container_name: phase2c-sla-monitor
+    ports:
+      - "9000:9000"
+    environment:
+      RUST_LOG: "info"
+      SLA_UPTIME_TARGET: "99.5"
+      SLA_P99_LATENCY_US: "100"
+      SLA_ERROR_RATE_THRESHOLD: "0.001"
+    depends_on:
+      - app
+    networks:
+      - phase2c-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/api/status"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+      start_period: 15s
+    restart: always
+
+volumes:
+  ollama_data:
+    driver: local
+  phase2c_cache:
+    driver: local
+
+networks:
+  phase2c-net:
+    driver: bridge

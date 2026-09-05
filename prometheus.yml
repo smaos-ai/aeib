@@ -1,0 +1,157 @@
+# Prometheus Configuration for SovereignNexus Pre-Production
+# Real-time monitoring of SMAOS L1-L8 decision pipeline
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'smaos-phase1'
+    environment: 'preproduction'
+    region: 'local'
+
+# Alerting configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+# Load rules
+rule_files: []
+  # - 'alert_rules.yml'  # Create once alerting is needed
+
+# Scrape configurations
+scrape_configs:
+
+  # ═════════════════════════════════════════════════════════════════
+  # 1. PROMETHEUS SELF-MONITORING
+  # ═════════════════════════════════════════════════════════════════
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    scrape_timeout: 5s
+
+  # ═════════════════════════════════════════════════════════════════
+  # 2. SMAOS HARNESS (L1-L8 Pipeline Metrics)
+  # ═════════════════════════════════════════════════════════════════
+  - job_name: 'smaos-harness'
+    static_configs:
+      - targets: ['harness:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'harness-primary'
+    metric_relabel_configs:
+      # Parse L1-L8 layer metrics
+      - source_labels: [__name__]
+        regex: 'smaos_l[1-8]_.*'
+        action: keep
+
+  # ═════════════════════════════════════════════════════════════════
+  # 3. POSTGRESQL (Knowledge Graph L2 Performance)
+  # ═════════════════════════════════════════════════════════════════
+  - job_name: 'postgresql'
+    static_configs:
+      - targets: ['postgresql:5432']
+    metrics_path: '/metrics'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'postgresql-smaos'
+    # Note: Install postgres_exporter for full metrics
+    # docker run -d --name pg_exporter --network smaos-network \
+    #   -e DATA_SOURCE_NAME="postgresql://smaos:pass@postgresql:5432/smaos_phase1?sslmode=disable" \
+    #   prometheuscommunity/postgres-exporter
+
+  # ═════════════════════════════════════════════════════════════════
+  # 4. OLLAMA (Model Serving Performance)
+  # ═════════════════════════════════════════════════════════════════
+  - job_name: 'ollama'
+    static_configs:
+      - targets: ['ollama:11434']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'ollama-qwen'
+
+  # ═════════════════════════════════════════════════════════════════
+  # 5. DOCKER CONTAINERS (Container-level metrics)
+  # ═════════════════════════════════════════════════════════════════
+  - job_name: 'docker'
+    static_configs:
+      - targets: ['unix:///var/run/docker.sock']
+    metrics_path: '/metrics'
+    # Note: Requires cAdvisor or docker exporter
+    # docker run -d --name cadvisor --network smaos-network \
+    #   --volume=/:/rootfs:ro \
+    #   --volume=/var/run:/var/run:ro \
+    #   --volume=/sys:/sys:ro \
+    #   --volume=/var/lib/docker/:/var/lib/docker:ro \
+    #   gcr.io/cadvisor/cadvisor:latest
+
+  # ═════════════════════════════════════════════════════════════════
+  # 6. JAEGER (Distributed Trace Collection)
+  # ═════════════════════════════════════════════════════════════════
+  - job_name: 'jaeger'
+    static_configs:
+      - targets: ['jaeger:14250']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # ═════════════════════════════════════════════════════════════════
+  # 7. REDIS (Cache Layer — Phase 2 prep)
+  # ═════════════════════════════════════════════════════════════════
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    metrics_path: '/metrics'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'redis-cache'
+    # Note: Requires redis_exporter
+    # docker run -d --name redis_exporter --network smaos-network \
+    #   -p 9121:9121 \
+    #   oliver006/redis_exporter --redis-addr redis:6379
+
+  # ═════════════════════════════════════════════════════════════════
+  # SERVICE DISCOVERY (Optional, for dynamic targets)
+  # ═════════════════════════════════════════════════════════════════
+  # Uncomment for Kubernetes or Consul-based discovery:
+  # - job_name: 'kubernetes-pods'
+  #   kubernetes_sd_configs:
+  #     - role: pod
+  #   relabel_configs:
+  #     - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+  #       action: keep
+  #       regex: true
+
+# ═════════════════════════════════════════════════════════════════════
+# KEY METRICS TO MONITOR (Query examples for Grafana)
+# ═════════════════════════════════════════════════════════════════════
+# Decision latency (L1-L8 pipeline):
+#   rate(smaos_decision_latency_ms_sum[5m]) / rate(smaos_decision_latency_ms_count[5m])
+#
+# Checkpoint capture rate:
+#   rate(smaos_l4_checkpoints_total[1m])
+#
+# RAGAS evaluation score:
+#   smaos_l7_ragas_avg_score
+#
+# Proof generation success:
+#   rate(smaos_l8_proofs_generated_total[5m])
+#
+# PostgreSQL query latency:
+#   histogram_quantile(0.99, rate(pg_query_duration_seconds_bucket[5m]))
+#
+# Container memory usage:
+#   container_memory_usage_bytes{container_name=~"smaos.*"}
+#
+# GPU utilization:
+#   nvidia_smi_utilization_gpu

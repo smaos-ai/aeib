@@ -1,0 +1,4002 @@
+[
+  {
+    "hypothesis_id": "HYP-000000",
+    "protein_target": "UQUO",
+    "binding_affinity_prediction": -7.5,
+    "ADME_score": 1.7,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000001",
+    "protein_target": "VHMM",
+    "binding_affinity_prediction": -13.0,
+    "ADME_score": 3.09,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000002",
+    "protein_target": "LDOABEFXGI",
+    "binding_affinity_prediction": -12.81,
+    "ADME_score": 2.77,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000003",
+    "protein_target": "JOPOSEFVWZ",
+    "binding_affinity_prediction": -12.6,
+    "ADME_score": 7.16,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000004",
+    "protein_target": "UTVE",
+    "binding_affinity_prediction": -5.13,
+    "ADME_score": 5.16,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000005",
+    "protein_target": "JTOGF",
+    "binding_affinity_prediction": -5.87,
+    "ADME_score": 7.49,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000006",
+    "protein_target": "UQUO",
+    "binding_affinity_prediction": -14.3,
+    "ADME_score": 3.97,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000007",
+    "protein_target": "VHMM",
+    "binding_affinity_prediction": -6.99,
+    "ADME_score": 7.4,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000008",
+    "protein_target": "UYSO",
+    "binding_affinity_prediction": -8.14,
+    "ADME_score": 2.73,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000009",
+    "protein_target": "ERBVJKTPNK",
+    "binding_affinity_prediction": -12.87,
+    "ADME_score": 3.63,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000010",
+    "protein_target": "NJVKWDZ",
+    "binding_affinity_prediction": -8.66,
+    "ADME_score": 4.82,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000011",
+    "protein_target": "NJVKWDZ",
+    "binding_affinity_prediction": -5.8,
+    "ADME_score": 2.54,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000012",
+    "protein_target": "LDOABEFXGI",
+    "binding_affinity_prediction": -7.47,
+    "ADME_score": 6.06,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000013",
+    "protein_target": "VHMM",
+    "binding_affinity_prediction": -5.27,
+    "ADME_score": 9.95,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000014",
+    "protein_target": "WQPP",
+    "binding_affinity_prediction": -12.76,
+    "ADME_score": 7.45,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000015",
+    "protein_target": "WQPP",
+    "binding_affinity_prediction": -9.88,
+    "ADME_score": 7.07,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000016",
+    "protein_target": "UQUO",
+    "binding_affinity_prediction": -13.38,
+    "ADME_score": 9.67,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000017",
+    "protein_target": "ROI",
+    "binding_affinity_prediction": -10.33,
+    "ADME_score": 6.76,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000018",
+    "protein_target": "HKCBKUKL",
+    "binding_affinity_prediction": -11.12,
+    "ADME_score": 4.25,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000019",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -6.34,
+    "ADME_score": 5.55,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000020",
+    "protein_target": "QAA",
+    "binding_affinity_prediction": -13.21,
+    "ADME_score": 2.33,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000021",
+    "protein_target": "ERBVJKTPNK",
+    "binding_affinity_prediction": -8.48,
+    "ADME_score": 7.26,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000022",
+    "protein_target": "JOPOSEFVWZ",
+    "binding_affinity_prediction": -9.81,
+    "ADME_score": 8.14,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000023",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -10.01,
+    "ADME_score": 1.87,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000024",
+    "protein_target": "JTOGF",
+    "binding_affinity_prediction": -5.59,
+    "ADME_score": 3.46,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000025",
+    "protein_target": "DIOAKGPSOW",
+    "binding_affinity_prediction": -8.67,
+    "ADME_score": 3.02,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000026",
+    "protein_target": "UQUO",
+    "binding_affinity_prediction": -14.93,
+    "ADME_score": 5.02,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000027",
+    "protein_target": "UQUO",
+    "binding_affinity_prediction": -10.68,
+    "ADME_score": 6.61,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000028",
+    "protein_target": "QAA",
+    "binding_affinity_prediction": -9.06,
+    "ADME_score": 5.42,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000029",
+    "protein_target": "QCFRJGFGK",
+    "binding_affinity_prediction": -13.46,
+    "ADME_score": 1.9,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000030",
+    "protein_target": "JTOGF",
+    "binding_affinity_prediction": -9.64,
+    "ADME_score": 8.92,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000031",
+    "protein_target": "NTIT",
+    "binding_affinity_prediction": -6.36,
+    "ADME_score": 9.8,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000032",
+    "protein_target": "LDOABEFXGI",
+    "binding_affinity_prediction": -9.71,
+    "ADME_score": 6.0,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000033",
+    "protein_target": "HKCBKUKL",
+    "binding_affinity_prediction": -10.31,
+    "ADME_score": 7.27,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000034",
+    "protein_target": "ROI",
+    "binding_affinity_prediction": -14.79,
+    "ADME_score": 0.63,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000035",
+    "protein_target": "DIOAKGPSOW",
+    "binding_affinity_prediction": -12.38,
+    "ADME_score": 7.06,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000036",
+    "protein_target": "JTOGF",
+    "binding_affinity_prediction": -5.84,
+    "ADME_score": 3.37,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000037",
+    "protein_target": "QAA",
+    "binding_affinity_prediction": -7.42,
+    "ADME_score": 9.92,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000038",
+    "protein_target": "UYSO",
+    "binding_affinity_prediction": -13.13,
+    "ADME_score": 0.31,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000039",
+    "protein_target": "ERBVJKTPNK",
+    "binding_affinity_prediction": -13.11,
+    "ADME_score": 7.12,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000040",
+    "protein_target": "HKCBKUKL",
+    "binding_affinity_prediction": -12.27,
+    "ADME_score": 8.81,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000041",
+    "protein_target": "UYSO",
+    "binding_affinity_prediction": -9.73,
+    "ADME_score": 4.42,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000042",
+    "protein_target": "WQPP",
+    "binding_affinity_prediction": -5.42,
+    "ADME_score": 5.52,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000043",
+    "protein_target": "ERBVJKTPNK",
+    "binding_affinity_prediction": -13.45,
+    "ADME_score": 6.01,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000044",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -6.38,
+    "ADME_score": 4.12,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000045",
+    "protein_target": "ERBVJKTPNK",
+    "binding_affinity_prediction": -12.9,
+    "ADME_score": 9.71,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000046",
+    "protein_target": "ERBVJKTPNK",
+    "binding_affinity_prediction": -7.88,
+    "ADME_score": 6.93,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000047",
+    "protein_target": "PKIKLL",
+    "binding_affinity_prediction": -6.78,
+    "ADME_score": 8.8,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000048",
+    "protein_target": "NJVKWDZ",
+    "binding_affinity_prediction": -11.11,
+    "ADME_score": 7.35,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000049",
+    "protein_target": "HKCBKUKL",
+    "binding_affinity_prediction": -10.11,
+    "ADME_score": 6.6,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000050",
+    "protein_target": "JOPOSEFVWZ",
+    "binding_affinity_prediction": -11.75,
+    "ADME_score": 5.44,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000051",
+    "protein_target": "NJVKWDZ",
+    "binding_affinity_prediction": -10.73,
+    "ADME_score": 5.25,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000052",
+    "protein_target": "MZZS",
+    "binding_affinity_prediction": -6.21,
+    "ADME_score": 1.52,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000053",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -11.06,
+    "ADME_score": 3.25,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000054",
+    "protein_target": "HKCBKUKL",
+    "binding_affinity_prediction": -5.63,
+    "ADME_score": 8.74,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000055",
+    "protein_target": "VHMM",
+    "binding_affinity_prediction": -14.29,
+    "ADME_score": 4.9,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000056",
+    "protein_target": "NTIT",
+    "binding_affinity_prediction": -11.02,
+    "ADME_score": 0.68,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000057",
+    "protein_target": "NTIT",
+    "binding_affinity_prediction": -7.67,
+    "ADME_score": 8.6,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000058",
+    "protein_target": "HKCBKUKL",
+    "binding_affinity_prediction": -8.22,
+    "ADME_score": 6.32,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000059",
+    "protein_target": "ERMU",
+    "binding_affinity_prediction": -7.1,
+    "ADME_score": 9.52,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000060",
+    "protein_target": "PKIKLL",
+    "binding_affinity_prediction": -7.33,
+    "ADME_score": 6.36,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000061",
+    "protein_target": "JOPOSEFVWZ",
+    "binding_affinity_prediction": -10.44,
+    "ADME_score": 7.28,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000062",
+    "protein_target": "MZZS",
+    "binding_affinity_prediction": -12.89,
+    "ADME_score": 4.33,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000063",
+    "protein_target": "VHMM",
+    "binding_affinity_prediction": -5.56,
+    "ADME_score": 5.34,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000064",
+    "protein_target": "DIOAKGPSOW",
+    "binding_affinity_prediction": -13.49,
+    "ADME_score": 9.15,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000065",
+    "protein_target": "NJVKWDZ",
+    "binding_affinity_prediction": -5.32,
+    "ADME_score": 8.06,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000066",
+    "protein_target": "ROI",
+    "binding_affinity_prediction": -11.43,
+    "ADME_score": 0.98,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000067",
+    "protein_target": "NJVKWDZ",
+    "binding_affinity_prediction": -12.99,
+    "ADME_score": 3.48,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000068",
+    "protein_target": "MZZS",
+    "binding_affinity_prediction": -10.49,
+    "ADME_score": 4.2,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000069",
+    "protein_target": "JOPOSEFVWZ",
+    "binding_affinity_prediction": -8.76,
+    "ADME_score": 4.05,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000070",
+    "protein_target": "DIOAKGPSOW",
+    "binding_affinity_prediction": -7.77,
+    "ADME_score": 0.64,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000071",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -13.41,
+    "ADME_score": 6.07,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000072",
+    "protein_target": "ERBVJKTPNK",
+    "binding_affinity_prediction": -8.99,
+    "ADME_score": 7.99,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000073",
+    "protein_target": "LDOABEFXGI",
+    "binding_affinity_prediction": -6.25,
+    "ADME_score": 9.96,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000074",
+    "protein_target": "ROI",
+    "binding_affinity_prediction": -9.12,
+    "ADME_score": 1.53,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000075",
+    "protein_target": "DIOAKGPSOW",
+    "binding_affinity_prediction": -9.41,
+    "ADME_score": 8.41,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000076",
+    "protein_target": "VHMM",
+    "binding_affinity_prediction": -5.58,
+    "ADME_score": 0.04,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000077",
+    "protein_target": "WQPP",
+    "binding_affinity_prediction": -5.55,
+    "ADME_score": 9.08,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000078",
+    "protein_target": "JOPOSEFVWZ",
+    "binding_affinity_prediction": -9.11,
+    "ADME_score": 4.25,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000079",
+    "protein_target": "UTVE",
+    "binding_affinity_prediction": -12.32,
+    "ADME_score": 7.9,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000080",
+    "protein_target": "MZZS",
+    "binding_affinity_prediction": -11.35,
+    "ADME_score": 0.5,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000081",
+    "protein_target": "LDOABEFXGI",
+    "binding_affinity_prediction": -14.82,
+    "ADME_score": 9.22,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000082",
+    "protein_target": "VHMM",
+    "binding_affinity_prediction": -12.79,
+    "ADME_score": 5.03,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000083",
+    "protein_target": "DIOAKGPSOW",
+    "binding_affinity_prediction": -14.62,
+    "ADME_score": 5.34,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000084",
+    "protein_target": "HKCBKUKL",
+    "binding_affinity_prediction": -8.65,
+    "ADME_score": 0.76,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000085",
+    "protein_target": "UTVE",
+    "binding_affinity_prediction": -13.62,
+    "ADME_score": 0.18,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000086",
+    "protein_target": "ERBVJKTPNK",
+    "binding_affinity_prediction": -5.23,
+    "ADME_score": 2.68,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000087",
+    "protein_target": "PKIKLL",
+    "binding_affinity_prediction": -6.43,
+    "ADME_score": 7.53,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000088",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -5.49,
+    "ADME_score": 3.48,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000089",
+    "protein_target": "QCFRJGFGK",
+    "binding_affinity_prediction": -11.23,
+    "ADME_score": 5.62,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000090",
+    "protein_target": "DIOAKGPSOW",
+    "binding_affinity_prediction": -11.26,
+    "ADME_score": 9.87,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000091",
+    "protein_target": "ROI",
+    "binding_affinity_prediction": -11.32,
+    "ADME_score": 0.95,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000092",
+    "protein_target": "JTOGF",
+    "binding_affinity_prediction": -10.29,
+    "ADME_score": 8.97,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000093",
+    "protein_target": "NTIT",
+    "binding_affinity_prediction": -11.9,
+    "ADME_score": 0.15,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000094",
+    "protein_target": "UYSO",
+    "binding_affinity_prediction": -5.8,
+    "ADME_score": 3.0,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000095",
+    "protein_target": "NJVKWDZ",
+    "binding_affinity_prediction": -13.47,
+    "ADME_score": 1.16,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000096",
+    "protein_target": "VHMM",
+    "binding_affinity_prediction": -11.16,
+    "ADME_score": 3.84,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000097",
+    "protein_target": "QAA",
+    "binding_affinity_prediction": -6.99,
+    "ADME_score": 2.71,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000098",
+    "protein_target": "UQUO",
+    "binding_affinity_prediction": -11.53,
+    "ADME_score": 6.18,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000099",
+    "protein_target": "QAA",
+    "binding_affinity_prediction": -9.47,
+    "ADME_score": 7.52,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000100",
+    "protein_target": "ROI",
+    "binding_affinity_prediction": -6.1,
+    "ADME_score": 3.91,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000101",
+    "protein_target": "ROI",
+    "binding_affinity_prediction": -5.16,
+    "ADME_score": 7.86,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000102",
+    "protein_target": "VHMM",
+    "binding_affinity_prediction": -7.07,
+    "ADME_score": 7.84,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000103",
+    "protein_target": "MZZS",
+    "binding_affinity_prediction": -14.49,
+    "ADME_score": 6.52,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000104",
+    "protein_target": "WQPP",
+    "binding_affinity_prediction": -5.65,
+    "ADME_score": 9.04,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000105",
+    "protein_target": "ROI",
+    "binding_affinity_prediction": -5.71,
+    "ADME_score": 9.6,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000106",
+    "protein_target": "PKIKLL",
+    "binding_affinity_prediction": -11.26,
+    "ADME_score": 5.32,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000107",
+    "protein_target": "MZZS",
+    "binding_affinity_prediction": -10.29,
+    "ADME_score": 6.52,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000108",
+    "protein_target": "LDOABEFXGI",
+    "binding_affinity_prediction": -9.32,
+    "ADME_score": 4.24,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000109",
+    "protein_target": "LDOABEFXGI",
+    "binding_affinity_prediction": -11.78,
+    "ADME_score": 6.05,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000110",
+    "protein_target": "DIOAKGPSOW",
+    "binding_affinity_prediction": -10.6,
+    "ADME_score": 4.72,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000111",
+    "protein_target": "ERBVJKTPNK",
+    "binding_affinity_prediction": -14.06,
+    "ADME_score": 2.85,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000112",
+    "protein_target": "ROI",
+    "binding_affinity_prediction": -13.1,
+    "ADME_score": 2.03,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000113",
+    "protein_target": "WQPP",
+    "binding_affinity_prediction": -5.32,
+    "ADME_score": 6.49,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000114",
+    "protein_target": "DIOAKGPSOW",
+    "binding_affinity_prediction": -6.84,
+    "ADME_score": 1.6,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000115",
+    "protein_target": "ROI",
+    "binding_affinity_prediction": -7.52,
+    "ADME_score": 7.27,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000116",
+    "protein_target": "LDOABEFXGI",
+    "binding_affinity_prediction": -7.64,
+    "ADME_score": 0.25,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000117",
+    "protein_target": "JOPOSEFVWZ",
+    "binding_affinity_prediction": -14.54,
+    "ADME_score": 4.29,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000118",
+    "protein_target": "VHMM",
+    "binding_affinity_prediction": -12.21,
+    "ADME_score": 1.79,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000119",
+    "protein_target": "JOPOSEFVWZ",
+    "binding_affinity_prediction": -13.21,
+    "ADME_score": 0.27,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000120",
+    "protein_target": "ERMU",
+    "binding_affinity_prediction": -14.24,
+    "ADME_score": 4.99,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000121",
+    "protein_target": "JTOGF",
+    "binding_affinity_prediction": -9.98,
+    "ADME_score": 7.72,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000122",
+    "protein_target": "ERMU",
+    "binding_affinity_prediction": -9.13,
+    "ADME_score": 3.84,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000123",
+    "protein_target": "UTVE",
+    "binding_affinity_prediction": -6.84,
+    "ADME_score": 5.78,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000124",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -12.26,
+    "ADME_score": 3.58,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000125",
+    "protein_target": "ERMU",
+    "binding_affinity_prediction": -13.72,
+    "ADME_score": 6.88,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000126",
+    "protein_target": "DIOAKGPSOW",
+    "binding_affinity_prediction": -14.87,
+    "ADME_score": 7.3,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000127",
+    "protein_target": "ROI",
+    "binding_affinity_prediction": -8.36,
+    "ADME_score": 3.82,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000128",
+    "protein_target": "PKIKLL",
+    "binding_affinity_prediction": -11.63,
+    "ADME_score": 6.34,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000129",
+    "protein_target": "HKCBKUKL",
+    "binding_affinity_prediction": -9.62,
+    "ADME_score": 6.33,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000130",
+    "protein_target": "DIOAKGPSOW",
+    "binding_affinity_prediction": -12.1,
+    "ADME_score": 3.0,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000131",
+    "protein_target": "QCFRJGFGK",
+    "binding_affinity_prediction": -9.55,
+    "ADME_score": 4.49,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000132",
+    "protein_target": "MZZS",
+    "binding_affinity_prediction": -6.89,
+    "ADME_score": 1.56,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000133",
+    "protein_target": "WQPP",
+    "binding_affinity_prediction": -14.72,
+    "ADME_score": 2.71,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000134",
+    "protein_target": "MZZS",
+    "binding_affinity_prediction": -7.93,
+    "ADME_score": 9.05,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000135",
+    "protein_target": "MZZS",
+    "binding_affinity_prediction": -14.01,
+    "ADME_score": 2.06,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000136",
+    "protein_target": "NTIT",
+    "binding_affinity_prediction": -5.3,
+    "ADME_score": 5.26,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000137",
+    "protein_target": "QAA",
+    "binding_affinity_prediction": -14.43,
+    "ADME_score": 7.81,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000138",
+    "protein_target": "WQPP",
+    "binding_affinity_prediction": -6.92,
+    "ADME_score": 8.42,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000139",
+    "protein_target": "UQUO",
+    "binding_affinity_prediction": -6.42,
+    "ADME_score": 4.61,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000140",
+    "protein_target": "UQUO",
+    "binding_affinity_prediction": -12.42,
+    "ADME_score": 9.04,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000141",
+    "protein_target": "ROI",
+    "binding_affinity_prediction": -12.97,
+    "ADME_score": 3.01,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000142",
+    "protein_target": "UQUO",
+    "binding_affinity_prediction": -12.66,
+    "ADME_score": 4.6,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000143",
+    "protein_target": "NJVKWDZ",
+    "binding_affinity_prediction": -6.41,
+    "ADME_score": 6.45,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000144",
+    "protein_target": "VHMM",
+    "binding_affinity_prediction": -7.89,
+    "ADME_score": 6.34,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000145",
+    "protein_target": "WQPP",
+    "binding_affinity_prediction": -11.06,
+    "ADME_score": 8.04,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000146",
+    "protein_target": "UTVE",
+    "binding_affinity_prediction": -13.89,
+    "ADME_score": 2.9,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000147",
+    "protein_target": "UYSO",
+    "binding_affinity_prediction": -12.98,
+    "ADME_score": 7.71,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000148",
+    "protein_target": "NTIT",
+    "binding_affinity_prediction": -8.12,
+    "ADME_score": 1.63,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000149",
+    "protein_target": "UQUO",
+    "binding_affinity_prediction": -10.78,
+    "ADME_score": 2.02,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000150",
+    "protein_target": "MZZS",
+    "binding_affinity_prediction": -6.84,
+    "ADME_score": 8.67,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000151",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -14.53,
+    "ADME_score": 6.28,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000152",
+    "protein_target": "LDOABEFXGI",
+    "binding_affinity_prediction": -10.61,
+    "ADME_score": 0.93,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000153",
+    "protein_target": "QAA",
+    "binding_affinity_prediction": -10.6,
+    "ADME_score": 5.83,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000154",
+    "protein_target": "ROI",
+    "binding_affinity_prediction": -13.85,
+    "ADME_score": 0.87,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000155",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -5.74,
+    "ADME_score": 6.1,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000156",
+    "protein_target": "QCFRJGFGK",
+    "binding_affinity_prediction": -8.25,
+    "ADME_score": 7.48,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000157",
+    "protein_target": "UYSO",
+    "binding_affinity_prediction": -7.35,
+    "ADME_score": 2.56,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000158",
+    "protein_target": "PKIKLL",
+    "binding_affinity_prediction": -11.8,
+    "ADME_score": 3.8,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000159",
+    "protein_target": "DIOAKGPSOW",
+    "binding_affinity_prediction": -14.15,
+    "ADME_score": 4.8,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000160",
+    "protein_target": "ROI",
+    "binding_affinity_prediction": -8.71,
+    "ADME_score": 7.63,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000161",
+    "protein_target": "UYSO",
+    "binding_affinity_prediction": -13.27,
+    "ADME_score": 6.24,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000162",
+    "protein_target": "LDOABEFXGI",
+    "binding_affinity_prediction": -9.79,
+    "ADME_score": 1.37,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000163",
+    "protein_target": "QAA",
+    "binding_affinity_prediction": -12.97,
+    "ADME_score": 0.94,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000164",
+    "protein_target": "MZZS",
+    "binding_affinity_prediction": -14.24,
+    "ADME_score": 1.91,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000165",
+    "protein_target": "UYSO",
+    "binding_affinity_prediction": -5.57,
+    "ADME_score": 0.59,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000166",
+    "protein_target": "WQPP",
+    "binding_affinity_prediction": -5.02,
+    "ADME_score": 5.28,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000167",
+    "protein_target": "NTIT",
+    "binding_affinity_prediction": -11.02,
+    "ADME_score": 7.93,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000168",
+    "protein_target": "NJVKWDZ",
+    "binding_affinity_prediction": -8.66,
+    "ADME_score": 4.11,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000169",
+    "protein_target": "JOPOSEFVWZ",
+    "binding_affinity_prediction": -12.91,
+    "ADME_score": 3.92,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000170",
+    "protein_target": "UYSO",
+    "binding_affinity_prediction": -8.88,
+    "ADME_score": 7.25,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000171",
+    "protein_target": "UYSO",
+    "binding_affinity_prediction": -6.48,
+    "ADME_score": 3.7,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000172",
+    "protein_target": "NJVKWDZ",
+    "binding_affinity_prediction": -7.56,
+    "ADME_score": 4.96,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000173",
+    "protein_target": "JTOGF",
+    "binding_affinity_prediction": -5.95,
+    "ADME_score": 4.27,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000174",
+    "protein_target": "PKIKLL",
+    "binding_affinity_prediction": -11.97,
+    "ADME_score": 9.34,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000175",
+    "protein_target": "ROI",
+    "binding_affinity_prediction": -8.45,
+    "ADME_score": 9.87,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000176",
+    "protein_target": "QAA",
+    "binding_affinity_prediction": -8.3,
+    "ADME_score": 4.11,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000177",
+    "protein_target": "NJVKWDZ",
+    "binding_affinity_prediction": -12.19,
+    "ADME_score": 0.7,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000178",
+    "protein_target": "ERMU",
+    "binding_affinity_prediction": -6.45,
+    "ADME_score": 3.06,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000179",
+    "protein_target": "UQUO",
+    "binding_affinity_prediction": -8.73,
+    "ADME_score": 4.92,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000180",
+    "protein_target": "UQUO",
+    "binding_affinity_prediction": -14.54,
+    "ADME_score": 7.18,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000181",
+    "protein_target": "ERMU",
+    "binding_affinity_prediction": -13.82,
+    "ADME_score": 4.72,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000182",
+    "protein_target": "NJVKWDZ",
+    "binding_affinity_prediction": -9.78,
+    "ADME_score": 6.09,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000183",
+    "protein_target": "QCFRJGFGK",
+    "binding_affinity_prediction": -10.56,
+    "ADME_score": 0.33,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000184",
+    "protein_target": "PKIKLL",
+    "binding_affinity_prediction": -11.45,
+    "ADME_score": 6.17,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000185",
+    "protein_target": "ERMU",
+    "binding_affinity_prediction": -12.79,
+    "ADME_score": 2.61,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000186",
+    "protein_target": "WQPP",
+    "binding_affinity_prediction": -9.07,
+    "ADME_score": 3.91,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000187",
+    "protein_target": "NTIT",
+    "binding_affinity_prediction": -11.04,
+    "ADME_score": 9.74,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000188",
+    "protein_target": "DIOAKGPSOW",
+    "binding_affinity_prediction": -8.59,
+    "ADME_score": 8.78,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000189",
+    "protein_target": "QCFRJGFGK",
+    "binding_affinity_prediction": -8.35,
+    "ADME_score": 6.26,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000190",
+    "protein_target": "HKCBKUKL",
+    "binding_affinity_prediction": -7.0,
+    "ADME_score": 6.88,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000191",
+    "protein_target": "ERMU",
+    "binding_affinity_prediction": -6.7,
+    "ADME_score": 1.94,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000192",
+    "protein_target": "QCFRJGFGK",
+    "binding_affinity_prediction": -10.57,
+    "ADME_score": 2.31,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000193",
+    "protein_target": "PKIKLL",
+    "binding_affinity_prediction": -10.43,
+    "ADME_score": 0.58,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000194",
+    "protein_target": "QCFRJGFGK",
+    "binding_affinity_prediction": -5.17,
+    "ADME_score": 2.84,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000195",
+    "protein_target": "MZZS",
+    "binding_affinity_prediction": -11.77,
+    "ADME_score": 2.89,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000196",
+    "protein_target": "MZZS",
+    "binding_affinity_prediction": -11.53,
+    "ADME_score": 6.6,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000197",
+    "protein_target": "ROI",
+    "binding_affinity_prediction": -8.98,
+    "ADME_score": 1.15,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000198",
+    "protein_target": "VHMM",
+    "binding_affinity_prediction": -10.28,
+    "ADME_score": 9.42,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000199",
+    "protein_target": "LDOABEFXGI",
+    "binding_affinity_prediction": -6.34,
+    "ADME_score": 0.39,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000200",
+    "protein_target": "UTVE",
+    "binding_affinity_prediction": -10.91,
+    "ADME_score": 8.18,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000201",
+    "protein_target": "JOPOSEFVWZ",
+    "binding_affinity_prediction": -14.07,
+    "ADME_score": 4.91,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000202",
+    "protein_target": "JTOGF",
+    "binding_affinity_prediction": -5.15,
+    "ADME_score": 1.19,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000203",
+    "protein_target": "DIOAKGPSOW",
+    "binding_affinity_prediction": -11.95,
+    "ADME_score": 0.66,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000204",
+    "protein_target": "UTVE",
+    "binding_affinity_prediction": -11.74,
+    "ADME_score": 9.83,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000205",
+    "protein_target": "NJVKWDZ",
+    "binding_affinity_prediction": -13.22,
+    "ADME_score": 5.49,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000206",
+    "protein_target": "UQUO",
+    "binding_affinity_prediction": -5.93,
+    "ADME_score": 2.16,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000207",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -14.57,
+    "ADME_score": 0.58,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000208",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -11.94,
+    "ADME_score": 0.3,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000209",
+    "protein_target": "VHMM",
+    "binding_affinity_prediction": -6.28,
+    "ADME_score": 5.99,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000210",
+    "protein_target": "JTOGF",
+    "binding_affinity_prediction": -7.77,
+    "ADME_score": 8.33,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000211",
+    "protein_target": "HKCBKUKL",
+    "binding_affinity_prediction": -11.65,
+    "ADME_score": 1.42,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000212",
+    "protein_target": "JTOGF",
+    "binding_affinity_prediction": -13.76,
+    "ADME_score": 9.09,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000213",
+    "protein_target": "VHMM",
+    "binding_affinity_prediction": -9.11,
+    "ADME_score": 7.19,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000214",
+    "protein_target": "QCFRJGFGK",
+    "binding_affinity_prediction": -5.45,
+    "ADME_score": 1.17,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000215",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -6.66,
+    "ADME_score": 5.23,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000216",
+    "protein_target": "MZZS",
+    "binding_affinity_prediction": -10.65,
+    "ADME_score": 6.31,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000217",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -9.72,
+    "ADME_score": 7.97,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000218",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -8.41,
+    "ADME_score": 5.49,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000219",
+    "protein_target": "UTVE",
+    "binding_affinity_prediction": -7.8,
+    "ADME_score": 6.48,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000220",
+    "protein_target": "ERMU",
+    "binding_affinity_prediction": -5.68,
+    "ADME_score": 6.84,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000221",
+    "protein_target": "QCFRJGFGK",
+    "binding_affinity_prediction": -13.93,
+    "ADME_score": 9.0,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000222",
+    "protein_target": "HKCBKUKL",
+    "binding_affinity_prediction": -9.06,
+    "ADME_score": 6.87,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000223",
+    "protein_target": "QCFRJGFGK",
+    "binding_affinity_prediction": -7.73,
+    "ADME_score": 3.92,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000224",
+    "protein_target": "HKCBKUKL",
+    "binding_affinity_prediction": -7.33,
+    "ADME_score": 6.33,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000225",
+    "protein_target": "UTVE",
+    "binding_affinity_prediction": -5.84,
+    "ADME_score": 4.38,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000226",
+    "protein_target": "QAA",
+    "binding_affinity_prediction": -7.3,
+    "ADME_score": 7.06,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000227",
+    "protein_target": "ERBVJKTPNK",
+    "binding_affinity_prediction": -14.21,
+    "ADME_score": 3.58,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000228",
+    "protein_target": "UYSO",
+    "binding_affinity_prediction": -12.76,
+    "ADME_score": 1.22,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000229",
+    "protein_target": "ERBVJKTPNK",
+    "binding_affinity_prediction": -6.9,
+    "ADME_score": 0.31,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000230",
+    "protein_target": "HKCBKUKL",
+    "binding_affinity_prediction": -12.17,
+    "ADME_score": 6.07,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000231",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -10.61,
+    "ADME_score": 0.59,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000232",
+    "protein_target": "NJVKWDZ",
+    "binding_affinity_prediction": -6.91,
+    "ADME_score": 0.11,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000233",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -9.18,
+    "ADME_score": 6.45,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000234",
+    "protein_target": "UYSO",
+    "binding_affinity_prediction": -13.09,
+    "ADME_score": 5.73,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000235",
+    "protein_target": "VHMM",
+    "binding_affinity_prediction": -6.63,
+    "ADME_score": 6.39,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000236",
+    "protein_target": "HKCBKUKL",
+    "binding_affinity_prediction": -11.59,
+    "ADME_score": 4.6,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000237",
+    "protein_target": "QAA",
+    "binding_affinity_prediction": -7.85,
+    "ADME_score": 5.81,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000238",
+    "protein_target": "NTIT",
+    "binding_affinity_prediction": -10.98,
+    "ADME_score": 4.72,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000239",
+    "protein_target": "NTIT",
+    "binding_affinity_prediction": -11.06,
+    "ADME_score": 5.14,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000240",
+    "protein_target": "JOPOSEFVWZ",
+    "binding_affinity_prediction": -5.38,
+    "ADME_score": 3.93,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000241",
+    "protein_target": "ERMU",
+    "binding_affinity_prediction": -8.9,
+    "ADME_score": 9.24,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000242",
+    "protein_target": "PKIKLL",
+    "binding_affinity_prediction": -10.12,
+    "ADME_score": 5.84,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000243",
+    "protein_target": "NJVKWDZ",
+    "binding_affinity_prediction": -11.43,
+    "ADME_score": 5.86,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000244",
+    "protein_target": "DIOAKGPSOW",
+    "binding_affinity_prediction": -13.08,
+    "ADME_score": 9.97,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000245",
+    "protein_target": "LDOABEFXGI",
+    "binding_affinity_prediction": -14.44,
+    "ADME_score": 0.57,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000246",
+    "protein_target": "ERBVJKTPNK",
+    "binding_affinity_prediction": -7.61,
+    "ADME_score": 7.78,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000247",
+    "protein_target": "JOPOSEFVWZ",
+    "binding_affinity_prediction": -13.29,
+    "ADME_score": 2.21,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000248",
+    "protein_target": "NTIT",
+    "binding_affinity_prediction": -6.02,
+    "ADME_score": 5.08,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000249",
+    "protein_target": "UQUO",
+    "binding_affinity_prediction": -11.64,
+    "ADME_score": 7.38,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000250",
+    "protein_target": "ROI",
+    "binding_affinity_prediction": -7.78,
+    "ADME_score": 2.0,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000251",
+    "protein_target": "VHMM",
+    "binding_affinity_prediction": -10.89,
+    "ADME_score": 7.58,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000252",
+    "protein_target": "UQUO",
+    "binding_affinity_prediction": -11.95,
+    "ADME_score": 0.41,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000253",
+    "protein_target": "HKCBKUKL",
+    "binding_affinity_prediction": -13.26,
+    "ADME_score": 6.74,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000254",
+    "protein_target": "UTVE",
+    "binding_affinity_prediction": -9.25,
+    "ADME_score": 8.02,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000255",
+    "protein_target": "VHMM",
+    "binding_affinity_prediction": -11.25,
+    "ADME_score": 6.67,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000256",
+    "protein_target": "UQUO",
+    "binding_affinity_prediction": -5.65,
+    "ADME_score": 7.04,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000257",
+    "protein_target": "JTOGF",
+    "binding_affinity_prediction": -13.31,
+    "ADME_score": 4.95,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000258",
+    "protein_target": "UYSO",
+    "binding_affinity_prediction": -8.58,
+    "ADME_score": 8.53,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000259",
+    "protein_target": "UYSO",
+    "binding_affinity_prediction": -12.29,
+    "ADME_score": 8.45,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000260",
+    "protein_target": "QCFRJGFGK",
+    "binding_affinity_prediction": -9.2,
+    "ADME_score": 7.93,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000261",
+    "protein_target": "ROI",
+    "binding_affinity_prediction": -12.84,
+    "ADME_score": 1.98,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000262",
+    "protein_target": "PKIKLL",
+    "binding_affinity_prediction": -7.76,
+    "ADME_score": 4.92,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000263",
+    "protein_target": "DIOAKGPSOW",
+    "binding_affinity_prediction": -13.09,
+    "ADME_score": 4.78,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000264",
+    "protein_target": "UTVE",
+    "binding_affinity_prediction": -5.51,
+    "ADME_score": 7.31,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000265",
+    "protein_target": "QCFRJGFGK",
+    "binding_affinity_prediction": -14.02,
+    "ADME_score": 3.85,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000266",
+    "protein_target": "ROI",
+    "binding_affinity_prediction": -6.28,
+    "ADME_score": 0.84,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000267",
+    "protein_target": "JTOGF",
+    "binding_affinity_prediction": -5.55,
+    "ADME_score": 0.7,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000268",
+    "protein_target": "UYSO",
+    "binding_affinity_prediction": -8.45,
+    "ADME_score": 5.21,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000269",
+    "protein_target": "JOPOSEFVWZ",
+    "binding_affinity_prediction": -9.37,
+    "ADME_score": 4.09,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000270",
+    "protein_target": "QCFRJGFGK",
+    "binding_affinity_prediction": -6.24,
+    "ADME_score": 0.78,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000271",
+    "protein_target": "LDOABEFXGI",
+    "binding_affinity_prediction": -7.17,
+    "ADME_score": 1.66,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000272",
+    "protein_target": "ERBVJKTPNK",
+    "binding_affinity_prediction": -13.4,
+    "ADME_score": 4.52,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000273",
+    "protein_target": "ERBVJKTPNK",
+    "binding_affinity_prediction": -10.65,
+    "ADME_score": 4.72,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000274",
+    "protein_target": "WQPP",
+    "binding_affinity_prediction": -7.62,
+    "ADME_score": 3.82,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000275",
+    "protein_target": "VHMM",
+    "binding_affinity_prediction": -14.85,
+    "ADME_score": 3.13,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000276",
+    "protein_target": "HKCBKUKL",
+    "binding_affinity_prediction": -8.82,
+    "ADME_score": 3.88,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000277",
+    "protein_target": "JOPOSEFVWZ",
+    "binding_affinity_prediction": -14.42,
+    "ADME_score": 3.09,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000278",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -10.87,
+    "ADME_score": 9.69,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000279",
+    "protein_target": "HKCBKUKL",
+    "binding_affinity_prediction": -7.76,
+    "ADME_score": 6.04,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000280",
+    "protein_target": "JOPOSEFVWZ",
+    "binding_affinity_prediction": -10.35,
+    "ADME_score": 6.54,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000281",
+    "protein_target": "ROI",
+    "binding_affinity_prediction": -5.8,
+    "ADME_score": 8.41,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000282",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -10.15,
+    "ADME_score": 7.44,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000283",
+    "protein_target": "UQUO",
+    "binding_affinity_prediction": -14.37,
+    "ADME_score": 1.1,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000284",
+    "protein_target": "PKIKLL",
+    "binding_affinity_prediction": -12.72,
+    "ADME_score": 8.12,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000285",
+    "protein_target": "HKCBKUKL",
+    "binding_affinity_prediction": -8.54,
+    "ADME_score": 6.91,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000286",
+    "protein_target": "HKCBKUKL",
+    "binding_affinity_prediction": -7.12,
+    "ADME_score": 9.69,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000287",
+    "protein_target": "NJVKWDZ",
+    "binding_affinity_prediction": -12.96,
+    "ADME_score": 2.13,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000288",
+    "protein_target": "PKIKLL",
+    "binding_affinity_prediction": -9.8,
+    "ADME_score": 5.06,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000289",
+    "protein_target": "ERBVJKTPNK",
+    "binding_affinity_prediction": -5.28,
+    "ADME_score": 9.61,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000290",
+    "protein_target": "QAA",
+    "binding_affinity_prediction": -10.57,
+    "ADME_score": 1.68,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000291",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -5.79,
+    "ADME_score": 3.23,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000292",
+    "protein_target": "VHMM",
+    "binding_affinity_prediction": -9.29,
+    "ADME_score": 6.22,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000293",
+    "protein_target": "ERBVJKTPNK",
+    "binding_affinity_prediction": -5.59,
+    "ADME_score": 6.89,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000294",
+    "protein_target": "QAA",
+    "binding_affinity_prediction": -6.75,
+    "ADME_score": 0.07,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000295",
+    "protein_target": "UQUO",
+    "binding_affinity_prediction": -12.24,
+    "ADME_score": 4.08,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000296",
+    "protein_target": "DIOAKGPSOW",
+    "binding_affinity_prediction": -11.28,
+    "ADME_score": 9.02,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000297",
+    "protein_target": "WQPP",
+    "binding_affinity_prediction": -10.09,
+    "ADME_score": 5.35,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000298",
+    "protein_target": "MZZS",
+    "binding_affinity_prediction": -8.55,
+    "ADME_score": 2.33,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000299",
+    "protein_target": "PKIKLL",
+    "binding_affinity_prediction": -9.66,
+    "ADME_score": 8.56,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000300",
+    "protein_target": "HKCBKUKL",
+    "binding_affinity_prediction": -9.74,
+    "ADME_score": 8.64,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000301",
+    "protein_target": "UYSO",
+    "binding_affinity_prediction": -6.1,
+    "ADME_score": 5.3,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000302",
+    "protein_target": "WQPP",
+    "binding_affinity_prediction": -7.3,
+    "ADME_score": 5.67,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000303",
+    "protein_target": "ROI",
+    "binding_affinity_prediction": -10.58,
+    "ADME_score": 1.99,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000304",
+    "protein_target": "DIOAKGPSOW",
+    "binding_affinity_prediction": -11.12,
+    "ADME_score": 5.14,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000305",
+    "protein_target": "PKIKLL",
+    "binding_affinity_prediction": -5.67,
+    "ADME_score": 1.03,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000306",
+    "protein_target": "MZZS",
+    "binding_affinity_prediction": -6.11,
+    "ADME_score": 9.59,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000307",
+    "protein_target": "ERMU",
+    "binding_affinity_prediction": -12.55,
+    "ADME_score": 0.2,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000308",
+    "protein_target": "QCFRJGFGK",
+    "binding_affinity_prediction": -12.94,
+    "ADME_score": 4.31,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000309",
+    "protein_target": "UQUO",
+    "binding_affinity_prediction": -6.06,
+    "ADME_score": 7.34,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000310",
+    "protein_target": "ERBVJKTPNK",
+    "binding_affinity_prediction": -11.03,
+    "ADME_score": 2.14,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000311",
+    "protein_target": "QCFRJGFGK",
+    "binding_affinity_prediction": -11.32,
+    "ADME_score": 3.74,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000312",
+    "protein_target": "DIOAKGPSOW",
+    "binding_affinity_prediction": -5.12,
+    "ADME_score": 9.04,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000313",
+    "protein_target": "DIOAKGPSOW",
+    "binding_affinity_prediction": -12.97,
+    "ADME_score": 1.93,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000314",
+    "protein_target": "ERMU",
+    "binding_affinity_prediction": -7.16,
+    "ADME_score": 0.2,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000315",
+    "protein_target": "WQPP",
+    "binding_affinity_prediction": -12.28,
+    "ADME_score": 4.69,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000316",
+    "protein_target": "LDOABEFXGI",
+    "binding_affinity_prediction": -8.75,
+    "ADME_score": 1.79,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000317",
+    "protein_target": "ERMU",
+    "binding_affinity_prediction": -5.7,
+    "ADME_score": 9.67,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000318",
+    "protein_target": "UQUO",
+    "binding_affinity_prediction": -7.95,
+    "ADME_score": 1.23,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000319",
+    "protein_target": "MZZS",
+    "binding_affinity_prediction": -13.18,
+    "ADME_score": 1.01,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000320",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -8.0,
+    "ADME_score": 5.32,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000321",
+    "protein_target": "MZZS",
+    "binding_affinity_prediction": -12.67,
+    "ADME_score": 9.45,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000322",
+    "protein_target": "NTIT",
+    "binding_affinity_prediction": -8.98,
+    "ADME_score": 6.17,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000323",
+    "protein_target": "ROI",
+    "binding_affinity_prediction": -6.31,
+    "ADME_score": 1.08,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000324",
+    "protein_target": "PKIKLL",
+    "binding_affinity_prediction": -5.01,
+    "ADME_score": 2.07,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000325",
+    "protein_target": "PKIKLL",
+    "binding_affinity_prediction": -10.61,
+    "ADME_score": 9.61,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000326",
+    "protein_target": "QAA",
+    "binding_affinity_prediction": -13.19,
+    "ADME_score": 7.21,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000327",
+    "protein_target": "JTOGF",
+    "binding_affinity_prediction": -8.78,
+    "ADME_score": 2.76,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000328",
+    "protein_target": "PKIKLL",
+    "binding_affinity_prediction": -8.34,
+    "ADME_score": 8.64,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000329",
+    "protein_target": "UTVE",
+    "binding_affinity_prediction": -9.85,
+    "ADME_score": 6.83,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000330",
+    "protein_target": "JOPOSEFVWZ",
+    "binding_affinity_prediction": -9.23,
+    "ADME_score": 9.57,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000331",
+    "protein_target": "NJVKWDZ",
+    "binding_affinity_prediction": -7.45,
+    "ADME_score": 3.71,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000332",
+    "protein_target": "HKCBKUKL",
+    "binding_affinity_prediction": -6.69,
+    "ADME_score": 9.35,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000333",
+    "protein_target": "NTIT",
+    "binding_affinity_prediction": -10.36,
+    "ADME_score": 0.5,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000334",
+    "protein_target": "UTVE",
+    "binding_affinity_prediction": -13.91,
+    "ADME_score": 9.12,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000335",
+    "protein_target": "UTVE",
+    "binding_affinity_prediction": -6.12,
+    "ADME_score": 0.03,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000336",
+    "protein_target": "NTIT",
+    "binding_affinity_prediction": -6.73,
+    "ADME_score": 9.55,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000337",
+    "protein_target": "QCFRJGFGK",
+    "binding_affinity_prediction": -7.29,
+    "ADME_score": 9.35,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000338",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -13.05,
+    "ADME_score": 8.24,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000339",
+    "protein_target": "MZZS",
+    "binding_affinity_prediction": -10.79,
+    "ADME_score": 9.21,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000340",
+    "protein_target": "HKCBKUKL",
+    "binding_affinity_prediction": -14.66,
+    "ADME_score": 7.03,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000341",
+    "protein_target": "PKIKLL",
+    "binding_affinity_prediction": -5.92,
+    "ADME_score": 8.37,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000342",
+    "protein_target": "ERBVJKTPNK",
+    "binding_affinity_prediction": -7.13,
+    "ADME_score": 5.96,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000343",
+    "protein_target": "LDOABEFXGI",
+    "binding_affinity_prediction": -6.86,
+    "ADME_score": 8.14,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000344",
+    "protein_target": "UYSO",
+    "binding_affinity_prediction": -11.14,
+    "ADME_score": 1.01,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000345",
+    "protein_target": "UYSO",
+    "binding_affinity_prediction": -5.01,
+    "ADME_score": 7.87,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000346",
+    "protein_target": "ERMU",
+    "binding_affinity_prediction": -7.57,
+    "ADME_score": 2.22,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000347",
+    "protein_target": "ERMU",
+    "binding_affinity_prediction": -5.89,
+    "ADME_score": 3.32,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000348",
+    "protein_target": "UQUO",
+    "binding_affinity_prediction": -12.06,
+    "ADME_score": 5.09,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000349",
+    "protein_target": "UQUO",
+    "binding_affinity_prediction": -13.46,
+    "ADME_score": 2.24,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000350",
+    "protein_target": "ERMU",
+    "binding_affinity_prediction": -5.8,
+    "ADME_score": 2.83,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000351",
+    "protein_target": "JTOGF",
+    "binding_affinity_prediction": -12.89,
+    "ADME_score": 7.53,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000352",
+    "protein_target": "ERBVJKTPNK",
+    "binding_affinity_prediction": -10.52,
+    "ADME_score": 4.29,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000353",
+    "protein_target": "UTVE",
+    "binding_affinity_prediction": -6.4,
+    "ADME_score": 0.02,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000354",
+    "protein_target": "PKIKLL",
+    "binding_affinity_prediction": -8.27,
+    "ADME_score": 2.16,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000355",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -7.17,
+    "ADME_score": 2.65,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000356",
+    "protein_target": "QAA",
+    "binding_affinity_prediction": -6.06,
+    "ADME_score": 5.44,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000357",
+    "protein_target": "LDOABEFXGI",
+    "binding_affinity_prediction": -7.37,
+    "ADME_score": 1.87,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000358",
+    "protein_target": "UQUO",
+    "binding_affinity_prediction": -14.97,
+    "ADME_score": 5.84,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000359",
+    "protein_target": "ERBVJKTPNK",
+    "binding_affinity_prediction": -6.72,
+    "ADME_score": 4.41,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000360",
+    "protein_target": "JOPOSEFVWZ",
+    "binding_affinity_prediction": -13.26,
+    "ADME_score": 3.86,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000361",
+    "protein_target": "ERBVJKTPNK",
+    "binding_affinity_prediction": -7.78,
+    "ADME_score": 3.87,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000362",
+    "protein_target": "MZZS",
+    "binding_affinity_prediction": -5.64,
+    "ADME_score": 6.78,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000363",
+    "protein_target": "MZZS",
+    "binding_affinity_prediction": -9.75,
+    "ADME_score": 6.34,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000364",
+    "protein_target": "ROI",
+    "binding_affinity_prediction": -9.54,
+    "ADME_score": 1.62,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000365",
+    "protein_target": "DIOAKGPSOW",
+    "binding_affinity_prediction": -10.8,
+    "ADME_score": 5.51,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000366",
+    "protein_target": "PKIKLL",
+    "binding_affinity_prediction": -14.96,
+    "ADME_score": 5.96,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000367",
+    "protein_target": "HKCBKUKL",
+    "binding_affinity_prediction": -7.46,
+    "ADME_score": 1.66,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000368",
+    "protein_target": "UYSO",
+    "binding_affinity_prediction": -6.65,
+    "ADME_score": 7.09,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000369",
+    "protein_target": "ROI",
+    "binding_affinity_prediction": -5.4,
+    "ADME_score": 6.2,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000370",
+    "protein_target": "NTIT",
+    "binding_affinity_prediction": -10.33,
+    "ADME_score": 9.51,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000371",
+    "protein_target": "ROI",
+    "binding_affinity_prediction": -7.03,
+    "ADME_score": 2.42,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000372",
+    "protein_target": "QCFRJGFGK",
+    "binding_affinity_prediction": -5.25,
+    "ADME_score": 2.71,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000373",
+    "protein_target": "QCFRJGFGK",
+    "binding_affinity_prediction": -13.52,
+    "ADME_score": 1.13,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000374",
+    "protein_target": "UTVE",
+    "binding_affinity_prediction": -8.48,
+    "ADME_score": 3.1,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000375",
+    "protein_target": "VHMM",
+    "binding_affinity_prediction": -11.56,
+    "ADME_score": 3.93,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000376",
+    "protein_target": "DIOAKGPSOW",
+    "binding_affinity_prediction": -11.44,
+    "ADME_score": 4.22,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000377",
+    "protein_target": "ROI",
+    "binding_affinity_prediction": -10.05,
+    "ADME_score": 0.67,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000378",
+    "protein_target": "QCFRJGFGK",
+    "binding_affinity_prediction": -12.47,
+    "ADME_score": 2.38,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000379",
+    "protein_target": "QAA",
+    "binding_affinity_prediction": -10.21,
+    "ADME_score": 6.65,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000380",
+    "protein_target": "DIOAKGPSOW",
+    "binding_affinity_prediction": -5.43,
+    "ADME_score": 9.26,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000381",
+    "protein_target": "UTVE",
+    "binding_affinity_prediction": -10.99,
+    "ADME_score": 3.94,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000382",
+    "protein_target": "LDOABEFXGI",
+    "binding_affinity_prediction": -10.54,
+    "ADME_score": 2.21,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000383",
+    "protein_target": "LDOABEFXGI",
+    "binding_affinity_prediction": -10.24,
+    "ADME_score": 0.11,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000384",
+    "protein_target": "MZZS",
+    "binding_affinity_prediction": -12.13,
+    "ADME_score": 4.2,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000385",
+    "protein_target": "WQPP",
+    "binding_affinity_prediction": -8.47,
+    "ADME_score": 9.99,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000386",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -11.54,
+    "ADME_score": 2.41,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000387",
+    "protein_target": "WQPP",
+    "binding_affinity_prediction": -13.12,
+    "ADME_score": 7.43,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000388",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -14.08,
+    "ADME_score": 4.04,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000389",
+    "protein_target": "QCFRJGFGK",
+    "binding_affinity_prediction": -11.59,
+    "ADME_score": 3.66,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000390",
+    "protein_target": "UTVE",
+    "binding_affinity_prediction": -6.53,
+    "ADME_score": 9.85,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000391",
+    "protein_target": "QCFRJGFGK",
+    "binding_affinity_prediction": -7.08,
+    "ADME_score": 2.54,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000392",
+    "protein_target": "DIOAKGPSOW",
+    "binding_affinity_prediction": -10.87,
+    "ADME_score": 5.49,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000393",
+    "protein_target": "HKCBKUKL",
+    "binding_affinity_prediction": -10.46,
+    "ADME_score": 8.89,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000394",
+    "protein_target": "JOPOSEFVWZ",
+    "binding_affinity_prediction": -11.52,
+    "ADME_score": 2.0,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000395",
+    "protein_target": "UTVE",
+    "binding_affinity_prediction": -6.94,
+    "ADME_score": 9.39,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000396",
+    "protein_target": "UQUO",
+    "binding_affinity_prediction": -12.42,
+    "ADME_score": 8.69,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000397",
+    "protein_target": "ERMU",
+    "binding_affinity_prediction": -5.1,
+    "ADME_score": 3.57,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000398",
+    "protein_target": "UYSO",
+    "binding_affinity_prediction": -8.91,
+    "ADME_score": 7.11,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000399",
+    "protein_target": "QCFRJGFGK",
+    "binding_affinity_prediction": -10.05,
+    "ADME_score": 3.47,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000400",
+    "protein_target": "JOPOSEFVWZ",
+    "binding_affinity_prediction": -6.83,
+    "ADME_score": 1.87,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000401",
+    "protein_target": "UQUO",
+    "binding_affinity_prediction": -11.16,
+    "ADME_score": 9.88,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000402",
+    "protein_target": "UYSO",
+    "binding_affinity_prediction": -7.94,
+    "ADME_score": 2.07,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000403",
+    "protein_target": "JTOGF",
+    "binding_affinity_prediction": -7.75,
+    "ADME_score": 9.34,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000404",
+    "protein_target": "UQUO",
+    "binding_affinity_prediction": -10.57,
+    "ADME_score": 3.3,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000405",
+    "protein_target": "ROI",
+    "binding_affinity_prediction": -6.99,
+    "ADME_score": 0.32,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000406",
+    "protein_target": "QCFRJGFGK",
+    "binding_affinity_prediction": -10.58,
+    "ADME_score": 4.75,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000407",
+    "protein_target": "VHMM",
+    "binding_affinity_prediction": -13.23,
+    "ADME_score": 0.4,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000408",
+    "protein_target": "DIOAKGPSOW",
+    "binding_affinity_prediction": -14.88,
+    "ADME_score": 5.42,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000409",
+    "protein_target": "WQPP",
+    "binding_affinity_prediction": -5.53,
+    "ADME_score": 2.31,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000410",
+    "protein_target": "HKCBKUKL",
+    "binding_affinity_prediction": -10.72,
+    "ADME_score": 9.93,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000411",
+    "protein_target": "QCFRJGFGK",
+    "binding_affinity_prediction": -5.7,
+    "ADME_score": 1.25,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000412",
+    "protein_target": "QCFRJGFGK",
+    "binding_affinity_prediction": -11.11,
+    "ADME_score": 7.7,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000413",
+    "protein_target": "JOPOSEFVWZ",
+    "binding_affinity_prediction": -5.54,
+    "ADME_score": 6.81,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000414",
+    "protein_target": "QAA",
+    "binding_affinity_prediction": -8.76,
+    "ADME_score": 4.57,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000415",
+    "protein_target": "JOPOSEFVWZ",
+    "binding_affinity_prediction": -9.03,
+    "ADME_score": 3.25,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000416",
+    "protein_target": "UTVE",
+    "binding_affinity_prediction": -13.6,
+    "ADME_score": 8.38,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000417",
+    "protein_target": "NTIT",
+    "binding_affinity_prediction": -13.86,
+    "ADME_score": 0.91,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000418",
+    "protein_target": "UQUO",
+    "binding_affinity_prediction": -12.18,
+    "ADME_score": 8.56,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000419",
+    "protein_target": "UTVE",
+    "binding_affinity_prediction": -11.48,
+    "ADME_score": 9.71,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000420",
+    "protein_target": "MZZS",
+    "binding_affinity_prediction": -7.89,
+    "ADME_score": 0.16,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000421",
+    "protein_target": "NJVKWDZ",
+    "binding_affinity_prediction": -13.97,
+    "ADME_score": 9.2,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000422",
+    "protein_target": "MZZS",
+    "binding_affinity_prediction": -10.59,
+    "ADME_score": 6.76,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000423",
+    "protein_target": "JTOGF",
+    "binding_affinity_prediction": -8.06,
+    "ADME_score": 9.89,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000424",
+    "protein_target": "MZZS",
+    "binding_affinity_prediction": -11.49,
+    "ADME_score": 4.61,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000425",
+    "protein_target": "LDOABEFXGI",
+    "binding_affinity_prediction": -14.49,
+    "ADME_score": 8.27,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000426",
+    "protein_target": "NJVKWDZ",
+    "binding_affinity_prediction": -5.16,
+    "ADME_score": 3.25,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000427",
+    "protein_target": "UQUO",
+    "binding_affinity_prediction": -7.17,
+    "ADME_score": 6.06,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000428",
+    "protein_target": "JTOGF",
+    "binding_affinity_prediction": -9.47,
+    "ADME_score": 3.97,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000429",
+    "protein_target": "ERMU",
+    "binding_affinity_prediction": -5.68,
+    "ADME_score": 3.12,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000430",
+    "protein_target": "PKIKLL",
+    "binding_affinity_prediction": -5.15,
+    "ADME_score": 3.93,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000431",
+    "protein_target": "UYSO",
+    "binding_affinity_prediction": -13.25,
+    "ADME_score": 4.71,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000432",
+    "protein_target": "MZZS",
+    "binding_affinity_prediction": -7.0,
+    "ADME_score": 8.17,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000433",
+    "protein_target": "UTVE",
+    "binding_affinity_prediction": -5.59,
+    "ADME_score": 6.62,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000434",
+    "protein_target": "WQPP",
+    "binding_affinity_prediction": -5.86,
+    "ADME_score": 4.81,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000435",
+    "protein_target": "JTOGF",
+    "binding_affinity_prediction": -6.75,
+    "ADME_score": 9.46,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000436",
+    "protein_target": "NTIT",
+    "binding_affinity_prediction": -9.06,
+    "ADME_score": 4.28,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000437",
+    "protein_target": "WQPP",
+    "binding_affinity_prediction": -6.26,
+    "ADME_score": 1.11,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000438",
+    "protein_target": "NJVKWDZ",
+    "binding_affinity_prediction": -5.36,
+    "ADME_score": 5.4,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000439",
+    "protein_target": "JTOGF",
+    "binding_affinity_prediction": -6.03,
+    "ADME_score": 8.0,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000440",
+    "protein_target": "NJVKWDZ",
+    "binding_affinity_prediction": -8.61,
+    "ADME_score": 6.3,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000441",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -7.26,
+    "ADME_score": 3.09,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000442",
+    "protein_target": "LDOABEFXGI",
+    "binding_affinity_prediction": -9.46,
+    "ADME_score": 4.71,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000443",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -13.84,
+    "ADME_score": 1.78,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000444",
+    "protein_target": "ERMU",
+    "binding_affinity_prediction": -11.04,
+    "ADME_score": 2.92,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000445",
+    "protein_target": "QAA",
+    "binding_affinity_prediction": -5.6,
+    "ADME_score": 8.09,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000446",
+    "protein_target": "QAA",
+    "binding_affinity_prediction": -6.4,
+    "ADME_score": 9.52,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000447",
+    "protein_target": "ROI",
+    "binding_affinity_prediction": -13.53,
+    "ADME_score": 0.31,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000448",
+    "protein_target": "UYSO",
+    "binding_affinity_prediction": -13.97,
+    "ADME_score": 7.65,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000449",
+    "protein_target": "UQUO",
+    "binding_affinity_prediction": -8.13,
+    "ADME_score": 7.52,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000450",
+    "protein_target": "JOPOSEFVWZ",
+    "binding_affinity_prediction": -5.79,
+    "ADME_score": 0.12,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000451",
+    "protein_target": "HKCBKUKL",
+    "binding_affinity_prediction": -13.84,
+    "ADME_score": 4.25,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000452",
+    "protein_target": "QCFRJGFGK",
+    "binding_affinity_prediction": -12.78,
+    "ADME_score": 4.58,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000453",
+    "protein_target": "VHMM",
+    "binding_affinity_prediction": -12.63,
+    "ADME_score": 0.83,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000454",
+    "protein_target": "HKCBKUKL",
+    "binding_affinity_prediction": -8.9,
+    "ADME_score": 6.66,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000455",
+    "protein_target": "JOPOSEFVWZ",
+    "binding_affinity_prediction": -5.25,
+    "ADME_score": 1.68,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000456",
+    "protein_target": "WQPP",
+    "binding_affinity_prediction": -13.79,
+    "ADME_score": 5.84,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000457",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -13.94,
+    "ADME_score": 1.31,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000458",
+    "protein_target": "ERMU",
+    "binding_affinity_prediction": -6.7,
+    "ADME_score": 5.72,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000459",
+    "protein_target": "NTIT",
+    "binding_affinity_prediction": -5.07,
+    "ADME_score": 5.7,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000460",
+    "protein_target": "PKIKLL",
+    "binding_affinity_prediction": -13.6,
+    "ADME_score": 9.82,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000461",
+    "protein_target": "MZZS",
+    "binding_affinity_prediction": -7.83,
+    "ADME_score": 2.46,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000462",
+    "protein_target": "VHMM",
+    "binding_affinity_prediction": -7.15,
+    "ADME_score": 1.46,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000463",
+    "protein_target": "ERMU",
+    "binding_affinity_prediction": -6.2,
+    "ADME_score": 9.19,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000464",
+    "protein_target": "UTVE",
+    "binding_affinity_prediction": -5.85,
+    "ADME_score": 6.38,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000465",
+    "protein_target": "QCFRJGFGK",
+    "binding_affinity_prediction": -10.28,
+    "ADME_score": 3.02,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000466",
+    "protein_target": "MZZS",
+    "binding_affinity_prediction": -6.71,
+    "ADME_score": 2.39,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000467",
+    "protein_target": "UYSO",
+    "binding_affinity_prediction": -8.68,
+    "ADME_score": 4.98,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000468",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -5.52,
+    "ADME_score": 7.12,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000469",
+    "protein_target": "JOPOSEFVWZ",
+    "binding_affinity_prediction": -5.81,
+    "ADME_score": 3.62,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000470",
+    "protein_target": "UTVE",
+    "binding_affinity_prediction": -6.76,
+    "ADME_score": 6.77,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000471",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -11.46,
+    "ADME_score": 4.1,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000472",
+    "protein_target": "JTOGF",
+    "binding_affinity_prediction": -13.61,
+    "ADME_score": 3.51,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000473",
+    "protein_target": "UTVE",
+    "binding_affinity_prediction": -9.21,
+    "ADME_score": 6.65,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000474",
+    "protein_target": "UTVE",
+    "binding_affinity_prediction": -7.05,
+    "ADME_score": 1.04,
+    "toxicity_risk": "high",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000475",
+    "protein_target": "QAA",
+    "binding_affinity_prediction": -14.63,
+    "ADME_score": 2.8,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000476",
+    "protein_target": "HKCBKUKL",
+    "binding_affinity_prediction": -14.79,
+    "ADME_score": 3.75,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000477",
+    "protein_target": "DIOAKGPSOW",
+    "binding_affinity_prediction": -8.58,
+    "ADME_score": 1.54,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000478",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -7.37,
+    "ADME_score": 3.3,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000479",
+    "protein_target": "UTVE",
+    "binding_affinity_prediction": -10.16,
+    "ADME_score": 6.43,
+    "toxicity_risk": "high",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000480",
+    "protein_target": "JOPOSEFVWZ",
+    "binding_affinity_prediction": -11.72,
+    "ADME_score": 1.98,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000481",
+    "protein_target": "NTIT",
+    "binding_affinity_prediction": -5.93,
+    "ADME_score": 0.01,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000482",
+    "protein_target": "ROI",
+    "binding_affinity_prediction": -6.79,
+    "ADME_score": 9.83,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000483",
+    "protein_target": "ERBVJKTPNK",
+    "binding_affinity_prediction": -7.7,
+    "ADME_score": 4.87,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000484",
+    "protein_target": "PKIKLL",
+    "binding_affinity_prediction": -13.28,
+    "ADME_score": 1.65,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000485",
+    "protein_target": "NTIT",
+    "binding_affinity_prediction": -5.43,
+    "ADME_score": 9.08,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000486",
+    "protein_target": "UYSO",
+    "binding_affinity_prediction": -5.91,
+    "ADME_score": 5.2,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000487",
+    "protein_target": "JTOGF",
+    "binding_affinity_prediction": -6.0,
+    "ADME_score": 7.04,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000488",
+    "protein_target": "UTVE",
+    "binding_affinity_prediction": -10.11,
+    "ADME_score": 8.06,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000489",
+    "protein_target": "WQPP",
+    "binding_affinity_prediction": -13.38,
+    "ADME_score": 4.8,
+    "toxicity_risk": "low",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000490",
+    "protein_target": "VHMM",
+    "binding_affinity_prediction": -6.02,
+    "ADME_score": 5.67,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000491",
+    "protein_target": "WQPP",
+    "binding_affinity_prediction": -12.37,
+    "ADME_score": 5.97,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000492",
+    "protein_target": "QAA",
+    "binding_affinity_prediction": -14.09,
+    "ADME_score": 7.06,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000493",
+    "protein_target": "ENDIMYVMKQ",
+    "binding_affinity_prediction": -12.29,
+    "ADME_score": 3.24,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000494",
+    "protein_target": "VHMM",
+    "binding_affinity_prediction": -9.94,
+    "ADME_score": 8.99,
+    "toxicity_risk": "high",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000495",
+    "protein_target": "NTIT",
+    "binding_affinity_prediction": -14.04,
+    "ADME_score": 0.34,
+    "toxicity_risk": "medium",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000496",
+    "protein_target": "NJVKWDZ",
+    "binding_affinity_prediction": -12.33,
+    "ADME_score": 7.76,
+    "toxicity_risk": "medium",
+    "priority": "optimization"
+  },
+  {
+    "hypothesis_id": "HYP-000497",
+    "protein_target": "HKCBKUKL",
+    "binding_affinity_prediction": -8.62,
+    "ADME_score": 6.23,
+    "toxicity_risk": "medium",
+    "priority": "validation"
+  },
+  {
+    "hypothesis_id": "HYP-000498",
+    "protein_target": "PKIKLL",
+    "binding_affinity_prediction": -12.65,
+    "ADME_score": 2.34,
+    "toxicity_risk": "low",
+    "priority": "exploration"
+  },
+  {
+    "hypothesis_id": "HYP-000499",
+    "protein_target": "QCFRJGFGK",
+    "binding_affinity_prediction": -13.79,
+    "ADME_score": 3.22,
+    "toxicity_risk": "low",
+    "priority": "optimization"
+  }
+]

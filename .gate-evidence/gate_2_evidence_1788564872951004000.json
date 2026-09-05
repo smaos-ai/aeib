@@ -1,0 +1,12 @@
+{
+  "gate": 2,
+  "phase": "EXPECT",
+  "action_id": "1788564872951004000",
+  "tool": "unknown",
+  "expected_outcome": "Tool execution succeeded without unsafe patterns",
+  "verification_timestamp": "2026-09-04T23:34:33Z",
+  "checks": {
+    "exit_code": 0,
+    "tool_safe": 0
+  }
+}

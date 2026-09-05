@@ -1,0 +1,26 @@
+[package]
+name = "siss-compliance-agent"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+siss-a2a-ipc = { path = "../siss-a2a-ipc" }
+siss-a2a-protocol = { path = "../siss-a2a-protocol" }
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+anyhow = "1"
+thiserror = "1"
+log = "0.4"
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+sha2 = "0.10"
+ed25519-dalek = "2.1"
+hex = "0.4"
+rand = "0.8"
+async-trait = "0.1"
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full"] }

@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMAOS Phase 20 — Recovery Cockpit</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0e27;
+            color: #e0e6ed;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+            color: #00d9ff;
+            text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+        }
+
+        .panels {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            background: #1a1f3a;
+            border: 1px solid #2a2f4a;
+            border-radius: 8px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .panel h2 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #00d9ff;
+            border-bottom: 1px solid #2a2f4a;
+            padding-bottom: 10px;
+        }
+
+        .recovery-status {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .sovereign-item {
+            padding: 10px;
+            background: #252a45;
+            border-radius: 4px;
+            border-left: 3px solid #00d9ff;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            margin-right: 5px;
+        }
+
+        .badge-recovering {
+            background: #ff9500;
+            color: #000;
+        }
+
+        .badge-active {
+            background: #34c759;
+            color: #000;
+        }
+
+        .badge-quarantined {
+            background: #ff3b30;
+            color: #fff;
+        }
+
+        .events-log {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .event-item {
+            padding: 8px;
+            background: #252a45;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            line-height: 1.4;
+            border-left: 3px solid #666;
+        }
+
+        .event-item.entered { border-left-color: #34c759; }
+        .event-item.progressed { border-left-color: #00d9ff; }
+        .event-item.completed { border-left-color: #00d9ff; }
+        .event-item.violation { border-left-color: #ff3b30; }
+        .event-item.scoring { border-left-color: #a2845f; }
+
+        .timestamp {
+            color: #888;
+            font-size: 10px;
+        }
+
+        .signal-breakdown {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 11px;
+        }
+
+        .signal-item {
+            padding: 8px;
+            background: #252a45;
+            border-radius: 4px;
+            border-left: 2px solid #666;
+        }
+
+        .signal-item.penalty { border-left-color: #ff3b30; }
+        .signal-item.bonus { border-left-color: #34c759; }
+
+        .signal-label {
+            color: #888;
+            font-size: 10px;
+        }
+
+        .signal-value {
+            font-weight: bold;
+            font-size: 13px;
+            margin-top: 3px;
+        }
+
+        .status-bar {
+            margin-top: 20px;
+            padding: 15px;
+            background: #1a1f3a;
+            border: 1px solid #2a2f4a;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .status-bar.connected {
+            border-color: #34c759;
+            background: rgba(52, 199, 89, 0.1);
+        }
+
+        .status-bar.disconnected {
+            border-color: #ff3b30;
+            background: rgba(255, 59, 48, 0.1);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-indicator.connected {
+            background: #34c759;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.disconnected {
+            background: #ff3b30;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        .trust-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .trust-table th {
+            text-align: left;
+            padding: 8px;
+            background: #252a45;
+            border-bottom: 1px solid #2a2f4a;
+            color: #aaa;
+            font-weight: normal;
+        }
+
+        .trust-table td {
+            padding: 8px;
+            border-bottom: 1px solid #1a1f3a;
+        }
+
+        .trust-row {
+            border-left: 3px solid #666;
+        }
+
+        .trust-row.trust-high { border-left-color: #34c759; }
+        .trust-row.trust-mid { border-left-color: #ffcc00; }
+        .trust-row.trust-low { border-left-color: #ff3b30; }
+
+        .trust-score {
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        .trust-score.trust-high { background: rgba(52, 199, 89, 0.2); color: #34c759; }
+        .trust-score.trust-mid { background: rgba(255, 204, 0, 0.2); color: #ffcc00; }
+        .trust-score.trust-low { background: rgba(255, 59, 48, 0.2); color: #ff3b30; }
+
+        .trust-component {
+            color: #aaa;
+            font-size: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ SMAOS Phase 20 — Recovery Cockpit</h1>
+
+        <div class="panels">
+            <!-- Recovery Status Panel -->
+            <div class="panel">
+                <h2>Recovery Status</h2>
+                <div class="recovery-status" id="recovery-status">
+                    <div style="color: #888; font-size: 12px;">Waiting for events...</div>
+                </div>
+            </div>
+
+            <!-- Recent Transitions Panel -->
+            <div class="panel">
+                <h2>Recent Transitions</h2>
+                <div class="events-log scrollbar-hide" id="transitions-log">
+                    <div style="color: #888; font-size: 12px;">Waiting for transitions...</div>
+                </div>
+            </div>
+
+            <!-- Signal Activity Panel -->
+            <div class="panel">
+                <h2>Signal Activity</h2>
+                <div class="signal-breakdown" id="signal-activity">
+                    <div style="color: #888; font-size: 12px;">Waiting for scoring events...</div>
+                </div>
+            </div>
+
+            <!-- Trust Network Panel -->
+            <div class="panel">
+                <h2>Trust Network</h2>
+                <table class="trust-table" id="trust-network">
+                    <thead>
+                        <tr>
+                            <th>Source → Target</th>
+                            <th>Score</th>
+                            <th>Explicit</th>
+                            <th>Implicit</th>
+                            <th>Decay</th>
+                            <th>Trans</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trust-network-rows">
+                        <tr><td colspan="6" style="color: #888; padding: 20px; text-align: center;">No trust edges yet</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar disconnected" id="status-bar">
+            <span class="status-indicator disconnected" id="status-indicator"></span>
+            <span id="status-text">Disconnected — Connecting to /events...</span>
+        </div>
+    </div>
+
+    <script>
+        const MAX_TRANSITIONS = 20;
+        const MAX_SIGNALS = 10;
+
+        let recoveryStates = {};
+        let transitions = [];
+        let signals = [];
+        let trustEdges = {};
+
+        function formatTime(iso) {
+            try {
+                const d = new Date(iso);
+                return d.toLocaleTimeString();
+            } catch (e) {
+                return iso;
+            }
+        }
+
+        function updateRecoveryStatus() {
+            const statusDiv = document.getElementById('recovery-status');
+            if (Object.keys(recoveryStates).length === 0) {
+                statusDiv.innerHTML = '<div style="color: #888; font-size: 12px;">No sovereigns in recovery</div>';
+                return;
+            }
+
+            statusDiv.innerHTML = Object.entries(recoveryStates).map(([id, state]) => {
+                const badgeClass = state.status === 'recovering' ? 'badge-recovering' :
+                                   state.status === 'active' ? 'badge-active' : 'badge-quarantined';
+                return `
+                    <div class="sovereign-item">
+                        <span class="status-badge ${badgeClass}">${state.status.toUpperCase()}</span>
+                        <strong>${id.substring(0, 8)}</strong>
+                        <div style="margin-top: 5px; color: #aaa; font-size: 10px;">
+                            Score: <strong>${state.score}</strong> |
+                            Weeks: <strong>${state.weeks || 0}</strong>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateTransitions() {
+            const log = document.getElementById('transitions-log');
+            if (transitions.length === 0) {
+                log.innerHTML = '<div style="color: #888; font-size: 12px;">No transitions yet</div>';
+                return;
+            }
+
+            log.innerHTML = transitions.slice(-MAX_TRANSITIONS).reverse().map(t => {
+                const cls = t.type.replace(/_/g, '-').toLowerCase();
+                return `
+                    <div class="event-item ${cls}">
+                        <div>${t.type}</div>
+                        <div style="color: #aaa; margin-top: 3px;">
+                            ${t.sovereign_id.substring(0, 8)} • <span class="timestamp">${formatTime(t.timestamp)}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateSignals() {
+            const div = document.getElementById('signal-activity');
+            if (signals.length === 0) {
+                div.innerHTML = '<div style="color: #888; font-size: 12px; grid-column: 1/-1;">No scoring events yet</div>';
+                return;
+            }
+
+            div.innerHTML = signals.slice(-MAX_SIGNALS).reverse().map(s => `
+                <div class="signal-item penalty">
+                    <div class="signal-label">Slash Penalty</div>
+                    <div class="signal-value">${s.slash_penalty}</div>
+                </div>
+                <div class="signal-item bonus">
+                    <div class="signal-label">Settlement Bonus</div>
+                    <div class="signal-value">+${s.settlement_bonus}</div>
+                </div>
+            `).slice(0, 4).join('');
+        }
+
+        function updateTrustNetwork() {
+            const tbody = document.getElementById('trust-network-rows');
+            if (Object.keys(trustEdges).length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="color: #888; padding: 20px; text-align: center;">No trust edges yet</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = Object.entries(trustEdges)
+                .sort((a, b) => b[1].new_score - a[1].new_score)
+                .map(([key, edge]) => {
+                    const scoreClass = edge.new_score >= 70 ? 'trust-high' :
+                                      edge.new_score >= 30 ? 'trust-mid' : 'trust-low';
+                    return `
+                        <tr class="trust-row ${scoreClass}">
+                            <td>${key}</td>
+                            <td><span class="trust-score ${scoreClass}">${edge.new_score}</span></td>
+                            <td><span class="trust-component">${edge.explicit_component || 0}</span></td>
+                            <td><span class="trust-component">${edge.implicit_component || 0}</span></td>
+                            <td><span class="trust-component">${edge.decay_component || 0}</span></td>
+                            <td><span class="trust-component">${edge.transitive_component || '—'}</span></td>
+                        </tr>
+                    `;
+                }).join('');
+        }
+
+        function handleEvent(event) {
+            try {
+                const data = JSON.parse(event.data);
+                const type = Object.keys(data)[0];
+                const payload = data[type];
+
+                console.log('Event:', type, payload);
+
+                if (type === 'RecoveryEntered') {
+                    recoveryStates[payload.sovereign_id] = {
+                        status: 'recovering',
+                        score: payload.score_at_entry,
+                        weeks: 0
+                    };
+                    transitions.push({
+                        type: 'RECOVERY_ENTERED',
+                        sovereign_id: payload.sovereign_id,
+                        timestamp: payload.timestamp
+                    });
+                }
+
+                if (type === 'RecoveryProgressed') {
+                    if (recoveryStates[payload.sovereign_id]) {
+                        recoveryStates[payload.sovereign_id].weeks = payload.weeks_elapsed;
+                        recoveryStates[payload.sovereign_id].score = payload.current_score;
+                    }
+                }
+
+                if (type === 'RecoveryCompleted') {
+                    if (recoveryStates[payload.sovereign_id]) {
+                        recoveryStates[payload.sovereign_id].status = payload.exit_status === 'success' ? 'active' : 'quarantined';
+                        recoveryStates[payload.sovereign_id].score = payload.score_at_exit;
+                    }
+                    transitions.push({
+                        type: 'RECOVERY_COMPLETED',
+                        sovereign_id: payload.sovereign_id,
+                        timestamp: payload.timestamp
+                    });
+                }
+
+                if (type === 'RecoveryViolation') {
+                    if (recoveryStates[payload.sovereign_id]) {
+                        recoveryStates[payload.sovereign_id].status = 'quarantined';
+                    }
+                    transitions.push({
+                        type: 'RECOVERY_VIOLATION',
+                        sovereign_id: payload.sovereign_id,
+                        timestamp: payload.timestamp
+                    });
+                }
+
+                if (type === 'ScoringDecision') {
+                    signals.push({
+                        sovereign_id: payload.sovereign_id,
+                        score: payload.score,
+                        slash_penalty: payload.slash_penalty,
+                        settlement_bonus: payload.settlement_bonus,
+                        timestamp: payload.timestamp
+                    });
+                }
+
+                if (type === 'TrustEntered') {
+                    const key = `${payload.source_id.substring(0, 8)} → ${payload.target_id.substring(0, 8)}`;
+                    trustEdges[key] = {
+                        new_score: payload.initial_score,
+                        explicit_component: 0,
+                        implicit_component: 0,
+                        decay_component: 0,
+                        transitive_component: null
+                    };
+                }
+
+                if (type === 'TrustScoreUpdated') {
+                    const key = `${payload.source_id.substring(0, 8)} → ${payload.target_id.substring(0, 8)}`;
+                    trustEdges[key] = {
+                        new_score: payload.new_score,
+                        explicit_component: payload.explicit_component,
+                        implicit_component: payload.implicit_component,
+                        decay_component: payload.decay_component,
+                        transitive_component: payload.transitive_component
+                    };
+                }
+
+                if (type === 'TrustDecayed') {
+                    const key = `${payload.source_id.substring(0, 8)} → ${payload.target_id.substring(0, 8)}`;
+                    if (trustEdges[key]) {
+                        trustEdges[key].new_score = payload.final_score;
+                        trustEdges[key].decay_component = payload.decay_component || trustEdges[key].decay_component;
+                    }
+                }
+
+                updateRecoveryStatus();
+                updateTransitions();
+                updateSignals();
+                updateTrustNetwork();
+
+            } catch (e) {
+                console.error('Parse error:', e);
+            }
+        }
+
+        function connectSSE() {
+            const statusBar = document.getElementById('status-bar');
+            const statusIndicator = document.getElementById('status-indicator');
+            const statusText = document.getElementById('status-text');
+
+            const eventSource = new EventSource('/events');
+
+            eventSource.onopen = () => {
+                statusBar.classList.remove('disconnected');
+                statusBar.classList.add('connected');
+                statusIndicator.classList.remove('disconnected');
+                statusIndicator.classList.add('connected');
+                statusText.textContent = 'Connected — Streaming events live';
+            };
+
+            eventSource.onmessage = handleEvent;
+
+            eventSource.onerror = (e) => {
+                statusBar.classList.remove('connected');
+                statusBar.classList.add('disconnected');
+                statusIndicator.classList.remove('connected');
+                statusIndicator.classList.add('disconnected');
+                statusText.textContent = `Connection error — Reconnecting in 3s...`;
+                eventSource.close();
+                setTimeout(connectSSE, 3000);
+            };
+        }
+
+        // Start connection when page loads
+        window.addEventListener('DOMContentLoaded', connectSSE);
+    </script>
+</body>
+</html>

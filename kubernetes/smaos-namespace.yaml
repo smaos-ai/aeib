@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: smaos-prod
+  labels:
+    name: smaos-prod
+    environment: production
+    phase: phase1
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: smaos-monitoring
+  labels:
+    name: smaos-monitoring
+    environment: production

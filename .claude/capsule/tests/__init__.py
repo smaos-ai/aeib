@@ -1,0 +1,1 @@
+"""CAPSULE tests module."""

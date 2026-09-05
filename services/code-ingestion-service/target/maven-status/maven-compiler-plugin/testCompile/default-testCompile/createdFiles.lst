@@ -1,0 +1,5 @@
+ai/sovereign/code/service/ArxivIngestionServiceUnitTest.class
+ai/sovereign/code/ChunkSearchIntegrationTest.class
+ai/sovereign/code/LocalGitIngestionIntegrationTest.class
+ai/sovereign/code/controller/IngestionControllerTest.class
+ai/sovereign/code/DocumentFetchIntegrationTest.class

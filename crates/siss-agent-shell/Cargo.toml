@@ -1,0 +1,49 @@
+[package]
+name = "siss-agent-shell"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+siss-graph-core = { path = "../siss-graph-core" }
+siss-graph-db = { path = "../siss-graph-db" }
+siss-gatekeeper = { path = "../siss-gatekeeper" }
+siss-job-router = { path = "../siss-job-router" }
+siss-context-cartography = { path = "../siss-context-cartography" }
+siss-behavioral-firewall = { path = "../siss-behavioral-firewall" }
+siss-feedback-router = { path = "../siss-feedback-router" }
+uuid.workspace = true
+chrono.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+serde_yaml.workspace = true
+ed25519-dalek.workspace = true
+rand.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tokio-util = { version = "0.7" }
+sqlx.workspace = true
+reqwest.workspace = true
+futures.workspace = true
+regex.workspace = true
+async-trait = "0.1"
+sha2.workspace = true
+hex.workspace = true
+base64.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full", "test-util"] }
+reqwest = { workspace = true, features = ["stream", "json"] }
+regex.workspace = true
+sha2.workspace = true
+hex.workspace = true
+async-trait = "0.1"
+criterion = { version = "0.5", features = ["html_reports"] }
+tokenizers = "0.13"
+
+[[bench]]
+name = "mlx_ttft_bench"
+harness = false
+
+[[bench]]
+name = "tokenizer_bench"
+harness = false

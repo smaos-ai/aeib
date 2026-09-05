@@ -1,0 +1,61 @@
+{
+  "generated_at": "2026-05-27T16:32:36Z",
+  "cycle": 3,
+  "commits_24h": 22,
+  "branches_active": [
+    "main",
+    "auth-cluster",
+    "feat/phase-25-policy-engine",
+    "feat/wave-3-observability",
+    "feat/wave-4-scaling",
+    "inference-cluster",
+    "integration-cluster",
+    "kg-cluster",
+    "mandates-cluster",
+    "night/agent-1-multiregion",
+    "night/agent-2-sla",
+    "night/agent-3-integration",
+    "night/agent-4-chaos",
+    "phase-73-cycle-healing",
+    "phase-74-agent-networking",
+    "worktree-phase-72-night-cycle",
+    "worktree-phase-73-recovery-investigation"
+  ],
+  "tests_status": "FAILING",
+  "test_details": {
+    "total_passed": 14,
+    "total_failed": 8,
+    "failed_tests": [
+      "builder::tests::test_build_populates_skills_from_can_execute_edges",
+      "builder::tests::test_build_returns_card_not_found_when_no_card_inserted",
+      "builder::tests::test_build_returns_card_with_no_tools",
+      "builder::tests::test_build_returns_persona_not_found",
+      "builder::tests::test_build_returns_persona_not_found_when_frozen",
+      "repo::tests::test_fetch_returns_none_for_unknown_persona",
+      "repo::tests::test_insert_and_fetch_agent_card",
+      "repo::tests::test_insert_creates_has_agent_card_edge"
+    ],
+    "root_cause": "Docker socket not available (/var/run/docker.sock) - testcontainers postgres startup failure in siss-agent-card crate",
+    "crate_affected": "siss-agent-card"
+  },
+  "blockers": [
+    "Docker socket unavailable - prevents integration tests in siss-agent-card from running",
+    "8 tests failing due to testcontainers postgres initialization"
+  ],
+  "working_tree_clean": false,
+  "working_tree_status": {
+    "modified_tracked": 9,
+    "deleted_tracked": 3,
+    "untracked_files": 27,
+    "summary": "Working tree has unstaged changes in reports and submodules, plus untracked capsule and test artifacts"
+  },
+  "latest_commits": {
+    "most_recent": "ed2b446 Run #22: Prague-Frankfurt integration tests - 25/25 passed, 427/427 cumulative (100%)",
+    "pattern": "Continuous integration test runs with 100% pass rate on Prague-Frankfurt pair",
+    "trend": "High-velocity integration testing (22 commits in 24h)"
+  },
+  "integration_status": {
+    "prague_frankfurt_tests": "100% passing (427/427 cumulative)",
+    "test_velocity": "22 test runs in 24h with consistent 100% success"
+  }
+}

@@ -1,0 +1,4 @@
+ai/sovereign/arxiv/integration/DocumentServiceIntegrationTest.class
+ai/sovereign/arxiv/integration/DocumentRepositoryIntegrationTest.class
+ai/sovereign/arxiv/integration/IngestionControllerIntegrationTest.class
+ai/sovereign/arxiv/integration/DocumentControllerIntegrationTest.class

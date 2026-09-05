@@ -1,0 +1,119 @@
+[
+  {
+    "action_id": "colibri_rce_gate_38d46ad3618826cf",
+    "prompt": "governance_check:kimi_k3_2.8t",
+    "tokens_used": 0,
+    "cost": 0.0,
+    "timestamp": "2026-09-01T00:19:30.667473",
+    "signature": "d149ef1d1ca5922bc770161cf4f1435242c7997065491b9e417fa6333caf3f0793b9fa04e5b168d83a7915c99b4a08ae6ee8d7207b3fb264ae2db838a96645f3",
+    "public_key": "ed25519_key_001"
+  },
+  {
+    "action_id": "colibri_rce_gate_1439da2cb34b7c5b",
+    "prompt": "governance_check:unauthorized_model_xyz",
+    "tokens_used": 0,
+    "cost": 0.0,
+    "timestamp": "2026-09-01T00:19:30.669547",
+    "signature": "9680a1079dc0cfee254806604ebb7c30c53c7752b811137acdaa145e15e8526a1e566a21fc10512c488d752e57265f121fb74b48bdd0af0a9ad7ad49c813bd88",
+    "public_key": "ed25519_key_001"
+  },
+  {
+    "action_id": "colibri_rce_gate_42e8bc96b8eec8c4",
+    "prompt": "governance_check:deepseek_v4_flash",
+    "tokens_used": 0,
+    "cost": 0.0,
+    "timestamp": "2026-09-01T00:19:30.671390",
+    "signature": "47a5c549691d3f1f6b1d242e128bdc0eab5f4dc92c0b459f44e74aff252a10617e7ca81c34bd6f4c2c0bddca73c3a86d5b27db7e60255cba43a7fdb3ee75cc44",
+    "public_key": "ed25519_key_001"
+  },
+  {
+    "action_id": "colibri_rce_gate_e8227a0361f38e5c",
+    "prompt": "governance_check:glm_5.2_744b",
+    "tokens_used": 0,
+    "cost": 0.0,
+    "timestamp": "2026-09-01T00:19:30.672852",
+    "signature": "81d78aed709c709d465e3000aea3fd4ac00af0b3e1b71cf8e2928e7740e4156a6ee7c1314008db5f2069273693b055e8cd04809a1840112c9c5e24830e6df301",
+    "public_key": "ed25519_key_001"
+  },
+  {
+    "action_id": "colibri_rce_gate_1439da2cb34b7c5b",
+    "prompt": "governance_check:qwen3.6_35b",
+    "tokens_used": 0,
+    "cost": 0.0,
+    "timestamp": "2026-09-01T00:19:30.674161",
+    "signature": "dad327ee314cd015c6b235638eba456db82d3b14621309346e966d55eb30b7ead29bcdb625cca3e1103e0d655ffd01be196e7bbc4f0bcfbbc9c22094fa59cd8d",
+    "public_key": "ed25519_key_001"
+  },
+  {
+    "action_id": "colibri_rce_gate_af364a0154d59e76",
+    "prompt": "governance_check:kimi_k3_2.8t",
+    "tokens_used": 0,
+    "cost": 0.0,
+    "timestamp": "2026-09-01T00:19:30.675338",
+    "signature": "621ec52858942792fc5a5940f830b39b0d61d27b16d3103371f1abde950cbe41db6a8e45d96d644c2a3042d324aea9ad4fc9960f16ea3ab9ec2e5182284052c4",
+    "public_key": "ed25519_key_001"
+  },
+  {
+    "action_id": "colibri_rce_gate_663cb0b312e2d103",
+    "prompt": "governance_check:deepseek_v4_flash",
+    "tokens_used": 0,
+    "cost": 0.0,
+    "timestamp": "2026-09-01T00:19:30.676549",
+    "signature": "3aeab9190f54943ae7a5bfcde474afde8178b9822c70406d29e5b0b5f04299fb5d26c87f9f92b74c8f5dee96e93ba19d0f52eb7142f30ce9b2d7d1eef34b9df1",
+    "public_key": "ed25519_key_001"
+  },
+  {
+    "action_id": "colibri_rce_gate_5f8ef74d58745fad",
+    "prompt": "governance_check:kimi_k3_2.8t",
+    "tokens_used": 0,
+    "cost": 0.0,
+    "timestamp": "2026-09-01T00:19:30.678081",
+    "signature": "58b3021cff83d88b17d484e866b14939ab671a089766a1568d2ca0bee4bbcb8922ed248f1b2cf59cb673248a15ad771afc07d4c77296cfc08bb3731d90d90802",
+    "public_key": "ed25519_key_001"
+  },
+  {
+    "action_id": "colibri_rce_gate_5f8ef74d58745fad",
+    "prompt": "governance_check:kimi_k3_2.8t",
+    "tokens_used": 0,
+    "cost": 0.0,
+    "timestamp": "2026-09-01T00:19:30.678916",
+    "signature": "8899b9722e2e32129ac095c1732fd1a741af159e96593b0b8991f0d696a66cf6e3bbe2014537b78d31dc3c152d4dc854c2862c90b6719289ec03c95ad0af7be0",
+    "public_key": "ed25519_key_001"
+  },
+  {
+    "action_id": "colibri_rce_gate_5f8ef74d58745fad",
+    "prompt": "governance_check:kimi_k3_2.8t",
+    "tokens_used": 0,
+    "cost": 0.0,
+    "timestamp": "2026-09-01T00:19:30.679744",
+    "signature": "fb62c8a6e0e0e37185478c31252c17a89e6aa9d25af615c0ae66f42626349e93257c8d27309cb81cee70d566f0095486850eadc119a60035392c301bce403243",
+    "public_key": "ed25519_key_001"
+  },
+  {
+    "action_id": "colibri_rce_gate_5f8ef74d58745fad",
+    "prompt": "governance_check:kimi_k3_2.8t",
+    "tokens_used": 0,
+    "cost": 0.0,
+    "timestamp": "2026-09-01T00:19:30.680542",
+    "signature": "c1f1d7702a87aeca3fd1383095df888a46555f2375bfc79d2cec0d75188c2ddf13cd2241db532b09042f0144e45651d56f128ebd2a5619cb26d9fecc9d3a192e",
+    "public_key": "ed25519_key_001"
+  },
+  {
+    "action_id": "colibri_rce_gate_5f8ef74d58745fad",
+    "prompt": "governance_check:kimi_k3_2.8t",
+    "tokens_used": 0,
+    "cost": 0.0,
+    "timestamp": "2026-09-01T00:19:30.681462",
+    "signature": "e770c24fae5c1cd0bb39670c8f19bfeb00437cd211ec82819592a28e0c9566d3fc874d4e53353cca20c4c11748357d0826de80be3abc0c6a5b654ddf630d2c6b",
+    "public_key": "ed25519_key_001"
+  },
+  {
+    "action_id": "colibri_rce_gate_532eaabd9574880d",
+    "prompt": "governance_check:kimi_k3_2.8t",
+    "tokens_used": 0,
+    "cost": 0.0,
+    "timestamp": "2026-09-01T00:19:30.689603",
+    "signature": "eef84a38a02189959e1471d0e824226f8eac369c6ec9f8c6d46be4489d85c58d6e042d786ee32df4775d20ebc59575cf648237368501a93f6e5d818d38cf75d9",
+    "public_key": "ed25519_key_001"
+  }
+]

@@ -1,0 +1,16 @@
+{
+  "pilot_name": "Hotel Credit Scoring",
+  "execution_period": "2027-04-01 to 2027-05-15",
+  "test_count": 35,
+  "test_data_profiles": 100,
+  "edge_cases_tested": 10,
+  "decision_accuracy": 0.956,
+  "escalation_rate_actual": 0.051,
+  "escalation_rate_target": 0.05,
+  "average_response_time_ms": 342,
+  "false_positive_rate": 0.018,
+  "false_negative_rate": 0.008,
+  "appeal_rate": 0.032,
+  "human_override_rate": 0.04,
+  "notes": "All accuracy targets met. Escalation rate within 1% of target."
+}

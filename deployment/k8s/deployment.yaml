@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: phase2c-app
+  namespace: default
+  labels:
+    app: phase2c
+    phase: 2c
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: phase2c
+  template:
+    metadata:
+      labels:
+        app: phase2c
+        phase: 2c
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: jetson/hardware
+                operator: In
+                values:
+                - "thor"
+
+      containers:
+      - name: app
+        image: phase2c-app:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5173
+          name: api
+          protocol: TCP
+        env:
+        - name: RUST_LOG
+          value: "info,siss=debug"
+        - name: OLLAMA_HOST
+          value: "http://ollama:11434"
+        envFrom:
+        - configMapRef:
+            name: phase2c-config
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "2"
+          limits:
+            memory: "4Gi"
+            cpu: "4"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5173
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 5173
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+        volumeMounts:
+        - name: cache
+          mountPath: /var/cache/phase2c
+
+      - name: ollama
+        image: ollama/ollama:latest
+        ports:
+        - containerPort: 11434
+          name: model-serving
+        env:
+        - name: OLLAMA_HOST
+          value: "0.0.0.0:11434"
+        resources:
+          requests:
+            memory: "4Gi"
+            cpu: "2"
+          limits:
+            memory: "8Gi"
+            cpu: "4"
+        volumeMounts:
+        - name: ollama-data
+          mountPath: /root/.ollama
+
+      - name: sla-monitor
+        image: phase2c-sla-monitor:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9000
+          name: metrics
+        env:
+        - name: RUST_LOG
+          value: "info"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "1"
+          limits:
+            memory: "1Gi"
+            cpu: "2"
+
+      volumes:
+      - name: cache
+        emptyDir:
+          sizeLimit: 10Gi
+      - name: ollama-data
+        emptyDir:
+          sizeLimit: 50Gi

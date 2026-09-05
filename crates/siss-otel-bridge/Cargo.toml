@@ -1,0 +1,24 @@
+[package]
+name = "siss-otel-bridge"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+tokio = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+log = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { version = "0.3", features = ["json"] }
+hex = { workspace = true }
+sha2 = { workspace = true }
+rand = { workspace = true }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }

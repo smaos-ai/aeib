@@ -1,0 +1,18 @@
+[package]
+name = "siss-regulatory-reporter"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[dependencies]
+uuid.workspace = true
+chrono.workspace = true
+serde = { version = "1", features = ["derive"] }
+serde_json.workspace = true
+serde_yaml.workspace = true
+dashmap.workspace = true
+tokio = { workspace = true, features = ["rt", "sync"] }
+thiserror.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt", "macros"] }

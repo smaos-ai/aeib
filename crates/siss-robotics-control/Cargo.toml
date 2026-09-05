@@ -1,0 +1,23 @@
+[package]
+name = "siss-robotics-control"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+tokio = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+log = { workspace = true }
+tracing = { workspace = true }
+async-trait = { workspace = true }
+nalgebra = "0.33"
+reqwest = { workspace = true }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }

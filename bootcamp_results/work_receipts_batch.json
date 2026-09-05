@@ -1,0 +1,72 @@
+[
+  {
+    "receipt_id": "2714247c7ab5c101",
+    "title": "Booking modification",
+    "why": "Guest requested extension",
+    "when": "2026-08-31T22:48:17.642302",
+    "status": "passed",
+    "controls_checked": 6,
+    "pii_handled": true,
+    "signature": "ed25519_0"
+  },
+  {
+    "receipt_id": "59cfbb005dee448b",
+    "title": "Refund calculation",
+    "why": "Guest cancellation within policy",
+    "when": "2026-08-31T22:48:17.642307",
+    "status": "passed",
+    "controls_checked": 6,
+    "pii_handled": true,
+    "signature": "ed25519_1"
+  },
+  {
+    "receipt_id": "834b03f0257d58b4",
+    "title": "Escalation",
+    "why": "High-value booking override request",
+    "when": "2026-08-31T22:48:17.642312",
+    "status": "passed",
+    "controls_checked": 6,
+    "pii_handled": true,
+    "signature": "ed25519_2"
+  },
+  {
+    "receipt_id": "f69a4bc120a9a58e",
+    "title": "PII handling",
+    "why": "Data deletion request",
+    "when": "2026-08-31T22:48:17.642315",
+    "status": "passed",
+    "controls_checked": 6,
+    "pii_handled": true,
+    "signature": "ed25519_3"
+  },
+  {
+    "receipt_id": "70bbbd513ee84f5d",
+    "title": "Fairness audit",
+    "why": "Approval rate check",
+    "when": "2026-08-31T22:48:17.642317",
+    "status": "passed",
+    "controls_checked": 6,
+    "pii_handled": true,
+    "signature": "ed25519_4"
+  },
+  {
+    "receipt_id": "65d308d11bfb5eaf",
+    "title": "Security gate",
+    "why": "Prompt injection attempt blocked",
+    "when": "2026-08-31T22:48:17.642318",
+    "status": "passed",
+    "controls_checked": 6,
+    "pii_handled": true,
+    "signature": "ed25519_5"
+  },
+  {
+    "receipt_id": "1eca3459987c2311",
+    "title": "Audit trail",
+    "why": "Complete workflow logged",
+    "when": "2026-08-31T22:48:17.642320",
+    "status": "passed",
+    "controls_checked": 6,
+    "pii_handled": true,
+    "signature": "ed25519_6"
+  }
+]

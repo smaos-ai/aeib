@@ -1,0 +1,47 @@
+[package]
+name = "demo-app"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "demo-app"
+path = "src/main.rs"
+
+[dependencies]
+ratatui = { workspace = true }
+crossterm = { workspace = true }
+tokio = { workspace = true }
+uuid = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+ed25519-dalek = { workspace = true }
+sha2 = { workspace = true }
+hex = { workspace = true }
+lazy_static = "1.4"
+siss-enclave = { path = "../siss-enclave" }
+siss-payment = { path = "../siss-payment" }
+siss-gatekeeper = { path = "../siss-gatekeeper" }
+axum = "0.7"
+sqlx = { workspace = true }
+siss-graph-db = { path = "../siss-graph-db" }
+num_cpus = "1.16"
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full", "test-util"] }
+futures = { workspace = true }
+siss-context-cartography = { path = "../siss-context-cartography" }
+siss-graph-core = { path = "../siss-graph-core" }
+siss-job-router = { path = "../siss-job-router" }
+siss-agent-shell = { path = "../siss-agent-shell" }
+proptest = "1"
+rand = "0.8"
+reqwest = { workspace = true }
+
+[[bin]]
+name = "prague-demo"
+path = "src/prague_demo.rs"

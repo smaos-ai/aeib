@@ -1,0 +1,26 @@
+[package]
+name = "siss-security-hardening"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+uuid = { version = "1.0", features = ["v4", "serde"] }
+chrono.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+hex.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+sqlx.workspace = true
+aes-gcm = "0.10"
+sha3 = "0.10"
+hmac = "0.12"
+base64.workspace = true
+rand.workspace = true
+rustls = { version = "0.23", features = ["std"] }
+rustls-pemfile = "2"
+tokio-rustls = "0.25"
+x509-parser = "0.16"
+rusqlite = { version = "0.31", features = ["bundled"] }
+tracing.workspace = true

@@ -1,0 +1,879 @@
+{
+  "receipts": [
+    {
+      "receipt_id": "82af9b67-d91b-4ae3-9541-c5f33a4ec1d0",
+      "agent_id": "agent-L7-00",
+      "timestamp": "2026-08-24T21:13:29.456190",
+      "actions": [
+        {
+          "tool": "read_file",
+          "tokens": 150,
+          "status": "success"
+        },
+        {
+          "tool": "call_compliance_api",
+          "tokens": 280,
+          "status": "success"
+        },
+        {
+          "tool": "validate_data",
+          "tokens": 95,
+          "status": "success"
+        }
+      ],
+      "total_tokens": 525,
+      "estimated_cost_usd": 0.0787,
+      "approved_by": "system",
+      "signature": {
+        "algorithm": "Ed25519",
+        "public_key": "MCowBQYDK2VwAyEAhF5p3KqO/yxn6PGu7cxQNPmHm7BBLe6Q7qPqKPXKCEU=",
+        "signature": "37463dc2aa5b9758233d0f48488192ceeda51ea2a3a",
+        "signed_fields": [
+          "timestamp",
+          "total_tokens",
+          "actions"
+        ]
+      }
+    },
+    {
+      "receipt_id": "7201fe56-c9fc-4d87-9c89-da984aa2d03a",
+      "agent_id": "agent-L7-01",
+      "timestamp": "2026-08-24T22:13:29.456190",
+      "actions": [
+        {
+          "tool": "read_file",
+          "tokens": 150,
+          "status": "success"
+        },
+        {
+          "tool": "call_compliance_api",
+          "tokens": 280,
+          "status": "success"
+        },
+        {
+          "tool": "validate_data",
+          "tokens": 95,
+          "status": "success"
+        }
+      ],
+      "total_tokens": 525,
+      "estimated_cost_usd": 0.0787,
+      "approved_by": "system",
+      "signature": {
+        "algorithm": "Ed25519",
+        "public_key": "MCowBQYDK2VwAyEAhF5p3KqO/yxn6PGu7cxQNPmHm7BBLe6Q7qPqKPXKCEU=",
+        "signature": "98644f7268dc1e186ef8b34dccb158e269d9a5e81c0",
+        "signed_fields": [
+          "timestamp",
+          "total_tokens",
+          "actions"
+        ]
+      }
+    },
+    {
+      "receipt_id": "c092aed7-cc85-4746-a3ff-92b34564510e",
+      "agent_id": "agent-L7-02",
+      "timestamp": "2026-08-24T23:13:29.456190",
+      "actions": [
+        {
+          "tool": "read_file",
+          "tokens": 150,
+          "status": "success"
+        },
+        {
+          "tool": "call_compliance_api",
+          "tokens": 280,
+          "status": "success"
+        },
+        {
+          "tool": "validate_data",
+          "tokens": 95,
+          "status": "success"
+        }
+      ],
+      "total_tokens": 525,
+      "estimated_cost_usd": 0.0787,
+      "approved_by": "system",
+      "signature": {
+        "algorithm": "Ed25519",
+        "public_key": "MCowBQYDK2VwAyEAhF5p3KqO/yxn6PGu7cxQNPmHm7BBLe6Q7qPqKPXKCEU=",
+        "signature": "0b07a710987bb165d7ed20f91d340b312511a48c366",
+        "signed_fields": [
+          "timestamp",
+          "total_tokens",
+          "actions"
+        ]
+      }
+    },
+    {
+      "receipt_id": "d56b1d4a-90a9-4246-b3f6-a3ecd9821098",
+      "agent_id": "agent-L7-03",
+      "timestamp": "2026-08-25T00:13:29.456190",
+      "actions": [
+        {
+          "tool": "read_file",
+          "tokens": 150,
+          "status": "success"
+        },
+        {
+          "tool": "call_compliance_api",
+          "tokens": 280,
+          "status": "success"
+        },
+        {
+          "tool": "validate_data",
+          "tokens": 95,
+          "status": "success"
+        }
+      ],
+      "total_tokens": 525,
+      "estimated_cost_usd": 0.0787,
+      "approved_by": "system",
+      "signature": {
+        "algorithm": "Ed25519",
+        "public_key": "MCowBQYDK2VwAyEAhF5p3KqO/yxn6PGu7cxQNPmHm7BBLe6Q7qPqKPXKCEU=",
+        "signature": "9bdcec464e32d6636aba021f1c11c38bb1036b980da",
+        "signed_fields": [
+          "timestamp",
+          "total_tokens",
+          "actions"
+        ]
+      }
+    },
+    {
+      "receipt_id": "a6247d0d-307c-4bb1-a12f-41e6df95e4d9",
+      "agent_id": "agent-L7-04",
+      "timestamp": "2026-08-25T01:13:29.456190",
+      "actions": [
+        {
+          "tool": "read_file",
+          "tokens": 150,
+          "status": "success"
+        },
+        {
+          "tool": "call_compliance_api",
+          "tokens": 280,
+          "status": "success"
+        },
+        {
+          "tool": "validate_data",
+          "tokens": 95,
+          "status": "success"
+        }
+      ],
+      "total_tokens": 525,
+      "estimated_cost_usd": 0.0787,
+      "approved_by": "system",
+      "signature": {
+        "algorithm": "Ed25519",
+        "public_key": "MCowBQYDK2VwAyEAhF5p3KqO/yxn6PGu7cxQNPmHm7BBLe6Q7qPqKPXKCEU=",
+        "signature": "55b52d38aa7510845555331e81231aeb88f6e6ef92e",
+        "signed_fields": [
+          "timestamp",
+          "total_tokens",
+          "actions"
+        ]
+      }
+    },
+    {
+      "receipt_id": "2488eae1-38d5-4714-8abd-bb9b073e6da4",
+      "agent_id": "agent-L7-05",
+      "timestamp": "2026-08-25T02:13:29.456190",
+      "actions": [
+        {
+          "tool": "read_file",
+          "tokens": 150,
+          "status": "success"
+        },
+        {
+          "tool": "call_compliance_api",
+          "tokens": 280,
+          "status": "success"
+        },
+        {
+          "tool": "validate_data",
+          "tokens": 95,
+          "status": "success"
+        }
+      ],
+      "total_tokens": 525,
+      "estimated_cost_usd": 0.0787,
+      "approved_by": "system",
+      "signature": {
+        "algorithm": "Ed25519",
+        "public_key": "MCowBQYDK2VwAyEAhF5p3KqO/yxn6PGu7cxQNPmHm7BBLe6Q7qPqKPXKCEU=",
+        "signature": "a478da8c1edfed92a5ed3905c25f9cf633df4e7460d",
+        "signed_fields": [
+          "timestamp",
+          "total_tokens",
+          "actions"
+        ]
+      }
+    },
+    {
+      "receipt_id": "deb34f57-19bb-48f9-8c28-1f2bd8ac7cfe",
+      "agent_id": "agent-L7-06",
+      "timestamp": "2026-08-25T03:13:29.456190",
+      "actions": [
+        {
+          "tool": "read_file",
+          "tokens": 150,
+          "status": "success"
+        },
+        {
+          "tool": "call_compliance_api",
+          "tokens": 280,
+          "status": "success"
+        },
+        {
+          "tool": "validate_data",
+          "tokens": 95,
+          "status": "success"
+        }
+      ],
+      "total_tokens": 525,
+      "estimated_cost_usd": 0.0787,
+      "approved_by": "system",
+      "signature": {
+        "algorithm": "Ed25519",
+        "public_key": "MCowBQYDK2VwAyEAhF5p3KqO/yxn6PGu7cxQNPmHm7BBLe6Q7qPqKPXKCEU=",
+        "signature": "4939c8718a25de78ec20d00bbb729f6d4107fcbdc5f",
+        "signed_fields": [
+          "timestamp",
+          "total_tokens",
+          "actions"
+        ]
+      }
+    },
+    {
+      "receipt_id": "b79090ce-14ad-4f29-9980-58960baa824c",
+      "agent_id": "agent-L7-07",
+      "timestamp": "2026-08-25T04:13:29.456190",
+      "actions": [
+        {
+          "tool": "read_file",
+          "tokens": 150,
+          "status": "success"
+        },
+        {
+          "tool": "call_compliance_api",
+          "tokens": 280,
+          "status": "success"
+        },
+        {
+          "tool": "validate_data",
+          "tokens": 95,
+          "status": "success"
+        }
+      ],
+      "total_tokens": 525,
+      "estimated_cost_usd": 0.0787,
+      "approved_by": "system",
+      "signature": {
+        "algorithm": "Ed25519",
+        "public_key": "MCowBQYDK2VwAyEAhF5p3KqO/yxn6PGu7cxQNPmHm7BBLe6Q7qPqKPXKCEU=",
+        "signature": "ca7cf60827d1a99978241895e6e32b1f8ffda122ed5",
+        "signed_fields": [
+          "timestamp",
+          "total_tokens",
+          "actions"
+        ]
+      }
+    },
+    {
+      "receipt_id": "67029c9f-2921-472a-9a6a-1a77053ee0db",
+      "agent_id": "agent-L7-08",
+      "timestamp": "2026-08-25T05:13:29.456190",
+      "actions": [
+        {
+          "tool": "read_file",
+          "tokens": 150,
+          "status": "success"
+        },
+        {
+          "tool": "call_compliance_api",
+          "tokens": 280,
+          "status": "success"
+        },
+        {
+          "tool": "validate_data",
+          "tokens": 95,
+          "status": "success"
+        }
+      ],
+      "total_tokens": 525,
+      "estimated_cost_usd": 0.0787,
+      "approved_by": "system",
+      "signature": {
+        "algorithm": "Ed25519",
+        "public_key": "MCowBQYDK2VwAyEAhF5p3KqO/yxn6PGu7cxQNPmHm7BBLe6Q7qPqKPXKCEU=",
+        "signature": "b5c3c08b508f608862f7ae7ffbdd10a9c7e8f7cb631",
+        "signed_fields": [
+          "timestamp",
+          "total_tokens",
+          "actions"
+        ]
+      }
+    },
+    {
+      "receipt_id": "6751b64c-53d9-42a8-8025-959fe6d453bb",
+      "agent_id": "agent-L7-09",
+      "timestamp": "2026-08-25T06:13:29.456190",
+      "actions": [
+        {
+          "tool": "read_file",
+          "tokens": 150,
+          "status": "success"
+        },
+        {
+          "tool": "call_compliance_api",
+          "tokens": 280,
+          "status": "success"
+        },
+        {
+          "tool": "validate_data",
+          "tokens": 95,
+          "status": "success"
+        }
+      ],
+      "total_tokens": 525,
+      "estimated_cost_usd": 0.0787,
+      "approved_by": "system",
+      "signature": {
+        "algorithm": "Ed25519",
+        "public_key": "MCowBQYDK2VwAyEAhF5p3KqO/yxn6PGu7cxQNPmHm7BBLe6Q7qPqKPXKCEU=",
+        "signature": "c5af815ca1f25c09aa535e312c5ac0125a67b21dc4d",
+        "signed_fields": [
+          "timestamp",
+          "total_tokens",
+          "actions"
+        ]
+      }
+    },
+    {
+      "receipt_id": "13ccc03f-9d99-4aa1-a250-621b3e9869c0",
+      "agent_id": "agent-L7-10",
+      "timestamp": "2026-08-25T07:13:29.456190",
+      "actions": [
+        {
+          "tool": "read_file",
+          "tokens": 150,
+          "status": "success"
+        },
+        {
+          "tool": "call_compliance_api",
+          "tokens": 280,
+          "status": "success"
+        },
+        {
+          "tool": "validate_data",
+          "tokens": 95,
+          "status": "success"
+        }
+      ],
+      "total_tokens": 525,
+      "estimated_cost_usd": 0.0787,
+      "approved_by": "system",
+      "signature": {
+        "algorithm": "Ed25519",
+        "public_key": "MCowBQYDK2VwAyEAhF5p3KqO/yxn6PGu7cxQNPmHm7BBLe6Q7qPqKPXKCEU=",
+        "signature": "95c9853c55c758668f7dda48a2c9a6cf315b4e1c44a",
+        "signed_fields": [
+          "timestamp",
+          "total_tokens",
+          "actions"
+        ]
+      }
+    },
+    {
+      "receipt_id": "cdcb0b16-56d4-4577-9339-fe686718a2e9",
+      "agent_id": "agent-L7-11",
+      "timestamp": "2026-08-25T08:13:29.456190",
+      "actions": [
+        {
+          "tool": "read_file",
+          "tokens": 150,
+          "status": "success"
+        },
+        {
+          "tool": "call_compliance_api",
+          "tokens": 280,
+          "status": "success"
+        },
+        {
+          "tool": "validate_data",
+          "tokens": 95,
+          "status": "success"
+        }
+      ],
+      "total_tokens": 525,
+      "estimated_cost_usd": 0.0787,
+      "approved_by": "system",
+      "signature": {
+        "algorithm": "Ed25519",
+        "public_key": "MCowBQYDK2VwAyEAhF5p3KqO/yxn6PGu7cxQNPmHm7BBLe6Q7qPqKPXKCEU=",
+        "signature": "5db89930d138415b721b314eaa285e457c0f8c34a09",
+        "signed_fields": [
+          "timestamp",
+          "total_tokens",
+          "actions"
+        ]
+      }
+    },
+    {
+      "receipt_id": "81c3c2a6-7f48-49d8-b607-f7341acebbe6",
+      "agent_id": "agent-L7-12",
+      "timestamp": "2026-08-25T09:13:29.456190",
+      "actions": [
+        {
+          "tool": "read_file",
+          "tokens": 150,
+          "status": "success"
+        },
+        {
+          "tool": "call_compliance_api",
+          "tokens": 280,
+          "status": "success"
+        },
+        {
+          "tool": "validate_data",
+          "tokens": 95,
+          "status": "success"
+        }
+      ],
+      "total_tokens": 525,
+      "estimated_cost_usd": 0.0787,
+      "approved_by": "system",
+      "signature": {
+        "algorithm": "Ed25519",
+        "public_key": "MCowBQYDK2VwAyEAhF5p3KqO/yxn6PGu7cxQNPmHm7BBLe6Q7qPqKPXKCEU=",
+        "signature": "4b0cd95dd1cb52273e0a3afb0f1ed9ba265e3bfec38",
+        "signed_fields": [
+          "timestamp",
+          "total_tokens",
+          "actions"
+        ]
+      }
+    },
+    {
+      "receipt_id": "20156184-35f6-482f-a296-e2d0562058d6",
+      "agent_id": "agent-L7-13",
+      "timestamp": "2026-08-25T10:13:29.456190",
+      "actions": [
+        {
+          "tool": "read_file",
+          "tokens": 150,
+          "status": "success"
+        },
+        {
+          "tool": "call_compliance_api",
+          "tokens": 280,
+          "status": "success"
+        },
+        {
+          "tool": "validate_data",
+          "tokens": 95,
+          "status": "success"
+        }
+      ],
+      "total_tokens": 525,
+      "estimated_cost_usd": 0.0787,
+      "approved_by": "system",
+      "signature": {
+        "algorithm": "Ed25519",
+        "public_key": "MCowBQYDK2VwAyEAhF5p3KqO/yxn6PGu7cxQNPmHm7BBLe6Q7qPqKPXKCEU=",
+        "signature": "6c8da8ed207595c7b02d748c6493b1faef6a67f725b",
+        "signed_fields": [
+          "timestamp",
+          "total_tokens",
+          "actions"
+        ]
+      }
+    },
+    {
+      "receipt_id": "dffcffc5-33f8-4b47-a484-1c924e99aab7",
+      "agent_id": "agent-L7-14",
+      "timestamp": "2026-08-25T11:13:29.456190",
+      "actions": [
+        {
+          "tool": "read_file",
+          "tokens": 150,
+          "status": "success"
+        },
+        {
+          "tool": "call_compliance_api",
+          "tokens": 280,
+          "status": "success"
+        },
+        {
+          "tool": "validate_data",
+          "tokens": 95,
+          "status": "success"
+        }
+      ],
+      "total_tokens": 525,
+      "estimated_cost_usd": 0.0787,
+      "approved_by": "system",
+      "signature": {
+        "algorithm": "Ed25519",
+        "public_key": "MCowBQYDK2VwAyEAhF5p3KqO/yxn6PGu7cxQNPmHm7BBLe6Q7qPqKPXKCEU=",
+        "signature": "240ecd4d603663e086e5f8862d1ff5b54b3fe861412",
+        "signed_fields": [
+          "timestamp",
+          "total_tokens",
+          "actions"
+        ]
+      }
+    },
+    {
+      "receipt_id": "0f0c8042-9b1c-43b9-919e-dba5eabaec4e",
+      "agent_id": "agent-L7-15",
+      "timestamp": "2026-08-25T12:13:29.456190",
+      "actions": [
+        {
+          "tool": "read_file",
+          "tokens": 150,
+          "status": "success"
+        },
+        {
+          "tool": "call_compliance_api",
+          "tokens": 280,
+          "status": "success"
+        },
+        {
+          "tool": "validate_data",
+          "tokens": 95,
+          "status": "success"
+        }
+      ],
+      "total_tokens": 525,
+      "estimated_cost_usd": 0.0787,
+      "approved_by": "system",
+      "signature": {
+        "algorithm": "Ed25519",
+        "public_key": "MCowBQYDK2VwAyEAhF5p3KqO/yxn6PGu7cxQNPmHm7BBLe6Q7qPqKPXKCEU=",
+        "signature": "59a876097e327a6ce77f62539defd11afbd9f3bf51b",
+        "signed_fields": [
+          "timestamp",
+          "total_tokens",
+          "actions"
+        ]
+      }
+    },
+    {
+      "receipt_id": "2bf7bf58-e5b0-4df0-a5f4-810af70296bc",
+      "agent_id": "agent-L7-16",
+      "timestamp": "2026-08-25T13:13:29.456190",
+      "actions": [
+        {
+          "tool": "read_file",
+          "tokens": 150,
+          "status": "success"
+        },
+        {
+          "tool": "call_compliance_api",
+          "tokens": 280,
+          "status": "success"
+        },
+        {
+          "tool": "validate_data",
+          "tokens": 95,
+          "status": "success"
+        }
+      ],
+      "total_tokens": 525,
+      "estimated_cost_usd": 0.0787,
+      "approved_by": "system",
+      "signature": {
+        "algorithm": "Ed25519",
+        "public_key": "MCowBQYDK2VwAyEAhF5p3KqO/yxn6PGu7cxQNPmHm7BBLe6Q7qPqKPXKCEU=",
+        "signature": "78ffa6fce6ad91b7a8199ee983275c75444f320882f",
+        "signed_fields": [
+          "timestamp",
+          "total_tokens",
+          "actions"
+        ]
+      }
+    },
+    {
+      "receipt_id": "a5b3953c-fa3a-4b27-bce4-96990bbcdb1a",
+      "agent_id": "agent-L7-17",
+      "timestamp": "2026-08-25T14:13:29.456190",
+      "actions": [
+        {
+          "tool": "read_file",
+          "tokens": 150,
+          "status": "success"
+        },
+        {
+          "tool": "call_compliance_api",
+          "tokens": 280,
+          "status": "success"
+        },
+        {
+          "tool": "validate_data",
+          "tokens": 95,
+          "status": "success"
+        }
+      ],
+      "total_tokens": 525,
+      "estimated_cost_usd": 0.0787,
+      "approved_by": "system",
+      "signature": {
+        "algorithm": "Ed25519",
+        "public_key": "MCowBQYDK2VwAyEAhF5p3KqO/yxn6PGu7cxQNPmHm7BBLe6Q7qPqKPXKCEU=",
+        "signature": "4d801e93f8a404769693b1b5f54396f08576f22f786",
+        "signed_fields": [
+          "timestamp",
+          "total_tokens",
+          "actions"
+        ]
+      }
+    },
+    {
+      "receipt_id": "11fa3d70-65a5-4b50-8b2a-b13f46a70138",
+      "agent_id": "agent-L7-18",
+      "timestamp": "2026-08-25T15:13:29.456190",
+      "actions": [
+        {
+          "tool": "read_file",
+          "tokens": 150,
+          "status": "success"
+        },
+        {
+          "tool": "call_compliance_api",
+          "tokens": 280,
+          "status": "success"
+        },
+        {
+          "tool": "validate_data",
+          "tokens": 95,
+          "status": "success"
+        }
+      ],
+      "total_tokens": 525,
+      "estimated_cost_usd": 0.0787,
+      "approved_by": "system",
+      "signature": {
+        "algorithm": "Ed25519",
+        "public_key": "MCowBQYDK2VwAyEAhF5p3KqO/yxn6PGu7cxQNPmHm7BBLe6Q7qPqKPXKCEU=",
+        "signature": "e00a06349486172f96cb52262b299e30ecb6d2b8f75",
+        "signed_fields": [
+          "timestamp",
+          "total_tokens",
+          "actions"
+        ]
+      }
+    },
+    {
+      "receipt_id": "f3e37b3e-ced7-4189-af2c-e0b460186c32",
+      "agent_id": "agent-L7-19",
+      "timestamp": "2026-08-25T16:13:29.456190",
+      "actions": [
+        {
+          "tool": "read_file",
+          "tokens": 150,
+          "status": "success"
+        },
+        {
+          "tool": "call_compliance_api",
+          "tokens": 280,
+          "status": "success"
+        },
+        {
+          "tool": "validate_data",
+          "tokens": 95,
+          "status": "success"
+        }
+      ],
+      "total_tokens": 525,
+      "estimated_cost_usd": 0.0787,
+      "approved_by": "system",
+      "signature": {
+        "algorithm": "Ed25519",
+        "public_key": "MCowBQYDK2VwAyEAhF5p3KqO/yxn6PGu7cxQNPmHm7BBLe6Q7qPqKPXKCEU=",
+        "signature": "2e3201439777711bcb06d0cd2b807f1a3e45b04d42d",
+        "signed_fields": [
+          "timestamp",
+          "total_tokens",
+          "actions"
+        ]
+      }
+    },
+    {
+      "receipt_id": "ed3d481a-a08a-4306-a51d-575dfa758a8c",
+      "agent_id": "agent-L7-20",
+      "timestamp": "2026-08-25T17:13:29.456190",
+      "actions": [
+        {
+          "tool": "read_file",
+          "tokens": 150,
+          "status": "success"
+        },
+        {
+          "tool": "call_compliance_api",
+          "tokens": 280,
+          "status": "success"
+        },
+        {
+          "tool": "validate_data",
+          "tokens": 95,
+          "status": "success"
+        }
+      ],
+      "total_tokens": 525,
+      "estimated_cost_usd": 0.0787,
+      "approved_by": "system",
+      "signature": {
+        "algorithm": "Ed25519",
+        "public_key": "MCowBQYDK2VwAyEAhF5p3KqO/yxn6PGu7cxQNPmHm7BBLe6Q7qPqKPXKCEU=",
+        "signature": "a0a3bd18d77fd46064f03a9dc25a9d7a3fbac1cf714",
+        "signed_fields": [
+          "timestamp",
+          "total_tokens",
+          "actions"
+        ]
+      }
+    },
+    {
+      "receipt_id": "d5c81020-1815-48ef-be79-55c0ca3da622",
+      "agent_id": "agent-L7-21",
+      "timestamp": "2026-08-25T18:13:29.456190",
+      "actions": [
+        {
+          "tool": "read_file",
+          "tokens": 150,
+          "status": "success"
+        },
+        {
+          "tool": "call_compliance_api",
+          "tokens": 280,
+          "status": "success"
+        },
+        {
+          "tool": "validate_data",
+          "tokens": 95,
+          "status": "success"
+        }
+      ],
+      "total_tokens": 525,
+      "estimated_cost_usd": 0.0787,
+      "approved_by": "system",
+      "signature": {
+        "algorithm": "Ed25519",
+        "public_key": "MCowBQYDK2VwAyEAhF5p3KqO/yxn6PGu7cxQNPmHm7BBLe6Q7qPqKPXKCEU=",
+        "signature": "09994656132977771bf8a0a2658f938e65f30302ca0",
+        "signed_fields": [
+          "timestamp",
+          "total_tokens",
+          "actions"
+        ]
+      }
+    },
+    {
+      "receipt_id": "2bab4ae9-bd18-4869-a69e-03f30e373d2a",
+      "agent_id": "agent-L7-22",
+      "timestamp": "2026-08-25T19:13:29.456190",
+      "actions": [
+        {
+          "tool": "read_file",
+          "tokens": 150,
+          "status": "success"
+        },
+        {
+          "tool": "call_compliance_api",
+          "tokens": 280,
+          "status": "success"
+        },
+        {
+          "tool": "validate_data",
+          "tokens": 95,
+          "status": "success"
+        }
+      ],
+      "total_tokens": 525,
+      "estimated_cost_usd": 0.0787,
+      "approved_by": "system",
+      "signature": {
+        "algorithm": "Ed25519",
+        "public_key": "MCowBQYDK2VwAyEAhF5p3KqO/yxn6PGu7cxQNPmHm7BBLe6Q7qPqKPXKCEU=",
+        "signature": "7f759d870c7abed4cce48bb459f558d50766be27017",
+        "signed_fields": [
+          "timestamp",
+          "total_tokens",
+          "actions"
+        ]
+      }
+    },
+    {
+      "receipt_id": "d61f13d8-1501-4cd3-88d7-01326a54deb3",
+      "agent_id": "agent-L7-23",
+      "timestamp": "2026-08-25T20:13:29.456190",
+      "actions": [
+        {
+          "tool": "read_file",
+          "tokens": 150,
+          "status": "success"
+        },
+        {
+          "tool": "call_compliance_api",
+          "tokens": 280,
+          "status": "success"
+        },
+        {
+          "tool": "validate_data",
+          "tokens": 95,
+          "status": "success"
+        }
+      ],
+      "total_tokens": 525,
+      "estimated_cost_usd": 0.0787,
+      "approved_by": "system",
+      "signature": {
+        "algorithm": "Ed25519",
+        "public_key": "MCowBQYDK2VwAyEAhF5p3KqO/yxn6PGu7cxQNPmHm7BBLe6Q7qPqKPXKCEU=",
+        "signature": "b6b7305915ff8d7cfc0d7de31f3dc90f440db7efa4d",
+        "signed_fields": [
+          "timestamp",
+          "total_tokens",
+          "actions"
+        ]
+      }
+    },
+    {
+      "receipt_id": "eea93130-2b75-4319-a1e5-68ff2261604c",
+      "agent_id": "agent-L7-24",
+      "timestamp": "2026-08-25T21:13:29.456190",
+      "actions": [
+        {
+          "tool": "read_file",
+          "tokens": 150,
+          "status": "success"
+        },
+        {
+          "tool": "call_compliance_api",
+          "tokens": 280,
+          "status": "success"
+        },
+        {
+          "tool": "validate_data",
+          "tokens": 95,
+          "status": "success"
+        }
+      ],
+      "total_tokens": 525,
+      "estimated_cost_usd": 0.0787,
+      "approved_by": "system",
+      "signature": {
+        "algorithm": "Ed25519",
+        "public_key": "MCowBQYDK2VwAyEAhF5p3KqO/yxn6PGu7cxQNPmHm7BBLe6Q7qPqKPXKCEU=",
+        "signature": "09f20bfa89ffb15aae394f246c79ccebde1271845ca",
+        "signed_fields": [
+          "timestamp",
+          "total_tokens",
+          "actions"
+        ]
+      }
+    }
+  ]
+}

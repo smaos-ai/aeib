@@ -1,0 +1,17 @@
+[package]
+name = "siss-memory-plane"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+siss-graph-core              = { path = "../siss-graph-core" }
+siss-context-cartography     = { path = "../siss-context-cartography" }
+uuid.workspace = true
+chrono.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+rayon = "1.10"
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full", "test-util"] }

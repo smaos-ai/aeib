@@ -1,0 +1,40 @@
+Month,Date,Segment,Customer_Name,Account_Status,ARPU_Monthly,Revenue,Cumulative_MRR,Cumulative_ARR,Customer_Count,Notes
+August,2026-08-31,Fortress,Prague Central Bank,Existing,-,50000,50000,600000,2,Existing government contract; monthly recurring
+August,2026-08-31,Fortress,German Federal Regulator,Existing,-,50000,50000,600000,2,Existing government contract; monthly recurring
+August,2026-08-31,Platform,Global Licensing Org,Ramp,250,20000,70000,840000,1,Partnership signed July; 80 creators on-boarded Aug
+August,2026-08-31,Defense,—,Pipeline,-,0,70000,840000,2,"Pilot assessments underway; no revenue yet"
+,,,,,,,,,,
+September,2026-09-30,Fortress,Prague Central Bank,Existing,-,50000,110000,1320000,3,Continuing
+September,2026-09-30,Fortress,German Federal Regulator,Existing,-,50000,110000,1320000,3,Continuing
+September,2026-09-30,Fortress,Enterprise Customer #3 (Banking),Closed,40000,13333,150000,1800000,3,7-week sales cycle from Jul 1 PoC; pro-rata Sep 20-30 (10 days)
+September,2026-09-30,Platform,Global Licensing Org,Full Ramp,250,37500,50000,600000,1,All 150 creators on-boarded; full revenue
+September,2026-09-30,Platform,Music NFT Platform,Onboarding,300,12500,50000,600000,1,40 creators; partial month (Sep 10-30)
+September,2026-09-30,Defense,—,Pipeline,-,0,200000,2400000,3,Pilot assessment ongoing
+,,,,,,,,,,
+October,2026-10-31,Fortress,Prague Central Bank,Existing,-,50000,150000,1800000,4,Continuing
+October,2026-10-31,Fortress,German Federal Regulator,Existing,-,50000,150000,1800000,4,Continuing
+October,2026-10-31,Fortress,Enterprise Customer #3 (Banking),Active,40000,40000,150000,1800000,4,Full month revenue
+October,2026-10-31,Fortress,Enterprise Customer #4 (Utility),Closed,50000,16667,200000,2400000,4,7-week sales cycle from Aug 15; pro-rata Oct 25-31 (6 days)
+October,2026-10-31,Platform,Global Licensing Org,Mature,250,37500,100000,1200000,1,150 creators; steady state
+October,2026-10-31,Platform,Music NFT Platform,Full Ramp,300,24000,100000,1200000,1,80 creators on-boarded by Oct 1
+October,2026-10-31,Platform,Gaming/Streaming Alliance,Onboarding,300,18000,100000,1200000,1,60 creators; partial month (Oct 15-31)
+October,2026-10-31,Defense,—,Pipeline,-,0,300000,3600000,4,Central European Regulator in contract negotiation
+,,,,,,,,,,
+November,2026-11-30,Fortress,Prague Central Bank,Existing,-,50000,200000,2400000,4,Continuing
+November,2026-11-30,Fortress,German Federal Regulator,Existing,-,50000,200000,2400000,4,Continuing
+November,2026-11-30,Fortress,Enterprise Customer #3 (Banking),Active,40000,40000,200000,2400000,4,Full month; month 2.5 of contract
+November,2026-11-30,Fortress,Enterprise Customer #4 (Utility),Active,50000,50000,250000,3000000,4,Full month; month 1.5 of contract
+November,2026-11-30,Platform,Global Licensing Org,Mature,250,37500,120000,1440000,1,150 creators; steady state
+November,2026-11-30,Platform,Music NFT Platform,Active,300,30000,120000,1440000,1,100 creators on-boarded by Nov 1
+November,2026-11-30,Platform,Gaming/Streaming Alliance,Full Ramp,300,30000,120000,1440000,1,100 creators on-boarded by Nov 1
+November,2026-11-30,Defense,Government Pilot #1,Deployment,100000,30000,400000,4800000,4,Central European Regulator contract signed Oct 30; deployment begins Nov 5; €600k 6-month project pro-rata
+,,,,,,,,,,
+December,2026-12-31,Fortress,Prague Central Bank,Existing,-,50000,250000,3000000,4,Continuing
+December,2026-12-31,Fortress,German Federal Regulator,Existing,-,50000,250000,3000000,4,Continuing
+December,2026-12-31,Fortress,Enterprise Customer #3 (Banking),Active,40000,40000,250000,3000000,4,Full month; month 3.5 of contract
+December,2026-12-31,Fortress,Enterprise Customer #4 (Utility),Active,50000,50000,250000,3000000,4,Full month; month 2 of contract
+December,2026-12-31,Platform,Global Licensing Org,Mature,250,37500,150000,1800000,1,150 creators; steady state
+December,2026-12-31,Platform,Music NFT Platform,Active,300,36000,150000,1800000,1,120 creators on-boarded by Dec 1
+December,2026-12-31,Platform,Gaming/Streaming Alliance,Active,300,36000,150000,1800000,1,120 creators on-boarded by Dec 1
+December,2026-12-31,Defense,Government Pilot #1,Deployment,100000,30000,500000,6000000,4,Continuing deployment; Dec portion of 6-month project
+December,2026-12-31,Defense,Government Pilot #2,Pipeline,-,20000,500000,6000000,4,LOI expected Oct/Nov; contract negotiation in progress; no revenue yet

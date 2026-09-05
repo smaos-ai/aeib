@@ -1,0 +1,371 @@
+{
+  "campaign": {
+    "id": "series_a_wedge_2026_q2",
+    "name": "SovereignNexus Series A Wedge Campaign",
+    "start_date": "2026-06-26",
+    "end_date": "2026-06-29",
+    "close_date": "2026-06-30",
+    "ask": "€3.5M",
+    "status": "ready_for_launch",
+    "created_at": "2026-06-23T12:00:00Z"
+  },
+  "summary": {
+    "total_investors": 50,
+    "segment_a_count": 15,
+    "segment_b_count": 20,
+    "segment_c_count": 15,
+    "total_emails_to_send": 50,
+    "expected_initial_response_rate": "20-30%",
+    "expected_meetings_by_close": "8-12",
+    "expected_term_sheets": "3-5"
+  },
+  "investors": [
+    {
+      "id": 1,
+      "rank": 1,
+      "segment": "A",
+      "name": "Sequoia Capital",
+      "firm": "Sequoia Capital",
+      "contact_email": "doug@sequoia.com",
+      "contact_name": "Doug Leone",
+      "geography": "EU",
+      "wedge_category": "Anthropic thesis match",
+      "email_status": "pending",
+      "email_sent_date": null,
+      "email_open": false,
+      "email_open_date": null,
+      "email_clicked": false,
+      "email_clicked_date": null,
+      "email_responded": false,
+      "email_response_date": null,
+      "calendly_clicked": false,
+      "calendly_booked": false,
+      "meeting_date": null,
+      "meeting_duration_min": null,
+      "meeting_attended": false,
+      "meeting_notes": null,
+      "follow_up_1_sent": false,
+      "follow_up_1_sent_date": null,
+      "follow_up_2_sent": false,
+      "follow_up_2_sent_date": null,
+      "follow_up_3_sent": false,
+      "follow_up_3_sent_date": null,
+      "term_sheet_interest": false,
+      "term_sheet_initiated_date": null,
+      "confidence_score": 0,
+      "notes": "Hot lead, warm intro requested from Balderton advisor",
+      "check_size": "€3-5M",
+      "engagement_score": 0,
+      "last_updated": "2026-06-23T12:00:00Z"
+    },
+    {
+      "id": 2,
+      "rank": 2,
+      "segment": "A",
+      "name": "Balderton Capital",
+      "firm": "Balderton Capital",
+      "contact_email": "amelia@balderton.com",
+      "contact_name": "Amelia Armour",
+      "geography": "EU",
+      "wedge_category": "Threat prevention moat",
+      "email_status": "pending",
+      "email_sent_date": null,
+      "email_open": false,
+      "email_open_date": null,
+      "email_clicked": false,
+      "email_clicked_date": null,
+      "email_responded": false,
+      "email_response_date": null,
+      "calendly_clicked": false,
+      "calendly_booked": false,
+      "meeting_date": null,
+      "meeting_duration_min": null,
+      "meeting_attended": false,
+      "meeting_notes": null,
+      "follow_up_1_sent": false,
+      "follow_up_1_sent_date": null,
+      "follow_up_2_sent": false,
+      "follow_up_2_sent_date": null,
+      "follow_up_3_sent": false,
+      "follow_up_3_sent_date": null,
+      "term_sheet_interest": false,
+      "term_sheet_initiated_date": null,
+      "confidence_score": 0,
+      "notes": "Hot lead, ICRC anchor partnership validates",
+      "check_size": "€2-4M",
+      "engagement_score": 0,
+      "last_updated": "2026-06-23T12:00:00Z"
+    },
+    {
+      "id": 3,
+      "rank": 3,
+      "segment": "A",
+      "name": "Founders Fund",
+      "firm": "Founders Fund",
+      "contact_email": "brian@foundersfund.com",
+      "contact_name": "Brian Singerman",
+      "geography": "US",
+      "wedge_category": "Geopolitical defense moat",
+      "email_status": "pending",
+      "email_sent_date": null,
+      "email_open": false,
+      "email_open_date": null,
+      "email_clicked": false,
+      "email_clicked_date": null,
+      "email_responded": false,
+      "email_response_date": null,
+      "calendly_clicked": false,
+      "calendly_booked": false,
+      "meeting_date": null,
+      "meeting_duration_min": null,
+      "meeting_attended": false,
+      "meeting_notes": null,
+      "follow_up_1_sent": false,
+      "follow_up_1_sent_date": null,
+      "follow_up_2_sent": false,
+      "follow_up_2_sent_date": null,
+      "follow_up_3_sent": false,
+      "follow_up_3_sent_date": null,
+      "term_sheet_interest": false,
+      "term_sheet_initiated_date": null,
+      "confidence_score": 0,
+      "notes": "Hot lead, IDF + Ukraine deployment validates geopolitical thesis",
+      "check_size": "€2-5M",
+      "engagement_score": 0,
+      "last_updated": "2026-06-23T12:00:00Z"
+    }
+  ],
+  "send_schedule": [
+    {
+      "wave_id": "wave_1",
+      "send_date": "2026-06-26",
+      "send_time_utc": "0800",
+      "segment": "A",
+      "count": 15,
+      "description": "Segment A (hot leads) + warm intro request",
+      "emails_sent": 0,
+      "emails_delivered": 0,
+      "emails_opened": 0,
+      "emails_clicked": 0,
+      "emails_responded": 0
+    },
+    {
+      "wave_id": "wave_2",
+      "send_date": "2026-06-26",
+      "send_time_utc": "1600",
+      "segment": "B_wave1",
+      "count": 10,
+      "description": "Segment B wave 1 (strategic + corporate)",
+      "emails_sent": 0,
+      "emails_delivered": 0,
+      "emails_opened": 0,
+      "emails_clicked": 0,
+      "emails_responded": 0
+    },
+    {
+      "wave_id": "wave_3",
+      "send_date": "2026-06-27",
+      "send_time_utc": "0800",
+      "segment": "B_wave2",
+      "count": 10,
+      "description": "Segment B wave 2 (secondary VCs + foundations)",
+      "emails_sent": 0,
+      "emails_delivered": 0,
+      "emails_opened": 0,
+      "emails_clicked": 0,
+      "emails_responded": 0
+    },
+    {
+      "wave_id": "wave_4",
+      "send_date": "2026-06-27",
+      "send_time_utc": "1400",
+      "segment": "non_responders",
+      "count": 5,
+      "description": "Follow-up 1 (demo video) to non-responders",
+      "emails_sent": 0,
+      "emails_delivered": 0,
+      "emails_opened": 0,
+      "emails_clicked": 0,
+      "emails_responded": 0
+    },
+    {
+      "wave_id": "wave_5",
+      "send_date": "2026-06-28",
+      "send_time_utc": "0800",
+      "segment": "C",
+      "count": 15,
+      "description": "Segment C (government + strategic M&A)",
+      "emails_sent": 0,
+      "emails_delivered": 0,
+      "emails_opened": 0,
+      "emails_clicked": 0,
+      "emails_responded": 0
+    },
+    {
+      "wave_id": "wave_6",
+      "send_date": "2026-06-28",
+      "send_time_utc": "1600",
+      "segment": "non_responders",
+      "count": 8,
+      "description": "Follow-up 2 (warm intro angle) to non-responders",
+      "emails_sent": 0,
+      "emails_delivered": 0,
+      "emails_opened": 0,
+      "emails_clicked": 0,
+      "emails_responded": 0
+    },
+    {
+      "wave_id": "wave_7",
+      "send_date": "2026-06-29",
+      "send_time_utc": "1400",
+      "segment": "non_responders",
+      "count": 10,
+      "description": "Follow-up 3 (last call + urgency) to all non-responders",
+      "emails_sent": 0,
+      "emails_delivered": 0,
+      "emails_opened": 0,
+      "emails_clicked": 0,
+      "emails_responded": 0
+    }
+  ],
+  "performance_targets": {
+    "segment_a": {
+      "target_response_rate": "30%",
+      "target_meetings_booked": "4-5",
+      "target_term_sheets": "1-2"
+    },
+    "segment_b": {
+      "target_response_rate": "20%",
+      "target_meetings_booked": "3-4",
+      "target_term_sheets": "1-2"
+    },
+    "segment_c": {
+      "target_response_rate": "10%",
+      "target_meetings_booked": "1-2",
+      "target_term_sheets": "0-1"
+    }
+  },
+  "key_metrics": {
+    "overall_email_open_rate": {
+      "target": "25-35%",
+      "actual": "TBD"
+    },
+    "overall_click_rate": {
+      "target": "10-15%",
+      "actual": "TBD"
+    },
+    "overall_response_rate": {
+      "target": "20%",
+      "actual": "TBD"
+    },
+    "overall_meeting_booking_rate": {
+      "target": "15-20%",
+      "actual": "TBD"
+    },
+    "average_time_to_response_hours": {
+      "segment_a": "4-24",
+      "segment_b": "12-48",
+      "segment_c": "24-96"
+    }
+  },
+  "follow_up_tracking": {
+    "follow_up_1_demo": {
+      "trigger": "no_response_24h",
+      "send_date": "2026-06-27",
+      "send_time_utc": "1400",
+      "cta": "2-min Prague demo video",
+      "expected_re_engagement": "5-10%"
+    },
+    "follow_up_2_wedge": {
+      "trigger": "no_response_48h",
+      "send_date": "2026-06-28",
+      "send_time_utc": "1600",
+      "cta": "warm intro from mutual contact",
+      "expected_re_engagement": "10-15%"
+    },
+    "follow_up_3_last_call": {
+      "trigger": "no_response_72h",
+      "send_date": "2026-06-29",
+      "send_time_utc": "1400",
+      "cta": "time pressure (Series A closes June 30)",
+      "expected_re_engagement": "20-25%"
+    },
+    "follow_up_4_post_close": {
+      "trigger": "no_response_96h_optional",
+      "send_date": "2026-06-30",
+      "send_time_utc": "1000",
+      "cta": "post-close investment available",
+      "expected_re_engagement": "10-15%"
+    }
+  },
+  "engagement_scoring": {
+    "email_open": 1,
+    "calendly_link_clicked": 2,
+    "calendly_meeting_booked": 5,
+    "meeting_attended": 10,
+    "term_sheet_conversation": 50,
+    "term_sheet_signed": 1000
+  },
+  "risk_mitigation": {
+    "low_response_threshold": "20%",
+    "action_if_low": "Activate advisor warm intro calls + increase follow-up frequency",
+    "high_response_threshold": "40%",
+    "action_if_high": "Prepare multiple pitch formats + prioritize hot leads",
+    "non_performer_segments": [
+      "If VCs underperform: Shift weight to corporate strategic",
+      "If governments underperform: Shift weight to EU/NATO contacts",
+      "If follow-ups underperform: Activate advisor network for direct calls"
+    ]
+  },
+  "calendar_links": {
+    "calendly_master": "[generated on launch]",
+    "primary_slots": [
+      "Thursday 2pm-8pm CET",
+      "Friday 9am-5pm CET",
+      "Monday 9am-5pm EDT"
+    ],
+    "backup_slots": [
+      "Tuesday 9am-5pm CET",
+      "Wednesday 9am-5pm CET"
+    ]
+  },
+  "post_campaign_analysis": {
+    "launch_date": "2026-06-26",
+    "campaign_end_date": "2026-06-29",
+    "data_collection_period": "2026-06-26 to 2026-07-01",
+    "report_due": "2026-07-01",
+    "metrics_to_analyze": [
+      "Open rate by segment",
+      "Response rate by wave",
+      "Time-to-response distribution",
+      "Meeting booking rate by investor type",
+      "Term sheet conversion rate",
+      "Follow-up effectiveness by template"
+    ]
+  },
+  "series_a_close": {
+    "target_close_date": "2026-06-30",
+    "target_raise": "€3.5M",
+    "term_sheet_target": "3-5",
+    "expected_lead_investor_checks": "1-2 (€2-4M each)",
+    "expected_follow_on_checks": "2-3 (€1-2M each)",
+    "status": "in_progress"
+  },
+  "post_series_a_milestones": {
+    "investor_meetings": {
+      "timeline": "July 1-15",
+      "target_count": "First 3 investor meetings (JPMorgan, Novartis, Intel)",
+      "purpose": "Design partner agreements + deployment roadmap"
+    },
+    "deployment_launch": {
+      "timeline": "July 15",
+      "target": "Ukraine deployment live (75 Jetson nodes, ICRC partnership)",
+      "purpose": "Proof of real-world deployment at scale"
+    },
+    "series_b_preparation": {
+      "timeline": "Month 12 (June 2027)",
+      "target": "€9M ARR + 5-7 reference customers",
+      "purpose": "Series B readiness (€25M @ €250M post-money)"
+    }
+  }
+}

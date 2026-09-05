@@ -1,0 +1,63 @@
+{
+  "timestamp": "2026-08-31T21:13:29.455822",
+  "systems": [
+    {
+      "name": "M3 Pro MacBook Pro",
+      "gpu": "Apple M3 Pro (16-core GPU)",
+      "gpu_memory_gb": 8,
+      "system_memory_gb": 16,
+      "cpu_cores": 12,
+      "cpu_ghz": 3.4,
+      "grade": "A",
+      "feasibility_score": 88,
+      "reasoning": "Capable GPU, sufficient memory for LLM inference, excellent for development",
+      "can_run_models": [
+        "qwen2.5-coder:7b",
+        "mistral:7b",
+        "neural-chat:7b"
+      ],
+      "estimated_inference_speed": "22-28 tok/s"
+    },
+    {
+      "name": "RTX 4060 Desktop",
+      "gpu": "NVIDIA RTX 4060",
+      "gpu_memory_gb": 8,
+      "system_memory_gb": 32,
+      "cpu_cores": 16,
+      "cpu_ghz": 3.6,
+      "grade": "A",
+      "feasibility_score": 85,
+      "reasoning": "Strong CUDA support, good for inference workloads",
+      "can_run_models": [
+        "qwen2.5-coder:14b",
+        "neural-chat:13b",
+        "mistral:13b"
+      ],
+      "estimated_inference_speed": "25-32 tok/s"
+    },
+    {
+      "name": "High-End Server (96GB)",
+      "gpu": "NVIDIA A100 or RTX 6000 Ada",
+      "gpu_memory_gb": 48,
+      "system_memory_gb": 96,
+      "cpu_cores": 64,
+      "cpu_ghz": 2.8,
+      "grade": "S",
+      "feasibility_score": 98,
+      "reasoning": "Sovereign-grade infrastructure, production ready",
+      "can_run_models": [
+        "qwen2.5-coder:32b",
+        "llama2:70b-q4",
+        "mistral-large"
+      ],
+      "estimated_inference_speed": "35-45 tok/s"
+    }
+  ],
+  "grading_scale": {
+    "S": "Sovereign - Enterprise production ready (95-100 score)",
+    "A": "Acceptable - Development & testing (85-94 score)",
+    "B": "Basic - Limited capability (70-84 score)",
+    "C": "Constrained - Significant limitations (50-69 score)",
+    "F": "Infeasible - Cannot run (0-49 score)"
+  }
+}

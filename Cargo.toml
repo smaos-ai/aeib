@@ -19,6 +19,11 @@ members = [
   "crates/siss-chaos-petri",
   "crates/siss-ai-factory",
   "crates/siss-hardware-accel",
+  "crates/siss-consensus-extended",
+  "crates/siss-agent-pool",
+  "crates/siss-otel-bridge",
+  "crates/siss-chronicle-drift",
+  "crates/siss-robotics-control",
 ]
 resolver = "2"
 

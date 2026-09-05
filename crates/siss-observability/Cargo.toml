@@ -1,0 +1,27 @@
+[package]
+name = "siss-observability"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+uuid = { workspace = true }
+chrono = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+sqlx = { workspace = true }
+sha2 = { workspace = true }
+hex = { workspace = true }
+dashmap = "6.0"
+parking_lot = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+[[test]]
+name = "phase49_observability_tests"
+path = "src/tests/phase49_observability_tests.rs"
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full"] }

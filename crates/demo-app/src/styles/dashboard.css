@@ -1,0 +1,352 @@
+/* ========== Feed Styles ========== */
+.feed {
+  @apply p-6 bg-white rounded-lg shadow-md;
+}
+
+.feed h2 {
+  @apply text-xl font-bold text-gray-800 mb-2;
+}
+
+.feed-meta {
+  @apply flex justify-between text-sm text-gray-600 mb-4;
+}
+
+.total-count,
+.last-updated {
+  @apply text-gray-500;
+}
+
+.actions-list {
+  @apply space-y-3;
+}
+
+.action-card {
+  @apply flex flex-col border-l-4 border-blue-500 bg-blue-50 p-4 rounded hover:bg-blue-100 transition;
+}
+
+.action-card-header {
+  @apply flex justify-between items-center mb-2;
+}
+
+.event-type {
+  @apply font-semibold text-blue-700;
+}
+
+.tier-change {
+  @apply text-sm text-orange-600 font-medium;
+}
+
+.action-card-body {
+  @apply grid grid-cols-3 gap-3 mb-2;
+}
+
+.action-detail {
+  @apply flex items-center gap-2;
+}
+
+.action-detail .label {
+  @apply text-xs text-gray-600 font-medium;
+}
+
+.action-detail .value {
+  @apply text-sm font-semibold;
+}
+
+.value.cost {
+  @apply text-gray-700;
+}
+
+.value.lineage.safe {
+  @apply text-green-600;
+}
+
+.value.lineage.unsafe {
+  @apply text-red-600;
+}
+
+.value.session-id {
+  @apply text-gray-500 font-mono text-xs;
+}
+
+.action-card-footer {
+  @apply text-right text-xs text-gray-500;
+}
+
+.feed--error {
+  @apply border-l-4 border-red-500;
+}
+
+.error-text {
+  @apply text-red-600 font-medium;
+}
+
+.loading-spinner {
+  @apply text-center py-8 text-gray-500;
+}
+
+.empty-state {
+  @apply text-center py-6 text-gray-500 italic;
+}
+
+/* ========== Alert Styles ========== */
+.alerts {
+  @apply p-6 bg-white rounded-lg shadow-md;
+}
+
+.alerts-header {
+  @apply flex justify-between items-center mb-2;
+}
+
+.alerts h2 {
+  @apply text-xl font-bold text-gray-800;
+}
+
+.alerts-badges {
+  @apply flex gap-2;
+}
+
+.badge {
+  @apply px-3 py-1 rounded-full text-sm font-semibold;
+}
+
+.badge--recovery {
+  @apply bg-red-100 text-red-700;
+}
+
+.alerts-meta {
+  @apply text-sm text-gray-600 mb-4;
+}
+
+.alerts-list {
+  @apply space-y-2;
+}
+
+.alert {
+  @apply flex items-start gap-4 p-4 rounded-lg border-l-4 transition;
+}
+
+.alert--low {
+  @apply border-blue-500 bg-blue-50;
+}
+
+.alert--medium {
+  @apply border-yellow-500 bg-yellow-50;
+}
+
+.alert--high {
+  @apply border-orange-500 bg-orange-50;
+}
+
+.alert--critical {
+  @apply border-red-500 bg-red-50;
+}
+
+.alert-icon {
+  @apply text-2xl flex-shrink-0;
+}
+
+.alert-content {
+  @apply flex-1;
+}
+
+.alert-type {
+  @apply font-bold text-gray-800 mb-1;
+}
+
+.alert-details {
+  @apply flex gap-4 text-sm text-gray-700 mb-1;
+}
+
+.alert-details .detail {
+  @apply flex items-center gap-1;
+}
+
+.alert-details .label {
+  @apply font-medium text-gray-600;
+}
+
+.alert-details .value {
+  @apply font-semibold;
+}
+
+.alert-details .severity {
+  @apply px-2 py-0.5 rounded text-white text-xs font-bold;
+}
+
+.alert-details .severity.low {
+  @apply bg-blue-500;
+}
+
+.alert-details .severity.medium {
+  @apply bg-yellow-500;
+}
+
+.alert-details .severity.high {
+  @apply bg-orange-500;
+}
+
+.alert-details .severity.critical {
+  @apply bg-red-500;
+}
+
+.alert-recovery-badge {
+  @apply mt-2 text-xs text-red-700 font-semibold bg-red-100 px-2 py-1 rounded;
+}
+
+.alert-time {
+  @apply text-xs text-gray-500 flex-shrink-0;
+}
+
+.alerts--error {
+  @apply border-l-4 border-red-500;
+}
+
+/* ========== Recovery Styles ========== */
+.recovery {
+  @apply p-6 bg-white rounded-lg shadow-md;
+}
+
+.recovery h2 {
+  @apply text-xl font-bold text-gray-800 mb-2;
+}
+
+.recovery-meta {
+  @apply flex justify-between text-sm text-gray-600 mb-4;
+}
+
+.recoveries-list {
+  @apply space-y-4;
+}
+
+.recovery-card {
+  @apply border border-gray-300 rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition;
+}
+
+.recovery-card--locked {
+  @apply border-red-400 bg-red-50 hover:bg-red-50 cursor-not-allowed opacity-75;
+}
+
+.recovery-locked-message {
+  @apply text-sm text-red-700 italic py-3 text-center;
+}
+
+.recovery-card-header {
+  @apply flex justify-between items-start mb-3;
+}
+
+.agent-info {
+  @apply flex flex-col gap-1;
+}
+
+.agent-name {
+  @apply font-bold text-lg text-gray-800;
+}
+
+.status-badge {
+  @apply inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold w-fit;
+}
+
+.status-active {
+  @apply bg-red-100 text-red-700;
+}
+
+.status-completed {
+  @apply bg-yellow-100 text-yellow-700;
+}
+
+.status-exited {
+  @apply bg-green-100 text-green-700;
+}
+
+.reason {
+  @apply text-sm text-gray-600 italic;
+}
+
+.recovery-card-body {
+  @apply grid grid-cols-3 gap-4 mb-4 pb-4 border-b border-gray-300;
+}
+
+.recovery-metric {
+  @apply flex flex-col gap-2;
+}
+
+.recovery-metric .label {
+  @apply text-xs font-bold text-gray-700 uppercase;
+}
+
+.tier-row {
+  @apply flex items-center gap-2 font-semibold;
+}
+
+.tier-before,
+.tier-arrow {
+  @apply text-gray-700;
+}
+
+.tier-after {
+  @apply text-blue-700;
+}
+
+.tier-after.positive {
+  @apply text-green-700;
+}
+
+.tier-after.negative {
+  @apply text-red-700;
+}
+
+.timeline {
+  @apply flex flex-col gap-1 text-sm;
+}
+
+.weeks {
+  @apply font-semibold text-gray-800;
+}
+
+.expected-exit {
+  @apply text-gray-600;
+}
+
+.anomaly-count {
+  @apply text-lg font-bold text-red-600;
+}
+
+.recovery-card-progress {
+  @apply mb-3;
+}
+
+.progress-bar {
+  @apply h-2 bg-gray-300 rounded-full overflow-hidden mb-1;
+}
+
+.progress-fill {
+  @apply h-full bg-blue-500 transition-all duration-300;
+}
+
+.progress-label {
+  @apply text-xs text-gray-600;
+}
+
+.recovery-card-footer {
+  @apply text-xs text-gray-500;
+}
+
+.recovery--error {
+  @apply border-l-4 border-red-500;
+}
+
+/* ========== Responsive ========== */
+@media (max-width: 768px) {
+  .action-card-body,
+  .recovery-card-body {
+    @apply grid-cols-1;
+  }
+
+  .alert {
+    @apply flex-col;
+  }
+
+  .alerts-header {
+    @apply flex-col items-start gap-2;
+  }
+}

@@ -1,0 +1,21 @@
+[package]
+name = "siss-night-cycle"
+edition = "2024"
+version.workspace = true
+license.workspace = true
+
+[dependencies]
+tokio = { workspace = true, features = ["full"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+sha2 = { workspace = true }
+rusqlite = { version = "0.31", features = ["bundled"] }
+ratatui = { workspace = true }
+crossterm = { workspace = true }
+parking_lot = "0.12"
+dashmap = "5.5"
+
+[dev-dependencies]
+tempfile = "3.8"

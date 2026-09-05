@@ -1,0 +1,1 @@
+{"version":3,"file":"settlement.js","sourceRoot":"","sources":["../src/settlement.ts"],"names":[],"mappings":";;AAKA,wCAKC;AALD,SAAgB,cAAc,CAAC,WAAmB;IAChD,2BAA2B;IAC3B,MAAM,QAAQ,GAAG,IAAI,CAAC,KAAK,CAAC,WAAW,GAAG,IAAI,CAAC,CAAC;IAChD,MAAM,OAAO,GAAG,WAAW,GAAG,QAAQ,CAAC;IACvC,OAAO,EAAE,OAAO,EAAE,QAAQ,EAAE,CAAC;AAC/B,CAAC"}

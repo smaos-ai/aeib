@@ -1,0 +1,336 @@
+:root {
+  --bg-dark: #0a0e27;
+  --bg-panel: #1a1f3a;
+  --border: #2d3748;
+  --text-primary: #e0e0e0;
+  --text-secondary: #a0a0a0;
+  --accent-green: #10b981;
+  --accent-yellow: #f59e0b;
+  --accent-red: #ef4444;
+  --accent-blue: #3b82f6;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Monaco', 'Courier New', monospace;
+  background: var(--bg-dark);
+  color: var(--text-primary);
+}
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  gap: 8px;
+  padding: 12px;
+  background: linear-gradient(135deg, #0a0e27 0%, #0f1535 100%);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.panel {
+  border: 2px solid rgba(59, 130, 246, 0.2);
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(26, 31, 58, 0.9) 0%, rgba(26, 31, 58, 0.7) 100%);
+  padding: 16px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  font-size: 13px;
+  line-height: 1.6;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(8px);
+  flex-shrink: 0;
+}
+
+.panel:hover {
+  border-color: rgba(59, 130, 246, 0.4);
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15);
+}
+
+.panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.panel::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.panel-header {
+  font-weight: bold;
+  color: var(--accent-blue);
+  margin-bottom: 14px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.telemetry {
+  min-height: 120px;
+}
+
+.dag-canvas {
+  min-height: 340px;
+}
+
+.proof-ledger {
+  min-height: 140px;
+}
+
+.gauge {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+.gauge-label {
+  font-size: 10px;
+  color: var(--text-secondary);
+  font-weight: bold;
+}
+
+.gauge-value {
+  font-size: 11px;
+  color: var(--accent-green);
+  font-weight: bold;
+  font-family: 'Monaco', monospace;
+}
+
+.gauge-bar {
+  flex: 1;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 2px;
+  margin: 0 8px;
+  overflow: hidden;
+}
+
+.gauge-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-green) 0%, var(--accent-blue) 100%);
+  border-radius: 2px;
+}
+
+.help-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.help-content {
+  background: linear-gradient(135deg, rgba(26, 31, 58, 0.95) 0%, rgba(26, 31, 58, 0.85) 100%);
+  border: 2px solid var(--accent-blue);
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+}
+
+.veto-card {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0.05) 100%);
+  border: 3px solid var(--accent-red);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 500px;
+  z-index: 1000;
+  box-shadow: 0 20px 60px rgba(239, 68, 68, 0.2);
+  backdrop-filter: blur(12px);
+}
+
+.veto-card-title {
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--accent-red);
+  margin-bottom: 6px;
+}
+
+.veto-card-subtitle {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.veto-card-content {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.veto-card-buttons {
+  display: flex;
+  gap: 8px;
+  flex-direction: column;
+}
+
+.veto-button {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--accent-red);
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--accent-red);
+  font-size: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.veto-button:hover {
+  background: rgba(239, 68, 68, 0.3);
+  border-color: var(--accent-red);
+}
+
+.veto-button.primary {
+  background: var(--accent-red);
+  color: white;
+}
+
+.veto-button.primary:hover {
+  background: #dc2626;
+}
+
+.veto-button.danger {
+  background: rgba(139, 0, 0, 0.3);
+}
+
+.veto-button.danger:hover {
+  background: rgba(139, 0, 0, 0.5);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.description-box {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.section-title {
+  font-size: 11px;
+  font-weight: bold;
+  color: var(--accent-blue);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animated-in {
+  animation: slideIn 0.3s ease;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 1200px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+button {
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.5);
+}

@@ -1,0 +1,31 @@
+{
+  "timestamp": "2026-06-04T04:31:13.831333",
+  "summary": {
+    "total_requests": 60000,
+    "successful": 60000,
+    "failed": 0,
+    "success_rate_percent": 100.0,
+    "duration_seconds": 12.785737991333008,
+    "throughput_rps": 4692.728729516579
+  },
+  "latency": {
+    "p50_ms": 2.9680728912353516,
+    "p99_ms": 5.470991134643555,
+    "p999_ms": 18.402099609375,
+    "avg_ms": 3.08422966003418,
+    "min_ms": 0.47206878662109375,
+    "max_ms": 32.469987869262695
+  },
+  "cost": {
+    "per_action_usd": 0.00015,
+    "per_action_cents": 0.015,
+    "total_usd": 9.0
+  },
+  "gates": {
+    "p99 Latency <100ms": true,
+    "Throughput \u22651000 req/sec": true,
+    "Cost <$0.001": true,
+    "Success Rate \u226595%": true
+  },
+  "overall_pass": true
+}

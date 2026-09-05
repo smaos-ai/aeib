@@ -1,0 +1,27 @@
+pub mod a2a_discovery;
+pub mod attention_budget;
+pub mod auto_research;
+pub mod canary_router;
+pub mod chaos_petri;
+pub mod cipo;
+pub mod confidence_scorer;
+pub mod cost_budget;
+pub mod edge_gateway;
+pub mod edge_orchestrator;
+pub mod edge_skills;
+pub mod executor;
+pub mod facility_ingress;
+#[cfg(test)]
+mod integration_tests;
+pub mod iworld_bench;
+pub mod mcp_a2a_bridge;
+pub mod mlx_fleet;
+pub mod omni_route;
+pub mod pipeline;
+pub mod routing_engine;
+pub mod saliency;
+pub mod slicing_engine;
+pub mod strategy;
+pub mod telemetry_sidecar;
+pub mod types;
+pub mod verification_gate;

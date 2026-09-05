@@ -1,0 +1,11 @@
+{
+  "gates": [1, 2, 3],
+  "gate_names": ["agentacct", "unlazy", "output_validation"],
+  "status": "PASS",
+  "tool": "unknown",
+  "action_id": "1788566909778264000",
+  "tool_exit_code": 0,
+  "timestamp": "2026-09-05T00:08:29Z",
+  "exit_code": 0,
+  "log_path": "/Users/andriileukhin/Documents/SovereignNexus/.gate-logs/gate_1_3_validation.log"
+}

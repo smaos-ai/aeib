@@ -1,0 +1,22 @@
+[package]
+name = "siss-chronicle-drift"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+tokio = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+log = { workspace = true }
+tracing = { workspace = true }
+rand = { workspace = true }
+dashmap = { workspace = true }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }

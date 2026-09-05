@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: siss-knowledge-db
+    environment:
+      POSTGRES_USER: siss_user
+      POSTGRES_PASSWORD: siss_password
+      POSTGRES_DB: siss_knowledge
+    ports:
+      - "5432:5432"
+    volumes:
+      - siss_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U siss_user -d siss_knowledge"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  siss_db_data:

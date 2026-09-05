@@ -1,0 +1,15 @@
+[package]
+name = "siss-ontology-proofs"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[dependencies]
+uuid.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+chrono.workspace = true
+sha2.workspace = true
+hex.workspace = true
+rand = "0.8"
+rayon = "1.7"

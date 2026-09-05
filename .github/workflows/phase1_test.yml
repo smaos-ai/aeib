@@ -1,0 +1,83 @@
+name: SMAOS Phase 1 CI/CD
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 3 * * *'  # Daily 3am UTC
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14-alpine
+        env:
+          POSTGRES_DB: smaos
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov psycopg2-binary python-dotenv
+
+      - name: Run all stream tests (A-H)
+        run: |
+          pytest tests/ -v --tb=short --cov=~/.smaos --cov-report=term-missing
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/smaos
+
+      - name: Clippy linting (Python)
+        run: |
+          pip install pylint flake8
+          flake8 ~/.smaos --count --select=E9,F63,F7,F82 --show-source --statistics || true
+
+      - name: pgvector latency benchmark
+        run: |
+          bash scripts/benchmark_pgvector_latency.sh
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/smaos
+
+      - name: Validate proof artifacts
+        run: |
+          bash scripts/validate_proof_artifacts.sh
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-reports
+          path: |
+            .coverage
+            tests/*.log
+            evidence/
+
+      - name: Upload benchmark results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: benchmarks
+          path: |
+            evidence/pgvector_latency_*.json
+            evidence/stream_e_baseline_report.md
+
+      - name: Proof artifact validation report
+        if: always()
+        run: |
+          cat evidence/proof_artifacts_validation.txt || echo "No validation report yet"

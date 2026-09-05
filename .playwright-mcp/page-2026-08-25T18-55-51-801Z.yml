@@ -1,0 +1,90 @@
+- generic [ref=f17e1]:
+  - generic [ref=f17e5]:
+    - button "Google apps" [ref=f17e9] [cursor=pointer]
+    - 'button "Google Account: Andrey Leo (andrejlo123@gmail.com), Google membership" [ref=f17e15] [cursor=pointer]'
+  - generic [ref=f17e21]:
+    - generic [ref=f17e25]:
+      - link "Gemini Notebook Homepage" [ref=f17e27] [cursor=pointer]:
+        - /url: /
+        - img "Gemini Notebook Logo" [ref=f17e29]
+      - generic [ref=f17e30]: 17 Advanced Techniques for Mastering Claude Code
+      - generic [ref=f17e32]:
+        - generic "Create notebook" [ref=f17e34]:
+          - button "Create notebook" [ref=f17e35]:
+            - generic [ref=f17e37]:
+              - img [ref=f17e38]: add
+              - generic [ref=f17e39]: Create notebook
+        - generic "Copy notebook" [ref=f17e44]:
+          - button "Copy notebook" [ref=f17e47] [cursor=pointer]:
+            - img [ref=f17e48]: content_copy
+        - generic "Settings" [ref=f17e53]:
+          - button "Settings" [ref=f17e56] [cursor=pointer]:
+            - img [ref=f17e57]: settings
+        - generic [ref=f17e60]: PRO
+    - generic [ref=f17e65]:
+      - generic [ref=f17e66]:
+        - heading "Chat" [level=2] [ref=f17e68]
+        - generic [ref=f17e69]:
+          - button "Configure notebook" [ref=f17e70] [cursor=pointer]:
+            - img [ref=f17e71]: tune
+          - button "Chat options" [ref=f17e74] [cursor=pointer]:
+            - img [ref=f17e75]: more_vert
+      - generic [ref=f17e78]:
+        - generic [ref=f17e79]:
+          - progressbar [ref=f17e82]
+          - generic [ref=f17e98]:
+            - img [ref=f17e99]: landscape_2
+            - generic [ref=f17e100] [cursor=pointer]: 🚀
+            - button "Customize notebook" [ref=f17e101]:
+              - img [ref=f17e102]: photo_spark
+              - generic [ref=f17e103]: Customize
+            - generic [ref=f17e106]:
+              - heading "17 Advanced Techniques for Mastering Claude Code" [level=2] [ref=f17e107]
+              - generic [ref=f17e108]:
+                - generic [ref=f17e109]: 163 sources
+                - generic [ref=f17e110]: ·
+                - generic "Thu Apr 09 2026 12:11:06 GMT+0200 (Central European Summer Time)" [ref=f17e111]: Apr 9, 2026
+          - generic [ref=f17e112]:
+            - paragraph [ref=f17e115]:
+              - text: The provided sources offer a comprehensive look at
+              - strong [ref=f17e116]: optimizing development workflows
+              - text: using
+              - strong [ref=f17e117]: Claude Code
+              - text: ", an agentic AI tool designed for advanced software engineering. Key strategies highlighted include the use of"
+              - strong [ref=f17e118]: parallel git worktrees
+              - text: to manage multiple tasks simultaneously and the implementation of repo-specific
+              - strong [ref=f17e119]: CLAUDE.md
+              - text: files to enforce consistent coding standards and rules. Expert advice emphasizes a
+              - strong [ref=f17e120]: "\"plan-first\" approach"
+              - text: ", where detailed implementation strategies are finalized in a dedicated mode before execution begins to reduce errors and cost. The texts also detail technical methods for"
+              - strong [ref=f17e121]: lowering expenses and latency
+              - text: ", such as"
+              - strong [ref=f17e122]: prompt caching
+              - text: ", which can reduce token costs by up to 90%, and utilizing"
+              - strong [ref=f17e123]: subagents
+              - text: to offload complex background tasks. Beyond individual productivity, the documentation explores the broader 2026 industrial shift toward
+              - strong [ref=f17e124]: "\"agentic systems,\""
+              - text: where AI acts as a digital co-worker capable of autonomous reasoning and multi-step execution in manufacturing environments. Collectively, these resources serve as a guide for both
+              - strong [ref=f17e125]: individual programmers and industrial leaders
+              - text: to transition from manual task-performers to strategic orchestrators of AI intelligence.
+            - generic [ref=f17e126]:
+              - button [ref=f17e127]:
+                - img [ref=f17e128]: keep_pin
+              - button "Copy summary" [ref=f17e131] [cursor=pointer]:
+                - img [ref=f17e132]: copy_all
+              - button "Good summary" [ref=f17e135] [cursor=pointer]:
+                - img [ref=f17e136]: thumb_up
+              - button "Bad summary" [ref=f17e139] [cursor=pointer]:
+                - img [ref=f17e140]: thumb_down
+            - generic [ref=f17e145]:
+              - button "What are Boris Cherny's top tips for using Claude Code effectively?" [ref=f17e146] [cursor=pointer]
+              - button "How can I use CLAUDE.md to reduce mistakes and automate workflows?" [ref=f17e148] [cursor=pointer]
+              - button "What are the best strategies to optimize token usage and reduce costs?" [ref=f17e150] [cursor=pointer]
+        - generic [ref=f17e160]:
+          - textbox "Query box" [active] [ref=f17e162]:
+            - /placeholder: Ask a question or create something
+          - generic [ref=f17e163]:
+            - button "Submit" [disabled]:
+              - img: arrow_forward
+    - contentinfo [ref=f17e165]: Gemini Notebook can be inaccurate; please double check its responses.
+  - generic: Add a cover image and custom note to personalize your notebook!

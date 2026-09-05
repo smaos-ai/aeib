@@ -1,0 +1,53 @@
+story: "CRO Authorization Signature Verification"
+description: "Verify that CRO authorization generates valid Ed25519 signature"
+
+setup:
+  database: "/tmp/agentacct_star_test.db"
+  backend_url: "http://127.0.0.1:8000"
+  capsule: "Treasury"
+
+trace:
+  - step: 1
+    name: "Submit authorization-pending intent"
+    action: "POST /api/execute"
+    payload:
+      capsule: "treasuryBaselIII"
+      intent:
+        amount: "€3000000"
+        description: "Strategic transfer"
+    expect:
+      status_code: 200
+    timeout_seconds: 5
+
+  - step: 2
+    name: "Wait for veto gate signal"
+    action: "STREAM /api/rce/stream"
+    expect:
+      event_type: "veto_halt"
+    timeout_seconds: 5
+
+  - step: 3
+    name: "CRO authorizes with signature"
+    action: "POST /api/rce/decision"
+    payload:
+      decision: "authorize"
+      signature: "sig:ed25519:demo"
+    expect:
+      status_code: 200
+      response_fields:
+        - "receipt_id"
+        - "signature"
+    timeout_seconds: 5
+
+assertions:
+  - name: "Authorization signature generated"
+    type: "cryptographic"
+    validation: "Response contains valid Ed25519 signature format"
+
+success_criteria:
+  steps_passed: 3
+  signature_present: true
+
+metadata:
+  created_at: "2026-09-04T00:00:00Z"
+  version: "1.0.0"

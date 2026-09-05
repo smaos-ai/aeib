@@ -1,0 +1,35 @@
+[package]
+name = "siss-compliance"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+sha2 = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+
+[[test]]
+name = "compliance_automation_tests"
+path = "src/compliance_automation_tests.rs"
+
+[[test]]
+name = "exporter_tests"
+path = "tests/exporter_tests.rs"
+
+[[test]]
+name = "kms_signer_tests"
+path = "tests/kms_signer_tests.rs"
+
+[[test]]
+name = "compliance_integration_tests"
+path = "tests/compliance_integration_tests.rs"
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full"] }

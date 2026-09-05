@@ -1,0 +1,83 @@
+[
+  {
+    "action_id": "test_001",
+    "prompt": "MODIFIED_PROMPT",
+    "tokens_used": 100,
+    "cost": 0.05,
+    "timestamp": "2026-08-31T22:48:04.400439",
+    "signature": "8143953bcbe811fdd1dd8e5fb0d8c7b66c5d73e678fe5e62a90ca9d8ffa24b742ecdd357a1f64c9f16bc88112fbba3adfaaffb43b2be6850ea162a98c2254b92",
+    "public_key": "ed25519_key_001"
+  },
+  {
+    "action_id": "test_002",
+    "prompt": "Approve refund",
+    "tokens_used": 50,
+    "cost": 0.02,
+    "timestamp": "2026-08-30T22:48:04.400714",
+    "signature": "abc273a1f00f5b6e1ec7134bf3d031680de3ffa0e6180d29dd79a82bacf95b4abe80ede4d9510ab0592672b54222ac3accab7a3f2e73963bf2b3f6646f60fd83",
+    "public_key": "ed25519_key_001"
+  },
+  {
+    "action_id": "test_003",
+    "prompt": "Decide on refund (55% confidence)",
+    "tokens_used": 75,
+    "cost": 0.03,
+    "timestamp": "2026-08-31T22:48:04.400860",
+    "signature": "d2cea276da9b113b0ee22e302b5442d59aa2b66a9fb3264ed4f57fd11611db71ddb1d0a807d11f9d8f715e69203587b3c5c1400867e29af3f0faf775de6a2131",
+    "public_key": "ed25519_key_001"
+  },
+  {
+    "action_id": "test_004",
+    "prompt": "Process booking for [GUEST]",
+    "tokens_used": 100,
+    "cost": 0.05,
+    "timestamp": "2026-08-31T22:48:04.401028",
+    "signature": "8974fd1f2b30052469013af800084feebcccd4ea7b20c5eb9f160cb92d608d44a2f6521b9adf234beb405095c8c7a192238844fc83741951c6f1e05b8e8aa67a",
+    "public_key": "ed25519_key_001"
+  },
+  {
+    "action_id": "test_005",
+    "prompt": "Payment with ****-****-****-9012",
+    "tokens_used": 50,
+    "cost": 0.02,
+    "timestamp": "2026-08-31T22:48:04.401146",
+    "signature": "8fa8de32651fe4dfdd3f4c75b4f0cfdb862ab350e47385df7052fd94d683a7d305442fd41ad3a197f04da8a8ade9e47d4b90bd0003b1e50f999f9ccce8a24fcb",
+    "public_key": "ed25519_key_001"
+  },
+  {
+    "action_id": "test_006",
+    "prompt": "Escalate to manager, contact [EMAIL]",
+    "tokens_used": 75,
+    "cost": 0.03,
+    "timestamp": "2026-08-31T22:48:04.401252",
+    "signature": "86b2944de3d515f7eaf6321d010ae7f6fed7295fae04b9bb343db1b32e39b8895f90ad0ddc3053f4cb2da23828c09b12f04f89f2c6e013731d7f431b94058dc3",
+    "public_key": "ed25519_key_001"
+  },
+  {
+    "action_id": "test_007",
+    "prompt": "Call supplier API with key [REDACTED]",
+    "tokens_used": 100,
+    "cost": 0.05,
+    "timestamp": "2026-08-31T22:48:04.401384",
+    "signature": "f66e9f050e6900159aba8077077c0ade32b020e807a85b804b0225e0746e1c95c9d08a430a83fff96f9680a300ef6772331e9b46e0d09f540181c97f66e1b34d",
+    "public_key": "ed25519_key_001"
+  },
+  {
+    "action_id": "test_008",
+    "prompt": "Complete booking workflow",
+    "tokens_used": 500,
+    "cost": 0.1,
+    "timestamp": "2026-08-31T22:48:04.401519",
+    "signature": "d2471abff5a6842223d612fe34b70ba3667401435b5ad451dc6e39f500c0880f6f4c98f6166db8caebb1598f4ef5448973cad1a60a29ebd0ce9fa93138ba394e",
+    "public_key": "ed25519_key_001"
+  },
+  {
+    "action_id": "test_009",
+    "prompt": "Critical decision",
+    "tokens_used": 250,
+    "cost": 0.05,
+    "timestamp": "2026-08-31T22:48:04.401638",
+    "signature": "56d10b12907d7f790dda95d9daae959ebd2dd2d0ef2f33bd2a9eec9a517b600e3ae7fc2f251452c1724260c526d0e6d3046a5c1852f66e9ca5264bcfe0a30098",
+    "public_key": "ed25519_key_001"
+  }
+]

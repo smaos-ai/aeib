@@ -1,0 +1,27 @@
+[package]
+name = "palace-memory-mcp"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+thiserror = { workspace = true }
+ed25519-dalek = { workspace = true }
+sha2 = "0.10"
+hex = { workspace = true }
+tracing = "0.1"
+dashmap = "5.5"
+base64 = "0.22"
+parking_lot = "0.12"
+
+siss-layer00 = { path = "../siss-layer00" }
+siss-gatekeeper = { path = "../siss-gatekeeper" }
+siss-context-cartography = { path = "../siss-context-cartography" }
+
+[dev-dependencies]
+tokio-test = "0.4"

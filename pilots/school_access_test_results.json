@@ -1,0 +1,15 @@
+{
+  "pilot_name": "School Access Control",
+  "execution_period": "2027-04-01 to 2027-05-15",
+  "test_count": 47,
+  "identity_verification_scenarios": 200,
+  "biometric_match_rate": 0.967,
+  "false_rejection_rate": 0.022,
+  "false_acceptance_rate": 0.011,
+  "human_review_rate": 1.0,
+  "human_approval_rate": 0.956,
+  "human_rejection_rate": 0.023,
+  "appeal_rate": 0.034,
+  "average_review_time_seconds": 28,
+  "notes": "100% human review as per education/biometric compliance requirement. Approval rate 95.6% (4.4% rejected due to missing documentation or expired credentials)."
+}

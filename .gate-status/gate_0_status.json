@@ -1,0 +1,8 @@
+{
+  "gate": 0,
+  "gate_name": "pre_tool_verify",
+  "status": "PASS",
+  "timestamp": "2026-09-05T00:08:32Z",
+  "exit_code": 0,
+  "log_path": "/Users/andriileukhin/Documents/SovereignNexus/.gate-logs/gate_0_preflight.log"
+}

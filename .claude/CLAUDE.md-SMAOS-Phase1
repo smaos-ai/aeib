@@ -1,0 +1,115 @@
+# CLAUDE.md — SMAOS Phase 1 (12 weeks, 1 engineer, 120k KARP)
+**Execution Mode: Parallel Tracks A-D, TDD-Disciplined, Sep 1 - May 31 2026**
+
+## PHASE 1 THESIS
+Agent = Model + Harness. **Harness is the moat.** Governance Membrane (proof layer) is competitive advantage.
+This phase delivers: Natural-Language Harness (1500+ lines) + 3 pilots + Annex IV dossier + KARP 120k voucher.
+
+## CRITICAL DATES (immovable)
+- **Sep 1, 2026:** Phase 1 starts (Monday)
+- **Sep 16-22, 2026:** KARP voucher submission deadline (Romana Cernikova)
+- **May 31, 2026:** Phase 1 delivery date (triggers Phase 2 + BIC Plzeń 1M)
+- **Dec 2, 2027:** Annex III compliance (hotels/spas) — 16 months away
+- **Aug 2, 2028:** Annex I compliance (glass/auto) — 22 months away
+
+## PARALLEL EXECUTION (4 tracks, all simultaneous)
+
+**TRACK A: Memory & Ingest (L1, L2, L3)**
+- L1 Reasoning: Claude SDK policy routing (2 wks, 200-300 lines)
+- L2 Knowledge: pgvector + BM25 + RRF (2 wks, 400-500 lines)
+- L3 Permit Gates: Tool registry + enforcement (2 wks, 300-400 lines)
+- Owner: Engineer (solo, no blocking)
+- Deliverable: SQL dump + pgvector CSV + policy accuracy report
+
+**TRACK B: Orchestration & Communication (L4, L5)**
+- L4 Orchestration: LangGraph 3 pilots (3 wks, 600-800 lines)
+- L5 Communication: 4 MCP servers (2 wks, 400-500 lines)
+- Owner: Engineer (solo, no blocking)
+- Deliverable: 3 LangGraph pilots (hotel/glass/school) + MCP servers live
+
+**TRACK C: Infrastructure (L6)**
+- FreeToken serve validation (2 wks, 100-200 lines)
+- Hardware benchmarking: Qwen 39.3 tok/s on 8GB
+- CanIRun.ai integration (screenshot proof)
+- Owner: Engineer (solo, no blocking)
+- Deliverable: FreeToken benchmark + hardware detection
+
+**TRACK D: Proof Layer (L8, L7)**
+- L8 Proof: agentacct + unlazy + AP2 ledger + KMS (3 wks, 300-400 lines)
+- L7 RAGAS: 50-question golden set (ongoing, target 87%+ accuracy)
+- Owner: Engineer (solo, no blocking)
+- Deliverable: Immutable proof trail + RAGAS baseline report
+
+## BLOCKING DEPENDENCY (only one)
+```
+L2 Knowledge (Week 2) → L3 Permit Gates (Week 3+)
+Reason: L3 needs policy rules from L2 to test gate enforcement
+```
+
+## INTEGRATION PHASES
+- **Weeks 5-8:** Merge tracks (L1→L2→L3→L4→L5→L6→L8→L7)
+- **Weeks 9-10:** Code quality + RAGAS 87%+ target
+- **Weeks 11-12:** Annex IV dossier + KARP submission package
+
+## DELIVERABLES (by May 31, 2026)
+
+### MUST HAVE (non-negotiable for Phase 2)
+1. Natural-Language Harness — 1500+ lines, all 8 layers, readable, testable
+2. Database schema — SQL dump + pgvector CSV (compliance_timeline, governance_risks, tech_stack, evidence_by_process)
+3. 1 working pilot — Hotel credit scoring (full L1→L8 flow, 50+ logged actions)
+4. RAGAS 50Q baseline — 87%+ accuracy on compliance questions
+5. Annex IV 9-section dossier — Auto-generated, PDF + JSON + KMS signed
+6. 7 proof artifacts — CanIRun, FreeToken, Is Agentic, agentacct, unlazy, RAGAS, AP2 ledger
+
+### STRETCH (for Series A narrative)
+- 3 working pilots (hotel + glass + school)
+- Full Is Agentic A+ report
+- EU Database pre-registration number
+
+## QUALITY GATES (before shipping)
+- [ ] Harness code: <0.1 bugs per 100 lines (static analysis clean)
+- [ ] Database: pgvector latency <100ms on compliance queries
+- [ ] RAGAS: 87%+ accuracy on 50-question golden set
+- [ ] Pilots: hotel L1→L8 flow runs without error, all 7 proofs captured
+- [ ] Annex IV: 9 sections auto-filled, KMS signature verified
+
+## KARP SUBMISSION TIMELINE
+- **Sep 1-15:** Phase 1 in progress (proof artifacts accumulating)
+- **Sep 16-22:** Submit to Romana Cernikova (romana.cernikova@karp-kv.cz)
+  - 1-page Czech "Popis projektu" (see KARP_SUBMISSION.md)
+  - Budget breakdown: 60k engineer + 8k hardware + 12k testing + 40k contingency = 120k
+  - Deliverables: Harness + 3 pilots + Annex IV dossier
+  - Timeline: May 31, 2026 completion
+- **Oct:** KARP approval expected → funds flow 60% immediate
+- **Post-voucher:** BIC Plzeń 1M CZK application (Phase 2)
+
+## KARPATHY CODING RULES (apply to Phase 1)
+1. **No over-engineering.** 1500 lines harness is final size. No abstractions beyond what pilots require.
+2. **No drive-by refactoring.** Only modify code directly related to the 8 layers. Don't clean up adjacent.
+3. **Test-First (TDD).** Write failing test BEFORE implementation. `cargo test` → red, then green.
+4. **Comments only for WHY.** Never explain WHAT (well-named code does that). Only hidden constraints, workarounds.
+5. **No backwards-compatibility hacks.** Delete unused code completely.
+
+## TOOL DISCIPLINE
+- **Read before Edit.** Always read a file first, then edit it.
+- **Git commits are atomic.** One feature/fix per commit. Include test + implementation.
+- **No git reset --hard.** Suggest reversible moves (stash, revert, new branch).
+- **AP2 ledger anchoring.** Every commit signed with Ed25519 (PQC). Digest in public git.
+
+## TRACKING (weekly)
+- Monday: Update /PHASE1_STATUS.md with progress (Track A-D completion %)
+- Wednesday: Code review (static analysis, test coverage)
+- Friday: Integration checkpoint (all tracks merge-tested)
+
+## SUCCESS CRITERIA (May 31, 2026)
+- ✅ Harness ships with 1500+ clean lines
+- ✅ KARP voucher approved (120k CZK in)
+- ✅ BIC Plzeń application ready (1M CZK next)
+- ✅ Regulatory timeline locked (Annex III Dec 2027, Annex I Aug 2028)
+- ✅ Series A narrative ready (proof artifacts in data room)
+
+## NEXT PHASE (BIC Plzeń, Jun-Dec 2026)
+- Egress controls (2-3 wks, CISO appeal)
+- Intent-verified delegation (4-6 wks, OWASP ASI01 defense)
+- 3 full pilots in production
+- EU Database registration + CE marking

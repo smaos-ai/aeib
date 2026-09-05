@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A2UI Component Demo</title>
+  <link rel="stylesheet" href="components.css">
+  <style>
+    body {
+      background: #0d0d0d;
+      color: #e0e0e0;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 14px;
+      padding: 20px;
+      margin: 0;
+    }
+    h1 { color: #7eb8f7; margin-bottom: 30px; }
+    h2 { color: #60a5fa; margin-top: 40px; margin-bottom: 16px; }
+    .section { margin-bottom: 40px; }
+    .demo-item { margin-bottom: 20px; }
+    .demo-code {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 3px;
+      font-size: 11px;
+      overflow-x: auto;
+    }
+    .demo-render {
+      background: #141414;
+      border: 1px solid #2a2a2a;
+      padding: 16px;
+      margin: 8px 0;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+  <h1>A2UI Component Library — Demo</h1>
+  <p>All 18 A2UIComponent primitives rendered with real-world examples.</p>
+
+  <!-- DISPLAY COMPONENTS -->
+  <section class="section">
+    <h2>Display Components (8 types)</h2>
+
+    <div class="demo-item">
+      <h3>1. Text</h3>
+      <div class="demo-code">const comp = { type: 'text', id: 't1', content: 'Hello World', size: 'md' };</div>
+      <div class="demo-render" id="demo-text"></div>
+    </div>
+
+    <div class="demo-item">
+      <h3>2. Badge</h3>
+      <div class="demo-code">const comp = { type: 'badge', id: 'b1', label: 'Active', color: 'green' };</div>
+      <div class="demo-render" id="demo-badge"></div>
+    </div>
+
+    <div class="demo-item">
+      <h3>3. Alert</h3>
+      <div class="demo-code">const comp = { type: 'alert', id: 'a1', message: 'Important: Action required', level: 'warn' };</div>
+      <div class="demo-render" id="demo-alert"></div>
+    </div>
+
+    <div class="demo-item">
+      <h3>4. Progress</h3>
+      <div class="demo-code">const comp = { type: 'progress', id: 'p1', value: 65, max: 100, label: 'Processing' };</div>
+      <div class="demo-render" id="demo-progress"></div>
+    </div>
+
+    <div class="demo-item">
+      <h3>5. Divider</h3>
+      <div class="demo-code">const comp = { type: 'divider', id: 'd1' };</div>
+      <div class="demo-render" id="demo-divider"></div>
+    </div>
+
+    <div class="demo-item">
+      <h3>6. Link</h3>
+      <div class="demo-code">const comp = { type: 'link', id: 'l1', label: 'Visit SISS', href: 'https://sovereignnexus.dev' };</div>
+      <div class="demo-render" id="demo-link"></div>
+    </div>
+
+    <div class="demo-item">
+      <h3>7. Tooltip</h3>
+      <div class="demo-code">const comp = { type: 'tooltip', id: 'tt1', text: 'Hover me', content: 'This is a tooltip' };</div>
+      <div class="demo-render" id="demo-tooltip"></div>
+    </div>
+
+    <div class="demo-item">
+      <h3>8. Breadcrumb</h3>
+      <div class="demo-code">const comp = { type: 'breadcrumb', id: 'bc1', items: ['Home', 'Products', 'Electronics'] };</div>
+      <div class="demo-render" id="demo-breadcrumb"></div>
+    </div>
+  </section>
+
+  <!-- FORM COMPONENTS -->
+  <section class="section">
+    <h2>Form Components (6 types)</h2>
+
+    <div class="demo-item">
+      <h3>9. Input</h3>
+      <div class="demo-code">const comp = { type: 'input', id: 'inp1', label: 'Username', placeholder: 'Enter name', required: true };</div>
+      <div class="demo-render" id="demo-input"></div>
+    </div>
+
+    <div class="demo-item">
+      <h3>10. Textarea</h3>
+      <div class="demo-code">const comp = { type: 'textarea', id: 'ta1', label: 'Comments', rows: 4 };</div>
+      <div class="demo-render" id="demo-textarea"></div>
+    </div>
+
+    <div class="demo-item">
+      <h3>11. Select</h3>
+      <div class="demo-code">const comp = { type: 'select', id: 'sel1', label: 'Choose', options: [{value: 'a', label: 'Option A'}, {value: 'b', label: 'Option B'}] };</div>
+      <div class="demo-render" id="demo-select"></div>
+    </div>
+
+    <div class="demo-item">
+      <h3>12. Checkbox</h3>
+      <div class="demo-code">const comp = { type: 'checkbox', id: 'chk1', label: 'I agree to terms', checked: false };</div>
+      <div class="demo-render" id="demo-checkbox"></div>
+    </div>
+
+    <div class="demo-item">
+      <h3>13. Radio</h3>
+      <div class="demo-code">const comp = { type: 'radio', id: 'rad1', label: 'Option 1', value: 'opt1', checked: false };</div>
+      <div class="demo-render" id="demo-radio"></div>
+    </div>
+
+    <div class="demo-item">
+      <h3>14. Button</h3>
+      <div class="demo-code">const comp = { type: 'button', id: 'btn1', label: 'Submit', action: 'submit' };</div>
+      <div class="demo-render" id="demo-button"></div>
+    </div>
+  </section>
+
+  <!-- LAYOUT COMPONENTS -->
+  <section class="section">
+    <h2>Layout Components (4 types)</h2>
+
+    <div class="demo-item">
+      <h3>15. Card</h3>
+      <div class="demo-code">const comp = { type: 'card', id: 'c1', title: 'Card Title', children: [...] };</div>
+      <div class="demo-render" id="demo-card"></div>
+    </div>
+
+    <div class="demo-item">
+      <h3>16. Grid</h3>
+      <div class="demo-code">const comp = { type: 'grid', id: 'g1', columns: 2, children: [...] };</div>
+      <div class="demo-render" id="demo-grid"></div>
+    </div>
+
+    <div class="demo-item">
+      <h3>17. Modal</h3>
+      <div class="demo-code">const comp = { type: 'modal', id: 'm1', title: 'Dialog', content: 'Are you sure?', children: [...] };</div>
+      <div class="demo-render" id="demo-modal"></div>
+    </div>
+
+    <div class="demo-item">
+      <h3>18. Table</h3>
+      <div class="demo-code">const comp = { type: 'table', id: 'tbl1', headers: ['Name', 'Status'], rows: [['Alice', 'Active'], ['Bob', 'Inactive']] };</div>
+      <div class="demo-render" id="demo-table"></div>
+    </div>
+  </section>
+
+  <!-- INTERACTIVE FORM DEMO -->
+  <section class="section">
+    <h2>Interactive Form Example</h2>
+    <div class="demo-render">
+      <h3 style="margin-top: 0;">User Registration Form</h3>
+      <form id="demo-form">
+        <!-- Will be populated by JavaScript -->
+      </form>
+    </div>
+  </section>
+
+  <script type="module">
+    import { renderComponent, createFormComponent } from './components.js';
+
+    // ── Display Components ──
+    document.getElementById('demo-text').appendChild(renderComponent({
+      type: 'text',
+      id: 't1',
+      content: 'Hello World — This is a text component',
+      size: 'md',
+    }));
+
+    document.getElementById('demo-badge').appendChild(renderComponent({
+      type: 'badge',
+      id: 'b1',
+      label: 'Status: Active',
+      color: 'green',
+    }));
+
+    document.getElementById('demo-alert').appendChild(renderComponent({
+      type: 'alert',
+      id: 'a1',
+      message: '⚠️ Important: This action is irreversible.',
+      level: 'warn',
+    }));
+
+    document.getElementById('demo-progress').appendChild(renderComponent({
+      type: 'progress',
+      id: 'p1',
+      value: 65,
+      max: 100,
+      label: 'Processing',
+    }));
+
+    document.getElementById('demo-divider').appendChild(renderComponent({
+      type: 'divider',
+      id: 'd1',
+    }));
+
+    document.getElementById('demo-link').appendChild(renderComponent({
+      type: 'link',
+      id: 'l1',
+      label: 'Visit Documentation',
+      href: 'https://github.com',
+    }));
+
+    document.getElementById('demo-tooltip').appendChild(renderComponent({
+      type: 'tooltip',
+      id: 'tt1',
+      text: 'Hover over me for more info',
+      content: 'This is helpful additional information',
+    }));
+
+    document.getElementById('demo-breadcrumb').appendChild(renderComponent({
+      type: 'breadcrumb',
+      id: 'bc1',
+      items: ['Dashboard', 'Agents', 'Agent-123', 'Logs'],
+    }));
+
+    // ── Form Components ──
+    document.getElementById('demo-input').appendChild(renderComponent({
+      type: 'input',
+      id: 'inp1',
+      label: 'Enter Username',
+      placeholder: 'alice@example.com',
+      required: true,
+    }));
+
+    document.getElementById('demo-textarea').appendChild(renderComponent({
+      type: 'textarea',
+      id: 'ta1',
+      label: 'Comments',
+      rows: 4,
+    }));
+
+    document.getElementById('demo-select').appendChild(renderComponent({
+      type: 'select',
+      id: 'sel1',
+      label: 'Priority Level',
+      options: [
+        { value: 'low', label: 'Low' },
+        { value: 'medium', label: 'Medium' },
+        { value: 'high', label: 'High' },
+        { value: 'critical', label: 'Critical' },
+      ],
+    }));
+
+    document.getElementById('demo-checkbox').appendChild(renderComponent({
+      type: 'checkbox',
+      id: 'chk1',
+      label: 'I accept the terms and conditions',
+      checked: false,
+    }));
+
+    document.getElementById('demo-radio').appendChild(renderComponent({
+      type: 'radio',
+      id: 'rad1',
+      label: 'Enable notifications',
+      value: 'enabled',
+      checked: false,
+    }));
+
+    document.getElementById('demo-button').appendChild(renderComponent({
+      type: 'button',
+      id: 'btn1',
+      label: 'Submit Form',
+      action: 'submit',
+    }));
+
+    // ── Layout Components ──
+    document.getElementById('demo-card').appendChild(renderComponent({
+      type: 'card',
+      id: 'c1',
+      title: 'Agent Information',
+      children: [
+        { type: 'text', id: 't-c1', content: 'Agent ID: 8f4d9e2a-1b3c-4d5e-6f7g-8h9i0j1k2l3m', size: 'sm' },
+        { type: 'text', id: 't-c2', content: 'Status: Running', size: 'sm' },
+      ],
+    }));
+
+    document.getElementById('demo-grid').appendChild(renderComponent({
+      type: 'grid',
+      id: 'g1',
+      columns: 2,
+      children: [
+        { type: 'badge', id: 'b-g1', label: 'Healthy', color: 'green' },
+        { type: 'badge', id: 'b-g2', label: 'Processing', color: 'blue' },
+      ],
+    }));
+
+    // Note: Modal is positioned fixed, so it will overlay
+    document.getElementById('demo-modal').style.position = 'relative';
+    document.getElementById('demo-modal').innerHTML = '<p style="color: #888; padding: 20px;">[Modal would appear fixed-position in real usage]</p>';
+
+    document.getElementById('demo-table').appendChild(renderComponent({
+      type: 'table',
+      id: 'tbl1',
+      headers: ['Agent', 'Status', 'Events'],
+      rows: [
+        ['Agent-001', 'Running', '234'],
+        ['Agent-002', 'Paused', '156'],
+        ['Agent-003', 'Error', '89'],
+        ['Agent-004', 'Completed', '512'],
+      ],
+    }));
+
+    // ── Interactive Form ──
+    const formDef = {
+      id: 'demo-form',
+      components: [
+        { type: 'input', id: 'username', label: 'Username', placeholder: 'Choose a username', required: true },
+        { type: 'input', id: 'email', label: 'Email', placeholder: 'your@email.com', required: true },
+        { type: 'textarea', id: 'bio', label: 'Bio', rows: 3 },
+        { type: 'checkbox', id: 'newsletter', label: 'Subscribe to newsletter' },
+        { type: 'button', id: 'submit-btn', label: 'Create Account', action: 'submit' },
+      ],
+    };
+
+    const form = createFormComponent(formDef);
+    const formEl = form.render();
+    document.getElementById('demo-form').appendChild(formEl);
+
+    // Log form submissions (for demo)
+    formEl.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (form.validate()) {
+        console.log('Form data:', form.getData());
+        alert('Form valid! Data logged to console.');
+      } else {
+        alert('Please fill in all required fields.');
+      }
+    });
+  </script>
+</body>
+</html>

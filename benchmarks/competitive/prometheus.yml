@@ -1,0 +1,55 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+  external_labels:
+    environment: benchmark
+    cluster: competitive_analysis
+
+scrape_configs:
+  # CockroachDB metrics (via Prometheus endpoint)
+  - job_name: 'cockroachdb'
+    static_configs:
+      - targets: ['localhost:8080']
+    metrics_path: '/_status/vars'
+    scrape_interval: 5s
+    scrape_timeout: 3s
+
+  # TiDB metrics
+  - job_name: 'tidb'
+    static_configs:
+      - targets: ['localhost:10080']
+    metrics_path: '/metrics'
+    scrape_interval: 5s
+    scrape_timeout: 3s
+
+  # EdgeDB metrics (if exposed)
+  - job_name: 'edgedb'
+    static_configs:
+      - targets: ['localhost:5656']
+    metrics_path: '/metrics'
+    scrape_interval: 5s
+    scrape_timeout: 3s
+
+  # SovereignNexus metrics (localhost:8081)
+  - job_name: 'sovereignnexus'
+    static_configs:
+      - targets: ['localhost:8081']
+    metrics_path: '/metrics'
+    scrape_interval: 5s
+    scrape_timeout: 3s
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 5s
+
+# Recording rules for aggregated metrics
+rule_files:
+  - 'recording_rules.yml'
+
+# Alerting rules (optional)
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []

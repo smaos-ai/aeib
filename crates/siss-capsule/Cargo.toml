@@ -5,6 +5,10 @@ version.workspace = true
 license.workspace = true
 
 [dependencies]
+siss-behavioral-firewall = { path = "../siss-behavioral-firewall" }
+siss-graph-core = { path = "../siss-graph-core" }
+siss-audit-archiver = { path = "../siss-audit-archiver" }
+siss-layer00 = { path = "../siss-layer00" }
 uuid.workspace = true
 chrono.workspace = true
 serde.workspace = true
@@ -20,12 +24,6 @@ reqwest = { workspace = true, features = ["json", "stream"] }
 futures.workspace = true
 parking_lot = "0.12"
 dashmap = "5.5"
-
-# Optional dependencies (temporarily commented to bypass compilation errors in other crates)
-# siss-behavioral-firewall = { path = "../siss-behavioral-firewall" }
-# siss-graph-core = { path = "../siss-graph-core" }
-# siss-audit-archiver = { path = "../siss-audit-archiver" }
-# siss-layer00 = { path = "../siss-layer00" }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["full", "test-util"] }

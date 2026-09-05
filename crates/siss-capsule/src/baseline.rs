@@ -2,17 +2,17 @@
 // Policy Verification + Tool Auth + Execution Context + Audit
 
 use crate::types::*;
-use chrono::Utc;
-use ed25519_dalek::{Signer, SigningKey};
-use parking_lot::Mutex;
-use sha2::{Digest, Sha256};
 use siss_behavioral_firewall::{
-    AP2Evaluator, AuditArchive, PolicyAction, PolicyResource, ReBAC, SovereignIdentity,
+    ReBAC, AP2Evaluator, AuditArchive, SovereignIdentity, PolicyResource, PolicyAction,
 };
-use std::collections::HashMap;
+use uuid::Uuid;
+use sha2::{Sha256, Digest};
+use ed25519_dalek::{SigningKey, Signer};
+use chrono::Utc;
 use std::sync::Arc;
 use std::time::Instant;
-use uuid::Uuid;
+use std::collections::HashMap;
+use parking_lot::Mutex;
 
 pub struct BaselineCapsule {
     rebac: Arc<ReBAC>,
@@ -75,9 +75,7 @@ impl BaselineCapsule {
         let _start = Instant::now();
 
         // ReBAC check first
-        let rebac_result =
-            self.rebac
-                .verify_relationship(sovereign_id, resource.clone(), action.clone());
+        let rebac_result = self.rebac.verify_relationship(sovereign_id, resource.clone(), action.clone());
 
         match rebac_result {
             Ok(msg) => {
@@ -89,49 +87,23 @@ impl BaselineCapsule {
                         PolicyAction::Pause => siss_behavioral_firewall::ap2::PolicyAction::Pause,
                         PolicyAction::Resume => siss_behavioral_firewall::ap2::PolicyAction::Resume,
                         PolicyAction::Abort => siss_behavioral_firewall::ap2::PolicyAction::Abort,
-                        PolicyAction::Terminate => {
-                            siss_behavioral_firewall::ap2::PolicyAction::Terminate
-                        }
-                        PolicyAction::AssignTask => {
-                            siss_behavioral_firewall::ap2::PolicyAction::AssignTask
-                        }
-                        PolicyAction::CancelTask => {
-                            siss_behavioral_firewall::ap2::PolicyAction::CancelTask
-                        }
-                        PolicyAction::FinalizeTask => {
-                            siss_behavioral_firewall::ap2::PolicyAction::FinalizeTask
-                        }
-                        PolicyAction::InitiateConsent => {
-                            siss_behavioral_firewall::ap2::PolicyAction::InitiateConsent
-                        }
-                        PolicyAction::VoteConsent => {
-                            siss_behavioral_firewall::ap2::PolicyAction::VoteConsent
-                        }
-                        PolicyAction::RevokeGrant => {
-                            siss_behavioral_firewall::ap2::PolicyAction::RevokeGrant
-                        }
-                        PolicyAction::ReadMetrics => {
-                            siss_behavioral_firewall::ap2::PolicyAction::ReadMetrics
-                        }
-                        PolicyAction::StreamEvents => {
-                            siss_behavioral_firewall::ap2::PolicyAction::StreamEvents
-                        }
-                        PolicyAction::CreatePolicy => {
-                            siss_behavioral_firewall::ap2::PolicyAction::CreatePolicy
-                        }
-                        PolicyAction::UpdatePolicy => {
-                            siss_behavioral_firewall::ap2::PolicyAction::UpdatePolicy
-                        }
-                        PolicyAction::DeletePolicy => {
-                            siss_behavioral_firewall::ap2::PolicyAction::DeletePolicy
-                        }
+                        PolicyAction::Terminate => siss_behavioral_firewall::ap2::PolicyAction::Terminate,
+                        PolicyAction::AssignTask => siss_behavioral_firewall::ap2::PolicyAction::AssignTask,
+                        PolicyAction::CancelTask => siss_behavioral_firewall::ap2::PolicyAction::CancelTask,
+                        PolicyAction::FinalizeTask => siss_behavioral_firewall::ap2::PolicyAction::FinalizeTask,
+                        PolicyAction::InitiateConsent => siss_behavioral_firewall::ap2::PolicyAction::InitiateConsent,
+                        PolicyAction::VoteConsent => siss_behavioral_firewall::ap2::PolicyAction::VoteConsent,
+                        PolicyAction::RevokeGrant => siss_behavioral_firewall::ap2::PolicyAction::RevokeGrant,
+                        PolicyAction::ReadMetrics => siss_behavioral_firewall::ap2::PolicyAction::ReadMetrics,
+                        PolicyAction::StreamEvents => siss_behavioral_firewall::ap2::PolicyAction::StreamEvents,
+                        PolicyAction::CreatePolicy => siss_behavioral_firewall::ap2::PolicyAction::CreatePolicy,
+                        PolicyAction::UpdatePolicy => siss_behavioral_firewall::ap2::PolicyAction::UpdatePolicy,
+                        PolicyAction::DeletePolicy => siss_behavioral_firewall::ap2::PolicyAction::DeletePolicy,
                     };
 
                     // Evaluate AP2 policy
                     if let Err(_ap2_deny) = ap2.evaluate(sovereign_id.0, ap2_action) {
-                        return PolicyVerificationResult::Denied(
-                            "AP2 policy denied action".to_string(),
-                        );
+                        return PolicyVerificationResult::Denied("AP2 policy denied action".to_string());
                     }
                 }
 
@@ -192,13 +164,12 @@ impl BaselineCapsule {
 
     /// Batch verify multiple tool proofs
     pub async fn verify_tool_batch(&self, proofs: &[ToolAuthProof]) -> Vec<ToolAuthVerification> {
-        proofs
-            .iter()
-            .map(|p| ToolAuthVerification {
+        proofs.iter().map(|p| {
+            ToolAuthVerification {
                 is_valid: !p.signature.is_empty() && p.signature.len() == 64,
                 reason: "Batch verified".to_string(),
-            })
-            .collect()
+            }
+        }).collect()
     }
 
     // ========================================================================
@@ -217,9 +188,7 @@ impl BaselineCapsule {
         );
 
         let ctx_arc = Arc::new(ctx);
-        self.context_store
-            .lock()
-            .insert(ctx_arc.context_id, (*ctx_arc).clone());
+        self.context_store.lock().insert(ctx_arc.context_id, (*ctx_arc).clone());
 
         ctx_arc
     }
@@ -231,10 +200,7 @@ impl BaselineCapsule {
     }
 
     /// Apply 1:99 covenant enforcement
-    pub async fn apply_1_99_covenant(
-        &self,
-        context: &Arc<ExecutionContext>,
-    ) -> CovenantEnforcement {
+    pub async fn apply_1_99_covenant(&self, context: &Arc<ExecutionContext>) -> CovenantEnforcement {
         CovenantEnforcement {
             sovereign_quota_percent: 1,
             delegated_quota_percent: 99,

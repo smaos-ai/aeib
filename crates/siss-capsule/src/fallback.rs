@@ -6,9 +6,16 @@ use std::sync::Arc;
 
 #[derive(Clone, Debug)]
 pub enum FallbackAction {
-    RetryWithBackoff { max_retries: u32, backoff_ms: u64 },
-    SwitchToFallback { model_name: String },
-    ReturnCached { cache_key: String },
+    RetryWithBackoff {
+        max_retries: u32,
+        backoff_ms: u64,
+    },
+    SwitchToFallback {
+        model_name: String,
+    },
+    ReturnCached {
+        cache_key: String,
+    },
     FailClosed,
 }
 

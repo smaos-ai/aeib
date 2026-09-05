@@ -5,8 +5,8 @@ use chrono::{DateTime, Utc};
 use dashmap::DashMap;
 use sha2::{Digest, Sha256};
 use std::sync::Arc;
-use thiserror::Error;
 use uuid::Uuid;
+use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum SwarmError {

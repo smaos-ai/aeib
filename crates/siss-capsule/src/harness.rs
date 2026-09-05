@@ -2,9 +2,9 @@
 // Routes policy checks through adapters (LangChain, Ollama, AutoGPT)
 
 use crate::types::HarnessConfig;
-use parking_lot::Mutex;
-use std::collections::HashMap;
 use std::sync::Arc;
+use std::collections::HashMap;
+use parking_lot::Mutex;
 
 pub struct HarnessCapsule {
     config: HarnessConfig,

@@ -2,8 +2,6 @@
 // @file scoping + diff-only validation + test-gating
 
 use dashmap::DashMap;
-use hex;
-use sha2::{Digest, Sha256};
 use std::sync::Arc;
 use thiserror::Error;
 
@@ -86,9 +84,7 @@ impl ProtocolV2Bridge {
             if allow_pattern.ends_with("/**") {
                 let prefix = &allow_pattern[..allow_pattern.len() - 3];
                 // Check if file_path contains the directory with proper separators
-                if file_path.contains(&format!("/{}/", prefix))
-                    || file_path.contains(&format!("{}/", prefix))
-                {
+                if file_path.contains(&format!("/{}/", prefix)) || file_path.contains(&format!("{}/", prefix)) {
                     return true;
                 }
             } else if file_path == allow_pattern {
@@ -137,82 +133,6 @@ impl ProtocolV2Bridge {
     pub fn is_valid_diff(&self, old: &str, new: &str) -> bool {
         // Reject if either contains null bytes (binary detection)
         !old.contains('\0') && !new.contains('\0')
-    }
-
-    /// Compute SHA256 hash of diff (old + new concatenated)
-    pub fn compute_diff_hash(&self, old: &str, new: &str) -> String {
-        let mut hasher = Sha256::new();
-        hasher.update(old.as_bytes());
-        hasher.update(new.as_bytes());
-        let result = hasher.finalize();
-        hex::encode(result)
-    }
-
-    /// Calculate total size of diff in bytes (old + new lengths)
-    pub fn diff_size_bytes(&self, old: &str, new: &str) -> usize {
-        old.len() + new.len()
-    }
-
-    /// Validate diff semantics: check braces and quotes balance
-    pub fn validate_diff_semantics(&self, _old: &str, new: &str) -> Result<()> {
-        let mut brace_count = 0;
-        let mut paren_count = 0;
-        let mut bracket_count = 0;
-        let mut in_string = false;
-        let mut escape_next = false;
-        let mut quote_char = ' ';
-
-        for ch in new.chars() {
-            if escape_next {
-                escape_next = false;
-                continue;
-            }
-
-            if ch == '\\' {
-                escape_next = true;
-                continue;
-            }
-
-            // Handle string literals
-            if !in_string && (ch == '"' || ch == '\'') {
-                in_string = true;
-                quote_char = ch;
-            } else if in_string && ch == quote_char {
-                in_string = false;
-            } else if !in_string {
-                // Only count braces outside strings
-                match ch {
-                    '{' => brace_count += 1,
-                    '}' => brace_count -= 1,
-                    '(' => paren_count += 1,
-                    ')' => paren_count -= 1,
-                    '[' => bracket_count += 1,
-                    ']' => bracket_count -= 1,
-                    _ => {}
-                }
-            }
-
-            // Check for unbalanced braces during iteration
-            if brace_count < 0 || paren_count < 0 || bracket_count < 0 {
-                return Err(ScopeError::InvalidDiff);
-            }
-        }
-
-        // Final checks: all should be balanced
-        if brace_count != 0 {
-            return Err(ScopeError::InvalidDiff);
-        }
-        if paren_count != 0 {
-            return Err(ScopeError::InvalidDiff);
-        }
-        if bracket_count != 0 {
-            return Err(ScopeError::InvalidDiff);
-        }
-        if in_string {
-            return Err(ScopeError::InvalidDiff);
-        }
-
-        Ok(())
     }
 }
 

@@ -2,7 +2,7 @@
 // <500ms LangChain roundtrip + <100ms Ollama per-token
 
 use crate::harness::HarnessCapsule;
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 use std::time::Instant;
 
 // ============================================================================

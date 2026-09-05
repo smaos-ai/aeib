@@ -134,6 +134,19 @@ export class PrometheusCollector {
         result.push(`${key}{${v.labels ? Object.entries(v.labels).map(([k, val]) => `${k}="${val}"`).join(',') : ''}} ${v.value}`);
       }
     }
+
+    // Add percentiles if we have latency data
+    if (this.latencies.length > 0) {
+      const sorted = [...this.latencies].sort((a, b) => a - b);
+      const p50 = sorted[Math.floor(sorted.length * 0.5)];
+      const p95 = sorted[Math.floor(sorted.length * 0.95)];
+      const p99 = sorted[Math.floor(sorted.length * 0.99)];
+
+      result.push(`p50 ${p50}`);
+      result.push(`p95 ${p95}`);
+      result.push(`p99 ${p99}`);
+    }
+
     return result;
   }
 

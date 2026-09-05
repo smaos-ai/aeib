@@ -30,7 +30,7 @@ describe('Prometheus Metrics Collector', () => {
         collector.recordQueryLatency('query', i);
       }
       const metrics = collector.getMetrics();
-      expect(metrics).toContain('p50');
+      expect(metrics.some(m => m.includes('p50'))).toBe(true);
       // p50 should be around 50
     });
 
@@ -39,7 +39,7 @@ describe('Prometheus Metrics Collector', () => {
         collector.recordQueryLatency('query', i);
       }
       const metrics = collector.getMetrics();
-      expect(metrics).toContain('p95');
+      expect(metrics.some(m => m.includes('p95'))).toBe(true);
       // p95 should be around 95
     });
 
@@ -48,7 +48,7 @@ describe('Prometheus Metrics Collector', () => {
         collector.recordQueryLatency('query', i);
       }
       const metrics = collector.getMetrics();
-      expect(metrics).toContain('p99');
+      expect(metrics.some(m => m.includes('p99'))).toBe(true);
       // p99 should be around 99
     });
   });

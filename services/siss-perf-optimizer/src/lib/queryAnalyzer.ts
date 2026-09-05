@@ -194,8 +194,10 @@ export class QueryAnalyzer {
       complexity += 3 + joinCount * 2;
     }
 
-    if (query.toUpperCase().includes('SUBQUERY') || query.includes('SELECT') && query.split('SELECT').length > 2) {
-      complexity += 5;
+    // Check for subqueries (nested SELECT)
+    const selectCount = (query.match(/SELECT/gi) || []).length;
+    if (selectCount > 1) {
+      complexity += 6; // Higher than 5 for subqueries
     }
 
     if (query.toUpperCase().includes('GROUP BY')) {

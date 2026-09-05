@@ -2,13 +2,14 @@
 use chrono::Utc;
 use siss_compliance_agent::{
     ComplianceAgent, ComplianceEvaluation, ComplianceVerdict, IncomingPlan, PolicyAction,
-    PolicyRule,
+    PolicyRule, ResourceMetrics,
 };
 use uuid::Uuid;
 
 #[tokio::test]
 async fn test_compliance_agent_creation() {
-    let signing_key = ed25519_dalek::SigningKey::generate(&mut rand::thread_rng());
+    let secret_bytes: [u8; 32] = rand::random();
+    let signing_key = ed25519_dalek::SigningKey::from_bytes(&secret_bytes);
     let agent = ComplianceAgent::new(signing_key);
 
     assert_ne!(agent.agent_id, Uuid::nil());
@@ -70,7 +71,8 @@ fn test_compliance_verdict_variants() {
 
 #[tokio::test]
 async fn test_compliance_evaluate_plan() {
-    let signing_key = ed25519_dalek::SigningKey::generate(&mut rand::thread_rng());
+    let secret_bytes: [u8; 32] = rand::random();
+    let signing_key = ed25519_dalek::SigningKey::from_bytes(&secret_bytes);
     let agent = ComplianceAgent::new(signing_key);
 
     let plan = IncomingPlan {
@@ -126,7 +128,11 @@ fn test_dry_run_execution() {
         plan_id: Uuid::new_v4(),
         trace_steps: vec!["step1".to_string(), "step2".to_string()],
         sandbox_exit_code: 0,
-        resources_consumed: Default::default(),
+        resources_consumed: ResourceMetrics {
+            cpu_ms: 0,
+            memory_bytes: 0,
+            network_calls: 0,
+        },
     };
 
     assert_eq!(dry_run.sandbox_exit_code, 0);

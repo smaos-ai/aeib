@@ -16,22 +16,23 @@ pub fn start_recovery_sweep(
         let mut ticker = tokio::time::interval(interval);
         loop {
             ticker.tick().await;
-            if let Ok(result) = run_recovery_sweep_pass(&pool).await
-                && let Some(ref bc) = broadcaster
-                && (result.sovereigns_advanced > 0 || result.sovereigns_completed > 0)
-            {
-                let timestamp = Utc::now().to_rfc3339();
-                bc.emit(
-                    crate::recovery_event_broadcaster::RecoveryEvent::ScoringDecision {
-                        sovereign_id: "sweep-aggregate".to_string(),
-                        score: 0,
-                        weeks_elapsed: 0,
-                        slash_penalty: 0,
-                        anomaly_penalty: 0,
-                        settlement_bonus: 0,
-                        timestamp,
-                    },
-                );
+            if let Ok(result) = run_recovery_sweep_pass(&pool).await {
+                if let Some(ref bc) = broadcaster {
+                    if result.sovereigns_advanced > 0 || result.sovereigns_completed > 0 {
+                        let timestamp = Utc::now().to_rfc3339();
+                        bc.emit(
+                            crate::recovery_event_broadcaster::RecoveryEvent::ScoringDecision {
+                                sovereign_id: "sweep-aggregate".to_string(),
+                                score: 0,
+                                weeks_elapsed: 0,
+                                slash_penalty: 0,
+                                anomaly_penalty: 0,
+                                settlement_bonus: 0,
+                                timestamp,
+                            },
+                        );
+                    }
+                }
             }
         }
     })

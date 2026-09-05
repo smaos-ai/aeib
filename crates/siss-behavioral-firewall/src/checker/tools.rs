@@ -21,14 +21,14 @@ impl FirewallChecker for ToolComplianceChecker {
         let mut violations = Vec::new();
 
         for uuid_str in extract_uuids(&output_str) {
-            if let Ok(found_uuid) = Uuid::parse_str(&uuid_str)
-                && !context.authorized_tools.contains(&found_uuid)
-            {
-                violations.push(Violation {
-                    checker: self.name().into(),
-                    severity: Severity::Enforced,
-                    message: format!("Output references unauthorized tool {}", found_uuid),
-                });
+            if let Ok(found_uuid) = Uuid::parse_str(&uuid_str) {
+                if !context.authorized_tools.contains(&found_uuid) {
+                    violations.push(Violation {
+                        checker: self.name().into(),
+                        severity: Severity::Enforced,
+                        message: format!("Output references unauthorized tool {}", found_uuid),
+                    });
+                }
             }
         }
 

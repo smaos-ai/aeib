@@ -16,7 +16,10 @@ pub struct SovereignKeypair {
 
 impl SovereignKeypair {
     pub fn generate() -> Self {
-        let signing_key = SigningKey::generate(&mut rand::thread_rng());
+        let mut random_bytes = [0u8; 32];
+        use rand::RngCore;
+        rand::thread_rng().fill_bytes(&mut random_bytes);
+        let signing_key = SigningKey::from_bytes(&random_bytes);
         Self { signing_key }
     }
 

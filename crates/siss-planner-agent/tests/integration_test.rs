@@ -5,7 +5,8 @@ use uuid::Uuid;
 
 #[tokio::test]
 async fn test_planner_agent_creation() {
-    let signing_key = ed25519_dalek::SigningKey::generate(&mut rand::thread_rng());
+    let secret_bytes: [u8; 32] = rand::random();
+    let signing_key = ed25519_dalek::SigningKey::from_bytes(&secret_bytes);
     let agent = PlannerAgent::new(signing_key);
 
     // Agent should be created successfully
@@ -32,7 +33,8 @@ async fn test_intent_spec_creation() {
 
 #[tokio::test]
 async fn test_planner_ingest_valid_intent() {
-    let signing_key = ed25519_dalek::SigningKey::generate(&mut rand::thread_rng());
+    let secret_bytes: [u8; 32] = rand::random();
+    let signing_key = ed25519_dalek::SigningKey::from_bytes(&secret_bytes);
     let agent = PlannerAgent::new(signing_key);
 
     let intent = IntentSpec {
@@ -106,7 +108,7 @@ fn test_implementation_plan_structure() {
 fn test_risk_level_comparison() {
     use siss_planner_agent::RiskLevel;
 
-    assert!(RiskLevel::Low as u8 < RiskLevel::Medium as u8);
-    assert!(RiskLevel::Medium as u8 < RiskLevel::High as u8);
-    assert!(RiskLevel::High as u8 < RiskLevel::Critical as u8);
+    assert!((RiskLevel::Low as u8) < (RiskLevel::Medium as u8));
+    assert!((RiskLevel::Medium as u8) < (RiskLevel::High as u8));
+    assert!((RiskLevel::High as u8) < (RiskLevel::Critical as u8));
 }

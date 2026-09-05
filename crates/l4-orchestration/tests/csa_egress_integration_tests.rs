@@ -118,9 +118,10 @@ impl EgressControlValidator {
     pub fn validate(&mut self, pilot: &str, destination: &str) -> EgressResult {
         let attempt_id = uuid::Uuid::new_v4().to_string();
 
-        // Check whitelist
+        // Check whitelist (case-insensitive)
         if let Some(allowed_domains) = self.whitelist.get(pilot) {
-            if allowed_domains.iter().any(|d| destination.contains(d)) {
+            let destination_lower = destination.to_lowercase();
+            if allowed_domains.iter().any(|d| destination_lower.contains(&d.to_lowercase())) {
                 let entry = EgressAuditEntry {
                     attempt_id,
                     pilot: pilot.to_string(),

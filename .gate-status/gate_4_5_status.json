@@ -2,8 +2,8 @@
   "gates": [4, 5],
   "gate_names": ["ap2_anchoring", "compliance_check"],
   "status": "PASS",
-  "timestamp": "2026-09-05T02:19:32Z",
+  "timestamp": "2026-09-05T02:49:34Z",
   "exit_code": 0,
-  "compliance_report": "/Users/andriileukhin/Documents/SovereignNexus/.smaos/compliance_check_1788574730.json",
+  "compliance_report": "/Users/andriileukhin/Documents/SovereignNexus/.smaos/compliance_check_1788576524.json",
   "log_path": "/Users/andriileukhin/Documents/SovereignNexus/.gate-logs/gate_4_5_verification.log"
 }

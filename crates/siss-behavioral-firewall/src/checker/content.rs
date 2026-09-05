@@ -65,14 +65,14 @@ impl FirewallChecker for ContentSafetyChecker {
         let mut violations = Vec::new();
 
         for fp in &self.config.patterns {
-            if let Ok(re) = Regex::new(&fp.pattern)
-                && re.is_match(&output_str)
-            {
-                violations.push(Violation {
-                    checker: self.name().into(),
-                    severity: fp.severity,
-                    message: format!("Forbidden pattern '{}' detected in output", fp.name),
-                });
+            if let Ok(re) = Regex::new(&fp.pattern) {
+                if re.is_match(&output_str) {
+                    violations.push(Violation {
+                        checker: self.name().into(),
+                        severity: fp.severity,
+                        message: format!("Forbidden pattern '{}' detected in output", fp.name),
+                    });
+                }
             }
         }
 

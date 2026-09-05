@@ -7,7 +7,8 @@ use uuid::Uuid;
 
 #[tokio::test]
 async fn test_evidence_agent_creation() {
-    let signing_key = ed25519_dalek::SigningKey::generate(&mut rand::thread_rng());
+    let secret_bytes: [u8; 32] = rand::random();
+    let signing_key = ed25519_dalek::SigningKey::from_bytes(&secret_bytes);
     let agent = EvidenceAgent::new(signing_key);
 
     assert_ne!(agent.agent_id, Uuid::nil());
@@ -81,7 +82,8 @@ fn test_incoming_evaluation_serialization() {
 
 #[tokio::test]
 async fn test_evidence_process_evaluation() {
-    let signing_key = ed25519_dalek::SigningKey::generate(&mut rand::thread_rng());
+    let secret_bytes: [u8; 32] = rand::random();
+    let signing_key = ed25519_dalek::SigningKey::from_bytes(&secret_bytes);
     let mut agent = EvidenceAgent::new(signing_key);
 
     let evaluation = IncomingEvaluation {

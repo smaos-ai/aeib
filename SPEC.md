@@ -86,7 +86,7 @@ dispatch refused before execution
 | ID | Name | Trigger Condition | Expected Verdict |
 | :--- | :--- | :--- | :--- |
 | 01 | `01_confirmed_settlement` | Dispatch + matching HTTP 200 receipt | `CONFIRMED` |
-| 02 | `02_http_504_timeout` | Dispatch + HTTP 504 timeout, no confirmation | `UNKNOWN` |
+| 02 | `02_timeout_unknown` | Dispatch + HTTP 504 timeout, no confirmation | `UNKNOWN` |
 | 03 | `03_missing_dispatch_evidence` | Receipt received with no prior dispatch evidence | `MISSING_EVIDENCE` |
 | 04 | `04_idempotency_collision` | Retry on active lock with duplicate nonce (HTTP 409) | `CONFLICT` |
 | 05 | `05_conflicting_state_claim` | Adapter claims SETTLED vs. Ledger claims CANCELLED | `CONFLICT` |

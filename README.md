@@ -1,6 +1,8 @@
 # Agent External Invariant Benchmark (AEIB) v0.1
 
-AEIB is a public reference benchmark for testing whether an agent harness preserves uncertainty when an external effect cannot be confirmed. Anyone can run the same scenarios locally, inspect the expected outcomes, and submit reproducible results.
+Reference benchmark for action uncertainty — Tests fail-closed precedence and UNKNOWN-state handling when an external effect cannot be confirmed. Anyone can run the same scenarios locally, inspect the expected outcomes, and submit reproducible results.
+
+The reference benchmark is configured to run without network access and does not require cloud services. Container execution uses `network_mode: "none"` and does not transmit prompts or source. This describes the reference configuration, not every possible host, plugin, or developer invocation.
 
 ## Overview
 
@@ -36,17 +38,19 @@ INVALID_INPUT
 
 ```text
 aeib/
+├── .gitignore
+├── Dockerfile
 ├── LICENSE
+├── Makefile
 ├── README.md
 ├── SPEC.md
+├── docker-compose.yml
+├── pyproject.toml
 ├── verification.txt
 ├── verify_release.sh
-├── Makefile
-├── pyproject.toml
 ├── fixtures/
-│   ├── source_contract.json
 │   ├── 01_confirmed_settlement.jsonl
-│   ├── 02_http_504_timeout.jsonl
+│   ├── 02_timeout_unknown.jsonl
 │   ├── 03_missing_dispatch_evidence.jsonl
 │   ├── 04_idempotency_collision.jsonl
 │   ├── 05_conflicting_state_claim.jsonl
@@ -58,10 +62,13 @@ aeib/
 ├── runner/
 │   ├── __init__.py
 │   ├── reference_runner.py
+│   ├── runner.py
+│   ├── scorer.py
+│   ├── spec_validator.py
 │   └── verifier.py
 └── expected/
     ├── 01_confirmed_settlement.json
-    ├── 02_http_504_timeout.json
+    ├── 02_timeout_unknown.json
     ├── 03_missing_dispatch_evidence.json
     ├── 04_idempotency_collision.json
     ├── 05_conflicting_state_claim.json
@@ -74,20 +81,27 @@ aeib/
 
 ## Quickstart
 
-### 1. Verify Manifest Integrity
-Verify that all test fixtures and expected scorecards match their cryptographic hashes:
+### 1. Run in Isolated Container (Recommended)
+Run the complete reference benchmark in an air-gapped container (`network_mode: "none"`):
+```bash
+docker compose run --rm benchmark
+```
+Expected output: `Total: 10, Passed: 10, Failed: 0` (exit code 0).
+
+### 2. Verify Manifest Integrity
+Verify that all 20 test fixtures and expected scorecards match their cryptographic hashes:
 ```bash
 python3 runner/verifier.py --manifest verification.txt
 ```
 
-### 2. Run Reference Evaluation
-Execute the benchmark harness over the test fixtures (designed for deterministic offline verification):
+### 3. Run Rule-Grounding Oracle
+Run the standalone, independent specification oracle (zero runner dependencies):
 ```bash
-python3 runner/reference_runner.py fixtures/
+python3 runner/spec_validator.py fixtures expected
 ```
-Outputs `results.json` and `scorecard.json`.
 
-### 3. Run Clean-Machine Release Verification
+### 4. Single-Scenario Evaluation
+Evaluate a single synthetic scenario directly via the reference runner:
 ```bash
-bash verify_release.sh aeib-v0.1.0.zip
+python3 runner/runner.py fixtures/02_timeout_unknown.jsonl out/results.jsonl
 ```

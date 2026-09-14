@@ -128,7 +128,7 @@ echo -e "${GREEN}✅ Phase 3 Passed: 0 console diff, 100% bit-exact artifact rep
 echo -e "\n${YELLOW}──► [Phase 4/6] State Machine Invariant Audit${NC}"
 
 # Invariant A: Timeout 504 must resolve to MISSING_EVIDENCE or UNKNOWN
-SCENARIO_504_DISP=$(jq -r '.scenarios["02_http_504_timeout"].verdict' results.json)
+SCENARIO_504_DISP=$(jq -r '.scenarios["02_timeout_unknown"].verdict' results.json)
 if [ "$SCENARIO_504_DISP" == "CONFIRMED" ]; then
     echo -e "${RED}❌ Critical Safety Failure: HTTP 504 was falsely marked CONFIRMED!${NC}"
     exit 1

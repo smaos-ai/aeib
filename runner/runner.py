@@ -76,6 +76,12 @@ def evaluate_file(file_path: Path):
 
     dispatch_hashes = [r.get("payload_hash") for _, r in rows if r.get("row_type") == "DISPATCH" and "payload_hash" in r]
     receipt_hashes = [r.get("payload_hash") for _, r in rows if r.get("row_type") == "RECEIPT" and "payload_hash" in r]
+    if len(set(receipt_hashes)) > 1:
+        return {
+            "action_id": action_id,
+            "disposition": "CONFLICT",
+            "reason": "Contradictory duplicate receipts with differing payload hashes"
+        }
     if dispatch_hashes and receipt_hashes and dispatch_hashes[0] != receipt_hashes[0]:
         return {
             "action_id": action_id,

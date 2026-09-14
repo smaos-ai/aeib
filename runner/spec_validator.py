@@ -73,6 +73,8 @@ def validate_fixture_text(file_path: Path) -> str:
     # Sub-rule 3d: Payload hash divergence between dispatch and receipt
     dispatch_hashes = [r.get("payload_hash") for _, r in rows if r.get("row_type") == "DISPATCH" and "payload_hash" in r]
     receipt_hashes = [r.get("payload_hash") for _, r in rows if r.get("row_type") == "RECEIPT" and "payload_hash" in r]
+    if len(set(receipt_hashes)) > 1:
+        return "CONFLICT"
     if dispatch_hashes and receipt_hashes and dispatch_hashes[0] != receipt_hashes[0]:
         return "CONFLICT"
 

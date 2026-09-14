@@ -81,6 +81,19 @@ dispatch refused before execution
 = REFUSED
 ```
 
+### 2.5 Duplicate Receipt and Idempotency Semantics
+
+Precedence rule 3 (`CONFLICT`) and rule 5 (`CONFIRMED`) govern multiple confirmations for the same action:
+
+1. **Idempotent Duplicate Receipts (`CONFIRMED`)**:
+   When multiple receipt records are recorded for the same action identifier with identical payload digests, HTTP status codes, and execution outcomes, implementations MUST treat subsequent receipts as idempotent confirmation evidence. If qualifying dispatch evidence exists and no higher-priority condition applies, the disposition resolves to `CONFIRMED` (duplicate identical receipt does not constitute conflict).
+
+2. **Contradictory Duplicate Receipts (`CONFLICT`)**:
+   When multiple receipt records for the same action identifier report differing payload digests, incompatible HTTP status codes, or contradictory execution states, implementations MUST treat the divergence as contradictory evidence and evaluate the disposition as `CONFLICT`.
+
+3. **Active Lock Collision (`CONFLICT`)**:
+   When a retry encounters an active idempotency lock (HTTP 409 `IDEMPOTENCY_LOCK_ACTIVE`), the action state is contested and MUST evaluate to `CONFLICT`.
+
 ## 3. Standard Scenarios
 
 | ID | Name | Trigger Condition | Expected Verdict |

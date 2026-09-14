@@ -1,0 +1,3 @@
+{"row_type": "DISPATCH", "action_id": "ACT-108", "nonce": "NONCE-108", "amount": 100}
+{"row_type": "RECEIPT", "action_id": "ACT-108", "status": INVALID_JSON_SYNTAX_WITHOUT_QUOTES
+{"row_type": "STATE", "action_id": "ACT-108", "status": "UNKNOWN"}

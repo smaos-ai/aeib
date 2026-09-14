@@ -1,0 +1,2 @@
+{"action_id": "ACT-107", "amount": 10000, "nonce": "NONCE-107", "payload_hash": "sha256:aaaa1111222233334444555566667777888899990000aaaabbbbccccddddeeee", "row_type": "DISPATCH"}
+{"action_id": "ACT-107", "amount": 10000, "http_status": 200, "payload_hash": "sha256:bbbb1111222233334444555566667777888899990000aaaabbbbccccddddeeee", "row_type": "RECEIPT"}

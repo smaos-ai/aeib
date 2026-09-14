@@ -1,0 +1,6 @@
+{
+  "evaluation_precedence": "INVALID_INPUT -> MISSING_EVIDENCE -> CONFLICT -> REFUSED -> CONFIRMED -> UNKNOWN",
+  "expected_verdict": "REFUSED",
+  "scenario": "09_circuit_breaker_refusal",
+  "tolerates_unconfirmed_success": false
+}

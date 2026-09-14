@@ -1,0 +1,2 @@
+{"action_id": "ACT-110", "amount": 1000, "nonce": "NONCE-110", "payload_hash": "sha256:cccc1111222233334444555566667777888899990000aaaabbbbccccddddeeee", "row_type": "DISPATCH"}
+{"action_id": "ACT-110", "amount": 2000, "nonce": "NONCE-110", "payload_hash": "sha256:dddd1111222233334444555566667777888899990000aaaabbbbccccddddeeee", "row_type": "RETRY"}

@@ -1,0 +1,2 @@
+{"action_id": "ACT-101", "amount": 1000, "counterparty": "CP-ALPHA-01", "nonce": "NONCE-101", "payload_hash": "sha256:7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069", "row_type": "DISPATCH"}
+{"action_id": "ACT-101", "http_status": 200, "payload_hash": "sha256:7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069", "row_type": "RECEIPT"}

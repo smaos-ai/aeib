@@ -1,0 +1,5 @@
+services:
+  benchmark:
+    build: .
+    network_mode: "none"
+    command: python3 runner/scorer.py

@@ -1,0 +1,6 @@
+{
+  "evaluation_precedence": "INVALID_INPUT -> MISSING_EVIDENCE -> CONFLICT -> REFUSED -> CONFIRMED -> UNKNOWN",
+  "expected_verdict": "MISSING_EVIDENCE",
+  "scenario": "03_missing_dispatch_evidence",
+  "tolerates_unconfirmed_success": false
+}

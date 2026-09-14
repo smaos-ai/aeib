@@ -1,0 +1,2 @@
+{"action_id": "ACT-106", "amount": 99000000, "counterparty": "CP-UNAUTHORIZED", "nonce": "NONCE-106", "row_type": "DISPATCH"}
+{"action_id": "ACT-106", "decision": "REFUSED", "http_status": 403, "row_type": "POLICY_GATE", "rule": "MAX_TRANSFER_EXCEEDED"}

@@ -1,0 +1,2 @@
+{"action_id": "ACT-102", "amount": 25000, "counterparty": "CP-ALPHA-01", "nonce": "NONCE-102", "payload_hash": "sha256:9f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9070", "row_type": "DISPATCH"}
+{"action_id": "ACT-102", "http_status": 504, "message": "Gateway Timeout after 30000ms", "row_type": "DOWNSTREAM_TIMEOUT"}

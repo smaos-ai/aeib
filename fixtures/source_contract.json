@@ -1,0 +1,10 @@
+{
+  "allowed_counterparties": [
+    "CP-ALPHA-01",
+    "CP-BETA-02",
+    "CP-GAMMA-03"
+  ],
+  "asset": "EUR",
+  "contract_id": "CT-AEIB-2026",
+  "max_single_transfer": 5000000
+}

@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+out/
+.DS_Store
+*.swp
+*.swo
+REPRODUCTION_TRACKER.md

@@ -1,0 +1,2 @@
+{"action_id": "ACT-104", "amount": 5000, "nonce": "NONCE-LOCK-99", "row_type": "DISPATCH", "status": "PENDING"}
+{"action_id": "ACT-104", "error": "IDEMPOTENCY_LOCK_ACTIVE", "http_status": 409, "nonce": "NONCE-LOCK-99", "row_type": "RETRY"}

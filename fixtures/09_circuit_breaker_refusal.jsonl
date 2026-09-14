@@ -1,0 +1,2 @@
+{"action_id": "ACT-109", "amount": 7500, "row_type": "DISPATCH_REQUEST"}
+{"action_id": "ACT-109", "decision": "REFUSED", "dispatch_attempted": false, "http_status": 503, "message": "Switch open; request rejected before dispatch", "row_type": "CIRCUIT_BREAKER"}

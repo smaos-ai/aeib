@@ -1,0 +1,6 @@
+{
+  "evaluation_precedence": "INVALID_INPUT -> MISSING_EVIDENCE -> CONFLICT -> REFUSED -> CONFIRMED -> UNKNOWN",
+  "expected_verdict": "CONFLICT",
+  "scenario": "04_idempotency_collision",
+  "tolerates_unconfirmed_success": false
+}

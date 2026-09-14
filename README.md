@@ -2,7 +2,7 @@
 
 Reference benchmark for action uncertainty — Tests fail-closed precedence and UNKNOWN-state handling when an external effect cannot be confirmed. Anyone can run the same scenarios locally, inspect the expected outcomes, and submit reproducible results.
 
-The reference benchmark is configured to run without network access and does not require cloud services. Container execution uses `network_mode: "none"` and does not transmit prompts or source. This describes the reference configuration, not every possible host, plugin, or developer invocation.
+The reference benchmark is configured to run without network access and does not require cloud services. Container execution uses `network_mode: "none"`; the reference benchmark does not require prompts, source code, or cloud services. This describes the reference configuration, not every possible host, plugin, or developer invocation.
 
 ## Overview
 

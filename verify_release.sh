@@ -71,8 +71,8 @@ cd "$WORK_DIR"
 FILE_COUNT=$(find . -type f | grep -v "release-verification" | wc -l | tr -d ' ')
 echo "  Total Packaged Files: $FILE_COUNT"
 
-if [ "$FILE_COUNT" -ne 31 ]; then
-    echo -e "${RED}❌ Packaging Violation: Expected exactly 31 files, found $FILE_COUNT${NC}"
+if [ "$FILE_COUNT" -ne 36 ]; then
+    echo -e "${RED}❌ Packaging Violation: Expected exactly 36 files, found $FILE_COUNT${NC}"
     exit 1
 fi
 
@@ -168,7 +168,7 @@ if grep -nE "$PROHIBITED_REGEX" SPEC.md README.md > "$VERIFY_DIR/prohibited-term
 fi
 
 # Confirm standard public claim exact wording
-STANDARD_CLAIM="AEIB is a public reference benchmark for testing whether an agent harness preserves uncertainty when an external effect cannot be confirmed. Anyone can run the same scenarios locally, inspect the expected outcomes, and submit reproducible results."
+STANDARD_CLAIM="Reference benchmark for action uncertainty — Tests fail-closed precedence and UNKNOWN-state handling when an external effect cannot be confirmed. Anyone can run the same scenarios locally, inspect the expected outcomes, and submit reproducible results."
 if ! grep -F "$STANDARD_CLAIM" README.md > /dev/null; then
     echo -e "${RED}❌ Documentation Error: Standard AEIB public claim missing or altered in README.md!${NC}"
     exit 1

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # AEIB v0.1 — Clean-Machine Release Verification Harness (v0.1.0 Gate)
-# Standard: Agent External Invariant Benchmark (AEIB)
+# Standard: Agent-Effect Integrity Benchmark (AEIB)
 # Precedence: INVALID_INPUT -> MISSING_EVIDENCE -> CONFLICT -> REFUSED -> CONFIRMED -> UNKNOWN
 # ==============================================================================
 set -euo pipefail
@@ -71,8 +71,8 @@ cd "$WORK_DIR"
 FILE_COUNT=$(find . -type f | grep -v "release-verification" | wc -l | tr -d ' ')
 echo "  Total Packaged Files: $FILE_COUNT"
 
-if [ "$FILE_COUNT" -ne 36 ]; then
-    echo -e "${RED}❌ Packaging Violation: Expected exactly 36 files, found $FILE_COUNT${NC}"
+if [ "$FILE_COUNT" -ne 41 ]; then
+    echo -e "${RED}❌ Packaging Violation: Expected exactly 41 files, found $FILE_COUNT${NC}"
     exit 1
 fi
 

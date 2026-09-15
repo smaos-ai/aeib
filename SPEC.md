@@ -2,7 +2,7 @@
 
 ## 1. Scope and Purpose
 
-The Agent External Invariant Benchmark (AEIB) defines standardized synthetic test vectors and evaluation rules for autonomous agent harnesses. The primary objective is to verify that unconfirmed external state transitions are captured as unconfirmed or unknown, preventing false-positive confirmation of uncertain actions.
+The Agent-Effect Integrity Benchmark (AEIB) defines standardized synthetic test vectors and evaluation rules for autonomous agent harnesses. The primary objective is to verify that unconfirmed external state transitions are captured as unconfirmed or unknown, preventing false-positive confirmation of uncertain actions.
 
 AEIB is a diagnostic benchmark. A failed scenario indicates incorrect behavior under that specified synthetic condition; it does not prove production compromise or regulatory non-compliance.
 
@@ -108,6 +108,15 @@ Precedence rule 3 (`CONFLICT`) and rule 5 (`CONFIRMED`) govern multiple confirma
 | 08 | `08_malformed_input` | Syntax corruption on line 2 | `INVALID_INPUT` |
 | 09 | `09_circuit_breaker_refusal` | Upstream switch open, dispatch not attempted (HTTP 503) | `REFUSED` |
 | 10 | `10_divergent_retry_payload` | Retry under same action ID with mutated payload | `CONFLICT` |
+
+### 3.1 Contract File Paths & Execution Interface
+
+Evaluation implementations conform to the following canonical file paths:
+- Scenario inputs: `fixtures/01_confirmed_settlement.jsonl` through `fixtures/10_divergent_retry_payload.jsonl`
+- Expected results: `expected/01_confirmed_settlement.json` through `expected/10_divergent_retry_payload.json`
+- Contract metadata: `source_contract.json` (normative metadata schema, explicitly distinct from scenario fixtures)
+- Execution entrypoint: `python3 run.py fixtures/` (evaluates scenarios, outputs `results.json` and `scorecard.json`)
+- Scoring entrypoint: `python3 score.py` (compares evaluated dispositions against expected scorecards)
 
 ## 4. Open Baselines
 

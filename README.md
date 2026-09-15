@@ -1,4 +1,4 @@
-# Agent External Invariant Benchmark (AEIB) v0.1
+# Agent-Effect Integrity Benchmark (AEIB) v0.1
 
 Reference benchmark for action uncertainty — Tests fail-closed precedence and UNKNOWN-state handling when an external effect cannot be confirmed. Anyone can run the same scenarios locally, inspect the expected outcomes, and submit reproducible results.
 
@@ -40,12 +40,16 @@ INVALID_INPUT
 aeib/
 ├── .gitignore
 ├── Dockerfile
+├── ENVIRONMENT.md
 ├── LICENSE
+├── LIMITATIONS.md
 ├── Makefile
 ├── README.md
 ├── SPEC.md
 ├── docker-compose.yml
 ├── pyproject.toml
+├── run.py
+├── score.py
 ├── verification.txt
 ├── verify_release.sh
 ├── fixtures/
@@ -100,8 +104,13 @@ Run the standalone, independent specification oracle (zero runner dependencies):
 python3 runner/spec_validator.py fixtures expected
 ```
 
-### 4. Single-Scenario Evaluation
-Evaluate a single synthetic scenario directly via the reference runner:
+### 4. Direct Python Execution
+Run evaluation across all 10 scenarios and score against expected baselines:
 ```bash
-python3 runner/runner.py fixtures/02_timeout_unknown.jsonl out/results.jsonl
+python3 run.py fixtures/
+python3 score.py
+```
+Or evaluate a single scenario:
+```bash
+python3 run.py fixtures/02_timeout_unknown.jsonl
 ```

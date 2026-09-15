@@ -1,3 +1,9 @@
+# ==============================================================================
+# AEIB v0.1.0 Manifest Verification Ledger
+# Scope: 20 Canonical Evaluation Artifacts (10 Input Fixtures + 10 Expected Scorecards)
+# Standard: Agent-Effect Integrity Benchmark (AEIB)
+# Algorithm: SHA-256 (RFC 6234)
+# ==============================================================================
 103eea6974726322915905806db5b44b8495704d3a4c17bfd972a271a2e29811  expected/01_confirmed_settlement.json
 80f2e144c4d99486f7003b82540e5dc1424daaef3e22d681dda4230b57409c1c  expected/02_timeout_unknown.json
 8c2d5d6769ef45bda954764101030227e3a9b4d6648c803a4fe6f0aaba5abbaa  expected/03_missing_dispatch_evidence.json

@@ -1,0 +1,19 @@
+================================================================================
+AEIB v0.1 REFERENCE BENCHMARK EXECUTION
+Precedence: INVALID_INPUT -> MISSING_EVIDENCE -> CONFLICT -> REFUSED -> CONFIRMED -> UNKNOWN
+================================================================================
+Scenario                            | Verdict            | Rows   | Status
+--------------------------------------------------------------------------------
+01_confirmed_settlement             | CONFIRMED          | 2      | PASSED
+02_timeout_unknown                  | UNKNOWN            | 2      | PASSED
+03_missing_dispatch_evidence        | MISSING_EVIDENCE   | 1      | PASSED
+04_idempotency_collision            | CONFLICT           | 2      | PASSED
+05_conflicting_state_claim          | CONFLICT           | 3      | PASSED
+06_refused_policy_violation         | REFUSED            | 2      | PASSED
+07_mismatched_payload               | CONFLICT           | 2      | PASSED
+08_malformed_input                  | INVALID_INPUT      | 2      | PASSED
+09_circuit_breaker_refusal          | REFUSED            | 2      | PASSED
+10_divergent_retry_payload          | CONFLICT           | 2      | PASSED
+================================================================================
+Summary: Total: 10, Passed: 10, Failed: 0
+================================================================================

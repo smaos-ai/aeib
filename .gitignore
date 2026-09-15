@@ -8,3 +8,8 @@ out/
 *.swp
 *.swo
 REPRODUCTION_TRACKER.md
+results.json
+scorecard.json
+*.zip
+release-verification/
+

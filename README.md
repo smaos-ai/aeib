@@ -1,12 +1,12 @@
 # AEIB: Agent-Effect Integrity Benchmark
 
-> **AEIB is an offline benchmark for testing whether an agent harness preserves uncertainty when a consequential external action cannot be confirmed.**
-
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![Status: Release Candidate](https://img.shields.io/badge/Status-v0.1.0_Verified-green.svg)](LIMITATIONS.md)
-[![Isolation: Air-Gapped](https://img.shields.io/badge/Network---network_none-orange.svg)](ENVIRONMENT.md)
+[![Status: v0.1.0](https://img.shields.io/badge/Status-v0.1.0-blue.svg)](PUBLIC_REPRODUCTION_REPORT.md)
+[![Network: Disabled](https://img.shields.io/badge/Network-disabled-orange.svg)](ENVIRONMENT.md)
 
 ---
+
+> **AEIB is an offline benchmark for testing whether an agent harness preserves uncertainty when a consequential external action cannot be confirmed.**
 
 ## Overview
 
@@ -14,9 +14,9 @@ Most agent evaluations measure the final answer. **AEIB** evaluates a narrower o
 
 Part of the **SMAOS** framework for **Agent Evidence Integrity**.
 
-- **Reference benchmark** — tests disposition precedence and UNKNOWN-state handling against 10 synthetic JSONL scenarios.
-- **Air-gapped execution** — container runs under `network_mode: "none"` with zero credentials or network egress.
-- **Deterministic scoring** — evaluates classification outputs against six declared precedence states:
+- **Reference benchmark** — tests disposition precedence and `UNKNOWN` handling against 10 declared synthetic JSONL scenarios.
+- **Offline reference execution** — container runs under `network_mode: "none"` with zero credentials or network egress.
+- **Deterministic scoring** — evaluates classification outputs against six declared dispositions:
 
 ```text
 INVALID_INPUT
@@ -26,6 +26,10 @@ INVALID_INPUT
 → CONFIRMED
 → UNKNOWN
 ```
+
+## Core Invariant
+
+When qualifying external evidence is absent or contradictory, an attempted action must not be represented as confirmed merely because a dispatch occurred, a retry was attempted, or an ambiguous response was received.
 
 ## Quickstart
 
@@ -52,7 +56,7 @@ When evaluating external action evidence, AEIB verifies whether the harness resp
 
 ## Related Work
 
-AEIB is the only component in this repository. Other SMAOS tools and commercial services are separate projects and are not required to run AEIB. Their availability, scope, and interfaces are documented separately.
+AEIB is the only component in this repository. Other SMAOS tools and commercial services are separate projects and are not required to run AEIB. Commercial evaluation services, if available, are scoped separately from this repository.
 
 Some future SMAOS services may be relevant to evidence-handling or operational-risk work associated with DORA Articles 28–30 and EU AI Act Articles 12 and 14. This repository does not assess applicability, determine compliance, or provide legal advice.
 
@@ -60,7 +64,7 @@ Some future SMAOS services may be relevant to evidence-handling or operational-r
 
 AEIB v0.1.0 demonstrates reproducibility of the benchmark under the stated test environment. It does not establish production security, DORA or EU AI Act compliance, regulatory incident classification, external-system or ledger truth, complete telemetry coverage, or universal agent safety.
 
-See [LIMITATIONS.md](LIMITATIONS.md) for full normative disclaimers.
+See [LIMITATIONS.md](LIMITATIONS.md) and [PUBLIC_REPRODUCTION_REPORT.md](PUBLIC_REPRODUCTION_REPORT.md) for full normative disclaimers and reproduction telemetry.
 
 ## Independent Reproduction & Telemetry
 

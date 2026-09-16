@@ -1,0 +1,87 @@
+name: Reproduction Report
+description: Submit independent reproduction telemetry for AEIB v0.1.0
+title: "[Reproduction]: <OS/Platform> - <Reviewer/Handle>"
+labels: ["reproduction", "telemetry"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Independent Reproduction Telemetry
+
+        > **Notice:** Do NOT submit proprietary logs, production data, or confidential credentials. Submit ONLY synthetic benchmark telemetry or sanitized public artifacts.
+  - type: input
+    id: reviewer
+    attributes:
+      label: Reviewer / Organization
+      description: Your GitHub handle, organization, or "Independent Researcher".
+      placeholder: "@handle or organization"
+    validations:
+      required: false
+  - type: input
+    id: commit_tag
+    attributes:
+      label: Commit / Tag Tested
+      description: The immutable tag or commit hash evaluated.
+      value: "v0.1.0 (7df056e6e49bb119efb611a9a17241b7c8b2c68c)"
+    validations:
+      required: true
+  - type: input
+    id: os_arch
+    attributes:
+      label: Operating System & Architecture
+      description: Host OS version and CPU architecture.
+      placeholder: "e.g. Ubuntu 24.04.1 LTS x86_64, macOS 15.3.1 arm64"
+    validations:
+      required: true
+  - type: input
+    id: runtime_versions
+    attributes:
+      label: Docker / Python Versions
+      description: Output of docker --version, docker compose version, and python3 --version.
+      placeholder: "e.g. Docker 27.3.1, Compose v2.29.1, Python 3.12.3"
+    validations:
+      required: true
+  - type: checkboxes
+    id: isolation
+    attributes:
+      label: Container Network Isolation
+      options:
+        - label: Confirmed container executed with network_mode: "none" (zero network access)
+          required: true
+  - type: input
+    id: command_executed
+    attributes:
+      label: Exact Execution Command
+      value: "docker compose run --rm benchmark"
+    validations:
+      required: true
+  - type: input
+    id: exit_code
+    attributes:
+      label: Exit Code
+      placeholder: "0"
+    validations:
+      required: true
+  - type: input
+    id: scorecard_match
+    attributes:
+      label: Scorecard Match Rate
+      placeholder: "10/10"
+    validations:
+      required: true
+  - type: input
+    id: output_hash
+    attributes:
+      label: Generated Result Artifacts / Console Output SHA-256 Digest
+      description: SHA-256 digest of generated results or console log.
+      placeholder: "e.g. 72b54ccbc085fab94bd3e88ff2200df91ce8d704c01d533f7a2598d2f6c80910"
+    validations:
+      required: false
+  - type: textarea
+    id: discrepancies
+    attributes:
+      label: Discrepancies, Ambiguities, or Platform Observations
+      description: Report any discrepancies with expected outputs, spec questions, or platform notes.
+      placeholder: "None observed / description of divergence"
+    validations:
+      required: false

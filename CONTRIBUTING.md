@@ -23,13 +23,13 @@ AEIB is an open, offline benchmark created to test whether agent execution harne
 ## Ways to Contribute
 
 ### A. Submit an Independent Reproduction
-If you have run AEIB v0.1.0 on your machine, submit a reproduction record via our [Reproduction Report Issue Template](.github/ISSUE_TEMPLATE/reproduction_report.md). We log verified independent environments in our public reproduction report.
+If you have run AEIB v0.1.0 on your machine, submit a reproduction record via our [Reproduction Report Issue Template](.github/ISSUE_TEMPLATE/reproduction.yml). We log verified independent environments in our public reproduction report.
 
 ### B. Alternate-Language Implementations
 We actively welcome independent re-implementations of the AEIB reference classifier and scorer in other languages (such as **Rust**, **Go**, **TypeScript**, or **C++**):
 - Implementations must adhere strictly to the normative 6-disposition priority cascade specified in [`SPEC.md`](SPEC.md):
   `INVALID_INPUT` -> `MISSING_EVIDENCE` -> `CONFLICT` -> `REFUSED` -> `CONFIRMED` -> `UNKNOWN`
-- Implementations must produce identical JSON scorecards when evaluating the 10 canonical fixtures in `fixtures/`.
+- Implementations must match the expected disposition and required reason markers for all 10 canonical fixtures in `fixtures/` as specified in `SPEC.md`.
 - Alternate implementations will be linked or housed under an `implementations/` directory to demonstrate language-agnostic determinism.
 
 ### C. Propose New Synthetic Scenarios

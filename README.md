@@ -14,7 +14,7 @@ Most agent evaluations measure the final answer. **AEIB** evaluates a narrower o
 
 Part of the **SMAOS** framework for **Agent Evidence Integrity**.
 
-- **Reference benchmark** — tests disposition precedence and `UNKNOWN` handling against 10 declared synthetic JSONL scenarios.
+- **Reference benchmark** — tests disposition precedence and preservation of unresolved `UNKNOWN` outcomes against 10 declared synthetic JSONL scenarios.
 - **Offline reference execution** — container runs under `network_mode: "none"` with zero credentials or network egress.
 - **Deterministic scoring** — evaluates classification outputs against six declared dispositions:
 
@@ -40,6 +40,8 @@ git clone --branch v0.1.0 https://github.com/smaos-ai/aeib.git
 cd aeib
 docker compose run --rm benchmark
 ```
+
+The documented reference container uses `network_mode: "none"` and requires no credentials or cloud services. This describes the reference invocation, not every possible host, plugin, or developer configuration.
 
 The container executes the reference runner (`run.py`) and scoring script (`score.py`) internally without network access.
 
@@ -70,18 +72,19 @@ See [LIMITATIONS.md](LIMITATIONS.md) and [PUBLIC_REPRODUCTION_REPORT.md](PUBLIC_
 
 We log independent third-party reproduction runs to document the cross-platform determinism of the benchmark package.
 
-- **How to report**: Submit your run telemetry via the [Reproduction Report Issue Template](.github/ISSUE_TEMPLATE/reproduction_report.md).
-- **Required fields**: Host OS, CPU architecture, Docker/Python versions, exit code, and scorecard match count.
-- **Zero Proprietary Data Policy**: Do **not** submit proprietary logs, production data, or enterprise credentials. Submit only synthetic reproduction telemetry or sanitized examples.
-- **Public Report**: View our clean-machine baseline report in [PUBLIC_REPRODUCTION_REPORT.md](PUBLIC_REPRODUCTION_REPORT.md).
+Submit telemetry using the [Reproduction Report issue template](.github/ISSUE_TEMPLATE/reproduction.yml). Required fields are host OS, CPU architecture, Docker/Python versions, exit code, scorecard match count, and the tag or commit tested.
+
+Do not submit proprietary logs, production data, or enterprise credentials. Submit only synthetic reproduction telemetry or sanitized examples.
+
+See [PUBLIC_REPRODUCTION_REPORT.md](PUBLIC_REPRODUCTION_REPORT.md) for our clean-machine baseline report.
 
 ## Alternate-Language Implementations
 
-AEIB is designed as a language-agnostic specification of action uncertainty. We invite researchers and developers to create independent implementations of the reference classifier and scorer in **Rust**, **Go**, **TypeScript**, or other languages:
+AEIB is designed as a language-agnostic specification of action uncertainty. We invite researchers and developers to create independent implementations of the reference classifier and scorer in Rust, Go, TypeScript, or other languages.
 
-- Alternate implementations MUST adhere strictly to the 6-disposition priority cascade specified in [SPEC.md](SPEC.md).
-- Implementations MUST produce bit-exact matches against the golden scorecards in `expected/` for all 10 canonical fixtures.
-- Open an issue or pull request to link your implementation. See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
+Alternate implementations must conform to the six-disposition priority cascade specified in `SPEC.md` and match the expected disposition and required reason markers for all 10 canonical fixtures.
+
+Open an issue or pull request to link an implementation. See `CONTRIBUTING.md` for contribution guidelines.
 
 ## Security & Responsible Disclosure
 

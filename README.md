@@ -80,6 +80,49 @@ In production, `CONFIRMED` cannot be claimed from API responses alone. SMAOS spe
 
 ---
 
+## 🏛️ Sovereign Governance Substrate & Regulatory Roadmap
+
+### ✅ Milestone 1 Achieved: Local-First Execution & Pre-Execution Safety
+* **Pre-Execution Fail-Closed Gates**: Intercepts tool dispatches at the wire and kernel boundary before any side effect occurs.
+* **Wire-Fault Simulation**: Tests harness state preservation under simulated HTTP 504 timeouts and dropped sockets, enforcing `verdict: UNKNOWN` rather than writing false `CONFIRMED` success logs.
+* **Cryptographic Provenance**: Generates RFC 8785 JCS-canonicalized Merkle DAG receipts signed with Ed25519 keys for every execution.
+* **Zero Egress**: Runs 100% air-gapped on local hardware under `network_mode: "none"`.
+
+---
+
+### 🎯 Next Target Milestone: December 2, 2027 (EU AI Act Annex III Deadline)
+Under the **EU AI Act (Regulation 2024/1689)** as amended by Digital Omnibus Regulation (EU 2026/1744), the statutory enforcement date for **standalone High-Risk AI systems (Annex III)** is **December 2, 2027**. This applies to all autonomous agent workflows operating in high-risk categories:
+1. **Biometrics & Biometric Categorization**
+2. **Critical Infrastructure Management** (Water, gas, electricity, cloud systems)
+3. **Educational & Vocational Assessment**
+4. **Employment, Worker Management & Access to Self-Employment**
+5. **Access to Essential Private & Public Services** (e.g., Credit Scoring, Loan Approvals, Healthcare)
+6. **Law Enforcement**
+7. **Migration, Asylum & Border Control**
+8. **Administration of Justice & Democratic Processes**
+
+---
+
+### 🧪 Automated Rule & Testing Substrate for Annex III (Articles 9–15)
+This repository serves as an automated test harness and evidence generation engine for Articles 9–15 compliance:
+
+| Statutory Requirement | Governance Substrate Mapping | Technical Evidence Produced |
+| :--- | :--- | :--- |
+| **Article 9: Risk Management** | Bitemporal ledger tracking post-market evaluation and risk registers throughout the lifecycle. | `agentacct.db` audit traces & risk classification logs. |
+| **Article 12: Record-Keeping** | Automatic, tamper-evident event recording over the system's operational lifetime. | SHA-256 Merkle DAG receipts signed with Ed25519 (IETF SCITT profile). |
+| **Article 13: Transparency** | Machine-readable system boundaries, capability disclosures, and limitations. | Auto-generated Model Cards & System Boundary manifests. |
+| **Article 14: Human Oversight** | Pre-execution fail-closed gates holding retries and enforcing human veto authority. | Resumable Cognitive Execution (RCE) interrupts & stop-button logs. |
+| **Article 15: Cybersecurity & Robustness** | Local-first, air-gapped container isolation preventing prompt injection and exfiltration. | Substrate measurement receipts & 0-byte egress network traces. |
+
+---
+
+### ⚖️ Conformity Assessment Pathway: Annex VI Self-Assessment
+Under **Article 43(2)** of the EU AI Act, standalone software falling under Annex III categories undergoes an **Internal Conformity Assessment (Annex VI)**. **No third-party Notified Body is required** for standalone software self-assessment.
+
+Running this test harness automatically compiles the mandatory **Annex IV Technical Dossier** directly from real execution traces, allowing enterprise engineering teams to self-certify compliance for December 2, 2027 deployment.
+
+---
+
 ## 💼 Commercial Offer: 5-Day Staging Forensic Audit (€2,500 Fixed Fee)
 
 We offer a high-impact, fixed-fee diagnostic engagement to stress-test your AI agent harnesses before production deployment.

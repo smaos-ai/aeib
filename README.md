@@ -88,4 +88,4 @@ Open an issue or pull request to link an implementation. See `CONTRIBUTING.md` f
 
 ## Security & Responsible Disclosure
 
-For security inquiries or vulnerability reports, see [SECURITY.md](SECURITY.md). Please report vulnerabilities privately via GitHub Private Vulnerability Reporting or to `security@smaos.ai`.
+For security inquiries or vulnerability reports, see [SECURITY.md](SECURITY.md). Please report vulnerabilities privately via GitHub Private Vulnerability Reporting or to `andrejlo123@gmail.com`.

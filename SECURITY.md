@@ -21,7 +21,7 @@ AEIB is a deterministic test harness over synthetic test fixtures. It does not h
 If you discover a security issue—such as an unexpected network egress vector, a container escape vulnerability, or an issue that could compromise an evaluator host environment—please report it responsibly:
 
 1. **Do not open a public GitHub issue.**
-2. Use GitHub [Private Vulnerability Reporting](https://github.com/smaos-ai/aeib/security/advisories/new) on this repository, or email **`security@smaos.ai`**.
+2. Use GitHub [Private Vulnerability Reporting](https://github.com/smaos-ai/aeib/security/advisories/new) on this repository, or email **`andrejlo123@gmail.com`**.
 3. Include:
    - A description of the vulnerability and its potential impact.
    - Exact steps or script to reproduce the behavior.

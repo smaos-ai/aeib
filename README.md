@@ -49,6 +49,26 @@ The documented reference container uses `network_mode: "none"` and requires no c
 
 The container executes the reference runner (`run.py`) and scoring script (`score.py`) internally without network access.
 
+## 🔬 How Visitors Can Verify Your Proofs (3 Fast Paths)
+
+#### 1. The 10-Second Eyeball Check (No Code Execution)
+* Inspect [`fixtures/01_confirmed_settlement.jsonl`](fixtures/01_confirmed_settlement.jsonl) vs [`fixtures/02_timeout_unknown.jsonl`](fixtures/02_timeout_unknown.jsonl).
+* **The Clue**: See directly in raw JSON how an HTTP 504 timeout maps to mandatory `UNKNOWN` disposition rather than fabricated success.
+
+#### 2. The 60-Second Wire-Fault Demo (Local Python)
+* Run the interactive fault fuzzer in [`aeib-receipt-fuzzer`](https://github.com/smaos-ai/aeib-receipt-fuzzer):
+  ```bash
+  python3 demo_killshot.py
+  ```
+* **The Clue**: Intercepts simulated payments and halts ex-ante on in-flight tampering in ~3.8 seconds.
+
+#### 3. The 5-Minute Zero-Trust Verification (Offline Container)
+* Run the containerized benchmark under `network_mode: "none"`:
+  ```bash
+  docker compose run --rm benchmark
+  ```
+* **The Clue**: Evaluates 10 canonical scenarios against the 6-disposition precedence cascade with zero cloud egress and zero telemetry tax.
+
 ## Disposition Precedence
 
 When evaluating external action evidence, AEIB verifies whether the harness respects the following strict priority cascade:
@@ -68,7 +88,7 @@ Some future SMAOS services may be relevant to evidence-handling or operational-r
 
 ## Limitations & Disclaimer
 
-AEIB v0.1.0 demonstrates reproducibility of the benchmark under the stated test environment. It does not establish production security, DORA or EU AI Act compliance, regulatory incident classification, external-system or ledger truth, complete telemetry coverage, or universal agent safety.
+AEIB v0.1.0 demonstrates reproducibility of the benchmark under the stated test environment. Evaluates state-machine transport invariants; does not provide legal compliance opinions for DORA or EU AI Act. It does not establish production security, regulatory incident classification, external-system or ledger truth, complete telemetry coverage, or universal agent safety.
 
 See [LIMITATIONS.md](LIMITATIONS.md) and [PUBLIC_REPRODUCTION_REPORT.md](PUBLIC_REPRODUCTION_REPORT.md) for full normative disclaimers and reproduction telemetry.
 

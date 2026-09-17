@@ -16,6 +16,8 @@ INVALID_INPUT → MISSING_EVIDENCE → CONFLICT → REFUSED → CONFIRMED → UN
      ①               ②               ③          ④          ⑤          ⑥
 ```
 
+$$\text{INVALID\_INPUT} \longrightarrow \text{MISSING\_EVIDENCE} \longrightarrow \text{CONFLICT} \longrightarrow \text{REFUSED} \longrightarrow \text{CONFIRMED} \longrightarrow \text{UNKNOWN}$$
+
 ### Disposition Definitions
 
 | # | Disposition | Definition | Example Trigger |

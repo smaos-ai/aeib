@@ -94,7 +94,7 @@ Paid Staging Audit (€2,500) ──► Real Failure Mode ──► Anonymized J
 ```
 Every forensic audit enriches our open **AEI Conformance Corpus**, converting real-world edge cases into reproducible public benchmarks while keeping client data strictly confidential.
 
-**Inquiries & Booking:** `contact@smaos.ai` · Fixed Fee: **€2,500 EUR** (Discretionary Procurement Bypass).
+**Inquiries & Booking:** [andrejlo123@gmail.com](mailto:andrejlo123@gmail.com) · Fixed Fee: **€2,500 EUR** (Discretionary Procurement Bypass).
 
 ---
 

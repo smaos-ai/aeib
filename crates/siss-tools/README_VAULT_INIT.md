@@ -76,7 +76,7 @@ To recover: Combine ANY 3 of 5 shards → Decrypt vault → Restore workspace
 #### Step 1: Create Vault A (Primary)
 
 ```bash
-cd /Users/andriileukhin/Documents/SovereignNexus/crates/siss-tools
+cd ./crates/siss-tools
 
 # Run with location A (primary)
 ./vault_init.sh A
@@ -448,7 +448,7 @@ shred -u /tmp/my_shards.txt /tmp/master_key.txt
 
 ```bash
 # Clone or navigate to repo
-cd /Users/andriileukhin/Documents/SovereignNexus/crates/siss-tools
+cd ./crates/siss-tools
 
 # Make script executable
 chmod +x vault_init.sh
@@ -548,7 +548,7 @@ Once vault is created, enable automatic syncing:
 
 ```bash
 # Navigate to siss-night-cycle
-cd /Users/andriileukhin/Documents/SovereignNexus/crates/siss-night-cycle
+cd ./crates/siss-night-cycle
 
 # Configure vault sync
 ./setup_night_shift.sh --vault A --frequency nightly

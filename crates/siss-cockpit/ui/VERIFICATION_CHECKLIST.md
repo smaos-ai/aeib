@@ -316,7 +316,7 @@ Requires ES6+ support (arrow functions, const/let, template strings, async/await
 
 ### Files Location
 ```
-/Users/andriileukhin/Documents/SovereignNexus/crates/siss-cockpit/ui/
+./crates/siss-cockpit/ui/
 ├── components.js              ✅ 530 lines
 ├── components.test.js         ✅ 383 lines (28 tests)
 ├── form-handler.js            ✅ 254 lines

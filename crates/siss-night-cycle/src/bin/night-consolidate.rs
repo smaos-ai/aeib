@@ -1,8 +1,9 @@
 use siss_night_cycle::NightCycleConsolidator;
 use std::path::PathBuf;
-
 fn main() -> std::io::Result<()> {
-    let workspace_root = PathBuf::from("/Users/andriileukhin/Documents/SovereignNexus");
+    let workspace_root = std::env::var("SISS_WORKSPACE")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| PathBuf::from("."));
 
     let exec_log_path = workspace_root.join("EXEC_LOG.json");
     let metrics_db_path = workspace_root.join(".claude/night_metrics.db");

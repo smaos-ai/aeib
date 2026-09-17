@@ -5,7 +5,9 @@ use std::io::Write;
 use std::path::PathBuf;
 
 fn exec_log_path() -> PathBuf {
-    PathBuf::from("/Users/andriileukhin/Documents/SovereignNexus/EXEC_LOG.json")
+    std::env::var("SISS_WORKSPACE")
+        .map(|w| PathBuf::from(w).join("EXEC_LOG.json"))
+        .unwrap_or_else(|_| PathBuf::from("EXEC_LOG.json"))
 }
 
 pub fn append_audit(event: &str, msg: &str) -> std::io::Result<()> {

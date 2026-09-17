@@ -18,7 +18,9 @@ pub struct MetricsDb {
 impl MetricsDb {
     pub fn new(db_path: Option<PathBuf>) -> SqliteResult<Self> {
         let path = db_path.unwrap_or_else(|| {
-            PathBuf::from("/Users/andriileukhin/Documents/SovereignNexus/.claude/night_metrics.db")
+            std::env::var("SISS_WORKSPACE")
+                .map(|w| PathBuf::from(w).join(".claude/night_metrics.db"))
+                .unwrap_or_else(|_| PathBuf::from(".claude/night_metrics.db"))
         });
 
         let conn = Connection::open(path)?;

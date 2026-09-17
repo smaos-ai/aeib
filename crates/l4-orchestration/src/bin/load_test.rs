@@ -506,8 +506,7 @@ fn main() {
         serde_json::to_string_pretty(&result).expect("Failed to serialize results to JSON");
     println!("{}", json_output);
 
-    // Also write to file
-    let output_file = "/Users/andriileukhin/Documents/SovereignNexus/load_test_results.json";
+    let output_file = "load_test_results.json";
     match std::fs::write(output_file, &json_output) {
         Ok(_) => println!("\n✓ Results written to: {}", output_file),
         Err(e) => println!("\n✗ Failed to write results: {}", e),

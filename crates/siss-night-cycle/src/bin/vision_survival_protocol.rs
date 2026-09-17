@@ -5,7 +5,7 @@ use std::path::PathBuf;
 async fn main() {
     // Get workspace path from environment or use default
     let workspace_path = std::env::var("SISS_WORKSPACE")
-        .unwrap_or_else(|_| "/Users/andriileukhin/Documents/SovereignNexus".to_string());
+        .unwrap_or_else(|_| ".".to_string());
 
     let mut protocol = VisionSurvivalProtocol::new(PathBuf::from(workspace_path));
 

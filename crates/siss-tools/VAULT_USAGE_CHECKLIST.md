@@ -82,7 +82,7 @@
 ### Create Vault A
 
 ```bash
-cd /Users/andriileukhin/Documents/SovereignNexus/crates/siss-tools
+cd ./crates/siss-tools
 ./vault_init.sh A
 ```
 
@@ -148,7 +148,7 @@ During execution:
 ### Create Vault B
 
 ```bash
-cd /Users/andriileukhin/Documents/SovereignNexus/crates/siss-tools
+cd ./crates/siss-tools
 ./vault_init.sh B
 ```
 
@@ -189,7 +189,7 @@ Same execution flow as Vault A (estimated 30 minutes)
 ### Create Vault C
 
 ```bash
-cd /Users/andriileukhin/Documents/SovereignNexus/crates/siss-tools
+cd ./crates/siss-tools
 ./vault_init.sh C
 ```
 
@@ -321,7 +321,7 @@ Same execution flow (30 minutes)
 ### Weekly (Automatic via Night Shift)
 - [ ] Night Shift vault sync scheduled
   ```bash
-  cd /Users/andriileukhin/Documents/SovereignNexus/crates/siss-night-cycle
+  cd ./crates/siss-night-cycle
   ./setup_night_shift.sh --vault A --frequency nightly
   ```
 

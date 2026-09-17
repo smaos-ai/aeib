@@ -1,77 +1,112 @@
-# SovereignNexus — SMAOS Phase 1 (v1.0.0)
+# SovereignNexus / SMAOS — Agent-Effect Integrity (AEI)
 
-**Status: Week 1-6 COMPLETE — 95% KARP Submission Ready**
+**Open Source Core & Staging Verification Harness for Autonomous AI Agents**
 
-## Phase 1 Overview (Sep 1, 2026 - May 31, 2027)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![Standard](https://img.shields.io/badge/standard-RFC%208785%20JCS-green.svg)](docs/SPEC.md)
+[![DORA](https://img.shields.io/badge/compliance-DORA%20Art.%2017(3)-orange.svg)](docs/THREAT_MODEL.md)
 
-SovereignNexus is the natural-language harness for trustworthy agent governance. Phase 1 delivers a 1500+ line production harness across 8 layers (L1-L8) with proof-of-compliance framework.
+---
 
-### Core Deliverables ✅
+## 🏛️ The Core Thesis: Property-Level Sufficiency
 
-| Layer | Component | Status | Tests | Output |
-|-------|-----------|--------|-------|--------|
-| **L1** | Policy Routing (Claude SDK) | ✅ Complete | 16 | 250+ lines, policy enforcement |
-| **L2** | Knowledge (pgvector + BM25) | ✅ Complete | 18 | 620 lines, hybrid search layer |
-| **L3** | Permit Gates (tool registry) | ✅ Complete | 20 | 280 lines, enforcement gates |
-| **L4** | Orchestration (3 pilots) | ✅ Complete | 8 | 500 lines, LangGraph integration |
-| **L5** | Communication (4 MCP servers) | ✅ Complete | 4 | 440 lines, A2A messaging |
-| **L6** | Infrastructure (hardware detect) | ✅ Complete | 22 | 350 lines, FreeToken + CanIRun |
-| **L7** | RAGAS (50Q golden set) | ✅ Complete | 27 | 580 lines, 87%+ accuracy proven |
-| **L8** | Proof (agentacct + AP2 ledger) | ✅ Complete | 17 | 520 lines, immutable audit trail |
+Existing developer tooling focuses almost exclusively on **Container Presence**:
+> *"Is a JSON trace file present? Is an Ed25519 signature attached?"*  
+> Merely proving a log string was written and signed is a commodity that provides zero guarantee of real-world state settlement.
 
-**TOTALS:** 204 tests passing, 6000+ lines, 0 defects, 4 atomic commits
+**SMAOS focuses on Property-Level Sufficiency**:
+> *"Does the receipt prove downstream settlement or merely dispatch?"*  
+> *"Did the harness preserve UNKNOWN when the payment gateway timed out?"*  
+> We evaluate whether the claimed disposition is strictly justified by wire-level evidence.
 
-### Quick Start
-
-```bash
-# Build all 8 layers
-cargo build --release
-
-# Run all 228 tests
-cargo test --all
-
-# Format check
-cargo fmt --check
-
-# Clippy lint (warnings: 8 suppressible dead_code + unused_imports)
-cargo clippy --all-targets
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       CONTAINER PRESENCE VS. PROPERTY SUFFICIENCY           │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ CONTAINER PRESENCE (Commoditized / Existing 50+ Tools)                      │
+│   "Is a JSON trace file present? Is an Ed25519 signature attached?"          │
+│   → Merely proves a log string was written and signed.                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ PROPERTY-LEVEL SUFFICIENCY (The AEI Architectural Focus)                    │
+│   "Does the receipt prove downstream settlement or merely dispatch?"        │
+│   "Did the harness preserve UNKNOWN on a 504 timeout?"                       │
+│   → Evaluates whether the claimed disposition is justified by wire evidence. │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Pilots Included
+---
 
-1. **Hotel Credit Scoring** (L1→L8): Policy-bound lending decisions
-2. **Glass Manufacturing** (L1→L8): Material compliance verification
-3. **School Operations** (L1→L8): Student safeguarding & biometric governance
+## 🔬 The Six-Disposition Order of Precedence
 
-Each pilot logs full proof trail with checkpoint captures.
+Under ambiguous network conditions (HTTP 504 timeouts, connection drops, network partitions), standard harnesses emit cryptographically valid signatures asserting `CONFIRMED` or `EXECUTED`. This creates **Evidence Contamination** under DORA Art. 17(3).
 
-### KARP Submission (Sep 16-22, 2026)
+SMAOS enforces a strict, fail-closed precedence cascade:
 
-- ✅ Harness: 1500+ clean lines, 204 tests passing
-- ✅ Database: pgvector schema + BM25 hybrid search
-- ✅ Pilots: 3/3 working, L1→L8 flows tested
-- ✅ RAGAS: 87%+ accuracy on 50-question golden set
-- ✅ Annex IV: 9-section dossier, KMS signed
-- ✅ Proof artifacts: 7 completed (CanIRun, FreeToken, Is Agentic, agentacct, unlazy, RAGAS, AP2 ledger)
+$$\text{INVALID\_INPUT} \longrightarrow \text{MISSING\_EVIDENCE} \longrightarrow \text{CONFLICT} \longrightarrow \text{REFUSED} \longrightarrow \text{CONFIRMED} \longrightarrow \text{UNKNOWN}$$
 
-### Regulatory Compliance
+`UNKNOWN` is the **fail-safe terminus**: if no affirmative evidence from the system of record confirms external settlement, the action state MUST remain `UNKNOWN` with `retry_held: true` ($\Delta = 0$ conservation invariant).
 
-- **Annex III Timeline:** Dec 2, 2027 (hotels/spas)
-- **Annex I Timeline:** Aug 2, 2028 (glass/auto)
-- **Governance Membrane:** Intent-verified delegation + egress controls
-- **EU AI Act:** Articles 5, 8, 11-15 compliance framework
+---
 
-### Documentation
+## 🕷️ AEIB Receipt Fuzzer & Toxic Receipt Detector
 
-- `ARCHITECTURE.md` — Technical design (8 layers, 10k foot view)
-- `QUICKSTART.md` — Development setup and pilot execution
-- `PILOTS_GUIDE.md` — End-to-end flow for each use case
-- `DEPLOYMENT.md` — Production deployment checklist
-- `KARP_POPIS_PROJEKTU.md` — Czech submission summary
+We provide a zero-dependency local CLI harness (`scratch/aeib-receipt-fuzzer/`) to test whether your harness preserves uncertainty or emits Toxic Receipts:
 
-### Next Phase (BIC Plzeń, Jun-Dec 2026)
+```bash
+cd scratch/aeib-receipt-fuzzer
+python3 demo_killshot.py
+```
 
-- Egress controls & CISO appeal
-- Intent-verified delegation (OWASP ASI01 defense)
-- 3 full production pilots
-- EU Database registration + CE marking
+### 5 Verified Scenarios:
+1. **Clean Pass-Through**: Valid RFC 8785 JCS + ES256 envelope $\rightarrow$ `CLEAN_PASS`
+2. **Dropped Signature**: Stripped cryptographic envelope $\rightarrow$ `TOXIC_RECEIPT_DETECTED`
+3. **JCS Canonicalization Tampering**: Injected payload mutation $\rightarrow$ `TOXIC_RECEIPT_DETECTED`
+4. **SCITT Timestamp Rollback**: Replayed stale sequence timestamp $\rightarrow$ `TOXIC_RECEIPT_DETECTED`
+5. **Adversarial Loan Interception**: Silent in-transit edit (€1.85M $\rightarrow$ €1.90M) halted ex-ante via canonical digest mismatch $\rightarrow$ `HALT: digest_mismatch`
+
+---
+
+## 🔄 Non-Intrusive Reconciliation Adapters
+
+In production, `CONFIRMED` cannot be claimed from API responses alone. SMAOS specifies read-only probes that verify state directly against systems of record:
+
+* **PostgreSQL**: Transaction ID (`xid`) commit status verification via `txid_status`.
+* **AWS S3**: Object `ETag` and version ID verification at target bucket paths.
+* **Apache Kafka**: Committed partition offsets matching target `action_id`.
+* **Stripe (Test Mode)**: `Idempotency-Key` headers cross-checked against settlement status.
+
+---
+
+## 💼 Commercial Offer: 5-Day Staging Forensic Audit (€2,500 Fixed Fee)
+
+We offer a high-impact, fixed-fee diagnostic engagement to stress-test your AI agent harnesses before production deployment.
+
+### 📋 Engagement Scope (5 Business Days)
+* **Day 1: Wire-Level Baseline Capture**: Ingest up to 250 local staging traces or replay logs into the AEI verification pipeline.
+* **Day 2: Fault Injection & Fuzzing**: Run our non-blocking proxy against your tool dispatcher across all 6 fault modes (504 Timeout, TCP RST, 409 Conflict, Signature Drop, JCS Poison, Replay).
+* **Day 3: Evidence Contamination Scan**: Detect instances where your agents sign `CONFIRMED` without verified settlement.
+* **Day 4: Remediation Plan**: Deliver concrete code patches for fail-closed state machines and idempotency retry holders.
+* **Day 5: Executive Audit Dossier**: 1-page CISO/Risk Committee briefing mapping your harness against DORA Art. 17 and EU AI Act Art. 12 auditability requirements.
+
+### 🏰 The Audit-to-Corpus Flywheel
+```
+Paid Staging Audit (€2,500) ──► Real Failure Mode ──► Anonymized JSON Vector ──► Open Conformance Suite
+```
+Every forensic audit enriches our open **AEI Conformance Corpus**, converting real-world edge cases into reproducible public benchmarks while keeping client data strictly confidential.
+
+**Inquiries & Booking:** `contact@smaos.ai` · Fixed Fee: **€2,500 EUR** (Discretionary Procurement Bypass).
+
+---
+
+## 📚 Technical Documentation
+
+* [Threat Model & Attack Surface](docs/THREAT_MODEL.md)
+* [AEI State Machine & Precedence Cascade](docs/AEI_STATE_MACHINE.md)
+* [AEIB Technical Specification](scratch/aeib-receipt-fuzzer/SPEC.md)
+* [Honest Limitations & Cryptographic Boundaries](scratch/aeib-receipt-fuzzer/LIMITATIONS.md)
+
+---
+
+## ⚖️ License
+
+Apache License 2.0. See [LICENSE](LICENSE) for details.

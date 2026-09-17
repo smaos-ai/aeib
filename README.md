@@ -149,7 +149,7 @@ Every forensic audit enriches our open **AEI Conformance Corpus**, converting re
 * [Threat Model & Attack Surface](docs/THREAT_MODEL.md)
 * [AEI State Machine & Precedence Cascade](docs/AEI_STATE_MACHINE.md)
 * [AEIB Technical Specification](scratch/aeib-receipt-fuzzer/SPEC.md)
-* [Honest Limitations & Cryptographic Boundaries](scratch/aeib-receipt-fuzzer/LIMITATIONS.md)
+* [Bounded Compliance & Scope Limitations](LIMITATIONS.md)
 
 ---
 

@@ -8,6 +8,8 @@
 
 ---
 
+> ### *"Every agent harness logs success. Almost none of them test whether the success was justified by the evidence at the wire."*
+
 ## 🏛️ The Core Thesis: Property-Level Sufficiency
 
 Existing developer tooling focuses almost exclusively on **Container Presence**:

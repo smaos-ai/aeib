@@ -10,6 +10,8 @@
 
 Version 0.2.0 · Zero dependencies · Python 3.12+ stdlib only
 
+> ### *"Every agent harness logs success. Almost none of them test whether the success was justified by the evidence at the wire."*
+>
 > **Target Audience**: **Backend & Platform Leads, Payment Engineers, AI Infrastructure Teams**  
 > **The Problem**: False `CONFIRMED` receipts emitted under transport failure create silent ledger drift and retry storms.  
 > • **45%** — False success rate under transport failure (*internal testing, n=200 traces*)  
@@ -64,7 +66,7 @@ bash verify.sh
   ```bash
   python3 demo_killshot.py
   ```
-* **The Clue**: In **~3.8 seconds**, your terminal intercepts simulated tool calls, injects wire-level 504 timeouts, catches invalid receipts, and displays the ex-ante halt on the €1.85M $\rightarrow$ €1.90M loan edit.
+* **The Clue**: In **~3.8 seconds**, your terminal intercepts simulated tool calls, injects wire-level 504 timeouts, catches invalid receipts, and displays the ex-ante halt on the €1.85M → €1.90M loan edit.
 
 #### 3. The 5-Minute Zero-Trust Verification (Offline Container)
 * Run the canonical reference benchmark container:
@@ -103,7 +105,10 @@ bash verify.sh
 
 ## 🔬 Six-Disposition Precedence Cascade
 
-$$\text{INVALID\_INPUT} \longrightarrow \text{MISSING\_EVIDENCE} \longrightarrow \text{CONFLICT} \longrightarrow \text{REFUSED} \longrightarrow \text{CONFIRMED} \longrightarrow \text{UNKNOWN}$$
+```text
+INVALID_INPUT → MISSING_EVIDENCE → CONFLICT → REFUSED → CONFIRMED → UNKNOWN
+     ①               ②               ③          ④          ⑤          ⑥
+```
 
 * **`TOXIC_RECEIPT_DETECTED`**: Emitted when wire observes `TIMEOUT` or `DROP`, but harness logs `CONFIRMED` or `EXECUTED`.
 * **`CLEAN_PASS`**: Emitted when harness preserves uncertainty (`verdict: UNKNOWN`, `retry_held: true`).

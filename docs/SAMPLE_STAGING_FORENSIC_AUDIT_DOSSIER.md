@@ -42,7 +42,10 @@ Between September 10 and September 15, 2026, the SMAOS forensic interrogator ing
 ## 🛠️ Automated Remediation Deliverable (`fix.patch`)
 
 We delivered a drop-in unified diff (`fix.patch`) implementing the **Six-Disposition Precedence Cascade**:
-$$\text{INVALID\_INPUT} \longrightarrow \text{MISSING\_EVIDENCE} \longrightarrow \text{CONFLICT} \longrightarrow \text{REFUSED} \longrightarrow \text{CONFIRMED} \longrightarrow \text{UNKNOWN}$$
+```text
+INVALID_INPUT → MISSING_EVIDENCE → CONFLICT → REFUSED → CONFIRMED → UNKNOWN
+     ①               ②               ③          ④          ⑤          ⑥
+```
 
 ### Key Fixes Applied:
 1. **Uncertainty Conservation**: 504 timeouts and wire drops now clamp the agent into `verdict: UNKNOWN` with `retry_held: true` ($\Delta = 0$).

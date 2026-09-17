@@ -42,7 +42,10 @@ Under ambiguous network conditions (HTTP 504 timeouts, connection drops, network
 
 SMAOS enforces a strict, fail-closed precedence cascade:
 
-$$\text{INVALID\_INPUT} \longrightarrow \text{MISSING\_EVIDENCE} \longrightarrow \text{CONFLICT} \longrightarrow \text{REFUSED} \longrightarrow \text{CONFIRMED} \longrightarrow \text{UNKNOWN}$$
+```text
+INVALID_INPUT → MISSING_EVIDENCE → CONFLICT → REFUSED → CONFIRMED → UNKNOWN
+     ①               ②               ③          ④          ⑤          ⑥
+```
 
 `UNKNOWN` is the **fail-safe terminus**: if no affirmative evidence from the system of record confirms external settlement, the action state MUST remain `UNKNOWN` with `retry_held: true` ($\Delta = 0$ conservation invariant).
 

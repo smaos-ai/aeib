@@ -4,6 +4,10 @@
 [![Status: v0.1.0](https://img.shields.io/badge/Status-v0.1.0-blue.svg)](PUBLIC_REPRODUCTION_REPORT.md)
 [![Network: Disabled](https://img.shields.io/badge/Network-disabled-orange.svg)](ENVIRONMENT.md)
 
+> **Target Audience**: **AI Safety Researchers, QA Engineers, Agentic Framework Authors**  
+> **The Problem**: Agent state machines fail unpredictably when downstream microservices return non-deterministic errors.  
+> **Quantified Benefit**: **100% Offline Reproducibility** | **0 Cloud Egress / $0 Telemetry Tax**.
+
 ---
 
 > **AEIB is an offline benchmark for testing whether an agent harness preserves uncertainty when a consequential external action cannot be confirmed.**
@@ -89,3 +93,13 @@ Open an issue or pull request to link an implementation. See `CONTRIBUTING.md` f
 ## Security & Responsible Disclosure
 
 For security inquiries or vulnerability reports, see [SECURITY.md](SECURITY.md). Please report vulnerabilities privately via GitHub Private Vulnerability Reporting or to `andrejlo123@gmail.com`.
+
+---
+
+### 💼 Staging Forensic Audit
+Operating mutating AI workflows? We deliver 5-day bounded audits (€1,500 intro rate / €2,500 standard) under NDA with a guaranteed `git apply fix.patch`.  
+- **Tier 1 Diagnostic (€1,500 / 48-Hour Sprint)**: Ingest 250+ staging traces, compute Toxic Receipt Index (TRI %), map retry hazards.
+- **Tier 2 Forensic Audit (€2,500 / 5-Day Sprint)**: Full wire-level fault injection, 30-day trace analysis, and delivery of a `git apply fix.patch` remediation.
+
+📩 **Contact**: [andrejlo123@gmail.com](mailto:andrejlo123@gmail.com)
+

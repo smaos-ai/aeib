@@ -1,0 +1,60 @@
+# syntax=docker/dockerfile:1
+# ==============================================================================
+# SMAOS PROVENANCE AUDITOR — ZERO-TRUST AIR-GAPPED VERIFICATION RUNNER
+# Image: ghcr.io/smaos-ai/provenance-auditor:v0.1.0
+# Execution Invariant: network_mode: "none" (0-byte cloud egress)
+# ==============================================================================
+
+# STAGE 1: Pure Rust WASM Compiler
+FROM rust:1.80-slim AS wasm-builder
+
+WORKDIR /build
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/* \
+    && rustup target add wasm32-unknown-unknown
+
+COPY crates/smaos-verify /build/crates/smaos-verify
+WORKDIR /build/crates/smaos-verify
+RUN cargo build --release --target wasm32-unknown-unknown
+
+# STAGE 2: Air-Gapped Forensic Runtime
+FROM python:3.12-slim
+
+LABEL org.opencontainers.image.title="SMAOS Provenance Auditor" \
+      org.opencontainers.image.description="Air-gapped IETF SCITT & DORA RTS 2024/1772 forensic audit runner" \
+      org.opencontainers.image.vendor="SMAOS Trust Infrastructure" \
+      org.opencontainers.image.version="0.1.0" \
+      org.opencontainers.image.licenses="Apache-2.0"
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app/ocr-audit-engine/src:/app/scratch/aeib-receipt-fuzzer
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    bash \
+    coreutils \
+    jq \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd -m -u 1000 -s /bin/bash smaos
+
+WORKDIR /app
+
+# Copy WASM binary from builder
+COPY --from=wasm-builder /build/crates/smaos-verify/target/wasm32-unknown-unknown/release/smaos_verify.wasm /app/lib/smaos_verify.wasm
+
+# Copy OCR Audit Engine & Scratch Verification Packages
+COPY ocr-audit-engine/ /app/ocr-audit-engine/
+COPY scratch/ /app/scratch/
+COPY fixtures/ /app/fixtures/ 2>/dev/null || true
+COPY reports/ /app/reports/ 2>/dev/null || true
+
+# Install minimal test dependencies offline
+RUN pip install --no-cache-dir pytest
+
+RUN chown -R smaos:smaos /app && chmod +x /app/scratch/verify_all_tier3.sh /app/scratch/splunk_to_smaos.py
+
+USER smaos
+
+# Default entrypoint runs the 7-package Tier 3 procurement verification battery
+ENTRYPOINT ["/app/scratch/verify_all_tier3.sh"]

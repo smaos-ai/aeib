@@ -1,0 +1,25 @@
+{
+  "dora_incident_context": {
+    "potential_economic_impact_eur": 120000,
+    "incident_threshold_breached": "Article 9 (Major Incident > €100K)",
+    "regulatory_clock_status": "4-Hour Reporting Window Active"
+  },
+  "afr_compliance": {
+    "intent": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "policy_evaluation": "PASS (Microsoft AGT Pre-Execution Approved)",
+    "human_approval": "null (Autonomous Tool Execution)",
+    "execution": "a8b4c5d2e3f4g5h6i7j8k9l0m1n2o3p4q5r6s7t8u9v0w1x2y3z4a5b6c7d8e9f0",
+    "effects": "d41d8cd98f00b204e9800998ecf8427e",
+    "context_provenance": "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9",
+    "code_provenance": "v0.12.4-aarm-compliant",
+    "delegation_provenance": "c3ab8ff13720e8ad9047dd39466b3c8974e592c2fa383d4a3960714caef0c4f2"
+  },
+  "wire_fact_verification": {
+    "http_status": 504,
+    "duration_ms": 5012,
+    "claimed_disposition": "CONFIRMED",
+    "evidence_supported": "UNKNOWN",
+    "verdict": "VERIFIED_TOXIC_RECEIPT (Double-Spend Risk Detected)",
+    "compensating_action": "COMPENSATED_ROLLBACK_ISSUED"
+  }
+}

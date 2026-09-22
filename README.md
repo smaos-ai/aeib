@@ -56,11 +56,24 @@ INVALID_INPUT → MISSING_EVIDENCE → CONFLICT → REFUSED → CONFIRMED → UN
 
 ## 🌐 Global Protocol Interoperability: ATH 1.0, IETF SCITT & EU DORA
 
-`smaos-audit` is the neutral, air-gapped translation bridge between the world's three leading agent trust architectures:
+`smaos-audit` serves as the neutral, zero-egress translation bridge between the world's three leading agent trust architectures:
 
-1. **European Union (DORA RTS 2024/1772 & EU AI Act Art. 12/17):** Automated classification of unverified agent tool actions into 4-hour major incident reporting registers (`xBRL-CSV`).
-2. **China & Asian Ecosystem (CAICT ATH 1.0 & CAC/MIIT 2026 Guidelines):** Native mapping of our six-disposition engine to the 9-step User–Agent–Service trusted handshake, surfacing Phase 2 settlement drops as protocol-level `user_handshake_missing` and `service_handshake_conflict`.
-3. **United States (NIST CAISI & IETF SCITT):** RFC 8785 canonicalized, tamper-evident action capsules with post-quantum cryptographic agility (ML-DSA / Dilithium-ready).
+| Standard / Framework | Jurisdiction | Regulatory & Operational Scope | `smaos-audit` Mapping Invariant |
+| :--- | :--- | :--- | :--- |
+| **EU DORA (Art. 17) & EU AI Act (Art. 12)** | Europe | Mandatory 4-hour major incident reporting & automatic immutable logging. | Intercepts wire timeouts (HTTP 504 / RST); forces `UNKNOWN` disposition and activates incident clock. |
+| **CAICT ATH 1.0 (9-Step Model)** | China | Three-party (User–Agent–Service) cryptographic handshake and tracing. | Detects post-handshake transport drops; flags state as `SERVICE_UNOBSERVABLE` to prevent false commits. |
+| **IETF SCITT & US NIST RMF** | International / US | Supply chain transparency, Merkle attestation, and NIST SP 800-53 controls. | Emits PQC-agile (Ed25519 + ML-DSA-65) receipts proving physical settlement truth without cloud egress. |
+
+### 🌐 The Tripartite Translation Matrix
+
+| SMAOS Disposition | EU DORA / AI Act (Art. 12/17) | CAICT ATH 1.0 (9-Step Model) | US NIST RMF (SP 800-53) |
+| :--- | :--- | :--- | :--- |
+| **`CONFIRMED`** | Major incident cleared; settlement confirmed on wire with full audit trail. | Steps 1–9 verified: User & Service handshakes valid + Payload hash matched. | Confirmed state change proven with non-repudiable proof. |
+| **`UNKNOWN`** | **DORA Art. 17 Major Incident:** Unverified mutation / wire timeout detected (4-hr clock). | Wire dropped post-handshake: Service state unobservable (`SERVICE_UNOBSERVABLE`). | **NIST CP-10 / IR-4:** Non-repudiable uncertainty; forced execution halt. |
+| **`MISSING_EVIDENCE`** | **AI Act Art. 12 Non-Compliance:** Log missing source derivation or signature. | User or Service handshake token absent (`USER_HANDSHAKE_NONE`). | **NIST IA-2 / AU-2:** Unattested agent or principal identity. |
+| **`CONFLICT`** | **DORA Art. 17 State Drift:** Ledger divergence (e.g. Stripe 402 vs settlement drop). | Phase 1 vs Phase 2 payload hash mismatch (`AUTH_DIVERGE`). | **NIST SI-7 / AU-11:** Mutated state invariant; hash chain mismatch. |
+| **`REFUSED`** | **AI Act Art. 14:** Gatekeeper policy check or Human Veto blocked action. | Permission denied at Step 4 or Step 7 authorization boundary. | **NIST AC-3 / AC-6:** Least privilege policy denial. |
+| **`INVALID_INPUT`** | **DORA Art. 28:** Schema mismatch or unauthorized MCP tool drift. | Malformed JSON-RPC or unannounced tool expansion (OWASP MCP03 Rug Pull). | **NIST SI-10:** Input validation failure / syntax rejection. |
 
 ```text
 [ User / Client ]
@@ -83,6 +96,17 @@ INVALID_INPUT → MISSING_EVIDENCE → CONFLICT → REFUSED → CONFIRMED → UN
 FORCED DOWNGRADE: UNKNOWN
 • Mapped to DORA Art. 17 Major Incident
 • Mapped to ATH Phase 2 Service Gap
+```
+
+### 🛠️ How `GlobalAuditReporter` Executes
+
+1. **Out-of-Band Verification:** Inspects physical wire transport (REST, MCP, x402) without requiring SDK code rewrites.
+2. **Normative Precedence Rules:** Applies the 6-disposition cascade (`UNKNOWN` overrides hallucinatory model `CONFIRMED` claims).
+3. **Multi-Standard Artifact Generation:** Automatically emits schema-validated evidence bundles (`dora_art17_gap_report.json` and `audit_trace.mermaid`).
+
+```bash
+# Run the global reporter against staging traces
+python3 -m ocr_audit.reporter --findings staging_traces.json --output-dir ./audit_bundle
 ```
 
 ---

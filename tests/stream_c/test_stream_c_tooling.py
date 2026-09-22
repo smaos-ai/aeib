@@ -1,7 +1,9 @@
 """Stream C: L3-L5 Tooling Gates + MCP Servers Tests"""
 
 import sys
-sys.path.insert(0, '/Users/andriileukhin/.smaos/l3_tooling')
+from pathlib import Path
+repo_root = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(repo_root / "smaos" / "l3_tooling"))
 
 from unlazy_gates import UnlazyGate, PermitGate, GOVERNANCE_RULES
 import pytest

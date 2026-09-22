@@ -8,7 +8,8 @@
 
 ---
 
-> ### *"Every agent harness logs success. Almost none of them test whether the success was justified by the evidence at the wire."*
+> **Sovereign, local-first, zero-dependency trust and governance infrastructure for autonomous AI agents.**  
+> *Enforcing Decision Reproducibility via Attestation Closure (IETF draft-sharif-agent-audit-trail-03) and Relying-Party Evidence Sufficiency (IETF draft-schrock-ep-action-evidence-graph-00).*
 
 ## 🏛️ The Core Thesis: Property-Level Sufficiency
 
@@ -50,6 +51,39 @@ INVALID_INPUT → MISSING_EVIDENCE → CONFLICT → REFUSED → CONFIRMED → UN
 ```
 
 `UNKNOWN` is the **fail-safe terminus**: if no affirmative evidence from the system of record confirms external settlement, the action state MUST remain `UNKNOWN` with `retry_held: true` ($\Delta = 0$ conservation invariant).
+
+---
+
+## 🌐 Global Protocol Interoperability: ATH 1.0, IETF SCITT & EU DORA
+
+`smaos-audit` is the neutral, air-gapped translation bridge between the world's three leading agent trust architectures:
+
+1. **European Union (DORA RTS 2024/1772 & EU AI Act Art. 12/17):** Automated classification of unverified agent tool actions into 4-hour major incident reporting registers (`xBRL-CSV`).
+2. **China & Asian Ecosystem (CAICT ATH 1.0 & CAC/MIIT 2026 Guidelines):** Native mapping of our six-disposition engine to the 9-step User–Agent–Service trusted handshake, surfacing Phase 2 settlement drops as protocol-level `user_handshake_missing` and `service_handshake_conflict`.
+3. **United States (NIST CAISI & IETF SCITT):** RFC 8785 canonicalized, tamper-evident action capsules with post-quantum cryptographic agility (ML-DSA / Dilithium-ready).
+
+```text
+[ User / Client ]
+      │ (1) ATH Step 1-3 Handshake
+      ▼
+┌──────────────────────────────────┐
+│     Autonomous Agent Harness     │
+└──────────────────────────────────┘
+      │ (2) Mutating API / MCP Call
+      ▼
+════════════════════════════════ <- WIRE BOUNDARY [ smaos-audit Wire Observer ]
+════════════════════════════════
+      │ (3) Wire Drops (HTTP 504 / RST)
+      ▼
+┌──────────────────────────────────┐
+│      External Gateway / Bank     │
+└──────────────────────────────────┘
+      │ [ Evidence Absent on Wire ]
+      ▼
+FORCED DOWNGRADE: UNKNOWN
+• Mapped to DORA Art. 17 Major Incident
+• Mapped to ATH Phase 2 Service Gap
+```
 
 ---
 

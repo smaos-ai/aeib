@@ -134,3 +134,24 @@ Every external wrapper—MCP sidecars, SCITT registration, COSE envelopes, or co
 - **No real ledger probes:** Reconciliation outcomes are synthetic, not queried from actual databases or payment systems.
 - **No production retry enforcement:** The prototype demonstrates the invariant but does not physically block retries in live orchestrators.
 - **No compliance certification:** Receipts are designed for engineering review, not regulatory submission.
+
+---
+
+## 3-Layer Evolution Architecture (v0.3+ Target Roadmap)
+
+The 10 acknowledged limitations of the v0.2 synthetic prototype map into three distinct production layers:
+
+### 1. Layer A: Kernel & Physical Wire Enforcement (Items 1, 2, 3, 9)
+* **Real Socket Interception & Retry Suppression:** Replaces userspace Python middleware with eBPF XDP/TC driver-level hooks (`xdp_drop.c`) and BPF LSM (`bprm_check_security`). When a transport socket drops (HTTP 504, TCP RST, or stdio broken pipe), the kernel driver physically drops unhedged retry packets before they reach userspace, freezing the loop at $T_0$.
+* **Real Out-of-Band Ledger Probes:** Replaces synthetic adapter mocks with direct queries to downstream registers (PostgreSQL/DuckDB bitemporal ledgers, core banking reconciliation APIs, or target OS accessibility trees) using the `idempotency_key_uuidv5` to confirm true state before releasing retries.
+* **MCP Sidecar Integration:** Embeds the pre-dispatch $\text{Admissible}(a)$ gate directly into an MCP proxy sidecar wrapping stdio and HTTP transports (`mcp://...`), evaluating context lineage and blast radius before tool execution.
+
+### 2. Layer B: Cryptographic & Standards Conformance (Items 4, 5, 6, 10)
+* **RFC 8785 JCS Compliance:** Implements strict, byte-exact JSON Canonicalization Scheme parsers to ensure UTF-16 code-unit key sorting and numeric normalization derive identical hashes across Python, Rust, WASM, and Go.
+* **RFC 9052 COSE_Sign1 Envelope:** Transitions the receipt format from plain JSON into CBOR-encoded `application/scitt-statement+cose` objects containing protected header parameters (`alg`, `cty`, `iss`, `sub`).
+* **IETF SCITT Integration (RFC 9943):** Registers COSE_Sign1 statements with an append-only Transparency Service (Rekor or CCF), returning an `application/scitt-receipt+cose` inclusion receipt (RFC 9942) with Merkle tree proofs.
+* **HSM / KMS Key Management:** Binds signing keys to PKCS#11 Hardware Security Modules or FIPS 140-2 Level 3 KMS endpoints, ensuring Ed25519 and post-quantum ML-DSA-65 root keys remain non-exportable.
+
+### 3. Layer C: Substrate Attestation & Statutory Binding (Items 7, 8)
+* **Hardware Attestation (TRACE, TDX, SEV-SNP):** Runs the verification engine inside a Confidential Virtual Machine (CVM). The CPU generates a hardware quote (Intel TDX `TDREPORT` or AMD SEV-SNP report) binding the 64-byte `REPORTDATA` nonce directly to the receipt payload hash, proving execution integrity even if the host OS is compromised.
+* **DORA Incident Class Mapping:** Connects execution receipts directly to the 7 materiality criteria of Commission Delegated Regulation (EU) 2024/1772, pre-filling mandatory DORA Article 17 incident notifications and EBA DPM 4.0 Register of Information tables (`RT.01.01`–`RT.02.01`).

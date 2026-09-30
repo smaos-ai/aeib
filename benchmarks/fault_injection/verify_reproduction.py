@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 verify_reproduction.py — Hardened Independent Reproduction & Manifest Verification Script
-Sovereign Multi-Agent OS (SMAOS) / Agent Execution Integrity Benchmark (AEIB) v0.2.2
+Sovereign Multi-Agent OS (SMAOS) / Agent Execution Integrity Benchmark (AEIB) v0.2.4
 
 Steps:
   1. Environment check    — Python, SQLite, all deps; strict version comparison to manifest.
@@ -40,7 +40,7 @@ from typing import Any, Dict, List, Optional, Tuple
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
-MANIFEST_PATH = REPO_ROOT / "benchmarks/fault_injection/results/RELEASE_MANIFEST_v0.2.3.json"
+MANIFEST_PATH = REPO_ROOT / "benchmarks/fault_injection/results/RELEASE_MANIFEST_v0.2.4.json"
 RESULTS_DIR   = REPO_ROOT / "benchmarks/fault_injection/results"
 DEFAULT_REPORT_PATH = RESULTS_DIR / "reproduction_results.json"
 
@@ -227,7 +227,7 @@ def step2_git_revision(manifest: Dict[str, Any], strict: bool) -> StepResult:
     except Exception as exc:
         head = f"ERROR: {exc}"
 
-    expected_tag = manifest.get("release_tag", "v0.2.3")
+    expected_tag = manifest.get("release_tag", "v0.2.4")
     try:
         tag_commit_res = subprocess.run(
             ["git", "rev-parse", f"{expected_tag}^{{commit}}"],
@@ -630,7 +630,7 @@ def step8_emit_report(
 
     report = {
         "report_schema": "AEIB-REPRODUCTION-REPORT-v1",
-        "release_id": manifest.get("release_id", "AEIB-RELEASE-v0.2.2"),
+        "release_id": manifest.get("release_id", "AEIB-RELEASE-v0.2.4"),
         "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "overall_pass": overall_pass,
         "environment": {
@@ -671,7 +671,7 @@ def print_verdict(step_results: List[StepResult]) -> bool:
     print("\n" + "=" * 72)
     if overall:
         print("  SUCCESS: ALL REPRODUCTION CHECKS AND INVARIANTS VERIFIED")
-        print("  Release target   : v0.2.2  (Branch: release/v0.2.0)")
+        print("  Release target   : v0.2.4  (Branch: release/v0.2.0)")
         print("  Safety invariant : 0 duplicate debits under AEIB boundary (50/50)")
         print("  Control matrix   : C0=100% dup | C1=0% | C2=100% dup")
         print("  Negative controls: 20/20 RECONCILIATION_NOT_FOUND (0% false positive)")
@@ -690,7 +690,7 @@ def print_verdict(step_results: List[StepResult]) -> bool:
 # ---------------------------------------------------------------------------
 def main():
     parser = argparse.ArgumentParser(
-        description="AEIB Hardened Reproduction Verification Script v0.2.2"
+        description="AEIB Hardened Reproduction Verification Script v0.2.4"
     )
     parser.add_argument(
         "--unit-only", action="store_true",
@@ -716,7 +716,7 @@ def main():
 
     print("=" * 72)
     print("  AEIB HARDENED CLEAN REPRODUCTION & ARTIFACT VERIFICATION SUITE")
-    print("  Release: v0.2.2  |  Branch: release/v0.2.0")
+    print("  Release: v0.2.4  |  Branch: release/v0.2.0")
     print("=" * 72)
 
     manifest = load_manifest()

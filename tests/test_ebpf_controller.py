@@ -120,6 +120,22 @@ class TestEbpfController(unittest.TestCase):
         self.assertIn("XDP_DROP", content)
         self.assertIn("XDP_PASS", content)
 
+    def test_quarantine_5tuple_probe_isolation(self):
+        """
+        Proof of Fix: Adding key {127.0.0.1:49210 -> 127.0.0.1:8080, TCP} makes
+        is_quarantined(127.0.0.1, 49210, 127.0.0.1, 8080, TCP) == True while
+        is_quarantined(127.0.0.1, 51000, 127.0.0.1, 8080, TCP) == False.
+        """
+        from ebpf.controller import TCP
+        self.controller.add("127.0.0.1", 49210, "127.0.0.1", 8080, TCP)
+        self.assertTrue(self.controller.is_quarantined("127.0.0.1", 49210, "127.0.0.1", 8080, TCP))
+        self.assertFalse(self.controller.is_quarantined("127.0.0.1", 51000, "127.0.0.1", 8080, TCP))
+
+        # Also verifies string protocol alias 'TCP'
+        self.assertTrue(self.controller.is_quarantined("127.0.0.1", 49210, "127.0.0.1", 8080, "TCP"))
+        self.assertFalse(self.controller.is_quarantined("127.0.0.1", 51000, "127.0.0.1", 8080, "TCP"))
+
 
 if __name__ == "__main__":
     unittest.main()
+

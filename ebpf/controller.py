@@ -60,7 +60,28 @@ class DropEvent(ctypes.Structure):
     ]
 
 
+# Protocol constants
+TCP = 6
+UDP = 17
+ICMP = 1
+
+
+def _normalize_proto(proto: Any) -> int:
+    """Normalizes protocol representation (integer or string like 'TCP')."""
+    if isinstance(proto, str):
+        p_up = proto.upper().strip()
+        if p_up == "TCP":
+            return 6
+        elif p_up == "UDP":
+            return 17
+        elif p_up == "ICMP":
+            return 1
+        return int(proto)
+    return int(proto)
+
+
 def flow_key_bytes(key: Flow5Tuple) -> bytes:
+
     """Returns raw byte representation of 5-tuple key for map hashing."""
     return bytes(key)
 
@@ -158,11 +179,12 @@ class XdpQuarantineController:
             except Exception:
                 pass
 
-    def build_flow_key(self, src_ip: str, src_port: int, dst_ip: str, dst_port: int, proto: int = 6) -> Flow5Tuple:
+    def build_flow_key(self, src_ip: str, src_port: int, dst_ip: str, dst_port: int, proto: Any = 6) -> Flow5Tuple:
         """
         Builds a zero-initialized Flow5Tuple struct in network byte order.
         Addresses Correction 1 (Network Byte Order) & Correction 2 (Pad Byte Zeroing).
         """
+        proto_num = _normalize_proto(proto)
         key = Flow5Tuple()
         # Correction 2: Explicit zero-initialization of memory
         ctypes.memset(ctypes.byref(key), 0, ctypes.sizeof(key))
@@ -172,10 +194,10 @@ class XdpQuarantineController:
         key.daddr = struct.unpack("=I", socket.inet_aton(dst_ip.strip()))[0]
         key.sport = socket.htons(int(src_port))
         key.dport = socket.htons(int(dst_port))
-        key.proto = int(proto)
+        key.proto = int(proto_num)
         return key
 
-    def add_flow(self, src_ip: str, src_port: int, dst_ip: str, dst_port: int, proto: int = 6) -> None:
+    def add_flow(self, src_ip: str, src_port: int, dst_ip: str, dst_port: int, proto: Any = 6) -> None:
         """
         Quarantines a 5-tuple flow in the BPF map with status = 1 (DISPATCHED_UNCONFIRMED).
         XDP will physically drop matching packets at the driver layer ($T_0$).
@@ -184,7 +206,11 @@ class XdpQuarantineController:
         val = ctypes.c_uint32(1)
         self._quarantine_map[key] = val
 
-    def remove_flow(self, src_ip: str, src_port: int, dst_ip: str, dst_port: int, proto: int = 6) -> bool:
+    def add(self, src_ip: str, src_port: int, dst_ip: str, dst_port: int, proto: Any = 6) -> None:
+        """Convenience alias for add_flow."""
+        self.add_flow(src_ip, src_port, dst_ip, dst_port, proto)
+
+    def remove_flow(self, src_ip: str, src_port: int, dst_ip: str, dst_port: int, proto: Any = 6) -> bool:
         """Removes 5-tuple flow from quarantine map, restoring normal traffic flow."""
         key = self.build_flow_key(src_ip, src_port, dst_ip, dst_port, proto)
         try:
@@ -193,7 +219,11 @@ class XdpQuarantineController:
         except (KeyError, Exception):
             return False
 
-    def is_flow_quarantined(self, src_ip: str, src_port: int, dst_ip: str, dst_port: int, proto: int = 6) -> bool:
+    def remove(self, src_ip: str, src_port: int, dst_ip: str, dst_port: int, proto: Any = 6) -> bool:
+        """Convenience alias for remove_flow."""
+        return self.remove_flow(src_ip, src_port, dst_ip, dst_port, proto)
+
+    def is_flow_quarantined(self, src_ip: str, src_port: int, dst_ip: str, dst_port: int, proto: Any = 6) -> bool:
         """Checks if a given 5-tuple flow is currently quarantined."""
         key = self.build_flow_key(src_ip, src_port, dst_ip, dst_port, proto)
         try:
@@ -201,6 +231,13 @@ class XdpQuarantineController:
             return val.value == 1
         except (KeyError, IndexError):
             return False
+
+    def is_quarantined(self, src_ip: str, src_port: int, dst_ip: str, dst_port: int, proto: Any = 6) -> bool:
+        """
+        Checks if a given 5-tuple flow is currently quarantined.
+        Direct alias for is_flow_quarantined conforming to AEIB test specification.
+        """
+        return self.is_flow_quarantined(src_ip, src_port, dst_ip, dst_port, proto)
 
     def list_quarantine(self) -> List[Dict[str, Any]]:
         """Returns list of all active quarantined flows."""

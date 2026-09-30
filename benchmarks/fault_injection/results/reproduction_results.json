@@ -1,7 +1,7 @@
 {
   "report_schema": "AEIB-REPRODUCTION-REPORT-v1",
   "release_id": "AEIB-RELEASE-v0.2.2",
-  "timestamp_utc": "2026-09-30T17:48:16Z",
+  "timestamp_utc": "2026-09-30T18:26:03Z",
   "overall_pass": true,
   "environment": {
     "python_version": "3.14.3",
@@ -28,10 +28,10 @@
           "pytest": "9.1.1"
         },
         "manifest_dependencies": {
-          "fastapi": "0.135.1",
-          "starlette": "0.45.3",
-          "pydantic": "2.12.5",
-          "cryptography": "44.0.2",
+          "fastapi": "0.141.1",
+          "starlette": "1.6.0",
+          "pydantic": "2.13.5",
+          "cryptography": "50.0.1",
           "pytest": "9.1.1"
         }
       },
@@ -42,8 +42,8 @@
       "name": "git_revision",
       "passed": true,
       "details": {
-        "git_head": "f1ff34fbac7694cac81a2b1af14eef504a922a0f",
-        "manifest_falsifiability_commit": "f1ff34fbac7694cac81a2b1af14eef504a922a0f"
+        "git_head": "6fd215a610ec29cc552468864423d13b3d9e1111",
+        "manifest_target_commit": "f1ff34fbac7694cac81a2b1af14eef504a922a0f"
       },
       "errors": []
     },
@@ -53,8 +53,8 @@
       "passed": true,
       "details": {
         "returncode": 0,
-        "duration_s": 0.69,
-        "stdout_tail": "....................                                                     [100%]\n20 passed in 0.37s"
+        "duration_s": 0.63,
+        "stdout_tail": "....................                                                     [100%]\n20 passed in 0.36s"
       },
       "errors": []
     },
@@ -90,8 +90,8 @@
         "duplicate_debits": 0,
         "signature_failures": 0,
         "receipts_verified": 50,
-        "mean_overhead_ms": 4.51,
-        "p95_overhead_ms": 5.6
+        "mean_overhead_ms": 9.22,
+        "p95_overhead_ms": 9.59
       },
       "errors": []
     },
@@ -141,13 +141,17 @@
           "status": "MATCH",
           "sha256": "33d630feed28ef946a1eb5e710ffc9a5fba348c511b28df189a20108b8b88005"
         },
+        "verify_reproduction_py_sha256": {
+          "status": "MATCH",
+          "sha256": "be02df42701c4e6bcab4c1d885491229bdf22f13b55c786507127d1e145db6ff"
+        },
         "paper_draft_md_sha256": {
           "status": "MATCH",
-          "sha256": "70984aa381ed050655b9fd93634b752956185f66dd8f936393e4605cde57ca8a"
+          "sha256": "674836cb8ca4057eced8c2c9f09646ba95be83af5017a0f117d310c45a9ed1ed"
         },
         "paper_tex_sha256": {
           "status": "MATCH",
-          "sha256": "f213b4880c8dcbe3c464fa481c6a5629bf8be816d9c15b8ec03a945697586bd2"
+          "sha256": "7a13c2c87d269b8ac9e7df6d9af40075f97b044e0984db327d3980ec4028788c"
         }
       },
       "errors": []
@@ -158,8 +162,9 @@
     "control_benchmark_commit": "68575eaa8067935ef19b783af508ff89c4d03c28",
     "aeib_benchmark_commit": "bd0d845b8c57fa8d90fa35599ebdb9c54f8fce0d",
     "falsifiability_commit": "f1ff34fbac7694cac81a2b1af14eef504a922a0f",
+    "verifier_hardening_commit": "c9b239bbd4ab531e2adccbebcda110e0545f4705",
     "release_tag": "v0.2.2",
-    "explanation": "Preserves immutable provenance across staged milestones: 68575eaa established the failing control matrix (C0, C1, C2); bd0d845b introduced the AEIB boundary and positive/negative trial manifests; f1ff34fb anchored ground truth to an on-disk binary SQLite database (ledger.db) and adversarial anti-fabrication suite."
+    "explanation": "Preserves immutable provenance across staged milestones: 68575eaa established the failing control matrix; bd0d845b introduced the AEIB boundary and positive/negative trial manifests; f1ff34fb anchored ground truth to an on-disk binary SQLite database (ledger.db) and adversarial anti-fabrication suite. The verifier was subsequently hardened for release at c9b239bb and beyond. The tag v0.2.2 encapsulates all finalized benchmark and paper revisions."
   },
   "declared_aggregate_evaluations": {
     "c0_naive_retry": {
@@ -186,8 +191,8 @@
       "duplicate_rate": "0.0%",
       "receipts_verified": 50,
       "verification_rate": "100.0%",
-      "mean_overhead_latency_ms": 9.6,
-      "p95_overhead_latency_ms": 11.0,
+      "mean_overhead_latency_ms": 9.28,
+      "p95_overhead_latency_ms": 9.97,
       "resolution": "Authoritative probe and signed receipt (Safety held)"
     },
     "aeib_negative_controls": {

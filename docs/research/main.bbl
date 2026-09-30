@@ -1,0 +1,14 @@
+\begin{thebibliography}{10}
+\bibitem{jcs}
+A.~Rundgren, B.~Jordan, and S.~Erdtman, ``JSON Canonicalization Scheme (JCS),'' JCS-compatible, IETF, June 2020.
+\bibitem{scitt-arch}
+H.~Birkholz, A.~Delignat-Lavaud, C.~Fournet, Y.~Goyal, and R.~Barnes, ``An Architecture for Trustworthy and Transparent Digital Supply Chains,'' IETF SCITT Working Group, Internet-Draft \texttt{draft-ietf-scitt-architecture-08}, July 2024.
+\bibitem{aer1}
+M.~Zambo, ``Agent Execution Receipts (AER-1),'' Internet-Draft \texttt{draft-zambo-aer1-04}, January 2025.
+\bibitem{aeb}
+J.~Schrock, ``Action Evidence Boundary,'' Internet-Draft \texttt{draft-schrock-action-evidence-boundary-07}, 2025.
+\bibitem{aac}
+M.~Mih, ``Agent Action Capsule,'' Internet-Draft \texttt{draft-mih-scitt-agent-action-capsule-05}, 2025.
+\bibitem{caid}
+J.~Schrock, ``Canonical Action Identifier (CAID),'' Internet-Draft \texttt{draft-schrock-canonical-action-identifier-04}, 2025.
+\end{thebibliography}

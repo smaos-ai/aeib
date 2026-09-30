@@ -1,0 +1,302 @@
+\documentclass[10pt,journal,compsoc]{IEEEtran}
+
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{cite}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{microtype}
+\usepackage{textcomp}
+\usepackage{url}
+\usepackage{xcolor}
+
+\lstset{
+    basicstyle=\ttfamily\scriptsize,
+    breaklines=true,
+    captionpos=b,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    keywordstyle=\color{blue},
+    commentstyle=\color{olive},
+    stringstyle=\color{purple}
+}
+
+\begin{document}
+
+\title{Post-Dispatch Execution Integrity: Reconciling Ambiguous Transport Faults in Autonomous Agent Systems}
+
+\author{Andrii~Leukhin%
+\thanks{A. Leukhin is an independent systems and security researcher with the SovereignNexus Project (e-mail: andrii@sovereignnexus.io). Repository: \url{https://github.com/SovereignNexus/smaos}, Commit: \texttt{f1ff34fb}.}}
+
+\markboth{IEEE Transactions on Dependable and Secure Computing,~Vol.~XX, No.~X, October~2026}%
+{Leukhin: Post-Dispatch Execution Integrity in Autonomous Agent Systems}
+
+\IEEEtitleabstractindextext{%
+\begin{abstract}
+Autonomous agents increasingly invoke mutating remote procedures through gateways and external enterprise systems. When a downstream service commits a mutation but the response is lost---for example, after a gateway timeout---the caller observes transport failure without knowing whether execution occurred. A retry may therefore produce a second mutation, particularly when agent-driven semantic drift changes the effective idempotency identity.
+
+We present the Agent Execution Integrity Benchmark (AEIB), a protocol and evaluation harness for representing and reconciling this post-dispatch ambiguity as an extension of OWASP LLM06 (Excessive Agency) mitigations. AEIB defines a seven-state disposition taxonomy, a deterministic transport-to-disposition mapping contract, an execution boundary that enforces a CMU Frozen Cascade (\texttt{retry\_permitted = false}) after ambiguous faults, and Ed25519-signed receipts that bind dispatch observations to authoritative probe results. We implement an offline verifier and evaluate AEIB against a reproducible control matrix. Across 50 trials, naive retry and semantic-drift baselines produced duplicate mutations in 100\% of runs, while a stable-key baseline produced none. Under the same post-commit timeout fault, AEIB produced no duplicate mutations, verified 50 of 50 receipts, and produced zero false \texttt{OUTCOME\_VERIFIED} results across 20 non-commit controls. The measured AEIB overhead was 9.22~ms mean and 9.59~ms at p95 in the local harness. AEIB makes the transport-to-disposition mapping and disposition-to-retry policy explicit as versioned, machine-readable artifacts, and verifies that mapping offline. It provides a concrete benchmark and implementation for this layer while treating action identity, authorization, receipt transport, and broader execution governance as interoperable adjacent concerns. AEIB is compatible with emerging action-receipt ecosystems but operates independently to enforce deterministic retry constraints following post-dispatch transport ambiguity.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Autonomous Agents, Execution Integrity, Idempotency, eBPF, Distributed Systems, Formal Invariants, Fault Injection, SCITT.
+\end{IEEEkeywords}}
+
+\maketitle
+\IEEEdisplaynontitleabstractindextext
+\IEEEpeerreviewmaketitle
+
+\section{Introduction}
+\IEEEPARstart{M}{odern} autonomous agent frameworks (e.g., LangChain, AutoGen, CrewAI, OpenAI Assistant SDKs) decouple decision logic from deterministic execution by embedding tool invocation in an iterative reasoning loop:
+\begin{equation}
+\text{Thought} \longrightarrow \text{Action (Tool Call)} \longrightarrow \text{Observation} \longrightarrow \text{Next Step}
+\end{equation}
+
+Enterprise security architectures address agent autonomy by deploying Layer 1 Governance (authorization gates, P0 Security, IAM role attenuation) and Layer 2 Sandboxing (gVisor, microVMs, egress firewalls). These controls evaluate pre-dispatch admissibility:
+\begin{equation}
+\text{Admissible}(a) \in \{\text{PERMIT}, \text{DENY}\}
+\end{equation}
+
+However, pre-dispatch authorization guarantees only that the agent possessed permission to dispatch an action. It provides zero evidence regarding what occurred downstream when the network transport drops mid-flight. Consider the following concrete operational failure sequence:
+\begin{enumerate}
+    \item \textbf{Mutation is dispatched:} The agent issues an authorized mutating remote call (\texttt{POST /debit}).
+    \item \textbf{Server commits:} The downstream service executes the business logic and successfully commits the transaction to its ledger.
+    \item \textbf{Response is lost:} The transport connection drops (e.g., an intermediate reverse proxy emits an HTTP 504 Gateway Timeout or tears down the TCP socket) before the acknowledgment reaches the caller.
+    \item \textbf{Agent sees a timeout:} The agent HTTP stack catches a transport-level error and reports a failure observation into the agent reasoning context.
+    \item \textbf{Retry changes the effective request identity:} Interpreting the timeout as non-execution, the agent loop re-attempts the operation. Due to stochastic context reconstruction (semantic drift), the agent generates a fresh client UUID, alters JSON whitespace, or rephrases transaction metadata.
+    \item \textbf{A second mutation commits:} Because the deduplication identity changed, conventional gateway idempotency filters treat the retry as a distinct operation, resulting in a duplicate state mutation (e.g., a double debit).
+\end{enumerate}
+
+In the tested harness, the protocol prevents retries after an ambiguous post-dispatch fault, reconciles through an authoritative operation endpoint, and produces verifiable signed evidence without modifying the ledger engine.
+
+\subsection{Contributions}
+\begin{itemize}
+    \item \textbf{Disposition Model:} A formal seven-state disposition taxonomy for classifying post-dispatch outcomes.
+    \item \textbf{Mapping Contract:} A deterministic priority contract mapping transport observations and probe results to normative dispositions.
+    \item \textbf{Verifiable Receipts:} Ed25519-signed execution receipts binding transport observations to authoritative probe outcomes, verified via an offline tool.
+    \item \textbf{Control and Fault Benchmark:} A reproducible control matrix ($C_0, C_1, C_2$) demonstrating the boundary conditions of gateway deduplication under semantic drift, alongside an AEIB fault benchmark.
+    \item \textbf{Empirical Artifacts:} Public, unmocked run manifests, on-disk SQLite binary evidence, and falsification suites.
+\end{itemize}
+
+\section{Problem and Threat Model}
+
+\subsection{Formal Definitions}
+\begin{itemize}
+    \item \textbf{Logical Intent ($I$):} The semantic objective generated by an agent (e.g., \textit{"Transfer 100 EUR to Account B"}), uniquely identified by an intent identifier.
+    \item \textbf{Dispatch Attempt ($A_{I, k}$):} The $k$-th wire transmission attempting to execute intent $I$, containing payload $P_k$ and HTTP headers $H_k$.
+    \item \textbf{Transport Observation ($T$):} The raw network or gateway signal returned to the caller, $T \in \{\text{HTTP 200}, \text{HTTP 504}, \text{TCP RST}, \text{EOF}, \dots\}$.
+    \item \textbf{Downstream Mutation ($M$):} A state transition committed to persistent storage by the target service.
+    \item \textbf{Authoritative Probe ($Q$):} An idempotent, out-of-band query against the target system's authoritative state store to ascertain the ground truth of intent $I$.
+    \item \textbf{Semantic Drift:} Variations introduced into payload serialization $P_k$ or headers $H_k$ across successive retry attempts $k > 1$ due to non-deterministic agent context reconstruction.
+    \item \textbf{Safety Invariant:} For any logical intent $I$, at most one downstream mutation may commit:
+    \begin{equation}
+    \forall I, \quad \text{LedgerCommits}(I) \le 1
+    \end{equation}
+\end{itemize}
+
+\subsection{Explicit System Assumptions}
+\begin{enumerate}
+    \item \textbf{Reachable and Trustworthy Probe:} An out-of-band reconciliation endpoint or database query is available and reflects authoritative ledger state.
+    \item \textbf{Queryable Idempotency Identity:} The downstream service indexes operations by an intent identifier, deterministic idempotency key, or logical transaction ID.
+    \item \textbf{Execution Boundary Interception:} The interceptor resides on the egress path and can freeze further outbound retries upon detecting transport ambiguity.
+    \item \textbf{Accurate Outcome Reporting:} The target service reports truthful commit statuses (\texttt{COMMITTED}, \texttt{NOT\_FOUND}, \texttt{CONFLICT}).
+    \item \textbf{Key Protection:} The receipt signing private key is protected within the execution environment.
+\end{enumerate}
+
+\section{Protocol and Taxonomy}
+
+We define a seven-state disposition taxonomy and evaluate it using seven synthetic conformance scenarios, supplemented by a 50-trial control matrix and a 50-trial AEIB fault benchmark (Table~\ref{tab:taxonomy}).
+
+\begin{table*}[t]
+\caption{The Seven-State AEIB Disposition Taxonomy}
+\label{tab:taxonomy}
+\centering
+\begin{tabular}{lp{4.2cm}cp{4.5cm}l}
+\toprule
+\textbf{Disposition State} & \textbf{Entry Condition} & \textbf{Retry Permitted?} & \textbf{Required Evidence} & \textbf{Terminal Behavior} \\
+\midrule
+\texttt{OUTCOME\_VERIFIED} & HTTP success response whose payload is validated, or an authoritative probe confirming the matching commit & \textbf{No} & HTTP 200 payload hash or authoritative probe commit record & Terminal (Success) \\
+\texttt{DISPATCHED\_UNCONFIRMED} & Ambiguous transport fault (504, TCP RST, EOF) & \textbf{No} (Frozen) & Transport observation, such as an HTTP 504 or recorded connection failure & Non-terminal (Quarantine) \\
+\texttt{RECONCILIATION\_NOT\_FOUND} & Authoritative source, under the benchmark's consistency and query assumptions, confirms that no matching mutation exists & \textbf{Yes} (Policy gate) & Authoritative probe confirmation that no matching mutation exists & Terminal (Safe to retry) \\
+\texttt{RECONCILIATION\_FAILED} & Target record found but payload hash diverges & \textbf{No} & Hash divergence record between dispatch and store & Terminal (Audit alert) \\
+\texttt{RECONCILIATION\_CONFLICT} & Conflicting records under same idempotency key & \textbf{No} & Multiple transaction IDs or concurrency conflict & Terminal (Locked) \\
+\texttt{CONTEXT\_POLICY\_VIOLATION} & Action rejected pre-dispatch by policy engine & \textbf{No} & Policy enforcement denial log & Terminal (Refused) \\
+\texttt{AUTHORITY\_NOT\_BOUND} & Delegation credential expired or unmeasured & \textbf{No} & Cryptographic token verification failure & Terminal (Refused) \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{quote}
+\textbf{Definition Note on \texttt{RECONCILIATION\_NOT\_FOUND}:} This state explicitly signifies that the authoritative source, under the benchmark's consistency and query assumptions, confirms that no matching mutation exists downstream. It must not be inferred merely because a generic query returned an empty set or timed out.
+\end{quote}
+
+\section{Implementation}
+
+The AEIB prototype consists of the following components:
+\begin{enumerate}
+    \item \textbf{Documented Canonical JSON Subset:} Enforces deterministic key ordering (lexicographical sorting), compact delimiters (\texttt{:}, \texttt{,}), and standard UTF-8 encoding. It provides deterministic hashing for the tested payloads without asserting full formal JCS-compatible certification.
+    \item \textbf{Payload Digest ($H$):} Computes $H = \text{SHA-256}(\text{CanonicalJSON}(P))$.
+    \item \textbf{Deterministic Idempotency Key Derivation:} Computes a UUIDv5 anchored to a dedicated AEIB namespace:
+    \begin{equation}
+    K = \text{UUIDv5}(\text{Namespace}_{\text{AEIB}}, \text{"urn:aeib:payload:"} \parallel H)
+    \end{equation}
+    This key is injected into the outbound \texttt{Idempotency-Key} header, binding transport deduplication directly to canonical payload content.
+    \item \textbf{Retry Lock:} Upon encountering a 504, TCP RST, or connection drop, the interceptor marks the execution context with \texttt{retry\_permitted: false}, preventing the agent runtime from dispatching speculative retries.
+    \item \textbf{Authoritative Probe Interface:} Dispatches an idempotent query against \texttt{GET /operations/\{id\}} to verify commit state.
+    \item \textbf{Receipt Structure \& Signing:} Generates a structured JSON receipt binding \texttt{unsigned\_payload}, \texttt{unsigned\_payload\_hash}, \texttt{idempotency\_key}, \texttt{disposition}, \texttt{retry\_permitted}, and \texttt{transport\_evidence\_hash}. Signs the signable view using Ed25519.
+    \item \textbf{Offline Verifier:} \texttt{aeib\_verify.py} provides standalone, zero-dependency cryptographic verification of receipts, checking signatures, digest linkages, and schema compliance.
+\end{enumerate}
+
+\section{Evaluation}
+
+\subsection{The Control Matrix Benchmark}
+We evaluated four execution conditions in a local deterministic harness under identical post-commit 504 fault injection (a synthetic 5~ms delay followed by socket severance immediately following database commit). Naive retry ($C_0$) and semantic-drift retry ($C_2$) each violated the at-most-one-commit invariant in 50 of 50 trials (100.0\% duplicate rate). A stable-key gateway baseline ($C_1$) violated it in 0 of 50 trials (0.0\% duplicate rate), establishing that the benchmark does not model idempotency as inherently ineffective. Under the same post-commit 504 fault, AEIB produced 0 duplicate mutations in 50 trials (0.0\% duplicate rate) and verified 50 of 50 signed receipts. In 20 non-commit controls, AEIB produced 0 false \texttt{OUTCOME\_VERIFIED} results, resolving strictly to \texttt{RECONCILIATION\_NOT\_FOUND}. These results characterize the tested implementation and fault model; they do not establish production-wide or universal exactly-once guarantees (Table~\ref{tab:benchmark}).
+
+\begin{table}[htbp]
+\caption{Empirical Control Matrix Performance ($N=50$ Trials)}
+\label{tab:benchmark}
+\centering
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Baseline / Condition} & \textbf{Trials} & \textbf{Safety Viol.} & \textbf{Duplicate Rate} & \textbf{False Verif.} \\
+\midrule
+$C_0$ Naive Client Retry & 50 & 50 & \textbf{100.0\%} & N/A \\
+$C_1$ Gateway + Stable Key & 50 & 0 & \textbf{0.0\%} & N/A \\
+$C_2$ Gateway + Semantic Drift & 50 & 50 & \textbf{100.0\%} & N/A \\
+\textbf{AEIB Post-Commit 504} & 50 & 0 & \textbf{0.0\%} & \textbf{0.0\%} (0/50) \\
+\textbf{AEIB Non-Commit Controls} & 20 & 0 & \textbf{0.0\%} & \textbf{0.0\%} (0/20) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{quote}
+\textbf{Scope and Environmental Boundary:} The benchmark evaluates a deterministic local fault model with a SQLite ledger, an in-process gateway/fault injector, and a defined semantic-drift retry behavior. It does not establish equivalent rates for arbitrary agents, gateways, databases, network stacks, or production deployments.
+\end{quote}
+
+\begin{quote}
+\textbf{Semantic-Drift Scope Qualification:} $C_0$ and $C_2$ demonstrate failure under the benchmark's specific semantic-drift model (context reconstruction mutating UUIDs, formatting whitespace, or metadata); they do not establish that all LLM agents or all enterprise gateways behave identically. Rather, they establish the boundary condition where conventional gateway deduplication breaks down once representation identity is lost.
+\end{quote}
+
+\subsection{Single-Run Ledger and Transcript Listing}
+To demonstrate the concrete failure mode, Listing~\ref{lst:proof} shows the single-run ledger and transcript from trial \texttt{I-001}. Under $C_0$, the backend committed debit \texttt{D-001}, but transport severance returned an HTTP 504. The client retried, committing duplicate debit \texttt{D-002}. Under AEIB, the 504 was trapped, retries were frozen, and the out-of-band probe reconciled \texttt{I-001} to \texttt{OUTCOME\_VERIFIED} with zero duplicate debits.
+
+\begin{lstlisting}[language=bash,caption={Canonical Single-Run Ledger Proof (\texttt{I-001})},label={lst:proof}]
+=== C0 TRIAL I-001: DUPLICATE MUTATION ===
+[Ledger Commit 1] tx_id=1, intent_id=I-001, debit_id=D-001, amount=100.0, balance=9900.0
+[Wire Fault]      HTTP 504 Gateway Timeout injected 5ms post-commit
+[Client Retry]    Agent retries with intent_id=I-001, key=K-001-retry
+[Ledger Commit 2] tx_id=2, intent_id=I-001, debit_id=D-002, amount=100.0, balance=9800.0
+Result: 2 committed debits for 1 logical intent (Safety Violation).
+
+=== AEIB TRIAL I-001: RECONCILED BOUNDARY ===
+[Ledger Commit 1] tx_id=1, intent_id=I-001, debit_id=D-001, amount=100.0, balance=9900.0
+[Wire Fault]      HTTP 504 Gateway Timeout intercepted by AEIB sidecar
+[State Machine]   Entered DISPATCHED_UNCONFIRMED; retry_permitted=False
+[Probe Execution] GET /operations/I-001 -> status=COMMITTED, count=1
+[State Machine]   Transitioned to OUTCOME_VERIFIED; emitted Ed25519 receipt
+Result: 1 committed debit; zero duplicates; receipt verified offline.
+\end{lstlisting}
+
+\subsection{Latency \& Overhead Analysis}
+The final tagged release measured 9.22~ms mean and 9.59~ms p95, measured from client dispatch through the 5~ms post-commit delay, 504 interception, authoritative probe, canonical payload hashing, Ed25519 signing, and receipt assembly.
+
+\subsection{Checks Supporting Concrete Local Execution and Falsifiability}
+To provide verifiable confidence that the benchmark evaluates concrete components and empirical state rather than synthetic stubs, we execute a 20-test validation suite:
+\begin{enumerate}
+    \item \textbf{Absence of Common Mocking APIs:} Static AST analysis of the benchmark suite confirms zero usage of standard mocking APIs (\texttt{unittest.mock}, \texttt{MagicMock}, \texttt{patch}).
+    \item \textbf{On-Disk SQLite Ledger:} The ledger persists rows to an on-disk SQLite binary database (\texttt{ledger.db}) whose tables and debit records can be inspected independently with the standard \texttt{sqlite3} CLI. Each benchmark run explicitly resets state (\texttt{store.reset\_ledger()}) to establish clean ground truth.
+    \item \textbf{Deterministic Fault Injection:} The fault injector is an explicit, deterministic ASGI middleware component rather than an unmonitored external network anomaly.
+    \item \textbf{Cryptographic Tamper Sensitivity:} Receipt tampering tests cause independent signature verification to fail: all attempted one-bit payload tampering and one-byte signature corruption cases were rejected by the verifier with \texttt{InvalidSignature}.
+    \item \textbf{Corrupted Signature Rejection:} Verifies that bit-flipped Ed25519 signatures are strictly rejected.
+    \item \textbf{Fail-Closed Negative Controls:} In 20 uncommitted control trials, the non-commit path was exercised, with all 20 trials strictly producing \texttt{RECONCILIATION\_NOT\_FOUND} and zero false \texttt{OUTCOME\_VERIFIED} results.
+    \item \textbf{Suite Composition:} The 20 tests comprise the 15 baseline tests (6 deterministic control matrix tests in \texttt{test\_control\_matrix.py} and 9 eBPF quarantine controller tests in \texttt{test\_ebpf\_controller.py}) plus the 5 falsifiability checks in \texttt{test\_falsifiability.py}.
+\end{enumerate}
+
+\section{Authoritative Probe Architecture \& Database Reference Interface}
+
+In the reported benchmark, the authoritative probe is evaluated against a local SQLite store in Write-Ahead Logging (WAL) mode with strict ACID balance enforcement. The probe queries \texttt{operations} and \texttt{debit\_ledger} tables using standard SQL transactions.
+
+To support enterprise distributed deployments, AEIB specifies the \texttt{PostgresOutcomeProbeAdapter} interface for PostgreSQL backends. This adapter queries transaction status using parameterized SQL:
+\begin{lstlisting}[language=SQL]
+SELECT status, commit_timestamp, transaction_id 
+FROM transaction_ledger 
+WHERE idempotency_key = $1;
+\end{lstlisting}
+This work validates the probe protocol against the local SQLite store; evaluation against distributed production PostgreSQL clusters constitutes an ongoing research milestone.
+
+\section{Related Work}
+
+\begin{itemize}
+    \item \textbf{Idempotency and Exactly-Once Limitations:} Distributed systems research has established that exactly-once semantics across unreliable networks cannot be solved at the transport layer alone (Two Generals Problem, FLP impossibility). IETF specifications (RFC 7231, JCS-compatible) and modern API gateways provide idempotency caching based on header keys and payload hashes. AEIB demonstrates the boundary conditions where agentic semantic drift causes representation divergence, defeating gateway caches.
+    \item \textbf{Distributed-Systems Failure Semantics:} Traditional distributed patterns such as the Transactional Outbox and Saga Orchestrators coordinate multi-step transactions across trusted internal microservices. AEIB addresses the distinct client-side problem where an autonomous agent invokes an external third-party interface across an untrusted network.
+    \item \textbf{Receipts and Transparency Systems:} IETF Internet-Drafts such as \texttt{draft-ietf-scitt-architecture-08} and \texttt{draft-birkholz-scitt-receipts-02} define supply chain transparency and receipt models. \texttt{draft-zambo-aer1-00} specifies Agent Execution Receipts. AEIB provides a concrete transport-to-disposition mapping contract and retry-control protocol that feeds structured receipts into downstream transparency ledgers.
+    \item \textbf{Agent Authorization and Runtime Controls:} Runtime governance systems (such as P0 Security, Delinea, and Saviynt) enforce pre-dispatch policy allowlisting. AEIB operates downstream of these systems, addressing post-dispatch transport ambiguity.
+    \item \textbf{Hardware-Backed Attestation:} Projects such as TRACE and confidential computing architectures (AMD SEV-SNP, Intel SGX) provide hardware-rooted execution attestation within enclaves. AEIB operates as a lightweight software protocol focused on transport-level reconciliation, orthogonal to hardware enclaves.
+\end{itemize}
+
+\section{Prior Art \& Interoperability Targets}
+AEIB aims for conceptual alignment with emerging literature and standards. The following frameworks are cited as \textbf{informational prior art and interoperability targets}, rather than formally tested standards in this benchmark:
+\begin{itemize}
+    \item \textbf{AER-1 / AEB:} Agent Execution Receipt and Agent Execution Boundary concepts.
+    \item \textbf{AAC:} Agent Action Capsule structures.
+    \item \textbf{CAID:} Causal Action Identifiers for semantic identity.
+    \item \textbf{EffectMatch \& EMILIA:} Frameworks for deterministic side-effect reconciliation.
+    \item \textbf{GRIP:} Gateway Receipt Integrity Protocols.
+\end{itemize}
+
+\section{Limitations and Conclusion}
+
+\subsection{Limitations}
+\begin{enumerate}
+    \item \textbf{Synthetic Benchmark Environment:} Evaluated in a local harness with simulated post-commit network faults.
+    \item \textbf{Single Database Engine Evaluated:} The reported benchmark uses SQLite WAL mode; multi-node distributed database clusters (PostgreSQL, CockroachDB) remain to be tested under production load.
+    \item \textbf{No Production Deployment:} This work presents an experimental prototype and evaluation harness; it is not a production service.
+    \item \textbf{No Universal Exactly-Once Proof:} AEIB demonstrates zero duplicate mutations under the tested harness and assumptions; it does not constitute a formal proof of universal safety across arbitrary failure topologies.
+    \item \textbf{No Standards or Compliance Certification:} Regulatory requirements (such as DORA Article 17 or EU AI Act Article 14) motivate the need for durable operational evidence; this work makes no compliance or certification claim. AEIB produces evidence that may support assessment activities; it does not determine regulatory applicability or certify compliance.
+    \item \textbf{Canonical JSON Subset:} Implements a documented canonical JSON subset rather than formal JCS-compatible conformance certification.
+    \item \textbf{Security Assumptions:} Receipt integrity depends on secure local storage of the Ed25519 signing key and the trustworthiness of the authoritative probe.
+\end{enumerate}
+
+\subsection{Conclusion}
+The "Retry or Else" assumption in autonomous AI agent architectures is fundamentally unsafe under post-dispatch transport ambiguity. When agents suffer semantic drift during retry loops, conventional API gateways fail to deduplicate transactions, resulting in duplicate mutations. By enforcing pre-dispatch canonicalization, retry freezing, out-of-band state reconciliation, and cryptographic attestation, AEIB demonstrates zero duplicate mutations and zero false positive outcome verifications across the reported deterministic trials.
+
+\section*{Artifact Availability and Reproducibility}
+\begin{itemize}
+    \item \textbf{Repository:} \texttt{https://github.com/SovereignNexus/smaos} (Branch: \texttt{release/v0.2.0}, Target Tag: \texttt{v0.2.2})
+    \item \textbf{Component Commit Provenance:}
+    \item \textbf{Release Tag:} \texttt{v0.2.2}
+    \item \textbf{Git Target Commit:} \texttt{bd0d845b8c57fa8d90fa35599ebdb9c54f8fce0d}
+    \item \textbf{Manifest Identifier:} \texttt{RELEASE\_MANIFEST\_v0.2.2.json}
+    \item \textbf{Single Run Evidence Hash:} \texttt{8ba5b43c40664b5f8c8c953a331477338abfc3e80696f7cfb5d52beaab2d46de}
+    \item \textbf{On-Disk SQLite Database:} \texttt{benchmarks/fault\_injection/results/ledger.db}
+    \item \textbf{Replication Commands:}
+\begin{lstlisting}[language=bash]
+PYTHONPATH=. .venv/bin/pytest benchmarks/fault_injection/test_falsifiability.py benchmarks/fault_injection/tests/test_control_matrix.py tests/test_ebpf_controller.py -v
+PYTHONPATH=. .venv/bin/python benchmarks/fault_injection/client_matrix.py --runs 50
+\end{lstlisting}
+\end{itemize}
+
+\bibliographystyle{IEEEtran}
+\input{main.bbl}
+
+
+\appendix
+\section{CAID Interoperability \& Identity Constraints}
+This appendix outlines the identity mapping methodology bridging the AEIB disposition framework to broader interoperability targets, specifically CAID (Causal Action Identifier).
+
+\subsection{Identity Mapping (\texttt{action\_id.type = "caid"})}
+In this implementation, the \texttt{action\_id} field utilizes the \texttt{caid} type mapping to provide deterministic structural identity for mutating agent actions (e.g., \texttt{urn:caid:sha256:...}):
+
+\begin{itemize}
+    \item \textbf{Valid Retries:} A deterministic agent retry that preserves the exact canonical payload representation will hash to the exact same CAID. The idempotency gateway can use this stable CAID to safely deduplicate the request and return the cached outcome.
+    \item \textbf{Semantic Drift ($\mathcal{C}_2$):} If an agent alters the payload structure (e.g., payload mutation or $\mathcal{C}_2$ semantic drift), the canonical hash will produce a new CAID. Under CAID semantics, this is structurally interpreted as a \textbf{distinct logical action}.
+\end{itemize}
+
+\subsection{Scope Limitations (Synchronous Mutating Tool Calls)}
+This evaluation strictly covers \textbf{synchronous mutating tool calls} where the remote procedure executes and commits within the lifecycle of the single HTTP request-response cycle. Asynchronous task lifecycles (\texttt{PENDING}, \texttt{EXPIRED}, \texttt{CANCELLED}) are formally documented as future work and are outside the scope of this protocol baseline.
+nd{document}

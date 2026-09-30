@@ -1,165 +1,95 @@
 import os
-import json
-import time
 import pytest
-from aeib_postgresql_probe.pg_probe_adapter import PgProbeAdapter, canonical_evidence_digest, _psycopg
+import psycopg2
+from aeib_postgresql_probe.adapter import PostgresProbeAdapter, ProbeResult
 
-TEST_PG_DSN = os.environ.get("PG_LEDGER_DSN", "postgresql://postgres@localhost:55432/aeib_ledger")
-
-def is_pg_available(dsn: str) -> bool:
-    try:
-        with _psycopg.connect(dsn, connect_timeout=1) as conn:
-            return True
-    except Exception:
-        return False
+DSN = os.getenv("PG_LEDGER_DSN", "postgresql://postgres:password@localhost:55432/aeib_ledger")
 
 @pytest.fixture(scope="module")
-def pg_live_setup():
-    if not is_pg_available(TEST_PG_DSN):
-        pytest.skip(f"PostgreSQL server not reachable at {TEST_PG_DSN}. Skipping live integration suite.")
-
-    with _psycopg.connect(TEST_PG_DSN) as conn:
-        conn.autocommit = True
-        with conn.cursor() as cur:
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS operations (
-                    operation_id VARCHAR(64) PRIMARY KEY,
-                    intent_id VARCHAR(64) NOT NULL,
-                    amount NUMERIC(12, 2) NOT NULL,
-                    status VARCHAR(32) NOT NULL,
-                    committed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-                );
-                CREATE INDEX IF NOT EXISTS idx_operations_intent_id ON operations(intent_id);
-                TRUNCATE TABLE operations;
-            """)
-            # Seed committed test record
-            cur.execute("""
-                INSERT INTO operations (operation_id, intent_id, amount, status, committed_at)
-                VALUES ('op_live_committed_001', 'intent_live_test_001', 100.00, 'COMMITTED', '2026-09-30 20:00:00+00');
-            """)
-            conn.commit()
-
-    yield TEST_PG_DSN
-
-@pytest.mark.integration
-def test_live_pg_probe_committed_row(pg_live_setup):
-    adapter = PgProbeAdapter(dsn=pg_live_setup)
-    res = adapter.probe_intent("intent_live_test_001")
-
-    assert res["status"] == "COMMITTED"
-    assert res["operation_id"] == "op_live_committed_001"
-    assert res["amount"] == 100.0
-    assert res["probe_source"] == "postgresql"
-    assert "evidence_digest" in res
-    assert len(res["evidence_digest"]) == 64
-
-@pytest.mark.integration
-def test_live_pg_probe_absent_row(pg_live_setup):
-    adapter = PgProbeAdapter(dsn=pg_live_setup)
-    res = adapter.probe_intent("intent_absent_99999")
-
-    assert res["status"] == "RECONCILIATION_NOT_FOUND"
-    assert res["probe_source"] == "postgresql"
-    assert res["intent_id"] == "intent_absent_99999"
-    assert "evidence_digest" in res
-
-@pytest.mark.integration
-def test_live_pg_sql_injection_defense(pg_live_setup):
-    adapter = PgProbeAdapter(dsn=pg_live_setup)
-    # Attempt SQL injection: should be treated as literal string and not match
-    malicious_intent = "' OR 1=1; DROP TABLE operations; --"
-    res = adapter.probe_intent(malicious_intent)
-
-    assert res["status"] == "RECONCILIATION_NOT_FOUND"
-    # Ensure table was not dropped
-    with _psycopg.connect(pg_live_setup) as conn:
-        with conn.cursor() as cur:
-            cur.execute("SELECT COUNT(*) FROM operations;")
-            count = cur.fetchone()[0]
-            assert count >= 1
-
-@pytest.mark.integration
-def test_live_pg_evidence_capture(pg_live_setup):
-    adapter = PgProbeAdapter(dsn=pg_live_setup)
+def pg_adapter():
+    adapter = PostgresProbeAdapter(DSN, minconn=1, maxconn=3)
     
-    # Capture database version, query plan, and isolation level
-    with _psycopg.connect(pg_live_setup) as conn:
-        with conn.cursor() as cur:
-            cur.execute("SELECT version();")
-            pg_version = cur.fetchone()[0]
+    # Deterministic Schema Setup
+    conn = psycopg2.connect(DSN)
+    cur = conn.cursor()
+    cur.execute("""
+        DROP TABLE IF EXISTS transactions CASCADE;
+        CREATE TABLE transactions (
+            tx_id VARCHAR(64) PRIMARY KEY,
+            intent_id VARCHAR(64) NOT NULL,
+            idempotency_key VARCHAR(128) UNIQUE NOT NULL,
+            amount DECIMAL(10, 2) NOT NULL,
+            status VARCHAR(32) NOT NULL,
+            commit_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
 
-            cur.execute("SHOW transaction_isolation;")
-            isolation_level = cur.fetchone()[0]
+        -- Unconstrained fixture to test multiple row reconciliation conflict
+        DROP TABLE IF EXISTS transactions_conflict_fixture CASCADE;
+        CREATE TABLE transactions_conflict_fixture (
+            tx_id VARCHAR(64),
+            intent_id VARCHAR(64),
+            idempotency_key VARCHAR(128),
+            amount DECIMAL(10, 2),
+            status VARCHAR(32),
+            commit_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    """)
+    conn.commit()
+    cur.close()
+    conn.close()
 
-            cur.execute("EXPLAIN ANALYZE SELECT operation_id, intent_id, amount, status, committed_at FROM operations WHERE intent_id = 'intent_live_test_001' ORDER BY committed_at DESC LIMIT 1;")
-            query_plan = [line[0] for line in cur.fetchall()]
+    yield adapter
+    adapter.close()
 
-    # Measure warmup + timed samples
-    latencies_ms = []
-    # Warmup
-    for _ in range(10):
-        adapter.probe_intent("intent_live_test_001")
+def test_1_verified_outcome(pg_adapter):
+    conn = psycopg2.connect(DSN)
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO transactions (tx_id, intent_id, idempotency_key, amount, status) "
+        "VALUES (%s, %s, %s, %s, %s);",
+        ("tx_01", "intent_01", "key_exact_match", 1500.00, "COMMITTED"),
+    )
+    conn.commit()
+    cur.close()
+    conn.close()
 
-    # 50 measured trials
-    for _ in range(50):
-        t0 = time.perf_counter()
-        adapter.probe_intent("intent_live_test_001")
-        latencies_ms.append((time.perf_counter() - t0) * 1000.0)
+    outcome = pg_adapter.execute_probe("key_exact_match", table_name="transactions")
+    assert outcome.result == ProbeResult.OUTCOME_VERIFIED
+    assert outcome.evidence["row"]["tx_id"] == "tx_01"
+    assert outcome.evidence["row_hash"] is not None
+    assert "query_metadata" in outcome.evidence
 
-    latencies_ms.sort()
-    from aeib_postgresql_probe.pg_probe_adapter import _percentile_nearest_rank
-    mean_latency = sum(latencies_ms) / len(latencies_ms)
-    p50_latency = _percentile_nearest_rank(latencies_ms, 0.50)
-    p95_latency = _percentile_nearest_rank(latencies_ms, 0.95)
-    p99_latency = _percentile_nearest_rank(latencies_ms, 0.99)
+def test_2_reconciliation_not_found(pg_adapter):
+    outcome = pg_adapter.execute_probe("non_existent_key", table_name="transactions")
+    assert outcome.result == ProbeResult.RECONCILIATION_NOT_FOUND
+    assert outcome.evidence is None
 
-    evidence = {
-        "database_engine": "PostgreSQL",
-        "database_version": pg_version,
-        "isolation_level": isolation_level,
-        "target_table": "operations",
-        "index_name": "idx_operations_intent_id",
-        "query_plan": query_plan,
-        "dsn_redacted": adapter.redacted_dsn,
-        "sample_size": len(latencies_ms),
-        "timing_methodology": "time.perf_counter() on dedicated loopback connection",
-        "percentile_method": "nearest_rank",
-        "latency_metrics_ms": {
-            "mean": round(mean_latency, 3),
-            "p50": round(p50_latency, 3),
-            "p95": round(p95_latency, 3),
-            "p99": round(p99_latency, 3),
-            "min": round(latencies_ms[0], 3),
-            "max": round(latencies_ms[-1], 3)
-        }
-    }
+def test_3_reconciliation_conflict_on_duplicate_rows(pg_adapter):
+    conn = psycopg2.connect(DSN)
+    cur = conn.cursor()
+    # Insert duplicate idempotency keys into unconstrained fixture
+    cur.execute(
+        "INSERT INTO transactions_conflict_fixture (tx_id, intent_id, idempotency_key, amount, status) "
+        "VALUES (%s, %s, %s, %s, %s), (%s, %s, %s, %s, %s);",
+        ("tx_dup_1", "intent_02", "key_duplicate", 2000.00, "COMMITTED",
+         "tx_dup_2", "intent_02", "key_duplicate", 2000.00, "COMMITTED"),
+    )
+    conn.commit()
+    cur.close()
+    conn.close()
 
-    import pathlib
-    out_dir = pathlib.Path(__file__).resolve().parent.parent / "results"
-    out_dir.mkdir(parents=True, exist_ok=True)
-    with open(out_dir / "PG_INTEGRATION_EVIDENCE.json", "w") as f:
-        json.dump(evidence, f, indent=2)
+    outcome = pg_adapter.execute_probe("key_duplicate", table_name="transactions_conflict_fixture")
+    assert outcome.result == ProbeResult.RECONCILIATION_CONFLICT
+    assert outcome.evidence["row_count"] == 2
+    assert "conflict_hash" in outcome.evidence
 
-    assert "PostgreSQL 16" in pg_version
-    assert evidence["latency_metrics_ms"]["p50"] > 0.0
+def test_4_statement_timeout_active_cancellation_and_pool_recovery(pg_adapter):
+    # Trigger statement timeout using raw sleep test helper
+    outcome = pg_adapter.execute_raw_sleep_for_test(sleep_seconds=1.5, statement_timeout_ms=200)
+    assert outcome.result == ProbeResult.PROBE_TIMEOUT
+    assert "exceeded timeout" in outcome.error_message or "canceling statement" in outcome.error_message.lower()
 
-@pytest.mark.integration
-def test_live_pg_statement_timeout_cancellation(pg_live_setup):
-    """
-    Verifies that the statement_timeout mechanism correctly cancels queries.
-    Tests the exact SET syntax used by the adapter against the live database.
-    """
-    adapter = PgProbeAdapter(dsn=pg_live_setup, statement_timeout_ms=50) # 50ms timeout
-    
-    try:
-        from psycopg.errors import QueryCanceled
-    except ImportError:
-        from psycopg2.errors import QueryCanceled
-        
-    with pytest.raises(QueryCanceled):
-        with _psycopg.connect(adapter.dsn, connect_timeout=adapter.connect_timeout_sec) as conn:
-            conn.autocommit = True
-            with conn.cursor() as cur:
-                # Test the exact same query syntax used by the adapter
-                cur.execute(f"SET statement_timeout = {int(adapter.statement_timeout_ms)}")
-                cur.execute("SELECT pg_sleep(0.5)") # Will run pg_sleep(0.5) and timeout!
+    # Verify connection pool recovered cleanly by running a normal probe
+    recovery_outcome = pg_adapter.execute_probe("key_exact_match", table_name="transactions")
+    assert recovery_outcome.result == ProbeResult.OUTCOME_VERIFIED
+    assert recovery_outcome.evidence["row"]["tx_id"] == "tx_01"

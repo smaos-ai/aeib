@@ -56,6 +56,8 @@ ARTIFACT_MAP = {
     "verify_reproduction_py_sha256":  REPO_ROOT / "benchmarks/fault_injection/verify_reproduction.py",
     "paper_draft_md_sha256":          REPO_ROOT / "docs/research/AEIB_arXiv_Paper_Draft.md",
     "paper_tex_sha256":               REPO_ROOT / "docs/research/AEIB_arXiv_Paper.tex",
+    "pg_probe_adapter_py_sha256":     REPO_ROOT / "aeib_postgresql_probe/adapter.py",
+    "test_integration_pg_probe_py_sha256": REPO_ROOT / "aeib_postgresql_probe/tests/test_integration_pg_probe.py",
 }
 
 # Dependency names as importlib.metadata sees them

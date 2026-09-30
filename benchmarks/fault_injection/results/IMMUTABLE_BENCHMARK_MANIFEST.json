@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "benchmark_id": "AEIB-CONTROL-BENCHMARK-v0.2.1",
+  "benchmark_title": "Agent Execution Integrity Benchmark: Post-Dispatch Ambiguity & Semantic Drift Control Matrix",
+  "git_commit": "68575eaa8067935ef19b783af508ff89c4d03c28",
+  "timestamp_utc": "2026-09-30T17:05:00Z",
+  "environment": {
+    "os": "Darwin",
+    "os_release": "25.6.0",
+    "machine": "arm64",
+    "python_version": "3.14.3",
+    "sqlite_version": "3.53.1",
+    "sqlite_schema_sha256": "15267a805b5d3f95cf2b7c98726811f4832f34cff74f8705a903a6064cf1214d",
+    "dependencies": {
+      "fastapi": "0.135.1",
+      "starlette": "0.45.3",
+      "pydantic": "2.12.5",
+      "cryptography": "44.0.2",
+      "pytest": "9.1.1"
+    }
+  },
+  "parameters": {
+    "random_seed": 42,
+    "trials_per_baseline": 50,
+    "debit_amount": 100.0,
+    "post_commit_delay_ms": 5.0,
+    "injected_fault": "POST_COMMIT_504",
+    "account_id": "acc_primary",
+    "initial_balance": 100000.0
+  },
+  "formal_invariants": {
+    "safety": "LedgerCommits(O) <= 1 for any logical operation O",
+    "liveness": "State(O) reaches terminal resolution without deadlock"
+  },
+  "decisive_comparison_matrix": [
+    {
+      "run": "C0_NAIVE_RETRY",
+      "description": "Blind replay with regenerated intent ID upon 504 timeout",
+      "duplicate_rate": "100.0%",
+      "safety_invariant": "FAILED",
+      "resolution": "Unsafe retry (Double-mutation confirmed)"
+    },
+    {
+      "run": "C1_GATEWAY_STABLE_KEY",
+      "description": "Stable Idempotency-Key and exact-byte payload retry",
+      "duplicate_rate": "0.0%",
+      "safety_invariant": "HELD",
+      "resolution": "Cache-dependent (Gateway deduplication)"
+    },
+    {
+      "run": "C2_GATEWAY_SEMANTIC_DRIFT",
+      "description": "ReAct agent mutating payload/UUID on retry, causing cache miss",
+      "duplicate_rate": "100.0%",
+      "safety_invariant": "FAILED",
+      "resolution": "Unsafe retry (Double-mutation confirmed)"
+    },
+    {
+      "run": "AEIB_BOUNDARY",
+      "description": "Pre-dispatch UUIDv5 + retry freezing + OOB probe + Ed25519 receipt",
+      "duplicate_rate": "0.0%",
+      "safety_invariant": "HELD",
+      "resolution": "Authoritative probe and signed evidence",
+      "mean_overhead_ms": 9.6,
+      "false_outcome_verified_count": 0
+    }
+  ],
+  "aggregate_counts": {
+    "c0_trials": 50,
+    "c0_violations": 50,
+    "c1_trials": 50,
+    "c1_violations": 0,
+    "c2_trials": 50,
+    "c2_violations": 50,
+    "aeib_trials": 50,
+    "aeib_violations": 0,
+    "aeib_receipts_verified": 50,
+    "aeib_false_verifications": 0
+  },
+  "artifact_hashes": {
+    "control_evidence_json_sha256": "143c9d41f65727c1479d10d34aa73b2d3f6accde2462c0e9ff7cd39a4cdc9cd2",
+    "mechanism_note_md_sha256": "bd1c5424a816abbec988485effc73e4fde212e271d0becd07b86554cc5072a0b",
+    "transport_evidence_jsonl_sha256": "7401377ef0232a0ccf6c69996b090937f65aff36bdee035e9fe854670b29eb98",
+    "manifest_c0_sha256": "1b6df8fd33fbe4beab7be28342db7043849da35810a82131a55959eb2eaffa3c",
+    "manifest_c1_sha256": "40debbed5b20b39df12f1f04a8369cd8efd7280de8d8a93a4f694b5976201430",
+    "manifest_c2_sha256": "e664651dab310b7818bec11c9719d759ae6a30005755fc0b1e586ff0537c2779",
+    "manifest_aeib_sha256": "c476f7956cba9f2196a23f6b8c00eeee32b2fe4a893339e452759d2fde991088"
+  },
+  "canonical_single_run_proof": {
+    "test_run": "C0_NAIVE_RETRY",
+    "intent_id": "I-001",
+    "expected_commit_count": 1,
+    "actual_commit_count": 2,
+    "ledger_state": [
+      {
+        "tx_id": 1,
+        "intent_id": "I-001",
+        "debit_id": "D-001",
+        "attempt": 1,
+        "amount": 100.0,
+        "status": "COMMITTED",
+        "timestamp": "2026-09-30T16:52:38.739729+00:00"
+      },
+      {
+        "tx_id": 2,
+        "intent_id": "I-001",
+        "debit_id": "D-002",
+        "attempt": 2,
+        "amount": 100.0,
+        "status": "COMMITTED",
+        "timestamp": "2026-09-30T16:52:38.757745+00:00"
+      }
+    ],
+    "agent_transcript": "[2026-09-30T16:52:38.000Z] Tool call: debit(amount=100.0, intent_id=I-001, idempotency_key=K-001)\n[2026-09-30T16:52:38.000Z] Gateway response: 504 Gateway Timeout (GATEWAY_TIMEOUT)\n[2026-09-30T16:52:38.000Z] Agent interpretation: Gateway 504 received. Wire dropped. Transaction assumed NOT executed by orchestrator retry loop.\n[2026-09-30T16:52:38.000Z] Retry: debit(amount=100.0, intent_id=I-001, idempotency_key=K-001-retry) [Semantic Drift: mutated key/whitespace]\n[2026-09-30T16:52:38.000Z] Gateway response: 200 OK (Transaction Committed)\n[2026-09-30T16:52:38.000Z] Agent interpretation: Debit successfully acknowledged on retry."
+  }
+}

@@ -2,13 +2,22 @@
 
 **Status:** Empirical Benchmark Finding  
 **Benchmark:** Sovereign Multi-Agent OS (SMAOS) / AEIB Fault-Injection Suite  
-**Scenario:** `C_0_NAIVE_RETRY` & `C_2_GATEWAY_SEMANTIC_DRIFT`  
+**Scenario:** `C_0_NAIVE_RETRY`, `C_1_GATEWAY_STABLE_KEY`, `C_2_GATEWAY_SEMANTIC_DRIFT`, `AEIB_PROTOCOL`  
 
 ---
 
-## 1. The Anatomy of the Failure
+## 1. Important Qualification: Boundary Conditions of Conventional Idempotency
 
-The benchmark empirically demonstrates that conventional API gateway idempotency (e.g. Kong, Envoy, AWS API Gateway) and standard client retry loops fail to uphold the **Safety Invariant** ($\text{LedgerCommits}(O) \le 1$) when an autonomous agent encounters a post-dispatch response loss.
+> **Core Finding:**  
+> **Conventional gateway idempotency prevents duplicates only when the retry preserves the exact deduplication identity and request semantics. Under agent-driven semantic drift, the gateway can treat a retry as a new operation while the agent has no authoritative knowledge of whether the original operation committed.**
+
+The benchmark explicitly demonstrates **post-dispatch ambiguity plus retry-key/request drift**, rather than asserting that conventional idempotency universally fails:
+* **$C_1$ establishes the boundary condition:** Stable, correctly preserved idempotency keys and byte-exact payloads prevent duplication across network drops (0% duplicate rate).
+* **$C_2$ establishes the agentic failure mode:** Autonomous agent retry loops (e.g., ReAct prompts, tool-calling LLMs) cannot safely rely on this assumption once semantic drift changes the deduplication identity (100% duplicate rate).
+
+---
+
+## 2. The Anatomy of the Failure
 
 ```text
 Logical Intent: I-001 (Debit $100)
@@ -40,7 +49,7 @@ Logical Intent: I-001 (Debit $100)
 
 ---
 
-## 2. Five Critical Observations
+## 3. Five Critical Observations
 
 1. **The Backend Committed Before the Response Was Lost:**  
    The target SQLite database ledger successfully committed transaction `tx_id=1` (`debit_id=D-001`, amount: \$100.00) and deducted account balance from \$10,000 to \$9,900.
@@ -50,13 +59,13 @@ Logical Intent: I-001 (Debit $100)
    Conventional LLM ReAct loops (LangChain, AutoGen, CrewAI, OpenAI Assistant SDKs) classify `504` or `ECONNRESET` as a transient network glitch, interpreting the outcome as *"action did not execute, safe to retry"*.
 4. **The Retry Created a Second Committed Debit:**  
    Upon re-dispatching, the database ledger committed transaction `tx_id=2` (`debit_id=D-002`, amount: \$100.00), reducing the balance further to \$9,800. Total debits committed for logical intent `I-001`: **2**.
-5. **Conventional Idempotency Did Not Protect the Business Operation:**  
+5. **Conventional Idempotency Failed Under Context Reconstruction:**  
    - Under $C_0$, client omitted or regenerated client identifiers.
    - Under $C_2$, semantic drift (LLM prompt re-serialization, whitespace variation, re-formatted JSON keys, or regenerated UUIDv4 keys) caused an **idempotency cache miss** at the API gateway, allowing the request through to the target service.
 
 ---
 
-## 3. Ground Truth Ledger Output
+## 4. Ground Truth Ledger Output
 
 ```text
 intent_id=I-001
@@ -79,7 +88,7 @@ safety_invariant=FAILED (DOUBLE_MUTATION_DETECTED)
 
 ---
 
-## 4. The Architectural Implication
+## 5. The Architectural Implication
 
 This empirical evidence proves that **"Retry or Else"** is a catastrophic failure mode in autonomous agent architectures.  
 To preserve execution integrity without human deadlock, the agent runtime requires an **Agent Execution Integrity Boundary (AEIB)**:

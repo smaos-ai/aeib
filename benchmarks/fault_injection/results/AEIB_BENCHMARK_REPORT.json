@@ -1,0 +1,75 @@
+{
+  "benchmark_metadata": {
+    "title": "AEIB Execution Boundary Comprehensive Verification Report",
+    "git_commit": "68575eaa8067935ef19b783af508ff89c4d03c28",
+    "timestamp_utc": "2026-09-30T17:03:52Z",
+    "environment": {
+      "os": "Darwin",
+      "os_release": "25.6.0",
+      "machine": "arm64",
+      "python_version": "3.14.3",
+      "sqlite_version": "3.53.1",
+      "sqlite_schema_sha256": "15267a805b5d3f95cf2b7c98726811f4832f34cff74f8705a903a6064cf1214d"
+    },
+    "parameters": {
+      "num_positive_trials": 50,
+      "num_negative_trials": 20,
+      "fault_mode": "POST_COMMIT_504",
+      "post_commit_delay_ms": 5.0,
+      "debit_amount": 100.0,
+      "account_id": "acc_primary"
+    }
+  },
+  "decisive_comparison": [
+    {
+      "baseline": "C_0 (Naive Retry)",
+      "duplicate_rate": "100.0%",
+      "resolution": "Unsafe retry"
+    },
+    {
+      "baseline": "C_1 (Gateway + Stable Key)",
+      "duplicate_rate": "0.0%",
+      "resolution": "Cache-dependent"
+    },
+    {
+      "baseline": "C_2 (Gateway + Semantic Drift)",
+      "duplicate_rate": "100.0%",
+      "resolution": "Unsafe retry"
+    },
+    {
+      "baseline": "AEIB Boundary",
+      "duplicate_rate": "0.0%",
+      "resolution": "Authoritative probe & signed receipt"
+    }
+  ],
+  "aeib_empirical_metrics": {
+    "total_positive_trials": 50,
+    "duplicate_debits": 0,
+    "duplicate_rate_pct": 0.0,
+    "reconciliation_success_rate_pct": 100.0,
+    "receipt_signatures_verified": 50,
+    "receipt_signature_success_pct": 100.0,
+    "mean_overhead_ms": 9.6,
+    "p95_overhead_ms": 11.0,
+    "negative_control_trials": 20,
+    "false_outcome_verified_count": 0,
+    "false_verification_rate_pct": 0.0
+  },
+  "artifact_hashes": {
+    "evidence_json_sha256": "143c9d41f65727c1479d10d34aa73b2d3f6accde2462c0e9ff7cd39a4cdc9cd2",
+    "mechanism_note_sha256": "bd1c5424a816abbec988485effc73e4fde212e271d0becd07b86554cc5072a0b",
+    "transport_jsonl_sha256": "7401377ef0232a0ccf6c69996b090937f65aff36bdee035e9fe854670b29eb98"
+  },
+  "sample_receipt": {
+    "trial_index": 0,
+    "logical_operation_id": "op-aeib-pos-0000",
+    "intent_id": "intent-aeib-pos-0000",
+    "http_status_observed": 504,
+    "disposition": "OUTCOME_VERIFIED",
+    "retry_permitted": false,
+    "retry_policy": "PROHIBITED_ALREADY_COMMITTED",
+    "commits_in_ledger": 1,
+    "signature_valid": true,
+    "overhead_ms": 28.05
+  }
+}

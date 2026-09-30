@@ -191,6 +191,23 @@ class TestControlMatrix(unittest.TestCase):
         # Public key verification passes!
         self.interceptor.public_key.verify(sig_bytes, signable_bytes)
 
+    def test_aeib_negative_control_zero_false_outcome_verified(self):
+        """
+        Negative Control: Proves ZERO false OUTCOME_VERIFIED results.
+        When an operation did not commit to the ledger, the out-of-band probe
+        must resolve to RECONCILIATION_NOT_FOUND and NEVER emit OUTCOME_VERIFIED.
+        """
+        uncommitted_op = "op-aeib-uncommitted-999"
+        probe_res = self.client.get(f"/operations/{uncommitted_op}")
+        self.assertEqual(probe_res.status_code, 200)
+        data = probe_res.json()
+        self.assertFalse(data["committed"])
+        self.assertEqual(data["commit_count"], 0)
+
+        disposition = "OUTCOME_VERIFIED" if data["committed"] else "RECONCILIATION_NOT_FOUND"
+        self.assertEqual(disposition, "RECONCILIATION_NOT_FOUND")
+        self.assertNotEqual(disposition, "OUTCOME_VERIFIED")
+
 
 if __name__ == "__main__":
     unittest.main()

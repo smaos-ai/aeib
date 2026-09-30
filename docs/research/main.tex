@@ -40,7 +40,7 @@
 \begin{abstract}
 Autonomous agents increasingly invoke mutating remote procedures through gateways and external enterprise systems. When a downstream service commits a mutation but the response is lost---for example, after a gateway timeout---the caller observes transport failure without knowing whether execution occurred. A retry may therefore produce a second mutation, particularly when agent-driven semantic drift changes the effective idempotency identity.
 
-We present the Agent Execution Integrity Benchmark (AEIB), a protocol and evaluation harness for representing and reconciling this post-dispatch ambiguity as an extension of OWASP LLM06 (Excessive Agency) mitigations. AEIB defines a seven-state disposition taxonomy, a deterministic transport-to-disposition mapping contract, an execution boundary that enforces a CMU Frozen Cascade (\texttt{retry\_permitted = false}) after ambiguous faults, and Ed25519-signed receipts that bind dispatch observations to authoritative probe results. We implement an offline verifier and evaluate AEIB against a reproducible control matrix. Across 50 trials, naive retry and semantic-drift baselines produced duplicate mutations in 100\% of runs, while a stable-key baseline produced none. Under the same post-commit timeout fault, AEIB produced no duplicate mutations, verified 50 of 50 receipts, and produced zero false \texttt{OUTCOME\_VERIFIED} results across 20 non-commit controls. The measured AEIB overhead was 9.22~ms mean and 9.59~ms at p95 in the local harness. AEIB makes the transport-to-disposition mapping and disposition-to-retry policy explicit as versioned, machine-readable artifacts, and verifies that mapping offline. It provides a concrete benchmark and implementation for this layer while treating action identity, authorization, receipt transport, and broader execution governance as interoperable adjacent concerns. AEIB is compatible with emerging action-receipt ecosystems but operates independently to enforce deterministic retry constraints following post-dispatch transport ambiguity.
+We present the Agent Execution Integrity Benchmark (AEIB), a protocol and evaluation harness for representing and reconciling this post-dispatch ambiguity as an extension of OWASP LLM06 (Excessive Agency) mitigations. AEIB defines a seven-state disposition taxonomy, a deterministic transport-to-disposition mapping contract, an execution boundary that enforces a CMU Frozen Cascade (\texttt{retry\_permitted = false}) after ambiguous faults, and Ed25519-signed receipts that bind dispatch observations to authoritative probe results. We implement an offline verifier and evaluate AEIB against a reproducible control matrix. Across 50 trials, naive retry and semantic-drift baselines produced duplicate mutations in 100\% of runs, while a stable-key baseline produced none. Under the same post-commit timeout fault, AEIB produced no duplicate mutations, verified 50 of 50 receipts, and produced zero false \texttt{OUTCOME\_VERIFIED} results across 20 non-commit controls. The measured AEIB overhead was 9.22~ms mean and 9.59~ms at p95 in the local harness. These results are limited to the tested synthetic environment and do not constitute a production-readiness, standards-compliance, or regulatory-certification claim.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -155,7 +155,7 @@ The AEIB prototype consists of the following components:
 \section{Evaluation}
 
 \subsection{The Control Matrix Benchmark}
-We evaluated four execution conditions in a local deterministic harness under identical post-commit 504 fault injection (a synthetic 5~ms delay followed by socket severance immediately following database commit). Naive retry ($C_0$) and semantic-drift retry ($C_2$) each violated the at-most-one-commit invariant in 50 of 50 trials (100.0\% duplicate rate). A stable-key gateway baseline ($C_1$) violated it in 0 of 50 trials (0.0\% duplicate rate), establishing that the benchmark does not model idempotency as inherently ineffective. Under the same post-commit 504 fault, AEIB produced 0 duplicate mutations in 50 trials (0.0\% duplicate rate) and verified 50 of 50 signed receipts. In 20 non-commit controls, AEIB produced 0 false \texttt{OUTCOME\_VERIFIED} results, resolving strictly to \texttt{RECONCILIATION\_NOT\_FOUND}. These results characterize the tested implementation and fault model; they do not establish production-wide or universal exactly-once guarantees (Table~\ref{tab:benchmark}).
+We evaluated four execution conditions in a local deterministic harness under identical post-commit 504 fault injection (a synthetic 5~ms delay followed by socket severance immediately following database commit). Naive retry ($C_0$) and semantic-drift retry ($C_2$) each violated the at-most-one-commit invariant in 50 of 50 trials (100.0\% duplicate rate). A stable-key gateway baseline ($C_1$) violated it in 0 of 50 trials (0.0\% duplicate rate), establishing that the benchmark does not model idempotency as inherently ineffective. Under the same post-commit 504 fault, in 50 AEIB trials under the declared SQLite fault model, zero duplicate mutations were observed (approximate 95\% rule-of-three upper bound: 5.8\%). All 50 receipts in the tested sample were independently verified. In 20 negative controls, zero false \texttt{OUTCOME\_VERIFIED} results were observed (approximate 95\% rule-of-three upper bound: 15\%), resolving strictly to \texttt{RECONCILIATION\_NOT\_FOUND}. These results characterize the tested implementation and fault model; they do not establish production-wide or universal exactly-once guarantees (Table~\ref{tab:benchmark}).
 
 \begin{table}[htbp]
 \caption{Empirical Control Matrix Performance ($N=50$ Trials)}
@@ -168,14 +168,14 @@ We evaluated four execution conditions in a local deterministic harness under id
 $C_0$ Naive Client Retry & 50 & 50 & \textbf{100.0\%} & N/A \\
 $C_1$ Gateway + Stable Key & 50 & 0 & \textbf{0.0\%} & N/A \\
 $C_2$ Gateway + Semantic Drift & 50 & 50 & \textbf{100.0\%} & N/A \\
-\textbf{AEIB Post-Commit 504} & 50 & 0 & \textbf{0.0\%} & \textbf{0.0\%} (0/50) \\
-\textbf{AEIB Non-Commit Controls} & 20 & 0 & \textbf{0.0\%} & \textbf{0.0\%} (0/20) \\
+\textbf{AEIB Post-Commit 504} & 50 & 0 & \textbf{0.0\%} ($<$5.8\% bound) & \textbf{0.0\%} (0/50) \\
+\textbf{AEIB Non-Commit Controls} & 20 & 0 & \textbf{0.0\%} & \textbf{0.0\%} (0/20; $<$15\% bound) \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{quote}
-\textbf{Scope and Environmental Boundary:} The benchmark evaluates a deterministic local fault model with a SQLite ledger, an in-process gateway/fault injector, and a defined semantic-drift retry behavior. It does not establish equivalent rates for arbitrary agents, gateways, databases, network stacks, or production deployments.
+\textbf{Scope and Environmental Boundary:} The benchmark evaluates a deterministic local fault model with a SQLite ledger, an in-process gateway/fault injector, and a defined semantic-drift retry behavior. Overhead figures (9.22~ms mean, 9.59~ms p95) are SQLite-harness measurements, not PostgreSQL probe performance. It does not establish equivalent rates for arbitrary agents, gateways, databases, network stacks, or production deployments.
 \end{quote}
 
 \begin{quote}
@@ -269,9 +269,12 @@ The "Retry or Else" assumption in autonomous AI agent architectures is fundament
 \begin{itemize}
     \item \textbf{Repository:} \texttt{https://github.com/SovereignNexus/smaos} (Branch: \texttt{release/v0.2.0}, Target Tag: \texttt{v0.2.2})
     \item \textbf{Component Commit Provenance:}
-    \item \textbf{Release Tag:} \texttt{v0.2.2}
-    \item \textbf{Git Target Commit:} \texttt{bd0d845b8c57fa8d90fa35599ebdb9c54f8fce0d}
-    \item \textbf{Manifest Identifier:} \texttt{RELEASE\_MANIFEST\_v0.2.2.json}
+    \begin{itemize}
+        \item Control Benchmark Commit: \texttt{68575eaa8067935ef19b783af508ff89c4d03c28}
+        \item AEIB Execution Boundary Commit: \texttt{bd0d845b8c57fa8d90fa35599ebdb9c54f8fce0d}
+        \item Adversarial Falsifiability Commit: \texttt{f1ff34fbac7694cac81a2b1af14eef504a922a0f}
+    \end{itemize}
+    \item \textbf{Master Release Manifest:} \texttt{benchmarks/fault\_injection/results/RELEASE\_MANIFEST\_v0.2.2.json}
     \item \textbf{Single Run Evidence Hash:} \texttt{8ba5b43c40664b5f8c8c953a331477338abfc3e80696f7cfb5d52beaab2d46de}
     \item \textbf{On-Disk SQLite Database:} \texttt{benchmarks/fault\_injection/results/ledger.db}
     \item \textbf{Replication Commands:}
@@ -282,21 +285,17 @@ PYTHONPATH=. .venv/bin/python benchmarks/fault_injection/client_matrix.py --runs
 \end{itemize}
 
 \bibliographystyle{IEEEtran}
-\input{main.bbl}
+\begin{thebibliography}{10}
+\bibitem{jcs}
+A.~Rundgren, B.~Jordan, and S.~Erdtman, ``JSON Canonicalization Scheme (JCS),'' JCS-compatible, IETF, June 2020.
+\bibitem{scitt-arch}
+H.~Birkholz, A.~Delignat-Lavaud, C.~Fournet, Y.~Goyal, and R.~Barnes, ``An Architecture for Trustworthy and Transparent Digital Supply Chains,'' IETF SCITT Working Group, Internet-Draft \texttt{draft-ietf-scitt-architecture-08}, July 2024.
+\bibitem{scitt-receipts}
+H.~Birkholz et al., ``Cryptographic Receipts for Transparent Digital Supply Chains,'' IETF SCITT Working Group, Internet-Draft \texttt{draft-birkholz-scitt-receipts-02}, August 2024.
+\bibitem{aer1}
+M.~Zambo, ``Agent Execution Receipts (AER-1),'' Internet-Draft \texttt{draft-zambo-aer1-00}, January 2025.
+\bibitem{http-sem}
+R.~Fielding, M.~Nottingham, and J.~Reschke, ``HTTP Semantics,'' RFC 9110, IETF, June 2022.
+\end{thebibliography}
 
-
-\appendix
-\section{CAID Interoperability \& Identity Constraints}
-This appendix outlines the identity mapping methodology bridging the AEIB disposition framework to broader interoperability targets, specifically CAID (Causal Action Identifier).
-
-\subsection{Identity Mapping (\texttt{action\_id.type = "caid"})}
-In this implementation, the \texttt{action\_id} field utilizes the \texttt{caid} type mapping to provide deterministic structural identity for mutating agent actions (e.g., \texttt{urn:caid:sha256:...}):
-
-\begin{itemize}
-    \item \textbf{Valid Retries:} A deterministic agent retry that preserves the exact canonical payload representation will hash to the exact same CAID. The idempotency gateway can use this stable CAID to safely deduplicate the request and return the cached outcome.
-    \item \textbf{Semantic Drift ($\mathcal{C}_2$):} If an agent alters the payload structure (e.g., payload mutation or $\mathcal{C}_2$ semantic drift), the canonical hash will produce a new CAID. Under CAID semantics, this is structurally interpreted as a \textbf{distinct logical action}.
-\end{itemize}
-
-\subsection{Scope Limitations (Synchronous Mutating Tool Calls)}
-This evaluation strictly covers \textbf{synchronous mutating tool calls} where the remote procedure executes and commits within the lifecycle of the single HTTP request-response cycle. Asynchronous task lifecycles (\texttt{PENDING}, \texttt{EXPIRED}, \texttt{CANCELLED}) are formally documented as future work and are outside the scope of this protocol baseline.
-nd{document}
+\end{document}

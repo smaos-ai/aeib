@@ -155,7 +155,7 @@ The AEIB prototype consists of the following components:
 \section{Evaluation}
 
 \subsection{The Control Matrix Benchmark}
-We evaluated four execution conditions in a local deterministic harness under identical post-commit 504 fault injection (a synthetic 5~ms delay followed by socket severance immediately following database commit). Naive retry ($C_0$) and semantic-drift retry ($C_2$) each violated the at-most-one-commit invariant in 50 of 50 trials (100.0\% duplicate rate). A stable-key gateway baseline ($C_1$) violated it in 0 of 50 trials (0.0\% duplicate rate), establishing that the benchmark does not model idempotency as inherently ineffective. Under the same post-commit 504 fault, AEIB produced 0 duplicate mutations in 50 trials (0.0\% duplicate rate) and verified 50 of 50 signed receipts. In 20 non-commit controls, AEIB produced 0 false \texttt{OUTCOME\_VERIFIED} results, resolving strictly to \texttt{RECONCILIATION\_NOT\_FOUND}. These results characterize the tested implementation and fault model; they do not establish production-wide or universal exactly-once guarantees (Table~\ref{tab:benchmark}).
+We evaluated four execution conditions in a local deterministic harness under identical post-commit 504 fault injection (a synthetic 5~ms delay followed by socket severance immediately following database commit). Naive retry ($C_0$) and semantic-drift retry ($C_2$) each violated the at-most-one-commit invariant in 50 of 50 trials (100.0\% duplicate rate). A stable-key gateway baseline ($C_1$) violated it in 0 of 50 trials (0.0\% duplicate rate), establishing that the benchmark does not model idempotency as inherently ineffective. Under the same post-commit 504 fault, in 50 AEIB trials under the declared SQLite fault model, zero duplicate mutations were observed (approximate 95\% rule-of-three upper bound: 5.8\%). All 50 receipts in the tested sample were independently verified. In 20 negative controls, zero false \texttt{OUTCOME\_VERIFIED} results were observed (approximate 95\% rule-of-three upper bound: 15\%), resolving strictly to \texttt{RECONCILIATION\_NOT\_FOUND}. These results characterize the tested implementation and fault model; they do not establish production-wide or universal exactly-once guarantees (Table~\ref{tab:benchmark}).
 
 \begin{table}[htbp]
 \caption{Empirical Control Matrix Performance ($N=50$ Trials)}
@@ -168,14 +168,14 @@ We evaluated four execution conditions in a local deterministic harness under id
 $C_0$ Naive Client Retry & 50 & 50 & \textbf{100.0\%} & N/A \\
 $C_1$ Gateway + Stable Key & 50 & 0 & \textbf{0.0\%} & N/A \\
 $C_2$ Gateway + Semantic Drift & 50 & 50 & \textbf{100.0\%} & N/A \\
-\textbf{AEIB Post-Commit 504} & 50 & 0 & \textbf{0.0\%} & \textbf{0.0\%} (0/50) \\
-\textbf{AEIB Non-Commit Controls} & 20 & 0 & \textbf{0.0\%} & \textbf{0.0\%} (0/20) \\
+\textbf{AEIB Post-Commit 504} & 50 & 0 & \textbf{0.0\%} ($<$5.8\% bound) & \textbf{0.0\%} (0/50) \\
+\textbf{AEIB Non-Commit Controls} & 20 & 0 & \textbf{0.0\%} & \textbf{0.0\%} (0/20; $<$15\% bound) \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{quote}
-\textbf{Scope and Environmental Boundary:} The benchmark evaluates a deterministic local fault model with a SQLite ledger, an in-process gateway/fault injector, and a defined semantic-drift retry behavior. It does not establish equivalent rates for arbitrary agents, gateways, databases, network stacks, or production deployments.
+\textbf{Scope and Environmental Boundary:} The benchmark evaluates a deterministic local fault model with a SQLite ledger, an in-process gateway/fault injector, and a defined semantic-drift retry behavior. Overhead figures (9.22~ms mean, 9.59~ms p95) are SQLite-harness measurements, not PostgreSQL probe performance. It does not establish equivalent rates for arbitrary agents, gateways, databases, network stacks, or production deployments.
 \end{quote}
 
 \begin{quote}

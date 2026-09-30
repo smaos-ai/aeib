@@ -115,10 +115,10 @@ We evaluated four execution conditions in a local deterministic harness under id
 | **$C_0$ (Naive Client Retry)** | 50 | 50 | **100.0%** | N/A | Duplicate ledger commit |
 | **$C_1$ (Gateway + Stable Key)** | 50 | 0 | **0.0%** | N/A | Deduplicated by gateway cache |
 | **$C_2$ (Gateway + Semantic Drift)** | 50 | 50 | **100.0%** | N/A | Duplicate ledger commit |
-| **AEIB Post-Commit 504** | 50 | 0 | **0.0%** | **0.0%** ($0/50$) | Authoritative probe & signed receipt |
-| **AEIB Non-Commit Controls** | 20 | 0 | **0.0%** | **0.0%** ($0/20$) | Resolved to `RECONCILIATION_NOT_FOUND` |
+| **AEIB Post-Commit 504** | 50 | 0 | **0.0%** (95% upper bound: 5.8%) | **0.0%** ($0/50$) | In 50 AEIB trials under the declared SQLite fault model, zero duplicate mutations were observed. All 50 receipts in the tested sample were independently verified. |
+| **AEIB Non-Commit Controls** | 20 | 0 | **0.0%** | **0.0%** ($0/20$; 95% upper bound: 15%) | In 20 negative controls, zero false `OUTCOME_VERIFIED` results were observed; resolved to `RECONCILIATION_NOT_FOUND`. |
 
-> **Scope and Environmental Boundary:** The benchmark evaluates a deterministic local fault model with a SQLite ledger, an in-process gateway/fault injector, and a defined semantic-drift retry behavior. It does not establish equivalent rates for arbitrary agents, gateways, databases, network stacks, or production deployments.
+> **Scope and Environmental Boundary:** The benchmark evaluates a deterministic local fault model with an SQLite ledger, an in-process gateway/fault injector, and a defined semantic-drift retry behavior. Overhead figures (9.22 ms mean, 9.59 ms p95) are SQLite-harness measurements, not PostgreSQL probe performance. The benchmark does not establish equivalent rates for arbitrary agents, gateways, databases, network stacks, or production deployments.
 >
 > **Semantic-Drift Scope Qualification:** $C_0$ and $C_2$ demonstrate failure under the benchmark's specific semantic-drift model (context reconstruction mutating UUIDs, formatting whitespace, or metadata); they do not establish that all LLM agents or all enterprise gateways behave identically. Rather, they establish the boundary condition where conventional gateway deduplication breaks down once representation identity is lost.
 

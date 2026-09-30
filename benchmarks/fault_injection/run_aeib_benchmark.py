@@ -241,8 +241,8 @@ if __name__ == "__main__":
     print("="*75)
     metrics = rep["aeib_empirical_metrics"]
     print(f"  • Total Positive Fault Trials: {metrics['total_positive_trials']}")
-    print(f"  • Duplicate Debits:            {metrics['duplicate_debits']} (0.0% Duplicate Rate)")
-    print(f"  • False OUTCOME_VERIFIED Count: {metrics['false_outcome_verified_count']} (0.0% False Positive Rate)")
-    print(f"  • Receipts Signed & Verified:  {metrics['receipt_signatures_verified']}/{metrics['total_positive_trials']} (100% Pass)")
-    print(f"  • Mean Overhead Latency:       {metrics['mean_overhead_ms']} ms (p95: {metrics['p95_overhead_ms']} ms)")
+    print(f"  • Duplicate Debits:            {metrics['duplicate_debits']} (In 50 AEIB trials under the declared SQLite fault model, zero duplicate mutations were observed; approx 95% Rule-of-Three upper bound: 5.8%)")
+    print(f"  • False OUTCOME_VERIFIED Count: {metrics['false_outcome_verified_count']} (In 20 negative controls, zero false OUTCOME_VERIFIED results were observed; approx 95% Rule-of-Three upper bound: 15.0%)")
+    print(f"  • Receipts Signed & Verified:  All {metrics['receipt_signatures_verified']} receipts in the tested sample were independently verified")
+    print(f"  • Mean Overhead Latency (SQLite): {metrics['mean_overhead_ms']} ms (p95: {metrics['p95_overhead_ms']} ms)")
     print("="*75 + "\n")

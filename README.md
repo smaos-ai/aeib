@@ -89,3 +89,12 @@ Every local run outputs:
 
 Apache License 2.0. Developed by **Andrii Leukhin** (Independent Researcher & Founder, SovereignNexus project, `andrejlo123@gmail.com`).  
 *Note: SovereignNexus is an independent research initiative (incorporation pending in the Czech Republic).*
+
+## 📚 Prior Art & Interoperability Targets
+
+AEIB aims for conceptual alignment with emerging literature and standards. The following frameworks are cited as **informational prior art and interoperability targets**, rather than formally tested standards in this benchmark:
+- **AER-1 / AEB (Agent Execution Receipt / Agent Execution Boundary)**
+- **AAC (Agent Action Capsule)**
+- **CAID (Causal Action Identifier)**
+- **EffectMatch & EMILIA**
+- **GRIP (Gateway Receipt Integrity Protocol)**

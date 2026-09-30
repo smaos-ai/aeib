@@ -90,3 +90,6 @@ To preempt reviewer objections and clearly delineate the boundary between benchm
 1. **The Invariant:** An ambiguous post-dispatch outcome (`HTTP 504`) can be deterministically captured as a verifiable, signed disposition (`DISPATCHED_UNCONFIRMED`) with `retry_permitted: false`, rather than triggering an unhedged speculative retry.
 2. **The Mapping Contract:** Priority-ordered YAML rules deterministically bind messy transport observations to normative operational dispositions.
 3. **Independent Auditability:** Receipt signatures, evidence hashes, and mapping contract consistency can be completely validated offline by independent reviewers with zero dependencies.
+
+### Domain 7: Tool Call Execution Synchronicity
+* **Synchronous Mutating Tool Calls Only:** This benchmark strictly evaluates synchronous mutating tool calls where the remote procedure executes and commits within the lifecycle of the single HTTP request-response cycle. It does **not** evaluate asynchronous task lifecycles (e.g., long-running tasks returning `PENDING`, polling status endpoints, webhook callbacks, or `EXPIRED`/`CANCELLED` states). Formal tracking of asynchronous dispositions is deferred to future work.

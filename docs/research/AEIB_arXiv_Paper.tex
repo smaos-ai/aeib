@@ -40,7 +40,7 @@
 \begin{abstract}
 Autonomous agents increasingly invoke mutating remote procedures through gateways and external enterprise systems. When a downstream service commits a mutation but the response is lost---for example, after a gateway timeout---the caller observes transport failure without knowing whether execution occurred. A retry may therefore produce a second mutation, particularly when agent-driven semantic drift changes the effective idempotency identity.
 
-We present the Agent Execution Integrity Benchmark (AEIB), a protocol and evaluation harness for representing and reconciling this post-dispatch ambiguity. AEIB defines a seven-state disposition taxonomy, a deterministic transport-to-disposition mapping contract, an execution boundary that freezes retries after ambiguous faults, and Ed25519-signed receipts that bind dispatch observations to authoritative probe results. We implement an offline verifier and evaluate AEIB against a reproducible control matrix. Across 50 trials, naive retry and semantic-drift baselines produced duplicate mutations in 100\% of runs, while a stable-key baseline produced none. Under the same post-commit timeout fault, AEIB produced no duplicate mutations, verified 50 of 50 receipts, and produced zero false \texttt{OUTCOME\_VERIFIED} results across 20 non-commit controls. The measured AEIB overhead was 9.22~ms mean and 9.59~ms at p95 in the local harness. These results are limited to the tested synthetic environment and do not constitute a production-readiness, standards-compliance, or regulatory-certification claim.
+We present the Agent Execution Integrity Benchmark (AEIB), a protocol and evaluation harness for representing and reconciling this post-dispatch ambiguity as an extension of OWASP LLM06 (Excessive Agency) mitigations. AEIB defines a seven-state disposition taxonomy, a deterministic transport-to-disposition mapping contract, an execution boundary that enforces a CMU Frozen Cascade (\texttt{retry\_permitted = false}) after ambiguous faults, and Ed25519-signed receipts that bind dispatch observations to authoritative probe results. We implement an offline verifier and evaluate AEIB against a reproducible control matrix. Across 50 trials, naive retry and semantic-drift baselines produced duplicate mutations in 100\% of runs, while a stable-key baseline produced none. Under the same post-commit timeout fault, AEIB produced no duplicate mutations, verified 50 of 50 receipts, and produced zero false \texttt{OUTCOME\_VERIFIED} results across 20 non-commit controls. The measured AEIB overhead was 9.22~ms mean and 9.59~ms at p95 in the local harness. These results are limited to the tested synthetic environment and do not constitute a production-readiness, standards-compliance, or regulatory-certification claim.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -237,6 +237,16 @@ This work validates the probe protocol against the local SQLite store; evaluatio
     \item \textbf{Receipts and Transparency Systems:} IETF Internet-Drafts such as \texttt{draft-ietf-scitt-architecture-08} and \texttt{draft-birkholz-scitt-receipts-02} define supply chain transparency and receipt models. \texttt{draft-zambo-aer1-00} specifies Agent Execution Receipts. AEIB provides a concrete transport-to-disposition mapping contract and retry-control protocol that feeds structured receipts into downstream transparency ledgers.
     \item \textbf{Agent Authorization and Runtime Controls:} Runtime governance systems (such as P0 Security, Delinea, and Saviynt) enforce pre-dispatch policy allowlisting. AEIB operates downstream of these systems, addressing post-dispatch transport ambiguity.
     \item \textbf{Hardware-Backed Attestation:} Projects such as TRACE and confidential computing architectures (AMD SEV-SNP, Intel SGX) provide hardware-rooted execution attestation within enclaves. AEIB operates as a lightweight software protocol focused on transport-level reconciliation, orthogonal to hardware enclaves.
+\end{itemize}
+
+\section{Prior Art \& Interoperability Targets}
+AEIB aims for conceptual alignment with emerging literature and standards. The following frameworks are cited as \textbf{informational prior art and interoperability targets}, rather than formally tested standards in this benchmark:
+\begin{itemize}
+    \item \textbf{AER-1 / AEB:} Agent Execution Receipt and Agent Execution Boundary concepts.
+    \item \textbf{AAC:} Agent Action Capsule structures.
+    \item \textbf{CAID:} Causal Action Identifiers for semantic identity.
+    \item \textbf{EffectMatch \& EMILIA:} Frameworks for deterministic side-effect reconciliation.
+    \item \textbf{GRIP:} Gateway Receipt Integrity Protocols.
 \end{itemize}
 
 \section{Limitations and Conclusion}

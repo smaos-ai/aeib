@@ -224,34 +224,44 @@ def step2_git_revision(manifest: Dict[str, Any]) -> StepResult:
     except Exception as exc:
         head = f"ERROR: {exc}"
 
-    expected = manifest.get("provenance_chain", {}).get("release_commit")
-    if not expected:
-        expected = manifest.get("provenance_chain", {}).get("falsifiability_commit", "UNSET")
-    
-    details["git_head"] = head
-    details["manifest_target_commit"] = expected
+    expected_tag = manifest.get("release_tag", "v0.2.2")
+    try:
+        tag_commit_res = subprocess.run(
+            ["git", "rev-parse", f"{expected_tag}^{{commit}}"],
+            capture_output=True, text=True, cwd=str(REPO_ROOT), timeout=10,
+        )
+        tag_commit = tag_commit_res.stdout.strip() if tag_commit_res.returncode == 0 else "UNRESOLVED"
+    except Exception as exc:
+        tag_commit = f"ERROR: {exc}"
 
-    print(f"      git HEAD               : {head}")
-    print(f"      Manifest latest commit : {expected}")
-
-    # Allow checking against release_commit or the exact tag
-    tag_check = subprocess.run(["git", "describe", "--tags", "--exact-match", "HEAD"], capture_output=True, text=True, cwd=str(REPO_ROOT))
+    tag_check = subprocess.run(
+        ["git", "describe", "--tags", "--exact-match", "HEAD"],
+        capture_output=True, text=True, cwd=str(REPO_ROOT), timeout=10
+    )
     current_tag = tag_check.stdout.strip() if tag_check.returncode == 0 else ""
 
-    expected_tag = manifest.get("release_tag", "")
-    
-    is_match = (head == expected) or (current_tag and current_tag == expected_tag)
+    details["head_commit"] = head
+    details["release_tag"] = expected_tag
+    details["release_tag_commit"] = tag_commit
+    details["current_exact_tag"] = current_tag
+
+    print(f"      HEAD commit        : {head}")
+    print(f"      release tag        : {expected_tag}")
+    print(f"      release tag commit : {tag_commit}")
+
+    is_match = (head == tag_commit) and (current_tag == expected_tag)
 
     if is_match:
-        print("      [+] Git revision MATCHES manifest target commit/tag.")
+        print("      [+] Git revision and release tag MATCH manifest release anchor exactly.")
     else:
-        msg = (
-            f"Git HEAD ({head[:12]}...) does not match manifest "
-            f"target_commit ({expected[:12]}...). "
-            "Checkout the release tag or commit to reproduce exactly."
-        )
+        if current_tag != expected_tag:
+            msg = (
+                f"Checkout revision is {head[:12]} (exact tag: '{current_tag or 'none'}'), "
+                f"which differs from release tag '{expected_tag}' (commit: {tag_commit[:12]})."
+            )
+        else:
+            msg = f"HEAD commit ({head[:12]}...) does not match release tag {expected_tag} ({tag_commit[:12]}...)."
         print(f"      [!] WARN: {msg}")
-        # Treat as warning (not hard fail) — reviewer may check out an ancestor
         details["revision_mismatch"] = True
 
     return StepResult(step=2, name="git_revision", passed=True, details=details, errors=errors)

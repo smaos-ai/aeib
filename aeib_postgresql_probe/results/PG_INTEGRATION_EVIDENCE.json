@@ -16,6 +16,8 @@
   ],
   "dsn_redacted": "postgresql://postgres:***@localhost:55432/aeib_ledger",
   "sample_size": 50,
+  "connection_mode": "unpooled discrete connection per probe call (psycopg.connect)",
+  "evidence_hash_algorithm": "SHA-256 over documented canonical JSON representation",
   "timing_methodology": "time.perf_counter() on dedicated loopback connection",
   "latency_metrics_ms": {
     "mean": 5.167,

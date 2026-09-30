@@ -5,9 +5,9 @@ Sovereign Multi-Agent OS (SMAOS) / Agent Execution Integrity Benchmark (AEIB v0.
 
 Enforces driver-level packet suppression ($T_0$) with 4 Structural Fixes:
   1. Port & IP Byte Order (Network byte order alignment with userspace)
-  2. Struct Memory Zero-Initialization (ctypes.memset preventing undefined padding bytes)
-  3. Dynamic IHL Calculation & IP Fragment Guards
-  4. 1 MiB Ringbuf Capacity & High-Frequency Telemetry Event Stream
+  2. Struct Memory Zero-Initialization (ctypes.memset / zeroed pad[3])
+  3. Dynamic IHL Calculation & IP Fragment Guards (with verifier-safe pointer math)
+  4. Ringbuf Telemetry Event Stream (libbpf CO-RE ringbuf events)
 """
 
 import os
@@ -20,7 +20,7 @@ import argparse
 import platform
 import json
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Callable
+from typing import Dict, List, Optional, Tuple, Callable, Any
 
 # Path to the accompanying XDP C program
 XDP_SOURCE_FILE = Path(__file__).resolve().parent / "xdp_drop.c"
@@ -45,6 +45,7 @@ class Flow5Tuple(ctypes.Structure):
         ("sport", ctypes.c_uint16),
         ("dport", ctypes.c_uint16),
         ("proto", ctypes.c_uint8),
+        ("pad", ctypes.c_uint8 * 3),
     ]
 
 
@@ -54,9 +55,9 @@ class DropEvent(ctypes.Structure):
     Emitted by xdp_drop.c on XDP_DROP action.
     """
     _fields_ = [
-        ("timestamp_ns", ctypes.c_uint64),
         ("flow", Flow5Tuple),
-        ("action", ctypes.c_uint32),
+        ("timestamp_ns", ctypes.c_uint64),
+        ("disposition_code", ctypes.c_uint32),
     ]
 
 
@@ -80,8 +81,12 @@ def _normalize_proto(proto: Any) -> int:
     return int(proto)
 
 
-def flow_key_bytes(key: Flow5Tuple) -> bytes:
+def ip_to_u32(ip: str) -> int:
+    """Converts dot-decimal IPv4 string to 32-bit unsigned integer in network byte order."""
+    return struct.unpack("=I", socket.inet_aton(ip.strip()))[0]
 
+
+def flow_key_bytes(key: Flow5Tuple) -> bytes:
     """Returns raw byte representation of 5-tuple key for map hashing."""
     return bytes(key)
 
@@ -130,6 +135,10 @@ class SimulatedBpfMap:
         else:
             raise KeyError("Key not found in simulated BPF map")
 
+    def __contains__(self, key):
+        k_bytes = flow_key_bytes(key)
+        return k_bytes in self._map
+
     def items(self):
         for k_bytes, (k_struct, v) in self._map.items():
             yield k_struct, ctypes.c_uint32(v)
@@ -160,6 +169,8 @@ class XdpQuarantineController:
         else:
             self._init_bcc()
 
+        self.quarantine_map = self._quarantine_map
+
     def _init_bcc(self):
         """Compiles and loads the XDP C program into the Linux kernel via BCC."""
         if not self.source_file.exists():
@@ -167,9 +178,10 @@ class XdpQuarantineController:
 
         c_code = self.source_file.read_text(encoding="utf-8")
         self._bpf = BPF(text=c_code)
-        fn = self._bpf.load_func("xdp_drop_quarantined", BPF.XDP)
+        fn = self._bpf.load_func("xdp_drop_func", BPF.XDP)
         self._bpf.attach_xdp(self.iface, fn, 0)
         self._quarantine_map = self._bpf["quarantine_map"]
+        self.quarantine_map = self._quarantine_map
 
     def detach(self):
         """Removes the XDP program from the network interface."""
@@ -185,36 +197,42 @@ class XdpQuarantineController:
         Addresses Correction 1 (Network Byte Order) & Correction 2 (Pad Byte Zeroing).
         """
         proto_num = _normalize_proto(proto)
-        key = Flow5Tuple()
-        # Correction 2: Explicit zero-initialization of memory
-        ctypes.memset(ctypes.byref(key), 0, ctypes.sizeof(key))
-
-        # Correction 1: Explicit network byte order packing
-        key.saddr = struct.unpack("=I", socket.inet_aton(src_ip.strip()))[0]
-        key.daddr = struct.unpack("=I", socket.inet_aton(dst_ip.strip()))[0]
-        key.sport = socket.htons(int(src_port))
-        key.dport = socket.htons(int(dst_port))
-        key.proto = int(proto_num)
+        key = Flow5Tuple(
+            saddr=ip_to_u32(src_ip),
+            daddr=ip_to_u32(dst_ip),
+            sport=socket.htons(int(src_port)),
+            dport=socket.htons(int(dst_port)),
+            proto=int(proto_num),
+            pad=(ctypes.c_uint8 * 3)(0, 0, 0),
+        )
         return key
 
-    def add_flow(self, src_ip: str, src_port: int, dst_ip: str, dst_port: int, proto: Any = 6) -> None:
+    def add_flow(
+        self,
+        src_ip: str,
+        src_port: int,
+        dst_ip: str,
+        dst_port: int,
+        proto: Any = 6,
+        disposition: int = 1,
+    ) -> None:
         """
-        Quarantines a 5-tuple flow in the BPF map with status = 1 (DISPATCHED_UNCONFIRMED).
-        XDP will physically drop matching packets at the driver layer ($T_0$).
+        Quarantines a 5-tuple flow in the BPF map with status = disposition (default 1 = DISPATCHED_UNCONFIRMED).
+        XDP physically drops matching packets at the driver layer ($T_0$).
         """
         key = self.build_flow_key(src_ip, src_port, dst_ip, dst_port, proto)
-        val = ctypes.c_uint32(1)
-        self._quarantine_map[key] = val
+        val = ctypes.c_uint32(int(disposition))
+        self.quarantine_map[key] = val
 
-    def add(self, src_ip: str, src_port: int, dst_ip: str, dst_port: int, proto: Any = 6) -> None:
+    def add(self, src_ip: str, src_port: int, dst_ip: str, dst_port: int, proto: Any = 6, disposition: int = 1) -> None:
         """Convenience alias for add_flow."""
-        self.add_flow(src_ip, src_port, dst_ip, dst_port, proto)
+        self.add_flow(src_ip, src_port, dst_ip, dst_port, proto, disposition)
 
     def remove_flow(self, src_ip: str, src_port: int, dst_ip: str, dst_port: int, proto: Any = 6) -> bool:
         """Removes 5-tuple flow from quarantine map, restoring normal traffic flow."""
         key = self.build_flow_key(src_ip, src_port, dst_ip, dst_port, proto)
         try:
-            del self._quarantine_map[key]
+            del self.quarantine_map[key]
             return True
         except (KeyError, Exception):
             return False
@@ -223,65 +241,76 @@ class XdpQuarantineController:
         """Convenience alias for remove_flow."""
         return self.remove_flow(src_ip, src_port, dst_ip, dst_port, proto)
 
-    def is_flow_quarantined(self, src_ip: str, src_port: int, dst_ip: str, dst_port: int, proto: Any = 6) -> bool:
-        """Checks if a given 5-tuple flow is currently quarantined."""
-        key = self.build_flow_key(src_ip, src_port, dst_ip, dst_port, proto)
-        try:
-            val = self._quarantine_map[key]
-            return val.value == 1
-        except (KeyError, IndexError):
-            return False
+    def is_quarantined(self, saddr: str, sport: int, daddr: str, dport: int, proto: Any = 6) -> bool:
+        """
+        Prove that quarantine is scoped to exact 5-tuple, not just destination IP.
+        Checks if 5-tuple exists in the quarantine BPF map.
+        """
+        proto_num = _normalize_proto(proto)
+        key = Flow5Tuple(
+            saddr=ip_to_u32(saddr),
+            daddr=ip_to_u32(daddr),
+            sport=socket.htons(int(sport)),
+            dport=socket.htons(int(dport)),
+            proto=int(proto_num),
+            pad=(ctypes.c_uint8 * 3)(),
+        )
+        return key in self.quarantine_map
 
-    def is_quarantined(self, src_ip: str, src_port: int, dst_ip: str, dst_port: int, proto: Any = 6) -> bool:
-        """
-        Checks if a given 5-tuple flow is currently quarantined.
-        Direct alias for is_flow_quarantined conforming to AEIB test specification.
-        """
-        return self.is_flow_quarantined(src_ip, src_port, dst_ip, dst_port, proto)
+    def is_flow_quarantined(self, src_ip: str, src_port: int, dst_ip: str, dst_port: int, proto: Any = 6) -> bool:
+        """Direct alias for is_quarantined conforming to AEIB test specification."""
+        return self.is_quarantined(src_ip, src_port, dst_ip, dst_port, proto)
 
     def list_quarantine(self) -> List[Dict[str, Any]]:
         """Returns list of all active quarantined flows."""
         flows = []
-        for k, v in self._quarantine_map.items():
+        for k, v in self.quarantine_map.items():
             s_ip = format_ip(k.saddr)
             d_ip = format_ip(k.daddr)
             s_port = socket.ntohs(k.sport)
             d_port = socket.ntohs(k.dport)
             p_str = proto_name(k.proto)
+            val_num = v.value if hasattr(v, "value") else int(v)
             flows.append({
                 "source": f"{s_ip}:{s_port}",
                 "destination": f"{d_ip}:{d_port}",
                 "protocol": p_str,
-                "status": v.value,
+                "status": val_num,
             })
         return flows
 
     def clear_all(self) -> None:
         """Flushes all entries from the quarantine map."""
-        if hasattr(self._quarantine_map, "clear"):
-            self._quarantine_map.clear()
+        if hasattr(self.quarantine_map, "clear"):
+            self.quarantine_map.clear()
         else:
-            keys = [k for k, _ in self._quarantine_map.items()]
+            keys = [k for k, _ in self.quarantine_map.items()]
             for k in keys:
-                del self._quarantine_map[k]
+                del self.quarantine_map[k]
 
-    def poll_events(self, callback: Optional[Callable[[Dict[str, Any]], None]] = None):
+    def poll_events(self, timeout_sec: Optional[float] = None, callback: Optional[Callable[[Dict[str, Any]], None]] = None):
         """
-        Correction 4: Polls 1 MiB Ring buffer for high-frequency drop telemetry events.
+        Polls 256 KiB Ring buffer for high-frequency drop telemetry events.
         Emits structured JSON events matching AEIB evidence requirements.
+        If timeout_sec is specified (> 0), polls for that duration then returns.
         """
         def default_callback(event_dict):
             print(json.dumps(event_dict))
             sys.stdout.flush()
 
         cb = callback or default_callback
+        start_time = time.time()
 
         if self.is_simulated or not self._bpf:
-            print(json.dumps({"level": "info", "msg": "Polling for drop events (Ctrl+C to exit)..."}))
+            timeout_desc = f"{timeout_sec}s" if timeout_sec and timeout_sec > 0 else "indefinite"
+            print(json.dumps({"level": "info", "msg": f"Polling for drop events (simulation mode, timeout={timeout_desc})..."}))
             sys.stdout.flush()
             try:
                 while True:
-                    time.sleep(0.5)
+                    if timeout_sec and timeout_sec > 0:
+                        if time.time() - start_time >= timeout_sec:
+                            break
+                    time.sleep(0.1)
             except KeyboardInterrupt:
                 pass
             return
@@ -297,7 +326,8 @@ class XdpQuarantineController:
             event_dict = {
                 "event": "AEIB_XDP_PACKET_DROP",
                 "timestamp_ns": int(event.timestamp_ns),
-                "disposition": "DISPATCHED_UNCONFIRMED_QUARANTINE",
+                "disposition": "DISPATCHED_UNCONFIRMED_QUARANTINE" if event.disposition_code == 1 else str(event.disposition_code),
+                "disposition_code": int(event.disposition_code),
                 "flow": {
                     "source": f"{s_ip}:{s_port}",
                     "destination": f"{d_ip}:{d_port}",
@@ -307,13 +337,16 @@ class XdpQuarantineController:
             }
             cb(event_dict)
 
-        self._bpf["drop_events"].open_ring_buffer(_handle_ringbuf_event)
-        print(json.dumps({"level": "info", "msg": "Polling for drop events (Ctrl+C to exit)..."}))
+        self._bpf["events"].open_ring_buffer(_handle_ringbuf_event)
+        timeout_desc = f"{timeout_sec}s" if timeout_sec and timeout_sec > 0 else "Ctrl+C to exit"
+        print(json.dumps({"level": "info", "msg": f"Polling ringbuf events (timeout={timeout_desc})..."}))
         sys.stdout.flush()
         try:
             while True:
-                self._bpf.ring_buffer_poll()
-                time.sleep(0.01)
+                if timeout_sec and timeout_sec > 0:
+                    if time.time() - start_time >= timeout_sec:
+                        break
+                self._bpf.ring_buffer_poll(timeout=100)
         except KeyboardInterrupt:
             pass
 
@@ -325,9 +358,9 @@ def main():
     parser.add_argument("--iface", default="lo", help="Network interface to attach XDP to (default: lo)")
     parser.add_argument(
         "--add-flow",
-        nargs=5,
-        metavar=("SRC_IP", "SRC_PORT", "DST_IP", "DST_PORT", "PROTO"),
-        help="Quarantine a 5-tuple flow (triggers XDP_DROP)",
+        nargs="+",
+        metavar="FLOW_PARAM",
+        help="Quarantine a 5-tuple flow: SRC_IP SRC_PORT DST_IP DST_PORT PROTO [DISPOSITION]",
     )
     parser.add_argument(
         "--remove-flow",
@@ -338,14 +371,23 @@ def main():
     parser.add_argument("--list", action="store_true", help="List all quarantined flows")
     parser.add_argument("--clear", action="store_true", help="Clear all quarantined flows")
     parser.add_argument("--listen", action="store_true", help="Keep attached and stream ringbuf telemetry events")
+    parser.add_argument(
+        "--poll",
+        type=float,
+        nargs="?",
+        const=0.0,
+        default=None,
+        metavar="SECONDS",
+        help="Poll ringbuf telemetry events (optional timeout in seconds; 0 or omitted for indefinite)",
+    )
     parser.add_argument("--simulate", action="store_true", help="Force userspace simulation mode")
 
     args = parser.parse_args()
 
     # Display schema contract structure if no operational arguments provided
-    if not (args.add_flow or args.remove_flow or args.list or args.clear or args.listen):
+    if not (args.add_flow or args.remove_flow or args.list or args.clear or args.listen or (args.poll is not None)):
         print("[!] Displaying compiled 5-Tuple schema contract structure:")
-        print(f"    Key struct size: {ctypes.sizeof(Flow5Tuple)} bytes (saddr, daddr, sport, dport, proto)")
+        print(f"    Key struct size: {ctypes.sizeof(Flow5Tuple)} bytes (saddr, daddr, sport, dport, proto, pad[3])")
         print(f"    Event struct size: {ctypes.sizeof(DropEvent)} bytes (Ringbuf telemetry payload)")
         print("\nUse --help for CLI execution options, or --add-flow to quarantine a route.\n")
         return
@@ -357,24 +399,34 @@ def main():
 
     try:
         if args.add_flow:
-            s_ip, s_port, d_ip, d_port, proto = args.add_flow
-            controller.add_flow(s_ip, int(s_port), d_ip, int(d_port), int(proto))
-            p_str = proto_name(int(proto))
+            if len(args.add_flow) == 5:
+                s_ip, s_port, d_ip, d_port, proto = args.add_flow
+                disp = 1
+            elif len(args.add_flow) >= 6:
+                s_ip, s_port, d_ip, d_port, proto = args.add_flow[:5]
+                disp = int(args.add_flow[5])
+            else:
+                parser.error("--add-flow requires 5 or 6 arguments: SRC_IP SRC_PORT DST_IP DST_PORT PROTO [DISPOSITION]")
+
+            controller.add_flow(s_ip, int(s_port), d_ip, int(d_port), proto, int(disp))
+            p_str = proto_name(_normalize_proto(proto))
             print(json.dumps({
                 "level": "info",
                 "msg": "Quarantine map updated",
                 "src": f"{s_ip}:{s_port}",
                 "dst": f"{d_ip}:{d_port}",
                 "proto": p_str,
+                "disposition": disp,
             }))
             sys.stdout.flush()
-            # If add-flow is called without detach, immediately poll events
-            controller.poll_events()
+            if args.poll is not None or args.listen:
+                timeout = args.poll if args.poll is not None else 0.0
+                controller.poll_events(timeout_sec=timeout)
 
         elif args.remove_flow:
             s_ip, s_port, d_ip, d_port, proto = args.remove_flow
-            removed = controller.remove_flow(s_ip, int(s_port), d_ip, int(d_port), int(proto))
-            p_str = proto_name(int(proto))
+            removed = controller.remove_flow(s_ip, int(s_port), d_ip, int(d_port), proto)
+            p_str = proto_name(_normalize_proto(proto))
             if removed:
                 print(json.dumps({
                     "level": "info",
@@ -405,11 +457,14 @@ def main():
                 print(f"  • {item['source']} -> {item['destination']} [{item['protocol']}] => XDP_DROP (status={item['status']})")
             print("----------------------------------------------------------------\n")
 
+        elif args.poll is not None:
+            controller.poll_events(timeout_sec=args.poll)
+
         elif args.listen:
             controller.poll_events()
 
     finally:
-        if not args.add_flow and not args.listen:
+        if not args.add_flow and not args.listen and (args.poll is None):
             controller.detach()
 
 

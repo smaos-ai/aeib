@@ -1,0 +1,35 @@
+{
+  "format": "AEIB_JSON_ED25519_PROTOTYPE",
+  "scenario_id": "07-authority-expired",
+  "unsigned_payload": {
+    "receipt_version": "v0.2.0",
+    "scenario_id": "07-authority-expired",
+    "action_id": "mcp://sess_20260930_07/107/treasury/account.modify_entitlement",
+    "actor": "access-broker-agent-01",
+    "amount_eur": 0.0,
+    "idempotency_key_uuidv5": "17d91cb6-5c5e-5ceb-a25e-ccbd6bf4749f",
+    "timestamp": 1790759552,
+    "timestamp_utc": "2026-09-30T10:00:00Z",
+    "org.smaos.aeib": {
+      "disposition": "AUTHORITY_NOT_BOUND",
+      "retry_policy": "PROHIBITED_REAUTH_REQUIRED",
+      "matched_rule_id": "RULE-07-AUTHORITY-EXPIRED",
+      "transport_code": 401,
+      "transport_fault": "JIT_AUTHORITY_EXPIRED",
+      "probe_status": "NOT_DISPATCHED",
+      "evidence_bindings": {
+        "transport_event_id": "tr_07-authority-expired",
+        "transport_event_hash": "f6d290b48a06b8b52ef647e5f497d9a057aea1f994e0c81785aa0b10c37c8141",
+        "probe_event_id": "probe_07-authority-expired",
+        "probe_event_hash": "a27cd2c999120af2d5c83491126dec9b8572f9840ab5849e4e261b6a557247a5"
+      }
+    }
+  },
+  "unsigned_payload_hash": "1cd5ca6e44496cab4f4e2a70e997363288ffcb30e6f55d3ffb557cd93d9bcd70",
+  "signature_metadata": {
+    "signed_payload_hash": "1cd5ca6e44496cab4f4e2a70e997363288ffcb30e6f55d3ffb557cd93d9bcd70",
+    "key_id": "ED25519-KEY-AEIB-V02",
+    "algorithm": "Ed25519",
+    "signature": "aba93249591fbb1f950d490c9125b9a82e5408880e8d6c14b9225927666e9f05e397848df540a114f733f81ffa34136fca207b0b252c17660c5a8ee960ea0606"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "format": "AEIB_JSON_ED25519_PROTOTYPE",
+  "scenario_id": "06-context-refused",
+  "unsigned_payload": {
+    "receipt_version": "v0.2.0",
+    "scenario_id": "06-context-refused",
+    "action_id": "mcp://sess_20260930_06/106/lending/credit.disburse_loan",
+    "actor": "credit-underwriting-agent-01",
+    "amount_eur": 1250.0,
+    "idempotency_key_uuidv5": "45d4a138-0fc6-5746-95bc-7517c2f0eb34",
+    "timestamp": 1790759552,
+    "timestamp_utc": "2026-09-30T10:00:00Z",
+    "org.smaos.aeib": {
+      "disposition": "CONTEXT_POLICY_VIOLATION",
+      "retry_policy": "PROHIBITED_POLICY_BLOCK",
+      "matched_rule_id": "RULE-06-CONTEXT-REFUSED",
+      "transport_code": 403,
+      "transport_fault": "INSUFFICIENT_FUNDS_REFUSAL",
+      "probe_status": "NOT_DISPATCHED",
+      "evidence_bindings": {
+        "transport_event_id": "tr_06-context-refused",
+        "transport_event_hash": "087db9ded26c25bc2d00aa00e55cca5df9f79827afa2235f51f9f530def64633",
+        "probe_event_id": "probe_06-context-refused",
+        "probe_event_hash": "25110fa455a3fa9974cffc5506750273462a1426fd90d880b49622959c27c37d"
+      }
+    }
+  },
+  "unsigned_payload_hash": "f0d3b27280384ba9289bb5e3cedfbd0a0cd97c3d516403a8efb9d58e743dac6c",
+  "signature_metadata": {
+    "signed_payload_hash": "f0d3b27280384ba9289bb5e3cedfbd0a0cd97c3d516403a8efb9d58e743dac6c",
+    "key_id": "ED25519-KEY-AEIB-V02",
+    "algorithm": "Ed25519",
+    "signature": "26a43a1b1c6b339f706eac04acfc328cb7e9827eefe0ce2576d26ac4517c7cf276b539008b962e52ae73bb4961961ba3dbd10035c3849c3892e9b6bd02706e01"
+  }
+}

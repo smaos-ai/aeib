@@ -1,0 +1,8 @@
+{"event_id": "probe_01-confirmed", "idempotency_key_uuidv5": "59812455-88ea-52ae-8e45-130787a478ee", "probe_status": "NOT_REQUIRED", "scenario_id": "01-confirmed", "timestamp_utc": "2026-09-30T10:00:00Z"}
+{"event_id": "probe_02a-504-ambiguous", "idempotency_key_uuidv5": "8ca094df-74f4-52d0-99e8-b80894be6a24", "probe_status": "AWAITING_OPERATOR_PROBE", "scenario_id": "02a-504-ambiguous", "timestamp_utc": "2026-09-30T10:00:00Z"}
+{"event_id": "probe_02b-504-reconciled", "idempotency_key_uuidv5": "c20ad482-13c5-555d-b0ad-cb94f1c1f547", "probe_status": "FOUND_COMMITTED", "scenario_id": "02b-504-reconciled", "timestamp_utc": "2026-09-30T10:00:00Z"}
+{"event_id": "probe_03-reset-not-found", "idempotency_key_uuidv5": "91a82647-cb72-5b12-9654-20a7bdfd92f7", "probe_status": "RECORD_NOT_FOUND", "scenario_id": "03-reset-not-found", "timestamp_utc": "2026-09-30T10:00:00Z"}
+{"event_id": "probe_04-payload-mismatch", "idempotency_key_uuidv5": "bb85068a-2114-5f54-b467-3a13ee1f0f4a", "probe_status": "PAYLOAD_MISMATCH", "scenario_id": "04-payload-mismatch", "timestamp_utc": "2026-09-30T10:00:00Z"}
+{"event_id": "probe_05-conflict", "idempotency_key_uuidv5": "685c49be-d5b2-5735-9610-eaeb599d14a2", "probe_status": "STATE_CONFLICT", "scenario_id": "05-conflict", "timestamp_utc": "2026-09-30T10:00:00Z"}
+{"event_id": "probe_06-context-refused", "idempotency_key_uuidv5": "45d4a138-0fc6-5746-95bc-7517c2f0eb34", "probe_status": "NOT_DISPATCHED", "scenario_id": "06-context-refused", "timestamp_utc": "2026-09-30T10:00:00Z"}
+{"event_id": "probe_07-authority-expired", "idempotency_key_uuidv5": "17d91cb6-5c5e-5ceb-a25e-ccbd6bf4749f", "probe_status": "NOT_DISPATCHED", "scenario_id": "07-authority-expired", "timestamp_utc": "2026-09-30T10:00:00Z"}

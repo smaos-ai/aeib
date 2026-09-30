@@ -1,0 +1,35 @@
+{
+  "format": "AEIB_JSON_ED25519_PROTOTYPE",
+  "scenario_id": "02a-504-ambiguous",
+  "unsigned_payload": {
+    "receipt_version": "v0.2.0",
+    "scenario_id": "02a-504-ambiguous",
+    "action_id": "mcp://sess_20260930_02a/102a/settlement/payment.settle_payment",
+    "actor": "treasury-settlement-agent-02",
+    "amount_eur": 150000.0,
+    "idempotency_key_uuidv5": "8ca094df-74f4-52d0-99e8-b80894be6a24",
+    "timestamp": 1790759552,
+    "timestamp_utc": "2026-09-30T10:00:00Z",
+    "org.smaos.aeib": {
+      "disposition": "DISPATCHED_UNCONFIRMED",
+      "retry_policy": "PROHIBITED_AWAITING_PROBE",
+      "matched_rule_id": "RULE-02A-504-AMBIGUOUS",
+      "transport_code": 504,
+      "transport_fault": "HTTP_504_GATEWAY_TIMEOUT",
+      "probe_status": "AWAITING_OPERATOR_PROBE",
+      "evidence_bindings": {
+        "transport_event_id": "tr_02a-504-ambiguous",
+        "transport_event_hash": "d8834252a0d7238bbeb94e1962b81ae9e4fad66050dcaeafb92521314806cf9d",
+        "probe_event_id": "probe_02a-504-ambiguous",
+        "probe_event_hash": "6ff6d883d68d479343998a16b5640dd5ca6b1a7d7261e357a4535e8b8248003b"
+      }
+    }
+  },
+  "unsigned_payload_hash": "9fa66c08abfd7ea316cf99ead1d7bfb55f7ce9008b461f9821988fa1a84d48e9",
+  "signature_metadata": {
+    "signed_payload_hash": "9fa66c08abfd7ea316cf99ead1d7bfb55f7ce9008b461f9821988fa1a84d48e9",
+    "key_id": "ED25519-KEY-AEIB-V02",
+    "algorithm": "Ed25519",
+    "signature": "f642a0e05da7c642d5516e3cdece26851a45b02362ed82eb11f8194020e25595ba8804786f81c487811250ee69c1eb96a6f93cf57506d05b1f943b709f86b50d"
+  }
+}

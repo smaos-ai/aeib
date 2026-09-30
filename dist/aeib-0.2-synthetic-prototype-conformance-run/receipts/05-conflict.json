@@ -1,0 +1,35 @@
+{
+  "format": "AEIB_JSON_ED25519_PROTOTYPE",
+  "scenario_id": "05-conflict",
+  "unsigned_payload": {
+    "receipt_version": "v0.2.0",
+    "scenario_id": "05-conflict",
+    "action_id": "mcp://sess_20260930_05/105/accounting/ledger.post_journal",
+    "actor": "general-ledger-agent-01",
+    "amount_eur": 12000.0,
+    "idempotency_key_uuidv5": "685c49be-d5b2-5735-9610-eaeb599d14a2",
+    "timestamp": 1790759552,
+    "timestamp_utc": "2026-09-30T10:00:00Z",
+    "org.smaos.aeib": {
+      "disposition": "RECONCILIATION_CONFLICT",
+      "retry_policy": "PROHIBITED_LOCK_RECORD",
+      "matched_rule_id": "RULE-05-CONFLICT",
+      "transport_code": 409,
+      "transport_fault": "CONCURRENT_MUTATION_CONFLICT",
+      "probe_status": "STATE_CONFLICT",
+      "evidence_bindings": {
+        "transport_event_id": "tr_05-conflict",
+        "transport_event_hash": "81e6546840536abb993d16d493afb83265caf7c73c53fa88693f235d75b01c11",
+        "probe_event_id": "probe_05-conflict",
+        "probe_event_hash": "b8bdb21b292edd02aa942d4627abe190e7af88e6beab64fed8b791318d009da8"
+      }
+    }
+  },
+  "unsigned_payload_hash": "541d275e2be2328ecba5ae14406910a6cc11858b40979f0e99c8ebab106f70b4",
+  "signature_metadata": {
+    "signed_payload_hash": "541d275e2be2328ecba5ae14406910a6cc11858b40979f0e99c8ebab106f70b4",
+    "key_id": "ED25519-KEY-AEIB-V02",
+    "algorithm": "Ed25519",
+    "signature": "c14c439d433298e8f50989925ef13e0225b62732e2539f358f7752e8cabf63e1678229be986e1c3f52b2f6bd5ae3533f086f9bb5ec3f9fce435102851776130f"
+  }
+}

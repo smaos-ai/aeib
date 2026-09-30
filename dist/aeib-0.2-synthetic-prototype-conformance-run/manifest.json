@@ -1,0 +1,81 @@
+{
+  "benchmark": "AEIB-v0.2-Synthetic-Prototype-Conformance-Run",
+  "format": "AEIB_JSON_ED25519_PROTOTYPE",
+  "version": "0.2.0",
+  "generated_at_utc": "2026-09-30T10:00:00Z",
+  "key_id": "ED25519-KEY-AEIB-V02",
+  "mapping_contract": {
+    "path": "mapping/transport-to-disposition-mapping.yaml",
+    "hash": "d5264a56353a8f3ebad92aecac192d00f3fc295786d3073e58c661cd2b17c939"
+  },
+  "evidence": {
+    "transport_log": {
+      "path": "evidence/transport.jsonl",
+      "hash": "0f11e3a199580332a4e525dcd9646453ad1d43cdda2d95e942109cc69d373312",
+      "line_count": 8
+    },
+    "probe_log": {
+      "path": "evidence/probe.jsonl",
+      "hash": "05a59e5268ec03cec74acce846e22e3b9cd2cdb34a38870171f2461e3217645a",
+      "line_count": 8
+    }
+  },
+  "receipt_files": [
+    {
+      "file": "receipts/01-confirmed.json",
+      "scenario_id": "01-confirmed",
+      "disposition": "OUTCOME_VERIFIED",
+      "payload_hash": "c0fc7b1474614a25f9b4664bfffc20ff0664cbb7bed057f1d6bc8a9ef9f42b9d",
+      "receipt_file_hash": "8982fde74678dc7076e80240541956bfdd9c090d5fa88d9f33734f59e40e6750"
+    },
+    {
+      "file": "receipts/02a-504-ambiguous.json",
+      "scenario_id": "02a-504-ambiguous",
+      "disposition": "DISPATCHED_UNCONFIRMED",
+      "payload_hash": "9fa66c08abfd7ea316cf99ead1d7bfb55f7ce9008b461f9821988fa1a84d48e9",
+      "receipt_file_hash": "be1aa43b1a5d4b3ae61e145e2b329c5e2d1fb984ff012a74cf98c234a1b5cbb8"
+    },
+    {
+      "file": "receipts/02b-504-reconciled.json",
+      "scenario_id": "02b-504-reconciled",
+      "disposition": "OUTCOME_VERIFIED",
+      "payload_hash": "e22b79936ca77b91686d8b3a09bd95832626f12cd9d9caa17dddcbda54fd7786",
+      "receipt_file_hash": "9e53252d719d70ff4959b26f42a9a807d24b6bfba45591d04099503caaca7bed"
+    },
+    {
+      "file": "receipts/03-reset-not-found.json",
+      "scenario_id": "03-reset-not-found",
+      "disposition": "RECONCILIATION_NOT_FOUND",
+      "payload_hash": "679a3e1694a6195901367c2677c393c470a3349395030f93197ee392f4b626f3",
+      "receipt_file_hash": "e4b18f5c57c89311b0217f01752774e87485152b9a9b1fec5c1daf6f7f137668"
+    },
+    {
+      "file": "receipts/04-payload-mismatch.json",
+      "scenario_id": "04-payload-mismatch",
+      "disposition": "RECONCILIATION_FAILED",
+      "payload_hash": "9985ac577d9094efbd547dfd1782787870ddd5f3f6ed6d39e08a94541efa8b92",
+      "receipt_file_hash": "552cb55a4498305a4eb7db08a216594862f66e21e2b7747dba5c62b3f7b57f8a"
+    },
+    {
+      "file": "receipts/05-conflict.json",
+      "scenario_id": "05-conflict",
+      "disposition": "RECONCILIATION_CONFLICT",
+      "payload_hash": "541d275e2be2328ecba5ae14406910a6cc11858b40979f0e99c8ebab106f70b4",
+      "receipt_file_hash": "f34a169980a4aad3bdcb31a2352b07c8837743c08c923be4f622af7b0dd0c394"
+    },
+    {
+      "file": "receipts/06-context-refused.json",
+      "scenario_id": "06-context-refused",
+      "disposition": "CONTEXT_POLICY_VIOLATION",
+      "payload_hash": "f0d3b27280384ba9289bb5e3cedfbd0a0cd97c3d516403a8efb9d58e743dac6c",
+      "receipt_file_hash": "c8aeb89c002ebb7bcdd525bd0b57d0d93bfeb5ff88684b4274a29e62e19b7536"
+    },
+    {
+      "file": "receipts/07-authority-expired.json",
+      "scenario_id": "07-authority-expired",
+      "disposition": "AUTHORITY_NOT_BOUND",
+      "payload_hash": "1cd5ca6e44496cab4f4e2a70e997363288ffcb30e6f55d3ffb557cd93d9bcd70",
+      "receipt_file_hash": "25f2532655cb6420249cb9b6e0f99a3d93c477fd613de1645e5a40fb97f5629f"
+    }
+  ]
+}

@@ -96,7 +96,8 @@ To preempt reviewer objections and clearly delineate the boundary between benchm
 
 ## Conformance Disclaimers
 
-- AAC conformance is untested against official conformance vectors.
-- AEB conformance is untested against official conformance vectors.
-- AER-1 conformance is untested against the -04 conformance runner.
-- Prior-art citations are informational and do not constitute conformance claims.
+- Conformance to the draft-sahu-agent-action-receipts and draft-etcheverry-action-ref specifications is untested against official IETF vectors. AEIB maps to these concepts as interoperability targets only.
+- Comparisons to VERITAS OS, the Parkkola MCP gateway, and PEAC are conceptual based on published literature. AEIB's behavioral superiority over these external systems remains untested pending empirical reproduction of their exact gateway caching and reconciliation behaviors under the C0/C2 fault model.
+- `draft-sahu-agent-action-receipts-00` and `draft-etcheverry-action-ref-03` are individual Internet-Drafts with no official IETF standardization status.
+- AEIB claims **no conformance** to Sahu action receipts, Etcheverry `action_ref`, AER-1, AEB, or Agent Action Capsules.
+- External gateway comparisons (Parkkola, PEAC, VERITAS OS) are conceptual; AEIB claims no empirical superiority outside the declared local fault-injection harness.

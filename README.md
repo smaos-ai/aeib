@@ -1,6 +1,8 @@
 # 🛡️ SMAOS | Air-Gapped AI Agent Wire-Truth Engine (`v0.2.0`)
 
 > **Deterministic boundary integrity and ambiguity resolution for autonomous AI agent workflows.**
+>
+> Existing work defines deterministic action identity, signed execution receipts, unknown-effect states, and reconciliation architectures. AEIB contributes a concrete, versioned transport-to-disposition mapping contract, an explicit disposition-to-retry-policy vocabulary, and an offline verifier that checks whether the declared mapping was applied. The implementation is evaluated under a declared local fault model and is intended to interoperate with, but does not claim conformance to, emerging execution-boundary and action-receipt drafts.
 
 [![Release](https://img.shields.io/badge/release-v0.2.0-blue.svg)](https://github.com/sovreignnexus/smaos/releases/tag/v0.2.0)
 [![Prototype](https://img.shields.io/badge/format-AEIB__JSON__ED25519__PROTOTYPE-blueviolet.svg)](#operational-limits--disclaimers)

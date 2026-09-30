@@ -4,7 +4,7 @@
 **Prepared by:** SovereignNexus (Prague, Czech Republic)  
 **Target Audience:** Chief Information Security Officers (CISOs), Chief Risk Officers (CROs), Heads of AI Governance & Internal Audit  
 **Document Classification:** Commercial Briefing / Executive Leave-Behind  
-**Release Baseline:** AEIB v0.2.0 • RFC 8785 JCS • RFC 9052 COSE_Sign1 (`alg: -8`, Ed25519)  
+**Release Baseline:** AEIB v0.2.0 Synthetic Prototype (`AEIB_JSON_ED25519_PROTOTYPE`) • Deterministic JSON subset (not RFC 8785 validated)  
 **Date:** September 2026  
 
 ---
@@ -29,7 +29,7 @@ PROPOSAL OPTIMIZATION (Microsoft SkillOpt / Competitors)       TEMPORAL STANDING
 
 * **Models propose ($T_0$)**: SkillOpt, guardrail libraries, and prompt tuners optimize what the agent *asks* to do.
 * **Governance decides ($T_n$)**: SMAOS intercepts the Model Context Protocol (MCP) call, evaluates present standing out-of-band when a network drop ($\Delta N$) occurs, and prevents catastrophic "phantom retries."
-* **Evidence survives**: Mints RFC 9052 `COSE_Sign1` Ed25519-signed receipts, preserving the **Accountability Chain** so CISOs and CFOs can sign DORA and EU AI Act disclosures without personal legal liability.
+* **Evidence survives**: Mints Ed25519-signed JSON receipts (`AEIB_JSON_ED25519_PROTOTYPE`), preserving the **Accountability Chain** so CISOs and risk officers can evaluate operational evidence under DORA and EU AI Act disclosures.
 
 For example, an **HTTP 504 Gateway Timeout** or socket reset merely indicates that an intermediate reverse proxy or gateway did not receive a timely upstream response. It does not establish whether the downstream ledger, core banking engine, or database committed the operation before the socket severed.
 
@@ -61,11 +61,11 @@ Use this 6-point checklist to evaluate whether your autonomous agent architectur
 
 | # | Audit Criterion | Forensic Question for Risk & Engineering Leads | Risk Level |
 |---|---|---|:---:|
-| **1** | **Canonical Payload Integrity (RFC 8785 JCS)** | *Does your audit trail contain a cryptographically normalized SHA-256 hash of the exact JSON payload transmitted to the API before dispatch?* | **HIGH** |
-| **2** | **Cryptographic Idempotency Binding** | *Is a deterministic UUIDv5 key derived from the canonical payload and verified by the target backend before execution?* | **CRITICAL** |
+| **1** | **Deterministic Payload Hashing** | *Does your audit trail contain a deterministically serialized SHA-256 hash of the exact JSON payload transmitted to the API before dispatch?* | **HIGH** |
+| **2** | **Cryptographic Idempotency Binding** | *Is a deterministic UUIDv5 key derived from the payload and verified by the target backend before execution?* | **CRITICAL** |
 | **3** | **Fail-Closed Ambiguity Quarantine** | *When an HTTP 504 or socket reset occurs, does the runtime immediately halt autonomous retries and enter a `DISPATCHED_UNCONFIRMED` quarantine state?* | **CRITICAL** |
 | **4** | **Authority Freshness (<100ms JIT)** | *Is the policy authorization evaluated immediately prior to socket dispatch (sub-100ms), or does the workflow rely on stale pre-session tokens?* | **HIGH** |
-| **5** | **Immutable COSE_Sign1 Work Receipts** | *Are dispatch outcomes recorded as Ed25519-signed Merkle-tree receipts (RFC 9052 / RFC 9162) capable of offline, zero-egress third-party verification?* | **HIGH** |
+| **5** | **Signed Work Receipts** | *Are dispatch outcomes recorded as Ed25519-signed receipts capable of offline, zero-egress third-party verification?* | **HIGH** |
 | **6** | **Out-of-Band Target Reconciliation** | *Does the system enforce an automated query to a dedicated reconciliation endpoint (`/reconcile`) before any human or automated retry is released?* | **CRITICAL** |
 
 ---
@@ -118,7 +118,7 @@ $$\text{Statutory Deadline} = \min\left(T_{\text{classification}} + 4\,\text{hou
 1. **Event-Level Forensic Findings**: Quantitative audit of wire-fact overclaim rates (instances where agent logs claimed success without network confirmation).
 2. **Reconstructable Evidence Gap Analysis**: Defensible scoring against ISO/IEC 42006, EU AI Act Art. 12/14, and DORA Art. 17.
 3. **Double-Spend & Retry Vulnerability Map**: Identification of unquarantined retry loops across dead sockets.
-4. **Prioritized Remediation Blueprint**: Concrete, 5-point engineering roadmap to integrate RFC 8785 canonicalization and fail-closed state machines.
+4. **Prioritized Remediation Blueprint**: Concrete, 5-point engineering roadmap to integrate deterministic serialization, fail-closed state machines, and reference filters.
 
 ---
 
@@ -127,10 +127,12 @@ $$\text{Statutory Deadline} = \min\left(T_{\text{classification}} + 4\,\text{hou
 SMAOS supports evidence collection and runtime-control objectives relevant to incident reconstruction, human oversight, and operational resilience.
 
 **Explicit Boundaries:**
-- SMAOS does not guarantee exactly-once execution on non-idempotent third-party backends.
-- SMAOS does not prove a remote state change from a network timeout alone.
-- SMAOS does not replace target-side idempotency validation.
-- SMAOS does not certify formal regulatory compliance (compliance certification remains the exclusive prerogative of national competent authorities and accredited audit bodies).
+- **Synthetic Benchmark & Prototype**: The current AEIB v0.2 package operates on synthetic benchmark vectors or customer-supplied staging traces; it is not a deployed production security control.
+- **Adapter-Based Reconciliation**: Out-of-band verification relies on target-side query adapters. Target systems must expose queryable idempotency handles or transaction registries.
+- **Deterministic Serialization**: Payloads are normalized using a deterministic JSON subset (sorted keys, compact separators) and are not RFC 8785 validated.
+- **No Exactly-Once Guarantees Without Downstream Support**: SMAOS cannot guarantee exactly-once execution on non-idempotent third-party backends.
+- **No Remote State Proof From Network Timeout Alone**: SMAOS does not prove a remote state change from a network timeout alone.
+- **No Statutory Certification**: SMAOS does not certify formal regulatory compliance (compliance certification remains the exclusive prerogative of national competent authorities and accredited audit bodies).
 
 ---
 

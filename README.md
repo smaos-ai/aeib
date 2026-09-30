@@ -1,218 +1,89 @@
-# SovereignNexus / SMAOS — Agent-Effect Integrity (AEI)
+# 🛡️ SMAOS | Air-Gapped AI Agent Wire-Truth Engine (`v0.2.0`)
 
-**Open Source Core & Staging Verification Harness for Autonomous AI Agents**
+> **Deterministic boundary integrity and ambiguity resolution for autonomous AI agent workflows.**
 
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Standard](https://img.shields.io/badge/standard-RFC%208785%20JCS-green.svg)](docs/SPEC.md)
-[![DORA](https://img.shields.io/badge/compliance-DORA%20Art.%2017(3)-orange.svg)](docs/THREAT_MODEL.md)
-
----
-
-> **Sovereign, local-first, zero-dependency trust and governance infrastructure for autonomous AI agents.**  
-> *Enforcing Decision Reproducibility via Attestation Closure (IETF draft-sharif-agent-audit-trail-03) and Relying-Party Evidence Sufficiency (IETF draft-schrock-ep-action-evidence-graph-00).*
-
-## 🏛️ The Core Thesis: Property-Level Sufficiency
-
-Existing developer tooling focuses almost exclusively on **Container Presence**:
-> *"Is a JSON trace file present? Is an Ed25519 signature attached?"*  
-> Merely proving a log string was written and signed is a commodity that provides zero guarantee of real-world state settlement.
-
-**SMAOS focuses on Property-Level Sufficiency**:
-> *"Does the receipt prove downstream settlement or merely dispatch?"*  
-> *"Did the harness preserve UNKNOWN when the payment gateway timed out?"*  
-> We evaluate whether the claimed disposition is strictly justified by wire-level evidence.
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                       CONTAINER PRESENCE VS. PROPERTY SUFFICIENCY           │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ CONTAINER PRESENCE (Commoditized / Existing 50+ Tools)                      │
-│   "Is a JSON trace file present? Is an Ed25519 signature attached?"          │
-│   → Merely proves a log string was written and signed.                      │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ PROPERTY-LEVEL SUFFICIENCY (The AEI Architectural Focus)                    │
-│   "Does the receipt prove downstream settlement or merely dispatch?"        │
-│   "Did the harness preserve UNKNOWN on a 504 timeout?"                       │
-│   → Evaluates whether the claimed disposition is justified by wire evidence. │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+[![Release](https://img.shields.io/badge/release-v0.2.0-blue.svg)](https://github.com/sovreignnexus/smaos/releases/tag/v0.2.0)
+[![Prototype](https://img.shields.io/badge/format-AEIB__JSON__ED25519__PROTOTYPE-blueviolet.svg)](#operational-limits--disclaimers)
+[![License](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
+[![Egress](https://img.shields.io/badge/egress-0%20bytes%20(air--gapped)-success.svg)](#privacy--zero-egress-invariant)
 
 ---
 
-## 🔬 The Six-Disposition Order of Precedence
+## 🏛️ The Problem: The "Container Fallacy"
 
-Under ambiguous network conditions (HTTP 504 timeouts, connection drops, network partitions), standard harnesses emit cryptographically valid signatures asserting `CONFIRMED` or `EXECUTED`. This creates **Evidence Contamination** under DORA Art. 17(3).
+When an autonomous payment agent dispatches a mutating tool call and the gateway drops with an **HTTP 504 Gateway Timeout**, standard agent SDKs (LangChain, Spring AI) catch the transport exception and falsely log **`CONFIRMED`**.
 
-SMAOS enforces a strict, fail-closed precedence cascade:
-
-```text
-INVALID_INPUT → MISSING_EVIDENCE → CONFLICT → REFUSED → CONFIRMED → UNKNOWN
-     ①               ②               ③          ④          ⑤          ⑥
-```
-
-`UNKNOWN` is the **fail-safe terminus**: if no affirmative evidence from the system of record confirms external settlement, the action state MUST remain `UNKNOWN` with `retry_held: true` ($\Delta = 0$ conservation invariant).
+* **The Result:** The AI agent claims success, the database records the transfer, but the clearing ledger never moved the money.
+* **The Systemic Risk:** Triggers 4:00 AM reconciliation drift and mandatory 4-hour **DORA Article 17 EBA incident reporting clocks**.
 
 ---
 
-## 🌐 Global Protocol Interoperability: ATH 1.0, IETF SCITT & EU DORA
+## ⚡ 60-Second Quickstart (100% Local / Air-Gapped)
 
-`smaos-audit` serves as the neutral, zero-egress translation bridge between the world's three leading agent trust architectures:
-
-| Standard / Framework | Jurisdiction | Regulatory & Operational Scope | `smaos-audit` Mapping Invariant |
-| :--- | :--- | :--- | :--- |
-| **EU DORA (Art. 17) & EU AI Act (Art. 12)** | Europe | Mandatory 4-hour major incident reporting & automatic immutable logging. | Intercepts wire timeouts (HTTP 504 / RST); forces `UNKNOWN` disposition and activates incident clock. |
-| **CAICT ATH 1.0 (9-Step Model)** | China | Three-party (User–Agent–Service) cryptographic handshake and tracing. | Detects post-handshake transport drops; flags state as `SERVICE_UNOBSERVABLE` to prevent false commits. |
-| **IETF SCITT & US NIST RMF** | International / US | Supply chain transparency, Merkle attestation, and NIST SP 800-53 controls. | Emits PQC-agile (Ed25519 + ML-DSA-65) receipts proving physical settlement truth without cloud egress. |
-
-### 🌐 The Tripartite Translation Matrix
-
-| SMAOS Disposition | EU DORA / AI Act (Art. 12/17) | CAICT ATH 1.0 (9-Step Model) | US NIST RMF (SP 800-53) |
-| :--- | :--- | :--- | :--- |
-| **`CONFIRMED`** | Major incident cleared; settlement confirmed on wire with full audit trail. | Steps 1–9 verified: User & Service handshakes valid + Payload hash matched. | Confirmed state change proven with non-repudiable proof. |
-| **`UNKNOWN`** | **DORA Art. 17 Major Incident:** Unverified mutation / wire timeout detected (4-hr clock). | Wire dropped post-handshake: Service state unobservable (`SERVICE_UNOBSERVABLE`). | **NIST CP-10 / IR-4:** Non-repudiable uncertainty; forced execution halt. |
-| **`MISSING_EVIDENCE`** | **AI Act Art. 12 Non-Compliance:** Log missing source derivation or signature. | User or Service handshake token absent (`USER_HANDSHAKE_NONE`). | **NIST IA-2 / AU-2:** Unattested agent or principal identity. |
-| **`CONFLICT`** | **DORA Art. 17 State Drift:** Ledger divergence (e.g. Stripe 402 vs settlement drop). | Phase 1 vs Phase 2 payload hash mismatch (`AUTH_DIVERGE`). | **NIST SI-7 / AU-11:** Mutated state invariant; hash chain mismatch. |
-| **`REFUSED`** | **AI Act Art. 14:** Gatekeeper policy check or Human Veto blocked action. | Permission denied at Step 4 or Step 7 authorization boundary. | **NIST AC-3 / AC-6:** Least privilege policy denial. |
-| **`INVALID_INPUT`** | **DORA Art. 28:** Schema mismatch or unauthorized MCP tool drift. | Malformed JSON-RPC or unannounced tool expansion (OWASP MCP03 Rug Pull). | **NIST SI-10:** Input validation failure / syntax rejection. |
-
-```text
-[ User / Client ]
-      │ (1) ATH Step 1-3 Handshake
-      ▼
-┌──────────────────────────────────┐
-│     Autonomous Agent Harness     │
-└──────────────────────────────────┘
-      │ (2) Mutating API / MCP Call
-      ▼
-════════════════════════════════ <- WIRE BOUNDARY [ smaos-audit Wire Observer ]
-════════════════════════════════
-      │ (3) Wire Drops (HTTP 504 / RST)
-      ▼
-┌──────────────────────────────────┐
-│      External Gateway / Bank     │
-└──────────────────────────────────┘
-      │ [ Evidence Absent on Wire ]
-      ▼
-FORCED DOWNGRADE: UNKNOWN
-• Mapped to DORA Art. 17 Major Incident
-• Mapped to ATH Phase 2 Service Gap
-```
-
-### 🛠️ How `GlobalAuditReporter` Executes
-
-1. **Out-of-Band Verification:** Inspects physical wire transport (REST, MCP, x402) without requiring SDK code rewrites.
-2. **Normative Precedence Rules:** Applies the 6-disposition cascade (`UNKNOWN` overrides hallucinatory model `CONFIRMED` claims).
-3. **Multi-Standard Artifact Generation:** Automatically emits schema-validated evidence bundles (`dora_art17_gap_report.json` and `audit_trace.mermaid`).
-
+### Option 1: Native Python (Zero Dependencies)
 ```bash
-# Run the global reporter against staging traces
-python3 -m ocr_audit.reporter --findings staging_traces.json --output-dir ./audit_bundle
+git clone https://github.com/sovereignnexus/aeib-receipt-fuzzer.git
+cd aeib-receipt-fuzzer
+python3 run.py
 ```
 
----
-
-## 🕷️ AEIB Receipt Fuzzer & Toxic Receipt Detector
-
-We provide a zero-dependency local CLI harness (`scratch/aeib-receipt-fuzzer/`) to test whether your harness preserves uncertainty or emits Toxic Receipts:
-
+### Option 2: Air-Gapped Docker Container
 ```bash
-cd scratch/aeib-receipt-fuzzer
-python3 demo_killshot.py
+docker compose up
+```
+*Navigates to local dashboard at `http://127.0.0.1:8765`.*
+
+---
+
+## 🛒 The "Container Shop" Menu (`docker-compose.yml`)
+
+Configure your target stack and fault profiles locally via simple environment variables:
+
+```yaml
+services:
+  smaos-audit:
+    image: sovereignnexus/aeib-receipt-fuzzer:v0.1.0
+    ports:
+      - "127.0.0.1:8765:8765"
+    environment:
+      RUNTIME: "java21"             # java21 | python
+      FRAMEWORK: "spring-boot"      # spring-boot | langchain4j | fastapi
+      FAULT_MODES: "504,TCP_RST"    # 504 | TCP_RST
+      PRIVACY_GUARD: "true"         # In-memory IBAN/PAN/JWT scrubbing
+      COMPLIANCE_EXPORT: "DORA,ISO42001,ATH"
 ```
 
-### 5 Verified Scenarios:
-1. **Clean Pass-Through**: Valid RFC 8785 JCS + ES256 envelope $\rightarrow$ `CLEAN_PASS`
-2. **Dropped Signature**: Stripped cryptographic envelope $\rightarrow$ `TOXIC_RECEIPT_DETECTED`
-3. **JCS Canonicalization Tampering**: Injected payload mutation $\rightarrow$ `TOXIC_RECEIPT_DETECTED`
-4. **SCITT Timestamp Rollback**: Replayed stale sequence timestamp $\rightarrow$ `TOXIC_RECEIPT_DETECTED`
-5. **Adversarial Loan Interception**: Silent in-transit edit (€1.85M $\rightarrow$ €1.90M) halted ex-ante via canonical digest mismatch $\rightarrow$ `HALT: digest_mismatch`
+---
+
+## 🛡️ Key Safety Invariants
+
+1. **In-Memory Privacy Scrubber:** IBANs (`[REDACTED_IBAN]`), card PANs, and JWT bearer tokens (`[REDACTED_JWT]`) are scrubbed in-memory *before* any disk writes.
+2. **Proof-or-Stop Invariant:** Hard precedence override forcing unconfirmed state transitions:
+   $$\text{Evidence Absent} \implies \text{UNKNOWN}$$
+3. **Polyglot Remediation:** Exports `ProofOrStopFilter.java` for Spring Boot `WebClient` and `fix.patch` for Python.
 
 ---
 
-## 🔄 Non-Intrusive Reconciliation Adapters
+## 📊 Audit Deliverable Bundle (`./audit_out/`)
 
-In production, `CONFIRMED` cannot be claimed from API responses alone. SMAOS specifies read-only probes that verify state directly against systems of record:
-
-* **PostgreSQL**: Transaction ID (`xid`) commit status verification via `txid_status`.
-* **AWS S3**: Object `ETag` and version ID verification at target bucket paths.
-* **Apache Kafka**: Committed partition offsets matching target `action_id`.
-* **Stripe (Test Mode)**: `Idempotency-Key` headers cross-checked against settlement status.
-
----
-
-## 🏛️ Sovereign Governance Substrate & Regulatory Roadmap
-
-### ✅ Milestone 1 Achieved: Local-First Execution & Pre-Execution Safety
-* **Pre-Execution Fail-Closed Gates**: Intercepts tool dispatches at the wire and kernel boundary before any side effect occurs.
-* **Wire-Fault Simulation**: Tests harness state preservation under simulated HTTP 504 timeouts and dropped sockets, enforcing `verdict: UNKNOWN` rather than writing false `CONFIRMED` success logs.
-* **Cryptographic Provenance**: Generates RFC 8785 JCS-canonicalized Merkle DAG receipts signed with Ed25519 keys for every execution.
-* **Zero Egress**: Runs 100% air-gapped on local hardware under `network_mode: "none"`.
+Every local run outputs:
+* `dora_art17_gap_report.json` — EBA RTS 2024/1772 major incident JSON report.
+* `audit_trace.mermaid` — Visual sequence diagram mapping wire drops vs. SDK overclaims.
+* `ProofOrStopFilter.java` — Drop-in fail-closed filter for Spring Boot microservices.
+* `index.html` — Interactive dark-mode dashboard for local CISO review.
 
 ---
 
-### 🎯 Next Target Milestone: December 2, 2027 (EU AI Act Annex III Deadline)
-Under the **EU AI Act (Regulation 2024/1689)** as amended by Digital Omnibus Regulation (EU 2026/1744), the statutory enforcement date for **standalone High-Risk AI systems (Annex III)** is **December 2, 2027**. This applies to all autonomous agent workflows operating in high-risk categories:
-1. **Biometrics & Biometric Categorization**
-2. **Critical Infrastructure Management** (Water, gas, electricity, cloud systems)
-3. **Educational & Vocational Assessment**
-4. **Employment, Worker Management & Access to Self-Employment**
-5. **Access to Essential Private & Public Services** (e.g., Credit Scoring, Loan Approvals, Healthcare)
-6. **Law Enforcement**
-7. **Migration, Asylum & Border Control**
-8. **Administration of Justice & Democratic Processes**
+## ⚠️ Operational Limits & Disclaimers
+
+1. **Synthetic Prototype**: The current AEIB v0.2.0 package operates strictly on synthetic benchmark vectors and simulated transport outcomes. It is an engineering review deliverable, not a production security control.
+2. **Deterministic Serialization**: Payloads use a deterministic JSON subset (sorted keys, compact separators) as an engineering precursor; it is **not RFC 8785 validated**.
+3. **Adapter Dependency**: Real-world reconciliation requires target-side idempotency adapters (`ServerIdempotencyAdapter`).
+4. **Non-Certification**: Provides evidence capture to support internal audit trails. Does not constitute statutory compliance certification under DORA or the EU AI Act.
 
 ---
 
-### 🧪 Automated Rule & Testing Substrate for Annex III (Articles 9–15)
-This repository serves as an automated test harness and evidence generation engine for Articles 9–15 compliance:
+## 📜 License & Author
 
-| Statutory Requirement | Governance Substrate Mapping | Technical Evidence Produced |
-| :--- | :--- | :--- |
-| **Article 9: Risk Management** | Bitemporal ledger tracking post-market evaluation and risk registers throughout the lifecycle. | `agentacct.db` audit traces & risk classification logs. |
-| **Article 12: Record-Keeping** | Automatic, tamper-evident event recording over the system's operational lifetime. | SHA-256 Merkle DAG receipts signed with Ed25519 (IETF SCITT profile). |
-| **Article 13: Transparency** | Machine-readable system boundaries, capability disclosures, and limitations. | Auto-generated Model Cards & System Boundary manifests. |
-| **Article 14: Human Oversight** | Pre-execution fail-closed gates holding retries and enforcing human veto authority. | Resumable Cognitive Execution (RCE) interrupts & stop-button logs. |
-| **Article 15: Cybersecurity & Robustness** | Local-first, air-gapped container isolation preventing prompt injection and exfiltration. | Substrate measurement receipts & 0-byte egress network traces. |
-
----
-
-### ⚖️ Conformity Assessment Pathway: Annex VI Self-Assessment
-Under **Article 43(2)** of the EU AI Act, standalone software falling under Annex III categories undergoes an **Internal Conformity Assessment (Annex VI)**. **No third-party Notified Body is required** for standalone software self-assessment.
-
-Running this test harness automatically compiles the mandatory **Annex IV Technical Dossier** directly from real execution traces, allowing enterprise engineering teams to self-certify compliance for December 2, 2027 deployment.
-
----
-
-## 💼 Commercial Offer: 5-Day Staging Forensic Audit (€2,500 Fixed Fee)
-
-We offer a high-impact, fixed-fee diagnostic engagement to stress-test your AI agent harnesses before production deployment.
-
-### 📋 Engagement Scope (5 Business Days)
-* **Day 1: Wire-Level Baseline Capture**: Ingest up to 250 local staging traces or replay logs into the AEI verification pipeline.
-* **Day 2: Fault Injection & Fuzzing**: Run our non-blocking proxy against your tool dispatcher across all 6 fault modes (504 Timeout, TCP RST, 409 Conflict, Signature Drop, JCS Poison, Replay).
-* **Day 3: Evidence Contamination Scan**: Detect instances where your agents sign `CONFIRMED` without verified settlement.
-* **Day 4: Remediation Plan**: Deliver concrete code patches for fail-closed state machines and idempotency retry holders.
-* **Day 5: Executive Audit Dossier**: 1-page CISO/Risk Committee briefing mapping your harness against DORA Art. 17 and EU AI Act Art. 12 auditability requirements.
-
-### 🏰 The Audit-to-Corpus Flywheel
-```
-Paid Staging Audit (€2,500) ──► Real Failure Mode ──► Anonymized JSON Vector ──► Open Conformance Suite
-```
-Every forensic audit enriches our open **AEI Conformance Corpus**, converting real-world edge cases into reproducible public benchmarks while keeping client data strictly confidential.
-
-**Inquiries & Booking:** [andrejlo123@gmail.com](mailto:andrejlo123@gmail.com) · Fixed Fee: **€2,500 EUR** (Discretionary Procurement Bypass).
-
----
-
-## 📚 Technical Documentation
-
-* [Threat Model & Attack Surface](docs/THREAT_MODEL.md)
-* [AEI State Machine & Precedence Cascade](docs/AEI_STATE_MACHINE.md)
-* [AEIB Technical Specification](scratch/aeib-receipt-fuzzer/SPEC.md)
-* [Bounded Compliance & Scope Limitations](LIMITATIONS.md)
-
----
-
-## ⚖️ License
-
-Apache License 2.0. See [LICENSE](LICENSE) for details.
+Apache License 2.0. Developed by **Andrii Leukhin** (Independent Researcher & Founder, SovereignNexus project, `andrejlo123@gmail.com`).  
+*Note: SovereignNexus is an independent research initiative (incorporation pending in the Czech Republic).*

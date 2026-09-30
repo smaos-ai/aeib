@@ -1,8 +1,19 @@
 # Sovereign Governance Substrate — Bounded Evidence & Limitations Specification
 
-**Standard:** Sovereign Multi-Agent OS (SMAOS) / STAR Protocol v1.0  
+**Standard:** Sovereign Multi-Agent OS (SMAOS) / AEIB v0.2.0 Synthetic Prototype  
+**Format Designation:** `AEIB_JSON_ED25519_PROTOTYPE`  
 **Status:** Canonical Scope Boundary & Non-Warranty Declarations  
-**Last Updated:** 2026-09-17  
+**Last Updated:** September 2026  
+
+---
+
+## ⚠️ Mandatory Scope Disclaimers for Reviewing Engineers & Architects
+
+1. **Prototype Designation**: All receipts emitted by the benchmark harness use the `AEIB_JSON_ED25519_PROTOTYPE` format designation.
+2. **Deterministic Serialization (Not RFC 8785 Validated)**: Payloads are serialized using a deterministic JSON subset (sorted keys, compact separators). This is an engineering precursor, not a formal RFC 8785 (JCS) compliance certification.
+3. **Synthetic Data Boundary**: All test runs and conformance receipts operate strictly on synthetic benchmark fixtures and simulated transport outcomes. This is an engineering review prototype, not a production security control.
+4. **Adapter Dependency for Live Reconciliation**: Out-of-band verification relies on target-side query adapters. True exactly-once semantics require downstream services to enforce idempotency keys.
+5. **No Compliance Certification**: The substrate provides evidence collection mechanisms to assist internal audit and risk reviews. It does not certify statutory compliance with EU DORA, the EU AI Act, or ISO/IEC 42006.
 
 ---
 

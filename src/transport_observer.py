@@ -338,3 +338,78 @@ class TransportObserver:
                 },
             },
         }
+
+    def emit_ebpf_xdp_receipt(
+        self,
+        dispatch_ctx: Dict[str, Any],
+        kernel_telemetry: Dict[str, Any],
+        decision: str = "permit",
+        execution_observation: str = "tcp_retry_dropped_by_xdp",
+        outcome_verification: str = "not_confirmed",
+    ) -> Dict[str, Any]:
+        """
+        Binds eBPF Ringbuf telemetry into the transport_evidence block of an AEIB receipt.
+        Enforces RFC 8785 JCS canonicalization and Ed25519 signature attestation.
+        """
+        idempotency_key = dispatch_ctx["idempotency_key"]
+        payload_hash = dispatch_ctx["payload_hash"]
+
+        unsigned_payload = {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "receipt_version": "aeib-0.2",
+            "receipt_id": f"urn:uuid:{uuid.uuid4()}",
+            "action_id": dispatch_ctx["action_id"],
+            "decision": decision,
+            "execution_observation": execution_observation,
+            "outcome_verification": outcome_verification,
+            "aeib_extension": {
+                "version": "0.1",
+                "disposition": "DISPATCHED_UNCONFIRMED",
+                "retry_policy": "PROBE_REQUIRED_NO_ORIGINAL_RETRY",
+                "dora_binding": {
+                    "incident_class": None,
+                    "classification_timestamp_utc": None,
+                    "classification_status": "PENDING_HUMAN_REVIEW",
+                },
+            },
+            "transport_evidence": {
+                "adapter_type": "ebpf_xdp_driver",
+                "adapter_version": "0.1",
+                "observation": "quarantine_flow_dropped",
+                "observed_at_utc": datetime.now(timezone.utc).isoformat(),
+                "kernel_telemetry": kernel_telemetry,
+            },
+            "outcome_probe": {
+                "adapter_type": "database_ledger",
+                "probe_status": "not_yet_attempted",
+                "authoritative_source_id": "ledger:sqlite-downstream",
+                "expected_payload_hash": payload_hash,
+                "idempotency_key": idempotency_key,
+            },
+        }
+
+        # Canonicalize and hash with RFC 8785 JCS
+        payload_bytes = encode_jcs(unsigned_payload)
+        unsigned_hash = hashlib.sha256(payload_bytes).hexdigest()
+
+        signable_view = {
+            "unsigned_payload": unsigned_payload,
+            "unsigned_payload_hash": unsigned_hash,
+        }
+        signable_bytes = encode_jcs(signable_view)
+        signature_bytes = self._private_key.sign(signable_bytes)
+
+        receipt = {
+            "format": "AEIB_JSON_ED25519_PROTOTYPE",
+            "receipt_id": unsigned_payload["receipt_id"],
+            "unsigned_payload": unsigned_payload,
+            "unsigned_payload_hash": unsigned_hash,
+            "signature_metadata": {
+                "signed_payload_hash": unsigned_hash,
+                "key_id": self.key_id,
+                "algorithm": "Ed25519",
+                "signature": signature_bytes.hex(),
+            },
+        }
+        return receipt
+

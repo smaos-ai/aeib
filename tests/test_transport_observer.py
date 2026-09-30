@@ -243,6 +243,51 @@ class TestTransportObserver(unittest.TestCase):
         with self.assertRaises(InvalidSignature):
             self.observer.public_key.verify(sig_bytes, tampered_bytes)
 
+    def test_emit_ebpf_xdp_receipt_binding(self):
+        """Emitted receipt binds eBPF Ringbuf telemetry into transport_evidence."""
+        req = {
+            "jsonrpc": "2.0",
+            "id": "ebpf-tx-01",
+            "method": "tools/call",
+            "params": {"name": "settle_payment", "arguments": {"account": "DE-001", "amount": 25000}},
+        }
+        _, ctx = self.observer.intercept_request(req)
+
+        telemetry = {
+            "timestamp_ns": 1717258901234567,
+            "disposition": "DISPATCHED_UNCONFIRMED_QUARANTINE",
+            "flow_5tuple": {
+                "source": "10.0.2.15:49210",
+                "destination": "10.0.2.2:8080",
+                "protocol": "TCP",
+            },
+            "action": "XDP_DROP",
+            "ringbuf_discard_count": 0,
+        }
+
+        receipt = self.observer.emit_ebpf_xdp_receipt(
+            dispatch_ctx=ctx,
+            kernel_telemetry=telemetry,
+            execution_observation="tcp_retry_dropped_by_xdp",
+        )
+
+        unsigned = receipt["unsigned_payload"]
+        self.assertEqual(unsigned["execution_observation"], "tcp_retry_dropped_by_xdp")
+        self.assertEqual(unsigned["transport_evidence"]["adapter_type"], "ebpf_xdp_driver")
+        self.assertEqual(unsigned["transport_evidence"]["kernel_telemetry"], telemetry)
+
+        # Verify JCS hash and signature
+        computed_hash = hashlib.sha256(encode_jcs(unsigned)).hexdigest()
+        self.assertEqual(computed_hash, receipt["unsigned_payload_hash"])
+
+        signable = {
+            "unsigned_payload": unsigned,
+            "unsigned_payload_hash": computed_hash,
+        }
+        sig_bytes = bytes.fromhex(receipt["signature_metadata"]["signature"])
+        self.observer.public_key.verify(sig_bytes, encode_jcs(signable))
+
 
 if __name__ == "__main__":
     unittest.main()
+

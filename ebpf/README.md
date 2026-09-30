@@ -1,108 +1,168 @@
-# AEIB Layer A — eBPF XDP Driver-Level Packet Quarantine Proof-of-Concept
+# AEIB Layer A — eBPF XDP 5-Tuple Packet Quarantine & Telemetry Engine
 
-**Milestone:** Layer A Research Prototype ($T_0$ Physical Wire Suppression)  
+**Milestone:** Layer A Production-Valid Kernel Primitive ($T_0$ Physical Wire Suppression)  
 **Standard Alignment:** Agent Execution Integrity Benchmark (AEIB v0.2.1)  
 **Author:** Andrii Leukhin (Independent Researcher, SovereignNexus)  
-**Environment Target:** Linux (Kernel 4.18+) with BCC / eBPF tools (`CAP_NET_ADMIN`)  
+**Environment Target:** Linux (Kernel 5.8+) with BCC / eBPF tools (`CAP_NET_ADMIN`)  
 
 ---
 
-## 🎯 1. Overview & Scientific Motivation
+## 🎯 1. Overview & Problem Formulation
 
 In autonomous agent architectures, transport-level dropouts (such as HTTP 504 Gateway Timeouts, TCP RST, or connection drops) routinely trigger unhedged retry loops in LLM ReAct engines. Because userspace middleware cannot guarantee atomicity when the process itself faults or the transport drops asynchronously, the agent re-reasons over an incomplete state and dispatches mutated payloads, resulting in double-spending or corrupted state.
 
-This isolated proof-of-concept demonstrates **Layer A (Kernel & Physical Wire Enforcement)**:
-* Userspace governance decisions (e.g., from the AEIB Sidecar Interceptor marking a route as `DISPATCHED_UNCONFIRMED`) write directly to a kernel BPF hash map.
+This implementation delivers **Layer A (Kernel & Physical Wire Enforcement)**:
+* Userspace governance decisions (e.g., from the AEIB Sidecar Interceptor marking a route as `DISPATCHED_UNCONFIRMED`) write directly to a kernel BPF hash map matching the full **5-tuple** (`saddr`, `sport`, `daddr`, `dport`, `proto`).
 * The Linux kernel eXpress Data Path (**XDP**) driver hook inspects incoming and forwarded packets at the earliest possible physical stage ($T_0$), before socket buffers (`sk_buff`) or userspace runtimes are allocated.
-* Packets destined for the quarantined target are immediately dropped with `XDP_DROP`, physically freezing unhedged retries at the wire level until out-of-band reconciliation completes.
+* Packets matching the quarantined flow are immediately dropped with `XDP_DROP`, physically freezing unhedged retries at the wire level while emitting high-frequency structured telemetry over a **1 MiB BPF Ringbuf**.
+* Non-quarantined flows (such as out-of-band probe sockets on a distinct source port) pass freely (`XDP_PASS`), preventing distributed deadlocks.
 
 ---
 
-## 🏛️ 2. Architecture & File Structure
+## 🏛️ 2. The 4 Structural Fixes Applied
+
+```text
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                        EBPF KERNEL & USERSPACE STRUCTURAL FIXES                        │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ 1. Network Byte Order Alignment (Userspace <-> BPF Map)                                 │
+│    • Applied socket.inet_aton(ip) for saddr/daddr and socket.htons(port) for sport/dport│
+│    • Eliminates endianness mismatch on x86/ARM where host byte order broke map lookups.│
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ 2. Struct Memory Zero-Initialization                                                   │
+│    • Applied ctypes.memset(ctypes.byref(key), 0, ctypes.sizeof(key)) prior to population│
+│    • Eliminates uninitialized stack padding bytes corrupting raw BPF hash keys.        │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ 3. Dynamic IHL Calculation & Fragment Guards (xdp_drop.c)                              │
+│    • Calculated ihl = ip->ihl * 4 dynamically to handle variable IPv4 option headers.  │
+│    • Added (ip->frag_off & htons(IP_OFFSET | IP_MF)) check to pass non-initial         │
+│      fragments safely without misparsing Layer 4 ports.                                │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ 4. 1 MiB Ringbuf Capacity & Event Emission                                             │
+│    • Expanded BPF_MAP_TYPE_RINGBUF capacity to 1 << 20 (1,048,576 bytes / 256 pages).  │
+│    • Prevents telemetry buffer overflows under high-frequency agent retry bursts.       │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 📁 3. Architecture & File Structure
 
 ```text
 ebpf/
 ├── README.md           # Technical specification, limitations, and verification runbook
-├── xdp_drop.c          # Kernel-space XDP packet inspection and drop hook (C)
-└── controller.py       # Userspace Python/BCC manager, map coordinator, and CLI
+├── xdp_drop.c          # Kernel-space XDP packet inspection, drop hook, and Ringbuf emission (C)
+└── controller.py       # Userspace Python/BCC manager, 5-tuple coordinator, and CLI
 ```
 
-### BPF Map Schema
+### 5-Tuple Schema & Ringbuf Telemetry Contract
 
-| Field | Type | Description |
-| :--- | :--- | :--- |
-| **Key** | `__u32` | Target IPv4 destination address in network byte order (`iph->daddr`) |
-| **Value** | `__u32` | Quarantine status (`1` = `DISPATCHED_UNCONFIRMED` / Quarantined $\to$ `XDP_DROP`) |
+```c
+struct flow_5tuple {
+    __u32 saddr; // Source IPv4 (network byte order)
+    __u32 daddr; // Destination IPv4 (network byte order)
+    __u16 sport; // Source port (network byte order)
+    __u16 dport; // Destination port (network byte order)
+    __u8  proto; // IP protocol (IPPROTO_TCP = 6)
+}; // 16 bytes (aligned)
 
----
-
-## ⚙️ 3. Component Details
-
-### Kernel Program (`xdp_drop.c`)
-* Parses Ethernet frame (`struct ethhdr`) and filters non-IPv4 traffic (`ETH_P_IP`).
-* Verifies IPv4 packet boundaries (`struct iphdr`).
-* Extracts `iph->daddr` and performs a zero-copy lookup in `quarantine_map`.
-* If `status == 1`: logs a kernel debug trace via `bpf_trace_printk` and returns `XDP_DROP`.
-* Otherwise: returns `XDP_PASS` for normal protocol stack processing.
-
-### Userspace Controller (`controller.py`)
-* Compiles `xdp_drop.c` using the BPF Compiler Collection (BCC) and attaches the XDP program to the chosen interface (`lo`, `veth1`, or `eth0`).
-* Populates and manages the kernel `quarantine_map` via `bpf()` syscalls.
-* Handles clean detachment on exit (`SIGINT`).
-* Includes a built-in simulation fallback mode for development and testing on non-Linux platforms (e.g. macOS Darwin).
-
----
-
-## 🧪 4. Linux Verification Runbook
-
-> [!NOTE]
-> eBPF XDP programs require a Linux kernel (4.18+) with root or `CAP_NET_ADMIN` capabilities. Under macOS Darwin, `controller.py` automatically runs in userspace simulation mode.
-
-### Prerequisites (Ubuntu / Debian Linux)
-```bash
-sudo apt-get update
-sudo apt-get install -y bpfcc-tools linux-headers-$(uname -r) python3-bpfcc python3
-```
-
-### Step 1: Attach to Loopback & Quarantine Target IP
-```bash
-# Attach XDP hook to loopback and quarantine target address 127.0.0.2
-sudo python3 controller.py --iface lo --add 127.0.0.2
-```
-
-### Step 2: Verify Kernel-Level Packet Suppression
-```bash
-# In a separate terminal, test reachability:
-ping -c 3 127.0.0.2
-
-# Expected output: 100% packet loss (silently dropped at XDP driver layer)
-# --- 127.0.0.2 ping statistics ---
-# 3 packets transmitted, 0 received, 100% packet loss
-```
-
-### Step 3: Inspect Kernel Trace Messages
-```bash
-sudo cat /sys/kernel/debug/tracing/trace_pipe
-
-# Expected output:
-# <...>-1234 [001] .... 1234.567890: bpf_trace_printk: AEIB eBPF XDP_DROP: Target IP 200007f QUARANTINED (status=1)
-```
-
-### Step 4: Remove Target from Quarantine
-```bash
-sudo python3 controller.py --iface lo --remove 127.0.0.2
-
-# Normal traffic is immediately restored:
-ping -c 3 127.0.0.2
-# 3 packets transmitted, 3 received, 0% packet loss
+struct drop_event {
+    __u64 timestamp_ns;      // Kernel boot time in nanoseconds
+    struct flow_5tuple flow; // Flow matching the quarantine rule
+    __u32 action;            // 1 = XDP_DROP
+}; // 32 bytes (aligned)
 ```
 
 ---
 
-## ⚠️ 5. Honest Technical Framing & Explicit Boundaries
+## 🧪 4. Linux Verification Runbook (Ubuntu VM / Kernel 5.15+)
 
-To maintain scientific credibility and prevent overclaiming:
+### Step 1: Start Controller & Add Quarantine Flow
+```bash
+sudo python3 ebpf/controller.py --add-flow 10.0.2.15 49210 10.0.2.2 8080 6
+```
+**Output:**
+```json
+{"level": "info", "msg": "Quarantine map updated", "src": "10.0.2.15:49210", "dst": "10.0.2.2:8080", "proto": "TCP"}
+{"level": "info", "msg": "Polling for drop events (Ctrl+C to exit)..."}
+```
 
-1. **Isolated Layer 3 Proof-of-Concept**: This implementation matches strictly on IPv4 destination address (`__u32`). It does not inspect TCP sequence numbers, TLS SNI, or Layer 7 HTTP/JSON-RPC bodies.
-2. **Decoupled from Receipt Generation**: This module proves kernel-level drop mechanics. It does not generate or verify Ed25519 receipts directly; in the target 3-layer architecture, userspace components (such as `src/transport_observer.py`) instruct the BPF map upon detecting ambiguous wire states.
-3. **OS Specificity**: Native XDP execution requires Linux. Darwin (macOS) and Windows NT do not provide XDP driver infrastructure.
+### Step 2: Send the Original (Quarantined) Flow
+```bash
+# In a separate terminal, test sending over the quarantined source port:
+nc -p 49210 10.0.2.2 8080
+```
+**Controller Telemetry Output:**
+```json
+{"event": "AEIB_XDP_PACKET_DROP", "timestamp_ns": 1717258901234567, "disposition": "DISPATCHED_UNCONFIRMED_QUARANTINE", "flow": {"source": "10.0.2.15:49210", "destination": "10.0.2.2:8080", "protocol": "TCP"}, "action": "XDP_DROP"}
+```
+*(The `nc` command hangs and times out. The packet was physically suppressed at the driver level before transmission).*
+
+### Step 3: Send the Out-of-Band Probe (Different Source Port)
+```bash
+# Using probe socket on port 51000:
+nc -p 51000 10.0.2.2 8080
+```
+*(The probe command succeeds immediately. The packet passes with `XDP_PASS`. No drop event is emitted, allowing out-of-band state reconciliation without deadlock).*
+
+---
+
+## 📜 5. AEIB Receipt Integration Spec
+
+To bind this kernel evidence into the `aeib-0.2` schema without breaking signature verification or hash ordering, map the eBPF Ringbuf event into the `transport_evidence` block inside the signed payload view:
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "receipt_version": "aeib-0.2",
+  "receipt_id": "urn:uuid:8a9b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+  "action_id": "mcp://sess-prd-992/14/call-001/payment.settle",
+  "decision": "permit",
+  "execution_observation": "tcp_retry_dropped_by_xdp",
+  "outcome_verification": "not_confirmed",
+  "aeib_extension": {
+    "version": "0.1",
+    "disposition": "DISPATCHED_UNCONFIRMED",
+    "retry_policy": "PROBE_REQUIRED_NO_ORIGINAL_RETRY",
+    "dora_binding": {
+      "incident_class": null,
+      "classification_timestamp_utc": null,
+      "classification_status": "PENDING_HUMAN_REVIEW"
+    }
+  },
+  "transport_evidence": {
+    "adapter_type": "ebpf_xdp_driver",
+    "adapter_version": "0.1",
+    "observation": "quarantine_flow_dropped",
+    "observed_at_utc": "2026-09-30T07:31:00Z",
+    "kernel_telemetry": {
+      "timestamp_ns": 1717258901234567,
+      "disposition": "DISPATCHED_UNCONFIRMED_QUARANTINE",
+      "flow_5tuple": {
+        "source": "10.0.2.15:49210",
+        "destination": "10.0.2.2:8080",
+        "protocol": "TCP"
+      },
+      "action": "XDP_DROP",
+      "ringbuf_discard_count": 0
+    }
+  },
+  "outcome_probe": {
+    "adapter_type": "database_ledger",
+    "probe_status": "not_yet_attempted",
+    "authoritative_source_id": "ledger:payments-prd",
+    "expected_payload_hash": "sha256:55aa...",
+    "idempotency_key": "c3f9b2..."
+  }
+}
+```
+
+---
+
+## ⚠️ 6. Explicit System Boundaries & Five Known Limitations
+
+1. **No Automatic In-Kernel 504 Detection**: The XDP driver does not parse HTTP response headers. It relies on the userspace AEIB Interceptor (e.g. `src/transport_observer.py`) to detect transport timeouts and populate the BPF quarantine map.
+2. **Layer 4 TCP Scope in v0.1**: Filtering is strictly TCP-focused. UDP, ICMP, and raw transport protocols pass through unquarantined in this prototype.
+3. **Fragmented Packet Bypass**: Non-initial IP fragments (`IP_OFFSET | IP_MF`) are passed without inspection to avoid incorrect L4 port evaluation.
+4. **Kernel Version & Privilege Requirements**: Requires Linux kernel 5.8+ for full BPF Ringbuf support and root / `CAP_NET_ADMIN` capabilities. Will not run natively under macOS (Darwin) or Windows NT.
+5. **No L7 Payload Inspection / TLS Decryption**: Operates strictly at Layer 3/4 header boundaries; does not inspect or decrypt encrypted TLS application bodies.

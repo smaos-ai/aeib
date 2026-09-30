@@ -40,7 +40,7 @@
 \begin{abstract}
 Autonomous agents increasingly invoke mutating remote procedures through gateways and external enterprise systems. When a downstream service commits a mutation but the response is lost---for example, after a gateway timeout---the caller observes transport failure without knowing whether execution occurred. A retry may therefore produce a second mutation, particularly when agent-driven semantic drift changes the effective idempotency identity.
 
-We present the Agent Execution Integrity Benchmark (AEIB), a protocol and evaluation harness for representing and reconciling this post-dispatch ambiguity. AEIB defines a seven-state disposition taxonomy, a deterministic transport-to-disposition mapping contract, an execution boundary that freezes retries after ambiguous faults, and Ed25519-signed receipts that bind dispatch observations to authoritative probe results. We implement an offline verifier and evaluate AEIB against a reproducible control matrix. Across 50 trials, naive retry and semantic-drift baselines produced duplicate mutations in 100\% of runs, while a stable-key baseline produced none. Under the same post-commit timeout fault, AEIB produced no duplicate mutations, verified 50 of 50 receipts, and produced zero false \texttt{OUTCOME\_VERIFIED} results across 20 non-commit controls. The measured AEIB overhead was 9.6~ms mean and 11.0~ms at p95 in the local harness. These results are limited to the tested synthetic environment and do not constitute a production-readiness, standards-compliance, or regulatory-certification claim.
+We present the Agent Execution Integrity Benchmark (AEIB), a protocol and evaluation harness for representing and reconciling this post-dispatch ambiguity. AEIB defines a seven-state disposition taxonomy, a deterministic transport-to-disposition mapping contract, an execution boundary that freezes retries after ambiguous faults, and Ed25519-signed receipts that bind dispatch observations to authoritative probe results. We implement an offline verifier and evaluate AEIB against a reproducible control matrix. Across 50 trials, naive retry and semantic-drift baselines produced duplicate mutations in 100\% of runs, while a stable-key baseline produced none. Under the same post-commit timeout fault, AEIB produced no duplicate mutations, verified 50 of 50 receipts, and produced zero false \texttt{OUTCOME\_VERIFIED} results across 20 non-commit controls. The measured AEIB overhead was 9.22~ms mean and 9.59~ms at p95 in the local harness. These results are limited to the tested synthetic environment and do not constitute a production-readiness, standards-compliance, or regulatory-certification claim.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -203,12 +203,7 @@ Result: 1 committed debit; zero duplicates; receipt verified offline.
 \end{lstlisting}
 
 \subsection{Latency \& Overhead Analysis}
-We measured AEIB latency across all 50 positive fault trials in the local test harness:
-\begin{itemize}
-    \item \textbf{Mean Overhead Latency:} \textbf{9.6~ms}
-    \item \textbf{p95 Overhead Latency:} \textbf{11.0~ms}
-    \item \textbf{Measurement Boundary:} Measured from client request dispatch, through ASGI post-commit 5~ms delay, 504 interception, out-of-band HTTP query to \texttt{GET /operations/\{id\}}, canonical payload hashing, Ed25519 signing via \texttt{cryptography.hazmat}, to final receipt assembly. Excludes network transit latency over wide-area networks.
-\end{itemize}
+The final tagged release measured 9.22~ms mean and 9.59~ms p95, measured from client dispatch through the 5~ms post-commit delay, 504 interception, authoritative probe, canonical payload hashing, Ed25519 signing, and receipt assembly.
 
 \subsection{Checks Supporting Concrete Local Execution and Falsifiability}
 To provide verifiable confidence that the benchmark evaluates concrete components and empirical state rather than synthetic stubs, we execute a 20-test validation suite:

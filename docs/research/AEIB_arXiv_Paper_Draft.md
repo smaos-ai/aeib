@@ -143,10 +143,7 @@ Result: 1 committed debit; zero duplicates; receipt verified offline.
 ```
 
 ### 5.3 Latency & Overhead Analysis
-We measured AEIB latency across all 50 positive fault trials in the local test harness:
-* **Mean Overhead Latency:** **9.28 ms**
-* **p95 Overhead Latency:** **9.97 ms**
-* **Measurement Boundary:** Measured from client request dispatch, through ASGI post-commit 5 ms delay, 504 interception, out-of-band HTTP query to `GET /operations/{id}`, canonical payload hashing, Ed25519 signing via `cryptography.hazmat`, to final receipt assembly. Excludes network transit latency over wide-area networks.
+The final tagged release measured 9.22 ms mean and 9.59 ms p95, measured from client dispatch through the 5 ms post-commit delay, 504 interception, authoritative probe, canonical payload hashing, Ed25519 signing, and receipt assembly.
 
 ### 5.4 Checks Supporting Concrete Local Execution and Falsifiability
 To provide verifiable confidence that the benchmark evaluates concrete components and empirical state rather than synthetic stubs, we execute a 20-test validation suite:

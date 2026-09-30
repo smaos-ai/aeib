@@ -95,8 +95,8 @@
     "test_control_matrix_py_sha256": "6fd252cb3bd81c54299eb52648e6ec1960bbfb1a0df56fcdafdebb3ecf8d6505",
     "test_ebpf_controller_py_sha256": "33d630feed28ef946a1eb5e710ffc9a5fba348c511b28df189a20108b8b88005",
     "verify_reproduction_py_sha256": "be02df42701c4e6bcab4c1d885491229bdf22f13b55c786507127d1e145db6ff",
-    "paper_draft_md_sha256": "674836cb8ca4057eced8c2c9f09646ba95be83af5017a0f117d310c45a9ed1ed",
-    "paper_tex_sha256": "7a13c2c87d269b8ac9e7df6d9af40075f97b044e0984db327d3980ec4028788c"
+    "paper_draft_md_sha256": "3d2c9ade2e45a0315b154efe2d156adafcb3dda93b516731cb8f8ad7b34b696e",
+    "paper_tex_sha256": "b39c712072809f998b2de8ebd75c486e4cfd2f0f0fa93be156d902ad840625dd"
   },
   "canonical_single_run_proof": {
     "test_run": "C0_NAIVE_RETRY",

@@ -7,6 +7,8 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
 [![Egress](https://img.shields.io/badge/egress-0%20bytes%20(air--gapped)-success.svg)](#privacy--zero-egress-invariant)
 
+> 📖 **Full Architectural Specification**: See [`docs/architecture/AEIB_SPECIFICATION.md`](docs/architecture/AEIB_SPECIFICATION.md) for the definitive technical formulation of the 6-stage pipeline and structural fault breakdown.
+
 ---
 
 ## 🏛️ The Problem: The "Container Fallacy"

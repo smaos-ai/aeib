@@ -5,7 +5,8 @@
 **Repository:** [https://github.com/sovreignnexus/smaos](https://github.com/sovreignnexus/smaos) (Tag: `v0.2.0`)  
 **Package:** `aeib-0.2-synthetic-prototype-conformance-run.zip`  
 **Format Designation:** `AEIB_JSON_ED25519_PROTOTYPE`  
-**Operational Scope:** Synthetic staging traces & local simulation only. Not a production security control or certified compliance solution.
+**Operational Scope:** Synthetic staging traces & local simulation only. Not a production security control or certified compliance solution.  
+**Architectural Specification:** [`docs/architecture/AEIB_SPECIFICATION.md`](docs/architecture/AEIB_SPECIFICATION.md)
 
 ---
 

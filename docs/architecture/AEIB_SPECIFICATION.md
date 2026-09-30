@@ -1,0 +1,143 @@
+# Agent Execution Integrity Benchmark (AEIB) — Architectural Specification
+
+**Standard:** Agent Execution Integrity Benchmark (AEIB v0.2.0)  
+**Author:** Andrii Leukhin (Independent Researcher, SovereignNexus)  
+**Classification:** Canonical Technical Specification  
+**Format Designation:** `AEIB_JSON_ED25519_PROTOTYPE`  
+**Status:** Active Research Specification  
+
+---
+
+## 💥 1. The Structural Fault: Why "Retry or Else" Fails in Agentic Architectures
+
+```text
+Traditional Deterministic Retry (Safe Failure):
+[ POST /wire ] ──(504 Drop)──> [ Retry Handler ] ──(Exact Payload Replay + Same UUID)──> [ Target API ]
+
+Autonomous Agentic Retry (Silent Double-Mutation):
+[ POST /wire ] ──(504 Drop)──> [ LLM ReAct Loop ] ──(Semantic Re-reasoning: Mutated JSON)──> [ Target API (Double Spend) ]
+```
+
+In traditional distributed infrastructure, automated retry loops relied on three fundamental invariants:
+
+1. **Byte-Level Determinism:** The client resends the identical serialized payload with the exact same `Idempotency-Key`.
+2. **Strict Protocol Semantics:** Retries were limited to safe HTTP methods or controlled within distributed transactions, sagas, and dead-letter queues.
+3. **Bounded Failure States:** After $N$ attempts, the thread failed closed, surfaced a stack trace, and triggered an on-call human engineer.
+
+Autonomous agents destroy these invariants through three distinct failure modes:
+
+* **Semantic Drift Overrides Idempotency:** When an agent receives an error like `HTTP 504 Gateway Timeout`, that error re-enters its prompt context. The model may re-reason and regenerate the tool call, altering whitespace, numeric formatting, parameter ordering, or internal identifiers. Because the payload digest changes, downstream idempotency checks (which rely on exact byte matches or consistent `Idempotency-Key` values) fail, resulting in duplicate executions, double-spend transfers, or corrupted state.
+* **The "Error = Not Done" Fallacy (The 504 Trap):** A transport dropout (`HTTP 504`, `TCP RST`) only proves that the socket severed, not that the backend aborted. The reverse proxy dropped the connection while the database may have committed the write milliseconds later. To an LLM, an error semantically means *"my goal was not accomplished."* It interprets transport ambiguity as permission to re-execute, transforming a lost ACK into duplicate real-world side effects.
+* **Multi-Tool Chains Without Two-Phase Commits (2PC):** Agents chain heterogeneous APIs (e.g., Stripe charge $\rightarrow$ internal database write $\rightarrow$ Slack dispatch). If step 2 drops at the socket layer and the agent re-executes its reasoning loop from step 1, uncoordinated external systems mutate multiple times.
+
+---
+
+## ⚙️ 2. The 6-Stage Core Implementation Pipeline
+
+> **Note on Architecture vs. Prototype Status:**  
+> This pipeline describes the target architecture for a runtime enforcement boundary. The current v0.2 synthetic prototype demonstrates the cryptographic receipt model, mapping contract, and verifier using simulated transport and probe outcomes. A future sidecar interceptor will implement stages 2 and 4 against real networks and live registers.
+
+```text
+[Tool Call Request] 
+         │
+         ▼
+[ 1. Pre-Dispatch Binding ] ──> Recursive key-sort, canonical serialization, SHA-256 digest, UUIDv5 derivation
+         │
+         ▼
+[ 2. Socket-Level Trap ]    ──> Intercepts 504, ECONNRESET, pipe EOF before client runtime masks the error
+         │
+         ▼
+[ 3. Hard Policy Lock ]     ──> Sets retry_permitted = false; transitions state to DISPATCHED_UNCONFIRMED
+         │
+         ▼
+[ 4. Out-of-Band Prober ]   ──> Queries authoritative ledger via UUIDv5 handle:
+         │                      ├── Found: OUTCOME_VERIFIED (Halt retry; record exists)
+         │                      ├── Absent: RECONCILIATION_NOT_FOUND (Safe to redispatch)
+         │                      └── Mismatch: RECONCILIATION_FAILED (Quarantine for audit)
+         │
+         ▼
+[ 5. Receipt Emission ]     ──> Binds action ID, payload hash, evidence hashes; signs via Ed25519
+         │
+         ▼
+[ 6. Offline Verification ] ──> Zero-dependency script validates signature, hash chain, and disposition
+```
+
+### Phase 1: Pre-Dispatch Normalization & Idempotency Injection
+* **Deterministic Serialization:** Recursively sort all payload object keys and format with compact separators (`,`, `:`) to ensure byte-exact cross-platform hashes.
+* **Payload Digest Binding:** Calculate:
+  $$\text{unsigned\_payload\_hash} = \text{SHA-256}(\text{canonical\_json})$$
+* **Deterministic UUIDv5 Generation:** Derive an RFC 4122 UUIDv5 using an established fixed namespace and the `unsigned_payload_hash`.
+* **Parameter Injection:** Inject the deterministic UUIDv5 into outgoing headers (`X-Idempotency-Key`) or tool-call arguments before opening the network socket.
+
+### Phase 2: Socket-Level Wire-Fault Interception
+* **Fault Detection:** Intercept post-write transport dropouts (`HTTP 504`, `ECONNRESET`, `ETIMEDOUT`, pipe EOF).
+* **State Isolation:** Mark the action state immediately as `DISPATCHED_UNCONFIRMED`.
+* **Trap Masking Prevention:** Prevent underlying HTTP/client libraries from swallowing ambiguous socket drops or wrapping them in generic retryable network exceptions.
+
+### Phase 3: Hard Policy Lock (Retry Suppression)
+* **Execution Suspension:** Set `retry_permitted: false`. Neither the agent orchestrator nor the host runtime is allowed to trigger a blind retry.
+* **Implementation Note:** In the v0.2 synthetic prototype, the "hard policy lock" is enforced logically via the mapping contract and verifier. A future sidecar interceptor will enforce this physically by intercepting retry attempts and returning a fail-closed error before the request reaches the network.
+* **Structured Return:** Return a fail-closed JSON-RPC error containing the quarantine receipt ID and instruction:
+```json
+{
+  "status": "HOLD",
+  "disposition": "DISPATCHED_UNCONFIRMED",
+  "error": "ACTION_REQUIRED: OUT_OF_BAND_RECONCILIATION_REQUIRED"
+}
+```
+
+### Phase 4: Out-of-Band State Reconciliation Probe
+* **Probe Interface:** Implement an authoritative check interface:
+  $$\text{probe}(\text{idempotency\_key}, \text{payload\_hash})$$
+* **Authoritative Register Query:** Probe the target datastore/ledger using the deterministic UUIDv5 key:
+  * **State Present:** Resolve disposition to `OUTCOME_VERIFIED` (halt retry; transaction completed).
+  * **State Absent:** Resolve disposition to `RECONCILIATION_NOT_FOUND` (unlock retry; safe to redispatch).
+  * **Payload Conflict:** Resolve disposition to `RECONCILIATION_FAILED` (quarantine for operator inspection).
+
+### Phase 5: Cryptographic Receipt Emission
+* **Payload Assembly:** Bind `action_id`, `unsigned_payload_hash`, `idempotency_key`, transport evidence hash, and probe evidence hash under the `org.smaos.aeib` namespace schema.
+* **Asymmetric Signing:** Sign the canonical JSON digest using an Ed25519 private key.
+* **Append-Only Evidence Storage:** Write the structured signed record to a local append-only ledger (`receipts.jsonl`).
+
+### Phase 6: Offline Verifier Conformance
+* **Zero-Dependency Verifier:** Maintain an offline verification runner (`aeib_verify.py`) that:
+  1. Validates the Ed25519 signature against the public key registry.
+  2. Recomputes SHA-256 hashes of the captured request and transport evidence.
+  3. Confirms that the disposition matches the recorded transition conditions.
+
+---
+
+## 🧱 3. The Minimal Sufficient Deliverable
+
+The core execution boundary consists of six components:
+
+1. **Idempotency Key Derivation Engine** (UUIDv5 derived from canonical JSON payload).
+2. **Transport Fault Interceptor** (Trapping 504, connection resets, read timeouts).
+3. **Disposition State Machine** (Enforcing $\text{EXECUTE} \rightarrow \text{HOLD} \rightarrow \text{BLOCK}$ transitions).
+4. **Authoritative Out-of-Band Prober** (Target state verification via UUIDv5).
+5. **Ed25519 Receipt Signer** (Hash-chained, tamper-evident JSON records).
+6. **Offline Verifier Script** (Self-contained, deterministic audit validation).
+
+Every external wrapper—MCP sidecars, SCITT registration, COSE envelopes, or compliance report generators—depends strictly on this primitive. With this core operational, an unknown outcome ceases to be a trigger for speculative retries and becomes a deterministic, auditable state.
+
+---
+
+## 📊 4. Implementation Status Alignment (v0.2 Prototype)
+
+| Spec Component | v0.2 Status | Notes |
+| :--- | :---: | :--- |
+| **Idempotency Key Derivation (UUIDv5)** | ✅ Implemented | Derived from `unsigned_payload_hash` in `run_prototype_benchmark.py`. |
+| **Transport Fault Interceptor** | 🟡 Synthetic | Faults are simulated in scenario definitions, not captured from real sockets. |
+| **Disposition State Machine** | ✅ Implemented | Mapping contract + verifier enforce 7-state taxonomy and retry policies. |
+| **Out-of-Band Prober** | 🟡 Synthetic | Probe results are pre-defined in scenarios, not queried from real ledgers. |
+| **Ed25519 Receipt Signer** | ✅ Implemented | Full signature lifecycle implemented and verified. |
+| **Offline Verifier** | ✅ Implemented | `aeib_verify.py` validates signatures, evidence, and mapping rules. |
+
+---
+
+## ⚠️ 5. Known Limitations (v0.2 Synthetic Prototype)
+
+* **No real socket interception:** Transport faults are simulated in canonical test fixtures, not captured from live network sockets.
+* **No real ledger probes:** Reconciliation outcomes are synthetic, not queried from live enterprise relational databases or payment systems.
+* **No physical runtime retry enforcement:** The v0.2 prototype demonstrates the invariant logically through receipts and the verifier; it does not physically block retries in live agent orchestrators.
+* **No compliance certification:** Receipts are designed for engineering review and internal risk exploration, not formal regulatory filing.

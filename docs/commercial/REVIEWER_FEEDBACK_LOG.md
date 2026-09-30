@@ -53,6 +53,18 @@ Use this questionnaire to guide the 15-to-20 minute technical review calls.
 
 ---
 
+### 🛡️ The "Temporal / Kafka / Sagas" Objection Pivot
+
+When enterprise architects say:
+> *"We already solve this with Temporal / Kafka / Saga patterns."*
+
+**The Pivot to Deliver Immediately**:
+> *"Temporal guarantees the workflow runs to completion, but it cannot know whether the downstream core banking system actually committed the transaction when the TCP connection resets or an HTTP 504 drops.*  
+>  
+> *If your Temporal activity throws an error on a 504, Temporal will execute a blind retry and double-charge the client. AEIB is the boundary state-machine logic and cryptographic receipt layer that tells Temporal NOT to retry until a specific out-of-band ledger probe completes."*
+
+---
+
 ### Section 2: Target Stack Realities
 
 * **Languages & Runtimes**: Java (Spring Boot / LangChain4j), Python (FastAPI / LangChain / AutoGen), Go, Rust, Node.js.
@@ -64,13 +76,13 @@ Use this questionnaire to guide the 15-to-20 minute technical review calls.
 ### Section 3: Sentiment Classification & Action Triggers
 
 * **Primitive Reception**:
-  - [ ] **A. Obvious & Already Solved**: *(Note how they solved it: e.g., Temporal activity retry policies, Stripe SDK idempotency).*
-  - [ ] **B. Interesting but Missing X**: *(Note what X is: e.g., streaming SSE support, distributed lock leases, multi-region ledger sync).*
-  - [ ] **C. Confusing or Not Relevant**: *(Note where friction occurred: e.g., crypto complexity, unclear relationship to API gateways).*
+  - [ ] **A. Obvious & Already Solved** → *Ask: "Which library or middleware solved it for you?"*
+  - [ ] **B. Interesting, but Missing X** → *Ask: "What exact invariant or hook is X?"*
+  - [ ] **C. Confusing / Not Relevant** → *Ask: "Where did we lose you in the 5-minute tour?"*
 * **Engagement Intent**:
-  - [ ] Would experiment in a local sandbox.
-  - [ ] Wants to see a production-ready container / SDK.
-  - [ ] Does not see an active use case today.
+  - [ ] **Sandbox Experiment** *(Send them the local Docker / CLI harness)*
+  - [ ] **Wants Production-Ready** *(Flag for v0.3 RFC 8785 / proxy roadmap)*
+  - [ ] **No Use Case** *(De-prioritize this persona profile)*
 
 ---
 

@@ -6,3 +6,9 @@
 .claude/settings.local.json
 .claude/worktrees
 .worktrees
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+vendor-research/

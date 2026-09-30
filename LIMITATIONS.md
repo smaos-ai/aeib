@@ -13,7 +13,8 @@
 2. **Deterministic Serialization (Not RFC 8785 Validated)**: Payloads are serialized using a deterministic JSON subset (sorted keys, compact separators). This is an engineering precursor, not a formal RFC 8785 (JCS) compliance certification.
 3. **Synthetic Data Boundary**: All test runs and conformance receipts operate strictly on synthetic benchmark fixtures and simulated transport outcomes. This is an engineering review prototype, not a production security control.
 4. **Adapter Dependency for Live Reconciliation**: Out-of-band verification relies on target-side query adapters. True exactly-once semantics require downstream services to enforce idempotency keys.
-5. **No Compliance Certification**: The substrate provides evidence collection mechanisms to assist internal audit and risk reviews. It does not certify statutory compliance with EU DORA, the EU AI Act, or ISO/IEC 42006.
+5. **No Compliance Certification & No DORA `incident_class`**: The substrate provides evidence collection mechanisms to assist internal audit and risk reviews. It does not certify statutory compliance with EU DORA, the EU AI Act, or ISO/IEC 42006. Crucially, this prototype does not implement the DORA `incident_class` enumeration from relevant IETF compliance receipt drafts.
+6. **IETF Draft Alignment (Not Standards Compliance)**: Receipt design is intended to explore conceptual compatibility with emerging IETF work (e.g., AER-1, SCITT AI-Agent Action Receipts). The prototype is not SCITT-compliant, does not implement AER-1 normative profiles, and receipts are not registered in a live SCITT Transparency Service.
 
 ---
 
@@ -26,13 +27,13 @@ To ensure zero external dependencies, air-gapped security (`network_mode: "none"
 │                 STAR v1.0 — THE DECADAL CORE                │
 ├─────────────────────────────────────────────────────────────┤
 │  1. PARSE   ──► Tree-sitter AST parser (logic, not text)     │
-│  2. PROVE   ──► Merkle DAG root + Ed25519 SCITT receipt     │
+│  2. PROVE   ──► Merkle DAG root + Ed25519 prototype receipt │
 │  3. GATE    ──► Pre-execution intercept (no receipt = block)│
 └─────────────────────────────────────────────────────────────┘
 ```
 
 1. **PARSE (AST Logic Grounding)**: Converts tool dispatches, source mutations, and policy expressions into typed abstract syntax trees (ASTs), eliminating prompt-injection string ambiguities.
-2. **PROVE (Cryptographic Lineage)**: Generates canonical RFC 8785 JCS SHA-256 Merkle DAG roots signed with Ed25519 keys and persisted to an embedded, append-only SQLite ledger (`agentacct.db`).
+2. **PROVE (Cryptographic Lineage)**: Generates deterministic JSON SHA-256 Merkle DAG roots signed with Ed25519 keys and persisted to an embedded, append-only SQLite ledger (`agentacct.db`).
 3. **GATE (Fail-Closed Execution Control)**: Intercepts tool traffic at the wire/kernel boundary *before* external side effects occur. Execution is blocked unless a valid cryptographic receipt is presented.
 
 ---
@@ -58,7 +59,7 @@ Every technical claim asserted by this harness adheres to a falsifiable scientif
 * **Claim**: Explicit operational invariant (e.g., zero false `CONFIRMED` receipts under HTTP 504 transport failure).
 * **Falsifier Condition**: The exact observable condition that proves the claim false (e.g., any signed `CONFIRMED` receipt emitted without a downstream transaction commit).
 * **Frozen Result**: Deterministic, bit-exact test outcome reproducible in a container running with `network_mode: "none"`.
-* **Verification Hash**: RFC 8785 JCS SHA-256 digest pinning the input fixture, execution trace, and output verdict.
+* **Verification Hash**: Deterministic JSON SHA-256 digest pinning the input fixture, execution trace, and output verdict.
 
 ---
 

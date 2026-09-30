@@ -40,7 +40,7 @@ from typing import Any, Dict, List, Optional, Tuple
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
-MANIFEST_PATH = REPO_ROOT / "benchmarks/fault_injection/results/RELEASE_MANIFEST_v0.2.2.json"
+MANIFEST_PATH = REPO_ROOT / "benchmarks/fault_injection/results/RELEASE_MANIFEST_v0.2.3.json"
 RESULTS_DIR   = REPO_ROOT / "benchmarks/fault_injection/results"
 DEFAULT_REPORT_PATH = RESULTS_DIR / "reproduction_results.json"
 
@@ -192,11 +192,12 @@ def step1_environment(manifest: Dict[str, Any], strict: bool) -> StepResult:
             mismatch_count += 1
         print(f"      {pkg_key:15s}: {live_ver:<12s}  [{status_str}]")
 
-    if mismatch_count > 0 and strict:
-        errors.append(
-            f"{mismatch_count} dependency version(s) differ from manifest. "
-            "Run with --strict-versions to treat this as FAIL."
-        )
+    if mismatch_count > 0:
+        msg = f"{mismatch_count} dependency version(s) differ from manifest."
+        if strict:
+            errors.append(msg + " Strict versions enforced (FAIL).")
+        else:
+            print(f"      [!] WARN: {msg} (Run with --strict-versions to fail)")
 
     passed = (len(errors) == 0)
     if passed:
@@ -210,7 +211,7 @@ def step1_environment(manifest: Dict[str, Any], strict: bool) -> StepResult:
 # ---------------------------------------------------------------------------
 # Step 2 — Git revision
 # ---------------------------------------------------------------------------
-def step2_git_revision(manifest: Dict[str, Any]) -> StepResult:
+def step2_git_revision(manifest: Dict[str, Any], strict: bool) -> StepResult:
     print("\n[2/8] Checking git HEAD revision...")
     errors: List[str] = []
     details: Dict[str, Any] = {}
@@ -224,7 +225,7 @@ def step2_git_revision(manifest: Dict[str, Any]) -> StepResult:
     except Exception as exc:
         head = f"ERROR: {exc}"
 
-    expected_tag = manifest.get("release_tag", "v0.2.2")
+    expected_tag = manifest.get("release_tag", "v0.2.3")
     try:
         tag_commit_res = subprocess.run(
             ["git", "rev-parse", f"{expected_tag}^{{commit}}"],
@@ -261,10 +262,17 @@ def step2_git_revision(manifest: Dict[str, Any]) -> StepResult:
             )
         else:
             msg = f"HEAD commit ({head[:12]}...) does not match release tag {expected_tag} ({tag_commit[:12]}...)."
-        print(f"      [!] WARN: {msg}")
+        
         details["revision_mismatch"] = True
+        
+        if strict:
+            print(f"      [-] FAIL: {msg} (Strict provenance enforced)")
+            errors.append(msg)
+        else:
+            print(f"      [!] WARN: {msg}")
+            print(f"      [!] (Soft-check allowed for local runs. Use --strict-versions for releases)")
 
-    return StepResult(step=2, name="git_revision", passed=True, details=details, errors=errors)
+    return StepResult(step=2, name="git_revision", passed=(len(errors) == 0), details=details, errors=errors)
 
 
 # ---------------------------------------------------------------------------
@@ -319,7 +327,8 @@ def step4_full_control_matrix(n: int = 50) -> StepResult:
     errors: List[str] = []
     family_results: Dict[str, Any] = {}
 
-    initial_balance = n * 100.0 * 3 * 2 + 10000.0  # generous headroom
+    # n trials * 100 per trial * 3 phases (C0/C1/C2) * 2 attempts per trial + 10k headroom
+    initial_balance = n * 100.0 * 3 * 2 + 10000.0
 
     # ---- C0: Naive retry ----
     iso_store.reset(initial_balance)
@@ -713,7 +722,7 @@ def main():
 
     # Steps 1-3 always run
     step_results.append(step1_environment(manifest, strict=args.strict_versions))
-    step_results.append(step2_git_revision(manifest))
+    step_results.append(step2_git_revision(manifest, strict=args.strict_versions))
     step_results.append(step3_unit_tests())
 
     if not args.unit_only:

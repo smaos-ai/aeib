@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "release_id": "AEIB-RELEASE-v0.2.2",
   "release_title": "Agent Execution Integrity Benchmark (AEIB) Master Release Manifest",
-  "release_tag": "v0.2.2",
+  "release_tag": "v0.2.3",
   "timestamp_utc": "2026-09-30T17:30:00Z",
   "provenance_chain": {
     "control_benchmark_commit": "68575eaa8067935ef19b783af508ff89c4d03c28",
@@ -88,13 +88,13 @@
   },
   "artifact_digests": {
     "control_evidence_json_sha256": "8ba5b43c40664b5f8c8c953a331477338abfc3e80696f7cfb5d52beaab2d46de",
-    "aeib_report_json_sha256": "7753f01f3efceabccb2d484597f3d767789f7618ba931cff192bc45faf81a402",
+    "aeib_report_json_sha256": "6326a5d972ad7d81fd434214afef2ffdb9c93aeb567c4acdcbcaa3cdd0feed25",
     "ledger_db_sha256": "81c7833b2ba3770aa01dc4aa12dd4d0b74c09dfdd80e634589d221f5bd82e3b1",
     "mechanism_note_md_sha256": "bd1c5424a816abbec988485effc73e4fde212e271d0becd07b86554cc5072a0b",
     "test_falsifiability_py_sha256": "132f25c124b2fc70137bbbf8fbb352b9f8e3af3ac2dc4e5b594f25a2a4f57ff6",
     "test_control_matrix_py_sha256": "6fd252cb3bd81c54299eb52648e6ec1960bbfb1a0df56fcdafdebb3ecf8d6505",
     "test_ebpf_controller_py_sha256": "33d630feed28ef946a1eb5e710ffc9a5fba348c511b28df189a20108b8b88005",
-    "verify_reproduction_py_sha256": "753cca407cb21c0ee790c08d390fe817fc3ea53ef94a84d1c739103b646cb6f0",
+    "verify_reproduction_py_sha256": "43ca4e6eed59cdd3e5bc7669d3517e88b7d7da60cbc2adecba55252a9fa36489",
     "paper_draft_md_sha256": "e975c542374df15c3640336625ddfacab7af84480a04d901e3ea458ae7a8db27",
     "paper_tex_sha256": "0d252dcbd9f9fd4f83d011a6660040a75a3db53c4be9ab37bc928b3c5064ec4e"
   },

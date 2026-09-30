@@ -5,26 +5,25 @@
   "target_table": "operations",
   "index_name": "idx_operations_intent_id",
   "query_plan": [
-    "Limit  (cost=8.17..8.18 rows=1 width=398) (actual time=0.010..0.010 rows=1 loops=1)",
-    "  ->  Sort  (cost=8.17..8.18 rows=1 width=398) (actual time=0.009..0.010 rows=1 loops=1)",
+    "Limit  (cost=8.17..8.18 rows=1 width=398) (actual time=0.011..0.012 rows=1 loops=1)",
+    "  ->  Sort  (cost=8.17..8.18 rows=1 width=398) (actual time=0.011..0.011 rows=1 loops=1)",
     "        Sort Key: committed_at DESC",
     "        Sort Method: quicksort  Memory: 25kB",
-    "        ->  Index Scan using idx_operations_intent_id on operations  (cost=0.14..8.16 rows=1 width=398) (actual time=0.002..0.003 rows=1 loops=1)",
+    "        ->  Index Scan using idx_operations_intent_id on operations  (cost=0.14..8.16 rows=1 width=398) (actual time=0.003..0.003 rows=1 loops=1)",
     "              Index Cond: ((intent_id)::text = 'intent_live_test_001'::text)",
-    "Planning Time: 0.190 ms",
-    "Execution Time: 0.019 ms"
+    "Planning Time: 0.170 ms",
+    "Execution Time: 0.020 ms"
   ],
   "dsn_redacted": "postgresql://postgres:***@localhost:55432/aeib_ledger",
   "sample_size": 50,
-  "connection_mode": "unpooled discrete connection per probe call (psycopg.connect)",
-  "evidence_hash_algorithm": "SHA-256 over documented canonical JSON representation",
   "timing_methodology": "time.perf_counter() on dedicated loopback connection",
+  "percentile_method": "nearest_rank",
   "latency_metrics_ms": {
-    "mean": 5.167,
-    "p50": 4.622,
-    "p95": 8.383,
-    "p99": 8.959,
-    "min": 3.504,
-    "max": 8.959
+    "mean": 3.746,
+    "p50": 3.577,
+    "p95": 4.77,
+    "p99": 5.925,
+    "min": 3.156,
+    "max": 5.925
   }
 }

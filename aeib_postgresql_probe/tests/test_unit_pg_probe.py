@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock
 from aeib_postgresql_probe.pg_probe_adapter import PgProbeAdapter, canonical_evidence_digest
 
 @pytest.mark.unit
-@patch("aeib_postgresql_probe.pg_probe_adapter.psycopg")
+@patch("aeib_postgresql_probe.pg_probe_adapter._psycopg")
 def test_unit_probe_committed_row(mock_psycopg):
     mock_conn = MagicMock()
     mock_cur = MagicMock()
@@ -24,9 +24,16 @@ def test_unit_probe_committed_row(mock_psycopg):
     assert "2026-09-30" in result["committed_at"]
     assert "evidence_digest" in result
     assert len(result["evidence_digest"]) == 64
+    
+    # Assert execute was called with correct SQL and parameter tuple
+    execute_calls = mock_cur.execute.call_args_list
+    assert len(execute_calls) == 2
+    assert "SET statement_timeout = 5000" in execute_calls[0][0][0]
+    assert "WHERE intent_id = %s" in execute_calls[1][0][0]
+    assert execute_calls[1][0][1] == ("intent_abc",)
 
 @pytest.mark.unit
-@patch("aeib_postgresql_probe.pg_probe_adapter.psycopg")
+@patch("aeib_postgresql_probe.pg_probe_adapter._psycopg")
 def test_unit_probe_absent_row(mock_psycopg):
     mock_conn = MagicMock()
     mock_cur = MagicMock()
@@ -49,5 +56,5 @@ def test_unit_dsn_redaction():
 def test_unit_canonical_evidence_digest():
     rec1 = {"status": "COMMITTED", "intent_id": "abc", "amount": 100.0}
     rec2 = {"amount": 100.0, "status": "COMMITTED", "intent_id": "abc"}
-    # JCS canonicalization guarantees invariant hash regardless of dict key insertion order
+    # Documented deterministic JSON guarantees invariant hash regardless of dict key insertion order
     assert canonical_evidence_digest(rec1) == canonical_evidence_digest(rec2)

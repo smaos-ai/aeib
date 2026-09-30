@@ -11,7 +11,7 @@ Exposes:
 """
 
 from typing import Dict, Any, Optional
-from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from benchmarks.fault_injection.store import AtomicDebitStore
@@ -24,7 +24,7 @@ fault_config = FaultConfig(enabled=True, fault_mode="POST_COMMIT_504", post_comm
 app = FastAPI(
     title="AEIB Target Payment Ledger API",
     description="Hermetic target backend for demonstrating double-mutation under network drops and semantic drift",
-    version="0.2.1",
+    version="0.2.2",
 )
 
 # Attach fault injection middleware

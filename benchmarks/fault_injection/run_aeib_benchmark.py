@@ -15,6 +15,7 @@ Validates:
 
 import os
 import sys
+import math
 import time
 import json
 import hashlib
@@ -175,8 +176,10 @@ def run_aeib_comprehensive_benchmark(num_trials: int = 50, num_negative_trials: 
     # Aggregate Metrics
     duplicate_count = sum(1 for r in positive_results if r["commits_in_ledger"] > 1)
     duplicate_rate_pct = (duplicate_count / num_trials) * 100.0
-    mean_latency = sum(r["overhead_ms"] for r in positive_results) / num_trials
-    p95_latency = sorted([r["overhead_ms"] for r in positive_results])[int(num_trials * 0.95)]
+    # Nearest-rank percentile (consistent with PG integration evidence reporting).
+    latencies = sorted(r["overhead_ms"] for r in positive_results)
+    mean_latency = sum(latencies) / num_trials if latencies else 0.0
+    p95_latency = latencies[math.ceil(num_trials * 0.95) - 1] if latencies else 0.0
 
     report = {
         "benchmark_metadata": {
@@ -224,7 +227,7 @@ def run_aeib_comprehensive_benchmark(num_trials: int = 50, num_negative_trials: 
             "mechanism_note_sha256": compute_file_sha256(Path("benchmarks/fault_injection/MECHANISM_NOTE.md")),
             "transport_jsonl_sha256": compute_file_sha256(evidence_dir / "transport.jsonl"),
         },
-        "sample_receipt": positive_results[0],
+        "sample_receipt": positive_results[0] if positive_results else None,
     }
 
     report_path = out_dir / "AEIB_BENCHMARK_REPORT.json"
@@ -241,8 +244,13 @@ if __name__ == "__main__":
     print("="*75)
     metrics = rep["aeib_empirical_metrics"]
     print(f"  • Total Positive Fault Trials: {metrics['total_positive_trials']}")
-    print(f"  • Duplicate Debits:            {metrics['duplicate_debits']} (In 50 AEIB trials under the declared SQLite fault model, zero duplicate mutations were observed; approx 95% Rule-of-Three upper bound: 5.8%)")
-    print(f"  • False OUTCOME_VERIFIED Count: {metrics['false_outcome_verified_count']} (In 20 negative controls, zero false OUTCOME_VERIFIED results were observed; approx 95% Rule-of-Three upper bound: 15.0%)")
-    print(f"  • Receipts Signed & Verified:  All {metrics['receipt_signatures_verified']} receipts in the tested sample were independently verified")
+    print(f"  • Duplicate Debits:            {metrics['duplicate_debits']}")
+    print(f"      (In 50 AEIB trials under the declared SQLite fault model, zero duplicate")
+    print(f"       mutations were observed; approx 95% Rule-of-Three upper bound: 5.8%)")
+    print(f"  • False OUTCOME_VERIFIED Count: {metrics['false_outcome_verified_count']}")
+    print(f"      (In 20 negative controls, zero false OUTCOME_VERIFIED results were")
+    print(f"       observed; approx 95% Rule-of-Three upper bound: 15.0%)")
+    print(f"  • Receipts Signed & Verified:  All {metrics['receipt_signatures_verified']} receipts "
+          "in the tested sample were independently verified")
     print(f"  • Mean Overhead Latency (SQLite): {metrics['mean_overhead_ms']} ms (p95: {metrics['p95_overhead_ms']} ms)")
     print("="*75 + "\n")

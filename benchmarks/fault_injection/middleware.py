@@ -9,7 +9,7 @@ This directly reproduces the double-mutation trap:
   [ POST /debit ] -> [ Commit to SQLite OK ] -> [ Wait 5ms ] -> [ 504 Gateway Timeout ]
 """
 
-import time
+import asyncio
 import json
 from dataclasses import dataclass, field
 from typing import Callable, Optional, Dict, Any
@@ -71,7 +71,7 @@ class DeterministicFaultMiddleware(BaseHTTPMiddleware):
         # If endpoint successfully processed (e.g. 200 or 201), inject post-commit fault!
         if response.status_code in (200, 201):
             if self.config.post_commit_delay_ms > 0:
-                time.sleep(self.config.post_commit_delay_ms / 1000.0)
+                await asyncio.sleep(self.config.post_commit_delay_ms / 1000.0)
 
             self.config.trigger_count += 1
 

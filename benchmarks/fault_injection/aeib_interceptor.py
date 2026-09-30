@@ -16,7 +16,6 @@ import os
 import sys
 import uuid
 import time
-import json
 import hashlib
 from datetime import datetime, timezone
 from pathlib import Path
@@ -57,7 +56,7 @@ class AeibExecutionInterceptor:
 
     def normalize_and_hash(self, payload: Dict[str, Any]) -> Tuple[bytes, str, str]:
         """
-        Computes RFC 8785 canonical bytes, SHA-256 hash, and deterministic UUIDv5 key.
+        Computes project-canonical JSON bytes, SHA-256 hash, and deterministic UUIDv5 key.
         """
         canonical_bytes = encode_jcs(payload)
         payload_hash = hashlib.sha256(canonical_bytes).hexdigest()
@@ -124,7 +123,8 @@ class AeibExecutionInterceptor:
             "payload_hash": payload_hash,
             "idempotency_key": uuidv5_key,
         }
-        event_line = json.dumps(event_dict, sort_keys=True)
+        # Use the same project-canonical form as receipts for auditability.
+        event_line = encode_jcs(event_dict).decode("utf-8")
         with open(self.transport_log_file, "a", encoding="utf-8") as f:
             f.write(event_line + "\n")
 
@@ -152,7 +152,7 @@ class AeibExecutionInterceptor:
 
         # Step D: Emit Signed AEIB Receipt (Layer B)
         unsigned_payload = {
-            "receipt_version": "v0.2.1",
+            "receipt_version": "v0.2.2",
             "scenario_id": f"fault-injection-{payload.get('intent_id')}",
             "logical_operation_id": payload.get("logical_operation_id"),
             "intent_id": payload.get("intent_id"),

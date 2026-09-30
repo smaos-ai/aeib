@@ -1,7 +1,7 @@
 {
   "report_schema": "AEIB-REPRODUCTION-REPORT-v1",
   "release_id": "AEIB-RELEASE-v0.2.2",
-  "timestamp_utc": "2026-09-30T18:26:03Z",
+  "timestamp_utc": "2026-09-30T21:27:18Z",
   "overall_pass": true,
   "environment": {
     "python_version": "3.14.3",
@@ -42,8 +42,10 @@
       "name": "git_revision",
       "passed": true,
       "details": {
-        "git_head": "6fd215a610ec29cc552468864423d13b3d9e1111",
-        "manifest_target_commit": "f1ff34fbac7694cac81a2b1af14eef504a922a0f"
+        "head_commit": "b00998b1a53986d7eddcf9aa49db173682571591",
+        "release_tag": "v0.2.2",
+        "release_tag_commit": "b00998b1a53986d7eddcf9aa49db173682571591",
+        "current_exact_tag": "v0.2.2"
       },
       "errors": []
     },
@@ -53,8 +55,8 @@
       "passed": true,
       "details": {
         "returncode": 0,
-        "duration_s": 0.63,
-        "stdout_tail": "....................                                                     [100%]\n20 passed in 0.36s"
+        "duration_s": 0.74,
+        "stdout_tail": "....................                                                     [100%]\n20 passed in 0.45s"
       },
       "errors": []
     },
@@ -90,8 +92,8 @@
         "duplicate_debits": 0,
         "signature_failures": 0,
         "receipts_verified": 50,
-        "mean_overhead_ms": 9.22,
-        "p95_overhead_ms": 9.59
+        "mean_overhead_ms": 8.43,
+        "p95_overhead_ms": 10.28
       },
       "errors": []
     },
@@ -119,7 +121,7 @@
         },
         "aeib_report_json_sha256": {
           "status": "MATCH",
-          "sha256": "49883c9417108f5e7869b76ef1c147241c82750f795f555e24245bb719171560"
+          "sha256": "03b7bdd864c586544789013e9ca173012347f04508913c80a072a13b629d34fc"
         },
         "ledger_db_sha256": {
           "status": "MATCH",
@@ -143,15 +145,15 @@
         },
         "verify_reproduction_py_sha256": {
           "status": "MATCH",
-          "sha256": "be02df42701c4e6bcab4c1d885491229bdf22f13b55c786507127d1e145db6ff"
+          "sha256": "419b7b547960953477820dee39c0f83f497db166f21b9cd280b638e01e8c5fd3"
         },
         "paper_draft_md_sha256": {
           "status": "MATCH",
-          "sha256": "674836cb8ca4057eced8c2c9f09646ba95be83af5017a0f117d310c45a9ed1ed"
+          "sha256": "e975c542374df15c3640336625ddfacab7af84480a04d901e3ea458ae7a8db27"
         },
         "paper_tex_sha256": {
           "status": "MATCH",
-          "sha256": "7a13c2c87d269b8ac9e7df6d9af40075f97b044e0984db327d3980ec4028788c"
+          "sha256": "0d252dcbd9f9fd4f83d011a6660040a75a3db53c4be9ab37bc928b3c5064ec4e"
         }
       },
       "errors": []
@@ -188,9 +190,9 @@
     "aeib_post_commit_504": {
       "trials": 50,
       "safety_violations": 0,
-      "duplicate_rate": "0.0%",
+      "duplicate_rate": "0/50 (0.0% observed; 95% upper bound: 5.8%)",
       "receipts_verified": 50,
-      "verification_rate": "100.0%",
+      "verification_rate": "50/50 (All 50 receipts in tested sample independently verified)",
       "mean_overhead_latency_ms": 9.28,
       "p95_overhead_latency_ms": 9.97,
       "resolution": "Authoritative probe and signed receipt (Safety held)"
@@ -199,7 +201,7 @@
       "trials": 20,
       "uncommitted_requests": 20,
       "false_outcome_verified_count": 0,
-      "false_positive_rate": "0.0%",
+      "false_positive_rate": "0/20 (0.0% observed; 95% upper bound: 15.0%)",
       "terminal_disposition": "RECONCILIATION_NOT_FOUND",
       "resolution": "Fail-closed rejection of uncommitted operations"
     }

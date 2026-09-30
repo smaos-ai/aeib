@@ -227,3 +227,26 @@ The "Retry or Else" assumption in autonomous AI agent architectures is fundament
   # Run the 50-trial benchmark matrix
   PYTHONPATH=. .venv/bin/python benchmarks/fault_injection/client_matrix.py --runs 50
   ```
+
+## Prior-Art Matrix & Citations
+
+| Framework / Protocol | Primary Focus | Relationship to AEIB | Status |
+|---|---|---|---|
+| **AER-1** (`draft-zambo-aer1-04`) | Execution receipts for tool calls | Informational prior art; adjacent receipt format | Interoperability target (untested) |
+| **AEB** (`draft-schrock-action-evidence-boundary-07`) | Evidence boundary enforcement | Conceptual overlap on execution boundaries | Interoperability target (untested) |
+| **AAC** (`draft-mih-scitt-agent-action-capsule-05`) | SCITT agent action capsules | Envelope encapsulation standard | Interoperability target (untested) |
+| **CAID** (`draft-schrock-canonical-action-identifier-04`) | Canonical Action Identifiers | Identity scheme consumed by AEIB | Consumed identifier |
+| **EffectMatch** (`arXiv:2609.31301`) | Post-execution reconciliation | Prior art on side-effect reconciliation | Informational citation |
+| **Authority at Commit Time** (`arXiv:2609.31490`) | Dynamic authorization gates | Complementary pre-commit gate | Informational citation |
+| **EMILIA Protocol** (`emilia-protocol`) | Multi-agent interaction audit | Broader governance and interaction audit | Informational citation |
+| **GRIP** (`grip-protocol`) | Gateway receipt integrity | Gateway-level receipt binding | Informational citation |
+
+### Citation List
+- **`draft-zambo-aer1-04`**: *Agent Execution Receipts (AER-1)* (September 29, 2026).
+- **`draft-schrock-action-evidence-boundary-07`**: *Action Evidence Boundary* (September 26, 2026).
+- **`draft-mih-scitt-agent-action-capsule-05`**: *Agent Action Capsule* (September 27, 2026).
+- **`arXiv:2609.31301`**: *EffectMatch: Deterministic Side-Effect Reconciliation for Autonomous Systems* (September 25, 2026).
+- **`arXiv:2609.31490`**: *Authority at Commit Time: Dynamic Privilege Bounds for Tool Calls* (September 25, 2026).
+- **`draft-schrock-canonical-action-identifier-04`**: *Canonical Action Identifier (CAID)* (September 28, 2026).
+- **EMILIA Protocol**: `emilia-protocol` GitHub repository (Informational).
+- **GRIP**: `grip-protocol` (Informational).

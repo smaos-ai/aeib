@@ -93,3 +93,10 @@ To preempt reviewer objections and clearly delineate the boundary between benchm
 
 ### Domain 7: Tool Call Execution Synchronicity
 * **Synchronous Mutating Tool Calls Only:** This benchmark strictly evaluates synchronous mutating tool calls where the remote procedure executes and commits within the lifecycle of the single HTTP request-response cycle. It does **not** evaluate asynchronous task lifecycles (e.g., long-running tasks returning `PENDING`, polling status endpoints, webhook callbacks, or `EXPIRED`/`CANCELLED` states). Formal tracking of asynchronous dispositions is deferred to future work.
+
+## Conformance Disclaimers
+
+- AAC conformance is untested against official conformance vectors.
+- AEB conformance is untested against official conformance vectors.
+- AER-1 conformance is untested against the -04 conformance runner.
+- Prior-art citations are informational and do not constitute conformance claims.

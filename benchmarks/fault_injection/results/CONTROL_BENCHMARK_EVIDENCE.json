@@ -3,6 +3,7 @@
   "intent_id": "I-001",
   "expected_commit_count": 1,
   "actual_commit_count": 2,
+  "database_file": "/Users/andriileukhin/Documents/SovereignNexus/benchmarks/fault_injection/results/ledger.db",
   "ledger_state": [
     {
       "tx_id": 1,
@@ -11,7 +12,7 @@
       "attempt": 1,
       "amount": 100.0,
       "status": "COMMITTED",
-      "timestamp": "2026-09-30T16:52:38.739729+00:00"
+      "timestamp": "2026-09-30T17:14:16.809591+00:00"
     },
     {
       "tx_id": 2,
@@ -20,8 +21,8 @@
       "attempt": 2,
       "amount": 100.0,
       "status": "COMMITTED",
-      "timestamp": "2026-09-30T16:52:38.757745+00:00"
+      "timestamp": "2026-09-30T17:14:16.829214+00:00"
     }
   ],
-  "agent_transcript": "[2026-09-30T16:52:38.000Z] Tool call: debit(amount=100.0, intent_id=I-001, idempotency_key=K-001)\n[2026-09-30T16:52:38.000Z] Gateway response: 504 Gateway Timeout (GATEWAY_TIMEOUT)\n[2026-09-30T16:52:38.000Z] Agent interpretation: Gateway 504 received. Wire dropped. Transaction assumed NOT executed by orchestrator retry loop.\n[2026-09-30T16:52:38.000Z] Retry: debit(amount=100.0, intent_id=I-001, idempotency_key=K-001-retry) [Semantic Drift: mutated key/whitespace]\n[2026-09-30T16:52:38.000Z] Gateway response: 200 OK (Transaction Committed)\n[2026-09-30T16:52:38.000Z] Agent interpretation: Debit successfully acknowledged on retry."
+  "agent_transcript": "[2026-09-30T17:14:16.000Z] Tool call: debit(amount=100.0, intent_id=I-001, idempotency_key=K-001)\n[2026-09-30T17:14:16.000Z] Gateway response: 504 Gateway Timeout (GATEWAY_TIMEOUT)\n[2026-09-30T17:14:16.000Z] Agent interpretation: Gateway 504 received. Wire dropped. Transaction assumed NOT executed by orchestrator retry loop.\n[2026-09-30T17:14:16.000Z] Retry: debit(amount=100.0, intent_id=I-001, idempotency_key=K-001-retry) [Semantic Drift: mutated key/whitespace]\n[2026-09-30T17:14:16.000Z] Gateway response: 200 OK (Transaction Committed)\n[2026-09-30T17:14:16.000Z] Agent interpretation: Debit successfully acknowledged on retry."
 }

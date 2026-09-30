@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "benchmark_id": "AEIB-CONTROL-BENCHMARK-v0.2.1",
   "benchmark_title": "Agent Execution Integrity Benchmark: Post-Dispatch Ambiguity & Semantic Drift Control Matrix",
-  "git_commit": "68575eaa8067935ef19b783af508ff89c4d03c28",
+  "git_commit": "bd0d845b8c57fa8d90fa35599ebdb9c54f8fce0d",
   "timestamp_utc": "2026-09-30T17:05:00Z",
   "environment": {
     "os": "Darwin",
@@ -77,7 +77,7 @@
     "aeib_false_verifications": 0
   },
   "artifact_hashes": {
-    "control_evidence_json_sha256": "143c9d41f65727c1479d10d34aa73b2d3f6accde2462c0e9ff7cd39a4cdc9cd2",
+    "control_evidence_json_sha256": "8ba5b43c40664b5f8c8c953a331477338abfc3e80696f7cfb5d52beaab2d46de",
     "mechanism_note_md_sha256": "bd1c5424a816abbec988485effc73e4fde212e271d0becd07b86554cc5072a0b",
     "transport_evidence_jsonl_sha256": "7401377ef0232a0ccf6c69996b090937f65aff36bdee035e9fe854670b29eb98",
     "manifest_c0_sha256": "1b6df8fd33fbe4beab7be28342db7043849da35810a82131a55959eb2eaffa3c",
@@ -90,6 +90,7 @@
     "intent_id": "I-001",
     "expected_commit_count": 1,
     "actual_commit_count": 2,
+    "database_file": "/Users/andriileukhin/Documents/SovereignNexus/benchmarks/fault_injection/results/ledger.db",
     "ledger_state": [
       {
         "tx_id": 1,
@@ -98,7 +99,7 @@
         "attempt": 1,
         "amount": 100.0,
         "status": "COMMITTED",
-        "timestamp": "2026-09-30T16:52:38.739729+00:00"
+        "timestamp": "2026-09-30T17:14:16.809591+00:00"
       },
       {
         "tx_id": 2,
@@ -107,9 +108,9 @@
         "attempt": 2,
         "amount": 100.0,
         "status": "COMMITTED",
-        "timestamp": "2026-09-30T16:52:38.757745+00:00"
+        "timestamp": "2026-09-30T17:14:16.829214+00:00"
       }
     ],
-    "agent_transcript": "[2026-09-30T16:52:38.000Z] Tool call: debit(amount=100.0, intent_id=I-001, idempotency_key=K-001)\n[2026-09-30T16:52:38.000Z] Gateway response: 504 Gateway Timeout (GATEWAY_TIMEOUT)\n[2026-09-30T16:52:38.000Z] Agent interpretation: Gateway 504 received. Wire dropped. Transaction assumed NOT executed by orchestrator retry loop.\n[2026-09-30T16:52:38.000Z] Retry: debit(amount=100.0, intent_id=I-001, idempotency_key=K-001-retry) [Semantic Drift: mutated key/whitespace]\n[2026-09-30T16:52:38.000Z] Gateway response: 200 OK (Transaction Committed)\n[2026-09-30T16:52:38.000Z] Agent interpretation: Debit successfully acknowledged on retry."
+    "agent_transcript": "[2026-09-30T17:14:16.000Z] Tool call: debit(amount=100.0, intent_id=I-001, idempotency_key=K-001)\n[2026-09-30T17:14:16.000Z] Gateway response: 504 Gateway Timeout (GATEWAY_TIMEOUT)\n[2026-09-30T17:14:16.000Z] Agent interpretation: Gateway 504 received. Wire dropped. Transaction assumed NOT executed by orchestrator retry loop.\n[2026-09-30T17:14:16.000Z] Retry: debit(amount=100.0, intent_id=I-001, idempotency_key=K-001-retry) [Semantic Drift: mutated key/whitespace]\n[2026-09-30T17:14:16.000Z] Gateway response: 200 OK (Transaction Committed)\n[2026-09-30T17:14:16.000Z] Agent interpretation: Debit successfully acknowledged on retry."
   }
 }

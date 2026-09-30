@@ -3,16 +3,17 @@ r"""
 run_single_failure_proof.py — Executes and Formats the Canonical Control Failure Gate
 Sovereign Multi-Agent OS (SMAOS) / Deterministic Fault-Injection Testbed
 
-Executes a single intent (req_5f8a9b2c / I-001) through the post-commit 504 fault injector,
+Executes a single intent (I-001) through the post-commit 504 fault injector,
 records the agent's interpretation and retry, and verifies that the SQLite ledger contains
 two committed debits for one logical intent.
-Outputs the exact schema requested for the control gate.
+Persists ground truth to an on-disk SQLite database file (ledger.db) for external audit.
 """
 
 import os
 import sys
 import json
 import time
+import sqlite3
 from pathlib import Path
 from starlette.testclient import TestClient
 
@@ -24,7 +25,27 @@ from benchmarks.fault_injection.gateway_simulator import GatewaySimulator
 
 
 def run_canonical_control_failure():
+    # Configure physical on-disk SQLite ledger file for external audibility
+    db_file = Path("benchmarks/fault_injection/results/ledger.db").resolve()
+    db_file.parent.mkdir(parents=True, exist_ok=True)
+    if db_file.exists():
+        db_file.unlink()
+    for ext in ["-wal", "-shm"]:
+        f_extra = Path(str(db_file) + ext)
+        if f_extra.exists():
+            f_extra.unlink()
+
+    # Re-bind store to physical database file
+    store._conn.close()
+    store.db_path = str(db_file)
+    store._is_uri = False
+    store._conn = sqlite3.connect(store.db_path, check_same_thread=False)
+    store._conn.row_factory = sqlite3.Row
+    store._conn.execute("PRAGMA journal_mode = WAL;")
+    store._conn.execute("PRAGMA synchronous = NORMAL;")
+    store._init_db()
     store.reset(initial_balance=10000.0)
+
     fault_config.enabled = True
     fault_config.fault_mode = "POST_COMMIT_504"
     fault_config.post_commit_delay_ms = 5.0
@@ -89,6 +110,7 @@ def run_canonical_control_failure():
         "intent_id": logical_intent,
         "expected_commit_count": 1,
         "actual_commit_count": actual_commit_count,
+        "database_file": str(db_file),
         "ledger_state": [
             {
                 "tx_id": c["id"],

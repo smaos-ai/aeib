@@ -8,6 +8,7 @@ and immutable commit logging for measuring the Safety Invariant:
   Safety: LedgerCommits(O) <= 1
 """
 
+import os
 import sqlite3
 import threading
 from datetime import datetime, timezone
@@ -23,8 +24,13 @@ class AtomicDebitStore:
 
     def __init__(self, db_path: Optional[str] = None):
         if db_path is None:
-            self.db_path = "file:aeib_ledger?mode=memory&cache=shared"
-            self._is_uri = True
+            env_db = os.environ.get("AEIB_LEDGER_DB")
+            if env_db:
+                self.db_path = env_db
+                self._is_uri = env_db.startswith("file:")
+            else:
+                self.db_path = "file:aeib_ledger?mode=memory&cache=shared"
+                self._is_uri = True
         else:
             self.db_path = db_path
             self._is_uri = db_path.startswith("file:")

@@ -53,6 +53,7 @@ ARTIFACT_MAP = {
     "test_falsifiability_py_sha256":  REPO_ROOT / "benchmarks/fault_injection/test_falsifiability.py",
     "test_control_matrix_py_sha256":  REPO_ROOT / "benchmarks/fault_injection/tests/test_control_matrix.py",
     "test_ebpf_controller_py_sha256": REPO_ROOT / "tests/test_ebpf_controller.py",
+    "verify_reproduction_py_sha256":  REPO_ROOT / "benchmarks/fault_injection/verify_reproduction.py",
     "paper_draft_md_sha256":          REPO_ROOT / "docs/research/AEIB_arXiv_Paper_Draft.md",
     "paper_tex_sha256":               REPO_ROOT / "docs/research/AEIB_arXiv_Paper.tex",
 }
@@ -109,7 +110,7 @@ def _make_isolated_app(db_uri: str):
     isolated_fault  = FaultConfig(
         enabled=True,
         fault_mode="POST_COMMIT_504",
-        post_commit_delay_ms=1.0,  # faster in tests
+        post_commit_delay_ms=5.0,  # Match the 5.0ms delay from benchmark manifest to reconcile latency
         max_faults_per_intent=1,
         fault_every_attempt=True,
     )
@@ -223,19 +224,30 @@ def step2_git_revision(manifest: Dict[str, Any]) -> StepResult:
     except Exception as exc:
         head = f"ERROR: {exc}"
 
-    expected = manifest.get("provenance_chain", {}).get("falsifiability_commit", "UNSET")
+    expected = manifest.get("provenance_chain", {}).get("release_commit")
+    if not expected:
+        expected = manifest.get("provenance_chain", {}).get("falsifiability_commit", "UNSET")
+    
     details["git_head"] = head
-    details["manifest_falsifiability_commit"] = expected
+    details["manifest_target_commit"] = expected
 
     print(f"      git HEAD               : {head}")
     print(f"      Manifest latest commit : {expected}")
 
-    if head == expected:
-        print("      [+] Git revision MATCHES manifest falsifiability commit.")
+    # Allow checking against release_commit or the exact tag
+    tag_check = subprocess.run(["git", "describe", "--tags", "--exact-match", "HEAD"], capture_output=True, text=True, cwd=str(REPO_ROOT))
+    current_tag = tag_check.stdout.strip() if tag_check.returncode == 0 else ""
+
+    expected_tag = manifest.get("release_tag", "")
+    
+    is_match = (head == expected) or (current_tag and current_tag == expected_tag)
+
+    if is_match:
+        print("      [+] Git revision MATCHES manifest target commit/tag.")
     else:
         msg = (
             f"Git HEAD ({head[:12]}...) does not match manifest "
-            f"falsifiability_commit ({expected[:12]}...). "
+            f"target_commit ({expected[:12]}...). "
             "Checkout the release tag or commit to reproduce exactly."
         )
         print(f"      [!] WARN: {msg}")

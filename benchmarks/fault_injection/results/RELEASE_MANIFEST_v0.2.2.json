@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "release_id": "AEIB-RELEASE-v0.2.2",
+  "release_title": "Agent Execution Integrity Benchmark (AEIB) Master Release Manifest",
+  "release_tag": "v0.2.2",
+  "timestamp_utc": "2026-09-30T17:30:00Z",
+  "provenance_chain": {
+    "control_benchmark_commit": "68575eaa8067935ef19b783af508ff89c4d03c28",
+    "aeib_benchmark_commit": "bd0d845b8c57fa8d90fa35599ebdb9c54f8fce0d",
+    "falsifiability_commit": "f1ff34fbac7694cac81a2b1af14eef504a922a0f",
+    "verifier_hardening_commit": "c9b239bbd4ab531e2adccbebcda110e0545f4705",
+    "release_tag": "v0.2.2",
+    "explanation": "Preserves immutable provenance across staged milestones: 68575eaa established the failing control matrix; bd0d845b introduced the AEIB boundary and positive/negative trial manifests; f1ff34fb anchored ground truth to an on-disk binary SQLite database (ledger.db) and adversarial anti-fabrication suite. The verifier was subsequently hardened for release at c9b239bb and beyond. The tag v0.2.2 encapsulates all finalized benchmark and paper revisions."
+  },
+  "environment": {
+    "os": "Darwin",
+    "os_release": "25.6.0",
+    "machine": "arm64",
+    "python_version": "3.14.3",
+    "sqlite_version": "3.53.1",
+    "sqlite_schema_sha256": "15267a805b5d3f95cf2b7c98726811f4832f34cff74f8705a903a6064cf1214d",
+    "dependencies": {
+      "fastapi": "0.141.1",
+      "starlette": "1.6.0",
+      "pydantic": "2.13.5",
+      "cryptography": "50.0.1",
+      "pytest": "9.1.1"
+    }
+  },
+  "parameters": {
+    "random_seed": 42,
+    "trials_per_baseline": 50,
+    "debit_amount": 100.0,
+    "post_commit_delay_ms": 5.0,
+    "injected_fault": "POST_COMMIT_504",
+    "account_id": "acc_primary",
+    "initial_balance": 100000.0
+  },
+  "formal_invariants": {
+    "safety": "LedgerCommits(I) <= 1 for any logical intent I",
+    "liveness": "State(I) reaches terminal resolution in {OUTCOME_VERIFIED, RECONCILIATION_NOT_FOUND} without deadlock"
+  },
+  "test_suite_composition": {
+    "total_tests": 20,
+    "passing_tests": 20,
+    "adversarial_anti_fabrication_tests": 5,
+    "deterministic_control_matrix_tests": 6,
+    "ebpf_quarantine_controller_tests": 9,
+    "note": "Extends the previously reported 15-test baseline (6 control matrix + 9 eBPF) with 5 dedicated adversarial falsifiability proofs in test_falsifiability.py."
+  },
+  "aggregate_evaluations": {
+    "c0_naive_retry": {
+      "trials": 50,
+      "safety_violations": 50,
+      "duplicate_rate": "100.0%",
+      "resolution": "Duplicate ledger commit (Safety failed)"
+    },
+    "c1_gateway_stable_key": {
+      "trials": 50,
+      "safety_violations": 0,
+      "duplicate_rate": "0.0%",
+      "resolution": "Deduplicated by gateway cache (Safety held)"
+    },
+    "c2_gateway_semantic_drift": {
+      "trials": 50,
+      "safety_violations": 50,
+      "duplicate_rate": "100.0%",
+      "resolution": "Duplicate ledger commit due to cache miss (Safety failed)"
+    },
+    "aeib_post_commit_504": {
+      "trials": 50,
+      "safety_violations": 0,
+      "duplicate_rate": "0.0%",
+      "receipts_verified": 50,
+      "verification_rate": "100.0%",
+      "mean_overhead_latency_ms": 9.28,
+      "p95_overhead_latency_ms": 9.97,
+      "resolution": "Authoritative probe and signed receipt (Safety held)"
+    },
+    "aeib_negative_controls": {
+      "trials": 20,
+      "uncommitted_requests": 20,
+      "false_outcome_verified_count": 0,
+      "false_positive_rate": "0.0%",
+      "terminal_disposition": "RECONCILIATION_NOT_FOUND",
+      "resolution": "Fail-closed rejection of uncommitted operations"
+    }
+  },
+  "artifact_digests": {
+    "control_evidence_json_sha256": "8ba5b43c40664b5f8c8c953a331477338abfc3e80696f7cfb5d52beaab2d46de",
+    "aeib_report_json_sha256": "49883c9417108f5e7869b76ef1c147241c82750f795f555e24245bb719171560",
+    "ledger_db_sha256": "81c7833b2ba3770aa01dc4aa12dd4d0b74c09dfdd80e634589d221f5bd82e3b1",
+    "mechanism_note_md_sha256": "bd1c5424a816abbec988485effc73e4fde212e271d0becd07b86554cc5072a0b",
+    "test_falsifiability_py_sha256": "132f25c124b2fc70137bbbf8fbb352b9f8e3af3ac2dc4e5b594f25a2a4f57ff6",
+    "test_control_matrix_py_sha256": "6fd252cb3bd81c54299eb52648e6ec1960bbfb1a0df56fcdafdebb3ecf8d6505",
+    "test_ebpf_controller_py_sha256": "33d630feed28ef946a1eb5e710ffc9a5fba348c511b28df189a20108b8b88005",
+    "verify_reproduction_py_sha256": "be02df42701c4e6bcab4c1d885491229bdf22f13b55c786507127d1e145db6ff",
+    "paper_draft_md_sha256": "674836cb8ca4057eced8c2c9f09646ba95be83af5017a0f117d310c45a9ed1ed",
+    "paper_tex_sha256": "7a13c2c87d269b8ac9e7df6d9af40075f97b044e0984db327d3980ec4028788c"
+  },
+  "canonical_single_run_proof": {
+    "test_run": "C0_NAIVE_RETRY",
+    "intent_id": "I-001",
+    "expected_commit_count": 1,
+    "actual_commit_count": 2,
+    "database_file": "benchmarks/fault_injection/results/ledger.db",
+    "ledger_state": [
+      {
+        "tx_id": 1,
+        "intent_id": "I-001",
+        "debit_id": "D-001",
+        "attempt": 1,
+        "amount": 100.0,
+        "balance_after": 9900.0,
+        "status": "COMMITTED"
+      },
+      {
+        "tx_id": 2,
+        "intent_id": "I-001",
+        "debit_id": "D-002",
+        "attempt": 2,
+        "amount": 100.0,
+        "balance_after": 9800.0,
+        "status": "COMMITTED"
+      }
+    ]
+  },
+  "scope_and_qualification": {
+    "boundary_condition_c1": "Conventional gateway idempotency successfully deduplicates requests when the retry preserves the exact deduplication identity and request bytes (0/50 duplicates in C1).",
+    "semantic_drift_model_c2": "C0 and C2 demonstrate failure under the benchmark's specific semantic-drift model; they characterize the tested implementation and fault model, but do not establish that all LLM agents or all gateways behave identically.",
+    "regulatory_qualification": "DORA Article 17 and EU AI Act Article 14 motivate the need for durable operational evidence; this work makes no compliance or certification claim.",
+    "universal_safety_disclaimer": "AEIB results are bounded by the tested local harness and do not establish production-wide or universal exactly-once guarantees."
+  }
+}

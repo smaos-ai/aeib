@@ -4,7 +4,7 @@ aeib_interceptor.py — AEIB Userspace Sidecar & Out-of-Band State Machine
 Sovereign Multi-Agent OS (SMAOS) / Deterministic Fault-Injection Testbed
 
 Implements the AEIB execution boundary:
-  1. RFC 8785 JCS canonicalization + UUIDv5 idempotency key derivation before dispatch.
+  1. JCS-compatible normalization for the fields exercised by this benchmark + UUIDv5 idempotency key derivation before dispatch.
   2. Immediate retry freezing on HTTP 504 (DISPATCHED_UNCONFIRMED).
   3. Layer A eBPF 5-tuple quarantine activation.
   4. Authoritative out-of-band probe query against GET /operations/{id}.

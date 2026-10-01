@@ -1,0 +1,36 @@
+name: SLSA Provenance & Release
+
+on:
+  push:
+    tags:
+      - 'v*' # Trigger only on version tags (e.g., v0.3.0)
+
+permissions:
+  id-token: write # Required for OIDC SLSA provenance
+  contents: read
+  actions: read
+
+jobs:
+  build-and-prove:
+    runs-on: ubuntu-latest
+    outputs:
+      hashes: ${{ steps.hash.outputs.hashes }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build Artifacts (Example: Python Package / WASM)
+        run: |
+          mkdir -p dist/
+          # Replace with your actual build command, e.g., python -m build or wasm-pack build
+          echo "Building artifacts..." 
+          touch dist/smaos-core.tar.gz # Placeholder for actual artifact
+
+      - name: Generate SLSA Provenance
+        uses: slsa-framework/slsa-github-generator/.github/actions/generator_generic@v2.0.0
+        with:
+          base64-subjects: "${{ steps.hash.outputs.hashes }}"
+          upload-assets: true # Upload to GitHub Release
+          # Optional: Configure your specific builder (e.g., docker, generic)

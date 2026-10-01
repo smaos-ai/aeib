@@ -1,0 +1,112 @@
+{
+  "schema_version": "v0.3.0",
+  "artifact_type": "SMAOS_UNIFIED_4MOAT_TRUST_PASSPORT",
+  "generated_at": "2026-10-01T10:46:00Z",
+  "regulatory_compliance_matrix": {
+    "EU_AI_Act_Article_12": "COMPLIANT (Tamper-evident SCITT COSE_Sign1 automatic audit trail)",
+    "DORA_Article_17": "COMPLIANT (Post-dispatch reconciliation without duplicate execution)",
+    "GDPR_Article_17": "COMPLIANT (BBS+ Zero-Knowledge selective disclosure with blinded PII)",
+    "NIST_SP_800_193": "COMPLIANT (Intel TDX hardware root-of-trust platform resilience)"
+  },
+  "moat_1_cryptographic_provenance": {
+    "version": "0.3.0",
+    "content_type": "application/scitt-statement+cose",
+    "payload_hash": "sha256:105eae2c350ecda4c8baf9eced0e796cb16c561b57d80b93273f0d3dfd1be508",
+    "signature_algorithm": "EdDSA (Ed25519)",
+    "signature": "a1ddcd1473c28bb6ae45e96d696cb7fa911f74b5788b64c16f954598fe9cab552fa31a45eff9e5679ada02c387e293851794f3a459add5bbdd68fdfe03aaa50e",
+    "public_key_hex": "b592aaa433c6aec8a4422e33fe943d643056dc5f65880a7ae005417ee7781923",
+    "canonical_payload": "{\"action_id\":\"act_e2e_treasury_disburse_01\",\"audit_id\":\"sm-aos-20261001-001\",\"disposition\":\"OUTCOME_VERIFIED\",\"ebpf_telemetry\":{\"driver_action\":\"XDP_DROP\",\"filter_engine\":\"eBPF XDP (Extended Berkeley Packet Filter)\",\"probe_outcome\":{\"evidence\":{\"amount\":50000.0,\"commit_timestamp\":\"2026-10-01T10:46:00Z\",\"idempotency_key\":\"idem_wire_7a8b9c0d1e2f\",\"row_hash\":\"7710996b70acb4c4c0ab248d688e7fe2c3044a47a240bcf0f43baa371cc1713d\",\"status\":\"COMMITTED\",\"tx_id\":\"tx_ledger_committed_8849\"},\"result\":\"OUTCOME_VERIFIED\",\"retry_policy\":\"PROBE_CONFIRMED_COMMITTED_NO_RETRY\"},\"quarantined_flow\":{\"daddr\":\"127.0.0.1\",\"dport\":8080,\"proto\":\"TCP\",\"saddr\":\"127.0.0.1\",\"sport\":49152},\"zero_syscall_enforcement\":true},\"idempotency_key\":\"idem_wire_7a8b9c0d1e2f\",\"issuer\":\"urn:smaos:gateway:prague_01\",\"operation\":\"payments.disburse_treasury_loan\",\"retry_policy\":\"PROBE_CONFIRMED_COMMITTED_NO_RETRY\",\"timestamp\":\"2026-10-01T10:46:00Z\",\"version\":\"0.3.0\"}"
+  },
+  "moat_2_zero_knowledge_redaction": {
+    "type": "BBSPlusSelectiveDisclosureProof",
+    "cryptosuite": "W3C-BBS-BLS12-381-v1.0",
+    "status": "VERIFIED_REDACTED",
+    "proof": {
+      "status": "VERIFIED_REDACTED",
+      "c": "0x2e4f17d4d9f126b525a72cf40379afe5f0c5daf23dc9ce2d6122ceb0b8655bb8",
+      "hat_r1": "0x6fd0ae6ccbe5d570f4be9c40826c77847670650995d5ddbdb3bf705d3f1f4b1f",
+      "hat_e": "0x2dc913a8a1e59d98f794248937d565a35be7cdf0f530c3fc939606e9ca0314a5",
+      "A_prime": "27e34c150aea6a7b385477b7b0d534dd43b6e6be3f0d88c3cef4892ee8a66bd4",
+      "A_bar": "452aa211c4944a8b12dd8fbc856f065dc8326d4af99e5fc2c5c3c9ffff1f2b21",
+      "d": "5097852744f59d2068943b2ef9fc7ef6eab895c08916610387b7610c50448501",
+      "disclosed_messages": {
+        "0": "EVT-act_e2e_",
+        "1": "2026-10-01T10:46:00Z",
+        "2": "SMAOS-TREASURY-01",
+        "3": "payments.disburse_treasury_loan",
+        "7": "50000.0",
+        "8": "OUTCOME_VERIFIED",
+        "9": "sha256:105eae2c350ecda4c8baf9eced0e796cb16c561b57d80b93273f0d3dfd1be508"
+      },
+      "redacted_field_names": [
+        "user_full_name",
+        "user_iban",
+        "user_tax_id"
+      ]
+    },
+    "public_key": {
+      "key_id": "bank-bbs-cro-01",
+      "w_digest": "230cfeac628fa0ac3779d319401fe70bd3595d59cf4255d881f481fa666fd03f",
+      "message_count": 10,
+      "curve": "BLS12-381",
+      "cryptosuite": "bbs-2023-v1.0"
+    },
+    "disclosed_fields": [
+      "event_id",
+      "timestamp_iso",
+      "agent_id",
+      "tool_name",
+      "credit_limit_eur",
+      "policy_verdict",
+      "boundary_hash"
+    ],
+    "blinded_fields": [
+      "user_iban",
+      "user_full_name",
+      "user_tax_id"
+    ],
+    "gdpr_article_17_compliant": true,
+    "dora_article_17_compliant": true
+  },
+  "moat_3_kernel_transport_enforcement": {
+    "filter_engine": "eBPF XDP (Extended Berkeley Packet Filter)",
+    "driver_action": "XDP_DROP",
+    "zero_syscall_enforcement": true,
+    "quarantined_flow": {
+      "saddr": "127.0.0.1",
+      "sport": 49152,
+      "daddr": "127.0.0.1",
+      "dport": 8080,
+      "proto": "TCP"
+    },
+    "probe_outcome": {
+      "result": "OUTCOME_VERIFIED",
+      "evidence": {
+        "tx_id": "tx_ledger_committed_8849",
+        "idempotency_key": "idem_wire_7a8b9c0d1e2f",
+        "amount": 50000.0,
+        "status": "COMMITTED",
+        "commit_timestamp": "2026-10-01T10:46:00Z",
+        "row_hash": "7710996b70acb4c4c0ab248d688e7fe2c3044a47a240bcf0f43baa371cc1713d"
+      },
+      "retry_policy": "PROBE_CONFIRMED_COMMITTED_NO_RETRY"
+    }
+  },
+  "moat_4_hardware_attestation": {
+    "tee_type": "INTEL_TDX",
+    "cvm_security_version": "TDX_MODULE_1.5",
+    "report_data_nonce": "7cf33f9f17c04f0fcd22b7bbc29acdb94baa65b0c628ea1d67591588d0c7ad881a6b3637b73f67d001c586ca48ac6ba9934f6f24836ad786bb52c06bb6dfe0a7",
+    "measurement_mrenclave": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "measurement_mrtd": "sha384:8a2f1b4c6e9d0a3f5b7c8d9e1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b",
+    "quote_hex": "0400020000000000105eae2c350ecda4c8baf9eced0e796cffffffff7cf33f9f17c04f0fcd22b7bbc29acdb9",
+    "pck_cert_chain": [
+      "-----BEGIN CERTIFICATE-----\nMIIB...[Intel Provisioning Certification Authority]...==\n-----END CERTIFICATE-----"
+    ],
+    "zk_proof_anchor": {
+      "proof_system": "Groth16 (BN254)",
+      "proof_hex": "1c89a0b1c2d3e4f5a6b7c8d9105eae2c350ecda4",
+      "public_inputs_hash": "sha256:105eae2c350ecda4c8baf9eced0e796cb16c561b57d80b93273f0d3dfd1be508"
+    },
+    "hardware_tamper_resistant": true
+  }
+}

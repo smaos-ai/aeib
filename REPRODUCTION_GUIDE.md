@@ -17,8 +17,10 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
 pip install fastapi==0.141.1 starlette==1.6.0 pydantic==2.13.5 \
-    cryptography==50.0.1 pytest==9.1.1 psycopg2-binary==2.9.9
+    cryptography==50.0.1 pytest==9.1.1 psycopg2-binary==2.9.13
 ```
+
+> **Note:** `psycopg2-binary==2.9.9` fails to compile on Python 3.14 due to a removed internal CPython API (`_PyInterpreterState_Get`). Use `psycopg2-binary==2.9.13` or later, which includes the fix.
 
 ## 3. SQLite Benchmark & Provenance Reproduction
 The core AEIB benchmark simulates a fault-injection environment using a local SQLite instance to demonstrate boundary integrity under ambiguous `HTTP 504` timeout conditions.
@@ -94,14 +96,14 @@ Please return your verification results using the following standardized templat
 
 ### Gate 1: Git and Environment Setup
 - [ ] Fresh clone of tag `v0.2.4` successful.
-- [ ] `git log -1` confirms commit `cfb9d8994894ca33c04e60c681894ac1c9ee38a5`.
+- [ ] `git log -1` confirms commit `ab07188c0775193cdff316fc29d33b512307c78f`.
 - [ ] Virtual environment and dependencies installed successfully.
 *Deviations/Notes:* None.
 
 ### Gate 2: SQLite Benchmark & Verifier
 - [ ] Script ran without crashing.
 - [ ] All 8 verification steps passed.
-- [ ] 12/12 manifest artifact hashes verified exactly.
+- [ ] 13/13 manifest artifact hashes verified exactly.
 - [ ] Reported 0/50 duplicates on AEIB trials.
 *Deviations/Notes:* None.
 

@@ -1,0 +1,32 @@
+{
+  "title": "Agent Execution Integrity Benchmark (AEIB) v0.2.4",
+  "description": "The Agent Execution Integrity Benchmark (AEIB) v0.2.4 is a locally reproducible evaluation harness demonstrating that autonomous AI agents suffer duplicate mutations when suffering semantic drift during retry loops after a post-commit HTTP 504 transport severance. AEIB enforces a four-step boundary (state freeze, out-of-band authoritative probe, JCS + Ed25519 cryptographic receipt, and offline verification) to achieve zero observed duplicate debits across 50 deterministic fault trials. The release includes a versioned transport-to-disposition mapping contract, an explicit retry-policy vocabulary, a standalone offline verifier, and a live PostgreSQL 16 integration suite (4/4 passing). Status: locally executed and internally reproducible; external independent reproduction pending.",
+  "version": "v0.2.4",
+  "upload_type": "software",
+  "publication_date": "2026-10-01",
+  "access_right": "open",
+  "license": "MIT",
+  "creators": [
+    {
+      "name": "Leukhin, Andrii",
+      "affiliation": "Independent Researcher, SovereignNexus Project",
+      "email": "andrejlo123@gmail.com"
+    }
+  ],
+  "keywords": [
+    "agent governance",
+    "transport fault reconciliation",
+    "idempotency",
+    "AI safety",
+    "execution integrity",
+    "post-dispatch failure",
+    "autonomous agents",
+    "PostgreSQL",
+    "SQLite",
+    "deterministic testing",
+    "cryptographic receipts"
+  ],
+  "notes": "Commit: ab07188c0775193cdff316fc29d33b512307c78f. Tag: v0.2.4 (annotated, unsigned). Artifact tarball SHA-256: fe1284fbf1928d3743fc5074ca753f5bbb86f47aeb2834fd6f659136fc095d1c. Latency figures reflect local Apple Silicon M-series testbed measurements only. Regulatory status: no endorsement by any regulatory body claimed or implied.",
+  "related_identifiers": [],
+  "communities": []
+}

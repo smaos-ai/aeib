@@ -203,7 +203,30 @@ Result: 1 committed debit; zero duplicates; receipt verified offline.
 \end{lstlisting}
 
 \subsection{Latency \& Overhead Analysis}
-The final tagged release measured 9.22~ms mean and 9.59~ms p95, measured from client dispatch through the 5~ms post-commit delay, 504 interception, authoritative probe, canonical payload hashing, Ed25519 signing, and receipt assembly.
+Latency was empirically profiled across $N=100$ independent trials for both the in-process SQLite harness and the live PostgreSQL out-of-band probe (backed by a thread-safe connection pool), as detailed in Table~\ref{tab:latency}. Full benchmark cycle overhead measured 8.85~ms mean and 9.19~ms p95 on SQLite.
+
+\begin{table}[htbp]
+\centering
+\caption{Empirical Latency Distributions ($N=100$ Trials)}
+\label{tab:latency}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Substrate} & \textbf{min} & \textbf{p50} & \textbf{p95} & \textbf{p99} & \textbf{max} & \textbf{mean ($\pm \sigma$)} \\
+\midrule
+SQLite In-Process Probe & 0.048~ms & 0.057~ms & 0.079~ms & 0.156~ms & 0.193~ms & 0.060~ms ($\pm 0.019$) \\
+PostgreSQL Live OOB Probe & 0.191~ms & 0.228~ms & 0.257~ms & 0.317~ms & 1.110~ms & 0.236~ms ($\pm 0.090$) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent\textbf{PostgreSQL Live Integration Verification:}
+The probe adapter (\texttt{PostgresProbeAdapter}) was verified against a live PostgreSQL 16 instance (\texttt{test\_integration\_pg\_probe.py}, 4 passed, 0 skipped), confirming that:
+\begin{enumerate}
+    \item Exact idempotency-key match transitions state to \texttt{OUTCOME\_VERIFIED} with deterministic row hash verification.
+    \item Uncommitted missing keys return \texttt{RECONCILIATION\_NOT\_FOUND} with empty evidence.
+    \item Duplicate matching rows trigger fail-closed \texttt{RECONCILIATION\_CONFLICT}.
+    \item Connection hangs are actively terminated via \texttt{statement\_timeout = 200ms} (\texttt{QueryCanceled}), executing safe transaction rollback and preserving connection pool hygiene.
+\end{enumerate}
 
 \subsection{Checks Supporting Concrete Local Execution and Falsifiability}
 To provide verifiable confidence that the benchmark evaluates concrete components and empirical state rather than synthetic stubs, we execute a 20-test validation suite:

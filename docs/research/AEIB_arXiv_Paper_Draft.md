@@ -144,11 +144,23 @@ Result: 1 committed debit; zero duplicates; receipt verified offline.
 
 ### 5.3 Latency & Overhead Analysis
 
-**Statistical Confidence:** Applying the Rule-of-Three to the 0/50 duplicate rate yields a 95% confidence upper bound failure rate of <5.8%. For the 0/20 false positive rate, the upper bound is <13.8%.
+**Statistical Confidence:** Applying the Rule-of-Three to the 0/50 duplicate rate yields a 95% confidence upper bound failure rate of <5.8%. For the 0/20 false positive rate, the upper bound is <15.0%.
 
-**Test Environment:** The local test harness utilizes an SQLite 3.53.1 bitemporal ledger, in-memory socket, `GET /operations/{id}` query, N=50 sample size, and standard numpy 95th percentile method.
+**Empirical Latency Distributions:** Latency was empirically profiled across $N=100$ independent trials for both the in-process SQLite harness and the live PostgreSQL out-of-band probe (backed by a thread-safe connection pool):
 
-The final tagged release measured 9.22 ms mean and 9.59 ms p95, measured from client dispatch through the 5 ms post-commit delay, 504 interception, authoritative probe, canonical payload hashing, Ed25519 signing, and receipt assembly.
+| Evaluation Substrate | min | p50 (median) | p95 | p99 | max | mean (± $\sigma$) |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **SQLite In-Process Local Probe** | 0.048 ms | 0.057 ms | 0.079 ms | 0.156 ms | 0.193 ms | 0.060 ms (± 0.019) |
+| **PostgreSQL Live OOB Probe (`ThreadedConnectionPool`)** | 0.191 ms | 0.228 ms | 0.257 ms | 0.317 ms | 1.110 ms | 0.236 ms (± 0.090) |
+
+Full end-to-end benchmark cycle overhead (from client dispatch through 5 ms post-commit delay, 504 interception, authoritative probe, JCS hashing, Ed25519 signing, and receipt assembly) measured 8.85 ms mean and 9.19 ms p95 on SQLite.
+
+**PostgreSQL Live Database Integration Trace:**
+The authoritative probe adapter (`PostgresProbeAdapter`) was evaluated against a live PostgreSQL 16 container (`test_integration_pg_probe.py`), yielding 4 passed and 0 skipped tests:
+- `test_1_verified_outcome`: Exact idempotency key match transitions state to `OUTCOME_VERIFIED` with deterministic row hash verification.
+- `test_2_reconciliation_not_found`: Uncommitted missing keys return `RECONCILIATION_NOT_FOUND` with empty evidence.
+- `test_3_reconciliation_conflict_on_duplicate_rows`: Duplicate matching rows trigger fail-closed `RECONCILIATION_CONFLICT`.
+- `test_4_statement_timeout_active_cancellation_and_pool_recovery`: Confirms `statement_timeout = 200ms` actively cancels simulated connection hangs (`SELECT pg_sleep(1.5)`) via `QueryCanceled`, performs clean transaction rollback, and recovers pool hygiene without connection leaks.
 
 ### 5.4 Checks Supporting Concrete Local Execution and Falsifiability
 To provide verifiable confidence that the benchmark evaluates concrete components and empirical state rather than synthetic stubs, we execute a 20-test validation suite:

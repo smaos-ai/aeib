@@ -4,7 +4,7 @@ Welcome reviewers. This package contains the instructions and metadata required 
 
 ## 1. Release Identity & Target
 * **Tag:** `v0.2.4`
-* **Commit:** `cfb9d8994894ca33c04e60c681894ac1c9ee38a5`
+* **Commit:** Resolves via `git rev-parse v0.2.4^{commit}`
 * **Repository:** Private repository. Archive available on request with accompanying commit bundle.
 * **Signature Status:** The tag is annotated but unsigned. Reviewers should verify the resolved commit ID and the release manifest’s artifact digests.
 

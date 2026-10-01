@@ -146,7 +146,7 @@ Result: 1 committed debit; zero duplicates; receipt verified offline.
 
 **Statistical Confidence:** Applying the Rule-of-Three to the 0/50 duplicate rate yields a 95% confidence upper bound failure rate of <5.8%. For the 0/20 false positive rate, the upper bound is <15.0%.
 
-**Empirical Latency Distributions:** Latency was empirically profiled across $N=100$ independent trials for both the in-process SQLite harness and the live PostgreSQL out-of-band probe (backed by a thread-safe connection pool):
+**Empirical Latency Distributions:** Latency was empirically profiled across $N=100$ independent trials on a local development testbed (Apple Silicon M-series, local loopback; these reflect local test harness measurements rather than universal, cloud-scale, or distributed network claims) for both the in-process SQLite harness and the live PostgreSQL out-of-band probe (backed by a thread-safe connection pool):
 
 | Evaluation Substrate | min | p50 (median) | p95 | p99 | max | mean (± $\sigma$) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -223,12 +223,12 @@ The "Retry or Else" assumption in autonomous AI agent architectures is fundament
 
 ## Artifact Availability and Reproducibility
 
-* **Repository:** `https://github.com/SovereignNexus/smaos` (Branch: `release/v0.2.0`, Target Tag: `v0.2.2`)
+* **Repository:** `https://github.com/SovereignNexus/smaos` (Branch: `release/v0.2.0`, Target Tag: `v0.2.4`)
 * **Component Commit Provenance:**
   - Control Benchmark Commit: `68575eaa8067935ef19b783af508ff89c4d03c28`
   - AEIB Execution Boundary Commit: `bd0d845b8c57fa8d90fa35599ebdb9c54f8fce0d`
   - Adversarial Falsifiability Commit: `f1ff34fbac7694cac81a2b1af14eef504a922a0f`
-* **Master Release Manifest:** `benchmarks/fault_injection/results/RELEASE_MANIFEST_v0.2.2.json`
+* **Master Release Manifest:** `benchmarks/fault_injection/results/RELEASE_MANIFEST_v0.2.4.json`
 * **Single Run Evidence Hash:** `8ba5b43c40664b5f8c8c953a331477338abfc3e80696f7cfb5d52beaab2d46de`
 * **On-Disk SQLite Database:** `benchmarks/fault_injection/results/ledger.db`
 * **Replication Commands:**

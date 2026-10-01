@@ -94,11 +94,12 @@
     "test_falsifiability_py_sha256": "132f25c124b2fc70137bbbf8fbb352b9f8e3af3ac2dc4e5b594f25a2a4f57ff6",
     "test_control_matrix_py_sha256": "6fd252cb3bd81c54299eb52648e6ec1960bbfb1a0df56fcdafdebb3ecf8d6505",
     "test_ebpf_controller_py_sha256": "33d630feed28ef946a1eb5e710ffc9a5fba348c511b28df189a20108b8b88005",
-    "verify_reproduction_py_sha256": "c7bb71a6caaa6f08f8d1aebdf209aac3f3299f95fc33d83ace0c9c3baa798586",
-    "paper_draft_md_sha256": "5fafd9eab66396d2796ae516d913690fbfd5373415f960c47720083c3bdbfbb4",
-    "paper_tex_sha256": "76910c7721fc993c19c72ea21a8f450e1c85ae5db4b55a971a3bcf1a7ff0097d",
+    "verify_reproduction_py_sha256": "67c815fbd84c8278b06ec5efd292e7f23871119cef331177e0b01f99a9356ce1",
+    "paper_draft_md_sha256": "3b5012f97bd0a99f61919dfd8327685ce9857de166c4f9a44a4e883aa060dfff",
+    "paper_tex_sha256": "9c97f7239231c949f877a3edb44ecadaddb948cb9689555fac44c8568ad7177d",
     "pg_probe_adapter_py_sha256": "9199913cf7c16406856e383e853228e0e661453d8401dc0fd06064c526506df2",
-    "test_integration_pg_probe_py_sha256": "176b7c602ab6590a33700f7f9916c514b6144be1b36f2fa75596f2ac9d25c091"
+    "test_integration_pg_probe_py_sha256": "176b7c602ab6590a33700f7f9916c514b6144be1b36f2fa75596f2ac9d25c091",
+    "competitive_evaluation_md_sha256": "59b75bbe9a0ddb579af5531e570012b5bf836054555f0ef7734b454500cf08e8"
   },
   "canonical_single_run_proof": {
     "test_run": "C0_NAIVE_RETRY",

@@ -40,6 +40,23 @@ class DuplicateExecutionBlockedError(Exception):
         self.receipt = receipt
 
 
+class IdempotencyKeyDriftError(Exception):
+    """Raised when an agent alters the idempotency key for the same logical action_id across retries."""
+    def __init__(self, message: str, action_id: str, original_key: str, drifted_key: str):
+        super().__init__(message)
+        self.action_id = action_id
+        self.original_key = original_key
+        self.drifted_key = drifted_key
+
+
+class ProbeOutageError(Exception):
+    """Raised when out-of-band probe fails, forcing fail-closed quarantine (no blind retries)."""
+    def __init__(self, message: str, receipt: Dict[str, Any]):
+        super().__init__(message)
+        self.receipt = receipt
+
+
+
 class TransportDropException(Exception):
     """Simulated or caught transport drop (e.g., HTTP 504 Gateway Timeout, TCP RST)."""
     def __init__(self, status_code: int = 504, message: str = "HTTP 504 Gateway Timeout"):
@@ -100,6 +117,7 @@ class AeiCoreMiddleware:
             ).hex()
         # In-memory registry of resolved action disposition receipts
         self.disposition_history: Dict[str, DispositionReceipt] = {}
+        self.action_to_key: Dict[str, str] = {}
 
     def execute_with_guard(
         self,
@@ -125,7 +143,22 @@ class AeiCoreMiddleware:
             DuplicateExecutionBlockedError: If transport dropped but probe verified prior commit.
             RuntimeError / Exception: If uncommitted or other terminal error.
         """
-        # Pre-dispatch defense: If idempotency_key has already been resolved and retry is forbidden, block immediately
+        # Pre-dispatch defense 1: Detect idempotency-key drift on retries for the same action_id
+        if action_id in self.action_to_key:
+            bound_key = self.action_to_key[action_id]
+            if bound_key != idempotency_key:
+                raise IdempotencyKeyDriftError(
+                    f"Idempotency-key drift detected for action '{action_id}'. "
+                    f"Originally bound to key '{bound_key}', attempted re-dispatch with drifted key '{idempotency_key}'. "
+                    f"Blind re-dispatch blocked.",
+                    action_id=action_id,
+                    original_key=bound_key,
+                    drifted_key=idempotency_key
+                )
+        else:
+            self.action_to_key[action_id] = idempotency_key
+
+        # Pre-dispatch defense 2: If idempotency_key has already been resolved and retry is forbidden, block immediately
         if idempotency_key in self.disposition_history:
             prior = self.disposition_history[idempotency_key]
             if not prior.retry_permitted:
@@ -154,7 +187,25 @@ class AeiCoreMiddleware:
         except TransportDropException as drop:
             # 2. Halt agent loop at ambiguous disposition: UNKNOWN
             # Under fail-closed boundary, retry is prohibited until probe completes.
-            probe_record = out_of_band_probe_fn(idempotency_key)
+            try:
+                probe_record = out_of_band_probe_fn(idempotency_key)
+            except Exception as probe_err:
+                # Target 4: Probe failures and reconciliation outages — FAIL CLOSED
+                receipt = self._create_signed_receipt(
+                    action_id=action_id,
+                    idempotency_key=idempotency_key,
+                    disposition="PROBE_OUTAGE_HOLD",
+                    retry_permitted=False,
+                    wire_status=f"HTTP_{drop.status_code}_DROP",
+                    probe_performed=True,
+                    probe_result=f"PROBE_UNAVAILABLE: {str(probe_err)}"
+                )
+                self.disposition_history[idempotency_key] = receipt
+                raise ProbeOutageError(
+                    f"Out-of-band probe failed during reconciliation for '{idempotency_key}'. "
+                    f"Failing closed: retry prohibited, holding at PROBE_OUTAGE_HOLD.",
+                    receipt=receipt.to_dict()
+                ) from probe_err
 
             if probe_record is not None:
                 # 3. Probe confirms row was committed before the transport dropped
@@ -277,3 +328,41 @@ def verify_disposition_receipt(receipt_dict: Dict[str, Any]) -> bool:
     pub_key.verify(bytes.fromhex(sig_hex), re_canonical_bytes)
 
     return True
+
+
+def aei_guard(
+    probe_fn: Callable[[str], Optional[Dict[str, Any]]],
+    middleware: Optional[AeiCoreMiddleware] = None,
+    key_param: str = "idempotency_key",
+    action_id_param: str = "action_id"
+):
+    """
+    Decorator for agent tool dispatch functions.
+
+    Automatically extracts idempotency_key and action_id from kwargs,
+    intercepts transport exceptions, probes out-of-band upon ambiguous drop,
+    and seals the disposition.
+    """
+    _mw = middleware or AeiCoreMiddleware()
+
+    def decorator(fn: Callable):
+        import functools
+
+        @functools.wraps(fn)
+        def wrapper(*args, **kwargs):
+            idem_key = kwargs.get(key_param)
+            if not idem_key:
+                # If key not explicitly in kwargs, check args or generate deterministic fallback
+                idem_key = f"auto_{hashlib.sha256(str(args).encode()).hexdigest()[:16]}"
+
+            act_id = kwargs.get(action_id_param, f"act_{idem_key[:12]}")
+
+            return _mw.execute_with_guard(
+                action_id=act_id,
+                idempotency_key=idem_key,
+                tool_dispatch_fn=lambda: fn(*args, **kwargs),
+                out_of_band_probe_fn=probe_fn
+            )
+        wrapper.middleware = _mw
+        return wrapper
+    return decorator

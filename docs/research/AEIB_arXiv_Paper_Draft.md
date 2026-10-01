@@ -250,3 +250,17 @@ The "Retry or Else" assumption in autonomous AI agent architectures is fundament
 - **`draft-schrock-canonical-action-identifier-04`**: *Canonical Action Identifier (CAID)* (September 28, 2026).
 - **EMILIA Protocol**: `emilia-protocol` GitHub repository (Informational).
 - **GRIP**: `grip-protocol` (Informational).
+
+
+## Limitations and Proper Interpretation
+
+The findings presented in this paper demonstrate a locally reproducible SQLite benchmark and a locally integration-tested PostgreSQL outcome probe with pooled connections, active statement-timeout cancellation, and pool recovery. 
+
+This research does **not** demonstrate:
+- Independent third-party reproduction.
+- Production readiness or universal exactly-once behavior.
+- Full RFC 8785 (JCS) compliance.
+- Conformance to external standards (such as IETF Internet-Drafts).
+- Regulatory compliance under frameworks like DORA or the EU AI Act.
+
+Furthermore, the reported 0/50 AEIB positive-trial and 0/20 negative-control outcomes remain sample observations. Applying the Rule of Three, the 0/50 result gives an approximate 95% upper bound of 5.8% for the underlying failure probability under the same trial model, and the 0/20 result yields an approximate 95% upper bound of 15%.

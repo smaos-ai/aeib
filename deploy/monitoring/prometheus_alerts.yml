@@ -1,0 +1,42 @@
+groups:
+  - name: aeib_wire_truth_alerts
+    rules:
+      - alert: AEIB_DoraArticle17MajorIncidentAlert
+        expr: increase(aeib_504_timeouts_trapped_total{impact="critical"}[4h]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          compliance: DORA_Article_17
+          regulatory_standard: EBA_RTS_2024_1772
+        annotations:
+          summary: "Potential DORA Major Incident: Post-commit timeout detected in autonomous agent loop"
+          description: "An autonomous agent experienced transport severance after database commit on tenant {{ $labels.tenant_id }}. Authoritative state probe quarantined the action. 4-hour regulatory reporting clock is active."
+
+      - alert: AEIB_MemoryLeakDetected
+        expr: deriv(aeib_memory_rss_bytes[1h]) * 3600 > 15728640
+        for: 15m
+        labels:
+          severity: warning
+          component: substrate_runtime
+        annotations:
+          summary: "Sustained heap memory growth detected in long-haul soak runner"
+          description: "Resident memory RSS is increasing at {{ $value | humanize1024 }}/hour, indicating potential file descriptor, connection pool, or state leak."
+
+      - alert: AEIB_ConnectionPoolSaturation
+        expr: (aeib_db_pool_active_connections / aeib_db_pool_max_connections) >= 0.90
+        for: 30s
+        labels:
+          severity: high
+          component: postgres_probe_adapter
+        annotations:
+          summary: "PostgreSQL probe connection pool near exhaustion (>90%)"
+          description: "Active probe connections reached {{ $value | humanizePercentage }} on {{ $labels.database_host }}."
+
+      - alert: AEIB_DuplicateMutationPrevented
+        expr: increase(aeib_duplicates_prevented_total[5m]) > 0
+        labels:
+          severity: info
+          category: audit_event
+        annotations:
+          summary: "Boundary trapped and blocked duplicate mutation attempt"
+          description: "Tenant {{ $labels.tenant_id }} attempted duplicate debit or tool dispatch for key {{ $labels.idempotency_key }}. Zero financial loss preserved."

@@ -1,0 +1,139 @@
+{
+  "timestamp": "2026-10-02T09:00:11Z",
+  "multi_environment_matrix": [
+    {
+      "environment": "macOS Darwin arm64 (Bare Metal Host)",
+      "database": "PostgreSQL 16.14 (Docker Container)",
+      "suite": "PostgresProbeAdapter Live Integration",
+      "tests_run": 4,
+      "passed": 4,
+      "failed": 0,
+      "mean_latency_ms": 1.706,
+      "p50_latency_ms": 0.569,
+      "p95_latency_ms": 4.06,
+      "total_duration_ms": 138.48,
+      "status": "PASSED"
+    },
+    {
+      "environment": "Linux Container Bridge (Docker)",
+      "database": "PostgreSQL 15.18 (Alpine Container)",
+      "suite": "PostgresProbeAdapter Live Integration",
+      "tests_run": 4,
+      "passed": 4,
+      "failed": 0,
+      "mean_latency_ms": 2.337,
+      "p50_latency_ms": 1.171,
+      "p95_latency_ms": 4.898,
+      "total_duration_ms": 86.23,
+      "status": "PASSED"
+    },
+    {
+      "environment": "macOS Darwin arm64",
+      "runtime": "Python 3.14.3",
+      "database": "SQLite 3 (WAL mode)",
+      "fault_trials": 50,
+      "c0_naive_violations": "50/50 (100%)",
+      "aeib_observed_duplicates": 0,
+      "receipts_verified": "50/50",
+      "negative_controls": "20/20 (100% fail-closed)",
+      "mean_latency_ms": 0.03,
+      "p50_latency_ms": 0.024,
+      "p95_latency_ms": 0.06,
+      "p99_latency_ms": 0.105,
+      "status": "PASSED"
+    }
+  ],
+  "long_haul_soak_test": {
+    "workload": "Continuous Soak Test (10000 operations)",
+    "duration_seconds": 0.68,
+    "throughput_ops_sec": 14761.8,
+    "fault_rate_percentage": 1.0,
+    "faults_injected": 100,
+    "duplicates_prevented": 100,
+    "observed_duplicate_mutations": 0,
+    "memory_rss_start_kb": 45858816,
+    "memory_rss_end_kb": 48529408,
+    "memory_growth_kb": 2670592,
+    "latency_percentiles_ms": {
+      "min": 0.039,
+      "p50": 0.049,
+      "p90": 0.067,
+      "p95": 0.103,
+      "p99": 0.165,
+      "max": 5.116
+    },
+    "checkpoints": [
+      {
+        "checkpoint": 1000,
+        "p50_latency_ms": 0.062,
+        "p95_latency_ms": 0.207,
+        "faults_injected": 10,
+        "duplicates_observed": 0,
+        "rss_kb": 46186496
+      },
+      {
+        "checkpoint": 2500,
+        "p50_latency_ms": 0.048,
+        "p95_latency_ms": 0.063,
+        "faults_injected": 25,
+        "duplicates_observed": 0,
+        "rss_kb": 46612480
+      },
+      {
+        "checkpoint": 5000,
+        "p50_latency_ms": 0.049,
+        "p95_latency_ms": 0.071,
+        "faults_injected": 50,
+        "duplicates_observed": 0,
+        "rss_kb": 47235072
+      },
+      {
+        "checkpoint": 7500,
+        "p50_latency_ms": 0.049,
+        "p95_latency_ms": 0.07,
+        "faults_injected": 75,
+        "duplicates_observed": 0,
+        "rss_kb": 47890432
+      },
+      {
+        "checkpoint": 10000,
+        "p50_latency_ms": 0.049,
+        "p95_latency_ms": 0.068,
+        "faults_injected": 100,
+        "duplicates_observed": 0,
+        "rss_kb": 48529408
+      }
+    ],
+    "verdict": "ZERO_LEAKS_ZERO_DUPLICATES_STABLE"
+  },
+  "third_party_comparison": {
+    "scenario": "Mutating Bank Transfer (\u20ac400) under post-commit HTTP 504 Timeout",
+    "initial_balance": 1000.0,
+    "expected_final_balance": 600.0,
+    "unprotected_agent_framework": {
+      "frameworks": [
+        "LangChain",
+        "AutoGen",
+        "CrewAI",
+        "Native OpenAI Tool Calls"
+      ],
+      "behavior": "Caught timeout exception and triggered prompt-level speculative retry.",
+      "final_balance": 200.0,
+      "duplicate_debits_committed": 1,
+      "financial_loss_eur": 400.0,
+      "verdict": "DUPLICATE_MUTATION_FAILURE"
+    },
+    "aeib_protected_substrate": {
+      "frameworks": [
+        "AEIB In-Process Boundary / STAR Protocol Gate"
+      ],
+      "behavior": "Intercepted 504, executed OOB probe, bound idempotency key, blocked duplicate retry.",
+      "final_balance": 600.0,
+      "duplicate_debits_committed": 0,
+      "financial_loss_eur": 0.0,
+      "receipt_disposition": "CONFIRMED",
+      "receipt_verified": true,
+      "verdict": "FAIL_CLOSED_INVARIANT_PRESERVED"
+    }
+  }
+}

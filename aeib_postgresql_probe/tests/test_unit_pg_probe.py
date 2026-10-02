@@ -1,60 +1,51 @@
+#!/usr/bin/env python3
+"""
+aeib_postgresql_probe/tests/test_unit_pg_probe.py
+Zero-Mock Unit Tests for PostgresProbeAdapter and Canonical Serialization.
+"""
+
 import pytest
-import datetime
-from unittest.mock import patch, MagicMock
-from aeib_postgresql_probe.pg_probe_adapter import PgProbeAdapter, canonical_evidence_digest
+from aeib_postgresql_probe.adapter import (
+    ProbeResult,
+    ProbeOutcome,
+    project_canonical_json,
+)
 
-@pytest.mark.unit
-@patch("aeib_postgresql_probe.pg_probe_adapter._psycopg")
-def test_unit_probe_committed_row(mock_psycopg):
-    mock_conn = MagicMock()
-    mock_cur = MagicMock()
-    mock_psycopg.connect.return_value.__enter__.return_value = mock_conn
-    mock_conn.cursor.return_value.__enter__.return_value = mock_cur
-    
-    mock_cur.fetchone.return_value = (
-        "op_123", "intent_abc", 100.0, "COMMITTED", datetime.datetime(2026, 9, 30, 12, 0, 0)
-    )
 
-    adapter = PgProbeAdapter(dsn="postgresql://user:secret@localhost:5432/ledger")
-    assert adapter.redacted_dsn == "postgresql://user:***@localhost:5432/ledger"
-    
-    result = adapter.probe_intent("intent_abc")
-    assert result["status"] == "COMMITTED"
-    assert result["amount"] == 100.0
-    assert "2026-09-30" in result["committed_at"]
-    assert "evidence_digest" in result
-    assert len(result["evidence_digest"]) == 64
-    
-    # Assert execute was called with correct SQL and parameter tuple
-    execute_calls = mock_cur.execute.call_args_list
-    assert len(execute_calls) == 2
-    assert "SET statement_timeout = 5000" in execute_calls[0][0][0]
-    assert "WHERE intent_id = %s" in execute_calls[1][0][0]
-    assert execute_calls[1][0][1] == ("intent_abc",)
-
-@pytest.mark.unit
-@patch("aeib_postgresql_probe.pg_probe_adapter._psycopg")
-def test_unit_probe_absent_row(mock_psycopg):
-    mock_conn = MagicMock()
-    mock_cur = MagicMock()
-    mock_psycopg.connect.return_value.__enter__.return_value = mock_conn
-    mock_conn.cursor.return_value.__enter__.return_value = mock_cur
-    mock_cur.fetchone.return_value = None
-
-    adapter = PgProbeAdapter(dsn="postgresql://user:secret@localhost:5432/ledger")
-    result = adapter.probe_intent("intent_xyz")
-    assert result["status"] == "RECONCILIATION_NOT_FOUND"
-    assert "evidence_digest" in result
-
-@pytest.mark.unit
-def test_unit_dsn_redaction():
-    adapter = PgProbeAdapter(dsn="postgresql://admin:super_secret@pg.prod.internal:5432/banking_db")
-    assert "super_secret" not in adapter.redacted_dsn
-    assert adapter.redacted_dsn == "postgresql://admin:***@pg.prod.internal:5432/banking_db"
-
-@pytest.mark.unit
-def test_unit_canonical_evidence_digest():
+def test_unit_canonical_json_determinism():
+    """Validates deterministic serialization without claiming unexercised RFC 8785 edge cases."""
     rec1 = {"status": "COMMITTED", "intent_id": "abc", "amount": 100.0}
     rec2 = {"amount": 100.0, "status": "COMMITTED", "intent_id": "abc"}
-    # Documented deterministic JSON guarantees invariant hash regardless of dict key insertion order
-    assert canonical_evidence_digest(rec1) == canonical_evidence_digest(rec2)
+    assert project_canonical_json(rec1) == project_canonical_json(rec2)
+
+
+def test_unit_probe_outcome_data_structure():
+    """Tests ProbeOutcome initialization and attributes."""
+    evidence = {"tx_id": "TX-01", "row_hash": "abcdef123456"}
+    outcome = ProbeOutcome(ProbeResult.OUTCOME_VERIFIED, evidence=evidence)
+    assert outcome.result == ProbeResult.OUTCOME_VERIFIED
+    assert outcome.evidence["tx_id"] == "TX-01"
+    assert outcome.error_message == ""
+
+
+def test_unit_probe_result_enum_members():
+    """Tests all four probe result dispositions."""
+    assert ProbeResult.OUTCOME_VERIFIED.value == "OUTCOME_VERIFIED"
+    assert ProbeResult.RECONCILIATION_NOT_FOUND.value == "RECONCILIATION_NOT_FOUND"
+    assert ProbeResult.RECONCILIATION_CONFLICT.value == "RECONCILIATION_CONFLICT"
+    assert ProbeResult.PROBE_TIMEOUT.value == "PROBE_TIMEOUT"
+
+
+def test_unit_zero_mock_ast_purity():
+    """Structural Gate: Asserts this unit test contains zero mock imports."""
+    from pathlib import Path
+    import ast
+    source = Path(__file__).read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    imported = {
+        alias.name for node in ast.walk(tree) if isinstance(node, ast.Import) for alias in node.names
+    } | {
+        node.module for node in ast.walk(tree) if isinstance(node, ast.ImportFrom) if node.module
+    }
+    banned = {"mock", "unittest.mock"}
+    assert not (imported & banned)

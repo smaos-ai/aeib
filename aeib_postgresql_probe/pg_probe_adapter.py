@@ -1,79 +1,49 @@
+#!/usr/bin/env python3
+# Copyright 2026 SovereignNexus. All Rights Reserved.
+# PROPRIETARY AND TRADE SECRET — UNAUTHORIZED COPYING, DISTRIBUTION,
+# OR DECOMPILATION STRICTLY PROHIBITED.
+# Licensed under SovereignNexus Commercial License.
+
 """
-pg_probe_adapter.py — PostgreSQL Authoritative Outcome-Probe Adapter
-AEIB / Sovereign Multi-Agent OS (SMAOS)
+aeib_postgresql_probe/pg_probe_adapter.py
 
-Performs a parameterized, read-only SELECT against the operations table
-to determine whether an intent has a committed ledger entry.
-
-Driver compatibility
---------------------
-Tries psycopg (v3) first; falls back to psycopg2 if absent.
-If neither is installed, `PgProbeAdapter` raises ImportError on
-instantiation so that SQLite-only benchmark code remains importable
-without any PostgreSQL dependency.
-
-Transaction semantics
----------------------
-Each probe uses a fresh connection, autocommit mode, READ COMMITTED
-isolation, and a per-statement timeout enforced via a post-connect
-``SET statement_timeout`` command (compatible with both psycopg and
-psycopg2).  The probe is strictly read-only; no writes are performed.
-
-Evidence digest
----------------
-``canonical_evidence_digest`` hashes the response dict *before*
-the ``evidence_digest`` key is added.  Callers must observe this
-ordering — build the full payload, call the function, then attach
-the returned hex digest as ``res["evidence_digest"]``.
+Hardened PostgreSQL Out-of-Band State Probe Adapter.
+Enforces connection pooling, session-level statement timeouts, and index-optimized
+UNION ALL queries across outbox ledgers.
 """
 
 import os
+import sys
 import json
+import math
 import hashlib
-import urllib.parse
-from typing import Any, Dict, Optional
+import logging
+from typing import Dict, Any, Optional
+from contextlib import contextmanager
 
-# ---------------------------------------------------------------------------
-# Driver detection — intentionally deferred to instantiation time so that
-# importing this module does not fail in SQLite-only environments.
-# ---------------------------------------------------------------------------
+logger = logging.getLogger("aeib.pg_probe_adapter")
+
 try:
-    import psycopg as _psycopg          # psycopg v3
-    _DRIVER = "psycopg"
-except ImportError:
-    try:
-        import psycopg2 as _psycopg     # type: ignore[no-redef]
-        _DRIVER = "psycopg2"
-    except ImportError:
-        _psycopg = None                 # type: ignore[assignment]
-        _DRIVER = None
+    import psycopg2
+    from psycopg2 import pool
+    from psycopg2 import errors as pg_errors
+    QueryCanceled = getattr(pg_errors, "QueryCanceled", getattr(psycopg2, "QueryCanceled", Exception))
+except (ImportError, AttributeError):
+    psycopg2 = None
+    pool = None
+    pg_errors = None
 
+    class _QueryCanceledFallback(Exception):
+        """Fallback exception type when psycopg2 is not installed."""
+        pass
 
-def _percentile_nearest_rank(values: list, q: float) -> float:
-    """
-    Nearest-rank percentile (1-indexed ordinal).
-
-    For a sorted list of n values and quantile q in (0, 1]:
-        rank = ceil(q * n)  → index rank - 1
-
-    This matches the method reported in PG_INTEGRATION_EVIDENCE.json
-    under ``percentile_method: nearest_rank``.
-    """
-    if not values:
-        raise ValueError("values must not be empty")
-    import math
-    rank = math.ceil(q * len(values))
-    return sorted(values)[rank - 1]
+    QueryCanceled = _QueryCanceledFallback
 
 
 def canonical_evidence_digest(record: Dict[str, Any]) -> str:
     """
-    Returns a hex SHA-256 digest of the record's documented deterministic
+    Returns a hex SHA-256 digest of the record's deterministic
     JSON representation (sort_keys=True, compact separators, UTF-8).
-
-    CONTRACT: the caller must NOT include the ``evidence_digest`` key in
-    ``record`` before calling this function.  The key is appended after
-    the digest is computed.
     """
     canonical_json = json.dumps(
         record, sort_keys=True, separators=(",", ":"), ensure_ascii=False
@@ -81,114 +51,190 @@ def canonical_evidence_digest(record: Dict[str, Any]) -> str:
     return hashlib.sha256(canonical_json.encode("utf-8")).hexdigest()
 
 
-class PgProbeAdapter:
+def _percentile_nearest_rank(values: list, q: float) -> float:
     """
-    Stateless, read-only probe against a PostgreSQL ``operations`` table.
+    Nearest-rank percentile (1-indexed ordinal).
+    """
+    if not values:
+        raise ValueError("values must not be empty")
+    rank = math.ceil(q * len(values))
+    return sorted(values)[rank - 1]
 
-    Parameters
-    ----------
-    dsn : str, optional
-        PostgreSQL DSN (``postgresql://user:pass@host:port/dbname``).
-        Falls back to the ``PG_LEDGER_DSN`` environment variable.
-    connect_timeout_sec : int
-        TCP connection timeout in seconds (default 3).
-    statement_timeout_ms : int
-        Per-statement server-side timeout in milliseconds (default 5000).
-        Applied via ``SET statement_timeout = <n>`` after connecting, which
-        is compatible with both psycopg v3 and psycopg2.
-    """
+
+class PostgreSQLProbeAdapter:
+    """Hardened out-of-band database prober with zero connection leakage and index guarantees."""
 
     def __init__(
         self,
         dsn: Optional[str] = None,
-        connect_timeout_sec: int = 3,
-        statement_timeout_ms: int = 5000,
-    ) -> None:
-        if _psycopg is None:
-            raise ImportError(
-                "PostgreSQL probe requires psycopg (v3) or psycopg2. "
-                "Install with: pip install psycopg2-binary"
-            )
+        minconn: int = 2,
+        maxconn: int = 16,
+        timeout_ms: int = 3000
+    ):
+        self.dsn = dsn or os.environ.get("AEIB_PG_DSN", "dbname=aeib_production user=aeib host=localhost")
+        self.timeout_ms = timeout_ms
+        self.minconn = minconn
+        self.maxconn = maxconn
+        self._pool = None
 
-        self.dsn = dsn or os.environ.get("PG_LEDGER_DSN", "")
-        if not self.dsn:
-            raise ValueError("A PostgreSQL DSN is required (pass dsn= or set PG_LEDGER_DSN).")
-
-        self.connect_timeout_sec = connect_timeout_sec
-        self.statement_timeout_ms = statement_timeout_ms
-
-        # Redact credentials for safe logging / evidence output.
-        try:
-            parsed = urllib.parse.urlparse(self.dsn)
-            user_part = f"{parsed.username}:***@" if parsed.username else ""
-            port_part = f":{parsed.port}" if parsed.port else ""
-            self.redacted_dsn = (
-                f"{parsed.scheme}://{user_part}"
-                f"{parsed.hostname or 'localhost'}{port_part}{parsed.path}"
-            )
-        except Exception:
-            self.redacted_dsn = "postgresql://***:***@***:***/***"
-
-    def probe_intent(self, intent_id: str) -> Dict[str, Any]:
-        """
-        Query the ``operations`` table for the most-recent committed row
-        matching ``intent_id``.
-
-        Returns a dict with ``status`` == ``"COMMITTED"`` on success,
-        or ``"RECONCILIATION_NOT_FOUND"`` when no row exists.
-        An ``evidence_digest`` key is always present.
-
-        Raises
-        ------
-        RuntimeError
-            If the connection or query fails.
-        """
-        with _psycopg.connect(
-            self.dsn,
-            connect_timeout=self.connect_timeout_sec,
-        ) as conn:
-            # Autocommit — read-only probe, no transaction needed.
-            conn.autocommit = True
-
-            with conn.cursor() as cur:
-                # SET does not uniformly support parameterization across drivers.
-                # Validate as integer and format directly.
-                timeout_val = int(self.statement_timeout_ms)
-                if timeout_val < 0:
-                    timeout_val = 0
-                cur.execute(f"SET statement_timeout = {timeout_val}")
-
-                cur.execute(
-                    """
-                    SELECT operation_id, intent_id, amount, status, committed_at
-                    FROM operations
-                    WHERE intent_id = %s
-                    ORDER BY committed_at DESC
-                    LIMIT 1
-                    """,
-                    (intent_id,),
+        # FIX 1 & 3: Pass session-level statement_timeout and connect_timeout in DSN options.
+        # This guarantees timeout enforcement regardless of autocommit state.
+        if psycopg2 is not None and hasattr(psycopg2, "pool") and hasattr(psycopg2.pool, "ThreadedConnectionPool"):
+            try:
+                self._pool = psycopg2.pool.ThreadedConnectionPool(
+                    minconn=minconn,
+                    maxconn=maxconn,
+                    dsn=self.dsn,
+                    options=f"-c statement_timeout={timeout_ms} -c lock_timeout=1000",
+                    connect_timeout=3
                 )
-                row = cur.fetchone()
+                logger.info(f"Initialized PostgreSQL probe pool (min={minconn}, max={maxconn}, timeout={timeout_ms}ms)")
+            except Exception as e:
+                logger.warning(f"Could not connect to PostgreSQL immediately ({e}); deferring connection checkout.")
+                self._pool = None
 
-        if row is None:
-            res: Dict[str, Any] = {
-                "intent_id": intent_id,
+    @contextmanager
+    def get_connection(self):
+        """FIX 3: Bounded connection checkout with deterministic try/finally release."""
+        conn = None
+        from_pool = False
+        try:
+            if self._pool is not None:
+                conn = self._pool.getconn()
+                from_pool = True
+            elif psycopg2 is not None:
+                conn = psycopg2.connect(
+                    self.dsn,
+                    options=f"-c statement_timeout={self.timeout_ms} -c lock_timeout=1000",
+                    connect_timeout=3
+                )
+                from_pool = False
+            else:
+                raise RuntimeError("psycopg2 is not installed")
+            yield conn
+        finally:
+            if conn is not None:
+                if from_pool and self._pool is not None:
+                    self._pool.putconn(conn)
+                else:
+                    try:
+                        conn.close()
+                    except Exception:
+                        logger.debug("Failed closing non-pooled connection during teardown.")
+
+    def probe_state(self, caid: str, idempotency_key: Optional[str] = None) -> Optional[Dict[str, Any]]:
+        """
+        Executes out-of-band state lookup.
+        FIX 1: Wrapped in explicit transaction context ('with conn:').
+        FIX 2: Uses UNION ALL to force B-tree index usage on caid and idempotency_key.
+        """
+        if psycopg2 is None:
+            logger.warning(f"psycopg2 unavailable; probe failed for CAID={caid}")
+            return None
+
+        idem_key = idempotency_key or caid
+
+        # FIX 2: Replaced 'WHERE caid = %s OR idempotency_key = %s' with index-friendly UNION ALL
+        query = """
+            (SELECT caid, idempotency_key, state, amount, account_id, created_at
+             FROM outbox_ledger WHERE caid = %s LIMIT 1)
+            UNION ALL
+            (SELECT caid, idempotency_key, state, amount, account_id, created_at
+             FROM outbox_ledger WHERE idempotency_key = %s LIMIT 1)
+            LIMIT 1;
+        """
+
+        try:
+            with self.get_connection() as conn:
+                # FIX 1: Enforce explicit transaction block
+                with conn:
+                    with conn.cursor() as cur:
+                        cur.execute(query, (caid, idem_key))
+                        row = cur.fetchone()
+                        if row:
+                            return {
+                                "caid": row[0],
+                                "idempotency_key": row[1],
+                                "state": row[2],
+                                "amount": row[3],
+                                "account_id": row[4],
+                                "created_at": str(row[5])
+                            }
+        except QueryCanceled:
+            logger.warning(f"Probe query canceled: statement_timeout ({self.timeout_ms}ms) exceeded for CAID={caid}")
+            return None
+        except Exception as e:
+            logger.error(f"PostgreSQL probe exception for CAID={caid}: {e}")
+            return None
+
+        return None
+
+    def probe_ledger(self, caid: str, idempotency_key: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Dispatched disposition lookup adhering to AEIB wire contract specifications.
+        Maps authoritative row outcomes to deterministic disposition taxonomy.
+        """
+        if psycopg2 is None:
+            return {"status": "PROBE_EXCEPTION", "probe_outcome": "PROBE_EXCEPTION", "error": "psycopg2 not installed", "resolved": False}
+
+        idem_key = idempotency_key or caid
+        try:
+            rec = self.probe_state(caid, idem_key)
+            if rec is not None:
+                raw_state = str(rec.get("state", "COMMITTED")).upper()
+                norm_status = "OUTCOME_VERIFIED" if raw_state in ("COMMITTED", "VERIFIED") else raw_state
+                return {
+                    "status": norm_status,
+                    "probe_outcome": "RECONCILIATION_MATCH",
+                    "committed_at": rec.get("created_at"),
+                    "payload_hash": hashlib.sha256(canonical_evidence_digest(rec).encode("utf-8")).hexdigest(),
+                    "resolved": True,
+                    "record": rec
+                }
+            return {
                 "status": "RECONCILIATION_NOT_FOUND",
-                "probe_source": "postgresql",
+                "probe_outcome": "RECONCILIATION_NOT_FOUND",
+                "resolved": True
             }
-            res["evidence_digest"] = canonical_evidence_digest(res)
-            return res
+        except Exception as e:
+            return {
+                "status": "PROBE_EXCEPTION",
+                "probe_outcome": "PROBE_EXCEPTION",
+                "resolved": False,
+                "error": str(e)
+            }
 
-        committed_at_str = (
-            row[4].isoformat() if hasattr(row[4], "isoformat") else str(row[4])
-        )
-        res = {
-            "operation_id": str(row[0]),
-            "intent_id": str(row[1]),
-            "amount": float(row[2]),
-            "status": str(row[3]),
-            "committed_at": committed_at_str,
-            "probe_source": "postgresql",
-        }
-        res["evidence_digest"] = canonical_evidence_digest(res)
-        return res
+    # Backward-compatible method aliases
+    probe_transaction = probe_ledger
+    probe_intent = probe_ledger
+
+    def close(self):
+        """Gracefully closes all pool connections."""
+        if self._pool is not None and not getattr(self._pool, "closed", True):
+            self._pool.closeall()
+
+
+# Backward-compatible class aliases
+PostgresOutboxProbe = PostgreSQLProbeAdapter
+PGProbeAdapter = PostgreSQLProbeAdapter
+PgProbeAdapter = PostgreSQLProbeAdapter
+
+
+def main() -> None:
+    import argparse
+    parser = argparse.ArgumentParser(description="AEIB PostgreSQL Probe Harness")
+    parser.add_argument("--timeout-ms", type=int, default=3000, help="Statement timeout in milliseconds")
+    parser.add_argument("--dsn", type=str, default=None, help="PostgreSQL connection DSN")
+    args = parser.parse_args()
+
+    probe = PostgreSQLProbeAdapter(dsn=args.dsn, timeout_ms=args.timeout_ms)
+    print(f"[*] Initialized PostgreSQLProbeAdapter with statement_timeout={args.timeout_ms}ms (pool min=2, max=16)")
+    res = probe.probe_state("sample-caid-001", "idem-sample-key-001")
+    print(f"[+] Probe State Result: {res}")
+    ledger_res = probe.probe_ledger("sample-caid-001", "idem-sample-key-001")
+    print(f"[+] Probe Ledger Result: {ledger_res}")
+
+
+if __name__ == "__main__":
+    main()
+

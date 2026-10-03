@@ -1,0 +1,247 @@
+# Copyright 2026 SovereignNexus Project
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+schema_version: "v1.0"
+contract_name: "AEIB Comprehensive 15-Vector Transport-to-Disposition Mapping Contract"
+description: "Authoritative priority-ordered mapping resolving 15 transport wire faults and out-of-band probe observations to deterministic AEIB dispositions and binding retry policies, incorporating industrial-protection-inspired software patterns."
+
+# -----------------------------------------------------------------------------
+# Evaluation Precedence:
+# 1. Socket-Level Wire Severance & Protocol Dropouts
+# 2. Context, Authorization & Policy Boundary Checks
+# 3. Downstream Authoritative State Probe Reconciliation
+# -----------------------------------------------------------------------------
+evaluation_order:
+  - rule_priority_1: "Socket-Level Transport Faults (HTTP 504, TCP RST, Socket Hang)"
+  - rule_priority_2: "Cryptographic Authority, Delegation & Clock Skew Validation"
+  - rule_priority_3: "Policy Engine & Firewall Invariants (AML, Velocity, Quarantine)"
+  - rule_priority_4: "Cluster & Infrastructure Invariants (Failover, Replica Lag, Circuit Breaker)"
+  - rule_priority_5: "Authoritative Primary Ledger OOB Probe Resolution"
+
+mappings:
+  # Vector 1: post_commit_504_drop
+  - id: "VEC-01-POST-COMMIT-504"
+    protection_pattern: "probe-failure escalation pattern"
+    conceptual_analogy: "Breaker failure backup (ANSI 50BF / Zone 1 probe)"
+    vector: "post_commit_504_drop"
+    priority: 10
+    observation: "HTTP_504_GATEWAY_TIMEOUT"
+    condition: "Mutating action dispatched; upstream gateway drops socket after ledger commit"
+    disposition: "DISPATCHED_UNCONFIRMED"
+    post_probe_disposition: "OUTCOME_VERIFIED"
+    retry_policy: "PROHIBITED_ALREADY_COMMITTED"
+    action: "Trap transport exception; execute authoritative OOB probe; confirm commitment and suppress speculative retry."
+
+  # Vector 2: tcp_rst_packet
+  - id: "VEC-02-TCP-RST"
+    protection_pattern: "circuit interlock"
+    conceptual_analogy: "Circuit breaker interlock (ANSI 52)"
+    vector: "tcp_rst_packet"
+    priority: 10
+    observation: "TCP_RST_SEVERANCE"
+    condition: "Socket abruptly reset by peer during in-flight mutation"
+    disposition: "DISPATCHED_UNCONFIRMED"
+    retry_policy: "PROBE_REQUIRED_NO_ORIGINAL_RETRY"
+    action: "Quarantine staged dispatch; block raw socket retry; launch background OOB probe."
+
+  # Vector 3: replica_lag_stale_read
+  - id: "VEC-03-REPLICA-LAG"
+    protection_pattern: "primary-writer fencing"
+    conceptual_analogy: "Directional overcurrent / primary fencing (ANSI 67)"
+    vector: "replica_lag_stale_read"
+    priority: 15
+    observation: "REPLICA_NOT_FOUND_WHILE_PRIMARY_COMMITTED"
+    condition: "Out-of-band probe directed to async standby returning stale NOT_FOUND"
+    disposition: "READ_ONLY_REPLICA_REJECTED"
+    retry_policy: "PROBE_PRIMARY_WRITER_REQUIRED"
+    action: "Enforce primary-writer fencing (SHOW transaction_read_only == 'off'); reroute probe to primary."
+
+  # Vector 4: delayed_commit
+  - id: "VEC-04-DELAYED-COMMIT"
+    protection_pattern: "settlement grace window"
+    conceptual_analogy: "Time-overcurrent / settlement grace (ANSI 51)"
+    vector: "delayed_commit"
+    priority: 20
+    observation: "CLIENT_TIMEOUT_DURING_COMMIT_WINDOW"
+    condition: "Database commit takes 3500ms against a 3000ms client timeout"
+    disposition: "DISPATCHED_UNCONFIRMED"
+    retry_policy: "AWAIT_SETTLEMENT_HORIZON"
+    action: "Stage in outbox; execute bounded repeated polling across settlement grace window."
+
+  # Vector 5: probe_statement_timeout
+  - id: "VEC-05-PROBE-STATEMENT-TIMEOUT"
+    protection_pattern: "probe-failure backup escalation"
+    conceptual_analogy: "Breaker failure backup (ANSI 50BF)"
+    vector: "probe_statement_timeout"
+    priority: 20
+    observation: "QUERY_CANCELED_STATEMENT_TIMEOUT"
+    condition: "OOB query against locked ledger row exceeds 3000ms statement_timeout"
+    disposition: "PROBE_TIMEOUT"
+    retry_policy: "FRESH_AUTHORITY_REQUIRED"
+    action: "Roll back transaction; mark probe timed out; escalate to operator rather than speculative re-dispatch."
+
+  # Vector 6: half_open_socket_hang
+  - id: "VEC-06-HALF-OPEN-HANG"
+    protection_pattern: "dead-socket trip"
+    conceptual_analogy: "Undervoltage / dead-socket trip (ANSI 27)"
+    vector: "half_open_socket_hang"
+    priority: 25
+    observation: "SOCKET_HALF_OPEN_NO_TRAFFIC"
+    condition: "TCP connection stalled with neither ACK nor FIN/RST packet"
+    disposition: "DISPATCHED_UNCONFIRMED"
+    retry_policy: "KILL_SOCKET_LAUNCH_PROBE"
+    action: "Forcefully terminate TCP socket; transition action to unconfirmed; launch independent probe."
+
+  # Vector 7: pre_commit_400_drop
+  - id: "VEC-07-PRE-COMMIT-DROP"
+    protection_pattern: "safe idempotent retry"
+    conceptual_analogy: "Autoreclose / safe retry (ANSI 79)"
+    vector: "pre_commit_400_drop"
+    priority: 30
+    observation: "RECONCILIATION_NOT_FOUND"
+    condition: "Transport severance occurred before transaction reached database engine"
+    disposition: "RECONCILIATION_NOT_FOUND"
+    retry_policy: "SAFE_TO_RETRY"
+    action: "Authoritative prober confirms zero rows persisted; authorized for single idempotent retry with identical key."
+
+  # Vector 8: server_reconciliation_conflict
+  - id: "VEC-08-RECONCILIATION-CONFLICT"
+    protection_pattern: "payload-integrity differential check"
+    conceptual_analogy: "Differential protection / FDI guard (ANSI 87)"
+    vector: "server_reconciliation_conflict"
+    priority: 10
+    observation: "RECONCILIATION_CONFLICT"
+    condition: "Ledger payload hash diverges from staged CAID canonical payload digest"
+    disposition: "RECONCILIATION_CONFLICT"
+    retry_policy: "ESCALATE_NO_RETRY"
+    action: "Immediate state quarantine; halt automated swarm; trigger security integrity alarm."
+
+  # Vector 9: primary_failover_in_flight
+  - id: "VEC-09-PRIMARY-FAILOVER"
+    protection_pattern: "cluster failover detection"
+    conceptual_analogy: "ROCOF / leader election (ANSI 81)"
+    vector: "primary_failover_in_flight"
+    priority: 15
+    observation: "CLUSTER_FAILOVER_IN_FLIGHT"
+    condition: "PostgreSQL leader failover occurs while mutation is in-flight"
+    disposition: "DISPATCHED_UNCONFIRMED"
+    retry_policy: "WAIT_FAILOVER_LEADER_PROBE"
+    action: "Await cluster leader election; query newly promoted primary writer."
+
+  # Vector 10: circuit_breaker_trip
+  - id: "VEC-10-CIRCUIT-BREAKER"
+    protection_pattern: "manual lockout latch"
+    conceptual_analogy: "Lockout relay / bulkhead (ANSI 86)"
+    vector: "circuit_breaker_trip"
+    priority: 25
+    observation: "DOWNSTREAM_503_CIRCUIT_OPEN"
+    condition: "Circuit breaker tripped due to consecutive downstream dependency faults"
+    disposition: "PROBE_EXCEPTION"
+    retry_policy: "EXPONENTIAL_BACKOFF_BULKHEAD"
+    action: "Back off execution; hold staged unconfirmed actions in outbox bulkhead."
+
+  # Vector 11: concurrent_retry_race
+  - id: "VEC-11-CONCURRENT-RACE"
+    protection_pattern: "concurrent race coalescing"
+    conceptual_analogy: "Permissive inter-tripping coalescing (POTT/PUTT)"
+    vector: "concurrent_retry_race"
+    priority: 15
+    observation: "CONCURRENT_DISPATCH_LOCK_CONTENTION"
+    condition: "Two parallel agent worker threads attempt duplicate retry simultaneously"
+    disposition: "RECONCILIATION_CONFLICT"
+    retry_policy: "COALESCE_TO_SINGLE_PROBE"
+    action: "SingleFlight coalescing merges concurrent probes; suppresses duplicate dispatch."
+
+  # Vector 12: malformed_jsonrpc_response
+  - id: "VEC-12-MALFORMED-BODY"
+    protection_pattern: "payload-integrity differential check"
+    conceptual_analogy: "Differential integrity rejection (ANSI 87)"
+    vector: "malformed_jsonrpc_response"
+    priority: 30
+    observation: "UNPARSEABLE_RPC_PAYLOAD"
+    condition: "Downstream returns HTTP 200 with truncated or malformed JSON body"
+    disposition: "INVALID_INPUT"
+    retry_policy: "VALIDATE_AGAINST_OUTBOX_PROBE"
+    action: "Reject wire body as unparseable; fall back to outbox prober for true transaction state."
+
+  # Vector 13: policy_quarantine_rejection
+  - id: "VEC-13-POLICY-QUARANTINE"
+    protection_pattern: "manual lockout latch"
+    conceptual_analogy: "Lockout relay / policy line-stop (ANSI 86)"
+    vector: "policy_quarantine_rejection"
+    priority: 5
+    observation: "SECURITY_POLICY_VIOLATION"
+    condition: "Firewall / AML high velocity detector triggers policy block"
+    disposition: "CONTEXT_POLICY_VIOLATION"
+    retry_policy: "PROHIBITED_POLICY_BLOCK"
+    action: "Halt execution immediately; record policy verdict in signed audit trail."
+
+  # Vector 14: unauthorized_handoff
+  - id: "VEC-14-UNAUTHORIZED-HANDOFF"
+    protection_pattern: "permit interlock"
+    conceptual_analogy: "Permit interlock (ANSI 52)"
+    vector: "unauthorized_handoff"
+    priority: 5
+    observation: "DELEGATION_PERMIT_INVALID"
+    condition: "Agent delegation token missing, unmeasured, or unauthorized"
+    disposition: "AUTHORITY_NOT_BOUND"
+    retry_policy: "PROHIBITED_REAUTH_REQUIRED"
+    action: "Deny execution; require principal re-authorization before dispatch."
+
+  # Vector 15: clock_skew_drift
+  - id: "VEC-15-CLOCK-SKEW"
+    protection_pattern: "clock-skew drift guard"
+    conceptual_analogy: "Synchrophasor clock skew bounds (PMU / IEEE C37.118)"
+    vector: "clock_skew_drift"
+    priority: 5
+    observation: "AUTHORITY_TTL_EXPIRED_OR_SKEWED"
+    condition: "System clock drift shifts timestamp outside allowable TTL window"
+    disposition: "AUTHORITY_NOT_BOUND"
+    retry_policy: "SYNC_NTP_REACQUIRE_PERMIT"
+    action: "Reject execution on stale/skewed clock; sync time authority and reacquire permit."
+
+  # Vector 16: out_of_step_oscillation
+  - id: "VEC-16-OUT-OF-STEP-OSCILLATION"
+    protection_pattern: "retry-oscillation detector"
+    conceptual_analogy: "Out-of-step protection (ANSI 78)"
+    vector: "out_of_step_oscillation"
+    priority: 5
+    observation: "RETRY_LOOP_OSCILLATION_LIMIT_EXCEEDED"
+    condition: "Agent flips >= 6 times between DISPATCHED_UNCONFIRMED and RECONCILIATION_NOT_FOUND"
+    disposition: "COMPENSATION_FAILED_MANUAL_INTERVENTION_REQUIRED"
+    retry_policy: "LOCKED_OUT_MANUAL_RESET_REQUIRED"
+    action: "Irreversibly trip manual lockout latch; halt automated retry swarm; require Ed25519 operator signature to clear."
+
+  # Vector 17: swarm_transfer_trip
+  - id: "VEC-17-TRANSFER-TRIP-BROADCAST"
+    protection_pattern: "peer cancellation pattern"
+    conceptual_analogy: "Permissive transfer trip (POTT/PUTT)"
+    vector: "swarm_transfer_trip"
+    priority: 5
+    observation: "PEER_TRANSFER_TRIP_RECEIVED"
+    condition: "Swarm peer worker trips line fault; emits transfer trip via multicast bus"
+    disposition: "COMPENSATION_FAILED_MANUAL_INTERVENTION_REQUIRED"
+    retry_policy: "ABORT_IN_FLIGHT_MUTATIONS"
+    action: "Immediately cancel and abort all in-flight peer actions across swarm workers."
+
+  # Vector 18: forensic_disturbance_recording
+  - id: "VEC-18-FORENSIC-DISTURBANCE-RECORDING"
+    protection_pattern: "execution sequence/fault/disturbance records"
+    conceptual_analogy: "Forensic disturbance triad (SER / FR / DDR)"
+    vector: "forensic_disturbance_event"
+    priority: 1
+    observation: "DISTURBANCE_TRIAD_RECORDED"
+    condition: "Any protective relay trips; captures SER event sequence, FR fault snapshot, and DDR dynamic trace"
+    disposition: "OUTCOME_VERIFIED"
+    retry_policy: "AUDIT_LOG_COMMITTED"
+    action: "Persist immutable cryptographic receipt under EU AI Act Art. 12 & ISO/IEC 42001."

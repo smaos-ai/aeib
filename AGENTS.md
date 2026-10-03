@@ -1,4 +1,35 @@
-# AGENTS.md — SISS Multi-Agent Session Patterns
+# SMAOS / AEIB Agent Directives & Epistemic Boundaries
+
+## 1. STRICT EPISTEMIC & LINGUISTIC BOUNDARIES
+You are operating under a strict epistemic lock.
+- **PERMITTED WORDS:** "observed", "tested", "evaluated", "configured", "under the stated model", "prototype", "scaffold".
+- **BANNED WORDS:** "guaranteed", "proven universally", "bulletproof", "enterprise-grade", "production-safe", "100% secure".
+- **VIOLATION:** If you use a banned word in code comments, docs, or output, you must immediately self-correct and rewrite the sentence.
+
+## 2. ZERO-MOCK & CRYPTOGRAPHIC PURITY
+- **NO FAKE CRYPTO:** Never use `mock_signature`, `stub_hash`, or hardcoded hex strings to simulate cryptographic operations. All signing must use `cryptography.hazmat` (Ed25519) or equivalent real primitives.
+- **NO BYPASS GATES:** Never write code that returns `True` or bypasses a check to make a test pass. If a test fails, the logic is wrong; fix the logic, do not mock the assertion.
+- **JCS COMPLIANCE:** All JSON canonicalization must strictly follow RFC 8785 (UTF-16 code unit sorting, no extraneous whitespace).
+
+## 3. SUPPLY CHAIN & NETWORK ISOLATION
+- **NO UNVETTED DEPENDENCIES:** Do not add new `pip` or `cargo` dependencies without explicit user approval. Prefer Python stdlib or existing locked dependencies.
+- **ZERO EGRESS:** Never write code that makes outbound HTTP requests to external APIs (e.g., OpenAI, Anthropic, public telemetry) unless explicitly building the isolated `research.py` module.
+- **NO GLOBAL MODIFICATIONS:** Never modify `~/.ssh/config`, global `git config`, or host network routing without explicit, step-by-step user authorization.
+
+## 4. MANDATORY VERIFICATION LOOPS
+Before declaring any task complete, you MUST execute the local verification harness:
+1. `python3 compliance/check_zone_boundary.py` (Enforces Zone 1 / Zone 2 import purity)
+2. `python3 compliance/ast_purity.py .` && `python3 compliance/no_mock_enforcer.py` (Zero-mock AST purity)
+3. `pytest tests/test_industrial_protection_matrix.py tests/test_ansi_50bf_breaker_failure.py tests/test_saga_compensation.py tests/test_falsifiability_matrix.py -v` (Core logic tests)
+4. `python3 benchmarks/aeib_execution_integrity/run_episodes.py --episodes 500 --seed 42` (Deterministic 500-episode harness)
+
+## 5. ARCHITECTURAL SCAFFOLDING AWARENESS
+- **eBPF / TDX / SEV:** Code in `ebpf/` or `hardware_attestation/` is currently structural scaffolding. Do not claim it provides live kernel/hardware enforcement in comments or docs.
+- **Consistency:** The saga compensator provides *eventual consistency* via asynchronous queues, NOT atomic distributed rollback (2PC). Document this accurately.
+
+---
+
+# SISS Multi-Agent Session Patterns
 
 ## Writer / Reviewer Pattern (Agent-Pair Programming)
 
@@ -53,7 +84,7 @@ For risky changes (behavioral firewall, gatekeeper, federation):
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **SovereignNexus** (24632 symbols, 40041 relationships, 199 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **smaos** (71993 symbols, 115342 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
@@ -76,10 +107,10 @@ This project is indexed by GitNexus as **SovereignNexus** (24632 symbols, 40041 
 
 | Resource | Use for |
 |----------|---------|
-| `gitnexus://repo/SovereignNexus/context` | Codebase overview, check index freshness |
-| `gitnexus://repo/SovereignNexus/clusters` | All functional areas |
-| `gitnexus://repo/SovereignNexus/processes` | All execution flows |
-| `gitnexus://repo/SovereignNexus/process/{name}` | Step-by-step execution trace |
+| `gitnexus://repo/smaos/context` | Codebase overview, check index freshness |
+| `gitnexus://repo/smaos/clusters` | All functional areas |
+| `gitnexus://repo/smaos/processes` | All execution flows |
+| `gitnexus://repo/smaos/process/{name}` | Step-by-step execution trace |
 
 ## CLI
 

@@ -1,0 +1,8 @@
+Title: AEIB: A Transport-to-Disposition Mapping Contract for Autonomous Agent Execution Integrity
+Category: cs.AI (primary), cs.CR (secondary)
+
+- LaTeX source only; compilation is performed by arXiv's TeX engine.
+- ANSI/IEEE/IEC terminology is informational and conceptual. AEIB does not implement power-system protection functions or interoperate with IEC 61850 equipment.
+- IETF drafts are cited as work in progress with draft names and dates.
+- The Zenodo DOI in the author footnote is pending final deposit of the Zone 1 archive.
+- This work describes an open-core specification (Apache 2.0); enterprise extensions are proprietary and out of scope.

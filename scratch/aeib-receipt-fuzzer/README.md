@@ -1,3 +1,5 @@
+> **Experimental code; not part of any release; not licensed for redistribution.**
+
 # aeib-receipt-fuzzer
 
 **Wire-Level Fault Proxy, Toxic Receipt Detector & Offline Audit Log Scanner.**
@@ -10,7 +12,7 @@
 
 Version 0.2.0 · Zero dependencies · Python 3.12+ stdlib only
 
-> ### *"Every agent harness logs success. Almost none of them test whether the success was justified by the evidence at the wire."*
+> ### **The Objective: Falsifiable Verification of Agent Execution at the Wire**
 >
 > **Target Audience**: **Backend & Platform Leads, Payment Engineers, AI Infrastructure Teams**  
 > **The Problem**: False `CONFIRMED` receipts emitted under transport failure create silent ledger drift and retry storms.  
@@ -132,9 +134,9 @@ Deterministic test fixtures covering every state machine transition:
 ---
 
 ### 💼 Staging Forensic Audit
-Operating mutating AI workflows? We deliver 5-day bounded audits (€1,500 intro rate / €2,500 standard) under NDA with a guaranteed `git apply fix.patch`.  
-- **Tier 1 Diagnostic (€1,500 / 48-Hour Sprint)**: Ingest 250+ staging traces, compute Toxic Receipt Index (TRI %), map retry hazards.
-- **Tier 2 Forensic Audit (€2,500 / 5-Day Sprint)**: Full wire-level fault injection, 30-day trace analysis, and delivery of a `git apply fix.patch` remediation.
+Operating mutating AI workflows? We deliver 5-day bounded audits under NDA with a guaranteed `git apply fix.patch`.  
+- **Tier 1 Diagnostic (48-Hour Sprint)**: Ingest 250+ staging traces, compute Toxic Receipt Index (TRI %), map retry hazards.
+- **Tier 2 Forensic Audit (5-Day Sprint)**: Full wire-level fault injection, 30-day trace analysis, and delivery of a `git apply fix.patch` remediation.
 
 📩 **Contact**: [andrejlo123@gmail.com](mailto:andrejlo123@gmail.com)
 

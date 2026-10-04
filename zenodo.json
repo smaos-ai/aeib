@@ -1,7 +1,7 @@
 {
-  "title": "Agent Execution Integrity Benchmark (AEIB) Core v0.2.4: Open Specification and Offline Verification Harness",
-  "description": "The Agent Execution Integrity Benchmark (AEIB) Core v0.2.4 (Zone 1 — Open Core) is an open, offline-reproducible specification and verification harness establishing deterministic execution boundaries for autonomous AI agents interfacing with mutating external tools. AEIB prevents duplicate side-effects caused by prompt semantic drift during retry loops following post-dispatch transport severance (e.g., HTTP 504, TCP RST). Zone 1 provides the normative 15-vector wire fault-to-disposition mapping contract, RFC 8785 JSON Canonicalization Scheme (JCS) payload digest derivation, Canonical Action Identifier (CAID) mechanics, an industrial-protection-inspired software governor (probe-failure escalation, manual lockout latch, peer cancellation, retry-oscillation detector), an offline SCITT receipt verifier with 0-byte cloud egress, and a 500-episode reproducible benchmark suite (0/500 duplicate mutations, Rule-of-Three 95% upper bound of 0.60%). Distributed under the Apache License 2.0. Proprietary high-concurrency connection lease poolers, hardware enclave custody, and GRC regulatory reporting tools reside in Zone 2 under commercial licensing.",
-  "version": "v1.0-review",
+  "title": "Agent Execution Integrity Benchmark (AEIB) & Sovereign Multi-Agent OS (SMAOS) Open Core Protocol Specification v1.0",
+  "description": "This deposit contains the open-core protocol specification, normative transport-to-disposition mapping contract (15 fault vectors), standalone SCITT-style receipt verifier (aeib_verify.py), industrial-protection-inspired execution governor (src/protection_governor.py), and 500-episode fault-injection benchmark harness for the Agent Execution Integrity Benchmark (AEIB v1.0).\n\nAEIB solves the \"last-mile settlement gap\" in enterprise autonomous agent runtimes, where mid-flight network disruptions (such as HTTP 504 Gateway Timeouts or TCP resets) cause uncoordinated retries, resulting in duplicate financial mutations and ledger drift.\n\nKey Contents:\n1. Normative Contract: docs/transport-to-disposition-mapping.yaml (15 wire fault vectors)\n2. Offline Verifier: Standalone Python receipt verifier (aeib_verify.py) executing with zero external network egress.\n3. Execution Governor: Software state-machine safeguards implementing probe-failure escalation, manual lockout latching, and peer cancellation patterns.\n4. Benchmark Suite: 500-episode deterministic fault-injection harness demonstrating 0 duplicate writes in simulation (Arm 4; Rule-of-Three 95% CI <= 0.60% under the simulated fault model).",
+  "version": "v1.0",
   "upload_type": "software",
   "publication_date": "2026-10-02",
   "access_right": "open",
@@ -15,29 +15,18 @@
     }
   ],
   "keywords": [
-    "agent governance",
-    "transport fault reconciliation",
-    "idempotency",
-    "AI safety",
-    "execution integrity",
-    "post-dispatch failure",
-    "local_harness",
-    "deterministic testing",
-    "cryptographic receipts",
-    "Rule of Three",
-    "CAID",
-    "RFC 8785",
+    "AI Agent Governance",
+    "Execution Finality",
     "SCITT",
-    "industrial protection patterns",
-    "Zone 1 Open Core"
+    "COSE_Sign1",
+    "RFC 8785 JCS",
+    "Idempotency",
+    "Transport Faults",
+    "DORA",
+    "EU AI Act"
   ],
-  "notes": "Zone 1 Open Core Release Identity: AEIB Core v1.0-review-final (Apache 2.0)\nRepository: https://github.com/sovreignnexus/smaos\nDOI: 10.5281/zenodo.22844531\nIncluded Zone 1 Artifacts: docs/transport-to-disposition-mapping.yaml, aei_core/, src/protection_governor.py, aeib_verify.py, dist/smaos_verify.wasm, benchmarks/, tests/\nTest Command: pytest tests/test_industrial_protection_matrix.py tests/test_ansi_50bf_breaker_failure.py tests/test_saga_compensation.py tests/test_falsifiability_matrix.py -v\nCompliance Command: python3 compliance/ast_purity.py .\nBenchmark Command: python3 benchmarks/aeib_execution_integrity/run_episodes.py --episodes 500 --seed 42\nEvidence Classification: local_harness verified under IETF 126 nomenclature. Rule of Three 95% upper bound: 0.60% (0/500 duplicates observed). Cross-benchmark validation: duplicate-side-effect-desk (r2=0), ARIB-REPLAY-001 (held), AgentDisruptBench (20/20 trapped), tau2-bench tasks 083-085 (resolved).\nDual-Licensing Boundary: Zone 1 (Open Core) published under Apache 2.0; Zone 2 (Enterprise PostgreSQL Lease Pooler, HSM Enclave, DORA/AI Act Exporters) governed by Sovereign Commercial License.",
+  "notes": "Archive SHA-256 Digest: 93050f247c5b3224956ddf5dbe4cbeb8d920d5e362393cd031d3388b95efba02\nDistribution Bundle: aeib-v1.0-review.tar.gz\nLicensing: Apache License 2.0 (Zone 1 Open Core)",
   "related_identifiers": [
-    {
-      "identifier": "10.5281/zenodo.22844531",
-      "relation": "isVersionOf",
-      "resource_type": "software"
-    },
     {
       "identifier": "arXiv:2609.29095",
       "relation": "references",

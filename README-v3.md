@@ -2,11 +2,11 @@
 
 > **Dual-Licensing & Release Architecture Statement:**  
 > **SovereignNexus operates under a module-level dual-licensing boundary.**  
-> **Zone 1 (Open Core)** is distributed under the **Apache License 2.0** and indexed on Zenodo under DOI [`10.5281/zenodo.22844531`](https://doi.org/10.5281/zenodo.22844531). It establishes an open, verifiable execution integrity specification, Noun/Verb CAID derivation, offline verifier, and 500-episode benchmark suite.  
+> **Zone 1 (Open Core)** is distributed under the **Apache License 2.0** and indexed on Zenodo under DOI [`pending-deposit`](https://doi.org/pending-deposit). It establishes an open, verifiable execution integrity specification, Noun/Verb CAID derivation, offline verifier, and 500-episode benchmark suite.  
 > **Zone 2 (Enterprise Proprietary)** is governed by the **Sovereign Commercial License** and trade-secret protections. It contains high-concurrency database connection lease poolers, confidential hardware enclave wrappers, and automated regulatory compliance exporters.
 
 [![Release](https://img.shields.io/badge/release-v0.2.4-blue.svg)](https://github.com/sovreignnexus/smaos/releases/tag/v0.2.4)
-[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.22844531-blue.svg)](https://doi.org/10.5281/zenodo.22844531)
+[![DOI](https://img.shields.io/badge/DOI-pending--deposit-lightgrey.svg)](https://zenodo.org)
 [![License: Apache-2.0 (Zone 1)](https://img.shields.io/badge/Zone%201-Apache%202.0-green.svg)](LICENSE)
 [![License: Commercial (Zone 2)](https://img.shields.io/badge/Zone%202-Commercial%20Proprietary-orange.svg)](ip-architecture.md)
 [![Egress](https://img.shields.io/badge/egress-0%20bytes%20(air--gapped)-success.svg)](#privacy--zero-egress-invariant)
@@ -23,7 +23,7 @@
 ├───────────────────────────────┼───────────────────────────────┼─────────────────────────────┤
 │ **Zone 1: Open Core**         │ • `docs/transport-to-`        │ Normative 15-vector wire    │
 │ (Apache License 2.0)          │   `disposition-mapping.yaml`  │ fault-to-disposition rules. │
-│ DOI: `10.5281/zenodo.22844531`│ • `src/aeib_core/` (or        │ RFC 8785 JCS payload        │
+│ DOI: `pending-deposit`│ • `src/aeib_core/` (or        │ RFC 8785 JCS payload        │
 │                               │   `aei_core/`)                │ canonicalization & CAID     │
 │                               │ • `src/protection_governor.py`│ derivation logic.           │
 │                               │ • `aeib_verify.py` /          │ Industrial-protection-      │
@@ -144,7 +144,7 @@ Zone 2 delivers high-throughput, hardened enterprise infrastructure for mission-
 Zone 1 defines the abstract probing contract, while Zone 2 contains the production-hardened implementation featuring connection lease pooling, defensive statement timeout enforcement (`statement_timeout=3000`), sub-3ms B-tree `UNION ALL` index query optimizations, and replica lag fencing for high-throughput enterprise databases.
 
 ### Q4: How does Zone 1 publication protect our organization against third-party patent litigation?
-By publishing Zone 1 specifications and benchmark harnesses to Zenodo under DOI [`10.5281/zenodo.22844531`](https://doi.org/10.5281/zenodo.22844531), SovereignNexus establishes timestamped public prior art. Patent offices globally (USPTO, EPO, JPO) will reject competitor patent applications targeting these idempotency and state-probing mechanics.
+By publishing Zone 1 specifications and benchmark harnesses to Zenodo under DOI [`pending-deposit`](https://doi.org/pending-deposit), SovereignNexus establishes timestamped public prior art. Patent offices globally (USPTO, EPO, JPO) will reject competitor patent applications targeting these idempotency and state-probing mechanics.
 
 ---
 
@@ -202,5 +202,5 @@ To maintain absolute scientific integrity, AEIB operates under these six explici
 * **Lead Researcher**: Andrii Leukhin (Founder, SovereignNexus)
 * **Email**: `andrejlo123@gmail.com`
 * **Repository**: [https://github.com/sovreignnexus/smaos](https://github.com/sovreignnexus/smaos)
-* **Open Core DOI**: [`10.5281/zenodo.22844531`](https://doi.org/10.5281/zenodo.22844531)
+* **Open Core DOI**: [`pending-deposit`](https://doi.org/pending-deposit)
 * **Enterprise Inquiries**: Contact via email for Zone 2 enterprise licensing, on-premise pilot deployments, or staging diagnostic audit agreements.

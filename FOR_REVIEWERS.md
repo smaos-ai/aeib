@@ -4,7 +4,7 @@
 **Lead Researcher:** Andrii Leukhin (`andrejlo123@gmail.com`)  
 **Repository:** [https://github.com/sovreignnexus/smaos](https://github.com/sovreignnexus/smaos) (Tag: `v1.0-review`)  
 **Package:** `dist/aeib-enterprise-v1.0.tar.gz` (SHA-256: `cf3a319ee801784fae303b534178c5590020bc72990cd0119e7753a15abb6525`)  
-**DOI:** [`10.5281/zenodo.22844531`](https://doi.org/10.5281/zenodo.22844531)  
+**DOI:** [`pending-deposit`](https://doi.org/pending-deposit)  
 **Format Designation:** `AEIB_ENTERPRISE_V1_0_REVIEW`  
 
 > **Definitive Release Statement:**  
@@ -59,7 +59,7 @@ These controls complement—not replace—policy, authorization, and human overs
 |  | **IETF `draft-dogru-cedulon-core-02` (Cedulon)** | Defines spend receipts and `cedulon_audit` out-of-band rail extract reconciliation. | Generalizes the OOB reconciliation probe to all JSON-RPC and REST tool-call transports. |
 |  | **IETF `draft-das-agentic-execution-finality-00`** | Defines Candidate Acts, Non-Effective State, and Tool-Dispatch Finality Sinks. | Supplies the transport-to-disposition mapping contract consumed by the Finality Sink during ambiguity. |
 |  | **IETF `draft-noa-scitt-ai-agent-receipt-01`** | Standardizes SCITT COSE_Sign1 format and hash-chained receipt profiles. | Implements the mapping contract that determines the recorded disposition and retry policy. |
-|  | **VERITAS OS (Zenodo 10.5281/zenodo.22844531)** | Defines `EFFECT_UNKNOWN` state, single-use auth consumption, and sandbox TLS dispatch. | Defines the versioned YAML mapping contract and binding retry-policy enumeration (`docs/transport-to-disposition-mapping.yaml`). |
+|  | **VERITAS OS (Zenodo pending-deposit)** | Defines `EFFECT_UNKNOWN` state, single-use auth consumption, and sandbox TLS dispatch. | Defines the versioned YAML mapping contract and binding retry-policy enumeration (`docs/transport-to-disposition-mapping.yaml`). |
 | **4. Pre-Dispatch & Identity Platforms** | **NVIDIA OpenShell + SAP Joule Studio** | Pre-dispatch boundary enforcement, BlueField-4 DPU watchdog, and enterprise business policy. | Governs the post-dispatch settlement window after a permitted action's socket is severed. |
 |  | **Beltic ($7.3M seed led by Norwest, Sep 30, 2026)** | "Agent verification infrastructure" — who an agent is, what it's allowed to do, what it's trying to accomplish. | Identity + intent, not post-dispatch settlement. |
 |  | **Reco ($140M total, AT&T Ventures, Sep 28, 2026)** | Agentic security — "40% of agents have toxic combination: access to sensitive files + open to internet". | Discovery + graph, not settlement. |

@@ -31,7 +31,7 @@
 \title{AEIB: A Transport-to-Disposition Mapping Contract for Autonomous Agent Execution Integrity}
 
 \author{Andrii~Leukhin%
-\thanks{A. Leukhin is an independent systems and security researcher with the SovereignNexus Project (e-mail: andrejlo123@gmail.com). ORCID: 0009-0004-9543-8263. Artifact Repository: \url{https://github.com/SovereignNexus/smaos} (Zenodo DOI: \url{10.5281/zenodo.22844531}, pending release deposit).}}
+\thanks{A. Leukhin is an independent systems and security researcher with the SovereignNexus Project (e-mail: andrejlo123@gmail.com). ORCID: 0009-0004-9543-8263. Artifact Repository: \url{https://github.com/SovereignNexus/smaos} (Zenodo DOI: pending deposit; SHA-256: \texttt{1e464a035aee0f642a3cde5f9d062627cb5b580e8a93b0e4c149a691e6742e76}).}}
 
 \markboth{IEEE Transactions on Dependable and Secure Computing,~Vol.~XX, No.~X, October~2026}%
 {Leukhin: AEIB: A Transport-to-Disposition Mapping Contract for Autonomous Agent Execution Integrity}
@@ -162,7 +162,10 @@ Empirically bounding this problem, Microsoft Foundry's landmark \textbf{\emph{Li
 
 At the enterprise runtime and governance layers, \textbf{NVIDIA OpenShell and SAP Joule Studio}~\cite{openshell2026} govern pre-dispatch enterprise rules across 100+ partner organizations with BlueField-4 DPU watchdogs. Emerging funded infrastructure startups---including \textbf{Beltic} (\$7.3M seed led by Norwest)~\cite{beltic2026} for agent identity and intent attestation, \textbf{Reco AI} (\$140M total, AT\&T Ventures)~\cite{reco2026} for agentic graph security discovery (``40\% of agents have toxic combination: access to sensitive files + open to internet''), and \textbf{Transient.AI} (backed by Nasdaq Ventures strategic investment)~\cite{transient2026} for declarative financial agent sandboxes (``Bank-grade governance for enterprise AI'')---address identity, discovery, and policy boundaries. In production financial settlement, \textbf{Smartstream 26.10}~\cite{smartstream2026} achieves a 97\% reduction in exception investigation time across 10B transactions/month. At the kernel layer, \textbf{ContractWarden}~\cite{contractwarden2026} enforces a human-authorized tri-state asset boundary (\texttt{allow}, \texttt{deny}, \texttt{no\_egress}) via Linux eBPF LSM data planes, while \textbf{GuardClaw}~\cite{guardclaw2026} implements out-of-process PKCS\#11 signing daemons.
 
-\textbf{AEIB unifies and completes this landscape:} while peers govern pre-dispatch policy, agent identity, receipt formatting, and kernel execution, AEIB occupies the unaddressed post-dispatch settlement window by providing the versioned YAML mapping contract, binding retry-policy vocabulary, and zero-dependency offline derivation verifier.
+\textbf{AEIB unifies and completes this landscape:} while peers govern pre-dispatch policy, agent identity, receipt formatting, and kernel execution, AEIB occupies the unaddressed post-dispatch settlement window by providing the versioned YAML mapping contract, binding retry-policy vocabulary, and zero-dependency offline derivation verifier. This directly operationalizes adaptive measurement principles~\cite{adaptive2026} and calibrated Bayesian observation dispositions~\cite{bayesian2026} at the physical execution boundary. Furthermore, recent multi-agent benchmarks such as \emph{AgentWorld} (COLM 2026)~\cite{agentworld2026} reveal that multi-agent teams achieve only a 12\% coordination success rate, with a Causal Collaboration Effectiveness (CCE) of 0.320 indicating that 68\% of team actions are non-contributory waste. This waste is driven by post-dispatch state ambiguity and plan drift when action receipts are unconfirmed. AEIB eliminates this coordination tax through per-action cryptographic receipt chaining and deterministic outbox settlement.
+
+\subsection{Prompts Are Not Execution Boundaries}
+Recent mechanistic evaluations by Usama et al.~\cite{usama2026systemprompt} across 17 instruction-tuned architectures demonstrate that system prompt preambles induce negligible internal computational restructuring (mean CKA correlation $\approx 0.997$ between restrictive and permissive preambles). Consequently, prompts communicate behavioral guidance but cannot serve as deterministic execution or security boundaries. Consequential actions require enforcement mechanisms outside the model: least privilege, sandboxing, and outbox settlement gates. Furthermore, while latent KV-cache fusion mechanisms such as \emph{Cache-to-Cache} (ICLR 2026)~\cite{fu2026c2c} optimize direct inter-model representation sharing, AEIB explicitly bounds its protocol scope to structured, serializable text-based tool interactions (MCP, JSON-RPC, REST/HTTP) where action parameters map to verifiable external sinks.
 
 \section{The AEIB Architecture: v0.2.4 Verified Core}
 
@@ -532,8 +535,23 @@ Reco AI, ``Agentic Security Graph and Sensitive Asset Boundary Discovery,'' Sept
 \bibitem{transient2026}
 Transient.AI and Nasdaq Ventures, ``Declarative Agentic Framework (DAF): Bank-Grade Governance for Enterprise AI,'' Sept. 2026.
 
+\bibitem{adaptive2026}
+A.~Montanaro and S.~Piddock, ``Adaptivity is All You Need: Optimal Stabilizer Learning Using Just Single-Copy Measurements,'' \emph{arXiv preprint arXiv:2610.02031}, Oct. 2026.
+
+\bibitem{bayesian2026}
+K.~Gao \emph{et~al.}, ``Knowing When to Ask for Help: Bayesian Self-Escalation in Hierarchical LLM Agents,'' \emph{arXiv preprint arXiv:2608.24087}, Aug. 2026.
+
 \bibitem{smartstream2026}
 Smartstream, ``Smart Reconciliations Premium 26.10: Automated Exception Resolution for Tier-1 Banks,'' Sept. 2026.
+
+\bibitem{agentworld2026}
+Z.~Zhang \emph{et~al.}, ``AgentWorld: Evaluating Multi-Agent Collaboration and Causal Coordination in Dynamic Environments,'' in \emph{Proc. Conf. Lang. Model. (COLM)}, arXiv:2609.31590, 2026.
+
+\bibitem{usama2026systemprompt}
+M.~Usama \emph{et~al.}, ``The System Prompt Illusion: How Instruction Preambles Modify Computation in Language Models,'' \emph{arXiv preprint arXiv:2609.38205}, Sept. 2026.
+
+\bibitem{fu2026c2c}
+Y.~Fu \emph{et~al.}, ``Cache-to-Cache: Direct KV-Cache Fusion for Efficient Inter-Agent Communication,'' in \emph{Proc. Int. Conf. Learn. Represent. (ICLR)}, arXiv:2510.03215, 2026.
 
 \end{thebibliography}
 

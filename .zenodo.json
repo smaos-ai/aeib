@@ -25,7 +25,7 @@
     "DORA",
     "EU AI Act"
   ],
-  "notes": "Archive SHA-256 Digest: 93050f247c5b3224956ddf5dbe4cbeb8d920d5e362393cd031d3388b95efba02\nDistribution Bundle: aeib-v1.0-review.tar.gz\nLicensing: Apache License 2.0 (Zone 1 Open Core)",
+  "notes": "Archive SHA-256 Digest: 1e464a035aee0f642a3cde5f9d062627cb5b580e8a93b0e4c149a691e6742e76\nDistribution Bundle: aeib-v1.0-review.tar.gz\nLicensing: Apache License 2.0 (Zone 1 Open Core)",
   "related_identifiers": [
     {
       "identifier": "arXiv:2609.29095",

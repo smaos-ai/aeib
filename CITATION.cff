@@ -1,27 +1,29 @@
 cff-version: 1.2.0
-title: "Agent Execution Integrity Benchmark (AEIB) v0.2.4"
+title: "Agent Execution Integrity Benchmark (AEIB) Enterprise v1.0"
 message: >-
-  If you use this artifact, please cite it using the metadata from this file.
+  If you use this artifact or evaluation data, please cite it using the metadata from this file.
 type: software
 authors:
   - family-names: Leukhin
     given-names: Andrii
+    affiliation: SovereignNexus
     email: andrejlo123@gmail.com
-    orcid: ""
+    orcid: "https://orcid.org/0009-0004-9543-8263"
 repository-code: "https://github.com/SovereignNexus/smaos"
 url: "https://github.com/SovereignNexus/smaos"
 abstract: >-
-  The Agent Execution Integrity Benchmark (AEIB) v0.2.4 is a locally
-  reproducible evaluation harness demonstrating that autonomous AI agents
-  suffer duplicate mutations when suffering semantic drift during retry loops
-  after a post-commit HTTP 504 transport severance. AEIB enforces a
-  four-step boundary (state freeze, out-of-band authoritative probe,
-  JCS + Ed25519 cryptographic receipt, and offline verification) to achieve
-  zero observed duplicate debits across 50 deterministic fault trials.
-  The release includes a versioned transport-to-disposition mapping contract,
-  an explicit retry-policy vocabulary, a standalone offline verifier, and
-  a live PostgreSQL integration suite. Status: locally executed and internally
-  reproducible; external independent reproduction pending.
+  The Agent Execution Integrity Benchmark (AEIB) Enterprise v1.0 is an
+  offline-reproducible evaluation distribution demonstrating that autonomous AI
+  agents suffer duplicate mutations when encountering semantic drift during retry
+  loops following post-commit HTTP 504 transport severance. AEIB implements an
+  in-process wire trap, causal lineage binding, authoritative PostgreSQL state
+  probing with statement timeouts, deterministic disposition mapping, and
+  offline-verifiable cryptographic receipts. This review candidate packages the
+  verified v0.2.4 core (0/500 duplicate mutations, Rule-of-Three 95% upper bound
+  of 0.60%) alongside Phase 2 enterprise extensions (MCP stdio proxy, telemetry,
+  Grafana dashboard, and long-haul soak daemon). Status: review distribution;
+  six gaps addressed by prototype controls and local tests; production-scale
+  validation remains pending.
 keywords:
   - agent governance
   - transport fault reconciliation
@@ -29,10 +31,24 @@ keywords:
   - AI safety
   - execution integrity
   - post-dispatch failure
+  - local_harness
   - SQLite
   - PostgreSQL
   - deterministic testing
-license: MIT
-commit: ab07188c0775193cdff316fc29d33b512307c78f
-version: "v0.2.4"
-date-released: "2026-10-01"
+  - Rule of Three
+  - MCP
+license: Apache-2.0
+version: "v1.0-review"
+date-released: "2026-10-02"
+# doi: "pending-deposit"
+# identifiers:
+#   - type: doi
+#     value: "pending-deposit"
+    description: "Concept DOI registered on Zenodo"
+  - type: other
+    value: "SHA-256: cf3a319ee801784fae303b534178c5590020bc72990cd0119e7753a15abb6525"
+    description: "Canonical release archive SHA-256 digest (aeib-enterprise-v1.0.tar.gz)"
+  - type: other
+    value: "Git commit: e8f510954d52573a1860bae03bf011398e77f1fe"
+    description: "Git commit ID (tag: v0.2.4 / v1.0-review)"
+

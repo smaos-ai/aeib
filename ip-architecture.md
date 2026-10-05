@@ -3,7 +3,7 @@
 **Project:** SovereignNexus / SMAOS (Sovereign Multi-Agent Operating System)  
 **Document Version:** 1.0.0  
 **Status:** Locked & Authoritative  
-**Open Core DOI:** [`10.5281/zenodo.22844531`](https://doi.org/10.5281/zenodo.22844531)  
+**Open Core DOI:** [`pending-deposit`](https://doi.org/pending-deposit)  
 **Primary Contact:** Andrii Leukhin (`andrejlo123@gmail.com`)  
 
 ---
@@ -28,7 +28,7 @@ This dual-track model guarantees that enterprise CISOs, auditors, and platform e
 ├───────────────────────────────┼───────────────────────────────┼─────────────────────────────┤
 │ **Zone 1: Open Core**         │ • `docs/transport-to-`        │ Normative 15-vector wire    │
 │ (Apache License 2.0)          │   `disposition-mapping.yaml`  │ fault-to-disposition rules. │
-│ DOI: `10.5281/zenodo.22844531`│ • `src/aeib_core/` (or        │ RFC 8785 JCS payload        │
+│ DOI: `pending-deposit`│ • `src/aeib_core/` (or        │ RFC 8785 JCS payload        │
 │                               │   `aei_core/`)                │ canonicalization & CAID     │
 │                               │ • `src/protection_governor.py`│ derivation logic.           │
 │                               │ • `aeib_verify.py` /          │ Industrial-protection-      │
@@ -49,7 +49,7 @@ This dual-track model guarantees that enterprise CISOs, auditors, and platform e
 
 ## 3. Zone 1: Open Core Specification (Apache 2.0)
 
-Zone 1 comprises the foundational protocol specifications, cryptographic derivation engines, offline verification utilities, and reproducible scientific benchmarks. It is published under the permissive **Apache License 2.0** and indexed on Zenodo under DOI [`10.5281/zenodo.22844531`](https://doi.org/10.5281/zenodo.22844531).
+Zone 1 comprises the foundational protocol specifications, cryptographic derivation engines, offline verification utilities, and reproducible scientific benchmarks. It is published under the permissive **Apache License 2.0** and indexed on Zenodo under DOI [`pending-deposit`](https://doi.org/pending-deposit).
 
 ### Technical Scope & Invariants
 * **Normative Wire-to-Disposition Mapping Contract (`docs/transport-to-disposition-mapping.yaml`)**: The authoritative priority-ordered hierarchy translating 15 physical network and database faults into deterministic dispositions (`DISPATCHED_UNCONFIRMED`, `OUTCOME_VERIFIED`, `RECONCILIATION_NOT_FOUND`, `RECONCILIATION_CONFLICT`, `PROBE_TIMEOUT`, `PROBE_EXCEPTION`, `READ_ONLY_REPLICA_REJECTED`) and binding retry policies.
@@ -141,7 +141,7 @@ To preserve absolute legal separation and protect enterprise licensees from IP c
 
 ## 6. Strategic IP Protection & Prior Art Defense
 
-By depositing Zone 1 core specifications, CAID derivation mechanics, out-of-band state probing abstractions, and empirical benchmarks onto **Zenodo** under permanent DOI [`10.5281/zenodo.22844531`](https://doi.org/10.5281/zenodo.22844531), SovereignNexus achieves:
+By depositing Zone 1 core specifications, CAID derivation mechanics, out-of-band state probing abstractions, and empirical benchmarks onto **Zenodo** under permanent DOI [`pending-deposit`](https://doi.org/pending-deposit), SovereignNexus achieves:
 
 1. **Immutable Prior Art Timestamps**: Zenodo deposits are preserved in CERN's high-assurance data centers and indexed by DataCite and CrossRef. This provides undeniable legal proof of prior art.
 2. **Defensive Patent Invalidation**: Under 35 U.S.C. § 102 (US) and Article 54 EPC (Europe), any patent application filed by competitors covering deterministic agent post-dispatch reconciliation, Noun/Verb CAID derivation, or outbox state probing will be rejected for lack of novelty.
@@ -161,7 +161,7 @@ By depositing Zone 1 core specifications, CAID derivation mechanics, out-of-band
 Zone 1 defines the abstract probing contract and offline verification semantics. Zone 2 contains the production-hardened, battle-tested implementation engineered for high-concurrency enterprise workloads. This includes connection lease pooling, defensive statement timeout enforcement (`statement_timeout=3000`), sub-3ms B-tree `UNION ALL` index scans, and active read-replica fencing to eliminate connection pool starvation and stale reads under heavy transaction volume.
 
 ### Q4: How does Zone 1 publication protect our organization against third-party patent litigation?
-By publishing the Zone 1 specifications and benchmark harnesses to Zenodo under DOI [`10.5281/zenodo.22844531`](https://doi.org/10.5281/zenodo.22844531), SovereignNexus creates globally timestamped prior art. International patent offices (such as the USPTO, EPO, and JPO) actively search Zenodo and scientific preprint repositories. Any subsequent patent claim by third parties attempting to patent these core agent idempotency and state-probing mechanisms will be rejected as anticipated or obvious.
+By publishing the Zone 1 specifications and benchmark harnesses to Zenodo under DOI [`pending-deposit`](https://doi.org/pending-deposit), SovereignNexus creates globally timestamped prior art. International patent offices (such as the USPTO, EPO, and JPO) actively search Zenodo and scientific preprint repositories. Any subsequent patent claim by third parties attempting to patent these core agent idempotency and state-probing mechanisms will be rejected as anticipated or obvious.
 
 ### Q5: How can our organization license Zone 2 Enterprise components?
 Zone 2 enterprise modules are available via commercial subscription, including dedicated support SLAs, on-premise deployment assistance, and regulatory compliance audit guarantees. Contact **`andrejlo123@gmail.com`** to initiate an enterprise evaluation or staging diagnostic audit.

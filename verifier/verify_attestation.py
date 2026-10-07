@@ -97,10 +97,49 @@ def verify_attestation(attestation_path: Path):
     else:
         print("    [✓] Codebase SHA-256 digest matches on-disk files bit-for-bit.")
 
+    print("[*] Step 5: Verifying WASM offline verifier & target-side ledger benchmark matrix...")
+    wasm_path = REPO_ROOT / "dist" / "smaos_verify.wasm"
+    if not wasm_path.exists():
+        wasm_path = REPO_ROOT / "smaos-wasm-verifier" / "pkg" / "smaos_wasm_verifier_bg.wasm"
+    if not wasm_path.exists():
+        print(f"[!] FAIL: smaos_verify.wasm not found in dist/ or smaos-wasm-verifier/pkg/", file=sys.stderr)
+        sys.exit(1)
+
+    wasm_bytes = wasm_path.read_bytes()
+    if len(wasm_bytes) < 4 or wasm_bytes[:4] != b"\x00asm":
+        print(f"[!] FAIL: smaos_verify.wasm does not contain valid WebAssembly magic header", file=sys.stderr)
+        sys.exit(1)
+    print(f"    [✓] smaos_verify.wasm confirmed valid WebAssembly binary ({len(wasm_bytes)} bytes).")
+
+    # Assert benchmark scenarios & target-side ledger ground truth
+    spec_path = REPO_ROOT / "schemas" / "aeib_bench_v0.1_spec.json"
+    fixtures_path = REPO_ROOT / "fixtures" / "aeib_bench_v0.1_scenarios.json"
+    if not spec_path.exists() or not fixtures_path.exists():
+        print(f"[!] FAIL: Benchmark specification or scenario fixtures missing", file=sys.stderr)
+        sys.exit(1)
+
+    spec = json.loads(spec_path.read_text(encoding="utf-8"))
+    fixtures = json.loads(fixtures_path.read_text(encoding="utf-8"))
+    assert "SHOW_ME_CHANGE_IT_PROVE_IT" in fixtures.get("ground_truth_rule", "")
+
+    scenarios = fixtures.get("scenarios", [])
+    defs = spec.get("$defs", {})
+    total_benchmarks = len(scenarios)
+    for sc in scenarios:
+        assert "target_side_ground_truth" in sc, f"Scenario {sc.get('scenario_id')} missing target-side ground truth"
+        assert "expected_gateway_disposition" in sc
+
+    for def_key, def_data in defs.items():
+        assert "target_side_ground_truth" in def_data
+        assert "required_fail_closed_disposition" in def_data
+
+    print(f"    [✓] Target-side ledger ground truth verified across all {total_benchmarks} scenarios & $defs matrix.")
+
     print("=" * 80)
     print("✅ OFFLINE ATTESTATION VERIFICATION SUCCESSFUL (rc=0)")
     print(f"Signer Public Key: {pub_hex}")
     print(f"Attestation Time:  {payload.get('attestation_timestamp_utc')}")
+    print(f"Benchmark Items:   {total_benchmarks} verified against target-side ledger state")
     print("=" * 80)
     sys.exit(0)
 

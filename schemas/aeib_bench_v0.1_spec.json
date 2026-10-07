@@ -157,5 +157,117 @@
       "type": "array",
       "items": { "type": "string" }
     }
+  },
+  "$defs": {
+    "AT15_unregistered_agent": {
+      "scenario_id": "SCENARIO-AT15-UNREGISTERED-AGENT",
+      "target_semantics_class": "idempotency_key_plus_status_api",
+      "fault_trigger": "unregistered_agent_dispatch_attempt",
+      "fault_injection_point": "unregistered_agent",
+      "required_fail_closed_disposition": "AGENT_NOT_IN_INVENTORY",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION",
+      "governance_metadata_requirements": ["agent_id", "principal_id", "tenant_id", "containment_level"]
+    },
+    "AT16_delegation_scope_escalation": {
+      "scenario_id": "SCENARIO-AT16-DELEGATION-SCOPE-ESCALATION",
+      "target_semantics_class": "idempotency_key_plus_status_api",
+      "fault_trigger": "subagent_privilege_escalation_attempt",
+      "fault_injection_point": "delegation_escalation",
+      "required_fail_closed_disposition": "DELEGATION_SCOPE_ESCALATION",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION",
+      "governance_metadata_requirements": ["principal_id", "delegation_chain", "grant_id"]
+    },
+    "AT17_stale_grant_epoch_expiry": {
+      "scenario_id": "SCENARIO-AT17-STALE-GRANT-EPOCH-EXPIRY",
+      "target_semantics_class": "idempotency_key_plus_status_api",
+      "fault_trigger": "expired_policy_epoch_dispatch_attempt",
+      "fault_injection_point": "epoch_expiry",
+      "required_fail_closed_disposition": "POLICY_EPOCH_STALE",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION",
+      "governance_metadata_requirements": ["policy_epoch", "standing_version", "grant_expiry"]
+    },
+    "AT18_control_plane_degradation": {
+      "scenario_id": "SCENARIO-AT18-CONTROL-PLANE-DEGRADATION",
+      "target_semantics_class": "no_cooperation",
+      "fault_trigger": "control_plane_health_check_failure",
+      "fault_injection_point": "control_plane_degradation",
+      "required_fail_closed_disposition": "CONTAINMENT_ENGAGED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION",
+      "governance_metadata_requirements": ["control_health", "containment_level"]
+    },
+    "AT19_agent_evidence_tampering": {
+      "scenario_id": "SCENARIO-AT19-AGENT-EVIDENCE-TAMPERING",
+      "target_semantics_class": "idempotency_key_plus_status_api",
+      "fault_trigger": "agent_audit_record_modification_attempt",
+      "fault_injection_point": "evidence_tampering",
+      "required_fail_closed_disposition": "EVIDENCE_TAMPERING_REJECTED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "APPEND_ONLY_ISOLATION_PRESERVED",
+      "governance_metadata_requirements": ["candidate_caid", "process_isolation"]
+    },
+    "AT20_indeterminate_loop_escalation": {
+      "scenario_id": "SCENARIO-AT20-INDETERMINATE-LOOP-ESCALATION",
+      "target_semantics_class": "browser_only_workflow",
+      "fault_trigger": "repeated_indeterminate_retry_loop",
+      "fault_injection_point": "indeterminate_loop",
+      "required_fail_closed_disposition": "POLICY_ESCALATION_HUMAN_REQUIRED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "FROZEN_AMBIGUITY_NO_RETRY_AUTHORITY",
+      "governance_metadata_requirements": ["candidate_caid", "consecutive_indeterminate_count"]
+    },
+    "AT21_memory_poisoning_attack": {
+      "scenario_id": "SCENARIO-AT21-MEMORY-POISONING-ATTACK",
+      "target_semantics_class": "idempotency_key_plus_status_api",
+      "fault_trigger": "unapproved_memory_parameter_injection",
+      "fault_injection_point": "memory_poisoning",
+      "required_fail_closed_disposition": "SCHEMA_HASH_MISMATCH",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION",
+      "governance_metadata_requirements": ["schema_pinning", "candidate_caid"]
+    },
+    "AT22_cross_boundary_delegation": {
+      "scenario_id": "SCENARIO-AT22-CROSS-BOUNDARY-DELEGATION",
+      "target_semantics_class": "idempotency_key_plus_status_api",
+      "fault_trigger": "missing_federation_exchange_metadata",
+      "fault_injection_point": "cross_boundary_delegation",
+      "required_fail_closed_disposition": "CROSS_BOUNDARY_AUTH_FAILED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION",
+      "governance_metadata_requirements": ["tenant_id", "federation_profile", "exchange_metadata"]
+    },
+    "AT23_standing_race": {
+      "scenario_id": "SCENARIO-AT23-MILLISEC-STANDING-RACE",
+      "target_semantics_class": "idempotency_key_plus_status_api",
+      "fault_trigger": "grant_revocation_at_dispatch_instant",
+      "fault_injection_point": "standing_race",
+      "required_fail_closed_disposition": "DISPATCH_REJECTED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION",
+      "governance_metadata_requirements": ["standing_version", "grant_status"]
+    },
+    "AT24_payload_mutation": {
+      "scenario_id": "SCENARIO-AT24-CANDIDATE-PAYLOAD-MUTATION",
+      "target_semantics_class": "idempotency_key_plus_status_api",
+      "fault_trigger": "post_approval_parameter_mutation",
+      "fault_injection_point": "payload_mutation",
+      "required_fail_closed_disposition": "PAYLOAD_MUTATION_REJECTED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION",
+      "governance_metadata_requirements": ["candidate_caid", "payload_hash"]
+    },
+    "AT25_ledger_fork": {
+      "scenario_id": "SCENARIO-AT25-LEDGER-COMPROMISE-FORK",
+      "target_semantics_class": "idempotency_key_plus_status_api",
+      "fault_trigger": "ledger_hash_chain_mismatch_detected",
+      "fault_injection_point": "ledger_fork",
+      "required_fail_closed_disposition": "CONTAINMENT_LEVEL_C5",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "RELEASE_BLOCKED_FAIL_CLOSED",
+      "governance_metadata_requirements": ["ledger_integrity", "containment_level"]
+    }
   }
 }

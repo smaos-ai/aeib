@@ -99,6 +99,7 @@ INCLUDED_PATHS = [
     "SYSTEM_BOUNDARIES.md",
     "RELATED_WORK.md",
     "VERIFICATION_TRANSCRIPT_TEMPLATE.md",
+    "docs/aeib-bench-architecture-v0.1.md",
     "pyproject.toml",
     "pytest.ini",
     "config/claims.jsonl",

@@ -74,7 +74,8 @@ class TestAcceptanceTest12:
 
         assert fixtures["benchmark_version"] == spec["properties"]["benchmark_version"]["const"]
         assert fixtures["ground_truth_rule"] == spec["properties"]["ground_truth_rule"]["const"]
-        assert len(fixtures["scenarios"]) == 12
+        assert len(fixtures["scenarios"]) >= 12
+        assert fixtures["scenarios"][0]["scenario_id"] == "SCENARIO-01-PRE-WRITE-504"
 
         valid_points = set(spec["properties"]["scenarios"]["items"]["properties"]["fault_injection_point"]["enum"])
         valid_caps = set(spec["properties"]["target_capability_matrix"]["required"])

@@ -7,6 +7,7 @@
     "benchmark_version",
     "ground_truth_rule",
     "target_capability_matrix",
+    "governance_observability_schema",
     "scenarios",
     "headline_metrics"
   ],
@@ -66,10 +67,50 @@
         }
       }
     },
+    "governance_observability_schema": {
+      "type": "object",
+      "required": [
+        "agent_id",
+        "principal_id",
+        "tenant_id",
+        "delegation_chain",
+        "standing_version",
+        "policy_epoch",
+        "control_health",
+        "containment_level",
+        "candidate_caid"
+      ],
+      "properties": {
+        "agent_id": { "type": "string" },
+        "principal_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "delegation_chain": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "standing_version": { "type": "string" },
+        "policy_epoch": { "type": "string" },
+        "control_health": {
+          "type": "object",
+          "required": ["schema_pinning", "ledger", "probe", "signer"],
+          "properties": {
+            "schema_pinning": { "type": "string", "enum": ["healthy", "degraded", "unavailable"] },
+            "ledger": { "type": "string", "enum": ["healthy", "degraded", "unavailable"] },
+            "probe": { "type": "string", "enum": ["healthy", "degraded", "unavailable"] },
+            "signer": { "type": "string", "enum": ["healthy", "degraded", "unavailable"] }
+          }
+        },
+        "containment_level": {
+          "type": "string",
+          "enum": ["C0", "C1", "C2", "C3", "C4", "C5"]
+        },
+        "candidate_caid": { "type": "string" }
+      }
+    },
     "scenarios": {
       "type": "array",
       "minItems": 12,
-      "maxItems": 12,
+      "maxItems": 25,
       "items": {
         "type": "object",
         "required": [
@@ -85,7 +126,24 @@
           "scenario_id": { "type": "string" },
           "fault_injection_point": {
             "type": "string",
-            "enum": ["pre_write", "mid_body", "post_commit", "redirect", "browser_termination"]
+            "enum": [
+              "pre_write",
+              "mid_body",
+              "post_commit",
+              "redirect",
+              "browser_termination",
+              "unregistered_agent",
+              "delegation_escalation",
+              "epoch_expiry",
+              "control_plane_degradation",
+              "evidence_tampering",
+              "indeterminate_loop",
+              "memory_poisoning",
+              "cross_boundary_delegation",
+              "standing_race",
+              "payload_mutation",
+              "ledger_fork"
+            ]
           },
           "wire_fault_event": { "type": "string" },
           "target_capability": { "type": "string" },

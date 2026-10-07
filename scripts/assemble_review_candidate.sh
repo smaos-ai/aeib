@@ -62,7 +62,8 @@ if pytest tests/test_industrial_protection_matrix.py \
           tests/test_falsifiability_matrix.py \
           tests/test_mcp_acceptance_criteria.py \
           tests/test_p0_durable_ledger.py \
-          tests/test_acceptance_test_12.py -q; then
+          tests/test_acceptance_test_12.py \
+          tests/test_aeib_bench_at15_at25.py -q; then
     echo "    [✓] Core protection, falsifiability, and MCP test matrix passed."
 else
     echo "    [✗] Gate 4 failed: Test suite regression detected!" >&2

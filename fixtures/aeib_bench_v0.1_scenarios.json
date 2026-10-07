@@ -23,6 +23,26 @@
       "reconciliation": "Rejects exactly-once claims; requires operator intervention"
     }
   },
+  "governance_observability_schema": {
+    "agent_id": "agent:org:dept:subagent-01",
+    "principal_id": "principal:user:usr_9942",
+    "tenant_id": "tenant:ent_8820",
+    "delegation_chain": [
+      "principal:user:usr_9942",
+      "agent:org:dept:orchestrator",
+      "agent:org:dept:subagent-01"
+    ],
+    "standing_version": "standing:v2026.10.07-epoch-14",
+    "policy_epoch": "policy:epoch_104",
+    "control_health": {
+      "schema_pinning": "healthy",
+      "ledger": "healthy",
+      "probe": "healthy",
+      "signer": "healthy"
+    },
+    "containment_level": "C0",
+    "candidate_caid": "sha256:7a6618c999a6be70c2eabed3e593dfde7e631dd67fe104cd38403dd2284647a5"
+  },
   "scenarios": [
     {
       "scenario_id": "SCENARIO-01-PRE-WRITE-504",
@@ -131,6 +151,105 @@
       "expected_gateway_disposition": "RECONCILIATION_NOT_FOUND_AFTER_GRACE",
       "expected_retry_safe": false,
       "target_side_ground_truth": "NON_COOPERATIVE_FAIL_CLOSED_HOLD"
+    },
+    {
+      "scenario_id": "SCENARIO-AT15-UNREGISTERED-AGENT",
+      "fault_injection_point": "unregistered_agent",
+      "wire_fault_event": "unregistered_agent_dispatch_attempt",
+      "target_capability": "idempotency_key_plus_status_api",
+      "expected_gateway_disposition": "AGENT_NOT_IN_INVENTORY",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION"
+    },
+    {
+      "scenario_id": "SCENARIO-AT16-DELEGATION-SCOPE-ESCALATION",
+      "fault_injection_point": "delegation_escalation",
+      "wire_fault_event": "subagent_privilege_escalation_attempt",
+      "target_capability": "idempotency_key_plus_status_api",
+      "expected_gateway_disposition": "DELEGATION_SCOPE_ESCALATION",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION"
+    },
+    {
+      "scenario_id": "SCENARIO-AT17-STALE-GRANT-EPOCH-EXPIRY",
+      "fault_injection_point": "epoch_expiry",
+      "wire_fault_event": "expired_policy_epoch_dispatch_attempt",
+      "target_capability": "idempotency_key_plus_status_api",
+      "expected_gateway_disposition": "POLICY_EPOCH_STALE",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION"
+    },
+    {
+      "scenario_id": "SCENARIO-AT18-CONTROL-PLANE-DEGRADATION",
+      "fault_injection_point": "control_plane_degradation",
+      "wire_fault_event": "control_plane_health_check_failure",
+      "target_capability": "no_cooperation",
+      "expected_gateway_disposition": "CONTAINMENT_ENGAGED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION"
+    },
+    {
+      "scenario_id": "SCENARIO-AT19-AGENT-EVIDENCE-TAMPERING",
+      "fault_injection_point": "evidence_tampering",
+      "wire_fault_event": "agent_audit_record_modification_attempt",
+      "target_capability": "idempotency_key_plus_status_api",
+      "expected_gateway_disposition": "EVIDENCE_TAMPERING_REJECTED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "APPEND_ONLY_ISOLATION_PRESERVED"
+    },
+    {
+      "scenario_id": "SCENARIO-AT20-INDETERMINATE-LOOP-ESCALATION",
+      "fault_injection_point": "indeterminate_loop",
+      "wire_fault_event": "repeated_indeterminate_retry_loop",
+      "target_capability": "browser_only_workflow",
+      "expected_gateway_disposition": "POLICY_ESCALATION_HUMAN_REQUIRED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "FROZEN_AMBIGUITY_NO_RETRY_AUTHORITY"
+    },
+    {
+      "scenario_id": "SCENARIO-AT21-MEMORY-POISONING-ATTACK",
+      "fault_injection_point": "memory_poisoning",
+      "wire_fault_event": "unapproved_memory_parameter_injection",
+      "target_capability": "idempotency_key_plus_status_api",
+      "expected_gateway_disposition": "SCHEMA_HASH_MISMATCH",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION"
+    },
+    {
+      "scenario_id": "SCENARIO-AT22-CROSS-BOUNDARY-DELEGATION",
+      "fault_injection_point": "cross_boundary_delegation",
+      "wire_fault_event": "missing_federation_exchange_metadata",
+      "target_capability": "idempotency_key_plus_status_api",
+      "expected_gateway_disposition": "CROSS_BOUNDARY_AUTH_FAILED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION"
+    },
+    {
+      "scenario_id": "SCENARIO-AT23-MILLISEC-STANDING-RACE",
+      "fault_injection_point": "standing_race",
+      "wire_fault_event": "grant_revocation_at_dispatch_instant",
+      "target_capability": "idempotency_key_plus_status_api",
+      "expected_gateway_disposition": "DISPATCH_REJECTED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION"
+    },
+    {
+      "scenario_id": "SCENARIO-AT24-CANDIDATE-PAYLOAD-MUTATION",
+      "fault_injection_point": "payload_mutation",
+      "wire_fault_event": "post_approval_parameter_mutation",
+      "target_capability": "idempotency_key_plus_status_api",
+      "expected_gateway_disposition": "PAYLOAD_MUTATION_REJECTED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION"
+    },
+    {
+      "scenario_id": "SCENARIO-AT25-LEDGER-COMPROMISE-FORK",
+      "fault_injection_point": "ledger_fork",
+      "wire_fault_event": "ledger_hash_chain_mismatch_detected",
+      "target_capability": "idempotency_key_plus_status_api",
+      "expected_gateway_disposition": "CONTAINMENT_LEVEL_C5",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "RELEASE_BLOCKED_FAIL_CLOSED"
     }
   ],
   "headline_metrics": [

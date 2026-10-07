@@ -2,9 +2,9 @@
   "payload": {
     "protocol": "CRVP-v1.0",
     "attestation_standard": "CRVP-SNEI-v1.0",
-    "attestation_timestamp_utc": "2026-10-07T12:56:35Z",
-    "codebase_digest": "sha256:7a6618c999a6be70c2eabed3e593dfde7e631dd67fe104cd38403dd2284647a5",
-    "scanned_files_count": 78,
+    "attestation_timestamp_utc": "2026-10-07T13:52:48Z",
+    "codebase_digest": "sha256:637379f4b5ec8a2d9a773f1ecf96ca174ba209d678b94352839a22c16d91a869",
+    "scanned_files_count": 79,
     "ast_purity_status": {
       "clean": true,
       "scanned_directories": [
@@ -33,8 +33,8 @@
   "signature_block": {
     "algorithm": "Ed25519",
     "key_id": "key:aeib-crvp-signer-01",
-    "public_key_hex": "823d1dbb8f40c1b7d9cc9ccc88c832014f8c78fa0372e7c5b16b705af42b29ca",
-    "signature_hex": "0d637d6db73da38ff76765f69fa59e10f2e4e5331204f59cf90dade24c92e7cb8e5a0f5bbbd1d2ea7cebf3b6968563503d08d008cc6477ce083b0a119ae4ca0b"
+    "public_key_hex": "54825e25e1182b1ac67d18d435ae55f931447f9a885c0bd97e781bc8678d0164",
+    "signature_hex": "bfcd8891063f36522e295fcd856bfdc100a9c7cb6a4f1b413cd2c1b6c832eed3abade53a4501af55186b7e4a1627b277b5a9fb77e158d4fc0b54b69f32687e04"
   },
   "ast_purity_status": {
     "clean": true,
@@ -45,7 +45,7 @@
     ],
     "violations_count": 0
   },
-  "codebase_digest": "sha256:7a6618c999a6be70c2eabed3e593dfde7e631dd67fe104cd38403dd2284647a5",
-  "public_key_hex": "823d1dbb8f40c1b7d9cc9ccc88c832014f8c78fa0372e7c5b16b705af42b29ca",
-  "signature_hex": "0d637d6db73da38ff76765f69fa59e10f2e4e5331204f59cf90dade24c92e7cb8e5a0f5bbbd1d2ea7cebf3b6968563503d08d008cc6477ce083b0a119ae4ca0b"
+  "codebase_digest": "sha256:637379f4b5ec8a2d9a773f1ecf96ca174ba209d678b94352839a22c16d91a869",
+  "public_key_hex": "54825e25e1182b1ac67d18d435ae55f931447f9a885c0bd97e781bc8678d0164",
+  "signature_hex": "bfcd8891063f36522e295fcd856bfdc100a9c7cb6a4f1b413cd2c1b6c832eed3abade53a4501af55186b7e4a1627b277b5a9fb77e158d4fc0b54b69f32687e04"
 }

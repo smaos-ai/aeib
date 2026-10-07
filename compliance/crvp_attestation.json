@@ -1,0 +1,51 @@
+{
+  "payload": {
+    "protocol": "CRVP-v1.0",
+    "attestation_standard": "CRVP-SNEI-v1.0",
+    "attestation_timestamp_utc": "2026-10-07T09:30:49Z",
+    "codebase_digest": "sha256:73dc6c35434e57e653660ffe7b2ae0f486c62328f71659316f52a2df1b93f628",
+    "scanned_files_count": 78,
+    "ast_purity_status": {
+      "clean": true,
+      "scanned_directories": [
+        "src",
+        "compliance",
+        "schemas"
+      ],
+      "violations_count": 0
+    },
+    "verification_gates": {
+      "ast_purity": "PASSED",
+      "jcs_rfc8785_parity": "PASSED",
+      "pqc_signer_persistence": "PASSED",
+      "chaos_fault_injection_dmr": "0.0%"
+    },
+    "claims_manifest_ref": {
+      "manifest_file": "config/claims.jsonl",
+      "status": "VERIFIED"
+    },
+    "verification_environment": {
+      "python_version": "3.14.3",
+      "jcs_canonicalizer_symbol": "encode_jcs",
+      "fail_closed_mode": true
+    }
+  },
+  "signature_block": {
+    "algorithm": "Ed25519",
+    "key_id": "key:aeib-crvp-signer-01",
+    "public_key_hex": "04ca0382559e8f707aa26f7ef41eef667832c08a6e24d1f659df9bea891fb031",
+    "signature_hex": "9cc11ff710acfb59b3bd56025e3f9faca3f719925cd8b4e82c5df72adbde7fcb979eabcd4e0ccfb48474536d5fb80f6ae016fe17a8472a7127a5a7aa9fd8790c"
+  },
+  "ast_purity_status": {
+    "clean": true,
+    "scanned_directories": [
+      "src",
+      "compliance",
+      "schemas"
+    ],
+    "violations_count": 0
+  },
+  "codebase_digest": "sha256:73dc6c35434e57e653660ffe7b2ae0f486c62328f71659316f52a2df1b93f628",
+  "public_key_hex": "04ca0382559e8f707aa26f7ef41eef667832c08a6e24d1f659df9bea891fb031",
+  "signature_hex": "9cc11ff710acfb59b3bd56025e3f9faca3f719925cd8b4e82c5df72adbde7fcb979eabcd4e0ccfb48474536d5fb80f6ae016fe17a8472a7127a5a7aa9fd8790c"
+}

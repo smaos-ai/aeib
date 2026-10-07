@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://smaos.ai/schemas/scitt_continuity_receipt_schema.json",
+  "title": "SCITT_ContinuityReceipt_v00",
+  "description": "IETF draft-nikolaichuk-scitt-continuity-receipts-00 state recovery continuity proof schema. Enforces verifiable state preservation across distributed multi-cluster migrations and process restarts.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "epoch_index",
+    "state_recovery_root",
+    "prev_continuation_hash",
+    "continuation_hash",
+    "checkpoint_authority",
+    "tree_size",
+    "leaf_index",
+    "inclusion_proof",
+    "timestamp_utc"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "ietf-scitt-continuity-00",
+      "description": "Standard draft specification identifier."
+    },
+    "epoch_index": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Monotonically increasing state recovery epoch."
+    },
+    "state_recovery_root": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "SHA-256 Merkle root of the durable checkpoint state."
+    },
+    "prev_continuation_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "Continuation hash from the preceding epoch."
+    },
+    "continuation_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "Current continuation hash: SHA256(prev_continuation_hash || state_recovery_root || epoch_index)."
+    },
+    "checkpoint_authority": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Identifier of the cluster coordinator or enclave asserting the checkpoint."
+    },
+    "migration_cluster_id": {
+      "type": "string",
+      "description": "Optional destination cluster identifier during cross-cloud migration."
+    },
+    "tree_size": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Size of the SCITT transparency tree at checkpoint."
+    },
+    "leaf_index": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Index of this checkpoint leaf in the transparency tree."
+    },
+    "inclusion_proof": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      },
+      "description": "RFC 9162 audit path proving leaf inclusion in the tree root."
+    },
+    "timestamp_utc": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC timestamp of the checkpoint assertion."
+    }
+  },
+  "additionalProperties": false
+}

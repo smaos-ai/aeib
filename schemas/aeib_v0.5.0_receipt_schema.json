@@ -1,0 +1,329 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://smaos.ai/schemas/aeib_v0.5.0_receipt_schema.json",
+  "title": "AEIBReceipt_v0.5.0",
+  "description": "AEIB v0.5.0 execution receipt schema specification. Extends v0.4.0 with stateful continuity proofs (IETF draft-nikolaichuk-scitt-continuity-receipts-00), machine-readable synthetic artifact watermarking (EU AI Act Article 50 / C2PA), ESA incident reporting payloads (EU DORA Article 17), dual-path execution classification, and pluggable sovereign cryptographic profiles.",
+  "type": "object",
+  "required": [
+    "receipt_version",
+    "receipt_type",
+    "caid",
+    "disposition",
+    "retry_safe",
+    "latch_engaged",
+    "timestamp_utc",
+    "payload_hash",
+    "canonicalization",
+    "execution_path",
+    "crypto_profile"
+  ],
+  "properties": {
+    "receipt_version": {
+      "const": "v0.5.0",
+      "description": "Receipt specification version marker."
+    },
+    "receipt_type": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Receipt classification (e.g. EXECUTION_INTEGRITY_RECEIPT, CONTINUATION_RECOVERY_RECEIPT, DORA_INCIDENT_RECEIPT)."
+    },
+    "caid": {
+      "type": "string",
+      "pattern": "^caid:sha256:[0-9a-f]{64}$",
+      "description": "Canonical Action Identifier derived per RFC 8785: CAID = SHA256(Noun || '::' || Verb || '::' || JCS(Payload))."
+    },
+    "execution_path": {
+      "type": "string",
+      "enum": [
+        "CLARIFICATION_FAST_PATH",
+        "COORDINATION_GATE"
+      ],
+      "description": "Dual-path latency isolation marker. CLARIFICATION_FAST_PATH handles read-only queries with 0ms inline CAS latency; COORDINATION_GATE enforces synchronous atomic CAS locks and RFC 8785 canonicalization for state-mutating dispatches."
+    },
+    "disposition": {
+      "type": "string",
+      "enum": [
+        "DISPATCHED_UNCONFIRMED",
+        "OUTCOME_VERIFIED",
+        "CONFIRMED",
+        "PROBE_OUTAGE_HOLD",
+        "RECONCILIATION_NOT_FOUND",
+        "RECONCILIATION_FAILED",
+        "STRUCTURAL_VERIFICATION_FAILED",
+        "CONTINUATION_RESTORED",
+        "CONTINUATION_DESYNC_LOCKED"
+      ],
+      "description": "Fail-closed disposition vocabulary. DISPATCHED_UNCONFIRMED marks post-dispatch transport ambiguity; OUTCOME_VERIFIED marks out-of-band probe confirmation; CONTINUATION_DESYNC_LOCKED halts execution upon state hash desynchronization across cloud boundaries."
+    },
+    "retry_safe": {
+      "type": "boolean",
+      "description": "Re-dispatch authorization interlock. Latches false on transport drops (HTTP 504 / TCP RST) until out-of-band target probing succeeds."
+    },
+    "latch_engaged": {
+      "type": "boolean",
+      "description": "True when the ANSI 86 software lockout latch is physically engaged for this CAID."
+    },
+    "retry_policy": {
+      "type": "string",
+      "description": "Named retry policy (e.g. PROHIBITED_DEFAULT_LATCH, RECONCILE_BEFORE_RETRY, SLA_ESCALATE_DUAL_CONTROL)."
+    },
+    "mapping_rule_id": {
+      "type": "string",
+      "description": "Identifier of the transport-to-disposition mapping rule that evaluated this state transition."
+    },
+    "timestamp_utc": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Receipt generation timestamp (RFC 3339, UTC)."
+    },
+    "payload_hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "SHA-256 digest over the RFC 8785 canonicalized action payload."
+    },
+    "previous_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "Append-only hash chain pointer linking to the immediately preceding receipt in the local audit journal."
+    },
+    "canonicalization": {
+      "type": "object",
+      "description": "Binds receipt byte-level serialization to RFC 8785 JCS specifications.",
+      "required": ["implementation", "key_sorting", "normalization"],
+      "properties": {
+        "implementation": {
+          "const": "src/jcs_canonicalizer.py:encode_jcs",
+          "description": "Canonical RFC 8785 serialization implementation."
+        },
+        "key_sorting": {
+          "const": "utf16_code_units",
+          "description": "RFC 8785 Section 3.2.3: object keys sorted by UTF-16 code units."
+        },
+        "normalization": {
+          "enum": ["none", "nfc_opt_in_ingress"],
+          "description": "NFC normalization applied only as opt-in ingress pre-pass; never within JCS core."
+        }
+      },
+      "additionalProperties": false
+    },
+    "continuation_proof": {
+      "type": "object",
+      "description": "State recovery continuation proof across process restarts and distributed cloud cluster boundaries (IETF draft-nikolaichuk-scitt-continuity-receipts-00).",
+      "required": [
+        "epoch_index",
+        "state_recovery_root",
+        "prev_continuation_hash",
+        "continuation_hash",
+        "checkpoint_authority"
+      ],
+      "properties": {
+        "epoch_index": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Monotonically increasing recovery epoch counter."
+        },
+        "state_recovery_root": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "Merkle root hash of the restored durable state snapshot."
+        },
+        "prev_continuation_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "SHA-256 continuation hash of the preceding epoch."
+        },
+        "continuation_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "Current continuation hash: SHA256(prev_continuation_hash || state_recovery_root || epoch_index)."
+        },
+        "checkpoint_authority": {
+          "type": "string",
+          "description": "Identifier of the durable cluster node or orchestrator asserting this checkpoint."
+        },
+        "migration_cluster_id": {
+          "type": "string",
+          "description": "Identifier of the destination cluster during cross-region migration."
+        }
+      },
+      "additionalProperties": false
+    },
+    "synthetic_artifact_manifest": {
+      "type": "object",
+      "description": "Machine-readable watermarking and provenance metadata complying with EU AI Act Article 50 (July 2026 Guidelines) and C2PA specifications.",
+      "required": [
+        "artifact_id",
+        "c2pa_manifest_digest",
+        "watermark_scheme",
+        "asset_origin",
+        "generator_id"
+      ],
+      "properties": {
+        "artifact_id": {
+          "type": "string",
+          "description": "Unique identifier of the generated or manipulated output artifact."
+        },
+        "c2pa_manifest_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Cryptographic digest of the embedded C2PA provenance manifest."
+        },
+        "watermark_scheme": {
+          "type": "string",
+          "enum": [
+            "C2PA_V2",
+            "SYNTHID_SHA256",
+            "STEG_CRYPTO",
+            "PROVENANCE_HASH"
+          ],
+          "description": "Standardized machine-readable watermarking protocol."
+        },
+        "asset_origin": {
+          "type": "string",
+          "enum": [
+            "AI_SYNTHETIC",
+            "AI_ASSISTED",
+            "HUMAN_VERIFIED"
+          ],
+          "description": "Mandatory EU AI Act disclosure category."
+        },
+        "generator_id": {
+          "type": "string",
+          "description": "Identifier of the agent runtime, tool invocation, or model instance producing the artifact."
+        },
+        "tamper_evidence_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "Integrity checksum binding the synthesized content directly to this receipt."
+        }
+      },
+      "additionalProperties": false
+    },
+    "dora_incident_payload": {
+      "type": "object",
+      "description": "European Supervisory Authority (ESA) major ICT incident classification packet complying with EU DORA Article 17.",
+      "required": [
+        "incident_id",
+        "classification",
+        "classification_timestamp_utc",
+        "root_cause_vector",
+        "reporting_window_deadline_utc",
+        "esa_submission_status"
+      ],
+      "properties": {
+        "incident_id": {
+          "type": "string",
+          "description": "Unique identifier assigned to the DORA Article 17 incident event."
+        },
+        "classification": {
+          "type": "string",
+          "enum": [
+            "MAJOR_ICT",
+            "SIGNIFICANT_ICT",
+            "INTERMEDIATE",
+            "DISPOSITION_TOXIC"
+          ],
+          "description": "Severity tier assessed according to European Supervisory Authority criteria."
+        },
+        "classification_timestamp_utc": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the technical fault was classified as a reportable incident."
+        },
+        "root_cause_vector": {
+          "type": "string",
+          "enum": [
+            "WIRE_FAULT_504",
+            "TCP_RST",
+            "IDEMPOTENCY_BREACH",
+            "CORRUPTED_DISPOSITION",
+            "RECONCILIATION_DROPOUT"
+          ],
+          "description": "Primary infrastructure or protocol disturbance mechanism."
+        },
+        "economic_impact_estimated_eur": {
+          "type": "number",
+          "minimum": 0.0,
+          "description": "Estimated financial exposure resulting from the unconfirmed or double-dispatched effect."
+        },
+        "clients_affected_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of users, counterparties, or tenants impacted."
+        },
+        "reporting_window_deadline_utc": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Strict 4-hour regulatory notification deadline under DORA Article 17."
+        },
+        "esa_submission_status": {
+          "type": "string",
+          "enum": [
+            "PENDING",
+            "NOTIFIED",
+            "ACKNOWLEDGED",
+            "REJECTED"
+          ],
+          "description": "Transmission lifecycle status to the competent national authority or ESMA portal."
+        }
+      },
+      "additionalProperties": false
+    },
+    "crypto_profile": {
+      "type": "object",
+      "description": "Pluggable sovereign cryptographic suite specification.",
+      "required": ["profile_id", "signature_algorithm", "hash_algorithm"],
+      "properties": {
+        "profile_id": {
+          "type": "string",
+          "enum": [
+            "PROFILE_WESTERN_CLASSICAL",
+            "PROFILE_WESTERN_PQC",
+            "PROFILE_SOVEREIGN_EAST",
+            "PROFILE_BBS_PLUS"
+          ],
+          "description": "Runtime-selected cryptographic suite."
+        },
+        "signature_algorithm": {
+          "type": "string",
+          "enum": [
+            "Ed25519",
+            "ML-DSA-65",
+            "SM2",
+            "BBS_PLUS_BLS12381"
+          ],
+          "description": "Asymmetric digital signature or zero-knowledge proof algorithm."
+        },
+        "hash_algorithm": {
+          "type": "string",
+          "enum": [
+            "SHA-256",
+            "SHAKE-256",
+            "SM3"
+          ],
+          "description": "Cryptographic digest primitive."
+        }
+      },
+      "additionalProperties": false
+    },
+    "probe_authority": {
+      "type": "string",
+      "description": "Identity of the out-of-band probe authority (e.g. SQLiteOutcomeProbeAdapter)."
+    },
+    "consistency_scope": {
+      "type": "string",
+      "enum": ["eventual", "strong", "unknown"],
+      "description": "Consistency scope of the target provider database."
+    },
+    "signature": {
+      "type": "string",
+      "minLength": 64,
+      "description": "Digital signature hex over the canonicalized receipt payload."
+    },
+    "signer_pubkey": {
+      "type": "string",
+      "description": "Public key hex of the attestor corresponding to crypto_profile."
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AEIB-Bench v0.1 Specification",
+  "description": "Transport-fault and effect-integrity benchmark specification. Ground-truth evaluation derived exclusively from target-side ledger state.",
+  "type": "object",
+  "required": [
+    "benchmark_version",
+    "ground_truth_rule",
+    "target_capability_matrix",
+    "scenarios",
+    "headline_metrics"
+  ],
+  "properties": {
+    "benchmark_version": {
+      "type": "string",
+      "const": "0.1.0"
+    },
+    "ground_truth_rule": {
+      "type": "string",
+      "const": "SHOW_ME_CHANGE_IT_PROVE_IT: Target-side ledger state exclusively; agent text response and proxy self-reports ignored."
+    },
+    "target_capability_matrix": {
+      "type": "object",
+      "required": [
+        "idempotency_key_plus_status_api",
+        "idempotency_key_only",
+        "status_api_only",
+        "browser_only_workflow",
+        "no_cooperation"
+      ],
+      "properties": {
+        "idempotency_key_plus_status_api": {
+          "type": "object",
+          "properties": {
+            "enforcement": { "type": "string", "const": "Optimal duplicate control; deterministic status queries" },
+            "reconciliation": { "type": "string", "const": "Out-of-band single-flight target probe" }
+          }
+        },
+        "idempotency_key_only": {
+          "type": "object",
+          "properties": {
+            "enforcement": { "type": "string", "const": "Safe retry suppression; limited outcome verification" },
+            "reconciliation": { "type": "string", "const": "Idempotency token binding on retry" }
+          }
+        },
+        "status_api_only": {
+          "type": "object",
+          "properties": {
+            "enforcement": { "type": "string", "const": "Post-fault reconciliation; target determines duplicate prevention" },
+            "reconciliation": { "type": "string", "const": "Status API probe before dispatch release" }
+          }
+        },
+        "browser_only_workflow": {
+          "type": "object",
+          "properties": {
+            "enforcement": { "type": "string", "const": "Inherent response ambiguity; strict state freezing" },
+            "reconciliation": { "type": "string", "const": "Freeze at EFFECT_INDETERMINATE with retry_safe: false" }
+          }
+        },
+        "no_cooperation": {
+          "type": "object",
+          "properties": {
+            "enforcement": { "type": "string", "const": "Complete uncertainty preservation; fail-closed rejection" },
+            "reconciliation": { "type": "string", "const": "Rejects exactly-once claims; requires operator intervention" }
+          }
+        }
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "required": [
+          "scenario_id",
+          "fault_injection_point",
+          "wire_fault_event",
+          "target_capability",
+          "expected_gateway_disposition",
+          "expected_retry_safe",
+          "target_side_ground_truth"
+        ],
+        "properties": {
+          "scenario_id": { "type": "string" },
+          "fault_injection_point": {
+            "type": "string",
+            "enum": ["pre_write", "mid_body", "post_commit", "redirect", "browser_termination"]
+          },
+          "wire_fault_event": { "type": "string" },
+          "target_capability": { "type": "string" },
+          "expected_gateway_disposition": { "type": "string" },
+          "expected_retry_safe": { "type": "boolean" },
+          "target_side_ground_truth": { "type": "string" }
+        }
+      }
+    },
+    "headline_metrics": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

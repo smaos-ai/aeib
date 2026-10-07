@@ -54,13 +54,15 @@ python3 scripts/ci_claims_verifier.py
 # 4. Enforce AST mock purity across codebase
 python3 scripts/ast_purity_scanner.py
 
-# 5. Run core protection, falsifiability, MCP gate, and BBS+ matrix
+# 5. Run core protection, falsifiability, MCP gate, durable ledger, and benchmark matrix
 pytest tests/test_industrial_protection_matrix.py \
        tests/test_ansi_50bf_breaker_failure.py \
        tests/test_saga_compensation.py \
        tests/test_falsifiability_matrix.py \
        tests/test_mcp_acceptance_criteria.py \
-       tests/test_bbs_plus_redactable.py -v
+       tests/test_bbs_plus_redactable.py \
+       tests/test_p0_durable_ledger.py \
+       tests/test_acceptance_test_12.py -v
 
 # 6. Verify signed CRVP attestation and local codebase SHA-256 digest
 python3 verifier/verify_attestation.py

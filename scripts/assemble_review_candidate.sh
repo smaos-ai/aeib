@@ -60,7 +60,9 @@ if pytest tests/test_industrial_protection_matrix.py \
           tests/test_ansi_50bf_breaker_failure.py \
           tests/test_saga_compensation.py \
           tests/test_falsifiability_matrix.py \
-          tests/test_mcp_acceptance_criteria.py -q; then
+          tests/test_mcp_acceptance_criteria.py \
+          tests/test_p0_durable_ledger.py \
+          tests/test_acceptance_test_12.py -q; then
     echo "    [✓] Core protection, falsifiability, and MCP test matrix passed."
 else
     echo "    [✗] Gate 4 failed: Test suite regression detected!" >&2
@@ -112,6 +114,10 @@ INCLUDED_PATHS = [
     "scripts/ast_purity_scanner.py",
     "scripts/generate_crvp_attestation.py",
     "scripts/ci_claims_verifier.py",
+    "scripts/build_release_archive.sh",
+    "scripts/assemble_review_candidate.sh",
+    "scripts/export_dora_incident.py",
+    "scripts/validate_dora_register.py",
     "cleanroom/Dockerfile",
     "cleanroom/verify_from_scratch.py",
     "cleanroom/tcp_chaos_server.py",

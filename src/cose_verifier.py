@@ -8,11 +8,33 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from cryptography.exceptions import InvalidSignature
 from pathlib import Path
 
+# Single canonicalization source of truth. Two import forms are required because
+# this module is reached three ways, and no single form covers all three:
+#   * pytest / scripts  -> pythonpath = ". src" (pytest.ini): both work
+#   * python3 src/cose_verifier.py (the __main__ block below): only bare works,
+#     because sys.path[0] becomes <repo>/src and "src" itself is not importable
+#   * from src.cose_verifier import ... with only the repo root on sys.path:
+#     only the qualified form works
+try:
+    from src.jcs_canonicalizer import encode_jcs
+except ImportError:  # direct script execution
+    from jcs_canonicalizer import encode_jcs
+
 def jcs_canonicalize(obj: dict) -> bytes:
     """
     RFC 8785 JSON Canonicalization Scheme (JCS).
+
+    Delegates to jcs_canonicalizer.encode_jcs so the signer and the verifier
+    share one canonicalization implementation. The previous inline version used
+    json.dumps(sort_keys=True), which orders keys by Python code point instead
+    of RFC 8785 Section 3.2.3 UTF-16 code units, and serialized floats per
+    Python rules instead of ECMAScript 7.1.12.1 ("0.0" where JCS requires "0").
+
+    No Unicode normalization is performed: RFC 8785 Section 3.1 requires
+    preserved string data "as is". See jcs_canonicalizer.normalize_nfc for the
+    opt-in AEIB pre-pass.
     """
-    return json.dumps(obj, sort_keys=True, separators=(',', ':'), ensure_ascii=False).encode('utf-8')
+    return encode_jcs(obj)
 
 def verify_trust_passport(cose_payload: dict) -> bool:
     """

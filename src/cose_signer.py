@@ -8,12 +8,25 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from cryptography.hazmat.primitives import serialization
 from pathlib import Path
 
+# Single canonicalization source of truth, shared with cose_verifier. Two import
+# forms are required because this module is reached both as src.cose_signer
+# (scripts, tests) and as a sibling module when sys.path[0] is <repo>/src.
+try:
+    from src.jcs_canonicalizer import encode_jcs
+except ImportError:  # direct script execution
+    from jcs_canonicalizer import encode_jcs
+
 def jcs_canonicalize(obj: dict) -> bytes:
     """
     RFC 8785 JSON Canonicalization Scheme (JCS).
-    Sorts keys by UTF-16 code units, removes extraneous whitespace.
+
+    Delegates to jcs_canonicalizer.encode_jcs. Keys are ordered by UTF-16 code
+    units (RFC 8785 Section 3.2.3) and floats follow ECMAScript 7.1.12.1, so no
+    Unicode normalization is performed -- RFC 8785 Section 3.1 requires string
+    data be preserved "as is". This MUST stay byte-identical to the verifier's
+    copy, otherwise signatures produced here cannot be verified there.
     """
-    return json.dumps(obj, sort_keys=True, separators=(',', ':'), ensure_ascii=False).encode('utf-8')
+    return encode_jcs(obj)
 
 def generate_keypair(key_path: Path = Path("smaos_signing_key.pem")) -> Ed25519PrivateKey:
     """Generate or load an Ed25519 private key for signing."""

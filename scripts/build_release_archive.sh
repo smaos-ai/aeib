@@ -110,6 +110,7 @@ INCLUDED_PATHS = [
     "schemas/aeib-receipt-v0.4.0.json",
     "schemas/aeib_v0.5.0_receipt_schema.json",
     "schemas/scitt_continuity_receipt_schema.json",
+    "fixtures/aeib_bench_v0.1_scenarios.json",
     "compliance/crvp_attestation.json",
     "compliance/check_zone_boundary.py",
     "compliance/ast_purity.py",

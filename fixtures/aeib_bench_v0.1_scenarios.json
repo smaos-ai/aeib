@@ -1,0 +1,146 @@
+{
+  "benchmark_version": "0.1.0",
+  "ground_truth_rule": "SHOW_ME_CHANGE_IT_PROVE_IT: Target-side ledger state exclusively; agent text response and proxy self-reports ignored.",
+  "target_capability_matrix": {
+    "idempotency_key_plus_status_api": {
+      "enforcement": "Optimal duplicate control; deterministic status queries",
+      "reconciliation": "Out-of-band single-flight target probe"
+    },
+    "idempotency_key_only": {
+      "enforcement": "Safe retry suppression; limited outcome verification",
+      "reconciliation": "Idempotency token binding on retry"
+    },
+    "status_api_only": {
+      "enforcement": "Post-fault reconciliation; target determines duplicate prevention",
+      "reconciliation": "Status API probe before dispatch release"
+    },
+    "browser_only_workflow": {
+      "enforcement": "Inherent response ambiguity; strict state freezing",
+      "reconciliation": "Freeze at EFFECT_INDETERMINATE with retry_safe: false"
+    },
+    "no_cooperation": {
+      "enforcement": "Complete uncertainty preservation; fail-closed rejection",
+      "reconciliation": "Rejects exactly-once claims; requires operator intervention"
+    }
+  },
+  "scenarios": [
+    {
+      "scenario_id": "SCENARIO-01-PRE-WRITE-504",
+      "fault_injection_point": "pre_write",
+      "wire_fault_event": "http_504_gateway_timeout",
+      "target_capability": "idempotency_key_plus_status_api",
+      "expected_gateway_disposition": "RECONCILIATION_NOT_FOUND_AFTER_GRACE",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCOMMITTED_EMPTY_LEDGER"
+    },
+    {
+      "scenario_id": "SCENARIO-02-MID-BODY-RST",
+      "fault_injection_point": "mid_body",
+      "wire_fault_event": "tcp_rst",
+      "target_capability": "idempotency_key_plus_status_api",
+      "expected_gateway_disposition": "DISPATCHED_UNCONFIRMED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCOMMITTED_EMPTY_LEDGER"
+    },
+    {
+      "scenario_id": "SCENARIO-03-POST-COMMIT-504",
+      "fault_injection_point": "post_commit",
+      "wire_fault_event": "http_504_gateway_timeout",
+      "target_capability": "idempotency_key_plus_status_api",
+      "expected_gateway_disposition": "OUTCOME_VERIFIED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "COMMITTED_TARGET_RECORD_PRESENT"
+    },
+    {
+      "scenario_id": "SCENARIO-04-REDIRECT-LOOP",
+      "fault_injection_point": "redirect",
+      "wire_fault_event": "http_308_permanent_redirect",
+      "target_capability": "status_api_only",
+      "expected_gateway_disposition": "DISPATCHED_UNCONFIRMED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONFIRMED_REDIRECT_ABORT"
+    },
+    {
+      "scenario_id": "SCENARIO-05-BROWSER-PROCESS-CRASH",
+      "fault_injection_point": "browser_termination",
+      "wire_fault_event": "browser_terminated_sigkill",
+      "target_capability": "browser_only_workflow",
+      "expected_gateway_disposition": "DISPATCHED_UNCONFIRMED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "INDETERMINATE_DOM_STATE"
+    },
+    {
+      "scenario_id": "SCENARIO-06-PRE-WRITE-RST",
+      "fault_injection_point": "pre_write",
+      "wire_fault_event": "tcp_rst",
+      "target_capability": "idempotency_key_only",
+      "expected_gateway_disposition": "DISPATCHED_UNCONFIRMED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCOMMITTED_PRE_INGRESS_DROP"
+    },
+    {
+      "scenario_id": "SCENARIO-07-POST-COMMIT-RST",
+      "fault_injection_point": "post_commit",
+      "wire_fault_event": "tcp_rst",
+      "target_capability": "idempotency_key_only",
+      "expected_gateway_disposition": "OUTCOME_VERIFIED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "COMMITTED_TARGET_RECORD_PRESENT"
+    },
+    {
+      "scenario_id": "SCENARIO-08-IDEMPOTENCY-REPLAY",
+      "fault_injection_point": "post_commit",
+      "wire_fault_event": "HTTP_200_OK",
+      "target_capability": "idempotency_key_only",
+      "expected_gateway_disposition": "OUTCOME_VERIFIED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "DEDUPLICATED_SINGLE_EFFECT"
+    },
+    {
+      "scenario_id": "SCENARIO-09-SEMANTIC-DRIFT-RETRY",
+      "fault_injection_point": "pre_write",
+      "wire_fault_event": "prompt_drift_mutated_parameters",
+      "target_capability": "idempotency_key_plus_status_api",
+      "expected_gateway_disposition": "DISPATCHED_UNCONFIRMED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "CAID_DRIFT_DISTINCT_INTENT"
+    },
+    {
+      "scenario_id": "SCENARIO-10-PROBE-TIMEOUT",
+      "fault_injection_point": "post_commit",
+      "wire_fault_event": "target_status_api_timeout",
+      "target_capability": "status_api_only",
+      "expected_gateway_disposition": "DISPATCHED_UNCONFIRMED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONFIRMED_PROBE_OUTAGE"
+    },
+    {
+      "scenario_id": "SCENARIO-11-PROBE-CONFLICT",
+      "fault_injection_point": "post_commit",
+      "wire_fault_event": "http_504_gateway_timeout",
+      "target_capability": "idempotency_key_plus_status_api",
+      "expected_gateway_disposition": "RECONCILIATION_CONFLICT",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "TARGET_PAYLOAD_MISMATCH"
+    },
+    {
+      "scenario_id": "SCENARIO-12-UNCOOPERATIVE-ENDPOINT",
+      "fault_injection_point": "post_commit",
+      "wire_fault_event": "http_504_gateway_timeout",
+      "target_capability": "no_cooperation",
+      "expected_gateway_disposition": "RECONCILIATION_NOT_FOUND_AFTER_GRACE",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "NON_COOPERATIVE_FAIL_CLOSED_HOLD"
+    }
+  ],
+  "headline_metrics": [
+    "unauthorized_retry_count",
+    "duplicate_dispatch_count",
+    "duplicate_target_effect_count",
+    "false_confirmation_count",
+    "indeterminate_resolution_latency_ms",
+    "probe_amplification_ratio",
+    "evidence_completeness_ratio",
+    "operator_intervention_cost"
+  ]
+}

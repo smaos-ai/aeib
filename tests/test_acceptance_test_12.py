@@ -61,6 +61,29 @@ class TestAcceptanceTest12:
         self.pipeline = AEIB040Pipeline()
         self.target_ledger = TargetLedgerSimulator()
 
+    def test_00_fixture_schema_conformance(self):
+        """Validates that fixtures/aeib_bench_v0.1_scenarios.json strictly conforms to schema."""
+        import json
+        spec_path = REPO_ROOT / "schemas" / "aeib_bench_v0.1_spec.json"
+        fixture_path = REPO_ROOT / "fixtures" / "aeib_bench_v0.1_scenarios.json"
+        assert spec_path.exists(), "Benchmark specification schema must exist"
+        assert fixture_path.exists(), "Scenario fixture manifest must exist"
+
+        spec = json.loads(spec_path.read_text(encoding="utf-8"))
+        fixtures = json.loads(fixture_path.read_text(encoding="utf-8"))
+
+        assert fixtures["benchmark_version"] == spec["properties"]["benchmark_version"]["const"]
+        assert fixtures["ground_truth_rule"] == spec["properties"]["ground_truth_rule"]["const"]
+        assert len(fixtures["scenarios"]) == 12
+
+        valid_points = set(spec["properties"]["scenarios"]["items"]["properties"]["fault_injection_point"]["enum"])
+        valid_caps = set(spec["properties"]["target_capability_matrix"]["required"])
+
+        for sc in fixtures["scenarios"]:
+            assert sc["fault_injection_point"] in valid_points
+            assert sc["target_capability"] in valid_caps
+            assert isinstance(sc["expected_retry_safe"], bool)
+
     def test_01_pre_write_504(self):
         """Scenario 1: Pre-write 504 timeout before provider processing."""
         result = self.pipeline.execute_flow(

@@ -2,7 +2,7 @@
   "payload": {
     "protocol": "CRVP-v1.0",
     "attestation_standard": "CRVP-SNEI-v1.0",
-    "attestation_timestamp_utc": "2026-10-07T10:20:08Z",
+    "attestation_timestamp_utc": "2026-10-07T12:19:57Z",
     "codebase_digest": "sha256:7a6618c999a6be70c2eabed3e593dfde7e631dd67fe104cd38403dd2284647a5",
     "scanned_files_count": 78,
     "ast_purity_status": {
@@ -33,8 +33,8 @@
   "signature_block": {
     "algorithm": "Ed25519",
     "key_id": "key:aeib-crvp-signer-01",
-    "public_key_hex": "23887fda870611cd7055c5161a8e92877b856a10292c077c1def380b364bab58",
-    "signature_hex": "f09cfb62f3884f946d92bab2e0ee05b792ce407cf3dffdabe4e5b94bd3fe4cf61dbfaa34d0679afa62bfdab3cd25102ac981f49046e492dda6a3ee3566a3b70f"
+    "public_key_hex": "c7d29164ca8a26f8088be9b5545ace61ec3df50e9f7f0682e97c5955b2ae318e",
+    "signature_hex": "717a19986f466f67a624469120ed5b3013baff4d1ad2c4b54505e92cf6d55c8d9fc9acb1e3df9cdf2b4292acd236f2ede5a315f1a1447e9781706ccbdf150a0e"
   },
   "ast_purity_status": {
     "clean": true,
@@ -46,6 +46,6 @@
     "violations_count": 0
   },
   "codebase_digest": "sha256:7a6618c999a6be70c2eabed3e593dfde7e631dd67fe104cd38403dd2284647a5",
-  "public_key_hex": "23887fda870611cd7055c5161a8e92877b856a10292c077c1def380b364bab58",
-  "signature_hex": "f09cfb62f3884f946d92bab2e0ee05b792ce407cf3dffdabe4e5b94bd3fe4cf61dbfaa34d0679afa62bfdab3cd25102ac981f49046e492dda6a3ee3566a3b70f"
+  "public_key_hex": "c7d29164ca8a26f8088be9b5545ace61ec3df50e9f7f0682e97c5955b2ae318e",
+  "signature_hex": "717a19986f466f67a624469120ed5b3013baff4d1ad2c4b54505e92cf6d55c8d9fc9acb1e3df9cdf2b4292acd236f2ede5a315f1a1447e9781706ccbdf150a0e"
 }

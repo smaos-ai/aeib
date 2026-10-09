@@ -4,6 +4,9 @@ plugins {
 }
 
 allprojects {
+    group = 'ai.sovereign.aeib'
+    version = '1.0.0-rc.1'
+
     repositories {
         mavenCentral()
     }

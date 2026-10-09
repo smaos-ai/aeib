@@ -18,7 +18,7 @@ public class MandatoryNegativeTestSuite {
 
         // String escaping
         String stringVector = "{\"string\": \"\\u20ac$\\u000F\\u000aA'\\u0042\\u0022\\u005c\\\\\\\"\\/\"}";
-        String expectedString = "{\"string\":\"€$\\u000f\\nA'B\\\"\\\\\\\"/\"}";
+        String expectedString = "{\"string\":\"€$\\u000f\\nA'B\\\"\\\\\\\\\\\"/\"}";
         assertEquals(expectedString, new String(Jcs.canonicalize(stringVector), StandardCharsets.UTF_8));
         
         // Key ordering

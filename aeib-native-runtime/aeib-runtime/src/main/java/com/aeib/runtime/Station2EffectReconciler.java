@@ -55,10 +55,21 @@ public class Station2EffectReconciler implements EffectReconciler {
         );
 
         try {
-            long remainingMillis = Math.max(1L, budget.reconciliationDeadline().toEpochMilli() - Instant.now().toEpochMilli());
-            return probeFuture.get(remainingMillis, TimeUnit.MILLISECONDS);
-        } catch (TimeoutException e) {
+            long deadlineRemainingMillis = Math.max(1L, budget.reconciliationDeadline().toEpochMilli() - Instant.now().toEpochMilli());
+            long waitMillis = Math.min(budget.probeTimeout().toMillis(), deadlineRemainingMillis);
+            return probeFuture.get(waitMillis, TimeUnit.MILLISECONDS);
+        } catch (TimeoutException | CancellationException e) {
             probeFuture.cancel(true); 
+            return new ReconciledState(EffectDisposition.INDETERMINATE, null, Instant.now());
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof InterruptedException) {
+                return new ReconciledState(EffectDisposition.INDETERMINATE, null, Instant.now());
+            }
+            probeFuture.cancel(true);
+            return new ReconciledState(EffectDisposition.CONFLICT, null, Instant.now());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            probeFuture.cancel(true);
             return new ReconciledState(EffectDisposition.INDETERMINATE, null, Instant.now());
         } catch (Exception e) {
             probeFuture.cancel(true);

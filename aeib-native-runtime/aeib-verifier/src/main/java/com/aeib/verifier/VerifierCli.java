@@ -89,6 +89,46 @@ public class VerifierCli {
             return;
         }
 
+        // Integrity Cross-Check: Top-level receipt fields must match the signed statement
+        try {
+            JsonNode statementNode = MAPPER.readTree(statementBytes);
+            if (root.has("operationId") && statementNode.has("operationId")) {
+                String rootOpId = root.path("operationId").asText();
+                String stmtOpId = statementNode.path("operationId").asText();
+                if (!rootOpId.equals(stmtOpId)) {
+                    System.err.println("INVALID: operationId mismatch between receipt root and signed statement.");
+                    System.exit(2);
+                }
+            }
+            if (root.has("epoch") && statementNode.has("epoch")) {
+                long rootEpoch = root.path("epoch").asLong();
+                long stmtEpoch = statementNode.path("epoch").asLong();
+                if (rootEpoch != stmtEpoch) {
+                    System.err.println("INVALID: epoch mismatch between receipt root and signed statement.");
+                    System.exit(2);
+                }
+            }
+            if (root.has("chainTip") && statementNode.has("chainTip")) {
+                String rootChainTip = root.path("chainTip").asText();
+                String stmtChainTip = statementNode.path("chainTip").asText();
+                if (!rootChainTip.equals(stmtChainTip)) {
+                    System.err.println("INVALID: chainTip mismatch between receipt root and signed statement.");
+                    System.exit(2);
+                }
+            }
+            if (sigNode.has("keyId") && statementNode.has("keyId")) {
+                String rootKeyId = sigNode.path("keyId").asText();
+                String stmtKeyId = statementNode.path("keyId").asText();
+                if (!rootKeyId.equals(stmtKeyId)) {
+                    System.err.println("INVALID: keyId mismatch between receipt signature and signed statement.");
+                    System.exit(2);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("INVALID: Failed to parse signed statement for field binding.");
+            System.exit(2);
+        }
+
         PublicKey publicKey = parsePublicKey(pubKeyPath);
 
         boolean isValid = Ed25519ProofEngine.verify(statementBytes, signature, publicKey);

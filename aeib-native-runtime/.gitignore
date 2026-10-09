@@ -1,0 +1,5 @@
+.gradle/
+build/
+bin/
+out/
+aeib-tests/aeib-native-runtime/

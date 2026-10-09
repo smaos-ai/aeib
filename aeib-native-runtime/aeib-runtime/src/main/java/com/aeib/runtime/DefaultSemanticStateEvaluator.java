@@ -37,7 +37,8 @@ public class DefaultSemanticStateEvaluator implements SemanticStateEvaluator {
                 
             case "SUCCESS":
             case "COMPLETED":
-                // Target reports success. We MUST verify the payload to prevent blind confirmation.
+            case "COMMITTED":
+                // Target reports success or commit. We MUST verify the payload to prevent blind confirmation.
                 if (observedState.rawTargetPayload() == null) {
                     return EffectDisposition.CONFLICT; // Claimed success but provided no evidence
                 }

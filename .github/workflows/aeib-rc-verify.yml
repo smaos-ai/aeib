@@ -90,6 +90,12 @@ jobs:
         with:
           name: aeib-release-artifacts
           path: release-artifacts
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
           
       - name: Standalone Verifier - Valid Receipt (Exit Code 0)
         run: |

@@ -1,50 +1,96 @@
 {
-  "version": "1.0.0",
+  "vectorFormatVersion": 1,
   "vectors": [
     {
-      "name": "valid",
+      "id": "valid",
+      "receipt": "valid/receipt.json",
+      "publicKey": "valid/public.pem",
       "expectedExitCode": 0,
       "description": "Conforming Ed25519 signed receipt verified under public key"
     },
     {
-      "name": "tampered-statement",
+      "id": "tampered-statement",
+      "receipt": "tampered-statement/receipt.json",
+      "publicKey": "tampered-statement/public.pem",
       "expectedExitCode": 2,
       "description": "Root operationId modified diverging from signed statement"
     },
     {
-      "name": "tampered-signature",
+      "id": "tampered-signature",
+      "receipt": "tampered-signature/receipt.json",
+      "publicKey": "tampered-signature/public.pem",
       "expectedExitCode": 2,
       "description": "Single byte corruption in Ed25519 signature"
     },
     {
-      "name": "wrong-key",
+      "id": "wrong-key",
+      "receipt": "wrong-key/receipt.json",
+      "publicKey": "wrong-key/public.pem",
       "expectedExitCode": 2,
       "description": "Public key does not match signing private key"
     },
     {
-      "name": "missing-keyid",
-      "expectedExitCode": 1,
-      "description": "Signature missing required keyId field"
-    },
-    {
-      "name": "unknown-keyid",
+      "id": "unknown-keyid",
+      "receipt": "unknown-keyid/receipt.json",
+      "publicKey": "unknown-keyid/public.pem",
       "expectedExitCode": 2,
       "description": "Root keyId diverges from statement keyId"
     },
     {
-      "name": "malformed-json",
-      "expectedExitCode": 1,
+      "id": "non-canonical-statement",
+      "receipt": "non-canonical-statement/receipt.json",
+      "publicKey": "non-canonical-statement/public.pem",
+      "expectedExitCode": 2,
+      "description": "Statement contains uncanonical formatting violating RFC 8785"
+    },
+    {
+      "id": "missing-keyid",
+      "receipt": "missing-keyid/receipt.json",
+      "publicKey": "missing-keyid/public.pem",
+      "expectedExitCode": 3,
+      "description": "Signature missing required keyId field"
+    },
+    {
+      "id": "malformed-json",
+      "receipt": "malformed-json/receipt.json",
+      "publicKey": "malformed-json/public.pem",
+      "expectedExitCode": 3,
       "description": "Receipt payload contains unparseable syntax"
     },
     {
-      "name": "trailing-token",
-      "expectedExitCode": 1,
+      "id": "trailing-token",
+      "receipt": "trailing-token/receipt.json",
+      "publicKey": "trailing-token/public.pem",
+      "expectedExitCode": 3,
       "description": "Receipt payload contains trailing tokens after JSON object"
     },
     {
-      "name": "non-canonical",
-      "expectedExitCode": 2,
-      "description": "Statement contains uncanonical formatting violating RFC 8785"
+      "id": "oversized-receipt",
+      "receipt": "oversized-receipt/receipt.json",
+      "publicKey": "oversized-receipt/public.pem",
+      "expectedExitCode": 3,
+      "description": "Receipt payload exceeds 1 MiB size bound"
+    },
+    {
+      "id": "missing-receipt",
+      "receipt": "missing-receipt/nonexistent-receipt.json",
+      "publicKey": "missing-receipt/public.pem",
+      "expectedExitCode": 3,
+      "description": "Receipt file does not exist on filesystem"
+    },
+    {
+      "id": "missing-public-key",
+      "receipt": "missing-public-key/receipt.json",
+      "publicKey": "missing-public-key/nonexistent-public.pem",
+      "expectedExitCode": 3,
+      "description": "Public key file does not exist on filesystem"
+    },
+    {
+      "id": "directory-as-receipt",
+      "receipt": "directory-as-receipt/sub-directory",
+      "publicKey": "directory-as-receipt/public.pem",
+      "expectedExitCode": 3,
+      "description": "Directory path supplied instead of regular file"
     }
   ]
 }

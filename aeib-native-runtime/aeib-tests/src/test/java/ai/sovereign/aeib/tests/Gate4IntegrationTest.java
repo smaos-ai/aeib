@@ -5,7 +5,7 @@ import com.aeib.runtime.Station2EffectReconciler;
 import com.aeib.runtime.DefaultSemanticStateEvaluator;
 import com.aeib.runtime.Station3ContinuousLedger;
 import com.aeib.crypto.Ed25519ProofEngine;
-import com.aeib.verifier.ReceiptVerifier;
+import com.aeib.verifier.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.jupiter.api.AfterEach;
@@ -267,10 +267,10 @@ public class Gate4IntegrationTest {
         // ----------------------------------------------------------------------------------
         byte[] serializedReceiptJson = writeArtifactsForVerification(receipt, keyPair.getPublic());
         
-        ReceiptVerifier.VerificationResult verifierResult = ReceiptVerifier.verify(serializedReceiptJson, keyPair.getPublic());
-        assertEquals(ReceiptVerifier.VerificationOutcome.VALID, verifierResult.outcome(), 
-            "Standalone verifier must accept receipt under valid public key");
-        assertEquals(0, verifierResult.exitCode(), "Verifier exit code must be 0 for valid receipt");
+        ParsedReceipt parsedReceipt = new ReceiptParser().parse(serializedReceiptJson, new Rfc8785Canonicalizer());
+        ReceiptVerificationResult verifierResult = new ReceiptVerifier().verifyParsed(parsedReceipt, keyPair.getPublic());
+        assertTrue(verifierResult.valid(), "Standalone verifier must accept receipt under valid public key");
+        assertNull(verifierResult.failureReason(), "Failure reason must be null for valid receipt");
     }
 
     private byte[] writeArtifactsForVerification(ContinuityReceipt receipt, java.security.PublicKey pubKey) {

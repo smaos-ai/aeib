@@ -1,75 +1,87 @@
 package com.aeib.verifier;
 
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 /**
- * Parses and validates Ed25519 public keys from documented X.509 PEM or Base64 formats.
+ * Parses and strictly validates Ed25519 public keys.
+ *
+ * AEIB pins exactly one input format:
+ *   PEM-encoded X.509 SubjectPublicKeyInfo containing exactly one Ed25519 public key.
+ *
+ * Raw 32-byte keys, OpenSSH-format keys, PKCS#8 private keys, certificates,
+ * and multiple keys in one file are explicitly rejected.
  */
 public final class PublicKeyReader {
 
     private PublicKeyReader() {}
 
     /**
-     * Reads public key from file using bounded file read, then parses the Ed25519 public key.
+     * Parses a PEM-encoded X.509 SubjectPublicKeyInfo containing exactly one Ed25519 public key.
      *
-     * @param path Path to the public key file
+     * @param pemBytes Raw bytes of the PEM file
      * @return Validated Ed25519 PublicKey
-     * @throws ReceiptFileReader.FileReadException if file read violates boundedness or regular-file check
-     * @throws InvalidKeyException if public key format is invalid or not Ed25519
+     * @throws VerifierInputException if format, algorithm, or encoding is invalid
      */
-    public static PublicKey readFromPath(Path path) throws ReceiptFileReader.FileReadException, InvalidKeyException {
-        byte[] bytes = ReceiptFileReader.readBounded(path);
-        String text = new String(bytes, StandardCharsets.UTF_8);
-        return parse(text);
-    }
-
-    /**
-     * Parses an Ed25519 public key from PEM string or raw Base64.
-     *
-     * @param text PEM formatted or Base64 string
-     * @return Validated Ed25519 PublicKey
-     * @throws InvalidKeyException if format is invalid or not Ed25519
-     */
-    public static PublicKey parse(String text) throws InvalidKeyException {
-        if (text == null || text.isBlank()) {
-            throw new InvalidKeyException("Public key text is empty");
-        }
-        String clean = text.trim();
-        if (clean.contains("BEGIN PUBLIC KEY")) {
-            clean = clean.replace("-----BEGIN PUBLIC KEY-----", "")
-                         .replace("-----END PUBLIC KEY-----", "")
-                         .replaceAll("\\s+", "");
-        } else {
-            clean = clean.replaceAll("\\s+", "");
+    public static PublicKey parse(byte[] pemBytes) throws VerifierInputException {
+        if (pemBytes == null || pemBytes.length == 0) {
+            throw new VerifierInputException("Public key input is empty");
         }
 
-        byte[] keyBytes;
+        String text = new String(pemBytes, StandardCharsets.UTF_8).trim();
+
+        // Reject certificates, private keys, OpenSSH keys, and unsupported formats
+        if (text.contains("CERTIFICATE")) {
+            throw new VerifierInputException("Certificates are not permitted as public key input; provide X.509 SubjectPublicKeyInfo PEM");
+        }
+        if (text.contains("PRIVATE KEY")) {
+            throw new VerifierInputException("Private keys are not permitted as public key input");
+        }
+        if (text.startsWith("ssh-ed25519") || text.contains("ssh-rsa")) {
+            throw new VerifierInputException("OpenSSH public key format is not permitted; provide PEM-encoded X.509 SubjectPublicKeyInfo");
+        }
+
+        // Must contain standard PEM header and footer
+        int firstBegin = text.indexOf("-----BEGIN PUBLIC KEY-----");
+        int lastBegin = text.lastIndexOf("-----BEGIN PUBLIC KEY-----");
+        int endIdx = text.indexOf("-----END PUBLIC KEY-----");
+
+        if (firstBegin == -1 || endIdx == -1 || endIdx < firstBegin) {
+            throw new VerifierInputException("Public key must be PEM-encoded X.509 SubjectPublicKeyInfo with BEGIN/END PUBLIC KEY markers");
+        }
+        if (firstBegin != lastBegin) {
+            throw new VerifierInputException("Multiple public keys detected in file; exactly one key is permitted");
+        }
+
+        String base64Content = text
+            .substring(firstBegin + "-----BEGIN PUBLIC KEY-----".length(), endIdx)
+            .replaceAll("\\s+", "");
+
+        byte[] spkiBytes;
         try {
-            keyBytes = Base64.getDecoder().decode(clean);
+            spkiBytes = Base64.getDecoder().decode(base64Content);
         } catch (IllegalArgumentException e) {
-            throw new InvalidKeyException("Invalid base64 encoding in public key: " + e.getMessage(), e);
+            throw new VerifierInputException("Invalid base64 encoding in public key PEM: " + e.getMessage(), e);
+        }
+
+        // Standard X.509 SubjectPublicKeyInfo for Ed25519 is 44 bytes
+        if (spkiBytes.length == 32) {
+            throw new VerifierInputException("Raw 32-byte Ed25519 keys are rejected; provide X.509 SubjectPublicKeyInfo PEM");
         }
 
         try {
             KeyFactory kf = KeyFactory.getInstance("Ed25519");
-            return kf.generatePublic(new X509EncodedKeySpec(keyBytes));
+            PublicKey key = kf.generatePublic(new X509EncodedKeySpec(spkiBytes));
+            String alg = key.getAlgorithm();
+            if (!"Ed25519".equalsIgnoreCase(alg) && !"EdDSA".equalsIgnoreCase(alg)) {
+                throw new VerifierInputException("Public key algorithm must be Ed25519/EdDSA, got: " + alg);
+            }
+            return key;
         } catch (Exception e) {
-            throw new InvalidKeyException("Failed to decode Ed25519 public key: " + e.getMessage(), e);
-        }
-    }
-
-    public static class InvalidKeyException extends Exception {
-        public InvalidKeyException(String message) {
-            super(message);
-        }
-
-        public InvalidKeyException(String message, Throwable cause) {
-            super(message, cause);
+            throw new VerifierInputException("Failed to decode Ed25519 X.509 SubjectPublicKeyInfo: " + e.getMessage(), e);
         }
     }
 }

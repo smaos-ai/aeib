@@ -56,6 +56,10 @@ jobs:
           test -f aeib-native-runtime/build/test-results/ledger-public.pem
           cp aeib-native-runtime/build/test-results/ledger-public.pem release-artifacts/
 
+          # Deterministic test vectors & manifest
+          test -d aeib-native-runtime/aeib-verifier/src/test/resources/vectors
+          cp -a aeib-native-runtime/aeib-verifier/src/test/resources/vectors release-artifacts/
+
       - name: Compute Artifact Hashes for SLSA (Base64)
         id: hashes
         run: |
@@ -85,35 +89,75 @@ jobs:
           name: aeib-release-artifacts
           path: release-artifacts
           
-      - name: Setup JQ
-        run: sudo apt-get install -y jq
-          
-      - name: Standalone Verifier - Valid Receipt
+      - name: Standalone Verifier - Valid Receipt (Exit Code 0)
         run: |
           chmod +x release-artifacts/aeib-verifier/bin/aeib-verifier
+          set +e
           ./release-artifacts/aeib-verifier/bin/aeib-verifier \
             --receipt release-artifacts/receipt.json \
             --pubkey release-artifacts/ledger-public.pem
-          
-      - name: Standalone Verifier - Tampered Receipt
+          status=$?
+          set -e
+          if [ "$status" -ne 0 ]; then
+            echo "ERROR: valid receipt failed verification with exit code $status"
+            exit 1
+          fi
+          echo "OK: valid receipt verified with exit code 0"
+
+      - name: Standalone Verifier - Tampered Statement Vector (Exit Code 2)
         run: |
-          sed 's/OP-GATE4-REAL/OP-HACKED/' release-artifacts/receipt.json > release-artifacts/receipt.tampered.json
-          
-          # Assert tampered file remains valid JSON (testing signature rejection, not JSON parse error)
-          jq -e . release-artifacts/receipt.tampered.json > /dev/null
-          
-          # Explicit exit-code handling
           set +e
           ./release-artifacts/aeib-verifier/bin/aeib-verifier \
-            --receipt release-artifacts/receipt.tampered.json \
+            --receipt release-artifacts/vectors/tampered-statement/receipt.json \
+            --pubkey release-artifacts/vectors/tampered-statement/public.pem
+          status=$?
+          set -e
+          if [ "$status" -ne 2 ]; then
+            echo "ERROR: tampered statement did not exit with code 2, got: $status"
+            exit 1
+          fi
+          echo "OK: tampered statement rejected with exit code 2"
+
+      - name: Standalone Verifier - Malformed JSON Vector (Exit Code 3)
+        run: |
+          set +e
+          ./release-artifacts/aeib-verifier/bin/aeib-verifier \
+            --receipt release-artifacts/vectors/malformed-json/receipt.json \
+            --pubkey release-artifacts/vectors/malformed-json/public.pem
+          status=$?
+          set -e
+          if [ "$status" -ne 3 ]; then
+            echo "ERROR: malformed JSON did not exit with code 3, got: $status"
+            exit 1
+          fi
+          echo "OK: malformed JSON rejected with exit code 3"
+
+      - name: Standalone Verifier - Missing File Input (Exit Code 3)
+        run: |
+          set +e
+          ./release-artifacts/aeib-verifier/bin/aeib-verifier \
+            --receipt release-artifacts/nonexistent-receipt.json \
             --pubkey release-artifacts/ledger-public.pem
           status=$?
           set -e
-          if [ "$status" -eq 0 ]; then
-            echo "ERROR: tampered receipt unexpectedly verified"
+          if [ "$status" -ne 3 ]; then
+            echo "ERROR: missing receipt did not exit with code 3, got: $status"
             exit 1
           fi
-          echo "OK: tampered receipt rejected with exit code $status"
+          echo "OK: missing receipt rejected with exit code 3"
+
+      - name: Standalone Verifier - CLI Usage Error (Exit Code 1)
+        run: |
+          set +e
+          ./release-artifacts/aeib-verifier/bin/aeib-verifier \
+            --receipt release-artifacts/receipt.json
+          status=$?
+          set -e
+          if [ "$status" -ne 1 ]; then
+            echo "ERROR: missing required option did not exit with code 1, got: $status"
+            exit 1
+          fi
+          echo "OK: CLI usage error rejected with exit code 1"
 
   # Temporarily disabled until the v2.1.0 contract is verified against upstream.
   # provenance:

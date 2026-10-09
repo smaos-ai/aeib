@@ -3,6 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation project(':aeib-core')
-    implementation project(':aeib-crypto')
+    api project(':aeib-core')
+    api project(':aeib-crypto')
+    api 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
 }

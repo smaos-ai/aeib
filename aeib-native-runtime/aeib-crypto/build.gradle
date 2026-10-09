@@ -3,9 +3,8 @@ plugins {
 }
 
 dependencies {
-    implementation project(':aeib-core')
-    implementation 'org.bouncycastle:bcprov-jdk18on:1.77'
-    // For RFC 8785 JSON Canonicalization
-    implementation 'io.github.erdtman:java-json-canonicalization:1.1'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+    api project(':aeib-core')
+    api 'org.bouncycastle:bcprov-jdk18on:1.77'
+    api 'io.github.erdtman:java-json-canonicalization:1.1'
+    api 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
 }

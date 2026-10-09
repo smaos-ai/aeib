@@ -10,6 +10,7 @@ dependencies {
     testImplementation project(':aeib-core')
     testImplementation project(':aeib-crypto')
     testImplementation project(':aeib-runtime')
+    testImplementation project(':aeib-verifier')
     testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.1'
     testImplementation 'org.junit.jupiter:junit-jupiter-params:5.10.1'

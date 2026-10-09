@@ -5,11 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.PublicKey;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -65,11 +66,20 @@ public class VerifierCliTest {
     }
 
     @Test
+    public void testMissingFileRejection(@TempDir Path tempDir) throws Exception {
+        Path validPubKey = findVectorPubKey();
+        Path missingPath = tempDir.resolve("does-not-exist.json");
+
+        int exit = VerifierCli.verify(missingPath, validPubKey);
+        assertEquals(4, exit, "Missing input file must be rejected with exit code 4");
+    }
+
+    @Test
     public void testOversizedInputRejection(@TempDir Path tempDir) throws Exception {
         Path validPubKey = findVectorPubKey();
         Path oversizedFile = tempDir.resolve("oversized_receipt.json");
         
-        // Write sparse or empty file with size just exceeding 50MB (50MB + 1 byte)
+        // Write file with size just exceeding 50MB (50MB + 1 byte)
         long size = 50L * 1024 * 1024 + 1;
         try (OutputStream out = Files.newOutputStream(oversizedFile)) {
             byte[] chunk = new byte[64 * 1024];
@@ -98,6 +108,49 @@ public class VerifierCliTest {
         } catch (UnsupportedOperationException ignored) {
             // Filesystem does not support symlinks in environment
         }
+    }
+
+    @Test
+    public void testReceiptFileReaderUnit(@TempDir Path tempDir) throws Exception {
+        Path smallFile = tempDir.resolve("small.txt");
+        Files.writeString(smallFile, "hello aeib", StandardCharsets.UTF_8);
+
+        byte[] bytes = ReceiptFileReader.readBounded(smallFile);
+        assertEquals("hello aeib", new String(bytes, StandardCharsets.UTF_8));
+
+        assertThrows(ReceiptFileReader.FileReadException.class, () -> {
+            ReceiptFileReader.readBounded(tempDir.resolve("missing.txt"));
+        });
+    }
+
+    @Test
+    public void testReceiptParserUnit() {
+        assertThrows(ReceiptParser.ReceiptParseException.class, () -> {
+            ReceiptParser.parse("{\"not\": \"a receipt\"}".getBytes(StandardCharsets.UTF_8));
+        });
+
+        assertThrows(ReceiptParser.ReceiptParseException.class, () -> {
+            ReceiptParser.parse("{\"valid\": 1} trailing".getBytes(StandardCharsets.UTF_8));
+        });
+    }
+
+    @Test
+    public void testPublicKeyReaderUnit() throws Exception {
+        Path validPubKey = findVectorPubKey();
+        PublicKey pk = PublicKeyReader.readFromPath(validPubKey);
+        assertNotNull(pk);
+        assertEquals("EdDSA", pk.getAlgorithm());
+
+        assertThrows(PublicKeyReader.InvalidKeyException.class, () -> {
+            PublicKeyReader.parse("corrupted-key-bytes");
+        });
+    }
+
+    @Test
+    public void testJcsCanonicalizationUnit() throws Exception {
+        String input = "{\"b\": 2, \"a\": 1}";
+        byte[] canonical = Jcs.canonicalize(input);
+        assertEquals("{\"a\":1,\"b\":2}", new String(canonical, StandardCharsets.UTF_8));
     }
 
     private Path findVectorPubKey() {

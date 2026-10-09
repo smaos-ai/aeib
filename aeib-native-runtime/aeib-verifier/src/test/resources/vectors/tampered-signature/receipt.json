@@ -1,0 +1,13 @@
+{
+  "operationId": "OP-VEC-001",
+  "epoch": 1000,
+  "chainTip": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+  "signatureAlgorithm": "Ed25519",
+  "hashAlgorithm": "SHA-256",
+  "signature": {
+    "ed25519Signature": "cg9eRCGngATmcVFxp5wcnPSYkEXixxk1esg/rmVUINyxRaoINXPEy6JJNPB652JpB2UDzvYOBv0s9s8JrYrYBg==",
+    "keyId": "test-key-alpha",
+    "keyEpoch": 1000
+  },
+  "signedStatement": "eyJjaGFpblRpcCI6IkFRRUJBUUVCQVFFQkFRRUJBUUVCQVFFQkFRRUJBUUVCQVFFQkFRRUJBUUU9IiwiZXBvY2giOjEwMDAsImtleUlkIjoidGVzdC1rZXktYWxwaGEiLCJvcGVyYXRpb25JZCI6Ik9QLVZFQy0wMDEifQ=="
+}

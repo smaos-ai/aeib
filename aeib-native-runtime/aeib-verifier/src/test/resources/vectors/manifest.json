@@ -1,0 +1,50 @@
+{
+  "version": "1.0.0",
+  "vectors": [
+    {
+      "name": "valid",
+      "expectedExitCode": 0,
+      "description": "Conforming Ed25519 signed receipt verified under public key"
+    },
+    {
+      "name": "tampered-statement",
+      "expectedExitCode": 2,
+      "description": "Root operationId modified diverging from signed statement"
+    },
+    {
+      "name": "tampered-signature",
+      "expectedExitCode": 2,
+      "description": "Single byte corruption in Ed25519 signature"
+    },
+    {
+      "name": "wrong-key",
+      "expectedExitCode": 2,
+      "description": "Public key does not match signing private key"
+    },
+    {
+      "name": "missing-keyid",
+      "expectedExitCode": 1,
+      "description": "Signature missing required keyId field"
+    },
+    {
+      "name": "unknown-keyid",
+      "expectedExitCode": 2,
+      "description": "Root keyId diverges from statement keyId"
+    },
+    {
+      "name": "malformed-json",
+      "expectedExitCode": 1,
+      "description": "Receipt payload contains unparseable syntax"
+    },
+    {
+      "name": "trailing-token",
+      "expectedExitCode": 1,
+      "description": "Receipt payload contains trailing tokens after JSON object"
+    },
+    {
+      "name": "non-canonical",
+      "expectedExitCode": 2,
+      "description": "Statement contains uncanonical formatting violating RFC 8785"
+    }
+  ]
+}

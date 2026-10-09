@@ -115,12 +115,13 @@ jobs:
           fi
           echo "OK: tampered receipt rejected with exit code $status"
 
-  provenance:
-    needs: [build-and-test, verify-receipt-offline]
-    permissions:
-      actions: read
-      id-token: write
-      contents: write
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
-    with:
-      base64-subjects: "${{ needs.build-and-test.outputs.hashes }}"
+  # Temporarily disabled until the v2.1.0 contract is verified against upstream.
+  # provenance:
+  #   needs: [build-and-test, verify-receipt-offline]
+  #   permissions:
+  #     actions: read
+  #     id-token: write
+  #     contents: write
+  #   uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
+  #   with:
+  #     base64-subjects: "${{ needs.build-and-test.outputs.hashes }}"

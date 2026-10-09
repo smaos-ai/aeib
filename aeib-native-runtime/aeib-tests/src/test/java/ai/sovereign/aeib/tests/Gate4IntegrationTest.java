@@ -91,6 +91,7 @@ public class Gate4IntegrationTest {
 
     private void handleFaultRequest(Socket client) {
         try {
+            client.setSoTimeout(2000);
             InputStream in = client.getInputStream();
             String headers = readHttpHeaders(in);
 
@@ -106,6 +107,7 @@ public class Gate4IntegrationTest {
 
     private void handleStatusRequest(Socket client) {
         try {
+            client.setSoTimeout(2000);
             InputStream in = client.getInputStream();
             String headers = readHttpHeaders(in);
 

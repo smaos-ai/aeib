@@ -1,0 +1,13 @@
+plugins {
+    id 'application'
+}
+
+application {
+    mainClass = 'com.aeib.verifier.VerifierCli'
+    applicationName = 'aeib-verifier'
+}
+
+dependencies {
+    implementation project(':aeib-core')
+    implementation project(':aeib-crypto')
+}

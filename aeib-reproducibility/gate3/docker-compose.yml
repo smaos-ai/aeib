@@ -1,0 +1,12 @@
+services:
+  aeib-reproduction:
+    build:
+      context: ../..
+      dockerfile: aeib-reproducibility/gate3/Dockerfile
+    container_name: aeib-clean-room-verifier
+    environment:
+      CI: "true"
+      ZERO_MOCK: "strict"
+    volumes:
+      - ./logs:/app/logs
+    network_mode: none

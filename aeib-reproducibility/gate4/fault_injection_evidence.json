@@ -1,0 +1,10 @@
+{
+  "fault_injected": "CONNECTION_RESET_AFTER_DISPATCH",
+  "transport_observation": "EMPTY_READ_OR_RESET",
+  "test_driver_retry_mutations": 0,
+  "target_mutation_count": 1,
+  "aeib_runtime_involved": false,
+  "aeib_reconciler_disposition": "NOT_APPLICABLE",
+  "aeib_receipt_generated": false,
+  "evidence_scope": "TARGET_FAULT_SIMULATION_ONLY"
+}

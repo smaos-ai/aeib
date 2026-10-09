@@ -1,0 +1,8 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    implementation project(':aeib-core')
+    implementation project(':aeib-crypto')
+}

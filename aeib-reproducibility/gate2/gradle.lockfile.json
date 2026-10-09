@@ -1,0 +1,149 @@
+{
+  "lockfileVersion": 1,
+  "runtime": "Java 21 LTS",
+  "buildSystem": "Gradle 8.7",
+  "timestamp": "2026-10-09T09:16:33Z",
+  "dependencies": {
+    "aeib-core": [
+      {
+        "group": "io.github.resilience4j",
+        "name": "resilience4j-ratelimiter",
+        "version": "2.3.0",
+        "sha256": "97282cb201bb8d99c30ff049752d5b62b1a8f6a91d1e434e32ec519c2dc01aa2"
+      },
+      {
+        "group": "io.github.resilience4j",
+        "name": "resilience4j-circuitbreaker",
+        "version": "2.3.0",
+        "sha256": "4fae39b9866e4a2e5db4ee476c535ee6175e52cb7ec5d6b4ee971488c03e8cb1"
+      }
+    ],
+    "aeib-crypto": [
+      {
+        "group": "io.github.erdtman",
+        "name": "java-json-canonicalization",
+        "version": "1.1",
+        "sha256": "d8eb79e27606cb75050f24a1329bf9ff035e46beba7a6fca905ba164c8dcf922"
+      },
+      {
+        "group": "org.bouncycastle",
+        "name": "bcprov-jdk18on",
+        "version": "1.85",
+        "sha256": "5b0b9dc563e48113c242c75a4dcabfe2be4e375bc862ca8ea457cb19280d9089"
+      },
+      {
+        "group": "com.fasterxml.jackson.core",
+        "name": "jackson-databind",
+        "version": "2.18.2",
+        "sha256": "041a9db3f28cf674be1ebca77889e496a84eb6375bc837e2ab7bcfc1f7aa0845"
+      }
+    ]
+  },
+  "sourceInventory": [
+    {
+      "path": "build.gradle",
+      "size": 408,
+      "sha256": "dfbdabb9ac575e542e0f69d6e0bf1a80ebb918a45d57d8f278fb2b8416af768f"
+    },
+    {
+      "path": "THREAT_MODEL.md",
+      "size": 1381,
+      "sha256": "a12460da329d90040d16ed4bf06819e4f9dfb337c16d14781570e198d6e624f6"
+    },
+    {
+      "path": "settings.gradle",
+      "size": 175,
+      "sha256": "481034d0836f1285ccd7af420fa4e4fec95aecabf738c79743c62de7ec70143e"
+    },
+    {
+      "path": "Adversarial_Audit_Report.md",
+      "size": 2870,
+      "sha256": "6abe9482f14b76b05e5d2d8b45baba02a0761d941375791f1e1fc8e095f3370c"
+    },
+    {
+      "path": "aeib-crypto/build.gradle.kts",
+      "size": 442,
+      "sha256": "41cc72af1538ba3ed0c61d85b02e62834bcd383e16c9f7ebe7d8abeca2bdf9ed"
+    },
+    {
+      "path": "aeib-crypto/build.gradle",
+      "size": 335,
+      "sha256": "17c747097e30bbfa8d7e2bab5a8fdf230362e63747bacb465d11958d0227cfc5"
+    },
+    {
+      "path": "aeib-core/build.gradle.kts",
+      "size": 285,
+      "sha256": "dbfb01ca8ed36c71e74643252126988becd1e9e6a2c696c60d18202f5062a34c"
+    },
+    {
+      "path": "aeib-runtime/build.gradle",
+      "size": 136,
+      "sha256": "ad554135f816f3ca593d7bea7fd250e0b9b549a3a827b66a8a93c8bbfdd38a53"
+    },
+    {
+      "path": "aeib-tests/build.gradle",
+      "size": 305,
+      "sha256": "5556968e4065886ee33462d99b421887f38ffc99d7b582712f174f9e76064c21"
+    },
+    {
+      "path": "aeib-verifier/build.gradle",
+      "size": 326,
+      "sha256": "ee98592038b8ccc367a7fe1c5a5ef6ed7f9c6a602d9006c6fbeb21e3e4262bf9"
+    },
+    {
+      "path": "aeib-verifier/src/main/java/com/aeib/verifier/VerifierCli.java",
+      "size": 2973,
+      "sha256": "48c14f873455e130d49acba772feb5b0b47a0a899b36a1f924888be587470985"
+    },
+    {
+      "path": "aeib-tests/src/test/java/ai/sovereign/aeib/tests/Station2ConcurrencyTest.java",
+      "size": 3026,
+      "sha256": "088cdf70d1946587ac4e9615c75af9725429374982071b53fba6c190adcfd225"
+    },
+    {
+      "path": "aeib-tests/src/test/java/ai/sovereign/aeib/tests/MandatoryNegativeTestSuite.java",
+      "size": 3397,
+      "sha256": "327c32e99f0ac0a0e89eb8096faa149aa8560f1041f17b5b0e59c670fee0d1df"
+    },
+    {
+      "path": "aeib-tests/src/test/java/ai/sovereign/aeib/tests/DomainRecordsTest.java",
+      "size": 2355,
+      "sha256": "77bf06703b63810ff1b9db823b49219b1139efc547ad0b7aab63d2265e7ba0ef"
+    },
+    {
+      "path": "aeib-runtime/src/main/java/com/aeib/runtime/Station1DispatchInterlock.java",
+      "size": 2864,
+      "sha256": "01bafca7f510689b3a01d7da1ea32016834205b1ce8b51357499c10cad65e5d1"
+    },
+    {
+      "path": "aeib-runtime/src/main/java/com/aeib/runtime/Station2EffectReconciler.java",
+      "size": 4319,
+      "sha256": "4fb1744e00a1269f81fe95431e73f38c844d3ae6e0ed2cccfda77b6fe7294917"
+    },
+    {
+      "path": "aeib-runtime/src/main/java/com/aeib/runtime/DefaultSemanticStateEvaluator.java",
+      "size": 2511,
+      "sha256": "a0c1995025b5fe62a514cac8795665532dc7df17efdde1e1bc1d99aac8abd348"
+    },
+    {
+      "path": "aeib-runtime/src/main/java/com/aeib/runtime/Station3ContinuousLedger.java",
+      "size": 3857,
+      "sha256": "2c5e2eecfb78e5971eca67cb68983c5640d7cc1ada370a1e93f2a0857fcd5b42"
+    },
+    {
+      "path": "aeib-core/src/main/java/ai/sovereign/aeib/core/Jcs.java",
+      "size": 902,
+      "sha256": "549866a7c624c113408fca6733e252541e6d5b98c6e58c184c6c4e2a7959075e"
+    },
+    {
+      "path": "aeib-core/src/main/java/ai/sovereign/aeib/core/FOUR_STATION_INTERFACES.java",
+      "size": 2889,
+      "sha256": "0e3c5192624c45e10bc103f3e7643a819ed1d7d94808d7b41741abd330cb5b29"
+    },
+    {
+      "path": "aeib-crypto/src/main/java/com/aeib/crypto/Ed25519ProofEngine.java",
+      "size": 1698,
+      "sha256": "df8100dcc5f91bd353fe57e9751d6ba80deef934a14991c7cdd548a0b6063916"
+    }
+  ]
+}

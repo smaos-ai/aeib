@@ -1,0 +1,84 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "serialNumber": "urn:uuid:5d79cd4e-030d-4b16-91b2-f9330b16dfda-aeib-v1.0",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-10-09T09:16:55Z",
+    "tools": [
+      {
+        "vendor": "SovereignNexus",
+        "name": "CycloneDX Generator",
+        "version": "1.0.0"
+      }
+    ],
+    "component": {
+      "type": "application",
+      "name": "aeib-native-runtime",
+      "version": "1.0.0",
+      "description": "AEIB Deterministic Runtime Core"
+    }
+  },
+  "components": [
+    {
+      "type": "application",
+      "name": "aeib-runtime",
+      "version": "1.0.0",
+      "description": "AEIB Java 21 Deterministic Execution Interlock Boundary",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a35e7dfbb9d2e7a1fc981b2e6f42a5bb01878d651239aa8e1b3dc04c56e0f801"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "io.github.erdtman:java-json-canonicalization",
+      "version": "1.1",
+      "purl": "pkg:maven/io.github.erdtman/java-json-canonicalization@1.1",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d8eb79e27606cb75050f24a1329bf9ff035e46beba7a6fca905ba164c8dcf922"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "org.bouncycastle:bcprov-jdk18on",
+      "version": "1.85",
+      "purl": "pkg:maven/org.bouncycastle/bcprov-jdk18on@1.85",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5b0b9dc563e48113c242c75a4dcabfe2be4e375bc862ca8ea457cb19280d9089"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "io.github.resilience4j:resilience4j-ratelimiter",
+      "version": "2.3.0",
+      "purl": "pkg:maven/io.github.resilience4j/resilience4j-ratelimiter@2.3.0",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "97282cb201bb8d99c30ff049752d5b62b1a8f6a91d1e434e32ec519c2dc01aa2"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "com.fasterxml.jackson.core:jackson-databind",
+      "version": "2.18.2",
+      "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.18.2",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "041a9db3f28cf674be1ebca77889e496a84eb6375bc837e2ab7bcfc1f7aa0845"
+        }
+      ]
+    }
+  ]
+}

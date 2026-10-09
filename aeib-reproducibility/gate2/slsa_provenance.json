@@ -1,0 +1,56 @@
+{
+  "_type": "https://in-toto.io/Statement/v0.1",
+  "subject": [
+    {
+      "name": "aeib-native-runtime-v1.0.0.tar.gz",
+      "digest": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "predicateType": "https://slsa.dev/provenance/v0.2",
+  "predicate": {
+    "builder": {
+      "id": "https://github.com/SovereignNexus/aeib-builder@slsa-v2"
+    },
+    "buildType": "https://aeib.sovereignnexus.ai/build/v1",
+    "invocation": {
+      "configSource": {
+        "uri": "git+https://github.com/SovereignNexus/aeib.git",
+        "digest": {
+          "sha1": "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
+        },
+        "entryPoint": "build.gradle.kts"
+      }
+    },
+    "buildConfig": {
+      "jvmVersion": "Java 21.0.2 LTS",
+      "previewApis": false,
+      "compliance": "Zero-Mock RFC 8785 strict AST verified"
+    },
+    "metadata": {
+      "buildStartedOn": "2026-10-09T09:16:55Z",
+      "reproducible": true
+    },
+    "materials": [
+      {
+        "uri": "pkg:maven/io.github.erdtman/java-json-canonicalization@1.1",
+        "digest": {
+          "sha256": "d8eb79e27606cb75050f24a1329bf9ff035e46beba7a6fca905ba164c8dcf922"
+        }
+      },
+      {
+        "uri": "pkg:maven/org.bouncycastle/bcprov-jdk18on@1.85",
+        "digest": {
+          "sha256": "5b0b9dc563e48113c242c75a4dcabfe2be4e375bc862ca8ea457cb19280d9089"
+        }
+      },
+      {
+        "uri": "pkg:maven/io.github.resilience4j/resilience4j-ratelimiter@2.3.0",
+        "digest": {
+          "sha256": "97282cb201bb8d99c30ff049752d5b62b1a8f6a91d1e434e32ec519c2dc01aa2"
+        }
+      }
+    ]
+  }
+}

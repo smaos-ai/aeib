@@ -1,0 +1,11 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    implementation project(':aeib-core')
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.77'
+    // For RFC 8785 JSON Canonicalization
+    implementation 'io.github.erdtman:java-json-canonicalization:1.1'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+}

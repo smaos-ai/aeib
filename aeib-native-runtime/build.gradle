@@ -1,0 +1,34 @@
+plugins {
+    id 'java-library'
+    id 'org.cyclonedx.bom' version '1.8.2'
+}
+
+allprojects {
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'java-library'
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+    }
+
+    dependencies {
+        testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+    }
+
+    tasks.named('test') {
+        useJUnitPlatform()
+    }
+}
+
+cyclonedxBom {
+    includeConfigs = ["runtimeClasspath"]
+    outputFormat = "json"
+    outputName = "bom"
+}

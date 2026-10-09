@@ -24,6 +24,14 @@ Only these 5 empirical statements are permitted in documentation, audits, and ex
 4. **"The benchmark grades against target-side state rather than agent self-report."**
 5. **"The adapter integrates with existing identity and gateway controls."**
 
+### Core Bounded Capabilities
+The core capability statements of AEIB are locked to these exact, verified bounds:
+* **Pins and verifies a declared execution manifest.**
+* **Evaluates declared standing locally before network dispatch.**
+* **Represents uncertain transport outcomes explicitly.**
+* **Reconciles uncertain outcomes under declared policy and probe budgets.**
+* **Produces operation-bound, tamper-evident receipts.**
+
 ---
 
 ## 📦 The 3 Core Deliverable Products
@@ -122,6 +130,36 @@ python3 benchmarks/aeib_execution_integrity/run_episodes.py --episodes 500 --see
 2. **Target Idempotency Reliance:** Authoritative settlement depends on target systems providing idempotency keys or queryable state APIs. When targets provide no cooperation, AEIB freezes at `DISPATCHED_UNCONFIRMED` and halts fail-closed.
 3. **Regulatory Context:** DORA Article 17/28(3) exporters format technical traces and service registers into regulatory schemas. They do not constitute autonomous regulatory certification or legal compliance.
 4. **Scaffolding Code:** Code in `ebpf/` is architectural scaffolding. It does not provide live kernel packet interception in this package.
+
+---
+
+## External Examination Candidate
+
+Prerequisites:
+- Signed v1.0.0 release tag
+- Hosted CI evidence
+- Published acceptance suite
+- Independent clean-room reproduction
+- Independent cryptographic review
+- Preserved limitations
+
+Status:
+- Not scheduled
+- No examiner engaged
+- No target determination assumed
+
+---
+
+## Summary Verdict Matrix
+
+| External Signal | AEIB Decision & Scope Boundary |
+| :--- | :--- |
+| **Airgorah** | Documentation & layout pattern reference only. |
+| **TA-14 / HSG** | Future external-validation model reference; **no equivalence claimed**. |
+| **API-Gateway Separation** | Consistent design principle; candidate input for v1.1 specification. |
+| **HERMES Benchmark** | Specific research context; **no generalized claims on model vs. harness**. |
+| **SkillOpt / Memory Research** | Informs v1.1 procedural-write threat model candidate (**TM-12 / TM-13**). |
+| **Inference & Market Signals** | Market and documentation context only. |
 
 ---
 

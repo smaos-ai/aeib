@@ -6,26 +6,25 @@
 - Station 1: Dispatch interlock with RFC 8785 canonical CAID generation.
 - Station 2: Effect reconciler with bounded probe budgets and single-flight coalescing.
 - Station 3: Continuous ledger with Ed25519 hash-chain receipts.
-- Standalone CLI verifier for offline verification.
+- Station 4: Standalone CLI verifier for offline verification.
 - Zero-network runtime container verification harness.
 
-## v1.1 Candidate: Memory and Retrieval Provenance
+## v1.1 Candidate Backlog
 
-### Threat model
-- Agent memory may change between authorization and dispatch.
-- Retrieved context may originate from an untrusted or poisoned source.
-- A self-improving agent may attempt to modify its manifest, policy context, or identity material.
+### Specification Candidates
+- Upstream context-decision reference (contextDecisionRef = SHA-256(canonical signed decision))
+- Diagnostic interlock decision fields (interlockDecisionReason constrained enum)
+- Multi-tier memory binding
+- Procedural-memory write admission
+- External transparency registration (e.g., SCITT profile)
+- Hybrid signature profile (Ed25519 + ML-DSA-65)
 
-### Candidate controls
-- Bind each candidate action to a content-addressed memory digest.
-- Record the memory digest in the manifest and receipt.
-- Reject actions whose current memory digest differs from the authorized digest.
-- Validate retrieval provenance through a declared trust policy.
-- Record retrieval-source identity, content digest, retrieval timestamp, and policy decision.
+### Research Workstreams
+- Harness evolution from diagnosed failure corpora
+- External benchmark integration (e.g., HaluMem adapter review)
+- Independent examination pathway
+- Interoperability review (TRACE, VET, AEGIS)
 
-### Required evidence
-- Memory mutation test.
-- Stale-memory rejection test.
-- Poisoned-retrieval rejection test.
-- Receipt binding test.
-- Independent verifier test.
+### Explicitly Out of Scope for v1.0
+All items above are unimplemented, unspecified, and untested.
+They do not alter v1.0 claims or release criteria.

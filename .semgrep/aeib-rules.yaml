@@ -1,0 +1,87 @@
+# AEIB v1.1 Static Application Security Testing (SAST) Rule Suite
+# Configured for evaluating Java and Python fail-closed execution and zero-mock boundaries
+# under the stated model.
+
+rules:
+  - id: aeib-java-no-swallowed-exception
+    languages:
+      - java
+    severity: ERROR
+    message: >-
+      Empty catch block observed in Java code. Under the stated model,
+      exceptions must be explicitly handled, compensated, or propagated
+      to maintain fail-closed execution behavior.
+    pattern: |
+      try {
+        ...
+      } catch ($EX $E) {
+      }
+    metadata:
+      category: security
+      workstream: aeib-v1.1-sast
+      cwe: "CWE-390: Detection of Error Condition Without Action"
+
+  - id: aeib-python-no-swallowed-exception
+    languages:
+      - python
+    severity: ERROR
+    message: >-
+      Silent exception suppression (except Exception: pass) observed in Python code.
+      Under the stated model, swallowed exceptions violate fail-closed execution
+      and observability requirements.
+    pattern-either:
+      - pattern: |
+          try:
+              ...
+          except Exception:
+              pass
+      - pattern: |
+          try:
+              ...
+          except Exception as $E:
+              pass
+    metadata:
+      category: security
+      workstream: aeib-v1.1-sast
+      cwe: "CWE-390: Detection of Error Condition Without Action"
+
+  - id: aeib-no-mockito-in-gate4
+    languages:
+      - java
+    severity: ERROR
+    message: >-
+      Mockito import observed in aeib-tests. Under the stated model, Gate 4 and
+      AEIB test suites are configured to evaluate real cryptographic and runtime
+      primitives without mock objects.
+    pattern-either:
+      - pattern: import org.mockito.$X;
+      - pattern: import static org.mockito.$X;
+    paths:
+      include:
+        - "aeib-tests/**"
+        - "**/aeib-tests/**"
+    metadata:
+      category: compliance
+      workstream: aeib-v1.1-sast
+
+  - id: aeib-no-unsandboxed-http-egress
+    languages:
+      - java
+    severity: WARNING
+    message: >-
+      Raw java.net.http.HttpClient instantiation observed outside Station1DispatchInterlock
+      or Gate4IntegrationTest. Under the stated model, outbound HTTP egress must be
+      routed through evaluated interlock boundaries.
+    pattern-either:
+      - pattern: java.net.http.HttpClient.newHttpClient()
+      - pattern: HttpClient.newHttpClient()
+      - pattern: java.net.http.HttpClient.newBuilder()
+      - pattern: HttpClient.newBuilder()
+    paths:
+      exclude:
+        - "**/Station1DispatchInterlock.java"
+        - "**/Gate4IntegrationTest.java"
+    metadata:
+      category: security
+      workstream: aeib-v1.1-sast
+      cwe: "CWE-918: Server-Side Request Forgery (SSRF)"

@@ -1,0 +1,37 @@
+# AEIB v1.1 Gitleaks Secret Scanning Configuration
+# Configured to evaluate repository commits and working trees for unintended
+# cryptographic key or bearer token exposure under the stated model.
+
+title = "AEIB Secret Scanning Configuration"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "aeib-ed25519-private-key"
+description = "Detects PEM-encoded Ed25519 or generic PKCS#8/OpenSSH private key headers"
+regex = '''-----BEGIN (?:OPENSSH |ENCRYPTED |EC |RSA |DSA )?PRIVATE KEY-----'''
+tags = ["key", "ed25519", "pkcs8", "cryptography"]
+keywords = ["PRIVATE KEY"]
+
+[[rules]]
+id = "aeib-ed25519-raw-seed-env"
+description = "Detects hardcoded Ed25519 32-byte hex private seeds assigned to secret/key variables"
+regex = '''(?i)(?:ed25519_private_key|signing_key_seed|private_key_hex|secret_seed)\s*[:=]\s*["'][0-9a-f]{64}["']'''
+tags = ["key", "ed25519", "seed"]
+keywords = ["ed25519_private_key", "signing_key_seed", "private_key_hex", "secret_seed"]
+
+[[rules]]
+id = "aeib-api-bearer-token"
+description = "Detects hardcoded HTTP Authorization Bearer tokens in code or configuration files"
+regex = '''(?i)(?:authorization\s*[:=]\s*["']?Bearer\s+[A-Za-z0-9\-._~+/]+=*|bearer_token\s*[:=]\s*["'][A-Za-z0-9\-._~+/]{20,}["'])'''
+tags = ["token", "bearer", "auth"]
+keywords = ["bearer", "authorization"]
+
+[allowlist]
+description = "Allowlist for deterministic RFC 8032 / RFC 8785 test vectors and compliance fixtures"
+paths = [
+  '''(^|/)aeib-verifier/src/test/resources/vectors/.*''',
+  '''(^|/)compliance/no_mock_enforcer\.py$''',
+  '''(^|/)\.gitleaks\.toml$'''
+]

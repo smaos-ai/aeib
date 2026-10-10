@@ -4,20 +4,20 @@
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![Receipt Spec: v1.0 Frozen RC1](https://img.shields.io/badge/Spec-AEIB--RECEIPT--SPEC%20v1.0-blue.svg)](AEIB-RECEIPT-SPEC.md)
 [![Hosted CI: Passing](https://github.com/smaos-ai/aeib/actions/workflows/aeib-ci.yml/badge.svg)](https://github.com/smaos-ai/aeib/actions/workflows/aeib-ci.yml)
-[![SLSA Build L3](https://img.shields.io/badge/SLSA-Build%20Level%203-green.svg)](https://github.com/smaos-ai/aeib/releases/tag/v1.0.0-rc.1)
+[![SLSA Provenance: Staged & Hosted CI Executed](https://img.shields.io/badge/SLSA-Provenance%20Staged-blue.svg)](aeib-reproducibility/slsa/SLSA_INPUT_CONTRACT.md)
 
-> **"Don't trust. No unprovable promises. Show Me. Change It. Prove It."**  
-> *AEIB shifts the burden of proof from self-reported agent claims to offline mathematical attestation, bit-for-bit clean-room reproducibility, and target-side ledger ground truth.*
+> **Final Bounded Claim (`v1.0.0-rc.1`):**  
+> **AEIB v1.0.0-rc.1 is a Java 21-compatible deterministic execution-integrity runtime for agentic systems. It is designed to verify a pinned manifest, evaluate candidate actions locally before dispatch without external I/O, represent ambiguous transport outcomes as `EFFECT_INDETERMINATE`, resolve uncertainty through declared semantic reconciliation with bounded probe budgets, and produce tamper-evident RFC 8785–bound Ed25519 hash-chain receipts. The standalone verifier requires the caller to supply the public key associated with the receipt’s `keyId`. AEIB does not claim universal exactly-once execution across uncooperative targets, provide external SCITT anchoring, implement automatic key lookup, validate memory or retrieval provenance, or claim regulatory compliance. Hosted branch/tag CI has executed (`38055110173`, `38055279949`); independent third-party reproduction from the signed tag remains pending.**
 
 ---
 
 ## 📜 Frozen Receipt Specification & Cross-Language Verification (`v1.0.0-rc.1`)
 
 * **Standalone Specification**: [`AEIB-RECEIPT-SPEC.md`](AEIB-RECEIPT-SPEC.md) (also mirrored at [`docs/AEIB-RECEIPT-SPEC.md`](docs/AEIB-RECEIPT-SPEC.md) and [`RECEIPT_SPEC.md`](RECEIPT_SPEC.md)) — Frozen `RC1` specification defining the RFC 8785 (JCS) canonical statement, detached Ed25519 envelope, `EFFECT_INDETERMINATE` wire-fault settlement semantics, and the 5-step language-agnostic offline verification algorithm.
-* **Java 21 Reference Runtime & Verifier**: [`aeib-native-runtime/`](aeib-native-runtime/) (`./gradlew clean test --no-daemon --stacktrace`) — Executes real HTTP/TCP socket wire-fault tests (`Gate4IntegrationTest`) and offline receipt verification (`com.aeib.verifier.ReceiptVerifier`).
-* **Independent Non-Java Reference Verifier (Python 3)**: [`benchmarks/jvm_native_diff_engine.py`](benchmarks/jvm_native_diff_engine.py) & [`aeib_verify.py`](aeib_verify.py) — Zero-JVM Python 3 implementation of RFC 8785 JCS (`src/jcs_canonicalizer.py`) and Ed25519 verification (`cryptography.hazmat`) that independently verifies the Java-minted `receipt.json` and all 13 negative/positive conformance vectors (`14/14` matched, `0 B` canonical JCS divergence).
-* **Air-Gapped Rust/WebAssembly Verifier**: [`smaos-wasm-verifier/`](smaos-wasm-verifier/) (`smaos_verify.wasm` + [`dist/verifier.html`](dist/verifier.html)) — Pure Rust `ed25519-dalek` `verify_strict` verifier compiled to `wasm32-unknown-unknown` for offline browser verification.
-* **SLSA Build Level 3 Release & Provenance**: [`v1.0.0-rc.1` Release](https://github.com/smaos-ai/aeib/releases/tag/v1.0.0-rc.1) — Built and attested via the isolated `slsa-framework/slsa-github-generator` (`generator_generic_slsa3.yml@v2.1.0`) reusable workflow (`multiple.intoto.jsonl`).
+* **Java 21 Reference Runtime & Standalone Verifier**: [`aeib-native-runtime/`](aeib-native-runtime/) (`./gradlew clean test --no-daemon --stacktrace`) — Executes real HTTP/TCP socket wire-fault tests (`Gate4IntegrationTest`) and standalone offline receipt verification (`com.aeib.verifier.ReceiptVerifier`) under a caller-supplied public key.
+* **Standalone Non-Java Reference Verifier (Python 3)**: [`benchmarks/jvm_native_diff_engine.py`](benchmarks/jvm_native_diff_engine.py) & [`aeib_verify.py`](aeib_verify.py) — Zero-JVM Python 3 standalone verifier designed for offline verification (RFC 8785 JCS via `src/jcs_canonicalizer.py` and Ed25519 signature verification via `cryptography.hazmat`) that evaluates the Java-minted `receipt.json` and all 13 negative/positive conformance vectors (`14/14` matched, `0 B` canonical JCS divergence); independence requires separate execution and evidence.
+* **Air-Gapped Rust/WebAssembly Verifier**: [`smaos-wasm-verifier/`](smaos-wasm-verifier/) (`smaos_verify.wasm` + [`dist/verifier.html`](dist/verifier.html)) — Pure Rust `ed25519-dalek` `verify_strict` standalone verifier compiled to `wasm32-unknown-unknown` for offline browser verification.
+* **SLSA Provenance Contract & Hosted CI Execution**: [`v1.0.0-rc.1` Release](https://github.com/smaos-ai/aeib/releases/tag/v1.0.0-rc.1) — SLSA provenance contract documented in [`aeib-reproducibility/slsa/SLSA_INPUT_CONTRACT.md`](aeib-reproducibility/slsa/SLSA_INPUT_CONTRACT.md) and executed in hosted CI (`38055110173`, `38055279949`) via `slsa-framework/slsa-github-generator` (`generator_generic_slsa3.yml@v2.1.0`); independent third-party verification remains pending.
 
 ---
 
@@ -25,7 +25,7 @@
 
 AEIB operates under a strict epistemic lock. It does not claim universal exactly-once execution, absence of remote duplicate mutations, complete prompt-injection prevention, or blanket regulatory conformity. 
 
-Execution finality is grounded in physical wire observations, RFC 8785 JSON Canonicalization Scheme (JCS), deterministic Content-Addressed Action Identifiers (CAID), and out-of-band target ledger probes.
+Execution evaluation is grounded in wire observations, RFC 8785 JSON Canonicalization Scheme (JCS), deterministic Content-Addressed Action Identifiers (CAID), and target-provided semantic state under AEIB’s declared reconciliation policy.
 
 ### The 5 Strictly Approved Claims (External Boundary)
 Only these 5 empirical statements are permitted in documentation, audits, and external deliverables:
@@ -66,7 +66,7 @@ The core capability statements of AEIB are locked to these exact, verified bound
 * **Core Mechanics**:
   - **Deterministic CAID**: Content-Addressed Action Identifier derived via $H(\text{Noun} \parallel \text{Verb} \parallel \text{JCS}(\text{Payload}))$ per RFC 8785.
   - **Inline Uncertainty Latching**: When post-dispatch faults occur (HTTP 504 / TCP RST), execution freezes at `RECONCILIATION_NOT_FOUND_AFTER_GRACE` or `EFFECT_INDETERMINATE` with `retry_safe: false` and `latch_engaged: true`. Speculative retries are blocked fail-closed.
-  - **Single-Flight Coalescing**: When multiple concurrent workers encounter ambiguous transport drops for the same `effect_id`, `ProbeCoalescer` executes exactly 1 authoritative target probe bounded by a global semaphore; all workers share the verified outcome.
+  - **Single-Flight Coalescing**: When multiple concurrent workers encounter ambiguous transport drops for the same `effect_id`, `ProbeCoalescer` executes at most 1 target-state probe under AEIB's declared reconciliation policy and bounded probe budget; concurrent workers share the evaluated semantic state.
   - **Release Separation**: *"Verified is not Released"*. AEIB receipts verify evidence completeness and mapping validity; release authority remains decoupled.
 
 ### Product 3: Regulated Evidence Export — DORA Article 17 & 28(3) Exporters
@@ -81,10 +81,10 @@ AEIB enforces **Zero-Mock & Cryptographic Purity**:
 * **Zero Fake Crypto**: No `mock_signature` or `stub_hash`. All signing uses real `cryptography.hazmat` (Ed25519) primitives.
 * **Zero Bypass Gates**: No conditional shortcuts or test mocks.
 * **RFC 8785 JCS Compliance**: Canonical JSON conforms strictly to UTF-16 code unit ordering and ECMAScript number formatting.
-* **Offline Attestation Manifest**: [`compliance/crvp_attestation.json`](compliance/crvp_attestation.json) binds the exact source-tree SHA-256 digest to an Ed25519 digital signature.
+* **Offline Attestation Manifest**: [`compliance/crvp_attestation.json`](compliance/crvp_attestation.json) binds the source-tree SHA-256 digest to an Ed25519 digital signature verified under the supplied public key.
 
 ### Standalone Verifier (`aeib-verify`)
-The verification suite is decoupled from the runtime. An independent, zero-dependency verifier ([`verifier/verify_attestation.py`](verifier/verify_attestation.py)) reproduces the on-disk codebase digest bit-for-bit without trusting local test reports.
+The verification suite is decoupled from the runtime. A standalone verifier designed for offline verification ([`verifier/verify_attestation.py`](verifier/verify_attestation.py)) evaluates the on-disk codebase digest and signature under the supplied public key; independence requires separate execution and evidence.
 
 ---
 
@@ -138,20 +138,21 @@ python3 benchmarks/aeib_execution_integrity/run_episodes.py --episodes 500 --see
 ## ⚠️ Known Limitations & Boundaries
 
 1. **Simulation Model Bounds:** The 500-episode harness is a deterministic simulation of retry-duplication mechanics across 15 synthetic fault classes. It evaluates internal protocol logic under the declared model, not live public Internet conditions.
-2. **Target Idempotency Reliance:** Authoritative settlement depends on target systems providing idempotency keys or queryable state APIs. When targets provide no cooperation, AEIB freezes at `DISPATCHED_UNCONFIRMED` and halts fail-closed.
+2. **Target Idempotency Reliance:** Target-provided semantic state reconciliation under AEIB’s declared policy depends on target systems providing idempotency keys or queryable state APIs. When targets provide no cooperation, AEIB freezes at `EFFECT_INDETERMINATE` or `DISPATCHED_UNCONFIRMED` and halts fail-closed.
 3. **Regulatory Context:** DORA Article 17/28(3) exporters format technical traces and service registers into regulatory schemas. They do not constitute autonomous regulatory certification or legal compliance.
 4. **Scaffolding Code:** Code in `ebpf/` is architectural scaffolding. It does not provide live kernel packet interception in this package.
 
 ---
 
-## External Examination Candidate
+## External Examination Candidate (`v1.1` Candidate)
 
-Prerequisites:
+Prerequisites & Current Status:
 - [x] Signed `v1.0.0-rc.1` release tag ([`v1.0.0-rc.1`](https://github.com/smaos-ai/aeib/releases/tag/v1.0.0-rc.1))
-- [x] Hosted CI evidence ([`aeib-ci.yml`](.github/workflows/aeib-ci.yml) & [`aeib-release.yml`](.github/workflows/aeib-release.yml) with isolated SLSA Build Level 3 provenance `multiple.intoto.jsonl`)
+- [x] Hosted branch/tag CI execution (`38055110173`, `38055279949`) and SLSA provenance contract documented in [`aeib-reproducibility/slsa/SLSA_INPUT_CONTRACT.md`](aeib-reproducibility/slsa/SLSA_INPUT_CONTRACT.md)
 - [x] Published receipt specification ([`AEIB-RECEIPT-SPEC.md`](AEIB-RECEIPT-SPEC.md)) & acceptance suite
-- [x] Independent cross-language reproduction ([`benchmarks/jvm_native_diff_engine.py`](benchmarks/jvm_native_diff_engine.py) — Python 3 vs. Java 21 over 14 receipt vectors, 0-byte JCS divergence)
-- [ ] Independent external cryptographic & institutional examination
+- [x] Cross-language standalone verifier check ([`benchmarks/jvm_native_diff_engine.py`](benchmarks/jvm_native_diff_engine.py) — Python 3 vs. Java 21 over 14 receipt vectors, 0-byte JCS divergence)
+- [ ] Independent third-party reproduction from the signed tag (Gate 3 harness ready in [`aeib-reproducibility/gate3/`](aeib-reproducibility/gate3/); separate-party evidence pending)
+- [ ] Independent external cryptographic & institutional examination (v1.1 candidate; not scheduled)
 - [x] Preserved limitations ([`LIMITATIONS.md`](LIMITATIONS.md))
 
 External Examination Status:

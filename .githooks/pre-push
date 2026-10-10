@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+###############################################################################
+# AEIB v1.1 Stage 0 Local Pre-Flight Gate (.githooks/pre-push)
+#
+# Evaluates local repository state prior to push under the stated model:
+#   1. Secret scanning via Gitleaks (or AST/Zero-Mock compliance fallback)
+#   2. Gradle verification suite (./gradlew test --no-daemon)
+#   3. Optional local GitHub Actions container verification via `act` on
+#      Apple Silicon (M3 Pro) when AEIB_RUN_ACT=1 is configured.
+#
+# Activation:
+#   git config core.hooksPath .githooks
+###############################################################################
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+cd "$REPO_ROOT"
+
+echo "[Stage 0] Starting AEIB v1.1 pre-push verification gate..."
+
+# 1. Secret & AST Purity Check
+if command -v gitleaks >/dev/null 2>&1; then
+    echo "[Stage 0] Running gitleaks secret scan..."
+    gitleaks protect --staged --redact
+else
+    echo "[Stage 0] gitleaks not detected; evaluating AST & zero-mock compliance..."
+    python3 compliance/ast_purity.py . && python3 compliance/no_mock_enforcer.py
+fi
+
+# 2. Always verify Python AST & Zero-Mock compliance if gitleaks ran above
+if command -v gitleaks >/dev/null 2>&1; then
+    echo "[Stage 0] Evaluating AST & zero-mock compliance..."
+    python3 compliance/ast_purity.py . && python3 compliance/no_mock_enforcer.py
+fi
+
+# 3. Gradle Test Suite Execution
+if [ -x "./gradlew" ]; then
+    echo "[Stage 0] Running ./gradlew test --no-daemon..."
+    ./gradlew test --no-daemon
+elif [ -f "./gradlew" ]; then
+    echo "[Stage 0] Running bash ./gradlew test --no-daemon..."
+    bash ./gradlew test --no-daemon
+else
+    echo "[Stage 0] Notice: ./gradlew not present in root; skipping Gradle task in scaffold mode."
+fi
+
+# 4. Optional Local GitHub Actions Verification via `act` (Apple Silicon M3 Pro)
+if [ "${AEIB_RUN_ACT:-0}" = "1" ]; then
+    if ! command -v act >/dev/null 2>&1; then
+        echo "[Stage 0] Error: AEIB_RUN_ACT=1 is set, but 'act' is not installed." >&2
+        exit 1
+    fi
+    echo "[Stage 0] Executing local workflow via act (linux/arm64, -Xmx8g)..."
+    act -j clean-test --container-architecture linux/arm64 --env _JAVA_OPTIONS="-Xmx8g"
+fi
+
+echo "[Stage 0] Pre-push verification checks completed."
+exit 0

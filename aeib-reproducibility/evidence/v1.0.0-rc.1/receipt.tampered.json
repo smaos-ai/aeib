@@ -1,0 +1,13 @@
+{
+  "operationId": "OP-GATE4-REAL",
+  "epoch": 1000,
+  "chainTip": "YueyWlilHuTPrb6xRX4utpPvsWp8/+4zEm0mQ1MAN2w=",
+  "signatureAlgorithm": "Ed25519",
+  "hashAlgorithm": "SHA-256",
+  "signature": {
+    "ed25519Signature": "dcucelk6ysjwZFb637fMQOFXGhFjLeT9utF8kQVh06g/7Jj2hpok7Mt0NsItYeaxO7s6712/Mc1cxyJXvLm4Aw==",
+    "keyId": "test-key-gate4",
+    "keyEpoch": 1000
+  },
+  "signedStatement": "eyJjaGFpblRpcCI6Ill1ZXlXbGlsSHVUUHJiNnhSWDR1dHBQdnNXcDgvKzR6RW0wbVExTUFOMnc9IiwiZXBvY2giOjEwMDAsImtleUlkIjoidGVzdC1rZXktZ2F0ZTQiLCJvcGVyYXRpb25JZCI6Ik9QLUdBVEU0LVJFQUwifQ=="
+}

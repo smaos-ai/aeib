@@ -1,10 +1,19 @@
 {
+  "test_class": "ai.sovereign.aeib.tests.Gate4IntegrationTest",
+  "hosted_ci_run_id": 38055279949,
+  "commit_sha": "b2166a3ffc8f9535a4299dac382dad12ffce85ec",
   "fault_injected": "CONNECTION_RESET_AFTER_DISPATCH",
-  "transport_observation": "EMPTY_READ_OR_RESET",
-  "test_driver_retry_mutations": 0,
+  "transport_observation": "INDETERMINATE",
+  "dispatch_attempts": 1,
   "target_mutation_count": 1,
-  "aeib_runtime_involved": false,
-  "aeib_reconciler_disposition": "NOT_APPLICABLE",
-  "aeib_receipt_generated": false,
-  "evidence_scope": "TARGET_FAULT_SIMULATION_ONLY"
+  "status_probe_count": 1,
+  "test_driver_retry_mutations": 0,
+  "aeib_runtime_involved": true,
+  "aeib_reconciler_disposition": "CONFIRMED",
+  "aeib_receipt_generated": true,
+  "receipt_sha256": "356a6522a9c4bb4689e567683ec91736a10eb40d0d4ab26e8a5ee4414dd80831",
+  "public_key_sha256": "90dee4edb70bc3b3c16ecf101b06c165e6058c087c2e4026054df726297a18bb",
+  "valid_receipt_verifier_exit_code": 0,
+  "tampered_receipt_verifier_exit_code": 2,
+  "evidence_scope": "HOSTED_CI_GATE4_INTEGRATION_AND_OFFLINE_VERIFIER"
 }

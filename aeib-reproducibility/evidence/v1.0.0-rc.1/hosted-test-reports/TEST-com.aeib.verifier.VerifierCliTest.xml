@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.aeib.verifier.VerifierCliTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-10T13:20:19" hostname="runnervmmprz5" time="0.267">
+  <properties/>
+  <testcase name="testReceiptVerifierRejectsUnsupportedAlgorithm()" classname="com.aeib.verifier.VerifierCliTest" time="0.016"/>
+  <testcase name="testUsageErrorsEmitExitCodeOne()" classname="com.aeib.verifier.VerifierCliTest" time="0.093"/>
+  <testcase name="testReceiptFileReaderUnit(Path)" classname="com.aeib.verifier.VerifierCliTest" time="0.022"/>
+  <testcase name="testRfc8785CanonicalizerUnit()" classname="com.aeib.verifier.VerifierCliTest" time="0.004"/>
+  <testcase name="testReceiptParserUnit()" classname="com.aeib.verifier.VerifierCliTest" time="0.016"/>
+  <testcase name="testAllManifestVectors()" classname="com.aeib.verifier.VerifierCliTest" time="0.106"/>
+  <testcase name="testPublicKeyReaderUnit()" classname="com.aeib.verifier.VerifierCliTest" time="0.002"/>
+  <system-out><![CDATA[VALID: receipt signature and statement verified.
+]]></system-out>
+  <system-err><![CDATA[USAGE_ERROR: Missing required option: '--pubkey=<publicKeyPath>'
+USAGE_ERROR: Missing required option: '--receipt=<receiptPath>'
+USAGE_ERROR: Unknown option: '--unknown-flag'
+USAGE_ERROR: option '--receipt' (<receiptPath>) should be specified only once
+USAGE_ERROR: Missing required options: '--receipt=<receiptPath>', '--pubkey=<publicKeyPath>'
+INVALID: operationId mismatch between receipt root (OP-HACKED-999) and signed statement (OP-VEC-001)
+INVALID: Ed25519 signature verification failed
+INVALID: Ed25519 signature verification failed
+INVALID: keyId mismatch between receipt signature (unknown-key-omega) and signed statement (test-key-alpha)
+INVALID: signedStatement bytes are not strictly RFC 8785 canonical
+INPUT_ERROR: Receipt signature missing or invalid required field 'keyId'
+INPUT_ERROR: Malformed JSON in receipt: Unexpected character ('b' (code 98)): was expecting double-quote to start field name
+ at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 1, column: 25]
+INPUT_ERROR: Malformed JSON in receipt: Unrecognized token 'EXTRA_TRAILING_TOKEN': was expecting (JSON String, Number, Array, Object or token 'null', 'true' or 'false')
+ at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 14, column: 21]
+INPUT_ERROR: receipt exceeds maximum permitted size (1049219 > 1048576 bytes)
+INPUT_ERROR: receipt does not exist: src/test/resources/vectors/missing-receipt/nonexistent-receipt.json
+INPUT_ERROR: public key does not exist: src/test/resources/vectors/missing-public-key/nonexistent-public.pem
+INPUT_ERROR: receipt does not exist: src/test/resources/vectors/directory-as-receipt/sub-directory
+]]></system-err>
+</testsuite>

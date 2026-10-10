@@ -1,0 +1,24 @@
+=== AEIB v1.0.0-rc.1 HOSTED CI ARTIFACT & VERIFIER TRANSCRIPT ===
+Hosted CI Workflow Run ID : 38055279949 (tag: v1.0.0-rc.1) & 38055110173 (branch: release/v1.0-review-candidate)
+Commit SHA                : b2166a3ffc8f9535a4299dac382dad12ffce85ec
+Receipt SHA-256           : 356a6522a9c4bb4689e567683ec91736a10eb40d0d4ab26e8a5ee4414dd80831
+Public Key SHA-256        : 90dee4edb70bc3b3c16ecf101b06c165e6058c087c2e4026054df726297a18bb
+SLSA Attestation SHA-256  : 0863f43be67065fbac0e96e4c3730926da8d58c812d98328e123768a34b381c5
+CycloneDX SBOM SHA-256    : 5fcd835d3433e5535619bd17dae2d0ddbaa7da6b857cba0ed5854d39c6ff2d3a
+
+[1] Gate 4 Wire-Fault Assertions (Gate4IntegrationTest.xml):
+    - targetMutationCount : 1
+    - dispatchAttempts    : 1
+    - statusProbeCount    : 1
+    - retryMutations      : 0
+    - reconcilerOutcome   : CONFIRMED (after EFFECT_INDETERMINATE socket RST)
+
+[2] Standalone Verifier — Valid Hosted-CI Receipt (receipt.json):
+    - Exit Code : 0 (asserted == 0)
+    - Verdict   : ACCEPT
+    - Output    : VALID: receipt signature and statement verified.
+
+[3] Standalone Verifier — Tampered Hosted-CI Receipt (receipt.tampered.json):
+    - Exit Code : 2 (asserted != 0, expected 2)
+    - Verdict   : REJECT
+    - Output    : INVALID: Ed25519 signature verification failed

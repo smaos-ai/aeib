@@ -8,7 +8,7 @@
 
 ## 1. Abstract
 
-An **AEIB Continuity Receipt** is a tamper-evident, detached cryptographic proof recording the authorization, dispatch, and reconciled target state of an autonomous agent mutation. Under the stated model, it allows third-party auditors to evaluate and verify execution integrity offline without runtime JVM dependencies or ambient network authority.
+An **AEIB Continuity Receipt** is a tamper-evident, detached cryptographic receipt recording the authorization, dispatch, and target-provided semantic state under AEIB’s declared reconciliation policy for an agent action. Under the stated model, a standalone verifier designed for offline verification can verify the receipt's RFC 8785 canonical statement and Ed25519 signature when the caller supplies the public key associated with the receipt's `keyId`, without runtime JVM dependencies or ambient network authority. AEIB v1.0.0-rc.1 does not implement automatic key lookup or external SCITT anchoring.
 
 ---
 
@@ -62,7 +62,7 @@ The envelope bundles the metadata, canonical statement object, Base64-encoded RF
 
 ## 4. Verification Algorithm
 
-An independent verifier (implemented in any language) MUST execute the following steps in strict order:
+A standalone verifier designed for offline verification (implemented in any language; independence requires separate execution and evidence) MUST execute the following steps in strict order:
 
 1. **Algorithm Gating**:
    - Assert `envelope.hashAlgorithm == "SHA-256"`.

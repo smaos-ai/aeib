@@ -17,7 +17,7 @@ permissions: read-all
 
 jobs:
   clean-test:
-    name: "Gate 4 Wire-Fault & Verifier Clean Test (JDK 21)"
+    name: "Gate 4 Wire-Fault, Cross-Language Verifier & Clean Test (JDK 21)"
     runs-on: ubuntu-latest
     outputs:
       hashes: ${{ steps.compute-hashes.outputs.hashes }}
@@ -31,11 +31,22 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      - name: Set up Python 3.12 for cross-language receipt verification
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python cryptography primitive
+        run: python3 -m pip install cryptography
+
       - name: Ensure Gradle wrapper is executable
         run: chmod +x ./gradlew
 
       - name: Execute clean test suite with dependency lock verification
         run: ./gradlew clean test :aeib-verifier:installDist cyclonedxBom --no-daemon --stacktrace
+
+      - name: Execute independent Python 3 cross-language receipt verification
+        run: python3 benchmarks/jvm_native_diff_engine.py
 
       - name: Upload test-results evidence artifacts
         if: always()
@@ -51,6 +62,7 @@ jobs:
           cp aeib-native-runtime/aeib-verifier/build/libs/aeib-verifier-1.0.0-rc.1.jar release-artifacts/
           cp aeib-native-runtime/build/reports/bom.json release-artifacts/
           cp AEIB-RECEIPT-SPEC.md release-artifacts/
+          cp benchmarks/jvm_native_diff_engine.py release-artifacts/
 
       - name: Compute artifact hashes (SLSA Base64 Contract)
         id: compute-hashes

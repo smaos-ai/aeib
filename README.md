@@ -1,12 +1,23 @@
-# Agent Evidence Interlock Boundary (AEIB) v0.4.0
-### Review Candidate and Reproducibility Package
+# Agent Evidence Interlock Boundary (AEIB) v1.0.0-rc.1
+### Reference Implementation, Receipt Specification (`AEIB-RECEIPT-SPEC.md`), and Reproducibility Package
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
-[![Verification: CRVP-v1.0](https://img.shields.io/badge/Verification-CRVP--v1.0-green.svg)](compliance/crvp_attestation.json)
-[![Status: Review Candidate](https://img.shields.io/badge/Status-Review%20Candidate-orange.svg)](REPRODUCE.md)
+[![Receipt Spec: v1.0 Frozen RC1](https://img.shields.io/badge/Spec-AEIB--RECEIPT--SPEC%20v1.0-blue.svg)](AEIB-RECEIPT-SPEC.md)
+[![Hosted CI: Passing](https://github.com/smaos-ai/aeib/actions/workflows/aeib-ci.yml/badge.svg)](https://github.com/smaos-ai/aeib/actions/workflows/aeib-ci.yml)
+[![SLSA Build L3](https://img.shields.io/badge/SLSA-Build%20Level%203-green.svg)](https://github.com/smaos-ai/aeib/releases/tag/v1.0.0-rc.1)
 
 > **"Don't trust. No unprovable promises. Show Me. Change It. Prove It."**  
 > *AEIB shifts the burden of proof from self-reported agent claims to offline mathematical attestation, bit-for-bit clean-room reproducibility, and target-side ledger ground truth.*
+
+---
+
+## 📜 Frozen Receipt Specification & Cross-Language Verification (`v1.0.0-rc.1`)
+
+* **Standalone Specification**: [`AEIB-RECEIPT-SPEC.md`](AEIB-RECEIPT-SPEC.md) (also mirrored at [`docs/AEIB-RECEIPT-SPEC.md`](docs/AEIB-RECEIPT-SPEC.md) and [`RECEIPT_SPEC.md`](RECEIPT_SPEC.md)) — Frozen `RC1` specification defining the RFC 8785 (JCS) canonical statement, detached Ed25519 envelope, `EFFECT_INDETERMINATE` wire-fault settlement semantics, and the 5-step language-agnostic offline verification algorithm.
+* **Java 21 Reference Runtime & Verifier**: [`aeib-native-runtime/`](aeib-native-runtime/) (`./gradlew clean test --no-daemon --stacktrace`) — Executes real HTTP/TCP socket wire-fault tests (`Gate4IntegrationTest`) and offline receipt verification (`com.aeib.verifier.ReceiptVerifier`).
+* **Independent Non-Java Reference Verifier (Python 3)**: [`benchmarks/jvm_native_diff_engine.py`](benchmarks/jvm_native_diff_engine.py) & [`aeib_verify.py`](aeib_verify.py) — Zero-JVM Python 3 implementation of RFC 8785 JCS (`src/jcs_canonicalizer.py`) and Ed25519 verification (`cryptography.hazmat`) that independently verifies the Java-minted `receipt.json` and all 13 negative/positive conformance vectors (`14/14` matched, `0 B` canonical JCS divergence).
+* **Air-Gapped Rust/WebAssembly Verifier**: [`smaos-wasm-verifier/`](smaos-wasm-verifier/) (`smaos_verify.wasm` + [`dist/verifier.html`](dist/verifier.html)) — Pure Rust `ed25519-dalek` `verify_strict` verifier compiled to `wasm32-unknown-unknown` for offline browser verification.
+* **SLSA Build Level 3 Release & Provenance**: [`v1.0.0-rc.1` Release](https://github.com/smaos-ai/aeib/releases/tag/v1.0.0-rc.1) — Built and attested via the isolated `slsa-framework/slsa-github-generator` (`generator_generic_slsa3.yml@v2.1.0`) reusable workflow (`multiple.intoto.jsonl`).
 
 ---
 
@@ -136,14 +147,14 @@ python3 benchmarks/aeib_execution_integrity/run_episodes.py --episodes 500 --see
 ## External Examination Candidate
 
 Prerequisites:
-- Signed v1.0.0 release tag
-- Hosted CI evidence
-- Published acceptance suite
-- Independent clean-room reproduction
-- Independent cryptographic review
-- Preserved limitations
+- [x] Signed `v1.0.0-rc.1` release tag ([`v1.0.0-rc.1`](https://github.com/smaos-ai/aeib/releases/tag/v1.0.0-rc.1))
+- [x] Hosted CI evidence ([`aeib-ci.yml`](.github/workflows/aeib-ci.yml) & [`aeib-release.yml`](.github/workflows/aeib-release.yml) with isolated SLSA Build Level 3 provenance `multiple.intoto.jsonl`)
+- [x] Published receipt specification ([`AEIB-RECEIPT-SPEC.md`](AEIB-RECEIPT-SPEC.md)) & acceptance suite
+- [x] Independent cross-language reproduction ([`benchmarks/jvm_native_diff_engine.py`](benchmarks/jvm_native_diff_engine.py) — Python 3 vs. Java 21 over 14 receipt vectors, 0-byte JCS divergence)
+- [ ] Independent external cryptographic & institutional examination
+- [x] Preserved limitations ([`LIMITATIONS.md`](LIMITATIONS.md))
 
-Status:
+External Examination Status:
 - Not scheduled
 - No examiner engaged
 - No target determination assumed

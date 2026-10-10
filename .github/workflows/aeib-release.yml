@@ -1,0 +1,94 @@
+name: AEIB Release & Provenance
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      hashes: ${{ steps.compute-hashes.outputs.hashes }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Build distributions and run tests
+        run: |
+          chmod +x gradlew
+          ./gradlew clean test :aeib-verifier:installDist cyclonedxBom --no-daemon
+
+      - name: Collect release artifacts
+        run: |
+          mkdir -p release-artifacts
+          cp aeib-native-runtime/aeib-verifier/build/install/aeib-verifier/bin/aeib-verifier release-artifacts/aeib-verifier
+          cp aeib-native-runtime/aeib-verifier/build/libs/aeib-verifier-1.0.0-rc.1.jar release-artifacts/
+          tar -czf release-artifacts/aeib-verifier-dist.tar.gz -C aeib-native-runtime/aeib-verifier/build/install aeib-verifier
+          cp aeib-native-runtime/build/reports/bom.json release-artifacts/
+          cp AEIB-RECEIPT-SPEC.md release-artifacts/
+
+      - name: Compute artifact hashes (SLSA Base64 Contract)
+        id: compute-hashes
+        run: |
+          set -euo pipefail
+          cd release-artifacts
+          # Deterministic sorted sha256 output base64-encoded without line wraps
+          HASHES=$(find . -maxdepth 1 -type f -exec sha256sum {} + | sed 's| \./| |' | sort -k2 | base64 -w0)
+          echo "hashes=$HASHES" >> "$GITHUB_OUTPUT"
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: release-artifacts/
+
+  release:
+    needs: [build]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-artifacts
+          path: release-artifacts/
+
+      - name: Ensure GitHub Release exists for tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ! gh release view "${GITHUB_REF_NAME}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            gh release create "${GITHUB_REF_NAME}" release-artifacts/* \
+              --repo "${GITHUB_REPOSITORY}" \
+              --title "AEIB ${GITHUB_REF_NAME}" \
+              --notes-file release-artifacts/AEIB-RECEIPT-SPEC.md \
+              --prerelease
+          else
+            gh release upload "${GITHUB_REF_NAME}" release-artifacts/* \
+              --repo "${GITHUB_REPOSITORY}" \
+              --clobber
+          fi
+
+  provenance:
+    needs: [build, release]
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      id-token: write
+      contents: write
+      actions: read
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
+    with:
+      base64-subjects: "${{ needs.build.outputs.hashes }}"
+      upload-assets: true

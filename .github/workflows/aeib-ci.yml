@@ -5,19 +5,22 @@ on:
     branches:
       - main
       - "release/v1.0-review-candidate"
+    tags:
+      - "v*"
   pull_request:
     branches:
       - main
       - "release/v1.0-review-candidate"
   workflow_dispatch:
 
-permissions:
-  contents: read
+permissions: read-all
 
 jobs:
   clean-test:
     name: "Gate 4 Wire-Fault & Verifier Clean Test (JDK 21)"
     runs-on: ubuntu-latest
+    outputs:
+      hashes: ${{ steps.compute-hashes.outputs.hashes }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -32,4 +35,45 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Execute clean test suite with dependency lock verification
-        run: ./gradlew clean test --no-daemon --stacktrace
+        run: ./gradlew clean test :aeib-verifier:installDist cyclonedxBom --no-daemon --stacktrace
+
+      - name: Upload test-results evidence artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aeib-test-results
+          path: "**/build/test-results/**"
+
+      - name: Collect release artifacts
+        run: |
+          mkdir -p release-artifacts
+          cp aeib-native-runtime/aeib-verifier/build/install/aeib-verifier/bin/aeib-verifier release-artifacts/aeib-verifier
+          cp aeib-native-runtime/aeib-verifier/build/libs/aeib-verifier-1.0.0-rc.1.jar release-artifacts/
+          cp aeib-native-runtime/build/reports/bom.json release-artifacts/
+          cp AEIB-RECEIPT-SPEC.md release-artifacts/
+
+      - name: Compute artifact hashes (SLSA Base64 Contract)
+        id: compute-hashes
+        run: |
+          set -euo pipefail
+          cd release-artifacts
+          HASHES=$(find . -maxdepth 1 -type f -exec sha256sum {} + | sed 's| \./| |' | sort -k2 | base64 -w0)
+          echo "hashes=$HASHES" >> "$GITHUB_OUTPUT"
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: release-artifacts/
+
+  provenance:
+    name: "SLSA L3 Isolated Provenance Generator"
+    needs: [clean-test]
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    permissions:
+      id-token: write
+      contents: write
+      actions: read
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
+    with:
+      base64-subjects: "${{ needs.clean-test.outputs.hashes }}"

@@ -12,6 +12,7 @@ permissions:
   id-token: write
   contents: write
   packages: write
+  attestations: write
 
 jobs:
   build-and-test:
@@ -34,9 +35,10 @@ jobs:
           
       - name: Build, Test, and Package
         run: |
-          ./gradlew clean test
+          ./gradlew clean check
           ./gradlew :aeib-verifier:installDist
           ./gradlew cyclonedxBom
+          ./gradlew generateSlsaSubjects
 
       - name: Collect Release Artifacts
         run: |
@@ -50,6 +52,11 @@ jobs:
           # SBOM
           test -f aeib-native-runtime/build/reports/bom.json
           cp aeib-native-runtime/build/reports/bom.json release-artifacts/
+
+          # SLSA subjects envelope
+          test -f aeib-native-runtime/build/reports/slsa/subjects.json
+          cp aeib-native-runtime/build/reports/slsa/subjects.json release-artifacts/
+          cp aeib-native-runtime/build/reports/slsa/subjects.base64 release-artifacts/
 
           # Gate 4 evidence artifacts
           test -f aeib-native-runtime/build/test-results/receipt.json
@@ -71,7 +78,6 @@ jobs:
             echo "ERROR: no release artifacts found"
             exit 1
           fi
-          # SLSA generator_generic_slsa3 requires sha256sum output, Base64-encoded
           HASHES=$(sha256sum $FILES | base64 -w0)
           echo "hashes=${HASHES}" >> "$GITHUB_OUTPUT"
 
@@ -80,6 +86,15 @@ jobs:
         with:
           name: aeib-release-artifacts
           path: release-artifacts/
+
+      - name: Attest SLSA Build Provenance
+        uses: actions/attest-build-provenance@v2.1.0
+        with:
+          subject-path: |
+            release-artifacts/receipt.json
+            release-artifacts/bom.json
+            release-artifacts/ledger-public.pem
+            release-artifacts/aeib-verifier/lib/aeib-verifier-1.0.0-rc.1.jar
 
   verify-receipt-offline:
     needs: build-and-test

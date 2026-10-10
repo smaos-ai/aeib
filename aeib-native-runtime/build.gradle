@@ -10,6 +10,10 @@ allprojects {
     repositories {
         mavenCentral()
     }
+
+    dependencyLocking {
+        lockAllConfigurations()
+    }
 }
 
 subprojects {
@@ -36,4 +40,28 @@ cyclonedxBom {
     includeConfigs = ["runtimeClasspath"]
     outputFormat = "json"
     outputName = "bom"
+}
+
+tasks.register('generateSlsaSubjects') {
+    dependsOn(':aeib-verifier:installDist', ':aeib-verifier:jar')
+    mustRunAfter('cyclonedxBom')
+    doLast {
+        def outDir = file("${buildDir}/reports/slsa")
+        outDir.mkdirs()
+
+        def jarFile = file("aeib-verifier/build/libs/aeib-verifier-${version}.jar")
+        def digest = java.security.MessageDigest.getInstance("SHA-256")
+            .digest(jarFile.bytes)
+            .collect { String.format("%02x", it) }
+            .join("")
+
+        def subjectJson = """[
+  {
+    "name": "aeib-verifier-${version}.jar",
+    "digest": { "sha256": "${digest}" }
+  }
+]"""
+        file("${outDir}/subjects.json").text = subjectJson
+        file("${outDir}/subjects.base64").text = Base64.encoder.encodeToString(subjectJson.getBytes("UTF-8"))
+    }
 }

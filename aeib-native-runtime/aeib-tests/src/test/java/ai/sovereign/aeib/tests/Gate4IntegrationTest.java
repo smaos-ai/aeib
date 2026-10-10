@@ -101,6 +101,8 @@ public class Gate4IntegrationTest {
         return request.toString();
     }
 
+    private final AtomicInteger wireCloseEvents = new AtomicInteger();
+
     private void handleFaultRequest(Socket client) {
         try {
             client.setSoTimeout(2000);
@@ -113,7 +115,8 @@ public class Gate4IntegrationTest {
                 client.setSoLinger(true, 0);
                 client.close();
             }
-        } catch (IOException ignored) {
+        } catch (IOException e) {
+            wireCloseEvents.incrementAndGet();
         }
     }
 
@@ -135,7 +138,8 @@ public class Gate4IntegrationTest {
                 out.flush();
                 client.close();
             }
-        } catch (IOException ignored) {
+        } catch (IOException e) {
+            wireCloseEvents.incrementAndGet();
         }
     }
 

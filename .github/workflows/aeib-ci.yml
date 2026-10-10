@@ -1,0 +1,35 @@
+name: AEIB v1.0 Minimal CI Baseline
+
+on:
+  push:
+    branches:
+      - main
+      - "release/v1.0-review-candidate"
+  pull_request:
+    branches:
+      - main
+      - "release/v1.0-review-candidate"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  clean-test:
+    name: "Gate 4 Wire-Fault & Verifier Clean Test (JDK 21)"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Temurin JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Ensure Gradle wrapper is executable
+        run: chmod +x ./gradlew
+
+      - name: Execute clean test suite with dependency lock verification
+        run: ./gradlew clean test --no-daemon --stacktrace

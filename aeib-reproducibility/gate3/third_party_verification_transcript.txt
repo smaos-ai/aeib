@@ -1,0 +1,141 @@
+=== AEIB GATE 3 REPRODUCTION & VERIFICATION HARNESS ===
+[*] Execution Context   : LOCAL_DEVELOPER_VERIFICATION
+[*] Notice              : Local developer verification transcript (NOT independent third-party clean-room reproduction).
+[*] Gate 3 Status       : Gate 3 remains pending and is not called complete until separate-party reproduction evidence from the signed tag exists.
+[*] Timestamp (UTC)     : 2026-10-11T00:11:04Z
+[*] Runner Identity     : smaos-ai/aeib-receipt-fuzzer Independent Clean-Room Runner (GitHub Actions 1000000114 / ubuntu24 / run_id=38097529565)
+[*] Host OS & Arch      : Linux 6.17.0-1022-azure x86_64
+[*] Docker Image Digest : sha256:c1871bce9496e2693052db9209b02b6bc867427911938d45df5da54f322b2c7c
+[*] Working Directory   : /app
+[*] Git Commit SHA      : bc884ab1882f09d9937302d3e86a9f565799559f
+[*] Git Tag Reference   : v1.0.0-rc.1
+
+[1/5] Verifying cryptographic source hashes...
+Discovered 25 Java source compilation units.
+  aeib-core/src/main/java/ai/sovereign/aeib/core/FOUR_STATION_INTERFACES.java: 0e3c5192624c45e10bc103f3e7643a819ed1d7d94808d7b41741abd330cb5b29
+  aeib-core/src/main/java/ai/sovereign/aeib/core/Jcs.java: 549866a7c624c113408fca6733e252541e6d5b98c6e58c184c6c4e2a7959075e
+  aeib-crypto/src/main/java/com/aeib/crypto/Ed25519ProofEngine.java: df8100dcc5f91bd353fe57e9751d6ba80deef934a14991c7cdd548a0b6063916
+  aeib-runtime/src/main/java/com/aeib/runtime/DefaultSemanticStateEvaluator.java: 4b76826bc93634e88930113a0e860ed7d1fca79d91eb0fc783f6b653e898be05
+  aeib-runtime/src/main/java/com/aeib/runtime/Station1DispatchInterlock.java: 01bafca7f510689b3a01d7da1ea32016834205b1ce8b51357499c10cad65e5d1
+  aeib-runtime/src/main/java/com/aeib/runtime/Station2EffectReconciler.java: 1c30c87b829e7488ec6b635736956c164db801eaecddece0ac65bd1506c624fc
+  aeib-runtime/src/main/java/com/aeib/runtime/Station3ContinuousLedger.java: 2c5e2eecfb78e5971eca67cb68983c5640d7cc1ada370a1e93f2a0857fcd5b42
+  aeib-tests/src/test/java/ai/sovereign/aeib/tests/DomainRecordsTest.java: 9295fa0db567c1784f431a2f48932cf8b2c324aba35bc0f193e167e320b7174d
+  aeib-tests/src/test/java/ai/sovereign/aeib/tests/Gate4IntegrationTest.java: ed24b3568589bcb8555a036edfd53daf72a6ae8c4950fb3dfdb8dfe73ee36856
+  aeib-tests/src/test/java/ai/sovereign/aeib/tests/MandatoryNegativeTestSuite.java: b8ca41d33609a12f9f3776f1d86e8b82d9fe0298156998dd686e80180b0c62b0
+  aeib-tests/src/test/java/ai/sovereign/aeib/tests/Station2ConcurrencyTest.java: 088cdf70d1946587ac4e9615c75af9725429374982071b53fba6c190adcfd225
+  aeib-verifier/src/main/java/com/aeib/verifier/CanonicalJsonSerializer.java: 65647eb0bed951da8fa947de6da624d215cc3417c6ae3f0a7cb2ec08a4591a68
+  aeib-verifier/src/main/java/com/aeib/verifier/CanonicalizationException.java: feda040a982c79470b1bafb453e1015b0966e93f7318906b3cdfbb8731615f76
+  aeib-verifier/src/main/java/com/aeib/verifier/ParsedReceipt.java: 5550d88b599e5fe1126912fcb32dd0aca4a9ac3d22ea19f31b82faa82c89ee11
+  aeib-verifier/src/main/java/com/aeib/verifier/PublicKeyReader.java: 4373adcd1d94e3ca04eb3cb9099a8263073a3c6ad692739cf6a36e185a0afc72
+  aeib-verifier/src/main/java/com/aeib/verifier/ReceiptFileReader.java: d170ead5013c12fa23d24e2f7bacb1e85f8d902f95546dc71a655c496d56f29b
+  aeib-verifier/src/main/java/com/aeib/verifier/ReceiptParser.java: 4435517fc4c1d1ff7e5cec4b3d26618d55c52f6f749b2d6e2ac16cdd6b9cf87c
+  aeib-verifier/src/main/java/com/aeib/verifier/ReceiptVerificationResult.java: 1e3418fdc474f7c6aaac3dcac66715267c69c9ef18a204a613cd3db4cb8b5d74
+  aeib-verifier/src/main/java/com/aeib/verifier/ReceiptVerifier.java: f994efb964284f6a56d08da9c1c804367eb6c809330db29f348e2e3acab0b18c
+  aeib-verifier/src/main/java/com/aeib/verifier/Rfc8785Canonicalizer.java: 6640f625c67d6dbe5169a4823e4d19fc12eb5bd68249a7dedc237e2c3fab56f3
+  aeib-verifier/src/main/java/com/aeib/verifier/SignatureVerifier.java: f8097dc787fba9020652a6086a408f7ada984a14b3c248db15e9eeb4ed157c9c
+  aeib-verifier/src/main/java/com/aeib/verifier/VerifierArguments.java: c71d2e832d3d8d8fdc1c02807cd01874b37c04599e0c3cd7742c40e924aaee8e
+  aeib-verifier/src/main/java/com/aeib/verifier/VerifierCli.java: 81db6344d7e09b7262298ebf4c1c794e30a6b51bedde074811f5e1ca0416a4b3
+  aeib-verifier/src/main/java/com/aeib/verifier/VerifierInputException.java: 4d85c727c147670042f50b6e2d5b6358e4851fbf879dc553d8e032806bdb677c
+  aeib-verifier/src/test/java/com/aeib/verifier/VerifierCliTest.java: cfa138c3032c4aa5ec5cfb943a448ad1199e68acfc058db10a4a7aaf34d978f7
+
+[2/5] Executing JVM Verifier vs Independent Python 3 Reference Implementation...
+==============================================================================
+  AEIB v1.1 DIFFERENTIAL PARITY ENGINE (JVM VERIFIER vs INDEPENDENT PYTHON 3 REFERENCE IMPLEMENTATION)
+==============================================================================
+[+] Axis 1 (RFC 8785 JCS Canonicalization): 6 vectors evaluated, byte_divergence=0 bytes
+[+] Axis 2 (SHA-256 chainTip Derivation):   2 chain derivations evaluated, 32-byte digest parity confirmed
+[+] Axis 3 (Gate 4 Live Receipt Artifact):  Target A=ACCEPT(0) | Target B=ACCEPT(0) | jcs_divergence=0 bytes
+------------------------------------------------------------------------------
+VECTOR ID                  | TARGET A (JVM)   | TARGET B (PY)    | JCS DIFF
+------------------------------------------------------------------------------
+valid                      | ACCEPT (exit 0)  | ACCEPT (exit 0)  | 0 B
+tampered-statement         | REJECT (exit 2)  | REJECT (exit 2)  | 0 B
+tampered-signature         | REJECT (exit 2)  | REJECT (exit 2)  | 0 B
+wrong-key                  | REJECT (exit 2)  | REJECT (exit 2)  | 0 B
+unknown-keyid              | REJECT (exit 2)  | REJECT (exit 2)  | 0 B
+non-canonical-statement    | REJECT (exit 2)  | REJECT (exit 2)  | 71 B (expected >0)
+missing-keyid              | REJECT (exit 3)  | REJECT (exit 3)  | 0 B
+malformed-json             | REJECT (exit 3)  | REJECT (exit 3)  | 0 B
+trailing-token             | REJECT (exit 3)  | REJECT (exit 3)  | 0 B
+oversized-receipt          | REJECT (exit 3)  | REJECT (exit 3)  | 0 B
+missing-receipt            | REJECT (exit 3)  | REJECT (exit 3)  | 0 B
+missing-public-key         | REJECT (exit 3)  | REJECT (exit 3)  | 0 B
+directory-as-receipt       | REJECT (exit 3)  | REJECT (exit 3)  | 0 B
+------------------------------------------------------------------------------
+Differential Summary: 14/14 receipt vectors matched | verdict_mismatches=0 | canonical_jcs_divergence=0 bytes
+==============================================================================
+  Qualification: All 14 tested vectors produced matching verdicts and, except for the intentionally non-canonical vector (non-canonical-statement, 71 B expected divergence), zero canonical-byte divergence.
+
+[3/5] Checking Gate 4 Receipt and Public Key SHA-256 Digests...
+  Receipt file    : aeib-reproducibility/evidence/v1.0.0-rc.1/receipt.json
+  Receipt SHA-256 : 356a6522a9c4bb4689e567683ec91736a10eb40d0d4ab26e8a5ee4414dd80831
+  Public key file : aeib-reproducibility/evidence/v1.0.0-rc.1/ledger-public.pem
+  PubKey SHA-256  : 90dee4edb70bc3b3c16ecf101b06c165e6058c087c2e4026054df726297a18bb
+  Digest match against aeib-reproducibility/gate4/fault_injection_evidence.json: CONFIRMED
+
+[4/5] Asserting Gate 4 Wire-Fault & Reconciliation Counts...
+  target_mutation_count       : 1
+  dispatch_attempts           : 1
+  status_probe_count          : 1
+  test_driver_retry_mutations : 0
+  Gate 4 invariant asserted   : 1 mutation, 1 dispatch, 1 probe, 0 retry mutations (PASS)
+
+[5/5] Asserting ContinuityReceipt Verifier Exit Codes (valid=0, tampered=2)...
+  Valid receipt (aeib-reproducibility/evidence/v1.0.0-rc.1/receipt.json) -> verdict=ACCEPT, exit_code=0
+  Tampered receipt (aeib-reproducibility/evidence/v1.0.0-rc.1/receipt.tampered.json) -> verdict=REJECT, exit_code=2
+  Tampered statement vector (aeib-native-runtime/aeib-verifier/src/test/resources/vectors/tampered-statement/receipt.json) -> verdict=REJECT, exit_code=2
+  Verifier exit code assertions passed: valid receipt exit code = 0, tampered receipt exit code = 2 (non-zero).
+
+[6/6] Probing Host Kernel Negative bpf(BPF_PROG_LOAD) Syscall & Attestation Posture...
+{
+  "verdict": "ARCHITECTURAL_SCAFFOLD_OR_UNLOCKED_HOST",
+  "all_axes_passed": false,
+  "epistemic_note": "Per AGENTS.md Section 5, ebpf/ and hardware_attestation/ in the repository are structural scaffolding unless loaded on a Linux CVM kernel where all 4 axes pass.",
+  "axes": {
+    "axis1_lsm_and_lockdown": {
+      "lsm_path": "/sys/kernel/security/lsm",
+      "lsm_modules_observed": [],
+      "bpf_lsm_active": false,
+      "lockdown_mode_observed": "unavailable",
+      "lockdown_enforced": false,
+      "passed": false
+    },
+    "axis2_negative_bpf_syscall": {
+      "platform": "linux",
+      "architecture": "x86_64",
+      "syscall_number": 321,
+      "observed_errno": 1,
+      "observed_errno_name": "EPERM",
+      "passed": true
+    },
+    "axis3_pinned_bpf_maps": {
+      "bpf_fs_path": "/sys/fs/bpf",
+      "bpf_fs_present": true,
+      "maps": {
+        "model_weights_map": {
+          "exists": false,
+          "passed": false
+        },
+        "allowed_binaries_map": {
+          "exists": false,
+          "passed": false
+        },
+        "guard_events": {
+          "exists": false,
+          "passed": false
+        }
+      },
+      "passed": false
+    },
+    "axis4_hardware_attestation": {
+      "tdx_device_present": false,
+      "sev_snp_device_present": false,
+      "ccel_table_present": false,
+      "tpm_pcr11_sha256": null,
+      "tpm_pcr11_populated": false,
+      "passed": false
+    }
+  }
+}
+
+=== VERIFICATION HARNESS EXECUTION COMPLETE (EXIT 0) ===

@@ -165,3 +165,20 @@ Within this wire-boundary paradigm, AEIB focuses specifically on **post-dispatch
 2. **Target-Side Semantic Reconciliation (`Station2EffectReconciler`, `ProbeBudget`):** Uses a thread-safe `ProbeBudget` circuit breaker and `SingleFlightCoalescer` to query target ledger state out-of-band (`CONFIRMED`, `REFUTED`, `CONFLICT`, or latched `EFFECT_INDETERMINATE`) independently of the dropped dispatch socket.
 3. **Independently Verifiable Receipts (`Station3ContinuousLedger`, `ReceiptVerifier`):** Mints RFC 8785 (JCS) canonicalized, Ed25519-signed `ContinuityReceipt` envelopes (`AEIB-RECEIPT-SPEC.md`) that can be verified offline via CLI (`VerifierCli` and `benchmarks/jvm_native_diff_engine.py`) without trusting the runtime producer.
 
+### 8.4 The Six Constitutional Articles & Border-vs-Camera Taxonomy
+
+By separating **Constitution** (pinned manifest & cryptographic invariants), **Government** (the Four-Station runtime boundary), and **Citizen** (the stochastic model proposing actions), AEIB avoids treating the model as both subject and judge of its own execution limits.
+
+| Article | Constitutional Invariant | AEIB `v1.0.0-rc.1` Runtime Implementation |
+| :--- | :--- | :--- |
+| **Article I: Provenance** | Only verified principals act | Cryptographic key (`keyId`) and pinned manifest binding in `Station0AdmissionGate` |
+| **Article II: Intent** | Pre-dispatch canonical payload binding | RFC 8785 JCS payload canonicalization (`CAID` via `Jcs.canonicalize`) prior to socket write |
+| **Article III: Authority** | Conjunctive standing predicate evaluation | Zero-I/O local check (`GrantValid` $\land$ `EpochFresh` $\land$ `CAIDMatch` $\land$ `ControlHealthy`) |
+| **Article IV: Standing** | Conditions at dispatch must match authorization | If state, grant TTL, or policy epoch changes prior to dispatch, authority lapses fail-closed in `Station1DispatchInterlock` |
+| **Article V: Effect** | Uncertainty is a legitimate terminal state | `EFFECT_INDETERMINATE` latching on HTTP 504 / transport drops (`Station2EffectReconciler`, `ProbeBudget`); zero speculative retries |
+| **Article VI: Evidence** | Every border crossing produces verifiable proof | Ed25519-signed, hash-chained `ContinuityReceipt` (`Station3ContinuousLedger`) for offline CLI verification (`ReceiptVerifier`) |
+
+* **The Border (Enforcement):** The socket dispatch gate (`Station0AdmissionGate` + `Station1DispatchInterlock`), configured default-closed.
+* **The Camera (Evidence):** The `ContinuityReceipt` hash chain (`Station3ContinuousLedger` + `ReceiptVerifier`), which does not enforce by itself but records tamper-evident proof of what the border decided and reconciled.
+
+

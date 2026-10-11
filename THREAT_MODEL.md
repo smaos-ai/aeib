@@ -4,7 +4,7 @@
 **Scope:** Agent Evidence Interlock Boundary (AEIB) — Wire-Level Evidence Contamination, Ambiguous Transport Reconciliation & Receipt Verification
 
 > **Final Bounded Claim (`v1.0.0-rc.1`):**  
-> **AEIB v1.0.0-rc.1 is a Java 21-compatible deterministic execution-integrity runtime for agentic systems. It is designed to verify a pinned manifest, evaluate candidate actions locally before dispatch without external I/O, represent ambiguous transport outcomes as `EFFECT_INDETERMINATE`, resolve uncertainty through declared semantic reconciliation with bounded probe budgets, and produce tamper-evident RFC 8785–bound Ed25519 hash-chain receipts. The standalone verifier requires the caller to supply the public key associated with the receipt’s `keyId`. AEIB does not claim universal exactly-once execution across uncooperative targets, provide external SCITT anchoring, implement automatic key lookup, validate memory or retrieval provenance, or claim regulatory compliance. Hosted branch/tag CI has executed (`38055110173`, `38055279949`); independent third-party reproduction from the signed tag remains pending.**
+> **AEIB v1.0.0-rc.1 is a Java 21-compatible deterministic execution-integrity runtime for agentic systems. In local and hosted CI evaluations, it verifies a pinned manifest, evaluates candidate actions locally before dispatch without external I/O, represents ambiguous transport outcomes as `EFFECT_INDETERMINATE`, resolves uncertainty through declared semantic reconciliation with bounded probe budgets, and produces tamper-evident RFC 8785–bound Ed25519 hash-chain receipts. The standalone verifier requires the caller to supply the public key associated with the receipt’s `keyId`. AEIB does not claim universal exactly-once execution across uncooperative targets, provide external SCITT anchoring, implement automatic key lookup, validate memory or retrieval provenance, or claim regulatory compliance. Independent reproduction from the signed release tag by a separate party remains pending.**
 
 ---
 
@@ -146,6 +146,14 @@ Do not claim compatibility, conformance, certification, or alignment with any of
 ### 8.1 Theoretical Threat Ceiling vs. Empirical Runtime Scope
 * **Macro-Threat Context (Lancet Commission Framing):** Public-health and macro-safety analyses identify malicious or uncontained AI across biosecurity and critical cyber-infrastructure as carrying severe theoretical tail risk ($\approx 10.4\text{ billion}$ DALYs lost by 2100 under worst-case modeling).
 * **Explicit Epistemic Caveat:** Because no global-magnitude malicious AI event has yet occurred, macro-level impact projections remain **theoretical** with wide forecaster divergence. AEIB does not claim to quantify or solve macro-level societal risk; rather, it addresses the concrete operational imperative identified by those analyses: establishing **observable, deterministic runtime monitoring and wire-boundary execution controls** today.
+
+| Lancet Commission / Governance Imperative | AEIB's Precise Technical Contribution Under the Stated Model |
+| :--- | :--- |
+| **Malicious AI carries high-severity / tail risk** | AEIB provides a deterministic execution boundary for authorized agent tool actions—not a global solution to AI risk. |
+| **"Protection plans were in place, yet effective action failed"** | AEIB makes declared policy controls enforceable at the socket boundary (`Station0AdmissionGate`, `Station1DispatchInterlock`) prior to wire dispatch. |
+| **Trust is a stabilizing force** | AEIB replaces unverified assertions with Ed25519 cryptographically bound `ContinuityReceipt` evidence nodes (`AEIB-RECEIPT-SPEC.md`) for offline CLI verification. |
+| **"Humanity still has the agency to act now"** | AEIB establishes and tests the runtime execution boundary before critical transport or execution incidents occur. |
+
 
 ### 8.2 The Convergent Wire-Boundary Enforcement Landscape
 Independent architectural efforts across hardware and systems engineering (**NVIDIA OpenShell + Sentry DPU**, **TRACE**, **WarrantKit**, **Network Intent Layer**, and **Write-Before-Execute**) converge on a shared structural principle: **governance and enforcement must sit outside the stochastic agent loop at the wire boundary**.

@@ -221,8 +221,9 @@ class TestFalsifiabilityMatrix(unittest.TestCase):
         self.assertFalse(intent_res.is_valid)
         self.assertEqual(intent_res.status_code, ERR_MERKLE_PROOF_MISMATCH)
 
-        # Mutate single character in signature
-        mutated_sig = dict(valid_receipt, signature="ff" + sig_hex[2:])
+        # Mutate first byte in signature (avoid no-op when random sig starts with 'ff')
+        flipped_prefix = "00" if sig_hex[:2].lower() == "ff" else "ff"
+        mutated_sig = dict(valid_receipt, signature=flipped_prefix + sig_hex[2:])
         sig_res = CoreProofEngine.verify_receipt(mutated_sig)
         self.assertFalse(sig_res.is_valid)
         self.assertEqual(sig_res.status_code, ERR_SIGNATURE_INVALID)

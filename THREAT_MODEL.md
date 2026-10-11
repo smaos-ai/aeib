@@ -138,3 +138,22 @@ The following 13 items (including procedural-memory write threats `TM-12` / `TM-
 13. `AIUC-1 certification pathway`
 
 Do not claim compatibility, conformance, certification, or alignment with any of these until a formal specification, test suite, and evidence exist.
+
+---
+
+## 8. Epistemic Framing: Theoretical Macro-Risk vs. Empirical Wire-Boundary Controls
+
+### 8.1 Theoretical Threat Ceiling vs. Empirical Runtime Scope
+* **Macro-Threat Context (Lancet Commission Framing):** Public-health and macro-safety analyses identify malicious or uncontained AI across biosecurity and critical cyber-infrastructure as carrying severe theoretical tail risk ($\approx 10.4\text{ billion}$ DALYs lost by 2100 under worst-case modeling).
+* **Explicit Epistemic Caveat:** Because no global-magnitude malicious AI event has yet occurred, macro-level impact projections remain **theoretical** with wide forecaster divergence. AEIB does not claim to quantify or solve macro-level societal risk; rather, it addresses the concrete operational imperative identified by those analyses: establishing **observable, deterministic runtime monitoring and wire-boundary execution controls** today.
+
+### 8.2 The Convergent Wire-Boundary Enforcement Landscape
+Independent architectural efforts across hardware and systems engineering (**NVIDIA OpenShell + Sentry DPU**, **TRACE**, **WarrantKit**, **Network Intent Layer**, and **Write-Before-Execute**) converge on a shared structural principle: **governance and enforcement must sit outside the stochastic agent loop at the wire boundary**.
+
+### 8.3 AEIB's Three Empirically Evaluated Runtime Differentiators
+Within this wire-boundary paradigm, AEIB focuses specifically on **post-dispatch transport ambiguity** under the stated model:
+
+1. **`EFFECT_INDETERMINATE` as a First-Class State (`Station1DispatchInterlock`):** Rather than collapsing HTTP 504 timeouts or mid-flight TCP resets into generic exceptions that trigger blind SDK retries, AEIB classifies transport uncertainty as `EFFECT_INDETERMINATE` and blocks speculative retries.
+2. **Target-Side Semantic Reconciliation (`Station2EffectReconciler`, `ProbeBudget`):** Uses a thread-safe `ProbeBudget` circuit breaker and `SingleFlightCoalescer` to query target ledger state out-of-band (`CONFIRMED`, `REFUTED`, `CONFLICT`, or latched `EFFECT_INDETERMINATE`) independently of the dropped dispatch socket.
+3. **Independently Verifiable Receipts (`Station3ContinuousLedger`, `ReceiptVerifier`):** Mints RFC 8785 (JCS) canonicalized, Ed25519-signed `ContinuityReceipt` envelopes (`AEIB-RECEIPT-SPEC.md`) that can be verified offline via CLI (`VerifierCli` and `benchmarks/jvm_native_diff_engine.py`) without trusting the runtime producer.
+

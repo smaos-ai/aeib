@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://smaos.ai/schemas/aeib-memory-digest-v1.1.schema.json",
+  "title": "AEIBMemoryDigest_v1_1_Draft",
+  "description": "AEIB v1.1 specification draft schema for Multi-Tier Memory Binding and Temporal Staleness evaluation (TemporalMemoryDigest in v1.1-roadmap/unified_governance_stack.py). Enforces separation between Ephemeral Context (Model), Persistent Workspace (Fact), and Authorization Standing (Boundary), defaulting to STALE_DONT_TRUST_YET when source_epoch or policy_epoch advances.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "memory_digest",
+    "context_caid",
+    "memory_tier",
+    "source_epoch",
+    "policy_epoch",
+    "active_source_epoch",
+    "active_policy_epoch",
+    "status",
+    "dispatch_admissible",
+    "canonicalization"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "v1.1.0-draft",
+      "description": "Version identifier for the AEIB v1.1 TemporalMemoryDigest specification draft."
+    },
+    "memory_digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "64-character lowercase hex SHA-256 digest over RFC 8785 JCS canonicalized {contextCaid, policyEpoch, sourceEpoch}."
+    },
+    "context_caid": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "64-character lowercase hex SHA-256 Content-Addressed Action/Context Identifier computed over flushed workspace fact bytes (excluding ephemeral reasoning fields _reasoning, chain_of_thought, rationale, explanation)."
+    },
+    "memory_tier": {
+      "type": "string",
+      "enum": [
+        "EPHEMERAL_CONTEXT",
+        "WORKSPACE_FACT",
+        "STANDING_GRANT"
+      ],
+      "description": "Three-tier memory isolation classification separating model reasoning context (EPHEMERAL_CONTEXT), persistent workspace facts (WORKSPACE_FACT), and boundary standing grants (STANDING_GRANT)."
+    },
+    "source_epoch": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Monotonic epoch of the authoritative retrieval or workspace fact source at the moment the MemoryDigest was bound."
+    },
+    "policy_epoch": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Monotonic epoch of the authorization policy or standing grant at the moment the MemoryDigest was bound."
+    },
+    "active_source_epoch": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Observed active source epoch at pre-dispatch evaluation time."
+    },
+    "active_policy_epoch": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Observed active policy epoch at pre-dispatch evaluation time."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "FRESH",
+        "STALE_DONT_TRUST_YET",
+        "REVOKED"
+      ],
+      "description": "Temporal freshness disposition. Transitions from FRESH to STALE_DONT_TRUST_YET whenever active_source_epoch != source_epoch or active_policy_epoch != policy_epoch."
+    },
+    "dispatch_admissible": {
+      "type": "boolean",
+      "description": "Pre-dispatch standing predicate result. True only when status is FRESH and both source_epoch and policy_epoch match the active epochs; false engages a fail-closed halt (GovernanceHaltError)."
+    },
+    "heartbeat_pulse_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "Optional PAD-016 cryptographic heartbeat pulse digest binding temporal liveness to the memory envelope."
+    },
+    "canonicalization": {
+      "type": "object",
+      "description": "RFC 8785 JCS canonicalization profile binding.",
+      "required": [
+        "implementation",
+        "key_sorting"
+      ],
+      "properties": {
+        "implementation": {
+          "const": "src/jcs_canonicalizer.py:encode_jcs",
+          "description": "Deterministic RFC 8785 JCS implementation."
+        },
+        "key_sorting": {
+          "const": "utf16_code_units",
+          "description": "RFC 8785 Section 3.2.3 UTF-16 code unit key ordering."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -992,3 +992,1288 @@ class TypedOwaspPreDispatchGate:
             heartbeat_pulse_hash=heartbeat_pulse_hash,
         )
 
+
+# ============================================================================
+# SECTION 6: 11-Item Delivery Scope & 5 Moats Integration Primitives
+# ============================================================================
+
+import ast as _py_ast
+import csv as _py_csv
+import io as _py_io
+import json as _py_json
+import sqlite3 as _py_sqlite3
+
+
+class CoWSubgraphSandbox:
+    """Copy-on-Write (CoW) Subgraph Sandbox backed by SQLite overlay tables.
+
+    Aligned with open-source `tursodatabase/agentfs` and `multikernel/branchfs`
+    speculative branching patterns:
+    - Isolates candidate state mutations inside an ephemeral overlay branch.
+    - Promotes mutations into `committed_state` only when Station 2 reconciliation
+      returns `CONFIRMED`.
+    - Atomically discards all branch mutations if policy checks, circuit breakers,
+      or transport ambiguity (`EFFECT_INDETERMINATE` / `HALTED`) trip.
+    """
+
+    def __init__(self) -> None:
+        self._conn = _py_sqlite3.connect(":memory:")
+        self._conn.execute(
+            """
+            CREATE TABLE committed_state (
+                node_key TEXT PRIMARY KEY,
+                canonical_json TEXT NOT NULL,
+                value_caid TEXT NOT NULL
+            )
+            """
+        )
+        self._conn.execute(
+            """
+            CREATE TABLE branch_overlay (
+                branch_id TEXT NOT NULL,
+                node_key TEXT NOT NULL,
+                canonical_json TEXT NOT NULL,
+                value_caid TEXT NOT NULL,
+                PRIMARY KEY (branch_id, node_key)
+            )
+            """
+        )
+        self._active_branches: Set[str] = set()
+
+    def seed_committed_node(self, node_key: str, value: Dict[str, Any]) -> str:
+        """Write an initial baseline node into committed_state and return its CAID."""
+        canonical = canonicalize_jcs(value)
+        caid = compute_caid(value)
+        with self._conn:
+            self._conn.execute(
+                """
+                INSERT OR REPLACE INTO committed_state (node_key, canonical_json, value_caid)
+                VALUES (?, ?, ?)
+                """,
+                (node_key, canonical, caid),
+            )
+        return caid
+
+    def fork_branch(self, branch_id: str) -> str:
+        """Create an isolated speculative Copy-on-Write branch."""
+        if not branch_id or not branch_id.strip():
+            raise GovernanceHaltError("CoW branch_id must be non-empty")
+        if branch_id in self._active_branches:
+            raise GovernanceHaltError(f"CoW branch {branch_id!r} is already active")
+        self._active_branches.add(branch_id)
+        return branch_id
+
+    def stage_mutation(
+        self, branch_id: str, node_key: str, candidate_value: Dict[str, Any]
+    ) -> str:
+        """Stage a candidate node mutation inside the ephemeral CoW overlay branch."""
+        if branch_id not in self._active_branches:
+            raise GovernanceHaltError(f"Unknown or closed CoW branch: {branch_id!r}")
+        canonical = canonicalize_jcs(candidate_value)
+        caid = compute_caid(candidate_value)
+        with self._conn:
+            self._conn.execute(
+                """
+                INSERT OR REPLACE INTO branch_overlay
+                    (branch_id, node_key, canonical_json, value_caid)
+                VALUES (?, ?, ?, ?)
+                """,
+                (branch_id, node_key, canonical, caid),
+            )
+        return caid
+
+    def read_node(
+        self, node_key: str, branch_id: Optional[str] = None
+    ) -> Optional[Dict[str, Any]]:
+        """Read a node with Copy-on-Write resolution (overlay first, then committed_state)."""
+        if branch_id is not None:
+            if branch_id not in self._active_branches:
+                raise GovernanceHaltError(f"Cannot read from inactive branch {branch_id!r}")
+            cur = self._conn.execute(
+                "SELECT canonical_json FROM branch_overlay WHERE branch_id = ? AND node_key = ?",
+                (branch_id, node_key),
+            )
+            row = cur.fetchone()
+            if row is not None:
+                return _py_json.loads(row[0])
+
+        cur = self._conn.execute(
+            "SELECT canonical_json FROM committed_state WHERE node_key = ?",
+            (node_key,),
+        )
+        row = cur.fetchone()
+        return _py_json.loads(row[0]) if row is not None else None
+
+    def finalize_branch(self, branch_id: str, disposition: str) -> Dict[str, Any]:
+        """Promote overlay mutations on `CONFIRMED` or discard them fail-closed."""
+        if branch_id not in self._active_branches:
+            raise GovernanceHaltError(f"Unknown or already finalized branch: {branch_id!r}")
+
+        cur = self._conn.execute(
+            """
+            SELECT node_key, canonical_json, value_caid
+            FROM branch_overlay
+            WHERE branch_id = ?
+            ORDER BY node_key ASC
+            """,
+            (branch_id,),
+        )
+        staged_rows = cur.fetchall()
+        self._active_branches.remove(branch_id)
+
+        if disposition == "CONFIRMED":
+            with self._conn:
+                for node_key, canonical_json, value_caid in staged_rows:
+                    self._conn.execute(
+                        """
+                        INSERT OR REPLACE INTO committed_state
+                            (node_key, canonical_json, value_caid)
+                        VALUES (?, ?, ?)
+                        """,
+                        (node_key, canonical_json, value_caid),
+                    )
+                self._conn.execute(
+                    "DELETE FROM branch_overlay WHERE branch_id = ?", (branch_id,)
+                )
+            return {
+                "branchId": branch_id,
+                "disposition": "CONFIRMED",
+                "outcome": "COMMITTED",
+                "promotedNodeCount": len(staged_rows),
+            }
+
+        with self._conn:
+            self._conn.execute(
+                "DELETE FROM branch_overlay WHERE branch_id = ?", (branch_id,)
+            )
+        raise GovernanceHaltError(
+            f"CoW branch {branch_id!r} discarded {len(staged_rows)} partial mutation(s) "
+            f"due to non-confirmed disposition {disposition!r}"
+        )
+
+
+@dataclass(frozen=True)
+class CompiledGovernanceArtifact:
+    """Output of compiling a declarative `smaos.hcl` policy block."""
+
+    policy_name: str
+    bpf_security_map: Dict[str, Any]
+    scitt_action_capsule_profile: Dict[str, Any]
+    artifact_caid: str
+
+
+class SmaosHclCompiler:
+    """Declarative Governance DSL (`smaos.hcl`) Compiler.
+
+    Compiles ontological policy constraints into:
+    1. Structural BPF-LSM / XDP security map definitions (`bpf_security_map`).
+       Note per AGENTS.md Section 5: eBPF map definitions are structural scaffolding
+       unless loaded into a locked Linux kernel with an active BPF-LSM subsystem.
+    2. IETF SCITT Action Capsule admissibility profiles (`scitt_action_capsule_profile`).
+    """
+
+    _BLOCK_RE = re.compile(
+        r'policy\s+"([A-Za-z0-9_\-]+)"\s*\{([^}]*)\}', re.DOTALL
+    )
+    _ASSIGN_RE = re.compile(r"([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(.+)")
+
+    @classmethod
+    def compile_hcl(cls, hcl_source: str) -> CompiledGovernanceArtifact:
+        """Parse a declarative `smaos.hcl` policy block and emit canonical artifacts."""
+        match = cls._BLOCK_RE.search(hcl_source or "")
+        if not match:
+            raise GovernanceHaltError("Invalid smaos.hcl: missing `policy \"<name>\" { ... }` block")
+
+        policy_name = match.group(1)
+        body = match.group(2)
+        parsed: Dict[str, Any] = {}
+
+        for raw_line in body.splitlines():
+            line = raw_line.split("#", 1)[0].strip()
+            if not line:
+                continue
+            assign = cls._ASSIGN_RE.match(line)
+            if not assign:
+                raise GovernanceHaltError(f"Invalid smaos.hcl statement: {line!r}")
+            key, raw_val = assign.group(1), assign.group(2).strip().rstrip(",")
+            try:
+                parsed[key] = _py_json.loads(raw_val)
+            except ValueError as exc:
+                raise GovernanceHaltError(
+                    f"Unsupported literal in smaos.hcl for {key!r}: {raw_val!r}"
+                ) from exc
+
+        allowed_tools = sorted(str(t) for t in parsed.get("allowed_tools", []))
+        blocked_syscalls = sorted(str(s) for s in parsed.get("blocked_syscalls", []))
+        allowed_cidrs = sorted(str(c) for c in parsed.get("allowed_egress_cidrs", []))
+        max_amount = int(parsed.get("max_amount", 0))
+        require_heartbeat = bool(parsed.get("require_heartbeat", True))
+
+        if not allowed_tools:
+            raise GovernanceHaltError("smaos.hcl policy must declare non-empty `allowed_tools`")
+
+        bpf_map = {
+            "allowedEgressCidrs": allowed_cidrs,
+            "blockedSyscalls": blocked_syscalls,
+            "enforcementHook": "bpf_lsm_and_xdp_structural_scaffold",
+            "failClosedErrno": "EPERM",
+            "policyName": policy_name,
+            "scaffoldingNotice": (
+                "Structural BPF policy map definition; requires a Linux CVM kernel "
+                "with active BPF-LSM lockdown for live kernel syscall interception."
+            ),
+        }
+        scitt_profile = {
+            "allowedTools": allowed_tools,
+            "maxAmount": max_amount,
+            "policyName": policy_name,
+            "requireHeartbeat": require_heartbeat,
+            "scittProfileVersion": "draft-ietf-scitt-agent-profile-01",
+            "transportAmbiguityDisposition": "EFFECT_INDETERMINATE",
+        }
+        combined = {
+            "bpfSecurityMap": bpf_map,
+            "scittActionCapsuleProfile": scitt_profile,
+        }
+        return CompiledGovernanceArtifact(
+            policy_name=policy_name,
+            bpf_security_map=bpf_map,
+            scitt_action_capsule_profile=scitt_profile,
+            artifact_caid=compute_caid(combined),
+        )
+
+
+@dataclass(frozen=True)
+class RedactablePassport:
+    """Ed25519-signed W3C Data Integrity selective-disclosure passport prototype."""
+
+    receipt_id: str
+    field_commitments: Dict[str, str]
+    revealed_fields: Dict[str, str]
+    revealed_salts: Dict[str, str]
+    redacted_keys: List[str]
+    root_signature_hex: str
+
+    def to_root_statement(self) -> Dict[str, Any]:
+        return {
+            "fieldCommitments": dict(sorted(self.field_commitments.items())),
+            "receiptId": self.receipt_id,
+            "schema": "w3c-vc-di-bbs-selective-disclosure-v1",
+        }
+
+
+class Ed25519BbsSelectiveRedactor:
+    """Selective redaction engine resolving EU AI Act Art. 12 vs. GDPR Art. 17.
+
+    Aligned with W3C Data Integrity (`w3c/vc-di-bbs`) and `docknetwork/crypto`:
+    - Binds each attribute $(k, v_k)$ to a salted SHA-256 commitment $C_k$.
+    - Signs the canonical commitment map with `Ed25519PrivateKey` over RFC 8785 JCS.
+    - Allows post-issuance redaction of PII fields (e.g., `iban`, `customer_email`)
+      by stripping their cleartext values and salts while preserving root signature
+      verification and mathematical commitment checks on all remaining attributes.
+    """
+
+    @staticmethod
+    def _compute_field_commitment(field_name: str, field_value: str, salt_hex: str) -> str:
+        commitment_obj = {
+            "field": field_name,
+            "salt": salt_hex,
+            "value": field_value,
+        }
+        return hashlib.sha256(encode_jcs(commitment_obj)).hexdigest()
+
+    @classmethod
+    def mint_passport(
+        cls,
+        issuer_private_key: Ed25519PrivateKey,
+        receipt_id: str,
+        fields: Dict[str, str],
+        salt_seed: str,
+    ) -> RedactablePassport:
+        """Mint an unredacted passport with salted field commitments and Ed25519 root signature."""
+        if not fields:
+            raise GovernanceHaltError("Passport fields must be non-empty")
+        commitments: Dict[str, str] = {}
+        salts: Dict[str, str] = {}
+        for k in sorted(fields.keys()):
+            salt_hex = hashlib.sha256(
+                f"{salt_seed}:{receipt_id}:{k}".encode("utf-8")
+            ).hexdigest()[:32]
+            salts[k] = salt_hex
+            commitments[k] = cls._compute_field_commitment(k, str(fields[k]), salt_hex)
+
+        temp_passport = RedactablePassport(
+            receipt_id=receipt_id,
+            field_commitments=commitments,
+            revealed_fields=dict(fields),
+            revealed_salts=salts,
+            redacted_keys=[],
+            root_signature_hex="",
+        )
+        root_bytes = encode_jcs(temp_passport.to_root_statement())
+        sig_hex = issuer_private_key.sign(root_bytes).hex()
+        return RedactablePassport(
+            receipt_id=receipt_id,
+            field_commitments=commitments,
+            revealed_fields=dict(fields),
+            revealed_salts=salts,
+            redacted_keys=[],
+            root_signature_hex=sig_hex,
+        )
+
+    @staticmethod
+    def redact_pii_fields(
+        passport: RedactablePassport, pii_keys_to_redact: List[str]
+    ) -> RedactablePassport:
+        """Erase PII cleartext values and salts (GDPR Art. 17) while keeping commitments intact."""
+        redact_set = set(pii_keys_to_redact)
+        new_revealed = {
+            k: v for k, v in passport.revealed_fields.items() if k not in redact_set
+        }
+        new_salts = {
+            k: s for k, s in passport.revealed_salts.items() if k not in redact_set
+        }
+        combined_redacted = sorted(set(passport.redacted_keys) | redact_set)
+        return RedactablePassport(
+            receipt_id=passport.receipt_id,
+            field_commitments=dict(passport.field_commitments),
+            revealed_fields=new_revealed,
+            revealed_salts=new_salts,
+            redacted_keys=combined_redacted,
+            root_signature_hex=passport.root_signature_hex,
+        )
+
+    @classmethod
+    def verify_passport(
+        cls,
+        passport: RedactablePassport,
+        issuer_public_key: Ed25519PublicKey,
+    ) -> bool:
+        """Verify Ed25519 root signature and all unredacted attribute commitments."""
+        root_bytes = encode_jcs(passport.to_root_statement())
+        try:
+            issuer_public_key.verify(
+                bytes.fromhex(passport.root_signature_hex), root_bytes
+            )
+        except (InvalidSignature, ValueError):
+            return False
+
+        expected_keys = set(passport.field_commitments.keys())
+        revealed_keys = set(passport.revealed_fields.keys())
+        redacted_keys = set(passport.redacted_keys)
+
+        if revealed_keys | redacted_keys != expected_keys:
+            return False
+        if revealed_keys & redacted_keys:
+            return False
+
+        for k in revealed_keys:
+            salt_hex = passport.revealed_salts.get(k)
+            if not salt_hex:
+                return False
+            recomputed = cls._compute_field_commitment(
+                k, passport.revealed_fields[k], salt_hex
+            )
+            if recomputed != passport.field_commitments.get(k):
+                return False
+
+        return True
+
+
+class DoraXbrlCsvPackageBuilder:
+    """DORA Register of Information (`RT.01.01–RT.01.03`) xBRL-CSV Exporter (EBA DPM 4.0).
+
+    Aligned with open-source `Arelle/Arelle` xBRL-CSV package conventions and
+    `FiorLab/dora-article-28-ict-third-party-register`:
+    Generates deterministic CSV tables (`RT.01.01.csv`, `RT.01.02.csv`, `RT.01.03.csv`,
+    `parameters.csv`) and `META-INF/reports.json` bound by an Ed25519 package receipt.
+    """
+
+    @staticmethod
+    def _render_csv(headers: List[str], rows: List[List[str]]) -> str:
+        buf = _py_io.StringIO()
+        writer = _py_csv.writer(buf, lineterminator="\n")
+        writer.writerow(headers)
+        for row in rows:
+            writer.writerow(row)
+        return buf.getvalue()
+
+    @classmethod
+    def build_package(
+        cls,
+        signing_key: Ed25519PrivateKey,
+        entity_lei: str,
+        entity_name: str,
+        reporting_period: str,
+        containment_arrangements: List[Dict[str, str]],
+    ) -> Dict[str, Any]:
+        """Build an EBA DPM 4.0 xBRL-CSV Register of Information package from agent records."""
+        if not entity_lei or len(entity_lei) != 20:
+            raise GovernanceHaltError("DORA xBRL-CSV requires a 20-character LEI identifier")
+        if not containment_arrangements:
+            raise GovernanceHaltError(
+                "DORA xBRL-CSV requires at least one ICT containment arrangement"
+            )
+
+        reports_json = canonicalize_jcs(
+            {
+                "documentInfo": {
+                    "documentType": "https://xbrl.org/2021/xbrl-csv",
+                    "extends": [
+                        "http://www.eba.europa.eu/eu/fr/xbrl/crr/fws/dora/4.0/mod/dora.json"
+                    ],
+                }
+            }
+        )
+        parameters_csv = cls._render_csv(
+            ["name", "value"],
+            [
+                ["entityID", f"lei:{entity_lei}"],
+                ["refPeriod", reporting_period],
+                ["baseCurrency", "iso4217:EUR"],
+                ["decimalsInteger", "0"],
+            ],
+        )
+        rt_01_01_csv = cls._render_csv(
+            ["c0010", "c0020", "c0030", "c0040"],
+            [[entity_lei, entity_name, "EU", reporting_period]],
+        )
+
+        rt_01_02_rows: List[List[str]] = []
+        rt_01_03_rows: List[List[str]] = []
+        for idx, arr in enumerate(containment_arrangements, start=1):
+            contract_ref = arr.get("contract_ref", f"CTR-{idx:04d}")
+            provider_id = arr.get("provider_lei", f"PRV-{idx:04d}")
+            provider_name = arr.get("provider_name", "SovereignRuntimeBoundary")
+            function_id = arr.get("function_id", "ICT-AGENT-EXECUTION-BOUNDARY")
+            receipt_caid = arr.get("receipt_caid", "")
+            if not receipt_caid:
+                raise GovernanceHaltError(
+                    f"Arrangement {contract_ref!r} missing verified receipt_caid"
+                )
+            rt_01_02_rows.append(
+                [contract_ref, entity_lei, function_id, "CRITICAL", receipt_caid]
+            )
+            rt_01_03_rows.append(
+                [contract_ref, provider_id, provider_name, "SHA256_ED25519_BOUND"]
+            )
+
+        rt_01_02_csv = cls._render_csv(
+            ["c0010", "c0020", "c0030", "c0040", "c0050"], rt_01_02_rows
+        )
+        rt_01_03_csv = cls._render_csv(
+            ["c0010", "c0020", "c0030", "c0040"], rt_01_03_rows
+        )
+
+        files = {
+            "META-INF/reports.json": reports_json,
+            "reports/parameters.csv": parameters_csv,
+            "reports/RT.01.01.csv": rt_01_01_csv,
+            "reports/RT.01.02.csv": rt_01_02_csv,
+            "reports/RT.01.03.csv": rt_01_03_csv,
+        }
+        file_digests = {
+            path: hashlib.sha256(content.encode("utf-8")).hexdigest()
+            for path, content in sorted(files.items())
+        }
+        manifest_statement = {
+            "ebaDpmVersion": "4.0",
+            "entityLei": entity_lei,
+            "fileDigests": file_digests,
+            "reportingPeriod": reporting_period,
+        }
+        manifest_bytes = encode_jcs(manifest_statement)
+        sig_hex = signing_key.sign(manifest_bytes).hex()
+
+        return {
+            "files": files,
+            "manifestStatement": manifest_statement,
+            "packageCaid": hashlib.sha256(manifest_bytes).hexdigest(),
+            "signatureHex": sig_hex,
+        }
+
+
+@dataclass(frozen=True)
+class StarBaselineReceipt:
+    """Ed25519-signed STAR Protocol AST Merkle-DAG baseline receipt."""
+
+    baseline_id: str
+    module_ast_digests: Dict[str, str]
+    merkle_root_hex: str
+    signature_hex: str
+
+    def to_statement_dict(self) -> Dict[str, Any]:
+        return {
+            "baselineId": self.baseline_id,
+            "merkleRoot": self.merkle_root_hex,
+            "moduleAstDigests": dict(sorted(self.module_ast_digests.items())),
+        }
+
+
+class StarAstMerkleDagBaseline:
+    """STAR Protocol CLI & AST Baseline (Ed25519-signed Merkle-DAG over normalized ASTs).
+
+    Computes deterministic SHA-256 digests over normalized Python AST structures
+    (`ast.dump(tree, annotate_fields=True, include_attributes=False)`) so whitespace
+    or comment edits do not alter the digest, while any structural AST mutation changes
+    the Merkle root and triggers a fail-closed baseline verification error in $O(1)$
+    root-comparison time.
+    """
+
+    @staticmethod
+    def compute_normalized_ast_digest(module_name: str, python_source: str) -> str:
+        try:
+            tree = _py_ast.parse(python_source, filename=module_name)
+        except SyntaxError as exc:
+            raise GovernanceHaltError(
+                f"STAR AST parse failure in {module_name!r}: {exc}"
+            ) from exc
+        normalized_dump = _py_ast.dump(
+            tree, annotate_fields=True, include_attributes=False
+        )
+        h = hashlib.sha256()
+        h.update(b"\x00")
+        h.update(module_name.encode("utf-8"))
+        h.update(b"\x00")
+        h.update(normalized_dump.encode("utf-8"))
+        return h.hexdigest()
+
+    @classmethod
+    def compute_merkle_root(cls, module_digests: Dict[str, str]) -> str:
+        if not module_digests:
+            raise GovernanceHaltError("STAR AST baseline requires at least one module")
+        level = [
+            bytes.fromhex(module_digests[k]) for k in sorted(module_digests.keys())
+        ]
+        while len(level) > 1:
+            next_level: List[bytes] = []
+            for i in range(0, len(level), 2):
+                if i + 1 < len(level):
+                    next_level.append(_hash_node(level[i], level[i + 1]))
+                else:
+                    next_level.append(level[i])
+            level = next_level
+        return level[0].hex()
+
+    @classmethod
+    def freeze_baseline(
+        cls,
+        baseline_id: str,
+        module_sources: Dict[str, str],
+        signing_key: Ed25519PrivateKey,
+    ) -> StarBaselineReceipt:
+        """Freeze a set of Python modules into an Ed25519-signed AST Merkle-DAG baseline."""
+        digests = {
+            mod: cls.compute_normalized_ast_digest(mod, src)
+            for mod, src in sorted(module_sources.items())
+        }
+        merkle_root = cls.compute_merkle_root(digests)
+        temp = StarBaselineReceipt(
+            baseline_id=baseline_id,
+            module_ast_digests=digests,
+            merkle_root_hex=merkle_root,
+            signature_hex="",
+        )
+        canonical = encode_jcs(temp.to_statement_dict())
+        sig_hex = signing_key.sign(canonical).hex()
+        return StarBaselineReceipt(
+            baseline_id=baseline_id,
+            module_ast_digests=digests,
+            merkle_root_hex=merkle_root,
+            signature_hex=sig_hex,
+        )
+
+    @classmethod
+    def verify_o1_root_and_sources(
+        cls,
+        receipt: StarBaselineReceipt,
+        candidate_sources: Dict[str, str],
+        public_key: Ed25519PublicKey,
+    ) -> bool:
+        """Verify the Ed25519 baseline receipt and confirm $O(1)$ Merkle root equality."""
+        canonical = encode_jcs(receipt.to_statement_dict())
+        try:
+            public_key.verify(bytes.fromhex(receipt.signature_hex), canonical)
+        except (InvalidSignature, ValueError):
+            return False
+
+        candidate_digests = {
+            mod: cls.compute_normalized_ast_digest(mod, src)
+            for mod, src in sorted(candidate_sources.items())
+        }
+        if candidate_digests.keys() != receipt.module_ast_digests.keys():
+            return False
+        candidate_root = cls.compute_merkle_root(candidate_digests)
+        return candidate_root == receipt.merkle_root_hex
+
+
+@dataclass(frozen=True)
+class ZeroOverclaimProof:
+    """Blinded commitment compliance proof attesting to a 0% overclaim rate."""
+
+    batch_id: str
+    total_episodes: int
+    overclaim_count: int
+    overclaim_rate_bps: int
+    blinded_episode_commitments: List[str]
+    commitment_merkle_root: str
+    signature_hex: str
+
+    def to_public_journal(self) -> Dict[str, Any]:
+        return {
+            "batchId": self.batch_id,
+            "blindedEpisodeCommitments": list(self.blinded_episode_commitments),
+            "commitmentMerkleRoot": self.commitment_merkle_root,
+            "overclaimCount": self.overclaim_count,
+            "overclaimRateBps": self.overclaim_rate_bps,
+            "totalEpisodes": self.total_episodes,
+        }
+
+
+class ZeroOverclaimComplianceProver:
+    """Blinded-commitment compliance prover attesting `overclaim_count == 0`.
+
+    Aligned with open-source zkVM public-journal commitment patterns (`succinctlabs/sp1`,
+    `risc0/risc0`):
+    - Evaluates each episode's boolean invariant:
+      `overclaim = claimed_safe and (not verified_safe)`
+    - Blinds raw enterprise payloads behind salted SHA-256 commitments so no raw
+      payload strings or account numbers leave the proving boundary.
+    - Signs the canonical public journal with `Ed25519PrivateKey` only when
+      `overclaim_count == 0`.
+    """
+
+    @staticmethod
+    def prove_zero_overclaim_batch(
+        batch_id: str,
+        episodes: List[Dict[str, Any]],
+        blinding_seed: str,
+        prover_private_key: Ed25519PrivateKey,
+    ) -> ZeroOverclaimProof:
+        if not episodes:
+            raise GovernanceHaltError("Compliance proof requires at least one episode")
+
+        commitments: List[str] = []
+        overclaim_count = 0
+
+        for idx, ep in enumerate(episodes):
+            ep_id = str(ep.get("episode_id", f"ep-{idx}"))
+            raw_payload = ep.get("raw_payload", {})
+            claimed_safe = bool(ep.get("claimed_safe", False))
+            verified_safe = bool(ep.get("verified_safe", False))
+
+            if claimed_safe and not verified_safe:
+                overclaim_count += 1
+
+            blinding_nonce = hashlib.sha256(
+                f"{blinding_seed}:{batch_id}:{ep_id}".encode("utf-8")
+            ).hexdigest()
+            blinded_record = {
+                "blindingNonce": blinding_nonce,
+                "claimedSafe": claimed_safe,
+                "episodeId": ep_id,
+                "payloadCaid": compute_caid(raw_payload),
+                "verifiedSafe": verified_safe,
+            }
+            commitments.append(hashlib.sha256(encode_jcs(blinded_record)).hexdigest())
+
+        if overclaim_count > 0:
+            raise GovernanceHaltError(
+                f"Zero-overclaim proof aborted: observed {overclaim_count} overclaim(s) in batch {batch_id!r}"
+            )
+
+        level = [bytes.fromhex(c) for c in commitments]
+        while len(level) > 1:
+            next_level: List[bytes] = []
+            for i in range(0, len(level), 2):
+                if i + 1 < len(level):
+                    next_level.append(_hash_node(level[i], level[i + 1]))
+                else:
+                    next_level.append(level[i])
+            level = next_level
+        merkle_root = level[0].hex()
+
+        temp = ZeroOverclaimProof(
+            batch_id=batch_id,
+            total_episodes=len(episodes),
+            overclaim_count=0,
+            overclaim_rate_bps=0,
+            blinded_episode_commitments=commitments,
+            commitment_merkle_root=merkle_root,
+            signature_hex="",
+        )
+        journal_bytes = encode_jcs(temp.to_public_journal())
+        sig_hex = prover_private_key.sign(journal_bytes).hex()
+
+        return ZeroOverclaimProof(
+            batch_id=batch_id,
+            total_episodes=len(episodes),
+            overclaim_count=0,
+            overclaim_rate_bps=0,
+            blinded_episode_commitments=commitments,
+            commitment_merkle_root=merkle_root,
+            signature_hex=sig_hex,
+        )
+
+    @staticmethod
+    def verify_zero_overclaim_proof(
+        proof: ZeroOverclaimProof,
+        prover_public_key: Ed25519PublicKey,
+    ) -> bool:
+        """Verify the Ed25519 signature, Merkle root, and zero-overclaim invariants."""
+        if proof.overclaim_count != 0 or proof.overclaim_rate_bps != 0:
+            return False
+        if proof.total_episodes <= 0 or len(proof.blinded_episode_commitments) != proof.total_episodes:
+            return False
+
+        level = [bytes.fromhex(c) for c in proof.blinded_episode_commitments]
+        while len(level) > 1:
+            next_level: List[bytes] = []
+            for i in range(0, len(level), 2):
+                if i + 1 < len(level):
+                    next_level.append(_hash_node(level[i], level[i + 1]))
+                else:
+                    next_level.append(level[i])
+            level = next_level
+        if level[0].hex() != proof.commitment_merkle_root:
+            return False
+
+        journal_bytes = encode_jcs(proof.to_public_journal())
+        try:
+            prover_public_key.verify(bytes.fromhex(proof.signature_hex), journal_bytes)
+            return True
+        except (InvalidSignature, ValueError):
+            return False
+
+
+# ============================================================================
+# SECTION 7: Open-Source Primitive Composition Glue & v1.1 Backlog Primitives
+# ============================================================================
+
+import zipfile as _py_zipfile
+
+
+class TetragonTracingPolicyCompiler:
+    """Dual-emission compiler translating `smaos.hcl` into Cilium Tetragon `TracingPolicy`.
+
+    Emits:
+    1. Cilium Tetragon `cilium.io/v1alpha1` `TracingPolicy` specification (`sys_execve`
+       and `sys_connect` kprobes with `Sigkill` action on un-cleared socket/process access).
+    2. Structural BPF-LSM map + IETF SCITT Action Capsule profile via `SmaosHclCompiler`.
+
+    Epistemic Boundary (AGENTS.md Section 5):
+    Emitted Tetragon / BPF-LSM definitions are structural scaffolding unless applied to
+    a Linux kernel running Cilium Tetragon / BPF-LSM.
+    """
+
+    @classmethod
+    def compile_dual_emission(cls, hcl_source: str) -> Dict[str, Any]:
+        base = SmaosHclCompiler.compile_hcl(hcl_source)
+        allowed_cidrs = base.bpf_security_map["allowedEgressCidrs"]
+        blocked_syscalls = base.bpf_security_map["blockedSyscalls"]
+
+        kprobes: List[Dict[str, Any]] = [
+            {
+                "call": "sys_connect",
+                "syscall": True,
+                "args": [{"index": 0, "type": "int"}, {"index": 1, "type": "sockaddr"}],
+                "selectors": [
+                    {
+                        "matchArgs": [
+                            {
+                                "index": 1,
+                                "operator": "NotDAddr",
+                                "values": allowed_cidrs or ["127.0.0.1/32"],
+                            }
+                        ],
+                        "matchActions": [{"action": "Sigkill"}],
+                    }
+                ],
+            }
+        ]
+        for syscall_name in blocked_syscalls:
+            kprobes.append(
+                {
+                    "call": syscall_name,
+                    "syscall": True,
+                    "selectors": [{"matchActions": [{"action": "Sigkill"}]}],
+                }
+            )
+
+        tracing_policy = {
+            "apiVersion": "cilium.io/v1alpha1",
+            "kind": "TracingPolicy",
+            "metadata": {
+                "name": f"smaos-{base.policy_name.replace('_', '-')}",
+                "annotations": {
+                    "smaos.io/scaffolding-notice": (
+                        "Structural TracingPolicy specification; requires a Linux kernel "
+                        "running Cilium Tetragon for live kprobe SIGKILL enforcement."
+                    )
+                },
+            },
+            "spec": {"kprobes": kprobes},
+        }
+        dual_bundle = {
+            "bpfSecurityMap": base.bpf_security_map,
+            "scittActionCapsuleProfile": base.scitt_action_capsule_profile,
+            "tetragonTracingPolicy": tracing_policy,
+        }
+        return {
+            "bundle": dual_bundle,
+            "bundleCaid": compute_caid(dual_bundle),
+        }
+
+
+class DoraIts2024ZipExporter:
+    """Direct auto-mapper from pinned agent/MCP manifests into EBA DPM 4.0 xBRL-CSV ZIP packages.
+
+    Complies with EBA DPM 4.0 ITS 2024/2956 (`dora.json`) directory layout:
+    - `<package_name>/META-INF/reports.json`
+    - `<package_name>/reports/parameters.csv`
+    - `<package_name>/reports/RT.01.01.csv`
+    - `<package_name>/reports/RT.01.02.csv`
+    - `<package_name>/reports/RT.01.03.csv`
+    """
+
+    @classmethod
+    def build_xbrl_csv_zip_bytes(
+        cls,
+        signing_key: Ed25519PrivateKey,
+        entity_lei: str,
+        entity_name: str,
+        reporting_period: str,
+        pinned_mcp_manifests: List[Dict[str, str]],
+        package_prefix: str = "dora_roi_eba_dpm_4_0",
+    ) -> Tuple[bytes, Dict[str, Any]]:
+        pkg = DoraXbrlCsvPackageBuilder.build_package(
+            signing_key=signing_key,
+            entity_lei=entity_lei,
+            entity_name=entity_name,
+            reporting_period=reporting_period,
+            containment_arrangements=pinned_mcp_manifests,
+        )
+        buf = _py_io.BytesIO()
+        fixed_dt = (2026, 1, 1, 0, 0, 0)
+        with _py_zipfile.ZipFile(buf, mode="w", compression=_py_zipfile.ZIP_DEFLATED) as zf:
+            for rel_path, content in sorted(pkg["files"].items()):
+                info = _py_zipfile.ZipInfo(
+                    filename=f"{package_prefix}/{rel_path}", date_time=fixed_dt
+                )
+                info.compress_type = _py_zipfile.ZIP_DEFLATED
+                zf.writestr(info, content.encode("utf-8"))
+        zip_bytes = buf.getvalue()
+        pkg["zipSha256"] = hashlib.sha256(zip_bytes).hexdigest()
+        return zip_bytes, pkg
+
+
+class GhostAtrDiagnosticScanner:
+    """Diagnostic scanner evaluating `agent-threat-rules` (`ATR-2026-01932`) and CISO GII.
+
+    Audits local developer configuration objects (`.claude`, `cursor.json`, `mcp.json`)
+    and computes a deterministic CISO Governance Intensity Index (`GII`, `0–100`)
+    signed with Ed25519.
+    """
+
+    RULE_ID = "ATR-2026-01932"
+
+    @classmethod
+    def evaluate_environment(
+        cls,
+        config_snapshot: Dict[str, Any],
+        signing_key: Ed25519PrivateKey,
+    ) -> Dict[str, Any]:
+        findings: List[Dict[str, str]] = []
+        penalty = 0
+
+        mcp_servers = config_snapshot.get("mcpServers", {})
+        if not isinstance(mcp_servers, dict):
+            mcp_servers = {}
+
+        for srv_name in sorted(mcp_servers.keys()):
+            srv = mcp_servers[srv_name] or {}
+            if not srv.get("sha256_pin"):
+                findings.append(
+                    {
+                        "ruleId": f"{cls.RULE_ID}:UNPINNED_MCP_MANIFEST",
+                        "server": srv_name,
+                        "severity": "HIGH",
+                    }
+                )
+                penalty += 25
+
+            capabilities = set(srv.get("capabilities", []))
+            if {"shell_exec", "network_egress"}.issubset(capabilities):
+                findings.append(
+                    {
+                        "ruleId": f"{cls.RULE_ID}:TOXIC_SHELL_EGRESS_CHAIN",
+                        "server": srv_name,
+                        "severity": "CRITICAL",
+                    }
+                )
+                penalty += 35
+
+            env_map = srv.get("env", {}) or {}
+            for env_key, env_val in sorted(env_map.items()):
+                if isinstance(env_val, str) and (
+                    env_val.startswith("sk-") or "SECRET" in env_key.upper()
+                ) and not env_val.startswith("vault://"):
+                    findings.append(
+                        {
+                            "ruleId": f"{cls.RULE_ID}:PLAINTEXT_CREDENTIAL_EXPOSURE",
+                            "server": f"{srv_name}:{env_key}",
+                            "severity": "HIGH",
+                        }
+                    )
+                    penalty += 25
+
+        if not config_snapshot.get("station1_wire_interlock_enabled", False):
+            findings.append(
+                {
+                    "ruleId": f"{cls.RULE_ID}:MISSING_STATION1_WIRE_INTERLOCK",
+                    "server": "runtime_boundary",
+                    "severity": "MEDIUM",
+                }
+            )
+            penalty += 15
+
+        gii_score = max(0, 100 - penalty)
+        statement = {
+            "atrRuleBaseline": cls.RULE_ID,
+            "findingCount": len(findings),
+            "findings": findings,
+            "governanceIntensityIndex": gii_score,
+        }
+        jcs_bytes = encode_jcs(statement)
+        return {
+            "report": statement,
+            "reportCaid": hashlib.sha256(jcs_bytes).hexdigest(),
+            "signatureHex": signing_key.sign(jcs_bytes).hex(),
+        }
+
+
+class Station1AuthorizationAdmissibilityGate:
+    """Station 1 Zero-I/O 5-Term Boolean Standing Interlock.
+
+    Evaluates:
+      AuthorizationAdmissibility =
+          GrantValid
+          ∧ PolicyEpochFresh
+          ∧ SourceEpochFresh
+          ∧ ControlHealthy
+          ∧ RiskProfileWithinGrantLimits
+    """
+
+    @staticmethod
+    def evaluate_standing(
+        *,
+        grant_valid: bool,
+        bound_policy_epoch: int,
+        active_policy_epoch: int,
+        bound_source_epoch: int,
+        active_source_epoch: int,
+        control_healthy: bool,
+        action_risk_score: int,
+        grant_max_risk_score: int,
+    ) -> Dict[str, Any]:
+        policy_epoch_fresh = bool(bound_policy_epoch == active_policy_epoch)
+        source_epoch_fresh = bool(bound_source_epoch == active_source_epoch)
+        risk_within_limits = bool(0 <= action_risk_score <= grant_max_risk_score)
+
+        admissible = bool(
+            grant_valid
+            and policy_epoch_fresh
+            and source_epoch_fresh
+            and control_healthy
+            and risk_within_limits
+        )
+        return {
+            "admissible": admissible,
+            "terms": {
+                "ControlHealthy": bool(control_healthy),
+                "GrantValid": bool(grant_valid),
+                "PolicyEpochFresh": policy_epoch_fresh,
+                "RiskProfileWithinGrantLimits": risk_within_limits,
+                "SourceEpochFresh": source_epoch_fresh,
+            },
+        }
+
+
+class TripartiteKvBlockAdmissibilityGate:
+    """Post-v1.0 Roadmap (`v1.1` Item 1): Tripartite Memory Admissibility at ~16k-Token KV Block Unit.
+
+    Enforces:
+      MemoryAdmissible =
+          BlockIntegrityValid ∧ ProvenanceValid ∧ EpochFresh ∧ GrantScopeValid
+
+    Binds state restoration at the <= 16,384-token KV block granularity rather than
+    whole-conversation granularity.
+    """
+
+    MAX_KV_BLOCK_TOKENS = 16384
+
+    @classmethod
+    def evaluate_kv_block(
+        cls,
+        *,
+        kv_block_bytes: bytes,
+        expected_block_sha256: str,
+        token_count: int,
+        source_provenance_caid: str,
+        pinned_provenance_caids: Set[str],
+        block_policy_epoch: int,
+        active_policy_epoch: int,
+        block_source_epoch: int,
+        active_source_epoch: int,
+        requested_tool_scope: str,
+        granted_tool_scopes: Set[str],
+    ) -> Dict[str, Any]:
+        observed_sha256 = hashlib.sha256(kv_block_bytes).hexdigest()
+        block_integrity_valid = bool(
+            0 < token_count <= cls.MAX_KV_BLOCK_TOKENS
+            and observed_sha256 == expected_block_sha256
+        )
+        provenance_valid = bool(
+            source_provenance_caid and source_provenance_caid in pinned_provenance_caids
+        )
+        epoch_fresh = bool(
+            block_policy_epoch == active_policy_epoch
+            and block_source_epoch == active_source_epoch
+        )
+        grant_scope_valid = bool(
+            requested_tool_scope and requested_tool_scope in granted_tool_scopes
+        )
+
+        memory_admissible = bool(
+            block_integrity_valid
+            and provenance_valid
+            and epoch_fresh
+            and grant_scope_valid
+        )
+        return {
+            "blockSha256": observed_sha256,
+            "memoryAdmissible": memory_admissible,
+            "status": "FRESH" if memory_admissible else "STALE_DONT_TRUST_YET",
+            "terms": {
+                "BlockIntegrityValid": block_integrity_valid,
+                "EpochFresh": epoch_fresh,
+                "GrantScopeValid": grant_scope_valid,
+                "ProvenanceValid": provenance_valid,
+            },
+            "tokenCount": token_count,
+        }
+
+
+class ScittOtelActionCapsuleCorrelator:
+    """Post-v1.0 Roadmap (`v1.1` Item 2): OpenTelemetry SCITT Action Capsule Correlation.
+
+    Maps `draft-palanisamy-scitt-aac-otel-00` (`org.agentactioncapsule.otel`) into
+    an RFC 8785 JCS canonicalized, Ed25519-signed `ContinuityReceipt` envelope for
+    distributed trace alignment.
+    """
+
+    _HEX32_RE = re.compile(r"^[0-9a-f]{32}$")
+    _HEX16_RE = re.compile(r"^[0-9a-f]{16}$")
+
+    @classmethod
+    def mint_otel_correlated_receipt(
+        cls,
+        *,
+        signing_key: Ed25519PrivateKey,
+        receipt_id: str,
+        prev_chain_tip_hex: str,
+        action_payload: Dict[str, Any],
+        disposition: str,
+        trace_id_hex: str,
+        span_id_hex: str,
+        trace_flags_hex: str = "01",
+    ) -> Dict[str, Any]:
+        trace_id = trace_id_hex.lower()
+        span_id = span_id_hex.lower()
+        if not cls._HEX32_RE.match(trace_id) or trace_id == "0" * 32:
+            raise GovernanceHaltError("Invalid OpenTelemetry 128-bit trace_id")
+        if not cls._HEX16_RE.match(span_id) or span_id == "0" * 16:
+            raise GovernanceHaltError("Invalid OpenTelemetry 64-bit span_id")
+
+        caid = compute_caid(action_payload)
+        otel_extension = {
+            "scittDraft": "draft-palanisamy-scitt-aac-otel-00",
+            "spanId": span_id,
+            "traceFlags": trace_flags_hex,
+            "traceId": trace_id,
+            "traceparent": f"00-{trace_id}-{span_id}-{trace_flags_hex}",
+        }
+        statement = {
+            "caid": caid,
+            "disposition": disposition,
+            "org.agentactioncapsule.otel": otel_extension,
+            "prevChainTip": prev_chain_tip_hex,
+            "receiptId": receipt_id,
+        }
+        jcs_bytes = encode_jcs(statement)
+        chain_tip = hashlib.sha256(
+            bytes.fromhex(prev_chain_tip_hex) + jcs_bytes
+        ).hexdigest()
+        envelope = {
+            "chainTip": chain_tip,
+            "statement": statement,
+        }
+        envelope_bytes = encode_jcs(envelope)
+        sig_hex = signing_key.sign(envelope_bytes).hex()
+        return {
+            "envelope": envelope,
+            "signatureHex": sig_hex,
+        }
+
+    @staticmethod
+    def verify_otel_correlated_receipt(
+        receipt_bundle: Dict[str, Any], public_key: Ed25519PublicKey
+    ) -> bool:
+        envelope = receipt_bundle.get("envelope", {})
+        sig_hex = receipt_bundle.get("signatureHex", "")
+        statement = envelope.get("statement", {})
+        prev_tip = statement.get("prevChainTip", "")
+        try:
+            expected_tip = hashlib.sha256(
+                bytes.fromhex(prev_tip) + encode_jcs(statement)
+            ).hexdigest()
+            if expected_tip != envelope.get("chainTip"):
+                return False
+            public_key.verify(bytes.fromhex(sig_hex), encode_jcs(envelope))
+            return True
+        except (InvalidSignature, ValueError):
+            return False
+
+
+class HardwareAttestationReceiptBinder:
+    """Post-v1.0 Roadmap (`v1.1` Item 3): Hardware Attestation Binding in `ContinuityReceipt`.
+
+    Embeds Intel TDX / AMD SEV-SNP enclave quote claims (verified by a Tinfoil/VirTEE
+    verifier key) directly into the `ContinuityReceipt` statement, binding `reportDataCaid`
+    to the receipt's RFC 8785 `CAID`.
+
+    Epistemic Boundary (AGENTS.md Section 5):
+    This cryptographic quote-binding layer is structural scaffolding unless executed
+    inside physical Intel TDX or AMD SEV-SNP CVM hardware.
+    """
+
+    SUPPORTED_TEES = {"INTEL_TDX", "AMD_SEV_SNP"}
+
+    @classmethod
+    def mint_attested_continuity_receipt(
+        cls,
+        *,
+        ledger_signing_key: Ed25519PrivateKey,
+        tinfoil_verifier_key: Ed25519PrivateKey,
+        receipt_id: str,
+        action_payload: Dict[str, Any],
+        tee_type: str,
+        measurement_mrtd_hex: str,
+    ) -> Dict[str, Any]:
+        if tee_type not in cls.SUPPORTED_TEES:
+            raise GovernanceHaltError(f"Unsupported TEE architecture: {tee_type!r}")
+        caid = compute_caid(action_payload)
+        quote_claims = {
+            "measurementHex": measurement_mrtd_hex,
+            "reportDataCaid": caid,
+            "scaffoldingNotice": (
+                "Structural CVM quote binding; requires physical Intel TDX or "
+                "AMD SEV-SNP hardware for live silicon attestation."
+            ),
+            "teeType": tee_type,
+            "verifierProfile": "tinfoil-virtee-rats-v1",
+        }
+        quote_sig_hex = tinfoil_verifier_key.sign(encode_jcs(quote_claims)).hex()
+        receipt_statement = {
+            "caid": caid,
+            "hardwareAttestationQuote": {
+                "claims": quote_claims,
+                "verifierSignatureHex": quote_sig_hex,
+            },
+            "receiptId": receipt_id,
+        }
+        receipt_sig_hex = ledger_signing_key.sign(encode_jcs(receipt_statement)).hex()
+        return {
+            "receiptSignatureHex": receipt_sig_hex,
+            "statement": receipt_statement,
+        }
+
+    @classmethod
+    def verify_attested_continuity_receipt(
+        cls,
+        attested_receipt: Dict[str, Any],
+        ledger_public_key: Ed25519PublicKey,
+        tinfoil_verifier_public_key: Ed25519PublicKey,
+    ) -> bool:
+        statement = attested_receipt.get("statement", {})
+        receipt_sig = attested_receipt.get("receiptSignatureHex", "")
+        hw_quote = statement.get("hardwareAttestationQuote", {})
+        claims = hw_quote.get("claims", {})
+        quote_sig = hw_quote.get("verifierSignatureHex", "")
+
+        if claims.get("reportDataCaid") != statement.get("caid"):
+            return False
+        if claims.get("teeType") not in cls.SUPPORTED_TEES:
+            return False
+
+        try:
+            tinfoil_verifier_public_key.verify(
+                bytes.fromhex(quote_sig), encode_jcs(claims)
+            )
+            ledger_public_key.verify(
+                bytes.fromhex(receipt_sig), encode_jcs(statement)
+            )
+            return True
+        except (InvalidSignature, ValueError):
+            return False
+
+
+class R1csZeroOverclaimCircuit:
+    """Post-v1.0 Roadmap (`v1.1` Item 4): R1CS Finite-Field Circuit for 0% Overclaim Proofs.
+
+    Evaluates Rank-1 Constraint System (R1CS) equations over prime field
+    $\\mathbb{F}_p$ ($p = 2^{255} - 19$) for each episode witness
+    $w_i = (1, c_i, v_i, o_i)$ where $c_i = \\text{claimed\\_safe}_i$,
+    $v_i = \\text{verified\\_safe}_i$, and $o_i = \\text{overclaim}_i$:
+      1. Booleanity of $c_i$: $c_i \\cdot (1 - c_i) \\equiv 0 \\pmod p$
+      2. Booleanity of $v_i$: $v_i \\cdot (1 - v_i) \\equiv 0 \\pmod p$
+      3. Overclaim gate:      $c_i \\cdot (1 - v_i) \\equiv o_i \\pmod p$
+      4. Zero-overclaim wire: $1 \\cdot o_i \\equiv 0 \\pmod p$
+    """
+
+    FIELD_PRIME = (1 << 255) - 19
+
+    @classmethod
+    def verify_episode_witness_r1cs(
+        cls, claimed_safe: int, verified_safe: int
+    ) -> Dict[str, Any]:
+        p = cls.FIELD_PRIME
+        c = claimed_safe % p
+        v = verified_safe % p
+        o = (c * ((1 - v) % p)) % p
+
+        # 4 R1CS constraints (A_k . w) * (B_k . w) == (C_k . w) mod p
+        c1_lhs = (c * ((1 - c) % p)) % p
+        c1_rhs = 0
+
+        c2_lhs = (v * ((1 - v) % p)) % p
+        c2_rhs = 0
+
+        c3_lhs = (c * ((1 - v) % p)) % p
+        c3_rhs = o
+
+        c4_lhs = (1 * o) % p
+        c4_rhs = 0
+
+        satisfied = (
+            c1_lhs == c1_rhs
+            and c2_lhs == c2_rhs
+            and c3_lhs == c3_rhs
+            and c4_lhs == c4_rhs
+        )
+        return {
+            "overclaimWire": o,
+            "r1csSatisfied": satisfied,
+            "witnessVector": [1, c, v, o],
+        }
+

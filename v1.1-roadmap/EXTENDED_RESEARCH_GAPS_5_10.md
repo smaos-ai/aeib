@@ -164,4 +164,131 @@ $$\text{[M1: The Tag]} \longrightarrow \text{[M2: Reproduction]} \longrightarrow
 * **M2 (Separate-Party Reproduction — Gate 3):** Clean-room container reproduction (`aeib-reproducibility/gate3/docker-compose.yml` under `network_mode: none`) from signed tag `v1.0.0-rc.1` by a separate party.
 * **M3–M7:** Real-target fault evaluation, independent security/staff review, Gate 5 observe-only pilot (`GATE5_OBSERVE_ONLY_PILOT_PROTOCOL.md`), receipt specification standardization (`AEIB-RECEIPT-SPEC.md`), and multi-gateway scale-out.
 
+---
+
+## 6. The 4-Theme Synthesis & Multi-Tier `MemoryDigest` Temporal Staleness Specification (`v1.1` Draft)
+
+### 6.1 The 4-Theme Industry Synthesis
+
+| Theme | External Signals | Core Architectural Lesson | AEIB `v1.0.0-rc.1` / `v1.1` Boundary Mapping |
+| :--- | :--- | :--- | :--- |
+| **Theme 1: Runtime Enforcement & Cryptographic Agility** | `Pryxor` (`GridEx`), `Cyron` (eBPF/LSM), Post-Quantum `ML-DSA-65` | Governing what an agent *does at the moment of execution* requires credential isolation, wire-level interception, and long-horizon signature agility. | `Station0AdmissionGate` + `CredentialVaultGate` (opaque `credential_ref`); `scripts/verify_bpf_lsm_lock.py` (4-axis BPF-LSM probe, documented as structural scaffolding unless loaded on a locked Linux CVM kernel); `Ed25519` + candidate `ML-DSA-65` epoch anchoring. |
+| **Theme 2: Cognitive Governance & Memory as a Governance Surface** | `Cognitive Governance`, `Fork-and-Flush`, `The Dead Salmons` | Reasoning context is not fact (`Context != Fact`), explanations are non-identifiable, and cached memory decays as upstream facts or policies change. | `Station1DispatchInterlock` + `ForkAndFlushContextBoundary` (strips `_reasoning`, `chain_of_thought`, `rationale`, `explanation`) + `TemporalMemoryDigest` (`STALE_DONT_TRUST_YET` on epoch drift). |
+| **Theme 3: Verification, Red-Teaming & Limits of Model-Internal Trust** | `AI Finds A Way` (26 cases), `AnyJev`, `AI Goat 2.0` | Agents game self-reported proxy metrics and adversarial inputs exploit untyped tool parameters; self-reports cannot substitute for target state. | `Station2EffectReconciler` (`ProbeBudget`) + `AntiSpecGamingReconciler` (target-state reconciliation overriding false `CONFIRMED` reports) + `TypedOwaspPreDispatchGate`. |
+| **Theme 4: Macro Governance & The Institutional Execution Gap** | `GIRAI` (35/100 implementation score), `WEF`, `The Klaritee Contrast` | High-level policy frameworks and unsubstantiated claims of absolute security fail without offline-verifiable runtime execution receipts. | `Station3ContinuousLedger` (`ContinuityReceipt`), `ReceiptVerifier` (`VerifierCli`), `CLAIMS_EVIDENCE.md`, and `benchmarks/jvm_native_diff_engine.py`. |
+
+### 6.2 Three-Tier Memory & Standing Isolation (`schemas/aeib-memory-digest-v1.1.schema.json`)
+
+To prevent prompt injection or context drift from corrupting execution authority across multi-turn workflows, the `v1.1` `MemoryDigest` specification draft (`schemas/aeib-memory-digest-v1.1.schema.json` and `TemporalMemoryDigest` in `v1.1-roadmap/unified_governance_stack.py`) isolates state into three distinct tiers evaluated under the pre-dispatch standing predicate ($\text{GrantValid} \land \text{EpochFresh} \land \text{CAIDMatch}$):
+
+1. **`EPHEMERAL_CONTEXT` (Model Reasoning Tier):** Transient chain-of-thought, scratchpad tokens, and natural-language rationales. Stripped at the boundary by `ForkAndFlushContextBoundary` prior to `CAID` derivation.
+2. **`WORKSPACE_FACT` (Source State Tier):** Canonicalized retrieval or workspace state bound to `context_caid` and a monotonic `source_epoch`.
+3. **`STANDING_GRANT` (Authorization Boundary Tier):** Policy and capability standing bound to a monotonic `policy_epoch` and optional `PAD-016` `heartbeat_pulse_hash`.
+
+#### `MemoryDigest` Canonical Derivation & Temporal Decay State Machine
+
+$$\text{MemoryDigest} = \text{SHA-256}\!\left(\text{JCS}\!\left(\{\texttt{"contextCaid"}: c,\ \texttt{"policyEpoch"}: e_p,\ \texttt{"sourceEpoch"}: e_s\}\right)\right)$$
+
+| Bound Epochs $(e_s, e_p)$ vs. Active Epochs $(e_s^{\text{active}}, e_p^{\text{active}})$ | `status` | `dispatch_admissible` | Runtime Behavior (`TemporalMemoryDigest.assert_fresh_for_dispatch`) |
+| :--- | :--- | :--- | :--- |
+| $e_s = e_s^{\text{active}} \land e_p = e_p^{\text{active}}$ | `"FRESH"` | `true` | Returns 64-hex `memory_digest`; permits progression to ticket minting. |
+| $e_s \neq e_s^{\text{active}}$ *(Upstream fact mutated)* | `"STALE_DONT_TRUST_YET"` | `false` | Raises `GovernanceHaltError`; forces ex-ante source re-verification. |
+| $e_p \neq e_p^{\text{active}}$ *(Policy or grant epoch rotated)* | `"STALE_DONT_TRUST_YET"` | `false` | Raises `GovernanceHaltError`; blocks execution under stale standing. |
+
+---
+
+## 7. Open-Source Primitive Composition Matrix ("The Glue") & 11-Item Delivery Scope
+
+> **Positioning Contrast vs. Vendor Middleware (`microsoft/agent-governance-toolkit`):**  
+> *"Microsoft AGT governs runtime behavior inside its agent stack. SMAOS adds a portable, independently verifiable evidence boundary and authority chain that survives outside any vendor platform."*
+
+### 7.1 Open-Source Primitive Composition Matrix ("The Glue")
+
+Rather than re-implementing commodity cryptographic, kernel, or regulatory reporting primitives from scratch, SMAOS / AEIB acts as **deterministic architectural glue** that binds established open-source standards into a unified, offline-verifiable governance pipeline:
+
+| Composition Domain | Open-Source Primitive / Standard | SMAOS / AEIB Composition Layer ("The Glue") | Architectural & Regulatory Outcome | Epistemic Boundary (`AGENTS.md`) |
+| :--- | :--- | :--- | :--- | :--- |
+| **1. Kernel Enforcement** | **Cilium Tetragon & BPF-LSM** (`execve` / `connect` hooks, `TracingPolicy` CRDs) | **Dual-Emission Policy Compiler (`SmaosHclCompiler`)**: Translates declarative `smaos.hcl` policies directly into Tetragon `TracingPolicy` rules (`SIGKILL` on un-cleared socket access) + BPF-LSM map JSON, paired with `scripts/verify_bpf_lsm_lock.py`. | Binds declarative capability grants to kernel-level socket and process execution rules under a single RFC 8785 JCS `artifact_caid`. | **Structural scaffolding (`AGENTS.md` §5)** unless loaded on a locked Linux CVM kernel with active BPF-LSM enforcement. |
+| **2. Audit Privacy** | **W3C BBS+ Cryptosuites (`bbs-2023`)** (`w3c/vc-di-bbs`, selective disclosure commitments) | **Selective Receipt Redactor (`Ed25519BbsSelectiveRedactor` / `src/bbs_plus_redactable.py`)**: Commits salted per-field SHA-256 digests (`urn:ietf:params:scitt:bbs-2023-ed25519-jcs-2026`) signed under an Ed25519 root over RFC 8785 JCS. | Enables selective disclosure and redaction of PII (names, IBANs) from audit receipts without invalidating the root signature—resolving **EU AI Act Art. 12** (Immutable Logs) vs. **GDPR Art. 17** (Right to Erasure). | **Tested prototype** evaluated under deterministic RFC 8785 JCS commitment vectors. |
+| **3. DORA Compliance** | **EBA DPM 4.0 ITS 2024/2956 (`dora.json`)** (xBRL-CSV Register of Information taxonomy) | **Automated xBRL-CSV Package Builder (`DoraXbrlCsvPackageBuilder` / `src/dora_annex_ii_prefill.py`)**: Directly auto-maps pinned agent/MCP capability manifests into EBA xBRL-CSV ZIP packages (`META-INF/reportPackage.json`, `reports/report.json`, `parameters.csv`, `RT.01.01.csv`–`RT.01.03.csv`). | Eliminates manual spreadsheet transcription for DORA Art. 28 ICT third-party register submissions while binding the ZIP package to an Ed25519-signed `manifest_signature.json`. | **Tested prototype** generating deterministic EBA DPM 4.0 xBRL-CSV archives. |
+| **4. Offline Verification** | **Pure Rust Compiled to WASM** (`wasm-bindgen`, `ed25519-dalek` `verify_strict`, `sha2`) | **Zero-Dependency Static Verifier (`smaos-wasm-verifier/smaos-verify.html` + `smaos-verify.wasm`)**: Embeds compiled Rust/WASM cryptographic verification into a single self-contained HTML artifact (`Content-Security-Policy: connect-src 'none'`). | Executes local drag-and-drop receipt verification (`CAID` re-derivation, hash-chain continuity, and Ed25519 `verify_strict`) in `~400 ms` with **0 npm or cloud calls**. | **Tested local Rust/WASM artifact** verified under air-gapped browser/CLI execution. |
+| **5. Diagnostic Wedge** | **`agent-threat-rules` (`ATR-2026-01932`)** & static MCP/IDE configuration schemas | **Local Environment Auditor (`GhostAtrDiagnosticScanner` / `ghost_audit_scanner.py`)**: Audits local developer and agent configurations (`.claude`, `cursor.json`, MCP server manifests) against `ATR-2026-01932` rules (`ATR-001` through `ATR-005`). | Computes the deterministic **CISO Governance Intensity Index (`GII`, `0–100`)** and emits an Ed25519-signed diagnostic posture receipt prior to runtime deployment. | **Tested local static scanner** with zero outbound network calls. |
+
+### 7.2 11-Item Delivery Scope & 5 Moats Ecosystem Mapping
+
+To avoid reinventing commodity components while focusing engineering on the execution finality and evidence-binding layer, each item in the **11-Item Delivery Scope** and **5 Moats** maps to audited open-source building blocks and verified local `SovereignNexus` symbols:
+
+| # | Delivery Scope / Moat Item | Existing Open-Source Ecosystem (`GitHub` / Standards) | Local `SovereignNexus` Implementation & Test Symbols | Epistemic Status (`AGENTS.md` Calibration) |
+| :--- | :--- | :--- | :--- | :--- |
+| **1** | **Runtime Admissibility Gate & Wire-Fault Effect Integrity (`Moat 1`)** | `microsoft/agent-governance-toolkit` (in-process middleware contrast); RFC 8785 JCS | `Station0AdmissionGate`, `Station1DispatchInterlock`, `Station2EffectReconciler` (`EffectDisposition.EFFECT_INDETERMINATE`), `LicitraSentryProxyGate` | **Verified in `v1.0.0-rc.1` (`Gate4IntegrationTest`) & `v1.1` prototype** |
+| **2** | **Offline WASM Verifier (`smaos-verify.wasm` — `Moat 2`)** | `RustCrypto/signatures` (`ed25519-dalek` `verify_strict`), `RustCrypto/hashes` (`sha2`), `wasm-bindgen`, `serde_json_canonicalizer` | `smaos-wasm-verifier/src/lib.rs` (`verify_receipt_signature`, `compute_jcs_caid`, `derive_action_caid`) + `smaos-wasm-verifier/smaos-verify.html` | **Verified local Rust/WASM crate (zero cloud/npm runtime dependencies)** |
+| **3** | **BBS+ Redactable Passports (`Moat 3`)** | `w3c/vc-di-bbs` (W3C Data Integrity BBS Cryptosuite v2023), `docknetwork/crypto` (`bbs_plus` + `crypto-wasm`), `mattrglobal/bbs-signatures` | `Ed25519BbsSelectiveRedactor` (`unified_governance_stack.py`), `src/bbs_plus_redactable.py`, `src/bbs_plus_redactable.rs`, `src/bbs_signer.py` | **Tested prototype (salted SHA-256 commitments + Ed25519 root over RFC 8785 JCS)** |
+| **4** | **Kernel-Enforced Admissibility (`eBPF XDP / BPF-LSM` — `Moat 4a`)** | `cilium/tetragon` (eBPF syscall/network enforcement), `landlock-lsm/landlock`, `yeet-src/agent-lock`, `aya-rs/aya` | `scripts/verify_bpf_lsm_lock.py` (4-axis diagnostic probe), `SmaosHclCompiler` (`TracingPolicy` emission), `ebpf/ebpf_lsm_agent_guard.c`, `ebpf/aeib_sock_filter.c` | **Structural scaffolding (`AGENTS.md` §5) unless loaded on a locked Linux CVM kernel** |
+| **5** | **Hardware-Backed Attestation (`Intel TDX / AMD SEV-SNP` — `Moat 4b`)** | `virtee/sev`, `virtee/tdx`, `confidential-containers/trustee` (IETF RATS Verifier/KBS), `microsoft/TEE-Attestation-Verification` | `HardwareAttestationReceiptBinder` (`unified_governance_stack.py`), `src/hardware_attestation.rs`, `scripts/verify_bpf_lsm_lock.py` | **Structural scaffolding (`AGENTS.md` §5) unless executed on CVM enclave hardware** |
+| **6** | **DORA Register of Information Export (`RT.01.01–RT.01.03` — `Moat 5`)** | `Arelle/Arelle` (open-source XBRL/xBRL-CSV processor), `FiorLab/dora-article-28-ict-third-party-register`, `cyr-ius/dora-report` | `DoraXbrlCsvPackageBuilder` (`unified_governance_stack.py`), `src/dora_annex_ii_prefill.py`, `tests/test_dora_annex_ii_prefill.py` | **Tested prototype generating EBA DPM 4.0 xBRL-CSV tables + Ed25519 manifest** |
+| **7** | **Ghost Configuration Audit (`.claude`, `cursor.json`, MCP manifests)** | `agent-threat-rules` (`ATR-2026-01932`), `invariantlabs-ai/mcp-scan` (`snyk/agent-scan`), GitGuardian pre-commit AI hooks | `GhostAtrDiagnosticScanner` (`unified_governance_stack.py`), `ghost_audit_scanner.py`, `test_ghost_audit_scanner.py`, `TypedOwaspPreDispatchGate` | **Tested local static scanner (`GII` score) & pre-dispatch SSRF/traversal gate** |
+| **8** | **STAR Protocol CLI & AST Baseline (Merkle-DAG Code Freeze)** | Python `ast` stdlib, `tree-sitter`, `intoto/in-toto` (supply-chain layout attestations) | `StarAstMerkleDagBaseline` (`unified_governance_stack.py`) — normalized `ast.dump` leaf digests + Merkle-DAG root + Ed25519 receipt | **Tested prototype ($O(1)$ Merkle root verification in `<1 ms`)** |
+| **9** | **Declarative Governance DSL (`smaos.hcl`)** | HashiCorp HCL / Open Policy Agent (`open-policy-agent/opa`), `cilium/tetragon` `TracingPolicy` CRDs | `SmaosHclCompiler` (`unified_governance_stack.py`) compiling `policy "<name>"` blocks into Tetragon `TracingPolicy` + BPF map JSON + SCITT Action Capsule profiles | **Tested prototype compiler with RFC 8785 JCS `artifact_caid` binding** |
+| **10** | **Copy-on-Write (CoW) Subgraph Sandboxing** | `tursodatabase/agentfs` (SQLite-backed CoW agent filesystem), `multikernel/branchfs` (FUSE atomic speculative branches), Linux `OverlayFS` | `CoWSubgraphSandbox` (`unified_governance_stack.py`) — SQLite `committed_state` + `branch_overlay` promoting only on `CONFIRMED` | **Tested prototype (atomically discards branch overlay on `EFFECT_INDETERMINATE`)** |
+| **11** | **Zero-Knowledge / Blinded Compliance Proofs (`0%` Overclaim Rate)** | `succinctlabs/sp1` (Rust zkVM), `risc0/risc0` (RISC-V zkVM), `arkworks-rs`, `zcash/halo2` | `ZeroOverclaimComplianceProver` (`unified_governance_stack.py`) — finite-field R1CS verification ($A w \circ B w = C w \pmod p$) + salted SHA-256 commitments + Ed25519 journal | **Tested R1CS & blinded-commitment prototype (proves `overclaim_count == 0` without raw payloads)** |
+
+---
+
+## 8. Post-v1.0 Roadmap Backlog — `v1.1` Scope Specifications
+
+> **Freeze & Separation Discipline:**  
+> To preserve the verification boundary of `v1.0.0-rc.1`, the five architectural extensions below are explicitly isolated to the **Post-v1.0 Roadmap Backlog (`v1.1` Scope)** and implemented as testable reference prototypes in `v1.1-roadmap/unified_governance_stack.py` (`v1.1-roadmap/test_unified_governance_stack.py`).
+
+### 8.1 Station 1 5-Term Authorization Admissibility (`Station1FiveTermAdmissibilityGate`)
+
+In `v1.0.0-rc.1`, `Station1DispatchInterlock` evaluates standing over grant validity, single-epoch equality, `CAID` matching, and control health. For `v1.1`, Station 1 expands into a strict **5-term conjunctive admissibility predicate** that separates policy epoch freshness from upstream source epoch freshness and enforces quantitative risk-profile envelopes prior to ticket minting:
+
+$$\text{AuthorizationAdmissibility} = \text{GrantValid} \land \text{PolicyEpochFresh} \land \text{SourceEpochFresh} \land \text{ControlHealthy} \land \text{RiskProfileWithinGrantLimits}$$
+
+* **Term 1 (`GrantValid`):** The capability identifier is present in the pinned grant, the grant is non-expired, and the RFC 8785 JCS `CAID` matches the bound candidate action.
+* **Term 2 (`PolicyEpochFresh`):** The candidate action's bound `policy_epoch` equals the active `policy_epoch` ($e_p = e_p^{\text{active}}$).
+* **Term 3 (`SourceEpochFresh`):** The candidate action's bound `source_epoch` equals the active `source_epoch` ($e_s = e_s^{\text{active}}$), preventing execution on stale workspace/retrieval state.
+* **Term 4 (`ControlHealthy`):** The runtime control plane reports healthy telemetry and heartbeat standing (`PAD-016` pulse continuity and non-exhausted probe budgets).
+* **Term 5 (`RiskProfileWithinGrantLimits`):** The action's quantitative risk score and notional impact stay within the grant's ceiling ($\text{risk\_score} \le \text{max\_risk\_score} \land \text{notional\_amount} \le \text{max\_notional\_amount}$).
+* **Fail-Closed Behavior:** If any of the five terms evaluates to `false`, `Station1FiveTermAdmissibilityGate` halts execution (`GovernanceHaltError`) and records the exact failing conjuncts in the canonical audit trace.
+
+### 8.2 Tripartite Memory Admissibility at the ~16k-Token KV Block Unit (`TripartiteKvBlockAdmissibilityGate`)
+
+Rather than evaluating long-horizon agent memory at whole-conversation granularity—where a single poisoned turn invalidates the entire context or slips through coarse checksums—`v1.1` defines **Tripartite Memory Admissibility** at the **$\le 16,384$-token Key-Value (KV) block unit** (`MAX_KV_BLOCK_TOKENS = 16384`):
+
+$$\text{MemoryAdmissible} = \text{BlockIntegrityValid} \land \text{ProvenanceValid} \land \text{EpochFresh} \land \text{GrantScopeValid}$$
+
+* **Tripartite Tier Isolation:** Every KV block is classified into one of three tiers (`EPHEMERAL_CONTEXT`, `WORKSPACE_FACT`, `STANDING_GRANT`), where `EPHEMERAL_CONTEXT` blocks are never admissible for direct state restoration without promotion through a verified fact/grant boundary.
+* **4-Term Block Predicate (`TripartiteKvBlockAdmissibilityGate`):**
+  1. `BlockIntegrityValid`: $\text{token\_count} \in (0, 16384]$ and the recomputed RFC 8785 JCS block digest matches `kv_state_sha256`.
+  2. `ProvenanceValid`: The block carries an Ed25519 provenance signature from a trusted issuer or anchors to a verified `ContinuityReceipt` hash-chain tip.
+  3. `EpochFresh`: Both `(source_epoch, policy_epoch)` bound into the KV block header match the currently active `(active_source_epoch, active_policy_epoch)`.
+  4. `GrantScopeValid`: The block's `grant_scope` is authorized for the target capability requesting KV cache restoration.
+
+### 8.3 OpenTelemetry Correlation (`draft-palanisamy-scitt-aac-otel-00` — `ScittOtelActionCapsuleCorrelator`)
+
+To bridge distributed observability traces with cryptographic non-repudiation without introducing network egress into the core verifier, `v1.1` implements the `draft-palanisamy-scitt-aac-otel-00` mapping via `ScittOtelActionCapsuleCorrelator`:
+
+* **Namespace & W3C Trace Context Binding:** Projects `org.agentactioncapsule.otel` attributes—specifically the 128-bit `trace_id` (32 lowercase hex characters), 64-bit `span_id` (16 lowercase hex characters), `trace_flags`, and W3C `traceparent` (`00-<trace_id>-<span_id>-<flags>`)—directly into the RFC 8785 canonical statement of the `ContinuityReceipt` chain.
+* **Bidirectional Auditability:** Allows an SRE or auditor inspecting an OpenTelemetry span (`aeib.caid`, `aeib.disposition`, `aeib.chain_tip`) to locate the exact Ed25519-signed `ContinuityReceipt`, and conversely enables an offline receipt verifier to verify that the telemetry span identifiers were cryptographically bound at execution time.
+
+### 8.4 Hardware Attestation Binding (`Intel TDX / AMD SEV-SNP` — `HardwareAttestationReceiptBinder`)
+
+For deployments targeting Confidential Virtual Machines (CVMs), `v1.1` specifies `HardwareAttestationReceiptBinder` to bind hardware enclave quotes (formatted for Tinfoil / VirTEE / IETF RATS verifiers) into the `ContinuityReceipt` envelope:
+
+* **Cryptographic Quote-to-Receipt Binding:** Computes `report_data_binding = SHA-256(JCS({receipt_caid, chain_tip, nonce}))` (64 bytes / 512 bits matching the Intel TDX v4 `TDREPORT` and AMD SEV-SNP `ATTESTATION_REPORT` `report_data` field width) and embeds the attestation quote digest, measurement register (`MRTD` / `RTMR` or `LAUNCH_DIGEST`), and `evidence_class` into the signed receipt.
+* **Strict Epistemic & Scaffolding Calibration (`AGENTS.md` §5):** In accordance with `AGENTS.md` §5, when executed outside physical Intel TDX (`/dev/tdx_guest`) or AMD SEV-SNP (`/dev/sev-guest`) CVM hardware, `HardwareAttestationReceiptBinder` explicitly marks `evidence_class = "STRUCTURAL_SCAFFOLDING"` and `hardware_enforced = false`. It never claims live hardware enclave isolation on standard host kernels.
+
+### 8.5 `0%` Overclaim ZK R1CS Proofs (`ZeroOverclaimComplianceProver`)
+
+To enable an enterprise operator to prove to an external regulator that a batch of $N$ execution episodes contained **zero unverified completion claims (`0%` overclaim rate)** without disclosing proprietary tool payloads, `v1.1` implements finite-field Rank-1 Constraint System (R1CS) verification in `ZeroOverclaimComplianceProver`:
+
+* **Boolean Overclaim Constraint per Episode $i$:** For each episode $i \in \{1, \dots, N\}$, let $c_i \in \{0, 1\}$ denote whether the agent claimed `CONFIRMED` completion and $v_i \in \{0, 1\}$ denote whether `Station2EffectReconciler` independently verified the target mutation (`CONFIRMED` with valid Ed25519 receipt). An overclaim occurs if and only if $c_i = 1 \land v_i = 0$.
+* **Finite-Field R1CS Algebra ($\mathbb{F}_p$, $p = 2^{127} - 1$):** The prover constructs witness vector $w$ over prime field $\mathbb{F}_p$ and enforces the bilinear R1CS gate equation:
+  $$A w \circ B w = C w \pmod p$$
+  encoding three constraint families across all episodes:
+  1. **Booleanity of $c_i$:** $c_i \cdot (1 - c_i) = 0 \pmod p$
+  2. **Booleanity of $v_i$:** $v_i \cdot (1 - v_i) = 0 \pmod p$
+  3. **Zero-Overclaim Orthogonality:** $c_i \cdot (1 - v_i) = 0 \pmod p$
+* **Verifier Contract:** Any episode with $c_i = 1 \land v_i = 0$ violates constraint $c_i \cdot (1 - v_i) = 0$ ($1 \cdot 1 = 1 \neq 0 \pmod p$), causing `ZeroOverclaimComplianceProver` and `verify_proof()` to reject the batch fail-closed. The resulting proof binds the R1CS satisfaction digest, salted episode commitment Merkle root, and `overclaim_rate == 0.0` into an Ed25519-signed public journal.
 

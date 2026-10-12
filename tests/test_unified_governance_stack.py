@@ -478,3 +478,553 @@ def test_signal7_typed_owasp_pre_dispatch_gate_and_ticket_minting() -> None:
     with pytest.raises(ugs.GovernanceHaltError, match="failed strict type check"):
         pre_gate.validate_pre_dispatch(valid_uri, {"amount": True, "currency": "EUR"})
 
+
+def test_formal_memory_admissibility_equation_and_adversarial_negative_ledger() -> None:
+    """Verify the 4-part MemoryAdmissible equation and NEG-01..NEG-08 receipt digests."""
+    # 1. Formal Memory Admissibility Equation:
+    # MemoryAdmissible = BlockIntegrityValid and ProvenanceValid and EpochFresh and GrantScopeValid
+    kv_block = {"kv_tokens": 16384, "workspace_fact": "invoice_total=2500"}
+    expected_block_caid = ugs.compute_caid(kv_block)
+    mem_digest = ugs.TemporalMemoryDigest.from_context_payload(
+        context_payload=kv_block, source_epoch=7, policy_epoch=3
+    )
+    vault = ugs.CredentialVaultGate(
+        {"cred_ref:settlement_v1": "https://payments.internal/v1/"}
+    )
+
+    block_integrity_valid = ugs.compute_caid(kv_block) == expected_block_caid
+    provenance_valid = len(mem_digest.memory_digest_hex) == 64
+    epoch_fresh = mem_digest.evaluate_freshness(7, 3) == "FRESH"
+    grant_scope_valid = (
+        vault.resolve_scope(
+            "cred_ref:settlement_v1",
+            "https://payments.internal/v1/settle",
+            payload=kv_block,
+        )
+        == "https://payments.internal/v1/"
+    )
+    memory_admissible = (
+        block_integrity_valid
+        and provenance_valid
+        and epoch_fresh
+        and grant_scope_valid
+    )
+    assert memory_admissible is True
+
+    # Falsification: if epoch drifts, EpochFresh is False -> MemoryAdmissible is False
+    epoch_fresh_after_drift = mem_digest.evaluate_freshness(8, 3) == "FRESH"
+    assert (
+        block_integrity_valid
+        and provenance_valid
+        and epoch_fresh_after_drift
+        and grant_scope_valid
+    ) is False
+
+    # 2. Adversarial Negative-Test Ledger (NEG-01 through NEG-08) deterministic Ed25519+JCS receipts
+    signing_key = _key(0x42)
+    pub_key = signing_key.public_key()
+    scenarios = [
+        (
+            "NEG-01",
+            "MCP Tool-List Poisoning",
+            "BLOCKED",
+            "BLOCKED",
+            "Station0AdmissionGate+TypedOwaspPreDispatchGate",
+        ),
+        (
+            "NEG-02",
+            "Tool-Response Injection",
+            "BLOCKED",
+            "BLOCKED",
+            "ForkAndFlushContextBoundary",
+        ),
+        (
+            "NEG-03",
+            "RAG / Source Substitution",
+            "BLOCKED",
+            "BLOCKED",
+            "TemporalMemoryDigest:STALE_DONT_TRUST_YET",
+        ),
+        (
+            "NEG-04",
+            "Stale Grant Replay",
+            "BLOCKED",
+            "BLOCKED",
+            "Station1DispatchInterlock+PAD016HeartbeatChain",
+        ),
+        (
+            "NEG-05",
+            "Compromised-Agent Replay w/ Valid Key",
+            "HOLD",
+            "HOLD",
+            "LicitraSentryProxyGate:TicketBurned",
+        ),
+        (
+            "NEG-06",
+            "Target-Endpoint Delay / Spoofing",
+            "EFFECT_INDETERMINATE",
+            "EFFECT_INDETERMINATE",
+            "Station2EffectReconciler+AntiSpecGamingReconciler",
+        ),
+        (
+            "NEG-07",
+            "Partial Write w/ Reconciler Failure",
+            "COMPENSATED",
+            "COMPENSATED",
+            "SagaReconciler:EventualConsistencyQueue",
+        ),
+        (
+            "NEG-08",
+            "Rollback During Open Saga",
+            "RECORDED_FAILURE",
+            "RECORDED_FAILURE",
+            "Station3ContinuousLedger:ContinuityReceipt",
+        ),
+    ]
+    observed_digests = {}
+    for sid, vector, exp, obs, gate in scenarios:
+        stmt = {
+            "expectedDisposition": exp,
+            "gate": gate,
+            "observedDisposition": obs,
+            "scenarioId": sid,
+            "vector": vector,
+        }
+        jcs_bytes = ugs.encode_jcs(stmt)
+        sig = signing_key.sign(jcs_bytes)
+        pub_key.verify(sig, jcs_bytes)
+        observed_digests[sid] = ugs.hashlib.sha256(jcs_bytes + sig).hexdigest()
+
+    assert len(observed_digests) == 8
+    assert observed_digests["NEG-01"].startswith("b52a9860")
+    assert observed_digests["NEG-06"].startswith("6fffed61")
+    assert observed_digests["NEG-08"].startswith("f1c924f5")
+
+
+def test_scope_cow_subgraph_sandbox_commit_and_fail_closed_discard() -> None:
+    """Verify SQLite Copy-on-Write branch isolation commits on CONFIRMED and discards on EFFECT_INDETERMINATE."""
+    sandbox = ugs.CoWSubgraphSandbox()
+    base_caid = sandbox.seed_committed_node("acct:alpha", {"balance": 1000, "currency": "EUR"})
+    assert len(base_caid) == 64
+
+    # Branch 1: Transport ambiguity -> EFFECT_INDETERMINATE -> must discard partial mutations
+    sandbox.fork_branch("branch-indeterminate")
+    sandbox.stage_mutation("branch-indeterminate", "acct:alpha", {"balance": 200, "currency": "EUR"})
+    assert sandbox.read_node("acct:alpha", branch_id="branch-indeterminate") == {
+        "balance": 200,
+        "currency": "EUR",
+    }
+    assert sandbox.read_node("acct:alpha") == {"balance": 1000, "currency": "EUR"}
+
+    with pytest.raises(ugs.GovernanceHaltError, match="discarded 1 partial mutation"):
+        sandbox.finalize_branch("branch-indeterminate", disposition="EFFECT_INDETERMINATE")
+
+    assert sandbox.read_node("acct:alpha") == {"balance": 1000, "currency": "EUR"}
+
+    # Branch 2: Target reconciliation CONFIRMED -> promotes overlay mutation into committed_state
+    sandbox.fork_branch("branch-confirmed")
+    sandbox.stage_mutation("branch-confirmed", "acct:alpha", {"balance": 750, "currency": "EUR"})
+    res = sandbox.finalize_branch("branch-confirmed", disposition="CONFIRMED")
+    assert res["outcome"] == "COMMITTED"
+    assert res["promotedNodeCount"] == 1
+    assert sandbox.read_node("acct:alpha") == {"balance": 750, "currency": "EUR"}
+
+
+def test_scope_smaos_hcl_compiler_to_bpf_map_and_scitt_capsule() -> None:
+    """Verify declarative smaos.hcl compiles into deterministic BPF structural map and SCITT profile."""
+    hcl_source = """
+    policy "treasury_wire_boundary" {
+        allowed_tools = ["wire_transfer", "ledger_probe"]
+        blocked_syscalls = ["sys_execve", "sys_ptrace"]
+        allowed_egress_cidrs = ["10.24.0.0/16"]
+        max_amount = 50000
+        require_heartbeat = true
+    }
+    """
+    compiled = ugs.SmaosHclCompiler.compile_hcl(hcl_source)
+    assert compiled.policy_name == "treasury_wire_boundary"
+    assert compiled.bpf_security_map["blockedSyscalls"] == ["sys_execve", "sys_ptrace"]
+    assert compiled.bpf_security_map["failClosedErrno"] == "EPERM"
+    assert "Structural BPF policy map" in compiled.bpf_security_map["scaffoldingNotice"]
+    assert compiled.scitt_action_capsule_profile["allowedTools"] == [
+        "ledger_probe",
+        "wire_transfer",
+    ]
+    assert compiled.scitt_action_capsule_profile["transportAmbiguityDisposition"] == (
+        "EFFECT_INDETERMINATE"
+    )
+    assert len(compiled.artifact_caid) == 64
+
+
+def test_scope_bbs_selective_redactor_gdpr_art17_and_eu_ai_act_art12() -> None:
+    """Verify Ed25519 + salted commitment selective redaction preserves root verification after PII erasure."""
+    issuer_sk = Ed25519PrivateKey.generate()
+    issuer_pk = issuer_sk.public_key()
+
+    passport = ugs.Ed25519BbsSelectiveRedactor.mint_passport(
+        issuer_private_key=issuer_sk,
+        receipt_id="rcpt-gdpr-001",
+        fields={
+            "action": "SEPA_CREDIT_TRANSFER",
+            "amount_eur": "12500",
+            "customer_email": "alice@example.eu",
+            "iban": "DE89370400440532013000",
+            "station_disposition": "CONFIRMED",
+        },
+        salt_seed="deterministic-audit-seed-01",
+    )
+    assert ugs.Ed25519BbsSelectiveRedactor.verify_passport(passport, issuer_pk) is True
+
+    redacted = ugs.Ed25519BbsSelectiveRedactor.redact_pii_fields(
+        passport, pii_keys_to_redact=["iban", "customer_email"]
+    )
+    assert "iban" not in redacted.revealed_fields
+    assert "customer_email" not in redacted.revealed_fields
+    assert "iban" not in redacted.revealed_salts
+    assert redacted.redacted_keys == ["customer_email", "iban"]
+    assert ugs.Ed25519BbsSelectiveRedactor.verify_passport(redacted, issuer_pk) is True
+
+    # Tampering with an unredacted field value must fail commitment verification
+    tampered_fields = dict(redacted.revealed_fields)
+    tampered_fields["amount_eur"] = "999999"
+    tampered = ugs.RedactablePassport(
+        receipt_id=redacted.receipt_id,
+        field_commitments=redacted.field_commitments,
+        revealed_fields=tampered_fields,
+        revealed_salts=redacted.revealed_salts,
+        redacted_keys=redacted.redacted_keys,
+        root_signature_hex=redacted.root_signature_hex,
+    )
+    assert ugs.Ed25519BbsSelectiveRedactor.verify_passport(tampered, issuer_pk) is False
+
+
+def test_scope_dora_xbrl_csv_package_builder_eba_dpm_40() -> None:
+    """Verify DORA RT.01.01-RT.01.03 xBRL-CSV package generation and Ed25519 manifest signature."""
+    sk = Ed25519PrivateKey.generate()
+    pk = sk.public_key()
+    lei = "5493001KJTIIGC8Y1R12"
+
+    pkg = ugs.DoraXbrlCsvPackageBuilder.build_package(
+        signing_key=sk,
+        entity_lei=lei,
+        entity_name="Sovereign Financial Operations GmbH",
+        reporting_period="2026-12-31",
+        containment_arrangements=[
+            {
+                "contract_ref": "CTR-AEIB-0001",
+                "function_id": "TREASURY-WIRE-DISPATCH",
+                "provider_lei": "54930099999999999999",
+                "provider_name": "AEIB-Gateway-Cluster-EU",
+                "receipt_caid": "a" * 64,
+            }
+        ],
+    )
+    assert "META-INF/reports.json" in pkg["files"]
+    assert "reports/parameters.csv" in pkg["files"]
+    assert "reports/RT.01.01.csv" in pkg["files"]
+    assert "reports/RT.01.02.csv" in pkg["files"]
+    assert "reports/RT.01.03.csv" in pkg["files"]
+    assert lei in pkg["files"]["reports/RT.01.01.csv"]
+    assert "CTR-AEIB-0001" in pkg["files"]["reports/RT.01.02.csv"]
+
+    manifest_bytes = ugs.encode_jcs(pkg["manifestStatement"])
+    pk.verify(bytes.fromhex(pkg["signatureHex"]), manifest_bytes)
+
+
+def test_scope_star_ast_merkle_dag_baseline_and_o1_verification() -> None:
+    """Verify STAR Protocol normalized AST Merkle-DAG baseline ignores comments but halts on AST mutation."""
+    sk = Ed25519PrivateKey.generate()
+    pk = sk.public_key()
+
+    sources_v1 = {
+        "gate.py": "def check_limit(x: int) -> bool:\n    return x <= 100\n",
+        "reconcile.py": "def status() -> str:\n    return 'EFFECT_INDETERMINATE'\n",
+    }
+    receipt = ugs.StarAstMerkleDagBaseline.freeze_baseline(
+        baseline_id="star-baseline-v1",
+        module_sources=sources_v1,
+        signing_key=sk,
+    )
+
+    # Formatting and comments do not alter normalized AST Merkle root
+    sources_with_comments = {
+        "gate.py": "# formatting comment\ndef check_limit(x: int) -> bool:\n    return (x <= 100)\n",
+        "reconcile.py": "def status() -> str:\n    # station 2\n    return 'EFFECT_INDETERMINATE'\n",
+    }
+    assert (
+        ugs.StarAstMerkleDagBaseline.verify_o1_root_and_sources(
+            receipt, sources_with_comments, pk
+        )
+        is True
+    )
+
+    # Structural AST change (x <= 1000) changes leaf digest and fails O(1) root check
+    sources_tampered = {
+        "gate.py": "def check_limit(x: int) -> bool:\n    return x <= 1000\n",
+        "reconcile.py": "def status() -> str:\n    return 'EFFECT_INDETERMINATE'\n",
+    }
+    assert (
+        ugs.StarAstMerkleDagBaseline.verify_o1_root_and_sources(
+            receipt, sources_tampered, pk
+        )
+        is False
+    )
+
+
+def test_scope_zero_overclaim_compliance_prover_blinded_journal() -> None:
+    """Verify blinded compliance prover attests 0% overclaim rate without exposing raw payloads."""
+    sk = Ed25519PrivateKey.generate()
+    pk = sk.public_key()
+
+    episodes = [
+        {
+            "episode_id": "ep-001",
+            "raw_payload": {"iban": "DE89370400440532013000", "amount": 5000},
+            "claimed_safe": True,
+            "verified_safe": True,
+        },
+        {
+            "episode_id": "ep-002",
+            "raw_payload": {"iban": "FR7630006000011234567890189", "amount": 95000},
+            "claimed_safe": False,
+            "verified_safe": False,
+        },
+    ]
+    proof = ugs.ZeroOverclaimComplianceProver.prove_zero_overclaim_batch(
+        batch_id="batch-eu-01",
+        episodes=episodes,
+        blinding_seed="blind-seed-99",
+        prover_private_key=sk,
+    )
+    assert proof.overclaim_count == 0
+    assert proof.overclaim_rate_bps == 0
+    assert ugs.ZeroOverclaimComplianceProver.verify_zero_overclaim_proof(proof, pk) is True
+    journal_str = ugs.canonicalize_jcs(proof.to_public_journal())
+    assert "DE89370400440532013000" not in journal_str
+
+    # An episode that claims safe when verified_safe is False must abort proof generation fail-closed
+    bad_episodes = episodes + [
+        {
+            "episode_id": "ep-003",
+            "raw_payload": {"iban": "GB29NWBK60161331926819", "amount": 250000},
+            "claimed_safe": True,
+            "verified_safe": False,
+        }
+    ]
+    with pytest.raises(ugs.GovernanceHaltError, match="observed 1 overclaim"):
+        ugs.ZeroOverclaimComplianceProver.prove_zero_overclaim_batch(
+            batch_id="batch-eu-02",
+            episodes=bad_episodes,
+            blinding_seed="blind-seed-99",
+            prover_private_key=sk,
+        )
+
+
+def test_glue_tetragon_tracing_policy_dual_emission_and_dora_zip() -> None:
+    """Verify dual-emission Tetragon TracingPolicy (SIGKILL on un-cleared socket) and DORA xBRL-CSV ZIP."""
+    hcl = """
+    policy "payment_socket_lock" {
+        allowed_tools = ["sepa_dispatch"]
+        blocked_syscalls = ["sys_execve"]
+        allowed_egress_cidrs = ["10.99.0.0/16"]
+        max_amount = 25000
+        require_heartbeat = true
+    }
+    """
+    out = ugs.TetragonTracingPolicyCompiler.compile_dual_emission(hcl)
+    tp = out["bundle"]["tetragonTracingPolicy"]
+    assert tp["apiVersion"] == "cilium.io/v1alpha1"
+    assert tp["kind"] == "TracingPolicy"
+    kprobe_calls = [k["call"] for k in tp["spec"]["kprobes"]]
+    assert "sys_connect" in kprobe_calls
+    assert "sys_execve" in kprobe_calls
+    assert len(out["bundleCaid"]) == 64
+
+    sk = Ed25519PrivateKey.generate()
+    zip_bytes, pkg = ugs.DoraIts2024ZipExporter.build_xbrl_csv_zip_bytes(
+        signing_key=sk,
+        entity_lei="5493001KJTIIGC8Y1R12",
+        entity_name="Sovereign Treasury Clearing AG",
+        reporting_period="2026-12-31",
+        pinned_mcp_manifests=[
+            {
+                "contract_ref": "CTR-MCP-01",
+                "function_id": "SEPA-DISPATCH-GATE",
+                "provider_lei": "54930088888888888888",
+                "provider_name": "AEIB-Gateway-Node-01",
+                "receipt_caid": out["bundleCaid"],
+            }
+        ],
+    )
+    assert len(zip_bytes) > 200
+    assert len(pkg["zipSha256"]) == 64
+
+
+def test_glue_ghost_atr_diagnostic_scanner_gii_index() -> None:
+    """Verify ATR-2026-01932 diagnostic scanner computes deterministic CISO Governance Intensity Index."""
+    sk = Ed25519PrivateKey.generate()
+    pk = sk.public_key()
+
+    # Clean, pinned environment -> GII = 100
+    clean_cfg = {
+        "station1_wire_interlock_enabled": True,
+        "mcpServers": {
+            "ledger_probe": {
+                "sha256_pin": "b" * 64,
+                "capabilities": ["read_only_probe"],
+                "env": {"API_KEY": "vault://prod/ledger_probe_key"},
+            }
+        },
+    }
+    clean_res = ugs.GhostAtrDiagnosticScanner.evaluate_environment(clean_cfg, sk)
+    assert clean_res["report"]["governanceIntensityIndex"] == 100
+    assert clean_res["report"]["findingCount"] == 0
+    pk.verify(
+        bytes.fromhex(clean_res["signatureHex"]),
+        ugs.encode_jcs(clean_res["report"]),
+    )
+
+    # Exploitable shadow AI config -> flags unpinned manifest, toxic shell+egress chain, plaintext secret
+    shadow_cfg = {
+        "station1_wire_interlock_enabled": False,
+        "mcpServers": {
+            "rogue_runner": {
+                "capabilities": ["shell_exec", "network_egress"],
+                "env": {"OPENAI_SECRET": "sk-live-12345"},
+            }
+        },
+    }
+    shadow_res = ugs.GhostAtrDiagnosticScanner.evaluate_environment(shadow_cfg, sk)
+    assert shadow_res["report"]["governanceIntensityIndex"] == 0
+    assert shadow_res["report"]["findingCount"] == 4
+
+
+def test_v11_backlog_station1_5term_and_tripartite_16k_kv_block_admissibility() -> None:
+    """Verify Station 1 5-term AuthorizationAdmissibility and v1.1 ~16k-token KV block MemoryAdmissible."""
+    st1_ok = ugs.Station1AuthorizationAdmissibilityGate.evaluate_standing(
+        grant_valid=True,
+        bound_policy_epoch=7,
+        active_policy_epoch=7,
+        bound_source_epoch=12,
+        active_source_epoch=12,
+        control_healthy=True,
+        action_risk_score=30,
+        grant_max_risk_score=50,
+    )
+    assert st1_ok["admissible"] is True
+
+    st1_risk_breach = ugs.Station1AuthorizationAdmissibilityGate.evaluate_standing(
+        grant_valid=True,
+        bound_policy_epoch=7,
+        active_policy_epoch=7,
+        bound_source_epoch=12,
+        active_source_epoch=12,
+        control_healthy=True,
+        action_risk_score=75,
+        grant_max_risk_score=50,
+    )
+    assert st1_risk_breach["admissible"] is False
+    assert st1_risk_breach["terms"]["RiskProfileWithinGrantLimits"] is False
+
+    # ~16k token KV block evaluation
+    kv_bytes = b"kv-cache-state-block-001"
+    kv_sha = ugs.hashlib.sha256(kv_bytes).hexdigest()
+    prov_caid = "c" * 64
+
+    kv_ok = ugs.TripartiteKvBlockAdmissibilityGate.evaluate_kv_block(
+        kv_block_bytes=kv_bytes,
+        expected_block_sha256=kv_sha,
+        token_count=16384,
+        source_provenance_caid=prov_caid,
+        pinned_provenance_caids={prov_caid},
+        block_policy_epoch=4,
+        active_policy_epoch=4,
+        block_source_epoch=9,
+        active_source_epoch=9,
+        requested_tool_scope="treasury:debit",
+        granted_tool_scopes={"treasury:debit", "treasury:probe"},
+    )
+    assert kv_ok["memoryAdmissible"] is True
+    assert kv_ok["status"] == "FRESH"
+
+    # Exceeding 16,384 tokens fails BlockIntegrityValid
+    kv_oversized = ugs.TripartiteKvBlockAdmissibilityGate.evaluate_kv_block(
+        kv_block_bytes=kv_bytes,
+        expected_block_sha256=kv_sha,
+        token_count=16385,
+        source_provenance_caid=prov_caid,
+        pinned_provenance_caids={prov_caid},
+        block_policy_epoch=4,
+        active_policy_epoch=4,
+        block_source_epoch=9,
+        active_source_epoch=9,
+        requested_tool_scope="treasury:debit",
+        granted_tool_scopes={"treasury:debit"},
+    )
+    assert kv_oversized["memoryAdmissible"] is False
+    assert kv_oversized["status"] == "STALE_DONT_TRUST_YET"
+
+
+def test_v11_backlog_otel_scitt_correlation_hardware_attestation_and_r1cs_circuit() -> None:
+    """Verify draft-palanisamy-scitt-aac-otel-00 correlation, TDX/SEV-SNP receipt binding, and R1CS circuit."""
+    ledger_sk = Ed25519PrivateKey.generate()
+    ledger_pk = ledger_sk.public_key()
+    tinfoil_sk = Ed25519PrivateKey.generate()
+    tinfoil_pk = tinfoil_sk.public_key()
+
+    # 1. OpenTelemetry SCITT Action Capsule Correlation
+    otel_receipt = ugs.ScittOtelActionCapsuleCorrelator.mint_otel_correlated_receipt(
+        signing_key=ledger_sk,
+        receipt_id="rcpt-otel-01",
+        prev_chain_tip_hex="00" * 32,
+        action_payload={"tool": "wire_transfer", "amount": 500},
+        disposition="CONFIRMED",
+        trace_id_hex="4bf92f3577b34da6a3ce929d0e0e4736",
+        span_id_hex="00f067aa0ba902b7",
+    )
+    assert (
+        ugs.ScittOtelActionCapsuleCorrelator.verify_otel_correlated_receipt(
+            otel_receipt, ledger_pk
+        )
+        is True
+    )
+    otel_ext = otel_receipt["envelope"]["statement"]["org.agentactioncapsule.otel"]
+    assert (
+        otel_ext["traceparent"]
+        == "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+    )
+
+    # 2. Hardware Attestation Binding (Intel TDX / AMD SEV-SNP)
+    attested = ugs.HardwareAttestationReceiptBinder.mint_attested_continuity_receipt(
+        ledger_signing_key=ledger_sk,
+        tinfoil_verifier_key=tinfoil_sk,
+        receipt_id="rcpt-tdx-01",
+        action_payload={"tool": "wire_transfer", "amount": 500},
+        tee_type="INTEL_TDX",
+        measurement_mrtd_hex="d" * 96,
+    )
+    assert (
+        ugs.HardwareAttestationReceiptBinder.verify_attested_continuity_receipt(
+            attested, ledger_pk, tinfoil_pk
+        )
+        is True
+    )
+
+    # 3. R1CS Finite-Field Circuit for 0% Overclaim Proofs
+    r1cs_valid_1 = ugs.R1csZeroOverclaimCircuit.verify_episode_witness_r1cs(
+        claimed_safe=1, verified_safe=1
+    )
+    assert r1cs_valid_1["r1csSatisfied"] is True
+    assert r1cs_valid_1["overclaimWire"] == 0
+
+    r1cs_valid_2 = ugs.R1csZeroOverclaimCircuit.verify_episode_witness_r1cs(
+        claimed_safe=0, verified_safe=0
+    )
+    assert r1cs_valid_2["r1csSatisfied"] is True
+
+    # Overclaim (claimed_safe=1, verified_safe=0) sets overclaimWire=1 and violates R1CS constraint 4
+    r1cs_overclaim = ugs.R1csZeroOverclaimCircuit.verify_episode_witness_r1cs(
+        claimed_safe=1, verified_safe=0
+    )
+    assert r1cs_overclaim["overclaimWire"] == 1
+    assert r1cs_overclaim["r1csSatisfied"] is False

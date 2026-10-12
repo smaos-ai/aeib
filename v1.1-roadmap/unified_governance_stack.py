@@ -2541,7 +2541,12 @@ class IndeterminateResolutionReceiptProtocol:
         target_proof_hash_hex: str,
         epoch: int,
     ) -> Dict[str, Any]:
-        if reconciled_disposition not in {"CONFIRMED", "REFUTED", "CONFLICT"}:
+        if reconciled_disposition not in {
+            "CONFIRMED",
+            "REFUTED",
+            "CONFLICT",
+            "COMPENSATED_RECORD_RECORDED",
+        }:
             raise GovernanceHaltError(
                 f"Invalid terminal resolution disposition: {reconciled_disposition!r}"
             )
@@ -2687,7 +2692,7 @@ class LuMayGovernanceLayerMapper:
 
 
 class ContextModeScriptInterfaceSandbox:
-    """Category E: Clean-Room Apache-2.0 Script-as-Interface Bulk Data Isolation Boundary.
+    """Category E: Independent Apache-2.0 Script-as-Interface Bulk Data Isolation Boundary.
 
     Architectural reference pattern: decouples the agent's reasoning context window
     from bulk tool output payloads by reducing raw records inside an isolated
@@ -2696,10 +2701,11 @@ class ContextModeScriptInterfaceSandbox:
       2. A cryptographic SHA-256 `rawPayloadCaid` over the RFC 8785 JCS bulk payload
          for audit traceability without polluting the model context window.
 
-    License & Clean-Room Note: External 'Context Mode' tooling uses the non-OSI
-    Elastic License 2.0 (ELv2). This class is a 100% clean-room Apache-2.0
-    implementation of the general script-as-interface architectural pattern using
-    only Python standard library and AEIB's RFC 8785 JCS canonicalizer.
+    License & Separation Note: External 'Context Mode' tooling uses the non-OSI
+    Elastic License 2.0 (ELv2). No Context Mode source code or dependencies are
+    copied, linked, or redistributed. This class is an independent Apache-2.0
+    implementation of the general script-as-interface pattern using only the Python
+    standard library and AEIB's RFC 8785 JCS canonicalizer.
     """
 
     LICENSE_SPDX = "Apache-2.0"

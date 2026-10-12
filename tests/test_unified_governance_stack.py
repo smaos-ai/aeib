@@ -1183,6 +1183,25 @@ def test_tier2_and_tier3_rfc3161_tsa_mcp_oauth21_and_resolution_receipt() -> Non
         is True
     )
 
+    comp_rcpt = ugs.IndeterminateResolutionReceiptProtocol.mint_resolution_receipt(
+        signing_key=ledger_sk,
+        indeterminate_receipt=ind_rcpt,
+        reconciled_disposition="COMPENSATED_RECORD_RECORDED",
+        target_proof_hash_hex=hashlib.sha256(b"saga-compensation-record-01").hexdigest(),
+        epoch=1000,
+    )
+    assert (
+        comp_rcpt["envelope"]["statement"]["reconciledDisposition"]
+        == "COMPENSATED_RECORD_RECORDED"
+    )
+    assert comp_rcpt["envelope"]["statement"]["retrySafe"] is False
+    assert (
+        ugs.IndeterminateResolutionReceiptProtocol.verify_resolution_pair(
+            ind_rcpt, comp_rcpt, ledger_pk
+        )
+        is True
+    )
+
 
 def test_category_e_lumay_governance_taxonomy_and_context_mode_isolation() -> None:
     """Verify Category E: LuMay 8-Layer Governance Taxonomy mapping and clean-room Apache-2.0 Context Mode script-as-interface isolation."""

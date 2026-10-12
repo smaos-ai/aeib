@@ -3,7 +3,7 @@
 ## Scope
 
 This release distributes the Zone 1 open-core specification under Apache 2.0:
-- Transport-to-disposition mapping (15-vector normative contract).
+- Transport-to-disposition mapping (18-entry versioned contract: 15 transport-fault vectors + 3 governor patterns).
 - CAID derivation (RFC 8785 JCS).
 - Industrial-protection-inspired execution safeguards.
 - Offline SCITT-style receipt verifier.
@@ -18,21 +18,20 @@ python3 compliance/check_zone_boundary.py
 python3 compliance/ast_purity.py .
 python3 compliance/no_mock_enforcer.py
 python3 benchmarks/aeib_execution_integrity/run_episodes.py --episodes 500 --seed 42
-pytest tests/test_industrial_protection_matrix.py tests/test_ansi_50bf_breaker_failure.py tests/test_saga_compensation.py tests/test_falsifiability_matrix.py -v
+python3 replication/reproduce_all.py
 ```
 
-Zone 1 verification suite: 32 tests across protection matrix, probe-failure escalation, saga compensation, and falsifiability.
-Additional six-gaps tests exist under Zone 2 and are not part of the open-core distribution.
+Zone 1 verification suite: 41 reproduced test cases (32 core baseline tests + 9 integration extension cases).
 
 Observed (seed 42, `--episodes 500`):
-- Arm 1 (naive retry): 500/500 duplicate writes (by construction).
-- Arm 2 (payload-derived key): 314/500 (62.8%) duplicate writes. 62.8% is a configured drift target, not an empirical measurement of agent behavior.
-- Arm 3 (server-side stable key): 0 duplicate writes, 99 unresolved.
-- Arm 4 (AEIB): 0 duplicate writes out of 500 episodes in a deterministic simulation; 368 duplicate retry attempts were blocked by AEIB logic (334 by the probe gate, 34 by ledger idempotency after a stale-replica probe). The remaining 132 episodes end in refusal, conflict, or not-found dispositions without a dispatch.
+- Arm 1 (naive retry): 302/500 duplicate external writes (on the 302 episodes where the initial write succeeded before transport fault).
+- Arm 2 (payload-derived key): 187/500 (37.4%) duplicate external writes under simulated timestamp/UUID payload drift.
+- Arm 3 (server-side stable key): 0 duplicate external writes, 198 unresolved.
+- Arm 4 (AEIB): `duplicate_external_writes: 0 / 500` in a deterministic simulation; `duplicate_retry_attempts_blocked: 302` (`blocked_by_dispatch_gate: 234`, `blocked_by_ledger_deduplication: 68` after a stale-replica probe). The remaining 198 episodes end in policy refusal (`99`), not-found after grace (`66`), or reconciliation conflict (`33`).
 
 About the harness:
 - The 500-episode harness is a deterministic simulation of the retry-duplication mechanism over 15 fault classes, using an in-memory ledger.
-- It demonstrates internal consistency of the AEIB protocol logic (finality, retry blocking, reconciliation), not real-world duplicate rates.
+- It demonstrates internal consistency of the AEIB protocol logic (uncertain-transport outcome classification, retry blocking, reconciliation), not real-world duplicate rates.
 - The Rule-of-Three bound (<= 0.60%) applies to this simulation only.
 
 Latency:

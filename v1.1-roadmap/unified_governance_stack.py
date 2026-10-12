@@ -2601,3 +2601,153 @@ class IndeterminateResolutionReceiptProtocol:
             return False
 
 
+class LuMayGovernanceLayerMapper:
+    """Category E: LuMay AI Framework 8-Layer Governance Taxonomy Mapper.
+
+    Maps AEIB runtime artifacts strictly to the narrow subset of layers where
+    AEIB produces machine-verifiable evidence (Layer 6: Controls & Guardrails,
+    and Layer 7: Monitoring & Audit), while explicitly marking Layers 1-5 and
+    Layer 8 as external organizational or model-plane responsibilities
+    (including EU AI Act Article 4 AI Literacy human-side governance).
+    """
+
+    TAXONOMY_LAYERS: Tuple[Dict[str, str], ...] = (
+        {
+            "layerId": "L1_STRATEGY_AND_POLICY",
+            "aeibCoverage": "OUT_OF_SCOPE_ORGANIZATIONAL",
+            "boundaryNote": "Human sovereignty defines risk appetite and grant policies.",
+        },
+        {
+            "layerId": "L2_REGULATORY_AND_COMPLIANCE",
+            "aeibCoverage": "EVIDENCE_INPUT_ONLY",
+            "boundaryNote": "AEIB emits DORA RT.01.01-RT.01.03 xBRL-CSV and EU AI Act Art. 12 logs; legal filing remains deployer responsibility.",
+        },
+        {
+            "layerId": "L3_DATA_AND_KNOWLEDGE",
+            "aeibCoverage": "EPOCH_FRESHNESS_METADATA_ONLY",
+            "boundaryNote": "TemporalMemoryDigest checks epoch freshness; does not verify semantic truth of upstream corpora.",
+        },
+        {
+            "layerId": "L4_MODELS_AND_PROMPTS",
+            "aeibCoverage": "NOT_COVERED_MODEL_PLANE",
+            "boundaryNote": "AEIB operates outside the model plane and does not inspect model weights or prompt text (OWASP ASI01).",
+        },
+        {
+            "layerId": "L5_AGENTS_AND_ORCHESTRATION",
+            "aeibCoverage": "BOUNDARY_INTERFACE_ONLY",
+            "boundaryNote": "Agents propose candidate actions; orchestration does not hold raw target credentials.",
+        },
+        {
+            "layerId": "L6_CONTROLS_AND_GUARDRAILS",
+            "aeibCoverage": "COVERED_WIRE_INTERLOCK",
+            "boundaryNote": "Station0AdmissionGate, Station1DispatchInterlock, and Station2EffectReconciler enforce pre-dispatch standing and EFFECT_INDETERMINATE latching.",
+        },
+        {
+            "layerId": "L7_MONITORING_AND_AUDIT",
+            "aeibCoverage": "COVERED_SIGNED_RECEIPT_LEDGER",
+            "boundaryNote": "Station3ContinuousLedger emits RFC 8785 JCS + Ed25519 ContinuityReceipt hash chains verified offline by Java 21 and Python verifiers.",
+        },
+        {
+            "layerId": "L8_HUMAN_OVERSIGHT_AND_AI_LITERACY",
+            "aeibCoverage": "COMPLEMENTARY_HUMAN_OBLIGATION",
+            "boundaryNote": "EU AI Act Art. 4 (AI Literacy, in force since 2 Feb 2025) and Art. 14 human review govern operator decisions when AEIB latches EFFECT_INDETERMINATE.",
+        },
+    )
+
+    @classmethod
+    def evaluate_taxonomy_coverage(cls, receipt_disposition: str) -> Dict[str, Any]:
+        if receipt_disposition not in {
+            "CONFIRMED",
+            "REFUTED",
+            "EFFECT_INDETERMINATE",
+            "CONFLICT",
+            "REJECTED",
+        }:
+            raise GovernanceHaltError(
+                f"Unknown receipt disposition for taxonomy mapping: {receipt_disposition!r}"
+            )
+        covered = [
+            layer["layerId"]
+            for layer in cls.TAXONOMY_LAYERS
+            if layer["aeibCoverage"].startswith("COVERED_")
+        ]
+        non_covered = [
+            layer["layerId"]
+            for layer in cls.TAXONOMY_LAYERS
+            if not layer["aeibCoverage"].startswith("COVERED_")
+        ]
+        return {
+            "coveredLayers": covered,
+            "humanLiteracyRequiredOnIndeterminate": receipt_disposition
+            in {"EFFECT_INDETERMINATE", "CONFLICT"},
+            "nonCoveredOrExternalLayers": non_covered,
+            "receiptDisposition": receipt_disposition,
+            "totalLayers": len(cls.TAXONOMY_LAYERS),
+        }
+
+
+class ContextModeScriptInterfaceSandbox:
+    """Category E: Clean-Room Apache-2.0 Script-as-Interface Bulk Data Isolation Boundary.
+
+    Architectural reference pattern: decouples the agent's reasoning context window
+    from bulk tool output payloads by reducing raw records inside an isolated
+    deterministic filter boundary and returning only:
+      1. A bounded, typed summary (`boundedSummary`) below `max_context_bytes`, and
+      2. A cryptographic SHA-256 `rawPayloadCaid` over the RFC 8785 JCS bulk payload
+         for audit traceability without polluting the model context window.
+
+    License & Clean-Room Note: External 'Context Mode' tooling uses the non-OSI
+    Elastic License 2.0 (ELv2). This class is a 100% clean-room Apache-2.0
+    implementation of the general script-as-interface architectural pattern using
+    only Python standard library and AEIB's RFC 8785 JCS canonicalizer.
+    """
+
+    LICENSE_SPDX = "Apache-2.0"
+    CLEAN_ROOM_SEPARATION = "ARCHITECTURAL_PATTERN_ONLY_NO_ELV2_CODE"
+
+    @classmethod
+    def isolate_bulk_tool_output(
+        cls,
+        *,
+        raw_records: List[Dict[str, Any]],
+        filter_key: str,
+        filter_value: Any,
+        projected_fields: Tuple[str, ...],
+        max_context_bytes: int = 2048,
+    ) -> Dict[str, Any]:
+        if max_context_bytes <= 0:
+            raise GovernanceHaltError("max_context_bytes must be positive")
+
+        raw_envelope = {"recordCount": len(raw_records), "records": raw_records}
+        raw_bytes = encode_jcs(raw_envelope)
+        raw_caid = hashlib.sha256(raw_bytes).hexdigest()
+
+        matched_projections: List[Dict[str, Any]] = []
+        for rec in raw_records:
+            if rec.get(filter_key) == filter_value:
+                projected = {k: rec[k] for k in projected_fields if k in rec}
+                matched_projections.append(projected)
+
+        summary_payload = {
+            "cleanRoomLicense": cls.LICENSE_SPDX,
+            "filterApplied": {filter_key: filter_value},
+            "matchedCount": len(matched_projections),
+            "matchedProjections": matched_projections,
+            "rawPayloadByteLength": len(raw_bytes),
+            "rawPayloadCaid": raw_caid,
+            "totalInputRecords": len(raw_records),
+        }
+        summary_bytes = encode_jcs(summary_payload)
+        if len(summary_bytes) > max_context_bytes:
+            raise GovernanceHaltError(
+                f"Projected summary ({len(summary_bytes)} B) exceeds context budget ({max_context_bytes} B)"
+            )
+
+        return {
+            "boundedSummary": summary_payload,
+            "contextBytesReturned": len(summary_bytes),
+            "rawBytesIsolated": len(raw_bytes),
+            "rawPayloadCaid": raw_caid,
+        }
+
+

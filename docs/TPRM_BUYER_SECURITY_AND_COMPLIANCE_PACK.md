@@ -85,14 +85,15 @@ Per the Model Context Protocol (`2025-11-25`) authorization specification:
 ## 5. Regulatory Timelines & Applicability Boundaries (Gaps 8, 9, 10, 11, 12)
 
 1. **EU AI Act Re-Dated Timeline & Article Grounding (Gaps 8 & 9):**
-   * **Primary Articles:** Grounded in **Article 12 (Record-Keeping / Automatic Logging)**, **Article 14 (Human Oversight — preventing blind automated retries on ambiguous wire states)**, and **Article 15 (Accuracy, Robustness, and Cybersecurity)**.
+   * **Primary Machine-Side Articles:** Grounded in **Article 12 (Record-Keeping / Automatic Logging)**, **Article 14 (Human Oversight — preventing blind automated retries on ambiguous wire states)**, and **Article 15 (Accuracy, Robustness, and Cybersecurity)**.
+   * **Article 4 (AI Literacy — Human-Side Governance Complementarity):** In force since **2 February 2025**, Article 4 requires providers and deployers to ensure staff operating AI systems possess sufficient AI literacy (including interpreting `EFFECT_INDETERMINATE` and `CONFLICT` receipts rather than overriding fail-closed halts blindly). AEIB enforces the machine-side wire boundary; Article 4 governs the human operator reviewing the boundary's receipts.
    * **Digital Omnibus Timeline Update (`[UNVERIFIED - Confirm EUR-Lex Official Journal text prior to legal reliance]`):** Reported omnibus amendments shift Annex III high-risk application to **2 December 2027** and Annex I product safety integration to **2 August 2028** (with Article 50 transparency obligations from **2 August 2026**).
    * **`prEN 18282` Status:** CEN-CENELEC JTC 21 `prEN 18282` remains a **draft under enquiry** and is not cited in the Official Journal of the European Union; it confers **no presumption of conformity**.
 2. **DORA RTS `2025/301`, ITS `2025/302` & RTS `2024/1772` Incident Reporting (Gap 10):**
    * **Reporting Windows:** Initial notification within **4 hours** of classification as a major ICT-related incident (and $\le 24\text{ hours}$ of detection), intermediate report within **72 hours**, and final report within **1 month**.
    * **Responsibility Boundary:** DORA Article 19 regulatory submission is strictly the **regulated financial entity's responsibility**. AEIB provides deterministic forensic timeline reconstruction (`ContinuityReceipt` timestamps, `CAID`, and `EFFECT_INDETERMINATE` vs. `CONFLICT` dispositions) plus an automated EBA DPM 4.0 xBRL-CSV Register of Information (`RT.01.01`–`RT.01.03`) export (`DoraIts2024ZipExporter`).
 3. **Czech AI Regulatory Sandbox Status (Gap 11):**
-   * **Status:** **`[UNVERIFIED - Pending primary confirmation from ČNB / MPO / ČTÚ]`**. No specific Czech national sandbox application window or deadline is claimed.
+   * **Status:** **`[UNVERIFIED - Pending ČNB/MPO formal response]`**. No specific Czech national sandbox application window or deadline is claimed.
 4. **EU Cyber Resilience Act (CRA, Regulation (EU) 2024/2847) Applicability Memo (Gap 12):**
    * **Effective Dates:** Mandatory manufacturer reporting of actively exploited vulnerabilities and severe incidents via the ENISA Single Reporting Platform applies from **11 September 2026** (24h early warning, 72h notification, 14-day final report after remediation), with full CE-marking and essential cybersecurity requirements applying from **11 December 2027**.
    * **AEIB Readiness:** Each release candidate generates a CycloneDX 1.6 (`ECMA-424`) JSON SBOM (`bom.json`), enforces Coordinated Vulnerability Disclosure via [`SECURITY.md`](file:///Users/andriileukhin/Documents/SovereignNexus/SECURITY.md) and [`.well-known/security.txt`](file:///Users/andriileukhin/Documents/SovereignNexus/.well-known/security.txt), and pins build provenance via SLSA v1.1 Build L3.
@@ -118,8 +119,8 @@ All runtime and verifier dependencies in `aeib-native-runtime` and the Python re
 | Component | Dependency | Version | SPDX License | Scope |
 | :--- | :--- | :--- | :--- | :--- |
 | `aeib-verifier` / `aeib-crypto` | `io.github.erdtman:java-json-canonicalization` | `1.1` | `Apache-2.0` | RFC 8785 JCS |
-| `aeib-verifier` / `aeib-runtime` | `com.fasterxml.jackson.core:jackson-databind` | `2.17.0` | `Apache-2.0` | Strict JSON parsing |
-| `aeib-verifier` | `info.picocli:picocli` | `4.7.6` | `Apache-2.0` | CLI argument parsing |
+| `aeib-verifier` / `aeib-runtime` | `com.fasterxml.jackson.core:jackson-databind` | `2.18.2` | `Apache-2.0` | Strict JSON parsing |
+| `aeib-verifier` | `info.picocli:picocli` | `4.7.7` | `Apache-2.0` | CLI argument parsing |
 | `aeib-crypto` | `org.bouncycastle:bcprov-jdk18on` | `1.77` | `MIT` | Crypto provider compatibility |
 | `aeib-core` | `io.github.resilience4j:resilience4j-circuitbreaker` | `2.2.0` | `Apache-2.0` | Fault tolerance |
 | `aeib-tests` | `org.junit:junit-bom` | `5.11.3` | `EPL-2.0` | Test-only (not shipped in runtime/verifier) |
@@ -138,3 +139,26 @@ To prevent any ambiguity during technical due diligence or live demonstrations:
 | `Ed25519BbsSelectiveRedactor` (`v1.1-roadmap/`) | **Salted SHA-256 Commitment Tree signed with Ed25519** (Selective field disclosure prototype; not pairing-based BLS12-381 BBS+) | **Prototype** |
 | `R1csZeroOverclaimCircuit` (`v1.1-roadmap/`) | **Deterministic $\mathbb{F}_p$ R1CS Constraint Evaluator** (Checks witness equations directly; not a succinct zk-SNARK/STARK) | **Prototype** |
 | `SagaReconciler` / `IndeterminateResolutionReceiptProtocol` | **Asynchronous Eventual Consistency** (Resolves `EFFECT_INDETERMINATE` via out-of-band probe + follow-up receipt; not atomic 2PC rollback) | **Eventual Consistency** (`AGENTS.md` §5) |
+
+---
+
+## 7. Category E: Architectural Reference Models (`LuMay AI Framework` & `Context Mode`)
+
+### 7.1 LuMay AI Framework (8-Layer Governance Taxonomy Reference)
+AEIB uses the 8-layer AI governance taxonomy as an architectural boundary map (`LuMayGovernanceLayerMapper` in [`unified_governance_stack.py`](file:///Users/andriileukhin/Documents/SovereignNexus/v1.1-roadmap/unified_governance_stack.py)). AEIB does **not** claim to provide an end-to-end 8-layer governance platform; it contributes machine-verifiable runtime evidence strictly for a narrow subset of **Layer 6** and **Layer 7**:
+
+| Layer ID | Governance Layer | AEIB Coverage Disposition | Technical Scope Boundary |
+| :--- | :--- | :--- | :--- |
+| **L1** | **Strategy & Policy** | **Out of Scope (Organizational)** | Human sovereignty defines risk appetite, grant scopes, and admissible target tools. |
+| **L2** | **Regulatory & Compliance** | **Evidence Input Only** | Emits EBA DPM 4.0 (`RT.01.01`–`RT.01.03`) xBRL-CSV and EU AI Act Art. 12 logs; legal submission remains deployer's duty. |
+| **L3** | **Data & Knowledge** | **Epoch Freshness Metadata Only** | `TemporalMemoryDigest` checks epoch freshness; does not verify semantic truth of upstream RAG corpora. |
+| **L4** | **Models & Prompts** | **Not Covered (Model Plane)** | AEIB operates strictly outside the model plane and does not inspect prompts or weights (`OWASP ASI01`). |
+| **L5** | **Agents & Orchestration** | **Boundary Interface Only** | Agents submit `CandidateAction` proposals; orchestrators never hold raw target credentials. |
+| **L6** | **Controls & Guardrails** | **COVERED (Wire Interlock Subset)** | `Station0AdmissionGate`, `Station1DispatchInterlock`, and `Station2EffectReconciler` enforce pre-dispatch standing and `EFFECT_INDETERMINATE` latching. |
+| **L7** | **Monitoring & Audit** | **COVERED (Signed Receipt Subset)** | `Station3ContinuousLedger` emits RFC 8785 JCS + Ed25519 `ContinuityReceipt` hash chains verified offline across Java 21 and Python 3. |
+| **L8** | **Human Oversight & AI Literacy** | **Complementary Human Obligation** | Governed by EU AI Act Art. 4 (AI Literacy, in force since 2 Feb 2025) and Art. 14 human operator review of `EFFECT_INDETERMINATE` halts. |
+
+### 7.2 Context Mode (Script-as-Interface Isolation Pattern Reference & License Separation)
+* **Architectural Pattern:** Decouples the agent's reasoning context window from bulk data responses by filtering/projecting large tool payloads inside an isolated deterministic execution boundary and returning only a bounded summary (`boundedSummary`) plus a SHA-256 `rawPayloadCaid` over the RFC 8785 JCS bulk payload.
+* **Clean-Room Apache-2.0 Separation:** External `Context Mode` software is distributed under the **Elastic License 2.0 (ELv2)**, which is a non-OSI source-available license. AEIB references the **general script-as-interface architectural pattern only** and implements `ContextModeScriptInterfaceSandbox` ([`unified_governance_stack.py`](file:///Users/andriileukhin/Documents/SovereignNexus/v1.1-roadmap/unified_governance_stack.py)) as a **100% clean-room Apache-2.0 component** using only the Python standard library and AEIB's RFC 8785 JCS canonicalizer.
+

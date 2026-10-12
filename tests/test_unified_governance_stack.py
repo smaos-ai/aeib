@@ -1183,3 +1183,61 @@ def test_tier2_and_tier3_rfc3161_tsa_mcp_oauth21_and_resolution_receipt() -> Non
         is True
     )
 
+
+def test_category_e_lumay_governance_taxonomy_and_context_mode_isolation() -> None:
+    """Verify Category E: LuMay 8-Layer Governance Taxonomy mapping and clean-room Apache-2.0 Context Mode script-as-interface isolation."""
+    # 1. LuMay 8-Layer Governance Taxonomy Mapping
+    cov = ugs.LuMayGovernanceLayerMapper.evaluate_taxonomy_coverage(
+        "EFFECT_INDETERMINATE"
+    )
+    assert cov["totalLayers"] == 8
+    assert cov["coveredLayers"] == [
+        "L6_CONTROLS_AND_GUARDRAILS",
+        "L7_MONITORING_AND_AUDIT",
+    ]
+    assert "L4_MODELS_AND_PROMPTS" in cov["nonCoveredOrExternalLayers"]
+    assert "L8_HUMAN_OVERSIGHT_AND_AI_LITERACY" in cov["nonCoveredOrExternalLayers"]
+    assert cov["humanLiteracyRequiredOnIndeterminate"] is True
+
+    cov_confirmed = ugs.LuMayGovernanceLayerMapper.evaluate_taxonomy_coverage(
+        "CONFIRMED"
+    )
+    assert cov_confirmed["humanLiteracyRequiredOnIndeterminate"] is False
+
+    with pytest.raises(ugs.GovernanceHaltError, match="Unknown receipt disposition"):
+        ugs.LuMayGovernanceLayerMapper.evaluate_taxonomy_coverage("INVALID_STATE")
+
+    # 2. Context Mode Clean-Room Apache-2.0 Script-as-Interface Isolation
+    bulk_records = [
+        {
+            "tx_id": f"TX-{i:04d}",
+            "status": "SETTLED" if i % 10 != 0 else "DISCREPANCY",
+            "amount_minor": 1000 * i,
+            "raw_audit_blob": "X" * 256,
+        }
+        for i in range(1, 51)
+    ]
+    isolated = ugs.ContextModeScriptInterfaceSandbox.isolate_bulk_tool_output(
+        raw_records=bulk_records,
+        filter_key="status",
+        filter_value="DISCREPANCY",
+        projected_fields=("tx_id", "amount_minor"),
+        max_context_bytes=1024,
+    )
+    assert isolated["boundedSummary"]["cleanRoomLicense"] == "Apache-2.0"
+    assert isolated["boundedSummary"]["matchedCount"] == 5
+    assert isolated["boundedSummary"]["totalInputRecords"] == 50
+    assert isolated["contextBytesReturned"] < 1024
+    assert isolated["rawBytesIsolated"] > 12000
+    assert len(isolated["rawPayloadCaid"]) == 64
+
+    # Exceeding context budget must fail closed (GovernanceHaltError)
+    with pytest.raises(ugs.GovernanceHaltError, match="exceeds context budget"):
+        ugs.ContextModeScriptInterfaceSandbox.isolate_bulk_tool_output(
+            raw_records=bulk_records,
+            filter_key="status",
+            filter_value="SETTLED",
+            projected_fields=("tx_id", "amount_minor", "raw_audit_blob"),
+            max_context_bytes=256,
+        )
+

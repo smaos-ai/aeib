@@ -1,0 +1,6 @@
+Contact: mailto:security@smaos.ai
+Contact: https://github.com/smaos-ai/aeib/security/advisories/new
+Expires: 2027-10-12T00:00:00.000Z
+Preferred-Languages: en, cs
+Canonical: https://github.com/smaos-ai/aeib/blob/release/v1.0-review-candidate/.well-known/security.txt
+Policy: https://github.com/smaos-ai/aeib/blob/release/v1.0-review-candidate/SECURITY.md

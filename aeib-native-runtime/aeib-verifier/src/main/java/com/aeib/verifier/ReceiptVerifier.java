@@ -87,11 +87,12 @@ public final class ReceiptVerifier {
             return ReceiptVerificationResult.invalid("signedStatement bytes are not strictly RFC 8785 canonical");
         }
 
-        // 2. Statement-to-root field bindings
+        // 2. Statement-to-root field bindings (strict type and value checks)
         JsonNode stmt = receipt.statementNode();
 
         String rootOpId = receipt.operationId();
-        String stmtOpId = stmt.path("operationId").asText(null);
+        JsonNode stmtOpNode = stmt.get("operationId");
+        String stmtOpId = (stmtOpNode != null && stmtOpNode.isTextual()) ? stmtOpNode.asText() : null;
         if (!rootOpId.equals(stmtOpId)) {
             return ReceiptVerificationResult.invalid(
                 "operationId mismatch between receipt root (" + rootOpId + ") and signed statement (" + stmtOpId + ")"
@@ -99,15 +100,18 @@ public final class ReceiptVerifier {
         }
 
         long rootEpoch = receipt.epoch();
-        long stmtEpoch = stmt.hasNonNull("epoch") ? stmt.get("epoch").asLong() : Long.MIN_VALUE;
-        if (rootEpoch != stmtEpoch) {
+        JsonNode stmtEpochNode = stmt.get("epoch");
+        boolean validStmtEpoch = stmtEpochNode != null && stmtEpochNode.isIntegralNumber() && stmtEpochNode.canConvertToLong();
+        long stmtEpoch = validStmtEpoch ? stmtEpochNode.asLong() : Long.MIN_VALUE;
+        if (!validStmtEpoch || rootEpoch != stmtEpoch) {
             return ReceiptVerificationResult.invalid(
                 "epoch mismatch between receipt root (" + rootEpoch + ") and signed statement (" + stmtEpoch + ")"
             );
         }
 
         String rootChainTip = receipt.chainTip();
-        String stmtChainTip = stmt.path("chainTip").asText(null);
+        JsonNode stmtTipNode = stmt.get("chainTip");
+        String stmtChainTip = (stmtTipNode != null && stmtTipNode.isTextual()) ? stmtTipNode.asText() : null;
         if (!rootChainTip.equals(stmtChainTip)) {
             return ReceiptVerificationResult.invalid(
                 "chainTip mismatch between receipt root (" + rootChainTip + ") and signed statement (" + stmtChainTip + ")"
@@ -115,7 +119,8 @@ public final class ReceiptVerifier {
         }
 
         String rootKeyId = receipt.keyId();
-        String stmtKeyId = stmt.path("keyId").asText(null);
+        JsonNode stmtKeyNode = stmt.get("keyId");
+        String stmtKeyId = (stmtKeyNode != null && stmtKeyNode.isTextual()) ? stmtKeyNode.asText() : null;
         if (!rootKeyId.equals(stmtKeyId)) {
             return ReceiptVerificationResult.invalid(
                 "keyId mismatch between receipt signature (" + rootKeyId + ") and signed statement (" + stmtKeyId + ")"

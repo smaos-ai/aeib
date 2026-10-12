@@ -2277,3 +2277,327 @@ class R1csZeroOverclaimCircuit:
             "witnessVector": [1, c, v, o],
         }
 
+
+class Ed25519WycheproofZip215Validator:
+    r"""Tier 2 (Action 20): Ed25519 Strictness & Wycheproof / ZIP-215 Vector Validator.
+
+    Enforces strict canonical checks before invoking Ed25519 signature verification:
+      1. Signature must be exactly 64 bytes and public key exactly 32 bytes.
+      2. Scalar $S$ (upper 32 bytes, little-endian) must satisfy $0 \le S < L$, where
+         $L = 2^{252} + 27742317777372353535851937790883648493$ (rejects malleable $S + L$).
+      3. Neither public key $A$ nor commitment $R$ (lower 32 bytes) may be one of the
+         8 known small-order torsion points on Curve25519.
+    """
+
+    ED25519_ORDER_L = (1 << 252) + 27742317777372353535851937790883648493
+
+    # 8 small-order torsion point encodings (32-byte hex) on Ed25519
+    SMALL_ORDER_POINTS_HEX = {
+        "01" + "00" * 31,  # Identity (0, 1)
+        "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",  # (0, -1)
+        "00" * 32,  # Order 4 point
+        "00" * 31 + "80",  # Order 4 point with sign bit
+        "26e8958fc2b227b045c3f489f2ef98f0d5dfac05d3c63339b13802886d53fc05",
+        "26e8958fc2b227b045c3f489f2ef98f0d5dfac05d3c63339b13802886d53fc85",
+        "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac037a",
+        "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac03fa",
+    }
+
+    @classmethod
+    def verify_strict(
+        cls,
+        public_key_bytes: bytes,
+        signature_bytes: bytes,
+        message_bytes: bytes,
+    ) -> Dict[str, Any]:
+        if len(public_key_bytes) != 32:
+            return {"valid": False, "reason": "INVALID_PUBKEY_LENGTH"}
+        if len(signature_bytes) != 64:
+            return {"valid": False, "reason": "INVALID_SIGNATURE_LENGTH"}
+
+        r_bytes = signature_bytes[:32]
+        s_bytes = signature_bytes[32:]
+        s_int = int.from_bytes(s_bytes, "little")
+
+        if s_int >= cls.ED25519_ORDER_L:
+            return {"valid": False, "reason": "NON_CANONICAL_SCALAR_S_GE_L"}
+
+        if public_key_bytes.hex() in cls.SMALL_ORDER_POINTS_HEX:
+            return {"valid": False, "reason": "SMALL_ORDER_PUBLIC_KEY"}
+
+        if r_bytes.hex() in cls.SMALL_ORDER_POINTS_HEX:
+            return {"valid": False, "reason": "SMALL_ORDER_COMMITMENT_R"}
+
+        try:
+            pub = Ed25519PublicKey.from_public_bytes(public_key_bytes)
+            pub.verify(signature_bytes, message_bytes)
+            return {"valid": True, "reason": "VALID_CANONICAL_ED25519"}
+        except (InvalidSignature, ValueError):
+            return {"valid": False, "reason": "INVALID_SIGNATURE"}
+
+
+class CyberphoneJcsVectorSuite:
+    """Tier 2 (Action 21): Cyberphone RFC 8785 JCS Vector Validator & No-Float Contract Guard.
+
+    Enforces:
+      - UTF-16 code-unit sorting across BMP (`\\u20ac`) and supplementary planes (`\\ud83d\\ude00` vs `\\uffff`).
+      - Rejection of floating-point values (`float`) and out-of-range I-JSON integers ($|n| > 2^{53} - 1$)
+        in signed payload contracts to eliminate IEEE 754 cross-language serialization drift.
+    """
+
+    MAX_SAFE_IJSON_INT = (1 << 53) - 1
+
+    @classmethod
+    def validate_no_float_contract(cls, node: Any) -> None:
+        if isinstance(node, float):
+            raise GovernanceHaltError(
+                "Floating-point numbers are disallowed in signed payload contracts; use integer minor units or string decimals"
+            )
+        if isinstance(node, int) and not isinstance(node, bool):
+            if abs(node) > cls.MAX_SAFE_IJSON_INT:
+                raise GovernanceHaltError(
+                    f"Integer {node} exceeds RFC 7493 I-JSON safe range +/- (2^53 - 1)"
+                )
+        elif isinstance(node, dict):
+            for k, v in node.items():
+                if not isinstance(k, str):
+                    raise GovernanceHaltError("JSON object keys must be strings")
+                cls.validate_no_float_contract(v)
+        elif isinstance(node, list):
+            for item in node:
+                cls.validate_no_float_contract(item)
+
+    @classmethod
+    def run_cyberphone_utf16_sorting_vector(cls) -> Dict[str, Any]:
+        # U+20AC (0x20AC), U+1F600 (surrogate pair 0xD83D 0xDE00), U+FFFF (0xFFFF)
+        # In UTF-16 code unit order: 0x20AC < 0xD83D < 0xFFFF
+        # (Whereas in UTF-8 / Unicode code point order, U+FFFF < U+1F600!)
+        test_obj = {
+            "\uffff": "bmp_high",
+            "\U0001f600": "astral_surrogate",
+            "\u20ac": "euro_sign",
+        }
+        canonical_bytes = encode_jcs(test_obj)
+        canonical_str = canonical_bytes.decode("utf-8")
+        expected_str = '{"\u20ac":"euro_sign","\U0001f600":"astral_surrogate","\uffff":"bmp_high"}'
+        return {
+            "canonicalString": canonical_str,
+            "matchesRfc8785Utf16Order": canonical_str == expected_str,
+        }
+
+
+class Rfc3161TimestampAuthorityAnchor:
+    """Tier 2 (Action 23): RFC 3161 Time Stamping Authority (TSA) Receipt Anchor.
+
+    Binds a ledger `chainTip` to an external TSA signature over
+    `(chainTipHex, genTimeIso, policyOid, serialNumber, tsaEpoch)` to mitigate
+    operator key compromise or log-tail truncation.
+    """
+
+    @staticmethod
+    def mint_timestamp_token(
+        *,
+        tsa_private_key: Ed25519PrivateKey,
+        chain_tip_hex: str,
+        policy_oid: str,
+        serial_number: int,
+        tsa_epoch: int,
+        gen_time_iso: str,
+    ) -> Dict[str, Any]:
+        tst_info = {
+            "chainTipHex": chain_tip_hex.lower(),
+            "genTimeIso": gen_time_iso,
+            "hashAlgorithm": "SHA-256",
+            "policyOid": policy_oid,
+            "serialNumber": serial_number,
+            "tsaEpoch": tsa_epoch,
+        }
+        sig_hex = tsa_private_key.sign(encode_jcs(tst_info)).hex()
+        return {
+            "tsaSignatureHex": sig_hex,
+            "tstInfo": tst_info,
+        }
+
+    @staticmethod
+    def verify_timestamp_token(
+        token: Dict[str, Any],
+        expected_chain_tip_hex: str,
+        tsa_public_key: Ed25519PublicKey,
+    ) -> bool:
+        tst_info = token.get("tstInfo", {})
+        sig_hex = token.get("tsaSignatureHex", "")
+        if tst_info.get("chainTipHex") != expected_chain_tip_hex.lower():
+            return False
+        try:
+            tsa_public_key.verify(bytes.fromhex(sig_hex), encode_jcs(tst_info))
+            return True
+        except (InvalidSignature, ValueError):
+            return False
+
+
+class McpOAuth21ResourceAudienceGate:
+    """Gap 4: MCP 2025-11-25 OAuth 2.1 Resource Server Audience Binding & No-Token-Passthrough Gate.
+
+    Enforces:
+      1. RFC 8707 `resource` audience binding (`token_claims["aud"] == expected_resource_uri`).
+      2. Mandatory identity claims (`sub`, `client_id`, `scope`).
+      3. Strict prohibition of OAuth/Bearer token passthrough in outbound tool arguments
+         (prevents Confused Deputy attacks).
+    """
+
+    _PASSTHROUGH_PATTERNS = (
+        re.compile(r"Bearer\s+[A-Za-z0-9\-._~+/]+=*", re.IGNORECASE),
+        re.compile(r"eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}"),
+    )
+
+    @classmethod
+    def evaluate_mcp_dispatch(
+        cls,
+        *,
+        token_claims: Dict[str, Any],
+        expected_resource_uri: str,
+        required_scope: str,
+        outbound_tool_arguments: Dict[str, Any],
+        inbound_raw_access_token: str = "",
+    ) -> Dict[str, Any]:
+        aud = str(token_claims.get("aud", ""))
+        sub = str(token_claims.get("sub", ""))
+        client_id = str(token_claims.get("client_id", ""))
+        scopes = set(str(token_claims.get("scope", "")).split())
+
+        if not aud or aud != expected_resource_uri:
+            raise GovernanceHaltError(
+                f"RFC 8707 resource audience mismatch: expected {expected_resource_uri!r}, got {aud!r}"
+            )
+        if not sub or not client_id:
+            raise GovernanceHaltError("Missing required OAuth 2.1 principal claims (sub, client_id)")
+        if required_scope not in scopes:
+            raise GovernanceHaltError(f"Missing required OAuth 2.1 scope: {required_scope!r}")
+
+        serialized_args = encode_jcs(outbound_tool_arguments).decode("utf-8")
+        if inbound_raw_access_token and inbound_raw_access_token in serialized_args:
+            raise GovernanceHaltError(
+                "MCP 2025-11-25 violation: inbound access token passthrough detected in tool arguments"
+            )
+        for pat in cls._PASSTHROUGH_PATTERNS:
+            if pat.search(serialized_args):
+                raise GovernanceHaltError(
+                    "MCP 2025-11-25 violation: Bearer/JWT token passthrough detected in tool arguments"
+                )
+
+        return {
+            "identityBinding": {
+                "aud": aud,
+                "clientId": client_id,
+                "scope": required_scope,
+                "sub": sub,
+            },
+            "tokenPassthroughDetected": False,
+        }
+
+
+class IndeterminateResolutionReceiptProtocol:
+    """Tier 3 (Action 25): Signed `EFFECT_INDETERMINATE` -> `RESOLUTION_RECEIPT` Saga Protocol.
+
+    Demonstrates eventual-consistency resolution (per `AGENTS.md` §5):
+      1. Mints an `EFFECT_INDETERMINATE` receipt (`retrySafe=False`) when the transport severs post-dispatch.
+      2. After out-of-band target state reconciliation, mints a signed `RESOLUTION_RECEIPT`
+         cryptographically chained via `prevChainTip == indeterminateReceipt.chainTip` and
+         bound to the same `operationId` and `caid`.
+    """
+
+    @staticmethod
+    def mint_indeterminate_receipt(
+        *,
+        signing_key: Ed25519PrivateKey,
+        operation_id: str,
+        action_payload: Dict[str, Any],
+        prev_chain_tip_hex: str,
+        epoch: int,
+    ) -> Dict[str, Any]:
+        caid = compute_caid(action_payload)
+        statement = {
+            "caid": caid,
+            "disposition": "EFFECT_INDETERMINATE",
+            "epoch": epoch,
+            "operationId": operation_id,
+            "prevChainTip": prev_chain_tip_hex,
+            "receiptType": "DISPATCH_OUTCOME_RECEIPT",
+            "retrySafe": False,
+        }
+        chain_tip = hashlib.sha256(
+            bytes.fromhex(prev_chain_tip_hex) + encode_jcs(statement)
+        ).hexdigest()
+        envelope = {"chainTip": chain_tip, "statement": statement}
+        sig_hex = signing_key.sign(encode_jcs(envelope)).hex()
+        return {"envelope": envelope, "signatureHex": sig_hex}
+
+    @staticmethod
+    def mint_resolution_receipt(
+        *,
+        signing_key: Ed25519PrivateKey,
+        indeterminate_receipt: Dict[str, Any],
+        reconciled_disposition: str,
+        target_proof_hash_hex: str,
+        epoch: int,
+    ) -> Dict[str, Any]:
+        if reconciled_disposition not in {"CONFIRMED", "REFUTED", "CONFLICT"}:
+            raise GovernanceHaltError(
+                f"Invalid terminal resolution disposition: {reconciled_disposition!r}"
+            )
+        ind_env = indeterminate_receipt["envelope"]
+        ind_stmt = ind_env["statement"]
+        if ind_stmt.get("disposition") != "EFFECT_INDETERMINATE":
+            raise GovernanceHaltError("Resolution receipt requires an EFFECT_INDETERMINATE predecessor")
+
+        statement = {
+            "caid": ind_stmt["caid"],
+            "consistencyModel": "EVENTUAL_CONSISTENCY_SAGA_PROBE",
+            "epoch": epoch,
+            "operationId": ind_stmt["operationId"],
+            "prevChainTip": ind_env["chainTip"],
+            "receiptType": "RESOLUTION_RECEIPT",
+            "reconciledDisposition": reconciled_disposition,
+            "retrySafe": reconciled_disposition == "REFUTED",
+            "targetProofHashHex": target_proof_hash_hex,
+        }
+        chain_tip = hashlib.sha256(
+            bytes.fromhex(ind_env["chainTip"]) + encode_jcs(statement)
+        ).hexdigest()
+        envelope = {"chainTip": chain_tip, "statement": statement}
+        sig_hex = signing_key.sign(encode_jcs(envelope)).hex()
+        return {"envelope": envelope, "signatureHex": sig_hex}
+
+    @staticmethod
+    def verify_resolution_pair(
+        indeterminate_receipt: Dict[str, Any],
+        resolution_receipt: Dict[str, Any],
+        public_key: Ed25519PublicKey,
+    ) -> bool:
+        try:
+            ind_env = indeterminate_receipt["envelope"]
+            res_env = resolution_receipt["envelope"]
+            public_key.verify(
+                bytes.fromhex(indeterminate_receipt["signatureHex"]),
+                encode_jcs(ind_env),
+            )
+            public_key.verify(
+                bytes.fromhex(resolution_receipt["signatureHex"]),
+                encode_jcs(res_env),
+            )
+            ind_stmt = ind_env["statement"]
+            res_stmt = res_env["statement"]
+            if res_stmt.get("prevChainTip") != ind_env.get("chainTip"):
+                return False
+            if res_stmt.get("caid") != ind_stmt.get("caid"):
+                return False
+            if res_stmt.get("operationId") != ind_stmt.get("operationId"):
+                return False
+            expected_res_tip = hashlib.sha256(
+                bytes.fromhex(ind_env["chainTip"]) + encode_jcs(res_stmt)
+            ).hexdigest()
+            return expected_res_tip == res_env.get("chainTip")
+        except (InvalidSignature, ValueError, KeyError):
+            return False
+
+

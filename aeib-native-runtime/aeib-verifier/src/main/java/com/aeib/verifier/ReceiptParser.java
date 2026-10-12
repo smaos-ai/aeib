@@ -1,6 +1,7 @@
 package com.aeib.verifier;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.StreamReadFeature;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,6 +20,7 @@ public final class ReceiptParser {
 
     public ReceiptParser() {
         this.mapper = JsonMapper.builder()
+            .enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION)
             .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
             .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
             .build();
@@ -58,7 +60,7 @@ public final class ReceiptParser {
         if (!root.hasNonNull("operationId") || !root.get("operationId").isTextual() || root.get("operationId").asText().isBlank()) {
             throw new VerifierInputException("Receipt missing or invalid required field 'operationId'");
         }
-        if (!root.hasNonNull("epoch") || !root.get("epoch").isIntegralNumber()) {
+        if (!root.hasNonNull("epoch") || !root.get("epoch").isIntegralNumber() || !root.get("epoch").canConvertToLong()) {
             throw new VerifierInputException("Receipt missing or invalid required field 'epoch'");
         }
         if (!root.hasNonNull("chainTip") || !root.get("chainTip").isTextual()) {
@@ -76,14 +78,22 @@ public final class ReceiptParser {
             throw new VerifierInputException("Receipt signature missing or invalid required field 'keyId'");
         }
 
+        String sigB64 = sigNode.get("ed25519Signature").asText().trim();
         byte[] signature;
         try {
-            signature = Base64.getDecoder().decode(sigNode.get("ed25519Signature").asText());
+            signature = Base64.getDecoder().decode(sigB64);
         } catch (IllegalArgumentException e) {
             throw new VerifierInputException("Invalid base64 in signature.ed25519Signature: " + e.getMessage(), e);
         }
         if (signature.length != 64) {
             throw new VerifierInputException("Ed25519 signature must be exactly 64 bytes, got: " + signature.length);
+        }
+        if (!Base64.getEncoder().encodeToString(signature).equals(sigB64)) {
+            throw new VerifierInputException("Non-canonical Base64 encoding in signature.ed25519Signature");
+        }
+
+        if (root.hasNonNull("signedStatement") && root.hasNonNull("statement")) {
+            throw new VerifierInputException("Receipt must not contain both signedStatement and inline statement");
         }
 
         // Extract and validate statement bytes
@@ -92,10 +102,14 @@ public final class ReceiptParser {
             if (!root.get("signedStatement").isTextual()) {
                 throw new VerifierInputException("signedStatement must be a base64 string");
             }
+            String stmtB64 = root.get("signedStatement").asText().trim();
             try {
-                statementBytes = Base64.getDecoder().decode(root.get("signedStatement").asText());
+                statementBytes = Base64.getDecoder().decode(stmtB64);
             } catch (IllegalArgumentException e) {
                 throw new VerifierInputException("signedStatement is not valid base64: " + e.getMessage(), e);
+            }
+            if (!Base64.getEncoder().encodeToString(statementBytes).equals(stmtB64)) {
+                throw new VerifierInputException("Non-canonical Base64 encoding in signedStatement");
             }
         } else if (root.hasNonNull("statement") && root.get("statement").isObject()) {
             try {

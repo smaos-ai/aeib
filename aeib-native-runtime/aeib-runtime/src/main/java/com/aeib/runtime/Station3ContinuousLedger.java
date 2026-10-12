@@ -33,6 +33,8 @@ public class Station3ContinuousLedger implements ContinuousLedger {
         this.currentEpoch = currentEpoch;
     }
 
+    private static final int MAX_BOUNDED_EVENTS = 10_000;
+
     @Override
     public synchronized void appendEvent(LifecycleEvent event) {
         try {
@@ -45,13 +47,21 @@ public class Station3ContinuousLedger implements ContinuousLedger {
             bindingMap.put("timestamp", event.timestamp().toEpochMilli());
             bindingMap.put("dataHash", Base64.getEncoder().encodeToString(event.eventDataHash() != null ? event.eventDataHash() : new byte[0]));
             
-            String eventBinding = MAPPER.writeValueAsString(bindingMap);
+            String rawEventJson = MAPPER.writeValueAsString(bindingMap);
+            byte[] canonicalEventBytes = Jcs.canonicalize(rawEventJson);
             
-            digest.update(eventBinding.getBytes(StandardCharsets.UTF_8));
+            digest.update(canonicalEventBytes);
             this.currentHashChainTip = digest.digest();
 
+            if (globalEventLog.size() >= MAX_BOUNDED_EVENTS) {
+                globalEventLog.poll();
+            }
             globalEventLog.add(event);
-            operationLogs.computeIfAbsent(event.operationId(), k -> new ConcurrentLinkedQueue<>()).add(event);
+            ConcurrentLinkedQueue<LifecycleEvent> opQueue = operationLogs.computeIfAbsent(event.operationId(), k -> new ConcurrentLinkedQueue<>());
+            if (opQueue.size() >= MAX_BOUNDED_EVENTS) {
+                opQueue.poll();
+            }
+            opQueue.add(event);
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to append event to sequential hash-chain", e);
@@ -59,11 +69,12 @@ public class Station3ContinuousLedger implements ContinuousLedger {
     }
 
     @Override
-    public ContinuityReceipt generateReceipt(String operationId) {
+    public synchronized ContinuityReceipt generateReceipt(String operationId) {
         try {
+            byte[] tipSnapshot = this.currentHashChainTip.clone();
             Map<String, Object> receiptStatement = new LinkedHashMap<>();
             receiptStatement.put("operationId", operationId);
-            receiptStatement.put("chainTip", Base64.getEncoder().encodeToString(this.currentHashChainTip));
+            receiptStatement.put("chainTip", Base64.getEncoder().encodeToString(tipSnapshot));
             receiptStatement.put("epoch", this.currentEpoch);
             receiptStatement.put("keyId", this.keyId);
 
@@ -83,7 +94,7 @@ public class Station3ContinuousLedger implements ContinuousLedger {
             return new ContinuityReceipt(
                 operationId,
                 this.currentEpoch,
-                this.currentHashChainTip,
+                tipSnapshot.clone(),
                 "Ed25519",
                 "SHA-256",
                 signature,

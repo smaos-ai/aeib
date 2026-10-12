@@ -20,6 +20,25 @@ public class Station1DispatchInterlock implements DispatchInterlock {
 
     @Override
     public InterlockDecision evaluate(CandidateAction action, SecurityContext ctx) {
+        if (action == null || ctx == null) {
+            return new InterlockDecision(
+                DispatchDisposition.REJECTED,
+                null,
+                this.currentEpoch,
+                "Null CandidateAction or SecurityContext rejected fail-closed"
+            );
+        }
+        if (action.capabilityIdentifier() == null || action.capabilityIdentifier().isBlank()
+                || action.noun() == null || action.noun().isBlank()
+                || action.verb() == null || action.verb().isBlank()
+                || action.manifestDigest() == null || action.manifestDigest().isBlank()) {
+            return new InterlockDecision(
+                DispatchDisposition.REJECTED,
+                null,
+                this.currentEpoch,
+                "Missing capabilityIdentifier, noun, verb, or manifestDigest"
+            );
+        }
         // Strict epoch equality enforcement (prevent drift)
         if (action.proposedEpoch() != this.currentEpoch) {
             return new InterlockDecision(
@@ -28,6 +47,24 @@ public class Station1DispatchInterlock implements DispatchInterlock {
                 this.currentEpoch,
                 "Epoch mismatch: proposed=" + action.proposedEpoch() + ", current=" + this.currentEpoch
             );
+        }
+        // Verify declared grant standing if grants are populated
+        if (ctx.grants() != null && ctx.grants().length > 0) {
+            boolean granted = false;
+            for (String g : ctx.grants()) {
+                if (action.capabilityIdentifier().equals(g) || "*".equals(g)) {
+                    granted = true;
+                    break;
+                }
+            }
+            if (!granted) {
+                return new InterlockDecision(
+                    DispatchDisposition.REJECTED,
+                    null,
+                    this.currentEpoch,
+                    "Capability not in SecurityContext grants: " + action.capabilityIdentifier()
+                );
+            }
         }
 
         // Compute CAID via strict RFC 8785 JCS Envelope over explicit fields
@@ -43,7 +80,6 @@ public class Station1DispatchInterlock implements DispatchInterlock {
             throw new RuntimeException("SHA-256 not available", e);
         }
 
-        // Bounded-time evaluation: Return deterministic Disposition.
         return new InterlockDecision(
             DispatchDisposition.AUTHORIZED,
             caidDigest,

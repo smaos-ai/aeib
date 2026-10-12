@@ -67,9 +67,20 @@ public final class PublicKeyReader {
             throw new VerifierInputException("Invalid base64 encoding in public key PEM: " + e.getMessage(), e);
         }
 
-        // Standard X.509 SubjectPublicKeyInfo for Ed25519 is 44 bytes
+        // Standard X.509 SubjectPublicKeyInfo for Ed25519 is 44 bytes (12-byte ASN.1 OID header + 32-byte key)
         if (spkiBytes.length == 32) {
             throw new VerifierInputException("Raw 32-byte Ed25519 keys are rejected; provide X.509 SubjectPublicKeyInfo PEM");
+        }
+        if (spkiBytes.length != 44) {
+            throw new VerifierInputException("Ed25519 X.509 SubjectPublicKeyInfo must be exactly 44 bytes, got: " + spkiBytes.length);
+        }
+        byte[] expectedSpkiPrefix = new byte[] {
+            0x30, 0x2a, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70, 0x03, 0x21, 0x00
+        };
+        for (int i = 0; i < expectedSpkiPrefix.length; i++) {
+            if (spkiBytes[i] != expectedSpkiPrefix[i]) {
+                throw new VerifierInputException("Invalid ASN.1 SubjectPublicKeyInfo header for Ed25519 OID 1.3.101.112");
+            }
         }
 
         try {

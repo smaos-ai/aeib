@@ -1028,3 +1028,158 @@ def test_v11_backlog_otel_scitt_correlation_hardware_attestation_and_r1cs_circui
     )
     assert r1cs_overclaim["overclaimWire"] == 1
     assert r1cs_overclaim["r1csSatisfied"] is False
+
+
+def test_tier2_ed25519_wycheproof_zip215_and_cyberphone_jcs_vectors() -> None:
+    """Verify Actions 20 & 21: Wycheproof/ZIP-215 scalar/small-order rejection and Cyberphone UTF-16/no-float JCS checks."""
+    sk = Ed25519PrivateKey.generate()
+    pk_bytes = sk.public_key().public_bytes_raw()
+    msg = b'{"action":"transfer","amount":100}'
+    sig = sk.sign(msg)
+
+    # Valid canonical Ed25519
+    res_ok = ugs.Ed25519WycheproofZip215Validator.verify_strict(pk_bytes, sig, msg)
+    assert res_ok["valid"] is True
+    assert res_ok["reason"] == "VALID_CANONICAL_ED25519"
+
+    # Non-canonical scalar S + L >= L must be rejected with NON_CANONICAL_SCALAR_S_GE_L
+    r_part = sig[:32]
+    s_int = int.from_bytes(sig[32:], "little")
+    s_plus_l = (s_int + ugs.Ed25519WycheproofZip215Validator.ED25519_ORDER_L).to_bytes(
+        32, "little"
+    )
+    res_malleable = ugs.Ed25519WycheproofZip215Validator.verify_strict(
+        pk_bytes, r_part + s_plus_l, msg
+    )
+    assert res_malleable["valid"] is False
+    assert res_malleable["reason"] == "NON_CANONICAL_SCALAR_S_GE_L"
+
+    # Small-order torsion public key (identity point 0100...00) must be rejected
+    identity_pt = bytes.fromhex("01" + "00" * 31)
+    res_small_pk = ugs.Ed25519WycheproofZip215Validator.verify_strict(
+        identity_pt, sig, msg
+    )
+    assert res_small_pk["valid"] is False
+    assert res_small_pk["reason"] == "SMALL_ORDER_PUBLIC_KEY"
+
+    # Cyberphone UTF-16 sorting vector (0x20AC < 0xD83D < 0xFFFF)
+    utf16_vec = ugs.CyberphoneJcsVectorSuite.run_cyberphone_utf16_sorting_vector()
+    assert utf16_vec["matchesRfc8785Utf16Order"] is True
+
+    # No-float signed payload contract guard
+    ugs.CyberphoneJcsVectorSuite.validate_no_float_contract(
+        {"amountMinorUnits": 1050, "currency": "EUR"}
+    )
+    with pytest.raises(ugs.GovernanceHaltError, match="Floating-point"):
+        ugs.CyberphoneJcsVectorSuite.validate_no_float_contract({"amount": 10.50})
+    with pytest.raises(ugs.GovernanceHaltError, match="I-JSON safe range"):
+        ugs.CyberphoneJcsVectorSuite.validate_no_float_contract({"amount": 1 << 54})
+
+
+def test_tier2_and_tier3_rfc3161_tsa_mcp_oauth21_and_resolution_receipt() -> None:
+    """Verify Actions 23, Gap 4, and Action 25: RFC 3161 TSA anchor, MCP OAuth 2.1 no-token-passthrough, and resolution receipt."""
+    import hashlib
+
+    tsa_sk = Ed25519PrivateKey.generate()
+    tsa_pk = tsa_sk.public_key()
+    chain_tip = hashlib.sha256(b"aeib-checkpoint-1").hexdigest()
+
+    # 1. RFC 3161 Timestamp Authority Token
+    tst = ugs.Rfc3161TimestampAuthorityAnchor.mint_timestamp_token(
+        tsa_private_key=tsa_sk,
+        chain_tip_hex=chain_tip,
+        policy_oid="1.3.6.1.4.1.55555.1.1",
+        serial_number=1001,
+        tsa_epoch=42,
+        gen_time_iso="2026-10-12T07:00:00Z",
+    )
+    assert (
+        ugs.Rfc3161TimestampAuthorityAnchor.verify_timestamp_token(
+            tst, chain_tip, tsa_pk
+        )
+        is True
+    )
+    assert (
+        ugs.Rfc3161TimestampAuthorityAnchor.verify_timestamp_token(
+            tst, "ff" * 32, tsa_pk
+        )
+        is False
+    )
+
+    # 2. MCP 2025-11-25 OAuth 2.1 Resource Audience & No-Token-Passthrough Gate
+    mcp_ok = ugs.McpOAuth21ResourceAudienceGate.evaluate_mcp_dispatch(
+        token_claims={
+            "aud": "https://mcp.treasury.internal/v1/tools",
+            "sub": "spiffe://prod/agent/payments-01",
+            "client_id": "aeib-proxy-client",
+            "scope": "payments:wire ledger:read",
+        },
+        expected_resource_uri="https://mcp.treasury.internal/v1/tools",
+        required_scope="payments:wire",
+        outbound_tool_arguments={"amountMinor": 25000, "currency": "EUR"},
+        inbound_raw_access_token="opaque-upstream-token-998877",
+    )
+    assert mcp_ok["tokenPassthroughDetected"] is False
+    assert (
+        mcp_ok["identityBinding"]["aud"] == "https://mcp.treasury.internal/v1/tools"
+    )
+
+    # Audience mismatch -> GovernanceHaltError
+    with pytest.raises(ugs.GovernanceHaltError, match="RFC 8707 resource audience"):
+        ugs.McpOAuth21ResourceAudienceGate.evaluate_mcp_dispatch(
+            token_claims={
+                "aud": "https://other-service.internal",
+                "sub": "spiffe://prod/agent/payments-01",
+                "client_id": "aeib-proxy-client",
+                "scope": "payments:wire",
+            },
+            expected_resource_uri="https://mcp.treasury.internal/v1/tools",
+            required_scope="payments:wire",
+            outbound_tool_arguments={"amountMinor": 25000},
+        )
+
+    # Token passthrough -> GovernanceHaltError
+    with pytest.raises(ugs.GovernanceHaltError, match="passthrough"):
+        ugs.McpOAuth21ResourceAudienceGate.evaluate_mcp_dispatch(
+            token_claims={
+                "aud": "https://mcp.treasury.internal/v1/tools",
+                "sub": "spiffe://prod/agent/payments-01",
+                "client_id": "aeib-proxy-client",
+                "scope": "payments:wire",
+            },
+            expected_resource_uri="https://mcp.treasury.internal/v1/tools",
+            required_scope="payments:wire",
+            outbound_tool_arguments={
+                "amountMinor": 25000,
+                "forwardedAuth": "opaque-upstream-token-998877",
+            },
+            inbound_raw_access_token="opaque-upstream-token-998877",
+        )
+
+    # 3. Signed EFFECT_INDETERMINATE -> RESOLUTION_RECEIPT Saga Protocol (Action 25)
+    ledger_sk = Ed25519PrivateKey.generate()
+    ledger_pk = ledger_sk.public_key()
+    ind_rcpt = ugs.IndeterminateResolutionReceiptProtocol.mint_indeterminate_receipt(
+        signing_key=ledger_sk,
+        operation_id="OP-SAGA-504-01",
+        action_payload={"tool": "wire_transfer", "amountMinor": 50000},
+        prev_chain_tip_hex="00" * 32,
+        epoch=1000,
+    )
+    assert ind_rcpt["envelope"]["statement"]["disposition"] == "EFFECT_INDETERMINATE"
+    assert ind_rcpt["envelope"]["statement"]["retrySafe"] is False
+
+    res_rcpt = ugs.IndeterminateResolutionReceiptProtocol.mint_resolution_receipt(
+        signing_key=ledger_sk,
+        indeterminate_receipt=ind_rcpt,
+        reconciled_disposition="CONFIRMED",
+        target_proof_hash_hex=hashlib.sha256(b"target-commit-tx-99").hexdigest(),
+        epoch=1000,
+    )
+    assert (
+        ugs.IndeterminateResolutionReceiptProtocol.verify_resolution_pair(
+            ind_rcpt, res_rcpt, ledger_pk
+        )
+        is True
+    )
+

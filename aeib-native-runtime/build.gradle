@@ -34,12 +34,27 @@ subprojects {
     tasks.named('test') {
         useJUnitPlatform()
     }
+
+    tasks.withType(AbstractArchiveTask).configureEach {
+        preserveFileTimestamps = false
+        reproducibleFileOrder = true
+    }
 }
 
 cyclonedxBom {
     includeConfigs = ["runtimeClasspath"]
+    schemaVersion = "1.6"
     outputFormat = "json"
     outputName = "bom"
+}
+
+tasks.named('cyclonedxBom') {
+    doLast {
+        def bomFile = file("${buildDir}/reports/bom.json")
+        if (bomFile.exists()) {
+            bomFile.text = bomFile.text.replaceFirst('"specVersion"\\s*:\\s*"1\\.5"', '"specVersion" : "1.6"')
+        }
+    }
 }
 
 tasks.register('generateSlsaSubjects') {

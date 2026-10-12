@@ -40,20 +40,42 @@ public class MandatoryNegativeTestSuite {
         assertTrue(parsedStatement.contains("\"keyId\":\"test-key\""));
         assertEquals("Ed25519", receipt.signatureAlgorithm());
         assertEquals("SHA-256", receipt.hashAlgorithm());
+        assertTrue(com.aeib.verifier.SignatureVerifier.verify(
+            receipt.signedStatement(),
+            receipt.signature().ed25519Signature(),
+            keyPair.getPublic()
+        ), "Generated receipt signature must verify against public key");
     }
 
     @Test
     public void testSemanticStateEvaluatorDispositions() throws Exception {
-        SemanticStateEvaluator evaluator = (intended, observed) -> {
-            if (observed.targetStatusString().equals("SUCCESS")) return EffectDisposition.CONFIRMED;
-            if (observed.targetStatusString().equals("FAILED")) return EffectDisposition.REFUTED;
-            if (observed.targetStatusString().equals("PENDING")) return EffectDisposition.INDETERMINATE;
-            return EffectDisposition.CONFLICT; // E.g. mismatched hash
-        };
-        
-        assertEquals(EffectDisposition.CONFIRMED, evaluator.evaluate(new byte[0], new SemanticState(new byte[0], new byte[0], "SUCCESS")));
-        assertEquals(EffectDisposition.REFUTED, evaluator.evaluate(new byte[0], new SemanticState(new byte[0], new byte[0], "FAILED")));
-        assertEquals(EffectDisposition.INDETERMINATE, evaluator.evaluate(new byte[0], new SemanticState(new byte[0], new byte[0], "PENDING")));
-        assertEquals(EffectDisposition.CONFLICT, evaluator.evaluate(new byte[0], new SemanticState(new byte[0], new byte[0], "UNKNOWN_OR_CORRUPT")));
+        SemanticStateEvaluator evaluator = new com.aeib.runtime.DefaultSemanticStateEvaluator();
+        byte[] intended = "{\"amount\":100}".getBytes(StandardCharsets.UTF_8);
+        byte[] tampered = "{\"amount\":999}".getBytes(StandardCharsets.UTF_8);
+
+        assertEquals(EffectDisposition.CONFIRMED, evaluator.evaluate(intended, new SemanticState(intended, new byte[0], "SUCCESS")));
+        assertEquals(EffectDisposition.REFUTED, evaluator.evaluate(intended, new SemanticState(new byte[0], new byte[0], "FAILED")));
+        assertEquals(EffectDisposition.INDETERMINATE, evaluator.evaluate(intended, new SemanticState(new byte[0], new byte[0], "PENDING")));
+        assertEquals(EffectDisposition.CONFLICT, evaluator.evaluate(intended, new SemanticState(tampered, new byte[0], "COMMITTED")));
+    }
+
+    @Test
+    public void testStation1GrantEnforcementAndDuplicateKeyRejection() {
+        com.aeib.runtime.Station1DispatchInterlock interlock = new com.aeib.runtime.Station1DispatchInterlock(1000L);
+        assertEquals(DispatchDisposition.REJECTED, interlock.evaluate(null, null).disposition());
+
+        CandidateAction action = new CandidateAction(
+            "payments:wire", 1000L, "wire", "POST", "{\"amt\":1}".getBytes(StandardCharsets.UTF_8), "sha256:manifest"
+        );
+        assertEquals(DispatchDisposition.REJECTED,
+            interlock.evaluate(action, new SecurityContext("agent-1", new String[]{"read:only"})).disposition());
+        assertEquals(DispatchDisposition.AUTHORIZED,
+            interlock.evaluate(action, new SecurityContext("agent-1", new String[]{"payments:wire"})).disposition());
+
+        com.aeib.verifier.ReceiptParser parser = new com.aeib.verifier.ReceiptParser();
+        com.aeib.verifier.Rfc8785Canonicalizer canon = new com.aeib.verifier.Rfc8785Canonicalizer();
+        assertThrows(com.aeib.verifier.VerifierInputException.class, () ->
+            parser.parse("{\"operationId\":\"op-1\",\"operationId\":\"op-2\",\"epoch\":1}".getBytes(StandardCharsets.UTF_8), canon)
+        );
     }
 }

@@ -20,7 +20,7 @@ public class DefaultSemanticStateEvaluator implements SemanticStateEvaluator {
             return EffectDisposition.INDETERMINATE; // Ambiguous or unreachable
         }
 
-        String status = observedState.targetStatusString().toUpperCase();
+        String status = observedState.targetStatusString().toUpperCase(java.util.Locale.ROOT);
 
         switch (status) {
             case "PENDING":

@@ -65,7 +65,7 @@ jobs:
 
       - name: "Gate 6: Track B (v1.1) Durable Intent, Reconciliation, AIB & Temporal Standing Invariants"
         run: |
-          python -m pytest tests/test_milestone1_acceptance.py tests/test_configurable_reconciliation.py tests/test_action_intelligence_brief.py tests/test_temporal_standing_and_andon_cord.py -v
+          python -m pytest tests/test_milestone1_acceptance.py tests/test_configurable_reconciliation.py tests/test_action_intelligence_brief.py tests/test_temporal_standing_and_andon_cord.py tests/test_track_b_end_to_end_integration.py -v
 
       - name: "Upload Soak Telemetry Artifact"
         if: always()

@@ -63,6 +63,10 @@ jobs:
         run: |
           python benchmarks/soak_test_long_haul.py --smoke --csv-out dist/soak_telemetry_${{ matrix.os }}_py${{ matrix.python-version }}.csv
 
+      - name: "Gate 6: Track B (v1.1) Durable Intent, Reconciliation, AIB & Temporal Standing Invariants"
+        run: |
+          python -m pytest tests/test_milestone1_acceptance.py tests/test_configurable_reconciliation.py tests/test_action_intelligence_brief.py tests/test_temporal_standing_and_andon_cord.py -v
+
       - name: "Upload Soak Telemetry Artifact"
         if: always()
         uses: actions/upload-artifact@v4

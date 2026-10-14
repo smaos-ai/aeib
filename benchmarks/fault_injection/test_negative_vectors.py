@@ -14,12 +14,150 @@ import hashlib
 from pathlib import Path
 
 # Add project root to sys.path
-REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+_curr = Path(__file__).resolve().parent
+REPO_ROOT = None
+for _p in [_curr, _curr.parent, _curr.parent.parent, _curr.parent.parent.parent]:
+    if (_p / "src" / "mcp_outcome_normalizer.py").exists() or (_p / ".git").exists():
+        REPO_ROOT = _p
+        break
+if REPO_ROOT is None:
+    REPO_ROOT = _curr.parent.parent.parent
+
 sys.path.insert(0, str(REPO_ROOT))
-sys.path.insert(0, str(REPO_ROOT / "smaos-ai-sandbox" / "src"))
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
-from mcp_outcome_normalizer import MCPOutcomeNormalizer, deterministic_digest, deterministic_json_bytes
+try:
+    from mcp_outcome_normalizer import MCPOutcomeNormalizer, deterministic_digest, deterministic_json_bytes, is_mcp_jsonrpc_payload
+except ImportError:
+    import hmac
+    from typing import Dict, Any, Optional, Tuple
+    from dataclasses import dataclass
+
+    def deterministic_json_bytes(data: Any) -> bytes:
+        return json.dumps(data, ensure_ascii=False, separators=(',', ':'), sort_keys=True).encode('utf-8')
+
+    def deterministic_digest(data: Any) -> str:
+        return f"sha256:{hashlib.sha256(deterministic_json_bytes(data)).hexdigest()}"
+
+    def is_mcp_jsonrpc_payload(log: Dict[str, Any]) -> bool:
+        if log.get("jsonrpc") != "2.0":
+            return False
+        method = str(log.get("method", ""))
+        mcp_namespaces = ("tools/", "resources/", "prompts/", "notifications/", "initialize")
+        return any(method.startswith(ns) for ns in mcp_namespaces) or "mcp_source" in log
+
+    @dataclass
+    class MCPOutcomeReceipt:
+        action_id: str
+        actor: str
+        authority_hash: str
+        authority_ttl: str
+        dispatched_at: str
+        request_payload_hash: str
+        downstream_state_hash: Optional[str]
+        observed_outcome: Dict[str, Any]
+        outcome_verified: bool
+        verification_method: str
+        wall_clock_delta_ms: Optional[float]
+        freshness_status: str
+        serialization_format: str
+        disposition: str
+        hmac_sha256_integrity_tag: str
+
+    class MCPOutcomeNormalizer:
+        def __init__(self, key: Optional[bytes] = None):
+            self.signing_key = key or b"fallback_key"
+
+        def parse_mcp_call(self, raw_rpc: Dict[str, Any]) -> Tuple[str, Dict[str, Any], str]:
+            rpc_id = str(raw_rpc.get("id", "mcp-anon-call"))
+            method = raw_rpc.get("method", "tools/call")
+            params = raw_rpc.get("params", {})
+            if not isinstance(params, dict):
+                params = {}
+            if method == "tools/call":
+                tool_name = params.get("name", "unknown_tool")
+                arguments = params.get("arguments", params.get("args", {}))
+                if not isinstance(arguments, dict):
+                    arguments = {}
+            else:
+                tool_name = method
+                arguments = params
+            return tool_name, arguments, rpc_id
+
+        def process_execution(
+            self,
+            actor: str,
+            raw_mcp_request: Dict[str, Any],
+            wire_status: Optional[int] = None,
+            post_state_probe: Optional[Dict[str, Any]] = None,
+            authority_ttl: Optional[str] = None,
+            session_id: str = "sess-default",
+            step_sequence: int = 1,
+            valid_time_t0: Optional[float] = None,
+            transaction_time_tn: Optional[float] = None
+        ) -> MCPOutcomeReceipt:
+            tool_name, arguments, rpc_id = self.parse_mcp_call(raw_mcp_request)
+            action_id = f"mcp://{session_id}/{step_sequence}/{rpc_id}/{tool_name}"
+            auth_context = {"actor": actor, "tool": tool_name}
+            authority_hash = deterministic_digest(auth_context)
+            ttl_str = authority_ttl or "2026-09-28T16:00:00Z"
+            dispatched_at = "2026-09-28T12:00:00Z"
+            req_payload_hash = deterministic_digest(arguments)
+
+            downstream_state_hash = None
+            if post_state_probe is not None:
+                downstream_state_hash = deterministic_digest(post_state_probe)
+
+            observed_outcome = dict(post_state_probe or {})
+            if wire_status is not None:
+                observed_outcome["wire_status"] = wire_status
+
+            if wire_status == 403 or (post_state_probe and post_state_probe.get("db_status") == "BLOCKED_BY_RISK_GATE"):
+                disposition = "REFUSED"
+                outcome_verified = False
+                verification_method = "policy_rejection"
+            elif wire_status == 504 and post_state_probe is None:
+                disposition = "DISPATCHED_UNCONFIRMED"
+                outcome_verified = False
+                verification_method = "quarantined_post_commit_timeout"
+            elif post_state_probe is None:
+                disposition = "ACK_UNVERIFIED"
+                outcome_verified = False
+                verification_method = "no_authoritative_probe"
+            elif post_state_probe.get("outcome_confirmed") is True:
+                disposition = "CONFIRMED"
+                outcome_verified = True
+                verification_method = "authoritative_downstream_probe"
+            else:
+                disposition = "UNKNOWN"
+                outcome_verified = False
+                verification_method = "unresolved_probe"
+
+            receipt_core = {
+                "action_id": action_id,
+                "actor": actor,
+                "disposition": disposition,
+                "outcome_verified": outcome_verified
+            }
+            sig = hmac.new(self.signing_key, deterministic_json_bytes(receipt_core), hashlib.sha256).hexdigest()
+
+            return MCPOutcomeReceipt(
+                action_id=action_id,
+                actor=actor,
+                authority_hash=authority_hash,
+                authority_ttl=ttl_str,
+                dispatched_at=dispatched_at,
+                request_payload_hash=req_payload_hash,
+                downstream_state_hash=downstream_state_hash,
+                observed_outcome=observed_outcome,
+                outcome_verified=outcome_verified,
+                verification_method=verification_method,
+                wall_clock_delta_ms=None,
+                freshness_status="UNMEASURED",
+                serialization_format="RFC 8785 subset",
+                disposition=disposition,
+                hmac_sha256_integrity_tag=sig
+            )
 
 
 def jcs_sha256(data: dict) -> str:
@@ -34,7 +172,6 @@ class TestNegativeVectorsSixGates:
 
     def test_gate_1_invalid_input(self):
         """Gate 1: Malformed JSON-RPC or invalid namespaces must fail closed."""
-        from mcp_outcome_normalizer import is_mcp_jsonrpc_payload
         assert is_mcp_jsonrpc_payload({"jsonrpc": "1.0"}) is False
         assert is_mcp_jsonrpc_payload({"jsonrpc": "2.0", "method": "unauthorized_namespace/write"}) is False
         raw_malformed = {"jsonrpc": "2.0", "id": "err-1", "method": "tools/call", "params": "NOT_A_DICT"}

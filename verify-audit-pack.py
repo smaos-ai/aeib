@@ -15,12 +15,27 @@ import ast
 import json
 import subprocess
 from pathlib import Path
+from typing import Optional
 
 ROOT = Path(__file__).resolve().parent
+# Support execution either from repo root or inside compliance/ subfolder
+BASE_DIR = ROOT.parent if ROOT.name == "compliance" else ROOT
+
+def find_claims_file() -> Optional[Path]:
+    candidates = [
+        BASE_DIR / "claims.json",
+        BASE_DIR / "compliance" / "claims.json",
+        ROOT / "claims.json",
+        ROOT / "compliance" / "claims.json",
+    ]
+    for c in candidates:
+        if c.exists():
+            return c
+    return None
 
 def verify_claims_register() -> bool:
-    claims_file = ROOT / "claims.json"
-    if not claims_file.exists():
+    claims_file = find_claims_file()
+    if not claims_file or not claims_file.exists():
         print("[-] FAIL: claims.json missing")
         return False
     with open(claims_file, "r") as f:
@@ -35,9 +50,11 @@ def verify_claims_register() -> bool:
 
 def verify_zero_mock_ast_purity() -> bool:
     critical_files = [
-        ROOT / "benchmarks/fault_injection/test_negative_vectors.py",
-        ROOT / "src/diagnostic_normalizer.py",
-        ROOT / "smaos-ai-sandbox/src/mcp_outcome_normalizer.py",
+        BASE_DIR / "benchmarks/test_negative_vectors.py",
+        BASE_DIR / "benchmarks/fault_injection/test_negative_vectors.py",
+        BASE_DIR / "src/diagnostic_normalizer.py",
+        BASE_DIR / "src/mcp_outcome_normalizer.py",
+        BASE_DIR / "aeib_mcp_proxy.py",
     ]
     banned = {"mock", "unittest.mock", "MagicMock"}
     for path in critical_files:
@@ -76,8 +93,23 @@ def verify_dora_incident_mappings() -> bool:
     return True
 
 def run_negative_vector_suite() -> bool:
-    cmd = [sys.executable, "-m", "pytest", "benchmarks/fault_injection/test_negative_vectors.py", "-q"]
-    res = subprocess.run(cmd, cwd=str(ROOT), capture_output=True, text=True)
+    # Check candidates for test_negative_vectors.py
+    test_path = None
+    for cand in [
+        BASE_DIR / "benchmarks/test_negative_vectors.py",
+        BASE_DIR / "benchmarks/fault_injection/test_negative_vectors.py",
+        BASE_DIR / "test_negative_vectors.py"
+    ]:
+        if cand.exists():
+            test_path = cand
+            break
+
+    if not test_path:
+        print("[-] FAIL: Could not locate test_negative_vectors.py")
+        return False
+
+    cmd = [sys.executable, "-m", "pytest", str(test_path), "-q"]
+    res = subprocess.run(cmd, cwd=str(BASE_DIR), capture_output=True, text=True)
     if res.returncode != 0:
         print(f"[-] FAIL: Negative vector suite failed:\n{res.stdout}\n{res.stderr}")
         return False

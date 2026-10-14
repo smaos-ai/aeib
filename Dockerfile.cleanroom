@@ -1,0 +1,42 @@
+# Pinned Clean-Room Container for AEIB Independent Audit
+# Base image pinned to Debian Bookworm Python 3.12
+FROM python:3.12-slim-bookworm
+
+ARG GIT_COMMIT=unknown
+LABEL maintainer="AEIB Systems Engineering <research@smaos.ai>"
+LABEL git_commit="${GIT_COMMIT}"
+LABEL description="Isolated clean-room execution environment for AEIB verification"
+
+WORKDIR /app
+
+# Install minimal OS dependencies for cryptography and runtime testing
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    curl \
+    ca-certificates \
+    default-jre-headless \
+    && rm -rf /var/lib/apt/lists/*
+
+# Pinned Python dependencies
+RUN python -m pip install --no-cache-dir --upgrade pip && \
+    python -m pip install --no-cache-dir \
+    pytest==8.3.3 \
+    cryptography==44.0.0 \
+    pyyaml==6.0.2
+
+# Create non-root auditor user
+RUN groupadd -g 1001 auditor && \
+    useradd -u 1001 -g auditor -m -s /bin/bash auditor
+
+# Copy tracked repository tree
+COPY --chown=auditor:auditor . /app/
+
+RUN mkdir -p /app/audit_out && chown -R auditor:auditor /app
+
+USER auditor
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/app:/app/src
+
+CMD ["/bin/bash"]

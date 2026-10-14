@@ -1,54 +1,26 @@
 cff-version: 1.2.0
-title: "Agent Execution Integrity Benchmark (AEIB) Enterprise v1.0"
-message: >-
-  If you use this artifact or evaluation data, please cite it using the metadata from this file.
-type: software
+message: "If you use this software in your research or regulatory compliance evaluation, please cite it as below."
 authors:
   - family-names: Leukhin
-    given-names: Andrii
+    given-names: Andrej
     affiliation: SovereignNexus
-    email: andrejlo123@gmail.com
     orcid: "https://orcid.org/0009-0004-9543-8263"
-repository-code: "https://github.com/SovereignNexus/smaos"
-url: "https://github.com/SovereignNexus/smaos"
-abstract: >-
-  The Agent Execution Integrity Benchmark (AEIB) Enterprise v1.0 is an
-  offline-reproducible evaluation distribution demonstrating that autonomous AI
-  agents suffer duplicate mutations when encountering semantic drift during retry
-  loops following post-commit HTTP 504 transport severance. AEIB implements an
-  in-process wire trap, causal lineage binding, authoritative PostgreSQL state
-  probing with statement timeouts, deterministic disposition mapping, and
-  offline-verifiable cryptographic receipts. This review candidate packages the
-  verified v0.2.4 core (0/500 duplicate mutations, Rule-of-Three 95% upper bound
-  of 0.60%) alongside Phase 2 enterprise extensions (MCP stdio proxy, telemetry,
-  Grafana dashboard, and long-haul soak daemon). Status: review distribution;
-  six gaps addressed by prototype controls and local tests; production-scale
-  validation remains pending.
+title: "AEIB: Agent Evidence Interlock Boundary"
+version: 0.4.1
+date-released: 2026-10-08
+url: "https://github.com/smaos-ai/smaos-ai-sandbox"
+repository-code: "https://github.com/smaos-ai/smaos-ai-sandbox"
+abstract: >
+  AEIB (Agent Evidence Interlock Boundary) is an execution-integrity and deterministic 
+  disposition boundary for autonomous agent systems. Under the stated model, it evaluates 
+  pre-dispatch standing checks immediately before network dispatch, suppresses speculative 
+  retries upon transport ambiguity, and provides single-flight target reconciliation probes 
+  with Ed25519 cryptographic receipts and RFC 8785 JSON Canonicalization.
 keywords:
-  - agent governance
-  - transport fault reconciliation
-  - idempotency
-  - AI safety
-  - execution integrity
-  - post-dispatch failure
-  - local_harness
-  - SQLite
-  - PostgreSQL
-  - deterministic testing
-  - Rule of Three
-  - MCP
+  - "agentic AI"
+  - "autonomous systems"
+  - "DORA"
+  - "EU AI Act"
+  - "RFC 8785"
+  - "idempotency"
 license: Apache-2.0
-version: "v1.0-review"
-date-released: "2026-10-02"
-# doi: "pending-deposit"
-# identifiers:
-#   - type: doi
-#     value: "pending-deposit"
-    description: "Concept DOI registered on Zenodo"
-  - type: other
-    value: "SHA-256: cf3a319ee801784fae303b534178c5590020bc72990cd0119e7753a15abb6525"
-    description: "Canonical release archive SHA-256 digest (aeib-enterprise-v1.0.tar.gz)"
-  - type: other
-    value: "Git commit: e8f510954d52573a1860bae03bf011398e77f1fe"
-    description: "Git commit ID (tag: v0.2.4 / v1.0-review)"
-

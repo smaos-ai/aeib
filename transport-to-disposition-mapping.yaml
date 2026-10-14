@@ -1,0 +1,152 @@
+version: "0.2.5"
+contract_name: "aeib-transport-to-disposition-mapping"
+description: "Normative priority-ordered mapping of transport wire signals and out-of-band probe results to the 7-state AEIB disposition taxonomy, incorporating Noun/Verb abstractions and deterministic CAID derivation"
+
+# -----------------------------------------------------------------------------
+# Enterprise Ontology: Noun & Verb Structural Abstractions
+# -----------------------------------------------------------------------------
+# Maps MCP tool invocations into discrete business objects (Nouns) and primitive
+# actions (Verbs) to eliminate prompt-level semantic drift and enforce deterministic
+# execution boundaries across heterogeneous agent toolkits.
+
+ontology:
+  abstractions:
+    noun_verb_mapping:
+      description: "Formal classification of agent actions into target entity objects and mutation verbs"
+      mappings:
+        - tool_pattern: "execute_payment|transfer_funds|debit_account"
+          noun:
+            type: "FinancialAccount"
+            entity_id_field: "account_id"
+            domain: "banking"
+          verb:
+            action: "DEBIT"
+            mutation_type: "MUTATING_STATE"
+            idempotency_required: true
+        - tool_pattern: "credit_account|deposit_funds"
+          noun:
+            type: "FinancialAccount"
+            entity_id_field: "account_id"
+            domain: "banking"
+          verb:
+            action: "CREDIT"
+            mutation_type: "MUTATING_STATE"
+            idempotency_required: true
+        - tool_pattern: "update_ledger|write_journal|record_transaction"
+          noun:
+            type: "LedgerEntry"
+            entity_id_field: "entry_id"
+            domain: "core_ledger"
+          verb:
+            action: "APPEND"
+            mutation_type: "MUTATING_STATE"
+            idempotency_required: true
+        - tool_pattern: "query_balance|get_account_status|read_record"
+          noun:
+            type: "FinancialAccount"
+            entity_id_field: "account_id"
+            domain: "banking"
+          verb:
+            action: "READ"
+            mutation_type: "IDEMPOTENT_READ"
+            idempotency_required: false
+
+  # ---------------------------------------------------------------------------
+  # Deterministic Action Identity: CAID Mathematical Derivation
+  # ---------------------------------------------------------------------------
+  # Binds target business entity, primitive action verb, and canonical payload:
+  #   CAID = H(Noun_EntityID || Verb_Action || JCS(Payload))
+  # where H is cryptographic SHA-256 and JCS is RFC 8785 JSON Canonicalization.
+  caid_derivation:
+    formula: "CAID = H(Noun_EntityID || Verb_Action || JCS(Payload))"
+    specification:
+      hash_algorithm: "SHA-256"
+      canonicalization: "RFC 8785 (JSON Canonicalization Scheme - JCS)"
+      concatenation_delimiter: "::"
+      encoding: "UTF-8"
+      output_format: "sha256:{hex_digest}"
+      description: "Cryptographic Action Identifier binding target business entity, primitive action verb, and RFC 8785 canonical JSON payload, preventing semantic drift bypass during LLM retry loops."
+
+# -----------------------------------------------------------------------------
+# 7-State Disposition Taxonomy:
+# 1. OUTCOME_VERIFIED
+# 2. DISPATCHED_UNCONFIRMED
+# 3. RECONCILIATION_NOT_FOUND
+# 4. RECONCILIATION_FAILED
+# 5. RECONCILIATION_CONFLICT
+# 6. CONTEXT_POLICY_VIOLATION
+# 7. AUTHORITY_NOT_BOUND
+# -----------------------------------------------------------------------------
+
+rules:
+  - id: "RULE-05-CONFLICT"
+    priority: 10
+    match:
+      transport_code: 409
+      probe_status: "STATE_CONFLICT"
+    target_disposition: "RECONCILIATION_CONFLICT"
+    retry_policy: "PROHIBITED_LOCK_RECORD"
+    description: "Reconciliation conflict: multiple or conflicting state records detected downstream."
+
+  - id: "RULE-06-CONTEXT-REFUSED"
+    priority: 15
+    match:
+      transport_code: 403
+      probe_status: "NOT_DISPATCHED"
+    target_disposition: "CONTEXT_POLICY_VIOLATION"
+    retry_policy: "PROHIBITED_POLICY_BLOCK"
+    description: "Context policy violation: agent proposed action exceeding bounded execution parameters."
+
+  - id: "RULE-07-AUTHORITY-EXPIRED"
+    priority: 15
+    match:
+      transport_code: 401
+      probe_status: "NOT_DISPATCHED"
+    target_disposition: "AUTHORITY_NOT_BOUND"
+    retry_policy: "PROHIBITED_REAUTH_REQUIRED"
+    description: "Authority not bound: authority credential was stale, unmeasured, or expired at release point."
+
+  - id: "RULE-04-PAYLOAD-MISMATCH"
+    priority: 20
+    match:
+      transport_code: 504
+      probe_status: "PAYLOAD_MISMATCH"
+    target_disposition: "RECONCILIATION_FAILED"
+    retry_policy: "PROHIBITED_ESCALATE_AUDIT"
+    description: "Reconciliation failed: downstream ledger record does not match signed dispatch payload hash."
+
+  - id: "RULE-02B-504-RECONCILED"
+    priority: 25
+    match:
+      transport_code: 504
+      probe_status: "FOUND_COMMITTED"
+    target_disposition: "OUTCOME_VERIFIED"
+    retry_policy: "PROHIBITED_ALREADY_COMMITTED"
+    description: "Reconciled after timeout: out-of-band probe confirmed transaction successfully committed."
+
+  - id: "RULE-03-RESET-NOT-FOUND"
+    priority: 25
+    match:
+      transport_code: 504
+      probe_status: "RECORD_NOT_FOUND"
+    target_disposition: "RECONCILIATION_NOT_FOUND"
+    retry_policy: "PERMITTED_UNDER_HUMAN_APPROVAL"
+    description: "Reconciliation not found: out-of-band probe confirmed transaction never persisted; safe to re-dispatch."
+
+  - id: "RULE-02A-504-AMBIGUOUS"
+    priority: 30
+    match:
+      transport_code: 504
+      probe_status: "AWAITING_OPERATOR_PROBE"
+    target_disposition: "DISPATCHED_UNCONFIRMED"
+    retry_policy: "PROHIBITED_AWAITING_PROBE"
+    description: "Ambiguous dispatch: HTTP 504 timeout encountered; retry prohibited until probe is run."
+
+  - id: "RULE-01-CONFIRMED"
+    priority: 50
+    match:
+      transport_code: 200
+      probe_status: "NOT_REQUIRED"
+    target_disposition: "OUTCOME_VERIFIED"
+    retry_policy: "NOT_APPLICABLE_COMPLETED"
+    description: "Confirmed execution: downstream 200 OK ACK with synchronous commit verification."

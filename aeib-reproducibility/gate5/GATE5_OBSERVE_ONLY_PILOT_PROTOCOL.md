@@ -17,8 +17,8 @@ Gate 5 cannot be initiated until all four prior gates are verified:
 | Prerequisite Gate | Required Artifact / Evidence | Status |
 | :--- | :--- | :--- |
 | **Gate 1 — Working Core** | Hosted CI run [`38055110173`](https://github.com/smaos-ai/aeib/actions/runs/38055110173) (`./gradlew clean test --no-daemon`) | **Passed** |
-| **Gate 2 — Reproducible Artifacts** | [SLSA_INPUT_CONTRACT.md](file:///Users/andriileukhin/Documents/SovereignNexus/aeib-reproducibility/slsa/SLSA_INPUT_CONTRACT.md), [bom.json](file:///Users/andriileukhin/Documents/SovereignNexus/aeib-reproducibility/evidence/v1.0.0-rc.1/bom.json), [gradle.lockfile](file:///Users/andriileukhin/Documents/SovereignNexus/aeib-reproducibility/evidence/v1.0.0-rc.1/gradle.lockfile), [multiple.intoto.jsonl](file:///Users/andriileukhin/Documents/SovereignNexus/aeib-reproducibility/evidence/v1.0.0-rc.1/multiple.intoto.jsonl) | **Passed in Hosted CI** |
-| **Gate 4 — Real-Target Fault Injection** | Hosted CI run [`38055279949`](https://github.com/smaos-ai/aeib/actions/runs/38055279949) & [verifier_transcript.txt](file:///Users/andriileukhin/Documents/SovereignNexus/aeib-reproducibility/evidence/v1.0.0-rc.1/verifier_transcript.txt) (`1 mutation, 1 dispatch, 1 probe, 0 retry mutations`; valid exit `0`, tampered exit `2`) | **Passed** |
+| **Gate 2 — Reproducible Artifacts** | [SLSA_INPUT_CONTRACT.md](../slsa/SLSA_INPUT_CONTRACT.md), [bom.json](../evidence/v1.0.0-rc.1/bom.json), [gradle.lockfile](../evidence/v1.0.0-rc.1/gradle.lockfile), [multiple.intoto.jsonl](../evidence/v1.0.0-rc.1/multiple.intoto.jsonl) | **Passed in Hosted CI** |
+| **Gate 4 — Real-Target Fault Injection** | Hosted CI run [`38055279949`](https://github.com/smaos-ai/aeib/actions/runs/38055279949) & [verifier_transcript.txt](../evidence/v1.0.0-rc.1/verifier_transcript.txt) (`1 mutation, 1 dispatch, 1 probe, 0 retry mutations`; valid exit `0`, tampered exit `2`) | **Passed** |
 | **Gate 3 — Independent Reproduction** | `third_party_verification_transcript.txt` executed from signed tag `v1.0.0-rc.1` under `network_mode: none` by a separate party | **Pending (Entry Blocker)** |
 
 ---

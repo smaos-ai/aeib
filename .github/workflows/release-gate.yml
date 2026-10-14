@@ -1,0 +1,30 @@
+name: Deterministic Fail-Closed Release Gate Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  release-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run Release Gate Pipeline
+        run: |
+          chmod +x scripts/release-gate.sh
+          ./scripts/release-gate.sh
+
+      - name: Upload Release Archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: aeib-enterprise-v1.0
+          path: dist/aeib-enterprise-v1.0.tar.gz

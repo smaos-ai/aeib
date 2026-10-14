@@ -1,0 +1,86 @@
+name: "AEIB Cross-Platform Multi-Environment Matrix CI"
+
+on:
+  push:
+    branches: ["main", "release/**"]
+    tags: ["v*"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  matrix-substrate-test:
+    name: "Substrate (${{ matrix.os }} / Python ${{ matrix.python-version }})"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["ubuntu-24.04", "macos-14", "macos-15"]
+        python-version: ["3.12", "3.13", "3.14"]
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: aeib_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        # Services only run on Linux container environments
+        if: startsWith(matrix.os, 'ubuntu')
+
+    steps:
+      - name: "Checkout Code"
+        uses: actions/checkout@v4
+
+      - name: "Set up Python ${{ matrix.python-version }}"
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+          cache-dependency-path: |
+            requirements.txt
+            pyproject.toml
+
+      - name: "Install Core Dependencies"
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest cryptography pyyaml psycopg2-binary pydantic
+
+      - name: "Gate 1: Zero-Mock AST Quality Gate & Audit Pack Verifier"
+        run: |
+          python verify-audit-pack.py
+
+      - name: "Gate 2: Moat Quality Gate Monitor (All 6 Moats)"
+        run: |
+          python scripts/monitor_moat_quality_gate.py
+
+      - name: "Gate 3: Negative Vectors & Fault Injection Suite"
+        run: |
+          python -m pytest benchmarks/fault_injection/test_negative_vectors.py -v
+
+      - name: "Gate 4: MCP Proxy, Observability & Multi-Tenant Tests"
+        run: |
+          python -m pytest tests/test_aeib_mcp_proxy.py tests/test_observability.py tests/test_soak_test_long_haul.py tests/test_multi_tenant_governor.py tests/test_universal_agent_adapter.py -v
+
+      - name: "Gate 5: AEGIS Long-Haul Soak Test (FL-004 Zero-Duplicates Invariant)"
+        run: |
+          python benchmarks/soak_test_long_haul.py --smoke --csv-out dist/soak_telemetry_${{ matrix.os }}_py${{ matrix.python-version }}.csv
+
+      - name: "Upload Soak Telemetry Artifact"
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: soak-telemetry-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: dist/soak_telemetry_*.csv
+          if-no-files-found: ignore

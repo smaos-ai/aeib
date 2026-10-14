@@ -56,7 +56,7 @@
 [*] Scope Notice 2    : This is a local developer preflight, NOT a clean-room
                         reproduction and NOT a substitute for hosted-CI success.
 [*] Timestamp (UTC)   : 2026-10-10T15:24:24Z
-[*] Source Repository : /Users/andriileukhin/Documents/SovereignNexus
+[*] Source Repository : <REPO_ROOT>
 [*] HEAD Commit SHA   : b2166a3ffc8f9535a4299dac382dad12ffce85ec
 
 [1/6] Creating committed-tree archive from HEAD via git archive...

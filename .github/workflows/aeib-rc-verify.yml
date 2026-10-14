@@ -92,7 +92,7 @@ jobs:
         with:
           subject-path: |
             release-artifacts/bom.json
-            release-artifacts/aeib-verifier/lib/aeib-verifier-1.0.0-rc.1.jar
+            release-artifacts/aeib-verifier/lib/aeib-verifier-1.0.0-rc.3.jar
 
   verify-receipt-offline:
     needs: build-and-test

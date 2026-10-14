@@ -3,10 +3,10 @@
 [*] Notice              : Local developer verification transcript (NOT independent third-party clean-room reproduction).
 [*] Gate 3 Status       : Gate 3 remains pending and is not called complete until separate-party reproduction evidence from the signed tag exists.
 [*] Timestamp (UTC)     : 2026-10-10T16:08:35Z
-[*] Runner Identity     : andriileukhin@andriis-MacBook-Pro.local
+[*] Runner Identity     : local-developer@darwin-arm64
 [*] Host OS & Arch      : Darwin 25.6.0 arm64
 [*] Docker Image Digest : capture-on-host-via-docker-images-digests
-[*] Working Directory   : /Users/andriileukhin/Documents/SovereignNexus
+[*] Working Directory   : <REPO_ROOT>
 [*] Git Commit SHA      : b2166a3ffc8f9535a4299dac382dad12ffce85ec
 [*] Git Tag Reference   : v1.0.0-rc.1
 

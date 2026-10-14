@@ -53,9 +53,9 @@ jobs:
       - name: Reproducible Build-Twice-and-Diff Check (Action 19)
         run: |
           set -euo pipefail
-          SHA_BUILD_1=$(sha256sum aeib-native-runtime/aeib-verifier/build/libs/aeib-verifier-1.0.0-rc.1.jar | awk '{print $1}')
+          SHA_BUILD_1=$(sha256sum aeib-native-runtime/aeib-verifier/build/libs/aeib-verifier-1.0.0-rc.3.jar | awk '{print $1}')
           ./gradlew :aeib-verifier:jar --rerun-tasks --no-daemon
-          SHA_BUILD_2=$(sha256sum aeib-native-runtime/aeib-verifier/build/libs/aeib-verifier-1.0.0-rc.1.jar | awk '{print $1}')
+          SHA_BUILD_2=$(sha256sum aeib-native-runtime/aeib-verifier/build/libs/aeib-verifier-1.0.0-rc.3.jar | awk '{print $1}')
           echo "Build 1 SHA-256: $SHA_BUILD_1"
           echo "Build 2 SHA-256: $SHA_BUILD_2"
           if [ "$SHA_BUILD_1" != "$SHA_BUILD_2" ]; then
@@ -80,7 +80,7 @@ jobs:
         run: |
           mkdir -p release-artifacts
           cp aeib-native-runtime/aeib-verifier/build/install/aeib-verifier/bin/aeib-verifier release-artifacts/aeib-verifier
-          cp aeib-native-runtime/aeib-verifier/build/libs/aeib-verifier-1.0.0-rc.1.jar release-artifacts/
+          cp aeib-native-runtime/aeib-verifier/build/libs/aeib-verifier-1.0.0-rc.3.jar release-artifacts/
           cp aeib-native-runtime/build/reports/bom.json release-artifacts/
           cp AEIB-RECEIPT-SPEC.md release-artifacts/
           cp benchmarks/jvm_native_diff_engine.py release-artifacts/

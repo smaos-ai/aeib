@@ -32,7 +32,7 @@ jobs:
         run: |
           mkdir -p release-artifacts
           cp aeib-native-runtime/aeib-verifier/build/install/aeib-verifier/bin/aeib-verifier release-artifacts/aeib-verifier
-          cp aeib-native-runtime/aeib-verifier/build/libs/aeib-verifier-1.0.0-rc.1.jar release-artifacts/
+          cp aeib-native-runtime/aeib-verifier/build/libs/aeib-verifier-1.0.0-rc.3.jar release-artifacts/
           tar -czf release-artifacts/aeib-verifier-dist.tar.gz -C aeib-native-runtime/aeib-verifier/build/install aeib-verifier
           cp aeib-native-runtime/build/reports/bom.json release-artifacts/
           cp AEIB-RECEIPT-SPEC.md release-artifacts/

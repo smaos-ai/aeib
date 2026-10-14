@@ -1,58 +1,85 @@
 #!/usr/bin/env bash
 ###############################################################################
-# AEIB v1.1 Stage 0 Local Pre-Flight Gate (.githooks/pre-push)
+# AEIB Stage 0 Local Pre-Push Defense-in-Depth Gate (.githooks/pre-push)
 #
 # Evaluates local repository state prior to push under the stated model:
-#   1. Secret scanning via Gitleaks (or AST/Zero-Mock compliance fallback)
-#   2. Gradle verification suite (./gradlew test --no-daemon)
-#   3. Optional local GitHub Actions container verification via `act` on
+#   1. Secret scanning via Gitleaks AND deterministic regex pattern scan
+#   2. Forbidden private file blocklist check against tracked git index
+#   3. Python AST & Zero-Mock compliance verification
+#   4. Gradle verification suite (./gradlew test --no-daemon) when present
+#   5. Optional local GitHub Actions container verification via `act` on
 #      Apple Silicon (M3 Pro) when AEIB_RUN_ACT=1 is configured.
 #
 # Activation:
 #   git config core.hooksPath .githooks
+#   cp .githooks/pre-push .git/hooks/pre-push && chmod +x .git/hooks/pre-push
 ###############################################################################
 set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 cd "$REPO_ROOT"
 
-echo "[Stage 0] Starting AEIB v1.1 pre-push verification gate..."
+echo "🔒 [PRE-PUSH] Running security & secret leak scan before push..."
 
-# 1. Secret & AST Purity Check
+# 1. Run Gitleaks if installed
 if command -v gitleaks >/dev/null 2>&1; then
-    echo "[Stage 0] Running gitleaks secret scan..."
-    gitleaks protect --staged --redact
+    echo "   -> Running gitleaks secret scan..."
+    gitleaks protect --verbose --staged --redact
 else
-    echo "[Stage 0] gitleaks not detected; evaluating AST & zero-mock compliance..."
-    python3 compliance/ast_purity.py . && python3 compliance/no_mock_enforcer.py
+    echo "   -> gitleaks not installed; running regex secret pattern scan..."
 fi
 
-# 2. Always verify Python AST & Zero-Mock compliance if gitleaks ran above
-if command -v gitleaks >/dev/null 2>&1; then
-    echo "[Stage 0] Evaluating AST & zero-mock compliance..."
-    python3 compliance/ast_purity.py . && python3 compliance/no_mock_enforcer.py
+# 2. High-entropy / secret pattern scan on staged & HEAD commit diffs
+if git diff --cached -U0 | grep -E -i '(sk-[a-zA-Z0-9]{32,}|ghp_[a-zA-Z0-9]{36}|AKIA[0-9A-Z]{16}|-----BEGIN (OPENSSH |ENCRYPTED |EC |RSA |DSA )?PRIVATE KEY-----)' >/dev/null 2>&1; then
+    echo "❌ [BLOCKED] Potential secret or private key detected in staged diff!" >&2
+    exit 1
 fi
 
-# 3. Gradle Test Suite Execution
-if [ -x "./gradlew" ]; then
-    echo "[Stage 0] Running ./gradlew test --no-daemon..."
+# 3. Block forbidden private files if tracked in the git index
+FORBIDDEN_FILES=(
+    ".env"
+    ".env.production"
+    ".claude/settings.local.json"
+    ".claude/settings.json"
+    "cosign.key"
+    "release-key.pem"
+    "id_ed25519"
+    "id_rsa"
+    "LP_TARGET_LIST.csv"
+    "OUTREACH_TRACKING.csv"
+)
+BLOCKED_TRACKED=0
+for f in "${FORBIDDEN_FILES[@]}"; do
+    if git diff --cached --name-only | grep -E "^${f}$" >/dev/null 2>&1; then
+        echo "❌ [BLOCKED] Forbidden private file '$f' is staged for commit/push! Run: git reset HEAD \"$f\"" >&2
+        BLOCKED_TRACKED=1
+    fi
+done
+if [ "$BLOCKED_TRACKED" -ne 0 ]; then
+    exit 1
+fi
+
+# 4. Evaluate Python AST & Zero-Mock compliance
+echo "   -> Evaluating AST & zero-mock compliance..."
+python3 compliance/ast_purity.py . && python3 compliance/no_mock_enforcer.py
+
+# 5. Gradle Test Suite Execution (if Java runtime and root wrapper are present)
+if [ -x "./gradlew" ] && [ -n "${JAVA_HOME:-}" ] && [ -x "${JAVA_HOME}/bin/java" ]; then
+    echo "   -> Running ./gradlew test --no-daemon..."
     ./gradlew test --no-daemon
-elif [ -f "./gradlew" ]; then
-    echo "[Stage 0] Running bash ./gradlew test --no-daemon..."
-    bash ./gradlew test --no-daemon
-else
-    echo "[Stage 0] Notice: ./gradlew not present in root; skipping Gradle task in scaffold mode."
+elif [ -x "./gradlew" ]; then
+    echo "   -> Note: Executable Java binary not found under JAVA_HOME; skipping local Gradle test."
 fi
 
-# 4. Optional Local GitHub Actions Verification via `act` (Apple Silicon M3 Pro)
+# 6. Optional Local GitHub Actions Verification via `act` (Apple Silicon M3 Pro)
 if [ "${AEIB_RUN_ACT:-0}" = "1" ]; then
     if ! command -v act >/dev/null 2>&1; then
-        echo "[Stage 0] Error: AEIB_RUN_ACT=1 is set, but 'act' is not installed." >&2
+        echo "❌ [BLOCKED] AEIB_RUN_ACT=1 is set, but 'act' is not installed." >&2
         exit 1
     fi
-    echo "[Stage 0] Executing local workflow via act (linux/arm64, -Xmx8g)..."
+    echo "   -> Executing local workflow via act (linux/arm64, -Xmx8g)..."
     act -j clean-test --container-architecture linux/arm64 --env _JAVA_OPTIONS="-Xmx8g"
 fi
 
-echo "[Stage 0] Pre-push verification checks completed."
+echo "✅ [PRE-PUSH] Security scan passed. Proceeding with push."
 exit 0

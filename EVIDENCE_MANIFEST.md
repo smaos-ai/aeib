@@ -261,6 +261,24 @@ $$\text{IsStale} \iff (t_{\text{current}} - t_{\text{source}} > \text{TTL}) \lor
   ```
 * **Refused Concepts:** Theological/mystical vocabulary, moral agency claims, cognitive-layer enforcement, and unfalsifiable AI-generated topology diagrams.
 * **`v1.1` Backlog Prerequisites:** Trust anchor rotation, per-operation truth trail (`GET /operations/{opId}/trail`), declared enforcement levels (`STRICT_FAIL_CLOSED`, `AUDIT_ONLY`, `DEGRADED_PERMITTED`), and constitutional amendment logging require explicit schemas and transition rules prior to implementation.
+* **Containment vs. Action Governance (Operational Allocation):**
+  - **LiteBox / OS Containment:** L2–L4 system-call interception and host attack-surface reduction. Evaluates binary allow/deny on low-level OS operations (file paths, sockets, kernel interface). Emits ephemeral host logs. Experimental lifecycle (v0.1.0; interfaces subject to change).
+  - **AEIB Wire Governance:** L7 consequential action authorization, transport ambiguity latching (`EFFECT_INDETERMINATE`), bounded reconciliation (`ProbeBudget: 1`), and RFC 8785 canonical, Ed25519-signed `ContinuityReceipt` linear hash chains.
+  - **Key Distinction:** Containment constrains *where and how* code runs on the host OS; AEIB determines *whether a specific consequential action may take place* across the network wire and records verifiable evidence of the outcome.
+* **Sandbox Interaction Topologies (Inside, Beside, Outside):**
+  - **Option 1: Inside Sandbox (REJECTED):** Running AEIB inside the guest/container alongside the agent shares the compromise and crash failure domain; rejected for high-consequence actions.
+  - **Option 2: Beside Sandbox (RECOMMENDED Sidecar Pattern):** The agent executes inside the sandbox (LiteBox, microVM, container); network access is restricted exclusively to a local IPC or loopback channel routed to an out-of-process AEIB sidecar. LiteBox enforces syscall/kernel confinement; AEIB evaluates semantic action authorization, commits pre-dispatch intent, opens the external socket, and handles transport ambiguity.
+  - **Option 3: Hypervisor Edge (MULTI-TENANT):** AEIB sits at the host hypervisor egress gateway (Firecracker / gVisor host), intercepting guest virtual network traffic to govern external API writes across multiple sandboxed worker instances.
+* **Codified Epistemic Corrections:**
+  - *"Containment is a major, actively evolving agent-security concern across cloud platforms."* (Replaces claims of containment commoditization).
+  - *"Platform vendors are developing diverse, often experimental containment and isolation primitives."* (Replaces category saturation claims).
+  - *"Rust is increasingly utilized in security-sensitive systems programming (e.g., LiteBox), but does not constitute an industry-wide standard."*
+  - *"Containment and action governance are complementary, requiring explicit separation of concerns for network egress, credentials, and syscall handling."*
+  - *"Hardware-backed CVM attestation (such as AMD SEV-SNP or Intel TDX) is a candidate research profile; key custody and quote verification are not verified in v1.0."*
+  - *"AEIB targets a specific, narrow combination of pre-dispatch intent binding, transport ambiguity latching, and offline-verifiable receipts."*
+* **v1.1 Research Candidates:**
+  - *Sandbox Deployment Profile:* Define a formal integration specification for deploying AEIB alongside sandboxed runtimes (LiteBox, Firecracker, gVisor), detailing socket-delegation boundaries and credential isolation.
+  - *Confidential Computing Scaffolding:* Formalize key-custody models, measurement bindings, and quote-verification requirements before making claims regarding hardware enclave attestation.
 
 ## Financial & Transport Ambiguity Contract
 ```text

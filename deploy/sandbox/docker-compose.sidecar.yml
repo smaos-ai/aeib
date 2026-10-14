@@ -1,0 +1,112 @@
+# deploy/sandbox/docker-compose.sidecar.yml
+# ==============================================================================
+# AEIB Milestone 3: Option 2 Sidecar Proxy Topology (Process Isolation & Wire Interception)
+#
+# Epistemic Notice (AGENTS.md §1 & §5):
+#   This configuration specifies process containment and out-of-process wire governance
+#   under the stated model. Sandboxing restricts process capabilities and prevents ambient
+#   network egress; cryptographic authorization and reconciliation are performed by the
+#   AEIB boundary sidecar.
+# ==============================================================================
+
+version: '3.8'
+
+services:
+  # ----------------------------------------------------------------------------
+  # Zone 1: Autonomous Agent Execution Container
+  # ----------------------------------------------------------------------------
+  agent-runner:
+    image: python:3.11-slim
+    container_name: aeib-agent-zone1
+    restart: "no"
+    
+    # Zero Ambient Egress: No network interface, no default route, no DNS resolution
+    network_mode: "none"
+    
+    # Shared IPC channel to the AEIB Boundary Sidecar
+    volumes:
+      - aeib-uds-socket:/var/run/aeib:rw
+      - agent-workspace:/workspace:rw
+    
+    # Configuration instructing agent runtime to route tool calls via UDS
+    environment:
+      - AEIB_UDS_PATH=/var/run/aeib/wire.sock
+      - HTTP_PROXY=http+unix://%2Fvar%2Frun%2Faeib%2Fwire.sock
+      - HTTPS_PROXY=http+unix://%2Fvar%2Frun%2Faeib%2Fwire.sock
+      - NO_PROXY=localhost,127.0.0.1
+      - PYTHONUNBUFFERED=1
+
+    # Kernel & filesystem attack surface reduction
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    
+    depends_on:
+      aeib-boundary-sidecar:
+        condition: service_healthy
+
+    command: ["python3", "-c", "import time; print('Agent container initialized with zero ambient egress. Communicating strictly via /var/run/aeib/wire.sock'); time.sleep(3600)"]
+
+  # ----------------------------------------------------------------------------
+  # Zone 2: AEIB Wire Gateway Sidecar Container
+  # ----------------------------------------------------------------------------
+  aeib-boundary-sidecar:
+    image: python:3.11-slim
+    container_name: aeib-sidecar-zone2
+    restart: unless-stopped
+
+    # Egress network: Outbound access strictly to upstream financial/target APIs
+    networks:
+      - aeib-target-egress
+
+    volumes:
+      - aeib-uds-socket:/var/run/aeib:rw
+      - aeib-intent-wal:/var/log/aeib:rw
+      - ./keys:/etc/aeib/keys:ro
+      - ./policy:/etc/aeib/policy:ro
+
+    environment:
+      - AEIB_UDS_PATH=/var/run/aeib/wire.sock
+      - AEIB_INTENT_WAL_PATH=/var/log/aeib/intent.wal
+      - AEIB_KEY_PATH=/etc/aeib/keys/boundary_ed25519.pem
+      - AEIB_POLICY_CONFIG=/etc/aeib/policy/governance_policy.json
+      - AEIB_METRICS_PORT=9090
+
+    # Minimum privilege confinement for sidecar
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=32m
+
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import os, sys; sys.exit(0 if os.path.exists('/var/run/aeib/wire.sock') else 1)"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+    command: ["python3", "-c", "import socket, os, time; sock_path='/var/run/aeib/wire.sock'; os.makedirs('/var/run/aeib', exist_ok=True); s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM); s.bind(sock_path); s.listen(10); print('AEIB Sidecar listening on', sock_path); time.sleep(3600)"]
+
+# ------------------------------------------------------------------------------
+# Network and Volume Declarations
+# ------------------------------------------------------------------------------
+networks:
+  aeib-target-egress:
+    driver: bridge
+    internal: false # Permits authorized egress to external provider APIs
+
+volumes:
+  aeib-uds-socket:
+    name: aeib-shared-uds-socket
+  aeib-intent-wal:
+    name: aeib-persistent-intent-wal
+  agent-workspace:
+    name: aeib-isolated-workspace

@@ -394,7 +394,7 @@ class DurableDispatchJournal:
 # ------------------------------------------------------------------------------
 class PersistentSingleUseTicketStore:
     """
-    Guarantees tickets are consumed once-and-only-once across restart boundaries.
+    Enforces under the stated model that tickets are consumed once-and-only-once across restart boundaries.
     """
     def __init__(self, storage_path: Path):
         self.storage_path = storage_path

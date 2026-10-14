@@ -2757,3 +2757,2031 @@ class ContextModeScriptInterfaceSandbox:
         }
 
 
+class SignedDeploymentProfileGate:
+    """Policy-Driven Signal Activation & Anti-Self-Authorization Boundary Gate.
+
+    Enforces the AEIB deployment profile invariant:
+      - Policy selects signals; configuration binds them to action classes.
+      - The boundary evaluates an operator-signed profile before dispatch.
+      - The agent supplies a CandidateAction; it cannot enable, disable, or bypass
+        enforcement, alter probe_budget, suppress a receipt, alter policy_epoch,
+        mark itself authorized, or self-declare a state-mutating tool read-only
+        (including via untrusted MCP `readOnlyHint: true` annotations).
+      - Dynamic tool discovery (`tools/list`) does not create authority; discovered
+        tools must match an owner-enabled, schema-pinned manifest entry.
+    """
+
+    FORBIDDEN_AGENT_CONTROL_KEYS: Tuple[str, ...] = (
+        "indeterminate_reconciliation",
+        "enable_signal_10",
+        "disable_signal_10",
+        "probe_budget",
+        "authorized",
+        "standing_verified",
+        "self_authorized",
+        "suppress_receipt",
+        "omit_receipt",
+        "override_policy_epoch",
+        "set_policy_epoch",
+        "credential_isolation",
+        "bypass_credential_isolation",
+        "action_class",
+        "self_declared_read_only",
+    )
+
+    AMBIGUOUS_TRANSPORT_OUTCOMES: Tuple[str, ...] = (
+        "HTTP_504",
+        "TCP_RST",
+        "TIMEOUT",
+        "UNREADABLE_RESPONSE",
+    )
+
+    @classmethod
+    def mint_signed_profile(
+        cls,
+        *,
+        operator_signing_key: Ed25519PrivateKey,
+        profile: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        action_class = str(profile.get("action_class", ""))
+        if action_class not in {
+            "state_mutating_http",
+            "state_mutating_mcp",
+            "read_only_query",
+        }:
+            raise GovernanceHaltError(f"Unsupported action_class in profile: {action_class!r}")
+
+        is_mutating = action_class.startswith("state_mutating")
+        normalized_profile = {
+            "action_class": action_class,
+            "anti_spec_gaming_reconciliation": bool(
+                profile.get("anti_spec_gaming_reconciliation", is_mutating)
+            ),
+            "bpf_lsm_diagnostic": bool(profile.get("bpf_lsm_diagnostic", False)),
+            "bulk_output_isolation": bool(profile.get("bulk_output_isolation", False)),
+            "credential_isolation": bool(profile.get("credential_isolation", True)),
+            "epoch_freshness": bool(profile.get("epoch_freshness", True)),
+            "hardware_attestation": bool(profile.get("hardware_attestation", False)),
+            "human_step_up": str(profile.get("human_step_up", "out_of_grant_only")),
+            "indeterminate_reconciliation": bool(
+                profile.get("indeterminate_reconciliation", is_mutating)
+            ),
+            "manifest_gate": bool(profile.get("manifest_gate", True)),
+            "probe_budget": int(profile.get("probe_budget", 1 if is_mutating else 0)),
+            "receipt_chain_and_verifier": bool(
+                profile.get("receipt_chain_and_verifier", True)
+            ),
+            "standing_dispatch_interlock": bool(
+                profile.get("standing_dispatch_interlock", is_mutating)
+            ),
+            "strip_reasoning_fields": bool(profile.get("strip_reasoning_fields", True)),
+            "typed_pre_dispatch_mcp_oauth_gate": bool(
+                profile.get("typed_pre_dispatch_mcp_oauth_gate", True)
+            ),
+        }
+        if is_mutating and not normalized_profile["indeterminate_reconciliation"]:
+            raise GovernanceHaltError(
+                "State-mutating action class profile must keep indeterminate_reconciliation enabled"
+            )
+        if normalized_profile["probe_budget"] < 0:
+            raise GovernanceHaltError("probe_budget must be non-negative")
+
+        profile_bytes = encode_jcs(normalized_profile)
+        profile_caid = hashlib.sha256(profile_bytes).hexdigest()
+        sig_hex = operator_signing_key.sign(profile_bytes).hex()
+        return {
+            "operatorSignatureHex": sig_hex,
+            "profile": normalized_profile,
+            "profileCaid": profile_caid,
+        }
+
+    @classmethod
+    def evaluate_dispatch_under_profile(
+        cls,
+        *,
+        signed_profile: Dict[str, Any],
+        operator_public_key: Ed25519PublicKey,
+        pinned_manifest: Dict[str, Any],
+        candidate_action: Dict[str, Any],
+        active_policy_epoch: int,
+        active_source_epoch: int,
+        control_healthy: bool,
+        max_notional_limit: int,
+        transport_outcome: str = "HTTP_200",
+        receipt_signing_key: Optional[Ed25519PrivateKey] = None,
+    ) -> Dict[str, Any]:
+        # 1. Verify operator signature over deployment profile before dispatch
+        profile = signed_profile.get("profile", {})
+        sig_hex = str(signed_profile.get("operatorSignatureHex", ""))
+        profile_bytes = encode_jcs(profile)
+        expected_profile_caid = hashlib.sha256(profile_bytes).hexdigest()
+        if signed_profile.get("profileCaid") != expected_profile_caid:
+            raise GovernanceHaltError("DeploymentProfile CAID mismatch")
+        try:
+            operator_public_key.verify(bytes.fromhex(sig_hex), profile_bytes)
+        except (InvalidSignature, ValueError) as exc:
+            raise GovernanceHaltError(
+                "Invalid operator signature on DeploymentProfile"
+            ) from exc
+
+        # 2. Enforce the 7 off-limits rules: agent cannot alter its own governance profile
+        for key in cls.FORBIDDEN_AGENT_CONTROL_KEYS:
+            if key in candidate_action:
+                raise GovernanceHaltError(
+                    f"AGENT_SELF_AUTHORIZATION_ATTEMPT: candidate_action contains forbidden control-plane key {key!r}"
+                )
+
+        # 3. Verify pinned manifest & dynamic discovery rule ("Discovery does not create authority")
+        tool_name = str(candidate_action.get("tool_name", ""))
+        manifest_tools = pinned_manifest.get("tools", {})
+        if tool_name not in manifest_tools:
+            raise GovernanceHaltError(
+                f"DISCOVERY_DOES_NOT_CREATE_AUTHORITY: tool {tool_name!r} is not in pinned manifest"
+            )
+        pinned_tool = manifest_tools[tool_name]
+        if not pinned_tool.get("owner_enabled", False):
+            raise GovernanceHaltError(
+                f"DISCOVERY_DOES_NOT_CREATE_AUTHORITY: tool {tool_name!r} is not owner-enabled"
+            )
+        if candidate_action.get("discovered_schema_sha256") != pinned_tool.get(
+            "schema_sha256"
+        ):
+            raise GovernanceHaltError(
+                f"MCP_SCHEMA_RUG_PULL_DETECTED: schema digest mismatch for {tool_name!r}"
+            )
+
+        # Reject MCP readOnlyHint spoofing against state-mutating manifest classification
+        pinned_action_class = str(pinned_tool.get("action_class", ""))
+        mcp_annotations = candidate_action.get("mcp_annotations", {})
+        if (
+            pinned_action_class.startswith("state_mutating")
+            and mcp_annotations.get("readOnlyHint") is True
+        ):
+            raise GovernanceHaltError(
+                f"READ_ONLY_MASQUERADE_REJECTED: untrusted MCP readOnlyHint=True contradicts pinned {pinned_action_class!r}"
+            )
+        if pinned_action_class != profile.get("action_class"):
+            raise GovernanceHaltError(
+                f"Action class mismatch between pinned manifest ({pinned_action_class!r}) and profile ({profile.get('action_class')!r})"
+            )
+
+        # 4. Evaluate 6-term conjunctive pre-dispatch predicate:
+        #    manifest_valid AND grant_valid AND policy_epoch_fresh AND source_epoch_fresh
+        #    AND control_healthy AND risk_within_grant_limits
+        manifest_valid = True
+        grant_valid = bool(candidate_action.get("grant_valid", False))
+        policy_epoch_fresh = (
+            int(candidate_action.get("proposed_policy_epoch", -1)) == active_policy_epoch
+        )
+        source_epoch_fresh = (
+            int(candidate_action.get("proposed_source_epoch", -1)) == active_source_epoch
+        )
+        notional_amount = int(candidate_action.get("notional_amount", 0))
+        risk_within_grant_limits = 0 <= notional_amount <= max_notional_limit
+
+        if not (
+            manifest_valid
+            and grant_valid
+            and policy_epoch_fresh
+            and source_epoch_fresh
+            and control_healthy
+        ):
+            raise GovernanceHaltError(
+                "PRE_DISPATCH_STANDING_REJECTED: conjunctive standing predicate evaluated to False"
+            )
+
+        if not risk_within_grant_limits:
+            if profile.get("human_step_up") == "out_of_grant_only":
+                return {
+                    "actionClass": pinned_action_class,
+                    "preDispatchDecision": "STEP_UP_REQUIRED",
+                    "profileCaid": expected_profile_caid,
+                    "retrySafe": False,
+                }
+            raise GovernanceHaltError("Risk exceeds grant ceiling and step-up not enabled")
+
+        # 5. Strip reasoning fields if enabled in profile before computing wire CAID
+        raw_payload = dict(candidate_action.get("payload", {}))
+        if profile.get("strip_reasoning_fields", True):
+            wire_payload = ForkAndFlushContextBoundary().flush_reasoning(raw_payload)
+        else:
+            wire_payload = raw_payload
+        wire_caid = compute_caid(wire_payload)
+
+        # 6. Classify post-dispatch transport outcome according to action class & profile
+        if transport_outcome in cls.AMBIGUOUS_TRANSPORT_OUTCOMES:
+            if profile.get("indeterminate_reconciliation", False):
+                disposition = "EFFECT_INDETERMINATE"
+                retry_safe = False
+            else:
+                disposition = "TRANSPORT_ERROR_READ_ONLY"
+                retry_safe = True
+        elif transport_outcome == "HTTP_200":
+            disposition = "CONFIRMED"
+            retry_safe = False
+        else:
+            disposition = "REFUTED"
+            retry_safe = True
+
+        enabled_signals = sorted(
+            k for k, v in profile.items() if isinstance(v, bool) and v is True
+        )
+        receipt_statement = {
+            "actionClass": pinned_action_class,
+            "caid": wire_caid,
+            "disposition": disposition,
+            "enabledSignals": enabled_signals,
+            "policyEpoch": active_policy_epoch,
+            "preDispatchDecision": "AUTHORIZED",
+            "probeBudget": int(profile.get("probe_budget", 0)),
+            "profileCaid": expected_profile_caid,
+            "retrySafe": retry_safe,
+            "sourceEpoch": active_source_epoch,
+            "toolName": tool_name,
+        }
+        receipt_sig_hex = (
+            receipt_signing_key.sign(encode_jcs(receipt_statement)).hex()
+            if receipt_signing_key is not None
+            else ""
+        )
+        return {
+            "preDispatchDecision": "AUTHORIZED",
+            "profileCaid": expected_profile_caid,
+            "receiptSignatureHex": receipt_sig_hex,
+            "receiptStatement": receipt_statement,
+        }
+
+
+class NvidiaCandidateActionVerifier:
+    """NVIDIA NeMo Guardrails (IORails / Execution Rails) Candidate-Action Integration Prototype.
+
+    Implements the 4 required integration components under the stated model:
+      1. Candidate Schema: Validates `tool_call_id`, `tool_name`, `arguments`, and `rail_state`
+         against an operator-signed JSON schema contract without invoking extra LLM calls.
+      2. Verifier Trust Model: Verifies an Ed25519 operator signature over the execution rail
+         policy (`allowed_tools`, `required_arg_types`, `allowed_rail_states`).
+      3. Failure Behavior: Fails closed (`GovernanceHaltError` with `CANDIDATE_ACTION_REJECTED`)
+         on unapproved tool names, missing/mistyped arguments, or disallowed rail states.
+      4. Result Binding & Benchmark Harness: Verifies `tool_call_id` continuity on returned
+         tool outputs (`IORails` result validation) and evaluates deterministic candidate vectors.
+    """
+
+    @staticmethod
+    def mint_signed_rail_policy(
+        *,
+        operator_signing_key: Ed25519PrivateKey,
+        policy_id: str,
+        allowed_rail_states: Tuple[str, ...],
+        tool_schemas: Dict[str, Dict[str, str]],
+    ) -> Dict[str, Any]:
+        policy = {
+            "allowedRailStates": sorted(set(allowed_rail_states)),
+            "policyId": policy_id,
+            "toolSchemas": tool_schemas,
+        }
+        policy_bytes = encode_jcs(policy)
+        policy_caid = hashlib.sha256(policy_bytes).hexdigest()
+        sig_hex = operator_signing_key.sign(policy_bytes).hex()
+        return {
+            "operatorSignatureHex": sig_hex,
+            "policy": policy,
+            "policyCaid": policy_caid,
+        }
+
+    @classmethod
+    def verify_candidate_and_bind_result(
+        cls,
+        *,
+        signed_rail_policy: Dict[str, Any],
+        operator_public_key: Ed25519PublicKey,
+        candidate_action: Dict[str, Any],
+        tool_result: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        policy = signed_rail_policy.get("policy", {})
+        policy_bytes = encode_jcs(policy)
+        if signed_rail_policy.get("policyCaid") != hashlib.sha256(policy_bytes).hexdigest():
+            raise GovernanceHaltError("CANDIDATE_ACTION_REJECTED: rail policy CAID mismatch")
+        try:
+            operator_public_key.verify(
+                bytes.fromhex(str(signed_rail_policy.get("operatorSignatureHex", ""))),
+                policy_bytes,
+            )
+        except (InvalidSignature, ValueError) as exc:
+            raise GovernanceHaltError(
+                "CANDIDATE_ACTION_REJECTED: invalid operator signature on rail policy"
+            ) from exc
+
+        tool_call_id = str(candidate_action.get("tool_call_id", ""))
+        tool_name = str(candidate_action.get("tool_name", ""))
+        rail_state = str(candidate_action.get("rail_state", ""))
+        arguments = candidate_action.get("arguments")
+
+        if not tool_call_id or not tool_name or not isinstance(arguments, dict):
+            raise GovernanceHaltError(
+                "CANDIDATE_ACTION_REJECTED: malformed candidate_action envelope"
+            )
+        if rail_state not in set(policy.get("allowedRailStates", [])):
+            raise GovernanceHaltError(
+                f"CANDIDATE_ACTION_REJECTED: disallowed Colang/execution rail_state {rail_state!r}"
+            )
+        tool_schemas = policy.get("toolSchemas", {})
+        if tool_name not in tool_schemas:
+            raise GovernanceHaltError(
+                f"CANDIDATE_ACTION_REJECTED: tool {tool_name!r} not in signed rail policy"
+            )
+
+        expected_types = tool_schemas[tool_name]
+        if set(arguments.keys()) != set(expected_types.keys()):
+            raise GovernanceHaltError(
+                f"CANDIDATE_ACTION_REJECTED: argument keys {sorted(arguments.keys())} do not match schema {sorted(expected_types.keys())}"
+            )
+        for arg_name, expected_type in expected_types.items():
+            val = arguments[arg_name]
+            if expected_type == "int" and (not isinstance(val, int) or isinstance(val, bool)):
+                raise GovernanceHaltError(
+                    f"CANDIDATE_ACTION_REJECTED: argument {arg_name!r} failed strict int check"
+                )
+            if expected_type == "str" and not isinstance(val, str):
+                raise GovernanceHaltError(
+                    f"CANDIDATE_ACTION_REJECTED: argument {arg_name!r} failed strict str check"
+                )
+
+        candidate_caid = compute_caid(
+            {
+                "arguments": arguments,
+                "railState": rail_state,
+                "toolCallId": tool_call_id,
+                "toolName": tool_name,
+            }
+        )
+
+        if tool_result is not None:
+            if str(tool_result.get("tool_call_id", "")) != tool_call_id:
+                raise GovernanceHaltError(
+                    "IORAILS_RESULT_MISMATCH: tool_result tool_call_id does not match candidate"
+                )
+            if str(tool_result.get("tool_name", "")) != tool_name:
+                raise GovernanceHaltError(
+                    "IORAILS_RESULT_MISMATCH: tool_result tool_name does not match candidate"
+                )
+
+        return {
+            "candidateCaid": candidate_caid,
+            "decision": "CANDIDATE_VERIFIED",
+            "policyCaid": signed_rail_policy["policyCaid"],
+            "resultBound": tool_result is not None,
+            "toolCallId": tool_call_id,
+        }
+
+
+class UberMcpRegistryGate:
+    """Enterprise / Uber MCP Registry & `draft-sharif-mcps-secure-mcp` Manifest Gate Prototype.
+
+    Implements the 4 required registry governance controls:
+      1. Signed Manifest Format: RFC 8785 JCS canonicalization + Ed25519 publisher signature
+         over MCP `server.json` (`server_id`, `version`, `tools`, `issued_at_epoch`, `expires_at_epoch`).
+      2. Digest Pinning: Verifies the manifest SHA-256 digest against the deployment's pinned
+         allowlist (`MCP_DIGEST_PIN_MISMATCH` on post-approval rug pull).
+      3. Freshness Rules: Rejects manifests where `current_epoch > expires_at_epoch` or
+         `current_epoch < issued_at_epoch` (`MCP_MANIFEST_STALE`).
+      4. Revocation Semantics: Rejects manifests whose `manifest_sha256` or `publisher_key_id`
+         appears in the active revocation list (`MCP_MANIFEST_REVOKED`).
+    """
+
+    @staticmethod
+    def sign_server_manifest(
+        *,
+        publisher_signing_key: Ed25519PrivateKey,
+        publisher_key_id: str,
+        server_id: str,
+        version: str,
+        tools: Dict[str, Dict[str, Any]],
+        issued_at_epoch: int,
+        expires_at_epoch: int,
+    ) -> Dict[str, Any]:
+        manifest_body = {
+            "expiresAtEpoch": expires_at_epoch,
+            "issuedAtEpoch": issued_at_epoch,
+            "mcpsProfile": "draft-sharif-mcps-secure-mcp-01",
+            "publisherKeyId": publisher_key_id,
+            "serverId": server_id,
+            "tools": tools,
+            "version": version,
+        }
+        canonical_bytes = encode_jcs(manifest_body)
+        manifest_sha256 = hashlib.sha256(canonical_bytes).hexdigest()
+        sig_hex = publisher_signing_key.sign(canonical_bytes).hex()
+        return {
+            "manifestBody": manifest_body,
+            "manifestSha256": manifest_sha256,
+            "publisherSignatureHex": sig_hex,
+        }
+
+    @staticmethod
+    def verify_registry_entry(
+        *,
+        signed_manifest: Dict[str, Any],
+        publisher_public_key: Ed25519PublicKey,
+        pinned_server_digests: Dict[str, str],
+        current_epoch: int,
+        revoked_manifest_digests: Set[str],
+        revoked_publisher_keys: Set[str],
+    ) -> Dict[str, Any]:
+        body = signed_manifest.get("manifestBody", {})
+        canonical_bytes = encode_jcs(body)
+        computed_sha256 = hashlib.sha256(canonical_bytes).hexdigest()
+
+        if signed_manifest.get("manifestSha256") != computed_sha256:
+            raise GovernanceHaltError("MCP_MANIFEST_TAMPERED: computed SHA-256 mismatch")
+
+        publisher_key_id = str(body.get("publisherKeyId", ""))
+        if (
+            computed_sha256 in revoked_manifest_digests
+            or publisher_key_id in revoked_publisher_keys
+        ):
+            raise GovernanceHaltError(
+                f"MCP_MANIFEST_REVOKED: server {body.get('serverId')!r} or key {publisher_key_id!r} is revoked"
+            )
+
+        try:
+            publisher_public_key.verify(
+                bytes.fromhex(str(signed_manifest.get("publisherSignatureHex", ""))),
+                canonical_bytes,
+            )
+        except (InvalidSignature, ValueError) as exc:
+            raise GovernanceHaltError(
+                "MCP_MANIFEST_INVALID_SIGNATURE: Ed25519 signature verification failed"
+            ) from exc
+
+        server_id = str(body.get("serverId", ""))
+        expected_pin = pinned_server_digests.get(server_id)
+        if not expected_pin or expected_pin != computed_sha256:
+            raise GovernanceHaltError(
+                f"MCP_DIGEST_PIN_MISMATCH: server {server_id!r} digest {computed_sha256} != pinned {expected_pin}"
+            )
+
+        issued_at = int(body.get("issuedAtEpoch", 0))
+        expires_at = int(body.get("expiresAtEpoch", -1))
+        if current_epoch < issued_at or current_epoch > expires_at:
+            raise GovernanceHaltError(
+                f"MCP_MANIFEST_STALE: current_epoch={current_epoch} outside [{issued_at}, {expires_at}]"
+            )
+
+        return {
+            "admissionDecision": "ADMITTED",
+            "manifestSha256": computed_sha256,
+            "publisherKeyId": publisher_key_id,
+            "serverId": server_id,
+            "toolCount": len(body.get("tools", {})),
+        }
+
+
+class CrossAppStepUpEscalationGate:
+    """RFC 9470 Step-Up Authentication + OpenID CIBA / WebAuthn Action-Bound Escalation Prototype.
+
+    Implements the 4 required `STEP_UP` escalation components for cross-application mutations:
+      1. Human Approval Identity: Hardware-backed Ed25519 / WebAuthn-style assertion bound to
+         `approver_id`, `acr_level`, `source_app`, `target_app`, and exact `action_caid`.
+      2. Timeout Enforcement: Rejects approvals where `decision_epoch > challenge_expires_at_epoch`
+         (`STEP_UP_TIMEOUT`).
+      3. Replay Protection: Single-use `challenge_nonce` burn register preventing replay of a
+         previously signed human approval (`STEP_UP_REPLAY_BLOCKED`).
+      4. Audit Evidence Format: Emits an Ed25519-signed `STEP_UP_AUDIT_RECEIPT` binding the
+         RFC 9470 challenge, human assertion digest, and action CAID.
+    """
+
+    def __init__(self) -> None:
+        self._consumed_nonces: Set[str] = set()
+
+    @staticmethod
+    def mint_human_step_up_assertion(
+        *,
+        approver_signing_key: Ed25519PrivateKey,
+        approver_id: str,
+        acr_level: str,
+        challenge_nonce: str,
+        action_caid: str,
+        source_app: str,
+        target_app: str,
+        issued_at_epoch: int,
+        expires_at_epoch: int,
+    ) -> Dict[str, Any]:
+        assertion_body = {
+            "acrLevel": acr_level,
+            "actionCaid": action_caid,
+            "approverId": approver_id,
+            "challengeNonce": challenge_nonce,
+            "expiresAtEpoch": expires_at_epoch,
+            "issuedAtEpoch": issued_at_epoch,
+            "protocol": "RFC9470_CIBA_WEBAUTHN_COMMITMENT",
+            "sourceApp": source_app,
+            "targetApp": target_app,
+        }
+        canonical_bytes = encode_jcs(assertion_body)
+        sig_hex = approver_signing_key.sign(canonical_bytes).hex()
+        return {
+            "assertionBody": assertion_body,
+            "assertionSha256": hashlib.sha256(canonical_bytes).hexdigest(),
+            "approverSignatureHex": sig_hex,
+        }
+
+    def verify_step_up_and_mint_audit_receipt(
+        self,
+        *,
+        human_assertion: Dict[str, Any],
+        approver_public_key: Ed25519PublicKey,
+        ledger_signing_key: Ed25519PrivateKey,
+        expected_action_payload: Dict[str, Any],
+        expected_source_app: str,
+        expected_target_app: str,
+        required_acr_level: str,
+        decision_epoch: int,
+    ) -> Dict[str, Any]:
+        body = human_assertion.get("assertionBody", {})
+        canonical_bytes = encode_jcs(body)
+        try:
+            approver_public_key.verify(
+                bytes.fromhex(str(human_assertion.get("approverSignatureHex", ""))),
+                canonical_bytes,
+            )
+        except (InvalidSignature, ValueError) as exc:
+            raise GovernanceHaltError(
+                "STEP_UP_INVALID_SIGNATURE: human approver signature verification failed"
+            ) from exc
+
+        expected_caid = compute_caid(expected_action_payload)
+        if body.get("actionCaid") != expected_caid:
+            raise GovernanceHaltError(
+                "STEP_UP_CAID_MISMATCH: human approval was not signed for this exact action payload"
+            )
+        if (
+            body.get("sourceApp") != expected_source_app
+            or body.get("targetApp") != expected_target_app
+        ):
+            raise GovernanceHaltError(
+                "STEP_UP_CROSS_APP_MISMATCH: source/target application binding mismatch"
+            )
+        if body.get("acrLevel") != required_acr_level:
+            raise GovernanceHaltError(
+                f"STEP_UP_INSUFFICIENT_ACR: required {required_acr_level!r}, got {body.get('acrLevel')!r}"
+            )
+
+        issued_at = int(body.get("issuedAtEpoch", 0))
+        expires_at = int(body.get("expiresAtEpoch", -1))
+        if decision_epoch < issued_at or decision_epoch > expires_at:
+            raise GovernanceHaltError(
+                f"STEP_UP_TIMEOUT: decision_epoch={decision_epoch} outside approval window [{issued_at}, {expires_at}]"
+            )
+
+        nonce = str(body.get("challengeNonce", ""))
+        if not nonce or nonce in self._consumed_nonces:
+            raise GovernanceHaltError(
+                f"STEP_UP_REPLAY_BLOCKED: challenge_nonce {nonce!r} already consumed"
+            )
+        self._consumed_nonces.add(nonce)
+
+        audit_statement = {
+            "acrLevel": required_acr_level,
+            "actionCaid": expected_caid,
+            "approverId": str(body.get("approverId", "")),
+            "assertionSha256": hashlib.sha256(canonical_bytes).hexdigest(),
+            "challengeNonce": nonce,
+            "decision": "STEP_UP_APPROVED",
+            "decisionEpoch": decision_epoch,
+            "receiptType": "STEP_UP_AUDIT_RECEIPT",
+            "sourceApp": expected_source_app,
+            "targetApp": expected_target_app,
+        }
+        audit_bytes = encode_jcs(audit_statement)
+        return {
+            "auditReceiptSha256": hashlib.sha256(audit_bytes).hexdigest(),
+            "auditReceiptSignatureHex": ledger_signing_key.sign(audit_bytes).hex(),
+            "auditStatement": audit_statement,
+        }
+
+
+class OwaspAibomAndIFixAiContractGate:
+    """OWASP AIBOM (CycloneDX 1.6 ML/Agentic BOM) & `iFixAi` Pre-Deployment CI Contract Gate.
+
+    Enforces explicit JSON schema mappings and CI contract rules:
+      1. CycloneDX 1.6 AIBOM Validation: Requires `bomFormat == "CycloneDX"`, `specVersion == "1.6"`,
+         and explicit `components[]` covering both `machine-learning-model` and `mcp-server`
+         with pinned 64-hex SHA-256 digests and OWASP Agentic Top 10 (`ASI01`–`ASI10`) risk tags.
+      2. `iFixAi` Behavioral Pre-Deployment Contract: Verifies that pre-deployment behavioral
+         repair/testing covers required `ASI` risk vectors with `failed_cases == 0` and binds
+         both the AIBOM digest and `iFixAi` report digest into a signed CI admission receipt.
+    """
+
+    REQUIRED_ASI_VECTORS: Tuple[str, ...] = (
+        "ASI01_GOAL_HIJACK",
+        "ASI02_TOOL_MISUSE",
+        "ASI03_PRIVILEGE_ABUSE",
+        "ASI04_SUPPLY_CHAIN",
+        "ASI06_MEMORY_POISONING",
+    )
+
+    @classmethod
+    def evaluate_ci_contract(
+        cls,
+        *,
+        cyclonedx_aibom: Dict[str, Any],
+        ifixai_report: Dict[str, Any],
+        ci_signing_key: Ed25519PrivateKey,
+    ) -> Dict[str, Any]:
+        if (
+            cyclonedx_aibom.get("bomFormat") != "CycloneDX"
+            or cyclonedx_aibom.get("specVersion") != "1.6"
+        ):
+            raise GovernanceHaltError(
+                "AIBOM_SCHEMA_INVALID: requires bomFormat='CycloneDX' and specVersion='1.6'"
+            )
+
+        components = cyclonedx_aibom.get("components", [])
+        if not isinstance(components, list) or not components:
+            raise GovernanceHaltError("AIBOM_SCHEMA_INVALID: components list must be non-empty")
+
+        observed_types: Set[str] = set()
+        for comp in components:
+            comp_type = str(comp.get("type", ""))
+            observed_types.add(comp_type)
+            hashes = comp.get("hashes", [])
+            has_sha256 = any(
+                h.get("alg") == "SHA-256" and len(str(h.get("content", ""))) == 64
+                for h in hashes
+            )
+            if not has_sha256:
+                raise GovernanceHaltError(
+                    f"AIBOM_UNPINNED_COMPONENT: component {comp.get('name')!r} lacks 64-hex SHA-256 digest"
+                )
+
+        for req_type in ("machine-learning-model", "mcp-server"):
+            if req_type not in observed_types:
+                raise GovernanceHaltError(
+                    f"AIBOM_INCOMPLETE_TAXONOMY: missing required component type {req_type!r}"
+                )
+
+        if int(ifixai_report.get("failed_cases", 1)) != 0:
+            raise GovernanceHaltError(
+                f"IFIXAI_CI_GATE_FAILED: observed {ifixai_report.get('failed_cases')} failing behavioral cases"
+            )
+        covered_vectors = set(ifixai_report.get("asi_vectors_covered", []))
+        missing_vectors = set(cls.REQUIRED_ASI_VECTORS) - covered_vectors
+        if missing_vectors:
+            raise GovernanceHaltError(
+                f"IFIXAI_INCOMPLETE_COVERAGE: missing OWASP ASI vectors {sorted(missing_vectors)}"
+            )
+
+        aibom_caid = compute_caid(cyclonedx_aibom)
+        ifixai_caid = compute_caid(ifixai_report)
+        contract_statement = {
+            "aibomCaid": aibom_caid,
+            "asiVectorsVerified": sorted(covered_vectors),
+            "ciGateDisposition": "CI_CONTRACT_VERIFIED",
+            "componentCount": len(components),
+            "ifixaiReportCaid": ifixai_caid,
+            "specVersion": "CycloneDX-1.6",
+        }
+        contract_bytes = encode_jcs(contract_statement)
+        return {
+            "contractCaid": hashlib.sha256(contract_bytes).hexdigest(),
+            "contractSignatureHex": ci_signing_key.sign(contract_bytes).hex(),
+            "contractStatement": contract_statement,
+        }
+
+
+class FinancialAmbiguityContractGate:
+    """Financial & Transport Ambiguity Contract Gate (Three Non-Negotiable Dispatch Rules).
+
+    Enforces under the stated model:
+      1. No financial action without a declared idempotency contract (using the declared
+         idempotency-key contract; UUID v4 is the recommended key format where supported by the
+         target, bound to `idempotencyKeyDigest` and `evidenceDigest`; receipts store cryptographic
+         digests and UUID references rather than raw credentials, account identifiers, card data,
+         full idempotency keys, or sensitive enterprise payloads).
+      2. No blind retry after an uncertain mutating dispatch (for an AEIB-governed mutating
+         dispatch with an ambiguous transport outcome, AEIB classifies the disposition as
+         `EFFECT_INDETERMINATE`, sets `retry_safe` to `false`, and blocks automated retry
+         through the AEIB-governed path).
+      3. No guessed reconciliation status without an authenticated target endpoint (`ProbeBudget: 1`
+         single-probe reconciliation verified via target Ed25519 signature; unauthenticated or
+         conflicting status transitions to `CONFLICT` or remains `EFFECT_INDETERMINATE`).
+      4. Append-Only Recovery Lineage: Failover or recovery attempts append linked records
+         (`originalOperationId` -> `recoveryActionId` chained via `prevChainTip`). They do not
+         edit, backfill, or delete historical uncertain receipts. Tamper-evidence and completeness
+         depend on ledger integrity, signing-key custody, replication, and the deployment trust model.
+    """
+
+    _UUID_V4_RE = re.compile(
+        r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+        re.IGNORECASE,
+    )
+    _RAW_PII_OR_TOKEN_RE = re.compile(
+        r"(\b[A-Z]{2}\d{2}[A-Z0-9]{11,30}\b|\b(?:\d[ -]*?){13,19}\b|Bearer\s+[A-Za-z0-9\-._~+/]+=*)",
+        re.IGNORECASE,
+    )
+
+    @classmethod
+    def evaluate_financial_dispatch(
+        cls,
+        *,
+        ledger_signing_key: Ed25519PrivateKey,
+        operation_id: str,
+        idempotency_key_uuid4: str,
+        raw_financial_payload: Dict[str, Any],
+        transport_outcome: str,
+        prev_chain_tip_hex: str,
+        authenticated_probe_response: Optional[Dict[str, Any]] = None,
+        target_endpoint_public_key: Optional[Ed25519PublicKey] = None,
+        probe_budget: int = 1,
+    ) -> Dict[str, Any]:
+        # Rule 1: No financial action without a declared UUID v4 idempotency contract
+        if not cls._UUID_V4_RE.match(str(idempotency_key_uuid4)):
+            raise GovernanceHaltError(
+                "FINANCIAL_RULE_1_VIOLATION: missing or invalid UUID v4 idempotency contract"
+            )
+        if probe_budget != 1:
+            raise GovernanceHaltError(
+                f"FINANCIAL_PROBE_BUDGET_VIOLATION: single-probe contract requires ProbeBudget=1, got {probe_budget}"
+            )
+
+        idempotency_key_digest = hashlib.sha256(
+            idempotency_key_uuid4.lower().encode("utf-8")
+        ).hexdigest()
+        evidence_digest = compute_caid(raw_financial_payload)
+
+        # Rule 2: Uncertain mutating dispatch latches immediately to EFFECT_INDETERMINATE (retry_safe=False)
+        ambiguous = transport_outcome in {
+            "HTTP_504",
+            "TCP_RST",
+            "BLACKHOLE_DROP",
+            "TIMEOUT",
+        }
+        if ambiguous:
+            disposition = "EFFECT_INDETERMINATE"
+            retry_safe = False
+            probe_consumed = 0
+
+            # Rule 3: Single-probe reconciliation only via authenticated target endpoint
+            if authenticated_probe_response is not None:
+                probe_consumed = 1
+                if target_endpoint_public_key is None:
+                    raise GovernanceHaltError(
+                        "FINANCIAL_RULE_3_VIOLATION: cannot reconcile status without authenticated target public key"
+                    )
+                probe_stmt = authenticated_probe_response.get("probeStatement", {})
+                probe_sig_hex = str(authenticated_probe_response.get("targetSignatureHex", ""))
+                try:
+                    target_endpoint_public_key.verify(
+                        bytes.fromhex(probe_sig_hex),
+                        encode_jcs(probe_stmt),
+                    )
+                except (InvalidSignature, ValueError) as exc:
+                    raise GovernanceHaltError(
+                        "FINANCIAL_RULE_3_VIOLATION: target probe signature verification failed"
+                    ) from exc
+
+                if probe_stmt.get("idempotencyKeyDigest") != idempotency_key_digest:
+                    disposition = "CONFLICT"
+                    retry_safe = False
+                elif probe_stmt.get("targetStatus") == "COMMITTED":
+                    disposition = "CONFIRMED"
+                    retry_safe = False
+                elif probe_stmt.get("targetStatus") == "NOT_FOUND":
+                    disposition = "REFUTED"
+                    retry_safe = True
+                else:
+                    disposition = "CONFLICT"
+                    retry_safe = False
+        elif transport_outcome == "HTTP_200":
+            disposition = "CONFIRMED"
+            retry_safe = False
+            probe_consumed = 0
+        else:
+            disposition = "REFUTED"
+            retry_safe = True
+            probe_consumed = 0
+
+        # Privacy by Design: only digests and UUID references enter the receipt statement
+        statement = {
+            "disposition": disposition,
+            "evidenceDigest": evidence_digest,
+            "idempotencyKeyDigest": idempotency_key_digest,
+            "operationId": operation_id,
+            "prevChainTip": prev_chain_tip_hex,
+            "probeBudget": probe_budget,
+            "probeConsumed": probe_consumed,
+            "receiptType": "FINANCIAL_DISPATCH_RECEIPT",
+            "retrySafe": retry_safe,
+            "transportOutcome": transport_outcome,
+        }
+        serialized_stmt = encode_jcs(statement).decode("utf-8")
+        if cls._RAW_PII_OR_TOKEN_RE.search(serialized_stmt):
+            raise GovernanceHaltError(
+                "PRIVACY_BY_DESIGN_VIOLATION: raw account number, PAN, or bearer token detected in receipt"
+            )
+
+        chain_tip = hashlib.sha256(
+            bytes.fromhex(prev_chain_tip_hex) + encode_jcs(statement)
+        ).hexdigest()
+        envelope = {"chainTip": chain_tip, "statement": statement}
+        return {
+            "envelope": envelope,
+            "signatureHex": ledger_signing_key.sign(encode_jcs(envelope)).hex(),
+        }
+
+    @classmethod
+    def append_immutable_recovery_record(
+        cls,
+        *,
+        ledger_signing_key: Ed25519PrivateKey,
+        uncertain_receipt: Dict[str, Any],
+        recovery_action_id: str,
+        recovery_idempotency_uuid4: str,
+        recovery_disposition: str,
+    ) -> Dict[str, Any]:
+        if not cls._UUID_V4_RE.match(str(recovery_idempotency_uuid4)):
+            raise GovernanceHaltError(
+                "FINANCIAL_RULE_1_VIOLATION: recovery action requires valid UUID v4 idempotency key"
+            )
+        prior_env = uncertain_receipt["envelope"]
+        prior_stmt = prior_env["statement"]
+        if prior_stmt.get("retrySafe") is False and recovery_disposition == "BLIND_RETRY":
+            raise GovernanceHaltError(
+                "FINANCIAL_RULE_2_VIOLATION: blind retry forbidden after uncertain mutating dispatch"
+            )
+
+        recovery_stmt = {
+            "disposition": recovery_disposition,
+            "evidenceDigest": prior_stmt["evidenceDigest"],
+            "idempotencyKeyDigest": hashlib.sha256(
+                recovery_idempotency_uuid4.lower().encode("utf-8")
+            ).hexdigest(),
+            "originalOperationId": prior_stmt["operationId"],
+            "prevChainTip": prior_env["chainTip"],
+            "receiptType": "IMMUTABLE_RECOVERY_LINEAGE_RECEIPT",
+            "recoveryActionId": recovery_action_id,
+            "retrySafe": False,
+        }
+        chain_tip = hashlib.sha256(
+            bytes.fromhex(prior_env["chainTip"]) + encode_jcs(recovery_stmt)
+        ).hexdigest()
+        envelope = {"chainTip": chain_tip, "statement": recovery_stmt}
+        return {
+            "envelope": envelope,
+            "signatureHex": ledger_signing_key.sign(encode_jcs(envelope)).hex(),
+        }
+
+
+# ============================================================================
+# 50. Gap 5 Zero-Allocation Admission Hook (TA-14 SCGA Edge Filter)
+# ============================================================================
+
+
+class ZeroAllocationAdmissionHook:
+    """O(1) Edge Admission Hook evaluating standing before cryptographic JCS commitment.
+
+    Protects AEIB boundary against CPU exhaustion by dropping unauthorized requests
+    in microseconds before allocating memory or executing RFC 8785 JCS canonicalization
+    and Ed25519 signing.
+    """
+
+    @staticmethod
+    def evaluate_edge_admission(
+        *,
+        caller_identity: str,
+        target_tool: str,
+        allowed_callers: Set[str],
+        allowed_tools_for_caller: Dict[str, Set[str]],
+        active_standing_bits: int,
+        required_standing_mask: int = 0x01,
+        epoch_valid: bool = True,
+    ) -> Dict[str, Any]:
+        """O(1) static predicate check with zero dynamic heap allocation."""
+        if not epoch_valid:
+            raise GovernanceHaltError(
+                "ADMISSIBLE_COMPUTATION_VIOLATION: epoch invalid; dropped before crypto commitment"
+            )
+
+        if caller_identity not in allowed_callers:
+            raise GovernanceHaltError(
+                f"ADMISSIBLE_COMPUTATION_VIOLATION: caller '{caller_identity}' not in allowed set; dropped at edge"
+            )
+
+        allowed_tools = allowed_tools_for_caller.get(caller_identity, set())
+        if target_tool not in allowed_tools:
+            raise GovernanceHaltError(
+                f"ADMISSIBLE_COMPUTATION_VIOLATION: target tool '{target_tool}' unauthorized for caller '{caller_identity}'; dropped at edge"
+            )
+
+        if (active_standing_bits & required_standing_mask) != required_standing_mask:
+            raise GovernanceHaltError(
+                f"ADMISSIBLE_COMPUTATION_VIOLATION: standing predicate failed (bits={active_standing_bits:#x}, required={required_standing_mask:#x}); dropped at edge"
+            )
+
+        return {
+            "admitted": True,
+            "callerIdentity": caller_identity,
+            "cryptoCommitmentDeferred": True,
+            "targetTool": target_tool,
+        }
+
+
+# ============================================================================
+# 51. Gap 8 Cross-Agent Delegation Chain Verifier (OpenA2A / MTC)
+# ============================================================================
+
+
+@dataclass(frozen=True)
+class DelegationLink:
+    """Single hop in an OpenA2A lateral delegation chain."""
+
+    delegator_id: str
+    delegator_pubkey_hex: str
+    delegatee_id: str
+    delegatee_pubkey_hex: str
+    granted_scopes: Tuple[str, ...]
+    max_epoch: int
+    signature_hex: str
+
+
+class CrossAgentDelegationVerifier:
+    """Evaluates lateral delegation chains for OpenA2A / Mutual Trust Contracts."""
+
+    @classmethod
+    def create_delegation_link(
+        cls,
+        *,
+        delegator_id: str,
+        delegator_privkey: Ed25519PrivateKey,
+        delegatee_id: str,
+        delegatee_pubkey: Ed25519PublicKey,
+        granted_scopes: List[str],
+        max_epoch: int,
+    ) -> DelegationLink:
+        del_pk_hex = delegator_privkey.public_key().public_bytes_raw().hex()
+        dee_pk_hex = delegatee_pubkey.public_bytes_raw().hex()
+        canonical_stmt = {
+            "delegateeId": delegatee_id,
+            "delegateePubkeyHex": dee_pk_hex,
+            "delegatorId": delegator_id,
+            "grantedScopes": sorted(granted_scopes),
+            "maxEpoch": max_epoch,
+        }
+        stmt_bytes = encode_jcs(canonical_stmt)
+        sig_hex = delegator_privkey.sign(stmt_bytes).hex()
+        return DelegationLink(
+            delegator_id=delegator_id,
+            delegator_pubkey_hex=del_pk_hex,
+            delegatee_id=delegatee_id,
+            delegatee_pubkey_hex=dee_pk_hex,
+            granted_scopes=tuple(sorted(granted_scopes)),
+            max_epoch=max_epoch,
+            signature_hex=sig_hex,
+        )
+
+    @classmethod
+    def verify_delegation_chain(
+        cls,
+        *,
+        root_principal_id: str,
+        root_principal_pubkey: Ed25519PublicKey,
+        delegation_chain: List[DelegationLink],
+        target_agent_id: str,
+        requested_scope: str,
+        current_epoch: int,
+        max_hops: int = 4,
+    ) -> Dict[str, Any]:
+        """Validates that root principal authorized chain of custody to target_agent_id."""
+        if not delegation_chain:
+            raise GovernanceHaltError("A2A_DELEGATION_VIOLATION: empty delegation chain")
+
+        if len(delegation_chain) > max_hops:
+            raise GovernanceHaltError(
+                f"A2A_DELEGATION_VIOLATION: chain depth {len(delegation_chain)} exceeds max hops {max_hops}"
+            )
+
+        expected_delegator_id = root_principal_id
+        expected_delegator_pubkey = root_principal_pubkey
+        effective_scopes: Set[str] = set()
+
+        for idx, link in enumerate(delegation_chain):
+            if link.delegator_id != expected_delegator_id:
+                raise GovernanceHaltError(
+                    f"A2A_DELEGATION_VIOLATION: link {idx} delegator '{link.delegator_id}' does not match expected '{expected_delegator_id}'"
+                )
+
+            if current_epoch > link.max_epoch:
+                raise GovernanceHaltError(
+                    f"A2A_DELEGATION_VIOLATION: link {idx} expired at epoch {link.max_epoch} (current={current_epoch})"
+                )
+
+            stmt = {
+                "delegateeId": link.delegatee_id,
+                "delegateePubkeyHex": link.delegatee_pubkey_hex,
+                "delegatorId": link.delegator_id,
+                "grantedScopes": sorted(link.granted_scopes),
+                "maxEpoch": link.max_epoch,
+            }
+            stmt_bytes = encode_jcs(stmt)
+            try:
+                expected_delegator_pubkey.verify(
+                    bytes.fromhex(link.signature_hex),
+                    stmt_bytes,
+                )
+            except InvalidSignature:
+                raise GovernanceHaltError(
+                    f"A2A_DELEGATION_VIOLATION: link {idx} signature verification failed"
+                )
+
+            link_scopes = set(link.granted_scopes)
+            if idx == 0:
+                effective_scopes = link_scopes
+            else:
+                # Scope attenuation: cannot expand privileges in lateral delegation
+                if not link_scopes.issubset(effective_scopes):
+                    raise GovernanceHaltError(
+                        f"A2A_DELEGATION_VIOLATION: link {idx} attempted scope expansion ({link_scopes} not subset of {effective_scopes})"
+                    )
+                effective_scopes = link_scopes
+
+            expected_delegator_id = link.delegatee_id
+            expected_delegator_pubkey = Ed25519PublicKey.from_public_bytes(
+                bytes.fromhex(link.delegatee_pubkey_hex)
+            )
+
+        final_link = delegation_chain[-1]
+        if final_link.delegatee_id != target_agent_id:
+            raise GovernanceHaltError(
+                f"A2A_DELEGATION_VIOLATION: terminal delegatee '{final_link.delegatee_id}' does not match target agent '{target_agent_id}'"
+            )
+
+        if requested_scope not in effective_scopes:
+            raise GovernanceHaltError(
+                f"A2A_DELEGATION_VIOLATION: requested scope '{requested_scope}' not authorized in effective scopes {effective_scopes}"
+            )
+
+        return {
+            "chainLength": len(delegation_chain),
+            "effectiveScopes": sorted(effective_scopes),
+            "requestedScope": requested_scope,
+            "rootPrincipalId": root_principal_id,
+            "targetAgentId": target_agent_id,
+            "verified": True,
+        }
+
+
+# ============================================================================
+# 52. Priority P0 Decision-to-Dispatch Authority Ticket Gate (TOCTOU Defense)
+# ============================================================================
+
+
+@dataclass(frozen=True)
+class DispatchAuthorizationTicket:
+    """Priority P0 Decision-to-Dispatch Authority Ticket (TOCTOU Defense)."""
+
+    decision_id: str
+    operation_id: str
+    principal_id: str
+    target_identity: str
+    action_digest: str  # "sha256:..."
+    policy_epoch: int
+    manifest_digest: str  # "sha256:..."
+    expires_at: int
+    single_use: bool
+    signature_hex: str
+
+    def to_canonical_dict(self) -> Dict[str, Any]:
+        return {
+            "actionDigest": self.action_digest,
+            "decisionId": self.decision_id,
+            "expiresAt": self.expires_at,
+            "manifestDigest": self.manifest_digest,
+            "operationId": self.operation_id,
+            "policyEpoch": self.policy_epoch,
+            "principalId": self.principal_id,
+            "singleUse": self.single_use,
+            "targetIdentity": self.target_identity,
+        }
+
+
+class DecisionToDispatchAuthorityGate:
+    """Enforces P0 Decision-to-Dispatch Authority Ticket verification at Station 0/1."""
+
+    def __init__(self, authority_public_key: Ed25519PublicKey) -> None:
+        self.authority_public_key = authority_public_key
+        self._burned_decisions: Set[str] = set()
+
+    @classmethod
+    def mint_ticket(
+        cls,
+        *,
+        authority_private_key: Ed25519PrivateKey,
+        decision_id: str,
+        operation_id: str,
+        principal_id: str,
+        target_identity: str,
+        action_payload: Dict[str, Any],
+        manifest_digest: str,
+        policy_epoch: int,
+        expires_at: int,
+        single_use: bool = True,
+    ) -> DispatchAuthorizationTicket:
+        action_caid = compute_caid(action_payload)
+        action_digest = f"sha256:{action_caid}"
+        stmt = {
+            "actionDigest": action_digest,
+            "decisionId": decision_id,
+            "expiresAt": expires_at,
+            "manifestDigest": manifest_digest,
+            "operationId": operation_id,
+            "policyEpoch": policy_epoch,
+            "principalId": principal_id,
+            "singleUse": single_use,
+            "targetIdentity": target_identity,
+        }
+        sig_hex = authority_private_key.sign(encode_jcs(stmt)).hex()
+        return DispatchAuthorizationTicket(
+            decision_id=decision_id,
+            operation_id=operation_id,
+            principal_id=principal_id,
+            target_identity=target_identity,
+            action_digest=action_digest,
+            policy_epoch=policy_epoch,
+            manifest_digest=manifest_digest,
+            expires_at=expires_at,
+            single_use=single_use,
+            signature_hex=sig_hex,
+        )
+
+    def evaluate_and_burn_ticket(
+        self,
+        *,
+        ticket: DispatchAuthorizationTicket,
+        wire_payload: Dict[str, Any],
+        target_url: str,
+        active_manifest_digest: str,
+        active_policy_epoch: int,
+        current_timestamp: int,
+    ) -> Dict[str, Any]:
+        """Fails closed with Authorization: DENY -> Execution: NOT_DISPATCHED on any mismatch."""
+        # 1. Single-use replay check
+        if ticket.single_use and ticket.decision_id in self._burned_decisions:
+            raise GovernanceHaltError(
+                f"DISPATCH_AUTHORIZATION_DENY: ticket decision '{ticket.decision_id}' already burned (replay detected); Execution: NOT_DISPATCHED"
+            )
+
+        # 2. Expiration check
+        if current_timestamp > ticket.expires_at:
+            raise GovernanceHaltError(
+                f"DISPATCH_AUTHORIZATION_DENY: ticket expired at {ticket.expires_at} (current={current_timestamp}); Execution: NOT_DISPATCHED"
+            )
+
+        # 3. Policy and Manifest epoch checks
+        if ticket.policy_epoch != active_policy_epoch:
+            raise GovernanceHaltError(
+                f"DISPATCH_AUTHORIZATION_DENY: ticket policy epoch {ticket.policy_epoch} != active {active_policy_epoch}; Execution: NOT_DISPATCHED"
+            )
+        if ticket.manifest_digest != active_manifest_digest:
+            raise GovernanceHaltError(
+                f"DISPATCH_AUTHORIZATION_DENY: ticket manifest {ticket.manifest_digest} != active {active_manifest_digest}; Execution: NOT_DISPATCHED"
+            )
+
+        # 4. Target Identity match
+        if ticket.target_identity != target_url:
+            raise GovernanceHaltError(
+                f"DISPATCH_AUTHORIZATION_DENY: target mutation detected (ticket='{ticket.target_identity}' != request='{target_url}'); Execution: NOT_DISPATCHED"
+            )
+
+        # 5. Cryptographic signature check
+        stmt = ticket.to_canonical_dict()
+        try:
+            self.authority_public_key.verify(
+                bytes.fromhex(ticket.signature_hex),
+                encode_jcs(stmt),
+            )
+        except InvalidSignature:
+            raise GovernanceHaltError(
+                "DISPATCH_AUTHORIZATION_DENY: cryptographic signature verification failed; Execution: NOT_DISPATCHED"
+            )
+
+        # 6. TOCTOU Action Digest check over wire payload bytes
+        computed_digest = f"sha256:{compute_caid(wire_payload)}"
+        if ticket.action_digest != computed_digest:
+            raise GovernanceHaltError(
+                f"DISPATCH_AUTHORIZATION_DENY: TOCTOU payload mutation detected (ticket='{ticket.action_digest}' != payload='{computed_digest}'); Execution: NOT_DISPATCHED"
+            )
+
+        # Burn ticket on single use
+        if ticket.single_use:
+            self._burned_decisions.add(ticket.decision_id)
+
+        return {
+            "authorization": "ALLOW",
+            "decisionId": ticket.decision_id,
+            "execution": "DISPATCH_AUTHORIZED",
+            "operationId": ticket.operation_id,
+            "singleUseBurned": ticket.single_use,
+        }
+
+
+# ============================================================================
+# 53. AEIB-MCP-Governance-Adapter (mcp-governed-agents & APB Loop)
+# ============================================================================
+
+
+@dataclass(frozen=True)
+class AuthorizedPrincipalBinding:
+    """Authorized Principal Binding (APB) enforcing Transparency Invariance (T9.1)."""
+
+    principal_id: str
+    agent_id: str
+    session_id: str
+    allowed_tools: Tuple[str, ...]
+    binding_signature_hex: str
+
+
+class AeibMcpGovernanceAdapter:
+    """Binds mcp-governed-agents protocol interception to AEIB Station 1 & Station 3.
+
+    Enforces the stateful JSON-RPC Halt -> APB Verification -> Resume lifecycle.
+    """
+
+    def __init__(
+        self,
+        *,
+        authority_public_key: Ed25519PublicKey,
+        ledger_signing_key: Ed25519PrivateKey,
+    ) -> None:
+        self.authority_public_key = authority_public_key
+        self.ledger_signing_key = ledger_signing_key
+        self.authority_gate = DecisionToDispatchAuthorityGate(authority_public_key)
+        self.intercepted_count: int = 0
+
+    @classmethod
+    def create_apb_binding(
+        cls,
+        *,
+        principal_private_key: Ed25519PrivateKey,
+        principal_id: str,
+        agent_id: str,
+        session_id: str,
+        allowed_tools: List[str],
+    ) -> AuthorizedPrincipalBinding:
+        stmt = {
+            "agentId": agent_id,
+            "allowedTools": sorted(allowed_tools),
+            "principalId": principal_id,
+            "sessionId": session_id,
+        }
+        sig_hex = principal_private_key.sign(encode_jcs(stmt)).hex()
+        return AuthorizedPrincipalBinding(
+            principal_id=principal_id,
+            agent_id=agent_id,
+            session_id=session_id,
+            allowed_tools=tuple(sorted(allowed_tools)),
+            binding_signature_hex=sig_hex,
+        )
+
+    def intercept_and_evaluate_jsonrpc(
+        self,
+        *,
+        jsonrpc_request: Dict[str, Any],
+        apb_binding: AuthorizedPrincipalBinding,
+        ticket: DispatchAuthorizationTicket,
+        active_manifest_digest: str,
+        active_policy_epoch: int,
+        current_timestamp: int,
+    ) -> Dict[str, Any]:
+        """Executes the Halt -> APB check -> Station 1 Authority Ticket -> Station 3 receipt mint."""
+        self.intercepted_count += 1
+
+        # Phase 1: HALT - parse JSON-RPC method and params
+        method = jsonrpc_request.get("method")
+        params = jsonrpc_request.get("params", {})
+        if method != "tools/call":
+            raise GovernanceHaltError(
+                f"MCP_PROTOCOL_VIOLATION: unexpected method '{method}'; expected 'tools/call'"
+            )
+
+        tool_name = params.get("name")
+        tool_args = params.get("arguments", {})
+
+        # Phase 2: Verify APB Binding (Transparency Invariance T9.1)
+        apb_stmt = {
+            "agentId": apb_binding.agent_id,
+            "allowedTools": sorted(apb_binding.allowed_tools),
+            "principalId": apb_binding.principal_id,
+            "sessionId": apb_binding.session_id,
+        }
+        try:
+            self.authority_public_key.verify(
+                bytes.fromhex(apb_binding.binding_signature_hex),
+                encode_jcs(apb_stmt),
+            )
+        except InvalidSignature:
+            raise GovernanceHaltError("APB_VIOLATION: APB binding signature verification failed")
+
+        if tool_name not in apb_binding.allowed_tools:
+            raise GovernanceHaltError(
+                f"APB_VIOLATION: tool '{tool_name}' not permitted by APB binding {apb_binding.allowed_tools}"
+            )
+
+        # Phase 3: Station 1 Authority Ticket Evaluation
+        auth_verdict = self.authority_gate.evaluate_and_burn_ticket(
+            ticket=ticket,
+            wire_payload=tool_args,
+            target_url=ticket.target_identity,
+            active_manifest_digest=active_manifest_digest,
+            active_policy_epoch=active_policy_epoch,
+            current_timestamp=current_timestamp,
+        )
+
+        # Phase 4: Station 3 Continuous Evidence Receipt Minting
+        receipt_stmt = {
+            "apbPrincipalId": apb_binding.principal_id,
+            "apbSessionId": apb_binding.session_id,
+            "decisionId": ticket.decision_id,
+            "disposition": "CONFIRMED",
+            "mcpMethod": method,
+            "operationId": ticket.operation_id,
+            "targetTool": tool_name,
+            "transparencyInvariance": "T9.1_SATISFIED",
+        }
+        receipt_bytes = encode_jcs(receipt_stmt)
+        receipt_sig_hex = self.ledger_signing_key.sign(receipt_bytes).hex()
+
+        return {
+            "authorization": auth_verdict["authorization"],
+            "execution": "DISPATCH_AUTHORIZED",
+            "mcpResume": True,
+            "operationId": ticket.operation_id,
+            "receipt": {
+                "signatureHex": receipt_sig_hex,
+                "statement": receipt_stmt,
+            },
+        }
+
+
+# ============================================================================
+# 54. AIGP-Σ Cryptographic Kill Switch (Category 3 Offline k-of-n Revocation)
+# ============================================================================
+
+
+@dataclass(frozen=True)
+class SignedHaltCommand:
+    """Out-of-band cryptographic HALT command."""
+
+    halt_id: str
+    target_scope: str  # e.g., "ALL", "agent:executor_*", "session:sess_123"
+    sequence: int
+    issued_at_epoch: int
+    reason: str
+    threshold_signatures: Tuple[str, ...]  # k hex signatures over JCS statement
+
+
+class AigpSigmaCryptographicKillSwitch:
+    """Category 3 Cryptographic Revocation with k-of-n threshold verification.
+
+    Under the stated model: A received, sufficiently fresh, quorum-signed HALT command
+    may be verified locally. Delivery, transport availability, and freshness remain
+    deployment contracts outside this cryptographic verifier.
+    """
+
+    def __init__(
+        self,
+        *,
+        quorum_public_keys: List[Ed25519PublicKey],
+        threshold_k: int,
+    ) -> None:
+        if threshold_k < 1 or threshold_k > len(quorum_public_keys):
+            raise ValueError(
+                f"Invalid threshold k={threshold_k} for n={len(quorum_public_keys)} keys"
+            )
+        self.quorum_public_keys = quorum_public_keys
+        self.threshold_k = threshold_k
+        self._highest_sequence: int = 0
+        self._halted_scopes: Set[str] = set()
+
+    @classmethod
+    def sign_halt_command(
+        cls,
+        *,
+        halt_id: str,
+        target_scope: str,
+        sequence: int,
+        issued_at_epoch: int,
+        reason: str,
+        signing_keys: List[Ed25519PrivateKey],
+    ) -> SignedHaltCommand:
+        stmt = {
+            "haltId": halt_id,
+            "issuedAtEpoch": issued_at_epoch,
+            "reason": reason,
+            "sequence": sequence,
+            "targetScope": target_scope,
+        }
+        stmt_bytes = encode_jcs(stmt)
+        sigs = tuple(sk.sign(stmt_bytes).hex() for sk in signing_keys)
+        return SignedHaltCommand(
+            halt_id=halt_id,
+            target_scope=target_scope,
+            sequence=sequence,
+            issued_at_epoch=issued_at_epoch,
+            reason=reason,
+            threshold_signatures=sigs,
+        )
+
+    def process_halt_command(self, halt_cmd: SignedHaltCommand) -> Dict[str, Any]:
+        """Validates threshold signatures and latches target scope into halted state."""
+        # Monotonic sequence check (anti-replay)
+        if halt_cmd.sequence <= self._highest_sequence:
+            raise GovernanceHaltError(
+                f"KILL_SWITCH_REPLAY: sequence {halt_cmd.sequence} <= highest seen {self._highest_sequence}"
+            )
+
+        # Statement reconstruction
+        stmt = {
+            "haltId": halt_cmd.halt_id,
+            "issuedAtEpoch": halt_cmd.issued_at_epoch,
+            "reason": halt_cmd.reason,
+            "sequence": halt_cmd.sequence,
+            "targetScope": halt_cmd.target_scope,
+        }
+        stmt_bytes = encode_jcs(stmt)
+
+        # Verify k-of-n distinct signatures against quorum public keys
+        valid_signatures = 0
+        for sig_hex in halt_cmd.threshold_signatures:
+            sig_bytes = bytes.fromhex(sig_hex)
+            matched = False
+            for pubkey in self.quorum_public_keys:
+                try:
+                    pubkey.verify(sig_bytes, stmt_bytes)
+                    matched = True
+                    break
+                except InvalidSignature:
+                    continue
+            if matched:
+                valid_signatures += 1
+
+        if valid_signatures < self.threshold_k:
+            raise GovernanceHaltError(
+                f"KILL_SWITCH_QUORUM_DEFICIT: valid signatures {valid_signatures} < threshold {self.threshold_k}"
+            )
+
+        self._highest_sequence = halt_cmd.sequence
+        self._halted_scopes.add(halt_cmd.target_scope)
+        return {
+            "haltId": halt_cmd.halt_id,
+            "latched": True,
+            "sequence": halt_cmd.sequence,
+            "targetScope": halt_cmd.target_scope,
+            "validSignatures": valid_signatures,
+        }
+
+    def assert_scope_admissible(self, scope: str) -> None:
+        """Throws fail-closed if scope or wildcard 'ALL' has been halted."""
+        if "ALL" in self._halted_scopes or scope in self._halted_scopes:
+            raise GovernanceHaltError(
+                f"KILL_SWITCH_HALT_ACTIVE: execution blocked fail-closed by cryptographic halt for scope '{scope}'"
+            )
+
+
+# ============================================================================
+# 55. ACS Middleware Hooks (Execution Checkpoints at Wire Gate)
+# ============================================================================
+
+
+@dataclass(frozen=True)
+class AcsExecutionCheckpoint:
+    """Standardized ACS execution checkpoint at the wire gate."""
+
+    checkpoint_id: str
+    checkpoint_type: str  # "tool_called", "pre_dispatch", "action_completed", "state_reconciled"
+    operation_id: str
+    action_caid: str
+    station_id: str
+    epoch: int
+    timestamp: int
+    signature_hex: str
+
+    def to_canonical_dict(self) -> Dict[str, Any]:
+        return {
+            "actionCaid": self.action_caid,
+            "checkpointId": self.checkpoint_id,
+            "checkpointType": self.checkpoint_type,
+            "epoch": self.epoch,
+            "operationId": self.operation_id,
+            "stationId": self.station_id,
+            "timestamp": self.timestamp,
+        }
+
+
+class AcsMiddlewareHook:
+    """Emits and verifies standardized ACS execution checkpoints at the wire gate."""
+
+    VALID_STAGES = ("tool_called", "pre_dispatch", "action_completed", "state_reconciled")
+
+    def __init__(self, signing_key: Ed25519PrivateKey, public_key: Ed25519PublicKey) -> None:
+        self.signing_key = signing_key
+        self.public_key = public_key
+        self._checkpoints: List[AcsExecutionCheckpoint] = []
+
+    def emit_checkpoint(
+        self,
+        *,
+        checkpoint_id: str,
+        checkpoint_type: str,
+        operation_id: str,
+        action_payload: Dict[str, Any],
+        station_id: str,
+        epoch: int,
+        timestamp: int,
+    ) -> AcsExecutionCheckpoint:
+        if checkpoint_type not in self.VALID_STAGES:
+            raise GovernanceHaltError(
+                f"ACS_INVALID_STAGE: checkpoint_type '{checkpoint_type}' not in {self.VALID_STAGES}"
+            )
+        action_caid = compute_caid(action_payload)
+        stmt = {
+            "actionCaid": action_caid,
+            "checkpointId": checkpoint_id,
+            "checkpointType": checkpoint_type,
+            "epoch": epoch,
+            "operationId": operation_id,
+            "stationId": station_id,
+            "timestamp": timestamp,
+        }
+        sig_hex = self.signing_key.sign(encode_jcs(stmt)).hex()
+        chk = AcsExecutionCheckpoint(
+            checkpoint_id=checkpoint_id,
+            checkpoint_type=checkpoint_type,
+            operation_id=operation_id,
+            action_caid=action_caid,
+            station_id=station_id,
+            epoch=epoch,
+            timestamp=timestamp,
+            signature_hex=sig_hex,
+        )
+        self._checkpoints.append(chk)
+        return chk
+
+    def verify_checkpoint(self, checkpoint: AcsExecutionCheckpoint) -> bool:
+        stmt = checkpoint.to_canonical_dict()
+        try:
+            self.public_key.verify(
+                bytes.fromhex(checkpoint.signature_hex),
+                encode_jcs(stmt),
+            )
+            return True
+        except InvalidSignature:
+            return False
+
+
+# ============================================================================
+# 56. Five-Plane Runtime Enforcement Architecture (Stop-Anywhere Pipeline)
+# ============================================================================
+
+
+class FivePlaneRuntimeEnforcer:
+    """Enforces the Stop-Anywhere Principle across Reasoning, Network, Identity, Endpoint, and Data planes."""
+
+    def __init__(
+        self,
+        *,
+        allowed_egress_hosts: Set[str],
+        allowed_tools: Set[str],
+        blocked_syscalls: Set[str],
+        max_payload_bytes: int = 1048576,  # 1 MiB
+    ) -> None:
+        self.allowed_egress_hosts = allowed_egress_hosts
+        self.allowed_tools = allowed_tools
+        self.blocked_syscalls = blocked_syscalls
+        self.max_payload_bytes = max_payload_bytes
+
+    def evaluate_and_enforce(
+        self,
+        *,
+        reasoning_claim: Dict[str, Any],
+        network_target_url: str,
+        identity_principal: Dict[str, Any],
+        endpoint_syscalls: List[str],
+        data_payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Stop-Anywhere evaluation: any plane failure causes immediate fail-closed halt."""
+        # Plane 1: Reasoning Plane (intent adjudication and tool capability check)
+        tool_name = reasoning_claim.get("toolName")
+        if not tool_name or tool_name not in self.allowed_tools:
+            raise GovernanceHaltError(
+                f"FIVE_PLANE_HALT: [Reasoning Plane] tool '{tool_name}' not permitted in capability set"
+            )
+
+        # Plane 2: Network Enforcement Plane (egress allowlist verification)
+        parsed = urllib.parse.urlparse(network_target_url)
+        host = parsed.hostname or ""
+        if host not in self.allowed_egress_hosts:
+            raise GovernanceHaltError(
+                f"FIVE_PLANE_HALT: [Network Plane] egress host '{host}' not in allowlisted destinations"
+            )
+
+        # Plane 3: Identity Enforcement Plane (credential attenuation and principal validity)
+        principal_id = identity_principal.get("principalId")
+        scopes = identity_principal.get("scopes", [])
+        if not principal_id or not scopes:
+            raise GovernanceHaltError(
+                f"FIVE_PLANE_HALT: [Identity Plane] principal missing identity or delegated scopes"
+            )
+
+        # Plane 4: Endpoint Enforcement Plane (sandboxing & blocked syscalls)
+        for sc in endpoint_syscalls:
+            if sc in self.blocked_syscalls:
+                raise GovernanceHaltError(
+                    f"FIVE_PLANE_HALT: [Endpoint Plane] forbidden syscall '{sc}' detected in container plan"
+                )
+
+        # Plane 5: Data Enforcement Plane (payload size ceiling and purpose bounds)
+        raw_bytes = encode_jcs(data_payload)
+        if len(raw_bytes) > self.max_payload_bytes:
+            raise GovernanceHaltError(
+                f"FIVE_PLANE_HALT: [Data Plane] payload size {len(raw_bytes)} exceeds ceiling {self.max_payload_bytes}"
+            )
+
+        return {
+            "disposition": "CONFIRMED",
+            "enforcedPlanes": ["Reasoning", "Network", "Identity", "Endpoint", "Data"],
+            "stopAnywhereStatus": "ALL_PLANES_ADMISSIBLE",
+        }
+
+
+# ============================================================================
+# 57. Intent-Context Fusion Gate (Zero-Egress DLP & Payload Sensitivity)
+# ============================================================================
+
+
+class IntentContextFusionGate:
+    """Atomic evaluation of action intent and payload data sensitivity prior to JCS canonicalization."""
+
+    # Sensitive patterns (IBAN, PAN/Credit Card, raw Bearer API secret handles)
+    IBAN_PATTERN = re.compile(r"\b[A-Z]{2}\d{2}[A-Z0-9]{11,30}\b")
+    PAN_PATTERN = re.compile(r"\b(?:\d{4}[ -]?){3}\d{4}\b")
+    RAW_SECRET_PATTERN = re.compile(r"(?i)(?:bearer\s+[A-Za-z0-9_\-\.]{20,}|(?:sk|sec)_[A-Za-z0-9_\-]{20,})")
+
+    def __init__(self, allow_unredacted_pii: bool = False) -> None:
+        self.allow_unredacted_pii = allow_unredacted_pii
+
+    def evaluate_payload_sensitivity(
+        self,
+        *,
+        intent: str,
+        action_payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Detects unredacted confidential data or PII in payload parameters fail-closed."""
+        payload_str = str(action_payload)
+
+        detected_violations = []
+        if self.IBAN_PATTERN.search(payload_str):
+            detected_violations.append("UNREDACTED_IBAN")
+        if self.PAN_PATTERN.search(payload_str):
+            detected_violations.append("UNREDACTED_PAN")
+        if self.RAW_SECRET_PATTERN.search(payload_str):
+            detected_violations.append("UNREDACTED_SECRET")
+
+        if detected_violations and not self.allow_unredacted_pii:
+            raise GovernanceHaltError(
+                f"INTENT_CONTEXT_DIVIDE_VIOLATION: intent '{intent}' contains sensitive unredacted payload {detected_violations}; dispatch halted"
+            )
+
+        return {
+            "intent": intent,
+            "privacyClearance": "PASS" if not detected_violations else "EXEMPTED",
+            "violationsDetected": detected_violations,
+        }
+
+
+# ============================================================================
+# 58. Behavioral Anomaly & Rate Spike Interlock (Insider Risk Defense)
+# ============================================================================
+
+
+class BehavioralAnomalyInterlock:
+    """Monitors high-velocity micro-actions and halts rate spikes pre-dispatch (NOT_DISPATCHED)."""
+
+    def __init__(
+        self,
+        *,
+        max_rate_per_window: int = 10,
+        window_seconds: int = 60,
+    ) -> None:
+        self.max_rate_per_window = max_rate_per_window
+        self.window_seconds = window_seconds
+        self._history: Dict[str, List[int]] = {}
+
+    def record_and_assert_velocity(
+        self,
+        *,
+        principal_id: str,
+        current_timestamp: int,
+    ) -> Dict[str, Any]:
+        """Halts pre-dispatch on anomalous velocity burst (status: RATE_EXCEEDED, disposition: NOT_DISPATCHED)."""
+        if principal_id not in self._history:
+            self._history[principal_id] = []
+
+        window_start = current_timestamp - self.window_seconds
+        # Retain only timestamps within the window
+        active_calls = [ts for ts in self._history[principal_id] if ts >= window_start]
+        self._history[principal_id] = active_calls
+
+        if len(active_calls) >= self.max_rate_per_window:
+            raise GovernanceHaltError(
+                f"BEHAVIORAL_ANOMALY_SPIKE: velocity burst ({len(active_calls)} calls in {self.window_seconds}s) exceeds ceiling {self.max_rate_per_window}; dispatch held (disposition: NOT_DISPATCHED, status: RATE_EXCEEDED)"
+            )
+
+        self._history[principal_id].append(current_timestamp)
+        return {
+            "disposition": "CONFIRMED",
+            "principalId": principal_id,
+            "rateObserved": len(self._history[principal_id]),
+            "retry_safe": True,
+        }
+
+
+# ============================================================================
+# 59. MCP Security Hardening Gate (CVE-2026-108586, 67431, 54688 Mitigations)
+# ============================================================================
+
+
+class McpSecurityHardeningGate:
+    """Direct wire gate mitigation for the MCP CVE vulnerability wave."""
+
+    NEGATED_TAG_PATTERN = re.compile(r"^(?:not\s+|!|~)")
+
+    def __init__(
+        self,
+        *,
+        pinned_capability_uris: Set[str],
+        valid_credential_audiences: Set[str],
+    ) -> None:
+        self.pinned_capability_uris = pinned_capability_uris
+        self.valid_credential_audiences = valid_credential_audiences
+
+    def evaluate_mcp_call(
+        self,
+        *,
+        requested_capability_uri: str,
+        filter_tags: List[str],
+        session_id: str,
+        session_owner_id: str,
+        caller_principal_id: str,
+        credential_handle: str,
+        target_audience: str,
+    ) -> Dict[str, Any]:
+        # 1. Mitigation for CVE-2026-108586 (Scope Bypass via tag negation & unpinned URI)
+        for tag in filter_tags:
+            if self.NEGATED_TAG_PATTERN.match(tag.strip()):
+                raise GovernanceHaltError(
+                    f"MCP_CVE_MITIGATION: CVE-2026-108586 exploit attempt detected; negated filter '{tag}' rejected fail-closed"
+                )
+
+        if requested_capability_uri not in self.pinned_capability_uris:
+            raise GovernanceHaltError(
+                f"MCP_CVE_MITIGATION: unpinned capability URI '{requested_capability_uri}' rejected fail-closed"
+            )
+
+        # 2. Mitigation for CVE-2026-67431 (Session Hijacking)
+        if session_owner_id != caller_principal_id:
+            raise GovernanceHaltError(
+                f"MCP_CVE_MITIGATION: CVE-2026-67431 session hijack detected (owner '{session_owner_id}' != caller '{caller_principal_id}')"
+            )
+
+        # 3. Mitigation for CVE-2026-54688 / 61559 (SSRF & Bearer Token Leaks via non-opaque handles)
+        if not credential_handle.startswith("grant://"):
+            raise GovernanceHaltError(
+                f"MCP_CVE_MITIGATION: CVE-2026-54688 raw credential handle '{credential_handle}' rejected; must use opaque grant://"
+            )
+
+        if target_audience not in self.valid_credential_audiences:
+            raise GovernanceHaltError(
+                f"MCP_CVE_MITIGATION: credential audience mismatch (target '{target_audience}' not in {self.valid_credential_audiences})"
+            )
+
+        return {
+            "disposition": "CONFIRMED",
+            "mitigationsVerified": ["CVE-2026-108586", "CVE-2026-67431", "CVE-2026-54688"],
+            "status": "HARDENED_DISPATCH_PERMITTED",
+        }
+
+
+# ============================================================================
+# 60. SCITT AIR Profile Translator (IETF draft-emirdag-scitt-01)
+# ============================================================================
+
+
+@dataclass(frozen=True)
+class ScittCoseSign1Envelope:
+    """IETF SCITT COSE_Sign1 Agent Action Capsule representation."""
+
+    protected_header_jcs: str
+    unprotected_header: Dict[str, Any]
+    payload_hash: str
+    scitt_status: str  # "pending_confirmation", "success", "failed"
+    signature_hex: str
+    merkle_anchor_root: str
+
+
+class ScittAirProfileTranslator:
+    """Translates AEIB ContinuityReceipt records into IETF SCITT COSE_Sign1 envelope prototypes.
+
+    PROTOTYPE PROFILE TRANSLATION: This adapter translates AEIB receipts into COSE_Sign1
+    representations. It does NOT claim formal IETF SCITT conformance or transparency
+    service interoperability until cross-implementation conformance vectors have passed.
+
+    Maps:
+      - EFFECT_INDETERMINATE -> pending_confirmation
+      - CONFIRMED -> success
+      - REFUTED -> failed
+      - REJECTED -> policy_rejected
+    """
+
+    STATUS_MAP = {
+        "EFFECT_INDETERMINATE": "pending_confirmation",
+        "CONFIRMED": "success",
+        "REFUTED": "failed",
+        "REJECTED": "policy_rejected",
+    }
+
+    def __init__(self, scitt_signer_key: Ed25519PrivateKey, key_id: str = "did:aeib:scitt-01") -> None:
+        self.scitt_signer_key = scitt_signer_key
+        self.key_id = key_id
+
+    def translate_receipt_to_scitt_air(
+        self,
+        *,
+        receipt: Dict[str, Any],
+        merkle_root: str,
+    ) -> ScittCoseSign1Envelope:
+        stmt = receipt.get("statement", receipt)
+        disposition = stmt.get("disposition", "EFFECT_INDETERMINATE")
+        scitt_status = self.STATUS_MAP.get(disposition, "pending_confirmation")
+
+        payload_bytes = encode_jcs(stmt)
+        payload_hash = f"sha256:{hashlib.sha256(payload_bytes).hexdigest()}"
+
+        protected_header = {
+            "alg": "EdDSA",  # RFC 9053 COSE algorithm
+            "crit": ["merkle_root", "scitt_status"],
+            "kid": self.key_id,
+            "merkle_root": merkle_root,
+            "profile": "ietf-scitt-agent-action-capsule-01",
+            "scitt_status": scitt_status,
+        }
+        protected_jcs = canonicalize_jcs(protected_header)
+
+        # COSE_Sign1 Sig_structure representation
+        sig_structure = {
+            "body_protected": protected_header,
+            "context": "Signature1",
+            "external_aad": f"urn:aeib:merkle:{merkle_root}",
+            "payload_hash": payload_hash,
+        }
+        sig_bytes = encode_jcs(sig_structure)
+        sig_hex = self.scitt_signer_key.sign(sig_bytes).hex()
+
+        return ScittCoseSign1Envelope(
+            protected_header_jcs=protected_jcs,
+            unprotected_header={"timestamp": stmt.get("timestamp", 0)},
+            payload_hash=payload_hash,
+            scitt_status=scitt_status,
+            signature_hex=sig_hex,
+            merkle_anchor_root=merkle_root,
+        )
+
+    @classmethod
+    def verify_scitt_envelope(
+        cls,
+        envelope: ScittCoseSign1Envelope,
+        public_key: Ed25519PublicKey,
+    ) -> bool:
+        try:
+            import json
+            protected_header = json.loads(envelope.protected_header_jcs)
+            sig_structure = {
+                "body_protected": protected_header,
+                "context": "Signature1",
+                "external_aad": f"urn:aeib:merkle:{envelope.merkle_anchor_root}",
+                "payload_hash": envelope.payload_hash,
+            }
+            sig_bytes = encode_jcs(sig_structure)
+            public_key.verify(bytes.fromhex(envelope.signature_hex), sig_bytes)
+            return True
+        except Exception:
+            return False
+
+
+# ============================================================================
+# 61. Apple GAAT OpenTelemetry Semantic Telemetry Adapter
+# ============================================================================
+
+
+class AppleGaatOtelAdapter:
+    """Projects AEIB runtime phases into OpenTelemetry GenAI semantic conventions."""
+
+    EVENT_MAP = {
+        "PRE_DISPATCH_COMMITTED": "gen_ai.agent.action.pre_commit",
+        "DISPATCH_AUTHORIZED": "gen_ai.agent.action.dispatch",
+        "EFFECT_INDETERMINATE": "gen_ai.agent.action.uncertain_transport",
+        "PROBE_DISPATCHED": "gen_ai.agent.action.reconcile_probe",
+        "CONFIRMED": "gen_ai.agent.action.confirmed",
+        "REFUTED": "gen_ai.agent.action.refuted",
+    }
+
+    @classmethod
+    def project_event(
+        cls,
+        *,
+        operation_id: str,
+        phase: str,
+        action_caid: str,
+        target_tool: str,
+        timestamp_epoch_ms: int,
+        extra_attributes: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        otel_event_name = cls.EVENT_MAP.get(phase, "gen_ai.agent.action.event")
+        attrs = {
+            "gen_ai.agent.action.caid": action_caid,
+            "gen_ai.agent.action.id": operation_id,
+            "gen_ai.agent.action.phase": phase,
+            "gen_ai.agent.action.tool_name": target_tool,
+            "gen_ai.system": "aeib_wire_boundary",
+        }
+        if extra_attributes:
+            for k, v in extra_attributes.items():
+                attrs[f"aeib.{k}"] = v
+
+        return {
+            "attributes": attrs,
+            "name": otel_event_name,
+            "timestamp": timestamp_epoch_ms,
+        }
+
+
+# ============================================================================
+# 62. W3C DID Agent Identity Resolver (did:key Ed25519)
+# ============================================================================
+
+
+class W3cDidKeyResolver:
+    """Deterministic W3C did:key resolver for Ed25519 agent public keys."""
+
+    ED25519_MULTICODEC_PREFIX = b"\xed\x01"
+    BASE58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+
+    @classmethod
+    def _base58_encode(cls, b: bytes) -> str:
+        n = int.from_bytes(b, byteorder="big")
+        chars = []
+        while n > 0:
+            n, r = divmod(n, 58)
+            chars.append(cls.BASE58_ALPHABET[r])
+        for byte in b:
+            if byte == 0:
+                chars.append(cls.BASE58_ALPHABET[0])
+            else:
+                break
+        return "".join(reversed(chars))
+
+    @classmethod
+    def pubkey_to_did_key(cls, public_key: Ed25519PublicKey) -> str:
+        from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+        raw_bytes = public_key.public_bytes(Encoding.Raw, PublicFormat.Raw)
+        prefixed = cls.ED25519_MULTICODEC_PREFIX + raw_bytes
+        encoded = cls._base58_encode(prefixed)
+        return f"did:key:z{encoded}"
+
+    @classmethod
+    def resolve_did_document(cls, did: str) -> Dict[str, Any]:
+        if not did.startswith("did:key:z"):
+            raise GovernanceHaltError(f"DID_RESOLVER_ERROR: unsupported DID format '{did}'; expected 'did:key:z...'")
+        did_suffix = did.split(":")[-1]
+        return {
+            "@context": [
+                "https://www.w3.org/ns/did/v1",
+                "https://w3id.org/security/suites/ed25519-2020/v1",
+            ],
+            "authentication": [f"{did}#{did_suffix}"],
+            "id": did,
+            "verificationMethod": [
+                {
+                    "controller": did,
+                    "id": f"{did}#{did_suffix}",
+                    "publicKeyMultibase": did_suffix,
+                    "type": "Ed25519VerificationKey2020",
+                }
+            ],
+        }
+
+
+
+
+
+
+

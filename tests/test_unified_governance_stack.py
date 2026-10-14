@@ -569,8 +569,8 @@ def test_formal_memory_admissibility_equation_and_adversarial_negative_ledger() 
         (
             "NEG-07",
             "Partial Write w/ Reconciler Failure",
-            "COMPENSATED",
-            "COMPENSATED",
+            "COMPENSATED_RECORD_RECORDED",
+            "COMPENSATED_RECORD_RECORDED",
             "SagaReconciler:EventualConsistencyQueue",
         ),
         (
@@ -598,6 +598,10 @@ def test_formal_memory_admissibility_equation_and_adversarial_negative_ledger() 
     assert len(observed_digests) == 8
     assert observed_digests["NEG-01"].startswith("b52a9860")
     assert observed_digests["NEG-06"].startswith("6fffed61")
+    assert (
+        observed_digests["NEG-07"]
+        == "64226b3467504d1474dee66a61fe0fae9f129fd36d3807204c38279801d733fa"
+    )
     assert observed_digests["NEG-08"].startswith("f1c924f5")
 
 
@@ -1259,4 +1263,1441 @@ def test_category_e_lumay_governance_taxonomy_and_context_mode_isolation() -> No
             projected_fields=("tx_id", "amount_minor", "raw_audit_blob"),
             max_context_bytes=256,
         )
+
+
+def test_policy_driven_deployment_profile_and_seven_off_limits_vectors() -> None:
+    """Verify policy-driven signal activation, 6-term pre-dispatch standing, MCP readOnlyHint masquerade defense, and 7 forbidden agent override vectors."""
+    operator_sk = Ed25519PrivateKey.generate()
+    operator_pk = operator_sk.public_key()
+    receipt_sk = Ed25519PrivateKey.generate()
+
+    signed_mutating_profile = ugs.SignedDeploymentProfileGate.mint_signed_profile(
+        operator_signing_key=operator_sk,
+        profile={
+            "action_class": "state_mutating_http",
+            "credential_isolation": True,
+            "strip_reasoning_fields": True,
+            "epoch_freshness": True,
+            "indeterminate_reconciliation": True,
+            "probe_budget": 1,
+            "human_step_up": "out_of_grant_only",
+        },
+    )
+    assert signed_mutating_profile["profile"]["bpf_lsm_diagnostic"] is False
+    assert signed_mutating_profile["profile"]["hardware_attestation"] is False
+
+    pinned_manifest = {
+        "tools": {
+            "initiate_wire_transfer": {
+                "action_class": "state_mutating_http",
+                "owner_enabled": True,
+                "schema_sha256": "a" * 64,
+            },
+            "fetch_account_balance": {
+                "action_class": "read_only_query",
+                "owner_enabled": True,
+                "schema_sha256": "b" * 64,
+            },
+        }
+    }
+
+    base_candidate = {
+        "tool_name": "initiate_wire_transfer",
+        "discovered_schema_sha256": "a" * 64,
+        "grant_valid": True,
+        "proposed_policy_epoch": 12,
+        "proposed_source_epoch": 34,
+        "notional_amount": 5000,
+        "payload": {
+            "beneficiary": "DE89370400440532013000",
+            "amountMinor": 5000,
+            "_reasoning": "Ephemeral rationale stripped before wire CAID",
+        },
+    }
+
+    # 1. Ambiguous HTTP 504 on state-mutating profile -> EFFECT_INDETERMINATE (retrySafe=False)
+    res_504 = ugs.SignedDeploymentProfileGate.evaluate_dispatch_under_profile(
+        signed_profile=signed_mutating_profile,
+        operator_public_key=operator_pk,
+        pinned_manifest=pinned_manifest,
+        candidate_action=base_candidate,
+        active_policy_epoch=12,
+        active_source_epoch=34,
+        control_healthy=True,
+        max_notional_limit=10000,
+        transport_outcome="HTTP_504",
+        receipt_signing_key=receipt_sk,
+    )
+    stmt = res_504["receiptStatement"]
+    assert res_504["preDispatchDecision"] == "AUTHORIZED"
+    assert stmt["disposition"] == "EFFECT_INDETERMINATE"
+    assert stmt["retrySafe"] is False
+    assert stmt["profileCaid"] == signed_mutating_profile["profileCaid"]
+    assert "indeterminate_reconciliation" in stmt["enabledSignals"]
+
+    # 2. Out-of-grant notional amount -> STEP_UP_REQUIRED
+    over_grant_candidate = dict(base_candidate, notional_amount=25000)
+    res_step_up = ugs.SignedDeploymentProfileGate.evaluate_dispatch_under_profile(
+        signed_profile=signed_mutating_profile,
+        operator_public_key=operator_pk,
+        pinned_manifest=pinned_manifest,
+        candidate_action=over_grant_candidate,
+        active_policy_epoch=12,
+        active_source_epoch=34,
+        control_healthy=True,
+        max_notional_limit=10000,
+    )
+    assert res_step_up["preDispatchDecision"] == "STEP_UP_REQUIRED"
+
+    # 3. Read-only profile does not latch EFFECT_INDETERMINATE on 504 by default
+    signed_ro_profile = ugs.SignedDeploymentProfileGate.mint_signed_profile(
+        operator_signing_key=operator_sk,
+        profile={"action_class": "read_only_query"},
+    )
+    ro_candidate = {
+        "tool_name": "fetch_account_balance",
+        "discovered_schema_sha256": "b" * 64,
+        "grant_valid": True,
+        "proposed_policy_epoch": 12,
+        "proposed_source_epoch": 34,
+        "notional_amount": 0,
+        "payload": {"accountId": "ACC-01"},
+    }
+    res_ro = ugs.SignedDeploymentProfileGate.evaluate_dispatch_under_profile(
+        signed_profile=signed_ro_profile,
+        operator_public_key=operator_pk,
+        pinned_manifest=pinned_manifest,
+        candidate_action=ro_candidate,
+        active_policy_epoch=12,
+        active_source_epoch=34,
+        control_healthy=True,
+        max_notional_limit=10000,
+        transport_outcome="HTTP_504",
+    )
+    assert res_ro["receiptStatement"]["disposition"] == "TRANSPORT_ERROR_READ_ONLY"
+    assert res_ro["receiptStatement"]["retrySafe"] is True
+
+    # 4. All 7 off-limits agent override vectors must fail closed
+    for forbidden_key, forbidden_val in (
+        ("indeterminate_reconciliation", False),
+        ("probe_budget", 0),
+        ("authorized", True),
+        ("suppress_receipt", True),
+        ("override_policy_epoch", 99),
+        ("credential_isolation", False),
+        ("action_class", "read_only_query"),
+    ):
+        tampered_candidate = dict(base_candidate)
+        tampered_candidate[forbidden_key] = forbidden_val
+        with pytest.raises(
+            ugs.GovernanceHaltError, match="AGENT_SELF_AUTHORIZATION_ATTEMPT"
+        ):
+            ugs.SignedDeploymentProfileGate.evaluate_dispatch_under_profile(
+                signed_profile=signed_mutating_profile,
+                operator_public_key=operator_pk,
+                pinned_manifest=pinned_manifest,
+                candidate_action=tampered_candidate,
+                active_policy_epoch=12,
+                active_source_epoch=34,
+                control_healthy=True,
+                max_notional_limit=10000,
+            )
+
+    # 5. Untrusted MCP readOnlyHint=True spoofing on a state-mutating tool -> rejected
+    masquerade_candidate = dict(
+        base_candidate, mcp_annotations={"readOnlyHint": True, "destructiveHint": False}
+    )
+    with pytest.raises(ugs.GovernanceHaltError, match="READ_ONLY_MASQUERADE_REJECTED"):
+        ugs.SignedDeploymentProfileGate.evaluate_dispatch_under_profile(
+            signed_profile=signed_mutating_profile,
+            operator_public_key=operator_pk,
+            pinned_manifest=pinned_manifest,
+            candidate_action=masquerade_candidate,
+            active_policy_epoch=12,
+            active_source_epoch=34,
+            control_healthy=True,
+            max_notional_limit=10000,
+        )
+
+    # 6. Dynamic discovery without pinned authority or with schema rug-pull -> rejected
+    unpinned_candidate = dict(base_candidate, tool_name="dynamically_discovered_delete_db")
+    with pytest.raises(
+        ugs.GovernanceHaltError, match="DISCOVERY_DOES_NOT_CREATE_AUTHORITY"
+    ):
+        ugs.SignedDeploymentProfileGate.evaluate_dispatch_under_profile(
+            signed_profile=signed_mutating_profile,
+            operator_public_key=operator_pk,
+            pinned_manifest=pinned_manifest,
+            candidate_action=unpinned_candidate,
+            active_policy_epoch=12,
+            active_source_epoch=34,
+            control_healthy=True,
+            max_notional_limit=10000,
+        )
+
+    rug_pull_candidate = dict(base_candidate, discovered_schema_sha256="f" * 64)
+    with pytest.raises(ugs.GovernanceHaltError, match="MCP_SCHEMA_RUG_PULL_DETECTED"):
+        ugs.SignedDeploymentProfileGate.evaluate_dispatch_under_profile(
+            signed_profile=signed_mutating_profile,
+            operator_public_key=operator_pk,
+            pinned_manifest=pinned_manifest,
+            candidate_action=rug_pull_candidate,
+            active_policy_epoch=12,
+            active_source_epoch=34,
+            control_healthy=True,
+            max_notional_limit=10000,
+        )
+
+
+def test_v11_nvidia_candidate_action_verifier_and_iorails_result_binding() -> None:
+    """Verify NVIDIA NeMo Guardrails (IORails) candidate schema, signed rail trust model, fail-closed rejection, and tool_call_id result binding."""
+    op_sk = Ed25519PrivateKey.generate()
+    op_pk = op_sk.public_key()
+
+    signed_rail = ugs.NvidiaCandidateActionVerifier.mint_signed_rail_policy(
+        operator_signing_key=op_sk,
+        policy_id="rail-policy-treasury-v1",
+        allowed_rail_states=("execution_rail_cleared", "dialog_verified"),
+        tool_schemas={
+            "initiate_wire_transfer": {
+                "amountMinor": "int",
+                "beneficiaryIban": "str",
+                "currency": "str",
+            }
+        },
+    )
+
+    valid_candidate = {
+        "tool_call_id": "call_nv_9901",
+        "tool_name": "initiate_wire_transfer",
+        "rail_state": "execution_rail_cleared",
+        "arguments": {
+            "amountMinor": 15000,
+            "beneficiaryIban": "DE89370400440532013000",
+            "currency": "EUR",
+        },
+    }
+    valid_result = {
+        "tool_call_id": "call_nv_9901",
+        "tool_name": "initiate_wire_transfer",
+        "status": "DISPATCHED",
+    }
+
+    verified = ugs.NvidiaCandidateActionVerifier.verify_candidate_and_bind_result(
+        signed_rail_policy=signed_rail,
+        operator_public_key=op_pk,
+        candidate_action=valid_candidate,
+        tool_result=valid_result,
+    )
+    assert verified["decision"] == "CANDIDATE_VERIFIED"
+    assert verified["resultBound"] is True
+    assert len(verified["candidateCaid"]) == 64
+
+    # Disallowed rail state -> fail closed
+    bad_state = dict(valid_candidate, rail_state="unverified_freeform_state")
+    with pytest.raises(ugs.GovernanceHaltError, match="CANDIDATE_ACTION_REJECTED"):
+        ugs.NvidiaCandidateActionVerifier.verify_candidate_and_bind_result(
+            signed_rail_policy=signed_rail,
+            operator_public_key=op_pk,
+            candidate_action=bad_state,
+        )
+
+    # Boolean type confusion on int argument -> fail closed
+    bad_arg = dict(
+        valid_candidate,
+        arguments={
+            "amountMinor": True,
+            "beneficiaryIban": "DE89370400440532013000",
+            "currency": "EUR",
+        },
+    )
+    with pytest.raises(ugs.GovernanceHaltError, match="strict int check"):
+        ugs.NvidiaCandidateActionVerifier.verify_candidate_and_bind_result(
+            signed_rail_policy=signed_rail,
+            operator_public_key=op_pk,
+            candidate_action=bad_arg,
+        )
+
+    # Mismatched tool_call_id in result -> fail closed
+    mismatched_result = dict(valid_result, tool_call_id="call_nv_spoofed")
+    with pytest.raises(ugs.GovernanceHaltError, match="IORAILS_RESULT_MISMATCH"):
+        ugs.NvidiaCandidateActionVerifier.verify_candidate_and_bind_result(
+            signed_rail_policy=signed_rail,
+            operator_public_key=op_pk,
+            candidate_action=valid_candidate,
+            tool_result=mismatched_result,
+        )
+
+
+def test_v11_uber_mcp_registry_signed_manifest_pinning_freshness_and_revocation() -> None:
+    """Verify Uber / Enterprise MCP Registry signed server.json format, SHA-256 digest pinning, freshness rules, and revocation semantics."""
+    pub_sk = Ed25519PrivateKey.generate()
+    pub_pk = pub_sk.public_key()
+
+    signed_manifest = ugs.UberMcpRegistryGate.sign_server_manifest(
+        publisher_signing_key=pub_sk,
+        publisher_key_id="kid:uber-mcp-prod-01",
+        server_id="io.enterprise.treasury.mcp",
+        version="1.4.2",
+        tools={
+            "sepa_credit_transfer": {
+                "actionClass": "state_mutating_mcp",
+                "schemaSha256": "a" * 64,
+            }
+        },
+        issued_at_epoch=100,
+        expires_at_epoch=200,
+    )
+    pinned_digests = {"io.enterprise.treasury.mcp": signed_manifest["manifestSha256"]}
+
+    admitted = ugs.UberMcpRegistryGate.verify_registry_entry(
+        signed_manifest=signed_manifest,
+        publisher_public_key=pub_pk,
+        pinned_server_digests=pinned_digests,
+        current_epoch=150,
+        revoked_manifest_digests=set(),
+        revoked_publisher_keys=set(),
+    )
+    assert admitted["admissionDecision"] == "ADMITTED"
+    assert admitted["toolCount"] == 1
+
+    # Digest pin mismatch (rug pull) -> fail closed
+    with pytest.raises(ugs.GovernanceHaltError, match="MCP_DIGEST_PIN_MISMATCH"):
+        ugs.UberMcpRegistryGate.verify_registry_entry(
+            signed_manifest=signed_manifest,
+            publisher_public_key=pub_pk,
+            pinned_server_digests={"io.enterprise.treasury.mcp": "b" * 64},
+            current_epoch=150,
+            revoked_manifest_digests=set(),
+            revoked_publisher_keys=set(),
+        )
+
+    # Expired manifest -> fail closed
+    with pytest.raises(ugs.GovernanceHaltError, match="MCP_MANIFEST_STALE"):
+        ugs.UberMcpRegistryGate.verify_registry_entry(
+            signed_manifest=signed_manifest,
+            publisher_public_key=pub_pk,
+            pinned_server_digests=pinned_digests,
+            current_epoch=250,
+            revoked_manifest_digests=set(),
+            revoked_publisher_keys=set(),
+        )
+
+    # Emergency publisher key or digest revocation -> fail closed
+    with pytest.raises(ugs.GovernanceHaltError, match="MCP_MANIFEST_REVOKED"):
+        ugs.UberMcpRegistryGate.verify_registry_entry(
+            signed_manifest=signed_manifest,
+            publisher_public_key=pub_pk,
+            pinned_server_digests=pinned_digests,
+            current_epoch=150,
+            revoked_manifest_digests=set(),
+            revoked_publisher_keys={"kid:uber-mcp-prod-01"},
+        )
+
+
+def test_v11_cross_app_step_up_escalation_rfc9470_ciba_timeout_and_replay() -> None:
+    """Verify Cross-App STEP_UP escalation human approval identity, timeout, single-use nonce replay burn, and signed audit evidence."""
+    approver_sk = Ed25519PrivateKey.generate()
+    approver_pk = approver_sk.public_key()
+    ledger_sk = Ed25519PrivateKey.generate()
+    ledger_pk = ledger_sk.public_key()
+
+    action_payload = {
+        "amountMinor": 250000,
+        "beneficiaryIban": "DE89370400440532013000",
+        "currency": "EUR",
+    }
+    action_caid = ugs.compute_caid(action_payload)
+
+    assertion = ugs.CrossAppStepUpEscalationGate.mint_human_step_up_assertion(
+        approver_signing_key=approver_sk,
+        approver_id="spiffe://corp.internal/human-approver/treasury-vp-01",
+        acr_level="urn:ietf:params:oauth:acr:fido2-webauthn-passkey",
+        challenge_nonce="nonce-ciba-2026-0001",
+        action_caid=action_caid,
+        source_app="app://erp.procurement",
+        target_app="app://core.banking.settlement",
+        issued_at_epoch=500,
+        expires_at_epoch=560,
+    )
+
+    gate = ugs.CrossAppStepUpEscalationGate()
+    audit_rcpt = gate.verify_step_up_and_mint_audit_receipt(
+        human_assertion=assertion,
+        approver_public_key=approver_pk,
+        ledger_signing_key=ledger_sk,
+        expected_action_payload=action_payload,
+        expected_source_app="app://erp.procurement",
+        expected_target_app="app://core.banking.settlement",
+        required_acr_level="urn:ietf:params:oauth:acr:fido2-webauthn-passkey",
+        decision_epoch=530,
+    )
+    assert audit_rcpt["auditStatement"]["decision"] == "STEP_UP_APPROVED"
+    assert audit_rcpt["auditStatement"]["receiptType"] == "STEP_UP_AUDIT_RECEIPT"
+    ledger_pk.verify(
+        bytes.fromhex(audit_rcpt["auditReceiptSignatureHex"]),
+        ugs.encode_jcs(audit_rcpt["auditStatement"]),
+    )
+
+    # Replaying the exact same signed assertion must fail closed (STEP_UP_REPLAY_BLOCKED)
+    with pytest.raises(ugs.GovernanceHaltError, match="STEP_UP_REPLAY_BLOCKED"):
+        gate.verify_step_up_and_mint_audit_receipt(
+            human_assertion=assertion,
+            approver_public_key=approver_pk,
+            ledger_signing_key=ledger_sk,
+            expected_action_payload=action_payload,
+            expected_source_app="app://erp.procurement",
+            expected_target_app="app://core.banking.settlement",
+            required_acr_level="urn:ietf:params:oauth:acr:fido2-webauthn-passkey",
+            decision_epoch=531,
+        )
+
+    # Expired approval window must fail closed (STEP_UP_TIMEOUT)
+    late_assertion = ugs.CrossAppStepUpEscalationGate.mint_human_step_up_assertion(
+        approver_signing_key=approver_sk,
+        approver_id="spiffe://corp.internal/human-approver/treasury-vp-01",
+        acr_level="urn:ietf:params:oauth:acr:fido2-webauthn-passkey",
+        challenge_nonce="nonce-ciba-2026-0002",
+        action_caid=action_caid,
+        source_app="app://erp.procurement",
+        target_app="app://core.banking.settlement",
+        issued_at_epoch=500,
+        expires_at_epoch=560,
+    )
+    with pytest.raises(ugs.GovernanceHaltError, match="STEP_UP_TIMEOUT"):
+        gate.verify_step_up_and_mint_audit_receipt(
+            human_assertion=late_assertion,
+            approver_public_key=approver_pk,
+            ledger_signing_key=ledger_sk,
+            expected_action_payload=action_payload,
+            expected_source_app="app://erp.procurement",
+            expected_target_app="app://core.banking.settlement",
+            required_acr_level="urn:ietf:params:oauth:acr:fido2-webauthn-passkey",
+            decision_epoch=600,
+        )
+
+
+def test_v11_owasp_aibom_cyclonedx16_and_ifixai_ci_contract_gate() -> None:
+    """Verify OWASP AIBOM (CycloneDX 1.6 ML/MCP components) and iFixAi behavioral CI gate contract."""
+    ci_sk = Ed25519PrivateKey.generate()
+    ci_pk = ci_sk.public_key()
+
+    valid_aibom = {
+        "bomFormat": "CycloneDX",
+        "specVersion": "1.6",
+        "components": [
+            {
+                "type": "machine-learning-model",
+                "name": "frontier-planner-v4",
+                "hashes": [{"alg": "SHA-256", "content": "1" * 64}],
+            },
+            {
+                "type": "mcp-server",
+                "name": "treasury-sepa-mcp-gateway",
+                "hashes": [{"alg": "SHA-256", "content": "2" * 64}],
+            },
+        ],
+    }
+    valid_ifixai = {
+        "suite_id": "ifixai-predeploy-2026-10",
+        "failed_cases": 0,
+        "asi_vectors_covered": [
+            "ASI01_GOAL_HIJACK",
+            "ASI02_TOOL_MISUSE",
+            "ASI03_PRIVILEGE_ABUSE",
+            "ASI04_SUPPLY_CHAIN",
+            "ASI06_MEMORY_POISONING",
+        ],
+    }
+
+    res = ugs.OwaspAibomAndIFixAiContractGate.evaluate_ci_contract(
+        cyclonedx_aibom=valid_aibom,
+        ifixai_report=valid_ifixai,
+        ci_signing_key=ci_sk,
+    )
+    assert res["contractStatement"]["ciGateDisposition"] == "CI_CONTRACT_VERIFIED"
+    assert res["contractStatement"]["componentCount"] == 2
+    ci_pk.verify(
+        bytes.fromhex(res["contractSignatureHex"]),
+        ugs.encode_jcs(res["contractStatement"]),
+    )
+
+    # Unpinned component in AIBOM -> fail closed
+    unpinned_aibom = {
+        "bomFormat": "CycloneDX",
+        "specVersion": "1.6",
+        "components": [
+            {"type": "machine-learning-model", "name": "unpinned-model", "hashes": []},
+            {
+                "type": "mcp-server",
+                "name": "treasury-sepa-mcp-gateway",
+                "hashes": [{"alg": "SHA-256", "content": "2" * 64}],
+            },
+        ],
+    }
+    with pytest.raises(ugs.GovernanceHaltError, match="AIBOM_UNPINNED_COMPONENT"):
+        ugs.OwaspAibomAndIFixAiContractGate.evaluate_ci_contract(
+            cyclonedx_aibom=unpinned_aibom,
+            ifixai_report=valid_ifixai,
+            ci_signing_key=ci_sk,
+        )
+
+    # Failing iFixAi behavioral test -> fail closed
+    failing_ifixai = dict(valid_ifixai, failed_cases=2)
+    with pytest.raises(ugs.GovernanceHaltError, match="IFIXAI_CI_GATE_FAILED"):
+        ugs.OwaspAibomAndIFixAiContractGate.evaluate_ci_contract(
+            cyclonedx_aibom=valid_aibom,
+            ifixai_report=failing_ifixai,
+            ci_signing_key=ci_sk,
+        )
+
+
+def test_v11_financial_ambiguity_contract_three_rules_and_recovery_lineage() -> None:
+    """Verify the 3 non-negotiable financial dispatch rules, privacy-by-design digests, and immutable original_operation_id -> recovery_action_id lineage."""
+    ledger_sk = Ed25519PrivateKey.generate()
+    ledger_pk = ledger_sk.public_key()
+    target_sk = Ed25519PrivateKey.generate()
+    target_pk = target_sk.public_key()
+
+    raw_payload = {
+        "amountMinor": 75000,
+        "beneficiaryIban": "DE89370400440532013000",
+        "currency": "EUR",
+    }
+    valid_uuid4 = "550e8400-e29b-41d4-a716-446655440000"
+
+    # Rule 1 violation: missing or non-UUIDv4 idempotency key -> rejected before dispatch
+    with pytest.raises(ugs.GovernanceHaltError, match="FINANCIAL_RULE_1_VIOLATION"):
+        ugs.FinancialAmbiguityContractGate.evaluate_financial_dispatch(
+            ledger_signing_key=ledger_sk,
+            operation_id="OP-FIN-001",
+            idempotency_key_uuid4="not-a-uuid-v4",
+            raw_financial_payload=raw_payload,
+            transport_outcome="HTTP_200",
+            prev_chain_tip_hex="00" * 32,
+        )
+
+    # Rule 2: HTTP 504 without probe response latches immediately to EFFECT_INDETERMINATE (retrySafe=False)
+    ind_rcpt = ugs.FinancialAmbiguityContractGate.evaluate_financial_dispatch(
+        ledger_signing_key=ledger_sk,
+        operation_id="OP-FIN-504",
+        idempotency_key_uuid4=valid_uuid4,
+        raw_financial_payload=raw_payload,
+        transport_outcome="HTTP_504",
+        prev_chain_tip_hex="00" * 32,
+    )
+    stmt = ind_rcpt["envelope"]["statement"]
+    assert stmt["disposition"] == "EFFECT_INDETERMINATE"
+    assert stmt["retrySafe"] is False
+    assert stmt["probeBudget"] == 1
+    assert stmt["probeConsumed"] == 0
+    # Privacy by design: raw IBAN must never appear in the serialized receipt statement
+    assert "DE89370400440532013000" not in ugs.encode_jcs(stmt).decode("utf-8")
+
+    # Rule 2 violation: attempting a blind retry on an uncertain receipt -> rejected
+    with pytest.raises(ugs.GovernanceHaltError, match="FINANCIAL_RULE_2_VIOLATION"):
+        ugs.FinancialAmbiguityContractGate.append_immutable_recovery_record(
+            ledger_signing_key=ledger_sk,
+            uncertain_receipt=ind_rcpt,
+            recovery_action_id="REC-ACT-001",
+            recovery_idempotency_uuid4="6ba7b810-9dad-41d1-80b4-00c04fd430c8",
+            recovery_disposition="BLIND_RETRY",
+        )
+
+    # Immutable recovery lineage: appends linked record (originalOperationId -> recoveryActionId)
+    rec_rcpt = ugs.FinancialAmbiguityContractGate.append_immutable_recovery_record(
+        ledger_signing_key=ledger_sk,
+        uncertain_receipt=ind_rcpt,
+        recovery_action_id="REC-ACT-001",
+        recovery_idempotency_uuid4="6ba7b810-9dad-41d1-80b4-00c04fd430c8",
+        recovery_disposition="STEP_UP_HUMAN_RECONCILED",
+    )
+    rec_stmt = rec_rcpt["envelope"]["statement"]
+    assert rec_stmt["originalOperationId"] == "OP-FIN-504"
+    assert rec_stmt["recoveryActionId"] == "REC-ACT-001"
+    assert rec_stmt["prevChainTip"] == ind_rcpt["envelope"]["chainTip"]
+    ledger_pk.verify(
+        bytes.fromhex(rec_rcpt["signatureHex"]),
+        ugs.encode_jcs(rec_rcpt["envelope"]),
+    )
+
+    # Rule 3: Single-probe reconciliation with authenticated target endpoint
+    idem_digest = ugs.hashlib.sha256(valid_uuid4.encode("utf-8")).hexdigest()
+    probe_stmt = {
+        "idempotencyKeyDigest": idem_digest,
+        "targetStatus": "COMMITTED",
+    }
+    authenticated_probe = {
+        "probeStatement": probe_stmt,
+        "targetSignatureHex": target_sk.sign(ugs.encode_jcs(probe_stmt)).hex(),
+    }
+    reconciled_rcpt = ugs.FinancialAmbiguityContractGate.evaluate_financial_dispatch(
+        ledger_signing_key=ledger_sk,
+        operation_id="OP-FIN-504-RECON",
+        idempotency_key_uuid4=valid_uuid4,
+        raw_financial_payload=raw_payload,
+        transport_outcome="TCP_RST",
+        prev_chain_tip_hex="00" * 32,
+        authenticated_probe_response=authenticated_probe,
+        target_endpoint_public_key=target_pk,
+    )
+    assert reconciled_rcpt["envelope"]["statement"]["disposition"] == "CONFIRMED"
+    assert reconciled_rcpt["envelope"]["statement"]["probeConsumed"] == 1
+
+    # Rule 3 violation: unauthenticated probe response -> rejected fail-closed
+    with pytest.raises(ugs.GovernanceHaltError, match="FINANCIAL_RULE_3_VIOLATION"):
+        ugs.FinancialAmbiguityContractGate.evaluate_financial_dispatch(
+            ledger_signing_key=ledger_sk,
+            operation_id="OP-FIN-504-UNAUTH",
+            idempotency_key_uuid4=valid_uuid4,
+            raw_financial_payload=raw_payload,
+            transport_outcome="TCP_RST",
+            prev_chain_tip_hex="00" * 32,
+            authenticated_probe_response=authenticated_probe,
+            target_endpoint_public_key=None,
+        )
+
+
+def test_gap5_zero_allocation_admission_hook_edge_filter():
+    """Evaluates Gap 5 TA-14 SCGA O(1) admission filter before crypto commitment."""
+    allowed_callers = {"agent_planner_01", "agent_executor_02"}
+    allowed_tools = {
+        "agent_planner_01": {"read_ledger", "propose_transfer"},
+        "agent_executor_02": {"commit_transfer"},
+    }
+
+    # Case 1: Admitted authorized caller and tool
+    verdict = ugs.ZeroAllocationAdmissionHook.evaluate_edge_admission(
+        caller_identity="agent_planner_01",
+        target_tool="propose_transfer",
+        allowed_callers=allowed_callers,
+        allowed_tools_for_caller=allowed_tools,
+        active_standing_bits=0x01,
+        required_standing_mask=0x01,
+        epoch_valid=True,
+    )
+    assert verdict["admitted"] is True
+    assert verdict["cryptoCommitmentDeferred"] is True
+
+    # Case 2: Adversarial / unauthenticated caller dropped at edge without crypto
+    with pytest.raises(ugs.GovernanceHaltError, match="caller 'adversary_x' not in allowed set"):
+        ugs.ZeroAllocationAdmissionHook.evaluate_edge_admission(
+            caller_identity="adversary_x",
+            target_tool="commit_transfer",
+            allowed_callers=allowed_callers,
+            allowed_tools_for_caller=allowed_tools,
+            active_standing_bits=0x01,
+        )
+
+    # Case 3: Unauthorized tool for valid caller dropped at edge
+    with pytest.raises(ugs.GovernanceHaltError, match="target tool 'commit_transfer' unauthorized"):
+        ugs.ZeroAllocationAdmissionHook.evaluate_edge_admission(
+            caller_identity="agent_planner_01",
+            target_tool="commit_transfer",
+            allowed_callers=allowed_callers,
+            allowed_tools_for_caller=allowed_tools,
+            active_standing_bits=0x01,
+        )
+
+    # Case 4: Standing predicate revoked (standing bits mismatch)
+    with pytest.raises(ugs.GovernanceHaltError, match="standing predicate failed"):
+        ugs.ZeroAllocationAdmissionHook.evaluate_edge_admission(
+            caller_identity="agent_executor_02",
+            target_tool="commit_transfer",
+            allowed_callers=allowed_callers,
+            allowed_tools_for_caller=allowed_tools,
+            active_standing_bits=0x00,
+            required_standing_mask=0x01,
+        )
+
+    # Case 5: Stale epoch dropped before JCS
+    with pytest.raises(ugs.GovernanceHaltError, match="epoch invalid"):
+        ugs.ZeroAllocationAdmissionHook.evaluate_edge_admission(
+            caller_identity="agent_executor_02",
+            target_tool="commit_transfer",
+            allowed_callers=allowed_callers,
+            allowed_tools_for_caller=allowed_tools,
+            active_standing_bits=0x01,
+            epoch_valid=False,
+        )
+
+
+def test_gap8_cross_agent_delegation_chain_verification_and_scope_attenuation():
+    """Evaluates Gap 8 OpenA2A / MTC lateral delegation chain verification."""
+    root_sk = Ed25519PrivateKey.generate()
+    root_pk = root_sk.public_key()
+    orchestrator_sk = Ed25519PrivateKey.generate()
+    orchestrator_pk = orchestrator_sk.public_key()
+    worker_sk = Ed25519PrivateKey.generate()
+    worker_pk = worker_sk.public_key()
+
+    # Link 1: Root Principal -> Orchestrator Agent (scopes: ["read", "write:financial", "query"])
+    link1 = ugs.CrossAgentDelegationVerifier.create_delegation_link(
+        delegator_id="principal:alice",
+        delegator_privkey=root_sk,
+        delegatee_id="agent:orchestrator",
+        delegatee_pubkey=orchestrator_pk,
+        granted_scopes=["read", "write:financial", "query"],
+        max_epoch=10,
+    )
+
+    # Link 2: Orchestrator Agent -> Worker Agent (attenuated scopes: ["read", "write:financial"])
+    link2 = ugs.CrossAgentDelegationVerifier.create_delegation_link(
+        delegator_id="agent:orchestrator",
+        delegator_privkey=orchestrator_sk,
+        delegatee_id="agent:worker_fin",
+        delegatee_pubkey=worker_pk,
+        granted_scopes=["read", "write:financial"],
+        max_epoch=10,
+    )
+
+    # Case 1: Valid 2-hop delegation chain
+    chain = [link1, link2]
+    result = ugs.CrossAgentDelegationVerifier.verify_delegation_chain(
+        root_principal_id="principal:alice",
+        root_principal_pubkey=root_pk,
+        delegation_chain=chain,
+        target_agent_id="agent:worker_fin",
+        requested_scope="write:financial",
+        current_epoch=5,
+    )
+    assert result["verified"] is True
+    assert result["chainLength"] == 2
+    assert result["requestedScope"] == "write:financial"
+
+    # Case 2: Scope expansion rejected fail-closed (Worker tries to grant "admin:delete" not held by Orchestrator)
+    bad_link2 = ugs.CrossAgentDelegationVerifier.create_delegation_link(
+        delegator_id="agent:orchestrator",
+        delegator_privkey=orchestrator_sk,
+        delegatee_id="agent:worker_fin",
+        delegatee_pubkey=worker_pk,
+        granted_scopes=["read", "admin:delete"],
+        max_epoch=10,
+    )
+    with pytest.raises(ugs.GovernanceHaltError, match="attempted scope expansion"):
+        ugs.CrossAgentDelegationVerifier.verify_delegation_chain(
+            root_principal_id="principal:alice",
+            root_principal_pubkey=root_pk,
+            delegation_chain=[link1, bad_link2],
+            target_agent_id="agent:worker_fin",
+            requested_scope="read",
+            current_epoch=5,
+        )
+
+    # Case 3: Expired epoch in delegation chain
+    with pytest.raises(ugs.GovernanceHaltError, match="expired at epoch 10"):
+        ugs.CrossAgentDelegationVerifier.verify_delegation_chain(
+            root_principal_id="principal:alice",
+            root_principal_pubkey=root_pk,
+            delegation_chain=chain,
+            target_agent_id="agent:worker_fin",
+            requested_scope="write:financial",
+            current_epoch=11,
+        )
+
+    # Case 4: Target agent mismatch (chain terminates at worker_fin, but dispatched by rogue_agent)
+    with pytest.raises(ugs.GovernanceHaltError, match="terminal delegatee .* does not match"):
+        ugs.CrossAgentDelegationVerifier.verify_delegation_chain(
+            root_principal_id="principal:alice",
+            root_principal_pubkey=root_pk,
+            delegation_chain=chain,
+            target_agent_id="agent:rogue_agent",
+            requested_scope="write:financial",
+            current_epoch=5,
+        )
+
+
+def test_priority_p0_decision_to_dispatch_authority_ticket_gate():
+    """Evaluates P0 Decision-to-Dispatch Authority Ticket (TOCTOU & single-use defense)."""
+    authority_sk = Ed25519PrivateKey.generate()
+    authority_pk = authority_sk.public_key()
+    gate = ugs.DecisionToDispatchAuthorityGate(authority_pk)
+
+    action_payload = {"amount": 1000, "currency": "CZK", "recipient": "CZ00112233"}
+    target_url = "https://api.internal/v1/transfers"
+    manifest_digest = "sha256:7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069"
+    policy_epoch = 142
+    expires_at = 1760361600
+    current_time = 1760360000
+
+    ticket = ugs.DecisionToDispatchAuthorityGate.mint_ticket(
+        authority_private_key=authority_sk,
+        decision_id="dec_984f2a11",
+        operation_id="op_77b3109a",
+        principal_id="did:key:z6Mkek001",
+        target_identity=target_url,
+        action_payload=action_payload,
+        manifest_digest=manifest_digest,
+        policy_epoch=policy_epoch,
+        expires_at=expires_at,
+        single_use=True,
+    )
+
+    # Case 1: Valid execution -> ALLOW / DISPATCH_AUTHORIZED
+    verdict = gate.evaluate_and_burn_ticket(
+        ticket=ticket,
+        wire_payload=action_payload,
+        target_url=target_url,
+        active_manifest_digest=manifest_digest,
+        active_policy_epoch=policy_epoch,
+        current_timestamp=current_time,
+    )
+    assert verdict["authorization"] == "ALLOW"
+    assert verdict["execution"] == "DISPATCH_AUTHORIZED"
+    assert verdict["decisionId"] == "dec_984f2a11"
+
+    # Case 2: Replay attack (second dispatch with same single-use ticket) -> DENY / NOT_DISPATCHED
+    with pytest.raises(ugs.GovernanceHaltError, match="DISPATCH_AUTHORIZATION_DENY: ticket decision .* already burned"):
+        gate.evaluate_and_burn_ticket(
+            ticket=ticket,
+            wire_payload=action_payload,
+            target_url=target_url,
+            active_manifest_digest=manifest_digest,
+            active_policy_epoch=policy_epoch,
+            current_timestamp=current_time,
+        )
+
+    # Mint fresh ticket for negative tamper cases
+    fresh_ticket = ugs.DecisionToDispatchAuthorityGate.mint_ticket(
+        authority_private_key=authority_sk,
+        decision_id="dec_fresh_002",
+        operation_id="op_77b3109b",
+        principal_id="did:key:z6Mkek001",
+        target_identity=target_url,
+        action_payload=action_payload,
+        manifest_digest=manifest_digest,
+        policy_epoch=policy_epoch,
+        expires_at=expires_at,
+        single_use=True,
+    )
+
+    # Case 3: TOCTOU payload mutation (tampered amount) -> DENY / NOT_DISPATCHED
+    tampered_payload = {"amount": 2000, "currency": "CZK", "recipient": "CZ00112233"}
+    with pytest.raises(ugs.GovernanceHaltError, match="TOCTOU payload mutation detected"):
+        gate.evaluate_and_burn_ticket(
+            ticket=fresh_ticket,
+            wire_payload=tampered_payload,
+            target_url=target_url,
+            active_manifest_digest=manifest_digest,
+            active_policy_epoch=policy_epoch,
+            current_timestamp=current_time,
+        )
+
+    # Case 4: Target URL mutation -> DENY / NOT_DISPATCHED
+    with pytest.raises(ugs.GovernanceHaltError, match="target mutation detected"):
+        gate.evaluate_and_burn_ticket(
+            ticket=fresh_ticket,
+            wire_payload=action_payload,
+            target_url="https://evil.internal/v1/transfers",
+            active_manifest_digest=manifest_digest,
+            active_policy_epoch=policy_epoch,
+            current_timestamp=current_time,
+        )
+
+    # Case 5: Expired ticket -> DENY / NOT_DISPATCHED
+    with pytest.raises(ugs.GovernanceHaltError, match="ticket expired"):
+        gate.evaluate_and_burn_ticket(
+            ticket=fresh_ticket,
+            wire_payload=action_payload,
+            target_url=target_url,
+            active_manifest_digest=manifest_digest,
+            active_policy_epoch=policy_epoch,
+            current_timestamp=expires_at + 100,
+        )
+
+    # Case 6: Policy epoch divergence -> DENY / NOT_DISPATCHED
+    with pytest.raises(ugs.GovernanceHaltError, match="ticket policy epoch 142 != active 143"):
+        gate.evaluate_and_burn_ticket(
+            ticket=fresh_ticket,
+            wire_payload=action_payload,
+            target_url=target_url,
+            active_manifest_digest=manifest_digest,
+            active_policy_epoch=143,
+            current_timestamp=current_time,
+        )
+
+
+def test_aeib_mcp_governance_adapter_apb_halt_resume_loop():
+    """Evaluates AEIB-MCP-Governance-Adapter APB Halt -> Evaluate -> Resume lifecycle."""
+    authority_sk = Ed25519PrivateKey.generate()
+    authority_pk = authority_sk.public_key()
+    ledger_sk = Ed25519PrivateKey.generate()
+    ledger_pk = ledger_sk.public_key()
+
+    adapter = ugs.AeibMcpGovernanceAdapter(
+        authority_public_key=authority_pk,
+        ledger_signing_key=ledger_sk,
+    )
+
+    # Principal issues APB binding for agent
+    principal_sk = authority_sk  # in this test authority is principal
+    apb = ugs.AeibMcpGovernanceAdapter.create_apb_binding(
+        principal_private_key=principal_sk,
+        principal_id="did:key:principal_01",
+        agent_id="agent:planner_01",
+        session_id="sess_mcp_999",
+        allowed_tools=["fetch_order", "process_refund"],
+    )
+
+    tool_args = {"order_id": "ORD-1234", "refund_amount": 150}
+    target_url = "https://mcp.internal/tools/process_refund"
+    manifest_digest = "sha256:7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069"
+    policy_epoch = 10
+    expires_at = 1760361600
+    current_time = 1760360000
+
+    ticket = ugs.DecisionToDispatchAuthorityGate.mint_ticket(
+        authority_private_key=authority_sk,
+        decision_id="dec_mcp_001",
+        operation_id="op_mcp_refund_001",
+        principal_id="did:key:principal_01",
+        target_identity=target_url,
+        action_payload=tool_args,
+        manifest_digest=manifest_digest,
+        policy_epoch=policy_epoch,
+        expires_at=expires_at,
+        single_use=True,
+    )
+
+    valid_jsonrpc = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "tools/call",
+        "params": {
+            "name": "process_refund",
+            "arguments": tool_args,
+        },
+    }
+
+    # Case 1: Valid MCP Halt -> APB check -> Resume
+    res = adapter.intercept_and_evaluate_jsonrpc(
+        jsonrpc_request=valid_jsonrpc,
+        apb_binding=apb,
+        ticket=ticket,
+        active_manifest_digest=manifest_digest,
+        active_policy_epoch=policy_epoch,
+        current_timestamp=current_time,
+    )
+    assert res["authorization"] == "ALLOW"
+    assert res["mcpResume"] is True
+    assert res["operationId"] == "op_mcp_refund_001"
+    assert res["receipt"]["statement"]["transparencyInvariance"] == "T9.1_SATISFIED"
+
+    # Verify receipt signature
+    ledger_pk.verify(
+        bytes.fromhex(res["receipt"]["signatureHex"]),
+        ugs.encode_jcs(res["receipt"]["statement"]),
+    )
+
+    # Case 2: Protocol violation (non tools/call method)
+    invalid_method_rpc = {"jsonrpc": "2.0", "id": 2, "method": "prompts/get"}
+    with pytest.raises(ugs.GovernanceHaltError, match="MCP_PROTOCOL_VIOLATION"):
+        adapter.intercept_and_evaluate_jsonrpc(
+            jsonrpc_request=invalid_method_rpc,
+            apb_binding=apb,
+            ticket=ticket,
+            active_manifest_digest=manifest_digest,
+            active_policy_epoch=policy_epoch,
+            current_timestamp=current_time,
+        )
+
+    # Case 3: APB tool permission violation
+    unauthorized_tool_rpc = {
+        "jsonrpc": "2.0",
+        "id": 3,
+        "method": "tools/call",
+        "params": {"name": "delete_database", "arguments": {}},
+    }
+    with pytest.raises(ugs.GovernanceHaltError, match="APB_VIOLATION: tool 'delete_database' not permitted"):
+        adapter.intercept_and_evaluate_jsonrpc(
+            jsonrpc_request=unauthorized_tool_rpc,
+            apb_binding=apb,
+            ticket=ticket,
+            active_manifest_digest=manifest_digest,
+            active_policy_epoch=policy_epoch,
+            current_timestamp=current_time,
+        )
+
+
+def test_aigp_sigma_cryptographic_kill_switch_k_of_n_offline_revocation():
+    """Evaluates AIGP-Σ Category 3 Cryptographic Revocation with k-of-n threshold."""
+    # Setup 5 quorum keys, threshold k=3
+    quorum_sks = [Ed25519PrivateKey.generate() for _ in range(5)]
+    quorum_pks = [sk.public_key() for sk in quorum_sks]
+
+    kill_switch = ugs.AigpSigmaCryptographicKillSwitch(
+        quorum_public_keys=quorum_pks,
+        threshold_k=3,
+    )
+
+    # Scope starts admissible
+    kill_switch.assert_scope_admissible("session:finance_pilot_1")
+
+    # Issue signed HALT command with 3-of-5 valid quorum signatures
+    halt_cmd = ugs.AigpSigmaCryptographicKillSwitch.sign_halt_command(
+        halt_id="halt_fin_001",
+        target_scope="session:finance_pilot_1",
+        sequence=1,
+        issued_at_epoch=150,
+        reason="Anomalous prompt drift detected by supervisor",
+        signing_keys=[quorum_sks[0], quorum_sks[1], quorum_sks[2]],
+    )
+
+    # Process and latch halt command
+    verdict = kill_switch.process_halt_command(halt_cmd)
+    assert verdict["latched"] is True
+    assert verdict["validSignatures"] == 3
+
+    # Now targeted scope is blocked fail-closed offline
+    with pytest.raises(ugs.GovernanceHaltError, match="KILL_SWITCH_HALT_ACTIVE"):
+        kill_switch.assert_scope_admissible("session:finance_pilot_1")
+
+    # Other unhalted scopes remain unaffected
+    kill_switch.assert_scope_admissible("session:unaffected_agent")
+
+    # Case 2: Quorum deficit (only 2 keys signed when 3 required)
+    under_signed_cmd = ugs.AigpSigmaCryptographicKillSwitch.sign_halt_command(
+        halt_id="halt_fin_002",
+        target_scope="session:unaffected_agent",
+        sequence=2,
+        issued_at_epoch=150,
+        reason="Unauthorized halt attempt",
+        signing_keys=[quorum_sks[0], quorum_sks[1]],
+    )
+    with pytest.raises(ugs.GovernanceHaltError, match="KILL_SWITCH_QUORUM_DEFICIT"):
+        kill_switch.process_halt_command(under_signed_cmd)
+
+    # Case 3: Replay attack (stale or equal sequence)
+    replayed_cmd = ugs.AigpSigmaCryptographicKillSwitch.sign_halt_command(
+        halt_id="halt_fin_003",
+        target_scope="ALL",
+        sequence=1,  # <= highest seen sequence 1
+        issued_at_epoch=151,
+        reason="Replay test",
+        signing_keys=[quorum_sks[0], quorum_sks[1], quorum_sks[2]],
+    )
+    with pytest.raises(ugs.GovernanceHaltError, match="KILL_SWITCH_REPLAY"):
+        kill_switch.process_halt_command(replayed_cmd)
+
+    # Case 4: Wildcard 'ALL' kill switch shuts down everything
+    wildcard_halt = ugs.AigpSigmaCryptographicKillSwitch.sign_halt_command(
+        halt_id="halt_emergency_global",
+        target_scope="ALL",
+        sequence=2,
+        issued_at_epoch=152,
+        reason="Global emergency freeze",
+        signing_keys=[quorum_sks[0], quorum_sks[2], quorum_sks[4]],
+    )
+    kill_switch.process_halt_command(wildcard_halt)
+    with pytest.raises(ugs.GovernanceHaltError, match="KILL_SWITCH_HALT_ACTIVE"):
+        kill_switch.assert_scope_admissible("session:any_agent_whatsoever")
+
+
+def test_acs_middleware_hook_and_execution_checkpoints():
+    """Verify ACS execution checkpoints emit verifiable signed assertions across stages."""
+    sk = Ed25519PrivateKey.generate()
+    pk = sk.public_key()
+    hook = ugs.AcsMiddlewareHook(signing_key=sk, public_key=pk)
+
+    action_payload = {"tool": "wire_transfer", "amount": 1000, "currency": "EUR"}
+
+    # 1. Emit valid checkpoint
+    chk = hook.emit_checkpoint(
+        checkpoint_id="chk_001",
+        checkpoint_type="tool_called",
+        operation_id="op_wire_001",
+        action_payload=action_payload,
+        station_id="station_0",
+        epoch=1,
+        timestamp=1000,
+    )
+    assert chk.checkpoint_type == "tool_called"
+    assert hook.verify_checkpoint(chk) is True
+
+    # 2. Tampered checkpoint fails verification
+    tampered_chk = ugs.AcsExecutionCheckpoint(
+        checkpoint_id=chk.checkpoint_id,
+        checkpoint_type="action_completed",  # tampered
+        operation_id=chk.operation_id,
+        action_caid=chk.action_caid,
+        station_id=chk.station_id,
+        epoch=chk.epoch,
+        timestamp=chk.timestamp,
+        signature_hex=chk.signature_hex,
+    )
+    assert hook.verify_checkpoint(tampered_chk) is False
+
+    # 3. Invalid stage name fails closed
+    with pytest.raises(ugs.GovernanceHaltError, match="ACS_INVALID_STAGE"):
+        hook.emit_checkpoint(
+            checkpoint_id="chk_bad",
+            checkpoint_type="unauthorized_stage",
+            operation_id="op_wire_001",
+            action_payload=action_payload,
+            station_id="station_0",
+            epoch=1,
+            timestamp=1000,
+        )
+
+
+def test_five_plane_runtime_enforcer_stop_anywhere_principle():
+    """Verify Stop-Anywhere Principle halts fail-closed on violation in any of the 5 planes."""
+    enforcer = ugs.FivePlaneRuntimeEnforcer(
+        allowed_egress_hosts={"api.bank.internal", "audit.ledger.internal"},
+        allowed_tools={"ledger_probe", "wire_transfer"},
+        blocked_syscalls={"sys_ptrace", "sys_execve"},
+        max_payload_bytes=1024,
+    )
+
+    valid_reasoning = {"toolName": "wire_transfer"}
+    valid_network = "https://api.bank.internal/v1/transfer"
+    valid_identity = {"principalId": "did:key:treasury_operator", "scopes": ["transfer:write"]}
+    valid_endpoint_syscalls = ["sys_read", "sys_write"]
+    valid_data = {"recipient": "DE89370400440532013000", "amount": 500}
+
+    # Case 1: All planes pass
+    res = enforcer.evaluate_and_enforce(
+        reasoning_claim=valid_reasoning,
+        network_target_url=valid_network,
+        identity_principal=valid_identity,
+        endpoint_syscalls=valid_endpoint_syscalls,
+        data_payload=valid_data,
+    )
+    assert res["stopAnywhereStatus"] == "ALL_PLANES_ADMISSIBLE"
+
+    # Case 2: Plane 1 Reasoning violation (unauthorized tool)
+    with pytest.raises(ugs.GovernanceHaltError, match=r"\[Reasoning Plane\] tool 'drop_db'"):
+        enforcer.evaluate_and_enforce(
+            reasoning_claim={"toolName": "drop_db"},
+            network_target_url=valid_network,
+            identity_principal=valid_identity,
+            endpoint_syscalls=valid_endpoint_syscalls,
+            data_payload=valid_data,
+        )
+
+    # Case 3: Plane 2 Network violation (unallowlisted host)
+    with pytest.raises(ugs.GovernanceHaltError, match=r"\[Network Plane\] egress host 'evil.com'"):
+        enforcer.evaluate_and_enforce(
+            reasoning_claim=valid_reasoning,
+            network_target_url="https://evil.com/leak",
+            identity_principal=valid_identity,
+            endpoint_syscalls=valid_endpoint_syscalls,
+            data_payload=valid_data,
+        )
+
+    # Case 4: Plane 3 Identity violation (missing scopes)
+    with pytest.raises(ugs.GovernanceHaltError, match=r"\[Identity Plane\] principal missing identity or delegated scopes"):
+        enforcer.evaluate_and_enforce(
+            reasoning_claim=valid_reasoning,
+            network_target_url=valid_network,
+            identity_principal={"principalId": "did:key:unknown", "scopes": []},
+            endpoint_syscalls=valid_endpoint_syscalls,
+            data_payload=valid_data,
+        )
+
+    # Case 5: Plane 4 Endpoint violation (forbidden syscall)
+    with pytest.raises(ugs.GovernanceHaltError, match=r"\[Endpoint Plane\] forbidden syscall 'sys_ptrace'"):
+        enforcer.evaluate_and_enforce(
+            reasoning_claim=valid_reasoning,
+            network_target_url=valid_network,
+            identity_principal=valid_identity,
+            endpoint_syscalls=["sys_read", "sys_ptrace"],
+            data_payload=valid_data,
+        )
+
+    # Case 6: Plane 5 Data violation (oversized payload)
+    oversized_data = {"junk": "x" * 2048}
+    with pytest.raises(ugs.GovernanceHaltError, match=r"\[Data Plane\] payload size \d+ exceeds ceiling"):
+        enforcer.evaluate_and_enforce(
+            reasoning_claim=valid_reasoning,
+            network_target_url=valid_network,
+            identity_principal=valid_identity,
+            endpoint_syscalls=valid_endpoint_syscalls,
+            data_payload=oversized_data,
+        )
+
+
+def test_intent_context_fusion_gate_zero_egress_dlp():
+    """Verify Intent-Context Fusion Gate detects unredacted PII/secrets fail-closed."""
+    gate = ugs.IntentContextFusionGate(allow_unredacted_pii=False)
+
+    # Case 1: Clean sanitized payload passes
+    clean_res = gate.evaluate_payload_sensitivity(
+        intent="query_account",
+        action_payload={"accountId": "ACC-EXAMPLE-0001", "status": "ACTIVE"},
+    )
+    assert clean_res["privacyClearance"] == "PASS"
+    assert clean_res["violationsDetected"] == []
+
+    # Case 2: Unredacted IBAN fails closed
+    with pytest.raises(ugs.GovernanceHaltError, match="INTENT_CONTEXT_DIVIDE_VIOLATION"):
+        gate.evaluate_payload_sensitivity(
+            intent="wire_transfer",
+            action_payload={"iban": "DE89370400440532013000", "amount": 100},
+        )
+
+    # Case 3: Unredacted PAN fails closed
+    with pytest.raises(ugs.GovernanceHaltError, match="UNREDACTED_PAN"):
+        gate.evaluate_payload_sensitivity(
+            intent="card_charge",
+            action_payload={"pan": "4111 2222 3333 4444", "amount": 50},
+        )
+
+    # Case 4: Unredacted API Secret fails closed
+    with pytest.raises(ugs.GovernanceHaltError, match="UNREDACTED_SECRET"):
+        gate.evaluate_payload_sensitivity(
+            intent="api_call",
+            action_payload={"auth": "Bearer secret_token_abcdef1234567890"},
+        )
+
+    # Case 5: When allow_unredacted_pii is explicitly enabled (e.g. within isolated enclave)
+    enclave_gate = ugs.IntentContextFusionGate(allow_unredacted_pii=True)
+    exempt_res = enclave_gate.evaluate_payload_sensitivity(
+        intent="enclave_internal_transfer",
+        action_payload={"iban": "DE89370400440532013000"},
+    )
+    assert exempt_res["privacyClearance"] == "EXEMPTED"
+    assert "UNREDACTED_IBAN" in exempt_res["violationsDetected"]
+
+
+def test_behavioral_anomaly_interlock_rate_burst_and_indeterminate_latch():
+    """Verify Behavioral Anomaly Interlock halts frequency bursts pre-dispatch (NOT_DISPATCHED)."""
+    interlock = ugs.BehavioralAnomalyInterlock(
+        max_rate_per_window=3,
+        window_seconds=10,
+    )
+    principal = "agent:high_velocity_worker"
+
+    # Calls 1, 2, 3 succeed within 10-second window
+    assert interlock.record_and_assert_velocity(principal_id=principal, current_timestamp=100)["rateObserved"] == 1
+    assert interlock.record_and_assert_velocity(principal_id=principal, current_timestamp=102)["rateObserved"] == 2
+    assert interlock.record_and_assert_velocity(principal_id=principal, current_timestamp=104)["rateObserved"] == 3
+
+    # Call 4 exceeds ceiling of 3 calls -> raises GovernanceHaltError with NOT_DISPATCHED (pre-dispatch hold)
+    with pytest.raises(ugs.GovernanceHaltError, match=r"BEHAVIORAL_ANOMALY_SPIKE.*NOT_DISPATCHED"):
+        interlock.record_and_assert_velocity(principal_id=principal, current_timestamp=105)
+
+    # Advancing timestamp past window (e.g. t=115) clears old calls and allows new dispatch
+    res = interlock.record_and_assert_velocity(principal_id=principal, current_timestamp=115)
+    assert res["disposition"] == "CONFIRMED"
+    assert res["rateObserved"] == 1
+
+
+def test_mcp_security_hardening_gate_cve_mitigations():
+    """Verify wire-gate defenses against CVE-2026-108586, CVE-2026-67431, and CVE-2026-54688."""
+    gate = ugs.McpSecurityHardeningGate(
+        pinned_capability_uris={"mcp://bank.internal/tools/refund", "mcp://bank.internal/tools/statement"},
+        valid_credential_audiences={"https://bank.internal/api"},
+    )
+
+    # Valid call passes
+    valid_res = gate.evaluate_mcp_call(
+        requested_capability_uri="mcp://bank.internal/tools/refund",
+        filter_tags=["finance", "refund"],
+        session_id="sess_001",
+        session_owner_id="user_alice",
+        caller_principal_id="user_alice",
+        credential_handle="grant://vault/token_001",
+        target_audience="https://bank.internal/api",
+    )
+    assert valid_res["status"] == "HARDENED_DISPATCH_PERMITTED"
+
+    # CVE-2026-108586: Negated tag bypass attempt
+    with pytest.raises(ugs.GovernanceHaltError, match="CVE-2026-108586.*negated filter 'not admin'"):
+        gate.evaluate_mcp_call(
+            requested_capability_uri="mcp://bank.internal/tools/refund",
+            filter_tags=["not admin"],
+            session_id="sess_001",
+            session_owner_id="user_alice",
+            caller_principal_id="user_alice",
+            credential_handle="grant://vault/token_001",
+            target_audience="https://bank.internal/api",
+        )
+
+    # CVE-2026-108586: Unpinned capability URI
+    with pytest.raises(ugs.GovernanceHaltError, match="unpinned capability URI"):
+        gate.evaluate_mcp_call(
+            requested_capability_uri="mcp://malicious.internal/tools/exfiltrate",
+            filter_tags=["finance"],
+            session_id="sess_001",
+            session_owner_id="user_alice",
+            caller_principal_id="user_alice",
+            credential_handle="grant://vault/token_001",
+            target_audience="https://bank.internal/api",
+        )
+
+    # CVE-2026-67431: Session Hijacking (owner != caller)
+    with pytest.raises(ugs.GovernanceHaltError, match="CVE-2026-67431 session hijack"):
+        gate.evaluate_mcp_call(
+            requested_capability_uri="mcp://bank.internal/tools/refund",
+            filter_tags=["finance"],
+            session_id="sess_victim",
+            session_owner_id="user_bob",
+            caller_principal_id="user_attacker",
+            credential_handle="grant://vault/token_001",
+            target_audience="https://bank.internal/api",
+        )
+
+    # CVE-2026-54688: Raw bearer secret instead of opaque grant:// handle
+    with pytest.raises(ugs.GovernanceHaltError, match="CVE-2026-54688 raw credential handle"):
+        gate.evaluate_mcp_call(
+            requested_capability_uri="mcp://bank.internal/tools/refund",
+            filter_tags=["finance"],
+            session_id="sess_001",
+            session_owner_id="user_alice",
+            caller_principal_id="user_alice",
+            credential_handle="bearer_raw_secret_xyz",
+            target_audience="https://bank.internal/api",
+        )
+
+    # Audience mismatch
+    with pytest.raises(ugs.GovernanceHaltError, match="credential audience mismatch"):
+        gate.evaluate_mcp_call(
+            requested_capability_uri="mcp://bank.internal/tools/refund",
+            filter_tags=["finance"],
+            session_id="sess_001",
+            session_owner_id="user_alice",
+            caller_principal_id="user_alice",
+            credential_handle="grant://vault/token_001",
+            target_audience="https://attacker.com/sink",
+        )
+
+
+def test_scitt_air_profile_translator_cose_sign1_and_pending_confirmation():
+    """Verify SCITT AIR Profile translation of ContinuityReceipt into COSE_Sign1 envelopes."""
+    priv = Ed25519PrivateKey.generate()
+    pub = priv.public_key()
+    translator = ugs.ScittAirProfileTranslator(scitt_signer_key=priv, key_id="did:aeib:scitt-bank-node-01")
+
+    merkle_anchor = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+
+    # Case 1: EFFECT_INDETERMINATE maps 1:1 to SCITT pending_confirmation
+    indeterminate_receipt = {
+        "statement": {
+            "action_id": "act-transfer-9001",
+            "caid": "sha256:abc1234567890abcdef1234567890abcdef1234567890abcdef1234567890ab",
+            "disposition": "EFFECT_INDETERMINATE",
+            "epoch": 42,
+            "timestamp": 1775000000,
+        }
+    }
+    env1 = translator.translate_receipt_to_scitt_air(
+        receipt=indeterminate_receipt,
+        merkle_root=merkle_anchor,
+    )
+    assert env1.scitt_status == "pending_confirmation"
+    assert env1.merkle_anchor_root == merkle_anchor
+    assert ugs.ScittAirProfileTranslator.verify_scitt_envelope(env1, pub) is True
+
+    # Case 2: CONFIRMED maps to success
+    confirmed_receipt = {
+        "statement": {
+            "action_id": "act-transfer-9002",
+            "caid": "sha256:fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321",
+            "disposition": "CONFIRMED",
+            "epoch": 42,
+            "timestamp": 1775000100,
+        }
+    }
+    env2 = translator.translate_receipt_to_scitt_air(
+        receipt=confirmed_receipt,
+        merkle_root=merkle_anchor,
+    )
+    assert env2.scitt_status == "success"
+    assert ugs.ScittAirProfileTranslator.verify_scitt_envelope(env2, pub) is True
+
+    # Case 3: REFUTED maps to failed
+    refuted_receipt = {"statement": {"disposition": "REFUTED", "action_id": "act-ref-1"}}
+    env3 = translator.translate_receipt_to_scitt_air(receipt=refuted_receipt, merkle_root=merkle_anchor)
+    assert env3.scitt_status == "failed"
+    assert ugs.ScittAirProfileTranslator.verify_scitt_envelope(env3, pub) is True
+
+    # Case 4: REJECTED maps to policy_rejected
+    rejected_receipt = {"statement": {"disposition": "REJECTED", "action_id": "act-rej-1"}}
+    env4 = translator.translate_receipt_to_scitt_air(receipt=rejected_receipt, merkle_root=merkle_anchor)
+    assert env4.scitt_status == "policy_rejected"
+    assert ugs.ScittAirProfileTranslator.verify_scitt_envelope(env4, pub) is True
+
+    # Case 5: Tampered payload hash fails verification
+    tampered_env = ugs.ScittCoseSign1Envelope(
+        protected_header_jcs=env1.protected_header_jcs,
+        unprotected_header=env1.unprotected_header,
+        payload_hash="sha256:tampered_payload_hash_value_here_00000000000000000000000000000000",
+        scitt_status=env1.scitt_status,
+        signature_hex=env1.signature_hex,
+        merkle_anchor_root=env1.merkle_anchor_root,
+    )
+    assert ugs.ScittAirProfileTranslator.verify_scitt_envelope(tampered_env, pub) is False
+
+    # Case 6: Wrong key fails verification
+    other_pub = Ed25519PrivateKey.generate().public_key()
+    assert ugs.ScittAirProfileTranslator.verify_scitt_envelope(env1, other_pub) is False
+
+
+def test_apple_gaat_opentelemetry_semantic_telemetry_projection():
+    """Verify projection of AEIB execution stages into OpenTelemetry GenAI semantic events."""
+    event = ugs.AppleGaatOtelAdapter.project_event(
+        operation_id="op-trade-4401",
+        phase="EFFECT_INDETERMINATE",
+        action_caid="sha256:5555555555555555555555555555555555555555555555555555555555555555",
+        target_tool="financial_settlement_api",
+        timestamp_epoch_ms=1775000500123,
+        extra_attributes={"probe_budget_remaining": 1, "retry_safe": False},
+    )
+
+    assert event["name"] == "gen_ai.agent.action.uncertain_transport"
+    assert event["timestamp"] == 1775000500123
+    attrs = event["attributes"]
+    assert attrs["gen_ai.system"] == "aeib_wire_boundary"
+    assert attrs["gen_ai.agent.action.id"] == "op-trade-4401"
+    assert attrs["gen_ai.agent.action.phase"] == "EFFECT_INDETERMINATE"
+    assert attrs["gen_ai.agent.action.tool_name"] == "financial_settlement_api"
+    assert attrs["aeib.probe_budget_remaining"] == 1
+    assert attrs["aeib.retry_safe"] is False
+
+    # Test phase mappings
+    for phase, expected_event in [
+        ("PRE_DISPATCH_COMMITTED", "gen_ai.agent.action.pre_commit"),
+        ("DISPATCH_AUTHORIZED", "gen_ai.agent.action.dispatch"),
+        ("PROBE_DISPATCHED", "gen_ai.agent.action.reconcile_probe"),
+        ("CONFIRMED", "gen_ai.agent.action.confirmed"),
+        ("REFUTED", "gen_ai.agent.action.refuted"),
+    ]:
+        ev = ugs.AppleGaatOtelAdapter.project_event(
+            operation_id="op-1",
+            phase=phase,
+            action_caid="caid-1",
+            target_tool="tool-1",
+            timestamp_epoch_ms=1000,
+        )
+        assert ev["name"] == expected_event
+
+
+def test_w3c_did_key_resolver_ed25519():
+    """Verify deterministic W3C did:key generation and DID document resolution."""
+    priv = Ed25519PrivateKey.generate()
+    pub = priv.public_key()
+
+    did = ugs.W3cDidKeyResolver.pubkey_to_did_key(pub)
+    assert did.startswith("did:key:z")
+    assert len(did) > 40
+
+    # Resolve DID document
+    doc = ugs.W3cDidKeyResolver.resolve_did_document(did)
+    assert doc["id"] == did
+    assert "https://www.w3.org/ns/did/v1" in doc["@context"]
+    assert len(doc["verificationMethod"]) == 1
+    vm = doc["verificationMethod"][0]
+    assert vm["controller"] == did
+    assert vm["type"] == "Ed25519VerificationKey2020"
+    assert did.endswith(vm["publicKeyMultibase"])
+
+    # Error handling for unsupported DID format
+    with pytest.raises(ugs.GovernanceHaltError, match=r"DID_RESOLVER_ERROR.*expected 'did:key:z\.\.\.'"):
+        ugs.W3cDidKeyResolver.resolve_did_document("did:web:example.com")
+
+
+
+
+
 

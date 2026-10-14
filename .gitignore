@@ -1,14 +1,91 @@
-/target
-*.swp
-*.swo
-.DS_Store
+# =============================================================================
+# 1. SECRETS, ENVIRONMENT VARIABLES & CREDENTIALS (NEVER COMMIT)
+# =============================================================================
 .env
+.env.*
+!.env.example
+*.env
+*.key
+*.pem
+!*public*.pem
+!aeib-native-runtime/aeib-verifier/src/test/resources/vectors/**/*.pem
+!aeib-reproducibility/evidence/**/*.pem
+!dist/**/public-keys/*.pem
+*.p12
+*.pfx
+*.jks
+*.keystore
+*credentials*.json
+*secret*.json
+*secret*.yaml
+*secret*.yml
+id_rsa*
+id_ed25519*
+cosign.key
+release-key.pem
+keys/signer_profiles/
+
+# =============================================================================
+# 2. PRIVATE AGENT, IDE & LOCAL TOOL CONFIGURATIONS
+# =============================================================================
+.claude/*
+!.claude/settings.example.json
+!.claude/SPEC_TEMPLATE.md
+!.claude/skills/**
 .claude/settings.local.json
 .claude/worktrees
 .worktrees
+.cursor/
+.gemini/
+.vscode/settings.json
+.idea/
+
+# =============================================================================
+# 3. INTERNAL / PRIVATE STRATEGY, PITCH DECKS & CUSTOMER DATA
+# =============================================================================
+private/
+internal/
+outreach/
+customer-data/
+vendor-research/
+*.private.md
+*.internal.md
+*CONFIDENTIAL*
+*_NDA_*
+*NDA.*
+*NDA-*
+LP_TARGET_LIST.csv
+OUTREACH_TRACKING.csv
+
+# =============================================================================
+# 4. RUNTIME DATABASES, LOGS & TEMPORARY ARTIFACTS
+# =============================================================================
+/target
+target/
+**/pkg/
+*.db
+*.sqlite
+*.sqlite3
+*.log
+*.pid
+postmaster.*
+.smaos/
+.gate-logs/
+.gate-status/
+.gate-evidence/
+.proof-artifacts/
+scratch/
+build/
+dist/clean_stage/
+.gradle/
 __pycache__/
 *.py[cod]
 *$py.class
 .pytest_cache/
 .coverage
-vendor-research/
+.venv/
+.venv*/
+venv/
+.DS_Store
+*.swp
+*.swo

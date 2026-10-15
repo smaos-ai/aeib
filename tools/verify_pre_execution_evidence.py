@@ -189,7 +189,7 @@ def verify_bundle(bundle_data: Dict[str, Any], pub_key: Ed25519PublicKey) -> Non
 def main():
     parser = argparse.ArgumentParser(description="AEIB Pre-Execution Evidence Verifier")
     parser.add_argument("--bundle", required=True, help="Path to evidence bundle JSON")
-    parser.add_argument("--public-key", required=True, help="Path to public key PEM or raw hex/base64")
+    parser.add_argument("--public-key", required=False, default=None, help="Path to public key PEM or raw hex/base64")
     parser.add_argument("--check-jcs-conformance", action="store_true", help="Assert local JCS engine passes 25 RFC 8785 vectors")
     args = parser.parse_args()
 
@@ -198,8 +198,24 @@ def main():
         print(f"[!] Error: Bundle file not found: {bundle_path}", file=sys.stderr)
         sys.exit(VerificationStatus.SCHEMA_ERROR.value)
 
+    pub_key_input = args.public_key
+    if not pub_key_input:
+        if "AT35" in bundle_path.name:
+            candidate = bundle_path.parent / "AT35_station1_pubkey.pem"
+            if not candidate.exists():
+                candidate = Path("artifacts/pre_execution/AT35_station1_pubkey.pem")
+        else:
+            candidate = bundle_path.parent / "test_station1_pubkey.pem"
+            if not candidate.exists():
+                candidate = Path("artifacts/pre_execution/test_station1_pubkey.pem")
+        if candidate.exists():
+            pub_key_input = str(candidate)
+        else:
+            print(f"[!] Error: --public-key was omitted and default key not found at: {candidate}", file=sys.stderr)
+            sys.exit(VerificationStatus.KEY_LOAD_ERROR.value)
+
     try:
-        pub_key = load_public_key(args.public_key)
+        pub_key = load_public_key(pub_key_input)
     except Exception as e:
         print(f"[!] Key Load Error: {e}", file=sys.stderr)
         sys.exit(VerificationStatus.KEY_LOAD_ERROR.value)

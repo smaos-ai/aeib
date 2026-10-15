@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aeib:contracts:refund_status_v1",
+  "title": "AEIB Target Evidence Reconciliation Contract v1",
+  "description": "Versioned machine-readable schema for target-side settlement and refund reconciliation responses. Governs Station 2 probe reconciliation under strict mTLS or pinned public key authentication, requiring unredacted parameter parity against pre-dispatch CAID.",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "operation_id",
+    "idempotency_key",
+    "target_status",
+    "target_mutation_ref",
+    "parameter_parity",
+    "authentication"
+  ],
+  "properties": {
+    "contract_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Version of the refund status evidence contract."
+    },
+    "operation_id": {
+      "type": "string",
+      "pattern": "^op-[a-zA-Z0-9_-]+$",
+      "description": "Operation identifier matching the original DISPATCH_INTENT."
+    },
+    "idempotency_key": {
+      "type": "string",
+      "description": "Unique idempotency key or CAID bound to the dispatch."
+    },
+    "target_status": {
+      "type": "string",
+      "enum": ["SETTLED", "REVERSED", "REJECTED", "PENDING", "UNKNOWN"],
+      "description": "Authoritative target state. SETTLED maps to RESOLVED_CONFIRMED. REVERSED and REJECTED map to RESOLVED_REFUTED. PENDING and UNKNOWN preserve EFFECT_INDETERMINATE."
+    },
+    "target_mutation_ref": {
+      "type": "string",
+      "description": "Target-assigned external transaction or settlement reference identifier."
+    },
+    "settled_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC ISO-8601 timestamp when target confirmed final state."
+    },
+    "reversal_ref": {
+      "type": "string",
+      "description": "Target reversal reference if state is REVERSED."
+    },
+    "failure_reason": {
+      "type": "string",
+      "description": "Target rejection or failure code if state is REJECTED."
+    },
+    "parameter_parity": {
+      "type": "object",
+      "description": "Consequential mutation parameters evaluated unredacted against pre-dispatch CAID.",
+      "required": [
+        "amount_minor_units",
+        "currency",
+        "recipient_binding"
+      ],
+      "properties": {
+        "amount_minor_units": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Exact transaction amount in minor currency units (cents)."
+        },
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$",
+          "description": "ISO 4217 three-letter currency code."
+        },
+        "recipient_binding": {
+          "type": "string",
+          "description": "Exact unredacted target recipient identifier (e.g. IBAN or account ID) bound to CAID."
+        }
+      },
+      "additionalProperties": false
+    },
+    "authentication": {
+      "type": "object",
+      "description": "Cryptographic authentication proof of target evidence.",
+      "required": [
+        "channel",
+        "target_spki_digest"
+      ],
+      "properties": {
+        "channel": {
+          "type": "string",
+          "enum": ["mTLS", "PINNED_ED25519_SIGNATURE"],
+          "description": "Authentication mechanism used by the status probe."
+        },
+        "target_spki_digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "description": "SHA-256 digest of target SubjectPublicKeyInfo."
+        },
+        "signature_hex": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{128}$",
+          "description": "64-byte Ed25519 signature over canonical RFC 8785 status payload if PINNED_ED25519_SIGNATURE is used."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

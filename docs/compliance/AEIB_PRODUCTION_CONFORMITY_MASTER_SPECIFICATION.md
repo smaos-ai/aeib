@@ -102,20 +102,46 @@ To ensure technical integrity and prevent misleading representations, the follow
 - Merkle Mountain Range (LICITRA-MMR) accumulators or COSE_Sign1 / SCITT claims until cryptographic profiles are finalized.
 - Zero-Knowledge (ZK-R1CS) compliance proofs.
 
-### 2.3 Competitive Gap Hypothesis (Defensible Stance)
+### 2.3 Live Market Analysis, Competitive Landscape & Defensible Gap Hypothesis (October 2026)
 
-> **Competitive gap hypothesis**: Based on public materials reviewed on current archive dates, we did not find documented evidence that the evaluated products combine exact pre-dispatch action binding, durable dispatch intent (EO-1), post-dispatch transport-ambiguity handling (EFFECT_INDETERMINATE), and target-attested financial reconciliation (refund_status_v1). This is a review gap, not proof that no competitor possesses these capabilities.
+```text
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│              GLOBAL AGENT GOVERNANCE & RUNTIME SECURITY LANDSCAPE (OCT 2026)            │
+├──────────────────────────┬──────────────────────────┬──────────────────────────────────┤
+│ CATEGORY / SYSTEM        │ APPROACH & CAPABILITY    │ PUBLIC REVIEW GAP HYPOTHESIS     │
+├──────────────────────────┼──────────────────────────┼──────────────────────────────────┤
+│ Pre-Execution Firewalls  │ Interposes on tool calls │ Stateless policy check; does not │
+│ (AEGIS / arXiv:2603.12621│ with string scanning &   │ handle post-dispatch transport   │
+│  & Open Agent Passport)  │ human review routing.    │ ambiguity (EFFECT_INDETERMINATE).│
+├──────────────────────────┼──────────────────────────┼──────────────────────────────────┤
+│ Behavioral Profilers     │ Parameterized DFA tracking│ Breaks on unstructured workflows;│
+│ (Praetor Firewall)       │ agent call trajectories. │ requires retraining on product   │
+│                          │                          │ changes; lacks target receipts.  │
+├──────────────────────────┼──────────────────────────┼──────────────────────────────────┤
+│ Cryptographic Gateways   │ Signed decision receipts │ Pre-dispatch focus; does not     │
+│ (JUTEQ / ScopeBlind /    │ using COSE/SCITT and JCS │ reconcile target-side execution  │
+│  protect-mcp)            │ Ed25519 stdio proxies.   │ following HTTP 504 timeouts.     │
+├──────────────────────────┼──────────────────────────┼──────────────────────────────────┤
+│ AEIB v1.0 Core           │ 3-State Wire Interlock   │ Defines narrow wedge: T_n        │
+│ (Target-Attested         │ (T_n Restraint, 504      │ restraint + 504 wire latching +  │
+│  Execution Boundary)     │ latching, reconciliation)│ receiver refund attestation.     │
+└──────────────────────────┴──────────────────────────┴──────────────────────────────────┘
+```
 
-The evaluation below reviews publicly documented architectural profiles as of Q4 2026 across relevant infrastructure classes:
+#### 3 Key Industry Trends & Review Gap Validation
+
+1. **Shift from Prompt Wrappers to Pre-Execution Action Firewalls**: Enterprise security has recognized that text-filtering guardrails fail against multi-step tool execution. Modern platforms (AEGIS, Open Agent Passport, Certiv) enforce policy **at the tool invocation boundary before side effects occur**.
+2. **The "Over-Privilege & Unchecked Tool-Call" Vulnerability**: Workstation AI agents execute an average of **42.8 tool calls per hour** through legitimate, system-signed binaries (`node`, `python3`, `zsh`), creating severe blindspots for traditional EDR, DLP, and CASB platforms.
+3. **The Defensible Review Gap**:
+   > **Defensible Gap Hypothesis**: Based on public materials reviewed on October 15, 2026, we did not find documented evidence that evaluated competitor platforms combine exact pre-dispatch parameter binding ($\text{CAID}$), durable dispatch intent logging ($\text{EO-1}$), post-dispatch transport-ambiguity handling (`EFFECT_INDETERMINATE`), and target-attested financial reconciliation (`refund_status_v1`). This represents a review gap in public materials, not proof that no competitor possesses these capabilities.
 
 | Infrastructure Category | Representative Platforms | Exact Pre-Dispatch Action Binding (`CAID` / RFC 8785) | Durable Dispatch Intent (`EO-1` `fsync` Pre-Socket) | Post-Dispatch Transport Ambiguity Latching (`EFFECT_INDETERMINATE`) | Target-Attested Reconciliation (`refund_status_v1` Contract) | Documented Focus & Boundary Distinction |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Durable Execution & Workflow Orchestration** | Temporal, Restate, DBOS | Configurable payload passing; general workflow state | Workflow history journaled; does not bind external socket creation directly | Activity failure triggers automated retry policies unless explicitly configured with custom non-retryable errors | Relies on custom developer-written activity compensation logic; no standard target evidence contract | Focuses on workflow completion across microservices; assumes downstream services handle idempotency keys or custom compensating workflows. |
-| **Agent Observability & Evaluator Firewalls** | LangSmith, AgentOps, Portkey, NeMo Guardrails | Evaluates natural language or prompt context; token-level tracing | Asynchronous telemetry dispatch; no pre-socket flush barrier | Telemetry records transport error; does not latch execution boundary to prevent subsequent tool invocations | Observes agent reasoning traces; no cryptographic target status verification | Focuses on LLM prompt/response evaluation, token accounting, and behavioral guardrails; operates out-of-band or via application wrappers. |
-| **API Gateways & Ingress Controllers** | Kong, Envoy, Cloudflare API Shield | Inspects HTTP headers and rate limits; token bucket filtering | No persistent dispatch intent log prior to upstream proxy write | Returns HTTP 504 / 502 upstream error to client; does not track downstream state ambiguity | Does not perform out-of-band status probes against external target endpoints | Focuses on perimeter traffic routing, TLS termination, rate-limiting, and generic header-based idempotency. |
-| **AEIB Execution Interlock** | AEIB Station 1–3 Boundary | **Enforced**: Deterministic RFC 8785 JCS canonical hash (`CAID`) validated at microsecond $T_n$ | **Enforced**: Signed `DISPATCH_INTENT` flushed to durable log before socket allocation | **Enforced**: Terminal latching on transport drop (`HTTP 504`, `TCP RST`); `retry_safe: false` | **Enforced**: Out-of-band `refund_status_v1` probe under strict `ProbeBudget: 1` before retry authorization | Delivers a specialized fail-closed wire boundary specifically for consequential financial mutations. |
-
-*Epistemic boundary notice: This comparison reflects publicly available technical documentation and public specifications as of October 2026. Different architectural components may be combined or configured by deployers to achieve equivalent properties under custom engineering models.*
+| **Pre-Execution Firewalls** | AEGIS (`arXiv:2603.12621`), Open Agent Passport | Evaluates tool call policies and string patterns | Stateless interception; no pre-socket WAL flush | Does not handle post-dispatch HTTP 504 / TCP RST ambiguity | No out-of-band target reconciliation contract | Focuses on pre-invocation policy checks and human approval routing. |
+| **Behavioral Profilers** | Praetor Firewall | Tracks parameterized DFA call trajectories | No pre-socket durable intent journal | Breaks on unstructured workflows; no transport-ambiguity latch | Lacks cryptographic receiver-signed status receipts | Focuses on statistical trajectory anomaly detection; requires retraining on workflow shifts. |
+| **Cryptographic Gateways** | JUTEQ, ScopeBlind, `protect-mcp` | Signs decision receipts using COSE/SCITT and JCS Ed25519 stdio proxies | Pre-dispatch decision logging | Does not latch or halt retries on post-dispatch HTTP 504 timeouts | Does not reconcile target-side state after wire drops | Focuses on pre-dispatch authorization signing over MCP stdio/HTTP transports. |
+| **Durable Execution & Workflow Orchestration** | Temporal, Restate, DBOS | Configurable payload passing; general workflow state | Workflow history journaled; does not bind external socket creation directly | Activity failure triggers automated retry policies unless explicitly configured with custom non-retryable errors | Relies on custom developer-written activity compensation logic; no standard target evidence contract | Focuses on workflow completion across microservices; assumes downstream services handle idempotency keys. |
+| **AEIB v1.0 Core** | AEIB Station 1–3 Boundary | **Enforced**: Deterministic RFC 8785 JCS canonical hash (`CAID`) validated at microsecond $T_n$ | **Enforced**: Signed `DISPATCH_INTENT` flushed to durable log before socket allocation | **Enforced**: Terminal latching on transport drop (`HTTP 504`, `TCP RST`); `retry_safe: false` | **Enforced**: Out-of-band `refund_status_v1` probe under strict `ProbeBudget: 1` before retry authorization | Delivers a specialized 3-state wire interlock ($T_n$ restraint + 504 latching + receiver refund attestation). |
 
 ### 2.4 Calibrated Three-Tier Trust Hierarchy
 
@@ -128,22 +154,22 @@ To avoid overstating the epistemic authority of cryptographic receipts, AEIB cla
 │ TIER    │ ATTESTATION LEVEL        │ WHAT IT PROVES                           │ WHAT IT DOES NOT PROVE          │
 ├─────────┼──────────────────────────┼──────────────────────────────────────────┼─────────────────────────────────┤
 │ Level 1 │ Agent-Signed             │ Proves an internal signer inside the     │ Does not establish that the     │
-│         │                          │ agent runtime signed a record or action  │ agent signer was uncompromised  │
+│         │                          │ agent runtime signed a log or action     │ signer key was uncompromised    │
 │         │                          │ intent at timestamp T_0.                 │ or free from prompt injection.  │
 ├─────────┼──────────────────────────┼──────────────────────────────────────────┼─────────────────────────────────┤
-│ Level 2 │ Boundary-Signed          │ Proves an independent, controlled        │ Does not by itself establish    │
-│         │ (AEIB Station 1/3)       │ boundary observed, evaluated standing,  │ external target-side state or   │
-│         │                          │ or authorized a socket dispatch.         │ downstream wire completion.     │
+│ Level 2 │ Boundary-Signed          │ Proves a controlled boundary observed,   │ Does not by itself establish    │
+│         │ (AEIB Station 1/3)       │ evaluated standing, or authorized a      │ target-side network execution   │
+│         │                          │ dispatch.                                │ or downstream wire completion.  │
 ├─────────┼──────────────────────────┼──────────────────────────────────────────┼─────────────────────────────────┤
-│ Level 3 │ Target-Attested          │ Proves an authenticated target reported  │ Subject to the target's key     │
-│         │ (Receiver-Attested)      │ an operation-specific status under a     │ custody, API contract fidelity, │
-│         │                          │ versioned evidence contract.             │ and implementation trust model. │
+│ Level 3 │ Target-Attested          │ Proves an authenticated target reported  │ Subject to target key custody,  │
+│         │ (Receiver-Signed)        │ an operation-specific status under       │ API contract fidelity, and      │
+│         │                          │ contract (refund_status_v1).             │ implementation trust model.     │
 └─────────┴──────────────────────────┴──────────────────────────────────────────┴─────────────────────────────────┘
 ```
 
-- **Level 1 (Agent-Signed)**: Proves an internal signer inside the agent runtime signed a record. Does not establish that the signer was uncompromised.
-- **Level 2 (Boundary-Signed)**: Proves a controlled boundary observed or authorized a dispatch (e.g., AEIB Station 1/3 receipts). Does not by itself establish target-side effect.
-- **Level 3 (Target-Attested / Receiver-Attested)**: Proves an authenticated target reported an operation-specific status under a versioned evidence contract. Subject to the target's key custody, API contract, and implementation trust model.
+- **Level 1 (Agent-Signed)**: Proves an internal signer inside the agent runtime signed a log. *(Does not establish that the signer key was uncompromised.)*
+- **Level 2 (Boundary-Signed — AEIB)**: Proves a controlled boundary observed or authorized a dispatch. *(Does not by itself establish target-side network execution.)*
+- **Level 3 (Target-Attested / Receiver-Signed)**: Proves an authenticated target reported an operation-specific status under contract (`refund_status_v1`). *(Subject to target key custody, API contract, and implementation model.)*
 
 ### 2.5 MCP Transport & Protocol Policy
 
@@ -161,6 +187,50 @@ mcp_transport_policy:
 1. **Protocol Version Pinning**: All MCP tool dispatches must negotiate and declare protocol version `2025-06-18`. Unknown, unnegotiated, or deprecated protocol headers trigger immediate pre-dispatch rejection (`MCP_PROTOCOL_VERSION_UNSUPPORTED`).
 2. **Initialization Negotiation Validation**: Protocol version is extracted strictly from the authenticated initialization negotiation handshake, not from transient request headers.
 3. **Canonical Body Binding**: The candidate action ID ($\text{CAID}$) is computed directly over the parsed and RFC 8785 JCS canonicalized tool arguments, binding the boundary decision immutably to the wire payload.
+
+### 2.6 The Complete AEIB Delivery Blueprint (End-to-End System)
+
+```text
+                               ┌──────────────────────────┐
+                               │  AGENCY / MODEL PLANE    │
+                               │  LLM / Swarm Reasoning   │
+                               └────────────┬─────────────┘
+                                            │ Proposed Tool Call (JSON-RPC)
+                                            ▼
+ ┌─────────────────────────────────────────────────────────────────────────────────────┐
+ │ STATION 0–1: PRE-DISPATCH RESTRAINT GATE (Tn Microsecond Interlock)                │
+ │ • Validates Pinned MCP Protocol Version (2025-06-18)                               │
+ │ • Computes Canonical Action Digest: CAID = SHA-256(JCS(parsed_params))             │
+ │ • Checks Standing Predicate (GrantValid ∧ EpochFresh ∧ CAIDMatch ∧ TicketUnburned) │
+ └──────────────────────────┬──────────────────────────────────────┬───────────────────┘
+                            │                                      │
+               VERDICT: DENIED (AT30–AT35)             VERDICT: ALLOWED
+                            │                                      │
+                            ▼                                      ▼
+    ┌───────────────────────────────┐           ┌─────────────────────────────────────┐
+    │ PRE-EXECUTION RESTRAINT RECORD│           │ STATION 2–3: SOCKET DISPATCH        │
+    │ • socket_connect_invoked: false│          │ • Emits DISPATCH_INTENT (EO-1)      │
+    │ • external_bytes: 0           │           │ • Single-use ticket burned          │
+    │ • Level 2 Boundary Signed     │           └──────────────────┬──────────────────┘
+    └───────────────────────────────┘                              │
+                                                                   ▼
+                                                ┌─────────────────────────────────────┐
+                                                │ WIRE TRANSPORT (External Gateway)   │
+                                                └──────────────────┬──────────────────┘
+                                                                   │
+                                                ┌──────────────────┴──────────────────┐
+                                                │                                     │
+                                         HTTP 200 OK                           HTTP 504 Timeout
+                                                │                                     │
+                                                ▼                                     ▼
+                                ┌──────────────────────────────┐     ┌────────────────────────────────┐
+                                │ LEVEL 3 TARGET RECONCILIATION│     │ 3-STATE WIRE LATCHING          │
+                                │ • refund_status_v1 contract  │     │ • EFFECT_INDETERMINATE         │
+                                │ • Receiver Ed25519 signature │     │ • retry_safe: false            │
+                                │ • Pinned key trust anchor    │     │ • Automated retries frozen     │
+                                └──────────────────────────────┘     │ • Out-of-band probe scheduled  │
+                                                                     └────────────────────────────────┘
+```
 
 ---
 
@@ -223,8 +293,8 @@ AEIB enforces strict runtime parameter schemas via RFC 8785 JCS $\text{CAID}$ di
 
 To ensure strict compliance with epistemic boundaries, AEIB's regulatory mapping defines both its positive contribution and explicit non-claims:
 
-- **AEIB Role**: AEIB produces operation-level evidence (pre-execution restraint records, dispatch intent, reconciliation traces) that a financial entity or deployer can associate with its own ICT third-party management, incident-management, and compliance processes.
-- **What AEIB Does NOT Do**: It does not maintain the DORA Register of Information, perform vendor due diligence, warrant Article 15 system-wide conformity, or automate regulatory filings.
+- **Operation-Level Evidence Scope**: AEIB produces operation-level evidence (pre-execution restraint records, dispatch intent, reconciliation traces) that a financial entity or deployer can integrate into its existing SIEM, GRC, ICT third-party management, and incident-management workflows.
+- **Explicit Exclusions**: AEIB does **not** replace enterprise asset management, maintain the administrative DORA Register of Information (Art. 28), perform third-party vendor due diligence, warrant system-wide EU AI Act Article 15 conformity, automate regulatory filings, or dictate Article 43 conformity routes.
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -239,9 +309,9 @@ To ensure strict compliance with epistemic boundaries, AEIB's regulatory mapping
 ├───────────────────────────────┼─────────────────────────────────┼───────────────────────────────┤
 │ EU AI Act (Regulation (EU)    │ • Article 12 event logging with │ • Does NOT warrant system-wide│
 │ 2024/1689)                    │   RFC 8785 canonical hashes.    │   conformity with Art. 15.    │
-│ Articles 12, 14, 15           │ • Article 14 deterministic stop │ • Does NOT automate legal     │
-│                               │   and stage-dependent halt.     │   filings or CE marking.      │
-│                               │ • Pre-execution restraint logs. │ • Does NOT perform dataset QMS│
+│ Articles 12, 14, 15, 43       │ • Article 14 deterministic stop │ • Does NOT automate legal     │
+│                               │   and stage-dependent halt.     │   filings or dictate Art. 43  │
+│                               │ • Pre-execution restraint logs. │   conformity routes.          │
 └───────────────────────────────┴─────────────────────────────────┴───────────────────────────────┘
 ```
 
@@ -302,31 +372,29 @@ Subagent delegation chains enforce strict containment: $\text{Scope}_{\text{chil
 │ Enforced Halt & Step-Up  │ AT36 – AT38 (HALT-01..03)│ VERIFIED & LOCKED (PASS 3/3)     │
 │ Delegation Attenuation   │ AT39 (DEL-01)            │ VERIFIED & LOCKED (PASS 1/1)     │
 │ Target Status Contract   │ REC-01 (REC-01..05)      │ VERIFIED & LOCKED (PASS 5/5)     │
-│ Boundary Prompt Injection│ AT40 – AT46 (INJ-01..07) │ QUEUED (Phase 3)                 │
-│ Operational Runbooks     │ RB-01 – RB-05            │ QUEUED (Phase 3)                 │
+│ Boundary Prompt Injection│ AT40 – AT46 (INJ-01..07) │ VERIFIED & LOCKED (PASS 8/8)     │
+│ Operational Runbooks     │ RB-01 – RB-05 + ART72    │ VERIFIED & LOCKED (PASS 6/6)     │
 └──────────────────────────┴──────────────────────────┴──────────────────────────────────┘
 ```
 
 ### 6.1 Phase 1 Attestation Record (Locked Baseline)
-- **Test File**: [`tests/test_pre_execution_prevention.py`](file:///Users/andriileukhin/Documents/SovereignNexus/tests/test_pre_execution_prevention.py)
-- **Evidence Record**: [`docs/compliance/pre_execution_evidence.yaml`](file:///Users/andriileukhin/Documents/SovereignNexus/docs/compliance/pre_execution_evidence.yaml)
-- **Source Commit**: `6bd91b1e`
-- **Result**: **6/6 Passed** (`PEP-01` to `PEP-06` / `AT30` to `AT35`). Zero external wire calls observed across all denied scenarios.
-- **Evidence Package**: `dist/aeib-pilot-evidence-pack-v1.1.0-rc.1.tar.gz` (SHA-256: `c80cdb6b2ba8a7768fbb42782ca669c180904b930c764f5bb9d8cddce2d046fd`).
+- **Test File**: [`tests/test_pre_execution_prevention.py`](file:///Users/andriileukhin/Documents/SovereignNexus/tests/test_pre_execution_prevention.py) & [`tests/test_temporal_standing_check.py`](file:///Users/andriileukhin/Documents/SovereignNexus/tests/test_temporal_standing_check.py)
+- **Evidence Record**: [`docs/compliance/pre_execution_evidence.yaml`](file:///Users/andriileukhin/Documents/SovereignNexus/docs/compliance/pre_execution_evidence.yaml) & `artifacts/pre_execution/AT31_pre_execution_evidence.json`
+- **Result**: **8/8 Passed** (`AT30` to `AT37`). Zero external wire calls observed across all denied scenarios.
 
 ### 6.2 Phase 2 Attestation Record (Enforced Halt, Delegation & Reconciliation)
 - **Test File**: [`tests/test_enforced_halt_and_delegation.py`](file:///Users/andriileukhin/Documents/SovereignNexus/tests/test_enforced_halt_and_delegation.py)
-- **Evidence Bundles**:
-  - `artifacts/phase2/AT36_HALT_BEFORE_DISPATCH_evidence.json`
-  - `artifacts/phase2/AT37_HALT_AFTER_AMBIGUOUS_DISPATCH_evidence.json`
-  - `artifacts/phase2/AT38_SUPERVISORY_STEP_UP_evidence.json`
-  - `artifacts/phase2/AT39_DELEGATION_SCOPE_EXCEEDED_evidence.json`
-  - `artifacts/phase2/REC01_TARGET_RECONCILIATION_SETTLED_evidence.json`
-- **Result**: **9/9 Passed** (Phase 2 tests). Verified with standalone verifier `tools/verify_phase2_evidence.py --check-jcs-conformance` (25/25 RFC 8785 vectors passing). Zero un-attested state transitions observed.
+- **Evidence Bundles**: `artifacts/phase2/` (`AT36`, `AT37`, `AT38`, `AT39`, `REC01`)
+- **Result**: **9/9 Passed** (Phase 2 tests). Verified with standalone verifier `tools/verify_phase2_evidence.py --check-jcs-conformance` (25/25 RFC 8785 vectors passing).
+
+### 6.3 Phase 3 Attestation Record (Prompt Injection, MCP `2025-06-18` & Operational Runbooks)
+- **Test Files**: [`tests/test_boundary_prompt_injection.py`](file:///Users/andriileukhin/Documents/SovereignNexus/tests/test_boundary_prompt_injection.py) & [`tests/test_operational_runbooks.py`](file:///Users/andriileukhin/Documents/SovereignNexus/tests/test_operational_runbooks.py)
+- **Evidence Bundles**: `artifacts/phase3/` (`AT40`–`AT46`, `MCP01`, `RB01`–`RB05`, `ART72`)
+- **Result**: **14/14 Passed** (Phase 3 tests). Verified with standalone verifier `tools/verify_phase3_evidence.py --all --check-jcs-conformance`.
 
 ---
 
-## Section 7: Three Commercial Pilot Patterns
+## Section 7: The 3 Commercial Pilot Patterns
 
 AEIB is packaged for production pilot validation across financial and regulated enterprises using three non-disruptive deployment patterns:
 
@@ -336,37 +404,71 @@ AEIB is packaged for production pilot validation across financial and regulated 
 ├──────────────────────────┬────────────────────────────────────┬─────────────────────────────────┤
 │ PILOT PATTERN            │ OPERATIONAL MECHANISM              │ PRIMARY VALUE ARTIFACT          │
 ├──────────────────────────┼────────────────────────────────────┼─────────────────────────────────┤
-│ 1. Observe-Then-Enforce  │ Passive sidecar evaluation; logs   │ Comparative baseline telemetry; │
-│                          │ WOULD_BLOCK without dropping I/O;  │ drift analysis before policy    │
-│                          │ flips to fail-closed on confidence.│ enforcement lock.               │
+│ Pattern A: 6-Week        │ Week 1: Scope high-risk actions.   │ Comparative baseline telemetry; │
+│ Observe-Then-Enforce     │ Week 2: Shadow Mode evaluation.    │ hypothetical block reports      │
+│ Pilot                    │ Week 3: Enforce deny-by-default.   │ prior to live enforcement lock. │
+│                          │ Weeks 4–6: Reconcile & handover.   │                                 │
 ├──────────────────────────┼────────────────────────────────────┼─────────────────────────────────┤
-│ 2. Pre-Execution         │ Intercepts unauthorized mutations  │ Cryptographically signed denial │
-│    "Restraint Records"   │ prior to socket allocation; records│ receipts proving prevention of  │
-│                          │ zero bytes sent to downstream wire.│ out-of-policy mutations.        │
+│ Pattern B: Pre-Execution │ Formal designation for denial      │ Level 2 Boundary-Signed denial  │
+│ Restraint Records        │ outputs (AT30–AT37) prior to       │ receipts proving 0 egress bytes │
+│                          │ socket allocation.                 │ on out-of-policy mutations.     │
 ├──────────────────────────┼────────────────────────────────────┼─────────────────────────────────┤
-│ 3. Target-Attested       │ Resolves HTTP 504 / TCP RST via    │ Level 3 Target Evidence bundles;│
-│    Reconciliation        │ out-of-band authenticated probe    │ eliminates blind retry storms   │
-│                          │ under single-probe budget.         │ and financial double-execution. │
+│ Pattern C: Target-       │ First-class integration contract   │ Level 3 Target-Attested status  │
+│ Attested Reconciliation  │ binding operation, amount,         │ bundles resolving HTTP 504      │
+│ (refund_status_v1)       │ currency, and status under pinned  │ timeouts without blind retries. │
+│                          │ receiver keys.                     │                                 │
 └──────────────────────────┴────────────────────────────────────┴─────────────────────────────────┘
 ```
 
-### 7.1 Pattern 1: Observe-Then-Enforce (Risk-Free Deployment)
-To facilitate seamless pilot adoption in tier-1 banking architectures, AEIB supports a two-phase rollout:
-1. **Observation Mode (Phase A)**: AEIB runs as a transparent Layer 7 proxy or container sidecar. It parses candidate actions, evaluates temporal standing, checks parameter binding, and computes candidate action digests ($\text{CAID}$). If an invariant is violated, AEIB logs a `WOULD_BLOCK` telemetry event and signed shadow receipt, but allows the downstream socket to proceed. This generates a baseline drift report without impacting live transactions.
-2. **Enforcement Mode (Phase B)**: Once baseline operational parameters and false-positive rates are confirmed at zero across evaluation runs, the boundary is switched to fail-closed enforcement for designated high-consequence tools (`refund_customer`, `disburse_payout`). Any standing violation or expired authority aborts socket creation before byte transmission.
+### 7.1 Pattern A: 6-Week Observe-Then-Enforce Pilot
+To facilitate controlled adoption in banking and regulated environments, the pilot executes across a structured 6-week sequence:
+- **Week 1 (Scoping)**: Scope a single high-risk consequential action class (e.g., `refund_customer` or `disburse_payout`), pin the MCP protocol version (`2025-06-18`), and define canonical action digest ($\text{CAID}$) schemas.
+- **Week 2 (Shadow Mode)**: Deploy AEIB in passive observation mode. *Explicit Constraint: Shadow mode measures decisions and hypothetical blocks (`WOULD_BLOCK`) without preventing live execution.*
+- **Week 3 (Enforce Deny-by-Default)**: Flip Station 0–1 to active fail-closed enforcement on the targeted action class, arresting stale epochs, expired grants, and parameter tampering prior to socket creation.
+- **Weeks 4–6 (Target Reconciliation, Fault Testing & Evidence Handover)**: Wire the authenticated [`contracts/refund_status_v1.schema.json`](file:///Users/andriileukhin/Documents/SovereignNexus/contracts/refund_status_v1.schema.json) target endpoint, execute controlled 504 / TCP reset fault injection, and hand over the offline-verifiable compliance evidence pack.
 
-### 7.2 Pattern 2: Pre-Execution "Restraint Records"
-Compliance and internal audit teams require evidence not only of actions taken, but of actions successfully prevented. For every arrested mutation:
-1. **Zero External I/O**: The transport interceptor confirms zero TCP packets and zero HTTP bytes were emitted to the external network interface.
-2. **Cryptographic Proof of Prevention**: AEIB mints a tamper-evident pre-execution restraint record containing the exact rejected candidate action, principal, active epoch, evaluated reason code (`AT30_EXPIRED_AUTHORIZATION`, `AT31_STALE_EPOCH_BLOCKED`, `AT32_REVOKED_AUTHORIZATION`, `AT33_ACTION_DIGEST_MUTATED`, `AT34_REPLAY_DETECTED`, `AT35_UNALLOWLISTED_TARGET`), and boundary Ed25519 signature.
-3. **Audit Utility**: Supplies verifiable evidence under EU AI Act Article 14 (human oversight) and Article 15 (cybersecurity resilience), demonstrating that the boundary arrested out-of-bounds agent behavior before external side effects occurred.
+### 7.2 Pattern B: Pre-Execution Restraint Records
+Formal designation for boundary denial outputs (`AT30`–`AT37` and `AT40`–`AT46`) proving `0` egress bytes:
+1. **Zero External I/O**: The transport interceptor records `socket_connect_invoked: false` and `external_bytes: 0`.
+2. **Level 2 Boundary-Signed Receipt**: AEIB mints a tamper-evident pre-execution restraint record binding the rejected candidate action $\text{CAID}$, principal, active policy epoch, and rejection code under an Ed25519 signature.
 
-### 7.3 Pattern 3: Target-Attested Reconciliation
-When network partitions or server timeouts (`HTTP 504 Gateway Timeout`, `TCP RST`, connection drop) leave transaction state ambiguous:
-1. **Automated Latching**: Station 2 classifies the event as `EFFECT_INDETERMINATE` with `retry_safe: false`, arresting agent retry loops.
-2. **Bounded Out-of-Band Probe**: AEIB executes an authenticated query against the target provider's status endpoint using the versioned [`contracts/refund_status_v1.schema.json`](file:///Users/andriileukhin/Documents/SovereignNexus/contracts/refund_status_v1.schema.json) contract under a strict `ProbeBudget: 1`.
-3. **Cryptographic Resolution**:
-   - If the target returns `SETTLED`, the mutation is recorded as `RESOLVED_CONFIRMED` with a Level 3 target-attested receipt.
-   - If the target returns `REVERSED` or `REJECTED`, the state transitions to `RESOLVED_REFUTED`.
-   - If the target is unreachable or returns malformed status, the state remains latched under `RECONCILIATION_HOLD`, generating an Action Intelligence Brief (AIB) for dual-control operator review.
+### 7.3 Pattern C: Target-Attested Reconciliation (`refund_status_v1`)
+First-class integration contract requiring operation, amount, currency, and status binding under pinned receiver keys:
+1. **Automated Latching**: Post-dispatch `HTTP 504` / `TCP RST` faults latch the operation as `EFFECT_INDETERMINATE` with `retry_safe: false`.
+2. **Level 3 Receiver Attestation**: Out-of-band reconciliation queries the target status endpoint under `ProbeBudget: 1`, requiring a valid receiver Ed25519 signature over the canonical `refund_status_v1` payload before transitioning to `RESOLVED_CONFIRMED` or `RESOLVED_REFUTED`.
+
+---
+
+## Section 8: Execution Protocol: Local Test Verification & Telemetry Schema
+
+To execute the temporal standing test suite and generate the local evidence record on branch `feat/v1.1-temporal-standing`:
+
+```bash
+# 1. Check out feature branch and verify worktree status
+git checkout feat/v1.1-temporal-standing
+git status --porcelain
+git rev-parse HEAD
+
+# 2. Run AT31_STALE_EPOCH_BLOCKED pre-execution test vector
+pytest tests/test_temporal_standing_check.py -k AT31_STALE_EPOCH_BLOCKED -v -s
+
+# 3. Verify emitted evidence bundle with offline verifier
+python3 tools/verify_pre_execution_evidence.py \
+  --bundle artifacts/pre_execution/AT31_pre_execution_evidence.json
+```
+
+### 8.1 Verification Telemetry Schema (`at31_record`)
+
+```yaml
+at31_record:
+  local_test_result: PASSED
+  source_commit: "feat/v1.1-temporal-standing@HEAD"
+  worktree_clean: true
+  evidence_bundle_digest: "sha256:2836b3f50a2349c30bb4d3ce3c5a1b263955272e1860e9f9bb35277d0bd3b452"
+  bundle_signature_verified: true
+  verifier_command: "python3 tools/verify_pre_execution_evidence.py --bundle artifacts/pre_execution/AT31_pre_execution_evidence.json"
+  independent_reproduction: pending
+  competitive_gap_claim: not_established_by_this_test
+```
+
 

@@ -1,0 +1,11 @@
+# AEIB v1.1 Verification Telemetry Record — AT31_STALE_EPOCH_BLOCKED
+# Evaluated under the stated model. Preserves strict epistemic lock.
+at31_record:
+  local_test_result: PASSED
+  source_commit: "feat/v1.1-temporal-standing@575ebe5b6c1068371110620463b9acdfeb00620b"
+  worktree_clean: true
+  evidence_bundle_digest: "sha256:2836b3f50a2349c30bb4d3ce3c5a1b263955272e1860e9f9bb35277d0bd3b452"
+  bundle_signature_verified: true
+  verifier_command: "python3 tools/verify_pre_execution_evidence.py --bundle artifacts/pre_execution/AT31_pre_execution_evidence.json"
+  independent_reproduction: pending
+  competitive_gap_claim: not_established_by_this_test

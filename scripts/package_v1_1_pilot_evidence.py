@@ -135,6 +135,8 @@ def main():
     pre_execution_dir.mkdir(parents=True, exist_ok=True)
     phase2_dir = TARGET_DIR / "artifacts" / "phase2"
     phase2_dir.mkdir(parents=True, exist_ok=True)
+    phase3_dir = TARGET_DIR / "artifacts" / "phase3"
+    phase3_dir.mkdir(parents=True, exist_ok=True)
 
     # 2. Source file manifest
     sources = [
@@ -163,7 +165,9 @@ def main():
         (REPO_ROOT / "tests" / "test_temporal_standing_check.py", TARGET_DIR / "test_temporal_standing_check.py"),
         (REPO_ROOT / "tools" / "verify_pre_execution_evidence.py", tools_dir / "verify_pre_execution_evidence.py"),
         (REPO_ROOT / "tools" / "verify_phase2_evidence.py", tools_dir / "verify_phase2_evidence.py"),
+        (REPO_ROOT / "tools" / "verify_phase3_evidence.py", tools_dir / "verify_phase3_evidence.py"),
         (REPO_ROOT / "artifacts" / "pre_execution" / "AT31_pre_execution_evidence.json", pre_execution_dir / "AT31_pre_execution_evidence.json"),
+        (REPO_ROOT / "artifacts" / "pre_execution" / "at31_record.yaml", pre_execution_dir / "at31_record.yaml"),
         (REPO_ROOT / "artifacts" / "pre_execution" / "AT35_replayed_ticket_evidence.json", pre_execution_dir / "AT35_replayed_ticket_evidence.json"),
         (REPO_ROOT / "artifacts" / "pre_execution" / "test_station1_pubkey.pem", pre_execution_dir / "test_station1_pubkey.pem"),
         (REPO_ROOT / "artifacts" / "pre_execution" / "AT35_station1_pubkey.pem", pre_execution_dir / "AT35_station1_pubkey.pem"),
@@ -176,6 +180,24 @@ def main():
         (REPO_ROOT / "artifacts" / "phase2" / "test_supervisor_pubkey.pem", phase2_dir / "test_supervisor_pubkey.pem"),
         (REPO_ROOT / "artifacts" / "phase2" / "test_root_sponsor_pubkey.pem", phase2_dir / "test_root_sponsor_pubkey.pem"),
         (REPO_ROOT / "artifacts" / "phase2" / "test_target_pubkey.pem", phase2_dir / "test_target_pubkey.pem"),
+        (REPO_ROOT / "artifacts" / "phase3" / "AT40_human_approved_ignored_evidence.json", phase3_dir / "AT40_human_approved_ignored_evidence.json"),
+        (REPO_ROOT / "artifacts" / "phase3" / "AT41_status_settled_ignored_evidence.json", phase3_dir / "AT41_status_settled_ignored_evidence.json"),
+        (REPO_ROOT / "artifacts" / "phase3" / "AT42_target_uri_tampering_blocked_evidence.json", phase3_dir / "AT42_target_uri_tampering_blocked_evidence.json"),
+        (REPO_ROOT / "artifacts" / "phase3" / "AT43_recipient_iban_alteration_blocked_evidence.json", phase3_dir / "AT43_recipient_iban_alteration_blocked_evidence.json"),
+        (REPO_ROOT / "artifacts" / "phase3" / "AT44_numeric_tampering_blocked_evidence.json", phase3_dir / "AT44_numeric_tampering_blocked_evidence.json"),
+        (REPO_ROOT / "artifacts" / "phase3" / "AT45_path_traversal_blocked_evidence.json", phase3_dir / "AT45_path_traversal_blocked_evidence.json"),
+        (REPO_ROOT / "artifacts" / "phase3" / "AT46_policy_epoch_spoofing_blocked_evidence.json", phase3_dir / "AT46_policy_epoch_spoofing_blocked_evidence.json"),
+        (REPO_ROOT / "artifacts" / "phase3" / "MCP01_protocol_2025_06_18_evidence.json", phase3_dir / "MCP01_protocol_2025_06_18_evidence.json"),
+        (REPO_ROOT / "artifacts" / "phase3" / "RB01_uncertain_mutation_triage_evidence.json", phase3_dir / "RB01_uncertain_mutation_triage_evidence.json"),
+        (REPO_ROOT / "artifacts" / "phase3" / "RB02_compromise_quarantine_evidence.json", phase3_dir / "RB02_compromise_quarantine_evidence.json"),
+        (REPO_ROOT / "artifacts" / "phase3" / "RB03_disk_io_fail_closed_evidence.json", phase3_dir / "RB03_disk_io_fail_closed_evidence.json"),
+        (REPO_ROOT / "artifacts" / "phase3" / "RB04_key_rotation_spki_evidence.json", phase3_dir / "RB04_key_rotation_spki_evidence.json"),
+        (REPO_ROOT / "artifacts" / "phase3" / "RB05_policy_epoch_advance_evidence.json", phase3_dir / "RB05_policy_epoch_advance_evidence.json"),
+        (REPO_ROOT / "artifacts" / "phase3" / "ART72_post_market_telemetry_evidence.json", phase3_dir / "ART72_post_market_telemetry_evidence.json"),
+        (REPO_ROOT / "artifacts" / "phase3" / "test_phase3_boundary_pubkey.pem", phase3_dir / "test_phase3_boundary_pubkey.pem"),
+        (REPO_ROOT / "artifacts" / "phase3" / "test_phase3_ops_pubkey.pem", phase3_dir / "test_phase3_ops_pubkey.pem"),
+        (REPO_ROOT / "artifacts" / "phase3" / "test_rb04_epoch1_pubkey.pem", phase3_dir / "test_rb04_epoch1_pubkey.pem"),
+        (REPO_ROOT / "artifacts" / "phase3" / "test_rb04_epoch2_pubkey.pem", phase3_dir / "test_rb04_epoch2_pubkey.pem"),
         (REPO_ROOT / "scripts" / "demo_customer_refund_boundary.py", TARGET_DIR / "demo_customer_refund_boundary.py"),
     ]
 

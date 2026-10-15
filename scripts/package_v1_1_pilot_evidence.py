@@ -135,6 +135,7 @@ def main():
         (REPO_ROOT / "docs" / "v1.1-backlog" / "ACCEPTANCE_MATRIX_v1.1.yaml", TARGET_DIR / "ACCEPTANCE_MATRIX_v1.1.yaml"),
         (REPO_ROOT / "docs" / "v1.1-backlog" / "CLAIM_CONTROL_TEST_ARTIFACT_MATRIX.yaml", TARGET_DIR / "CLAIM_CONTROL_TEST_ARTIFACT_MATRIX.yaml"),
         (REPO_ROOT / "docs" / "compliance" / "pre_execution_evidence.yaml", TARGET_DIR / "pre_execution_evidence.yaml"),
+        (REPO_ROOT / "docs" / "compliance" / "post_market_evidence.jsonl", TARGET_DIR / "post_market_evidence.jsonl"),
         (REPO_ROOT / "docs" / "compliance" / "EU_COMPLIANCE_EVIDENCE_PACK.md", TARGET_DIR / "EU_COMPLIANCE_EVIDENCE_PACK.md"),
         (REPO_ROOT / "docs" / "compliance" / "ANNEX_IV_TECHNICAL_DOSSIER.md", TARGET_DIR / "ANNEX_IV_TECHNICAL_DOSSIER.md"),
         (REPO_ROOT / "docs" / "compliance" / "AEIB_PRODUCTION_CONFORMITY_MASTER_SPECIFICATION.md", TARGET_DIR / "AEIB_PRODUCTION_CONFORMITY_MASTER_SPECIFICATION.md"),
@@ -146,6 +147,9 @@ def main():
         (REPO_ROOT / "schemas" / "action_intelligence_brief.json", schemas_dir / "action_intelligence_brief.json"),
         (REPO_ROOT / "contracts" / "refund_status_v1.schema.json", schemas_dir / "refund_status_v1.schema.json"),
         (REPO_ROOT / "tests" / "test_pre_execution_prevention.py", TARGET_DIR / "test_pre_execution_prevention.py"),
+        (REPO_ROOT / "tests" / "test_enforced_halt_and_delegation.py", TARGET_DIR / "test_enforced_halt_and_delegation.py"),
+        (REPO_ROOT / "tests" / "test_boundary_prompt_injection.py", TARGET_DIR / "test_boundary_prompt_injection.py"),
+        (REPO_ROOT / "tests" / "test_operational_runbooks.py", TARGET_DIR / "test_operational_runbooks.py"),
         (REPO_ROOT / "tests" / "test_track_b_end_to_end_integration.py", TARGET_DIR / "test_track_b_end_to_end_integration.py"),
         (REPO_ROOT / "scripts" / "demo_customer_refund_boundary.py", TARGET_DIR / "demo_customer_refund_boundary.py"),
     ]

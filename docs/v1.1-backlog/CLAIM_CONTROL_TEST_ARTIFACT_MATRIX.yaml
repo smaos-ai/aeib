@@ -191,9 +191,19 @@ phase_2_halt_and_reconciliation:
       original_effect_preserved_as_unknown: false
       relabel_as_not_dispatched: true
       external_request_observed: false
-    observed: null
-    evidence_artifacts: []
-    result: "NOT_RUN"
+    observed:
+      standing_valid: false
+      violated_check: "ANDON_CORD_TRIPPED"
+      rejection_reason: "Emergency operator interrupt active; execution halted fail-closed in safe state."
+      wire_socket_calls: 0
+      bytes_transmitted: 0
+      further_dispatch_blocked: true
+    evidence_artifacts:
+      - "tests/test_enforced_halt_and_delegation.py::test_at36_disk_persistence_and_sigkill_recovery"
+      - "docs/compliance/post_market_evidence.jsonl"
+    result: "PASS"
+    verified_at: "2026-10-15T12:55:02Z"
+    source_commit: "56ed178e"
 
   - test_id: "HALT-02"
     requirement_id: "CLM-HALT-04"
@@ -204,9 +214,18 @@ phase_2_halt_and_reconciliation:
       original_effect_preserved_as_unknown: true
       relabel_as_not_dispatched: false
       external_request_observed: true
-    observed: null
-    evidence_artifacts: []
-    result: "NOT_RUN"
+    observed:
+      disposition: "EFFECT_INDETERMINATE"
+      retry_safe: false
+      halt_state: "SAFE_HALT_ENGAGED"
+      retroactive_relabeling_observed: false
+      further_dispatch_blocked: true
+    evidence_artifacts:
+      - "tests/test_enforced_halt_and_delegation.py::test_at37_halt_during_ambiguity_preserves_indeterminate"
+      - "docs/compliance/post_market_evidence.jsonl"
+    result: "PASS"
+    verified_at: "2026-10-15T12:55:02Z"
+    source_commit: "56ed178e"
 
   - test_id: "HALT-03"
     requirement_id: "CLM-HALT-04"
@@ -217,9 +236,16 @@ phase_2_halt_and_reconciliation:
       original_effect_preserved_as_unknown: true
       relabel_as_not_dispatched: false
       external_request_observed: false
-    observed: null
-    evidence_artifacts: []
-    result: "NOT_RUN"
+    observed:
+      fsync_durability_confirmed: true
+      post_sigkill_reboot_state: "HALTED"
+      dispatch_blocked_post_reboot: true
+      violated_check: "ANDON_CORD_TRIPPED"
+    evidence_artifacts:
+      - "tests/test_enforced_halt_and_delegation.py::test_at36_disk_persistence_and_sigkill_recovery"
+    result: "PASS"
+    verified_at: "2026-10-15T12:55:02Z"
+    source_commit: "56ed178e"
 
   - test_id: "TEC-01"
     requirement_id: "CLM-RECON-05"
@@ -230,9 +256,20 @@ phase_2_halt_and_reconciliation:
       original_effect_preserved_as_unknown: false
       relabel_as_not_dispatched: false
       external_request_observed: true
-    observed: null
-    evidence_artifacts: []
-    result: "NOT_RUN"
+    observed:
+      schema_conformance: "contracts/refund_status_v1.schema.json"
+      status_settled_resolution: "RESOLVED_CONFIRMED"
+      status_reversed_resolution: "RESOLVED_REFUTED"
+      status_pending_resolution: "EFFECT_INDETERMINATE"
+      parameter_mismatch_failure: "PARITY_MISMATCH"
+      auth_failure_rejection: "AUTHENTICATION_FAILED"
+    evidence_artifacts:
+      - "tests/test_enforced_halt_and_delegation.py::test_rec_01_target_status_settled_confirms_mutation"
+      - "tests/test_enforced_halt_and_delegation.py::test_rec_04_target_status_parameter_mismatch_fails_closed"
+      - "contracts/refund_status_v1.schema.json"
+    result: "PASS"
+    verified_at: "2026-10-15T12:55:02Z"
+    source_commit: "56ed178e"
 
   - test_id: "DEL-01"
     requirement_id: "CLM-DELEG-06"
@@ -243,9 +280,16 @@ phase_2_halt_and_reconciliation:
       original_effect_preserved_as_unknown: false
       relabel_as_not_dispatched: false
       external_request_observed: false
-    observed: null
-    evidence_artifacts: []
-    result: "NOT_RUN"
+    observed:
+      attenuation_enforced: true
+      effective_spend_capped: 500
+      scope_expansion_rejected: "SCOPE_EXPANSION_VIOLATION"
+      cascade_revocation_at_delta: "REVOKED_DELEGATION"
+    evidence_artifacts:
+      - "tests/test_enforced_halt_and_delegation.py::test_at39_monotonic_delegation_attenuation_and_cascade_revocation"
+    result: "PASS"
+    verified_at: "2026-10-15T12:55:02Z"
+    source_commit: "56ed178e"
 
 # ==============================================================================
 # PHASE 3: BOUNDARY PROMPT INJECTION & OPERATIONAL RUNBOOKS (Days 61–90)
@@ -260,9 +304,16 @@ phase_3_injection_and_runbooks:
       original_effect_preserved_as_unknown: false
       relabel_as_not_dispatched: false
       external_request_observed: false
-    observed: null
-    evidence_artifacts: []
-    result: "NOT_RUN"
+    observed:
+      standing_valid: false
+      violated_check: "ACTION_DIGEST_MUTATED"
+      wire_socket_calls: 0
+      bytes_transmitted: 0
+    evidence_artifacts:
+      - "tests/test_boundary_prompt_injection.py::test_at43_prompt_injection_recipient_iban_alteration_blocked"
+    result: "PASS"
+    verified_at: "2026-10-15T12:55:41Z"
+    source_commit: "56ed178e"
 
   - test_id: "INJ-02"
     requirement_id: "CLM-INJ-07"
@@ -273,9 +324,15 @@ phase_3_injection_and_runbooks:
       original_effect_preserved_as_unknown: true
       relabel_as_not_dispatched: false
       external_request_observed: false
-    observed: null
-    evidence_artifacts: []
-    result: "NOT_RUN"
+    observed:
+      prose_override_ignored: true
+      disposition_preserved: "EFFECT_INDETERMINATE"
+      wire_latch_frozen: true
+    evidence_artifacts:
+      - "tests/test_boundary_prompt_injection.py::test_at41_prompt_injection_status_settled_string_ignored"
+    result: "PASS"
+    verified_at: "2026-10-15T12:55:41Z"
+    source_commit: "56ed178e"
 
   - test_id: "RB-01"
     requirement_id: "CLM-OPS-08"
@@ -286,6 +343,16 @@ phase_3_injection_and_runbooks:
       original_effect_preserved_as_unknown: true
       relabel_as_not_dispatched: false
       external_request_observed: true
-    observed: null
-    evidence_artifacts: []
-    result: "NOT_RUN"
+    observed:
+      aib_generated: true
+      priority: "P1"
+      prohibited_steps_enforced:
+        - "DECLARE_SUCCESS_WITHOUT_TARGET_EVIDENCE"
+        - "RETRY_BLINDLY"
+      probe_executed: true
+    evidence_artifacts:
+      - "tests/test_operational_runbooks.py::test_rb01_uncertain_mutation_triage_runbook"
+      - "docs/compliance/post_market_evidence.jsonl"
+    result: "PASS"
+    verified_at: "2026-10-15T12:57:50Z"
+    source_commit: "56ed178e"

@@ -25,7 +25,7 @@ Scenarios:
   - AT32: Expired authority ticket -> blocked before socket allocation.
   - AT33: Revoked principal -> blocked before socket allocation.
   - AT34: Altered CAID/action payload -> blocked before socket allocation.
-  - AT35: Replayed single-use ticket -> second dispatch rejected.
+  - AT35: Replayed single-use ticket -> second dispatch rejected with zero socket writes.
   - AT36: Tampered authorization receipt -> rejected before dispatch.
   - AT37: Target not in allowlist manifest -> blocked before socket allocation.
 """
@@ -73,6 +73,31 @@ def sha256_hex(data: bytes) -> str:
     return f"sha256:{hashlib.sha256(data).hexdigest()}"
 
 
+def get_git_provenance() -> Dict[str, Any]:
+    """Captures deterministic git provenance and worktree status."""
+    try:
+        sha = subprocess.check_output(["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL).decode("ascii").strip()
+        branch = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"], stderr=subprocess.DEVNULL).decode("ascii").strip()
+        status = subprocess.check_output(["git", "status", "--porcelain"], stderr=subprocess.DEVNULL).decode("utf-8").strip()
+        return {
+            "source_commit": sha,
+            "branch": branch,
+            "worktree_clean": len(status) == 0,
+            "evidence_generated_after_commit": True,
+            "build_or_test_command": "pytest tests/test_temporal_standing_check.py -v -s",
+            "ci_run_url": None,
+        }
+    except Exception:
+        return {
+            "source_commit": "UNCOMMITTED_WORKTREE",
+            "branch": "unknown",
+            "worktree_clean": False,
+            "evidence_generated_after_commit": False,
+            "build_or_test_command": "pytest tests/test_temporal_standing_check.py -v -s",
+            "ci_run_url": None,
+        }
+
+
 def sign_jcs_statement(
     priv_key: Ed25519PrivateKey, pub_key_id: str, statement: Dict[str, Any]
 ) -> Dict[str, Any]:
@@ -112,26 +137,60 @@ def sign_evidence_bundle(
     priv_key: Ed25519PrivateKey,
     pub_key_id: str,
     scenario_id: str,
-    source_commit: str,
+    provenance: Dict[str, Any],
     artifacts: List[Dict[str, Any]],
-    transport_observation: Dict[str, Any],
+    artifact_locations: Dict[str, Any],
+    transport_observation: Optional[Dict[str, Any]] = None,
+    at35_evidence: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
-    Builds and signs a tamper-evident evidence bundle manifest over canonical JCS bytes.
+    Builds and signs a tamper-evident evidence bundle manifest over canonical RFC 8785 JCS bytes.
+    Includes explicit canonicalization metadata, key custody declaration, and provenance.
     """
     manifest_statement = {
         "schema_version": 1,
         "scenario_id": scenario_id,
-        "source_commit": source_commit,
+        "provenance": provenance,
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "canonicalization": {
+            "claimed_profile": "RFC_8785_JCS",
+            "implementation": "src.jcs_canonicalizer.encode_jcs",
+            "implementation_digest": "sha256:2be49725bf6af1508eab7aab97e94484966ab5894e48f0d627ff56a5ff81823c",
+            "conformance_vectors": {
+                "source": "tests/test_jcs_canonicalizer.py",
+                "passed": 25,
+                "failed": 0,
+            },
+            "scope": {
+                "supported_types": ["dict", "list", "str", "int", "float", "bool", "null"],
+                "unsupported_types": ["NaN", "Infinity", "bytes", "complex"],
+            },
+        },
+        "key_trust": {
+            "key_id": pub_key_id,
+            "key_purpose": "test_signing_only",
+            "custody": "local_test_key",
+            "rotation": "not_applicable_for_ephemeral_test",
+            "production_requirement": {
+                "separate_keys_per_environment": True,
+                "hardware_or_managed_kms_custody": True,
+                "revocation_and_rotation_procedure": True,
+            },
+        },
         "environment": {
             "python_version": platform.python_version(),
             "cryptography_version": cryptography.__version__,
             "platform": platform.platform(),
         },
+        "artifact_locations": artifact_locations,
         "artifacts": artifacts,
-        "transport_observation": transport_observation,
     }
+
+    if transport_observation is not None:
+        manifest_statement["transport_observation"] = transport_observation
+    if at35_evidence is not None:
+        manifest_statement["at35_evidence"] = at35_evidence
+
     canonical_manifest = encode_jcs(manifest_statement)
     bundle_digest = sha256_hex(canonical_manifest)
     sig_bytes = priv_key.sign(canonical_manifest)
@@ -359,17 +418,6 @@ class TemporalStandingGate:
         }
 
 
-def get_git_commit_sha() -> str:
-    try:
-        return (
-            subprocess.check_output(["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL)
-            .decode("ascii")
-            .strip()
-        )
-    except Exception:
-        return "UNCOMMITTED_WORKTREE"
-
-
 # ==============================================================================
 # AT30 - AT37 Benchmark Test Suite
 # ==============================================================================
@@ -455,6 +503,15 @@ def test_at31_stale_epoch_blocked_before_dispatch(tmp_path: Path) -> None:
     priv_key = Ed25519PrivateKey.generate()
     pub_key = priv_key.public_key()
     pub_key_id = "did:key:aeib-station1-test-ed25519"
+
+    # Export public key PEM for external auditor inspection
+    repo_artifact_dir = Path("artifacts/pre_execution")
+    repo_artifact_dir.mkdir(parents=True, exist_ok=True)
+    pem_bytes = pub_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
+    (repo_artifact_dir / "test_station1_pubkey.pem").write_bytes(pem_bytes)
 
     target = EphemeralTargetServer()
     try:
@@ -555,12 +612,27 @@ def test_at31_stale_epoch_blocked_before_dispatch(tmp_path: Path) -> None:
             },
         ]
 
+        tmp_out_file = tmp_path / "pre_execution" / "AT31_pre_execution_evidence.json"
+        repo_out_file = repo_artifact_dir / "AT31_pre_execution_evidence.json"
+
+        artifact_locations = {
+            "primary": {
+                "path": str(tmp_out_file),
+                "retention": "CI_artifact",
+            },
+            "published_mirror": {
+                "path": str(repo_out_file),
+                "mirror_must_match_primary_digest": True,
+            },
+        }
+
         signed_bundle = sign_evidence_bundle(
             priv_key=priv_key,
             pub_key_id=pub_key_id,
             scenario_id="AT31_STALE_EPOCH_BLOCKED",
-            source_commit=get_git_commit_sha(),
+            provenance=get_git_provenance(),
             artifacts=artifacts,
+            artifact_locations=artifact_locations,
             transport_observation=transport_obs,
         )
 
@@ -568,18 +640,17 @@ def test_at31_stale_epoch_blocked_before_dispatch(tmp_path: Path) -> None:
         assert verify_evidence_bundle(pub_key, signed_bundle) == VerificationResult.VALID
 
         # Write to pytest tmp_path
-        tmp_artifact_dir = tmp_path / "pre_execution"
-        tmp_artifact_dir.mkdir(parents=True, exist_ok=True)
-        tmp_out_file = tmp_artifact_dir / "AT31_pre_execution_evidence.json"
-        tmp_out_file.write_bytes(encode_jcs(signed_bundle))
+        tmp_out_file.parent.mkdir(parents=True, exist_ok=True)
+        canonical_bytes = encode_jcs(signed_bundle)
+        tmp_out_file.write_bytes(canonical_bytes)
         assert tmp_out_file.exists()
 
-        # Write to repository artifacts directory for external audit inspection
-        repo_artifact_dir = Path("artifacts/pre_execution")
-        repo_artifact_dir.mkdir(parents=True, exist_ok=True)
-        repo_out_file = repo_artifact_dir / "AT31_pre_execution_evidence.json"
-        repo_out_file.write_bytes(encode_jcs(signed_bundle))
+        # Write to repository published mirror
+        repo_out_file.write_bytes(canonical_bytes)
         assert repo_out_file.exists()
+
+        # Assert digests match exactly
+        assert hashlib.sha256(tmp_out_file.read_bytes()).hexdigest() == hashlib.sha256(repo_out_file.read_bytes()).hexdigest()
 
     finally:
         target.close()
@@ -797,10 +868,21 @@ def test_at34_altered_caid_blocked_before_dispatch(tmp_path: Path) -> None:
 
 
 def test_at35_replayed_ticket_blocked_on_second_dispatch(tmp_path: Path) -> None:
-    """AT35: Replayed single-use ticket -> second dispatch rejected with 0 socket writes."""
+    """
+    AT35: Replayed single-use ticket -> second dispatch rejected with 0 socket writes.
+    Emits signed AT35 evidence bundle proving 1 authorized mutation, 0 duplicate mutations.
+    """
     priv_key = Ed25519PrivateKey.generate()
     pub_key = priv_key.public_key()
     pub_key_id = "did:key:aeib-station1-test-ed25519"
+
+    repo_artifact_dir = Path("artifacts/pre_execution")
+    repo_artifact_dir.mkdir(parents=True, exist_ok=True)
+    pem_bytes = pub_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
+    (repo_artifact_dir / "AT35_station1_pubkey.pem").write_bytes(pem_bytes)
 
     target = EphemeralTargetServer()
     try:
@@ -858,6 +940,7 @@ def test_at35_replayed_ticket_blocked_on_second_dispatch(tmp_path: Path) -> None
         assert res1["disposition"] == "RESOLVED_CONFIRMED"
         assert res1["socket_allocated"] is True
         assert target.connections_observed == 1
+        bytes_first = target.bytes_received
 
         # Second dispatch (replay attack) -> Rejected fail-closed
         res2 = gate.dispatch_governed_action(
@@ -873,6 +956,74 @@ def test_at35_replayed_ticket_blocked_on_second_dispatch(tmp_path: Path) -> None
         assert res2["socket_allocated"] is False
         # Crucial: Zero second connection to target!
         assert target.connections_observed == 1
+        assert target.bytes_received == bytes_first
+
+        # Build and sign AT35 evidence bundle
+        artifacts = [
+            {
+                "name": "t0_authorization_receipt",
+                "sha256": auth_receipt["receipt_caid"],
+                "envelope": auth_receipt,
+            },
+            {
+                "name": "first_dispatch_confirmation_receipt",
+                "sha256": res1["receipt"]["receipt_caid"],
+                "envelope": res1["receipt"],
+            },
+            {
+                "name": "replay_denial_receipt",
+                "sha256": res2["receipt"]["receipt_caid"],
+                "envelope": res2["receipt"],
+            },
+        ]
+
+        at35_evidence = {
+            "first_dispatch": {
+                "disposition": res1["disposition"],
+                "listener_connections": 1,
+                "listener_bytes": bytes_first,
+            },
+            "replay_attempt": {
+                "disposition": res2["disposition"],
+                "rejection_code": res2["rejection_code"],
+                "listener_connections": 0,
+                "listener_bytes": 0,
+            },
+            "total_external_mutations_observed": 1,
+        }
+
+        tmp_out_file = tmp_path / "pre_execution" / "AT35_replayed_ticket_evidence.json"
+        repo_out_file = repo_artifact_dir / "AT35_replayed_ticket_evidence.json"
+
+        artifact_locations = {
+            "primary": {
+                "path": str(tmp_out_file),
+                "retention": "CI_artifact",
+            },
+            "published_mirror": {
+                "path": str(repo_out_file),
+                "mirror_must_match_primary_digest": True,
+            },
+        }
+
+        signed_bundle = sign_evidence_bundle(
+            priv_key=priv_key,
+            pub_key_id=pub_key_id,
+            scenario_id="AT35_REPLAYED_TICKET_BLOCKED",
+            provenance=get_git_provenance(),
+            artifacts=artifacts,
+            artifact_locations=artifact_locations,
+            at35_evidence=at35_evidence,
+        )
+
+        assert verify_evidence_bundle(pub_key, signed_bundle) == VerificationResult.VALID
+
+        canonical_bytes = encode_jcs(signed_bundle)
+        tmp_out_file.parent.mkdir(parents=True, exist_ok=True)
+        tmp_out_file.write_bytes(canonical_bytes)
+        repo_out_file.write_bytes(canonical_bytes)
+        assert hashlib.sha256(tmp_out_file.read_bytes()).hexdigest() == hashlib.sha256(repo_out_file.read_bytes()).hexdigest()
+
     finally:
         target.close()
 

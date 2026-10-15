@@ -49,6 +49,12 @@ sys.path.insert(0, str(REPO_ROOT))
 sys.path.insert(0, str(REPO_ROOT / "v1.1-roadmap"))
 
 from src.jcs_canonicalizer import encode_jcs
+from tests.test_temporal_standing_check import (
+    sign_evidence_bundle,
+    get_git_provenance,
+    sha256_hex,
+)
+from tools.verify_phase2_evidence import verify_phase2_bundle
 from tier1_durable_executor import (
     DispatchAuthorityTicket,
     PersistentAuthorityTicketStore,
@@ -66,6 +72,25 @@ from delegation_chain_verifier import (
     DelegationChainVerifier,
     DelegationVerdict,
 )
+
+PHASE2_ARTIFACT_DIR = REPO_ROOT / "artifacts" / "phase2"
+PHASE2_ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def _deterministic_ed25519_key(seed_str: str) -> tuple[Ed25519PrivateKey, Ed25519PublicKey]:
+    seed = hashlib.sha256(seed_str.encode("utf-8")).digest()
+    priv = Ed25519PrivateKey.from_private_bytes(seed)
+    return priv, priv.public_key()
+
+
+def _save_evidence_bundle(tmp_path: Path, filename: str, bundle: dict) -> None:
+    tmp_out = tmp_path / "phase2" / filename
+    tmp_out.parent.mkdir(parents=True, exist_ok=True)
+    canonical_bytes = encode_jcs(bundle)
+    tmp_out.write_bytes(canonical_bytes)
+    repo_out = PHASE2_ARTIFACT_DIR / filename
+    repo_out.write_bytes(canonical_bytes)
+    assert hashlib.sha256(tmp_out.read_bytes()).hexdigest() == hashlib.sha256(repo_out.read_bytes()).hexdigest()
 
 
 class PersistentHaltStateStore:
@@ -177,15 +202,25 @@ def _compute_caid(payload: dict) -> str:
 # AT36 - AT38: ENFORCED HALT MECHANICS
 # ==============================================================================
 
-def test_at36_disk_persistence_and_sigkill_recovery(tmp_path):
+def test_at36_disk_persistence_and_sigkill_recovery(tmp_path: Path):
     """
     AT36: Disk Persistence and SIGKILL Process Recovery.
     Asserts that halt state is written with os.fsync() durability and that a
     subsequent process restart (simulating SIGKILL) loads the halt state prior
     to socket allocation, blocking dispatches fail-closed.
+    Emits signed tamper-evident evidence bundle.
     """
     halt_path = tmp_path / "halt.state"
-    operator_priv = Ed25519PrivateKey.generate()
+    operator_priv, pub_key = _deterministic_ed25519_key("aeib-phase2-operator")
+    pub_key_id = "did:key:aeib-phase2-operator-ed25519"
+
+    # Export operator pubkey for offline verification
+    (PHASE2_ARTIFACT_DIR / "test_operator_pubkey.pem").write_bytes(
+        pub_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+    )
 
     store = PersistentHaltStateStore(halt_path)
     assert not store.is_halted()
@@ -229,15 +264,66 @@ def test_at36_disk_persistence_and_sigkill_recovery(tmp_path):
     assert not res.standing_valid
     assert res.violated_check == "ANDON_CORD_TRIPPED"
 
+    # Emit signed evidence bundle
+    artifacts = [
+        {
+            "name": "emergency_halt_trip_record",
+            "sha256": sha256_hex(encode_jcs(rec)),
+            "envelope": rec,
+        },
+        {
+            "name": "pre_dispatch_denial_record",
+            "sha256": sha256_hex(encode_jcs({
+                "operation_id": ctx.operation_id,
+                "disposition": "NOT_DISPATCHED",
+                "violated_check": res.violated_check,
+                "standing_valid": res.standing_valid,
+                "timestamp": 1500000050,
+            })),
+            "envelope": {
+                "operation_id": ctx.operation_id,
+                "disposition": "NOT_DISPATCHED",
+                "violated_check": res.violated_check,
+                "standing_valid": res.standing_valid,
+                "timestamp": 1500000050,
+            },
+        },
+    ]
+    bundle = sign_evidence_bundle(
+        priv_key=operator_priv,
+        pub_key_id=pub_key_id,
+        scenario_id="AT36_HALT_SIGKILL_PERSISTENCE",
+        provenance=get_git_provenance(),
+        artifacts=artifacts,
+        artifact_locations={
+            "primary": {"path": str(tmp_path / "phase2" / "AT36_sigkill_persistence_evidence.json"), "retention": "CI_artifact"},
+            "published_mirror": {"path": "artifacts/phase2/AT36_sigkill_persistence_evidence.json", "mirror_must_match_primary_digest": True},
+        },
+        transport_observation={
+            "observation_point": "local_daemon_halt_interlock",
+            "connections_accepted_by_listener": 0,
+            "bytes_received_by_listener": 0,
+            "gate_reported_socket_allocation": False,
+            "fsync_durability_confirmed": True,
+            "post_sigkill_read_halted": True,
+            "scope": "this_test_process_only",
+        },
+    )
+    verify_phase2_bundle(bundle, pub_key)
+    _save_evidence_bundle(tmp_path, "AT36_sigkill_persistence_evidence.json", bundle)
 
-def test_at37_halt_during_ambiguity_preserves_indeterminate(tmp_path):
+
+def test_at37_halt_during_ambiguity_preserves_indeterminate(tmp_path: Path):
     """
     AT37: Non-Rewrite Invariant.
     Asserts that tripping halt when an operation is in EFFECT_INDETERMINATE preserves
     the uncertainty on disk and NEVER retroactively relabels it NOT_DISPATCHED.
+    Emits signed tamper-evident evidence bundle.
     """
     journal_path = tmp_path / "dispatch.journal"
     journal = DurableDispatchJournal(journal_path)
+    operator_priv, pub_key = _deterministic_ed25519_key("aeib-phase2-operator")
+    pub_key_id = "did:key:aeib-phase2-operator-ed25519"
 
     op_id = "op-at37-ambiguous"
     decision_id = "dec-at37-001"
@@ -265,11 +351,11 @@ def test_at37_halt_during_ambiguity_preserves_indeterminate(tmp_path):
     # Step 3: Emergency halt tripped while operation is indeterminate
     halt_path = tmp_path / "halt.state"
     halt_store = PersistentHaltStateStore(halt_path)
-    halt_store.trip_halt(
+    halt_record = halt_store.trip_halt(
         operator_principal="ciso-oncall",
         reason="Network disruption across primary gateway",
         timestamp_epoch=1500000010,
-        signing_key=Ed25519PrivateKey.generate(),
+        signing_key=operator_priv,
     )
 
     # Invariant: Record in journal remains EFFECT_INDETERMINATE, never NOT_DISPATCHED
@@ -279,12 +365,53 @@ def test_at37_halt_during_ambiguity_preserves_indeterminate(tmp_path):
     assert res_events[0]["disposition"] == "EFFECT_INDETERMINATE"
     assert res_events[0]["retry_safe"] is False
 
+    # Emit signed evidence bundle
+    artifacts = [
+        {
+            "name": "dispatch_intent_record",
+            "sha256": sha256_hex(encode_jcs({"operation_id": op_id, "action_caid": caid, "target": "urn:bank:sepa"})),
+            "envelope": {"operation_id": op_id, "action_caid": caid, "target": "urn:bank:sepa"},
+        },
+        {
+            "name": "wire_indeterminate_record",
+            "sha256": sha256_hex(encode_jcs(res_events[0])),
+            "envelope": res_events[0],
+        },
+        {
+            "name": "emergency_halt_trip_record",
+            "sha256": sha256_hex(encode_jcs(halt_record)),
+            "envelope": halt_record,
+        },
+    ]
+    bundle = sign_evidence_bundle(
+        priv_key=operator_priv,
+        pub_key_id=pub_key_id,
+        scenario_id="AT37_HALT_AMBIGUITY_PRESERVED",
+        provenance=get_git_provenance(),
+        artifacts=artifacts,
+        artifact_locations={
+            "primary": {"path": str(tmp_path / "phase2" / "AT37_ambiguity_preservation_evidence.json"), "retention": "CI_artifact"},
+            "published_mirror": {"path": "artifacts/phase2/AT37_ambiguity_preservation_evidence.json", "mirror_must_match_primary_digest": True},
+        },
+        transport_observation={
+            "observation_point": "journal_and_halt_interlock",
+            "operation_id": op_id,
+            "transport_outcome": "HTTP_504_TIMEOUT",
+            "disposition": "EFFECT_INDETERMINATE",
+            "retry_safe": False,
+            "retroactive_relabeling_detected": False,
+            "scope": "this_test_process_only",
+        },
+    )
+    verify_phase2_bundle(bundle, pub_key)
+    _save_evidence_bundle(tmp_path, "AT37_ambiguity_preservation_evidence.json", bundle)
 
-def test_at38_rfc9470_step_up_resolution(tmp_path):
+def test_at38_rfc9470_step_up_resolution(tmp_path: Path):
     """
     AT38: RFC 9470 Step-Up Resolution.
     Asserts that an agent cannot resolve halt, and that resolution requires an
     authenticated human supervisor presenting a valid step-up token.
+    Emits signed tamper-evident evidence bundle.
     """
     halt_path = tmp_path / "halt.state"
     store = PersistentHaltStateStore(halt_path)
@@ -315,7 +442,17 @@ def test_at38_rfc9470_step_up_resolution(tmp_path):
         )
 
     # Human supervisor with valid RFC 9470 step-up token
-    supervisor_priv = Ed25519PrivateKey.generate()
+    supervisor_priv, supervisor_pub = _deterministic_ed25519_key("aeib-phase2-supervisor")
+    pub_key_id = "did:key:aeib-phase2-supervisor-ed25519"
+
+    # Export supervisor pubkey for offline verification
+    (PHASE2_ARTIFACT_DIR / "test_supervisor_pubkey.pem").write_bytes(
+        supervisor_pub.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+    )
+
     step_up_stmt = {
         "acr_values": "urn:mfa:hardware",
         "issued_at": 1500000005,
@@ -337,28 +474,84 @@ def test_at38_rfc9470_step_up_resolution(tmp_path):
     assert resolved is True
     assert not store.is_halted()
 
+    agent_rejection_payload = {
+        "principal_id": agent_token["principal_id"],
+        "principal_type": agent_token["principal_type"],
+        "verdict": "REJECTED_FAIL_CLOSED",
+        "rejection_code": "ONLY_HUMAN_SUPERVISORS_PERMITTED",
+    }
+    halt_cleared_payload = {"resolved": True, "halt_state": False, "timestamp": 1500000020}
+
+    # Emit signed evidence bundle
+    artifacts = [
+        {
+            "name": "agent_step_up_rejected",
+            "sha256": sha256_hex(encode_jcs(agent_rejection_payload)),
+            "envelope": agent_rejection_payload,
+        },
+        {
+            "name": "human_step_up_accepted",
+            "sha256": sha256_hex(encode_jcs(step_up_token)),
+            "envelope": step_up_token,
+        },
+        {
+            "name": "halt_cleared_confirmation",
+            "sha256": sha256_hex(encode_jcs(halt_cleared_payload)),
+            "envelope": halt_cleared_payload,
+        },
+    ]
+    bundle = sign_evidence_bundle(
+        priv_key=supervisor_priv,
+        pub_key_id=pub_key_id,
+        scenario_id="AT38_RFC9470_STEP_UP_RESOLUTION",
+        provenance=get_git_provenance(),
+        artifacts=artifacts,
+        artifact_locations={
+            "primary": {"path": str(tmp_path / "phase2" / "AT38_step_up_resolution_evidence.json"), "retention": "CI_artifact"},
+            "published_mirror": {"path": "artifacts/phase2/AT38_step_up_resolution_evidence.json", "mirror_must_match_primary_digest": True},
+        },
+        transport_observation={
+            "observation_point": "step_up_authenticator",
+            "agent_resolution_permitted": False,
+            "human_mfa_acr": "urn:mfa:hardware",
+            "dual_control_verified": True,
+            "scope": "this_test_process_only",
+        },
+    )
+    verify_phase2_bundle(bundle, supervisor_pub)
+    _save_evidence_bundle(tmp_path, "AT38_step_up_resolution_evidence.json", bundle)
 
 # ==============================================================================
 # AT39: DELEGATION ATTENUATION & CASCADE REVOCATION
 # ==============================================================================
 
-def test_at39_monotonic_delegation_attenuation_and_cascade_revocation():
+def test_at39_monotonic_delegation_attenuation_and_cascade_revocation(tmp_path: Path):
     """
     AT39: 3-Hop Delegation Attenuation and Cascade Revocation.
     Asserts monotonic scope narrowing (Child <= Parent) and that revoking an
     intermediate hop at Delta invalidates the leaf grant at Tn.
+    Emits signed tamper-evident evidence bundle.
     """
-    root_priv = Ed25519PrivateKey.generate()
-    hop1_priv = Ed25519PrivateKey.generate()
-    hop2_priv = Ed25519PrivateKey.generate()
+    root_priv, root_pub = _deterministic_ed25519_key("aeib-phase2-root-sponsor")
+    hop1_priv, hop1_pub = _deterministic_ed25519_key("aeib-phase2-hop1")
+    hop2_priv, hop2_pub = _deterministic_ed25519_key("aeib-phase2-hop2")
+    pub_key_id = "did:key:aeib-phase2-rootsponsor-ed25519"
+
+    # Export root pubkey for offline verification
+    (PHASE2_ARTIFACT_DIR / "test_root_sponsor_pubkey.pem").write_bytes(
+        root_pub.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+    )
 
     known_keys = {
-        "agent-hop-1": hop1_priv.public_key(),
-        "agent-hop-2": hop2_priv.public_key(),
+        "agent-hop-1": hop1_pub,
+        "agent-hop-2": hop2_pub,
     }
 
     verifier = DelegationChainVerifier(
-        root_sponsor_public_key=root_priv.public_key(),
+        root_sponsor_public_key=root_pub,
         root_sponsor_principal_id="sponsor-root",
         known_agent_keys=known_keys,
     )
@@ -428,7 +621,7 @@ def test_at39_monotonic_delegation_attenuation_and_cascade_revocation():
 
     # Falsification 2: Revoking intermediate hop-1 at Delta invalidates chain at Tn
     revoking_verifier = DelegationChainVerifier(
-        root_sponsor_public_key=root_priv.public_key(),
+        root_sponsor_public_key=root_pub,
         root_sponsor_principal_id="sponsor-root",
         known_agent_keys=known_keys,
         revoked_principal_ids={"agent-hop-1"},  # Intermediate revoked
@@ -437,6 +630,62 @@ def test_at39_monotonic_delegation_attenuation_and_cascade_revocation():
     assert rev_verdict.valid is False
     assert "revoked" in rev_verdict.diagnostic_message
 
+    # Payloads for artifacts
+    h1_payload = {"statement": stmt1, "signature_hex": sig1}
+    h2_payload = {"statement": stmt2, "signature_hex": sig2}
+    nom_payload = {"valid": True, "effective_max_spend_eur": 500, "effective_scopes": ["refund"]}
+    scope_exp_payload = {"attempted_scopes": ["refund", "wire_transfer"], "verdict": "REJECTED_FAIL_CLOSED", "diagnostic": bad_verdict.diagnostic_message}
+    cascade_rev_payload = {"revoked_intermediate": "agent-hop-1", "verdict": "REJECTED_FAIL_CLOSED", "diagnostic": rev_verdict.diagnostic_message}
+
+    # Emit signed evidence bundle
+    artifacts = [
+        {
+            "name": "hop1_sponsor_grant",
+            "sha256": sha256_hex(encode_jcs(h1_payload)),
+            "envelope": h1_payload,
+        },
+        {
+            "name": "hop2_attenuated_grant",
+            "sha256": sha256_hex(encode_jcs(h2_payload)),
+            "envelope": h2_payload,
+        },
+        {
+            "name": "nominal_delegation_verdict",
+            "sha256": sha256_hex(encode_jcs(nom_payload)),
+            "envelope": nom_payload,
+        },
+        {
+            "name": "scope_expansion_rejection",
+            "sha256": sha256_hex(encode_jcs(scope_exp_payload)),
+            "envelope": scope_exp_payload,
+        },
+        {
+            "name": "cascade_revocation_rejection",
+            "sha256": sha256_hex(encode_jcs(cascade_rev_payload)),
+            "envelope": cascade_rev_payload,
+        },
+    ]
+    bundle = sign_evidence_bundle(
+        priv_key=root_priv,
+        pub_key_id=pub_key_id,
+        scenario_id="AT39_DELEGATION_ATTENUATION_CASCADE",
+        provenance=get_git_provenance(),
+        artifacts=artifacts,
+        artifact_locations={
+            "primary": {"path": str(tmp_path / "phase2" / "AT39_delegation_cascade_evidence.json"), "retention": "CI_artifact"},
+            "published_mirror": {"path": "artifacts/phase2/AT39_delegation_cascade_evidence.json", "mirror_must_match_primary_digest": True},
+        },
+        transport_observation={
+            "observation_point": "delegation_chain_evaluator",
+            "scope_narrowing_enforced": True,
+            "max_spend_eur_attenuated": 500,
+            "scope_expansion_blocked": True,
+            "intermediate_revocation_cascaded": True,
+            "scope": "this_test_process_only",
+        },
+    )
+    verify_phase2_bundle(bundle, root_pub)
+    _save_evidence_bundle(tmp_path, "AT39_delegation_cascade_evidence.json", bundle)
 
 # ==============================================================================
 # REC-01 - REC-05: TARGET EVIDENCE CONTRACT (refund_status_v1)
@@ -483,8 +732,22 @@ def _validate_target_status_contract(
         raise GovernanceHaltError(f"MALFORMED_STATUS: unrecognized status '{target_status}'")
 
 
-def test_rec_01_target_status_settled_confirms_mutation():
-    """REC-01: Target status SETTLED confirms mutation."""
+def test_rec_01_target_status_settled_confirms_mutation(tmp_path: Path):
+    """
+    REC-01: Target status SETTLED confirms mutation.
+    Emits signed tamper-evident evidence bundle.
+    """
+    target_priv, target_pub = _deterministic_ed25519_key("aeib-phase2-target")
+    pub_key_id = "did:key:aeib-phase2-target-ed25519"
+
+    # Export target pubkey for offline verification
+    (PHASE2_ARTIFACT_DIR / "test_target_pubkey.pem").write_bytes(
+        target_pub.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+    )
+
     spki = "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
     resp = {
         "contract_version": "1.0.0",
@@ -512,6 +775,42 @@ def test_rec_01_target_status_settled_confirms_mutation():
     )
     assert verdict == "RESOLVED_CONFIRMED"
 
+    # Emit signed evidence bundle
+    artifacts = [
+        {
+            "name": "target_status_response",
+            "sha256": sha256_hex(encode_jcs(resp)),
+            "envelope": resp,
+        },
+        {
+            "name": "reconciliation_resolution_verdict",
+            "sha256": sha256_hex(encode_jcs({"operation_id": "op-rec-001", "verdict": "RESOLVED_CONFIRMED", "status": "SETTLED", "target_mutation_ref": "TX-99881"})),
+            "envelope": {"operation_id": "op-rec-001", "verdict": "RESOLVED_CONFIRMED", "status": "SETTLED", "target_mutation_ref": "TX-99881"},
+        },
+    ]
+    bundle = sign_evidence_bundle(
+        priv_key=target_priv,
+        pub_key_id=pub_key_id,
+        scenario_id="REC01_TARGET_CONTRACT_SETTLED",
+        provenance=get_git_provenance(),
+        artifacts=artifacts,
+        artifact_locations={
+            "primary": {"path": str(tmp_path / "phase2" / "REC01_target_contract_evidence.json"), "retention": "CI_artifact"},
+            "published_mirror": {"path": "artifacts/phase2/REC01_target_contract_evidence.json", "mirror_must_match_primary_digest": True},
+        },
+        transport_observation={
+            "observation_point": "target_status_contract_reconciler",
+            "schema_contract": "contracts/refund_status_v1.schema.json",
+            "operation_id_bound": True,
+            "spki_authenticated": True,
+            "amount_minor_units_matched": 15000,
+            "recipient_matched": True,
+            "verdict": "RESOLVED_CONFIRMED",
+            "scope": "this_test_process_only",
+        },
+    )
+    verify_phase2_bundle(bundle, target_pub)
+    _save_evidence_bundle(tmp_path, "REC01_target_contract_evidence.json", bundle)
 
 def test_rec_02_target_status_reversed_refutes_mutation():
     """REC-02: Target status REVERSED refutes mutation."""

@@ -255,10 +255,12 @@ phase_2_halt_and_reconciliation:
       further_dispatch_blocked: true
     evidence_artifacts:
       - "tests/test_enforced_halt_and_delegation.py::test_at36_disk_persistence_and_sigkill_recovery"
+      - "artifacts/phase2/AT36_sigkill_persistence_evidence.json"
+      - "tools/verify_phase2_evidence.py --bundle artifacts/phase2/AT36_sigkill_persistence_evidence.json --public-key artifacts/phase2/test_operator_pubkey.pem"
       - "docs/compliance/post_market_evidence.jsonl"
     result: "PASS"
-    verified_at: "2026-10-15T12:55:02Z"
-    source_commit: "56ed178e"
+    verified_at: "2026-10-15T14:10:00Z"
+    source_commit: "feat/v1.1-temporal-standing"
 
   - test_id: "HALT-02"
     requirement_id: "CLM-HALT-04"
@@ -277,10 +279,12 @@ phase_2_halt_and_reconciliation:
       further_dispatch_blocked: true
     evidence_artifacts:
       - "tests/test_enforced_halt_and_delegation.py::test_at37_halt_during_ambiguity_preserves_indeterminate"
+      - "artifacts/phase2/AT37_ambiguity_preservation_evidence.json"
+      - "tools/verify_phase2_evidence.py --bundle artifacts/phase2/AT37_ambiguity_preservation_evidence.json --public-key artifacts/phase2/test_operator_pubkey.pem"
       - "docs/compliance/post_market_evidence.jsonl"
     result: "PASS"
-    verified_at: "2026-10-15T12:55:02Z"
-    source_commit: "56ed178e"
+    verified_at: "2026-10-15T14:10:00Z"
+    source_commit: "feat/v1.1-temporal-standing"
 
   - test_id: "HALT-03"
     requirement_id: "CLM-HALT-04"
@@ -298,9 +302,33 @@ phase_2_halt_and_reconciliation:
       violated_check: "ANDON_CORD_TRIPPED"
     evidence_artifacts:
       - "tests/test_enforced_halt_and_delegation.py::test_at36_disk_persistence_and_sigkill_recovery"
+      - "artifacts/phase2/AT36_sigkill_persistence_evidence.json"
+      - "tools/verify_phase2_evidence.py --bundle artifacts/phase2/AT36_sigkill_persistence_evidence.json --public-key artifacts/phase2/test_operator_pubkey.pem"
     result: "PASS"
-    verified_at: "2026-10-15T12:55:02Z"
-    source_commit: "56ed178e"
+    verified_at: "2026-10-15T14:10:00Z"
+    source_commit: "feat/v1.1-temporal-standing"
+
+  - test_id: "HALT-04"
+    requirement_id: "CLM-HALT-04"
+    title: "RFC 9470 Human MFA Step-Up Token Required for Halt Resolution (AT38)"
+    scenario: "Autonomous agent attempts halt resolution (rejected fail-closed); human supervisor resolves with hardware MFA"
+    expected:
+      further_dispatch_blocked: false
+      original_effect_preserved_as_unknown: false
+      relabel_as_not_dispatched: false
+      external_request_observed: false
+    observed:
+      agent_resolution_blocked: true
+      human_mfa_step_up_accepted: true
+      halt_cleared_safely: true
+      ttl_enforced_seconds: 120
+    evidence_artifacts:
+      - "tests/test_enforced_halt_and_delegation.py::test_at38_rfc9470_step_up_resolution"
+      - "artifacts/phase2/AT38_step_up_resolution_evidence.json"
+      - "tools/verify_phase2_evidence.py --bundle artifacts/phase2/AT38_step_up_resolution_evidence.json --public-key artifacts/phase2/test_supervisor_pubkey.pem"
+    result: "PASS"
+    verified_at: "2026-10-15T14:10:00Z"
+    source_commit: "feat/v1.1-temporal-standing"
 
   - test_id: "TEC-01"
     requirement_id: "CLM-RECON-05"
@@ -322,13 +350,15 @@ phase_2_halt_and_reconciliation:
       - "tests/test_enforced_halt_and_delegation.py::test_rec_01_target_status_settled_confirms_mutation"
       - "tests/test_enforced_halt_and_delegation.py::test_rec_04_target_status_parameter_mismatch_fails_closed"
       - "contracts/refund_status_v1.schema.json"
+      - "artifacts/phase2/REC01_target_contract_evidence.json"
+      - "tools/verify_phase2_evidence.py --bundle artifacts/phase2/REC01_target_contract_evidence.json --public-key artifacts/phase2/test_target_pubkey.pem"
     result: "PASS"
-    verified_at: "2026-10-15T12:55:02Z"
-    source_commit: "56ed178e"
+    verified_at: "2026-10-15T14:10:00Z"
+    source_commit: "feat/v1.1-temporal-standing"
 
   - test_id: "DEL-01"
     requirement_id: "CLM-DELEG-06"
-    title: "Three-Hop Delegation Attenuation & Parent Invalidation Cascade"
+    title: "Three-Hop Delegation Attenuation & Parent Invalidation Cascade (AT39)"
     scenario: "Human -> Finance Lead -> Settlement Agent; parent revocation cascades to child"
     expected:
       further_dispatch_blocked: true
@@ -342,9 +372,11 @@ phase_2_halt_and_reconciliation:
       cascade_revocation_at_delta: "REVOKED_DELEGATION"
     evidence_artifacts:
       - "tests/test_enforced_halt_and_delegation.py::test_at39_monotonic_delegation_attenuation_and_cascade_revocation"
+      - "artifacts/phase2/AT39_delegation_cascade_evidence.json"
+      - "tools/verify_phase2_evidence.py --bundle artifacts/phase2/AT39_delegation_cascade_evidence.json --public-key artifacts/phase2/test_root_sponsor_pubkey.pem"
     result: "PASS"
-    verified_at: "2026-10-15T12:55:02Z"
-    source_commit: "56ed178e"
+    verified_at: "2026-10-15T14:10:00Z"
+    source_commit: "feat/v1.1-temporal-standing"
 
 # ==============================================================================
 # PHASE 3: BOUNDARY PROMPT INJECTION & OPERATIONAL RUNBOOKS (Days 61–90)

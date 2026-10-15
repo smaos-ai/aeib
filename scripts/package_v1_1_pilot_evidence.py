@@ -133,6 +133,8 @@ def main():
     tools_dir.mkdir(parents=True, exist_ok=True)
     pre_execution_dir = TARGET_DIR / "artifacts" / "pre_execution"
     pre_execution_dir.mkdir(parents=True, exist_ok=True)
+    phase2_dir = TARGET_DIR / "artifacts" / "phase2"
+    phase2_dir.mkdir(parents=True, exist_ok=True)
 
     # 2. Source file manifest
     sources = [
@@ -160,10 +162,20 @@ def main():
         (REPO_ROOT / "tests" / "test_track_b_end_to_end_integration.py", TARGET_DIR / "test_track_b_end_to_end_integration.py"),
         (REPO_ROOT / "tests" / "test_temporal_standing_check.py", TARGET_DIR / "test_temporal_standing_check.py"),
         (REPO_ROOT / "tools" / "verify_pre_execution_evidence.py", tools_dir / "verify_pre_execution_evidence.py"),
+        (REPO_ROOT / "tools" / "verify_phase2_evidence.py", tools_dir / "verify_phase2_evidence.py"),
         (REPO_ROOT / "artifacts" / "pre_execution" / "AT31_pre_execution_evidence.json", pre_execution_dir / "AT31_pre_execution_evidence.json"),
         (REPO_ROOT / "artifacts" / "pre_execution" / "AT35_replayed_ticket_evidence.json", pre_execution_dir / "AT35_replayed_ticket_evidence.json"),
         (REPO_ROOT / "artifacts" / "pre_execution" / "test_station1_pubkey.pem", pre_execution_dir / "test_station1_pubkey.pem"),
         (REPO_ROOT / "artifacts" / "pre_execution" / "AT35_station1_pubkey.pem", pre_execution_dir / "AT35_station1_pubkey.pem"),
+        (REPO_ROOT / "artifacts" / "phase2" / "AT36_sigkill_persistence_evidence.json", phase2_dir / "AT36_sigkill_persistence_evidence.json"),
+        (REPO_ROOT / "artifacts" / "phase2" / "AT37_ambiguity_preservation_evidence.json", phase2_dir / "AT37_ambiguity_preservation_evidence.json"),
+        (REPO_ROOT / "artifacts" / "phase2" / "AT38_step_up_resolution_evidence.json", phase2_dir / "AT38_step_up_resolution_evidence.json"),
+        (REPO_ROOT / "artifacts" / "phase2" / "AT39_delegation_cascade_evidence.json", phase2_dir / "AT39_delegation_cascade_evidence.json"),
+        (REPO_ROOT / "artifacts" / "phase2" / "REC01_target_contract_evidence.json", phase2_dir / "REC01_target_contract_evidence.json"),
+        (REPO_ROOT / "artifacts" / "phase2" / "test_operator_pubkey.pem", phase2_dir / "test_operator_pubkey.pem"),
+        (REPO_ROOT / "artifacts" / "phase2" / "test_supervisor_pubkey.pem", phase2_dir / "test_supervisor_pubkey.pem"),
+        (REPO_ROOT / "artifacts" / "phase2" / "test_root_sponsor_pubkey.pem", phase2_dir / "test_root_sponsor_pubkey.pem"),
+        (REPO_ROOT / "artifacts" / "phase2" / "test_target_pubkey.pem", phase2_dir / "test_target_pubkey.pem"),
         (REPO_ROOT / "scripts" / "demo_customer_refund_boundary.py", TARGET_DIR / "demo_customer_refund_boundary.py"),
     ]
 
@@ -207,6 +219,10 @@ def main():
 
     tar_sha = compute_sha256(TAR_PATH)
     tar_size = TAR_PATH.stat().st_size
+
+    # Save standalone sha256 checksum file
+    sha256_path = DIST_DIR / f"{TAR_PATH.name}.sha256"
+    sha256_path.write_text(f"{tar_sha}  {TAR_PATH.name}\n", encoding="utf-8")
 
     print("=" * 80)
     print("  PACKAGE ASSEMBLY COMPLETE")

@@ -133,6 +133,8 @@ def main():
     # 2. Source file manifest
     sources = [
         (REPO_ROOT / "docs" / "v1.1-backlog" / "ACCEPTANCE_MATRIX_v1.1.yaml", TARGET_DIR / "ACCEPTANCE_MATRIX_v1.1.yaml"),
+        (REPO_ROOT / "docs" / "v1.1-backlog" / "CLAIM_CONTROL_TEST_ARTIFACT_MATRIX.yaml", TARGET_DIR / "CLAIM_CONTROL_TEST_ARTIFACT_MATRIX.yaml"),
+        (REPO_ROOT / "docs" / "compliance" / "pre_execution_evidence.yaml", TARGET_DIR / "pre_execution_evidence.yaml"),
         (REPO_ROOT / "docs" / "compliance" / "EU_COMPLIANCE_EVIDENCE_PACK.md", TARGET_DIR / "EU_COMPLIANCE_EVIDENCE_PACK.md"),
         (REPO_ROOT / "docs" / "compliance" / "ANNEX_IV_TECHNICAL_DOSSIER.md", TARGET_DIR / "ANNEX_IV_TECHNICAL_DOSSIER.md"),
         (REPO_ROOT / "results_v0.2.4.json", TARGET_DIR / "results_v0.2.4.json"),
@@ -141,6 +143,7 @@ def main():
         (REPO_ROOT / "dist" / "smaos_verify.wasm", TARGET_DIR / "smaos_verify.wasm"),
         (REPO_ROOT / "schemas" / "receipt_payload_v1_1.json", schemas_dir / "receipt_payload_v1_1.json"),
         (REPO_ROOT / "schemas" / "action_intelligence_brief.json", schemas_dir / "action_intelligence_brief.json"),
+        (REPO_ROOT / "tests" / "test_pre_execution_prevention.py", TARGET_DIR / "test_pre_execution_prevention.py"),
         (REPO_ROOT / "tests" / "test_track_b_end_to_end_integration.py", TARGET_DIR / "test_track_b_end_to_end_integration.py"),
         (REPO_ROOT / "scripts" / "demo_customer_refund_boundary.py", TARGET_DIR / "demo_customer_refund_boundary.py"),
     ]

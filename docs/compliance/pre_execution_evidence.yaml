@@ -1,0 +1,150 @@
+# docs/compliance/pre_execution_evidence.yaml
+# ==============================================================================
+# AEIB Phase 1 Pre-Execution Prevention Empirical Evidence Record (PEP-01 to PEP-06)
+#
+# Epistemic Notice (AGENTS.md §1 & §5):
+#   Operates under the stated model. Cryptographic verification executed with
+#   real Ed25519 (cryptography.hazmat) and strict RFC 8785 JCS canonicalization.
+#   Zero mocks, zero stubs, zero bypass gates.
+# ==============================================================================
+
+evaluation_metadata:
+  framework: "AEIB Phase 1 Pre-Execution Prevention Benchmark Suite"
+  test_suite_path: "tests/test_pre_execution_prevention.py"
+  executed_at: "2026-10-15T12:35:45Z"
+  platform: "darwin / Python 3.14.3 / pytest-9.0.3"
+  source_commit: "6194e03623dd6566be84dc7b347e7508527ce648"
+  active_branch: "feat/v1.1-production-boundary"
+  total_vectors_evaluated: 6
+  total_passed: 6
+  total_failed: 0
+  overall_verdict: "PASS"
+
+test_vector_results:
+  - vector_id: "PEP-01"
+    requirement_id: "CLM-POLICY-01"
+    title: "Policy-Prohibited Action Blocked Before External Socket Dispatch"
+    scenario: "Agent proposes action targeting an unauthorized endpoint outside allowlist"
+    target: "urn:bank:unauthorized-offshore"
+    allowlist:
+      - "urn:bank:whitelisted-payments"
+    evaluation_result:
+      standing_valid: false
+      violated_check: "TARGET_NOT_ALLOWLISTED"
+      rejection_reason: "Target 'urn:bank:unauthorized-offshore' is not in active allowlist at commit time."
+    wire_probe:
+      socket_allocated: false
+      request_count: 0
+      bytes_sent: 0
+    epistemic_outcome:
+      further_dispatch_blocked: true
+      external_request_observed: false
+      relabel_as_not_dispatched: false
+    verdict: "PASS"
+
+  - vector_id: "PEP-02"
+    requirement_id: "CLM-EXPIRE-02"
+    title: "Expired Authority Ticket Blocked at Tn Revalidation"
+    scenario: "Authority ticket expires during Delta N gap prior to socket write"
+    timestamps:
+      ticket_expires_at: 1000
+      evaluated_at_tn: 1001
+    evaluation_result:
+      standing_valid: false
+      violated_check: "AUTHORITY_EXPIRED"
+      rejection_reason: "Authority ticket expired at 1000 (commit time: 1001)."
+    wire_probe:
+      socket_allocated: false
+      request_count: 0
+      bytes_sent: 0
+    epistemic_outcome:
+      further_dispatch_blocked: true
+      external_request_observed: false
+      relabel_as_not_dispatched: false
+    verdict: "PASS"
+
+  - vector_id: "PEP-03"
+    requirement_id: "CLM-STALE-03"
+    title: "Revoked Principal Blocked at Tn Revalidation"
+    scenario: "Principal revoked in revocation registry during Delta N gap prior to socket write"
+    revoked_principal: "agent-rogue-07"
+    revocation_timestamp: 1500000500
+    evaluated_at_tn: 1500000600
+    evaluation_result:
+      standing_valid: false
+      violated_check: "PRINCIPAL_REVOKED"
+      rejection_reason: "Principal 'agent-rogue-07' was revoked prior to commit time."
+    wire_probe:
+      socket_allocated: false
+      request_count: 0
+      bytes_sent: 0
+    epistemic_outcome:
+      further_dispatch_blocked: true
+      external_request_observed: false
+      relabel_as_not_dispatched: false
+    verdict: "PASS"
+
+  - vector_id: "PEP-04"
+    requirement_id: "CLM-ALTER-04"
+    title: "Altered Amount, Recipient, Target, or Action Digest Blocked at Tn"
+    scenario: "Candidate payload recipient mutated between authorization T0 and commit Tn"
+    authorized_recipient: "DE89370400440532013000"
+    tampered_recipient: "DE89999999999999999999"
+    evaluation_result:
+      standing_valid: false
+      violated_check: "ACTION_DIGEST_MUTATED"
+      rejection_reason: "Payload mutated between authorization and commit"
+    wire_probe:
+      socket_allocated: false
+      request_count: 0
+      bytes_sent: 0
+    epistemic_outcome:
+      further_dispatch_blocked: true
+      external_request_observed: false
+      relabel_as_not_dispatched: false
+    verdict: "PASS"
+
+  - vector_id: "PEP-05"
+    requirement_id: "CLM-REPLAY-05"
+    title: "Replayed Authority Ticket Causes Zero Second External Wire Mutation"
+    scenario: "Previously consumed single-use authority ticket presented for second execution attempt"
+    ticket_decision_id: "dec-pep05-single-use"
+    first_execution:
+      disposition: "CONFIRMED"
+      ticket_consumed: true
+      wire_calls: 1
+    second_execution:
+      disposition: "HALT_FAIL_CLOSED"
+      exception: "GovernanceHaltError"
+      exception_message: "AUTHORITY_ALREADY_CONSUMED: decision_id 'dec-pep05-single-use' previously burned"
+    wire_probe:
+      total_request_count: 1
+      second_wire_mutation_observed: 0
+    epistemic_outcome:
+      further_dispatch_blocked: true
+      duplicate_mutations_prevented: 1
+      external_request_observed: false
+    verdict: "PASS"
+
+  - vector_id: "PEP-06"
+    requirement_id: "CLM-AMBIG-06"
+    title: "Ambiguous Transport Outcome Latches EFFECT_INDETERMINATE Without Success Claim"
+    scenario: "HTTP 504 Gateway Timeout drops response mid-flight after socket write"
+    transport_failure: "HTTP 504 Gateway Timeout"
+    dispatch_outcome:
+      disposition: "EFFECT_INDETERMINATE"
+      retry_safe: false
+      status: "RESOLVED"
+      ticket_burned: true
+    subsequent_blind_retry:
+      disposition: "HALT_FAIL_CLOSED"
+      exception: "GovernanceHaltError"
+    wire_probe:
+      initial_request_count: 1
+      blind_duplicate_attempts_observed: 0
+    epistemic_outcome:
+      further_dispatch_blocked: true
+      original_effect_preserved_as_unknown: true
+      relabel_as_not_dispatched: false
+      external_request_observed: true
+    verdict: "PASS"

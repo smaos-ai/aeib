@@ -223,26 +223,38 @@ To counter automation bias:
 2. **Mandatory Evidence Binding**: An operator attempting to submit `MARK_TARGET_FAILED` must supply an external primary evidence reference; otherwise, the boundary rejects the request with HTTP 403.
 3. **Step-Up Authentication (RFC 9470)**: High-value operations require multi-factor re-authentication emitting an HTTP 401 challenge containing `WWW-Authenticate: StepUp acr_values="urn:mfa"`.
 
-### 4.3 Emergency Stop Mechanism (The Article 14 Andon Cord)
-The system incorporates an emergency stop mechanism:
-* **Safe Halt Trigger**: Any authorized operator can trip the Andon Cord.
-* **Immediate System Transition**: The boundary shifts to `SAFE_HALT_ENGAGED`, rejecting all subsequent dispatch requests fail-closed with `violated_check: "ANDON_CORD_TRIPPED"`.
+### 4.3 Enforced Three-Stage Halt Model & Emergency Stop (Article 14)
+The runtime implements an enforced stage-dependent halt mechanism, recognizing that a human operator cannot retroactively change an external network effect:
+
+| Execution Stage When Stop Is Triggered | Enforced Boundary Behavior | Permitted Interpretation |
+| :--- | :--- | :--- |
+| **Stage 1: Before External Dispatch** (`HALT_BEFORE_DISPATCH`) | L7 socket allocation blocked; 0 bytes dispatched to wire. | Consequential dispatch was prevented; recorded as `PRE_DISPATCH_HELD`. |
+| **Stage 2: After Ambiguous Dispatch** (`HALT_AFTER_AMBIGUOUS_DISPATCH`) | Out-of-band probe query stopped; no further retry issued. | Uncertainty retained; recorded as `EFFECT_INDETERMINATE` with `retry_safe: false`. Does **not** rewrite history to `NOT_DISPATCHED`. |
+| **Stage 3: After Confirmed External Effect** (`HALT_AFTER_CONFIRMED_EFFECT`) | Downstream write already committed; queue processing halted. | External state recorded honestly as `CONFIRMED`; any reversal requires a separate governed compensating action. |
+
+* **Safe Halt Trigger**: Any authorized operator can trip the Emergency Andon Cord, transitioning the boundary into `SAFE_HALT_ENGAGED`.
 * **Dual-Control Supervisory Reset**: Resuming normal operations requires two separate authorized supervisor credentials and an immutable justification record.
+* **Prohibition of Evidence Overrides**: Operators cannot unilaterally declare success without primary target evidence; actions are limited to policy-defined choices (`[Request Additional Reconciliation]`, `[Escalate]`, or `[Mark Target Failed If Evidence Supports It]`).
 
 ---
 
-## 5. Data Governance, Minimization & "Dead Salmons" Filter (Article 10 & GDPR)
+## 5. Data Governance, Minimization & Exact-Action Binding (Article 10 & GDPR)
 
 ### 5.1 The "Dead Salmons" Interpretability Boundary
-AI agent reasoning traces often include speculative, hallucinatory, or post-hoc rationalizations (termed the "Dead Salmons" phenomenon). 
-* **Control Mechanism**: The `ForkAndFlushContextBoundary` strips all ephemeral internal tokens (`_reasoning`, `chain_of_thought`, `rationale`, `scratchpad`) before computing the Content-Derived Action ID (`CAID`).
-* **Invariance**: Only canonical tool arguments enter RFC 8785 JCS canonicalization. Non-deterministic prose changes cannot manipulate or invalidate cryptographic transaction identifiers.
+AI agent reasoning traces often include speculative or non-deterministic thought tokens (the "Dead Salmons" phenomenon).
+* **Control Mechanism**: The `ForkAndFlushContextBoundary` strips ephemeral reasoning tokens (`_reasoning`, `chain_of_thought`, `rationale`, `scratchpad`) before computing the Content-Derived Action ID (`CAID`).
+* **Invariance**: Only canonical action arguments enter RFC 8785 JCS canonicalization. Non-deterministic prose variations cannot alter the cryptographic transaction identifier.
 
-### 5.2 Pre-Image PII Sanitization
-Before receipt hashing or external telemetry export, sensitive fields are filtered:
-* International Bank Account Numbers (IBAN) $\to$ `[REDACTED_IBAN_DE89***]`
-* Primary Account Numbers (PAN) $\to$ `[REDACTED_PAN_4111***]`
-* Bearer Tokens & Secrets $\to$ Stripped fail-closed; payloads containing raw private keys trigger an immediate `GovernanceHaltError`.
+### 5.2 Exact-Action Binding vs. Operator Data Protection
+To prevent parameter tampering while complying with data minimization, the architecture strictly distinguishes three distinct artifact representations:
+
+1. **Execution-Bound Representation (Cryptographic Anchor)**:
+   * Binds all consequential business fields (`recipient_iban`, `amount_cents`, `currency`, `target_uri`, `invoice_ref`) into the canonical RFC 8785 JCS payload for `CAID` derivation.
+   * Stripping recipient or amount before hashing would prevent the cryptographic digest from detecting recipient substitution or amount inflation.
+2. **Operator-Facing Brief (UI Minimization)**:
+   * Redacts sensitive personal and financial data for human SecOps viewing (e.g., displaying `[REDACTED_IBAN_DE89***]` in Slack/Teams cards) while referencing the unredacted execution `CAID`.
+3. **Protected Evidence Store (Audit Custody)**:
+   * Retains encrypted, access-controlled raw evidence artifacts necessary for authorized regulatory and judicial inspection.
 
 ---
 
@@ -290,16 +302,18 @@ The boundary exports an automated DORA Article 17 incident register (`reports/do
 
 ---
 
-## 8. Applied Harmonised Standards & International Crosswalk
+## 8. Applied Harmonised Standards & Regulatory Crosswalk
 
-| Framework / Standard | Relevant Clause | AEIB Implementation & Verification Evidence |
+| Framework / Standard | Scope & Clause | AEIB Implementation & Boundary Note |
 | :--- | :--- | :--- |
-| **EU AI Act (2024/1689)** | Article 12 (Logging) | RFC 8785 JCS + Ed25519 hash-chained receipts; offline verification. |
-| **EU AI Act (2024/1689)** | Article 14 (Oversight) | Action Intelligence Brief (AIB); Dual-Control Andon Cord emergency stop. |
-| **EU AI Act (2024/1689)** | Article 15 (Robustness) | 0 duplicate mutations across 500 fault episodes; `EO-1` write durability. |
-| **DORA (2022/2554)** | Article 17 (Incidents) | Automated incident classification register; 4-hour notification package. |
-| **CEN/CENELEC JTC 21** | prEN 18282 (Logging) | Immutable audit trails; zero-divergence cross-language verifiers. |
-| **ISO/IEC 42001:2023** | Category H (Verification) | AST zero-mock purity; deterministic test harnesses with fixed seeds. |
+| **EN 18286:2026** | QMS Standard (Commission Implementing Decision (EU) 2026/2274) | Provides a harmonised QMS reference for Article 17; **does not** by itself establish runtime execution-boundary correctness. |
+| **EU AI Act (2024/1689)** | Article 12 (Automatic Logging) | RFC 8785 JCS + Ed25519 hash-chained receipts; offline verification. |
+| **EU AI Act (2024/1689)** | Article 14 (Human Oversight) | Action Intelligence Brief (AIB); three-stage enforced halt; dual-control Andon Cord. |
+| **EU AI Act (2024/1689)** | Article 15 (Robustness & Security) | 0 duplicate mutations observed across 500 fault episodes; `EO-1` write durability. |
+| **EU AI Act (2024/1689)** | Article 75 (Market Surveillance) | Governs AI Office supervisory powers and mutual assistance; **not** a third-party risk management checklist. AEIB receipts support deployer incident records. |
+| **DORA (2022/2554)** | Article 17 (Incident Management) | Automated incident classification register; structured 4-hour supervisory notification timeline. |
+| **CEN/CENELEC JTC 21** | prEN 18282 (Logging & Integrity) | Immutable audit trails; zero-divergence cross-language verifiers. |
+| **ISO/IEC 42001:2023** | Category H (Verification & Testing) | AST zero-mock purity; deterministic test harnesses with fixed seeds. |
 | **IETF Standards** | RFC 8785 (JCS) / RFC 8032 | ECMAScript UTF-16 code unit canonicalization and Ed25519 signing. |
 
 ---

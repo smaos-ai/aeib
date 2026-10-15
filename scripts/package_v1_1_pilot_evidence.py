@@ -129,6 +129,10 @@ def main():
     schemas_dir.mkdir(parents=True, exist_ok=True)
     keys_dir = TARGET_DIR / "keys"
     keys_dir.mkdir(parents=True, exist_ok=True)
+    tools_dir = TARGET_DIR / "tools"
+    tools_dir.mkdir(parents=True, exist_ok=True)
+    pre_execution_dir = TARGET_DIR / "artifacts" / "pre_execution"
+    pre_execution_dir.mkdir(parents=True, exist_ok=True)
 
     # 2. Source file manifest
     sources = [
@@ -154,6 +158,12 @@ def main():
         (REPO_ROOT / "tests" / "test_boundary_prompt_injection.py", TARGET_DIR / "test_boundary_prompt_injection.py"),
         (REPO_ROOT / "tests" / "test_operational_runbooks.py", TARGET_DIR / "test_operational_runbooks.py"),
         (REPO_ROOT / "tests" / "test_track_b_end_to_end_integration.py", TARGET_DIR / "test_track_b_end_to_end_integration.py"),
+        (REPO_ROOT / "tests" / "test_temporal_standing_check.py", TARGET_DIR / "test_temporal_standing_check.py"),
+        (REPO_ROOT / "tools" / "verify_pre_execution_evidence.py", tools_dir / "verify_pre_execution_evidence.py"),
+        (REPO_ROOT / "artifacts" / "pre_execution" / "AT31_pre_execution_evidence.json", pre_execution_dir / "AT31_pre_execution_evidence.json"),
+        (REPO_ROOT / "artifacts" / "pre_execution" / "AT35_replayed_ticket_evidence.json", pre_execution_dir / "AT35_replayed_ticket_evidence.json"),
+        (REPO_ROOT / "artifacts" / "pre_execution" / "test_station1_pubkey.pem", pre_execution_dir / "test_station1_pubkey.pem"),
+        (REPO_ROOT / "artifacts" / "pre_execution" / "AT35_station1_pubkey.pem", pre_execution_dir / "AT35_station1_pubkey.pem"),
         (REPO_ROOT / "scripts" / "demo_customer_refund_boundary.py", TARGET_DIR / "demo_customer_refund_boundary.py"),
     ]
 

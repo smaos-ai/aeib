@@ -10,8 +10,8 @@
 
 matrix_version: "1.1.0-rc.1"
 baseline_commit: "2a36f2c34d55cd32d11ab49928fd683056df0909"
-active_branch: "feat/v1.1-production-boundary"
-last_updated: "2026-10-15T10:35:00Z"
+active_branch: "feat/v1.1-temporal-standing"
+last_updated: "2026-10-15T13:35:00Z"
 
 epistemic_invariants:
   - id: "INV-PREVENT-01"
@@ -177,6 +177,61 @@ phase_1_pre_execution_prevention:
     result: "PASS"
     verified_at: "2026-10-15T12:35:45Z"
     source_commit: "6194e03623dd6566be84dc7b347e7508527ce648"
+
+  - test_id: "PEP-07"
+    requirement_id: "CLM-STALE-EPOCH-AT31"
+    title: "Station 1 Stale Policy Epoch Blocked Before Physical Socket Dispatch (AT31)"
+    scenario: "Policy epoch rotates from 14 to 15 during Delta N gap prior to socket write; ticket presents epoch 14"
+    expected:
+      further_dispatch_blocked: true
+      original_effect_preserved_as_unknown: false
+      relabel_as_not_dispatched: false
+      external_request_observed: false
+    observed:
+      standing_valid: false
+      violated_check: "STALE_POLICY_EPOCH"
+      rejection_reason: "Presented epoch 14 is stale against active epoch 15; standing revoked fail-closed."
+      wire_socket_calls: 0
+      wire_bytes_sent: 0
+      connections_accepted_by_listener: 0
+      bytes_received_by_listener: 0
+      further_dispatch_blocked: true
+      external_request_observed: false
+    evidence_artifacts:
+      - "tests/test_temporal_standing_check.py::test_at31_stale_epoch_blocked_before_dispatch"
+      - "artifacts/pre_execution/AT31_pre_execution_evidence.json"
+      - "tools/verify_pre_execution_evidence.py --bundle artifacts/pre_execution/AT31_pre_execution_evidence.json --public-key artifacts/pre_execution/test_station1_pubkey.pem"
+    result: "PASS"
+    verified_at: "2026-10-15T13:34:26Z"
+    source_commit: "6a266a2d508f14e5786433c9432cc11ec203a55e"
+
+  - test_id: "PEP-08"
+    requirement_id: "CLM-REPLAY-AT35"
+    title: "Station 1 Replayed Authority Ticket Blocked on Second Dispatch with Zero Second Mutation (AT35)"
+    scenario: "Single-use authority ticket dispatched once (CONFIRMED), then replayed for identical mutation"
+    expected:
+      further_dispatch_blocked: true
+      original_effect_preserved_as_unknown: false
+      relabel_as_not_dispatched: false
+      external_request_observed: false
+    observed:
+      initial_execution: "CONFIRMED"
+      replay_attempt: "HALT_FAIL_CLOSED"
+      halt_exception: "TICKET_ALREADY_BURNED"
+      first_dispatch_listener_connections: 1
+      first_dispatch_listener_bytes: 215
+      replay_listener_connections: 0
+      replay_listener_bytes: 0
+      total_external_mutations_observed: 1
+      second_wire_mutation_observed: 0
+      further_dispatch_blocked: true
+    evidence_artifacts:
+      - "tests/test_temporal_standing_check.py::test_at35_replayed_ticket_blocked_on_second_dispatch"
+      - "artifacts/pre_execution/AT35_replayed_ticket_evidence.json"
+      - "tools/verify_pre_execution_evidence.py --bundle artifacts/pre_execution/AT35_replayed_ticket_evidence.json --public-key artifacts/pre_execution/AT35_station1_pubkey.pem"
+    result: "PASS"
+    verified_at: "2026-10-15T13:34:26Z"
+    source_commit: "6a266a2d508f14e5786433c9432cc11ec203a55e"
 
 # ==============================================================================
 # PHASE 2: PERSISTENT HALT, TARGET EVIDENCE CONTRACT & DELEGATION (Days 31–60)

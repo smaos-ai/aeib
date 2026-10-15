@@ -273,5 +273,38 @@ milestones:
     evidence:
       test_command: "pytest tests/test_temporal_standing_and_andon_cord.py -v"
       raw_results: "10 passed in 0.15s"
-      hosted_ci_run: "38655123073"
+      hosted_ci_run: "38665398353"
     release_decision: "VERIFIED_HOSTED_CANDIDATE"
+
+  - id: "M9"
+    name: "unified_7_control_end_to_end_integration_suite"
+    classification: "Multi-Control Integration Pipeline"
+    baseline_commit: "2a36f2c34d55cd32d11ab49928fd683056df0909"
+    implementation_status: "IMPLEMENTED_AND_VERIFIED_IN_HOSTED_CI"
+    existing_implementation:
+      paths:
+        - "tests/test_track_b_end_to_end_integration.py"
+      limitations:
+        - "Validates in-process orchestration of the 7 controls under deterministic execution models."
+    acceptance_tests:
+      - name: "test_01_full_lifecycle_happy_path"
+        invariant: "Complete positive flow across Controls 1-5; signed continuity receipt emitted."
+        status: "PASSED"
+      - name: "test_02_commit_time_standing_invalidation_blocks_dispatch"
+        invariant: "Revocation or epoch change during Delta N halts dispatch before wire socket allocation."
+        status: "PASSED"
+      - name: "test_03_wire_fault_reconciles_under_configurable_policy"
+        invariant: "HTTP 504 latches EFFECT_INDETERMINATE; reconciliation resolves to confirmed with retry_safe: false."
+        status: "PASSED"
+      - name: "test_04_exhaustion_generates_action_intelligence_brief_and_step_up"
+        invariant: "Exhausted probes trigger Action Intelligence Brief, Slack Block Kit HMAC, and RFC 9470 Step-Up."
+        status: "PASSED"
+      - name: "test_05_eu_ai_act_article_14_andon_cord_emergency_freeze"
+        invariant: "Andon cord halts execution in safe state; supervisory dual control required to resume."
+        status: "PASSED"
+    evidence:
+      test_command: "pytest tests/test_track_b_end_to_end_integration.py -v"
+      raw_results: "5 passed in 0.09s"
+      hosted_ci_run: "38665398353"
+    release_decision: "VERIFIED_HOSTED_CANDIDATE"
+

@@ -134,6 +134,7 @@ def main():
     sources = [
         (REPO_ROOT / "docs" / "v1.1-backlog" / "ACCEPTANCE_MATRIX_v1.1.yaml", TARGET_DIR / "ACCEPTANCE_MATRIX_v1.1.yaml"),
         (REPO_ROOT / "docs" / "compliance" / "EU_COMPLIANCE_EVIDENCE_PACK.md", TARGET_DIR / "EU_COMPLIANCE_EVIDENCE_PACK.md"),
+        (REPO_ROOT / "docs" / "compliance" / "ANNEX_IV_TECHNICAL_DOSSIER.md", TARGET_DIR / "ANNEX_IV_TECHNICAL_DOSSIER.md"),
         (REPO_ROOT / "results_v0.2.4.json", TARGET_DIR / "results_v0.2.4.json"),
         (REPO_ROOT / "reports" / "dora_art17_gap_report.json", TARGET_DIR / "dora_art17_gap_report.json"),
         (REPO_ROOT / "dist" / "verifier.html", TARGET_DIR / "verifier.html"),

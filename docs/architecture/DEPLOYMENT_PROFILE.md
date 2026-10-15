@@ -122,3 +122,69 @@ Recent empirical findings in agent distillation (e.g., KAIST AI, arXiv:2610.0285
 4. **Zone 4 (Independent Offline Auditor)**:
    - Operates in zero-network cleanroom environments.
    - Runs `smaos_verify.wasm`, the Java CLI verifier, or the Python verifier to attest cryptographic receipt chains without network egress.
+
+---
+
+## 6. Constrained Decision Models ("Jev"-Style) vs. Deterministic Authorization
+
+Specialized decision models—such as Strands Decider 2B (local agent gates), GLiNER2.5-Decide (340M encoder), Clef / Clef-flash, and OpenAI Decisions API—operate on a constrained paradigm: allowed answers in, a label or score out.
+
+Enterprise architects frequently make the mistake of wiring a small neural decision model in front of a tool call and mistaking it for an "authorization gate." AEIB explicitly establishes the boundary:
+
+```text
+┌──────────────────────────────────────────────────────────────────────────────┐
+│        NEURAL DECISION MODEL ("JEV"-STYLE) vs. AEIB EXECUTION BOUNDARY       │
+├──────────────────────────────┬────────────────────────┬──────────────────────┤
+│ PROPERTY                     │ DECISION MODEL GATE    │ AEIB STATION 1–3     │
+├──────────────────────────────┼────────────────────────┼──────────────────────┤
+│ Evaluation Mechanism         │ Probabilistic weights  │ Deterministic math   │
+│ Output Type                  │ Label / score over     │ Boolean standing +   │
+│                              │ allowed answers        │ Ed25519 receipt      │
+│ Exact Wire Digest (`CAID`)   │ Cannot verify SHA-256  │ Enforces RFC 8785 JCS│
+│ Single-Use Replay Protection │ Stateless / none       │ Atomic ticket burn   │
+│ Policy Epoch Rotation (`Δ`)  │ Blind to epoch state   │ Fails closed (`AT31`)│
+│ Post-Dispatch `HTTP 504`     │ Blind to wire state    │ Latches INDETERMINATE│
+│ EU Data Residency            │ Varies (US-hosted APIs)│ 100% local / on-prem │
+└──────────────────────────────┴────────────────────────┴──────────────────────┘
+```
+
+### Safe Composition Architecture:
+- **Upstream Intent Triage (Zone 1)**: An enterprise can deploy a local Strands Decider 2B or EU-hosted classification endpoint within the Reasoning Plane to classify a support ticket into a candidate refund category.
+- **Downstream Execution Interlock (Zone 2)**: Once proposed, AEIB evaluates the resulting `CandidateAction` deterministically at the execution boundary. Probabilistic models never possess authority to release wire sockets.
+- **Sovereign Residency Advantage**: Many external decision APIs lack dedicated EU data residency. AEIB executes entirely in-process or as a local sidecar with an offline WASM verifier (`smaos_verify.wasm`), introducing zero cross-border telemetry or egress.
+
+---
+
+## 7. The Lossy Compression Trap (rtk 1.0) & The Byte-Exact Wire Invariant
+
+Agent-agnostic CLI token compression proxies (such as `rtk 1.0` or ScaleDown) shrink tool and shell output by 60–90% (e.g., condensing a 40-line `git status` into 3 lines) to optimize LLM context window cost.
+
+While valuable for interactive developer scratchpads, **lossy output proxies introduce a severe integrity hazard if applied to consequential execution paths**:
+1. **Target Evidence Destruction**: The `contracts/refund_status_v1.schema.json` reconciliation contract requires exact, uncompacted parameters (`operation_id`, `target_transaction_id`, `operation_status`, `amount_minor_units`, `target_signature`) to resolve an `EFFECT_INDETERMINATE` state. A proxy that truncates or summarizes responses destroys cryptographic verification.
+2. **Boundary Invariant**: Lossy compression proxies are strictly confined to **Tier 1 (Read-Only / Developer Scratchpad)**. All Station 1 (`CandidateAction`) and Station 2 (`TargetEvidenceContract`) traffic must traverse an uncompacted, byte-exact channel.
+
+---
+
+## 8. Multi-Agent Workspaces (GitSwarm) vs. Non-Bypassable Delegation (AT39 & AT46)
+
+Architectures such as Meta's GitSwarm (arXiv:2610.04862v1) coordinate asynchronous multi-agent collaboration around a shared, branchable Git repository, using atomic commits to accumulate intermediate reasoning and track semantic dependencies across episodes.
+
+### Threat Model & Boundary Enforcement:
+- **Shared Workspace Risk**: Because all agents in a swarm have write access to branches in the shared Git repository, the repository is inside the agents' writable blast radius.
+- **Untrusted Context Rule**: AEIB treats shared repository commits as untrusted workspace context. An agent cannot self-authorize a consequential external mutation simply by referencing a commit or comment authored by a peer agent.
+- **Cryptographic Attenuation**: Consequential mutations require a cryptographically signed, attenuated delegation chain anchored to an authorized human or root policy grant (`AT39`).
+- **Ledger Isolation**: Audit receipts (`ContinuityReceipt`) must be persisted to append-only journals outside the agents' writable Git trees (`AT46`), preventing agents from rewriting historical execution evidence.
+
+---
+
+## 9. Formal Provenance Discipline & Epistemic Hygiene (Genesis AiX / NC2.5 Triad)
+
+AEIB strictly adheres to formal provenance discipline, separating technical reality from rhetorical claims:
+1. **Three-Way Claim Partition**:
+   - *Direct Quotation*: Exact reproduction of standard clauses, code symbols, or hash digests.
+   - *Reasonable Implication*: Logical inferences derived from documented architectural topologies.
+   - *Technical Proof*: Reproducible, deterministic execution traces, passing test suites, and SHA-256 hash-bound artifacts.
+2. **Rejection of Narrative Overclaim**:
+   - Calling a component "the foundation" or "the bedrock" in documentation does not constitute evidence that an enforcement boundary exists.
+   - Under AEIB's Acceptance Framework, no claim in `CLAIM_CONTROL_TEST_ARTIFACT_MATRIX.yaml` is marked `PASS` based on architectural narrative—only on committed code, SHA-256 artifact digests, and reproducible cleanroom test logs.
+

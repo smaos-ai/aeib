@@ -462,9 +462,9 @@ python3 tools/verify_pre_execution_evidence.py \
 ```yaml
 at31_record:
   local_test_result: PASSED
-  source_commit: "feat/v1.1-temporal-standing@HEAD"
+  source_commit: "feat/v1.1-temporal-standing@fcec121ca507bee2f8e680c43ea42d3b69083262"
   worktree_clean: true
-  evidence_bundle_digest: "sha256:2836b3f50a2349c30bb4d3ce3c5a1b263955272e1860e9f9bb35277d0bd3b452"
+  evidence_bundle_digest: "sha256:19c4fae1dc627333e93169a4f943a5872d380e284aed4858f3e77c251529108d"
   bundle_signature_verified: true
   verifier_command: "python3 tools/verify_pre_execution_evidence.py --bundle artifacts/pre_execution/AT31_pre_execution_evidence.json"
   independent_reproduction: pending

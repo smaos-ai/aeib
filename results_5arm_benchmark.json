@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.1.0-5arm-benchmark",
+  "timestamp_utc": "2026-10-16T15:58:55Z",
+  "seed": 42,
+  "total_episodes": 500,
+  "fault_vector_count": 15,
+  "results": {
+    "arm_1_naive_retry": {
+      "arm": "naive_retry_baseline",
+      "total_episodes": 500,
+      "duplicate_mutations": 302,
+      "unresolved_episodes": 0,
+      "failure_rate_pct": 60.4,
+      "pre_dispatch_journal": false,
+      "signed_cryptographic_receipts": false,
+      "offline_verifiability": false,
+      "status": "FAIL_DUPLICATES_OBSERVED"
+    },
+    "arm_2_semantic_drift": {
+      "arm": "semantic_prompt_drift",
+      "total_episodes": 500,
+      "duplicate_mutations": 187,
+      "unresolved_episodes": 0,
+      "failure_rate_pct": 37.4,
+      "pre_dispatch_journal": false,
+      "signed_cryptographic_receipts": false,
+      "offline_verifiability": false,
+      "status": "FAIL_DRIFT_VULNERABLE"
+    },
+    "arm_3_server_stable_key": {
+      "arm": "server_stable_key_unprobed",
+      "total_episodes": 500,
+      "duplicate_mutations": 0,
+      "unresolved_episodes": 198,
+      "failure_rate_pct": 0.0,
+      "pre_dispatch_journal": false,
+      "signed_cryptographic_receipts": false,
+      "offline_verifiability": false,
+      "status": "ZERO_DUPLICATES_UNRESOLVED_DROPS"
+    },
+    "arm_4_stable_key_reconciled": {
+      "arm": "stable_key_with_reconciliation",
+      "total_episodes": 500,
+      "duplicate_mutations": 0,
+      "unresolved_episodes": 132,
+      "failure_rate_pct": 0.0,
+      "duplicate_attempts_blocked": 302,
+      "pre_dispatch_journal": false,
+      "signed_cryptographic_receipts": false,
+      "offline_verifiability": false,
+      "status": "PASS_ZERO_DUPLICATES_NO_RECEIPTS"
+    },
+    "arm_5_aeib_full_protocol": {
+      "arm": "aeib_full_protocol",
+      "total_episodes": 500,
+      "duplicate_mutations": 0,
+      "duplicate_attempts_blocked": 302,
+      "duplicate_attempts_blocked_by_gate": 234,
+      "duplicate_attempts_blocked_by_ledger": 68,
+      "failure_rate_pct": 0.0,
+      "rule_of_three_95_upper_bound_pct": 0.6,
+      "pre_dispatch_journal_entries": 500,
+      "signed_cryptographic_receipts": 368,
+      "offline_verifiability": true,
+      "crash_survivability": true,
+      "latency_p50_ms": 0.13,
+      "latency_p99_ms": 0.4,
+      "disposition_counts": {
+        "OUTCOME_VERIFIED": 302,
+        "NOT_FOUND_AFTER_GRACE": 66,
+        "RECONCILIATION_CONFLICT": 33,
+        "POLICY_REFUSED": 99
+      },
+      "status": "PASS_ZERO_DUPLICATES_FULL_EVIDENCE"
+    }
+  },
+  "epistemic_notice": "Observed under the stated fault model across 500 deterministic episodes. Evaluates software execution integrity and state reconciliation under fault injection."
+}

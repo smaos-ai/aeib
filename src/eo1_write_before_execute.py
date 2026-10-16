@@ -444,6 +444,50 @@ class PreDispatchIntentInterlock:
         with self._lock:
             return dict(self._latched_intents)
 
+    def latch_intent(
+        self,
+        caid: str,
+        reason: str = "MANUAL_LATCH",
+        intent_id: Optional[str] = None,
+        target_uri: str = "http://unknown",
+        tool_name: str = "unknown",
+    ) -> RecoveredIntentState:
+        """
+        Latches a CAID into EFFECT_INDETERMINATE state under the stated model.
+        Persists latch marker file to output_state_dir.
+        """
+        now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        intent_id = intent_id or f"latched-{caid[:16]}"
+        latch_state = RecoveredIntentState(
+            intent_id=intent_id,
+            caid=caid,
+            target_uri=target_uri,
+            tool_name=tool_name,
+            lifecycle_state=IntentLifecycleState.EFFECT_INDETERMINATE,
+            retry_safe=False,
+            reconciliation_required=True,
+            latched_at=now_iso,
+            reproducibility_evidence_sha256="",
+        )
+        with self._lock:
+            self._latched_intents[caid] = latch_state
+            latch_file = self.output_state_dir / f"latched_{caid}.json"
+            latch_file.write_text(
+                json.dumps({
+                    "caid": caid,
+                    "intent_id": intent_id,
+                    "latched_at": now_iso,
+                    "lifecycle_state": "EFFECT_INDETERMINATE",
+                    "reason": reason,
+                    "reconciliation_required": True,
+                    "retry_safe": False,
+                    "target_uri": target_uri,
+                    "tool_name": tool_name,
+                }, indent=2),
+                encoding="utf-8",
+            )
+        return latch_state
+
     def record_intent(
         self,
         target_uri: str,

@@ -67,6 +67,8 @@ from src.eo1_write_before_execute import (
     IntentLifecycleState,
     PreDispatchIntentInterlock,
     compute_caid,
+    recover_unresolved_intents,
+    verify_ledger_file,
 )
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
@@ -246,14 +248,15 @@ def run_arm_5_aeib_full_protocol(episodes: List[Episode], temp_dir: Optional[Pat
     Integrates EO-1 pre-dispatch write-ahead journal, RFC 8785 JCS CAID,
     EFFECT_INDETERMINATE wire latch, single-probe reconciliation against target primary,
     and signed Ed25519 continuity receipts.
+    Backed by real disk-persisted PreDispatchIntentInterlock and verified via verify_ledger_file.
     """
+    import tempfile
+
     server = SimulatedServer()
     total = len(episodes)
     latencies_ms: List[float] = []
     blocked_by_gate = 0
     blocked_by_ledger = 0
-    signed_receipts_emitted = 0
-    pre_dispatch_intents_committed = 0
 
     dispositions = {
         "OUTCOME_VERIFIED": 0,
@@ -262,8 +265,25 @@ def run_arm_5_aeib_full_protocol(episodes: List[Episode], temp_dir: Optional[Pat
         "POLICY_REFUSED": 0,
     }
 
-    signing_key = Ed25519PrivateKey.generate()
-    ledger_records: List[Dict[str, Any]] = []
+    # Setup directory for disk-backed interlock
+    managed_temp = None
+    if temp_dir is None:
+        managed_temp = tempfile.TemporaryDirectory(prefix="aeib_benchmark_arm5_")
+        work_dir = Path(managed_temp.name)
+    else:
+        work_dir = Path(temp_dir)
+        work_dir.mkdir(parents=True, exist_ok=True)
+
+    ledger_path = work_dir / "arm5_interlock_ledger.jsonl"
+    state_dir = work_dir / "arm5_latch_state"
+    state_dir.mkdir(parents=True, exist_ok=True)
+
+    interlock = PreDispatchIntentInterlock(
+        ledger_path=ledger_path,
+        output_state_dir=state_dir,
+        authority_id="auth-aeib-v1-1",
+        policy_epoch=1,
+    )
 
     for ep in episodes:
         t0 = time.perf_counter()
@@ -272,53 +292,103 @@ def run_arm_5_aeib_full_protocol(episodes: List[Episode], temp_dir: Optional[Pat
         idem_key = f"aeib-{caid_hex[:24]}"
 
         # 1. EO-1 Pre-dispatch intent committed to write-ahead journal
-        intent_record = {
-            "record_type": "DISPATCH_INTENT",
-            "schema_version": "1.1.0-eo1-intent",
-            "intent_id": f"intent-{ep.episode_id:04d}",
-            "caid": caid,
-            "policy_epoch": 1,
-            "authority_id": "auth-aeib-v1-1",
-            "target_uri": f"https://api.internal/{ep.noun}",
-            "tool_name": ep.verb,
-            "payload_digest": hashlib.sha256(encode_jcs(ep.base_payload)).hexdigest(),
-        }
-        intent_jcs = encode_jcs(intent_record)
-        intent_sig = signing_key.sign(intent_jcs)
-        pre_dispatch_intents_committed += 1
-        ledger_records.append(intent_record)
+        intent_record = interlock.record_intent(
+            target_uri=f"https://api.internal/{ep.noun}",
+            tool_name=ep.verb,
+            payload=ep.base_payload,
+            intent_id=f"intent-{ep.episode_id:04d}",
+        )
 
         # 2. Wire dispatch through interlock
         resp = server.dispatch(idem_key, caid, "acct_alpha", 10, ep.fault_vector, ep.episode_id)
 
         if resp.status_code == 403:
             dispositions["POLICY_REFUSED"] += 1
+            interlock._emit_receipt(
+                intent_id=intent_record.intent_id,
+                caid=intent_record.caid,
+                status="POLICY_REFUSED",
+                lifecycle_state="RECONCILED",
+                retry_safe=False,
+                details={"status_code": 403, "reason": "POLICY_REFUSED"},
+            )
         elif resp.status_code == 409:
             dispositions["RECONCILIATION_CONFLICT"] += 1
+            interlock._emit_receipt(
+                intent_id=intent_record.intent_id,
+                caid=intent_record.caid,
+                status="RECONCILIATION_CONFLICT",
+                lifecycle_state="RECONCILED",
+                retry_safe=False,
+                details={"status_code": 409, "reason": "RECONCILIATION_CONFLICT"},
+            )
         elif resp.status_code == 200 and not resp.network_error:
             dispositions["OUTCOME_VERIFIED"] += 1
-            signed_receipts_emitted += 1
+            interlock._emit_receipt(
+                intent_id=intent_record.intent_id,
+                caid=intent_record.caid,
+                status="COMMITTED",
+                lifecycle_state="RECONCILED",
+                retry_safe=False,
+                details={"status_code": 200},
+            )
         elif resp.is_transport_failure():
             # 3. Transport Interruption -> Latch in EFFECT_INDETERMINATE with retry_safe=False
+            interlock.latch_intent(
+                caid=intent_record.caid,
+                reason=f"TRANSPORT_FAILURE_{ep.fault_vector or 'HTTP_504'}",
+                intent_id=intent_record.intent_id,
+                target_uri=f"https://api.internal/{ep.noun}",
+                tool_name=ep.verb,
+            )
             # 4. Out-of-band bounded reconciliation probe against target primary
             probe_res = server.probe_state(caid, ep.fault_vector)
             if probe_res.found and probe_res.status == "COMMITTED":
                 # Primary confirms execution -> suppress re-dispatch
                 dispositions["OUTCOME_VERIFIED"] += 1
                 blocked_by_gate += 1
-                signed_receipts_emitted += 1
+                interlock.reconcile_out_of_band(
+                    caid=intent_record.caid,
+                    reconciliation_evidence={"status": "COMMITTED", "probe_found": True},
+                    intent_id=intent_record.intent_id,
+                )
             else:
                 # Ambiguous probe -> re-dispatch anchored to immutable CAID idempotency key
                 retry_resp = server.dispatch(idem_key, caid, "acct_alpha", 10, None, ep.episode_id)
                 if retry_resp.is_replay:
                     blocked_by_ledger += 1
                     dispositions["OUTCOME_VERIFIED"] += 1
+                    interlock.reconcile_out_of_band(
+                        caid=intent_record.caid,
+                        reconciliation_evidence={"status": "COMMITTED_REPLAY"},
+                        intent_id=intent_record.intent_id,
+                    )
                 else:
                     dispositions["NOT_FOUND_AFTER_GRACE"] += 1
-                signed_receipts_emitted += 1
+                    interlock.reconcile_out_of_band(
+                        caid=intent_record.caid,
+                        reconciliation_evidence={"status": "NOT_FOUND_AFTER_GRACE"},
+                        intent_id=intent_record.intent_id,
+                    )
 
         elapsed = (time.perf_counter() - t0) * 1000.0
         latencies_ms.append(elapsed)
+
+    # 5. Cryptographic verification of the on-disk write-ahead journal and receipts
+    verified_records = verify_ledger_file(ledger_path, interlock.boundary_private_key.public_key())
+    pre_dispatch_count = sum(1 for r in verified_records if r.get("record_type") == "DISPATCH_INTENT")
+    receipts_count = sum(1 for r in verified_records if r.get("record_type") == "CONTINUITY_RECEIPT")
+    total_ledger_records = len(verified_records)
+
+    # Verify crash survivability / lifecycle recovery
+    recovered_unresolved = recover_unresolved_intents(
+        ledger_path, state_dir, public_key=interlock.boundary_private_key.public_key(), verify_signatures=True
+    )
+    crash_survivability_verified = (len(recovered_unresolved) == 0)
+
+    # Clean up tempdir if managed
+    if managed_temp is not None:
+        managed_temp.cleanup()
 
     latencies_ms.sort()
     p50_latency = latencies_ms[len(latencies_ms) // 2]
@@ -335,10 +405,11 @@ def run_arm_5_aeib_full_protocol(episodes: List[Episode], temp_dir: Optional[Pat
         "duplicate_attempts_blocked_by_ledger": blocked_by_ledger,
         "failure_rate_pct": round((duplicate_count / total) * 100.0, 1),
         "rule_of_three_95_upper_bound_pct": round(rule_of_three_upper_bound, 2),
-        "pre_dispatch_journal_entries": pre_dispatch_intents_committed,
-        "signed_cryptographic_receipts": signed_receipts_emitted,
-        "offline_verifiability": True,
-        "crash_survivability": True,
+        "pre_dispatch_journal_entries": pre_dispatch_count,
+        "signed_cryptographic_receipts": receipts_count,
+        "verified_ledger_records_on_disk": total_ledger_records,
+        "offline_verifiability": (total_ledger_records == (pre_dispatch_count + receipts_count)) and (total_ledger_records > 0),
+        "crash_survivability": crash_survivability_verified,
         "latency_p50_ms": round(p50_latency, 2),
         "latency_p99_ms": round(p99_latency, 2),
         "disposition_counts": dispositions,

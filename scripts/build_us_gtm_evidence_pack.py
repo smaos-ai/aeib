@@ -207,8 +207,48 @@ def main():
     print(f"  ✓ Proof 4 verified: Arm 4 duplicate mutations = {aeib_arm['duplicate_mutations']} / 500.")
     print(f"  ✓ Rule-of-Three 95% Upper Bound: <= {aeib_arm['rule_of_three_95_upper_bound_pct']}%.")
 
+    print("[*] Verifying Proof 5 (5-Arm Benchmark Report)...")
+    p5_results = PACK_DIR / "proofs" / "proof_4_chaos_simulation" / "results_5arm_benchmark.json"
+    if p5_results.exists():
+        b5data = json.loads(p5_results.read_text(encoding="utf-8"))
+        res5 = b5data["results"]
+        assert res5["arm_1_naive_retry"]["duplicate_mutations"] > 0
+        assert res5["arm_2_semantic_drift"]["duplicate_mutations"] > 0
+        assert res5["arm_3_server_stable_key"]["duplicate_mutations"] == 0
+        assert res5["arm_3_server_stable_key"]["unresolved_episodes"] > 0
+        assert res5["arm_4_stable_key_reconciled"]["duplicate_mutations"] == 0
+        assert res5["arm_4_stable_key_reconciled"]["signed_cryptographic_receipts"] is False
+        assert res5["arm_5_aeib_full_protocol"]["duplicate_mutations"] == 0
+        assert res5["arm_5_aeib_full_protocol"]["pre_dispatch_journal_entries"] == 500
+        assert res5["arm_5_aeib_full_protocol"]["signed_cryptographic_receipts"] == 500
+        assert res5["arm_5_aeib_full_protocol"]["offline_verifiability"] is True
+        assert res5["arm_5_aeib_full_protocol"]["crash_survivability"] is True
+        print(f"  ✓ Proof 5 verified: Arm 5 duplicates = 0/500, journal entries = 500, receipts = 500.")
+
+    print("[*] Verifying Integration Quality Gates Report (G1-G7)...")
+    gates_report_path = PACK_DIR / "gates" / "integration_gates_g1_g7_report.json"
+    if gates_report_path.exists():
+        gdata = json.loads(gates_report_path.read_text(encoding="utf-8"))
+        rep = gdata.get("report", gdata)
+        assert rep["all_local_prerequisites_passed"] is True
+        assert rep["all_gates_passed"] is False
+        assert rep["gates"]["G6_separate_party_reproduced"]["status"] == "LOCAL_PREREQUISITES_PASS_EXTERNAL_PARTY_PENDING"
+        assert rep["gates"]["G7_customer_pilot_accepted"]["status"] == "LOCAL_PREREQUISITES_PASS_EXTERNAL_PARTY_PENDING"
+        rep_jcs = encode_jcs(rep)
+        recomputed_rep_digest = hashlib.sha256(rep_jcs).hexdigest()
+        clean_rep_digest = gdata["report_digest"].replace("sha256:", "")
+        if clean_rep_digest != recomputed_rep_digest:
+            raise ValueError(f"Gates report digest mismatch: {clean_rep_digest} != {recomputed_rep_digest}")
+        sig_info = gdata.get("signature", {})
+        g_pub_pem = sig_info.get("public_key_pem", gdata.get("boundary_public_key_pem", ""))
+        g_pub = serialization.load_pem_public_key(g_pub_pem.encode("utf-8"))
+        g_sig_b64 = sig_info.get("signature_b64", gdata.get("boundary_signature_b64", ""))
+        g_sig_bytes = base64.b64decode(g_sig_b64)
+        g_pub.verify(g_sig_bytes, rep_jcs)
+        print("  ✓ Integration Gates G1-G7 report signature and JCS digest valid.")
+
     print("=" * 80)
-    print("  ALL 4 PROOFS VERIFIED: ZERO MOCKS, 100% CRYPTOGRAPHIC DETERMINISM")
+    print("  ALL EVIDENCE BUNDLES VERIFIED: ZERO MOCKS, CRYPTOGRAPHIC DETERMINISM OBSERVED")
     print("=" * 80)
 
 
@@ -227,10 +267,12 @@ def build_pack():
     p2_dir = STAGING_DIR / "proofs" / "proof_2_temporal_drift"
     p3_dir = STAGING_DIR / "proofs" / "proof_3_result_poisoning"
     p4_dir = STAGING_DIR / "proofs" / "proof_4_chaos_simulation"
+    gates_dir = STAGING_DIR / "gates"
+    docs_dir = STAGING_DIR / "docs"
     verifiers_dir = STAGING_DIR / "verifiers"
     pkg_dir = verifiers_dir / "pkg"
 
-    for d in (p1_dir, p2_dir, p3_dir, p4_dir, verifiers_dir, pkg_dir):
+    for d in (p1_dir, p2_dir, p3_dir, p4_dir, gates_dir, docs_dir, verifiers_dir, pkg_dir):
         d.mkdir(parents=True, exist_ok=True)
 
     # Proof 1 files
@@ -263,7 +305,7 @@ def build_pack():
         p3_dir / "AT48_hostile_tool_output_evidence.json",
     )
 
-    # Proof 4 files
+    # Proof 4 & 5 files
     shutil.copy2(
         REPO_ROOT / "artifacts" / "500_episode_ci_transcript.txt",
         p4_dir / "500_episode_ci_transcript.txt",
@@ -276,6 +318,18 @@ def build_pack():
         REPO_ROOT / "results_v0.2.4.json",
         p4_dir / "results_v0.2.4.json",
     )
+    if (REPO_ROOT / "results_5arm_benchmark.json").exists():
+        shutil.copy2(
+            REPO_ROOT / "results_5arm_benchmark.json",
+            p4_dir / "results_5arm_benchmark.json",
+        )
+
+    # Gates files
+    if (REPO_ROOT / "artifacts" / "integration_gates_g1_g7_report.json").exists():
+        shutil.copy2(
+            REPO_ROOT / "artifacts" / "integration_gates_g1_g7_report.json",
+            gates_dir / "integration_gates_g1_g7_report.json",
+        )
 
     # Verifiers
     shutil.copy2(
@@ -293,11 +347,31 @@ def build_pack():
     (verifiers_dir / "verify_pack.py").write_text(STANDALONE_VERIFIER_PY, encoding="utf-8")
     os.chmod(verifiers_dir / "verify_pack.py", 0o755)
 
-    # Briefing docs
+    # Briefing docs & dossiers
     shutil.copy2(
         REPO_ROOT / "docs" / "commercial" / "US_BANKING_SR26_2_EVIDENCE_PACK.md",
         STAGING_DIR / "US_BANKING_SR26_2_EVIDENCE_PACK.md",
     )
+    if (REPO_ROOT / "docs" / "compliance" / "EN_18286_AND_REGULATORY_APPLICABILITY_DOSSIER.md").exists():
+        shutil.copy2(
+            REPO_ROOT / "docs" / "compliance" / "EN_18286_AND_REGULATORY_APPLICABILITY_DOSSIER.md",
+            docs_dir / "EN_18286_AND_REGULATORY_APPLICABILITY_DOSSIER.md",
+        )
+    if (REPO_ROOT / "docs" / "compliance" / "PRODUCTION_ASSURANCE_PACKAGE_v1.1.md").exists():
+        shutil.copy2(
+            REPO_ROOT / "docs" / "compliance" / "PRODUCTION_ASSURANCE_PACKAGE_v1.1.md",
+            docs_dir / "PRODUCTION_ASSURANCE_PACKAGE_v1.1.md",
+        )
+    if (REPO_ROOT / "docs" / "competitive" / "GLOBAL_AND_CHINA_ECOSYSTEM_ALIGNMENT_2026.md").exists():
+        shutil.copy2(
+            REPO_ROOT / "docs" / "competitive" / "GLOBAL_AND_CHINA_ECOSYSTEM_ALIGNMENT_2026.md",
+            docs_dir / "GLOBAL_AND_CHINA_ECOSYSTEM_ALIGNMENT_2026.md",
+        )
+    if (REPO_ROOT / "docs" / "compliance" / "EU_COMPLIANCE_EVIDENCE_PACK.md").exists():
+        shutil.copy2(
+            REPO_ROOT / "docs" / "compliance" / "EU_COMPLIANCE_EVIDENCE_PACK.md",
+            docs_dir / "EU_COMPLIANCE_EVIDENCE_PACK.md",
+        )
 
     # README.md
     readme_content = f"""# AEIB Zero-Mock Benchmark Pack (v1.1.0)

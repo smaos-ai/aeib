@@ -1,0 +1,68 @@
+# File: config/subagent_ownership_matrix.yaml
+# Copyright 2026 SovereignNexus Project
+# Evaluated under the stated model. Preserves strict epistemic lock.
+
+schema_version: 1
+
+nesting_policy:
+  max_depth: 1
+  allow_subagent_spawning_subagents: false
+  rule: "DEPTH_1_ONLY"
+  description: "Parent orchestrator can spawn leaf workers; leaf workers cannot spawn subagents."
+
+profiles:
+  aeib-researcher:
+    mode: READ_ONLY
+    allowed_tools:
+      - "read_file"
+      - "search_codebase"
+      - "web_search"
+    writable_globs: []
+    max_output_words: 600
+    handback_contract: "tools/subagent_coordinator.py:REQUIRED_HANDBACK_KEYS"
+
+  aeib-verifier:
+    mode: ISOLATED_VERIFY
+    allowed_tools:
+      - "read_file"
+      - "run_terminal_command"
+    allowed_command_prefixes:
+      - "python3 compliance/check_zone_boundary.py"
+      - "python3 compliance/ast_purity.py"
+      - "python3 compliance/no_mock_enforcer.py"
+      - "python3 tools/verify_"
+      - "python3 tools/run_isolated_verifier.sh"
+      - "pytest "
+    writable_globs:
+      - "${WORKTREE_PATH}/tmp/**"
+      - "${WORKTREE_PATH}/artifacts/verify_tmp/**"
+      - "/tmp/aeib_*/**"
+    forbidden_globs:
+      - "src/**"
+      - "aeib-native-runtime/**"
+      - "contracts/**"
+      - "docs/**"
+      - "compliance/**"
+    handback_contract: "tools/subagent_coordinator.py:REQUIRED_HANDBACK_KEYS"
+
+workstream_write_partitions:
+  W1_regulatory_docs:
+    owner: "subagent_docs_regulatory"
+    writable_globs:
+      - "docs/compliance/**"
+      - "docs/commercial/**"
+  W2_threat_matrix_docs:
+    owner: "subagent_docs_threat"
+    writable_globs:
+      - "docs/security/**"
+      - "docs/PEER_EXECUTIVE_BRIEFING.md"
+  CORE_runtime_sequential:
+    owner: "primary_agent_only"
+    writable_globs:
+      - "src/**"
+      - "aeib-native-runtime/**"
+      - "contracts/**"
+      - "tools/**"
+      - "tests/**"
+      - "benchmarks/**"
+      - "scripts/**"

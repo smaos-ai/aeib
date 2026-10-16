@@ -15,7 +15,7 @@
 """
 tests/test_mitre_adversarial_matrix.py
 ================================================================================
-AEIB MITRE ATT&CK Adversarial Evaluation Suite (AT48 to AT51).
+AEIB MITRE ATT&CK Adversarial Evaluation Suite (AT48 to AT55).
 Forwarding module for the adversarial matrix.
 Evaluated under the stated model. Preserves strict epistemic lock.
 """
@@ -26,10 +26,20 @@ from tests.test_mitre_adversarial_matrix_at48_at51 import (
     test_at50_ai_enabled_exfiltration_through_allowed_tool,
     test_at51_impair_autonomous_defenses,
 )
+from tests.test_mitre_adversarial_matrix_at52_at55 import (
+    test_at52_subagent_privilege_escalation,
+    test_at53_byzantine_split_brain_state_fork,
+    test_at54_mid_syscall_crash_recovery,
+    test_at55_stale_authority_replay_across_epoch,
+)
 
 __all__ = [
     "test_at48_indirect_prompt_injection",
     "test_at49_ai_result_poisoning",
     "test_at50_ai_enabled_exfiltration_through_allowed_tool",
     "test_at51_impair_autonomous_defenses",
+    "test_at52_subagent_privilege_escalation",
+    "test_at53_byzantine_split_brain_state_fork",
+    "test_at54_mid_syscall_crash_recovery",
+    "test_at55_stale_authority_replay_across_epoch",
 ]

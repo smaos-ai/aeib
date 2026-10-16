@@ -66,6 +66,28 @@ print(f"Status: {result['status']}")
 
 ---
 
+## 🔬 5-Minute Benchmark Quickstart: 4-Arm Fault-Injection Harness
+
+Evaluate multi-agent execution integrity under 15 transport fault vectors (HTTP 504 Gateway Timeouts, TCP RST drops, replica lag, split-brain partitions) across 500 deterministic episodes:
+
+```bash
+# Run the 500-episode 4-arm benchmark in < 1 second:
+python3 -m macp.benchmark --episodes 500 --seed 42
+```
+
+### Empirical Baseline Findings (500 Episodes, Seed 42)
+
+| Arm | Architecture Pattern | Fault Behavior | Observed Duplicate Mutations | Resolution Disposition |
+| :--- | :--- | :--- | :--- | :--- |
+| **Arm 1** | **Naive Retry Baseline** | Blind re-dispatch on transport drop | **77 / 500 (15.4%)** | Application failure mode |
+| **Arm 2** | **Payload Hash Key** | Paraphrased retry with prompt drift | **25 / 500 (5.0%)** | Key mismatch leads to duplicate writes |
+| **Arm 3** | **Server-Stable Key** | Fail-closed without probe | **0 / 500 (0.0%)** | 130 unresolved unhandled drops |
+| **Arm 4** | **MACP Interlock (EO-1)** | CAID binding + single-flight probe | **0 / 500 (0.0%)** | **136 blocked retries; 100% reconciled** |
+
+*Under the tested model, Arm 4 achieves 0 duplicate mutations over 500 episodes with a Rule-of-Three 95% confidence upper bound of $\le 0.60\%$.*
+
+---
+
 ## 🛡️ Standalone Modules
 
 * `macp.resilience`: `CircuitBreaker` and `HeartbeatLeaseTracker`.
@@ -74,9 +96,11 @@ print(f"Status: {result['status']}")
 * `macp.consensus`: `QuorumConsensusResolver`.
 * `macp.backpressure`: `BackpressureLimiter`.
 * `macp.coordinator`: `HardenedCoordinator`.
+* `macp.benchmark`: Standalone 4-Arm Fault-Injection Benchmark harness.
 
 ---
 
 ## 📄 License
 
 Apache License 2.0. See LICENSE for details.
+

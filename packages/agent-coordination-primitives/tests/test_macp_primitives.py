@@ -170,11 +170,11 @@ def test_full_coordinator_integration(tmp_path: Path):
         "summary_for_orchestrator": "Observed guidance documentation.",
     })
 
-    def mock_worker(task_id, spec):
+    def sample_worker(task_id, spec):
         return handback_json
 
     # Test initial dispatch
-    res = coord.dispatch_task("aeib-researcher", "task-guidance", {"doc": "guide"}, mock_worker)
+    res = coord.dispatch_task("aeib-researcher", "task-guidance", {"doc": "guide"}, sample_worker)
     assert res["status"] == "COMPLETED"
 
     # Test duplicate dispatch returns cached without calling worker
@@ -183,3 +183,12 @@ def test_full_coordinator_integration(tmp_path: Path):
 
     cached_res = coord.dispatch_task("aeib-researcher", "task-guidance", {"doc": "guide"}, fail_worker)
     assert cached_res["status"] == "COMPLETED"
+
+
+def test_macp_4arm_benchmark():
+    from macp.benchmark import run_4arm_benchmark
+    res = run_4arm_benchmark(episodes=100, seed=42)
+    assert res["arm4_macp_duplicates"] == 0
+    assert res["arm4_blocked_duplicate_attempts"] > 0
+    assert res["rule_of_three_upper_bound_pct"] <= 3.0
+

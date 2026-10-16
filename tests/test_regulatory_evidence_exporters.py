@@ -18,7 +18,7 @@ def test_dora_art17_exporter_happy_path_and_falsification():
     bundle = exporter.generate_incident_package(
         incident_id="INC-2026-TEST-01",
         operation_id="op-test-101",
-        caid="caid-test-digest-01",
+        caid="a" * 64,
         fault_type="HTTP_504_GATEWAY_TIMEOUT",
         detection_timestamp_utc="2026-10-16T04:00:00Z",
         classification_timestamp_utc="2026-10-16T04:02:00Z",
@@ -30,7 +30,7 @@ def test_dora_art17_exporter_happy_path_and_falsification():
     package = bundle["package"]
     assert package["dora_schema_version"] == "1.1.0-dora-art17"
     assert package["incident_id"] == "INC-2026-TEST-01"
-    assert package["timeline"]["initial_notification_deadline_4h"] == "T_classified + 4h"
+    assert package["timeline"]["initial_notification_window_target_4h"] == "T_classified + 4h"
     assert package["eba_dpm_template_mapping"]["RT.01.04_economic_impact_estimate"] == 50000
 
     # Verify Ed25519 signature over canonical RFC 8785 package
@@ -58,7 +58,7 @@ def test_eu_ai_act_exporter_hash_chain_and_falsification():
     bundle = exporter.generate_compliance_bundle(
         system_id="system-audit-01",
         operation_id="op-test-202",
-        caid="caid-test-digest-02",
+        caid="b" * 64,
         lifecycle_events=events,
     )
 

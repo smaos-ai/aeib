@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 """
-AEIB EU AI Act Articles 12, 14, and 72 Evidence Exporter.
+AEIB Incident Evidence Exporter (Supporting EU AI Act Articles 12, 14, and 72 Investigation).
 Part of SovereignNexus AEIB v1.1 Architecture.
 
-Constructs machine-readable compliance packages:
+Constructs machine-readable incident evidence bundles supporting internal investigation:
 - Article 12: Cryptographically chained event log with RFC 8785 hashes.
 - Article 14: Human oversight, STEP_UP dual-control tickets, and Andon cord halts.
 - Article 72: Post-market monitoring telemetry stream.
 
-Zero-mock Ed25519 cryptography and strict epistemic lock.
+Framing Notice:
+"AEIB exports structured incident evidence. The customer’s authorized incident-management
+and legal functions determine classification, causation, reportability, and any regulatory submission."
 """
 
 import os
@@ -27,11 +29,21 @@ if str(REPO_ROOT) not in sys.path:
 from cryptography.hazmat.primitives.asymmetric import ed25519
 from cryptography.hazmat.primitives import serialization
 from src.jcs_canonicalizer import encode_jcs
+from src.incident_evidence import (
+    IncidentEvidenceRecord,
+    ModelBehaviorPlane,
+    ExecutionAuthorityPlane,
+    ObservedConsequencePlane,
+    AuthorityRevocationState,
+    BoundaryVerdict,
+    INCIDENT_DISCLAIMER,
+)
 
 
 class EuAiActEvidenceExporter:
     """
-    Constructs standardized EU AI Act compliance evidence bundles.
+    Constructs standardized incident evidence bundles supporting an organization's
+    internal AI governance and investigation workflows.
     """
 
     def __init__(self, signing_privkey: Optional[ed25519.Ed25519PrivateKey] = None):
@@ -46,9 +58,14 @@ class EuAiActEvidenceExporter:
         lifecycle_events: List[Dict[str, Any]],
         human_oversight_record: Optional[Dict[str, Any]] = None,
         post_market_metrics: Optional[Dict[str, Any]] = None,
+        incident_id: str = "INC-AI-ACT-001",
+        governing_authority_id: Optional[str] = "auth-human-operator",
+        authority_revocation_state: AuthorityRevocationState = AuthorityRevocationState.VALID,
+        boundary_verdict: BoundaryVerdict = BoundaryVerdict.ALLOWED,
+        reproducibility_manifest_sha256: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
-        Builds complete Articles 12, 14, and 72 evidence package.
+        Builds complete Articles 12, 14, and 72 evidence package embedding the shared incident schema.
         """
         # 1. Art 12: Compute continuous SHA-256 hash chain over lifecycle events
         chain_tip = "0" * 64
@@ -63,7 +80,7 @@ class EuAiActEvidenceExporter:
             chained_events.append(ev_copy)
 
         article_12_evidence = {
-            "mandate": "EU AI Act Regulation (EU) 2024/1689 Article 12 (Record-Keeping & Logging)",
+            "mandate_target": "EU AI Act Regulation (EU) 2024/1689 Article 12 (Record-Keeping & Logging)",
             "log_chain_tip": chain_tip,
             "total_lifecycle_events": len(chained_events),
             "events": chained_events,
@@ -72,7 +89,7 @@ class EuAiActEvidenceExporter:
 
         # 2. Art 14: Human oversight & override record
         article_14_evidence = {
-            "mandate": "EU AI Act Regulation (EU) 2024/1689 Article 14 (Human Oversight)",
+            "mandate_target": "EU AI Act Regulation (EU) 2024/1689 Article 14 (Human Oversight)",
             "oversight_mechanism": human_oversight_record or {
                 "step_up_ticket_enforced": True,
                 "dual_control_threshold_minor_units": 100000,
@@ -83,7 +100,7 @@ class EuAiActEvidenceExporter:
 
         # 3. Art 72: Post-market telemetry
         article_72_evidence = {
-            "mandate": "EU AI Act Regulation (EU) 2024/1689 Article 72 (Post-Market Monitoring)",
+            "mandate_target": "EU AI Act Regulation (EU) 2024/1689 Article 72 (Post-Market Monitoring)",
             "metrics": post_market_metrics or {
                 "total_operations_evaluated": 1000,
                 "pre_execution_blocks": 25,
@@ -92,15 +109,42 @@ class EuAiActEvidenceExporter:
             },
         }
 
+        # Shared 3-plane incident evidence record
+        shared_incident = IncidentEvidenceRecord(
+            incident_id=incident_id,
+            reproducibility_manifest_sha256=reproducibility_manifest_sha256,
+            model_behavior=ModelBehaviorPlane(
+                proposal_digest=caid,
+                model_or_agent_version="agent-high-risk-v1",
+                input_context_digest=None,
+                untrusted_content_references=[],
+            ),
+            execution_authority=ExecutionAuthorityPlane(
+                governing_authority_id=governing_authority_id,
+                authority_revocation_state=authority_revocation_state,
+                policy_epoch=1,
+                boundary_verdict=boundary_verdict,
+            ),
+            observed_consequence=ObservedConsequencePlane(
+                dispatch_intent_digest=caid,
+                transport_observation={"events_count": len(chained_events)},
+                target_evidence=None,
+                reconciliation_result="RECORDED",
+                final_disposition="DISPATCH_COMPLETED" if boundary_verdict == BoundaryVerdict.ALLOWED else "NOT_DISPATCHED",
+            ),
+        )
+
         manifest = {
             "compliance_schema_version": "1.1.0-ai-act-evidence",
             "audit_status": "LOCAL PASS; INDEPENDENT REPRODUCTION PENDING",
+            "disclaimer": INCIDENT_DISCLAIMER,
             "system_id": system_id,
             "operation_id": operation_id,
             "root_caid": caid,
             "article_12_logging": article_12_evidence,
             "article_14_human_oversight": article_14_evidence,
             "article_72_post_market": article_72_evidence,
+            "incident_evidence": shared_incident.to_dict(),
             "exported_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         }
 
@@ -117,23 +161,3 @@ class EuAiActEvidenceExporter:
                 format=serialization.PublicFormat.SubjectPublicKeyInfo,
             ).decode("ascii"),
         }
-
-
-def main():
-    exporter = EuAiActEvidenceExporter()
-    out = exporter.generate_compliance_bundle(
-        system_id="aeib-banking-refund-v1",
-        operation_id="op-refund-801",
-        caid="11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff",
-        lifecycle_events=[
-            {"phase": "PRE_DISPATCH_COMMITTED", "timestamp": "2026-10-16T03:00:00Z"},
-            {"phase": "DISPATCH_AUTHORIZED", "timestamp": "2026-10-16T03:00:01Z"},
-            {"phase": "EFFECT_INDETERMINATE", "timestamp": "2026-10-16T03:00:05Z"},
-            {"phase": "RECONCILED_CONFIRMED", "timestamp": "2026-10-16T03:00:10Z"},
-        ],
-    )
-    print(json.dumps(out, indent=2))
-
-
-if __name__ == "__main__":
-    main()

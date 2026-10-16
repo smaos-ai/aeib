@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aeib:schemas:incident_evidence_v1",
+  "title": "AEIB Shared Incident Evidence Schema v1.1",
+  "description": "Standardized schema for structured incident-evidence records separating model behavior, execution authority, and observed consequence planes under strict enums and fail-closed validation.",
+  "type": "object",
+  "required": [
+    "incident_id",
+    "schema_version",
+    "disclaimer",
+    "model_behavior",
+    "execution_authority",
+    "observed_consequence",
+    "reproducibility_manifest_sha256",
+    "exported_at"
+  ],
+  "properties": {
+    "incident_id": {
+      "type": "string",
+      "pattern": "^INC-[a-zA-Z0-9_-]+$",
+      "description": "Unique identifier for the incident evidence record."
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "1.1.0-incident-evidence",
+      "description": "Pinned version of this shared incident evidence schema."
+    },
+    "disclaimer": {
+      "type": "string",
+      "const": "AEIB exports structured incident evidence. The customer’s authorized incident-management and legal functions determine classification, causation, reportability, and any regulatory submission.",
+      "description": "Mandatory framing disclaimer."
+    },
+    "reproducibility_manifest_sha256": {
+      "type": ["string", "null"],
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 digest over the reproducible execution bundle or manifest, or null if uncomputed."
+    },
+    "exported_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC ISO-8601 timestamp when the evidence record was generated."
+    },
+    "model_behavior": {
+      "type": "object",
+      "description": "Plane 1: Untrusted CandidateAction proposal plane.",
+      "required": [
+        "proposal_digest",
+        "model_or_agent_version",
+        "input_context_digest",
+        "untrusted_content_references"
+      ],
+      "properties": {
+        "proposal_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256 digest over RFC 8785 canonical bytes of the raw proposed candidate action."
+        },
+        "model_or_agent_version": {
+          "type": "string",
+          "description": "Declared model identifier or agent framework runtime version."
+        },
+        "input_context_digest": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256 digest over prompt / input context, or null if context was streaming."
+        },
+        "untrusted_content_references": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["source", "reference_id"],
+            "properties": {
+              "source": { "type": "string" },
+              "reference_id": { "type": "string" },
+              "detected_injection_fragment": { "type": "string" }
+            }
+          },
+          "description": "References to external unverified inputs or retrieved content."
+        }
+      }
+    },
+    "execution_authority": {
+      "type": "object",
+      "description": "Plane 2: Authorization and standing evaluation plane.",
+      "required": [
+        "governing_authority_id",
+        "authority_revocation_state",
+        "policy_epoch",
+        "delegation_chain_digest",
+        "boundary_verdict"
+      ],
+      "properties": {
+        "governing_authority_id": {
+          "type": ["string", "null"],
+          "description": "Identifier of the root human principal or governing authority grant, or null if missing."
+        },
+        "authority_revocation_state": {
+          "type": "string",
+          "enum": [
+            "VALID",
+            "EXPIRED",
+            "REVOKED",
+            "SUPERSEDED",
+            "UNKNOWN"
+          ],
+          "description": "Explicit standing state of the governing authority grant at evaluation millisecond Tn."
+        },
+        "policy_epoch": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Active policy epoch evaluated at boundary decision."
+        },
+        "delegation_chain_digest": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256 digest over the verified delegation chain, or null if direct grant."
+        },
+        "boundary_verdict": {
+          "type": "string",
+          "enum": [
+            "ALLOWED",
+            "DENIED",
+            "HELD",
+            "ESCALATED",
+            "NOT_EVALUATED",
+            "EFFECT_INDETERMINATE"
+          ],
+          "description": "Deterministic boundary evaluation outcome."
+        },
+        "rejection_code": {
+          "type": ["string", "null"],
+          "description": "Standardized boundary rejection code if verdict is DENIED or HELD."
+        }
+      }
+    },
+    "observed_consequence": {
+      "type": "object",
+      "description": "Plane 3: Observed transport and reconciliation outcome plane.",
+      "required": [
+        "dispatch_intent_digest",
+        "transport_observation",
+        "target_evidence",
+        "reconciliation_result",
+        "final_disposition"
+      ],
+      "properties": {
+        "dispatch_intent_digest": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256 digest of signed DISPATCH_INTENT journal entry, or null if blocked pre-dispatch."
+        },
+        "transport_observation": {
+          "type": ["object", "null"],
+          "properties": {
+            "socket_connect_invoked": { "type": "boolean" },
+            "connections_accepted": { "type": "integer", "minimum": 0 },
+            "external_bytes_transmitted": { "type": "integer", "minimum": 0 },
+            "http_status_code": { "type": ["integer", "null"] },
+            "transport_error": { "type": ["string", "null"] }
+          },
+          "description": "Layer 4/7 wire observation record."
+        },
+        "target_evidence": {
+          "type": ["object", "null"],
+          "description": "Authenticated target status response under versioned contract (e.g. refund_status_v1)."
+        },
+        "reconciliation_result": {
+          "type": ["string", "null"],
+          "description": "Outcome of out-of-band target probe reconciliation."
+        },
+        "final_disposition": {
+          "type": "string",
+          "description": "Terminal disposition: NOT_DISPATCHED, EFFECT_INDETERMINATE, RESOLVED_CONFIRMED, RESOLVED_REFUTED, or DISPATCH_COMPLETED."
+        }
+      }
+    }
+  }
+}

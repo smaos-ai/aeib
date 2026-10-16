@@ -1,0 +1,24 @@
+================================================================================
+AEIB TIER 1 BASELINE HARNESS: 500 EPISODES / 15 FAULT VECTORS / 4 ARMS
+[*] Configuration: seed=42, vectors=15, episodes=500
+================================================================================
+
+[+] Running Arm 1: Naive Retry Baseline...
+    -> Duplicates: 302/500 (60.4%)
+
+[+] Running Arm 2: Payload-Derived Key (Stochastic Prompt Drift)...
+    -> Duplicates: 187/500 (37.4%)
+
+[+] Running Arm 3: Server-Side Stable Key...
+    -> Duplicates: 0/500 | Unresolved: 198
+
+[+] Running Arm 4: AEIB Protocol (Deterministic Staging + CAID + Probe)...
+    -> Duplicates: 0/500 (0.0%)
+    -> Rule-of-Three 95% Upper Bound: ~0.6%
+
+ARM 1 (Naive Retry)      : 60.4% Duplicates (302/500)
+ARM 2 (Semantic Drift)   : 37.4% Duplicates (187/500)
+ARM 3 (Server Stable)    : 0.0% Duplicates (0/500) | 198 Unresolved Drops
+ARM 4 (AEIB Protocol)    : 0 duplicate writes / 500 | 302 duplicate retry attempts blocked (gate=234, ledger=68) | Upper Bound <= 0.60% (95% CI, deterministic simulation)
+
+[OK] 500-Episode Benchmark complete. Report written to results_v0.2.4.json and benchmark_results.json

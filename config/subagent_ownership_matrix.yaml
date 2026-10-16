@@ -66,3 +66,18 @@ workstream_write_partitions:
       - "tests/**"
       - "benchmarks/**"
       - "scripts/**"
+
+orchestrator_resilience_policy:
+  max_concurrent_subagents: 4
+  heartbeat_interval_seconds: 30
+  heartbeat_timeout_seconds: 90
+  circuit_breakers:
+    aeib-researcher:
+      failure_threshold: 3
+      reset_timeout_seconds: 600
+      escalation_action: "fallback_to_sequential_execution"
+    aeib-verifier:
+      failure_threshold: 5
+      reset_timeout_seconds: 300
+      escalation_action: "disable_profile_and_alert_operator"
+

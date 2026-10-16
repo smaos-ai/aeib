@@ -1,0 +1,266 @@
+{
+  "report": {
+    "schema_version": "1.1.0-integration-gates-g1-g7",
+    "audit_status": "LOCAL PASS; INDEPENDENT REPRODUCTION PENDING",
+    "epistemic_notice": "Evaluated under the stated model. Observations reflect deterministic local fault-injection rehearsals, loopback socket telemetry, and cleanroom archive verification.",
+    "generated_at_utc": "2026-10-16T16:19:41Z",
+    "git_head_commit_sha": "2ff7994a4faa2e962ce0701006db1a42710071fb",
+    "gates_evaluated_count": 7,
+    "all_gates_passed": false,
+    "all_local_prerequisites_passed": true,
+    "external_gates_pending": [
+      "G6_separate_party_reproduced",
+      "G7_customer_pilot_accepted"
+    ],
+    "gates": {
+      "G1_source_and_deps_locked": {
+        "gate_id": "G1_source_and_deps_locked",
+        "status": "EVALUATED_PASS",
+        "git_head_commit_sha": "2ff7994a4faa2e962ce0701006db1a42710071fb",
+        "locked_artifacts": {
+          "requirements.txt": {
+            "present": true,
+            "size_bytes": 121,
+            "sha256": "sha256:68680aaecd26723c7a746660a1d0406b8940beef8a8b12983abbc301797db0d7"
+          },
+          "Cargo.lock": {
+            "present": true,
+            "size_bytes": 131361,
+            "sha256": "sha256:d6b711ce79b1b7bc19082026b31e9b1515018d580ff1da7a55889e735e6426bd"
+          },
+          "dist/smaos_verify.wasm": {
+            "present": true,
+            "size_bytes": 199770,
+            "sha256": "sha256:6ecc360af19008632c950d94910b70220e3c2cc36a5cc29fe0c33ba64d2bb041"
+          },
+          "smaos-wasm-verifier/pkg/smaos_wasm_verifier_bg.wasm": {
+            "present": true,
+            "size_bytes": 87889,
+            "sha256": "sha256:ddd27bc8485e108670b92c33f886d7913e6175a1efa981926eaf1bd9f26a8960"
+          }
+        }
+      },
+      "G2_component_tests_passed": {
+        "gate_id": "G2_component_tests_passed",
+        "status": "EVALUATED_PASS",
+        "predicate_formula": "GrantValid and PolicyEpochFresh and SourceEpochFresh and CAIDMatch and TicketUnburned",
+        "vectors_evaluated": 6,
+        "single_term_negation_vectors": 5,
+        "max_negated_egress_bytes": 0,
+        "vector_results": {
+          "positive_all_5_terms_true": {
+            "admitted": true,
+            "terms": {
+              "GrantValid": true,
+              "PolicyEpochFresh": true,
+              "SourceEpochFresh": true,
+              "CAIDMatch": true,
+              "TicketUnburned": true
+            },
+            "egress_bytes": 116,
+            "connections_accepted": 1
+          },
+          "negate_GrantValid": {
+            "admitted": false,
+            "negated_term": "GrantValid",
+            "terms": {
+              "GrantValid": false,
+              "PolicyEpochFresh": true,
+              "SourceEpochFresh": true,
+              "CAIDMatch": true,
+              "TicketUnburned": true
+            },
+            "egress_bytes": 0,
+            "connections_accepted": 0
+          },
+          "negate_PolicyEpochFresh": {
+            "admitted": false,
+            "negated_term": "PolicyEpochFresh",
+            "terms": {
+              "GrantValid": true,
+              "PolicyEpochFresh": false,
+              "SourceEpochFresh": true,
+              "CAIDMatch": true,
+              "TicketUnburned": true
+            },
+            "egress_bytes": 0,
+            "connections_accepted": 0
+          },
+          "negate_SourceEpochFresh": {
+            "admitted": false,
+            "negated_term": "SourceEpochFresh",
+            "terms": {
+              "GrantValid": true,
+              "PolicyEpochFresh": true,
+              "SourceEpochFresh": false,
+              "CAIDMatch": true,
+              "TicketUnburned": true
+            },
+            "egress_bytes": 0,
+            "connections_accepted": 0
+          },
+          "negate_CAIDMatch": {
+            "admitted": false,
+            "negated_term": "CAIDMatch",
+            "terms": {
+              "GrantValid": true,
+              "PolicyEpochFresh": true,
+              "SourceEpochFresh": true,
+              "CAIDMatch": false,
+              "TicketUnburned": true
+            },
+            "egress_bytes": 0,
+            "connections_accepted": 0
+          },
+          "negate_TicketUnburned": {
+            "admitted": false,
+            "negated_term": "TicketUnburned",
+            "terms": {
+              "GrantValid": true,
+              "PolicyEpochFresh": true,
+              "SourceEpochFresh": true,
+              "CAIDMatch": true,
+              "TicketUnburned": false
+            },
+            "egress_bytes": 0,
+            "connections_accepted": 0
+          }
+        },
+        "jcs_determinism_verified": true,
+        "canonical_sample_caid": "sha256:56b3ee7c5fe446aade2d088493921014bae6fac866fac2b92ee2611b7cad616d"
+      },
+      "G3_real_target_integrated": {
+        "gate_id": "G3_real_target_integrated",
+        "status": "EVALUATED_PASS",
+        "contract": "refund_status_v1",
+        "initial_wire_fault": "HTTP_504_GATEWAY_TIMEOUT",
+        "latched_state": "EFFECT_INDETERMINATE",
+        "retry_safe_during_latch": false,
+        "duplicate_dispatch_blocked_while_latched": true,
+        "probe_budget": 1,
+        "probes_executed": 1,
+        "probe_budget_remaining": 0,
+        "execute_requests_observed": 1,
+        "status_probes_observed": 1,
+        "reconciled_status_enum": "SETTLED",
+        "receiver_signature_verified": true,
+        "continuity_receipt_verified": true
+      },
+      "G4_14_fault_matrix_passed": {
+        "gate_id": "G4_14_fault_matrix_passed",
+        "status": "EVALUATED_PASS",
+        "rehearsal_14_suite": {
+          "command": "pytest tests/test_assessment_rehearsal_14.py -q",
+          "returncode": 0,
+          "scenarios_passed": 14
+        },
+        "five_arm_benchmark_isolation": {
+          "seed": 42,
+          "episodes": 500,
+          "observed_duplicate_mutations": 0,
+          "blocked_duplicate_attempts": 302,
+          "preserved_indeterminate_outcomes": 198
+        }
+      },
+      "G5_fresh_checkout_verified": {
+        "gate_id": "G5_fresh_checkout_verified",
+        "status": "EVALUATED_PASS",
+        "wasm_binaries": {
+          "dist/smaos_verify.wasm": {
+            "magic_header_hex": "0061736d01000000",
+            "magic_header_valid": true
+          },
+          "smaos-wasm-verifier/pkg/smaos_wasm_verifier_bg.wasm": {
+            "magic_header_hex": "0061736d01000000",
+            "magic_header_valid": true
+          }
+        },
+        "html_verifier_csp": {
+          "path": "smaos-wasm-verifier/smaos-verify.html",
+          "connect_src_none_enforced": true
+        },
+        "phase3_evidence_verification": {
+          "command": "python3 tools/verify_phase3_evidence.py --all",
+          "returncode": 0,
+          "bundles_verified": 14
+        }
+      },
+      "G6_separate_party_reproduced": {
+        "gate_id": "G6_separate_party_reproduced",
+        "status": "LOCAL_PREREQUISITES_PASS_EXTERNAL_PARTY_PENDING",
+        "cleanroom_pack_verification": {
+          "archive": "artifacts/aeib-pilot-evidence-pack-v1.1.0.tar.gz",
+          "archive_sha256": "sha256:13bc5143ac7c51722a2dd2d3d02df7641405eb54e3f59d9b0fc1e2c96c5c9655",
+          "pythonpath": "",
+          "command": "python3 verifiers/verify_pack.py",
+          "returncode": 0,
+          "isolated_outside_repo": true
+        },
+        "adversarial_suites": {
+          "command": "pytest tests/test_enforced_halt_and_delegation.py tests/test_mitre_adversarial_matrix.py -q",
+          "returncode": 0,
+          "tests_passed": 13
+        }
+      },
+      "G7_customer_pilot_accepted": {
+        "gate_id": "G7_customer_pilot_accepted",
+        "status": "LOCAL_PREREQUISITES_PASS_EXTERNAL_PARTY_PENDING",
+        "dora_art17_incident_candidate_boundary": {
+          "dora_schema_version": "1.1.0-dora-art17",
+          "package_digest": "sha256:9093b8d3033aa18cd600c2caaa0fba4f37f72b6fd889e640cdb80b0fda40f7ea",
+          "classification_owner": "customer_defined",
+          "reporting_decision": "not_determined_by_aeib",
+          "financial_entity_awareness_time": "unknown_until_supplied",
+          "major_classification_time": "unknown_until_supplied",
+          "reconciliation_state": "EFFECT_INDETERMINATE",
+          "signature_verified": true
+        },
+        "customer_pilot_acceptance_and_residual_risk_manifest": {
+          "manifest_version": "1.1.0-pilot-acceptance",
+          "scope_boundary": "Evaluated under the stated model for governed HTTP/MCP tool-execution pathways. AEIB exports structured operational incident evidence; customer legal and compliance functions own statutory incident classification and regulatory notification.",
+          "residual_risk_register": [
+            {
+              "risk_id": "RR-01",
+              "category": "BYPASS_OUTSIDE_GOVERNED_PATH",
+              "description": "Direct ambient network sockets outside the AEIB sidecar/gateway boundary are not intercepted unless host/pod network policies enforce zero direct egress.",
+              "operator_control_required": "Enforce container network policy restricting egress to AEIB proxy."
+            },
+            {
+              "risk_id": "RR-02",
+              "category": "TARGET_RECONCILIATION_AVAILABILITY",
+              "description": "When a post-dispatch wire drop occurs and the target status endpoint remains unreachable or returns PENDING, the operation remains latched in EFFECT_INDETERMINATE.",
+              "operator_control_required": "Operator triage via RB-01 runbook and RFC 9470 step-up resolution."
+            },
+            {
+              "risk_id": "RR-03",
+              "category": "KEY_CUSTODY_AND_ROTATION",
+              "description": "Repository test suites use deterministic local test keys; customer pilot deployments require external HSM/KMS key custody and SPKI rotation anchoring (RB-04).",
+              "operator_control_required": "Configure external KMS signing keys per deployment environment."
+            },
+            {
+              "risk_id": "RR-04",
+              "category": "SAGA_EVENTUAL_CONSISTENCY",
+              "description": "Asynchronous compensation queues provide eventual consistency rather than atomic two-phase commit (2PC) across heterogeneous external APIs.",
+              "operator_control_required": "Maintain idempotent downstream compensation handlers."
+            }
+          ],
+          "pilot_acceptance_criteria_evaluated": {
+            "zero_unauthenticated_reconciliation_transitions": true,
+            "three_plane_incident_separation_verified": true,
+            "offline_wasm_and_python_verifiers_reproducible": true
+          }
+        }
+      }
+    }
+  },
+  "report_digest": "sha256:5fb7623388b490a108dde8b6a8a00dd4fc995b7e87a20e351d1d059239751adc",
+  "signature": {
+    "algorithm": "Ed25519",
+    "canonicalization": "RFC_8785_JCS",
+    "public_key_id": "did:key:aeib-integration-gates-g1-g7-ed25519",
+    "signer_spki_digest": "sha256:6579f149198b90ca86852663dd910731957ec6fcd5c5cca985dfc6276f8cbbf2",
+    "public_key_pem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAccpwuA1sMyP0v1UuK7wNt/8oquFu30AuWWIEdFJBXwY=\n-----END PUBLIC KEY-----\n",
+    "signature_b64": "ixaglY9KY3dXSPS1AFfURUDCcbBWAwJs6my5TMIMt2S2RbgOcyIMXfW3TeyGHE7UkGubsDJJDgsovImDxN/nAQ==",
+    "signature_hex": "8b16a0958f4a63775748f4b50057d44540c271b05603026cea6cb94cc20cb764b645b80e73220c5df5b74dec861c4ed4906b9bb032490e0b28bc8983c4dfe701"
+  }
+}

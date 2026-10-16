@@ -1,6 +1,6 @@
 {
   "schema_version": "1.1.0-5arm-benchmark",
-  "timestamp_utc": "2026-10-16T15:58:55Z",
+  "timestamp_utc": "2026-10-16T16:10:54Z",
   "seed": 42,
   "total_episodes": 500,
   "fault_vector_count": 15,
@@ -63,8 +63,8 @@
       "signed_cryptographic_receipts": 368,
       "offline_verifiability": true,
       "crash_survivability": true,
-      "latency_p50_ms": 0.13,
-      "latency_p99_ms": 0.4,
+      "latency_p50_ms": 0.12,
+      "latency_p99_ms": 0.21,
       "disposition_counts": {
         "OUTCOME_VERIFIED": 302,
         "NOT_FOUND_AFTER_GRACE": 66,
@@ -73,6 +73,11 @@
       },
       "status": "PASS_ZERO_DUPLICATES_FULL_EVIDENCE"
     }
+  },
+  "harness_metric_isolation": {
+    "observed_duplicate_mutations": 0,
+    "blocked_duplicate_attempts": 302,
+    "preserved_indeterminate_outcomes": 198
   },
   "epistemic_notice": "Observed under the stated fault model across 500 deterministic episodes. Evaluates software execution integrity and state reconciliation under fault injection."
 }

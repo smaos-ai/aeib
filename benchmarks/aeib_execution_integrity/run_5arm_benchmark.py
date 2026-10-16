@@ -394,6 +394,11 @@ def run_5arm_benchmark(seed: int = 42, count: int = 500) -> Dict[str, Any]:
             "arm_4_stable_key_reconciled": a4,
             "arm_5_aeib_full_protocol": a5,
         },
+        "harness_metric_isolation": {
+            "observed_duplicate_mutations": a5["duplicate_mutations"],
+            "blocked_duplicate_attempts": a5["duplicate_attempts_blocked"],
+            "preserved_indeterminate_outcomes": a3["unresolved_episodes"],
+        },
         "epistemic_notice": (
             "Observed under the stated fault model across 500 deterministic episodes. "
             "Evaluates software execution integrity and state reconciliation under fault injection."

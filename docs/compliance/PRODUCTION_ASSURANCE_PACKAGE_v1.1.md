@@ -28,6 +28,16 @@
 | Sealed Evidence Pack | `artifacts/aeib-pilot-evidence-pack-v1.1.0.tar.gz` | `13bc5143ac7c51722a2dd2d3d02df7641405eb54e3f59d9b0fc1e2c96c5c9655` |
 | Standalone Evidence Verifier | `tools/verify_phase3_evidence.py` | Standalone clean-room CLI verifier |
 | Grounded DORA Incident Exporter | `tools/export_dora_art17_evidence.py` | Separates operational evidence, classification, and filing |
+| EN 18286 & Regulatory Dossier | `docs/compliance/EN_18286_AND_REGULATORY_APPLICABILITY_DOSSIER.md` | Harmonized QMS & DORA / EU AI Act applicability crosswalk |
+
+* **Locked Calibrated Baseline vs. Discarded Overclaims:**
+
+| Topic | Discarded Overclaim (Do Not Use) | Locked Calibrated Baseline (Use Exactly) |
+| :--- | :--- | :--- |
+| **Stripe / Server-Stable-Key Comparison** | "Stripe idempotency keys fail." | Under the tested 500-episode fault schedule (`seed=42`), server-side stable idempotency keys prevented duplicate execution (`0` duplicates) when the request reached the target with a stable key, but left `198` of `500` episodes (`39.6%`) unresolved in ambiguous post-timeout state (`EFFECT_INDETERMINATE`) without bounded out-of-band target reconciliation. |
+| **Naive Retry Baseline** | "Industry standard retry fails." | Naive retry is modeled as an **application-level failure mode** (where an agent or wrapper retries after HTTP `504` / timeout without idempotency anchoring or state reconciliation), resulting in `302` observed duplicate mutations across `500` episodes (`60.4%`). |
+| **Novelty / Prior Art Framing** | "No existing system does this." | In our review of public literature and documentation across classical consensus (`Paxos`, `Raft`, `2PC`), workflow engines (`Temporal`, `Restate`), payment APIs (`Stripe`, `Adyen`), and agent guardrails (`AgentSpec`, `NeMo Guardrails`, `LlamaFirewall`), we did not identify an integrated open specification combining **durable pre-dispatch intent (`DISPATCH_INTENT`) + canonical action idempotency (`CAID`) + bounded out-of-band target reconciliation (`refund_status_v1`)** at the agent tool-call boundary. |
+| **Regulatory / Audit Positioning** | "Passes regulatory audits automatically." | AEIB produces **independently reproducible operational control evidence** (`DISPATCH_INTENT`, `CONTINUITY_RECEIPT`, `restraint_record`, `incident_candidate`) that supports a deploying organization's conformity assessment and incident investigation workflows under the stated model. |
 
 ---
 
@@ -155,6 +165,15 @@ Rather than relying on misleading aggregate accuracy pass-rates, AEIB stratifies
              +---> Inconclusive / Probe Timeout --------> ESCALATED (Human Resolution Queue)
 ```
 
+* **Station 1 Five-Term Conjunctive Execution Predicate:**
+  Before advancing from Station 1 to Station 2, the boundary evaluates the five-term conjunctive predicate:
+  $$\text{Authorize}(a) \iff \text{GrantValid} \land \text{PolicyEpochFresh} \land \text{SourceEpochFresh} \land \text{CAIDMatch} \land \text{TicketUnburned}$$
+   (`GrantValid ^ PolicyEpochFresh ^ SourceEpochFresh ^ CAIDMatch ^ TicketUnburned`). If any term evaluates to `false`, the proposal is rejected fail-closed with zero external socket allocation and a signed `restraint_record` is emitted.
+
+* **Disclosed Ordering Boundary (Pre-Socket Window vs. Post-Socket Transport Ambiguity):**
+  * **Pre-Socket Window (Station 1 -> Station 2):** Ticket consumption (`TicketUnburned -> Consumed`) and EO-1 write-ahead intent persistence (`DISPATCH_INTENT` fsync) complete strictly *before* user-space TCP socket allocation (`Station 3`). Any crash or revocation arriving prior to Station 3 results in `0` external bytes transmitted; if a crash occurs after `DISPATCH_INTENT` fsync but before socket completion, startup recovery latches the operation into `EFFECT_INDETERMINATE` (`retry_safe: false`).
+  * **Post-Socket Transport Window (Station 3 -> Station 4):** Once bytes enter the kernel socket buffer or traverse the wire, physical network faults (HTTP `504`, TCP `RST`) create inherent observation ambiguity. AEIB does not claim atomic distributed rollback (2PC) across external networks; instead, it latches `EFFECT_INDETERMINATE` and executes bounded out-of-band reconciliation (`refund_status_v1`, `ProbeBudget: 1`) to converge state without blind retry.
+
 ---
 
 ### Section 6: The `refund_status_v1` Target Contract
@@ -236,33 +255,49 @@ The operational runbook suite defines deterministic procedures for runtime event
 
 ---
 
-### Section 10: DORA & EU AI Act Grounded Regulatory Crosswalk
+### Section 10: DORA, EU AI Act & EN 18286 Grounded Regulatory Crosswalk
 
-AEIB maps technical execution evidence to specific statutory requirements without claiming absolute conformity:
+AEIB maps technical execution evidence to specific statutory and harmonized QMS requirements without claiming automatic conformity (see `docs/compliance/EN_18286_AND_REGULATORY_APPLICABILITY_DOSSIER.md` for full crosswalk):
 
 ```
 +-------------------------------------------------------------------------------+
 | EU AI ACT (Regulation (EU) 2024/1689)                                         |
 |   - Article 12 (Record-Keeping & Logging): Automatic immutable logging of     |
-|     events over the AI system lifecycle via Ed25519-signed hash chains.      |
+|     events over the AI system lifecycle via Ed25519-signed hash chains.       |
 |   - Article 14 (Human Oversight): Bounded uncertainty preservation and        |
 |     deterministic routing to human review upon probe exhaustion.              |
 |   - Article 15 (Accuracy, Robustness & Cybersecurity): Resilience against      |
 |     prompt injection, tool parameter tampering, and post-dispatch wire faults.|
+|   - Articles 17 & 40 (EN 18286 Harmonized QMS vs. ISO/IEC 42001):             |
+|     EN 18286 (CEN-CENELEC JTC 21) is tailored to Art. 17 QMS clauses to       |
+|     support Art. 40 presumption of conformity once cited in the OJEU, whereas |
+|     ISO/IEC 42001 is a general organizational standard requiring gap-bridging.|
 +-------------------------------------------------------------------------------+
 | DORA (Regulation (EU) 2022/2554)                                              |
 |   - Article 17 (ICT Incident Management & Classification): Standardized       |
-|     export separating operational evidence from internal incident assessment.|
-|     4-hour clock explicitly documented as running from major-incident         |
-|     classification, not from initial HTTP timeout.                            |
+|     `incident_candidate` export separating operational evidence from internal |
+|     incident assessment (`classification_owner: customer_defined`,            |
+|     `reporting_decision: not_determined_by_aeib`). 4-hour clock explicitly    |
+|     documented as running from major-incident classification (within 24h of   |
+|     financial entity awareness), not from initial HTTP timeout.               |
 |   - Note: DORA Article 28 (Register of Information) is explicitly excluded    |
 |     from AEIB scope as an entity-level governance artifact.                   |
 +-------------------------------------------------------------------------------+
 ```
 
+* **EN 18286 / EU AI Act Article 17 Artifact Mapping:**
+
+| EN 18286 / Art. 17 QMS Clause | AEIB v1.1 Evidence Artifact | Operational Function |
+| :--- | :--- | :--- |
+| **Art. 17(1)(b)-(c) Design & Control** | `DISPATCH_INTENT` & 5-Term Predicate | Pre-socket authority verification and fsync intent journaling |
+| **Art. 17(1)(d) Verification & Validation** | 14-Scenario Rehearsal Matrix & 5-Arm Benchmark | Reproducible fault-injection evaluation (`seed=42`) |
+| **Art. 17(1)(h) & Art. 72 Post-Market Monitoring** | `CONTINUITY_RECEIPT` & `restraint_record` | Hash-chained execution and fail-closed restraint telemetry |
+| **Art. 17(1)(i) & Art. 73 Incident Management** | `incident_candidate` (`export_dora_art17_evidence.py`) | Three-plane operational evidence export without legal overclaim |
+| **Art. 17(1)(g) & (m) Release Governance** | Integration Quality Gates `G1`–`G7` | Sequential verification gates from source lock to pilot acceptance |
+
 ---
 
-### Section 11: 5-Arm Comparative Benchmark Evidence
+### Section 11: 5-Arm Comparative Benchmark Evidence & Harness Metric Isolation
 
 Evaluated across 500 deterministic episodes and 15 fault vectors (`seed=42`):
 
@@ -278,12 +313,32 @@ Evaluated across 500 deterministic episodes and 15 fault vectors (`seed=42`):
 | **Crash-Safe Recovery** | No | No | No | No | **Yes (Startup Latch)** |
 | **95% Rule-of-Three Bound** | N/A | N/A | N/A | N/A | **<= 0.6%** |
 
+* **Harness Metric Isolation (Disjoint Consequence Accounting):**
+  To prevent conflating prevented retries with unresolved transport ambiguity, the AEIB v1.1 benchmark harness strictly isolates three orthogonal counters across the 500-episode fault schedule:
+  * `observed_duplicate_mutations: 0` — Irreversible duplicate state mutations committed at the target receiver under AEIB v1.1 enforcement.
+  * `blocked_duplicate_attempts: 302` — Post-timeout or post-fault re-execution attempts intercepted and halted by the AEIB single-use ticket and `CAID` interlock (which would otherwise execute in Arm 1 Naive Retry).
+  * `preserved_indeterminate_outcomes: 198` — Ambiguous post-dispatch transport outcomes (HTTP `504` / connection drop) initially latched as `EFFECT_INDETERMINATE` (`retry_safe: false`) rather than guessed or blindly retried, prior to bounded out-of-band target reconciliation (`refund_status_v1`).
+
 ---
 
-### Section 12: Production Assumptions, Operational Limitations, and Epistemic Boundary Notice
+### Section 12: Integration Quality Gates (G1–G7), Production Assumptions, and Epistemic Boundary Notice
 
-1. **Deployer Infrastructure Responsibility:** AEIB operates as an architectural boundary. Deploying institutions must host the boundary appliance in an isolated network segment (Zone 2) with locked firewall rules preventing direct egress from agent containers (Zone 1) to financial APIs (Zone 3).
-2. **Target Idempotency & Reconciliation Prerequisite:** Downstream APIs must support idempotent mutation handling (e.g. via `X-AEIB-CAID`) and provide an authenticated target reconciliation status endpoint (`refund_status_v1`).
-3. **Scaffolding Boundaries:** eBPF filters and hardware enclave attestation modules in the repository represent structural scaffolding and do not provide live kernel or TDX hardware attestation unless compiled and executed on supported target hardware.
-4. **Consistency Model:** The saga compensation and reconciliation workflows provide *eventual consistency* via asynchronous queues, NOT atomic two-phase commit (2PC) distributed rollbacks.
-5. **Absence of Absolute Claims:** All metrics and performance characteristics reported in this dossier reflect observed execution under the stated simulation and fault injection model. They do not constitute statutory warranties or conformity certifications.
+* **Sequential Integration Quality Gates (`G1` -> `G7`):**
+
+| Gate ID | Gate Identifier | Acceptance Requirement |
+| :--- | :--- | :--- |
+| **G1** | `G1_source_and_deps_locked` | Pinned commit, zero unvetted dependencies, Zone 1/2 boundary & AST purity checks passing. |
+| **G2** | `G2_crypto_and_jcs_conformance` | 25/25 RFC 8785 JCS conformance vectors and 0-byte Python/Java 21 differential verification passing. |
+| **G3** | `G3_rehearsal_14_and_5arm_verified` | 14/14 assessment rehearsals passing; 5-arm benchmark verified (`observed_duplicate_mutations: 0`, `blocked_duplicate_attempts: 302`, `preserved_indeterminate_outcomes: 198`). |
+| **G4** | `G4_offline_evidence_pack_sealed` | Sealed evidence archive verified via standalone clean-room CLI (`tools/verify_phase3_evidence.py`). |
+| **G5** | `G5_target_status_contract_integrated` | Authenticated `refund_status_v1` endpoint integrated and Ed25519 receiver signatures verified in staging. |
+| **G6** | `G6_runbook_and_incident_export_rehearsed` | Operational runbooks (`RB01`–`RB05`) and `incident_candidate` export rehearsed with customer teams. |
+| **G7** | `G7_customer_pilot_accepted` | Controlled pilot episode window completed with zero unobserved duplicate mutations and joint sign-off. |
+
+* **Production Assumptions & Epistemic Boundaries:**
+  1. **Deployer Infrastructure Responsibility:** AEIB operates as an architectural boundary. Deploying institutions must host the boundary appliance in an isolated network segment (Zone 2) with locked firewall rules preventing direct egress from agent containers (Zone 1) to financial APIs (Zone 3).
+  2. **Target Idempotency & Reconciliation Prerequisite:** Downstream APIs must support idempotent mutation handling (e.g. via `X-AEIB-CAID`) and provide an authenticated target reconciliation status endpoint (`refund_status_v1`).
+  3. **Scaffolding Boundaries:** eBPF filters and hardware enclave attestation modules in the repository represent structural scaffolding and do not provide live kernel or TDX hardware attestation unless compiled and executed on supported target hardware.
+  4. **Consistency Model:** The saga compensation and reconciliation workflows provide *eventual consistency* via asynchronous queues, NOT atomic two-phase commit (2PC) distributed rollbacks.
+  5. **Absence of Absolute Claims:** All metrics and performance characteristics reported in this dossier reflect observed execution under the stated simulation and fault injection model. They do not constitute statutory warranties or conformity certifications.
+

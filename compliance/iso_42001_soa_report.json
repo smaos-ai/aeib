@@ -1,0 +1,278 @@
+{
+  "standard": "ISO/IEC 42001:2023",
+  "qms_alignment": "CEN-CENELEC prEN 18286 / EU AI Act Art. 17 QMS",
+  "annex": "Category H \u2014 AI System Operational & Runtime Controls",
+  "timestamp_utc": "2026-10-17T01:40:28Z",
+  "total_controls": 14,
+  "implemented_controls": 14,
+  "observed_and_tested_controls": 12,
+  "scaffold_only_controls": 2,
+  "coverage_percentage": 100.0,
+  "statement_of_applicability": [
+    {
+      "control_id": "H.1",
+      "title": "AI System Objectives & Impact Assessment",
+      "category": "Governance",
+      "status": "IMPLEMENTED",
+      "implementation_tier": "OBSERVED_AND_TESTED",
+      "en_18286_qms_clause": "prEN 18286 Clause 4.1 / EU AI Act Art. 17(1)(a) (Regulatory Strategy & Scope)",
+      "owasp_asi_2026": "ASI01:2026 Agent Goal Hijack",
+      "verified_files": [
+        "docs/architecture/SOVEREIGN_AGENT_APPLICATION_SERVER.md",
+        "README.md"
+      ],
+      "verified_files_sha256": {
+        "docs/architecture/SOVEREIGN_AGENT_APPLICATION_SERVER.md": "9383d1e995a90f40af90c8eb8458555516a580710ccadfdd92a0209f18653136",
+        "README.md": "e9b7f30764bc14ce0fd87a284bbbaf9ffad5344ade2b86988bb1ec63bea72512"
+      },
+      "missing_files": [],
+      "description": "Formal definition of autonomous execution boundary and risk thresholds."
+    },
+    {
+      "control_id": "H.2",
+      "title": "AI Risk Assessment & Management",
+      "category": "Risk Management",
+      "status": "IMPLEMENTED",
+      "implementation_tier": "OBSERVED_AND_TESTED",
+      "en_18286_qms_clause": "prEN 18286 Clause 6.1 / EU AI Act Art. 17(1)(g) (Risk Management System)",
+      "owasp_asi_2026": "ASI08:2026 Cascading Failures",
+      "verified_files": [
+        "compliance/claims.json",
+        "LIMITATIONS.md"
+      ],
+      "verified_files_sha256": {
+        "compliance/claims.json": "4a8826f3f2532fc5cfb9093410bb2892823e1bcbc095df38fb0b035aacc7a55d",
+        "LIMITATIONS.md": "614dfea3971be620e224972b42b9bbf7fbb30dc9e55a06b60386ddc0caeeeb18"
+      },
+      "missing_files": [],
+      "description": "Epistemic claims registry and 5 bounded operational clauses."
+    },
+    {
+      "control_id": "H.3",
+      "title": "Data Quality, Integrity & Provenance",
+      "category": "Data Governance",
+      "status": "IMPLEMENTED",
+      "implementation_tier": "OBSERVED_AND_TESTED",
+      "en_18286_qms_clause": "prEN 18286 Clause 7.5 / EU AI Act Art. 17(1)(f) (Data Management & Schema Validation)",
+      "owasp_asi_2026": "ASI02:2026 Tool Misuse & Exploitation",
+      "verified_files": [
+        "transport-to-disposition-mapping.yaml"
+      ],
+      "verified_files_sha256": {
+        "transport-to-disposition-mapping.yaml": "280823799d3c89b9f6c0fb304ac25ecb08007f1a0eabef9ef0bc899937a35746"
+      },
+      "missing_files": [],
+      "description": "Ontological mapping of tool calls to Noun/Verb entities with schema validation."
+    },
+    {
+      "control_id": "H.4",
+      "title": "Transparency & Non-Repudiation (SCITT COSE_Sign1)",
+      "category": "Transparency",
+      "status": "IMPLEMENTED",
+      "implementation_tier": "OBSERVED_AND_TESTED",
+      "en_18286_qms_clause": "prEN 18286 Clause 8.2 / EU AI Act Art. 17(1)(d) (Technical Documentation & Cryptographic Provenance)",
+      "owasp_asi_2026": "ASI07:2026 Insecure Inter-Agent Communication",
+      "verified_files": [
+        "src/diagnostic_normalizer.py",
+        "crates/smaos-verify/src/lib.rs"
+      ],
+      "verified_files_sha256": {
+        "src/diagnostic_normalizer.py": "d5ab8b023b77f2448ef3b86e03eb678d8ee1c970fa3a21a41318bb337228dd55",
+        "crates/smaos-verify/src/lib.rs": "40bd4f770d02d275bfdd9c9d934f436628e92ed6ba0f33d08d49d70eb382faa1"
+      },
+      "missing_files": [],
+      "description": "IETF SCITT COSE_Sign1 receipt sealing with Ed25519 asymmetric signatures."
+    },
+    {
+      "control_id": "H.5",
+      "title": "Traceability & Causal Lineage (JCS CAID)",
+      "category": "Auditability",
+      "status": "IMPLEMENTED",
+      "implementation_tier": "OBSERVED_AND_TESTED",
+      "en_18286_qms_clause": "prEN 18286 Clause 8.5 / EU AI Act Art. 17(1)(e) (Automatic Record-Keeping & Traceability)",
+      "owasp_asi_2026": "ASI06:2026 Memory & Context Poisoning",
+      "verified_files": [
+        "benchmarks/aeib_execution_integrity/run_episodes.py",
+        "aeib_mcp_proxy.py"
+      ],
+      "verified_files_sha256": {
+        "benchmarks/aeib_execution_integrity/run_episodes.py": "fd84e0ec4c2fcc74143dd3bb3c182a59a57ff486de5b6ba1da7eec20c084205f",
+        "aeib_mcp_proxy.py": "90c87fed035c5bf80eebab0bcdf1f6e942af1fa31822d99b57e21f1aa45d6615"
+      },
+      "missing_files": [],
+      "description": "Causal Action Identifier derivation binding Noun, Verb, and JCS payload."
+    },
+    {
+      "control_id": "H.6",
+      "title": "Human-in-the-Loop Oversight & Staging Sandbox",
+      "category": "Oversight",
+      "status": "IMPLEMENTED",
+      "implementation_tier": "OBSERVED_AND_TESTED",
+      "en_18286_qms_clause": "prEN 18286 Clause 8.6 / EU AI Act Art. 17(1)(c) (Verification, Validation & Human Oversight)",
+      "owasp_asi_2026": "ASI09:2026 Human-Agent Trust Exploitation",
+      "verified_files": [
+        "transport-to-disposition-mapping.yaml",
+        "telemetry/observability.py"
+      ],
+      "verified_files_sha256": {
+        "transport-to-disposition-mapping.yaml": "280823799d3c89b9f6c0fb304ac25ecb08007f1a0eabef9ef0bc899937a35746",
+        "telemetry/observability.py": "92b2bd7de240e050d6b405e0735274053b9cb185f8ba3556813bbb2c01d497f4"
+      },
+      "missing_files": [],
+      "description": "Deterministic staging sandbox freezing unconfirmed mutations for human review."
+    },
+    {
+      "control_id": "H.7",
+      "title": "Reliability & Ambiguity Resolution (OOB State Probe)",
+      "category": "Resilience",
+      "status": "IMPLEMENTED",
+      "implementation_tier": "OBSERVED_AND_TESTED",
+      "en_18286_qms_clause": "prEN 18286 Clause 8.7 / EU AI Act Art. 17(1)(i) (Operational Resilience & State Reconciliation)",
+      "owasp_asi_2026": "ASI08:2026 Cascading Failures",
+      "verified_files": [
+        "aeib_postgresql_probe/adapter.py",
+        "benchmarks/chaos_toxiproxy.py"
+      ],
+      "verified_files_sha256": {
+        "aeib_postgresql_probe/adapter.py": "d9465edcb240c8c3d407e40466752528d2996f06598d1522d57dd20512046b7f",
+        "benchmarks/chaos_toxiproxy.py": "e55012c953dfca585de74220f230118ba849493bb58a7d6e4097400d3c52ab05"
+      },
+      "missing_files": [],
+      "description": "Authoritative out-of-band database state probe with 3,000ms statement timeout."
+    },
+    {
+      "control_id": "H.8",
+      "title": "Security Architecture & Zero-Mock AST Purity",
+      "category": "System Security",
+      "status": "IMPLEMENTED",
+      "implementation_tier": "OBSERVED_AND_TESTED",
+      "en_18286_qms_clause": "prEN 18286 Clause 8.4 / EU AI Act Art. 17(1)(b) (Design, Quality Control & Zero-Mock Verification)",
+      "owasp_asi_2026": "ASI05:2026 Unexpected Code Execution",
+      "verified_files": [
+        "compliance/ast_purity.py",
+        "compliance/no_mock_enforcer.py"
+      ],
+      "verified_files_sha256": {
+        "compliance/ast_purity.py": "2d9e11ccf153ec34f3d61e0b3d6602ec6b3cdcbaae82d33724b61e77309cf587",
+        "compliance/no_mock_enforcer.py": "1b38c778310e6835485f9dc2e9f2f69bc6d0e8afccd0d2462bfd6950e98b227f"
+      },
+      "missing_files": [],
+      "description": "Automated AST scanners enforcing zero mocks, zero stubs, and fail-closed exits."
+    },
+    {
+      "control_id": "H.9",
+      "title": "Continuous Monitoring & Purpose-Driven Telemetry",
+      "category": "Monitoring",
+      "status": "IMPLEMENTED",
+      "implementation_tier": "OBSERVED_AND_TESTED",
+      "en_18286_qms_clause": "prEN 18286 Clause 9.1 / EU AI Act Art. 17(1)(h) (Post-Market Monitoring & Telemetry)",
+      "owasp_asi_2026": "ASI10:2026 Rogue Agents",
+      "verified_files": [
+        "telemetry/observability.py",
+        "telemetry/aeib_grafana_dashboard.json"
+      ],
+      "verified_files_sha256": {
+        "telemetry/observability.py": "92b2bd7de240e050d6b405e0735274053b9cb185f8ba3556813bbb2c01d497f4",
+        "telemetry/aeib_grafana_dashboard.json": "bc14ac8c6baaa0c41150496bd7945a75009d2c84e972a846a1263c8ab198281f"
+      },
+      "missing_files": [],
+      "description": "OpenTelemetry gen_ai spans tracking tenant_id, principal_did, and purpose markings."
+    },
+    {
+      "control_id": "H.10",
+      "title": "Privacy & Selective Disclosure (Salted SHA-256 Commitment / GDPR Art. 17)",
+      "category": "Privacy",
+      "status": "IMPLEMENTED",
+      "implementation_tier": "OBSERVED_AND_TESTED",
+      "en_18286_qms_clause": "prEN 18286 Clause 7.6 / EU AI Act Art. 17(1)(m) (Data Privacy & Accountability Redaction)",
+      "owasp_asi_2026": "ASI06:2026 Memory & Context Poisoning",
+      "verified_files": [
+        "src/bbs_plus_redactable.rs"
+      ],
+      "verified_files_sha256": {
+        "src/bbs_plus_redactable.rs": "484e36332f0efbe37fb4d1a53f6a557e818e1cc1790bc7e6d7ba8e24720ae97c"
+      },
+      "missing_files": [],
+      "description": "Salted SHA-256 field commitment selective redaction for confidential PII in audit receipts"
+    },
+    {
+      "control_id": "H.11",
+      "title": "Third-Party & ICT Supply Chain Risk (DORA xBRL-CSV)",
+      "category": "Supply Chain",
+      "status": "IMPLEMENTED",
+      "implementation_tier": "OBSERVED_AND_TESTED",
+      "en_18286_qms_clause": "prEN 18286 Clause 8.8 / EU AI Act Art. 17(1)(l) (Resource & Third-Party ICT Supply Chain Management)",
+      "owasp_asi_2026": "ASI04:2026 Agentic Supply Chain Vulnerabilities",
+      "verified_files": [
+        "smaos_dora_generator.py",
+        "compliance/dora_art28_roi_exporter.py"
+      ],
+      "verified_files_sha256": {
+        "smaos_dora_generator.py": "4ed8e45a943f78ac7b378384f17c7436922cb75298a067ce111f9c7e444cb034",
+        "compliance/dora_art28_roi_exporter.py": "9a0beb8de5609d0ea2bedf10306cd4cd2cc5be977098665d5e8d6722cd2d12f6"
+      },
+      "missing_files": [],
+      "description": "Automated generation of EBA DPM 4.0 xBRL-CSV information registers for ICT third parties."
+    },
+    {
+      "control_id": "H.12",
+      "title": "Incident & Exception Handling (7-Rule Disposition)",
+      "category": "Incident Response",
+      "status": "IMPLEMENTED",
+      "implementation_tier": "OBSERVED_AND_TESTED",
+      "en_18286_qms_clause": "prEN 18286 Clause 10.2 / EU AI Act Art. 17(1)(i) (Serious Incident Reporting & Corrective Action)",
+      "owasp_asi_2026": "ASI08:2026 Cascading Failures",
+      "verified_files": [
+        "transport-to-disposition-mapping.yaml",
+        "tools/export_dora_art17_evidence.py"
+      ],
+      "verified_files_sha256": {
+        "transport-to-disposition-mapping.yaml": "280823799d3c89b9f6c0fb304ac25ecb08007f1a0eabef9ef0bc899937a35746",
+        "tools/export_dora_art17_evidence.py": "e658529f0e0a893d32ef439bb076f73aefac46463d72a04f6e1d3e668c1c753d"
+      },
+      "missing_files": [],
+      "description": "Priority-ordered normative state machine resolving transport severance to closed dispositions."
+    },
+    {
+      "control_id": "H.13",
+      "title": "Hardware Confidential VM Attestation (TDX / SEV-SNP)",
+      "category": "Confidential Computing",
+      "status": "IMPLEMENTED",
+      "implementation_tier": "SCAFFOLD_ONLY",
+      "en_18286_qms_clause": "prEN 18286 Clause 7.1.4 / EU AI Act Art. 17(1)(l) (Execution Environment Attestation Scaffold)",
+      "owasp_asi_2026": "ASI03:2026 Identity & Privilege Abuse",
+      "verified_files": [
+        "compliance/enclave_cvm.py",
+        "src/hardware_attestation.rs"
+      ],
+      "verified_files_sha256": {
+        "compliance/enclave_cvm.py": "514051ade9091223f6c9732feaf1b59845a6a2cdcf905157f4f3e6d57fd9306f",
+        "src/hardware_attestation.rs": "bafea9f3d85fdc1c7b322432d9cc9e942c8c098dd36e4565fce3d050a457b258"
+      },
+      "missing_files": [],
+      "description": "Structural scaffolding for Confidential VM attestation (TDX / SEV-SNP); requires deployment on a hardware-enforced Linux CVM kernel"
+    },
+    {
+      "control_id": "H.14",
+      "title": "Execution Failsafe & Kill-Switch Enforcer",
+      "category": "Operational Control",
+      "status": "IMPLEMENTED",
+      "implementation_tier": "SCAFFOLD_ONLY",
+      "en_18286_qms_clause": "prEN 18286 Clause 8.3 / EU AI Act Art. 17(1)(k) (Runtime Containment & Kill-Switch Scaffold)",
+      "owasp_asi_2026": "ASI05:2026 Unexpected Code Execution",
+      "verified_files": [
+        "src/auth/mfa.ts",
+        "ebpf/ebpf_lsm_agent_guard.c"
+      ],
+      "verified_files_sha256": {
+        "src/auth/mfa.ts": "321ecccfaf218f6934e5758157ef35f0d2d1b279c4b04b6f8a201320336eaf31",
+        "ebpf/ebpf_lsm_agent_guard.c": "71194d6c3be9ce16d989678f698249c1bd9c3072365ce4e2f6751d603b757240"
+      },
+      "missing_files": [],
+      "description": "Structural scaffolding for Linux eBPF socket/LSM guard and step-up timeout failsafes"
+    }
+  ],
+  "soa_digest": "826a11fb2a0277c7dfffe676b76d4025616afb55cad447be91cb6e4d9d8316c0",
+  "soa_signature_b64": "Rj+9ObOFEWGVenmd75g805K/BoObnUqD9bPyJ8ZZmEnikFR8j6aac81ycEvQUeT1U+KLKwI1WN7/BX4OBAAZCA==",
+  "signer_public_key_pem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAKXwVsSLRY/8vBfIlg5/VQUVo7bRqkJ82XvtM5lZz5aw=\n-----END PUBLIC KEY-----\n"
+}

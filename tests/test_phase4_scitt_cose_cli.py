@@ -29,11 +29,22 @@ if str(REPO_ROOT) not in sys.path:
 
 from src.jcs_canonicalizer import encode_jcs
 from tools.verify_cose_scitt_receipts import (
+    COSE_HEADER_KID,
+    COSE_HEADER_RECEIPTS,
+    COSE_HEADER_VDP,
+    COSE_HEADER_VDS,
+    VDP_INCLUSION_PATH,
+    VDP_LEAF_INDEX,
+    VDP_TREE_SIZE,
+    VDS_RFC9162_SHA256,
     RFC8949CBOR,
     RFC9052CoseSigner,
+    RFC9052CoseVerifier,
     SCITTMerkleTree,
     SCITTTransparencyService,
+    append_receipt_to_signed_statement,
     load_public_key,
+    verify_binary_transparent_statement,
     verify_transparent_statement,
 )
 
@@ -342,3 +353,269 @@ def test_cli_self_test_and_envelope_verification_subprocess(tmp_path: Path) -> N
     assert env_proc.returncode == 0, env_proc.stderr
     assert "Receipt Verification SUCCESSFUL" in env_proc.stdout
     assert "cli-test-key" in env_proc.stdout
+
+
+def test_binary_rfc9942_headers_394_395_396_and_transparent_statement_verification() -> None:
+    """
+    Evaluates binary CBOR RFC 9942 / RFC 9943 Transparent Statement embedding:
+    - COSE_HEADER_RECEIPTS = 394 in outer COSE_Sign1 unprotected header
+    - COSE_HEADER_VDS = 395 (VDS_RFC9162_SHA256 = 1) in receipt protected header
+    - COSE_HEADER_VDP = 396 ({-1: tree_size, -2: leaf_index, -3: [bstr sibling_hashes]}) in receipt unprotected header
+    - Offline verification via verify_binary_transparent_statement
+    """
+    assert COSE_HEADER_RECEIPTS == 394
+    assert COSE_HEADER_VDS == 395
+    assert COSE_HEADER_VDP == 396
+    assert VDS_RFC9162_SHA256 == 1
+
+    issuer_priv, issuer_pub = _derive_keypair("phase4-binary-scitt-issuer")
+    ts_priv, ts_pub = _derive_keypair("phase4-binary-scitt-ts")
+
+    issuer_signer = RFC9052CoseSigner(private_key=issuer_priv, key_id="issuer:binary-gatekeeper")
+    ts = SCITTTransparencyService(service_id="scitt.binary.aeib", ts_privkey=ts_priv)
+
+    for i in range(4):
+        stmt_cbor, _ = issuer_signer.sign_receipt({"seq": i, "disposition": "ALLOW"})
+        rcpt_cbor = ts.issue_binary_cose_receipt(stmt_cbor)
+
+        # Verify raw receipt headers 1, 4, 395, 396 directly
+        rcpt_res = RFC9052CoseVerifier.verify(rcpt_cbor, ts_pub)
+        assert rcpt_res.valid is True
+        assert rcpt_res.protected_headers[COSE_HEADER_VDS] == VDS_RFC9162_SHA256
+        assert rcpt_res.protected_headers[COSE_HEADER_KID] == b"scitt-ts:scitt.binary.aeib"
+        vdp = rcpt_res.unprotected_headers[COSE_HEADER_VDP]
+        assert vdp[VDP_TREE_SIZE] == i + 1
+        assert vdp[VDP_LEAF_INDEX] == i
+        assert isinstance(vdp[VDP_INCLUSION_PATH], list)
+        assert len(rcpt_res.payload) == 32
+
+        # Embed receipt into outer Signed Statement unprotected header 394
+        transparent_cbor = append_receipt_to_signed_statement(stmt_cbor, rcpt_cbor)
+
+        # Verify outer Issuer signature remains valid without re-signing
+        outer_res = RFC9052CoseVerifier.verify(transparent_cbor, issuer_pub)
+        assert outer_res.valid is True
+        assert COSE_HEADER_RECEIPTS in outer_res.unprotected_headers
+        assert outer_res.unprotected_headers[COSE_HEADER_RECEIPTS] == [rcpt_cbor]
+
+        # Full offline binary Transparent Statement verification
+        ver_res = verify_binary_transparent_statement(
+            transparent_cbor,
+            issuer_pubkey=issuer_pub,
+            ts_pubkey=ts_pub,
+        )
+        assert ver_res["valid"] is True
+        assert ver_res["error"] is None
+        assert ver_res["vds"] == VDS_RFC9162_SHA256
+        assert ver_res["leaf_index"] == i
+        assert ver_res["tree_size"] == i + 1
+        assert ver_res["issuer_kid"] == "issuer:binary-gatekeeper"
+        assert ver_res["ts_kid"] == "scitt-ts:scitt.binary.aeib"
+        assert ver_res["receipt_count"] == 1
+
+
+def test_binary_transparent_statement_falsification_matrix() -> None:
+    """
+    Evaluates falsification of binary RFC 9942 / RFC 9943 Transparent Statements:
+    1. Bit flip in header 396 (VDP) sibling hash -> rejected
+    2. Tampered header 395 (VDS) algorithm -> rejected
+    3. Missing header 394 (receipts) -> rejected
+    4. Wrong TS public key -> rejected
+    """
+    issuer_priv, issuer_pub = _derive_keypair("phase4-binary-falsify-issuer")
+    ts_priv, ts_pub = _derive_keypair("phase4-binary-falsify-ts")
+    _, wrong_ts_pub = _derive_keypair("phase4-binary-falsify-wrong-ts")
+
+    issuer_signer = RFC9052CoseSigner(private_key=issuer_priv, key_id="issuer:falsify")
+    ts = SCITTTransparencyService(service_id="scitt.falsify.aeib", ts_privkey=ts_priv)
+
+    stmts = []
+    rcpts = []
+    for i in range(4):
+        s, _ = issuer_signer.sign_receipt({"seq": i, "disposition": "ALLOW"})
+        stmts.append(s)
+        rcpts.append(ts.issue_binary_cose_receipt(s))
+
+    valid_transparent = append_receipt_to_signed_statement(stmts[3], rcpts[3])
+
+    # 1. Bit flip in header 396 sibling hash inside receipt
+    rcpt_tag = RFC8949CBOR.decode(rcpts[3])
+    r_prot, r_unprot, r_payload, r_sig = rcpt_tag.value
+    tampered_unprot = copy.deepcopy(r_unprot)
+    orig_sib = bytearray(tampered_unprot[COSE_HEADER_VDP][VDP_INCLUSION_PATH][0])
+    orig_sib[0] ^= 0x01
+    tampered_unprot[COSE_HEADER_VDP][VDP_INCLUSION_PATH][0] = bytes(orig_sib)
+    tampered_rcpt_396 = RFC8949CBOR.encode(
+        cose_tag := type(rcpt_tag)(tag=18, value=[r_prot, tampered_unprot, r_payload, r_sig])
+    )
+    bad_transparent_396 = append_receipt_to_signed_statement(stmts[3], tampered_rcpt_396)
+    res_396 = verify_binary_transparent_statement(
+        bad_transparent_396, issuer_pubkey=issuer_pub, ts_pubkey=ts_pub
+    )
+    assert res_396["valid"] is False
+    assert "Merkle inclusion proof verification failed" in res_396["error"]
+
+    # 2. Tampered header 395 VDS algorithm (e.g., 395: 99 signed by genuine TS key)
+    ts_signer = RFC9052CoseSigner(private_key=ts_priv, key_id=ts.ts_kid)
+    bad_vds_rcpt = ts_signer.sign(
+        r_payload,
+        protected_extra={COSE_HEADER_KID: ts.ts_kid.encode("utf-8"), COSE_HEADER_VDS: 99},
+        unprotected_extra=r_unprot,
+    )
+    bad_transparent_395 = append_receipt_to_signed_statement(stmts[3], bad_vds_rcpt)
+    res_395 = verify_binary_transparent_statement(
+        bad_transparent_395, issuer_pubkey=issuer_pub, ts_pubkey=ts_pub
+    )
+    assert res_395["valid"] is False
+    assert "COSE_HEADER_VDS (395)" in res_395["error"]
+
+    # 3. Missing header 394 (raw Signed Statement without embedded receipts)
+    res_missing_394 = verify_binary_transparent_statement(
+        stmts[3], issuer_pubkey=issuer_pub, ts_pubkey=ts_pub
+    )
+    assert res_missing_394["valid"] is False
+    assert "394" in res_missing_394["error"]
+
+    # 4. Wrong TS key
+    res_wrong_ts = verify_binary_transparent_statement(
+        valid_transparent, issuer_pubkey=issuer_pub, ts_pubkey=wrong_ts_pub
+    )
+    assert res_wrong_ts["valid"] is False
+    assert "Transparency Service COSE Receipt" in res_wrong_ts["error"]
+
+
+def test_cli_subcommands_sign_append_receipt_verify_scitt_inspect(tmp_path: Path) -> None:
+    """
+    Tests CLI subcommands `sign`, `append-receipt`, `verify-scitt`, and `inspect`
+    end-to-end on real files in tmp_path via subprocess.run.
+    """
+    cli_script = REPO_ROOT / "tools" / "verify_cose_scitt_receipts.py"
+
+    issuer_priv, issuer_pub = _derive_keypair("phase4-cli-subcmd-issuer")
+    ts_priv, ts_pub = _derive_keypair("phase4-cli-subcmd-ts")
+
+    issuer_priv_file = tmp_path / "issuer_priv.pem"
+    issuer_priv_file.write_bytes(
+        issuer_priv.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption(),
+        )
+    )
+    issuer_pub_file = tmp_path / "issuer_pub.pem"
+    issuer_pub_file.write_bytes(
+        issuer_pub.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+    )
+    ts_priv_file = tmp_path / "ts_priv.pem"
+    ts_priv_file.write_bytes(
+        ts_priv.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption(),
+        )
+    )
+    ts_pub_file = tmp_path / "ts_pub.pem"
+    ts_pub_file.write_bytes(
+        ts_pub.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+    )
+
+    artifact_json = tmp_path / "artifact.json"
+    artifact_json.write_bytes(
+        encode_jcs({"caid": "cd" * 32, "disposition": "ALLOW", "epoch": 7})
+    )
+    signed_cose_file = tmp_path / "statement.cose"
+    transparent_cose_file = tmp_path / "statement.scitt.cose"
+
+    # 1. Subcommand: sign
+    proc_sign = subprocess.run(
+        [
+            sys.executable,
+            str(cli_script),
+            "sign",
+            "--input",
+            str(artifact_json),
+            "--key",
+            str(issuer_priv_file),
+            "--kid",
+            "issuer:cli-subcmd-01",
+            "--output",
+            str(signed_cose_file),
+        ],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert proc_sign.returncode == 0, proc_sign.stderr
+    assert signed_cose_file.exists()
+
+    # 2. Subcommand: append-receipt
+    proc_append = subprocess.run(
+        [
+            sys.executable,
+            str(cli_script),
+            "append-receipt",
+            "--envelope",
+            str(signed_cose_file),
+            "--issuer-pubkey",
+            str(issuer_pub_file),
+            "--ts-key",
+            str(ts_priv_file),
+            "--output",
+            str(transparent_cose_file),
+        ],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert proc_append.returncode == 0, proc_append.stderr
+    assert transparent_cose_file.exists()
+
+    # 3. Subcommand: verify-scitt
+    proc_verify = subprocess.run(
+        [
+            sys.executable,
+            str(cli_script),
+            "verify-scitt",
+            "--transparent-statement",
+            str(transparent_cose_file),
+            "--issuer-pubkey",
+            str(issuer_pub_file),
+            "--ts-pubkey",
+            str(ts_pub_file),
+        ],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert proc_verify.returncode == 0, proc_verify.stderr
+    assert "Binary Transparent Statement Verification SUCCESSFUL" in proc_verify.stdout
+    assert "395" in proc_verify.stdout
+
+    # 4. Subcommand: inspect
+    proc_inspect = subprocess.run(
+        [
+            sys.executable,
+            str(cli_script),
+            "inspect",
+            str(transparent_cose_file),
+        ],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert proc_inspect.returncode == 0, proc_inspect.stderr
+    assert "394" in proc_inspect.stdout
+    assert "395" in proc_inspect.stdout
+    assert "396" in proc_inspect.stdout
+    assert "issuer:cli-subcmd-01" in proc_inspect.stdout
+

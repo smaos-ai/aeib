@@ -36,6 +36,17 @@ COSE_HEADER_CRIT = 2
 COSE_HEADER_CONTENT_TYPE = 3
 COSE_HEADER_KID = 4
 
+# RFC 9942 / RFC 9943 IANA COSE Header Parameter Constants for SCITT
+COSE_HEADER_RECEIPTS = 394  # Unprotected header: [+ bstr .cbor Receipt]
+COSE_HEADER_VDS = 395       # Protected header: Verifiable Data Structure algorithm
+COSE_HEADER_VDP = 396       # Unprotected header: Verifiable Data Structure Proof map
+
+VDS_RFC9162_SHA256 = 1      # RFC 9162 SHA-256 Binary Merkle Tree per RFC 9942
+
+VDP_TREE_SIZE = -1          # RFC 9942 VDP key: tree-size
+VDP_LEAF_INDEX = -2         # RFC 9942 VDP key: leaf-index
+VDP_INCLUSION_PATH = -3     # RFC 9942 VDP key: inclusion-path ([+ bstr])
+
 COSE_ALG_EDDSA = -8  # Ed25519 per RFC 9053 Section 2.2 / RFC 8152 Table 5
 COSE_TAG_SIGN1 = 18  # Tag 18 identifies COSE_Sign1 per RFC 9052 Section 4.2
 
@@ -370,9 +381,9 @@ class RFC9052CoseSigner:
 
         protected_bytes = RFC8949CBOR.encode(protected) if protected else b""
 
-        # Unprotected headers: kid injected by default
+        # Unprotected headers: kid injected by default unless already placed in protected headers
         unprotected: Dict[int, Any] = {}
-        if self.key_id:
+        if self.key_id and COSE_HEADER_KID not in protected:
             unprotected[COSE_HEADER_KID] = (
                 self.key_id.encode("utf-8")
                 if isinstance(self.key_id, str)
@@ -602,6 +613,9 @@ class RFC9052CoseVerifier:
                 COSE_HEADER_CRIT,
                 COSE_HEADER_CONTENT_TYPE,
                 COSE_HEADER_KID,
+                COSE_HEADER_RECEIPTS,
+                COSE_HEADER_VDS,
+                COSE_HEADER_VDP,
             }
             for label in crit_list:
                 if label == COSE_HEADER_CRIT:
@@ -713,3 +727,64 @@ class RFC9052CoseVerifier:
             unprotected_headers=unprotected_headers,
             error=None,
         )
+
+
+def append_receipt_to_signed_statement(
+    signed_statement_cbor: bytes,
+    receipt_cbor: bytes,
+) -> bytes:
+    """
+    Decodes the Tag 18 COSE_Sign1 [protected, unprotected, payload, signature],
+    appends receipt_cbor into unprotected[394] (COSE_HEADER_RECEIPTS list of bstr),
+    and re-encodes as a canonical Tag 18 COSE_Sign1 binary RFC 9943 Transparent Statement
+    without invalidating the issuer's signature over Sig_structure.
+    """
+    if not isinstance(signed_statement_cbor, (bytes, bytearray)):
+        raise TypeError("signed_statement_cbor must be bytes")
+    if not isinstance(receipt_cbor, (bytes, bytearray)) or len(receipt_cbor) == 0:
+        raise ValueError("receipt_cbor must be a non-empty CBOR byte string")
+
+    rcpt_item = RFC8949CBOR.decode(bytes(receipt_cbor))
+    if (
+        not isinstance(rcpt_item, CBORTag)
+        or rcpt_item.tag != COSE_TAG_SIGN1
+        or not isinstance(rcpt_item.value, (list, tuple))
+        or len(rcpt_item.value) != 4
+    ):
+        raise ValueError("receipt_cbor must be a valid CBOR Tag 18 COSE_Sign1 structure")
+
+    stmt_item = RFC8949CBOR.decode(bytes(signed_statement_cbor))
+    if (
+        not isinstance(stmt_item, CBORTag)
+        or stmt_item.tag != COSE_TAG_SIGN1
+        or not isinstance(stmt_item.value, (list, tuple))
+        or len(stmt_item.value) != 4
+    ):
+        raise ValueError("signed_statement_cbor must be a valid CBOR Tag 18 COSE_Sign1 structure")
+
+    protected_bytes, unprotected_headers, payload_bytes, signature_bytes = stmt_item.value
+    if not isinstance(unprotected_headers, dict):
+        raise ValueError("COSE_Sign1 unprotected header must be a CBOR map")
+
+    new_unprotected = dict(unprotected_headers)
+    existing_receipts = new_unprotected.get(COSE_HEADER_RECEIPTS)
+    if existing_receipts is None:
+        new_unprotected[COSE_HEADER_RECEIPTS] = [bytes(receipt_cbor)]
+    elif isinstance(existing_receipts, list):
+        new_unprotected[COSE_HEADER_RECEIPTS] = list(existing_receipts) + [bytes(receipt_cbor)]
+    else:
+        raise ValueError(
+            "Existing COSE_HEADER_RECEIPTS (394) in unprotected header is not a list"
+        )
+
+    transparent_envelope = CBORTag(
+        tag=COSE_TAG_SIGN1,
+        value=[
+            bytes(protected_bytes),
+            new_unprotected,
+            bytes(payload_bytes),
+            bytes(signature_bytes),
+        ],
+    )
+    return RFC8949CBOR.encode(transparent_envelope)
+

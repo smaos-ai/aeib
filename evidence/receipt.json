@@ -1,0 +1,13 @@
+{
+  "operationId" : "OP-AMBIGUOUS-REFUND-504",
+  "epoch" : 1000,
+  "chainTip" : "hr5P4Y+i2KUC/ipVBLgwgA9bM7VS/uotUTr3ZQiOPu8=",
+  "signatureAlgorithm" : "Ed25519",
+  "hashAlgorithm" : "SHA-256",
+  "signature" : {
+    "ed25519Signature" : "H/PTTEV/zU3Kc2rSCq+HsSfpJofRa2zmSsu4d2D0BDsmBnmNLK1nTXAJq+xCWH1i+tO3/n0any7O5Dwb0ulCAQ==",
+    "keyId" : "aeib-rc3-key-01",
+    "keyEpoch" : 1000
+  },
+  "signedStatement" : "eyJjaGFpblRpcCI6ImhyNVA0WStpMktVQy9pcFZCTGd3Z0E5Yk03VlMvdW90VVRyM1pRaU9QdTg9IiwiZXBvY2giOjEwMDAsImtleUlkIjoiYWVpYi1yYzMta2V5LTAxIiwib3BlcmF0aW9uSWQiOiJPUC1BTUJJR1VPVVMtUkVGVU5ELTUwNCJ9"
+}

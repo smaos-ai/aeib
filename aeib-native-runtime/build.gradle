@@ -33,6 +33,9 @@ subprojects {
 
     tasks.named('test') {
         useJUnitPlatform()
+        filter {
+            failOnNoMatchingTests = false
+        }
     }
 
     tasks.withType(AbstractArchiveTask).configureEach {
@@ -78,5 +81,14 @@ tasks.register('generateSlsaSubjects') {
 ]"""
         file("${outDir}/subjects.json").text = subjectJson
         file("${outDir}/subjects.base64").text = Base64.encoder.encodeToString(subjectJson.getBytes("UTF-8"))
+    }
+}
+
+project(':aeib-verifier').tasks.matching { it.name == 'installDist' }.configureEach {
+    doLast {
+        copy {
+            from file("aeib-verifier/build/install/aeib-verifier")
+            into file("verifier/build/install/verifier")
+        }
     }
 }

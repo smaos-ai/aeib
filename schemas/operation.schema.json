@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sovereignnexus.internal/schemas/operation.schema.json",
+  "title": "AEIB Frozen Pre-Dispatch Operation & Refund Status Contract Schema",
+  "description": "Frozen RFC 8785 JCS contract schema for pre-dispatch operation validation and refund_status_v1 target probe responses under the stated model.",
+  "type": "object",
+  "required": [
+    "operation_id",
+    "action_type",
+    "amount_minor",
+    "currency",
+    "recipient",
+    "policy_epoch",
+    "spec_caid"
+  ],
+  "properties": {
+    "operation_id": {
+      "type": "string",
+      "minLength": 4
+    },
+    "action_type": {
+      "type": "string",
+      "enum": [
+        "POST /v1/refunds",
+        "POST /v1/loyalty-credits",
+        "POST /v1/vouchers",
+        "POST /v1/payouts"
+      ]
+    },
+    "amount_minor": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "currency": {
+      "type": "string",
+      "enum": ["EUR", "USD", "GBP"]
+    },
+    "recipient": {
+      "type": "string",
+      "minLength": 3
+    },
+    "policy_epoch": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "spec_caid": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "refund_status_v1": {
+      "type": "object",
+      "required": [
+        "operation_id",
+        "recipient",
+        "amount_minor",
+        "currency",
+        "status_enum"
+      ],
+      "properties": {
+        "operation_id": { "type": "string" },
+        "recipient": { "type": "string" },
+        "amount_minor": { "type": "integer", "minimum": 1 },
+        "currency": { "type": "string" },
+        "status_enum": {
+          "type": "string",
+          "enum": ["CONFIRMED", "REFUTED", "PENDING"]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

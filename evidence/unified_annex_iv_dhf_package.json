@@ -1,0 +1,217 @@
+{
+  "technical_file": {
+    "schema_version": "aeib.unified.technical.file.annex_iv.v1",
+    "document_title": "Unified High-Risk AI Technical Documentation & ISO 13485 DHF Addendum",
+    "timestamp_epoch": 1792362848,
+    "epistemic_notice": "EPISTEMIC BOUNDARY NOTICE: All technical assertions, standards alignments, and hazard mitigations in this dossier are observed, tested, and evaluated under the stated model using deterministic prototype and verification scaffolds. AEIB produces verifiable technical evidence to support deployer compliance; it does not confer legal certification.",
+    "governing_frameworks": [
+      "Regulation (EU) 2024/1689 (EU AI Act), Annex IV & Articles 11, 12, 14, 15, 17, 28",
+      "CEN-CENELEC EN 18286:2026 (AI Quality Management System)",
+      "ISO/IEC 42001:2023 (Artificial Intelligence Management System)",
+      "ISO 13485:2016 / ISO 14971:2019 (Medical Device QMS & Risk Management)",
+      "Regulation (EU) 2017/745 (EU MDR) & Regulation (EU) 2017/746 (EU IVDR)",
+      "Regulation (EU) 2022/2554 (DORA), Articles 17 & 28(3)"
+    ],
+    "statutory_transition_clocks": {
+      "ANNEX_III_STANDALONE_HIGH_RISK": {
+        "enforcement_deadline": "2027-12-02",
+        "applicable_sectors": [
+          "Credit scoring & creditworthiness evaluation (Annex III.5.b)",
+          "Risk assessment & pricing in life and health insurance (Annex III.5.c)",
+          "Recruitment, screening & candidate evaluation (Annex III.4.a)",
+          "Critical infrastructure safety components (Annex III.2.a)"
+        ],
+        "compliance_deliverable": "Standalone EU AI Act Annex IV Technical File + EN 18286 QMS Conformity File",
+        "governance_focus": "Automated wire-level logging (Art. 12), human oversight (Art. 14), and robustness (Art. 15)."
+      },
+      "ANNEX_I_EMBEDDED_HIGH_RISK": {
+        "enforcement_deadline": "2028-08-02",
+        "applicable_sectors": [
+          "Medical Devices under EU MDR (Regulation (EU) 2017/745)",
+          "In Vitro Diagnostic Medical Devices under EU IVDR (Regulation (EU) 2017/746)",
+          "Machinery under EU Machinery Regulation (Regulation (EU) 2023/1230)",
+          "Civil Aviation Security & Automotive Functional Safety Systems"
+        ],
+        "compliance_deliverable": "Unified Design History File (DHF) Addendum bridging ISO 13485 & AI Act Annex IV",
+        "governance_focus": "Integration with ISO 14971 risk management, clinical evaluation, and pre-socket fail-closed actuation."
+      }
+    },
+    "four_layer_standards_architecture": [
+      {
+        "layer_id": "LAYER_1_ORGANIZATIONAL_AIMS",
+        "standard": "ISO/IEC 42001:2023",
+        "scope": "Artificial Intelligence Management System (AIMS)",
+        "governing_clauses": [
+          "Clause 4 (Context & Stakeholders)",
+          "Clause 5 (Leadership & AI Policy)",
+          "Clause 6 (AI Risk Planning & Impact Assessments)",
+          "Clause 8 (Operational Control)",
+          "Annex A.2\u2013A.10 (38 Normative Controls)"
+        ],
+        "runtime_enforcement_mechanism": "System inventory, root sponsor identity binding, policy epoch monotonic versioning, and high-level risk treatment classification.",
+        "implementation_tier": "OBSERVED_AND_TESTED",
+        "evidence_reference": "compliance/iso_42001_soa_report.json"
+      },
+      {
+        "layer_id": "LAYER_2_EU_AI_ACT_HARMONIZED_QMS",
+        "standard": "CEN-CENELEC EN 18286:2026",
+        "scope": "Harmonized QMS for EU AI Act Article 17 Presumption of Conformity",
+        "governing_clauses": [
+          "Clause 4.1 / Art. 17(1)(a) Regulatory Compliance Strategy",
+          "Clause 6.1 / Art. 17(1)(g) Risk Management System Integration",
+          "Clause 7.1 / Art. 17(1)(e) Technical Verification & Validation",
+          "Clause 7.5 / Art. 17(1)(f) Data Quality & Schema Integrity",
+          "Clause 8.3 / Art. 17(1)(m) Serious Incident Reporting & Post-Market Monitoring (Art. 72)"
+        ],
+        "runtime_enforcement_mechanism": "Pre-dispatch TCC escrow, fail-closed human release gates, RFC 8785 JCS CAID derivation, and continuous hash-chained execution receipt generation.",
+        "implementation_tier": "OBSERVED_AND_TESTED",
+        "evidence_reference": "docs/compliance/EN_18286_AND_REGULATORY_APPLICABILITY_DOSSIER.md"
+      },
+      {
+        "layer_id": "LAYER_3_PRODUCT_SAFETY_AND_MEDICAL_DHF",
+        "standard": "ISO 13485:2016 / ISO 14971:2019 / ISO 9001:2015 & EU MDR 2017/745 / IVDR 2017/746",
+        "scope": "Product Safety, Medical Device QMS & Design History File (DHF) Integration (Annex I)",
+        "governing_clauses": [
+          "ISO 13485 Clause 7.3 Design & Development Controls (DHF / DMR)",
+          "ISO 14971 Clauses 4\u20137 Risk Analysis, Evaluation, Control & Verification",
+          "EU MDR Annex I General Safety and Performance Requirements (GSPR 17.2 Software Verification)",
+          "EU MDR Annex II Section 6 Technical Documentation on Software Validation"
+        ],
+        "runtime_enforcement_mechanism": "Fail-closed socket mediation for consequential actions (clinical dosage, physical actuators, financial disbursement), hazard event logging, and hardware-level container isolation.",
+        "implementation_tier": "OBSERVED_AND_TESTED",
+        "evidence_reference": "docs/compliance/UNIFIED_DHF_ANNEX_IV_TECHNICAL_FILE.md"
+      },
+      {
+        "layer_id": "LAYER_4_SUPPLY_CHAIN_AND_CBOM",
+        "standard": "EU AI Act Art. 28 / ISO 42001 Annex A.8 / CycloneDX 1.6 / ECMA-424",
+        "scope": "Cryptographic Bill of Materials (CBOM), Model Weights & Third-Party Tool Integrity",
+        "governing_clauses": [
+          "EU AI Act Article 28 Obligations of Third Parties / Value Chain Providers",
+          "ISO 42001 Annex A.8 Information for Interested Parties & Third-Party Transparency",
+          "ECMA-424 Standard for Cryptographic Bill of Materials",
+          "RFC 9942 / RFC 9943 IETF SCITT Transparency Service Receipts"
+        ],
+        "runtime_enforcement_mechanism": "Pinned MCP tool descriptors, SHA-256 model weight digests, and Ed25519-signed ECMA-424 CBOM receipts mapping cryptographic algorithm agility.",
+        "implementation_tier": "OBSERVED_AND_TESTED",
+        "evidence_reference": "evidence/cbom.json"
+      }
+    ],
+    "annex_iv_six_mandatory_sections": {
+      "section_1_general_description": {
+        "system_name": "Agent Execution Integrity Boundary (AEIB)",
+        "intended_purpose": "Deterministic interception, pre-dispatch transactional reservation (TCC), uncertain-outcome wire latching (HTTP 504 / TCP RST), and continuous cryptographic receipt emission for autonomous AI tool dispatches.",
+        "target_market_classification": "Annex III Standalone High-Risk & Annex I Embedded High-Risk Addendum",
+        "deployer_provider_demarcation": "AEIB operates as a deployer-configured runtime gate. The deployer retains legal responsibility for institutional quality management, human staffing, and target systems."
+      },
+      "section_2_component_integration_and_hardware": {
+        "zero_egress_agent_boundary": "Agent domain configured with network_mode: 'none'; communicates via local socket.",
+        "mcp_tool_provenance_pinning": "Tool descriptors pinned via SHA-256 and verified prior to session registration.",
+        "cryptographic_bill_of_materials": {
+          "cbom_standard": "CycloneDX 1.6 / ECMA-424",
+          "cbom_file": "evidence/cbom.json",
+          "cbom_status": true
+        }
+      },
+      "section_3_development_methods_and_computational_logic": {
+        "five_term_pre_dispatch_predicate": "GrantValid and PolicyEpochFresh and SourceEpochFresh and CAIDMatch and TicketUnburned",
+        "canonicalization_standard": "RFC 8785 JSON Canonicalization Scheme (JCS)",
+        "signature_algorithm": "Ed25519 (RFC 8032)",
+        "tcc_escrow_engine": "SQLite WAL with BEGIN IMMEDIATE serialized transactions"
+      },
+      "section_4_monitoring_logging_and_auditing": {
+        "article_12_wire_level_logging": "Every external dispatch intent and resulting outcome is committed to an append-only hash-chained ledger prior to and immediately following socket I/O.",
+        "retention_period": "Configurable 7-year immutable retention model",
+        "ietf_scitt_transparency": "RFC 9942 COSE receipts with RFC 9162 SHA-256 Merkle inclusion proofs."
+      },
+      "section_5_risk_management_and_hazard_analysis": {
+        "iso_14971_risk_management_system": "Integrated 4-hazard clinical/financial hazard evaluation",
+        "hazard_log": [
+          {
+            "hazard_id": "HZD-01-TRANSPORT-AMBIGUITY",
+            "title": "Layer 7 Transport Ambiguity & Duplicate Consequential Mutation",
+            "clinical_or_financial_risk": "Network timeout (HTTP 504) or TCP reset causes unhedged agent retry, executing duplicate patient medication disbursement, double financial transfer, or redundant physical actuator cycle.",
+            "initial_risk_level": "CRITICAL",
+            "aeib_mitigation_control": "Station 3 Wire Latch traps state to EFFECT_INDETERMINATE (retry_safe: false). Automated retries blocked; single out-of-band probe (ProbeBudget: 1) verifies downstream state.",
+            "residual_risk_level": "ACCEPTABLE_UNDER_STATED_MODEL",
+            "verification_test": "tests/test_at64_rail_interop_and_mcp_tool_taint.py",
+            "iso14971_clause": "Clause 6.2 (Risk Control Options Analysis)"
+          },
+          {
+            "hazard_id": "HZD-02-PARALLEL-RESOURCE-DEPLETION",
+            "title": "Concurrent Multi-Agent Budget & Resource Overrun",
+            "clinical_or_financial_risk": "Concurrent subagents read unreserved balance simultaneously and execute parallel dispatches, overrunning institutional budget ceilings or physical medication reservoirs.",
+            "initial_risk_level": "HIGH",
+            "aeib_mitigation_control": "Pre-socket TCC (Try-Confirm-Cancel) atomic reservation in SQLite WAL with BEGIN IMMEDIATE. Subagents cannot dispatch until budget is locked; excess requests rejected fail-closed.",
+            "residual_risk_level": "ACCEPTABLE_UNDER_STATED_MODEL",
+            "verification_test": "aeib-native-runtime/tests/test_tcc_parallel_acid_vs_base_anomalies.py",
+            "iso14971_clause": "Clause 6.3 (Implementation of Risk Control Measures)"
+          },
+          {
+            "hazard_id": "HZD-03-CONTEXT-POISONING",
+            "title": "Memory Poisoning & Prompt Injection Parameter Tampering (AT57)",
+            "clinical_or_financial_risk": "Adversary manipulates working memory or RAG context to alter destination IBAN, clinical dosage value, or actuator threshold without operator consent.",
+            "initial_risk_level": "CRITICAL",
+            "aeib_mitigation_control": "Station 1 Context Integrity Gate evaluates candidate action CAID against ingestion-time commitment manifest. Tampered parameters trigger HALT_CONTEXT_INTEGRITY_FAILURE (0 socket bytes emitted).",
+            "residual_risk_level": "ACCEPTABLE_UNDER_STATED_MODEL",
+            "verification_test": "tests/test_sybil_rotator_and_smurfing.py",
+            "iso14971_clause": "Clause 6.4 (Residual Risk Evaluation)"
+          },
+          {
+            "hazard_id": "HZD-04-EVIDENTIARY-TAMPERING",
+            "title": "Audit Log Tampering & Forensic Repudiation",
+            "clinical_or_financial_risk": "Malicious insider or compromised operating system alters local audit rows to conceal fraudulent transactions or lethal clinical dosage modifications.",
+            "initial_risk_level": "HIGH",
+            "aeib_mitigation_control": "RFC 8785 JCS + Ed25519 hash-chained Continuity Receipts registered into RFC 9942 / RFC 9943 SCITT Merkle tree transparent statements. Any in-place bit flip triggers InvalidSignature.",
+            "residual_risk_level": "ACCEPTABLE_UNDER_STATED_MODEL",
+            "verification_test": "tests/test_scitt_otel_and_pqc_cbom_agility.py",
+            "iso14971_clause": "Clause 7 (Overall Residual Risk Acceptability)"
+          }
+        ]
+      },
+      "section_6_human_oversight_and_fail_closed_gates": {
+        "article_14_decoupled_oversight": "Safety policy decoupled from model weights; enforced at pre-socket gate. Prohibition of [APPROVE OVERRIDE] without authenticated target evidence.",
+        "step_up_dual_control": "RFC 9470 Step-Up Dual Control token required for high-consequence dispatches."
+      }
+    },
+    "verified_artifact_manifest": {
+      "evidence/cbom.json": {
+        "path": "evidence/cbom.json",
+        "present": true,
+        "sha256": "43e0a056ca87ced41abf6a993f36cd8b77a3805d544fb7981402b2b325c56249"
+      },
+      "compliance/iso_42001_soa_report.json": {
+        "path": "compliance/iso_42001_soa_report.json",
+        "present": true,
+        "sha256": "afeb7614e432608abbed337d8b96dc068913027db94e673ab8618175a4060894"
+      },
+      "docs/compliance/EN_18286_AND_REGULATORY_APPLICABILITY_DOSSIER.md": {
+        "path": "docs/compliance/EN_18286_AND_REGULATORY_APPLICABILITY_DOSSIER.md",
+        "present": true,
+        "sha256": "d8ec3537f2a6c8509be02041d762747003d07ba70cb1068df7d903d297f291b0"
+      },
+      "docs/compliance/ANNEX_IV_TECHNICAL_DOSSIER.md": {
+        "path": "docs/compliance/ANNEX_IV_TECHNICAL_DOSSIER.md",
+        "present": true,
+        "sha256": "d2b75418d87e90181f37e55cd778ae2fdbacae87b9c3e54d8b301633555d3eb2"
+      },
+      "src/jcs_canonicalizer.py": {
+        "path": "src/jcs_canonicalizer.py",
+        "present": true,
+        "sha256": "2be49725bf6af1508eab7aab97e94484966ab5894e48f0d627ff56a5ff81823c"
+      },
+      "src/eo1_write_before_execute.py": {
+        "path": "src/eo1_write_before_execute.py",
+        "present": true,
+        "sha256": "2437ede45bae1b82b2893d49de0954198d317b8cc97e1e1812ff668f67467c1a"
+      },
+      "aeib-native-runtime/src/sqlite_acid_tcc_boundary.py": {
+        "path": "aeib-native-runtime/src/sqlite_acid_tcc_boundary.py",
+        "present": true,
+        "sha256": "9c77db758a7b9140a5905e3634a63656168baa2fefe36f56c26a2f91c08fdd9e"
+      }
+    }
+  },
+  "package_digest": "2ac088b24f7a51e77e25f318810d11ea3a9c8482babf856b06848c71e1950370",
+  "signature_hex": "72242bf8416b7c5724b6567ddf2dca6aa477e078e2bb34a92113e499ed0dc1b4008dbf8f310a27f37fd698d1f885d585f372049264a6d9e09fef5d6e9b7a090c",
+  "signer_public_key_pem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAUI3/lUhptScME4iwpaPJSVQIhShnbvr1y3ppEnznpic=\n-----END PUBLIC KEY-----\n"
+}

@@ -170,16 +170,162 @@ These signals reinforce two foundational AEIB engineering choices:
 
 ---
 
-## 8. Master Competitive Differentiation Matrix
+## 8. Architectural Posture & Grounded Operational Pictures
 
-| Architectural Capability | Standard API Gateways (Kong, Apigee) | LLM Prompt Wrappers (Guardrails AI, NeMo) | Pre-Dispatch Systems (Moral Clarity AI / Harmonic) | AEIB v1.0.0-rc.3 / v1.0.0-rc.10 |
+Rather than asserting uncalibrated superiority claims across competitor products without access to their source code or common benchmark environments, AEIB defines a mathematically falsifiable and testable architectural distinction:
+
+> [!NOTE]
+> **Disciplined Positioning Statement:**
+> Hub-and-spoke agent systems commonly use parallel read-only investigation and controlled write integration. AEIB’s proposed distinction is not that others cannot write in parallel; it is that AEIB defines explicit preconditions for parallel writes: **disjoint write sets, frozen contracts, isolated environments, and governed reconciliation**.
+> AEIB proposes governed parallel execution with disjoint write sets, durable pre-dispatch intent, bounded reconciliation, and operation-bound evidence. Its performance, cost, quality, and recovery characteristics must be measured against defined baselines.
+
+---
+
+### Picture 1: Governed Partition Lifecycle
+
+```mermaid
+flowchart TD
+    subgraph P1_Proposal["1. Proposal & Disjointness Check"]
+        A[Subagent Proposes Mutation Set] --> B{Disjoint Partition Check}
+        B -- "Conflict Detected (Overlap != 0)" --> C[Block Dispatch: SERIALIZE_OR_WAIT]
+        B -- "Disjoint (Partition_A ∩ Partition_B == ∅)" --> D[Evaluate Taint & Policy Ceiling]
+    end
+
+    subgraph P1_Intent["2. Durable Pre-Dispatch Intent"]
+        D -- "Valid Authority & Fresh Epoch" --> E[Burn Single-Use Ticket]
+        E --> F[Record DISPATCH_INTENT & CAID in Ledger]
+    end
+
+    subgraph P1_Execution["3. Governed Outbound Wire Dispatch"]
+        F --> G[Dispatch Outbound Wire Mutation]
+        G --> H{Transport Return}
+    end
+
+    subgraph P1_Reconciliation["4. Bounded Reconciliation & Audit"]
+        H -- "HTTP 200/201 OK" --> I[Mark CONFIRMED in Ledger]
+        H -- "HTTP 504 / TCP RST" --> J[Latch EFFECT_INDETERMINATE & Lock Escrow]
+        J --> K[Single-Flight Status Probe (Budget: 1)]
+        K -- "Target Shows Committed" --> I
+        K -- "Target Signed Refutation" --> L[Release Escrow: RESOLVED_REFUTED]
+        I --> M[Emit Signed RFC 9942 SCITT Receipt]
+        L --> M
+        M --> N[Release Partition Lock]
+    end
+```
+
+```text
+[ Governed Partition Lifecycle Trace ]
+Intent Registration -> Consequence Gating -> Disjoint Partition Allocation 
+   -> Sandboxed Execution -> Ambiguity Latching -> Bounded Single Probe -> Verifiable SCITT Receipt
+```
+
+---
+
+### Picture 2: Ambiguous Dispatch State Machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> PRE_DISPATCH_INTENT: Evaluate 5-Term Gate
+    PRE_DISPATCH_INTENT --> DISPATCHED: Burn Ticket & Bind CAID
+    
+    DISPATCHED --> RESOLVED_CONFIRMED: Transport Success (HTTP 200/201)
+    DISPATCHED --> EFFECT_INDETERMINATE: Transport Ambiguity (HTTP 504 / TCP RST)
+    
+    state EFFECT_INDETERMINATE {
+        [*] --> ESCROW_LOCKED: Block Naive Retries (AT58)
+        ESCROW_LOCKED --> PROBE_IN_FLIGHT: Execute ProbeBudget: 1
+    }
+    
+    EFFECT_INDETERMINATE --> RESOLVED_CONFIRMED: Authoritative Target Commited
+    EFFECT_INDETERMINATE --> RESOLVED_REFUTED: Target-Signed Refutation (AT58 Release)
+    EFFECT_INDETERMINATE --> ESCALATED_HUMAN_INTERVENTION: Target Unresponsive / Probe Timeout
+    
+    RESOLVED_CONFIRMED --> FINAL_RECEIPT_EMITTED: Sign COSE_Sign1 / SCITT Merkle Log
+    RESOLVED_REFUTED --> FINAL_RECEIPT_EMITTED: Sign Refutation Receipt
+    ESCALATED_HUMAN_INTERVENTION --> [*]
+    FINAL_RECEIPT_EMITTED --> [*]
+```
+
+```text
++-----------------------+     HTTP 504 / TCP RST     +-----------------------------+
+| DISPATCHED (CAID Bound) | ------------------------> | EFFECT_INDETERMINATE        |
++-----------------------+                            | - Quota Escrow Locked       |
+            |                                        | - Naive Retries Blocked     |
+            | HTTP 200 OK                            +--------------+--------------+
+            v                                                       |
++-----------------------+                                           | Single-Flight Probe
+| RESOLVED_CONFIRMED    | <-----------------------------------------+ (Budget: 1)
++-----------------------+  (If remote state shows mutation executed)
+```
+
+---
+
+### Picture 3: Trust Boundary & Execution Topology
+
+```mermaid
+flowchart TB
+    subgraph UntrustedRuntime["Untrusted Model & Planning Plane"]
+        LLM["LLM Agent Planning Loop"]
+        Subagents["Subagent Hierarchy"]
+        MCPTools["MCP Tool Execution Context"]
+        LLM --> Subagents
+        Subagents --> MCPTools
+    end
+
+    subgraph InProcessGate["Station 1: Pre-Dispatch Gate (Layer 2.5)"]
+        PreGate["Conjunctive 5-Term Predicate"]
+        JCS["RFC 8785 JCS Canonicalizer"]
+        CAID["Content-Addressable ID (CAID)"]
+        PreGate --> JCS --> CAID
+    end
+
+    subgraph SidecarProxy["Station 2: Zero-Credential Sidecar (Layer 3)"]
+        Proxy["Loopback HTTP Interceptor (127.0.0.1)"]
+        WireLatch["EFFECT_INDETERMINATE Latch"]
+        Probe["Single-Flight Probe Engine (Budget: 1)"]
+        Vault["Sender-Constrained Token Vault (DPoP / mTLS)"]
+        Proxy --> WireLatch
+        WireLatch --> Probe
+        Proxy --> Vault
+    end
+
+    subgraph StructuralScaffolding["Host OS & Scaffolding Plane (SCAFFOLD_ONLY)"]
+        eBPF["eBPF Socket Guard (Scaffold)"]
+        CVM["Confidential VM Attestation (Scaffold)"]
+    end
+
+    subgraph ExternalRails["External Target Systems Plane"]
+        BankAPI["Banking & Treasury Endpoints"]
+        PaymentRails["Payment Rails (AP2, x402, ACP)"]
+    end
+
+    subgraph TransparencyPlane["External Verifiability Plane"]
+        SCITT["IETF SCITT Transparency Service (RFC 9942/9943)"]
+        OTel["OpenTelemetry GenAI Ingestion"]
+    end
+
+    MCPTools --> InProcessGate
+    InProcessGate --> SidecarProxy
+    SidecarProxy --> ExternalRails
+    SidecarProxy -.-> TransparencyPlane
+    StructuralScaffolding -. "Structural Scaffolding Blueprint" .-> SidecarProxy
+```
+
+---
+
+### Picture 4: Honest Measurement Model
+
+To evaluate the operational characteristics of AEIB governed partitions, we define a controlled, multi-dimensional simulation model comparing four execution architectures under identical task workloads and synthetic network fault schedules:
+
+| Evaluation Dimension | 1. Sequential Baseline | 2. Read-Parallel / Write-Serial | 3. Unpartitioned Multi-Agent | 4. AEIB Governed Partitions |
 | :--- | :--- | :--- | :--- | :--- |
-| **Tool Execution Paradigm** | Discrete REST endpoints | Per-prompt text filters | Pre-dispatch evidence checks | **Code Mode script taint (`AT67`) + mid-session hot-reload rejection (`AT68`)** |
-| **Zero-Token Decision Models** | Unaware of agent context | Ineffective (zero text tokens to inspect) | Dependent on structured evidence | **Direct wire parameter gating + 4D governance binding (`AT69`)** |
-| **Post-Dispatch Wire Dropout (HTTP 504)** | Returns 504; blind retry causes duplicate mutations | Silent dropout or client crash | Unresolved post-wire liability | **`EFFECT_INDETERMINATE` latch + spend escrow (`AT58`) + single-flight probe (`ProbeBudget: 1`)** |
-| **Idempotency & Replay Resistance** | Client-controlled header (vulnerable to drift) | None | Logical intent binding | **Deterministic canonical hash binding: `aeib-idem-v1-<sha256(op:caid)>`** |
-| **Regulatory Audit Artifacts** | Standard server logs | Plain JSON traces | Internal evidence proofs | **RFC 9942/9943 SCITT Merkle receipts + DORA Art. 17 / Art. 28(3) EBA DPM 4.0 packages** |
-| **Cryptographic Agility** | RSA / ECDSA | None | Standard asymmetric keys | **Ed25519 + ML-DSA-65 Dual-Speed Epoch Rollups (`AT63`) + CycloneDX 1.6 CBOM** |
+| **Execution Architecture** | Single worker executing all read and write mutations serially. | Multiple workers perform read/investigation in parallel; writes merge serially. | Multiple workers execute concurrent writes without coordination. | Disjoint write set partitions, durable pre-dispatch intent, bounded reconciliation. |
+| **End-to-End Latency** | High (linear with task count: $O(N)$). | Moderate (parallel read speedup, serialized write bottleneck). | Low initial dispatch latency, high tail latency on retry storms. | Low to moderate (parallel speedup bounded by partition disjointness). |
+| **Token Overhead** | Minimal (single context window). | Moderate (context passed back to centralized writer). | High (repeated context on uncoordinated retries). | Low to moderate (operation-bound intent tokens, zero retry explosion). |
+| **Write Collisions** | Zero (by construction: serial). | Zero (by construction: serialized write queue). | High (concurrent conflicting mutations on shared state). | Zero (configured non-overlapping via disjoint partition check). |
+| **Duplicate Mutations (504 Faults)** | High if client retries blindly; zero if client halts. | High if write worker retries without idempotency keys. | Critical risk (concurrent naive retries create multiple charges). | **Zero observed** (deterministic CAID + `EFFECT_INDETERMINATE` latch). |
+| **Unresolved Outcomes** | Indeterminate on transport drop. | Indeterminate on transport drop. | Indeterminate / silent state drift. | **Zero** (bounded single-flight probe resolves status or halts fail-closed). |
+| **Recovery Mechanism** | Manual error inspection. | Serial retry or manual operator triage. | Uncoordinated retry loops / conflict overwrites. | Bounded status probe (`ProbeBudget: 1`) + target-signed refutation. |
 
 ---
 
@@ -189,3 +335,4 @@ All claims in this brief conform strictly to [`AGENTS.md`](file:///Users/andriil
 * Zero banned terms utilized.
 * Structural scaffolding explicitly segregated (`SCAFFOLD_ONLY` for eBPF and CVM hardware attestation).
 * All operational performance metrics derived directly from verified unit tests (`tests/test_opencode_codemode_and_hotreload.py`, `tests/test_production_gateway_smoke.py`) and the deterministic 500-episode fault harness.
+

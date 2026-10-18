@@ -48,6 +48,9 @@ Fudan University (*Li et al., October 2026*) evaluated 2,124 runs across Codex, 
 $$\text{CriticalSteps} = \sum_{t=1}^{T} \left( S_{\text{main}}^{(t)} + \max_i S_{\text{sub}, i}^{(t)} \right)$$
 and identified **Spurious Parallelism**, where subagents burn tokens without reducing critical path latency or producing verified outputs.
 
+### 2.3 Guarded Commits & Emission Anchors (October 2026)
+Concurrently in October 2026, Bindschaedler et al. (*arXiv:2610.00037*) introduced **Guarded Commits**, establishing that human approvals must be integrated as transactional commit gates into an append-only ledger via credential-confined commit adapters, rather than treated as decoupled UI clicks. Simultaneously, Hu et al. (*arXiv:2610.00327*) formalized **Actions with Receipts**, diagnosing the "Claim-Evidence-Execution Disconnect" and proposing **Emission Anchors** to cryptographically bind natural language claims, context evidence, and tool executions. AEIB operationalizes both paradigms at Layer 3: its Pre-Dispatch Interlock acts as a Guarded Commit Adapter, while its canonical CAID and Ed25519 Continuous Ledger receipts serve as an Emission Anchor bound to raw socket bytes.
+
 ---
 
 ## 3. The AEIB Architecture: Out-of-Process TCC & Visibility-Lag Fencing
@@ -164,3 +167,7 @@ The "AI Execution Gap" is fundamentally a distributed transactions problem. By r
 6. *TrajAudit & The RootSE Benchmark: Root-Cause Localization in Failed Agent Trajectories.* arXiv:2605.26563, May 2026.
 7. Yuxi Chen et al. *Token Economics for LLM Agents: A Dual-View Study.* arXiv:2605.09104, May 2026.
 8. *ParaGUIBench: Benchmarking Parallel Multi-Agent Architectures.* arXiv:2607.22689, July 2026.
+9. L. Bindschaedler, F. Kossmann, C. Liu, J. Mohoney. *Guarded Commits: Transactional Human Approvals for LLM Workflows.* arXiv:2610.00037, October 2026.
+10. M. Hu, S. Hu, X. Guo, X. Wang, B. Wang, Y. Sa, D. Zha, J. Xiao. *Actions with Receipts: Jointly Binding Claims, Evidence, and Execution for Replayable Tool-Agent Auditing.* arXiv:2610.00327, October 2026.
+11. *PACE: Provenance-Aware Capability Enforcement for Tool-Using LLM Agents.* arXiv:2610.01349, October 2026.
+12. H. Dang. *Praetor: A Behavioral Firewall for Structured-Workflow AI Agents.* arXiv:2604.26274, April 2026.

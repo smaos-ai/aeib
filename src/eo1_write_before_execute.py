@@ -32,9 +32,12 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import logging
 import threading
 import urllib.request
 import urllib.error
+
+logger = logging.getLogger(__name__)
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
@@ -418,18 +421,18 @@ class PreDispatchIntentInterlock:
                 data = json.loads(latch_file.read_text(encoding="utf-8"))
                 caid = data["caid"]
                 self._latched_intents[caid] = RecoveredIntentState(
-                    intent_id=data["intent_id"],
+                    intent_id=data.get("intent_id", f"latched-{caid[:16]}"),
                     caid=caid,
-                    target_uri=data["target_uri"],
-                    tool_name=data["tool_name"],
+                    target_uri=data.get("target_uri", "unknown"),
+                    tool_name=data.get("tool_name", "unknown"),
                     lifecycle_state=IntentLifecycleState.EFFECT_INDETERMINATE,
                     retry_safe=False,
                     reconciliation_required=True,
-                    latched_at=data["latched_at"],
+                    latched_at=data.get("latched_at", ""),
                     reproducibility_evidence_sha256="",
                 )
             except (json.JSONDecodeError, KeyError, OSError) as e:
-                logger.warning("Failed to recover latch from %s: %s", p, e)
+                logger.warning("Failed to recover latch from %s: %s", latch_file, e)
 
         # Scan ledger for unfulfilled intents
         recovered = recover_unresolved_intents(self.ledger_path, self.output_state_dir)
@@ -631,7 +634,10 @@ class PreDispatchIntentInterlock:
                         "intent_id": intent.intent_id,
                         "latched_at": now_iso,
                         "lifecycle_state": "EFFECT_INDETERMINATE",
+                        "reconciliation_required": True,
                         "retry_safe": False,
+                        "target_uri": target_uri,
+                        "tool_name": tool_name,
                         "wire_fault": str(wire_fault),
                     }),
                     encoding="utf-8",

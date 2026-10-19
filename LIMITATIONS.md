@@ -10,69 +10,72 @@ Regulatory Role       : Operational Evidence Generator (Not a Turnkey QMS or Sta
 
 ---
 
-## 1. Status and Verification
+## 1. Release Status and Assurance Scope
 
-AEIB v1.0.0-rc.3 is a release candidate and a requirement-driven specification. 
-Local test suites report passing results under zero-mock enforcement. 
-**No independent reproduction, third-party certification, or formal verification (e.g., TLA+/Coq) is claimed.** 
-Passing local suites demonstrate internal logic consistency, not production readiness or comprehensive security.
+AEIB v1.0.0-rc.3 is a requirement-driven specification and release candidate (repository tags `v1.0.0-rc.29`+ carry this specification).
+- Local zero-mock verification suites report passing results in the development environment.
+- Passing local suites verify assertion logic against local state machines and cryptographic primitives. They **do not** constitute independent third-party reproduction, formal proof about external systems, or regulatory certification.
+- **No independent reproduction, third-party certification, or formal verification (e.g., TLA+/Kani/Coq) is claimed.**
+- Performance and architectural targets for a native Rust/eBPF/TEE data plane (planned `v1.0.0-rc.4`) remain designated `[TARGET]` until measured in a published clean-room environment. That data plane does not exist in this release; `ebpf/` and `hardware_attestation/` are structural scaffolding only.
 
 ---
 
 ## 2. Execution Boundary Scope
 
-AEIB governs actions that are explicitly routed through its configured out-of-process boundary. 
-It does not intercept, govern, or log actions that bypass the boundary via unmonitored syscalls, direct network sockets, or un-instrumented agent runtimes. 
-If the agent or host environment bypasses the AEIB gateway, AEIB provides zero protection or evidence.
+AEIB governs only those actions that traverse its configured Station 1 and Station 2 boundaries.
+- In userspace deployments (`v1.0.0-rc.3`), AEIB does not intercept actions that bypass the configured gateway (e.g., direct raw socket syscalls, unproxied UDP/QUIC traffic, or out-of-band shell execution) unless paired with host/kernel-level network and file-system enforcement (e.g., `BPF_LSM` / Cilium Tetragon policies, network namespaces) that is deployed and adversarially tested in the target environment.
+- If the agent or host environment bypasses the AEIB gateway, AEIB provides no protection and no evidence for that action.
 
 ---
 
 ## 3. External Effects and Transactional Finality
 
-AEIB provides **local atomic reservation and durable uncertainty** for external effects. 
-It **does not** provide distributed atomic commit (Two-Phase Commit) across third-party payment rails, banking systems, or external APIs. 
-If an external system commits a mutation but the network drops the acknowledgment, the external effect is irreversible. AEIB preserves `EFFECT_INDETERMINATE` to prevent blind retries, but it cannot force an external system to roll back. Exactly-once semantics are only achievable if the target system supports bounded, authoritative idempotency.
+A local database transaction (SQLite ACID or a local WAL group commit) cannot make an external network side effect atomic.
+- AEIB provides **local atomic budget reservation (escrow)** and **durable uncertainty (`EFFECT_INDETERMINATE`)** before and during external dispatch.
+- AEIB **does not** provide distributed two-phase commit (2PC) or automatic rollback across third-party banks, payment processors, or external APIs. Consensus among AEIB nodes (if deployed) coordinates AEIB's own state only; it cannot force an external system to commit or roll back.
+- Consistent with the impossibility result reported in LIMBO (arXiv:2609.29095), no verification-only policy can deliver exactly-once execution under unbounded late commits without a known in-flight-time bound. When a downstream target times out or returns an ambiguous response, AEIB halts blind retries and preserves the uncertain state until bounded authoritative reconciliation (`get_transaction_status` or idempotency-key replay) resolves the outcome, or escalates to a human supervisor.
+- Exactly-once outcomes are only achievable where the target supports bounded, authoritative idempotency or status lookup.
 
 ---
 
-## 4. Credential and Key Isolation
+## 4. Credential Isolation and Host Trust Assumptions
 
-AEIB aims to prevent agent-readable downstream credentials via credential starvation and host-side injection. 
-It **does not** eliminate host compromise, vault compromise, memory-scraping malware, key misuse by authorized operators, or insider threats. 
-"Zero-key agent runtimes" applies strictly to the isolated agent process, not the broader host environment.
-
----
-
-## 5. Egress and Network Controls
-
-Proxy and gateway controls cover configured transports (e.g., HTTP/HTTPS via explicit proxy). 
-They **do not** automatically cover or prevent DNS rebinding, IPv6 leakage, QUIC tunneling, HTTP redirects, domain fronting, or raw syscall-level bypasses unless explicitly implemented, tested, and enforced at the OS/kernel layer (e.g., via eBPF/LSM or strict network namespaces).
+AEIB enforces `agent_holds_downstream_credentials: false` by keeping downstream API keys and signing instruments in a host-side gateway outside the agent's context window and process memory.
+- Userspace credential isolation **does not** mitigate a compromised host OS kernel, rootkit, compromised secret vault, memory-scraping malware, key-custody mismanagement, misuse by authorized operators, or a malicious host administrator.
+- Hardware memory encryption and attestation require deployment inside a verified Trusted Execution Environment (e.g., AWS Nitro Enclaves, Intel TDX, AMD SEV-SNP) with an explicit enclave key-provisioning ceremony. TEEs carry their own published attack history and trust assumptions (vendor root of trust, firmware, side channels); they reduce but do not remove host trust.
+- "Zero-key agent runtimes" applies strictly to the isolated agent process, not the broader host environment.
 
 ---
 
-## 6. Evidence and Legal Liability
+## 5. Egress and Sandbox Controls
 
-Signed receipts (JCS/COSE) and append-only ledgers support cryptographic integrity, attribution, and investigation under stated key-custody assumptions. 
-They **do not** create, transfer, or eliminate legal liability. Liability depends on contract law, agency, employment, negligence, jurisdiction, and specific facts. An AEIB receipt proves a policy authorized a dispatch; it does not prove the policy was legally sound or that the operator is shielded from regulatory action.
-
----
-
-## 7. Regulatory Compliance
-
-AEIB may generate structured, machine-verifiable evidence useful to an operator’s EU AI Act (EN 18286), DORA, or ISO/IEC 27090 compliance program. 
-It **does not** constitute a Quality Management System (QMS), replace legal analysis, satisfy conformity assessment bodies, or automatically fulfill statutory reporting obligations. Compliance is an organizational control, not a software feature.
-
-* **EN 18286:2026**: Supports Article 17 QMS requirements for providers of high-risk AI systems (presumption of conformity under Article 40 once cited in OJEU). AEIB contributes technical records to an operator's technical documentation; it does not certify the system.
-* **ISO/IEC 27090**: Provides lifecycle cybersecurity guidance rather than mandatory certifiable management system controls (ISO/IEC 42001).
-* **EU DORA**: Governs financial entity ICT risk and incident management. AEIB provides machine-verifiable audit trails; the financial entity retains sole responsibility for materiality determination and statutory reporting.
+Gateway allowlists and `TLS SNI == HTTP Host` checks apply only to traffic routed through the gateway.
+- They **do not** automatically defeat DNS rebinding, IPv6 routing bypasses, shared-CDN IP laundering, domain fronting, HTTP redirects, QUIC tunneling, or kernel-level bypasses unless every transport layer is locked and adversarially tested in the target deployment.
 
 ---
 
-## 8. Benchmarks and Performance
+## 6. Cryptographic Receipts and Legal Liability
 
-Internal benchmark results (e.g., speedup multipliers, token savings, duplicate reduction) apply **strictly and only** to the stated workload, fault model, random seeds, and environment configuration. 
-They are not comparable to other systems without a common, standardized benchmark and independent reproduction. 
-"Zero-latency" or "sub-millisecond" claims are not made; fast-path classifiers introduce probabilistic latency and must fail closed to the full gate upon any uncertainty.
+Operation-bound signed receipts record what action (`CAID`) was proposed, which policy epoch and harness digest were active, which key signed the warrant, and what transport outcome was observed.
+- Receipts support technical attribution, auditability, and forensic investigation under stated key-custody assumptions.
+- Receipts **do not** create, transfer, or extinguish legal liability, which remains governed by applicable contract, agency, tort, employment, and statutory law. A receipt shows a policy authorized a dispatch; it does not show the policy was legally sound.
+
+---
+
+## 7. Regulatory Alignment (EU AI Act / EN 18286, DORA, ISO/IEC 27090)
+
+AEIB can generate structured operational evidence to support an operator's quality-management or security program. Compliance is an organizational control, not a software feature.
+- **EN 18286:2026:** Contributes technical lifecycle and logging artifacts toward an operator's EU AI Act Article 17 Quality Management System. It **does not** itself constitute a complete QMS, a conformity assessment, or a legal presumption of conformity.
+- **ISO/IEC 27090:** Aligns with AI lifecycle cybersecurity guidance; it does not "fulfill" or certify against the standard.
+- **DORA (Regulation (EU) 2022/2554):** Provides tamper-evident audit logs for ICT operations. It cannot classify incident materiality, file regulatory reports, or discharge a financial entity's supervisory obligations.
+
+---
+
+## 8. Fast-Path Classification and Benchmarks
+
+- Any probabilistic or lightweight classifier may only route strictly `read_only`, non-networked, non-credentialed, non-mutating requests above a calibrated confidence threshold, and must fail closed to `full_gate` on any uncertainty. The deterministic bitmask gate in `src/constant_time_group_commit_latch.py` is the preferred mechanism.
+- Reported internal benchmark metrics (speedups, token savings, duplicate reduction, latch latency) apply solely to the configured test harness, fault schedule, random seeds, and hardware, and may not be generalized without independent clean-room reproduction.
+- "Zero-latency" claims are not made. Latency figures marked `[MEASURED-LOCAL]` describe one developer machine; `[TARGET]` figures are unmeasured.
 
 ```yaml
 fast_path:

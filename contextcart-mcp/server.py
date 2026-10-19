@@ -22,6 +22,15 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+try:
+    from ast_slicer import AstSymbolSlicer
+except ImportError:
+    try:
+        from contextcart_mcp.ast_slicer import AstSymbolSlicer
+    except ImportError:
+        AstSymbolSlicer = None
+
+
 
 def canonical_json(obj: Any) -> bytes:
     """Deterministic UTF-8 JSON serialization."""
@@ -192,10 +201,23 @@ def handle_slice_symbol(arguments: Dict[str, Any]) -> Dict[str, Any]:
     """
     Extracts only the target function or class definition from a file using AST,
     stripping blank lines and avoiding full-file context dumping.
+    Supports include_context_headers to preserve module-level imports and type declarations.
     """
     file_path = arguments.get("file_path", "")
     symbol_name = arguments.get("symbol_name", "")
     strip_blank = bool(arguments.get("strip_blank_lines", True))
+    include_context_headers = bool(arguments.get("include_context_headers", False))
+
+    if AstSymbolSlicer is not None:
+        res = AstSymbolSlicer.slice_symbol(
+            file_path=file_path,
+            symbol_name=symbol_name,
+            strip_blank_lines=strip_blank,
+            include_context_headers=include_context_headers,
+        )
+        if res.get("status") == "SUCCESS":
+            res["token_reduction_pct"] = f"{res.get('token_savings_pct', 0.0)}%"
+        return res
 
     path = Path(file_path)
     if not path.exists():
@@ -231,7 +253,21 @@ def handle_slice_symbol(arguments: Dict[str, Any]) -> Dict[str, Any]:
     if strip_blank:
         sliced_lines = [l for l in sliced_lines if l.strip()]
 
-    sliced_code = "\n".join(sliced_lines)
+    header_lines: List[str] = []
+    if include_context_headers:
+        header_nodes = [
+            item for item in tree.body
+            if isinstance(item, (ast.Import, ast.ImportFrom))
+        ]
+        if header_nodes:
+            last_h_line = max(getattr(h, "end_lineno", h.lineno) for h in header_nodes)
+            header_lines = lines[:last_h_line]
+            if strip_blank:
+                header_lines = [l for l in header_lines if l.strip()]
+            header_lines.append("# --- Context Header: Preserved Imports & Type Signatures ---")
+
+    final_lines = header_lines + sliced_lines
+    sliced_code = "\n".join(final_lines)
     slice_tokens = estimate_tokens(sliced_code)
     reduction = (
         round((1.0 - (slice_tokens / max(raw_tokens, 1))) * 100.0, 1)
@@ -338,6 +374,11 @@ TOOLS_REGISTRY = {
                 "file_path": {"type": "string", "description": "Path to the Python file"},
                 "symbol_name": {"type": "string", "description": "Name of function or class to extract"},
                 "strip_blank_lines": {"type": "boolean", "default": True},
+                "include_context_headers": {
+                    "type": "boolean",
+                    "description": "Preserve module-level imports and type declarations to avoid type blindness",
+                    "default": False,
+                },
             },
             "required": ["file_path", "symbol_name"],
         },

@@ -172,6 +172,29 @@ def test_ast_symbol_slicing_token_reduction():
     assert raw_red_pct >= 40.0
 
 
+def test_ast_symbol_slicing_with_context_headers():
+    """Verifies slice_symbol with include_context_headers=True prepends module imports and type headers."""
+    target_file = REPO_ROOT / "src" / "governance_boundary.py"
+    assert target_file.exists()
+
+    result = handle_slice_symbol(
+        {
+            "file_path": str(target_file),
+            "symbol_name": "ControlPlaneHealth",
+            "strip_blank_lines": True,
+            "include_context_headers": True,
+        }
+    )
+
+    assert result["status"] == "SUCCESS"
+    assert result["symbol_name"] == "ControlPlaneHealth"
+    assert "# --- Context Header: Preserved Imports & Type Signatures ---" in result["sliced_code"]
+    assert "import hashlib" in result["sliced_code"]
+    assert "class ControlPlaneHealth" in result["sliced_code"]
+    raw_red_pct = float(result["token_reduction_pct"].replace("%", ""))
+    assert raw_red_pct > 70.0
+
+
 def test_audit_context_efficiency_calculation():
     """Verifies Context Efficiency Score (CES) and cost waste calculation."""
     args = {

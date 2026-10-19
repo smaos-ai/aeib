@@ -77,10 +77,12 @@ class AstSymbolSlicer:
         file_path: Path | str,
         symbol_name: str,
         strip_blank_lines: bool = True,
+        include_context_headers: bool = False,
     ) -> Dict[str, Any]:
         """
         Extracts only the specified symbol definition from the target file.
         Returns bounded slice payload with dual digests and token economics.
+        Optionally includes module-level imports and type declarations to prevent type-blindness.
         """
         path = Path(file_path)
         if not path.exists():
@@ -110,7 +112,25 @@ class AstSymbolSlicer:
         if strip_blank_lines:
             slice_lines = [line for line in slice_lines if line.strip()]
 
-        sliced_code = "\n".join(slice_lines)
+        header_lines: List[str] = []
+        if include_context_headers:
+            try:
+                tree = ast.parse(raw_content)
+                header_nodes = [
+                    item for item in tree.body
+                    if isinstance(item, (ast.Import, ast.ImportFrom))
+                ]
+                if header_nodes:
+                    last_h_line = max(getattr(h, "end_lineno", h.lineno) for h in header_nodes)
+                    header_lines = lines[:last_h_line]
+                    if strip_blank_lines:
+                        header_lines = [l for l in header_lines if l.strip()]
+                    header_lines.append("# --- Context Header: Preserved Imports & Type Signatures ---")
+            except SyntaxError:
+                pass
+
+        final_lines = header_lines + slice_lines
+        sliced_code = "\n".join(final_lines)
         slice_sha = sha256_prefixed(sliced_code.encode("utf-8"))
         slice_tokens = estimate_tokens(sliced_code)
 

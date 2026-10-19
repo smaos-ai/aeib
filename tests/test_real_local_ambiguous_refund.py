@@ -181,6 +181,7 @@ class LocalAeibCoordinator:
         prev_hash = GENESIS_PREV_HASH if seq == 1 else self.ledger[-1]["entry_hash"]
         unsigned = {
             "schema_version": SUPPORTED_SCHEMA_VERSION,
+            "algorithm": "Ed25519",
             "seq": seq,
             "operation_id": operation_id,
             "prev_entry_hash": prev_hash,

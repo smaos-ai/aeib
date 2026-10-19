@@ -80,12 +80,15 @@ UNSIGNED_EXCLUDED_KEYS = ("entry_hash", "signature_b64")
 
 def canonical_json_v1(obj: Any, allow_nan: bool = False) -> bytes:
     """
-    RFC 8785 JSON Canonicalization Scheme (JCS) Profile v1.
-    Strictly disallows NaN/Infinity when allow_nan=False (default).
+    AEIB canonical JSON profile v1 (built on the repository's `encode_jcs`).
+
+    Scope: this profile is deterministic and rejects NaN/Infinity. It is NOT
+    claimed as full RFC 8785 JCS until the published JCS test vectors are run
+    against the implementation. `allow_nan` exists only for signature clarity;
+    True is unsupported and raises.
     """
-    if not allow_nan:
-        # encode_jcs natively raises ValueError on NaN/Infinity
-        return encode_jcs(obj)
+    if allow_nan:
+        raise ValueError("canonical_json_v1 does not support allow_nan=True")
     return encode_jcs(obj)
 
 
@@ -194,8 +197,9 @@ class StandaloneOfflineVerifier:
             if entry.get("schema_version") != SUPPORTED_SCHEMA_VERSION:
                 return VerificationResult(False, "ERR_UNSUPPORTED_SCHEMA_VERSION", failed_seq=seq)
 
-            # 3. Cryptographic algorithm validation (reject downgrade attacks)
-            alg = entry.get("algorithm", "Ed25519")
+            # 3. Cryptographic algorithm validation (reject downgrade attacks).
+            # The field is mandatory: absence must not default to an approved value.
+            alg = entry.get("algorithm")
             if alg != "Ed25519":
                 return VerificationResult(False, "ERR_UNSUPPORTED_CRYPTO_ALGORITHM", failed_seq=seq)
 
@@ -432,6 +436,32 @@ def test_offline_verifier_positive_and_all_12_negative_vectors() -> None:
 def test_offline_verifier_positive_and_all_6_negative_vectors() -> None:
     """Backward-compatible test name alias for legacy test runners."""
     test_offline_verifier_positive_and_all_12_negative_vectors()
+
+
+def test_missing_algorithm_field_is_rejected_fail_closed() -> None:
+    """Regression: an entry with no `algorithm` field must not default to Ed25519."""
+    key = Ed25519PrivateKey.generate()
+    kid = "aeib-regression-key"
+    entry = build_signed_entry(1, "op-reg-1", GENESIS_PREV_HASH, kid, key)
+    body = {k: v for k, v in entry.items() if k not in ("entry_hash", "signature_b64", "algorithm")}
+    canonical = canonical_json_v1(body)
+    stripped = {
+        **body,
+        "entry_hash": sha256_prefixed(canonical),
+        "signature_b64": base64.b64encode(key.sign(canonical)).decode("ascii"),
+    }
+    verifier = StandaloneOfflineVerifier({kid: key.public_key()})
+    res = verifier.verify_bundle(build_manifest([stripped]), [stripped], {"op-reg-1"})
+    assert res.valid is False
+    assert res.error_code == "ERR_UNSUPPORTED_CRYPTO_ALGORITHM"
+
+
+def test_canonical_json_v1_rejects_allow_nan_true() -> None:
+    try:
+        canonical_json_v1({"a": 1}, allow_nan=True)
+    except ValueError:
+        return
+    raise AssertionError("allow_nan=True must raise")
 
 
 def _load_pem_public_key(path: Path) -> Ed25519PublicKey:

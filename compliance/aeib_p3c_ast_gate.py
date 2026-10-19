@@ -18,7 +18,8 @@ Enforces domain-specific AST integrity across AEIB core modules:
 1. Integer-Only Monetary Precision (P3C-FIN01): Currency fields must use integer minor units (no float currency).
 2. No Bare Excepts (P3C-EXC01): Disallow `except:` clauses without explicit exception type.
 3. No Silent Exception Swallowing (P3C-EXC02): Disallow `except Exception: pass`.
-4. Fail-Closed Wire Latching (P3C-LAT01): Transport timeouts (504/RST) must preserve durable uncertainty.
+4. (Not implemented as an AST rule) Fail-closed wire latching is verified by
+   behavioral tests, not by this gate.
 5. Zero-Mock AST Purity (P3C-MCK01): No unittest.mock, MagicMock, or patch in core production modules.
 6. Epistemic Purity (P3C-EPS01): No banned promotional terms in string constants.
 """
@@ -42,6 +43,10 @@ BANNED_PROMOTIONAL_TERMS = [
     "unhack" + "able",
     "non-" + "repudiable",
 ]
+
+# Rules actually implemented by P3CDomainASTVisitor. P3C-LAT01 (fail-closed wire
+# latching) is NOT implemented here and is covered by behavioral tests instead.
+RULE_IDS = ("P3C-FIN01", "P3C-EXC01", "P3C-EXC02", "P3C-MCK01", "P3C-EPS01")
 
 CORE_AEIB_MODULES = [
     # Core Station 1 - 3 Execution Boundary & Financial Gates
@@ -202,8 +207,8 @@ def main() -> int:
         print("\nGATE 1 FAILED: Fix AST compliance violations to proceed.")
         return 1
 
-    print("\n[OK] All scanned modules passed Alibaba P3C / Tencent CodeCC domain AST rules.")
-    print("GATE 1 & 2 PASSED: 0 AST violations, clean zone boundaries, zero mocks.")
+    print(f"\nP3C domain AST rules: {count} modules scanned, {len(violations)} violations.")
+    print(f"Rules evaluated: {', '.join(RULE_IDS)}. Scope: {len(CORE_AEIB_MODULES)} listed core modules.")
     return 0
 
 

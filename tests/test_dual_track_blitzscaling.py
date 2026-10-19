@@ -33,8 +33,8 @@ def test_track1_npx_package_manifest():
     pkg_file = REPO_ROOT / "contextcart-mcp" / "package.json"
     assert pkg_file.exists()
     data = json.loads(pkg_file.read_text(encoding="utf-8"))
-    assert data["name"] == "context-governor-mcp"
-    assert data["version"] == "1.0.0"
+    assert data["name"] == "@sovereignnexus/context-governor-mcp"
+    assert data["version"] == "0.1.0-beta.1"
     assert "bin" in data
     assert "context-governor-mcp" in data["bin"]
     bin_path = REPO_ROOT / "contextcart-mcp" / data["bin"]["context-governor-mcp"]

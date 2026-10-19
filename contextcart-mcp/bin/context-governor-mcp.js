@@ -22,8 +22,8 @@ const SERVER_PY = path.join(SCRIPT_DIR, 'server.py');
 
 function printBanner() {
   console.log('========================================================================');
-  console.log('  CONTEXT GOVERNOR MCP (ContextCart v1.0.0)');
-  console.log('  Deterministic Token Reduction & Prompt Context Boundary');
+  console.log('  CONTEXT GOVERNOR MCP (@sovereignnexus/context-governor-mcp v0.1.0-beta.1)');
+  console.log('  Deterministic Token Reduction & Prompt Context Boundary (Prototype)');
   console.log('========================================================================');
 }
 
@@ -68,7 +68,8 @@ function handleInit(args) {
   }
 
   // Perform non-invasive session history dry-run analysis
-  console.log('\n--- Local Context & Session History Analysis (Dry-Run) ---');
+  console.log('\n--- Local Context & Session History Analysis (Dry-Run Model) ---');
+  console.log('[*] Note: Modeled under sample baseline assumptions; not an observed customer outcome.');
   const sampleSessions = 14;
   const avoidablePromptPct = 38;
   const schemaOverheadTokens = 19000;
@@ -81,7 +82,7 @@ function handleInit(args) {
   console.log(`    • Avoidable Prompt Context : ${avoidablePromptPct}%`);
   console.log(`    • MCP Schema Overhead      : ~${schemaOverheadTokens.toLocaleString()} tokens/session`);
   console.log(`    • Cache Miss Rate          : ${cacheMissRate}% (Prefix jitter)`);
-  console.log(`    • Estimated Monthly Waste  : $${estimatedDevWaste.toFixed(2)} / developer`);
+  console.log(`    • Modeled Monthly Waste    : $${estimatedDevWaste.toFixed(2)} / developer (modeled)`);
   console.log(`    • Context Efficiency Score : ${cesCurrent.toFixed(3)} → Potential ${cesPotential.toFixed(3)}`);
   console.log('------------------------------------------------------------------------');
   console.log('💡 ACTIVE SAFEGUARDS ENABLED:');

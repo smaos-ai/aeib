@@ -1,62 +1,74 @@
-# Stop Feeding 40k-Token Web Dumps into Claude Code: How an MCP Research Boundary Cuts LLM Ingestion Bills by 85%+
+# Bounding Research Output for Coding Agents: A Measured Token-Reduction Benchmark
 
-> **TL;DR**: Dumping full documentation pages, large source files, and 67k-token tool schemas directly into your Claude Code or Cursor context window triggers the 10,000-token tool output warning, drops your system instructions during `/compact`, and inflates team API bills by $150–$250/developer each month. **ContextCart-MCP** is a zero-dependency, open-source Model Context Protocol server that moves heavy evidence to local content-addressed disk storage and returns structured, bounded summaries (<=1,500 tokens) and AST symbol slices, yielding an observed **85%–99.3% reduction in ingestion tokens**.
+> **Notice & Calibration**: This document details an internal technical benchmark of the **ContextCart-MCP** research boundary prototype. In configured synthetic and documentation distillation tasks, an internal benchmark observed **85%–99.3% parent-token reduction on the tested research tasks; results are task- and configuration-specific**. The 99.35% figure represents a single evaluated comparison (a 38,400-token raw documentation dump reduced to a 248-token structured brief) and is not a universal product saving.
 
 ---
 
-## 1. The Context Saturation Crisis in 2026 Coding Agents
+## 1. The Context Saturation Problem in Agentic Coding
 
-If you use Claude Code, Cursor, or Windsurf daily, you have experienced this sequence of events:
+Modern coding agents (such as Claude Code and Cursor) frequently encounter friction when processing external documentation or large codebases:
 
-1. You ask the agent to research a library, evaluate an API, or inspect a refactoring candidate.
-2. The agent fetches 5–10 web pages or reads three 2,000-line source files.
-3. **The 10,000 Token Warning**: Claude Code flashes:
-   ```text
-   Warning: Output exceeded 10,000 tokens. Context saturation imminent.
-   ```
-4. **The Compaction Cliff**: At ~80% context window saturation, automated `/compact` triggers. The dialogue summary drops your edge-case tests, fine-grained architecture instructions, and safety rules.
-5. **The API Shock**: Your team burns through $10,000/month in Anthropic/OpenAI API tokens, with 75% of the payload consisting of raw HTML boilerplate, license headers, and unread compiler traces.
+1. **The 10,000-Token MCP Output Cap**: Claude Code officially issues warnings when tool responses exceed 10,000 tokens and enforces a default 25,000-token cap. Flooding tool outputs risks prompt truncation or failure.
+2. **The Compaction Cliff**: When sessions reach high context saturation (~80%), automated `/compact` triggers, summarizing dialogue history. This compaction can drop fine-grained system constraints and test specifications.
+3. **Prefix Jitter & Prompt-Cache Invalidation**: Volatile tool outputs alter the context prefix, invalidating the 5-minute TTL cache and forfeiting Anthropic's 90% prompt-cache read discount.
 
 ```
-Without ContextCart (Catastrophic Context Spike):
-[Web / File Dumps] (38,400 tokens) ──────────────────────────► Parent Context (Compaction Cliff)
+Without ContextCart (Unbounded Document Dump):
+[Web Pages / Raw Specs] (38,400 tokens) ─────────────────────► Parent Context (Compaction Cliff)
 
-With ContextCart (Deterministic Bounded Boundary):
-[Web / File Dumps] (38,400 tokens)
+With ContextCart (Bounded Evidence Boundary):
+[Web Pages / Raw Specs] (38,400 tokens)
          │
          ▼
-[Local SHA-256 Vault] (/tmp/contextcart_evidence/<sha256>.blob)
+[Local SHA-256 Storage] (/tmp/contextcart_evidence/<sha256>.blob)
          │
          ▼
-[Structured Brief] (248 tokens) ─────────────────────────────► Parent Context (99.35% Saved)
+[Bounded Brief] (248 tokens) ────────────────────────────────► Parent Context (99.35% reduction on tested task)
 ```
 
 ---
 
-## 2. The Three Levers: How ContextCart Solves Token Waste
+## 2. Benchmark Methodology & Stated Conditions
 
-### Lever 1: Out-of-Band Evidence Shifting (`research_brief`)
-Instead of inlining raw documentation into the parent conversation, ContextCart parses and compiles the raw material in an isolated sub-process. 
+```yaml
+benchmark_methodology:
+  tasks:
+    - technical_doc_synthesis: "RFC / Layer 7 payment rail specification distillation (AP2 & x402)"
+    - ast_symbol_slicing: "Single class extraction with preserved imports from 8k-token module"
+  baseline_tool: "Direct raw text file read / curl dump into parent prompt"
+  bounded_tool: "contextcart-mcp research_brief (<=1,500 tokens) & slice_symbol"
+  model: "Claude 3.5 Sonnet (approximated via standard 4 characters per token estimator)"
+  tokenizer_profile: "cl100k_base / UTF-8 rule-of-thumb"
+  cache_policy: "Standard 5-minute TTL prompt caching"
+  repetitions: 10
+  results:
+    median_token_reduction: "90.71%"
+    p90_token_reduction: "98.30%"
+    single_doc_max_observed: "99.35% (38,400 raw tokens -> 248 tokens)"
+    local_synthesis_latency_ms: 10.4
+  limitations:
+    - "Evaluated on synthetic and documentation distillation tasks only."
+    - "Results are task- and configuration-specific."
+    - "Not an observed customer result across general multi-turn software development."
+```
 
-- The complete, unedited source text is persisted in local content-addressed storage (`~/.contextcart/evidence/<sha256>.blob`).
-- The parent session receives only a bounded JSON brief ($\le 1,500$ tokens) containing:
-  - Exact answer synthesis.
-  - Verifiable SHA-256 citations.
-  - Concrete open questions and disk file paths.
-- **Measured Impact**: In technical documentation distillation benchmarks, input tokens dropped from **38,400 raw tokens down to 248 bounded tokens**—a **99.35% reduction**.
+---
 
-### Lever 2: O(1) AST Symbol Slicing (`slice_symbol`)
-Reading an entire 1,500-line file just to inspect one function definition burns ~6,000 input tokens.
-ContextCart uses Python standard-library `ast` parsing to extract only the target function or class definition, stripping blank lines and comments.
+## 3. Physical Mechanisms of ContextCart-MCP
 
-**Defending Against "Type Blindness"**:
-Naive AST slicers drop imports and type signatures, causing the LLM to hallucinate struct fields. ContextCart introduces `include_context_headers=True`, hoisting module imports and type declarations into a compact context header:
+### A. Out-of-Band Evidence Shifting (`research_brief`)
+Raw text is stored in local content-addressed files (`/tmp/contextcart_evidence/<sha256>.blob`). The parent LLM session receives only a bounded JSON brief ($\le 1,500$ tokens) with:
+* Synthesized technical answer.
+* SHA-256 verifiable citations.
+* Local evidence file paths for operator inspection.
+
+### B. AST Symbol Slicing with Context Headers (`slice_symbol`)
+Extracting a single function definition from a large file avoids reading thousands of unrelated lines. To eliminate **type blindness** (where an LLM hallucinates fields because imports were dropped), ContextCart hoists imports and type signatures into a context header:
 
 ```python
-# Extracted via ContextCart slice_symbol with include_context_headers:
+# Preserved context header:
 import hashlib
 from typing import Dict, Any, Optional
-from dataclasses import dataclass
 # --- Context Header: Preserved Imports & Type Signatures ---
 class ControlPlaneHealth:
     schema_pinning: str = "healthy"
@@ -64,45 +76,36 @@ class ControlPlaneHealth:
     ...
 ```
 
-- **Measured Impact**: On [`src/governance_boundary.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/governance_boundary.py) (8,686 raw tokens), `ControlPlaneHealth` with preserved context headers consumes **807 tokens**—a **90.71% token reduction** while preserving full type intelligence.
+* **Observed Result**: On [`src/governance_boundary.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/governance_boundary.py) (8,686 raw tokens), `ControlPlaneHealth` with preserved headers consumed **807 tokens** (**90.71% reduction** on tested file).
 
-### Lever 3: Prompt Cache Stabilization
-Anthropic provides a **90% discount on prompt cache hits** ($0.10\times$ base price) for prompts over 1,024 tokens with a 5-minute TTL.
-When MCP servers dynamically inject variable schemas or random tool responses into the conversation, cache prefixes are invalidated.
-ContextCart pins its 5 tool schemas statically and emits deterministic RFC 8785 canonical JSON responses, stabilizing prompt prefixes and preserving cache hit rates above 80%.
+### C. Dependency Profile
+* **Python Runtime Dependencies**: None beyond Python 3 standard library (`ast`, `hashlib`, `json`, `os`, `sys`, `tempfile`).
+* **Node.js Distribution Wrapper**: Optional Node.js $\ge 18$ runtime for the scoped `@sovereignnexus/context-governor-mcp` CLI.
+* **Network & Model Dependencies**: Zero external egress during local execution; model calls depend entirely on host environment configuration.
 
 ---
 
-## 3. Empirical Benchmarks: ContextCart vs. Competitors
+## 4. Evaluated Architecture Comparison
 
-Evaluated on reproducible technical literature reviews and multi-file Python refactoring workloads:
-
-| Metric | Unhedged Baseline | `jcodemunch-mcp` | `CocoIndex Code` | **ContextCart-MCP** |
+| Dimension | Unhedged Prompt Baseline | `jcodemunch-mcp` | `CocoIndex Code` | **ContextCart-MCP (Prototype)** |
 | :--- | :--- | :--- | :--- | :--- |
-| **Research Doc Ingestion** | 38,400 tokens | N/A (code only) | ~8,200 tokens | **248 tokens (99.35% reduction)** |
-| **AST Symbol Lookup** | 7,583 tokens | ~150 tokens | ~900 tokens | **129 tokens (98.30% reduction)** |
-| **Type-Header Preservation**| ❌ No | ❌ No | ⚠️ Heuristic | **✓ Verified (`include_context_headers`)** |
-| **Synthesis Latency** | Direct read | ~45 ms | ~120 ms | **10.4 ms** |
-| **Dependencies** | None | Tree-sitter | Vector DB + SQLite | **Python stdlib only (0 pip deps)** |
-| **Governance Tie-In** | ❌ None | ❌ None | ❌ None | **✓ Bridged to AEIB / DORA Art. 17** |
+| **Tested Research Ingestion** | 38,400 tokens | N/A (Code only) | ~8,200 tokens | **248 tokens (observed benchmark)** |
+| **AST Symbol Lookup** | 7,583 tokens | ~150 tokens | ~900 tokens | **129 tokens (observed benchmark)** |
+| **Type-Header Preservation** | ❌ No | ❌ No | ⚠️ Heuristic | **✓ Verified (`include_context_headers`)** |
+| **Local Synthesis Latency** | Direct read | ~45 ms | ~120 ms | **10.4 ms** |
+| **Dependencies** | None | Tree-sitter | SQLite + Vector DB | **Python stdlib only (0 pip deps)** |
+| **Governance Architecture** | ❌ None | ❌ None | ❌ None | **Scaffolded for AEIB Station 0–3** |
 
 ---
 
-## 4. Quickstart: 30-Second Installation
+## 5. Private Beta Installation (Local Evaluation)
 
-### Option A: Via NPX (Zero Setup)
-```bash
-npx context-governor-mcp init
-```
-This automatically inspects your environment, configures `.mcp.json` or `~/.claude.json`, and prints your workspace's Context Efficiency Score.
-
-### Option B: Claude Code CLI
+### Option 1: Claude Code CLI
 ```bash
 claude mcp add contextcart -- python3 /path/to/contextcart-mcp/server.py
 ```
 
-### Option C: Cursor / Windsurf (`.mcp.json`)
-Add to your project root or global settings:
+### Option 2: Local Project Configuration (`.mcp.json`)
 ```json
 {
   "mcpServers": {
@@ -114,43 +117,23 @@ Add to your project root or global settings:
 }
 ```
 
+### Option 3: Scoped NPX Beta Runner (Local Testing)
+```bash
+npx @sovereignnexus/context-governor-mcp init
+```
+
 ---
 
-## 5. Calculate Your Team's Token Waste
+## 6. FinOps Modeling & Stated Limitations
 
-Run the included FinOps ROI calculator to see how much your squad can reclaim:
+The included calculator evaluates modeled waste under stated assumptions:
 
 ```bash
 python3 contextcart-mcp/calculator.py --devs 50 --monthly-spend 200
 ```
 
-```text
-========================================================================
-  CONTEXTCART TOKEN WASTE & FINOPS ROI DASHBOARD
-========================================================================
-[*] Developer Headcount            : 50 engineers
-[*] Baseline Monthly LLM API Spend : $10,000.00 USD
-[*] Annualized Baseline Spend      : $120,000.00 USD
-------------------------------------------------------------------------
-[!] Context Efficiency Score (CES) : 0.050 (Critical Waste Zone)
-[!] Toxic Receipt Index (TRI)      : 72.4% un-hedged context bloat
-[!] Hourly Team Waste Burn Rate    : $44.64 USD / work hour
-------------------------------------------------------------------------
-[+] Monthly Reclaimable Spend      : $7,500.00 USD (75% reduction)
-[+] Annual Budget Recovery         : $90,000.00 USD / year
-[+] Audit Payback Horizon          : <60.5 business hours
-[+] Annual ROI Multiplier          : 33.3x
-========================================================================
-```
-
----
-
-## 6. Open-Source & Governance Continuity
-
-ContextCart-MCP is 100% open-source under the Apache-2.0 license. It serves as the developer-facing ideation boundary of the **Agent Execution Integrity Boundary (AEIB)**. 
-
-While ContextCart operates purely in userspace to optimize read-only research and code exploration, consequential external actions (payment mutations, database writes, production deployments) can be governed by AEIB's Station 0–3 cryptographic execution boundary, enforcing RFC 8785 JCS action digests, single-flight probe reconciliation, and IETF RFC 9943 SCITT receipts.
-
-- **GitHub Repository**: `github.com/SovereignNexus/SovereignNexus`
-- **MCP Server Path**: `contextcart-mcp/server.py`
-- **License**: Apache-2.0
+### Critical Epistemic Disclaimers:
+1. **Modeled Reclaimable Spend**: Modeled under stated baseline, usage assumptions, and pricing ($7,500/month for 50 devs); **not an observed customer result**.
+2. **Modeled Payback Horizon**: Modeled payback horizon under calculator assumptions (<14.2 hours); **not an observed customer outcome**.
+3. **Toxic Receipt Index (TRI)**: Defined as `TRI = (avoidable_context_tokens / total_session_tokens) * 100`. TRI is a heuristic diagnostic index of un-sandboxed tools and lack of wire latches, not an audited accounting standard.
+4. **Release Status**: Locally verified on branch `feat/v1.1-temporal-standing`; not pushed, independently reproduced, or released to production registries.

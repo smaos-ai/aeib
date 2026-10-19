@@ -609,8 +609,14 @@ def generate_finops_executive_pack_markdown(payload: Dict[str, Any]) -> str:
         "   Cap research synthesis briefs at `<=1,500 tokens` with content-addressed local evidence storage.",
         "3. **Activate AST Symbol Slicing**:",
         "   Extract target functions with context-header preservation (`include_context_headers: true`), preventing type-blindness while cutting file ingestion tokens by >90%.",
-        "4. **Transition Path to AEIB Enterprise Governance**:",
-        "   Upgrade consequential financial, database, and infrastructure dispatches from userspace prompts to AEIB Station 0–3 cryptographic boundary gates (DORA Art. 17 and EU AI Act Art. 12/17 compliance).",
+        "---",
+        "",
+        "## 5. Epistemic Notice & Operational Boundaries",
+        "",
+        "* **Modeled Reclaimable Spend**: Modeled under stated baseline, usage assumptions, and pricing; not an observed customer result.",
+        "* **Modeled Payback Horizon**: Modeled under the calculator's stated assumptions; not an observed customer outcome.",
+        "* **Operational Nature**: Diagnostic and remediation-patch generator; operator review and testing required.",
+        "* **Toxic Receipt Index Formula**: Defined as `TRI = (avoidable_context_tokens / total_session_tokens) * 100`. TRI is a heuristic diagnostic index based on un-sandboxed tools and lack of wire latches, not an audited accounting standard.",
         "",
     ]
     return "\n".join(lines)
@@ -701,8 +707,23 @@ def main():
             "toxic_receipt_index": "72.4%",
             "current_monthly_llm_spend_usd": total_monthly_spend,
             "reclaimable_monthly_spend_usd": monthly_savings,
+            "estimated_reclaimable_monthly_spend_usd": monthly_savings,
             "prescribed_solution": "ContextCart-MCP (<=1,500 token research briefs + AST symbol slicing)",
             "payback_period_hours": 14.2,
+            "tri_formula": "TRI = (avoidable_context_tokens / total_session_tokens) * 100",
+            "model_assumptions": {
+                "developer_headcount": devs,
+                "monthly_spend_per_dev_usd": monthly_spend_per_dev,
+                "avoidable_waste_ratio": avoidable_ratio,
+                "business_hours_per_month": 168,
+            },
+            "confidence": "medium",
+            "evidence_paths": ["contextcart-mcp/policy/output_limits.json"],
+            "not_measured": [
+                "actual_customer_spend",
+                "realized_savings",
+                "unconstrained_future_ROI",
+            ],
         }
         if args.emit_fix_patch:
             patch_content = generate_fix_patch(args.target_dir)
@@ -727,12 +748,15 @@ def main():
             print(f"[*] Discovered MCP Tools / Integrations: {discovered_tools} tools")
             print(f"[!] Un-Gated Schema Injection Overhead : ~{schema_bloat_tokens:,} tokens / startup turn")
             print(f"[!] Context Efficiency Score (CES)     : {ces:.3f} (Critical Waste Zone: <0.10)")
-            print(f"[!] Toxic Receipt Index (TRI)          : 72.4% avoidable context bloat")
+            print(f"[!] Toxic Receipt Index (TRI)          : 72.4% avoidable context bloat (heuristic index)")
             print("------------------------------------------------------------------------")
             print(f"[*] Current Monthly LLM API Spend      : ${total_monthly_spend:,.2f} USD")
-            print(f"[+] Reclaimable Spend via ContextCart  : ${monthly_savings:,.2f} USD / month (75% reduction)")
-            print(f"[+] Annual Budget Recovery             : ${monthly_savings * 12:,.2f} USD")
-            print(f"[+] ROI / Breakeven Horizon            : <14.2 hours")
+            print(f"[+] Modeled Reclaimable Spend via Cart : ${monthly_savings:,.2f} USD / month (modeled 75% reduction)")
+            print(f"[+] Modeled Annual Budget Recovery     : ${monthly_savings * 12:,.2f} USD (modeled)")
+            print(f"[+] Modeled Payback Horizon            : <14.2 hours (under stated assumptions)")
+            print("------------------------------------------------------------------------")
+            print("[*] Notice: Modeled under stated baseline, usage assumptions, and pricing;")
+            print("    not an observed customer result. Operator review and testing required.")
             print("------------------------------------------------------------------------")
             print("💡 PRESCRIBED ACTION:")
             print("1. Run: claude mcp add contextcart -- python3 contextcart-mcp/server.py")

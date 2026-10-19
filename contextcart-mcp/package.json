@@ -1,10 +1,13 @@
 {
-  "name": "context-governor-mcp",
-  "version": "1.0.0",
-  "description": "Deterministic MCP research boundary & AST symbol slicer that prevents context window bloat in Claude Code and Cursor.",
+  "name": "@sovereignnexus/context-governor-mcp",
+  "version": "0.1.0-beta.1",
+  "description": "Deterministic MCP research boundary & AST symbol slicer prototype that caps context window bloat in Claude Code and Cursor.",
   "main": "bin/context-governor-mcp.js",
   "bin": {
     "context-governor-mcp": "./bin/context-governor-mcp.js"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "keywords": [
     "claude-code",

@@ -45,5 +45,11 @@ Key drivers of context saturation:
    Cap research synthesis briefs at `<=1,500 tokens` with content-addressed local evidence storage.
 3. **Activate AST Symbol Slicing**:
    Extract target functions with context-header preservation (`include_context_headers: true`), preventing type-blindness while cutting file ingestion tokens by >90%.
-4. **Transition Path to AEIB Enterprise Governance**:
-   Upgrade consequential financial, database, and infrastructure dispatches from userspace prompts to AEIB Station 0–3 cryptographic boundary gates (DORA Art. 17 and EU AI Act Art. 12/17 compliance).
+---
+
+## 5. Epistemic Notice & Operational Boundaries
+
+* **Modeled Reclaimable Spend**: Modeled under stated baseline, usage assumptions, and pricing; not an observed customer result.
+* **Modeled Payback Horizon**: Modeled under the calculator's stated assumptions; not an observed customer outcome.
+* **Operational Nature**: Diagnostic and remediation-patch generator; operator review and testing required.
+* **Toxic Receipt Index Formula**: Defined as `TRI = (avoidable_context_tokens / total_session_tokens) * 100`. TRI is a heuristic diagnostic index based on un-sandboxed tools and lack of wire latches, not an audited accounting standard.

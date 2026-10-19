@@ -1,11 +1,12 @@
 # 🛒 ContextCart-MCP: Bounded Research & Token-Saving Boundary for Claude Code & Cursor
 
 ```text
-Product Tier       : Local-First Developer Productivity & Context Optimization
+Product Tier       : Local-First Developer Productivity & Context Optimization (Prototype)
 Interface Protocol : Model Context Protocol (MCP) JSON-RPC 2.0 over stdio
-Target Platforms   : Claude Code, Cursor, Windsurf, OpenCode, Multi-Agent Swarms
-Dependencies       : Zero external dependencies (Python 3.9+ standard library)
-Observed Impact    : 75% to 92%+ reduction in parent context inflation on research tasks
+Target Platforms   : Claude Code, Cursor, Windsurf, OpenCode
+Dependencies       : Python runtime: none beyond Python 3.9+ standard library; Network/model: deployment dependent
+Observed Impact    : Internal benchmark observed 85%–99.3% parent-token reduction on tested research tasks (configuration-specific)
+Release Status     : Locally verified on branch feat/v1.1-temporal-standing; not pushed, independently reproduced, or released
 ```
 
 ---

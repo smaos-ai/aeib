@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "contextcart-mcp"
+version = "1.0.0"
+description = "Deterministic MCP research boundary & AST symbol slicer that prevents context window bloat in Claude Code and Cursor"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "Apache-2.0" }
+authors = [
+    { name = "SovereignNexus Project", email = "research@sovereignnexus.org" }
+]
+keywords = [
+    "claude-code",
+    "cursor",
+    "mcp",
+    "token-optimization",
+    "ast-slicing",
+    "contextcart",
+    "finops"
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = []
+
+[project.scripts]
+contextcart-mcp = "server:main"
+contextcart = "server:main"

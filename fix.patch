@@ -1,0 +1,24 @@
+diff --git a/.mcp.json b/.mcp.json
+new file mode 100644
+--- /dev/null
++++ b/.mcp.json
+@@ -0,0 +1,9 @@
++{
++  "mcpServers": {
++    "contextcart": {
++      "command": "python3",
++      "args": ["/Users/andriileukhin/Documents/SovereignNexus/contextcart-mcp/server.py"]
++    }
++  }
++}
+
+diff --git a/.claude/settings.json b/.claude/settings.json
+new file mode 100644
+--- /dev/null
++++ b/.claude/settings.json
+@@ -0,0 +1,7 @@
++{
++  "max_output_tokens": 1500,
++  "enable_tool_search": true,
++  "contextcart_governance": true
++}

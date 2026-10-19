@@ -23,8 +23,9 @@ AEIB v1.0.0-rc.3 is a requirement-driven specification and release candidate (re
 ## 2. Execution Boundary Scope
 
 AEIB governs only those actions that traverse its configured Station 1 and Station 2 boundaries.
-- In userspace deployments (`v1.0.0-rc.3`), AEIB does not intercept actions that bypass the configured gateway (e.g., direct raw socket syscalls, unproxied UDP/QUIC traffic, or out-of-band shell execution) unless paired with host/kernel-level network and file-system enforcement (e.g., `BPF_LSM` / Cilium Tetragon policies, network namespaces) that is deployed and adversarially tested in the target environment.
-- If the agent or host environment bypasses the AEIB gateway, AEIB provides no protection and no evidence for that action.
+- In userspace deployments (`v1.0.0-rc.3`), AEIB does not intercept actions that bypass the configured gateway (e.g., direct raw socket syscalls, unproxied UDP/QUIC traffic, or out-of-band shell execution) unless paired with host/kernel-level network and file-system enforcement (e.g., `BPF_LSM` / Cilium Tetragon policies in `compliance/tetragon_aeib_enforcer.yaml`, network namespaces) that is deployed and adversarially tested in the target environment.
+- The native data-plane crate (`crates/aeib-data-plane`) provides compiled Rust implementations of Station 1 constant-time 5-tuple admissibility checks, static ring-buffer group-commit WAL (with Darwin `F_FULLFSYNC` physical NVMe write-through barrier), ephemeral TEE key zeroization on drop, and RFC 9162 / RFC 9942 SCITT Merkle inclusion trees.
+- If the agent or host environment bypasses the AEIB gateway and no kernel LSM policy is active, AEIB provides no protection and no evidence for that action.
 
 ---
 

@@ -1,0 +1,91 @@
+# compliance/tetragon_aeib_enforcer.yaml
+# ==============================================================================
+# AEIB Cilium Tetragon eBPF LSM Policy: Kernel-Level Syscall & Socket Trap.
+#
+# Architectural Scaffolding Awareness (AGENTS.md §5):
+# - This policy provides structural scaffolding for production Kubernetes and
+#   Linux host deployments equipped with Cilium Tetragon (v1.0+) and BTF support.
+# - It is configured under the stated model to prevent autonomous agents from
+#   bypassing userspace HTTP proxies (HTTP_PROXY / ALL_PROXY) via raw AF_INET
+#   syscalls or tampering with on-disk policy checkpoints.
+# - In environments without an active Linux eBPF LSM subsystem, this file serves
+#   as an audited specification. It does NOT claim live kernel enforcement on
+#   unsupported hosts (such as standard macOS Darwin).
+# ==============================================================================
+
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicy
+metadata:
+  name: aeib-kernel-lsm-enforcer
+  namespace: kube-system
+  labels:
+    app.kubernetes.io/name: aeib-tetragon-guard
+    app.kubernetes.io/part-of: sovereign-agent-execution-integrity
+    compliance.aeib.org/tier: "lsm-kernel-scaffold"
+spec:
+  # ----------------------------------------------------------------------------
+  # Hook 1: LSM security_socket_connect (Kernel Socket Egress Trap)
+  # Intercepts raw TCP connect() syscalls from untrusted agent workloads.
+  # Forces all outbound traffic through the local AEIB Station 1 proxy port
+  # (127.0.0.1:9555 or UNIX Domain Socket), dropping direct external egress.
+  # ----------------------------------------------------------------------------
+  kprobes:
+    - call: "security_socket_connect"
+      syscall: false
+      args:
+        - index: 0
+          type: "sock"
+        - index: 1
+          type: "sockaddr"
+      selectors:
+        - matchPIDs:
+            - operator: "In"
+              followForks: true
+              values:
+                # Scaffolding: In production, populated dynamically or bound to agent cgroup
+                - 10001
+          matchArgs:
+            - index: 1
+              operator: "NotDAddr"
+              values:
+                - "127.0.0.1"
+                - "::1"
+          matchActions:
+            # Drop bypass attempt and emit high-priority audit telemetry
+            - action: Override
+              argError: -13 # -EACCES (Permission Denied)
+            - action: Post
+              rateLimit: "100/s"
+
+    # --------------------------------------------------------------------------
+    # Hook 2: LSM security_file_open (Immutable Policy & Checkpoint Guard)
+    # Prevents untrusted agent processes from modifying, truncating, or unlinking
+    # on-disk policy files in /etc/aeib/ or /var/lib/aeib/policy/.
+    # --------------------------------------------------------------------------
+    - call: "security_file_open"
+      syscall: false
+      args:
+        - index: 0
+          type: "file"
+      selectors:
+        - matchArgs:
+            - index: 0
+              operator: "Prefix"
+              values:
+                - "/etc/aeib/"
+                - "/var/lib/aeib/policy/"
+                - "/var/lib/aeib/ledger.jsonl"
+          matchFlags:
+            - index: 0
+              operator: "HasAny"
+              values:
+                - "O_WRONLY"
+                - "O_RDWR"
+                - "O_TRUNC"
+                - "O_CREAT"
+          matchActions:
+            # Block unauthorized mutation of policy epochs and hash chains
+            - action: Override
+              argError: -13 # -EACCES (Permission Denied)
+            - action: Post
+              rateLimit: "50/s"

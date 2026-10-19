@@ -4,9 +4,9 @@
     "canonicalization": "RFC-8785-JCS",
     "cose_alg_id": -8,
     "key_id": "aeib-cbom-ed25519-key-2026",
-    "payload_jcs_sha256": "d49cf8b8a33f48cc09d2a305318d88c5d7e4810aff04e5dbfdc36766bfbe13a3",
+    "payload_jcs_sha256": "061129b083030dfb49f07c279f67b2ed2ca3cc34274bb84e4ab1078b34d9f7ce",
     "public_key_hex": "1ef751be5f84b24d6eafd239dd804c62ffe3cfdfeb653aa61e8905b7f124ea26",
-    "signature_hex": "65cd2327064ee8bf2eead7d61551f310167db9afdb217583bf24feb3cb8923d8de8629d4adb99d9d2232b27f103a2a66fa9ee4916016d98e7242d607b865860f"
+    "signature_hex": "111c8a89997727f7935737895d28ef8737eddfb232afee32cbc79d5d901370230a1a52cb30b0f9a838abee696022e80a4775b97a84719b4db3b2857ca2d45d0e"
   },
   "bomFormat": "CycloneDX",
   "components": [
@@ -221,6 +221,18 @@
       {
         "name": "aeib:pqc:mldsa_runtime_provider",
         "value": "stdlib+cryptography-classical-only"
+      },
+      {
+        "name": "standard:ecma_specification",
+        "value": "ECMA-424"
+      },
+      {
+        "name": "standard:en_18286_harmonized",
+        "value": "EN 18286:2026 / Implementing Decision (EU) 2026/2274"
+      },
+      {
+        "name": "compliance:eu_ai_act_article",
+        "value": "Article 17 QMS / Article 40 Presumption of Conformity"
       }
     ],
     "timestamp": "2026-10-17T12:00:00Z"

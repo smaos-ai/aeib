@@ -533,6 +533,15 @@ class CycloneDX16CBOMGenerator:
                         "name": "aeib:pqc:mldsa_runtime_provider",
                         "value": mldsa_status["provider_name"],
                     },
+                    {"name": "standard:ecma_specification", "value": "ECMA-424"},
+                    {
+                        "name": "standard:en_18286_harmonized",
+                        "value": "EN 18286:2026 / Implementing Decision (EU) 2026/2274",
+                    },
+                    {
+                        "name": "compliance:eu_ai_act_article",
+                        "value": "Article 17 QMS / Article 40 Presumption of Conformity",
+                    },
                 ],
             },
             "components": components,

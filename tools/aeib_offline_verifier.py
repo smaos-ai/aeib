@@ -78,9 +78,20 @@ REQUIRED_BINDING_KEYS = frozenset(
 UNSIGNED_EXCLUDED_KEYS = ("entry_hash", "signature_b64")
 
 
+def canonical_json_v1(obj: Any, allow_nan: bool = False) -> bytes:
+    """
+    RFC 8785 JSON Canonicalization Scheme (JCS) Profile v1.
+    Strictly disallows NaN/Infinity when allow_nan=False (default).
+    """
+    if not allow_nan:
+        # encode_jcs natively raises ValueError on NaN/Infinity
+        return encode_jcs(obj)
+    return encode_jcs(obj)
+
+
 def canonical_jcs_bytes(obj: Any) -> bytes:
     """RFC 8785 JCS bytes (UTF-16 code-unit key order, ECMAScript numbers)."""
-    return encode_jcs(obj)
+    return canonical_json_v1(obj, allow_nan=False)
 
 
 def sha256_prefixed(data: bytes) -> str:
@@ -101,7 +112,7 @@ def _is_int(v: Any) -> bool:
 def compute_caid(operation_id: str, binding: Dict[str, Any]) -> str:
     """CAID = SHA-256 over JCS of the exact action fields bound to operation_id."""
     return sha256_prefixed(
-        canonical_jcs_bytes(
+        canonical_json_v1(
             {
                 "action_class": binding["action_class"],
                 "amount_minor": binding["amount_minor"],
@@ -111,7 +122,8 @@ def compute_caid(operation_id: str, binding: Dict[str, Any]) -> str:
                 "policy_epoch": binding["policy_epoch"],
                 "recipient": binding["recipient"],
                 "target": binding["target"],
-            }
+            },
+            allow_nan=False,
         )
     )
 
@@ -158,7 +170,7 @@ class StandaloneOfflineVerifier:
 
         manifest_body = {k: v for k, v in manifest.items() if k != "manifest_sha256"}
         try:
-            expected_manifest_hash = sha256_prefixed(canonical_jcs_bytes(manifest_body))
+            expected_manifest_hash = sha256_prefixed(canonical_json_v1(manifest_body, allow_nan=False))
         except (TypeError, ValueError):
             return VerificationResult(False, "ERR_MANIFEST_MALFORMED")
         if not ct_str_eq(manifest.get("manifest_sha256"), expected_manifest_hash):
@@ -182,7 +194,12 @@ class StandaloneOfflineVerifier:
             if entry.get("schema_version") != SUPPORTED_SCHEMA_VERSION:
                 return VerificationResult(False, "ERR_UNSUPPORTED_SCHEMA_VERSION", failed_seq=seq)
 
-            # 3. Replay uniqueness (within bundle and against caller-supplied history)
+            # 3. Cryptographic algorithm validation (reject downgrade attacks)
+            alg = entry.get("algorithm", "Ed25519")
+            if alg != "Ed25519":
+                return VerificationResult(False, "ERR_UNSUPPORTED_CRYPTO_ALGORITHM", failed_seq=seq)
+
+            # 4. Replay uniqueness (within bundle and against caller-supplied history)
             op_id = entry.get("operation_id")
             if not isinstance(op_id, str) or not op_id:
                 return VerificationResult(False, "ERR_MISSING_OPERATION_ID", failed_seq=seq)
@@ -190,14 +207,14 @@ class StandaloneOfflineVerifier:
                 return VerificationResult(False, "ERR_REPLAYED_OPERATION_ID", failed_seq=seq)
             seen_operation_ids.add(op_id)
 
-            # 4. Chain linkage
+            # 5. Chain linkage
             if not ct_str_eq(entry.get("prev_entry_hash"), expected_prev_hash):
                 return VerificationResult(False, "ERR_BROKEN_CHAIN_LINKAGE", failed_seq=seq)
 
-            # 5. Canonical serialization & entry hash
+            # 6. Canonical serialization & entry hash
             unsigned_body = {k: v for k, v in entry.items() if k not in UNSIGNED_EXCLUDED_KEYS}
             try:
-                canonical_bytes = canonical_jcs_bytes(unsigned_body)
+                canonical_bytes = canonical_json_v1(unsigned_body, allow_nan=False)
             except (TypeError, ValueError):
                 return VerificationResult(False, "ERR_NON_CANONICALIZABLE_ENTRY", failed_seq=seq)
             computed_entry_hash = sha256_prefixed(canonical_bytes)
@@ -207,7 +224,7 @@ class StandaloneOfflineVerifier:
                 return VerificationResult(False, "ERR_REPLAYED_RECEIPT_HASH", failed_seq=seq)
             seen_entry_hashes.add(computed_entry_hash)
 
-            # 6. Operation binding completeness & CAID recomputation
+            # 7. Operation binding completeness & CAID recomputation
             binding = entry.get("action_binding")
             if not isinstance(binding, dict) or not REQUIRED_BINDING_KEYS.issubset(binding.keys()):
                 return VerificationResult(False, "ERR_INCOMPLETE_ACTION_BINDING", failed_seq=seq)
@@ -216,7 +233,7 @@ class StandaloneOfflineVerifier:
             if not ct_str_eq(compute_caid(op_id, binding), binding["caid"]):
                 return VerificationResult(False, "ERR_CAID_ACTION_BINDING_MISMATCH", failed_seq=seq)
 
-            # 7. Temporal validity (all fields required; window must be well-formed)
+            # 8. Temporal validity (all fields required; window must be well-formed)
             auth = entry.get("temporal_authority")
             if not isinstance(auth, dict):
                 return VerificationResult(False, "ERR_MISSING_TEMPORAL_AUTHORITY", failed_seq=seq)
@@ -229,7 +246,7 @@ class StandaloneOfflineVerifier:
             if not (issued_ms - drift <= dispatched_ms <= expires_ms + drift):
                 return VerificationResult(False, "ERR_STALE_OR_FUTURE_AUTHORITY", failed_seq=seq)
 
-            # 8. Key identifier & Ed25519 signature over exact canonical bytes
+            # 9. Key identifier & Ed25519 signature over exact canonical bytes
             kid = entry.get("kid")
             pubkey = self.trust_anchors.get(kid) if isinstance(kid, str) else None
             if pubkey is None:
@@ -245,7 +262,7 @@ class StandaloneOfflineVerifier:
 
             expected_prev_hash = computed_entry_hash
 
-        # 9. No expected receipt missing; chain tip matches manifest
+        # 10. No expected receipt missing; chain tip matches manifest
         if not expected_ops.issubset(seen_operation_ids):
             return VerificationResult(False, "ERR_MISSING_EXPECTED_RECEIPT")
         if not ct_str_eq(manifest.get("chain_tip_hash"), expected_prev_hash):
@@ -272,6 +289,7 @@ def build_signed_entry(
     issued_at_ms: int = 1_760_000_000_000,
     expires_at_ms: int = 1_760_000_005_000,
     dispatched_at_ms: int = 1_760_000_001_000,
+    algorithm: str = "Ed25519",
 ) -> Dict[str, Any]:
     binding = {
         "action_class": "PAYMENT_REFUND",
@@ -285,6 +303,7 @@ def build_signed_entry(
     binding["caid"] = compute_caid(op_id, binding)
     unsigned = {
         "schema_version": SUPPORTED_SCHEMA_VERSION,
+        "algorithm": algorithm,
         "seq": seq,
         "operation_id": op_id,
         "prev_entry_hash": prev_hash,
@@ -297,7 +316,7 @@ def build_signed_entry(
             "dispatched_at_ms": dispatched_at_ms,
         },
     }
-    canonical = canonical_jcs_bytes(unsigned)
+    canonical = canonical_json_v1(unsigned, allow_nan=False)
     return {
         **unsigned,
         "entry_hash": sha256_prefixed(canonical),
@@ -311,11 +330,11 @@ def build_manifest(entries: List[Dict[str, Any]]) -> Dict[str, Any]:
         "entry_count": len(entries),
         "chain_tip_hash": entries[-1]["entry_hash"],
     }
-    return {**body, "manifest_sha256": sha256_prefixed(canonical_jcs_bytes(body))}
+    return {**body, "manifest_sha256": sha256_prefixed(canonical_json_v1(body, allow_nan=False))}
 
 
 def run_negative_vector_suite() -> Dict[str, VerificationResult]:
-    """Builds a valid 2-entry bundle and evaluates the positive case plus all 6 vectors."""
+    """Builds a valid 2-entry bundle and evaluates the positive case plus all 12 vectors."""
     trusted = Ed25519PrivateKey.generate()
     rogue = Ed25519PrivateKey.generate()
     kid = "aeib-station3-key-2026-q4"
@@ -328,23 +347,56 @@ def run_negative_vector_suite() -> Dict[str, VerificationResult]:
 
     results["POSITIVE"] = verifier.verify_bundle(build_manifest([e1, e2]), [e1, e2], both)
 
+    # NEG_1: 1 byte mutated in action payload (amount modified)
     tampered = copy.deepcopy(e2)
     tampered["action_binding"]["amount_minor"] = 999_999
     results["NEG_1_TAMPERED_PAYLOAD"] = verifier.verify_bundle(build_manifest([e1, e2]), [e1, tampered], both)
 
+    # NEG_2: Wrong key signature
     rogue_e2 = build_signed_entry(2, "op-002", e1["entry_hash"], kid, rogue)
     results["NEG_2_WRONG_KEY"] = verifier.verify_bundle(build_manifest([e1, rogue_e2]), [e1, rogue_e2], both)
 
+    # NEG_3: Missing expected receipt
     results["NEG_3_MISSING_RECEIPT"] = verifier.verify_bundle(build_manifest([e1]), [e1], both)
 
+    # NEG_4: Stale temporal authority
     stale = build_signed_entry(2, "op-002", e1["entry_hash"], kid, trusted, dispatched_at_ms=1_760_000_015_000)
     results["NEG_4_STALE_AUTHORITY"] = verifier.verify_bundle(build_manifest([e1, stale]), [e1, stale], both)
 
+    # NEG_5: Duplicate operation_id in sequence
     replayed = build_signed_entry(2, "op-001", e1["entry_hash"], kid, trusted)
     results["NEG_5_REPLAYED_RECEIPT"] = verifier.verify_bundle(build_manifest([e1, replayed]), [e1, replayed], {"op-001"})
 
+    # NEG_6: Broken chain linkage
     broken = build_signed_entry(2, "op-002", "sha256:" + ("f" * 64), kid, trusted)
     results["NEG_6_BROKEN_CHAIN"] = verifier.verify_bundle(build_manifest([e1, broken]), [e1, broken], both)
+
+    # NEG_7: Algorithm downgrade / unsupported crypto algorithm
+    unsupported_alg = build_signed_entry(2, "op-002", e1["entry_hash"], kid, trusted, algorithm="none")
+    results["NEG_7_UNSUPPORTED_ALGORITHM"] = verifier.verify_bundle(build_manifest([e1, unsupported_alg]), [e1, unsupported_alg], both)
+
+    # NEG_8: Untrusted key ID (not in caller trust anchors)
+    untrusted_kid = build_signed_entry(2, "op-002", e1["entry_hash"], "untrusted-rogue-kid", trusted)
+    results["NEG_8_UNTRUSTED_KEY_ID"] = verifier.verify_bundle(build_manifest([e1, untrusted_kid]), [e1, untrusted_kid], both)
+
+    # NEG_9: Non-monotonic sequence index
+    bad_seq = build_signed_entry(99, "op-002", e1["entry_hash"], kid, trusted)
+    results["NEG_9_NON_MONOTONIC_SEQ"] = verifier.verify_bundle(build_manifest([e1, bad_seq]), [e1, bad_seq], both)
+
+    # NEG_10: Unsupported schema version
+    bad_schema = copy.deepcopy(e2)
+    bad_schema["schema_version"] = "aeib.receipt.v0"
+    results["NEG_10_UNSUPPORTED_SCHEMA_VERSION"] = verifier.verify_bundle(build_manifest([e1, e2]), [e1, bad_schema], both)
+
+    # NEG_11: Manifest integrity mismatch (tampered digest)
+    tampered_manifest = build_manifest([e1, e2])
+    tampered_manifest["manifest_sha256"] = "sha256:" + ("0" * 64)
+    results["NEG_11_MANIFEST_INTEGRITY_MISMATCH"] = verifier.verify_bundle(tampered_manifest, [e1, e2], both)
+
+    # NEG_12: Float or NaN serialization rejection (RFC 8785 strictness)
+    nan_entry = copy.deepcopy(e2)
+    nan_entry["tampered_nan"] = float("nan")
+    results["NEG_12_FLOAT_OR_NAN_SERIALIZATION"] = verifier.verify_bundle(build_manifest([e1, e2]), [e1, nan_entry], both)
 
     return results
 
@@ -357,18 +409,29 @@ EXPECTED_VECTOR_CODES = {
     "NEG_4_STALE_AUTHORITY": "ERR_STALE_OR_FUTURE_AUTHORITY",
     "NEG_5_REPLAYED_RECEIPT": "ERR_REPLAYED_OPERATION_ID",
     "NEG_6_BROKEN_CHAIN": "ERR_BROKEN_CHAIN_LINKAGE",
+    "NEG_7_UNSUPPORTED_ALGORITHM": "ERR_UNSUPPORTED_CRYPTO_ALGORITHM",
+    "NEG_8_UNTRUSTED_KEY_ID": "ERR_UNTRUSTED_KEY_ID",
+    "NEG_9_NON_MONOTONIC_SEQ": "ERR_NON_MONOTONIC_SEQ",
+    "NEG_10_UNSUPPORTED_SCHEMA_VERSION": "ERR_UNSUPPORTED_SCHEMA_VERSION",
+    "NEG_11_MANIFEST_INTEGRITY_MISMATCH": "ERR_MANIFEST_INTEGRITY_MISMATCH",
+    "NEG_12_FLOAT_OR_NAN_SERIALIZATION": "ERR_NON_CANONICALIZABLE_ENTRY",
 }
 
 
-def test_offline_verifier_positive_and_all_6_negative_vectors() -> None:
+def test_offline_verifier_positive_and_all_12_negative_vectors() -> None:
     results = run_negative_vector_suite()
     for name, expected_code in EXPECTED_VECTOR_CODES.items():
         res = results[name]
         assert res.error_code == expected_code, f"{name}: {res}"
         assert res.valid is (expected_code is None), f"{name}: {res}"
     for name in EXPECTED_VECTOR_CODES:
-        if name not in ("POSITIVE", "NEG_3_MISSING_RECEIPT"):
+        if name not in ("POSITIVE", "NEG_3_MISSING_RECEIPT", "NEG_11_MANIFEST_INTEGRITY_MISMATCH"):
             assert results[name].failed_seq == 2, f"{name}: {results[name]}"
+
+
+def test_offline_verifier_positive_and_all_6_negative_vectors() -> None:
+    """Backward-compatible test name alias for legacy test runners."""
+    test_offline_verifier_positive_and_all_12_negative_vectors()
 
 
 def _load_pem_public_key(path: Path) -> Ed25519PublicKey:
@@ -394,8 +457,8 @@ def _cli(argv: List[str]) -> int:
             res = results[name]
             passed = res.error_code == expected_code and res.valid is (expected_code is None)
             ok &= passed
-            print(f"  [{'OK' if passed else 'FAIL'}] {name:<26} -> valid={res.valid} code={res.error_code} seq={res.failed_seq}")
-        print("ALL 9 VERIFIER CHECKS & 6 NEGATIVE VECTORS BEHAVED AS EXPECTED (local, offline)." if ok
+            print(f"  [{'OK' if passed else 'FAIL'}] {name:<35} -> valid={res.valid} code={res.error_code} seq={res.failed_seq}")
+        print("ALL 9 VERIFIER CHECKS & 12 NEGATIVE VECTORS BEHAVED AS EXPECTED (local, offline)." if ok
               else "SELF-TEST FAILED")
         return 0 if ok else 1
 
@@ -418,3 +481,4 @@ def _cli(argv: List[str]) -> int:
 
 if __name__ == "__main__":
     sys.exit(_cli(sys.argv[1:]))
+

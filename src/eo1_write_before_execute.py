@@ -428,8 +428,8 @@ class PreDispatchIntentInterlock:
                     latched_at=data["latched_at"],
                     reproducibility_evidence_sha256="",
                 )
-            except Exception:
-                pass
+            except (json.JSONDecodeError, KeyError, OSError) as e:
+                logger.warning("Failed to recover latch from %s: %s", p, e)
 
         # Scan ledger for unfulfilled intents
         recovered = recover_unresolved_intents(self.ledger_path, self.output_state_dir)

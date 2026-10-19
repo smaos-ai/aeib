@@ -1,7 +1,7 @@
 # AEIB Limitations and Boundary Conditions
 
 ```text
-Specification Version : 1.0.0-rc.3
+Specification Version : 1.0.0-rc.4 (Staged)
 Status                : Release Candidate Specification
 Execution Model       : Local Zero-Mock Test Suite Evaluation
 Formal Assurance      : Evaluated Locally Under Stated Model (No Independent Reproduction / No Third-Party Certification Claimed)
@@ -12,24 +12,24 @@ Regulatory Role       : Operational Evidence Generator (Not a Turnkey QMS or Sta
 
 ## 1. Release Status and Assurance Scope
 
-AEIB v1.0.0-rc.3 is a requirement-driven specification and release candidate (repository tags `v1.0.0-rc.29`+ carry this specification).
+AEIB v1.0.0-rc.4 is a requirement-driven specification and staged release candidate.
 - Local zero-mock verification suites report passing results in the development environment.
 - Passing local suites verify assertion logic against local state machines and cryptographic primitives. They **do not** constitute independent third-party reproduction, formal proof about external systems, or regulatory certification.
 - **No independent reproduction, third-party certification, or formal verification (e.g., TLA+/Kani/Coq) is claimed.**
-- Performance and architectural targets for a native Rust/eBPF/TEE data plane (planned `v1.0.0-rc.4`) remain designated `[TARGET]` until measured in a published clean-room environment. That data plane does not exist in this release; `ebpf/` and `hardware_attestation/` are structural scaffolding only.
+- Performance and architectural targets for a native Rust/eBPF/TEE data plane (`crates/aeib-data-plane`) are scaffolded and staged; kernel enforcement requires active BPF_LSM policies deployed on target Linux hosts.
 
 ---
 
 ## 2. Execution Boundary Scope
 
 AEIB governs only those actions that traverse its configured Station 1 and Station 2 boundaries.
-- In userspace deployments (`v1.0.0-rc.3`), AEIB does not intercept actions that bypass the configured gateway (e.g., direct raw socket syscalls, unproxied UDP/QUIC traffic, or out-of-band shell execution) unless paired with host/kernel-level network and file-system enforcement (e.g., `BPF_LSM` / Cilium Tetragon policies in `compliance/tetragon_aeib_enforcer.yaml`, network namespaces) that is deployed and adversarially tested in the target environment.
-- The native data-plane crate (`crates/aeib-data-plane`) provides compiled Rust implementations of Station 1 constant-time 5-tuple admissibility checks, static ring-buffer group-commit WAL (with Darwin `F_FULLFSYNC` physical NVMe write-through barrier), ephemeral TEE key zeroization on drop, and RFC 9162 / RFC 9942 SCITT Merkle inclusion trees.
+- In userspace deployments, AEIB does not intercept actions that bypass the configured gateway (e.g., direct raw socket syscalls, unproxied UDP/QUIC traffic, or out-of-band shell execution) unless paired with host/kernel-level network and file-system enforcement (e.g., `BPF_LSM` / Cilium Tetragon policies in `compliance/tetragon_aeib_enforcer.yaml`, network namespaces) that is deployed and adversarially tested in the target environment.
+- The native data-plane crate (`crates/aeib-data-plane` / `aeib-data-plane`) provides compiled Rust implementations of Station 1 constant-time 5-tuple admissibility checks, static ring-buffer group-commit WAL (with Darwin `F_FULLFSYNC` physical NVMe write-through barrier), ephemeral TEE key zeroization on drop, and RFC 9162 / RFC 9942 SCITT Merkle inclusion trees.
 - If the agent or host environment bypasses the AEIB gateway and no kernel LSM policy is active, AEIB provides no protection and no evidence for that action.
 
 ---
 
-## 3. External Effects and Transactional Finality
+## 3. Local Atomic Reservation vs. External Third-Party Finality
 
 A local database transaction (SQLite ACID or a local WAL group commit) cannot make an external network side effect atomic.
 - AEIB provides **local atomic budget reservation (escrow)** and **durable uncertainty (`EFFECT_INDETERMINATE`)** before and during external dispatch.
@@ -39,23 +39,32 @@ A local database transaction (SQLite ACID or a local WAL group commit) cannot ma
 
 ---
 
-## 4. Credential Isolation and Host Trust Assumptions
+## 4. Credential Isolation, Host Trust Assumptions & DDR5 Interposer (TEE.Fail) Limits
 
 AEIB enforces `agent_holds_downstream_credentials: false` by keeping downstream API keys and signing instruments in a host-side gateway outside the agent's context window and process memory.
 - Userspace credential isolation **does not** mitigate a compromised host OS kernel, rootkit, compromised secret vault, memory-scraping malware, key-custody mismanagement, misuse by authorized operators, or a malicious host administrator.
-- Hardware memory encryption and attestation require deployment inside a verified Trusted Execution Environment (e.g., AWS Nitro Enclaves, Intel TDX, AMD SEV-SNP) with an explicit enclave key-provisioning ceremony. TEEs carry their own published attack history and trust assumptions (vendor root of trust, firmware, side channels); they reduce but do not remove host trust.
+- Hardware memory encryption and attestation require deployment inside a verified Trusted Execution Environment (e.g., AWS Nitro Enclaves, Intel TDX, AMD SEV-SNP) with an explicit enclave key-provisioning ceremony. TEEs carry their own published attack history and trust assumptions (vendor root of trust, firmware, microcode updates); they reduce but do not eliminate host trust.
+- **DDR5 Physical Interposer & TEE.Fail Limits:** Hardware memory encryption (Intel TDX, AMD SEV-SNP) protects against software hypervisor inspection, but physical attacks using DDR5 memory bus interposers (such as TEE.Fail or bus-level impedance taps) exploit unencrypted or unauthenticated bus lines on commodity motherboards. TEE attestation proves firmware measurement and key isolation against software adversaries; it does not mitigate physical hardware interposers with direct bus access.
 - "Zero-key agent runtimes" applies strictly to the isolated agent process, not the broader host environment.
 
 ---
 
-## 5. Egress and Sandbox Controls
+## 5. Linux io_uring Kernel Attack Surface Caveats
+
+While high-throughput ring-buffer group commit can utilize Linux `io_uring` (with `O_DIRECT`), the kernel `io_uring` subsystem has historically presented an elevated local privilege escalation attack surface.
+- Hardened multi-tenant production environments (such as Google ChromeOS/production and default Docker seccomp profiles) explicitly block or restrict `io_uring` syscalls (`io_uring_setup`, `io_uring_enter`).
+- In environments where `io_uring` is restricted or unvetted, AEIB falls back to POSIX `pwritev` with physical write-through barriers (`fcntl(F_FULLFSYNC)` on Darwin, `fdatasync` on Linux).
+
+---
+
+## 6. Egress and Sandbox Controls
 
 Gateway allowlists and `TLS SNI == HTTP Host` checks apply only to traffic routed through the gateway.
 - They **do not** automatically defeat DNS rebinding, IPv6 routing bypasses, shared-CDN IP laundering, domain fronting, HTTP redirects, QUIC tunneling, or kernel-level bypasses unless every transport layer is locked and adversarially tested in the target deployment.
 
 ---
 
-## 6. Cryptographic Receipts and Legal Liability
+## 7. Cryptographic Receipts and Legal Liability
 
 Operation-bound signed receipts record what action (`CAID`) was proposed, which policy epoch and harness digest were active, which key signed the warrant, and what transport outcome was observed.
 - Receipts support technical attribution, auditability, and forensic investigation under stated key-custody assumptions.
@@ -63,16 +72,16 @@ Operation-bound signed receipts record what action (`CAID`) was proposed, which 
 
 ---
 
-## 7. Regulatory Alignment (EU AI Act / EN 18286, DORA, ISO/IEC 27090)
+## 8. Regulatory Evidence vs. Legal Certification (EU AI Act / EN 18286, DORA, ISO/IEC 27090)
 
-AEIB can generate structured operational evidence to support an operator's quality-management or security program. Compliance is an organizational control, not a software feature.
+AEIB generates structured technical operational evidence to support an operator's quality-management or security program. Compliance is an organizational control, not a software feature:
 - **EN 18286:2026:** Contributes technical lifecycle and logging artifacts toward an operator's EU AI Act Article 17 Quality Management System. It **does not** itself constitute a complete QMS, a conformity assessment, or a legal presumption of conformity.
 - **ISO/IEC 27090:** Aligns with AI lifecycle cybersecurity guidance; it does not "fulfill" or certify against the standard.
 - **DORA (Regulation (EU) 2022/2554):** Provides tamper-evident audit logs for ICT operations. It cannot classify incident materiality, file regulatory reports, or discharge a financial entity's supervisory obligations.
 
 ---
 
-## 8. Fast-Path Classification and Benchmarks
+## 9. Fast-Path Classification and Benchmarks
 
 - Any probabilistic or lightweight classifier may only route strictly `read_only`, non-networked, non-credentialed, non-mutating requests above a calibrated confidence threshold, and must fail closed to `full_gate` on any uncertainty. The deterministic bitmask gate in `src/constant_time_group_commit_latch.py` is the preferred mechanism.
 - Reported internal benchmark metrics (speedups, token savings, duplicate reduction, latch latency) apply solely to the configured test harness, fault schedule, random seeds, and hardware, and may not be generalized without independent clean-room reproduction.
@@ -96,7 +105,7 @@ fast_path:
 
 ---
 
-## 9. Isolation Terminology
+## 10. Isolation Terminology
 
 AEIB uses OS-specific user-space and kernel-assisted boundaries (e.g., file immutability, LSMs, seccomp, containers). 
 Terms like "Ring 0" or "Ring 3" are used conceptually to denote immutable policy vs. mutable optimization zones. They **do not** imply x86 hardware privilege rings or hypervisor-enforced isolation unless explicitly deployed in such an environment.
@@ -115,7 +124,7 @@ policy_protection:
 
 ---
 
-## 10. The Defensible Requirement Schema
+## 11. The Defensible Requirement Schema
 
 ```yaml
 agent_execution_integrity_requirements:

@@ -97,8 +97,8 @@ class InterTripBus:
             for listener in self._listeners:
                 try:
                     listener(event)
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.warning("Listener %r raised exception: %s", listener, e)
         return event
 
     def is_worker_tripped(self, worker_id: str) -> bool:

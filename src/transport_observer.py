@@ -138,8 +138,8 @@ class TransportObserver:
                         if "retry_permitted" not in r:
                             r["retry_permitted"] = (r.get("target_disposition") == "RECONCILIATION_NOT_FOUND")
                     return sorted(rules, key=lambda x: x.get("priority", 999))
-            except Exception:
-                pass
+            except (json.JSONDecodeError, OSError, KeyError) as e:
+                logger.debug("Failed to load mapping rules from %s: %s", path, e)
         return DEFAULT_MAPPING_RULES
 
     def intercept_request(self, json_rpc_request: Dict[str, Any]) -> Tuple[Dict[str, Any], Dict[str, Any]]:

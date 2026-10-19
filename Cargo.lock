@@ -13,6 +13,7 @@ name = "aeib-data-plane"
 version = "1.0.0"
 dependencies = [
  "anyhow",
+ "criterion",
  "ed25519-dalek",
  "hex",
  "libc",

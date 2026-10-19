@@ -43,6 +43,7 @@ NATIVE_SOURCE_FILES = [
     REPO_ROOT / "crates" / "aeib-data-plane" / "tests" / "test_wal_group_commit.rs",
     REPO_ROOT / "crates" / "aeib-data-plane" / "tests" / "test_tee_attestation.rs",
     REPO_ROOT / "crates" / "aeib-data-plane" / "tests" / "test_scitt_merkle_tree.rs",
+    REPO_ROOT / "crates" / "aeib-data-plane" / "benches" / "stochastic_saga.rs",
     REPO_ROOT / "compliance" / "tetragon_aeib_enforcer.yaml",
 ]
 

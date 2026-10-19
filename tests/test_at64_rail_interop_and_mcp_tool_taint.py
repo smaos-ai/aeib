@@ -11,8 +11,9 @@ and RFC 8785 JCS canonicalization.
 from __future__ import annotations
 
 import hashlib
-from typing import Any, Dict
+from typing import Any, Dict, Union
 
+from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from src.rail_mandate_and_mcp_taint_interlock import (
@@ -28,7 +29,9 @@ from src.rail_mandate_and_mcp_taint_interlock import (
 )
 
 
-def _make_signed_payload(private_key: Ed25519PrivateKey, body: Dict[str, Any]) -> Dict[str, Any]:
+def _make_signed_payload(
+    private_key: Union[Ed25519PrivateKey, ec.EllipticCurvePrivateKey], body: Dict[str, Any]
+) -> Dict[str, Any]:
     signed = dict(body)
     signed["signature_b64"] = sign_jcs_payload(private_key, signed)
     return signed
@@ -217,6 +220,103 @@ def test_ap2_intent_cart_payment_mandate_chain_and_co_signing() -> None:
     )
     assert res_bad_sig["allowed"] is False
     assert res_bad_sig["status"] == "HALT_AP2_MANDATE_SIGNATURE_INVALID"
+
+
+def test_ap2_ecdsa_p256_secure_enclave_mandate_chain_and_co_signing() -> None:
+    """
+    Evaluates Google AP2 3-tier mandate chain verification using ECDSA over
+    NIST P-256 (secp256r1) with SHA-256 (matching Apple Secure Enclave hardware
+    CryptoKit.SecureEnclave.P256 and AP2 W3C VC 2.0 specifications) co-signed by
+    an Ed25519 AEIB receipt authority under the stated model.
+    """
+    interlock_sk = Ed25519PrivateKey.generate()
+    # P-256 keys representing Apple Secure Enclave / W3C VC 2.0 AP2 signers
+    user_p256_sk = ec.generate_private_key(ec.SECP256R1())
+    merchant_p256_sk = ec.generate_private_key(ec.SECP256R1())
+    agent_p256_sk = ec.generate_private_key(ec.SECP256R1())
+
+    verifier = AP2MandateChainVerifier(interlock_private_key=interlock_sk)
+    now_ts = 1_760_000_000
+
+    intent_mandate = _make_signed_payload(
+        user_p256_sk,
+        {
+            "id": "intent_ap2_p256_9001",
+            "allowedMerchants": ["merchant_apple_store", "merchant_compute_grid"],
+            "amountLimit": 75_000,
+            "currency": "USD",
+            "expiresAt": now_ts + 3600,
+        },
+    )
+
+    cart_mandate = _make_signed_payload(
+        merchant_p256_sk,
+        {
+            "id": "cart_ap2_p256_3001",
+            "parentIntentId": "intent_ap2_p256_9001",
+            "merchant": "merchant_apple_store",
+            "items": [
+                {"sku": "M4-MAX-STUDIO-NODE", "price": 40_000, "quantity": 1},
+                {"sku": "OPTICAL-THUNDERBOLT-CABLE", "price": 15_000, "quantity": 1},
+            ],
+            "amount": {"currency": "USD", "value": 55_000},
+            "expiresAt": now_ts + 1800,
+        },
+    )
+
+    payment_mandate = _make_signed_payload(
+        agent_p256_sk,
+        {
+            "id": "pay_ap2_p256_7001",
+            "parentIntentId": "intent_ap2_p256_9001",
+            "parentCartId": "cart_ap2_p256_3001",
+            "merchant": "merchant_apple_store",
+            "amount": {"currency": "USD", "value": 55_000},
+            "expiresAt": now_ts + 900,
+        },
+    )
+
+    action_payload = {
+        "rail": "GOOGLE_AP2",
+        "operation": "settle_cart",
+        "cart_id": "cart_ap2_p256_3001",
+        "amount_minor": 55_000,
+    }
+    op_id = "op_ap2_p256_settle_001"
+
+    res_valid = verifier.verify_and_cosign(
+        intent_mandate=intent_mandate,
+        cart_mandate=cart_mandate,
+        payment_mandate=payment_mandate,
+        user_public_key=user_p256_sk.public_key(),
+        cart_signer_public_key=merchant_p256_sk.public_key(),
+        agent_public_key=agent_p256_sk.public_key(),
+        operation_id=op_id,
+        action_payload=action_payload,
+        current_timestamp=now_ts,
+    )
+    assert res_valid["allowed"] is True
+    assert res_valid["status"] == "AP2_MANDATE_CHAIN_VERIFIED"
+    expected_idem = derive_rail_idempotency_key(op_id, compute_jcs_caid(action_payload))
+    assert res_valid["idempotency_key"] == expected_idem
+    assert verify_cose_sign1_rail_receipt(interlock_sk.public_key(), res_valid["cose_receipt"]) is True
+
+    # Falsification: tampered P-256 signed mandate fails closed
+    tampered_cart = dict(cart_mandate)
+    tampered_cart["amount"] = {"currency": "USD", "value": 99_999}
+    res_tampered = verifier.verify_and_cosign(
+        intent_mandate=intent_mandate,
+        cart_mandate=tampered_cart,
+        payment_mandate=payment_mandate,
+        user_public_key=user_p256_sk.public_key(),
+        cart_signer_public_key=merchant_p256_sk.public_key(),
+        agent_public_key=agent_p256_sk.public_key(),
+        operation_id=op_id,
+        action_payload=action_payload,
+        current_timestamp=now_ts,
+    )
+    assert res_tampered["allowed"] is False
+    assert res_tampered["status"] == "HALT_AP2_MANDATE_SIGNATURE_INVALID"
 
 
 def test_x402_v2_payment_signature_header_and_504_retry_deduplication() -> None:

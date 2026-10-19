@@ -16,9 +16,11 @@ import base64
 import hashlib
 import re
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Union
 
 from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.ed25519 import (
     Ed25519PrivateKey,
     Ed25519PublicKey,
@@ -51,28 +53,42 @@ def derive_rail_idempotency_key(operation_id: str, action_caid: str) -> str:
     return f"aeib-idem-v1-{digest_prefix}"
 
 
-def sign_jcs_payload(private_key: Ed25519PrivateKey, payload: Dict[str, Any]) -> str:
-    """Signs a dictionary (excluding any 'signature_b64' key) with Ed25519 over RFC 8785 JCS."""
+def sign_jcs_payload(
+    private_key: Union[Ed25519PrivateKey, ec.EllipticCurvePrivateKey],
+    payload: Dict[str, Any],
+) -> str:
+    """Signs a dictionary (excluding any 'signature_b64' key) with Ed25519 or ECDSA P-256 over RFC 8785 JCS."""
     unsigned = {k: v for k, v in payload.items() if k != "signature_b64"}
     canonical = encode_jcs(unsigned)
-    sig = private_key.sign(canonical)
+    if isinstance(private_key, Ed25519PrivateKey):
+        sig = private_key.sign(canonical)
+    elif isinstance(private_key, ec.EllipticCurvePrivateKey):
+        sig = private_key.sign(canonical, ec.ECDSA(hashes.SHA256()))
+    else:
+        raise TypeError(f"Unsupported key type for signing: {type(private_key).__name__}")
     return base64.b64encode(sig).decode("ascii")
 
 
 def verify_jcs_signature(
-    public_key: Ed25519PublicKey,
+    public_key: Union[Ed25519PublicKey, ec.EllipticCurvePublicKey],
     payload: Dict[str, Any],
     signature_field: str = "signature_b64",
 ) -> bool:
-    """Verifies an Ed25519 signature over the RFC 8785 JCS representation of payload."""
+    """Verifies an Ed25519 or ECDSA P-256 signature over the RFC 8785 JCS representation of payload."""
     sig_b64 = payload.get(signature_field)
     if not isinstance(sig_b64, str) or not sig_b64:
         return False
     unsigned = {k: v for k, v in payload.items() if k != signature_field}
     try:
         sig_bytes = base64.b64decode(sig_b64, validate=True)
-        public_key.verify(sig_bytes, encode_jcs(unsigned))
-        return True
+        canonical = encode_jcs(unsigned)
+        if isinstance(public_key, Ed25519PublicKey):
+            public_key.verify(sig_bytes, canonical)
+            return True
+        elif isinstance(public_key, ec.EllipticCurvePublicKey):
+            public_key.verify(sig_bytes, canonical, ec.ECDSA(hashes.SHA256()))
+            return True
+        return False
     except (InvalidSignature, ValueError, TypeError):
         return False
 
@@ -162,9 +178,9 @@ class AP2MandateChainVerifier:
         intent_mandate: Dict[str, Any],
         cart_mandate: Dict[str, Any],
         payment_mandate: Dict[str, Any],
-        user_public_key: Ed25519PublicKey,
-        cart_signer_public_key: Ed25519PublicKey,
-        agent_public_key: Ed25519PublicKey,
+        user_public_key: Union[Ed25519PublicKey, ec.EllipticCurvePublicKey],
+        cart_signer_public_key: Union[Ed25519PublicKey, ec.EllipticCurvePublicKey],
+        agent_public_key: Union[Ed25519PublicKey, ec.EllipticCurvePublicKey],
         operation_id: str,
         action_payload: Dict[str, Any],
         current_timestamp: int,

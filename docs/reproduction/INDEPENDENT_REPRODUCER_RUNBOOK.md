@@ -3,7 +3,7 @@
 
 ```text
 Document ID        : AEIB-CLEANROOM-RUNBOOK-v1.1
-Release Candidate  : v1.0.0-rc.3 / v1.0.0-rc.25
+Release Candidate  : v1.0.0-rc.32
 Governing Policy   : Strict zero-egress, zero-mock, caller-supplied public key offline verification
 Target Evidence    : artifacts/aeib-pilot-evidence-pack-v1.1.0.tar.gz
 Prerequisites      : Python >= 3.11, standard POSIX shell (bash/zsh), OpenSSL
@@ -64,13 +64,13 @@ python3 verifiers/verify_pack.py
 ================================================================================
 ```
 
-### Step 4: Run the Adversarial Negative Vectors
+### Step 4: Run the Adversarial Negative Vectors & Systems Tests
 ```bash
-# Runs the 14-scenario rehearsal matrix and negative falsification suites:
-pytest tests/test_enforced_halt_and_delegation.py tests/test_mitre_adversarial_matrix.py -v
+# Runs the 14-scenario rehearsal matrix, negative falsification suites, and constant-time / group-commit tests:
+pytest tests/test_enforced_halt_and_delegation.py tests/test_mitre_adversarial_matrix.py tests/test_constant_time_and_group_commit.py -v
 ```
 **Expected Output:**
-All adversarial assertions pass fail-closed (`100% PASS` across evaluated vectors).
+All adversarial assertions pass fail-closed (all evaluated vectors pass without failure).
 
 ### Step 5: Standalone WebAssembly Verifier (Zero-Network Browser Verification)
 1. Open `smaos-wasm-verifier/smaos-verify.html` in any web browser.

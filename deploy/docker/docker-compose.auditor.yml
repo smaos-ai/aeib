@@ -1,0 +1,24 @@
+# deploy/docker/docker-compose.auditor.yml
+# =============================================================================
+# AEIB Air-Gapped Auditor Appliance Compose Specification
+# Zero Egress: network_mode is set to "none" to enforce network isolation.
+# =============================================================================
+
+version: '3.8'
+
+services:
+  aeib-auditor:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile.auditor
+    image: sovereignnexus/aeib-auditor:v1.1.0
+    container_name: aeib-airgap-auditor
+    network_mode: "none"
+    read_only: true
+    volumes:
+      - ../../audit_out:/audit:ro
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    command: ["self-test"]

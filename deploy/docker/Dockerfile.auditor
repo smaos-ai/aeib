@@ -1,0 +1,55 @@
+# deploy/docker/Dockerfile.auditor
+# =============================================================================
+# AEIB Air-Gapped Auditor Appliance Container (Pillar 5)
+#
+# Designed for zero-egress offline verification (--network none) of:
+#   1. RFC 8785 JCS canonicalized and Ed25519-signed execution receipts.
+#   2. IETF SCITT (RFC 9942 / RFC 9943) Merkle tree inclusion proofs.
+#   3. AST purity and Zone 1 / Zone 2 import boundaries.
+#   4. Standalone WebAssembly verification via smaos_verify.wasm.
+#
+# Epistemic notice:
+#   Evaluated under the stated model with zero mocks and real Ed25519 cryptography.
+# =============================================================================
+
+FROM python:3.11-slim
+
+LABEL maintainer="SovereignNexus Research"
+LABEL description="AEIB Air-Gapped Offline Auditor Appliance"
+LABEL security.network="none"
+LABEL compliance.iso42001="annex-a"
+LABEL compliance.en18286="article-17-qms"
+LABEL compliance.dora="article-17"
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/opt/aeib \
+    AUDIT_DIR=/audit
+
+WORKDIR /opt/aeib
+
+# Install minimal locked cryptographic dependencies
+RUN pip install --no-cache-dir cryptography==43.0.1
+
+# Create non-root auditor user and group
+RUN groupadd -g 1001 auditor && \
+    useradd -u 1001 -g auditor -s /bin/bash -m auditor && \
+    mkdir -p /audit /opt/aeib/dist && \
+    chown -R auditor:auditor /audit /opt/aeib
+
+# Copy verification tools, compliance checkers, and schemas
+COPY --chown=auditor:auditor src/ /opt/aeib/src/
+COPY --chown=auditor:auditor tools/ /opt/aeib/tools/
+COPY --chown=auditor:auditor compliance/ /opt/aeib/compliance/
+COPY --chown=auditor:auditor dist/smaos_verify.wasm /opt/aeib/dist/smaos_verify.wasm
+
+# Copy auditor appliance entrypoint
+COPY --chown=auditor:auditor deploy/docker/auditor_entrypoint.sh /opt/aeib/entrypoint.sh
+RUN chmod +x /opt/aeib/entrypoint.sh
+
+USER auditor
+
+VOLUME ["/audit"]
+
+ENTRYPOINT ["/opt/aeib/entrypoint.sh"]
+CMD ["self-test"]

@@ -2,19 +2,35 @@
 """
 src/adapters/harness2_ring0_lock.py
 ================================================================================
-Immutable "Ring-0" Harness Lock for Harness² & Terminal-RSI (AT71).
+Harness Policy Protection Enforcer (AT71).
 
-Inspired by Google Cloud Research Harness² (Propose-Probe-Compose optimization)
-and Tencent Terminal-RSI (Recursive Self-Rewrite / RSR).
+EPISTEMIC BOUNDARY & TERMINOLOGY NOTICE:
+In ordinary user-space Linux systems, file-level policy locks are user-space
+or kernel-assisted controls (read-only mounts, immutable file attributes,
+LSM policies, seccomp profiles, and separate service identities)—not x86 Ring 0.
+Calling user-space hash checks "Ring 0" is misleading. This module implements
+an OS-specific policy protection enforcer that validates candidate harness
+modifications against pinned policy digests before activation.
 
-Evaluates under the stated model:
-  1. Partitions the agent harness into:
-     - Ring-3 Mutable Optimization Files: system_prompt, memory/EXPERIENCE.md,
-       tool_guidance, subagents, skills, scripts.
-     - Ring-0 Immutable Enforcement Files: guardrails, plugins/aeib_middleware, contracts.
-  2. Ensures that recursive self-improving optimizers cannot rewrite or relax their
-     own safety, financial, or wire-level execution invariants to artificially boost
-     benchmark scores.
+Policy Protection Configuration Model:
+```yaml
+policy_protection:
+  enforcement_layer: OS-specific
+  options:
+    - read_only_mount
+    - immutable_file_attribute
+    - LSM_policy
+    - seccomp_profile
+    - separate_service_identity
+  failure_behavior: deny_and_halt
+```
+
+Anti-Tamper Mitigations:
+- Remounting policy path: Enforced via mount namespaces without CAP_SYS_ADMIN.
+- Editing copied policy: Evaluator strictly hashes pinned canonical paths.
+- Replacing verifier binary: Read-only container rootfs or chattr +i.
+- Spoofing policy loader: Mutual cryptographic verification of policy manifests.
+- Restarting into permissive mode: Boot continuity check halts on missing/altered state.
 """
 
 from __future__ import annotations
@@ -28,17 +44,19 @@ def sha256_prefixed(data: bytes) -> str:
     return f"sha256:{hashlib.sha256(data).hexdigest()}"
 
 
-class Harness2Ring0Enforcer:
+class HarnessPolicyProtectionEnforcer:
     """
     Evaluates proposed harness candidate modifications from recursive self-improving agents,
-    strictly enforcing Ring-0 immutability.
+    enforcing policy protection immutability.
     """
 
-    RING_0_IMMUTABLE_COMPONENTS: Set[str] = {
+    POLICY_IMMUTABLE_COMPONENTS: Set[str] = {
         "guardrails",
         "plugins_aeib_middleware",
         "contracts",
     }
+    # Backward compatibility alias
+    RING_0_IMMUTABLE_COMPONENTS = POLICY_IMMUTABLE_COMPONENTS
 
     RING_3_MUTABLE_COMPONENTS: Set[str] = {
         "system_prompt",
@@ -68,3 +86,7 @@ class Harness2Ring0Enforcer:
                 return False, f"HALT_HARNESS2_RING0_RELAXATION_ATTEMPT:{comp}"
 
         return True, None
+
+
+# Backward compatibility alias
+Harness2Ring0Enforcer = HarnessPolicyProtectionEnforcer

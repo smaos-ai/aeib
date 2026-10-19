@@ -1,106 +1,236 @@
 # AEIB Operational Limitations & Residual Risk Disclosure
 
-**Document Status:** Canonical Limitations & Boundary Disclosure (October 2026)  
-**Applicability:** All AEIB Deployments (v1.0.0-rc.3 / v1.0.0-rc.11 / v1.1 Roadmap)  
-**Epistemic Notice:** This system operates under a strict epistemic boundary. All capabilities, mitigations, and bounds described herein are **observed**, **tested**, **evaluated**, and **configured** **under the stated model**. AEIB provides a deterministic execution boundary for consequential agent mutations; it does not eliminate all operational risks.
-
----
-
-## 1. Physical Perimeter & Trust Boundary
-
-The Agent Execution Integrity Boundary (AEIB) enforces runtime constraints at **Layer 3 (Wire & Ledger Plane)** and **Layer 2.5 (Local In-Process Pre-Dispatch Interlock)**. It mediates communication between the untrusted agent runtime (LLM reasoning loops, subagent hierarchies, MCP client tools) and external stateful targets (banking endpoints, database servers, payment rails, cloud APIs).
-
-```
-+---------------------------------------------------------------------------------------+
-|                                    HOST MACHINE                                       |
-|                                                                                       |
-|  [ Untrusted Agent Runtime ]                         [ AEIB Boundary ]                |
-|  +-----------------------+                           +-----------------------------+  |
-|  | LLM Planning Loop     |  Internal RPC / IPC       | Station 1: Pre-Dispatch     |  |
-|  | Subagent Workers      | ------------------------> | - Conjunctive 5-Term Gate   |  |
-|  | MCP Client Tools      |                           | - RFC 8785 JCS CAID Binding |  |
-|  +-----------------------+                           +--------------+--------------+  |
-|             |                                                       |                 |
-|             | (Attempts direct socket egress                        v                 |
-|             |  if container isolation is missing!)   +-----------------------------+  |
-|             x - - - - - - - - - - - - - - - - - - -  | Station 2: Network Sidecar  |  |
-|                                                      | - Zero-Credential Proxy     |  |
-|                                                      | - EFFECT_INDETERMINATE Latch|  |
-|                                                      | - ProbeBudget: 1 Reconcile  |  |
-|                                                      +--------------+--------------+  |
-|                                                                     |                 |
-+---------------------------------------------------------------------|-----------------+
-                                                                      | Outbound TLS
-                                                                      v (Signed Headers)
-                                                       +-----------------------------+
-                                                       | Authoritative External Target|
-                                                       | (Payment Rail / Bank API)   |
-                                                       +-----------------------------+
+```text
+Release Baseline   : AEIB v1.0.0-rc.3 / v1.0.0-rc.24 (Commit f7273968)
+Status             : Release candidate with passing local test suites
+Verification State : Local zero-mock test suites passed. Not independently verified. Not certified.
+Defensible Anchor  : AEIB is a prototype governed execution boundary for consequential agent mutations.
+                     It does not constitute an AI Act QMS, conformity assessment, certification, or legal compliance.
 ```
 
-### 1.1 Structural Scaffolding vs. Active Enforcement
-Deploying operators must distinguish between fully verified runtime logic and architectural scaffolding:
-- **Active Enforced Logic:** Station 1 conjunctive pre-dispatch interlock, RFC 8785 JCS canonicalization, Ed25519 cryptographic signing, deterministic idempotency key derivation, `EFFECT_INDETERMINATE` transport latching, single-flight probe reconciliation (`ProbeBudget: 1`), and spend quota escrow tracking (`AT56`–`AT64`).
-- **Structural Scaffolding (`SCAFFOLD_ONLY`):** The eBPF socket filters in `ebpf/` and the Confidential VM attestation routines in `hardware_attestation/` provide structural interfaces and blueprints. They do not provide live kernel-level or hardware-enforced protection unless compiled and loaded onto a compatible Linux kernel with eBPF LSM enabled and AMD SEV-SNP / Intel TDX hardware attestation drivers present.
+---
+
+## ⚖️ The Defensible Baseline
+
+> **AEIB v1.0.0-rc.3 is a release candidate whose local suites report passing results. It is not independently verified, not certified, not automatically compliant with the EU AI Act or DORA, and not yet a decadal industry standard.**
+
+AEIB proposes a governed execution boundary for autonomous agents:
+- Model reasoning is treated as an untrusted proposal.
+- Exact actions, authority, policy epoch, harness/context identity, and target contracts are validated before dispatch.
+- Ambiguous external transport effects are preserved as `EFFECT_INDETERMINATE` rather than blindly retried.
+- Operation-bound evidence is retained for independent auditability.
+
+Its next proof obligations are hosted clean-room reproduction, adversarial and egress-bypass testing, real-target integration, external verifier validation, and legally reviewed regulatory applicability.
 
 ---
 
-## 2. Attack Vectors & Operational Limitations
+## 1. Corrected Regulatory Claims
 
-### 2.1 Proxy Bypass Vectors
-- **Limitation:** The Station 2 sidecar binds to an ephemeral loopback socket (`127.0.0.1`). If the host environment does not enforce strict network namespace isolation (e.g., via Docker container network modes, Kubernetes NetworkPolicies, or kernel iptables/eBPF routing), a compromised agent process or malicious script could initiate direct outbound TCP/TLS connections to external APIs, entirely bypassing AEIB.
-- **Prerequisite:** Production deployments must enforce network egress restrictions at the OS/container runtime level, ensuring that the agent process can only route outbound traffic through the AEIB loopback proxy port.
+### 1.1 EN 18286:2026 is Real, but Narrow
+CEN-CENELEC EN 18286:2026 (*Artificial intelligence — Quality management system for EU AI Act regulatory purposes*) has been cited in the Official Journal of the European Union under Commission Implementing Decision (EU) 2026/2274. It supports Article 17 quality-management-system requirements for providers of high-risk AI systems and can provide a presumption of conformity for the requirements it covers under Article 40.
 
-### 2.2 Browser Trust Assumptions
-- **Limitation:** When agents interact with web browsers or desktop GUI interfaces (e.g., via Playwright, Puppeteer, or Chrome Extensions), AEIB governs the backend tool-dispatch boundary but cannot inspect client-side DOM manipulation.
-- **Exposure:** AEIB cannot prevent:
-  - Malicious DOM script injection or cross-site scripting (XSS) within the browser instance.
-  - Compromised browser extensions modifying DOM elements before the agent reads them.
-  - UI clickjacking or deceptive styling misleading an agent visual parser.
-  - Human-in-the-loop social engineering where a user confirms a poisoned prompt in an interactive chat session.
+It does **not** automatically make AEIB compliant, certify AEIB, satisfy every AI Act requirement, or cover deployer obligations, DORA incident reporting, payment-rail rules, or financial-sector supervision.
 
-### 2.3 Target Semantics & Idempotency Compliance
-- **Limitation:** AEIB's deduplication and retry protections rely on external targets adhering to standard HTTP and idempotency semantics.
-- **Exposure:**
-  - If a downstream target API silently ignores `Idempotency-Key` headers and executes duplicate mutations on repeated HTTP POST requests, AEIB's deterministic key binding cannot force the target to behave idempotently.
-  - If a target API lacks a reliable read/probe endpoint (e.g., `GET /refunds/{id}` or `GET /checkout_sessions/{id}`) to query in-flight transaction status, AEIB cannot automatically resolve an `EFFECT_INDETERMINATE` latch, requiring manual human investigation.
-  - If an upstream target experiences internal database corruption or non-atomic state updates, AEIB receipts document the outbound wire payload and observed transport return, but cannot repair downstream inconsistency.
+```text
+AEIB may contribute evidence to an operator’s EN 18286-aligned QMS.
+It does not itself constitute an AI Act QMS, conformity assessment, certification, or legal compliance.
+```
 
-### 2.4 Cryptographic Key Custody Models
-- **Limitation:** AEIB signs receipts and authorizations using Ed25519 private keys. In prototype and software-only deployments, private keys reside in host memory or environment configurations.
-- **Exposure:** If the host machine, container host, or root user space is compromised, in-memory signing keys can be exfiltrated. Production security requires delegating key storage to a hardware security module (HSM), Cloud KMS, or a hardware-isolated Trusted Execution Environment (TEE).
+### 1.2 ISO/IEC 27090:2026 is Guidance, Not a QMS
+ISO/IEC 27090 addresses AI-specific security threats and compromises across the AI lifecycle. ISO publishes this standard as security guidance and technical controls, not as requirements for an institutional AI management system (which is the domain of ISO/IEC 42001).
+
+```text
+AEIB can align with ISO/IEC 27090 guidance.
+It does not “fulfill” ISO/IEC 27090.
+```
+
+### 1.3 DORA is Not Satisfied by Receipts
+Regulation (EU) 2022/2554 (DORA) applies to regulated financial entities and their ICT risk management frameworks, incident reporting mechanisms, digital operational resilience testing, and third-party risk management. 
+
+AEIB produces verifiable technical evidence useful to a financial entity’s incident management process, but it cannot automatically file regulatory reports, classify incidents as major, determine materiality under RTS (EU) 2024/1772, or discharge the regulated entity’s statutory responsibilities.
 
 ---
 
-## 3. Bounded Residual Risk: 5 Reduced Risks vs. 8 Un-Eliminatable Residual Risks
+## 2. Corrected External Transparency & SCITT Claims
 
-AEIB provides bounded risk mitigation rather than universal protection. Deployments must evaluate the 5 reduced risks against the 8 un-eliminatable residual risks:
+IETF RFC 9943 (*An Architecture for Trustworthy and Transparent Digital Supply Chains*) and RFC 9942 (*COSE Receipts*) define an external architecture for digital supply chain transparency.
 
-### 3.1 The 5 Reduced Risks
+A local append-only ledger (`ledger.jsonl`) is locally verifiable at best. It does not constitute a transparency service. A SCITT-compatible transparency service introduces an external registration and independent Merkle auditing model with its own operational trust assumptions.
 
-| Risk Category | Pre-Boundary Baseline Failure Mode | AEIB Mitigated Posture | Verified Test / Evidence |
-| :--- | :--- | :--- | :--- |
-| **1. Ambiguous Transport Retry Duplication** | HTTP 504 / TCP RST causes naive agent retry loops to fire duplicate charges or payouts. | Station 2 traps transport ambiguity in `EFFECT_INDETERMINATE`, blocks naive retries, and executes bounded `ProbeBudget: 1` status inquiry. | Deterministic 500-episode harness: 0 duplicate mutations observed across 302 blocked retries. |
-| **2. Uncoordinated Parallel Write Collisions** | Multi-agent clusters execute concurrent writes to shared records, creating race conditions and state corruption. | Station 1 requires disjoint write partitions and pre-dispatch intent locking before mutation dispatch. | `tests/test_opencode_codemode_and_hotreload.py` |
-| **3. Post-Execution Audit Deniability** | Ad-hoc text logs and trace spans can be deleted, truncated, or modified post-hoc. | RFC 8785 JCS canonicalization + Ed25519 signing + optional RFC 9942 SCITT Merkle receipts provide tamper-evident non-repudiation. | `tests/test_phase4_scitt_cose_cli.py` |
-| **4. Sybil Rotator Quota Evasion** | Agents spawn ephemeral subagents or rotate identifiers to bypass local velocity caps. | `RootSponsorQuotaTree` aggregates all subagent spend into root sponsor 5h Sprint and 7d Epoch pools (`AT56`). | `tests/test_sybil_rotator_and_smurfing.py` |
-| **5. Untrusted Context / Tool Taint Escalation** | Indirect prompt injection via untrusted tools tricks LLM into executing high-consequence mutations. | Bell-LaPadula taint tracking degrades session consequence ceiling (`AT57b`, `AT64`) upon ingesting Tier-2 tool outputs. | `tests/test_at64_rail_interop_and_mcp_tool_taint.py` |
+```text
+AEIB may emit COSE receipts and optionally register statements or receipts
+with a SCITT-compatible transparency service.
+Local ledger integrity and external transparency anchoring are different assurance properties.
+```
 
-### 3.2 The 8 Un-Eliminatable Residual Risks
+---
 
-1. **Compromised Signing Keys:**
-   - If an attacker obtains root sponsor private keys or Station 1 signing keys, they can mint valid authorizations. Cryptography cannot distinguish between authorized usage and unauthorized usage with legitimate keys.
-2. **Compromised Target API:**
-   - If the remote banking server, payment gateway, or cloud API is malicious or internally compromised, it can acknowledge receipts without settling funds, or mutate internal state outside the wire contract.
-3. **Compromised Host / Kernel:**
-   - If the underlying operating system kernel or hypervisor running AEIB is compromised, an attacker can alter memory, tamper with running Python/Rust processes, or manipulate loopback socket traffic.
-4. **Bad Policy Configuration:**
-   - If administrators configure excessive financial velocity ceilings, disable taint checks, or misclassify untrusted tools as system-pinned, AEIB will faithfully enforce the flawed configuration.
-5. **Human Approval Error (Rubber-Stamping):**
-   - For high-consequence actions requiring Step-Up authorization, if the human supervisor approves a poisoned request without due diligence, AEIB executes the authorized action.
-6. **Target-Side Settlement Failure:**
-   - Downstream payment rails may experience delayed settlement failures, chargebacks, or manual clawbacks days after an HTTP 200 OK receipt is issued. AEIB tracks wire-level settlement finality, not banking system insolvency.
-7. **Legal & Regulatory Noncompliance:**
-   - While AEIB generates evidence packages aligned with DORA Article 17, DORA Article 28(3), and EU AI Act Articles 12–17 (`EN 18286`), the existence of technical receipts does not constitute legal certification or compliance immunity.
-8. **Loss of Availability (Fail-Closed Trapping):**
-   - AEIB is architected to prioritize safety and integrity over availability. Under ambiguous network faults, missing signatures, or corrupted ledgers, AEIB halts execution fail-closed. This deliberate design choice means transient network degradation can result in blocked transactions until reconciliation completes.
+## 3. Corrected "Zero-Mock Verification" Claims
+
+In AEIB, "zero-mock" denotes that the test suites execute without mocking frameworks (`unittest.mock`, stubbed hashes, hardcoded signatures, or synthetic assertions). 
+
+**What "Zero Mocks" Does NOT Mean:**
+- Real payment rails were not used.
+- Real production banks were not used.
+- Real external production targets were not used.
+- Independent third parties have not yet reproduced results.
+- Full production failure modes were not covered.
+- Security properties were not formally proven across infinite state spaces.
+
+```text
+Defensible statement: Local zero-mock test suites passed.
+Prohibited statement: Fully verified.
+```
+
+---
+
+## 4. Corrected Test-Suite Interpretation
+
+Passing test suites provide evidence about those tests' specific assertions under local execution conditions. A passing test ID is not mathematical proof that every threat in the named category is comprehensively eliminated.
+
+**Standard Reporting Template:**
+```text
+At commit f7273968, in Python 3.14 / macOS Darwin ARM64,
+the following core test suites reported pass:
+- tests/test_industrial_protection_matrix.py (18/18 passed)
+- tests/test_ansi_50bf_breaker_failure.py (2/2 passed)
+- tests/test_saga_compensation.py (5/5 passed)
+- tests/test_falsifiability_matrix.py (5/5 passed)
+- tests/test_at73_sovereign_signer_allowlist_gate.py (6/6 passed)
+- tests/test_scitt_otel_and_pqc_cbom_agility.py (5/5 passed)
+Raw logs and evidence manifest: evidence/
+```
+
+---
+
+## 5. The Six-Pillar Architecture: Scope vs. What Remains Unproven
+
+| Architecture Pillar | Correct Scope | What Remains Unproven |
+|---|---|---|
+| **1. Wire & Egress** | Enforces allowlists, SNI/Host consistency, and authenticated dispatch at a controlled loopback gateway. | DNS rebinding, domain fronting, IPv6 bypass, proxies, HTTP redirects, QUIC transport, and bypass via non-proxied raw syscalls. |
+| **2. Credential Isolation** | Keeps downstream credentials out of agent-readable memory; injects narrowly scoped credentials at the host gateway. | Key-compromise recovery procedures, credential rotation cascades, vault compromise, and privileged insider threats. |
+| **3. Harness Immutability** | Binds harness digests and protects policy artifacts from agent modifications via OS-specific controls. | User-space bypass if container rootfs is writable; requires explicit OS-level containment models. |
+| **4. Context Cartography** | Preserves raw-byte digests while exposing compressed views for token efficiency; propagates provenance taint. | Does not prevent semantic poisoning; compressed view may omit safety-relevant contextual nuances. |
+| **5. Transactional Finality** | Enforces local ACID escrow accounting, state locking, and conflict resolution. | Cannot create distributed two-phase commit (2PC) across external banking or payment systems. |
+| **6. Regulatory Evidence** | Generates canonical RFC 8785 JCS, Ed25519-signed, machine-readable evidence artifacts. | Does not determine legal applicability or satisfy conformity assessment without notified body review. |
+
+---
+
+## 6. Policy Protection & Anti-Tamper Enforcement Model
+
+File-level policy locks on ordinary Linux/UNIX systems operate via user-space or kernel-assisted primitives—not CPU Ring 0. 
+
+### 6.1 Policy Protection Model
+```yaml
+policy_protection:
+  enforcement_layer: OS-specific
+  options:
+    - read_only_mount
+    - immutable_file_attribute
+    - LSM_policy
+    - seccomp_profile
+    - separate_service_identity
+  failure_behavior: deny_and_halt
+```
+
+### 6.2 Anti-Tamper Mitigation Specifications
+To prevent an agent process from tampering with its own execution guardrails:
+1. **Remounting Policy Path:** The agent runs in a container or mount namespace where the policy mount is strictly read-only (`MS_RDONLY`), without `CAP_SYS_ADMIN`, preventing remounting.
+2. **Editing Copied Policy File:** The execution runtime strictly hashes and verifies the pinned canonical filesystem path, rejecting caller-supplied alternate paths.
+3. **Replacing Verifier Binary:** Enforced via read-only container root filesystems or immutable filesystem attributes (`chattr +i`).
+4. **Spoofing Policy Loader:** Policy manifests require mutual cryptographic signature verification with the root sponsor key before activation.
+5. **Restarting into Permissive Configuration:** Station 1 boot-continuity checks inspect historical hash-chains and halt fail-closed (`HALT_MISSING_CONTINUITY_LEDGER`) if the state is altered.
+
+---
+
+## 7. Transactional Finality vs. External Distributed Systems
+
+Local SQLite / PostgreSQL ACID transactions provide local transactional integrity. They do **not** provide distributed commit across external, heterogeneous banking systems:
+$$\text{Agent} \longrightarrow \text{AEIB} \longrightarrow \text{Payment Rail} \longrightarrow \text{Bank Core} \longrightarrow \text{Beneficiary}$$
+
+An external payment can commit after an AEIB timeout, network drop, or crash. Therefore:
+- `EFFECT_INDETERMINATE` is a durable state that must survive restarts.
+- Reconciliation probes must be strictly bounded (`ProbeBudget: 1`).
+- The system provides local escrow and conflict control, not distributed two-phase commit.
+
+```text
+AEIB provides local escrow and conflict control.
+It does not provide distributed commit across external systems.
+```
+
+---
+
+## 8. Performance & Latency Claims
+
+Sub-millisecond latency cannot be asserted universally without measuring in the target production environment.
+
+### 8.1 Fast-Path Classification Controls
+Any fast-path optimization introduced to reduce latency for low-risk actions introduces misclassification risk. Required engineering controls:
+```yaml
+fast_path:
+  eligible:
+    - read_only
+    - no_external_network
+    - no_credentials
+    - no_state_mutation
+    - below_risk_threshold
+  fallback:
+    any_uncertainty: full_gate
+  audit:
+    classifier_version: required
+    decision: required
+    override_rate: monitored
+```
+
+---
+
+## 9. Requirements for an Agent Execution Integrity Standard
+
+Rather than claiming that AEIB *is* an industry standard, the requirements that an open standard for agent execution integrity must satisfy are defined as follows:
+
+```yaml
+agent_execution_integrity_requirements:
+  exact_action_binding:
+    canonical_action_digest: required
+  authority_separation:
+    agent_holds_downstream_credentials: false
+  temporal_authorization:
+    valid_at_dispatch_time: required
+  harness_context_binding:
+    harness_digest: required
+  durable_uncertainty:
+    ambiguous_effect_must_not_retry_blindly: true
+  bounded_reconciliation:
+    authoritative_evidence_source: required
+    max_attempts: required
+  evidence:
+    operation_bound: required
+    canonical_serialization: required
+    signature_or_equivalent_integrity: required
+    offline_verification: required
+  external_halt:
+    durable: required
+    checked_before_dispatch: required
+  least_privilege:
+    default_deny: required
+  independent_verifiability:
+    standalone_verifier: required
+    negative_vectors: required
+```
+
+---
+
+## 10. Immediate Delivery Plan: Closing the Core Loop
+
+Rather than expanding simultaneously into ancillary protocols, AEIB prioritizes closing the core verification loop:
+
+```text
+1. Publish exact commit, environment, commands, and raw suite logs.
+2. Publish canonical receipt schema and standalone offline verifier.
+3. Publish negative verification test vectors.
+4. Run one real local-target ambiguous-refund scenario end-to-end.
+5. Run fresh-checkout reproduction in a cleanroom directory.
+6. Package and transmit evidence pack to an independent reproducer.
+7. Maintain and enforce this LIMITATIONS.md specification.
+8. Only subsequent to 1–7: expand optional COSE, SCITT, AP2, x402, and PQC profiles.
+```

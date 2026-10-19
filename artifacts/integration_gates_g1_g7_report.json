@@ -3,8 +3,8 @@
     "schema_version": "1.1.0-integration-gates-g1-g7",
     "audit_status": "LOCAL PASS; INDEPENDENT REPRODUCTION PENDING",
     "epistemic_notice": "Evaluated under the stated model. Observations reflect deterministic local fault-injection rehearsals, loopback socket telemetry, and cleanroom archive verification.",
-    "generated_at_utc": "2026-10-16T16:45:49Z",
-    "git_head_commit_sha": "f29517dde4cd292e2f392af4f8ef4139a709f298",
+    "generated_at_utc": "2026-10-19T05:51:31Z",
+    "git_head_commit_sha": "24353cf58715acc082e69d123c6a9c55232ec520",
     "gates_evaluated_count": 7,
     "all_gates_passed": false,
     "all_local_prerequisites_passed": true,
@@ -16,7 +16,7 @@
       "G1_source_and_deps_locked": {
         "gate_id": "G1_source_and_deps_locked",
         "status": "EVALUATED_PASS",
-        "git_head_commit_sha": "f29517dde4cd292e2f392af4f8ef4139a709f298",
+        "git_head_commit_sha": "24353cf58715acc082e69d123c6a9c55232ec520",
         "locked_artifacts": {
           "requirements.txt": {
             "present": true,
@@ -199,7 +199,7 @@
         "adversarial_suites": {
           "command": "pytest tests/test_enforced_halt_and_delegation.py tests/test_mitre_adversarial_matrix.py -q",
           "returncode": 0,
-          "tests_passed": 13
+          "tests_passed": 17
         }
       },
       "G7_customer_pilot_accepted": {
@@ -207,7 +207,7 @@
         "status": "LOCAL_PREREQUISITES_PASS_EXTERNAL_PARTY_PENDING",
         "dora_art17_incident_candidate_boundary": {
           "dora_schema_version": "1.1.0-dora-art17",
-          "package_digest": "sha256:e6d9ecf200f4f3cdcbd9a0f586c7a6031ae7305caa67412605a9a1896879a4cc",
+          "package_digest": "sha256:9717c2cc3ee7124b85014d14f99cd03e5e5bc931b0fc123bcf618de870f0ddb8",
           "classification_owner": "customer_defined",
           "reporting_decision": "not_determined_by_aeib",
           "financial_entity_awareness_time": "unknown_until_supplied",
@@ -253,14 +253,14 @@
       }
     }
   },
-  "report_digest": "sha256:54735e0ae5482801a535405e6a20b873773d9fe805accdf9b19c8e9a72bb9e69",
+  "report_digest": "sha256:ac59480641db8a15f05fca7fbcf52d0f7f2324750ccdc0750c09e968d307d41c",
   "signature": {
     "algorithm": "Ed25519",
     "canonicalization": "RFC_8785_JCS",
     "public_key_id": "did:key:aeib-integration-gates-g1-g7-ed25519",
     "signer_spki_digest": "sha256:6579f149198b90ca86852663dd910731957ec6fcd5c5cca985dfc6276f8cbbf2",
     "public_key_pem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAccpwuA1sMyP0v1UuK7wNt/8oquFu30AuWWIEdFJBXwY=\n-----END PUBLIC KEY-----\n",
-    "signature_b64": "W2eWMCDKflj9ENLXxVQvIoidSAN1SYZA4G4y5LuGAjHBTGJmVpsu6kCMFQEtDaJfzFqUNzFsWQQpjoCbtwzZDA==",
-    "signature_hex": "5b67963020ca7e58fd10d2d7c5542f22889d480375498640e06e32e4bb860231c14c6266569b2eea408c15012d0da25fcc5a9437316c5904298e809bb70cd90c"
+    "signature_b64": "gMqoqBvIPrATEk0JtSb2YhBsLvaISFyeV2NzBSRs2oNU4SvAWY95l1wzzRnj5XG9YNpskJd37CFI3abrsCcICw==",
+    "signature_hex": "80caa8a81bc83eb013124d09b526f662106c2ef688485c9e57637305246cda8354e12bc0598f79975c33cd19e3e571bd60da6c909777ec2148dda6ebb027080b"
   }
 }

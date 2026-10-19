@@ -1,0 +1,92 @@
+{
+  "artifact_checksums": {
+    "LIMITATIONS.md": "sha256:f1864f5d5fa5f40ad87f8cae5a0b945bce7f38cd8ff15f5ad36c5452d1250bc2",
+    "benchmarks/aeib_execution_integrity/run_episodes.py": "sha256:fd84e0ec4c2fcc74143dd3bb3c182a59a57ff486de5b6ba1da7eec20c084205f",
+    "compliance/ast_purity.py": "sha256:2d9e11ccf153ec34f3d61e0b3d6602ec6b3cdcbaae82d33724b61e77309cf587",
+    "compliance/check_zone_boundary.py": "sha256:c62955ffef950708c24dec1ab84846cdac5699a9f6fb123e9b1ed0a7471de68d",
+    "compliance/dora_art17_exporter.py": "sha256:009e01942f804e657fbba8304baaef55827b2a72bb96b7410a0f94d19483e9ef",
+    "compliance/iso_42001_soa.py": "sha256:47f44b22a725dbc6efa605faf55317e01c2d1637e3cd3ab6b7a7305007adb855",
+    "compliance/no_mock_enforcer.py": "sha256:1b38c778310e6835485f9dc2e9f2f69bc6d0e8afccd0d2462bfd6950e98b227f",
+    "compliance/tetragon_aeib_enforcer.yaml": "sha256:8d8cb02f697b892e082e7628c9d418eec20af800505f17fb46f7ef654152abd4",
+    "crates/aeib-data-plane/Cargo.toml": "sha256:b6f70485cd8f9904bc24b308c72e27e88ae8db5bfcbb6200125b2a0bc617ef3c",
+    "crates/aeib-data-plane/benches/stochastic_saga.rs": "sha256:e459af37f52788c04d0ca8b5f338787a06839e590faa13fdc4094406d664854e",
+    "crates/aeib-data-plane/src/attestation.rs": "sha256:294c1d0521e66ecb4fc8f564b4e76d1bf397504f4531fcabc0622de2a0ff0927",
+    "crates/aeib-data-plane/src/lib.rs": "sha256:716c4b06e4dbe2792321f74c6a8952a87d5b8fa8d31edf10da3aa58270928311",
+    "crates/aeib-data-plane/src/scitt.rs": "sha256:7f8d14568f5bade4e61b18536117e6a5a5952b72b930b302753b08006e60a787",
+    "crates/aeib-data-plane/src/wal.rs": "sha256:3c037f1735549ee371edc12a978fdc9006f32f70a369c13a4e08f469c1961aae",
+    "crates/aeib-data-plane/tests/test_scitt_merkle_tree.rs": "sha256:fe0704b790144eae74fb94220ed7d91a79b4069b43f8b60ab7614e093d5ab361",
+    "crates/aeib-data-plane/tests/test_station1_admissibility.rs": "sha256:e23ab1321d96433e181a889dc6b4e9a2901c8c8173921936ab95287e9ff51c64",
+    "crates/aeib-data-plane/tests/test_tee_attestation.rs": "sha256:3002d1a7efe6ddc3e7386b6d982eae63fd16ad0902fb80c9f59214fbd98f0583",
+    "crates/aeib-data-plane/tests/test_wal_group_commit.rs": "sha256:209f02eba18351a13e37e59ba9301e3c5fb47c430365343e733983dba2e0794a",
+    "docs/compliance/EN_18286_QMS_CONFORMITY_REPORT.md": "sha256:44115fb252d7dc746800c11e4aa2b2f448331de053dea14277daef3457d7fdd1",
+    "docs/compliance/ISO_42001_STATEMENT_OF_APPLICABILITY.md": "sha256:b3d23c3bda1b8f2d737a6a8760dea3f397514c1340ec3810d5624513e7090079",
+    "docs/compliance/RED_TEAM_QUOTA_BYPASS_FINANCIAL_GATE_DOSSIER.md": "sha256:ab4d1ea99b516a9553a34976d371b4aaf9afc9c8b179c66d0038d7ffd71924fa",
+    "docs/compliance/dora_nist_crosswalk.md": "sha256:da3cc29426a1d2fcc8f437e3f1c7f87f8723fe484bc55ab65875c58fe6aea8e7",
+    "docs/interop/rail-mandate-mapping.md": "sha256:dbc7122ce85de3868f706cca7ae7402155eee8702f0a1b5aae3ec75ccfe5f813",
+    "docs/interop/scitt-otel-and-pqc-cbom-architecture.md": "sha256:a98619e6f7d3fb0cac3bfa172d177d37c878064ff958178c8c71386346bc6942",
+    "evidence/cbom.json": "sha256:9db3e7f8e6c23928c1ccf56f97cc3700b2b8a392a48b5bb71ac86466763fa1fc",
+    "tests/test_ansi_50bf_breaker_failure.py": "sha256:b4e2377342c69b0fc1128507505306d4d03b8ddf9a0c0cc9dbfee582f8be2388",
+    "tests/test_at64_rail_interop_and_mcp_tool_taint.py": "sha256:ce016e310e3d9c604eab6a5cf95acc33849597dd3eb286708d819e64f855258d",
+    "tests/test_at73_sovereign_signer_allowlist_gate.py": "sha256:d161d9c4f8bb2810ab41b4eee0babf0298a75424b05e4c43ade98eebdc81143f",
+    "tests/test_falsifiability_matrix.py": "sha256:41764b32920b414810940142fbe59d3ba5adc1a00514f50886f40a6d4a2c003f",
+    "tests/test_industrial_protection_matrix.py": "sha256:3639a12d216e3463d67f4baa809bc656b5d39d93f1ddec87e9d2bcee140f3a87",
+    "tests/test_native_data_plane_bridge.py": "sha256:155c4e113a944e86e4095a0452f55c939a70bbaa3fb5bac9e856c2f995ca0cdd",
+    "tests/test_opencode_codemode_and_hotreload.py": "sha256:d374e41e4864fc17cd39d90acc7c52dbdcb564ce6ecf047eb9dc6a886a258bf9",
+    "tests/test_parallel_economics.py": "sha256:e2a01bcab1a6db43bf54b200a4441fc202fe31dcd0c676ca1ce18016c34a4c2f",
+    "tests/test_real_local_ambiguous_refund.py": "sha256:ae802440756fd3ec83c9225f2d99cac1f63f4b10c6d139ee799acb3190258fdb",
+    "tests/test_saga_compensation.py": "sha256:1eea5f9e1c4fee2ede770c2a1ffe915c82a121f797d2540278388b793e9f8c6b",
+    "tests/test_scitt_ap2_mcp_pqc_interop.py": "sha256:3db0853328e8ae6be564429550c368c517a5b5ea3e756e21d308bbac34d5179e",
+    "tests/test_scitt_otel_and_pqc_cbom_agility.py": "sha256:6827e6a42804cc66de1e6f8fd4a19bc4db1c3471b43d355bececaee5f8fb519d",
+    "tests/test_sybil_rotator_and_smurfing.py": "sha256:2ba2941581e8aa433852483be33a9922385f2ca2bf4da928470bfaf9cf769b2a",
+    "tests/test_tcc_parallel_acid_vs_base_anomalies.py": "sha256:8ec17c6de1241360b3606773d8cc9606eea7062d222d240c4096f80cf120329f",
+    "tests/test_tool_provenance_and_otel_interop.py": "sha256:86bd56f0e83321df3a5d34ed5001737969b51bfb8827a0584af468efaed4a038",
+    "tools/aeib_offline_verifier.py": "sha256:ecad3ca0535913cc1aeaf6bfe1334f354cbdabd8fd1566a0cc6cbeee6ddff682",
+    "tools/measure_parallel_economics.py": "sha256:fc667caa55135979ccf61c5ad7604690f7376d0093c754ba4a0fd801f1b7daaf",
+    "tools/verify_cose_scitt_receipts.py": "sha256:7bb9602331ac4d0daac89e1d3d5356b015130b89ba1706ff8d57b35b380cc319"
+  },
+  "ed25519_signature": {
+    "alg": "Ed25519",
+    "public_key_b64": "lzPxSkY7UgxxPtTJbuozcrrBTcA7dzobMI8evIgNj9c=",
+    "signature_b64": "FMr8urS4UuuzcWAKwTDFrl1IhEaU1cKgAqmEI4M1CEJXsGkpOnPLXXtrBP+EuqjxEs1hR/yAXQP17eT7JOvlCQ=="
+  },
+  "epistemic_notice": "Evaluated under the stated model. All claims reflect observed and tested testbench behaviors in our evaluated prototype and structural scaffolding. Does not confer automatic statutory certification or universal exactly-once delivery where target contracts lack an in-flight bound or idempotency support.",
+  "git_commit": "0210bb07d845ba1ebc7413471b4614a0c19e9d11",
+  "manifest_digest": "sha256:ea7fe830425eab59e0cde809eaffb29a711c47e990492718faf7b7fb5cfb75d9",
+  "manifest_identifier": "AEIB-EVIDENCE-MANIFEST-v1.0.0-rc.36",
+  "platform": {
+    "cargo_version": "cargo 1.95.0 (f2d3ce0bd 2026-03-21)",
+    "machine": "arm64",
+    "python_version": "3.14.3",
+    "release": "25.6.0",
+    "rustc_version": "rustc 1.95.0 (59807616e 2026-04-14)",
+    "system": "Darwin"
+  },
+  "release_candidate": "v1.0.0-rc.36",
+  "schema_version": "1.0.0",
+  "timestamp_epoch": 1775304000,
+  "verification_results": {
+    "ast_purity_enforcer": "PASSED (0 stubs, 0 forbidden strings, 0 mock calls)",
+    "banned_words_audit": "0 occurrences of banned terms verified across code and docs",
+    "deterministic_500_episode_harness": {
+      "arm4_observed_duplicates": 0,
+      "episodes": 500,
+      "naive_retry_duplicates": "302/500 (60.4%)",
+      "rule_of_three_95pct_upper_bound": "<= 0.60%",
+      "status": "PASSED"
+    },
+    "native_rust_data_plane": {
+      "criterion_stochastic_saga": {
+        "aeib_rust_ebpf_data_plane": "observed 0 duplicates, ~2.03 ms total for 50 ops (~40.6 us/op)",
+        "traditional_saga_baseline": "observed duplicates and unhedged retry storms",
+        "workload": "50 parallel mutations under 30% packet loss (HTTP 504)"
+      },
+      "package": "aeib-data-plane",
+      "status": "PASSED",
+      "tests_failed": 0,
+      "tests_passed": 14,
+      "tests_total": 14
+    },
+    "zero_mock_enforcer": "PASSED (all integration axes confirmed unmocked)",
+    "zone_boundary_enforcement": "PASSED (0 cross-zone imports)"
+  }
+}

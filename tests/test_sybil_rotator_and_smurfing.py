@@ -20,6 +20,7 @@ import hashlib
 import json
 import os
 import threading
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Tuple
@@ -436,19 +437,23 @@ class Station1FinancialIntegrityGate:
                 return {"decision": "REJECTED", "reason": "UNKNOWN_OPERATION_ID"}
 
             orig_entry: Optional[Dict[str, Any]] = None
+            current_disposition = "DISPATCHED"
             for raw_line in self.ledger_path.read_text(encoding="utf-8").splitlines():
                 if not raw_line.strip():
                     continue
                 entry = json.loads(raw_line)
-                if (
-                    entry.get("operation_id") == operation_id
-                    and entry.get("record_type", "DISPATCH") == "DISPATCH"
-                ):
-                    orig_entry = entry
-                    break
+                if entry.get("operation_id") == operation_id:
+                    if entry.get("record_type", "DISPATCH") == "DISPATCH":
+                        orig_entry = entry
+                        current_disposition = entry.get("disposition", "DISPATCHED")
+                    elif entry.get("record_type") == "DOWNSTREAM_EFFECT_SETTLEMENT":
+                        current_disposition = entry.get("disposition", current_disposition)
 
             if orig_entry is None:
                 return {"decision": "REJECTED", "reason": "UNKNOWN_OPERATION_ID"}
+
+            if current_disposition in ("RESOLVED_CONFIRMED", "RESOLVED_REFUTED"):
+                return {"decision": "REJECTED", "reason": "ALREADY_TERMINAL_STATE"}
 
             if disposition == "RESOLVED_REFUTED":
                 if target_attestation_sig_b64 is None or target_pubkey is None:
@@ -499,6 +504,66 @@ class Station1FinancialIntegrityGate:
                 "operation_id": operation_id,
                 "sprint_spent_minor": sprint_spent,
             }
+
+    def get_escrowed_amount_minor(
+        self, sponsor_did: Optional[str] = None, now_ts: Optional[int] = None
+    ) -> int:
+        """Returns the currently active escrowed expenditure for the rolling sprint window."""
+        with self._acquire_gate_locks():
+            target_did = sponsor_did or self.policy.sponsor_did
+            ts = now_ts if now_ts is not None else int(time.time())
+            return self._sum_sponsor_window_spend(
+                target_did, ts - self.policy.sprint_window_seconds
+            )
+
+    def get_available_budget_minor(
+        self, sponsor_did: Optional[str] = None, now_ts: Optional[int] = None
+    ) -> Dict[str, int]:
+        """Returns remaining available budget minor units across sprint and epoch windows."""
+        with self._acquire_gate_locks():
+            target_did = sponsor_did or self.policy.sponsor_did
+            ts = now_ts if now_ts is not None else int(time.time())
+            sprint_spent = self._sum_sponsor_window_spend(
+                target_did, ts - self.policy.sprint_window_seconds
+            )
+            epoch_spent = self._sum_sponsor_window_spend(
+                target_did, ts - self.policy.epoch_window_seconds
+            )
+            return {
+                "sprint_available_minor": max(
+                    0, self.policy.sprint_max_minor_units - sprint_spent
+                ),
+                "epoch_available_minor": max(
+                    0, self.policy.epoch_max_minor_units - epoch_spent
+                ),
+                "sprint_spent_minor": sprint_spent,
+                "epoch_spent_minor": epoch_spent,
+            }
+
+    def get_operation_status(self, operation_id: str) -> Optional[Dict[str, Any]]:
+        """Returns the current disposition, state transitions, and metadata for an operation."""
+        with self._acquire_gate_locks():
+            if not self.ledger_path.exists():
+                return None
+            status_entry: Optional[Dict[str, Any]] = None
+            history: List[str] = []
+            for raw_line in self.ledger_path.read_text(encoding="utf-8").splitlines():
+                if not raw_line.strip():
+                    continue
+                entry = json.loads(raw_line)
+                if entry.get("operation_id") == operation_id:
+                    disp = entry.get("disposition", "DISPATCHED")
+                    history.append(disp)
+                    status_entry = {
+                        "amount_minor": entry.get("amount_minor", 0),
+                        "current_disposition": disp,
+                        "endpoint": entry.get("endpoint", ""),
+                        "history": list(history),
+                        "latest_entry_caid": entry.get("entry_caid", ""),
+                        "operation_id": operation_id,
+                        "sponsor_did": entry.get("sponsor_did", ""),
+                    }
+            return status_entry
 
 
 def _issue_subagent_cert(
@@ -882,3 +947,134 @@ def test_at59_boot_per_entry_signature_verification_blocks_in_place_disk_tamperi
     )
     assert post_tamper_res["decision"] == "REJECTED"
     assert post_tamper_res["reason"] == "HALT_CORRUPTED_LEDGER_ENTRY_SIGNATURE"
+
+
+def test_at58_explicit_transition_validation_and_helper_queries(
+    tmp_path: Path,
+) -> None:
+    """
+    Evaluates explicit state transition validation (AT58) and budget helper queries:
+    1. Initial dispatch registers operation as DISPATCHED; verify escrow held and available budget.
+    2. Transition to EFFECT_INDETERMINATE preserves escrow.
+    3. Re-transition from terminal states (RESOLVED_REFUTED / RESOLVED_CONFIRMED) is rejected
+       with ALREADY_TERMINAL_STATE.
+    4. Target-signed refutation releases escrow and restores available budget to full capacity.
+    5. Verifies get_operation_status reflects the complete state transition history.
+    """
+    sponsor_priv = Ed25519PrivateKey.generate()
+    gate_priv = Ed25519PrivateKey.generate()
+    target_priv = Ed25519PrivateKey.generate()
+    sponsor_did = "did:key:z6MkRootSponsor001"
+    policy = RootSponsorPolicy(
+        sponsor_did=sponsor_did,
+        sprint_max_minor_units=2500_00,
+        epoch_max_minor_units=10000_00,
+    )
+
+    ledger_file = tmp_path / "ledger_transitions.jsonl"
+    checkpoint_file = tmp_path / "checkpoint_transitions.tip"
+
+    gate = Station1FinancialIntegrityGate(
+        ledger_path=ledger_file,
+        checkpoint_path=checkpoint_file,
+        sponsor_pubkey=sponsor_priv.public_key(),
+        gate_signing_key=gate_priv,
+        policy=policy,
+    )
+
+    clean_ctx = ContextBlock(
+        block_id="ctx-tx-01",
+        trust_tier="TIER_0_SIGNED_SYSTEM",
+        raw_bytes=b"authorized_action=transfer",
+    )
+    manifest = [("ctx-tx-01", clean_ctx.digest())]
+    cert = _issue_subagent_cert(sponsor_priv, sponsor_did, 1)
+    now_ts = 1_775_300_000
+    op_id = "op-transition-test-01"
+
+    # Pre-dispatch: 0 escrowed, full budget available
+    assert gate.get_escrowed_amount_minor(now_ts=now_ts) == 0
+    budget_before = gate.get_available_budget_minor(now_ts=now_ts)
+    assert budget_before["sprint_available_minor"] == 2500_00
+    assert budget_before["epoch_available_minor"] == 10000_00
+
+    # 1. Dispatch EUR 1,500.00
+    disp_res = gate.evaluate_and_dispatch(
+        cert=cert,
+        endpoint="POST /v1/refunds",
+        amount_minor=1500_00,
+        now_ts=now_ts,
+        context_blocks=[clean_ctx],
+        bound_context_manifest=manifest,
+        operation_id=op_id,
+    )
+    assert disp_res["decision"] == "DISPATCHED"
+
+    # Verify helper queries immediately reflect escrow hold
+    assert gate.get_escrowed_amount_minor(now_ts=now_ts) == 1500_00
+    budget_after_disp = gate.get_available_budget_minor(now_ts=now_ts)
+    assert budget_after_disp["sprint_available_minor"] == 1000_00
+    assert budget_after_disp["epoch_available_minor"] == 8500_00
+
+    status = gate.get_operation_status(op_id)
+    assert status is not None
+    assert status["current_disposition"] == "DISPATCHED"
+    assert status["history"] == ["DISPATCHED"]
+
+    # 2. Transition DISPATCHED -> EFFECT_INDETERMINATE
+    latch_res = gate.record_downstream_effect(
+        operation_id=op_id,
+        disposition="EFFECT_INDETERMINATE",
+        now_ts=now_ts + 5,
+    )
+    assert latch_res["decision"] == "RECORDED"
+    assert latch_res["disposition"] == "EFFECT_INDETERMINATE"
+    assert gate.get_escrowed_amount_minor(now_ts=now_ts + 5) == 1500_00
+
+    status = gate.get_operation_status(op_id)
+    assert status is not None
+    assert status["current_disposition"] == "EFFECT_INDETERMINATE"
+    assert status["history"] == ["DISPATCHED", "EFFECT_INDETERMINATE"]
+
+    # 3. Transition EFFECT_INDETERMINATE -> RESOLVED_REFUTED with target signature
+    refutation_payload = encode_jcs(
+        {
+            "disposition": "RESOLVED_REFUTED",
+            "operation_id": op_id,
+        }
+    )
+    sig_b64 = base64.b64encode(target_priv.sign(refutation_payload)).decode("ascii")
+
+    refute_res = gate.record_downstream_effect(
+        operation_id=op_id,
+        disposition="RESOLVED_REFUTED",
+        now_ts=now_ts + 10,
+        target_attestation_sig_b64=sig_b64,
+        target_pubkey=target_priv.public_key(),
+    )
+    assert refute_res["decision"] == "RECORDED"
+    assert refute_res["disposition"] == "RESOLVED_REFUTED"
+
+    # Escrow released! Full budget restored
+    assert gate.get_escrowed_amount_minor(now_ts=now_ts + 10) == 0
+    budget_after_refute = gate.get_available_budget_minor(now_ts=now_ts + 10)
+    assert budget_after_refute["sprint_available_minor"] == 2500_00
+    assert budget_after_refute["epoch_available_minor"] == 10000_00
+
+    status = gate.get_operation_status(op_id)
+    assert status is not None
+    assert status["current_disposition"] == "RESOLVED_REFUTED"
+    assert status["history"] == [
+        "DISPATCHED",
+        "EFFECT_INDETERMINATE",
+        "RESOLVED_REFUTED",
+    ]
+
+    # 4. Attempting further transition from terminal state must be rejected
+    terminal_res = gate.record_downstream_effect(
+        operation_id=op_id,
+        disposition="EFFECT_INDETERMINATE",
+        now_ts=now_ts + 15,
+    )
+    assert terminal_res["decision"] == "REJECTED"
+    assert terminal_res["reason"] == "ALREADY_TERMINAL_STATE"

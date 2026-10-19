@@ -1,0 +1,74 @@
+
+================================================================================
+  AEIB LIVE DEMONSTRATION: GOVERNED CUSTOMER REFUND BOUNDARY
+================================================================================
+Storage Directory: /var/folders/y7/fxmrtvyn21j3ns3zng5kn6x80000gn/T/aeib_refund_demo_5rq8xo2e
+Model: Under the stated model, zero-mock, real Ed25519, RFC 8785 JCS
+
+[Step 1] Scenario 1: Clean Authorized Customer Refund (€450.00)
+----------------------------------------------------------------------
+  - Agent Proposal Action ID : act_refund_ord_9912
+  - Computed CAID (RFC 8785) : caid:sha256:b0c3db55e787a67c2987611ca73946ad871dd1c8116cf809e1b122bd83f11f32
+  - Dead Salmons Filter      : Stripped '_reasoning' and 'chain_of_thought'
+  - Policy Evaluation        : Authorized=True (Reason: AUTHORIZED)
+  - Single-Use Ticket Minted : ticket_auth_7c563610f0f0 (Expires in: 299s)
+  - Dispatch Execution Status: Disposition=CONFIRMED
+  - Downstream Commits Count : 1
+  - Chain Tip Hash           : sha256:8a6f11e43e3660d79f59ffbfd64db48ea5f1089433bfda1d5d4b630e04ecde8f
+  - Ed25519 Signature        : 7eb9a12760abdd4c1155dbea6240610f...
+  - Offline Verifier Check   : Valid=True (Err: None)
+
+[Step 2] Scenario 2: HTTP 504 Timeout & Bounded Reconciliation (€850.00)
+----------------------------------------------------------------------
+  - Action ID                : act_refund_ord_9913
+  - Initial Wire Event       : Target returned HTTP 504 Gateway Timeout
+  - Ambiguity Latch Triggered: Disallowed blind retry (retry_safe: false)
+  - Bounded Probe Dispatched : ProbeBudget=1 against primary provider status endpoint
+  - Reconciliation Result    : Target confirmed transaction committed downstream
+  - Final Disposition Latched: CONFIRMED
+  - Reconciliation Attempts  : 1
+  - Downstream Commit Count  : 1
+  - Offline Verifier Check   : Valid=True
+
+[Step 3] Scenario 3: TCP Connection Reset & Refuted State (€320.00)
+----------------------------------------------------------------------
+  - Action ID                : act_refund_ord_9914
+  - Initial Wire Event       : ConnectionResetError (TCP RST)
+  - Ambiguity Latch Triggered: Latching EFFECT_INDETERMINATE
+  - Bounded Probe Dispatched : Querying primary payment ledger status
+  - Reconciliation Result    : Target responded 404 NOT_FOUND (mutation never reached ledger)
+  - Final Disposition Latched: REFUTED
+  - Downstream Commit Count  : 0 (Zero duplicate mutation)
+  - Offline Verifier Check   : Valid=True
+
+[Step 4] Scenario 4: Spend Ceiling Breach (€15,000.00 > €1,000.00 Limit)
+----------------------------------------------------------------------
+  - Action ID                : act_refund_ord_9915_high_val
+  - Requested Amount         : €15,000.00 (Ceiling: €1,000.00)
+  - Gate Verdict             : Authorized=False (Reason: STEP_UP: Amount 1500000 cents exceeds automated limit 100000; requires dual control.)
+  - Dispatch Ticket Status   : Ticket=None (Refused to mint ticket)
+  - Socket Egress            : 0 bytes dispatched (Fail-closed)
+
+[Step 5] Scenario 5: Ticket Replay Defense (Single-Use Authority Burn)
+----------------------------------------------------------------------
+  - Attempting to replay ticket from Scenario 1: ticket_auth_7c563610f0f0
+  - Replay Attempt Verdict   : Disposition=DENY
+  - Downstream Commits Count : 0
+
+[Step 6] Scenario 6: Cryptographic Tamper Falsification Check
+----------------------------------------------------------------------
+  - Original Receipt Signature Valid : True
+  - Tampered Field Injected          : disposition='CONFIRMED_FAKE'
+  - Ed25519 Verification Result      : InvalidSignature detected (Tamper Blocked=True)
+
+================================================================================
+  DEMONSTRATION COMPLETED: ALL 6 SCENARIOS VERIFIED CLEANLY
+================================================================================
+[✓] Exact Action Authorization & Dead Salmons Filter verified.
+[✓] 504 Timeout ambiguity latching & bounded reconciliation verified.
+[✓] Connection drop ambiguity latching & state refutation verified.
+[✓] High-value spend ceiling step-up enforcement verified.
+[✓] Single-use ticket burn and replay attack blocking verified.
+[✓] Offline Ed25519 cryptographic receipt tamper detection verified.
+================================================================================
+

@@ -273,4 +273,16 @@ The eBPF LSM controller crate (`crates/aeib-ebpf-lsm`) and TPM attestation modul
 - **Production Kernel Requirements:** Real kernel enforcement requires deploying onto an evaluated Linux kernel (e.g. Linux 6.1 LTS, 6.6 LTS, or 6.12 LTS) compiled with `CONFIG_BPF_LSM=y`, valid BTF (`/sys/kernel/btf/vmlinux`), and execution within the host root namespace with `CAP_SYS_ADMIN` or `CAP_BPF`.
 - **Hardware Root of Trust:** Platform attestation quotes require physical TPM 2.0 chips, virtual TPMs (vTPM), or cloud confidential computing enclaves (AMD SEV-SNP, Intel TDX, AWS Nitro Enclaves). Software simulation does not establish a hardware-rooted cryptographic chain.
 
+---
+
+## 15. Standards & Claim Re-Calibration Matrix (v1.0.0-rc.5)
+
+| Component / Standard | Previous Claim | Corrected v1.0.0-rc.5 Engineering Classification |
+| :--- | :--- | :--- |
+| **W3C Data Integrity BBS+ (bbs-2023)** | "Production-final selective disclosure cryptosuite" | **Standards-Tracking / Interoperability Prototype:** W3C Data Integrity BBS Cryptosuites v1.0 is a W3C Candidate Recommendation (CR-vc-di-bbs-20) dependent on CFRG BBS draft finalization. Production receipts default to Ed25519 (RFC 8032) and ECDSA P-256 (FIPS 186-5). |
+| **TPM 2.0 / Enclave Attestation** | "Hardware-rooted PCR attestation proven" | **Software-Modeled in Local CI; Hardware-Dependent in Production:** Local tests exercise a deterministic software PCR model. Platform-rooted assurance requires physical TPM 2.0 (`tpm2_quote`), AWS Nitro Enclaves (`nsm`), or Apple Secure Enclave hardware receipts. |
+| **eBPF LSM Enforcement** | "Kernel-enforced zero-bypass boundary" | **Host-Kernel Dependent Control:** Requires Linux kernel with `CONFIG_BPF_LSM=y` and verified `bpftool` attachment receipts across the target LTS kernel matrix. |
+| **Security & Financial Posture** | "Prevents all unauthorized actions" | **Fail-closed controls intended to reduce specified execution risks** under the declared threat model, with documented residual risks. |
+
+
 

@@ -5,12 +5,7 @@
 
 import CryptoKit
 import Foundation
-
-public enum TaintTier: UInt8, Sendable, Codable {
-    case tier0Pinned = 0
-    case tier1Internal = 1
-    case tier2UntrustedExternal = 2
-}
+@_exported import AEIBCore
 
 public enum Disposition: String, Sendable, Codable {
     case dispatched = "DISPATCHED"

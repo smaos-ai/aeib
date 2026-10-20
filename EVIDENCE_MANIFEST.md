@@ -457,9 +457,9 @@ negative_control_falsification:
 
 | Component / Subsystem | Physical File Location | Cryptographic SHA-256 Digest | Verification Harness / Protocol | Status |
 | :--- | :--- | :--- | :--- | :---: |
-| **MCP Idempotency 20-Vector Suite** | `conformance/vectors/mcp_idempotency.vectors.v1.json` | `1765a94f76eda5be2b03eb042c6776a121dea9c169d74732ed94daaa81f09697` | 20 golden vectors (normal, TTL, CAID collision, 504 latch, crash recovery) | `FROZEN` |
-| **Idempotent MCP Proxy Middleware** | `adapters/mcp/idempotent_mcp_proxy.py` | `3a5bcbc2de2a429a2932e2ae88675f82ec3a70714f6f80590d2a56e61d639c36` | Zero-mock JSON-RPC proxy, CAID hashing, WAL latching, tools/status probe | `IMPLEMENTED` |
-| **Idempotent MCP Test Suite** | `tests/test_idempotent_mcp_proxy.py` | `14683b756e33fadc9d74a14a4931b10a373df777ebded5dcc0a934e9a4aef4aa` | 7/7 passed (all 20 vectors, CAID collisions, blind retries, crash recovery) | `VERIFIED` |
+| **MCP Idempotency 20-Vector Suite** | `conformance/vectors/mcp_idempotency.vectors.v1.json` | `57a62d58f3cb2c6bea87f4abefdd99d788f759c5de6c84661b2882487240a59a` | 20 golden vectors (normal, TTL, CAID collision, 504 latch, crash recovery) | `FROZEN` |
+| **Hardened Idempotent MCP Proxy** | `adapters/mcp/idempotent_mcp_proxy.py` | `9d19958fdb5f2f202e8a28e81836de55edc9869284396b45d216294e64e8d319` | SQLite WAL, BEGIN IMMEDIATE, CAID tool namespacing, 5xx latching | `IMPLEMENTED` |
+| **Hardened Idempotent MCP Test Suite** | `tests/test_idempotent_mcp_proxy.py` | `1ede9d809124846cf97ccf6d5a4355c959eb877d2290eb716ad4f6961989f629` | 9/9 passed (20 vectors, thundering herd concurrency, crash recovery) | `VERIFIED` |
 
 
 

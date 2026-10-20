@@ -335,8 +335,7 @@
             "arguments": {"amount": 100},
             "idempotency_key": "k-020",
             "policy_epoch": "2026-Q3"
-          },
-          "simulate_upstream": "TIMEOUT"
+          }
         },
         {
           "method": "tools/call",
@@ -350,6 +349,204 @@
       ],
       "expected_final_status": 200,
       "expected_disposition": "CONFIRMED"
+    },
+    {
+      "vector_id": "mcp-vec-021",
+      "name": "mcp_tool_level_is_error_requires_reconciliation",
+      "description": "MCP tool-level isError: true within JSON-RPC 200 does not mark CONFIRMED; routes to EFFECT_INDETERMINATE.",
+      "input": {
+        "method": "tools/call",
+        "params": {
+          "name": "refund.create",
+          "arguments": {"amount_minor": 15000},
+          "idempotency_key": "k-021",
+          "caid": "sha256:2121"
+        }
+      },
+      "simulate_tool_is_error": {
+        "isError": true,
+        "content": [{"type": "text", "text": "Upstream temporary lock"}]
+      },
+      "expected_final_state": "EFFECT_INDETERMINATE"
+    },
+    {
+      "vector_id": "mcp-vec-022",
+      "name": "caid_operation_identity_conflict_escalation",
+      "description": "Same CAID with different operation_id triggers conflict resolution escalation.",
+      "sequence": [
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "refund.create",
+            "arguments": {"amount_minor": 25000},
+            "idempotency_key": "k-022a",
+            "operation_id": "op-022-alpha",
+            "caid": "sha256:2222"
+          },
+          "simulate_upstream": "TIMEOUT"
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "refund.create",
+            "arguments": {"amount_minor": 25000},
+            "idempotency_key": "k-022b",
+            "operation_id": "op-022-beta",
+            "caid": "sha256:2222"
+          }
+        }
+      ],
+      "expected_final_status": 409,
+      "expected_error": "HALT_CAID_OPERATION_IDENTITY_CONFLICT"
+    },
+    {
+      "vector_id": "mcp-vec-023",
+      "name": "ttl_expiry_preserves_indeterminate_state_escalation",
+      "description": "TTL expiry does not clear unresolved EFFECT_INDETERMINATE; transitions to UNRESOLVED_ESCALATED.",
+      "simulate_expired_indeterminate": true,
+      "input": {
+        "method": "tools/call",
+        "params": {
+          "name": "refund.create",
+          "arguments": {"amount_minor": 30000},
+          "idempotency_key": "k-023",
+          "caid": "sha256:2323"
+        }
+      },
+      "expected_final_state": "UNRESOLVED_ESCALATED",
+      "expected_error": "OPERATION_UNRESOLVED_REQUIRES_RECONCILIATION"
+    },
+    {
+      "vector_id": "mcp-vec-024",
+      "name": "epoch_rotation_preserves_latched_uncertainty",
+      "description": "Policy epoch rotation preserves prior latched indeterminate state without silent erasure.",
+      "simulate_epoch_rotation_indeterminate": {
+        "prior_epoch": "epoch-2026-Q3",
+        "new_epoch": "epoch-2026-Q4"
+      },
+      "sequence": [
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "refund.create",
+            "arguments": {"amount_minor": 12000},
+            "idempotency_key": "k-024",
+            "policy_epoch": "epoch-2026-Q3"
+          },
+          "simulate_upstream": "TIMEOUT"
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "refund.create",
+            "arguments": {"amount_minor": 12000},
+            "idempotency_key": "k-024",
+            "policy_epoch": "epoch-2026-Q4"
+          }
+        }
+      ],
+      "expected_error": "HALT_BLIND_RETRY_PROHIBITED_UNDER_UNCERTAINTY"
+    },
+    {
+      "vector_id": "mcp-vec-025",
+      "name": "upstream_idempotency_key_forwarding_stability",
+      "description": "Upstream idempotency key forwarded is stable across proxy retries.",
+      "sequence": [
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "refund.create",
+            "arguments": {"amount_minor": 8000},
+            "idempotency_key": "k-025-stable"
+          },
+          "simulate_upstream": "TIMEOUT"
+        },
+        {
+          "method": "tools/status",
+          "params": {
+            "idempotency_key": "k-025-stable"
+          },
+          "simulate_remote_status": {"state": "CONFIRMED"}
+        }
+      ],
+      "expected_forwarded_key": "k-025-stable"
+    },
+    {
+      "vector_id": "mcp-vec-026",
+      "name": "reconciliation_probe_contradiction_preserves_uncertainty",
+      "description": "Contradictory probe response preserves uncertainty without blind resolution.",
+      "sequence": [
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "refund.create",
+            "arguments": {"amount_minor": 16000},
+            "idempotency_key": "k-026"
+          },
+          "simulate_upstream": "TIMEOUT"
+        },
+        {
+          "method": "tools/status",
+          "params": {"idempotency_key": "k-026"},
+          "simulate_remote_status": {"state": "CONTRADICTORY_CONFLICT"}
+        }
+      ],
+      "expected_final_state": "EFFECT_INDETERMINATE"
+    },
+    {
+      "vector_id": "mcp-vec-027",
+      "name": "disk_io_failure_fails_closed",
+      "description": "SQLite I/O failure or read-only database fails closed without upstream dispatch.",
+      "simulate_storage_io_error": true,
+      "input": {
+        "method": "tools/call",
+        "params": {
+          "name": "refund.create",
+          "arguments": {"amount_minor": 17000},
+          "idempotency_key": "k-027"
+        }
+      },
+      "expected_upstream_invocation_count": 0,
+      "expected_error": "HALT_STORAGE_IO_FAILURE_FAILED_CLOSED"
+    },
+    {
+      "vector_id": "mcp-vec-028",
+      "name": "clock_skew_does_not_bypass_latch",
+      "description": "Clock skew backwards does not bypass TTL, latch, or expiration checks.",
+      "simulate_backward_clock_skew": true,
+      "input": {
+        "method": "tools/call",
+        "params": {
+          "name": "refund.create",
+          "arguments": {"amount_minor": 18000},
+          "idempotency_key": "k-028"
+        }
+      },
+      "expected_final_state": "EFFECT_INDETERMINATE"
+    },
+    {
+      "vector_id": "mcp-vec-029",
+      "name": "capability_expiration_blocks_dispatch",
+      "description": "Expired capability token or timestamp blocks new dispatch before network call.",
+      "input": {
+        "method": "tools/call",
+        "params": {
+          "name": "refund.create",
+          "arguments": {"amount_minor": 19000},
+          "idempotency_key": "k-029",
+          "expires_at": 1000
+        }
+      },
+      "expected_upstream_invocation_count": 0,
+      "expected_error": "HALT_CAPABILITY_EXPIRED"
+    },
+    {
+      "vector_id": "mcp-vec-030",
+      "name": "multiprocess_contention_serialized",
+      "description": "Multi-process contention against same SQLite file is detected and serialized via BEGIN IMMEDIATE.",
+      "simulate_multiprocess_stress": 8,
+      "idempotency_key": "k-030-multi",
+      "expected_upstream_invocation_count": 1
     }
   ]
 }

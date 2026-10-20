@@ -290,5 +290,26 @@ The eBPF LSM controller crate (`crates/aeib-ebpf-lsm`) and TPM attestation modul
 | **eBPF LSM Enforcement** | "Kernel-enforced zero-bypass boundary" | **Host-Kernel Dependent Control:** Requires Linux kernel with `CONFIG_BPF_LSM=y` and verified `bpftool` attachment receipts across the target LTS kernel matrix. |
 | **Security & Financial Posture** | "Prevents all unauthorized actions" | **Fail-closed controls intended to reduce specified execution risks** under the declared threat model, with documented residual risks. |
 
+---
+
+## 16. Local Idempotent MCP Boundary, Single-Machine SQLite WAL & Distributed Limits
+
+### 16.1 Single-Process and Single-Machine SQLite WAL Boundaries
+The hardened Model Context Protocol (MCP) idempotency proxy (`adapters/mcp/idempotent_mcp_proxy.py`) utilizes SQLite Write-Ahead Logging (`PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL;`) with `BEGIN IMMEDIATE` transaction locking:
+- **Single-Machine Control:** SQLite WAL relies on memory-mapped shared memory files (`-shm`) and POSIX file lock semantics. These primitives are valid strictly on local physical storage on a single machine or node.
+- **Network Filesystem Failure:** SQLite WAL mode fails or risks corruption across network filesystems (NFS, CIFS/SMB, AWS EFS). It is not a distributed coordination mechanism.
+- **Absence of Distributed Consensus:** A local SQLite WAL transaction coordinates local threads and processes only. It cannot provide distributed consensus across multiple distributed hosts or clusters. For multi-node distributed deployments, a distributed consensus store (e.g. Raft or PostgreSQL TCC with row-level locking) is required.
+
+### 16.2 Upstream Effect Uncertainty & External Finality
+- **No External Atomicity:** Consistent with LIMBO (arXiv:2609.29095), a local intent log cannot force external third-party MCP servers, HTTP APIs, or payment rails to execute atomically.
+- **Durable Uncertainty Latch:** When an upstream MCP tool call times out, returns HTTP 408/429, or fails with a 5xx error, the proxy latches the record into `EFFECT_INDETERMINATE`. This blocks blind retries locally, but does not state the upstream server has or has not executed the mutation until authoritative reconciliation (`tools/status`) or manual operator intervention occurs.
+- **Tool-Level Error Inspection:** MCP JSON-RPC 200 responses returning `{ "isError": true }` are classified as indeterminate or application errors and are explicitly blocked from being marked `CONFIRMED`.
+
+### 16.3 Ecosystem Context, Adjacent Work & Prior Art
+The challenge of agent tool execution unreliability and idempotency is an active industry-wide focus:
+- **MCP Working Group Specifications:** The Model Context Protocol specification includes tool annotations (`read-only`, `destructive`, `idempotent`) and active discussions regarding separating `logical_operation_id` from transport `execution_id` to make retries recognizable across network partitions.
+- **Adjacent Ecosystem Solutions:** Frameworks such as AgentRaaS, VeriMCP, Toolgate, and okgate address tool gating and proxying. AEIB's Idempotent MCP Proxy provides a concrete single-host reference implementation of this effectuation boundary, enforcing RFC 8785 canonical content-addressed intent binding (CAID), write-before-execute WAL locking, and latching under uncertainty.
+
+
 
 

@@ -16,15 +16,20 @@
 tests/test_idempotent_mcp_proxy.py — Pytest suite for Hardened Idempotent MCP Proxy Middleware.
 
 Verifies:
-1. 20/20 Golden Conformance Vectors pass cleanly against HardenedIdempotentMcpProxy.
+1. 30/30 Golden Conformance Vectors pass cleanly against HardenedIdempotentMcpProxy.
 2. Content-Addressed Action Identifier (CAID) collision detection and tool isolation.
-3. Timeout 504 and 5xx ambiguous error durable uncertainty latching (EFFECT_INDETERMINATE).
-4. Definitive 4xx client errors mark REFUTED.
-5. Blind retry blocking under uncertainty (HALT_BLIND_RETRY_PROHIBITED_UNDER_UNCERTAINTY).
-6. Authoritative tools/status reconciliation loop.
-7. Server-crash SQLite WAL recovery across process restarts.
-8. Thundering herd concurrent serialization (exactly 1 upstream execution).
-9. CLI execution and epistemic purity.
+3. Disambiguation of CAID intent from operation identity (conflict escalation).
+4. Timeout 504, 5xx, and ambiguous 408/429 error durable uncertainty latching (EFFECT_INDETERMINATE).
+5. MCP tool-level isError: true in 200 response routes to uncertainty latch.
+6. TTL safety invariant: unresolved indeterminate records escalate to UNRESOLVED_ESCALATED and are never erased.
+7. Policy epoch rotation preserves latched uncertainty without silent erasure.
+8. Definitive 4xx client errors mark REFUTED.
+9. Blind retry blocking under uncertainty (HALT_BLIND_RETRY_PROHIBITED_UNDER_UNCERTAINTY).
+10. Authoritative tools/status reconciliation loop.
+11. Server-crash SQLite WAL recovery across process restarts.
+12. Thundering herd concurrent serialization (exactly 1 upstream execution).
+13. Storage I/O failure and capability expiration fail closed without upstream dispatch.
+14. CLI execution and epistemic purity.
 """
 
 from __future__ import annotations
@@ -32,6 +37,7 @@ from __future__ import annotations
 import concurrent.futures
 import json
 from pathlib import Path
+import sqlite3
 import subprocess
 import sys
 import time
@@ -47,13 +53,13 @@ from adapters.mcp.idempotent_mcp_proxy import (
 )
 
 
-def test_idempotent_mcp_proxy_all_20_conformance_vectors(tmp_path: Path):
-    """Evaluates all 20 vectors in conformance/vectors/mcp_idempotency.vectors.v1.json."""
+def test_idempotent_mcp_proxy_all_30_conformance_vectors(tmp_path: Path):
+    """Evaluates all 30 vectors in conformance/vectors/mcp_idempotency.vectors.v1.json."""
     vectors_path = REPO_ROOT / "conformance" / "vectors" / "mcp_idempotency.vectors.v1.json"
     report = run_conformance_suite_vectors(vectors_path, db_dir=tmp_path)
 
-    assert report["total"] == 20
-    assert report["passed"] == 20
+    assert report["total"] == 30
+    assert report["passed"] == 30
     assert report["failed"] == 0
     assert report["pass_rate_pct"] == 100.0
 
@@ -264,14 +270,245 @@ def test_idempotent_mcp_proxy_error_code_boundaries(tmp_path: Path):
     proxy_server.close()
 
 
+def test_idempotent_mcp_proxy_tool_level_is_error_indeterminate(tmp_path: Path):
+    """Verifies that tool-level isError: true inside 200 does not mark CONFIRMED and routes to uncertainty latch."""
+    db_file = tmp_path / "tool_error.db"
+
+    def tool_error_upstream(req: dict) -> dict:
+        return {
+            "result": {
+                "isError": True,
+                "content": [{"type": "text", "text": "Temporary backend lock; lock unavailable"}],
+            }
+        }
+
+    proxy = HardenedIdempotentMcpProxy(upstream_transport_fn=tool_error_upstream, db_path=db_file)
+    res = proxy.handle_json_rpc(
+        {
+            "method": "tools/call",
+            "params": {
+                "name": "refund.create",
+                "arguments": {"amount": 2500},
+                "idempotency_key": "k-tool-err",
+            },
+        }
+    )
+    assert "error" in res
+    assert res["error"]["message"] == "TOOL_ERROR_REQUIRES_RECONCILIATION"
+    row = proxy.conn.execute("SELECT state FROM mcp_idempotency WHERE idem_key = 'k-tool-err';").fetchone()
+    assert row[0] == "EFFECT_INDETERMINATE"  # Must NOT be CONFIRMED!
+    proxy.close()
+
+
+def test_idempotent_mcp_proxy_caid_vs_operation_identity_conflict(tmp_path: Path):
+    """Verifies that identical CAID with different explicit operation_id triggers conflict escalation."""
+    db_file = tmp_path / "conflict.db"
+
+    def timeout_upstream(req: dict) -> dict:
+        raise TimeoutError("Wire drop")
+
+    proxy = HardenedIdempotentMcpProxy(upstream_transport_fn=timeout_upstream, db_path=db_file)
+
+    # Op 1: times out
+    res1 = proxy.handle_json_rpc(
+        {
+            "method": "tools/call",
+            "params": {
+                "name": "refund.create",
+                "arguments": {"amount": 5000},
+                "idempotency_key": "k-first",
+                "operation_id": "op-alpha",
+            },
+        }
+    )
+    assert "error" in res1
+
+    # Op 2: same tool and arguments, but distinct operation_id
+    res2 = proxy.handle_json_rpc(
+        {
+            "method": "tools/call",
+            "params": {
+                "name": "refund.create",
+                "arguments": {"amount": 5000},
+                "idempotency_key": "k-second",
+                "operation_id": "op-beta",
+            },
+        }
+    )
+    assert "error" in res2
+    assert "HALT_CAID_OPERATION_IDENTITY_CONFLICT" in res2["error"]["message"]
+    proxy.close()
+
+
+def test_idempotent_mcp_proxy_ttl_preserves_indeterminate_and_escalates(tmp_path: Path):
+    """Verifies that TTL expiration never erases indeterminate records; it escalates them to UNRESOLVED_ESCALATED."""
+    db_file = tmp_path / "ttl_escalate.db"
+    proxy = HardenedIdempotentMcpProxy(upstream_transport_fn=lambda r: {"result": "ok"}, db_path=db_file, ttl_sec=10)
+
+    # Insert an indeterminate record created 100 seconds ago
+    old_time = time.time() - 100
+    proxy.conn.execute(
+        """
+        INSERT INTO mcp_idempotency 
+        (idem_key, tenant_id, principal, operation_id, tool_name, caid, state, policy_epoch, created_at, uncertainty_resolution_deadline)
+        VALUES ('k-old-indet', 'default_tenant', 'default_principal', 'op-old', 'refund.create', 'sha256:old', 'EFFECT_INDETERMINATE', 'epoch-2026-Q4', ?, ?);
+        """,
+        (old_time, old_time + 10),
+    )
+
+    # Call with same key triggers eviction check
+    res = proxy.handle_json_rpc(
+        {
+            "method": "tools/call",
+            "params": {
+                "name": "refund.create",
+                "arguments": {},
+                "idempotency_key": "k-old-indet",
+                "caid": "sha256:old",
+            },
+        }
+    )
+    assert "error" in res
+    assert "OPERATION_UNRESOLVED_REQUIRES_RECONCILIATION" in res["error"]["message"]
+
+    # Verify record still exists in database and is escalated
+    row = proxy.conn.execute("SELECT state FROM mcp_idempotency WHERE idem_key = 'k-old-indet';").fetchone()
+    assert row is not None
+    assert row[0] == "UNRESOLVED_ESCALATED"
+    proxy.close()
+
+
+def test_idempotent_mcp_proxy_ambiguous_http_codes_408_429(tmp_path: Path):
+    """Verifies that HTTP 408 (Request Timeout) and 429 (Rate Limited) are classified as EFFECT_INDETERMINATE."""
+    db_file = tmp_path / "ambiguous_http.db"
+
+    responses = [{"error": {"code": 408, "message": "Request Timeout"}}]
+
+    def dynamic_upstream(req: dict) -> dict:
+        return responses[0]
+
+    proxy = HardenedIdempotentMcpProxy(upstream_transport_fn=dynamic_upstream, db_path=db_file)
+
+    # Test 408
+    proxy.handle_json_rpc(
+        {
+            "method": "tools/call",
+            "params": {"name": "test.act", "arguments": {"code": 408}, "idempotency_key": "k-408"},
+        }
+    )
+    row_408 = proxy.conn.execute("SELECT state FROM mcp_idempotency WHERE idem_key = 'k-408';").fetchone()
+    assert row_408[0] == "EFFECT_INDETERMINATE"
+
+    # Test 429
+    responses[0] = {"error": {"code": 429, "message": "Too Many Requests"}}
+    proxy.handle_json_rpc(
+        {
+            "method": "tools/call",
+            "params": {"name": "test.act", "arguments": {"code": 429}, "idempotency_key": "k-429"},
+        }
+    )
+    row_429 = proxy.conn.execute("SELECT state FROM mcp_idempotency WHERE idem_key = 'k-429';").fetchone()
+    assert row_429[0] == "EFFECT_INDETERMINATE"
+    proxy.close()
+
+
+def test_idempotent_mcp_proxy_epoch_rotation_preserves_indeterminate(tmp_path: Path):
+    """Verifies that rotating policy epoch does not silently erase indeterminate records."""
+    db_file = tmp_path / "epoch_preserves.db"
+    proxy = HardenedIdempotentMcpProxy(
+        upstream_transport_fn=lambda r: {"error": "SHOULD_NOT_EXECUTE"},
+        db_path=db_file,
+    )
+
+    # Latch an indeterminate under old epoch
+    proxy.conn.execute(
+        """
+        INSERT INTO mcp_idempotency 
+        (idem_key, tenant_id, principal, operation_id, tool_name, caid, state, policy_epoch, created_at, uncertainty_resolution_deadline)
+        VALUES ('k-epoch-test', 'default_tenant', 'default_principal', 'op-ep', 'refund.create', 'sha256:epoch_caid', 'EFFECT_INDETERMINATE', 'epoch-2026-Q3', ?, ?);
+        """,
+        (time.time(), time.time() + 300),
+    )
+
+    # New request with new epoch must NOT erase the record
+    res = proxy.handle_json_rpc(
+        {
+            "method": "tools/call",
+            "params": {
+                "name": "refund.create",
+                "arguments": {},
+                "idempotency_key": "k-epoch-test",
+                "caid": "sha256:epoch_caid",
+                "policy_epoch": "epoch-2026-Q4",
+            },
+        }
+    )
+    assert "error" in res
+    assert "HALT_BLIND_RETRY_PROHIBITED_UNDER_UNCERTAINTY" in res["error"]["message"]
+
+    # Record still in database
+    row = proxy.conn.execute("SELECT state FROM mcp_idempotency WHERE idem_key = 'k-epoch-test';").fetchone()
+    assert row[0] == "EFFECT_INDETERMINATE"
+    proxy.close()
+
+
+def test_idempotent_mcp_proxy_storage_io_failure_fails_closed():
+    """Verifies that SQLite write errors fail closed without dispatching upstream."""
+    upstream_called = [False]
+
+    def upstream(req: dict) -> dict:
+        upstream_called[0] = True
+        return {"result": "ok"}
+
+    proxy = HardenedIdempotentMcpProxy(upstream_transport_fn=upstream, db_path=":memory:")
+    # Break SQLite connection
+    proxy.conn.close()
+
+    res = proxy.handle_json_rpc(
+        {
+            "method": "tools/call",
+            "params": {"name": "refund.create", "arguments": {}, "idempotency_key": "k-io-fail"},
+        }
+    )
+    assert "error" in res
+    assert "HALT_STORAGE_IO_FAILURE_FAILED_CLOSED" in res["error"]["message"]
+    assert upstream_called[0] is False  # Upstream NEVER called
+
+
+def test_idempotent_mcp_proxy_capability_expiration_blocks_dispatch():
+    """Verifies that expired capability tokens fail closed without upstream dispatch."""
+    upstream_called = [False]
+
+    def upstream(req: dict) -> dict:
+        upstream_called[0] = True
+        return {"result": "ok"}
+
+    proxy = HardenedIdempotentMcpProxy(upstream_transport_fn=upstream, db_path=":memory:")
+    res = proxy.handle_json_rpc(
+        {
+            "method": "tools/call",
+            "params": {
+                "name": "refund.create",
+                "arguments": {},
+                "idempotency_key": "k-expired",
+                "expires_at": 100,  # Far in the past
+            },
+        }
+    )
+    assert "error" in res
+    assert "HALT_CAPABILITY_EXPIRED" in res["error"]["message"]
+    assert upstream_called[0] is False
+    proxy.close()
+
+
 def test_idempotent_mcp_proxy_cli_execution():
     """Verifies CLI execution of adapters/mcp/idempotent_mcp_proxy.py."""
     cmd = [sys.executable, str(REPO_ROOT / "adapters" / "mcp" / "idempotent_mcp_proxy.py")]
     proc = subprocess.run(cmd, capture_output=True, text=True, check=False)
     assert proc.returncode == 0
     assert "Pass Rate:       100.0%" in proc.stdout
-    assert "Total Vectors:   20" in proc.stdout
-    assert "Passed:          20" in proc.stdout
+    assert "Total Vectors:   30" in proc.stdout
+    assert "Passed:          30" in proc.stdout
 
 
 def test_epistemic_purity():

@@ -103,6 +103,7 @@ benchmark_name:                   Track-B-Gate4 / AEIB Tier 1 Execution Integrit
 benchmark_command:                python3 benchmarks/aeib_execution_integrity/run_episodes.py --episodes 500 --seed 42
 benchmark_parameters:             --episodes 500 --seed 42
 benchmark_result_path:            benchmark_results.json
+statistical_calibration:          Under seed 42, 500 declared fault episodes, and the twin-ledger model, 0 duplicate committed mutations were observed (Clopper-Pearson 95% upper bound <= 0.60%)
 duplicate_external_writes:        0 / 500
 duplicate_retry_attempts_blocked: 302
 blocked_by_dispatch_gate:         234
@@ -457,9 +458,12 @@ negative_control_falsification:
 
 | Component / Subsystem | Physical File Location | Cryptographic SHA-256 Digest | Verification Harness / Protocol | Status |
 | :--- | :--- | :--- | :--- | :---: |
-| **MCP Idempotency 20-Vector Suite** | `conformance/vectors/mcp_idempotency.vectors.v1.json` | `57a62d58f3cb2c6bea87f4abefdd99d788f759c5de6c84661b2882487240a59a` | 20 golden vectors (normal, TTL, CAID collision, 504 latch, crash recovery) | `FROZEN` |
-| **Hardened Idempotent MCP Proxy** | `adapters/mcp/idempotent_mcp_proxy.py` | `9d19958fdb5f2f202e8a28e81836de55edc9869284396b45d216294e64e8d319` | SQLite WAL, BEGIN IMMEDIATE, CAID tool namespacing, 5xx latching | `IMPLEMENTED` |
-| **Hardened Idempotent MCP Test Suite** | `tests/test_idempotent_mcp_proxy.py` | `1ede9d809124846cf97ccf6d5a4355c959eb877d2290eb716ad4f6961989f629` | 9/9 passed (20 vectors, thundering herd concurrency, crash recovery) | `VERIFIED` |
+| **MCP Idempotency 30-Vector Suite** | `conformance/vectors/mcp_idempotency.vectors.v1.json` | `8eee08f05fa7f4b077e4996056cfaa80c1ba9073dfa36d487769d855e0239b71` | 30 golden vectors (TTL, CAID conflict, tool isError, 504 latch, crash recovery) | `FROZEN` |
+| **Hardened Idempotent MCP Proxy** | `adapters/mcp/idempotent_mcp_proxy.py` | `21470516a3cbbb4efe4404ad1547b6cde40a83b1c5b54cf11745d0a25ee93d6c` | SQLite WAL, BEGIN IMMEDIATE, composite identity, tool-level error handling | `IMPLEMENTED` |
+| **Hardened Idempotent MCP Test Suite** | `tests/test_idempotent_mcp_proxy.py` | `07312f22b0d49e6bdd4c851bb51d4ceb59ae22bea130884fa1a6158ad1edc8d2` | 16/16 passed (30 vectors, thundering herd concurrency, crash recovery, TTL safety) | `VERIFIED` |
+| **MCP Conformance Run Report** | `output/mcp-conformance-report.json` | `ed53cec1eb89f04f9925ef32e6242ffea1b55ad33ea6b1f1f70932d49907aec6` | 30/30 passed (100.0% pass rate across all declarative test vectors) | `RECORDED` |
+| **Boundary Limitations Specification** | `LIMITATIONS.md` | `f6296b939a86affb0cd1a572d02f0317ae4c86c9cdc9354d9d28629122396428` | Section 16 single-process/single-machine SQLite WAL boundary documentation | `DOCUMENTED` |
+
 
 
 

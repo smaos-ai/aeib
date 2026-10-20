@@ -1,0 +1,189 @@
+{
+  "suite": "mcp_idempotency.vectors.v1",
+  "total": 30,
+  "passed": 30,
+  "failed": 0,
+  "pass_rate_pct": 100.0,
+  "results": [
+    {
+      "vector_id": "mcp-vec-001",
+      "name": "fresh_call_success",
+      "passed": true,
+      "reason": "OK"
+    },
+    {
+      "vector_id": "mcp-vec-002",
+      "name": "replay_within_window_returns_cached",
+      "passed": true,
+      "reason": "OK"
+    },
+    {
+      "vector_id": "mcp-vec-003",
+      "name": "caid_collision_different_key_same_intent",
+      "passed": true,
+      "reason": "OK"
+    },
+    {
+      "vector_id": "mcp-vec-004",
+      "name": "timeout_504_latches_indeterminate",
+      "passed": true,
+      "reason": "OK"
+    },
+    {
+      "vector_id": "mcp-vec-005",
+      "name": "blind_retry_blocked_under_indeterminate",
+      "passed": true,
+      "reason": "OK"
+    },
+    {
+      "vector_id": "mcp-vec-006",
+      "name": "reconciliation_status_probe_resolves_confirmed",
+      "passed": true,
+      "reason": "OK"
+    },
+    {
+      "vector_id": "mcp-vec-007",
+      "name": "reconciliation_status_probe_resolves_refuted",
+      "passed": true,
+      "reason": "OK"
+    },
+    {
+      "vector_id": "mcp-vec-008",
+      "name": "reconciliation_unsupported_endpoint_retains_indeterminate",
+      "passed": true,
+      "reason": "OK"
+    },
+    {
+      "vector_id": "mcp-vec-009",
+      "name": "ttl_expiry_allows_new_intent_with_new_epoch",
+      "passed": true,
+      "reason": "OK"
+    },
+    {
+      "vector_id": "mcp-vec-010",
+      "name": "server_crash_recovery_from_wal",
+      "passed": true,
+      "reason": "OK"
+    },
+    {
+      "vector_id": "mcp-vec-011",
+      "name": "missing_idempotency_key_rejection",
+      "passed": true,
+      "reason": "OK"
+    },
+    {
+      "vector_id": "mcp-vec-012",
+      "name": "upstream_500_error_latches_indeterminate",
+      "passed": true,
+      "reason": "OK"
+    },
+    {
+      "vector_id": "mcp-vec-013",
+      "name": "upstream_400_client_error_marks_refuted",
+      "passed": true,
+      "reason": "OK"
+    },
+    {
+      "vector_id": "mcp-vec-014",
+      "name": "malformed_json_rpc_frame_rejection",
+      "passed": true,
+      "reason": "OK"
+    },
+    {
+      "vector_id": "mcp-vec-015",
+      "name": "concurrent_thundering_herd_serialization",
+      "passed": true,
+      "reason": "OK"
+    },
+    {
+      "vector_id": "mcp-vec-016",
+      "name": "different_tools_same_caid_isolation",
+      "passed": true,
+      "reason": "OK"
+    },
+    {
+      "vector_id": "mcp-vec-017",
+      "name": "unsupported_method_pass_through",
+      "passed": true,
+      "reason": "OK"
+    },
+    {
+      "vector_id": "mcp-vec-018",
+      "name": "status_check_missing_key_error",
+      "passed": true,
+      "reason": "OK"
+    },
+    {
+      "vector_id": "mcp-vec-019",
+      "name": "status_check_nonexistent_key",
+      "passed": true,
+      "reason": "OK"
+    },
+    {
+      "vector_id": "mcp-vec-020",
+      "name": "epoch_rotation_allows_retries_after_ttl",
+      "passed": true,
+      "reason": "OK"
+    },
+    {
+      "vector_id": "mcp-vec-021",
+      "name": "mcp_tool_level_is_error_requires_reconciliation",
+      "passed": true,
+      "reason": "OK"
+    },
+    {
+      "vector_id": "mcp-vec-022",
+      "name": "caid_operation_identity_conflict_escalation",
+      "passed": true,
+      "reason": "OK"
+    },
+    {
+      "vector_id": "mcp-vec-023",
+      "name": "ttl_expiry_preserves_indeterminate_state_escalation",
+      "passed": true,
+      "reason": "OK"
+    },
+    {
+      "vector_id": "mcp-vec-024",
+      "name": "epoch_rotation_preserves_latched_uncertainty",
+      "passed": true,
+      "reason": "OK"
+    },
+    {
+      "vector_id": "mcp-vec-025",
+      "name": "upstream_idempotency_key_forwarding_stability",
+      "passed": true,
+      "reason": "OK"
+    },
+    {
+      "vector_id": "mcp-vec-026",
+      "name": "reconciliation_probe_contradiction_preserves_uncertainty",
+      "passed": true,
+      "reason": "OK"
+    },
+    {
+      "vector_id": "mcp-vec-027",
+      "name": "disk_io_failure_fails_closed",
+      "passed": true,
+      "reason": "OK"
+    },
+    {
+      "vector_id": "mcp-vec-028",
+      "name": "clock_skew_does_not_bypass_latch",
+      "passed": true,
+      "reason": "OK"
+    },
+    {
+      "vector_id": "mcp-vec-029",
+      "name": "capability_expiration_blocks_dispatch",
+      "passed": true,
+      "reason": "OK"
+    },
+    {
+      "vector_id": "mcp-vec-030",
+      "name": "multiprocess_contention_serialized",
+      "passed": true,
+      "reason": "OK"
+    }
+  ]
+}

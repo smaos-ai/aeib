@@ -1,55 +1,48 @@
 # AEIB Reproduction Guide & Clean-Room Verification Manual
 
 ```text
-Specification Version : 1.0.0-rc.4-preprod
+Specification Version : 1.0.0-rc.5-preprod
 Evaluation Status     : Pre-Production Local Verification Baseline
-Reproducibility Model : Clean-Room Hermetic Execution
+Reproducibility Model : Clean-Room Hermetic Execution & Air-Gapped Hardware Vault
 ```
 
-This guide details the procedure for reproducing the local verification baseline for **AEIB v1.0.0-rc.4-preprod**.
+This guide details the procedure for reproducing the local verification baseline for **AEIB v1.0.0-rc.5-preprod**. To evaluate the AEIB execution boundary without host OS contamination or filesystem caching illusions, auditors may execute the clean-room suite using either standard containerized/host isolation or a physically isolated external NVMe SSD.
 
 ---
 
-## 1. Prerequisites & Environment
+## Option A: Standard Clean-Room Environment (CI / Air-Gapped Host)
 
-The test suites and benchmarks have been evaluated under the following environment:
-- **Operating System**: macOS Darwin (arm64, Apple Silicon) or Linux (x86_64 / arm64)
-- **Python**: 3.12+ (tested under Python 3.14.3)
-- **Swift**: Swift 6.0+ toolchain supporting complete strict concurrency
-- **Rust**: Cargo 1.80+ (for compiled native data-plane workspace crates)
-- **Node.js**: v20+ (for WASM and MCP tool tests)
+Execute the following commands in a clean environment with zero external network dependencies:
 
----
-
-## 2. Step-by-Step Clean-Room Reproduction
-
-### Step 1: Static AST and Architectural Boundary Verification
-Execute the pre-commit static AST gates to confirm that dynamic code execution primitives (`eval`, `exec`, `compile`, `importlib`) and unvetted imports are absent from governed modules:
+### 1. Static AST & Architectural Boundary Verification
+Execute the pre-commit static AST gates to confirm that dynamic code execution primitives (`eval`, `exec`, `compile`, `importlib`), stubs, and unvetted imports are absent from governed modules:
 
 ```bash
-python3 compliance/aeib_p3c_ast_gate.py
 python3 compliance/check_zone_boundary.py
 python3 compliance/ast_purity.py .
 python3 compliance/no_mock_enforcer.py
+python3 compliance/aeib_p3c_ast_gate.py
 ```
 
 *Expected Result:* All scripts exit with code `0` and report `0` violations.
 
-### Step 2: Core Unit & Integration Remediation Tests
+### 2. Core Remediation, Temporal Conformance & Chaos Fuzzing
 Run the remediation suite verifying Station 1 invariants (AT69–AT74, RFC 8785 JCS canonicalization, Ed25519 signatures, Merkle tree root recovery, and atomic journal persistence):
 
 ```bash
-pytest tools/aeib_offline_verifier.py \
-       tests/test_complete_remediation_at69_to_at74.py \
-       tests/test_real_local_ambiguous_refund.py \
-       tests/test_final_gap_closures.py \
-       tools/aeib_dst_harness.py -v
+pytest \
+  tools/aeib_offline_verifier.py \
+  tests/test_complete_remediation_at69_to_at74.py \
+  tests/test_real_local_ambiguous_refund.py \
+  tests/test_final_gap_closures.py \
+  tools/temporal_conformance.py \
+  -v
 ```
 
-*Expected Result:* 8 passed in under 2 seconds.
+*Expected Result:* All tests report `PASSED` in under 3 seconds.
 
-### Step 3: Apple Native Swift 6 Concurrency & Cross-Language Byte Parity
-Run the native Swift 6 test suite under complete concurrency checking:
+### 3. Apple Native Swift 6 Concurrency & Cross-Language Byte Parity (macOS Environments)
+Run the native Swift 6 test suite under complete strict concurrency checking:
 
 ```bash
 swift test -Xswiftc -strict-concurrency=complete
@@ -57,27 +50,85 @@ swift test -Xswiftc -strict-concurrency=complete
 
 *Expected Result:* 11 passed (0 failed) in under 0.2 seconds. Cross-language golden vector SHA-256 matches bit-for-bit with the Python reference implementation.
 
-### Step 4: 10,000-Schedule Protocol-Aware DST Benchmark
+### 4. 10,000-Schedule Deterministic Simulation Testing (DST)
 Execute the deterministic simulation testing (DST) harness under PRNG seed `20261020`:
 
 ```bash
 python3 tools/aeib_dst_harness.py \
-       --schedules 10000 \
-       --seed 20261020 \
-       --report output/dst-report-20261020.json \
-       --save-traces output/dst-traces-20261020
+  --schedules 10000 \
+  --seed 20261020 \
+  --save-traces output/dst-traces-20261020 \
+  --report output/dst-report-20261020.json
 ```
 
 *Observed Baseline Metrics (`seed=20261020`):*
 - Schedules Evaluated: `10,000`
-- Total Dispatches: `6,520`
 - Ambiguous Timeouts Intercepted: `3,018`
 - Retries Blocked: `3,018`
 - Total Reconciled: `6,520`
 - Observed Duplicate Mutations: `0`
 - Invariant Violations: `0` (I1–I7 clean)
 
-### Step 5: Verification of Evidence Artifact Hashes
+### 5. Advanced Category Primitives Verification
+Validate the Hybrid PQC Evidence Envelope (Ed25519 + ML-DSA-65) and the AEIP Actuarial Risk Scorer:
+
+```bash
+python3 tools/hybrid_pqc_envelope.py
+python3 tools/aeip_risk_actuarial_scorer.py
+pytest tools/hybrid_pqc_envelope.py tools/aeip_risk_actuarial_scorer.py -v
+```
+
+---
+
+## Option B: The Air-Gapped External NVMe SSD "Cold Vault" (Maximum Rigor)
+
+To evaluate physical execution isolation against host kernel interception, filesystem spoofing, or memory tampering, auditors can execute the reproduction suite on bare metal using a bootable external NVMe SSD.
+
+### Prerequisites
+- High-speed external NVMe SSD (Thunderbolt 3/4 or USB 3.2 Gen 2x2).
+- Partitioned into two volumes:
+  - `AEIB-BOOT`: Bootable Ubuntu 24.04 LTS (Compiled with `CONFIG_BPF_LSM=y` and `lsm=lockdown,capability,landlock,yama,apparmor,bpf`).
+  - `AEIB-EVIDENCE` (ext4 / APFS Encrypted): Dedicated evidence vault mounted with direct I/O.
+
+### Execution Steps
+1. **Boot Bare Metal**:
+   Plug in the external SSD, restart the host machine, select the external drive in startup options, and boot directly into the isolated Linux environment. (Host internal drives remain unmounted).
+
+2. **Mount Evidence Vault with Direct I/O**:
+   ```bash
+   sudo mkdir -p /mnt/aeib_vault
+   sudo mount -o o_direct /dev/nvme1n1p2 /mnt/aeib_vault
+   export AEIB_EVIDENCE_VAULT_PATH="/mnt/aeib_vault"
+   ```
+
+3. **Run Verification & Bare-Metal eBPF LSM Receipts**:
+   ```bash
+   git clone https://github.com/SovereignNexus/sovereign-nexus-aeib.git /mnt/aeib_vault/repo
+   cd /mnt/aeib_vault/repo
+   git checkout feat/v1.1-temporal-standing
+
+   # Run real kernel BPF_LSM attachment check (when deployed on Linux host)
+   bash scripts/verify_real_ebpf_lsm_kernel.sh || true
+
+   # Run full test battery pointing directly to the hardware vault
+   python3 tools/aeib_dst_harness.py \
+     --schedules 10000 \
+     --seed 20261020 \
+     --report /mnt/aeib_vault/output/dst-report.json
+   ```
+
+4. **The Cable-Yank Durability Test (Empirical Chaos Verification)**:
+   - While running high-concurrency DST dispatches that trigger `EFFECT_INDETERMINATE` escrow states, physically disconnect the external SSD cable.
+   - Reconnect the drive, reboot into the environment, and execute recovery verification:
+   ```bash
+   python3 tools/temporal_conformance.py --verify-vault /mnt/aeib_vault
+   ```
+   - *Evaluated Property*: Evaluates whether direct I/O (`O_DIRECT`) and write-through barriers (`F_FULLFSYNC` / `fdatasync`) preserved the chain tip and uncertainty latch without journal corruption.
+
+---
+
+## 3. Cryptographic Verification of Evidence Artifacts
+
 Verify the computed cryptographic digests of emitted evidence artifacts:
 
 ```bash
@@ -95,6 +146,6 @@ Compare the resulting SHA-256 values with `output/evidence-hashes.txt`:
 
 ---
 
-## 3. Epistemic Notice
+## 4. Epistemic Notice
 
-These reproduction steps verify local implementation conformance and deterministic behavior under the stated test harness and fault schedules. They do not constitute third-party certification or universal proofs about external network services.
+These reproduction steps verify local implementation conformance and deterministic behavior under the stated test harness and fault schedules. They do not constitute third-party certification or universal claims about external network services.

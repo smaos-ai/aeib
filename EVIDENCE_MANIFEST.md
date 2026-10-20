@@ -1,7 +1,7 @@
-# AEIB — Evidence Manifest (`v1.0.0-rc.4-preprod` Pre-Production Release Candidate)
+# AEIB — Evidence Manifest (`v1.0.0-rc.5-preprod` Pre-Production Release Candidate)
 
 ## Thesis & Bounded Claim
-> **AEIB v1.0.0-rc.4-preprod at commit `4556823b` is a pre-production execution-boundary release candidate on branch `feat/v1.1-temporal-standing`. It combines exact action binding, durable uncertainty handling, bounded reconciliation, operation-bound evidence, credential starvation, VM isolation, host-side egress control, and independent verification. Its security and compliance value depends on correct deployment, threat modeling, real-target integration, and independent reproduction.**
+> **AEIB v1.0.0-rc.5-preprod is a pre-production execution-boundary release candidate on branch `feat/v1.1-temporal-standing`. It combines exact action binding, durable uncertainty handling, bounded reconciliation, operation-bound evidence, credential starvation, VM isolation, host-side egress control, direct I/O WAL durability, hybrid post-quantum signatures, and independent verification. Its security and compliance value depends on correct deployment, threat modeling, real-target integration, and independent reproduction.**
 >
 > **Bounded Scope:** *AEIB provides a reproducible evidence bundle for a bounded dispatch-boundary claim: pinned manifests, pre-dispatch standing checks, explicit uncertain-transport handling, bounded reconciliation, RFC 8785 + Ed25519 receipts, and verifier parity for the supplied vectors. It does not prove model trustworthiness, universal exactly-once effects, regulatory compliance, or complete governance.*
 >

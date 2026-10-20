@@ -1,9 +1,9 @@
 # AEIB Limitations and Boundary Conditions
 
 ```text
-Specification Version : 1.0.0-rc.4 (Staged)
-Status                : Release Candidate Specification
-Execution Model       : Local Zero-Mock Test Suite Evaluation
+Specification Version : 1.0.0-rc.5-preprod
+Status                : Pre-Production Release Candidate Specification
+Execution Model       : Local Zero-Mock Test Suite Evaluation & Air-Gapped Hardware Vault
 Formal Assurance      : Evaluated Locally Under Stated Model (No Independent Reproduction / No Third-Party Certification Claimed)
 Regulatory Role       : Operational Evidence Generator (Not a Turnkey QMS or Statutory Exemption)
 ```
@@ -12,11 +12,11 @@ Regulatory Role       : Operational Evidence Generator (Not a Turnkey QMS or Sta
 
 ## 1. Release Status and Assurance Scope
 
-AEIB v1.0.0-rc.4 is a requirement-driven specification and staged release candidate.
+AEIB v1.0.0-rc.5-preprod is a requirement-driven specification and pre-production release candidate.
 - Local zero-mock verification suites report passing results in the development environment.
 - Passing local suites verify assertion logic against local state machines and cryptographic primitives. They **do not** constitute independent third-party reproduction, formal proof about external systems, or regulatory certification.
 - **No independent reproduction, third-party certification, or formal verification (e.g., TLA+/Kani/Coq) is claimed.**
-- Performance and architectural targets for a native Rust/eBPF/TEE data plane (`crates/aeib-data-plane`) are scaffolded and staged; kernel enforcement requires active BPF_LSM policies deployed on target Linux hosts.
+- Performance and architectural targets for a native Rust/eBPF/TEE data plane (`crates/aeib-data-plane`) are scaffolded and staged; direct I/O WAL (`DirectIoWal`) provides sector-aligned storage with Darwin `F_FULLFSYNC` / Linux `O_DIRECT`, while kernel enforcement requires active BPF_LSM policies deployed on target Linux hosts.
 
 ---
 

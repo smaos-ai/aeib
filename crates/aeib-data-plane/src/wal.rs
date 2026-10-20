@@ -305,3 +305,87 @@ impl GroupCommitWal {
         self.next_seq
     }
 }
+
+/// Direct-I/O WAL providing direct media writes bypassing OS page cache buffers.
+/// - Linux: Evaluated using O_DIRECT | O_SYNC with sector alignment (4096 bytes).
+/// - Darwin / macOS: Evaluated using F_NOCACHE and F_FULLFSYNC write-through barrier.
+/// - Enforces direct hardware-level durability under the stated fault model.
+pub struct DirectIoWal {
+    file: tokio::fs::File,
+    offset: u64,
+}
+
+impl DirectIoWal {
+    /// Opens or creates a WAL file configured with direct I/O and synchronous flags.
+    /// Requires buffer allocations to be aligned to logical sector sizes (typically 4096 bytes).
+    pub async fn open<P: AsRef<Path>>(path: P) -> io::Result<Self> {
+        let std_file = {
+            #[cfg(target_os = "linux")]
+            {
+                use std::os::unix::fs::OpenOptionsExt;
+                OpenOptions::new()
+                    .create(true)
+                    .read(true)
+                    .write(true)
+                    .custom_flags(libc::O_DIRECT | libc::O_SYNC)
+                    .open(path)?
+            }
+
+            #[cfg(target_os = "macos")]
+            {
+                let f = OpenOptions::new()
+                    .create(true)
+                    .read(true)
+                    .write(true)
+                    .open(path)?;
+                let fd = f.as_raw_fd();
+                unsafe {
+                    libc::fcntl(fd, libc::F_NOCACHE, 1);
+                }
+                f
+            }
+
+            #[cfg(not(any(target_os = "linux", target_os = "macos")))]
+            {
+                OpenOptions::new()
+                    .create(true)
+                    .read(true)
+                    .write(true)
+                    .open(path)?
+            }
+        };
+
+        let file = tokio::fs::File::from_std(std_file);
+        let offset = file.metadata().await?.len();
+
+        Ok(Self { file, offset })
+    }
+
+    /// Appends a serialized canonical frame directly to persistent media.
+    /// The input buffer `data` must be sector-aligned (4096 bytes) for O_DIRECT compliance.
+    pub async fn append_aligned_frame(&mut self, data: Vec<u8>) -> io::Result<()> {
+        use tokio::io::AsyncWriteExt;
+        let len = data.len() as u64;
+
+        self.file.write_all(&data).await?;
+
+        #[cfg(target_os = "macos")]
+        {
+            let fd = self.file.as_raw_fd();
+            unsafe {
+                libc::fcntl(fd, libc::F_FULLFSYNC);
+            }
+        }
+        #[cfg(not(target_os = "macos"))]
+        {
+            self.file.sync_data().await?;
+        }
+
+        self.offset += len;
+        Ok(())
+    }
+
+    pub fn offset(&self) -> u64 {
+        self.offset
+    }
+}

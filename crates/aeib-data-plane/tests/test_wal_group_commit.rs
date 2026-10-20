@@ -100,3 +100,31 @@ fn test_wal_ring_buffer_auto_flush_on_capacity() {
 
     let _ = std::fs::remove_file(&wal_path);
 }
+
+#[tokio::test]
+async fn test_direct_io_wal_lifecycle() {
+    let wal_path = create_temp_wal_path("direct_io");
+    let mut wal = aeib_data_plane::wal::DirectIoWal::open(&wal_path)
+        .await
+        .expect("Failed to open DirectIoWal");
+
+    assert_eq!(wal.offset(), 0);
+
+    // Prepare 4096-byte sector-aligned buffer
+    let mut buffer = vec![0u8; 4096];
+    let payload = b"DIRECT_IO_SECTOR_ALIGNED_FRAME_PAYLOAD";
+    buffer[..payload.len()].copy_from_slice(payload);
+
+    wal.append_aligned_frame(buffer)
+        .await
+        .expect("Failed to append aligned frame");
+
+    assert_eq!(wal.offset(), 4096);
+
+    // Verify written content on disk
+    let file_bytes = std::fs::read(&wal_path).expect("Failed to read file");
+    assert_eq!(file_bytes.len(), 4096);
+    assert_eq!(&file_bytes[..payload.len()], payload);
+
+    let _ = std::fs::remove_file(&wal_path);
+}

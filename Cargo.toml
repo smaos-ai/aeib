@@ -27,6 +27,7 @@ members = [
   "crates/siss-robotics-control", "crates/siss-swarm-safety-core", "crates/siss-semantic-cache-compactor", "crates/siss-dag-orchestrator", "crates/siss-cost-optimizer",
   "crates/siss-capsule", "smaos-wasm-verifier", "smaos-pqc-signer",
   "crates/aeib-data-plane",
+  "crates/aeib-ebpf-lsm",
 ]
 resolver = "2"
 

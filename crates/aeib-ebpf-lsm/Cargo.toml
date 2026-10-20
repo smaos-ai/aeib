@@ -1,0 +1,23 @@
+[package]
+name = "aeib-ebpf-lsm"
+version = "0.1.0"
+edition = "2021"
+authors = ["Andrei Leukhin <andrejlo123@gmail.com>"]
+license = "MIT OR Apache-2.0"
+description = "Kernel eBPF LSM guard controller and CO-RE policy engine for AEIB"
+
+[dependencies]
+anyhow = "1.0"
+thiserror = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sha2 = "0.10"
+hex = "0.4"
+tokio = { version = "1.38", features = ["macros", "rt", "rt-multi-thread", "sync", "time"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+aya = "0.13"
+aya-log = "0.2"
+
+[dev-dependencies]
+tempfile = "3.10"

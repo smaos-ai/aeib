@@ -1,9 +1,9 @@
 {
-  "evaluation_timestamp": "2026-10-20T18:09:33Z",
+  "evaluation_timestamp": "2026-10-20T18:14:33Z",
   "backup_source": "/Volumes/EXTssd/SovereignNexus_Backup",
-  "restoration_directory": "/var/folders/y7/fxmrtvyn21j3ns3zng5kn6x80000gn/T/aeib_restore_eval_igy0tzlw",
+  "restoration_directory": "/var/folders/y7/fxmrtvyn21j3ns3zng5kn6x80000gn/T/aeib_restore_eval_pnze0__g",
   "restorability_verified": true,
-  "measured_rto_seconds": 1.1293,
+  "measured_rto_seconds": 1.4054,
   "target_rto_threshold_seconds": 60.0,
   "rto_sla_met": true,
   "rpo_basis": "Synchronized at commit HEAD",
@@ -14,7 +14,7 @@
     "evaluated": true,
     "verified": true,
     "fsck_exit_code": 0,
-    "head_commit": "79c8a304bc357b25f24ca9c852b6d3680d173bcb",
+    "head_commit": "cdd93bc5891b2a21420364cbbc61191313e48257",
     "tag_rc4_preprod_verified": true,
     "clean_room_checkout_passed": true
   },
@@ -50,7 +50,7 @@
       "target": "evidence/cbom.json",
       "restored_sha256": "9db3e7f8e6c23928c1ccf56f97cc3700b2b8a392a48b5bb71ac86466763fa1fc",
       "live_sha256": "9db3e7f8e6c23928c1ccf56f97cc3700b2b8a392a48b5bb71ac86466763fa1fc",
-      "manifest_sha256": null,
+      "manifest_sha256": "9db3e7f8e6c23928c1ccf56f97cc3700b2b8a392a48b5bb71ac86466763fa1fc",
       "matched_live": true,
       "matched_manifest": true,
       "verdict": "VERIFIED"
@@ -59,7 +59,7 @@
       "target": "docs/compliance/CISO_DORA_EXECUTIVE_DECISION_PACK.md",
       "restored_sha256": "1e296ca6b185a274524c6d62d48e7971aba786d0e1f1a65e29194b9602e9cbd2",
       "live_sha256": "1e296ca6b185a274524c6d62d48e7971aba786d0e1f1a65e29194b9602e9cbd2",
-      "manifest_sha256": null,
+      "manifest_sha256": "1e296ca6b185a274524c6d62d48e7971aba786d0e1f1a65e29194b9602e9cbd2",
       "matched_live": true,
       "matched_manifest": true,
       "verdict": "VERIFIED"
@@ -68,7 +68,7 @@
       "target": "Cargo.toml",
       "restored_sha256": "c8f3022667cd9e49b081211de22d65224c8fb9ec35867a8370dfbcfb7b971076",
       "live_sha256": "c8f3022667cd9e49b081211de22d65224c8fb9ec35867a8370dfbcfb7b971076",
-      "manifest_sha256": null,
+      "manifest_sha256": "c8f3022667cd9e49b081211de22d65224c8fb9ec35867a8370dfbcfb7b971076",
       "matched_live": true,
       "matched_manifest": true,
       "verdict": "VERIFIED"

@@ -19,8 +19,8 @@ Do not force-move a published release candidate.
 
 ## Source Provenance & Platform Specs
 ```yaml
-target_release: v1.0.0-rc.4-preprod
-commit_sha: 4556823be76f4dd8ba5729e7a8a43e88acec66db
+target_release: v1.0.0-rc.4-preprod (transitioning to v1.0.0-rc.5)
+commit_sha: cdd93bc5891b2a21420364cbbc61191313e48257
 branch: feat/v1.1-temporal-standing
 tag_ref: v1.0.0-rc.4-preprod
 
@@ -43,6 +43,12 @@ artifacts:
   dst_traces_20261020_manifest:
     path: output/dst-traces-20261020/trace_manifest.json
     sha256: 1ee8e840e51416e9045183b8514dd0bdc767b18fd836b3331c93c31c0d82d706
+  backup_restorability_receipt:
+    path: output/backup-restorability-receipt.json
+    sha256: 0e4a7376837341035f9c1e558f50517c8db2ed46c9bf790bf296a4ce7ff44a3e
+  cbom_manifest:
+    path: evidence/cbom.json
+    sha256: 9db3e7f8e6c23928c1ccf56f97cc3700b2b8a392a48b5bb71ac86466763fa1fc
 ```
 
 ## Build Environment & Dependency Identity
@@ -383,6 +389,31 @@ negative_control_falsification:
 7. **Gap B (O(1) Rolling Window Quota Tracker):** Unsettled allocations hold budget in escrow; authoritative refutations immediately reclaim reserved capacity to the available pool.
 8. **Gap C (Normative Cross-Language Golden Vector):** Deterministic payload canonicalized to `{"amount_minor":45000,"context_digest":"sha256:ctx01","endpoint":"POST /v1/refunds","operation_id":"op-golden-001","recipient":"iban:DE89370400440532013000"}` yields exact SHA-256 digest `d31e155ef55db68b7dbdb14830c3fc50e5c94774155e61685b325c34b74ff74c` across Python, Swift 6, and Rust.
 9. **Gap D (MCP Supply-Chain Pre-Flight Scanner):** Scans `.mcp.json` configs for unpinned `npx -y` packages and plaintext credential leaks before dispatch.
+
+---
+
+## AEIB v1.0.0-rc.5 Transition Evidence & Operational Governance Verification
+
+> **Epistemic Notice:**  
+> These deliverables bridge local pre-production verification with operational governance under the stated model. They do not claim live hardware or kernel enforcement on platforms where those subsystems are scaffolds or simulated.
+
+### 1. Operational Verification Summary Table
+
+| Component / Subsystem | Physical File Location | Test / Verification Harness | Observed Metrics / Results | Status |
+| :--- | :--- | :--- | :---: | :---: |
+| **Temporal Conformance & Chaos Gate** | `tools/temporal_conformance.py` | `tests/test_temporal_conformance.py` | 9 / 9 passed (T1–T6 invariants & wire parsing) | `OBSERVED_AND_TESTED` |
+| **ContextCart Paired-Run Benchmark** | `tools/contextcart_paired_benchmark.py` | `tests/test_contextcart_paired_benchmark.py` | 95.29% overall reduction (3/3 exact answers preserved) | `EVALUATED` |
+| **Standalone TPM 2.0 / TDX Verifier** | `tools/verify_tpm_quote.py` | `tests/test_verify_tpm_quote.py` | 9 / 9 passed (0.20s; PCR 11 and JCS checks) | `OBSERVED_AND_TESTED` |
+| **Clean-Room Restorability & WASM** | `compliance/backup_restorability_verifier.py` | `scripts/verify_reproducible_wasm_and_backup_restore.sh` | 6 / 6 files verified; RTO: 1.4054s (SLA < 60s); 0 diff lines | `OBSERVED_AND_TESTED` |
+| **Real Kernel eBPF LSM Matrix** | `scripts/verify_real_ebpf_lsm_kernel.sh` | Clean-room emulation & probe suite | 5 / 5 adversarial vectors evaluated (rc=0) | `SCAFFOLD_EVALUATED` |
+| **DORA Art. 17 Governance Suite** | `docs/governance/` | Policy & AST compliance scanners | 5 core policies verified (0 banned words) | `DELIVERED` |
+
+### 2. Operational Invariants Verified:
+1. **DORA Article 17 Restorability (RTO < 60.0s):** Clean-room restoration from physical backup `/Volumes/EXTssd/SovereignNexus_Backup` evaluated at 1.4054s with bit-identical match across evaluated hashes.
+2. **ContextCart Paired-Run Compression:** Evaluated 3,927 baseline tokens down to 185 compressed tokens across structured code and logs, with honest negative reporting on unstructured HTML (-82.76% overhead).
+3. **Temporal Invariant Isolation (T1–T6):** Untrusted wire byte parser halts fail-closed on arbitrary path traversal (`dest_dir="/home/user/.ssh"`), unauthorized payees, and unanchored mutations.
+4. **Hardware Attestation Separation:** Standalone verifier strictly distinguishes hardware TPM quotes from software-modeled prototypes via PCR composite recalculation and canonical JCS Ed25519 signatures.
+
 
 
 

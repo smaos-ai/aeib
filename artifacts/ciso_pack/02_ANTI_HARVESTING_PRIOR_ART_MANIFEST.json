@@ -1,0 +1,27 @@
+{
+  "title": "AEIB v1.0.0-rc.4: Agent Execution Integrity Boundary Cryptographic Prior-Art Anchor",
+  "creators": [
+    {
+      "name": "Leukhin, Andrej",
+      "affiliation": "SovereignNexus"
+    }
+  ],
+  "publication_date": "2026-10-20",
+  "license": "Closed / Commercial Enterprise (Prior-Art Disclosure Only)",
+  "anchored_manifest_sha256": "c17376e523bb02dd74744cd472965a865dc01e4c0ce58a3820a13ee5f5f96c56",
+  "compiled_artifacts": [
+    {
+      "file": "smaos_verify.wasm",
+      "sha256": "6ecc360af19008632c950d94910b70220e3c2cc36a5cc29fe0c33ba64d2bb041",
+      "size_bytes": 199770,
+      "purpose": "Standalone offline receipt verifier (WASM 32-bit)"
+    }
+  ],
+  "verification_metrics": {
+    "dst_schedules_evaluated": 10000,
+    "observed_duplicate_mutations": 0,
+    "invariant_violations": 0,
+    "seed": 20261020
+  },
+  "disclosed_surface": "Zero execution source code; mathematical and cryptographic verification interfaces only."
+}

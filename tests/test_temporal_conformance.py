@@ -140,3 +140,41 @@ def test_temporal_trace_checker_cli_self_test():
     )
     assert proc.returncode == 0
     assert "Self-test passed" in proc.stdout
+
+
+def test_temporal_conformance_monitor_direct():
+    from tools.temporal_conformance import (
+        TemporalConformanceMonitor,
+        TemporalViolationError,
+        OperationTemporalState,
+    )
+
+    mon = TemporalConformanceMonitor(max_reconciliation_horizon_steps=10)
+    mon.record_intent("op-1", "caid-1", 100_00, step_index=0)
+    assert mon.timelines["op-1"].current_state == OperationTemporalState.INTENT_PERSISTED
+
+    mon.record_dispatch("op-1", "POST /v1/mutations", step_index=1)
+    assert mon.timelines["op-1"].current_state == OperationTemporalState.DISPATCH_SENT
+
+    mon.record_uncertainty("op-1", "HTTP_504_TIMEOUT", step_index=2)
+    assert mon.timelines["op-1"].current_state == OperationTemporalState.EFFECT_INDETERMINATE
+
+    # Blind retry is blocked
+    with pytest.raises(TemporalViolationError) as exc_info:
+        mon.record_dispatch("op-1", "POST /v1/mutations", step_index=3)
+    assert exc_info.value.rule_id == "no_blind_retry_after_uncertainty"
+
+    # Confirmed settlement with evidence
+    mon.record_settlement("op-1", "CONFIRMED", evidence_digest="sha256:evidence1", step_index=4)
+    assert mon.timelines["op-1"].current_state == OperationTemporalState.CONFIRMED
+
+
+def test_temporal_conformance_cli_self_test():
+    proc = subprocess.run(
+        [sys.executable, "tools/temporal_conformance.py", "--self-test"],
+        capture_output=True,
+        text=True,
+    )
+    assert proc.returncode == 0
+    assert "PASSED" in proc.stdout
+

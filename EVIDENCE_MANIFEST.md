@@ -357,9 +357,10 @@ total_storage_footprint:       19,067 bytes
 | :--- | :--- | :--- | :---: | :---: |
 | **Station 1 State Engine (#17–#21)** | `src/station1_state_engine.py` | `tests/test_station1_production_remediations_17_21.py` | 4 / 4 passed | `OBSERVED_AND_TESTED` |
 | **P0 Security Remediations (AT69–AT72)** | `tests/test_sybil_rotator_and_smurfing.py` | `tests/test_sybil_rotator_and_smurfing.py` | 5 / 5 passed | `OBSERVED_AND_TESTED` |
+| **Complete Remediation Suite (AT69–AT74 & Embedded SCITT)** | `tests/test_complete_remediation_at69_to_at74.py` | `tests/test_complete_remediation_at69_to_at74.py` | 1 / 1 passed (0.12s) | `OBSERVED_AND_TESTED` |
 | **Last-Mile Gap Closures (Gaps A, B, C, D)** | `tests/test_final_gap_closures.py` | `tests/test_final_gap_closures.py` | 1 / 1 passed | `OBSERVED_AND_TESTED` |
 | **Apple Swift 6 Strict Concurrency Suite** | `Tests/AEIBTests/Station1ActorTests.swift` | `swift test -Xswiftc -strict-concurrency=complete` | 11 / 11 passed (0.044s) | `OBSERVED_AND_TESTED` |
-| **Protocol-Aware DST Harness (10k Schedules)** | `tools/aeib_dst_harness.py` | `tests/test_aeib_dst_harness.py` | 5 / 5 passed (10.49s) | `OBSERVED_AND_TESTED` |
+| **Protocol-Aware DST Harness (10k Schedules)** | `tools/aeib_dst_harness.py` | `tests/test_aeib_dst_harness.py` & `tools/aeib_dst_harness.py` | 6 / 6 passed (0.36s VOPR) | `OBSERVED_AND_TESTED` |
 
 ### 2. Protocol-Aware Deterministic Simulation Testing (DST) Results (10,000 Schedules)
 ```yaml

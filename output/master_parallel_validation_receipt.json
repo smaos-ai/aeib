@@ -1,0 +1,160 @@
+{
+  "receipt_body": {
+    "orchestrator": "SsdParallelMasterOrchestrator v1.0.0-rc.5",
+    "timestamp_utc": "2026-10-20T20:42:45Z",
+    "environment": {
+      "os": "darwin",
+      "cpu_count": 11,
+      "max_workers": 8,
+      "external_ssd_mount": "/Volumes/EXTssd",
+      "external_ssd_available": true
+    },
+    "performance": {
+      "wall_duration_ms": 4601.65,
+      "total_cpu_duration_ms": 18429.49,
+      "parallel_speedup_factor": 4.0
+    },
+    "summary": {
+      "total_tracks": 16,
+      "passed_tracks": 16,
+      "all_passed": true
+    },
+    "tracks": [
+      {
+        "job_id": "TRACK_01_NVME_DIRECT_IO_STRESS",
+        "name": "External NVMe Direct-I/O Group-Commit WAL Burst (2,000 Threads)",
+        "category": "HARDWARE_DIRECT_IO",
+        "passed": true,
+        "duration_ms": 2209.15,
+        "returncode": 0
+      },
+      {
+        "job_id": "TRACK_02_DST_500_EPISODES",
+        "name": "Deterministic 500-Episode Simulation (4 Arms, 15 Fault Vectors)",
+        "category": "FAULT_SIMULATION",
+        "passed": true,
+        "duration_ms": 129.1,
+        "returncode": 0
+      },
+      {
+        "job_id": "TRACK_03_MULTI_REGION_QUORUM_DST",
+        "name": "Multi-Region Consensus Quorum & Partition Recovery DST",
+        "category": "DISTRIBUTED_CONSENSUS",
+        "passed": true,
+        "duration_ms": 2204.49,
+        "returncode": 0
+      },
+      {
+        "job_id": "TRACK_04_TRAJECTORY_DRIFT_AND_FUZZER",
+        "name": "Predictive Trajectory Drift Latch & Adversarial Token Chaos Fuzzer",
+        "category": "ADVERSARIAL_DEFENSE",
+        "passed": true,
+        "duration_ms": 627.08,
+        "returncode": 0
+      },
+      {
+        "job_id": "TRACK_05_ZK_BUDGET_PROOF_ENGINE",
+        "name": "Zero-Knowledge Privacy-Preserving Budget Proof Engine (BN254 Field)",
+        "category": "ZERO_KNOWLEDGE",
+        "passed": true,
+        "duration_ms": 594.45,
+        "returncode": 0
+      },
+      {
+        "job_id": "TRACK_06_STANDALONE_OFFLINE_VERIFIER",
+        "name": "Standalone Zero-Dependency Pure-Python Curve25519 Offline Verifier",
+        "category": "AUDIT_VERIFICATION",
+        "passed": true,
+        "duration_ms": 843.14,
+        "returncode": 0
+      },
+      {
+        "job_id": "TRACK_07_BPF_LSM_PROFILE_COMPILER",
+        "name": "Linux Kernel BPF_LSM Security Profile Compiler & Static Linter",
+        "category": "KERNEL_ENFORCEMENT",
+        "passed": true,
+        "duration_ms": 839.62,
+        "returncode": 0
+      },
+      {
+        "job_id": "TRACK_08_CLOUDFLARE_SIX_PHASE_AUDIT",
+        "name": "Cloudflare 6-Phase Audit & Fresh Disproving Verifier Harness",
+        "category": "AUDIT_VERIFICATION",
+        "passed": true,
+        "duration_ms": 1031.86,
+        "returncode": 0
+      },
+      {
+        "job_id": "TRACK_09_SECURE_MCP_UDS_BOUNDARY",
+        "name": "Secure MCP Unix Domain Socket Boundary & Local Peer Identity Gate",
+        "category": "ISOLATION_BOUNDARY",
+        "passed": true,
+        "duration_ms": 2579.61,
+        "returncode": 0
+      },
+      {
+        "job_id": "TRACK_10_DYNAMIC_CODE_POLICY_GATE",
+        "name": "Dynamic Execution Policy Gate & Signed Plugin Manifest Verifier",
+        "category": "CODE_GOVERNANCE",
+        "passed": true,
+        "duration_ms": 1134.31,
+        "returncode": 0
+      },
+      {
+        "job_id": "TRACK_11_GOVERNED_CROSS_MODEL_HANDOFF",
+        "name": "Governed Cross-Model Handoff & Taint Monotonicity Lattice Gate",
+        "category": "CROSS_MODEL_GOVERNANCE",
+        "passed": true,
+        "duration_ms": 712.45,
+        "returncode": 0
+      },
+      {
+        "job_id": "TRACK_12_ARTEMIS_DEVICE_AND_PLUGIN",
+        "name": "ARTEMIS Mobile Device Actuator & ADECS 4.0 Lifecycle Gate",
+        "category": "ACTUATOR_GOVERNANCE",
+        "passed": true,
+        "duration_ms": 555.13,
+        "returncode": 0
+      },
+      {
+        "job_id": "TRACK_13_POSTGRES_TCC_STRESS",
+        "name": "PostgreSQL TCC High-Contention Concurrency & Bitemporal Outbox",
+        "category": "STORAGE_CONCURRENCY",
+        "passed": true,
+        "duration_ms": 947.29,
+        "returncode": 0
+      },
+      {
+        "job_id": "TRACK_14_CONTEXTCART_20_TASK_BENCHMARK",
+        "name": "ContextCart-MCP 20-Task Empirical Symbol Slicing Benchmark",
+        "category": "CONTEXT_OPTIMIZATION",
+        "passed": true,
+        "duration_ms": 142.79,
+        "returncode": 0
+      },
+      {
+        "job_id": "TRACK_15_FIPS204_PQEE_DUAL_VERIFY",
+        "name": "FIPS 204 ML-DSA-65 + Ed25519 Post-Quantum Evidence Envelope",
+        "category": "POST_QUANTUM_CRYPTO",
+        "passed": true,
+        "duration_ms": 768.45,
+        "returncode": 0
+      },
+      {
+        "job_id": "TRACK_16_DORA_BACKUP_RESTORE_VERIFY",
+        "name": "DORA Article 17 Backup Clean-Room Restorability & Reproducible WASM",
+        "category": "RESILIENCE_AND_RESTORABILITY",
+        "passed": true,
+        "duration_ms": 3110.57,
+        "returncode": 0
+      }
+    ]
+  },
+  "signature_envelope": {
+    "algorithm": "Ed25519",
+    "public_key_hex": "0560059b2525ded9e842b2ef09c7078e31973d07099b08f461547c35e9c1d818",
+    "public_key_b64": "BWAFmyUl3tnoQrLvCccHjjGXPQcJmwj0YVR8NenB2Bg=",
+    "signature_b64": "uWZ16uSwHftRaSEgAq6zMbNfS7MILo2vahzRLd6coUaas+35oxwFK2LCP/AjVqKjaQYvNJdET872BpI1aB2iBg==",
+    "canonical_hash_sha256": "sha256:a353657f301e3c258a9570b3f459306623a4605080bf1cb160bc8ec046ca50b2"
+  }
+}

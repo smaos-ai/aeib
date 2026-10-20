@@ -1,60 +1,48 @@
-# AEIB — Evidence Manifest (`v1.0.0-rc.2` Review Candidate / `v1.0.0-rc.3` Prepared Target)
+# AEIB — Evidence Manifest (`v1.0.0-rc.4-preprod` Pre-Production Release Candidate)
 
 ## Thesis & Bounded Claim
-> **AEIB v1.0.0-rc.2 at commit `7bfd43dc` is ready for external review of its bounded dispatch-boundary evidence bundle. It provides pinned manifests, pre-dispatch standing checks, explicit uncertain-transport classification, bounded reconciliation, RFC 8785 + Ed25519 receipts, and 14/14 Java/Python verifier-vector parity under the stated model. Gate 5 separate-party reproduction remains pending.**
+> **AEIB v1.0.0-rc.4-preprod at commit `4556823b` is a pre-production execution-boundary release candidate on branch `feat/v1.1-temporal-standing`. It combines exact action binding, durable uncertainty handling, bounded reconciliation, operation-bound evidence, credential starvation, VM isolation, host-side egress control, and independent verification. Its security and compliance value depends on correct deployment, threat modeling, real-target integration, and independent reproduction.**
 >
 > **Bounded Scope:** *AEIB provides a reproducible evidence bundle for a bounded dispatch-boundary claim: pinned manifests, pre-dispatch standing checks, explicit uncertain-transport handling, bounded reconciliation, RFC 8785 + Ed25519 receipts, and verifier parity for the supplied vectors. It does not prove model trustworthiness, universal exactly-once effects, regulatory compliance, or complete governance.*
 >
-> **Release Tag Policy (Operationally Immutable):** *Release-candidate tags are operationally immutable under the project’s release policy. The project must not delete, force-move, or re-tag a published release candidate. If the candidate changes, create a new tag (e.g., `v1.0.0-rc.3`).*
+> **Release Tag Policy (Operationally Immutable):** *Release-candidate tags are operationally immutable under the project’s release policy. The project must not delete, force-move, or re-tag a published release candidate. If the candidate changes, create a new tag.*
 
 ```text
 One manifest = one tag = one commit = one artifact set.
 Do not mix tag evidence with working-tree evidence.
-Do not present historical NEG hashes as rc.2 proof.
+Do not present historical NEG hashes as rc.4 proof.
 Do not claim the boundary halts arbitrary agents.
 Do not force-move a published release candidate.
-Gate 5 completes only after separate-party reproduction.
 ```
 
 ---
 
-## Source Provenance
+## Source Provenance & Platform Specs
 ```yaml
-target_release: v1.0.0-rc.2
-commit_sha: 7bfd43dcc27f741d04a67500abf1bc3b2a5888c4
-branch: release/v1.0-review-candidate
-tag_ref: v1.0.0-rc.2
-slsa_provenance_bundle: aeib-reproducibility/evidence/v1.0.0-rc.2/multiple.intoto.jsonl
-slsa_bundle_sha256: f84ebe8d8f41656ee0deb63ad0ab38432e4c601b465d5a6381e48225653fbf67
+target_release: v1.0.0-rc.4-preprod
+commit_sha: 4556823be76f4dd8ba5729e7a8a43e88acec66db
+branch: feat/v1.1-temporal-standing
+tag_ref: v1.0.0-rc.4-preprod
 
-# Prepared working-tree version identity for next immutable candidate tag (v1.0.0-rc.3):
-prepared_next_candidate:
-  target_release: v1.0.0-rc.3
-  gradle_project_version: 1.0.0-rc.3
-  artifact: aeib-verifier-1.0.0-rc.3.jar
+platform_specs:
+  os: macOS Darwin arm64 (Apple Silicon)
+  python_version: 3.14.3
+  swift_version: 6.0 (complete strict concurrency)
+  cargo_version: 1.85.0
 
-hosted_ci_runs_green:
-  - 38248861219  # AEIB Release & Provenance, v1.0.0-rc.2 (tag)
-  - 38248861416  # AEIB v1.0 Minimal CI Baseline, v1.0.0-rc.2 (tag)
-  - 38248861063  # AEIB RC Verification and Provenance, v1.0.0-rc.2 (tag)
-  - 38248086522  # AEIB v1.0 Minimal CI Baseline, 7bfd43dc (branch)
-  - 38248086315  # AEIB RC Verification and Provenance, 7bfd43dc (branch)
-
-historical_ci_evidence:
-  rc1_commit: cea4b5c9800902b043eb085a74cc3697a5161f5b
-  rc1_runs:
-    - 38211901816
-    - 38211901792
-    - 38211901499
-    - 38211899056
-    - 38211898969
-  rc1_tag_commit: addfe3cad550baffe3500394723c9b746e34e802
-  rc1_tag_runs:
-    - 38246098060
-    - 38246098049
-    - 38246097748
-    - 38246094658
-    - 38246094308
+artifacts:
+  smaos_verify_wasm:
+    path: smaos_verify.wasm
+    sha256: 6ecc360af19008632c950d94910b70220e3c2cc36a5cc29fe0c33ba64d2bb041
+  dst_report_20261020:
+    path: output/dst-report-20261020.json
+    sha256: 3f2c3c01b510225092b46ea604ab88f873012d9149abb2bd1771c0ad401510d2
+  dst_traces_20261020_jsonl:
+    path: output/dst-traces-20261020/traces.jsonl
+    sha256: 796ab2307c17c2a3fe529972143c986581b86556869e2f5e4d2b1f00f0466197
+  dst_traces_20261020_manifest:
+    path: output/dst-traces-20261020/trace_manifest.json
+    sha256: 1ee8e840e51416e9045183b8514dd0bdc767b18fd836b3331c93c31c0d82d706
 ```
 
 ## Build Environment & Dependency Identity

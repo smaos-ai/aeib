@@ -623,62 +623,84 @@ class AeibDstEngine:
         self.bug_mode = bug_mode
 
     def run_simulation(
-        self, schedules: int = 10000, fail_fast: bool = True
+        self,
+        schedules: int = 10000,
+        fail_fast: bool = True,
+        traces_dir: Optional[Path] = None,
     ) -> InvariantReport:
         report = InvariantReport()
+        trace_file = None
+        if traces_dir is not None:
+            traces_dir.mkdir(parents=True, exist_ok=True)
+            trace_file = open(traces_dir / "traces.jsonl", "w", encoding="utf-8")
 
-        for schedule_idx in range(schedules):
-            report.schedules_evaluated += 1
-            clock = DeterministicSteppedClock(1771400000000 + schedule_idx * 1000)
+        try:
+            for schedule_idx in range(schedules):
+                report.schedules_evaluated += 1
+                clock = DeterministicSteppedClock(1771400000000 + schedule_idx * 1000)
 
-            gate_privkey = ed25519.Ed25519PrivateKey.generate()
-            target_privkey = ed25519.Ed25519PrivateKey.generate()
-            target_pubkey = target_privkey.public_key()
+                gate_privkey = ed25519.Ed25519PrivateKey.generate()
+                target_privkey = ed25519.Ed25519PrivateKey.generate()
+                target_pubkey = target_privkey.public_key()
 
-            target = VirtualSettlementTarget()
-            trust_anchors = {"iban:DE89370400440532013000": b"anchor_pub_key_bytes"}
+                target = VirtualSettlementTarget()
+                trust_anchors = {"iban:DE89370400440532013000": b"anchor_pub_key_bytes"}
 
-            sponsor_ceiling = 10000_00
-            sprint_limit = 2500_00
+                sponsor_ceiling = 10000_00
+                sprint_limit = 2500_00
 
-            gate = DstStation1Gate(
-                sponsor_ceiling_minor=sponsor_ceiling,
-                sprint_limit_minor=sprint_limit,
-                trust_anchors=trust_anchors,
-                gate_privkey=gate_privkey,
-                clock=clock,
-            )
+                gate = DstStation1Gate(
+                    sponsor_ceiling_minor=sponsor_ceiling,
+                    sprint_limit_minor=sprint_limit,
+                    trust_anchors=trust_anchors,
+                    gate_privkey=gate_privkey,
+                    clock=clock,
+                )
 
-            schedule_roll = self.rng.random()
-            if schedule_roll < 0.35:
-                fault = FaultSchedule.NOMINAL_SUCCESS
-            elif schedule_roll < 0.55:
-                fault = FaultSchedule.HTTP_504_TIMEOUT
-            elif schedule_roll < 0.65:
-                fault = FaultSchedule.LOST_ACK_POST_COMMIT
-            elif schedule_roll < 0.75:
-                fault = FaultSchedule.SYBIL_BURST_BREACH
-            elif schedule_roll < 0.85:
-                fault = FaultSchedule.TAINT_INJECTION
-            elif schedule_roll < 0.93:
-                fault = FaultSchedule.REPLAY_ATTACK
-            else:
-                fault = FaultSchedule.DISK_FULL_SIMULATED
+                schedule_roll = self.rng.random()
+                if schedule_roll < 0.35:
+                    fault = FaultSchedule.NOMINAL_SUCCESS
+                elif schedule_roll < 0.55:
+                    fault = FaultSchedule.HTTP_504_TIMEOUT
+                elif schedule_roll < 0.65:
+                    fault = FaultSchedule.LOST_ACK_POST_COMMIT
+                elif schedule_roll < 0.75:
+                    fault = FaultSchedule.SYBIL_BURST_BREACH
+                elif schedule_roll < 0.85:
+                    fault = FaultSchedule.TAINT_INJECTION
+                elif schedule_roll < 0.93:
+                    fault = FaultSchedule.REPLAY_ATTACK
+                else:
+                    fault = FaultSchedule.DISK_FULL_SIMULATED
 
-            self._execute_single_schedule(
-                schedule_idx=schedule_idx,
-                fault=fault,
-                gate=gate,
-                target=target,
-                target_privkey=target_privkey,
-                target_pubkey=target_pubkey,
-                clock=clock,
-                report=report,
-                sponsor_ceiling=sponsor_ceiling,
-            )
+                trace_entry = self._execute_single_schedule(
+                    schedule_idx=schedule_idx,
+                    fault=fault,
+                    gate=gate,
+                    target=target,
+                    target_privkey=target_privkey,
+                    target_pubkey=target_pubkey,
+                    clock=clock,
+                    report=report,
+                    sponsor_ceiling=sponsor_ceiling,
+                )
 
-            if fail_fast and not report.is_clean:
-                break
+                if trace_file is not None and trace_entry is not None:
+                    trace_file.write(json.dumps(trace_entry) + "\n")
+
+                if fail_fast and not report.is_clean:
+                    break
+        finally:
+            if trace_file is not None:
+                trace_file.close()
+                manifest = {
+                    "schedules_evaluated": report.schedules_evaluated,
+                    "seed": self.seed,
+                    "trace_file": "traces.jsonl",
+                    "status": "PASS" if report.is_clean else "FAIL",
+                }
+                with open(traces_dir / "trace_manifest.json", "w", encoding="utf-8") as mf:
+                    json.dump(manifest, mf, indent=2)
 
         return report
 
@@ -924,6 +946,16 @@ class AeibDstEngine:
                     "schedule_idx": schedule_idx,
                 }
 
+        return {
+            "schedule_idx": schedule_idx,
+            "fault": fault.value,
+            "op_id": op_id,
+            "caid": caid.hex(),
+            "amount_minor": amount,
+            "target_commit_count": commit_count,
+            "is_clean": report.is_clean,
+        }
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(
@@ -953,8 +985,15 @@ def main() -> int:
     )
     parser.add_argument(
         "--output-json",
+        "--report",
+        dest="output_json",
         type=str,
         help="Path to write structured JSON evaluation report",
+    )
+    parser.add_argument(
+        "--save-traces",
+        type=str,
+        help="Directory path to save execution trace records",
     )
     parser.add_argument(
         "--no-fail-fast",
@@ -966,7 +1005,7 @@ def main() -> int:
 
     # If neither self-test nor negative-control is passed, run the fast VOPR simulator campaign
     # and print result dict as expected by Deliverable 2
-    if not args.self_test and not args.negative_control and not args.output_json:
+    if not args.self_test and not args.negative_control and not args.output_json and not args.save_traces:
         result = run_dst_campaign(schedules=args.schedules, master_seed=args.seed)
         print(result)
         return 0
@@ -990,9 +1029,12 @@ def main() -> int:
         print("[✓] DST self-test PASSED (Clean + 2 Negative Controls verified).")
         return 0
 
+    traces_dir = Path(args.save_traces) if args.save_traces else None
     engine = AeibDstEngine(seed=args.seed, bug_mode=args.negative_control)
     report = engine.run_simulation(
-        schedules=args.schedules, fail_fast=not args.no_fail_fast
+        schedules=args.schedules,
+        fail_fast=not args.no_fail_fast,
+        traces_dir=traces_dir,
     )
 
     result_summary = {
@@ -1009,9 +1051,14 @@ def main() -> int:
     }
 
     if args.output_json:
-        with open(args.output_json, "w", encoding="utf-8") as f:
+        out_path = Path(args.output_json)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(out_path, "w", encoding="utf-8") as f:
             json.dump(result_summary, f, indent=2)
         print(f"[+] Output written to {args.output_json}")
+
+    if args.save_traces:
+        print(f"[+] Traces written to {args.save_traces}")
 
     return 0 if report.is_clean else 1
 

@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "seed": 20261020,
+  "schedules_evaluated": 10000,
+  "total_dispatches": 6520,
+  "total_timeouts": 3018,
+  "total_retries_blocked": 3018,
+  "total_reconciled": 6520,
+  "observed_duplicates": 0,
+  "invariant_violations": {
+    "I1_budget_conservation": 0,
+    "I2_zero_duplicate_mutations": 0,
+    "I3_durable_uncertainty_latching": 0,
+    "I4_replay_rejection": 0,
+    "I5_taint_step_up_enforcement": 0,
+    "I6_continuity_hash_chain_integrity": 0,
+    "I7_fail_closed": 0
+  },
+  "first_failure_detail": null
+}

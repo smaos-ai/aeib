@@ -1,0 +1,6 @@
+{
+  "schedules_evaluated": 10000,
+  "seed": 20261020,
+  "trace_file": "traces.jsonl",
+  "status": "PASS"
+}

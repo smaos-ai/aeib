@@ -57,8 +57,58 @@ While high-throughput ring-buffer group commit can utilize Linux `io_uring` (wit
 
 ---
 
-## 6. Egress and Sandbox Controls
+## 6. Egress, MicroVM Isolation, and Local MCP Boundaries
 
+### 6.1 SPACE-Inspired MicroVM Isolation Topology
+AEIB v1.0.0-rc.4 adopts a SPACE-inspired deployment topology for runtime isolation:
+1. **Agent Runtime (Untrusted Guest):** Runs inside a dedicated microVM (e.g. Firecracker guest) with no external network egress and zero bearer credentials.
+2. **Host-Side AEIB Boundary:** Evaluates exact action binding (`CAID`), policy ceilings, identity/lineage, and durable uncertainty latches (`EFFECT_INDETERMINATE`).
+3. **Host Egress Proxy / Gateway:** Controls destination allowlists, TLS termination, audit logging, and external credential injection.
+
+```text
+┌────────────────────────────────────────────┐
+│ Firecracker guest / agent runtime          │
+│  - untrusted agent                         │
+│  - no downstream credentials               │
+│  - no direct external egress               │
+└───────────────┬────────────────────────────┘
+                │ VSOCK / controlled channel
+                ↓
+┌────────────────────────────────────────────┐
+│ Host-side AEIB boundary                    │
+│  - identity and process lineage            │
+│  - exact action / CAID validation          │
+│  - policy, budget, delegation, halt        │
+│  - durable escrow / uncertainty latch      │
+└───────────────┬────────────────────────────┘
+                │
+                ↓
+┌────────────────────────────────────────────┐
+│ Host egress proxy / gateway                │
+│  - credential injection                    │
+│  - destination allowlist                   │
+│  - TLS termination                         │
+│  - rate limits and audit logging           │
+└───────────────┬────────────────────────────┘
+                │
+                ↓
+┌────────────────────────────────────────────┐
+│ External target / payment rail             │
+└────────────────────────────────────────────┘
+```
+
+> [!NOTE]
+> MicroVM isolation reduces the blast radius of guest escapes but does not eliminate host, hypervisor, or target vulnerabilities. Escape resistance must be evaluated per platform.
+
+### 6.2 Local MCP Trust Boundary
+A localhost MCP server is not automatically trusted merely because it binds to `127.0.0.1`.
+- TCP localhost listeners are denied by default in hardened configurations.
+- Unix Domain Sockets (`0o600`) are the preferred local transport.
+- OS kernel peer credentials (`SO_PEERCRED` on Linux, `LOCAL_PEERCRED` / `LOCAL_PEEREPID` on Darwin) verify peer UID/GID/PID at connection time, but do not by themselves prevent binary substitution or PID reuse.
+- AEIB couples peer credential checks with executable SHA-256 binary pinning, creation-timestamp PID reuse protection, and Ed25519 capability token gating.
+- Invoking untrusted external tools (`TIER_2_UNTRUSTED_EXTERNAL`) degrades the session consequence ceiling until an authorized supervisor step-up warrant is supplied.
+
+### 6.3 Egress Policy Limits
 Gateway allowlists and `TLS SNI == HTTP Host` checks apply only to traffic routed through the gateway.
 - They **do not** automatically defeat DNS rebinding, IPv6 routing bypasses, shared-CDN IP laundering, domain fronting, HTTP redirects, QUIC tunneling, or kernel-level bypasses unless every transport layer is locked and adversarially tested in the target deployment.
 
@@ -191,3 +241,18 @@ agent_execution_integrity_requirements:
     independent_reproduction: required_for_external_claim
     real_target_integration: required_for_production_claim
 ```
+
+---
+
+## 12. Epistemic Calibration & Corrected Claims
+
+| Prior Colloquial Phrasing | Corrected Engineering Statement |
+| :--- | :--- |
+| "Complete, mathematically grounded, industry-validated architecture" | A layered pre-production architecture informed by current isolation, attestation, and MCP-security practices. |
+| "Secure against kernel escapes" | Designed to reduce blast radius through VM isolation and host-side egress policy; escape resistance must be tested per platform. |
+| "Immune to Chain-of-Thought unfaithfulness" | Does not treat CoT as authorization evidence; authorization depends strictly on structured, signed, and durable inputs. |
+| "Compliant with EU AI Act EN 18286 and DORA" | May support an operator's EU AI Act QMS and DORA logging program; compliance remains operator- and context-specific. |
+| "Optimized for sub-millisecond execution" | Performance targets require measured p50/p99/p999 latency under load and fault conditions. |
+| "Credential Starvation Principle" | An internal design principle ensuring the agent process holds zero external bearer credentials. |
+| "SPACE-style Firecracker microVM" | SPACE-inspired Firecracker microVM isolation topology. |
+

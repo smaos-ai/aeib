@@ -18,7 +18,7 @@
 //! 14. Network partition between regions
 //! 15. Split-brain across regions
 //!
-//! Guarantees:
+//! Tested Invariants:
 //! - < 5 second recovery time per failure scenario
 //! - Zero data loss under failure injection
 //! - Agent isolation (one agent's failure ≠ cluster-wide)
@@ -288,31 +288,39 @@ impl ChaosScheduler {
 
     pub fn replay_from_seed(&self) -> Vec<FailureScenario> {
         let mut rng = SmallRng::seed_from_u64(self.seed);
-        let dummy_agents = vec![Uuid::new_v4(); 5];
+        let dummy_agents: Vec<Uuid> = (0..5)
+            .map(|_| Uuid::from_u64_pair(rng.gen(), rng.gen()))
+            .collect();
 
         let mut scenarios = Vec::new();
         for _ in 0..12 {
+            let a1 = *dummy_agents.choose(&mut rng).unwrap();
+            let a2 = *dummy_agents.choose(&mut rng).unwrap();
+            let a3 = *dummy_agents.choose(&mut rng).unwrap();
+            let a4 = *dummy_agents.choose(&mut rng).unwrap();
+            let a5 = *dummy_agents.choose(&mut rng).unwrap();
+            let a6 = *dummy_agents.choose(&mut rng).unwrap();
+
+            let u1 = Uuid::from_u64_pair(rng.gen(), rng.gen());
+            let u2 = Uuid::from_u64_pair(rng.gen(), rng.gen());
+            let u3 = Uuid::from_u64_pair(rng.gen(), rng.gen());
+            let u4 = Uuid::from_u64_pair(rng.gen(), rng.gen());
+
             let scenario_variants = vec![
                 FailureScenario::NetworkTimeout {
-                    agent_id: dummy_agents
-                        .choose(&mut rng)
-                        .copied()
-                        .unwrap_or_else(Uuid::new_v4),
+                    agent_id: a1,
                     timeout_ms: rng.gen_range(100..2000),
                 },
                 FailureScenario::DatabaseCrash {
-                    transaction_id: Uuid::new_v4(),
+                    transaction_id: u1,
                     checkpoint_available: rng.gen_bool(0.7),
                 },
                 FailureScenario::ConcurrentWriteCollision {
-                    resource_id: Uuid::new_v4(),
+                    resource_id: u2,
                     writer_count: rng.gen_range(2..5),
                 },
                 FailureScenario::AgentPanic {
-                    agent_id: dummy_agents
-                        .choose(&mut rng)
-                        .copied()
-                        .unwrap_or_else(Uuid::new_v4),
+                    agent_id: a2,
                     restart_time_ms: rng.gen_range(500..2000),
                 },
                 FailureScenario::MemoryExhaustion {
@@ -320,39 +328,27 @@ impl ChaosScheduler {
                     bytes_to_exhaust: rng.gen_range(500_000_000..1_000_000_000),
                 },
                 FailureScenario::CascadingFailure {
-                    trigger_agent: dummy_agents
-                        .choose(&mut rng)
-                        .copied()
-                        .unwrap_or_else(Uuid::new_v4),
-                    affected_agents: vec![dummy_agents
-                        .choose(&mut rng)
-                        .copied()
-                        .unwrap_or_else(Uuid::new_v4)],
+                    trigger_agent: a3,
+                    affected_agents: vec![a4],
                 },
                 FailureScenario::ClockSkew {
                     node_id: rng.gen_range(0..5),
                     skew_ms: rng.gen_range(100..1000),
                 },
                 FailureScenario::PartialMessageLoss {
-                    agent_id: dummy_agents
-                        .choose(&mut rng)
-                        .copied()
-                        .unwrap_or_else(Uuid::new_v4),
+                    agent_id: a5,
                     loss_percentage: rng.gen_range(10..50),
                 },
                 FailureScenario::DuplicateMessageInjection {
-                    agent_id: dummy_agents
-                        .choose(&mut rng)
-                        .copied()
-                        .unwrap_or_else(Uuid::new_v4),
+                    agent_id: a6,
                     duplicate_count: rng.gen_range(1..20),
                 },
                 FailureScenario::CapsuleCorruption {
-                    capsule_id: Uuid::new_v4(),
+                    capsule_id: u3,
                     corruption_type: "bit_flip".to_string(),
                 },
                 FailureScenario::CheckpointRecovery {
-                    checkpoint_id: Uuid::new_v4(),
+                    checkpoint_id: u4,
                     state_vector_size: rng.gen_range(3..10),
                 },
                 FailureScenario::FullClusterPartition {
@@ -360,7 +356,8 @@ impl ChaosScheduler {
                     partition_b: vec![3, 4],
                 },
             ];
-            scenarios.push(scenario_variants[rng.gen_range(0..scenario_variants.len())].clone());
+            let idx = rng.gen_range(0..scenario_variants.len());
+            scenarios.push(scenario_variants[idx].clone());
         }
         scenarios
     }

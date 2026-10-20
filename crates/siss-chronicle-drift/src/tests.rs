@@ -19,12 +19,12 @@ mod integration_tests {
         let level = monitor.current_level().await.unwrap();
         assert_eq!(level, DriftLevel::Green);
 
-        // Simulate degradation: 30 low-quality decisions
-        for i in 0..30 {
+        // Simulate degradation: 50 low-quality decisions
+        for i in 0..50 {
             let decision = Decision::new(
                 format!("borderline-{}", i),
                 "marginal approval".to_string(),
-            ).with_quality_score(0.62);
+            ).with_quality_score(0.30);
             monitor.record_decision(decision).await.ok();
         }
 

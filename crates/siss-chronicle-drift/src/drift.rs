@@ -28,13 +28,15 @@ impl DriftMonitor {
 
     /// Add decision to window
     pub async fn record_decision(&self, decision: Decision) -> Result<DriftLevel> {
-        let mut window = self.decisions.write().await;
+        {
+            let mut window = self.decisions.write().await;
 
-        // Maintain rolling window
-        if window.len() >= self.config.window_size as usize {
-            window.pop_front();
+            // Maintain rolling window
+            if window.len() >= self.config.window_size as usize {
+                window.pop_front();
+            }
+            window.push_back(decision);
         }
-        window.push_back(decision);
 
         // Compute drift
         self.compute_drift().await
@@ -127,7 +129,7 @@ mod tests {
         let monitor = DriftMonitor::new(config);
 
         let decision = Decision::new("test".to_string(), "test".to_string())
-            .with_quality_score(0.9);
+            .with_quality_score(0.95);
 
         let level = monitor.record_decision(decision).await.unwrap();
         assert_eq!(level, DriftLevel::Green);

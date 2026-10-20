@@ -60,7 +60,7 @@ impl SLAMetric {
         }
         let mut sorted = self.latencies_ms.clone();
         sorted.sort_unstable();
-        let idx = (sorted.len() * 99) / 100;
+        let idx = (sorted.len() - 1) * 99 / 100;
         Some(sorted[idx])
     }
 
@@ -71,7 +71,7 @@ impl SLAMetric {
         }
         let mut sorted = self.latencies_ms.clone();
         sorted.sort_unstable();
-        let idx = (sorted.len() * 95) / 100;
+        let idx = (sorted.len() - 1) * 95 / 100;
         Some(sorted[idx])
     }
 

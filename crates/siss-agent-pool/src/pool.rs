@@ -49,28 +49,20 @@ impl AgentPool {
             .ok_or(PoolError::AgentNotFound)?;
 
         agent.start_drain();
-
-        // Simulate graceful shutdown with timeout
-        let deadline = tokio::time::Instant::now()
-            + tokio::time::Duration::from_millis(self.config.drain_timeout_ms);
-
-        while agent.status == AgentStatus::Draining {
-            if tokio::time::Instant::now() > deadline {
-                return Err(PoolError::DrainTimeout);
-            }
-            tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
-        }
+        agent.shutdown();
 
         Ok(())
     }
 
     /// Migrate agent state
     pub async fn migrate_state(&self, from_id: Uuid, to_id: Uuid) -> Result<()> {
-        let from_agent = self
-            .agents
-            .get(&from_id)
-            .ok_or(PoolError::AgentNotFound)?;
-        let snapshot = StateSnapshot::new(from_id, from_agent.state.clone());
+        let snapshot = {
+            let from_agent = self
+                .agents
+                .get(&from_id)
+                .ok_or(PoolError::AgentNotFound)?;
+            StateSnapshot::new(from_id, from_agent.state.clone())
+        };
 
         // Verify snapshot
         if !snapshot.verify() {

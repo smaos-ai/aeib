@@ -402,30 +402,51 @@ fn test_layer0_latency_requirements() {
         expires_at: Utc::now() + Duration::seconds(3600),
     };
 
-    // Mandate registration should be <1ms
+    // Mandate registration should be <1ms (<5ms in debug mode)
     let start = std::time::Instant::now();
     gate.register_mandate(mandate.clone()).unwrap();
     let duration = start.elapsed();
+    #[cfg(debug_assertions)]
+    assert!(
+        duration.as_millis() < 5,
+        "Mandate registration took {:?}",
+        duration
+    );
+    #[cfg(not(debug_assertions))]
     assert!(
         duration.as_millis() < 1,
         "Mandate registration took {:?}",
         duration
     );
 
-    // Capability token request should be <1ms
+    // Capability token request should be <1ms (<5ms in debug mode)
     let start = std::time::Instant::now();
     let token = gate.request_capability(mandate.id, "spawn_agent").unwrap();
     let duration = start.elapsed();
+    #[cfg(debug_assertions)]
+    assert!(
+        duration.as_millis() < 5,
+        "Token request took {:?}",
+        duration
+    );
+    #[cfg(not(debug_assertions))]
     assert!(
         duration.as_millis() < 1,
         "Token request took {:?}",
         duration
     );
 
-    // Tool invocation should be <1ms
+    // Tool invocation should be <1ms (<5ms in debug mode)
     let start = std::time::Instant::now();
     gate.invoke_tool(&token, "spawn_agent", [0u8; 32]).unwrap();
     let duration = start.elapsed();
+    #[cfg(debug_assertions)]
+    assert!(
+        duration.as_millis() < 5,
+        "Tool invocation took {:?}",
+        duration
+    );
+    #[cfg(not(debug_assertions))]
     assert!(
         duration.as_millis() < 1,
         "Tool invocation took {:?}",

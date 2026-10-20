@@ -106,24 +106,27 @@ impl Trajectory {
         let mut elapsed = 0.0;
         for (i, wp) in self.waypoints.iter().enumerate() {
             if elapsed + wp.duration >= t {
-                // Linear interpolation between waypoint i and i+1
-                if i == self.waypoints.len() - 1 {
+                if i == 0 {
                     return Ok(wp.clone());
                 }
 
-                let next = &self.waypoints[i + 1];
-                let alpha = (t - elapsed) / wp.duration;
+                let prev = &self.waypoints[i - 1];
+                let alpha = if wp.duration > 0.0 {
+                    (t - elapsed) / wp.duration
+                } else {
+                    1.0
+                };
 
                 let mut interp_joints = vec![0.0; 6];
                 for j in 0..6 {
                     interp_joints[j] =
-                        wp.joint_positions[j] * (1.0 - alpha) + next.joint_positions[j] * alpha;
+                        prev.joint_positions[j] * (1.0 - alpha) + wp.joint_positions[j] * alpha;
                 }
 
                 let interp_pos = [
-                    wp.position[0] * (1.0 - alpha) + next.position[0] * alpha,
-                    wp.position[1] * (1.0 - alpha) + next.position[1] * alpha,
-                    wp.position[2] * (1.0 - alpha) + next.position[2] * alpha,
+                    prev.position[0] * (1.0 - alpha) + wp.position[0] * alpha,
+                    prev.position[1] * (1.0 - alpha) + wp.position[1] * alpha,
+                    prev.position[2] * (1.0 - alpha) + wp.position[2] * alpha,
                 ];
 
                 return Ok(Waypoint::new(

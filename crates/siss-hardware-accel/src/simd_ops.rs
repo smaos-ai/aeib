@@ -275,8 +275,11 @@ mod tests {
         let elapsed_ms = start.elapsed().as_secs_f64() * 1000.0;
 
         let throughput = (1000.0 / elapsed_ms) * 1000.0; // ops per second
-        debug!("SIMD throughput: {:.0} ops/sec", throughput);
-        assert!(throughput > 100_000.0, "Should handle >100k ops/sec");
+        println!("SIMD throughput: {:.0} ops/sec", throughput);
+        #[cfg(debug_assertions)]
+        assert!(throughput > 10_000.0, "Should handle >10k ops/sec in debug mode");
+        #[cfg(not(debug_assertions))]
+        assert!(throughput > 100_000.0, "Should handle >100k ops/sec in release mode");
     }
 
     #[test]

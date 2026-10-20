@@ -1,0 +1,42 @@
+# Copyright 2026 SovereignNexus Project
+# Temporal Invariant Rules (T1-T6) for Verifiable Agent Fabric
+
+version: "1.0"
+policy_epoch: "2026-Q4"
+
+rules:
+  - id: T1_WRITE_BEFORE_DISPATCH
+    name: "Pre-Dispatch Intent Logging"
+    description: "An Act must be durably appended to the synchronous WAL before external network transmission."
+    fail_closed_code: "ERR_T1_WAL_INTENT_NOT_COMMITTED"
+    severity: "CRITICAL"
+
+  - id: T2_CAID_IMMUTABILITY
+    name: "Content-Addressed Action Immutability"
+    description: "The CAID is computed over RFC 8785 canonical bytes. Any in-flight mutation of recipient, amount, or payload changes the CAID, causing cryptographic signature failure."
+    fail_closed_code: "ERR_T2_CAID_TAMPER_DETECTED"
+    severity: "CRITICAL"
+
+  - id: T3_STRICT_PATH_CONTAINMENT
+    name: "Path Traversal & Export Sandbox Containment"
+    description: "File paths (e.g. dest_dir) must be canonically resolved via Path.resolve() against allowed_export_dirs. Naive prefix matching is prohibited (defeating CVE-2025-53110 / CVE-2026-43901)."
+    fail_closed_code: "ERR_PATH_TRAVERSAL_DENIED"
+    severity: "CRITICAL"
+
+  - id: T4_MONOTONIC_TAINT_CEILING
+    name: "Monotonic Context Taint Lattice"
+    description: "An untrusted or external model cannot de-escalate taint tier (TIER_2 -> TIER_0) without a signed supervisor step-up warrant."
+    fail_closed_code: "ERR_T4_TAINT_DOWNGRADE_FORBIDDEN"
+    severity: "CRITICAL"
+
+  - id: T5_DURABLE_UNCERTAINTY_LATCH
+    name: "Durable Uncertainty Handling"
+    description: "On transport drop, connection reset, or HTTP 504 timeout, the operation transitions to EFFECT_INDETERMINATE. Blind retries are blocked until authoritative reconciliation."
+    fail_closed_code: "ERR_T5_INDETERMINATE_BLIND_RETRY_BLOCKED"
+    severity: "CRITICAL"
+
+  - id: T6_DUAL_WINDOW_BUDGET_CONSERVATION
+    name: "Two-Phase Budget Solvency Conservation"
+    description: "Every proposed spend must satisfy: requested_amount <= max_single_call AND current_spent + escrowed + requested <= sprint_ceiling. Negative spend is rejected."
+    fail_closed_code: "ERR_T6_BUDGET_EXCEEDED_OR_NEGATIVE"
+    severity: "CRITICAL"

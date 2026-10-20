@@ -1,0 +1,92 @@
+syntax = "proto3";
+
+package aeib.station1.v1;
+
+option go_package = "github.com/SovereignNexus/agentic-fabric/gen/go/station1/v1;station1v1";
+option java_package = "ai.smaos.fabric.station1.v1";
+option java_multiple_files = true;
+
+// Disposition of a proposed Act evaluation
+enum Disposition {
+  DISPOSITION_UNSPECIFIED = 0;
+  DISPOSITION_DISPATCHED = 1;
+  DISPOSITION_CONFIRMED = 2;
+  DISPOSITION_REFUTED = 3;
+  DISPOSITION_EFFECT_INDETERMINATE = 4;
+  DISPOSITION_REJECTED = 5;
+}
+
+// Taint tier enumeration for monotonic context lattice
+enum TaintTier {
+  TAINT_TIER_UNSPECIFIED = 0;
+  TAINT_TIER_0_PINNED = 1;
+  TAINT_TIER_1_REVIEWED = 2;
+  TAINT_TIER_2_UNTRUSTED = 3;
+}
+
+// Request to evaluate and authorize a candidate Act
+message EvaluateCAIDRequest {
+  string act_version = 1;
+  string operation_id = 2;
+  string idempotency_key = 3;
+  string tenant_id = 4;
+
+  message Principal {
+    string agent_id = 1;
+    string subject_id = 2;
+    string capability_id = 3;
+  }
+  Principal principal = 5;
+
+  message Action {
+    string type = 1;
+    string target = 2;
+    string resource = 3;
+    string parameters_digest = 4;
+  }
+  Action action = 6;
+
+  message Constraints {
+    int64 amount_minor = 1;
+    string currency = 2;
+    int64 max_per_call_minor = 3;
+    string policy_epoch = 4;
+    int64 expires_at = 5;
+  }
+  Constraints constraints = 7;
+
+  message Context {
+    string harness_digest = 1;
+    TaintTier taint_tier = 2;
+    string source_trace_id = 3;
+  }
+  Context context = 8;
+
+  message Signature {
+    string alg = 1;
+    string key_id = 2;
+    string value = 3;
+  }
+  Signature signature = 9;
+
+  bytes raw_canonical_bytes = 10;
+}
+
+// Response from the Station 1 Pre-Dispatch Gate
+message EvaluateCAIDResponse {
+  Disposition disposition = 1;
+  string error_code = 2;
+  string reason = 3;
+  string caid = 4;
+  int64 escrowed_minor = 5;
+  int64 remaining_budget_minor = 6;
+  string receipt_signature = 7;
+  int64 observed_timestamp_utc = 8;
+  string receipt_caid = 9;
+}
+
+// Station 1 Gatekeeper Service Interface
+service Station1Gatekeeper {
+  rpc EvaluateCAID (EvaluateCAIDRequest) returns (EvaluateCAIDResponse);
+  rpc ReconcileIndeterminate (EvaluateCAIDRequest) returns (EvaluateCAIDResponse);
+}

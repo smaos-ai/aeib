@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/SovereignNexus/agentic-fabric/contracts/act.v1.json",
+  "title": "AEIB Canonical Action Envelope (v1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "act_version",
+    "operation_id",
+    "idempotency_key",
+    "tenant_id",
+    "principal",
+    "action",
+    "constraints",
+    "context",
+    "signature"
+  ],
+  "properties": {
+    "act_version": { "type": "string", "const": "1" },
+    "operation_id": { "type": "string", "format": "uuid" },
+    "idempotency_key": { "type": "string", "format": "uuid" },
+    "tenant_id": { "type": "string", "minLength": 1 },
+    "principal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["agent_id", "subject_id", "capability_id"],
+      "properties": {
+        "agent_id": { "type": "string", "minLength": 1 },
+        "subject_id": { "type": "string", "minLength": 1 },
+        "capability_id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "target", "resource", "parameters_digest"],
+      "properties": {
+        "type": { "type": "string", "pattern": "^[a-z]+\\.[a-z_]+$" },
+        "target": { "type": "string", "minLength": 1 },
+        "resource": { "type": "string", "minLength": 1 },
+        "parameters_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["amount_minor", "currency", "max_per_call_minor", "policy_epoch", "expires_at"],
+      "properties": {
+        "amount_minor": { "type": "integer", "minimum": 1 },
+        "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+        "max_per_call_minor": { "type": "integer", "minimum": 1 },
+        "policy_epoch": { "type": "string", "minLength": 1 },
+        "expires_at": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["harness_digest", "taint_tier", "source_trace_id"],
+      "properties": {
+        "harness_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "taint_tier": { "type": "string", "enum": ["TIER_0_PINNED", "TIER_1_REVIEWED", "TIER_2_UNTRUSTED"] },
+        "source_trace_id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["alg", "key_id", "value"],
+      "properties": {
+        "alg": { "type": "string", "enum": ["Ed25519", "ML-DSA-65"] },
+        "key_id": { "type": "string", "minLength": 1 },
+        "value": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

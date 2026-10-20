@@ -432,6 +432,19 @@ negative_control_falsification:
 | **DORA Incident Management & Rollback** | `docs/compliance/INCIDENT_MANAGEMENT_AND_ROLLBACK_RUNBOOK.md` | `8b4db07a44f6e6f7646de1f77beaad33404d8d695abb05078d31ea7712290085` | DORA Art. 17/18/19 4-stage operational incident runbook | `DOCUMENTED` |
 | **DORA Key Management Policy** | `docs/compliance/KEY_MANAGEMENT_POLICY.md` | `1bf4c9c544d0a377f2237df782eeb96e0b48f407b32d62f783237d4a59a7ba6a` | Key custody, rotation, 2-of-3 quorum, and PQC agility pathway | `DOCUMENTED` |
 
+### 4. Verifiable Agent Fabric Canonical Contracts & Simulation-Lab TDD Harness
+
+| Component / Subsystem | Physical File Location | Cryptographic SHA-256 Digest | Verification Harness / Protocol | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **Canonical Act Envelope Schema** | `contracts/act.v1.json` | `421fb374bb789610946afc6d73f7eebd0d3ce25f5b0a2c2069062227121f3767` | JSON Schema draft 2020-12, RFC 8785 strict additionalProperties: false | `FROZEN` |
+| **Canonical Effect State Schema** | `contracts/effect.v1.json` | `869472e6cd020fe42c04fea6dea4e6028461f94fd6a27f76c6cf19417d46f7fa` | Disposition state automaton (DISPATCHED/CONFIRMED/REFUTED/INDETERMINATE) | `FROZEN` |
+| **Canonical Capability Warrant Schema**| `contracts/capability.v1.json` | `9c5b534a314275bea7d2ad8699901e854eaefb3da701f5629f7ad7fc74067430` | Capability-scoped attenuation, allowed_export_dirs, spending limits | `FROZEN` |
+| **Station 1 Protobuf Specification** | `contracts/station1.proto` | `aad3ca9d00fb3b815f235d0a67b3ca622658dbf71197914f07a5165d2821475d` | Language-neutral gRPC/Proto interface for Station1Gatekeeper | `SPECIFIED` |
+| **Temporal Logic Invariant Rules** | `contracts/temporal_rules.yaml` | `cdf510db5320e7cf3106c8e98c4bb08feb571f157f2cd03ae75fb376ae70d322` | T1–T6 operational state machine invariants | `SPECIFIED` |
+| **Station 1 Gatekeeper Engine** | `simulation-lab/station1_gate_engine.py` | `473dfee224d9c384f35cf8e6c66d42ae1f48ac55816a1b6b3f7af5e91dcd7237` | Path containment, schema gating, monotonic taint enforcer | `IMPLEMENTED` |
+| **Adversarial Blank-Box TDD Suite** | `simulation-lab/test_black_box.py` | `f142fb87125f60b35ace2d87179d50f90216781cb0999c3edb4831d045eeb521` | 9/9 passed (CVE-2026-43901, CVE-2025-53110, 250 generative fuzzed vectors) | `VERIFIED` |
+
+
 
 
 

@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/SovereignNexus/agentic-fabric/contracts/effect.v1.json",
+  "title": "AEIB Canonical Effect State Envelope (v1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "effect_version",
+    "operation_id",
+    "idempotency_key",
+    "disposition",
+    "observed_timestamp",
+    "receipt_caid"
+  ],
+  "properties": {
+    "effect_version": { "type": "string", "const": "1" },
+    "operation_id": { "type": "string", "format": "uuid" },
+    "idempotency_key": { "type": "string", "format": "uuid" },
+    "disposition": {
+      "type": "string",
+      "enum": ["DISPATCHED", "CONFIRMED", "REFUTED", "INDETERMINATE", "REJECTED"]
+    },
+    "error_code": { "type": "string" },
+    "observed_timestamp": { "type": "integer", "minimum": 1 },
+    "receipt_caid": { "type": "string", "pattern": "^urn:aeib:(receipt|effect):sha256:[a-f0-9]{64}$" },
+    "reconciliation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "attempts", "terminal_state"],
+      "properties": {
+        "mode": { "type": "string", "enum": ["authoritative_status_probe", "saga_compensation", "manual_step_up"] },
+        "attempts": { "type": "integer", "minimum": 0 },
+        "terminal_state": { "type": "boolean" },
+        "last_probe_timestamp": { "type": "integer" }
+      }
+    },
+    "signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["alg", "key_id", "value"],
+      "properties": {
+        "alg": { "type": "string", "enum": ["Ed25519", "ML-DSA-65"] },
+        "key_id": { "type": "string" },
+        "value": { "type": "string" }
+      }
+    }
+  }
+}

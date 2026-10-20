@@ -1,15 +1,23 @@
 {
-  "evaluation_timestamp": "2026-10-20T17:36:42Z",
+  "evaluation_timestamp": "2026-10-20T17:48:41Z",
   "backup_source": "/Volumes/EXTssd/SovereignNexus_Backup",
-  "restoration_directory": "/var/folders/y7/fxmrtvyn21j3ns3zng5kn6x80000gn/T/aeib_restore_eval__trkw39_",
+  "restoration_directory": "/var/folders/y7/fxmrtvyn21j3ns3zng5kn6x80000gn/T/aeib_restore_eval_ti9jswnq",
   "restorability_verified": true,
-  "measured_rto_seconds": 0.1274,
+  "measured_rto_seconds": 1.1885,
   "target_rto_threshold_seconds": 60.0,
   "rto_sla_met": true,
   "rpo_basis": "Synchronized at commit HEAD",
   "files_evaluated_count": 6,
   "files_verified_count": 6,
   "restored_wasm_instantiation_code": 0,
+  "git_integrity": {
+    "evaluated": true,
+    "verified": true,
+    "fsck_exit_code": 0,
+    "head_commit": "bf6225df725976fe2d5e4395680aad89dad79b44",
+    "tag_rc4_preprod_verified": true,
+    "clean_room_checkout_passed": true
+  },
   "hash_comparisons": [
     {
       "target": "smaos_verify.wasm",

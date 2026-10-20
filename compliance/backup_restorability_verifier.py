@@ -11,11 +11,13 @@
 
 import argparse
 import hashlib
+import io
 import json
 import os
 import shutil
 import subprocess
 import sys
+import tarfile
 import tempfile
 import time
 from pathlib import Path
@@ -145,6 +147,63 @@ def run_restorability_evaluation(
             if wasm_test_rc != 0:
                 all_matched = False
 
+        # Git repository integrity verification on backup source
+        git_dir = backup_path / ".git"
+        git_integrity_verified = False
+        git_fsck_rc = None
+        git_head_commit = None
+        git_tag_verified = False
+        git_checkout_test_passed = False
+
+        if git_dir.exists():
+            print("[*] Evaluating backup Git repository integrity...")
+            # 1. git fsck --full --connectivity-only
+            fsck_res = subprocess.run(
+                ["git", "-C", str(backup_path), "fsck", "--full", "--connectivity-only"],
+                capture_output=True,
+                text=True,
+            )
+            git_fsck_rc = fsck_res.returncode
+
+            # 2. git rev-parse HEAD
+            head_res = subprocess.run(
+                ["git", "-C", str(backup_path), "rev-parse", "HEAD"],
+                capture_output=True,
+                text=True,
+            )
+            if head_res.returncode == 0:
+                git_head_commit = head_res.stdout.strip()
+
+            # 3. Tag verification for v1.0.0-rc.4-preprod
+            tag_res = subprocess.run(
+                ["git", "-C", str(backup_path), "rev-parse", "v1.0.0-rc.4-preprod"],
+                capture_output=True,
+                text=True,
+            )
+            git_tag_verified = (tag_res.returncode == 0 and len(tag_res.stdout.strip()) == 40)
+
+            # 4. Clean-room commit checkout test into ephemeral folder
+            test_checkout_dir = restore_target_dir / "git_checkout_test"
+            test_checkout_dir.mkdir(parents=True, exist_ok=True)
+            archive_res = subprocess.run(
+                ["git", "-C", str(backup_path), "archive", "HEAD", "Cargo.toml", "AGENTS.md"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            if archive_res.returncode == 0:
+                with tarfile.open(fileobj=io.BytesIO(archive_res.stdout)) as tar:
+                    tar.extractall(path=test_checkout_dir)
+                git_checkout_test_passed = (test_checkout_dir / "Cargo.toml").exists() and (test_checkout_dir / "AGENTS.md").exists()
+
+            git_integrity_verified = (
+                git_fsck_rc == 0
+                and git_head_commit is not None
+                and git_tag_verified
+                and git_checkout_test_passed
+            )
+            if not git_integrity_verified:
+                all_matched = False
+
         duration_sec = time.perf_counter() - start_time
 
         receipt = {
@@ -159,6 +218,14 @@ def run_restorability_evaluation(
             "files_evaluated_count": len(CORE_VERIFICATION_TARGETS),
             "files_verified_count": sum(1 for h in hash_comparisons if h.get("verdict") == "VERIFIED"),
             "restored_wasm_instantiation_code": wasm_test_rc,
+            "git_integrity": {
+                "evaluated": git_dir.exists(),
+                "verified": git_integrity_verified,
+                "fsck_exit_code": git_fsck_rc,
+                "head_commit": git_head_commit,
+                "tag_rc4_preprod_verified": git_tag_verified,
+                "clean_room_checkout_passed": git_checkout_test_passed,
+            },
             "hash_comparisons": hash_comparisons,
         }
 

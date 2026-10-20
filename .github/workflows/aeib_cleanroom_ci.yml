@@ -1,0 +1,128 @@
+name: AEIB Clean-Room Hermetic CI & DST Gate
+
+on:
+  push:
+    branches:
+      - main
+      - "feat/*"
+      - "release/*"
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - main
+      - "feat/*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cleanroom-hermetic-verification:
+    name: "Clean-Room Hermetic Verification & DST Gate"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ["3.12"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Set up Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+          components: clippy, rustfmt
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install hermetic Python dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install cryptography pytest anyio pyyaml
+
+      - name: 1. Strict AST Purity, Zone Boundary, and Zero-Mock Gates
+        run: |
+          python3 compliance/check_zone_boundary.py
+          python3 compliance/ast_purity.py .
+          python3 compliance/no_mock_enforcer.py
+          python3 compliance/aeib_p3c_ast_gate.py
+
+      - name: 2. Rust Data-Plane, eBPF-LSM & WAL Verification
+        run: |
+          cargo test -p aeib-data-plane -p aeib-ebpf-lsm
+          cargo clippy -p aeib-ebpf-lsm -- -D warnings
+
+      - name: 3. Reproducible WASM Build & Zero-Dependency Acceptance Suite
+        run: |
+          chmod +x scripts/build_reproducible_wasm.sh
+          ./scripts/build_reproducible_wasm.sh
+          node tests/test_smaos_verify_wasm.js
+
+      - name: 4. Two-Socket Black-Box TDD & SLO Performance Baseline
+        run: |
+          python3 tools/blackbox_two_socket_slo_and_fuzzer.py --self-test --output-json output/slo_baseline_report.json
+          pytest tests/test_blackbox_two_socket_slo.py tests/test_blackbox_wire_tdd.py -v
+
+      - name: 5. Cloudflare 6-Phase Disproving & Legacy Shadow Equivalence Suite
+        run: |
+          python3 tools/cloudflare_6phase_disproving_verifier.py --self-test --output-dir output
+          pytest tests/test_cloudflare_6phase_disproving.py tests/test_audit_disproving_verifier.py -v
+
+      - name: 6. Deterministic Simulation Testing (DST) Invariant Gates
+        run: |
+          pytest \
+            tests/test_dst_seeded_invariants.py \
+            tests/test_dst_multi_region_partition.py \
+            tests/test_postgres_tcc_concurrency_stress.py -v
+
+      - name: 7. Standalone Pure-Python Offline Verifier & BPF-LSM Linter
+        run: |
+          python3 tools/standalone_offline_verifier.py --self-test
+          pytest tests/test_standalone_offline_verifier.py tests/test_bpf_lsm_profile_compiler.py -v
+
+      - name: 8. Deterministic 500-Episode Conformance Benchmark
+        run: |
+          python3 benchmarks/aeib_execution_integrity/run_episodes.py --episodes 500 --seed 42
+
+      - name: 9. Epistemic Language Lock Scanner
+        run: |
+          python3 -c "
+          import os, sys
+          banned = ['guaran' + 'teed', 'bullet' + 'proof', 'enterprise-' + 'grade', 'production-' + 'safe', '100% ' + 'secure', 'unassail' + 'able', 'bank-' + 'grade']
+          scanned = 0
+          for root, _, files in os.walk('docs/compliance'):
+              for f in files:
+                  if f.endswith('.md'):
+                      p = os.path.join(root, f)
+                      scanned += 1
+                      with open(p, 'r', encoding='utf-8') as fh:
+                          txt = fh.read()
+                          for b in banned:
+                              if b in txt:
+                                  print(f'FAIL: Banned word {b} found in {p}')
+                                  sys.exit(1)
+          print(f'[✓] Epistemic boundary verified across {scanned} compliance documents.')
+          "
+
+      - name: 10. Archive Certified Clean-Room Evidence Artifacts
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: aeib-cleanroom-evidence-bundle
+          path: |
+            output/
+            evidence/
+            docs/compliance/
+          retention-days: 90

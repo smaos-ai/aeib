@@ -416,6 +416,23 @@ negative_control_falsification:
 3. **Temporal Invariant Isolation (T1–T6):** Untrusted wire byte parser halts fail-closed on arbitrary path traversal (`dest_dir="/home/user/.ssh"`), unauthorized payees, and unanchored mutations.
 4. **Hardware Attestation Separation:** Standalone verifier strictly distinguishes hardware TPM quotes from software-modeled prototypes via PCR composite recalculation and canonical JCS Ed25519 signatures.
 
+### 3. Blank-Box Two-Socket TDD, Cloudflare 6-Phase Disproving, and DORA Governance Artifacts
+
+| Component / Subsystem | Physical File Location | Cryptographic SHA-256 Digest | Verification Harness / Protocol | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **Two-Socket Black-Box TDD & SLO Harness** | `tools/blackbox_two_socket_slo_and_fuzzer.py` | `3f8b1181da8724689a0e181f2d7b67edc798df463e39cca74e2d30c6d22a6856` | `tests/test_blackbox_two_socket_slo.py` (5/5 passed, p99 < 1.0ms) | `VERIFIED` |
+| **SLO Performance Baseline Metrics** | `output/slo_baseline_report.json` | `93e6543f8d6ede64fcf828a08e54e07891e0d000a722485e7ea3d2abe43eda9d` | 50 valid dispatches, 0.0% false-halts, 100.0% adversarial blocked | `VERIFIED` |
+| **OpenAPI 3.1 Station 1 Contract** | `schemas/aeib_station1_interface.yaml` | `4c915f91171aea2c07c8c6cea6bd95543b80c6a41ec062d0cfe40703a917bd68` | Declarative OpenAPI 3.1 wire interface contract | `SPECIFIED` |
+| **Station 1 Declarative Conformance Vectors** | `evidence/conformance_vectors_v1.jsonl` | `a3735807b53a3496237137cebfa232e45360a278a13911e1f515b899d7daaeda` | `tests/test_blackbox_wire_tdd.py` (4/4 passed, 10 vectors) | `VERIFIED` |
+| **Cloudflare 6-Phase Disproving Verifier** | `tools/cloudflare_6phase_disproving_verifier.py` | `ca756548dd55eb1653a0264bb69ad5be814aa691c8d6370a59ba93e5f56f1856` | `tests/test_cloudflare_6phase_disproving.py` (9/9 passed) | `VERIFIED` |
+| **Phase 1 AST Coverage Ledger** | `output/coverage_ledger.json` | `0f35263577c8d13300fd73324643736cc3298f7975f0edd4f413b1c1b4c1a434` | RFC 8785 canonical coverage ledger across symbols/endpoints | `VERIFIED` |
+| **Tri-Tier Disproving & Shadow Report** | `output/cloudflare_disproving_report.json` | `0ca92379285a872c01e18084746b9ae39b7ee34c23c1964b67d6c25a0c80b6c5` | 3-tier partitioning (0 confirmed breaches, 5 disproved false positives) | `VERIFIED` |
+| **Hermetic Clean-Room CI Workflow** | `.github/workflows/aeib_cleanroom_ci.yml` | `45c5f2615c66cc94530d78613fda1973ea6bf513e3920d2e8c6cf3a2d9ecaa5d` | Pinned multi-platform GitHub Actions clean-room workflow | `CONFIGURED` |
+| **DORA Threat Model & Abuse Cases** | `docs/compliance/THREAT_MODEL_AND_ABUSE_CASES.md` | `8f64d3fe5a238df581228603d61a2188912bf937eaee69e63b8493b6fed6537c` | DORA Art. 9/17 abuse cases analysis (AC-01 through AC-08) | `DOCUMENTED` |
+| **DORA Incident Management & Rollback** | `docs/compliance/INCIDENT_MANAGEMENT_AND_ROLLBACK_RUNBOOK.md` | `8b4db07a44f6e6f7646de1f77beaad33404d8d695abb05078d31ea7712290085` | DORA Art. 17/18/19 4-stage operational incident runbook | `DOCUMENTED` |
+| **DORA Key Management Policy** | `docs/compliance/KEY_MANAGEMENT_POLICY.md` | `1bf4c9c544d0a377f2237df782eeb96e0b48f407b32d62f783237d4a59a7ba6a` | Key custody, rotation, 2-of-3 quorum, and PQC agility pathway | `DOCUMENTED` |
+
+
 
 
 

@@ -1,0 +1,12 @@
+{
+  "p50_wire_latency_ms": 0.22,
+  "p95_wire_latency_ms": 0.526,
+  "p99_wire_latency_ms": 0.875,
+  "valid_dispatches": 50,
+  "false_halt_rate_pct": 0.0,
+  "adversarial_inputs_tested": 150,
+  "adversarial_rejection_rate_pct": 100.0,
+  "reconciliation_rto_ms": 0.457,
+  "wal_bytes_per_entry": 61.7,
+  "duplicate_mutations_on_twin_bank": 0
+}

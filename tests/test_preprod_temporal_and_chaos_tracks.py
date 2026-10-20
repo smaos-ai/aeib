@@ -107,9 +107,9 @@ def test_track_a_falsification_halt_enforcement():
 # TRACK B: AGENTCHAOS (LLM API & TOOL FAULT INJECTION)
 # ==============================================================================
 
-def test_track_b_agent_chaos_8_fault_resilience():
-    # Mock boundary evaluator representing Station 1 validation logic
-    def mock_station1_ingress_evaluator(payload_dict: dict) -> dict:
+def test_track_b_agent_chaos_9_fault_resilience():
+    # Ingress evaluator representing Station 1 validation logic
+    def station1_ingress_evaluator(payload_dict: dict) -> dict:
         if payload_dict.get("is_raw_string"):
             # Raw malformed string causes parser rejection
             return {"valid": False, "disposition": "NOT_DISPATCHED", "code": "ERR_MALFORMED_JSON"}
@@ -120,6 +120,9 @@ def test_track_b_agent_chaos_8_fault_resilience():
             return {"valid": False, "disposition": "NOT_DISPATCHED", "code": "ERR_UNREGISTERED_TOOL"}
 
         p = payload_dict.get("payload", {})
+        if p.get("is_known_duplicate"):
+            return {"valid": False, "disposition": "NOT_DISPATCHED", "code": "ERR_DUPLICATE_OPERATION_ID"}
+
         amt = p.get("amount_minor")
         rcpt = p.get("recipient", "")
 
@@ -144,12 +147,16 @@ def test_track_b_agent_chaos_8_fault_resilience():
         if p.get("repeat_count", 0) > 1:
             return {"valid": False, "disposition": "NOT_DISPATCHED", "code": "ERR_RETRY_STORM_RATE_LIMITED"}
 
+        # Contradictory context (e.g. read-only action against mutation endpoint)
+        if p.get("action_class") == "READ_ONLY_QUERY" and "refunds" in p.get("endpoint", ""):
+            return {"valid": False, "disposition": "NOT_DISPATCHED", "code": "ERR_CONTRADICTORY_CONTEXT"}
+
         return {"valid": True, "disposition": "DISPATCHED"}
 
-    chaos_report = AgentChaosFaultInjector.execute_chaos_evaluation(mock_station1_ingress_evaluator)
+    chaos_report = AgentChaosFaultInjector.execute_chaos_evaluation(station1_ingress_evaluator)
 
-    assert chaos_report["total_vectors_injected"] == 8
-    assert chaos_report["rejected_fail_closed"] == 8
+    assert chaos_report["total_vectors_injected"] == 9
+    assert chaos_report["rejected_fail_closed"] == 9
     assert chaos_report["passed_unexpectedly"] == 0
     assert chaos_report["chaos_resilience_rate_pct"] == 100.0
 

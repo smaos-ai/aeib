@@ -1,0 +1,50 @@
+# conformance/temporal_invariants_v1.yaml
+# Normative Linear Temporal Logic (LTL) Trace Invariants for AEIB
+version: "1.0.0"
+specification: "AEIB_TEMPORAL_SAFETY_SPECIFICATION_V1"
+
+invariants:
+  durable_intent_before_dispatch:
+    rule: "G (dispatch_sent -> F intent_persisted)"
+    meaning: "Every dispatched operation must possess a durable pre-dispatch or dispatch-time intent record."
+    required_preceding_events:
+      - "INTENT_STAGED"
+      - "RECEIPT_CREATED"
+
+  no_blind_retry_after_uncertainty:
+    rule: "G (effect_indeterminate -> X !dispatch_same_operation)"
+    meaning: "After transport or execution ambiguity, the boundary must not dispatch the same operation again until reconciliation reaches a terminal state."
+    prohibited_next_events_under_uncertainty:
+      - "DISPATCH"
+      - "BLIND_RETRY"
+
+  bounded_reconciliation:
+    rule: "G (effect_indeterminate -> F (confirmed | refuted | unresolved_escalated))"
+    meaning: "Uncertainty must terminate in a declared terminal state or operator escalation within the defined reconciliation horizon."
+    terminal_settlement_events:
+      - "RECONCILE_CONFIRMED"
+      - "RECONCILE_REFUTED"
+      - "SETTLEMENT_CONFIRMED"
+      - "SETTLEMENT_REFUTED"
+      - "ESCALATE_UNRESOLVED"
+    max_horizon_steps: 100
+
+  halt_blocks_future_dispatch:
+    rule: "G (halt_engaged -> X !dispatch)"
+    meaning: "After a continuity, tamper, or security halt is engaged, no further consequential dispatch may occur."
+    halt_trigger_events:
+      - "HALT"
+      - "HALT_CORRUPTED_LEDGER_CHAIN"
+      - "HALT_MISSING_CONTINUITY_LEDGER"
+      - "HALT_IN_PLACE_LEDGER_TAMPER"
+    prohibited_events_after_halt:
+      - "DISPATCH"
+      - "INTENT_STAGED"
+
+  no_settlement_without_authoritative_evidence:
+    rule: "G (confirmed -> authoritative_evidence_observed)"
+    meaning: "A CONFIRMED settlement state strictly requires verified evidence from the declared authoritative target (e.g. valid target signature or signed status probe)."
+    authoritative_evidence_indicators:
+      - "authoritative_probe_signature_verified"
+      - "target_signed_attestation"
+      - "bank_pacs002_accp"

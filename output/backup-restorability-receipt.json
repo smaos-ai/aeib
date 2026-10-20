@@ -1,9 +1,9 @@
 {
-  "evaluation_timestamp": "2026-10-20T20:00:37Z",
+  "evaluation_timestamp": "2026-10-20T20:35:36Z",
   "backup_source": "/Volumes/EXTssd/SovereignNexus_Backup",
-  "restoration_directory": "/var/folders/y7/fxmrtvyn21j3ns3zng5kn6x80000gn/T/aeib_restore_eval_hojrygt4",
+  "restoration_directory": "/var/folders/y7/fxmrtvyn21j3ns3zng5kn6x80000gn/T/aeib_restore_eval_6p8ckup4",
   "restorability_verified": true,
-  "measured_rto_seconds": 1.4674,
+  "measured_rto_seconds": 1.6197,
   "target_rto_threshold_seconds": 60.0,
   "rto_sla_met": true,
   "rpo_basis": "Synchronized at commit HEAD",
@@ -14,7 +14,7 @@
     "evaluated": true,
     "verified": true,
     "fsck_exit_code": 0,
-    "head_commit": "270af221b78649b24c810f8ba2e6b9e96cf27fef",
+    "head_commit": "0e15f51823eb92340cdfe0255f7d0bb714037517",
     "tag_rc4_preprod_verified": true,
     "clean_room_checkout_passed": true
   },

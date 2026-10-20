@@ -344,4 +344,56 @@ total_storage_footprint:       19,067 bytes
 4. **Crash Recovery Resynchronization:** Mid-syscall and post-commit process crashes recover clean state upon restart without re-dispatching duplicate mutations.
 5. **Offline Verifiability:** All emitted receipts verify offline with zero network egress using pinned public keys.
 
+---
+
+## Station 1 Production Remediations (#17–#21), Last-Mile Gaps (A–D), and Protocol-Aware DST Harness Evidence
+
+> **Epistemic Notice:**  
+> These components are evaluated under the stated model as an agent execution boundary scaffold. Metrics and observations reflect local empirical testing and deterministic simulation.
+
+### 1. Verification Summary Table
+
+| Component / Remediation | Physical File Location | Test Suite | Test Results | Status |
+| :--- | :--- | :--- | :---: | :---: |
+| **Station 1 State Engine (#17–#21)** | `src/station1_state_engine.py` | `tests/test_station1_production_remediations_17_21.py` | 4 / 4 passed | `OBSERVED_AND_TESTED` |
+| **P0 Security Remediations (AT69–AT72)** | `tests/test_sybil_rotator_and_smurfing.py` | `tests/test_sybil_rotator_and_smurfing.py` | 5 / 5 passed | `OBSERVED_AND_TESTED` |
+| **Last-Mile Gap Closures (Gaps A, B, C, D)** | `tests/test_final_gap_closures.py` | `tests/test_final_gap_closures.py` | 1 / 1 passed | `OBSERVED_AND_TESTED` |
+| **Apple Swift 6 Strict Concurrency Suite** | `Tests/AEIBTests/Station1ActorTests.swift` | `swift test -Xswiftc -strict-concurrency=complete` | 11 / 11 passed (0.044s) | `OBSERVED_AND_TESTED` |
+| **Protocol-Aware DST Harness (10k Schedules)** | `tools/aeib_dst_harness.py` | `tests/test_aeib_dst_harness.py` | 5 / 5 passed (10.49s) | `OBSERVED_AND_TESTED` |
+
+### 2. Protocol-Aware Deterministic Simulation Testing (DST) Results (10,000 Schedules)
+```yaml
+dst_harness:                   tools/aeib_dst_harness.py
+seed:                          20261020
+schedules_evaluated:           10,000 (0 errors, 0 invariant violations)
+total_dispatches:              6,520
+timeouts_simulated:            3,018
+blind_retries_blocked:         3,018 (100% of ambiguous retries intercepted)
+reconciled_operations:         6,520
+observed_duplicate_mutations:  0 (Target commits <= 1 per CAID across all schedules)
+invariant_evaluations:
+  I1_budget_conservation:               0 violations
+  I2_zero_duplicate_mutations:          0 violations
+  I3_durable_uncertainty_latching:      0 violations
+  I4_replay_rejection:                  0 violations
+  I5_taint_step_up_enforcement:         0 violations
+  I6_continuity_hash_chain_integrity:   0 violations
+  I7_fail_closed:                       0 violations
+negative_control_falsification:
+  bypass_latch_on_retry:       DETECTED (I2 violation caught, seed reproduction verified)
+  leak_budget:                 DETECTED (I1 violation caught, seed reproduction verified)
+```
+
+### 3. Production Remediations (#17–#21) & Gap Closures Implementation Details
+1. **Fix #17 (Atomic Checkpoint Write):** State is written to temporary file, flushed, synced via `_safe_full_fsync`, atomically renamed via `os.rename`, and directory entry fsynced to commit the inode update.
+2. **Fix #18 (Monotonic Sequence Counter):** `chain_tip_seq` increments monotonically across operations and rejections, preserving causal ordering during sub-second execution bursts.
+3. **Fix #19 (Mandatory Rejection Logging):** All rejected dispatches append an audit record to `rejections_audit.log` (conforming to DORA Art. 19 and prEN 18286).
+4. **Fix #20 (Platform-Safe Fsync):** Uses macOS `F_FULLFSYNC` (`fcntl.fcntl(fd, 51)`) with fallback to standard `os.fsync` and clean `OSError` recovery on Darwin directory descriptors.
+5. **Fix #21 (Bit-Isolated Failure Mask):** Bit-isolated evaluation across 7 distinct bits (`0x01` CAID, `0x02` Harness, `0x04` Tool, `0x08` Payee, `0x10` Budget, `0x20` Untrusted Taint, `0x40` Unanchored Payee).
+6. **Gap A (Group-Commit Leader Loop):** Coalesces up to 32 concurrent caller threads into shared fsync batches using a leader-flush loop with a 2ms window.
+7. **Gap B (O(1) Rolling Window Quota Tracker):** Unsettled allocations hold budget in escrow; authoritative refutations immediately reclaim reserved capacity to the available pool.
+8. **Gap C (Normative Cross-Language Golden Vector):** Deterministic payload canonicalized to `{"amount_minor":45000,"context_digest":"sha256:ctx01","endpoint":"POST /v1/refunds","operation_id":"op-golden-001","recipient":"iban:DE89370400440532013000"}` yields exact SHA-256 digest `d31e155ef55db68b7dbdb14830c3fc50e5c94774155e61685b325c34b74ff74c` across Python, Swift 6, and Rust.
+9. **Gap D (MCP Supply-Chain Pre-Flight Scanner):** Scans `.mcp.json` configs for unpinned `npx -y` packages and plaintext credential leaks before dispatch.
+
+
 

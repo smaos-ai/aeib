@@ -1,0 +1,78 @@
+ebv_state_machine:
+  version: "0.1.0"
+  status: "candidate_specification"
+  alignment_draft: "draft-das-agent-execution-finality-00"
+
+  states:
+    PROPOSED:
+      description: "Candidate act submitted by agent; non-effective."
+      is_effective: false
+    STAGED_ESCROWED:
+      description: "Admissibility verified; local budget escrow reserved in WAL."
+      is_effective: false
+    DISPATCHED:
+      description: "Action dispatched across wire to external finality sink; in-flight."
+      is_effective: false
+      caveat: "May take effect on downstream systems even if response is delayed."
+    EFFECT_INDETERMINATE:
+      description: "Transport timeout or network drop (e.g. HTTP 504); blind retries locked."
+      is_effective: false
+      uncertainty_latch: true
+    CONFIRMED:
+      description: "Authoritative evidence verifies downstream execution completion."
+      is_effective: true
+      terminal: true
+    REFUTED:
+      description: "Deterministic rejection or authoritative probe confirms zero mutation."
+      is_effective: false
+      terminal: true
+    HALTED:
+      description: "Safety invariant breach or operator latch; execution halted."
+      is_effective: false
+      terminal: true
+
+  transitions:
+    - from: PROPOSED
+      to: STAGED_ESCROWED
+      trigger: "evaluate_and_stage"
+      condition: "schema_valid && budget_available && policy_authorized"
+
+    - from: PROPOSED
+      to: REFUTED
+      trigger: "reject_admission"
+      condition: "schema_invalid || budget_exceeded || policy_epoch_stale"
+
+    - from: STAGED_ESCROWED
+      to: DISPATCHED
+      trigger: "wire_invoke"
+      condition: "pre_dispatch_wal_flushed"
+
+    - from: DISPATCHED
+      to: CONFIRMED
+      trigger: "wire_success"
+      condition: "http_200_with_authoritative_receipt"
+
+    - from: DISPATCHED
+      to: EFFECT_INDETERMINATE
+      trigger: "transport_failure"
+      condition: "http_504_or_connection_reset"
+
+    - from: DISPATCHED
+      to: REFUTED
+      trigger: "downstream_rejection"
+      condition: "http_4xx_deterministic_refusal"
+
+    - from: EFFECT_INDETERMINATE
+      to: CONFIRMED
+      trigger: "reconciliation_probe_settled"
+      condition: "authoritative_status_matches_caid_and_settled"
+
+    - from: EFFECT_INDETERMINATE
+      to: REFUTED
+      trigger: "reconciliation_probe_unseen"
+      condition: "authoritative_status_confirms_no_transaction_recorded"
+
+    - from: "*"
+      to: HALTED
+      trigger: "security_violation_or_operator_latch"
+      condition: "taint_violation || manual_lockout || invariant_breach"

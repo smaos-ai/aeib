@@ -15,110 +15,169 @@
 """
 tools/hybrid_pqc_envelope.py — Post-Quantum Hybrid Evidence Envelope (PQEE).
 
-Implements hybrid composite signatures combining:
-1. Classical Ed25519 (RFC 8032) for deterministic low-latency verification.
-2. Post-Quantum ML-DSA-65 (FIPS 204) lattice-based signature binding.
-Generates machine-readable Crypto Bill of Materials (CBOM) for long-term retention.
+Binds an AEIB evidence statement to both:
+1. Classical Ed25519 (RFC 8032) for current interoperability and low-latency verification.
+2. Post-Quantum ML-DSA-65 (FIPS 204) for post-quantum signature authenticity.
+
+Verification Rule: require_both_valid (fails if either signature fails).
+Emits a formal Crypto Bill of Materials (CBOM) compliant with FIPS 204.
 """
 
-import base64
 import hashlib
+import json
+import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from cryptography.hazmat.primitives.asymmetric.ed25519 import (
-    Ed25519PrivateKey,
-    Ed25519PublicKey,
-)
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from src.jcs_canonicalizer import encode_jcs
+
+SIGNER_BINARY_DEBUG = REPO_ROOT / "target" / "debug" / "smaos-pqc-signer"
+SIGNER_BINARY_RELEASE = REPO_ROOT / "target" / "release" / "smaos-pqc-signer"
+
+
+def get_signer_binary_path() -> Path:
+    if SIGNER_BINARY_DEBUG.is_file():
+        return SIGNER_BINARY_DEBUG
+    if SIGNER_BINARY_RELEASE.is_file():
+        return SIGNER_BINARY_RELEASE
+    raise FileNotFoundError(
+        f"smaos-pqc-signer binary not found at {SIGNER_BINARY_DEBUG}. "
+        "Run `cargo build --manifest-path smaos-pqc-signer/Cargo.toml` first."
+    )
 
 
 @dataclass(frozen=True)
 class HybridPqcEnvelope:
     statement_hash: str
-    ed25519_signature_b64: str
-    mldsa65_signature_b64: str
+    ed25519_public_key_hex: str
+    ed25519_signature_hex: str
+    mldsa65_public_key_hex: str
+    mldsa65_signature_hex: str
     crypto_bill_of_materials: Dict[str, str]
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "statement_hash": self.statement_hash,
+            "signatures": {
+                "ed25519": {
+                    "public_key": self.ed25519_public_key_hex,
+                    "signature": self.ed25519_signature_hex,
+                },
+                "ml-dsa-65": {
+                    "public_key": self.mldsa65_public_key_hex,
+                    "signature": self.mldsa65_signature_hex,
+                },
+            },
+            "crypto_bill_of_materials": self.crypto_bill_of_materials,
+        }
 
 
 class HybridPqcSigner:
     """
-    Hybrid signing enclave combining Ed25519 for low-latency verification
-    and ML-DSA-65 (FIPS 204) for post-quantum forward secrecy.
+    Hybrid signing coordinator combining Ed25519 and ML-DSA-65 (FIPS 204).
+    Invokes the native Rust smaos-pqc-signer engine.
     """
 
-    def __init__(self, ed_priv: Ed25519PrivateKey, pqc_seed_bytes: bytes) -> None:
-        self.ed_priv = ed_priv
-        self.ed_pub = ed_priv.public_key()
-        self._pqc_seed = hashlib.sha256(pqc_seed_bytes).digest()
+    def __init__(self, key_file: Optional[Path] = None, binary_path: Optional[Path] = None) -> None:
+        self.key_file = key_file
+        self.binary_path = binary_path or get_signer_binary_path()
 
-    def sign_statement(self, statement: Dict[str, Any]) -> HybridPqcEnvelope:
+    def sign_statement(self, statement: Dict[str, Any], ephemeral: bool = True) -> HybridPqcEnvelope:
         payload_bytes = encode_jcs(statement)
+        message_str = payload_bytes.decode("utf-8")
         stmt_hash = f"sha256:{hashlib.sha256(payload_bytes).hexdigest()}"
 
-        # 1. Classical Ed25519 Signature
-        ed_sig = self.ed_priv.sign(payload_bytes)
-        ed_sig_b64 = base64.b64encode(ed_sig).decode("ascii")
+        cmd = [str(self.binary_path)]
+        if ephemeral:
+            cmd.append("--ephemeral")
+        elif self.key_file:
+            cmd.extend(["--key-file", str(self.key_file)])
+        cmd.append(message_str)
 
-        # 2. Lattice-derived ML-DSA-65 envelope payload (FIPS 204 key derivation)
-        pqc_sig_raw = hashlib.blake2b(payload_bytes, key=self._pqc_seed, digest_size=32).digest()
-        pqc_sig_b64 = base64.b64encode(pqc_sig_raw).decode("ascii")
+        proc = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        raw_output = proc.stdout.strip()
+        json_start = raw_output.find("{")
+        if json_start == -1:
+            raise ValueError(f"Failed to parse JSON output from signer: {raw_output}")
+
+        receipt = json.loads(raw_output[json_start:])
+        sigs = receipt.get("signatures", {})
+        ed_data = sigs.get("ed25519", {})
+        ml_data = sigs.get("ml-dsa-65", {})
+
+        ed_pk = ed_data.get("public_key", "")
+        ed_sig = ed_data.get("signature", "")
+        ml_pk = ml_data.get("public_key", "")
+        ml_sig = ml_data.get("signature", "")
+
+        if not (ed_pk and ed_sig and ml_pk and ml_sig):
+            raise ValueError("Incomplete signature envelope received from signer")
 
         cbom = {
-            "signature_scheme": "Hybrid-Composite-Ed25519-ML-DSA-65",
-            "classical_algorithm": "Ed25519 (RFC 8032)",
-            "pqc_algorithm": "ML-DSA-65 (FIPS 204 / NIST SP 800-208)",
+            "signature_scheme": "hybrid-ed25519-mldsa65-v1",
+            "classical_algorithm": "Ed25519",
+            "pqc_algorithm": "ML-DSA-65",
+            "pqc_standard": "FIPS 204",
+            "pqc_implementation": "RustCrypto/ml-dsa-v0.1.1",
+            "verification_policy": "require_both_valid",
             "serialization_format": "rfc8785_jcs",
             "statement_hash": stmt_hash,
         }
 
         return HybridPqcEnvelope(
             statement_hash=stmt_hash,
-            ed25519_signature_b64=ed_sig_b64,
-            mldsa65_signature_b64=pqc_sig_b64,
+            ed25519_public_key_hex=ed_pk,
+            ed25519_signature_hex=ed_sig,
+            mldsa65_public_key_hex=ml_pk,
+            mldsa65_signature_hex=ml_sig,
             crypto_bill_of_materials=cbom,
         )
 
     @staticmethod
-    def verify_envelope(ed_pub: Ed25519PublicKey, statement: Dict[str, Any], env: HybridPqcEnvelope) -> bool:
+    def verify_envelope(
+        statement: Dict[str, Any],
+        env: HybridPqcEnvelope,
+        binary_path: Optional[Path] = None,
+    ) -> bool:
+        """
+        Verifies both classical Ed25519 and ML-DSA-65 (FIPS 204) signatures.
+        Enforces require_both_valid policy.
+        """
         payload_bytes = encode_jcs(statement)
+        message_str = payload_bytes.decode("utf-8")
 
-        # 1. Verify Classical Ed25519 Signature
+        # 1. Classical verification in Python using cryptography.hazmat
         try:
-            ed_sig = base64.b64decode(env.ed25519_signature_b64, validate=True)
+            ed_pub = Ed25519PublicKey.from_public_bytes(bytes.fromhex(env.ed25519_public_key_hex))
+            ed_sig = bytes.fromhex(env.ed25519_signature_hex)
             ed_pub.verify(ed_sig, payload_bytes)
         except Exception:
             return False
 
-        # 2. Verify structural integrity of PQC component
-        if not env.mldsa65_signature_b64 or len(env.mldsa65_signature_b64) < 32:
+        # 2. Both signatures verification via native FIPS 204 verifier
+        bin_path = binary_path or get_signer_binary_path()
+        cmd = [
+            str(bin_path),
+            "--verify-hybrid",
+            env.ed25519_public_key_hex,
+            env.ed25519_signature_hex,
+            env.mldsa65_public_key_hex,
+            env.mldsa65_signature_hex,
+            message_str,
+        ]
+
+        try:
+            proc = subprocess.run(cmd, capture_output=True, text=True)
+            if proc.returncode != 0:
+                return False
+            result = json.loads(proc.stdout.strip())
+            return bool(result.get("verified", False))
+        except Exception:
             return False
-
-        return True
-
-
-def test_hybrid_pqc_envelope_lifecycle():
-    ed_priv = Ed25519PrivateKey.generate()
-    signer = HybridPqcSigner(ed_priv, b"master-quantum-safe-entropy")
-
-    stmt = {
-        "operation_id": "op-pqc-001",
-        "amount_minor": 150000,
-        "recipient_commitment_sha256": "sha256:" + ("f" * 64),
-        "disposition": "CONFIRMED",
-    }
-
-    env = signer.sign_statement(stmt)
-    assert env.crypto_bill_of_materials["pqc_algorithm"] == "ML-DSA-65 (FIPS 204 / NIST SP 800-208)"
-    assert HybridPqcSigner.verify_envelope(ed_priv.public_key(), stmt, env) is True
-
-
-if __name__ == "__main__":
-    test_hybrid_pqc_envelope_lifecycle()
-    print("HYBRID PQC EVIDENCE ENVELOPE VERIFIED")

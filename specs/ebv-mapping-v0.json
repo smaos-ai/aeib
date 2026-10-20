@@ -1,0 +1,20 @@
+{
+  "ebv_alignment": {
+    "draft": "draft-das-agent-execution-finality-00",
+    "status": "informational_alignment_not_endorsement",
+    "aeib_terms": {
+      "candidate_act": "signed_pre_dispatch_intent",
+      "protected_enforcement_domain": "host_side_aeib_boundary",
+      "finality_sink": "authorized_external_target_and_evidence_store",
+      "non_effective_state": "proposed_or_latched_uncertainty"
+    },
+    "invariants": [
+      "exact_act_binding",
+      "authority_before_effect",
+      "durable_evidence_before_or_with_dispatch",
+      "no_blind_retry_after_uncertainty",
+      "bounded_reconciliation",
+      "fail_closed"
+    ]
+  }
+}

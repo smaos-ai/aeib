@@ -16,6 +16,12 @@ AEIB v1.0.0-rc.5-preprod is a requirement-driven specification and pre-productio
 - Local zero-mock verification suites report passing results in the development environment.
 - Passing local suites verify assertion logic against local state machines and cryptographic primitives. They **do not** constitute independent third-party reproduction, formal proof about external systems, or regulatory certification.
 - **No independent reproduction, third-party certification, or formal verification (e.g., TLA+/Kani/Coq) is claimed.**
+- **Release Sequencing**:
+  - `v1.0.0-rc.4-preprod`: clean-room reproduction.
+  - `v1.0.0-rc.5`: temporal conformance checker, agent chaos injector, real-target ambiguous refund, direct I/O WAL (`DirectIoWal`), external NVMe cold vault reproducer.
+  - `v1.0.0-rc.6`: EBV alignment specification, real hybrid PQC envelope (ML-DSA-65 FIPS 204), execution-integrity telemetry (AEIT).
+- **Forward Workstreams Statement**:
+  > AEIB proposes three forward workstreams: EBV alignment with the cited Internet-Draft vocabulary, a hybrid Ed25519/ML-DSA-65 evidence-envelope design, and execution-integrity telemetry for operator risk monitoring. These are specification and implementation targets, not completed standards, verified post-quantum protections, or insurance underwriting decisions.
 - Performance and architectural targets for a native Rust/eBPF/TEE data plane (`crates/aeib-data-plane`) are scaffolded and staged; direct I/O WAL (`DirectIoWal`) provides sector-aligned storage with Darwin `F_FULLFSYNC` / Linux `O_DIRECT`, while kernel enforcement requires active BPF_LSM policies deployed on target Linux hosts.
 
 ---

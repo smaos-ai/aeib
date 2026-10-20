@@ -69,13 +69,14 @@ python3 tools/aeib_dst_harness.py \
 - Observed Duplicate Mutations: `0`
 - Invariant Violations: `0` (I1–I7 clean)
 
-### 5. Advanced Category Primitives Verification
-Validate the Hybrid PQC Evidence Envelope (Ed25519 + ML-DSA-65) and the AEIP Actuarial Risk Scorer:
+### 5. Forward Workstream Prototype Verification (v1.0.0-rc.6 Targets)
+Validate the real FIPS 204 ML-DSA-65 + Ed25519 hybrid envelope tests and execution integrity telemetry:
 
 ```bash
-python3 tools/hybrid_pqc_envelope.py
-python3 tools/aeip_risk_actuarial_scorer.py
-pytest tools/hybrid_pqc_envelope.py tools/aeip_risk_actuarial_scorer.py -v
+pytest \
+  tests/test_hybrid_pqc_envelope.py \
+  tests/test_execution_integrity_telemetry.py \
+  -v
 ```
 
 ---
@@ -146,6 +147,8 @@ Compare the resulting SHA-256 values with `output/evidence-hashes.txt`:
 
 ---
 
-## 4. Epistemic Notice
+## 4. Epistemic Notice & Forward Workstreams
 
 These reproduction steps verify local implementation conformance and deterministic behavior under the stated test harness and fault schedules. They do not constitute third-party certification or universal claims about external network services.
+
+> **AEIB proposes three forward workstreams: EBV alignment with the cited Internet-Draft vocabulary, a hybrid Ed25519/ML-DSA-65 evidence-envelope design, and execution-integrity telemetry for operator risk monitoring. These are specification and implementation targets, not completed standards, verified post-quantum protections, or insurance underwriting decisions.**

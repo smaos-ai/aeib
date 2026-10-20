@@ -20,7 +20,7 @@ Do not force-move a published release candidate.
 ## Source Provenance & Platform Specs
 ```yaml
 target_release: v1.0.0-rc.4-preprod (transitioning to v1.0.0-rc.5)
-commit_sha: cdd93bc5891b2a21420364cbbc61191313e48257
+commit_sha: fc5e17113515e680c1a04a15f46b83d4972b5741
 branch: feat/v1.1-temporal-standing
 tag_ref: v1.0.0-rc.4-preprod
 
@@ -45,7 +45,7 @@ artifacts:
     sha256: 1ee8e840e51416e9045183b8514dd0bdc767b18fd836b3331c93c31c0d82d706
   backup_restorability_receipt:
     path: output/backup-restorability-receipt.json
-    sha256: 0e4a7376837341035f9c1e558f50517c8db2ed46c9bf790bf296a4ce7ff44a3e
+    sha256: 95c67f30494f71049c623a87db4dd98c8cfd74ed5c6fe0c45eef47a2c4528e07
   cbom_manifest:
     path: evidence/cbom.json
     sha256: 9db3e7f8e6c23928c1ccf56f97cc3700b2b8a392a48b5bb71ac86466763fa1fc

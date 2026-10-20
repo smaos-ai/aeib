@@ -152,6 +152,20 @@ class IndependentValidationRunner:
             ],
         )
 
+        # Step 9: Selective Disclosure & Redaction Engine (GDPR Art. 17 vs. DORA Art. 17)
+        self._run_cmd(
+            "STEP_09_SELECTIVE_DISCLOSURE",
+            "Selective Disclosure & Redaction Engine (GDPR/DORA)",
+            ["pytest", "tests/test_selective_disclosure_receipt.py", "-q"],
+        )
+
+        # Step 10: EBV State Machine Model Checker
+        self._run_cmd(
+            "STEP_10_EBV_MODEL_CHECKER",
+            "EBV State Machine Formal Model Checker",
+            ["python3", "tools/ebv_state_machine_checker.py"],
+        )
+
         all_passed = all(r.passed for r in self.results)
         total_duration = sum(r.duration_ms for r in self.results)
 

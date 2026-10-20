@@ -16,6 +16,10 @@ let package = Package(
             name: "AEIBGateXPC",
             targets: ["AEIBGateXPC"]
         ),
+        .library(
+            name: "AEIBAgent",
+            targets: ["AEIBAgent"]
+        ),
     ],
     dependencies: [],
     targets: [
@@ -24,10 +28,20 @@ let package = Package(
             dependencies: [],
             path: "Sources/AEIBGateXPC"
         ),
+        .target(
+            name: "AEIBAgent",
+            dependencies: ["AEIBGateXPC"],
+            path: "Sources/AEIBAgent"
+        ),
         .testTarget(
             name: "AEIBGateXPCTests",
             dependencies: ["AEIBGateXPC"],
             path: "Tests/AEIBGateXPCTests"
+        ),
+        .testTarget(
+            name: "AEIBAgentTests",
+            dependencies: ["AEIBAgent", "AEIBGateXPC"],
+            path: "Tests/AEIBAgentTests"
         ),
     ]
 )

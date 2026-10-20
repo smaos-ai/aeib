@@ -1,0 +1,112 @@
+{
+  "schema_version": "1.0.0",
+  "conformance_suite": "AEIB_BLACKBOX_WIRE_CONFORMANCE_V1",
+  "target_protocol": "RFC8785_JCS_STATION1_ENFORCEMENT",
+  "specification_grounding": "ISO_20022_DORA_ART17_OWASP_ASI",
+  "vectors": [
+    {
+      "vector_id": "CV-01-NOMINAL-DISPATCH",
+      "description": "Standard nominal dispatch within sprint budget to pinned recipient",
+      "input_frame": {
+        "operation_id": "op-cv-01",
+        "action_class": "FINANCIAL_DISBURSEMENT",
+        "endpoint": "POST /v1/refunds",
+        "recipient": "iban:DE89370400440532013000",
+        "amount_minor": 25000,
+        "currency": "EUR",
+        "taint_tier": "TIER_0_PINNED",
+        "clock_skew_sec": 0
+      },
+      "expected_verdict": "DISPATCHED",
+      "expected_rejection_code": null,
+      "expected_escrow_increment_minor": 25000
+    },
+    {
+      "vector_id": "CV-02-RECIPIENT-TAINT-UNPINNED",
+      "description": "Tainted context dispatch to unpinned recipient without step-up warrant must fail closed",
+      "input_frame": {
+        "operation_id": "op-cv-02",
+        "action_class": "FINANCIAL_DISBURSEMENT",
+        "endpoint": "POST /v1/refunds",
+        "recipient": "iban:CH9300000000000000000",
+        "amount_minor": 15000,
+        "currency": "EUR",
+        "taint_tier": "TIER_2_UNTRUSTED_EXTERNAL",
+        "clock_skew_sec": 0
+      },
+      "expected_verdict": "NOT_DISPATCHED",
+      "expected_rejection_code": "UNTRUSTED_CONTEXT_TAINT_REQUIRES_STEP_UP",
+      "expected_escrow_increment_minor": 0
+    },
+    {
+      "vector_id": "CV-03-CLOCK-SKEW-MANIPULATION",
+      "description": "Clock skew exceeding 5 seconds must be rejected fail-closed",
+      "input_frame": {
+        "operation_id": "op-cv-03",
+        "action_class": "FINANCIAL_DISBURSEMENT",
+        "endpoint": "POST /v1/refunds",
+        "recipient": "iban:DE89370400440532013000",
+        "amount_minor": 10000,
+        "currency": "EUR",
+        "taint_tier": "TIER_0_PINNED",
+        "clock_skew_sec": 9
+      },
+      "expected_verdict": "NOT_DISPATCHED",
+      "expected_rejection_code": "REJECTED_CLOCK_SKEW_OR_MANIPULATION",
+      "expected_escrow_increment_minor": 0
+    },
+    {
+      "vector_id": "CV-04-DELEGATION-ATTENUATION-BREACH",
+      "description": "Per-call amount exceeding subagent delegation ceiling must be rejected",
+      "input_frame": {
+        "operation_id": "op-cv-04",
+        "action_class": "FINANCIAL_DISBURSEMENT",
+        "endpoint": "POST /v1/refunds",
+        "recipient": "iban:DE89370400440532013000",
+        "amount_minor": 55000,
+        "max_per_call_minor": 40000,
+        "currency": "EUR",
+        "taint_tier": "TIER_0_PINNED",
+        "clock_skew_sec": 0
+      },
+      "expected_verdict": "NOT_DISPATCHED",
+      "expected_rejection_code": "ERR_DELEGATION_ATTENUATION_BREACH",
+      "expected_escrow_increment_minor": 0
+    },
+    {
+      "vector_id": "CV-05-SPRINT-BUDGET-EXCEEDED",
+      "description": "Requested amount exceeding tenant sprint limit must fail closed",
+      "input_frame": {
+        "operation_id": "op-cv-05",
+        "action_class": "FINANCIAL_DISBURSEMENT",
+        "endpoint": "POST /v1/refunds",
+        "recipient": "iban:DE89370400440532013000",
+        "amount_minor": 800000,
+        "currency": "EUR",
+        "taint_tier": "TIER_0_PINNED",
+        "clock_skew_sec": 0
+      },
+      "expected_verdict": "NOT_DISPATCHED",
+      "expected_rejection_code": "HALT_SPRINT_LIMIT_EXCEEDED",
+      "expected_escrow_increment_minor": 0
+    },
+    {
+      "vector_id": "CV-06-BLIND-RETRY-UNDER-UNCERTAINTY",
+      "description": "Re-issuing dispatch for operation latched in EFFECT_INDETERMINATE must be blocked",
+      "input_frame": {
+        "operation_id": "op-cv-06-latched",
+        "action_class": "FINANCIAL_DISBURSEMENT",
+        "endpoint": "POST /v1/refunds",
+        "recipient": "iban:DE89370400440532013000",
+        "amount_minor": 20000,
+        "currency": "EUR",
+        "taint_tier": "TIER_0_PINNED",
+        "clock_skew_sec": 0,
+        "is_retry_of_indeterminate": true
+      },
+      "expected_verdict": "NOT_DISPATCHED",
+      "expected_rejection_code": "HALT_BLIND_RETRY_PROHIBITED_UNDER_UNCERTAINTY",
+      "expected_escrow_increment_minor": 0
+    }
+  ]
+}

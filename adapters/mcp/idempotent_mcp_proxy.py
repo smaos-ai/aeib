@@ -92,6 +92,7 @@ class HardenedIdempotentMcpProxy:
         self.upstream = upstream_transport_fn
         self.db_path = str(db_path)
         self.ttl_sec = ttl_sec
+        self.retention_ttl_sec = ttl_sec
         self.uncertainty_deadline_sec = uncertainty_deadline_sec
         self.active_policy_epoch = active_policy_epoch
         self.lock = threading.Lock()
@@ -134,6 +135,69 @@ class HardenedIdempotentMcpProxy:
         """Computes deterministic Content-Addressed Action Identifier over canonical arguments."""
         canonical = canonical_json_v1({"tool": tool_name, "arguments": arguments})
         return f"sha256:{hashlib.sha256(canonical).hexdigest()}"
+
+    def _compute_identity_key(
+        self,
+        tenant_id: str,
+        principal_id: str,
+        operation_id: str,
+        tool_name: str,
+        canonical_args: bytes,
+    ) -> str:
+        """
+        Primary identity is the explicit operation_id bound to tenant and principal.
+        CAID (args_digest) is retained for intent-collision detection but does not override operation identity.
+        """
+        args_digest = hashlib.sha256(canonical_args).hexdigest()
+        if not operation_id:
+            # Weak identity fallback; requires strict operator policy to allow
+            operation_id = f"caid_fallback_{args_digest[:16]}"
+        return f"{tenant_id}:{principal_id}:{operation_id}:{tool_name}:{args_digest}"
+
+    def _classify_upstream_response(self, http_status: int, mcp_payload: dict) -> tuple[str, str]:
+        """
+        Classifies upstream response:
+        - HTTP >= 500, 408/425/429, or JSON-RPC server error (< 0 except 326xx client errors): EFFECT_INDETERMINATE (ambiguous)
+        - HTTP >= 400 or definitive JSON-RPC client errors (-32600..-32602, -32700): REFUTED (definitive client rejection)
+        - HTTP 200 with isError: true: EFFECT_INDETERMINATE (tool-level error requires reconciliation)
+        - HTTP 200 normal: CONFIRMED (success)
+        """
+        if http_status >= 500 or http_status in (408, 425, 429) or (http_status < 0 and http_status not in (-32600, -32601, -32602, -32700)):
+            return "EFFECT_INDETERMINATE", "ambiguous_upstream_or_transport"
+        if http_status in (-32600, -32601, -32602, -32700, 400, 401, 403, 404, 422):
+            return "REFUTED", "definitive_client_rejection"
+        if http_status >= 400:
+            return "REFUTED", "definitive_client_rejection"
+
+        # HTTP 200 but MCP tool-level failure
+        if isinstance(mcp_payload, dict) and mcp_payload.get("isError") is True:
+            return "EFFECT_INDETERMINATE", "tool_level_error_requires_upstream_reconciliation"
+
+        return "CONFIRMED", "success"
+
+    def _evict_stale_records(self, current_ts: float) -> None:
+        """
+        SAFETY INVARIANT: Never evict unresolved uncertainty based on retention TTL.
+        Unresolved indeterminate records whose deadline has passed are escalated to UNRESOLVED_ESCALATED.
+        Only settled records (CONFIRMED, REFUTED) are purged after retention TTL.
+        """
+        self.conn.execute(
+            """
+            UPDATE mcp_idempotency 
+            SET state = 'UNRESOLVED_ESCALATED' 
+            WHERE state = 'EFFECT_INDETERMINATE' 
+              AND (? - created_at > ? OR ? > uncertainty_resolution_deadline);
+            """,
+            (current_ts, self.ttl_sec, current_ts),
+        )
+        self.conn.execute(
+            """
+            DELETE FROM mcp_idempotency 
+            WHERE state IN ('CONFIRMED', 'REFUTED') 
+              AND ? - created_at > ?;
+            """,
+            (current_ts, self.ttl_sec),
+        )
 
     def handle_json_rpc(self, request_frame: Dict[str, Any]) -> Dict[str, Any]:
         """Routes inbound JSON-RPC frame based on method."""
@@ -202,28 +266,8 @@ class HardenedIdempotentMcpProxy:
             try:
                 self.conn.execute("BEGIN IMMEDIATE;")
 
-                # Eviction & Escalation:
-                # 1. Any EFFECT_INDETERMINATE record whose resolution deadline or TTL expired
-                # MUST transition to UNRESOLVED_ESCALATED, never silently deleted!
-                self.conn.execute(
-                    """
-                    UPDATE mcp_idempotency 
-                    SET state = 'UNRESOLVED_ESCALATED' 
-                    WHERE state = 'EFFECT_INDETERMINATE' 
-                      AND (? - created_at > ? OR ? > uncertainty_resolution_deadline);
-                    """,
-                    (now, self.ttl_sec, now),
-                )
-
-                # 2. Only settled records (CONFIRMED, REFUTED) may be purged after retention TTL
-                self.conn.execute(
-                    """
-                    DELETE FROM mcp_idempotency 
-                    WHERE state IN ('CONFIRMED', 'REFUTED') 
-                      AND ? - created_at > ?;
-                    """,
-                    (now, self.ttl_sec),
-                )
+                # SAFETY INVARIANT: Evict stale records without ever clearing unresolved uncertainty
+                self._evict_stale_records(now)
 
                 # Query matching record by idempotency_key
                 row = self.conn.execute(
@@ -424,34 +468,20 @@ class HardenedIdempotentMcpProxy:
 
             if "result" in resp:
                 result_payload = resp["result"]
-                is_tool_error = False
-                if isinstance(result_payload, dict):
-                    is_tool_error = bool(result_payload.get("isError", False))
+                state, classification = self._classify_upstream_response(200, result_payload)
 
-                if is_tool_error:
-                    # Tool-level error within JSON-RPC 200: do not mark CONFIRMED!
-                    is_refuted = False
-                    if result_payload.get("error_classification") == "REFUTED":
-                        is_refuted = True
-                    content = result_payload.get("content", [])
-                    if isinstance(content, list):
-                        for item in content:
-                            text = item.get("text", "") if isinstance(item, dict) else str(item)
-                            if any(k in text.lower() for k in ["invalid argument", "schema error", "not allowed", "validation error"]):
-                                is_refuted = True
-                                break
-
-                    target_state = "REFUTED" if is_refuted else "EFFECT_INDETERMINATE"
-                    self._update_state(key, target_state, result_payload)
+                if state == "EFFECT_INDETERMINATE":
+                    self._update_state(key, "EFFECT_INDETERMINATE", result_payload)
                     return {
                         "jsonrpc": "2.0",
                         "error": {
-                            "code": -32021 if target_state == "EFFECT_INDETERMINATE" else -32011,
-                            "message": "TOOL_ERROR_REQUIRES_RECONCILIATION" if target_state == "EFFECT_INDETERMINATE" else "OPERATION_REFUTED",
+                            "code": -32021,
+                            "message": "TOOL_ERROR_REQUIRES_RECONCILIATION",
                             "data": {
-                                "state": target_state,
+                                "state": "EFFECT_INDETERMINATE",
                                 "idempotency_key": key,
                                 "caid": caid,
+                                "classification": classification,
                                 "tool_result": result_payload,
                             },
                         },
@@ -461,13 +491,8 @@ class HardenedIdempotentMcpProxy:
                     return resp
             elif "error" in resp:
                 err_code = resp["error"].get("code", 500)
-                # Only definitive client/validation errors (4xx equivalent) mark REFUTED
-                # Exclude 408 (Request Timeout) and 429 (Rate Limited) which are ambiguous
-                if err_code in (-32601, -32602, 400, 401, 403, 404, 422):
-                    self._update_state(key, "REFUTED", resp.get("error"))
-                else:
-                    # 408, 429, 5xx and server errors remain indeterminate
-                    self._update_state(key, "EFFECT_INDETERMINATE", None)
+                state, classification = self._classify_upstream_response(err_code, resp["error"])
+                self._update_state(key, state, resp.get("error"))
                 return resp
             else:
                 self._update_state(key, "EFFECT_INDETERMINATE", None)

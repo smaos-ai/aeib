@@ -352,7 +352,7 @@
     },
     {
       "vector_id": "mcp-vec-021",
-      "name": "mcp_tool_level_is_error_requires_reconciliation",
+      "name": "mcp_tool_level_error_is_not_automatically_refuted",
       "description": "MCP tool-level isError: true within JSON-RPC 200 does not mark CONFIRMED; routes to EFFECT_INDETERMINATE.",
       "input": {
         "method": "tools/call",
@@ -371,8 +371,8 @@
     },
     {
       "vector_id": "mcp-vec-022",
-      "name": "caid_operation_identity_conflict_escalation",
-      "description": "Same CAID with different operation_id triggers conflict resolution escalation.",
+      "name": "same_caid_different_operation_id_requires_conflict_resolution",
+      "description": "Distinct authorized operations with identical args must not silently collapse.",
       "sequence": [
         {
           "method": "tools/call",
@@ -401,8 +401,8 @@
     },
     {
       "vector_id": "mcp-vec-023",
-      "name": "ttl_expiry_preserves_indeterminate_state_escalation",
-      "description": "TTL expiry does not clear unresolved EFFECT_INDETERMINATE; transitions to UNRESOLVED_ESCALATED.",
+      "name": "ttl_expiry_does_not_clear_unresolved_uncertainty",
+      "description": "Retention TTL expires, but the latched uncertainty remains blocked.",
       "simulate_expired_indeterminate": true,
       "input": {
         "method": "tools/call",
@@ -418,8 +418,8 @@
     },
     {
       "vector_id": "mcp-vec-024",
-      "name": "epoch_rotation_preserves_latched_uncertainty",
-      "description": "Policy epoch rotation preserves prior latched indeterminate state without silent erasure.",
+      "name": "policy_epoch_rotation_does_not_erase_prior_latched_state",
+      "description": "New epoch authorizes new ops; it does not retroactively resolve old ambiguity.",
       "simulate_epoch_rotation_indeterminate": {
         "prior_epoch": "epoch-2026-Q3",
         "new_epoch": "epoch-2026-Q4"
@@ -449,8 +449,8 @@
     },
     {
       "vector_id": "mcp-vec-025",
-      "name": "upstream_idempotency_key_forwarding_stability",
-      "description": "Upstream idempotency key forwarded is stable across proxy retries.",
+      "name": "upstream_idempotency_key_is_stable_across_proxy_retries",
+      "description": "Proxy forwards the exact same stable key to the upstream rail on retry.",
       "sequence": [
         {
           "method": "tools/call",
@@ -474,7 +474,7 @@
     {
       "vector_id": "mcp-vec-026",
       "name": "reconciliation_probe_contradiction_preserves_uncertainty",
-      "description": "Contradictory probe response preserves uncertainty without blind resolution.",
+      "description": "If probe says Not Found but local WAL says Dispatched, fail closed.",
       "sequence": [
         {
           "method": "tools/call",
@@ -495,8 +495,8 @@
     },
     {
       "vector_id": "mcp-vec-027",
-      "name": "disk_io_failure_fails_closed",
-      "description": "SQLite I/O failure or read-only database fails closed without upstream dispatch.",
+      "name": "database_disk_full_fails_closed_without_dispatch",
+      "description": "SQLite OperationalError blocks network dispatch entirely.",
       "simulate_storage_io_error": true,
       "input": {
         "method": "tools/call",
@@ -511,8 +511,8 @@
     },
     {
       "vector_id": "mcp-vec-028",
-      "name": "clock_skew_does_not_bypass_latch",
-      "description": "Clock skew backwards does not bypass TTL, latch, or expiration checks.",
+      "name": "clock_skew_does_not_bypass_ttl_or_expiry",
+      "description": "Monotonic internal clock prevents NTP rollback exploits.",
       "simulate_backward_clock_skew": true,
       "input": {
         "method": "tools/call",
@@ -526,8 +526,8 @@
     },
     {
       "vector_id": "mcp-vec-029",
-      "name": "capability_expiration_blocks_dispatch",
-      "description": "Expired capability token or timestamp blocks new dispatch before network call.",
+      "name": "capability_expiry_blocks_new_dispatch",
+      "description": "Expired capability warrants are rejected before WAL insertion.",
       "input": {
         "method": "tools/call",
         "params": {
@@ -542,8 +542,8 @@
     },
     {
       "vector_id": "mcp-vec-030",
-      "name": "multiprocess_contention_serialized",
-      "description": "Multi-process contention against same SQLite file is detected and serialized via BEGIN IMMEDIATE.",
+      "name": "two_proxy_processes_against_same_sqlite_file_detected",
+      "description": "SQLite SQLITE_BUSY or file-lock detection prevents split-brain WAL corruption.",
       "simulate_multiprocess_stress": 8,
       "idempotency_key": "k-030-multi",
       "expected_upstream_invocation_count": 1

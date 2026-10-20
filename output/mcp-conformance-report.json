@@ -127,31 +127,31 @@
     },
     {
       "vector_id": "mcp-vec-021",
-      "name": "mcp_tool_level_is_error_requires_reconciliation",
+      "name": "mcp_tool_level_error_is_not_automatically_refuted",
       "passed": true,
       "reason": "OK"
     },
     {
       "vector_id": "mcp-vec-022",
-      "name": "caid_operation_identity_conflict_escalation",
+      "name": "same_caid_different_operation_id_requires_conflict_resolution",
       "passed": true,
       "reason": "OK"
     },
     {
       "vector_id": "mcp-vec-023",
-      "name": "ttl_expiry_preserves_indeterminate_state_escalation",
+      "name": "ttl_expiry_does_not_clear_unresolved_uncertainty",
       "passed": true,
       "reason": "OK"
     },
     {
       "vector_id": "mcp-vec-024",
-      "name": "epoch_rotation_preserves_latched_uncertainty",
+      "name": "policy_epoch_rotation_does_not_erase_prior_latched_state",
       "passed": true,
       "reason": "OK"
     },
     {
       "vector_id": "mcp-vec-025",
-      "name": "upstream_idempotency_key_forwarding_stability",
+      "name": "upstream_idempotency_key_is_stable_across_proxy_retries",
       "passed": true,
       "reason": "OK"
     },
@@ -163,25 +163,25 @@
     },
     {
       "vector_id": "mcp-vec-027",
-      "name": "disk_io_failure_fails_closed",
+      "name": "database_disk_full_fails_closed_without_dispatch",
       "passed": true,
       "reason": "OK"
     },
     {
       "vector_id": "mcp-vec-028",
-      "name": "clock_skew_does_not_bypass_latch",
+      "name": "clock_skew_does_not_bypass_ttl_or_expiry",
       "passed": true,
       "reason": "OK"
     },
     {
       "vector_id": "mcp-vec-029",
-      "name": "capability_expiration_blocks_dispatch",
+      "name": "capability_expiry_blocks_new_dispatch",
       "passed": true,
       "reason": "OK"
     },
     {
       "vector_id": "mcp-vec-030",
-      "name": "multiprocess_contention_serialized",
+      "name": "two_proxy_processes_against_same_sqlite_file_detected",
       "passed": true,
       "reason": "OK"
     }

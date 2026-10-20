@@ -458,11 +458,12 @@ negative_control_falsification:
 
 | Component / Subsystem | Physical File Location | Cryptographic SHA-256 Digest | Verification Harness / Protocol | Status |
 | :--- | :--- | :--- | :--- | :---: |
-| **MCP Idempotency 30-Vector Suite** | `conformance/vectors/mcp_idempotency.vectors.v1.json` | `8eee08f05fa7f4b077e4996056cfaa80c1ba9073dfa36d487769d855e0239b71` | 30 golden vectors (TTL, CAID conflict, tool isError, 504 latch, crash recovery) | `FROZEN` |
-| **Hardened Idempotent MCP Proxy** | `adapters/mcp/idempotent_mcp_proxy.py` | `21470516a3cbbb4efe4404ad1547b6cde40a83b1c5b54cf11745d0a25ee93d6c` | SQLite WAL, BEGIN IMMEDIATE, composite identity, tool-level error handling | `IMPLEMENTED` |
+| **MCP Idempotency 30-Vector Suite** | `conformance/vectors/mcp_idempotency.vectors.v1.json` | `c155fb22fb871bd9778201b32eba0e6e311c777cfd821e29f97fcc82d15137bf` | 30 golden vectors (TTL, CAID conflict, tool isError, 504 latch, crash recovery) | `FROZEN` |
+| **Hardened Idempotent MCP Proxy** | `adapters/mcp/idempotent_mcp_proxy.py` | `18773adf6d53051e566017f7d453564615ed11f4611875af58188f2c0605f701` | SQLite WAL, BEGIN IMMEDIATE, composite identity, tool-level error handling | `IMPLEMENTED` |
 | **Hardened Idempotent MCP Test Suite** | `tests/test_idempotent_mcp_proxy.py` | `07312f22b0d49e6bdd4c851bb51d4ceb59ae22bea130884fa1a6158ad1edc8d2` | 16/16 passed (30 vectors, thundering herd concurrency, crash recovery, TTL safety) | `VERIFIED` |
-| **MCP Conformance Run Report** | `output/mcp-conformance-report.json` | `ed53cec1eb89f04f9925ef32e6242ffea1b55ad33ea6b1f1f70932d49907aec6` | 30/30 passed (100.0% pass rate across all declarative test vectors) | `RECORDED` |
-| **Boundary Limitations Specification** | `LIMITATIONS.md` | `f6296b939a86affb0cd1a572d02f0317ae4c86c9cdc9354d9d28629122396428` | Section 16 single-process/single-machine SQLite WAL boundary documentation | `DOCUMENTED` |
+| **MCP Conformance Run Report** | `output/mcp-conformance-report.json` | `d175fc0f6989f5dbce75468141a1f616706b915c56d44a51c066455ccc9e542b` | 30/30 passed (100.0% pass rate across all declarative test vectors) | `RECORDED` |
+| **Execution Integrity 500-Episode Report** | `output/execution-integrity-500.json` | `6db32d4ae82544fb684b474ace1ba97926b670b94c95c0f872a614f823f0febc` | 500 fault episodes (0 duplicates, upper bound <= 0.60%) | `RECORDED` |
+| **Boundary Limitations Specification** | `LIMITATIONS.md` | `b379aa8a5e78441ef028bf279d5cbc8097665c14a0efe3ba06fec46b559a00aa` | Section 16 single-process/single-machine SQLite WAL boundary documentation | `DOCUMENTED` |
 
 
 

@@ -310,6 +310,20 @@ The challenge of agent tool execution unreliability and idempotency is an active
 - **MCP Working Group Specifications:** The Model Context Protocol specification includes tool annotations (`read-only`, `destructive`, `idempotent`) and active discussions regarding separating `logical_operation_id` from transport `execution_id` to make retries recognizable across network partitions.
 - **Adjacent Ecosystem Solutions:** Frameworks such as AgentRaaS, VeriMCP, Toolgate, and okgate address tool gating and proxying. AEIB's Idempotent MCP Proxy provides a concrete single-host reference implementation of this effectuation boundary, enforcing RFC 8785 canonical content-addressed intent binding (CAID), write-before-execute WAL locking, and latching under uncertainty.
 
+---
+
+## Durability & Concurrency Scope
+
+The proxy uses SQLite WAL with `synchronous=FULL` to persist local idempotency state across tested process restarts. This does not establish:
+- multi-process or multi-host mutual exclusion,
+- replicated idempotency across proxy replicas,
+- upstream effect durability,
+- protection against storage-device failure,
+- or distributed transactional finality.
+
+Upstream effects remain uncertain until reconciled through an authorized status probe or explicit operator action. `threading.Lock()` + `BEGIN IMMEDIATE` serializes concurrent requests within a single Python process only. Multi-node operation requires an upstream idempotency key as the authoritative source of truth or a distributed quorum system.
+
+
 
 
 

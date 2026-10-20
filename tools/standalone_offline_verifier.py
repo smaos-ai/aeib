@@ -609,6 +609,11 @@ def verify_aeib_execution_receipt(
         or receipt.get("scenario_id")
         or receipt.get("receipt_id")
         or receipt.get("action_id")
+        or (
+            receipt["receipt_body"].get("validation_run", {}).get("engine")
+            if isinstance(receipt.get("receipt_body"), dict)
+            else None
+        )
         or "UNKNOWN"
     )
 
@@ -724,6 +729,19 @@ def verify_aeib_execution_receipt(
         verdict_s = str(receipt.get("verdict", ""))
         action_id_s = str(receipt.get("action_id", ""))
         signable_message = root_b + action_id_s.encode("utf-8") + verdict_s.encode("utf-8") + ts_s.encode("utf-8")
+
+    # Format 5: receipt_body + signature_envelope (Validation and Attestation Runner)
+    elif "receipt_body" in receipt and "signature_envelope" in receipt:
+        env = receipt["signature_envelope"]
+        raw_sig = env.get("signature_b64") or env.get("signature") or env.get("signature_hex")
+        if raw_sig:
+            sig_bytes = bytes.fromhex(raw_sig) if len(raw_sig) == 128 else base64.b64decode(raw_sig)
+        if pub_bytes is None and env.get("public_key_hex"):
+            pub_bytes = bytes.fromhex(env["public_key_hex"])
+        elif pub_bytes is None and env.get("public_key"):
+            pk_val = env["public_key"]
+            pub_bytes = bytes.fromhex(pk_val) if len(pk_val) == 64 else base64.b64decode(pk_val)
+        signable_message = encode_jcs(receipt["receipt_body"])
 
     if sig_bytes is None or signable_message is None:
         return {

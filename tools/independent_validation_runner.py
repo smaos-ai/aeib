@@ -166,6 +166,34 @@ class IndependentValidationRunner:
             ["python3", "tools/ebv_state_machine_checker.py"],
         )
 
+        # Step 11: Predictive Trajectory Drift Latch & Adversarial Fuzzing
+        self._run_cmd(
+            "STEP_11_PREDICTIVE_TRAJECTORY_LATCH",
+            "Predictive Trajectory Drift Latch & Adversarial Fuzzing",
+            ["pytest", "tests/test_predictive_trajectory_drift_latch.py", "-q"],
+        )
+
+        # Step 12: Zero-Knowledge Budget Proof Engine (Pedersen + Schnorr)
+        self._run_cmd(
+            "STEP_12_ZK_BUDGET_PROOFS",
+            "Zero-Knowledge Budget Proof Engine (Pedersen + Schnorr)",
+            ["pytest", "tests/test_zk_budget_proof_engine.py", "-q"],
+        )
+
+        # Step 13: Standalone Zero-Dependency Offline Verifier
+        self._run_cmd(
+            "STEP_13_STANDALONE_OFFLINE_VERIFIER",
+            "Standalone Zero-Dependency Offline Verifier",
+            ["pytest", "tests/test_standalone_offline_verifier.py", "-q"],
+        )
+
+        # Step 14: Tetragon / BPF_LSM Security Profile Compiler
+        self._run_cmd(
+            "STEP_14_BPF_LSM_PROFILE_COMPILER",
+            "Tetragon / BPF_LSM Security Profile Compiler",
+            ["pytest", "tests/test_bpf_lsm_profile_compiler.py", "-q"],
+        )
+
         all_passed = all(r.passed for r in self.results)
         total_duration = sum(r.duration_ms for r in self.results)
 

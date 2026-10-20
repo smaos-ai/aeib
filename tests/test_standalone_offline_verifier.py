@@ -251,6 +251,34 @@ def test_positive_rfc9162_merkle_tree_inclusion() -> None:
     assert result["tree_size"] == 2
 
 
+def test_positive_validation_receipt_envelope_format() -> None:
+    """Verifies that Format 5 (receipt_body + signature_envelope) is verified correctly."""
+    seed_bytes = b"sample_seed_for_aeib_receipt_32_"
+
+    receipt_body = {
+        "validation_run": {
+            "engine": "AEIB Standalone Offline Verifier Test",
+            "all_passed": True,
+        },
+        "steps": [{"name": "step1", "passed": True}],
+    }
+    canonical_body = encode_jcs(receipt_body)
+    pub_bytes, sig_bytes = ed25519_sign(seed_bytes, canonical_body)
+
+    receipt = {
+        "receipt_body": receipt_body,
+        "signature_envelope": {
+            "algorithm": "Ed25519",
+            "public_key_hex": pub_bytes.hex(),
+            "signature_b64": base64.b64encode(sig_bytes).decode("ascii"),
+        },
+    }
+
+    result = verify_aeib_execution_receipt(receipt)
+    assert result["valid"] is True
+    assert result["operation_id"] == "AEIB Standalone Offline Verifier Test"
+
+
 def test_cli_self_test_execution() -> None:
     """Verifies that standalone_offline_verifier.py --self-test executes cleanly."""
     cmd = [sys.executable, "tools/standalone_offline_verifier.py", "--self-test"]

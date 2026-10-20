@@ -2,85 +2,109 @@
   "receipt_body": {
     "validation_run": {
       "engine": "AEIB Independent Validation Runner v1.0.0-rc.5",
-      "timestamp_utc": "2026-10-20T19:43:25Z",
-      "total_steps": 11,
-      "passed_steps": 11,
+      "timestamp_utc": "2026-10-20T20:30:49Z",
+      "total_steps": 15,
+      "passed_steps": 15,
       "all_passed": true,
-      "total_duration_ms": 13885.42
+      "total_duration_ms": 12739.35
     },
     "steps": [
       {
         "step_id": "STEP_01_ZONE_BOUNDARY",
         "name": "Zone Boundary Isolation Scanner",
         "passed": true,
-        "duration_ms": 417.81
+        "duration_ms": 393.05
       },
       {
         "step_id": "STEP_02_AST_PURITY",
         "name": "Zero-Mock and AST Purity Enforcer",
         "passed": true,
-        "duration_ms": 9637.05
+        "duration_ms": 7968.07
       },
       {
         "step_id": "STEP_02B_NO_MOCK",
         "name": "Zero Fake Crypto Verification",
         "passed": true,
-        "duration_ms": 450.83
+        "duration_ms": 372.55
       },
       {
         "step_id": "STEP_03_PQEE_DUAL_VERIFY",
         "name": "FIPS 204 ML-DSA-65 + Ed25519 Dual Verification",
         "passed": true,
-        "duration_ms": 647.32
+        "duration_ms": 431.07
       },
       {
         "step_id": "STEP_04_COMMIT_TIME_BSCR",
         "name": "Commit-Time Consistency Guard (BSC-R)",
         "passed": true,
-        "duration_ms": 251.51
+        "duration_ms": 206.76
       },
       {
         "step_id": "STEP_05_AEIT_TELEMETRY",
         "name": "Agent Execution Integrity Telemetry",
         "passed": true,
-        "duration_ms": 247.13
+        "duration_ms": 190.18
       },
       {
         "step_id": "STEP_06_DIRECT_IO_WAL",
         "name": "Rust Direct-I/O WAL & Sector Alignment",
         "passed": true,
-        "duration_ms": 1214.93
+        "duration_ms": 952.66
       },
       {
         "step_id": "STEP_07_INDUSTRIAL_MATRIX",
         "name": "Industrial Protection Matrix & 50BF Breaker Cascade",
         "passed": true,
-        "duration_ms": 646.67
+        "duration_ms": 702.45
       },
       {
         "step_id": "STEP_08_DST_BENCHMARK",
         "name": "Deterministic 500-Episode Execution Integrity Benchmark",
         "passed": true,
-        "duration_ms": 90.47
+        "duration_ms": 96.05
       },
       {
         "step_id": "STEP_09_SELECTIVE_DISCLOSURE",
         "name": "Selective Disclosure & Redaction Engine (GDPR/DORA)",
         "passed": true,
-        "duration_ms": 245.21
+        "duration_ms": 228.86
       },
       {
         "step_id": "STEP_10_EBV_MODEL_CHECKER",
         "name": "EBV State Machine Formal Model Checker",
         "passed": true,
-        "duration_ms": 36.49
+        "duration_ms": 30.84
+      },
+      {
+        "step_id": "STEP_11_PREDICTIVE_TRAJECTORY_LATCH",
+        "name": "Predictive Trajectory Drift Latch & Adversarial Fuzzing",
+        "passed": true,
+        "duration_ms": 295.43
+      },
+      {
+        "step_id": "STEP_12_ZK_BUDGET_PROOFS",
+        "name": "Zero-Knowledge Budget Proof Engine (Pedersen + Schnorr)",
+        "passed": true,
+        "duration_ms": 294.12
+      },
+      {
+        "step_id": "STEP_13_STANDALONE_OFFLINE_VERIFIER",
+        "name": "Standalone Zero-Dependency Offline Verifier",
+        "passed": true,
+        "duration_ms": 326.44
+      },
+      {
+        "step_id": "STEP_14_BPF_LSM_PROFILE_COMPILER",
+        "name": "Tetragon / BPF_LSM Security Profile Compiler",
+        "passed": true,
+        "duration_ms": 250.82
       }
     ]
   },
   "signature_envelope": {
     "algorithm": "Ed25519",
-    "public_key_hex": "2d7392bb2f6c5348d51fe47a607cc3a881ff769f3dc5f449339447e97cc69f29",
-    "signature_b64": "XpeOShJvHURJdali4hKr9fgCR8zkvnTQKzpgGAfIj+poPpFbf3h7Z89ZsmOUpkgEh/kDh32pMwh8hdkUpRiNAg==",
-    "canonical_hash_sha256": "sha256:82ce6c14e20db4aa91ac854e11cf091747c057ad481b9ee8072b6cdaa5fd067a"
+    "public_key_hex": "027476eb1c5db745308bbcbe164e478b99bb93c8b61830285aa267e79cb4b933",
+    "signature_b64": "FOeZqQnpWXgtlIs6zzDlV35rFHasxEQVFwECHMU2cVGzXZ654EvRUVLrcutRL/wE5jXstvPO/RfArt3n6zkqBA==",
+    "canonical_hash_sha256": "sha256:c696a7ac1029eb8ac0bab526e977f70d557532a4858abbb57ddd7ce41d78f982"
   }
 }

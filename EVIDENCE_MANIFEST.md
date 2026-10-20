@@ -19,10 +19,10 @@ Do not force-move a published release candidate.
 
 ## Source Provenance & Platform Specs
 ```yaml
-target_release: v1.0.0-rc.4-preprod (transitioning to v1.0.0-rc.5)
-commit_sha: fc5e17113515e680c1a04a15f46b83d4972b5741
+target_release: v1.0.0-rc.5-preprod
+commit_sha: c0a06580f6f0759b3d8774e81d328b33344d9492
 branch: feat/v1.1-temporal-standing
-tag_ref: v1.0.0-rc.4-preprod
+tag_ref: v1.0.0-rc.5-preprod
 
 platform_specs:
   os: macOS Darwin arm64 (Apple Silicon)

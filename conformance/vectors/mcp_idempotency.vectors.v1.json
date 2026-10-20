@@ -1,0 +1,460 @@
+{
+  "conformance_suite": "mcp_idempotency.vectors.v1",
+  "target_spec": "MCP Effectuation Boundary v1.0",
+  "vectors": [
+    {
+      "vector_id": "mcp-vec-001",
+      "name": "fresh_call_success",
+      "input": {
+        "method": "tools/call",
+        "params": {
+          "name": "refund.create",
+          "arguments": {
+            "amount_minor": 10000,
+            "recipient": "iban:DE893704"
+          },
+          "idempotency_key": "key-001",
+          "caid": "sha256:1111"
+        }
+      },
+      "server_behavior": "NORMAL_200",
+      "expected_status": 200,
+      "expected_result_state": "CONFIRMED",
+      "expected_wal_writes": 1
+    },
+    {
+      "vector_id": "mcp-vec-002",
+      "name": "replay_within_window_returns_cached",
+      "sequence": [
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "refund.create",
+            "arguments": {
+              "amount_minor": 10000
+            },
+            "idempotency_key": "key-002",
+            "caid": "sha256:2222"
+          },
+          "server_behavior": "NORMAL_200"
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "refund.create",
+            "arguments": {
+              "amount_minor": 10000
+            },
+            "idempotency_key": "key-002",
+            "caid": "sha256:2222"
+          },
+          "server_behavior": "SHOULD_NOT_EXECUTE"
+        }
+      ],
+      "expected_final_status": 200,
+      "expected_replay_hit": true,
+      "expected_upstream_calls": 1
+    },
+    {
+      "vector_id": "mcp-vec-003",
+      "name": "caid_collision_different_key_same_intent",
+      "sequence": [
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "refund.create",
+            "arguments": {
+              "amount_minor": 10000
+            },
+            "idempotency_key": "key-003a",
+            "caid": "sha256:3333"
+          },
+          "server_behavior": "NORMAL_200"
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "refund.create",
+            "arguments": {
+              "amount_minor": 10000
+            },
+            "idempotency_key": "key-003b",
+            "caid": "sha256:3333"
+          },
+          "server_behavior": "SHOULD_NOT_EXECUTE"
+        }
+      ],
+      "expected_final_status": 200,
+      "expected_error_code": null,
+      "note": "Blocked via CAID content-addressing even though idempotency_key differed."
+    },
+    {
+      "vector_id": "mcp-vec-004",
+      "name": "timeout_504_latches_indeterminate",
+      "input": {
+        "method": "tools/call",
+        "params": {
+          "name": "refund.create",
+          "arguments": {
+            "amount_minor": 15000
+          },
+          "idempotency_key": "key-004",
+          "caid": "sha256:4444"
+        }
+      },
+      "server_behavior": "TIMEOUT_504_BUT_COMMITTED",
+      "expected_status": 504,
+      "expected_result_state": "EFFECT_INDETERMINATE",
+      "expected_error": "ERR_EFFECT_INDETERMINATE_LATCHED"
+    },
+    {
+      "vector_id": "mcp-vec-005",
+      "name": "blind_retry_blocked_under_indeterminate",
+      "sequence": [
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "refund.create",
+            "arguments": {
+              "amount_minor": 15000
+            },
+            "idempotency_key": "key-005",
+            "caid": "sha256:5555"
+          },
+          "server_behavior": "TIMEOUT_504_BUT_COMMITTED"
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "refund.create",
+            "arguments": {
+              "amount_minor": 15000
+            },
+            "idempotency_key": "key-005",
+            "caid": "sha256:5555"
+          },
+          "server_behavior": "SHOULD_NOT_EXECUTE"
+        }
+      ],
+      "expected_final_status": 400,
+      "expected_error_code": "HALT_BLIND_RETRY_PROHIBITED_UNDER_UNCERTAINTY"
+    },
+    {
+      "vector_id": "mcp-vec-006",
+      "name": "reconciliation_status_probe_resolves_confirmed",
+      "sequence": [
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "refund.create",
+            "arguments": {
+              "amount_minor": 15000
+            },
+            "idempotency_key": "key-006",
+            "caid": "sha256:6666"
+          },
+          "server_behavior": "TIMEOUT_504_BUT_COMMITTED"
+        },
+        {
+          "method": "tools/status",
+          "params": {
+            "idempotency_key": "key-006"
+          },
+          "server_status_response": {
+            "state": "CONFIRMED",
+            "settled": true
+          }
+        }
+      ],
+      "expected_final_state": "CONFIRMED",
+      "expected_wal_transition": "EFFECT_INDETERMINATE -> CONFIRMED"
+    },
+    {
+      "vector_id": "mcp-vec-007",
+      "name": "reconciliation_status_probe_resolves_refuted",
+      "sequence": [
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "refund.create",
+            "arguments": {
+              "amount_minor": 15000
+            },
+            "idempotency_key": "key-007",
+            "caid": "sha256:7777"
+          },
+          "server_behavior": "TIMEOUT_504_ABORTED"
+        },
+        {
+          "method": "tools/status",
+          "params": {
+            "idempotency_key": "key-007"
+          },
+          "server_status_response": {
+            "state": "REFUTED",
+            "settled": false
+          }
+        }
+      ],
+      "expected_final_state": "REFUTED",
+      "expected_wal_transition": "EFFECT_INDETERMINATE -> REFUTED"
+    },
+    {
+      "vector_id": "mcp-vec-008",
+      "name": "reconciliation_unsupported_endpoint_resolves_unresolved",
+      "sequence": [
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "refund.create",
+            "arguments": {
+              "amount_minor": 15000
+            },
+            "idempotency_key": "key-008",
+            "caid": "sha256:8888"
+          },
+          "server_behavior": "TIMEOUT_504_BUT_COMMITTED"
+        },
+        {
+          "method": "tools/status",
+          "params": {
+            "idempotency_key": "key-008"
+          },
+          "server_status_response": {
+            "error": "METHOD_NOT_FOUND"
+          }
+        }
+      ],
+      "expected_final_state": "UNRESOLVED_ESCALATED",
+      "expected_escalation": true
+    },
+    {
+      "vector_id": "mcp-vec-009",
+      "name": "ttl_expiry_allows_new_intent_with_new_epoch",
+      "description": "After TTL expiry, stale records do not block fresh intents if policy_epoch rotated.",
+      "input": {
+        "idempotency_key": "key-009",
+        "policy_epoch": "epoch-2026-Q4"
+      },
+      "expired_record_epoch": "epoch-2026-Q3",
+      "expected_status": 200,
+      "expected_disposition": "DISPATCHED"
+    },
+    {
+      "vector_id": "mcp-vec-010",
+      "name": "server_crash_between_wal_and_execute_recovers_on_boot",
+      "simulation": "KILL_PROCESS_AFTER_WAL_APPEND",
+      "expected_boot_recovery_action": "REPLAY_OR_PROBE_INDETERMINATE"
+    },
+    {
+      "vector_id": "mcp-vec-011",
+      "name": "missing_idempotency_key_fails_closed",
+      "description": "A tools/call frame lacking idempotency_key is rejected immediately with -32602",
+      "input": {
+        "method": "tools/call",
+        "params": {
+          "name": "refund.create",
+          "arguments": {
+            "amount_minor": 10000
+          }
+        }
+      },
+      "expected_error_code": -32602,
+      "expected_error_message": "Missing required idempotency_key"
+    },
+    {
+      "vector_id": "mcp-vec-012",
+      "name": "non_consequential_method_passthrough",
+      "description": "Methods like tools/list or resources/list bypass idempotency WAL directly to upstream",
+      "input": {
+        "method": "tools/list",
+        "params": {}
+      },
+      "server_behavior": "NORMAL_200",
+      "expected_status": 200,
+      "expected_wal_writes": 0
+    },
+    {
+      "vector_id": "mcp-vec-013",
+      "name": "upstream_error_transitions_to_refuted",
+      "description": "Explicit upstream error response transitions record state to REFUTED",
+      "sequence": [
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "refund.create",
+            "arguments": {
+              "amount_minor": 5000
+            },
+            "idempotency_key": "key-013",
+            "caid": "sha256:1313"
+          },
+          "server_behavior": "UPSTREAM_ERROR_400"
+        }
+      ],
+      "expected_final_state": "REFUTED",
+      "expected_upstream_calls": 1
+    },
+    {
+      "vector_id": "mcp-vec-014",
+      "name": "caid_canonical_json_whitespace_invariant",
+      "description": "Arguments with permuted keys and whitespace variations produce identical CAID digest",
+      "input_a": {
+        "amount_minor": 10000,
+        "recipient": "iban:DE893704"
+      },
+      "input_b": {
+        "recipient": "iban:DE893704",
+        "amount_minor": 10000
+      },
+      "expected_caid_match": true
+    },
+    {
+      "vector_id": "mcp-vec-015",
+      "name": "transport_connection_reset_latches_indeterminate",
+      "description": "Connection reset (TCP RST) during wire execution latches state into EFFECT_INDETERMINATE",
+      "input": {
+        "method": "tools/call",
+        "params": {
+          "name": "refund.create",
+          "arguments": {
+            "amount_minor": 20000
+          },
+          "idempotency_key": "key-015",
+          "caid": "sha256:1515"
+        }
+      },
+      "server_behavior": "CONNECTION_RESET",
+      "expected_status": 504,
+      "expected_result_state": "EFFECT_INDETERMINATE",
+      "expected_error": "ERR_EFFECT_INDETERMINATE_LATCHED"
+    },
+    {
+      "vector_id": "mcp-vec-016",
+      "name": "operation_unresolved_blocks_retries",
+      "description": "Subsequent tools/call on UNRESOLVED_ESCALATED key is blocked from upstream execution",
+      "initial_state": "UNRESOLVED_ESCALATED",
+      "input": {
+        "method": "tools/call",
+        "params": {
+          "name": "refund.create",
+          "arguments": {
+            "amount_minor": 10000
+          },
+          "idempotency_key": "key-016"
+        }
+      },
+      "expected_error_code": -32010,
+      "expected_error_message": "OPERATION_UNRESOLVED_REQUIRES_RECONCILIATION"
+    },
+    {
+      "vector_id": "mcp-vec-017",
+      "name": "concurrent_in_flight_call_serialization",
+      "description": "Concurrent calls with identical CAID/key serialize so only one executes upstream",
+      "sequence": [
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "payment.send",
+            "arguments": {
+              "amount": 7500
+            },
+            "idempotency_key": "key-017",
+            "caid": "sha256:1717"
+          },
+          "server_behavior": "NORMAL_200"
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "payment.send",
+            "arguments": {
+              "amount": 7500
+            },
+            "idempotency_key": "key-017",
+            "caid": "sha256:1717"
+          },
+          "server_behavior": "SHOULD_NOT_EXECUTE"
+        }
+      ],
+      "expected_final_status": 200,
+      "expected_replay_hit": true,
+      "expected_upstream_calls": 1
+    },
+    {
+      "vector_id": "mcp-vec-018",
+      "name": "durable_wal_persistence_and_reload",
+      "description": "Proxy persists state records to disk WAL and rehydrates state across restart",
+      "key": "key-018",
+      "initial_state": "CONFIRMED",
+      "expected_recovered_state": "CONFIRMED"
+    },
+    {
+      "vector_id": "mcp-vec-019",
+      "name": "tools_status_not_found_for_unknown_key",
+      "description": "Querying tools/status for an unknown idempotency key returns NOT_FOUND",
+      "input": {
+        "method": "tools/status",
+        "params": {
+          "idempotency_key": "key-unknown-999"
+        }
+      },
+      "expected_result_state": "NOT_FOUND"
+    },
+    {
+      "vector_id": "mcp-vec-020",
+      "name": "multi_turn_recovery_cycle",
+      "description": "Full lifecycle: call times out -> blind retry blocked -> probe reconciles to CONFIRMED -> cached response returned",
+      "sequence": [
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "refund.create",
+            "arguments": {
+              "amount_minor": 25000
+            },
+            "idempotency_key": "key-020",
+            "caid": "sha256:2020"
+          },
+          "server_behavior": "TIMEOUT_504_BUT_COMMITTED"
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "refund.create",
+            "arguments": {
+              "amount_minor": 25000
+            },
+            "idempotency_key": "key-020",
+            "caid": "sha256:2020"
+          },
+          "server_behavior": "SHOULD_NOT_EXECUTE"
+        },
+        {
+          "method": "tools/status",
+          "params": {
+            "idempotency_key": "key-020"
+          },
+          "server_status_response": {
+            "state": "CONFIRMED",
+            "settled": true
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "refund.create",
+            "arguments": {
+              "amount_minor": 25000
+            },
+            "idempotency_key": "key-020",
+            "caid": "sha256:2020"
+          },
+          "server_behavior": "SHOULD_NOT_EXECUTE"
+        }
+      ],
+      "expected_final_state": "CONFIRMED",
+      "expected_replay_hit": true
+    }
+  ]
+}

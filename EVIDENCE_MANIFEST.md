@@ -453,6 +453,14 @@ negative_control_falsification:
 | **Universal Conformance Run Report** | `output/conformance_run_report.json` | `50df44eb46154b0ab7e83124b9fa629fb6f564a27b54bd020e9ac895625cf34f` | 20/20 passed (100.0% pass rate, Merkle root fd9aeec0...) | `RECORDED` |
 | **Mutation Gate Execution Report** | `output/vaf_mutation_gate_report.json` | `74d23bdb6bc57e3fb4bbcc0d7fe2088bf4860850ecdc1fe680f5cb9288feefcd` | 10/10 mutants killed, 100.0% mutation score, disposition PASS | `RECORDED` |
 
+### 5. Idempotent Model Context Protocol (MCP) Boundary Middleware & Golden Vectors
+
+| Component / Subsystem | Physical File Location | Cryptographic SHA-256 Digest | Verification Harness / Protocol | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **MCP Idempotency 20-Vector Suite** | `conformance/vectors/mcp_idempotency.vectors.v1.json` | `1765a94f76eda5be2b03eb042c6776a121dea9c169d74732ed94daaa81f09697` | 20 golden vectors (normal, TTL, CAID collision, 504 latch, crash recovery) | `FROZEN` |
+| **Idempotent MCP Proxy Middleware** | `adapters/mcp/idempotent_mcp_proxy.py` | `3a5bcbc2de2a429a2932e2ae88675f82ec3a70714f6f80590d2a56e61d639c36` | Zero-mock JSON-RPC proxy, CAID hashing, WAL latching, tools/status probe | `IMPLEMENTED` |
+| **Idempotent MCP Test Suite** | `tests/test_idempotent_mcp_proxy.py` | `14683b756e33fadc9d74a14a4931b10a373df777ebded5dcc0a934e9a4aef4aa` | 7/7 passed (all 20 vectors, CAID collisions, blind retries, crash recovery) | `VERIFIED` |
+
 
 
 

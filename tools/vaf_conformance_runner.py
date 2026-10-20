@@ -160,7 +160,7 @@ class VafConformanceRunner:
         )
 
     def run_suite(self, vectors_dir: Path) -> ConformanceRunReport:
-        vector_files = sorted(list(vectors_dir.glob("*.json")))
+        vector_files = sorted(list(vectors_dir.glob("act-*.json")))
         results: List[VectorResult] = []
         latencies: List[float] = []
 

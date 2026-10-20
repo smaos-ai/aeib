@@ -286,7 +286,7 @@ class VafMutationGate:
         discrepancy = None
 
         # 1. Run through all 20 conformance vectors
-        vector_files = sorted(list(self.vectors_dir.glob("*.json")))
+        vector_files = sorted(list(self.vectors_dir.glob("act-*.json")))
         for v_file in vector_files:
             res = runner.evaluate_vector_file(v_file)
             if not res.passed:

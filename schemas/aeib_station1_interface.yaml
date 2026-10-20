@@ -1,0 +1,187 @@
+openapi: 3.1.0
+info:
+  title: AEIB Station 1 Gate Wire Interface Specification
+  version: 1.0.0-rc.5
+  description: >
+    Language-agnostic wire-level contract for the AEIB Station 1 Pre-Dispatch Gate.
+    Defines the byte-in / byte-out interface for candidate act evaluation,
+    pre-dispatch intent latching, group-commit WAL persistence, and out-of-band
+    reconciliation. Evaluated under declared models without unvetted dependencies.
+
+paths:
+  /v1/dispatch:
+    post:
+      summary: Evaluate and Dispatch Candidate Act
+      description: >
+        Validates schema, checks CAID token, enforces tenant sprint ceiling,
+        reserves funds in escrow, and transmits to downstream execution sink.
+        On ambiguous timeout (504), latches EFFECT_INDETERMINATE and blocks blind retries.
+      operationId: evaluateAndDispatch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CandidateActRequest'
+      responses:
+        '200':
+          description: Dispatch outcome recorded with durable state transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DispatchResponse'
+        '400':
+          description: Malformed wire frame or invalid schema rejected without state change
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/reconcile:
+    post:
+      summary: Reconcile Indeterminate Operation
+      description: >
+        Probes the downstream target ledger for an operation previously latched
+        in EFFECT_INDETERMINATE state. Authoritatively transitions state to CONFIRMED
+        or REFUTED and releases escrow accordingly.
+      operationId: reconcileIndeterminate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReconcileRequest'
+      responses:
+        '200':
+          description: Reconciliation outcome
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReconcileResponse'
+
+  /v1/inspect_state:
+    get:
+      summary: Inspect Gateway Ledger State
+      description: Returns active escrow, confirmed mutations, and total exposure.
+      operationId: inspectState
+      responses:
+        '200':
+          description: Current ledger exposure metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StateInspectionResponse'
+
+components:
+  schemas:
+    CandidateActRequest:
+      type: object
+      required:
+        - action
+        - operation_id
+        - amount_minor
+        - recipient
+        - caid_token
+      properties:
+        action:
+          type: string
+          enum: [DISPATCH]
+        operation_id:
+          type: string
+          pattern: '^[a-zA-Z0-9_\-:]{1,128}$'
+        amount_minor:
+          type: integer
+          minimum: 1
+        recipient:
+          type: string
+          description: Canonical IBAN or resource URI
+        caid_token:
+          type: string
+          description: HMAC-SHA256 or Ed25519 signature over canonical payload
+        metadata:
+          type: object
+          additionalProperties: true
+
+    DispatchResponse:
+      type: object
+      required:
+        - disposition
+        - operation_id
+      properties:
+        disposition:
+          type: string
+          enum: [CONFIRMED, EFFECT_INDETERMINATE, NOT_DISPATCHED]
+        operation_id:
+          type: string
+        error_code:
+          type: string
+          enum:
+            - ERR_MALFORMED_WIRE_FRAME
+            - ERR_INVALID_SCHEMA
+            - ERR_CAID_OR_PAYEE_MISMATCH
+            - ERR_UNPINNED_RECIPIENT
+            - HALT_SPRINT_LIMIT_EXCEEDED
+            - HALT_BLIND_RETRY_PROHIBITED
+            - ERR_DUPLICATE_OPERATION_ID
+        settled_amount_minor:
+          type: integer
+        escrowed_amount_minor:
+          type: integer
+
+    ReconcileRequest:
+      type: object
+      required:
+        - action
+        - operation_id
+      properties:
+        action:
+          type: string
+          enum: [RECONCILE]
+        operation_id:
+          type: string
+
+    ReconcileResponse:
+      type: object
+      required:
+        - disposition
+        - operation_id
+      properties:
+        disposition:
+          type: string
+          enum: [CONFIRMED, REFUTED]
+        operation_id:
+          type: string
+        error_code:
+          type: string
+          enum:
+            - ERR_UNKNOWN_OP
+            - ERR_NOT_INDETERMINATE
+
+    StateInspectionResponse:
+      type: object
+      required:
+        - escrowed_minor
+        - settled_minor
+        - total_exposure_minor
+      properties:
+        escrowed_minor:
+          type: integer
+          minimum: 0
+        settled_minor:
+          type: integer
+          minimum: 0
+        total_exposure_minor:
+          type: integer
+          minimum: 0
+
+    ErrorResponse:
+      type: object
+      required:
+        - disposition
+        - error_code
+      properties:
+        disposition:
+          type: string
+          enum: [NOT_DISPATCHED]
+        error_code:
+          type: string

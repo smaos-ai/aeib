@@ -1,0 +1,41 @@
+{
+  "status": "PASS",
+  "timestamp_utc": "2026-10-20T20:18:26Z",
+  "configuration": {
+    "thread_count": 500,
+    "flush_window_ms": 2.0,
+    "max_batch_size": 64,
+    "sprint_ceiling_minor": 10000000,
+    "amount_per_op_minor": 50
+  },
+  "execution": {
+    "total_operations": 500,
+    "successful_operations": 500,
+    "rejected_operations": 0,
+    "wall_clock_seconds": 0.1592,
+    "throughput_ops_per_sec": 3139.98
+  },
+  "latency_ms": {
+    "min": 29.945,
+    "avg": 112.87,
+    "p50": 109.732,
+    "p90": 126.891,
+    "p95": 127.07,
+    "p99": 127.443,
+    "max": 127.708
+  },
+  "coalescing_efficiency": {
+    "total_operations": 500,
+    "fsync_count": 3,
+    "coalescing_ratio": 166.67,
+    "fsync_reduction_pct": 99.4
+  },
+  "solvency_and_integrity": {
+    "escrowed_minor": 0,
+    "confirmed_minor": 25000,
+    "sprint_ceiling_minor": 10000000,
+    "solvency_invariant_held": true,
+    "double_allocations_detected": 0,
+    "lost_updates_detected": 0
+  }
+}

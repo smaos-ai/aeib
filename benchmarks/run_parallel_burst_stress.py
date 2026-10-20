@@ -193,6 +193,7 @@ def main() -> int:
     parser.add_argument("--max-batch-size", type=int, default=64, help="Max requests per batch (default: 64)")
     parser.add_argument("--sprint-ceiling", type=int, default=10_000_000, help="Sprint budget ceiling in minor units")
     parser.add_argument("--amount-per-op", type=int, default=50, help="Minor units requested per mutation")
+    parser.add_argument("--wal-dir", type=str, default=None, help="Directory for WAL file (e.g. physical external SSD path)")
     parser.add_argument("--output", type=str, default="", help="Optional JSON output file path")
     parser.add_argument("--quiet", action="store_true", help="Suppress console summary table")
 
@@ -204,6 +205,7 @@ def main() -> int:
         max_batch_size=args.max_batch_size,
         sprint_ceiling=args.sprint_ceiling,
         amount_per_op=args.amount_per_op,
+        wal_dir=args.wal_dir,
     )
 
     formatted_json = json.dumps(metrics, indent=2)

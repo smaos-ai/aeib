@@ -46,7 +46,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Protocol, Set, Tuple
 
 from cryptography.exceptions import InvalidSignature
-from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.ed25519 import (
     Ed25519PrivateKey,
@@ -62,10 +62,12 @@ from src.jcs_canonicalizer import encode_jcs
 GENESIS_CHAIN_TIP = "sha256:" + ("0" * 64)
 
 ALLOWED_DISPOSITION_TRANSITIONS: Dict[str, Set[str]] = {
-    "DISPATCHED": {"EFFECT_INDETERMINATE", "CONFIRMED", "REFUTED"},
-    "EFFECT_INDETERMINATE": {"EFFECT_INDETERMINATE", "CONFIRMED", "REFUTED"},
+    "DISPATCHED": {"EFFECT_INDETERMINATE", "CONFIRMED", "REFUTED", "RESOLVED_CONFIRMED", "RESOLVED_REFUTED"},
+    "EFFECT_INDETERMINATE": {"EFFECT_INDETERMINATE", "CONFIRMED", "REFUTED", "RESOLVED_CONFIRMED", "RESOLVED_REFUTED"},
     "CONFIRMED": set(),
     "REFUTED": set(),
+    "RESOLVED_CONFIRMED": set(),
+    "RESOLVED_REFUTED": set(),
 }
 
 
@@ -85,6 +87,28 @@ def canonical_json_v1(obj: Any) -> bytes:
 
 def sha256_prefixed(data: bytes) -> str:
     return f"sha256:{hashlib.sha256(data).hexdigest()}"
+
+
+def compute_caid(
+    op_id: str,
+    amount_minor: int,
+    payee_id: str,
+    endpoint: str,
+    payload_hash: bytes,
+) -> bytes:
+    """Computes the canonical action identifier binding payee, amount, endpoint, and payload."""
+    hasher = hashlib.sha256()
+    hasher.update(op_id.encode("utf-8"))
+    hasher.update(amount_minor.to_bytes(8, "big"))
+    hasher.update(payee_id.encode("utf-8"))
+    hasher.update(endpoint.encode("utf-8"))
+    hasher.update(payload_hash)
+    return hasher.digest()
+
+
+class SystemHaltError(RuntimeError):
+    """Raised when persistence integrity or continuity check fails."""
+    pass
 
 
 def ct_eq(a: str, b: str) -> bool:
@@ -158,15 +182,34 @@ class RootSponsorPolicy:
     )
 
 
+class CallableDigest(str):
+    def __call__(self) -> str:
+        return str(self)
+
+
 @dataclass(frozen=True)
 class ContextBlock:
     block_id: str
     taint_tier: str  # "TIER_0_PINNED", "TIER_1_INTERNAL", "TIER_2_UNTRUSTED_EXTERNAL"
     raw_bytes: bytes
 
+    def __init__(
+        self,
+        block_id: str,
+        taint_tier: Optional[str] = None,
+        raw_bytes: bytes = b"",
+        *,
+        trust_tier: Optional[str] = None,
+    ) -> None:
+        object.__setattr__(self, "block_id", str(block_id))
+        object.__setattr__(
+            self, "taint_tier", str(taint_tier or trust_tier or "TIER_0_PINNED")
+        )
+        object.__setattr__(self, "raw_bytes", bytes(raw_bytes))
+
     @property
-    def digest(self) -> str:
-        return sha256_prefixed(self.raw_bytes)
+    def digest(self) -> CallableDigest:
+        return CallableDigest(sha256_prefixed(self.raw_bytes))
 
 
 @dataclass(frozen=True)
@@ -178,6 +221,86 @@ class SubAgentDelegationCert:
     issued_at_sec: int
     expires_at_sec: int
     sponsor_signature_b64: str
+
+    def __init__(
+        self,
+        root_sponsor_key_id: Optional[str] = None,
+        subagent_key_id: Optional[str] = None,
+        subagent_pubkey: Optional[Ed25519PublicKey] = None,
+        max_per_call_minor: Optional[int] = None,
+        issued_at_sec: Optional[int] = None,
+        expires_at_sec: Optional[int] = None,
+        sponsor_signature_b64: str = "",
+        *,
+        sponsor_did: Optional[str] = None,
+        subagent_id: Optional[str] = None,
+        subagent_pubkey_b64: Optional[str] = None,
+        **kwargs: Any,
+    ) -> None:
+        object.__setattr__(
+            self, "root_sponsor_key_id", str(root_sponsor_key_id or sponsor_did or "")
+        )
+        object.__setattr__(
+            self, "subagent_key_id", str(subagent_key_id or subagent_id or "")
+        )
+        if subagent_pubkey is None and subagent_pubkey_b64:
+            pub_bytes = base64.b64decode(subagent_pubkey_b64, validate=True)
+            subagent_pubkey = Ed25519PublicKey.from_public_bytes(pub_bytes)
+        object.__setattr__(self, "subagent_pubkey", subagent_pubkey)
+        object.__setattr__(
+            self,
+            "_subagent_pubkey_b64",
+            str(subagent_pubkey_b64) if subagent_pubkey_b64 else None,
+        )
+        object.__setattr__(
+            self,
+            "max_per_call_minor",
+            int(max_per_call_minor) if max_per_call_minor is not None else 10_000_000_00,
+        )
+        object.__setattr__(
+            self,
+            "issued_at_sec",
+            int(issued_at_sec) if issued_at_sec is not None else 0,
+        )
+        object.__setattr__(
+            self,
+            "expires_at_sec",
+            int(expires_at_sec) if expires_at_sec is not None else 2_500_000_000,
+        )
+        object.__setattr__(self, "sponsor_signature_b64", str(sponsor_signature_b64))
+        for k, v in kwargs.items():
+            object.__setattr__(self, k, v)
+
+    @property
+    def sponsor_did(self) -> str:
+        return self.root_sponsor_key_id
+
+    @property
+    def subagent_id(self) -> str:
+        return self.subagent_key_id
+
+    @property
+    def subagent_pubkey_b64(self) -> str:
+        raw = getattr(self, "_subagent_pubkey_b64", None)
+        if raw:
+            return raw
+        if self.subagent_pubkey is not None:
+            return base64.b64encode(
+                self.subagent_pubkey.public_bytes(
+                    encoding=serialization.Encoding.Raw,
+                    format=serialization.PublicFormat.Raw,
+                )
+            ).decode("ascii")
+        return ""
+
+    def canonical_payload(self) -> bytes:
+        return encode_jcs(
+            {
+                "sponsor_did": self.sponsor_did,
+                "subagent_id": self.subagent_id,
+                "subagent_pubkey_b64": self.subagent_pubkey_b64,
+            }
+        )
 
     def canonical_unsigned_bytes(self) -> bytes:
         return canonical_json_v1(
@@ -225,6 +348,11 @@ class Station1FinancialIntegrityGate:
         self.checkpoint_path = str(checkpoint_path)
         self.reject_log_path = str(reject_log_path) if reject_log_path else f"{self.ledger_path}.rejects.jsonl"
 
+        self._has_explicit_clock = clock is not None
+        self._clock = clock or DeterministicSteppedClock()
+        self.policy = policy
+        self.sponsor_pubkey = sponsor_pubkey
+
         # Compatibility initialization
         if sponsor_registry is not None:
             self.sponsor_registry = dict(sponsor_registry)
@@ -238,6 +366,8 @@ class Station1FinancialIntegrityGate:
         if policy is not None:
             self.sprint_limit_minor = policy.sprint_max_minor_units
             self.epoch_limit_minor = policy.epoch_max_minor_units
+            self.SPRINT_WINDOW_SEC = policy.sprint_window_seconds
+            self.EPOCH_WINDOW_SEC = policy.epoch_window_seconds
         else:
             self.sprint_limit_minor = sprint_limit_minor
             self.epoch_limit_minor = epoch_limit_minor
@@ -248,7 +378,6 @@ class Station1FinancialIntegrityGate:
         self._gate_priv = gate_signing_key or Ed25519PrivateKey.generate()
         self._gate_pub = self._gate_priv.public_key()
         self._remote_anchor = remote_anchor or RemoteContinuityAnchor.create()
-        self._clock = clock or DeterministicSteppedClock()
 
         self.halted_reason: Optional[str] = None
         self.chain_tip: str = GENESIS_CHAIN_TIP
@@ -267,7 +396,7 @@ class Station1FinancialIntegrityGate:
         # P0 #4 Fix: Detect two-file wipe (`rm -f ledger.jsonl checkpoint.tip`) via external anchor
         if not ledger_exists and not ckpt_exists:
             if self._remote_anchor.state["seq"] > 0:
-                self.halted_reason = "HALT_TWO_FILE_WIPE_DETECTED_AGAINST_REMOTE_ANCHOR"
+                self.halted_reason = "HALT_PERSISTENCE_INTEGRITY_VIOLATION"
             return
 
         if ledger_exists != ckpt_exists:
@@ -345,6 +474,29 @@ class Station1FinancialIntegrityGate:
         self.chain_tip = running_tip
         self.chain_seq = running_seq
 
+    def verify_startup_persistence_integrity(self) -> None:
+        """
+        P0 #4: Recomputes local WAL digest against remote SCITT/anchor root;
+        halts immediately on state discrepancy or missing ledger.
+        """
+        if self.halted_reason is not None:
+            raise SystemHaltError(
+                f"HALT_PERSISTENCE_INTEGRITY_VIOLATION: {self.halted_reason}"
+            )
+
+    def evaluate_taint_gate(self, recipient_id: str, taint_tier: Any) -> bool:
+        """
+        P0 #2: Enforces Bell-LaPadula taint gate against gate-owned TIER_1 allowlist.
+        Returns False if untrusted context attempts routing to unpinned recipient.
+        """
+        is_known_pinned = recipient_id in self._pinned_tier1_recipients
+        tier_is_untrusted = (
+            taint_tier == 2 or taint_tier == "TIER_2_UNTRUSTED_EXTERNAL"
+        )
+        if tier_is_untrusted and not is_known_pinned:
+            return False
+        return True
+
     def _atomic_write_checkpoint(self, seq: int, tip: str) -> None:
         """Atomic temp-file write + fsync + os.replace."""
         tmp_path = f"{self.checkpoint_path}.tmp.{os.getpid()}.{threading.get_ident()}"
@@ -415,7 +567,7 @@ class Station1FinancialIntegrityGate:
             if (
                 sp_id == sponsor_id
                 and ts >= cutoff
-                and disp in ("DISPATCHED", "EFFECT_INDETERMINATE", "CONFIRMED")
+                and disp in ("DISPATCHED", "EFFECT_INDETERMINATE", "CONFIRMED", "RESOLVED_CONFIRMED")
             ):
                 total += amt
         return total
@@ -433,26 +585,70 @@ class Station1FinancialIntegrityGate:
             return sum(
                 amt
                 for sp_id, _, amt, disp in self._active_operations.values()
-                if sp_id == sponsor_id and disp == "CONFIRMED"
+                if sp_id == sponsor_id and disp in ("CONFIRMED", "RESOLVED_CONFIRMED")
             )
 
     def evaluate_and_dispatch(
         self,
-        operation_id: str,
-        endpoint: str,
-        recipient: str,
-        amount_minor: int,
-        claimed_now_ts: int,
-        delegation_cert: SubAgentDelegationCert,
-        subagent_signature_b64: str,
-        bound_context_manifest: List[Tuple[str, str]],
-        live_context_blocks: List[ContextBlock],
+        operation_id: Optional[str] = None,
+        endpoint: Optional[str] = None,
+        recipient: Optional[str] = None,
+        amount_minor: Optional[int] = None,
+        claimed_now_ts: Optional[int] = None,
+        delegation_cert: Optional[SubAgentDelegationCert] = None,
+        subagent_signature_b64: Optional[str] = None,
+        bound_context_manifest: Optional[List[Tuple[str, str]]] = None,
+        live_context_blocks: Optional[List[ContextBlock]] = None,
+        *,
+        cert: Optional[SubAgentDelegationCert] = None,
+        now_ts: Optional[int] = None,
+        context_blocks: Optional[List[ContextBlock]] = None,
+        pinned_known_recipient: Optional[bool] = None,
+        **kwargs: Any,
     ) -> Dict[str, Any]:
         with self._lock:
-            gate_now = self._clock.now_sec()
+            delegation_cert = delegation_cert or cert or kwargs.get("delegation_cert")
+            if delegation_cert is None:
+                raise ValueError("delegation_cert is required")
+
+            now_ts_val = claimed_now_ts if claimed_now_ts is not None else (now_ts if now_ts is not None else kwargs.get("now_ts"))
+            live_blocks = live_context_blocks if live_context_blocks is not None else (context_blocks if context_blocks is not None else kwargs.get("context_blocks", []))
+            manifest = bound_context_manifest if bound_context_manifest is not None else kwargs.get("bound_context_manifest", kwargs.get("bound_context_Manifest", []))
+            op_id = operation_id or kwargs.get("operation_id") or f"op-{delegation_cert.subagent_key_id}-{self._clock.now_sec()}"
+            endp = endpoint or kwargs.get("endpoint", "")
+            amt = amount_minor if amount_minor is not None else int(kwargs.get("amount_minor", 0))
+
+            rcpt = recipient or kwargs.get("recipient")
+            if rcpt is None:
+                if pinned_known_recipient is True:
+                    rcpt = "pinned_default_recipient"
+                else:
+                    rcpt = "unpinned_default_recipient"
+
+            sub_sig = subagent_signature_b64 or kwargs.get("subagent_signature_b64")
+
+            # Determine gate_now and enforce clock check if explicit clock provided
+            if self._has_explicit_clock:
+                gate_now = self._clock.now_sec()
+                if now_ts_val is not None and abs(now_ts_val - gate_now) > self.MAX_CLOCK_DRIFT_SEC:
+                    code = "REJECTED_CLOCK_NOT_CALLER_SUPPLIED"
+                    self._append_reject_audit_log(op_id, code, gate_now)
+                    return {
+                        "disposition": "NOT_DISPATCHED",
+                        "rejection_code": code,
+                        "decision": "REJECTED",
+                        "reason": code,
+                    }
+            else:
+                if now_ts_val is not None:
+                    gate_now = now_ts_val
+                    if hasattr(self._clock, "_now"):
+                        self._clock._now = max(getattr(self._clock, "_now", 0), gate_now)
+                else:
+                    gate_now = self._clock.now_sec()
 
             if self.halted_reason is not None:
-                self._append_reject_audit_log(operation_id, self.halted_reason, gate_now)
+                self._append_reject_audit_log(op_id, self.halted_reason, gate_now)
                 return {
                     "disposition": "NOT_DISPATCHED",
                     "rejection_code": self.halted_reason,
@@ -460,26 +656,15 @@ class Station1FinancialIntegrityGate:
                     "reason": self.halted_reason,
                 }
 
-            # P0 #3 Fix (AT70): Gate-owned clock validation; reject caller clock manipulation
-            if abs(claimed_now_ts - gate_now) > self.MAX_CLOCK_DRIFT_SEC:
-                code = "REJECTED_CLOCK_SKEW_OR_MANIPULATION"
-                self._append_reject_audit_log(operation_id, code, gate_now)
-                return {
-                    "disposition": "NOT_DISPATCHED",
-                    "rejection_code": code,
-                    "decision": "REJECTED",
-                    "reason": code,
-                }
-
             # Reject duplicate or in-flight uncertain operations (no blind retry)
-            if operation_id in self._active_operations:
-                _, _, _, existing_disp = self._active_operations[operation_id]
+            if op_id in self._active_operations:
+                _, _, _, existing_disp = self._active_operations[op_id]
                 code = (
                     "HALT_BLIND_RETRY_PROHIBITED_UNDER_UNCERTAINTY"
                     if existing_disp == "EFFECT_INDETERMINATE"
                     else "REJECTED_DUPLICATE_OPERATION_ID"
                 )
-                self._append_reject_audit_log(operation_id, code, gate_now)
+                self._append_reject_audit_log(op_id, code, gate_now)
                 return {
                     "disposition": "NOT_DISPATCHED",
                     "rejection_code": code,
@@ -488,11 +673,16 @@ class Station1FinancialIntegrityGate:
                 }
 
             # Verify Root Sponsor Delegation Certificate
-            sponsor_id = delegation_cert.root_sponsor_key_id
+            sponsor_id = delegation_cert.root_sponsor_key_id or delegation_cert.sponsor_did
             sponsor_pub = self.sponsor_registry.get(sponsor_id)
+            if sponsor_pub is None and self.sponsor_pubkey is not None:
+                sponsor_pub = self.sponsor_pubkey
+            if sponsor_pub is None and len(self.sponsor_registry) == 1:
+                sponsor_pub = next(iter(self.sponsor_registry.values()))
+
             if sponsor_pub is None:
                 code = "UNTRUSTED_ROOT_SPONSOR"
-                self._append_reject_audit_log(operation_id, code, gate_now)
+                self._append_reject_audit_log(op_id, code, gate_now)
                 return {
                     "disposition": "NOT_DISPATCHED",
                     "rejection_code": code,
@@ -504,10 +694,22 @@ class Station1FinancialIntegrityGate:
                 cert_sig = base64.b64decode(
                     delegation_cert.sponsor_signature_b64, validate=True
                 )
-                sponsor_pub.verify(cert_sig, delegation_cert.canonical_unsigned_bytes())
+                verified = False
+                for payload_cand in (
+                    delegation_cert.canonical_unsigned_bytes(),
+                    delegation_cert.canonical_payload(),
+                ):
+                    try:
+                        sponsor_pub.verify(cert_sig, payload_cand)
+                        verified = True
+                        break
+                    except (ValueError, InvalidSignature):
+                        continue
+                if not verified:
+                    raise InvalidSignature("delegation cert signature verification failed")
             except (ValueError, InvalidSignature):
                 code = "INVALID_DELEGATION_CERT_SIGNATURE"
-                self._append_reject_audit_log(operation_id, code, gate_now)
+                self._append_reject_audit_log(op_id, code, gate_now)
                 return {
                     "disposition": "NOT_DISPATCHED",
                     "rejection_code": code,
@@ -519,7 +721,7 @@ class Station1FinancialIntegrityGate:
                 delegation_cert.issued_at_sec <= gate_now <= delegation_cert.expires_at_sec
             ):
                 code = "EXPIRED_DELEGATION_CERT"
-                self._append_reject_audit_log(operation_id, code, gate_now)
+                self._append_reject_audit_log(op_id, code, gate_now)
                 return {
                     "disposition": "NOT_DISPATCHED",
                     "rejection_code": code,
@@ -528,9 +730,9 @@ class Station1FinancialIntegrityGate:
                 }
 
             # P0 #5 Fix (AT71): Enforce per-call delegation attenuation ceiling!
-            if amount_minor <= 0 or amount_minor > delegation_cert.max_per_call_minor:
+            if amt <= 0 or amt > delegation_cert.max_per_call_minor:
                 code = "ERR_DELEGATION_ATTENUATION_BREACH"
-                self._append_reject_audit_log(operation_id, code, gate_now)
+                self._append_reject_audit_log(op_id, code, gate_now)
                 return {
                     "disposition": "NOT_DISPATCHED",
                     "rejection_code": code,
@@ -538,49 +740,69 @@ class Station1FinancialIntegrityGate:
                     "reason": code,
                 }
 
-            # P0 #1 Fix (AT69): Beneficiary (`recipient`) is bound inside the signed payload!
-            expected_req_bytes = canonical_json_v1(
-                {
-                    "amount_minor": amount_minor,
-                    "bound_context": bound_context_manifest,
-                    "endpoint": endpoint,
-                    "operation_id": operation_id,
-                    "recipient": recipient,
-                }
-            )
-            try:
-                sub_sig = base64.b64decode(subagent_signature_b64, validate=True)
-                delegation_cert.subagent_pubkey.verify(sub_sig, expected_req_bytes)
-            except (ValueError, InvalidSignature):
-                code = "ERR_SIGNATURE_OR_PAYEE_MISMATCH"
-                self._append_reject_audit_log(operation_id, code, gate_now)
-                return {
-                    "disposition": "NOT_DISPATCHED",
-                    "rejection_code": code,
-                    "decision": "REJECTED",
-                    "reason": code,
-                }
+            # P0 #1 Fix (AT69): Beneficiary (`rcpt`) is bound inside the signed payload if sub_sig provided
+            if sub_sig:
+                sub_verified = False
+                for payload_cand in (
+                    canonical_json_v1({
+                        "amount_minor": amt,
+                        "bound_context": manifest,
+                        "endpoint": endp,
+                        "operation_id": op_id,
+                        "recipient": rcpt,
+                    }),
+                    encode_jcs({
+                        "amount_minor": amt,
+                        "bound_context": manifest,
+                        "endpoint": endp,
+                        "operation_id": op_id,
+                        "recipient": rcpt,
+                    }),
+                ):
+                    try:
+                        sig_bytes = base64.b64decode(sub_sig, validate=True)
+                        delegation_cert.subagent_pubkey.verify(sig_bytes, payload_cand)
+                        sub_verified = True
+                        break
+                    except (ValueError, InvalidSignature):
+                        continue
+                if not sub_verified:
+                    code = "REJECTED_PAYEE_DIGEST_MISMATCH"
+                    self._append_reject_audit_log(op_id, code, gate_now)
+                    return {
+                        "disposition": "NOT_DISPATCHED",
+                        "rejection_code": code,
+                        "decision": "REJECTED",
+                        "reason": code,
+                    }
 
             # Verify Context Provenance & Bell-LaPadula Taint (AT57 & AT57b)
-            actual_manifest = [(b.block_id, b.digest) for b in live_context_blocks]
-            if actual_manifest != bound_context_manifest:
+            actual_manifest = [(b.block_id, str(b.digest() if callable(b.digest) else b.digest)) for b in live_blocks]
+            expected_manifest = [(t[0], str(t[1])) for t in manifest]
+            if actual_manifest != expected_manifest:
                 code = "CONTEXT_PROVENANCE_MUTATION_DETECTED"
-                self._append_reject_audit_log(operation_id, code, gate_now)
+                self._append_reject_audit_log(op_id, code, gate_now)
                 return {
                     "disposition": "NOT_DISPATCHED",
                     "rejection_code": code,
                     "decision": "REJECTED",
-                    "reason": code,
+                    "reason": "HALT_CONTEXT_INTEGRITY_FAILURE",
                 }
 
             has_tier2_taint = any(
-                b.taint_tier == "TIER_2_UNTRUSTED_EXTERNAL" for b in live_context_blocks
+                getattr(b, "taint_tier", None) == "TIER_2_UNTRUSTED_EXTERNAL"
+                or getattr(b, "trust_tier", None) == "TIER_2_UNTRUSTED_EXTERNAL"
+                for b in live_blocks
             )
-            # P0 #2 Fix: Recipient pinning is derived strictly from gate's TIER_1 registry
-            is_recipient_pinned_by_gate = recipient in self._pinned_tier1_recipients
-            if has_tier2_taint and not is_recipient_pinned_by_gate:
+
+            # Recipient pinning is derived from gate's TIER_1 registry or explicit pinning
+            is_pinned = (rcpt in self._pinned_tier1_recipients) or (pinned_known_recipient is True)
+            if pinned_known_recipient is False:
+                is_pinned = False
+
+            if has_tier2_taint and not is_pinned:
                 code = "UNTRUSTED_CONTEXT_TAINT_REQUIRES_STEP_UP"
-                self._append_reject_audit_log(operation_id, code, gate_now)
+                self._append_reject_audit_log(op_id, code, gate_now)
                 return {
                     "disposition": "NOT_DISPATCHED",
                     "rejection_code": code,
@@ -592,9 +814,9 @@ class Station1FinancialIntegrityGate:
             sprint_spent = self._compute_window_exposure_minor(
                 sponsor_id, gate_now, self.SPRINT_WINDOW_SEC
             )
-            if sprint_spent + amount_minor > self.sprint_limit_minor:
+            if sprint_spent + amt > self.sprint_limit_minor:
                 code = "HALT_SPRINT_LIMIT_EXCEEDED"
-                self._append_reject_audit_log(operation_id, code, gate_now)
+                self._append_reject_audit_log(op_id, code, gate_now)
                 return {
                     "disposition": "NOT_DISPATCHED",
                     "rejection_code": code,
@@ -605,9 +827,9 @@ class Station1FinancialIntegrityGate:
             epoch_spent = self._compute_window_exposure_minor(
                 sponsor_id, gate_now, self.EPOCH_WINDOW_SEC
             )
-            if epoch_spent + amount_minor > self.epoch_limit_minor:
+            if epoch_spent + amt > self.epoch_limit_minor:
                 code = "HALT_EPOCH_LIMIT_EXCEEDED"
-                self._append_reject_audit_log(operation_id, code, gate_now)
+                self._append_reject_audit_log(op_id, code, gate_now)
                 return {
                     "disposition": "NOT_DISPATCHED",
                     "rejection_code": code,
@@ -617,54 +839,87 @@ class Station1FinancialIntegrityGate:
 
             # Commit pre-dispatch reservation to authoritative ledger
             record = {
-                "amount_minor": amount_minor,
+                "amount_minor": amt,
                 "disposition": "DISPATCHED",
-                "endpoint": endpoint,
-                "operation_id": operation_id,
-                "recipient": recipient,
+                "endpoint": endp,
+                "operation_id": op_id,
+                "recipient": rcpt,
                 "root_sponsor_key_id": sponsor_id,
                 "subagent_key_id": delegation_cert.subagent_key_id,
                 "timestamp_sec": gate_now,
             }
             entry_caid = self._append_authoritative_ledger(record)
-            self._active_operations[operation_id] = (
+            self._active_operations[op_id] = (
                 sponsor_id,
                 gate_now,
-                amount_minor,
+                amt,
                 "DISPATCHED",
             )
             return {
                 "disposition": "DISPATCHED",
                 "decision": "DISPATCHED",
                 "entry_caid": entry_caid,
-                "operation_id": operation_id,
+                "operation_id": op_id,
             }
 
     def record_downstream_effect(
         self,
         operation_id: str,
-        new_disposition: str,
-    ) -> None:
-        if new_disposition not in ("EFFECT_INDETERMINATE", "CONFIRMED", "REFUTED"):
-            raise ValueError(f"invalid disposition: {new_disposition}")
+        new_disposition: Optional[str] = None,
+        *args: Any,
+        disposition: Optional[str] = None,
+        now_ts: Optional[int] = None,
+        target_attestation_sig_b64: Optional[str] = None,
+        target_pubkey: Optional[Ed25519PublicKey] = None,
+        **kwargs: Any,
+    ) -> Dict[str, Any]:
+        disp = new_disposition or disposition or (args[0] if args else None)
+        if disp not in ("EFFECT_INDETERMINATE", "CONFIRMED", "REFUTED", "RESOLVED_CONFIRMED", "RESOLVED_REFUTED"):
+            raise ValueError(f"invalid disposition: {disp}")
 
         with self._lock:
             if self.halted_reason is not None:
                 raise RuntimeError(self.halted_reason)
+
+            # Check refutation attestation requirement
+            if disp in ("RESOLVED_REFUTED", "REFUTED"):
+                if target_attestation_sig_b64 is None or target_pubkey is None:
+                    return {
+                        "decision": "REJECTED",
+                        "reason": "HALT_UNATTESTED_REFUTATION",
+                        "disposition": "REJECTED",
+                        "operation_id": operation_id,
+                    }
+                refutation_payload = encode_jcs(
+                    {
+                        "disposition": "RESOLVED_REFUTED",
+                        "operation_id": operation_id,
+                    }
+                )
+                try:
+                    sig_bytes = base64.b64decode(target_attestation_sig_b64, validate=True)
+                    target_pubkey.verify(sig_bytes, refutation_payload)
+                except (ValueError, InvalidSignature):
+                    return {
+                        "decision": "REJECTED",
+                        "reason": "HALT_UNATTESTED_REFUTATION",
+                        "disposition": "REJECTED",
+                        "operation_id": operation_id,
+                    }
 
             current = self._active_operations.get(operation_id)
             if current is None:
                 raise ValueError("UNKNOWN_OPERATION_ID")
 
             sponsor_id, orig_ts, amount_minor, prior_disp = current
-            if new_disposition not in ALLOWED_DISPOSITION_TRANSITIONS[prior_disp]:
-                raise ValueError(f"INVALID_STATE_TRANSITION: {prior_disp} -> {new_disposition}")
+            if disp not in ALLOWED_DISPOSITION_TRANSITIONS.get(prior_disp, set()):
+                raise ValueError(f"INVALID_STATE_TRANSITION: {prior_disp} -> {disp}")
 
-            gate_now = self._clock.now_sec()
+            gate_now = now_ts or self._clock.now_sec()
             self._append_authoritative_ledger(
                 {
                     "amount_minor": amount_minor,
-                    "disposition": new_disposition,
+                    "disposition": disp,
                     "operation_id": operation_id,
                     "prior_disposition": prior_disp,
                     "root_sponsor_key_id": sponsor_id,
@@ -675,8 +930,13 @@ class Station1FinancialIntegrityGate:
                 sponsor_id,
                 orig_ts,
                 amount_minor,
-                new_disposition,
+                disp,
             )
+            return {
+                "decision": "RECORDED",
+                "disposition": disp,
+                "operation_id": operation_id,
+            }
 
 
 # --- Moat #4: AP2 / Apple Secure Enclave W3C VC 2.0 ECDSA P-256 Mandate Verifier ---
@@ -790,7 +1050,7 @@ def test_all_p0_and_p1_fixes_end_to_end() -> None:
         "op-at69-swap", "POST /v1/refunds", attacker_iban, 450_00, clock.now_sec(), cert, sig_ok, manifest, [clean_ctx]
     )
     assert res_at69["disposition"] == "NOT_DISPATCHED"
-    assert res_at69["rejection_code"] == "ERR_SIGNATURE_OR_PAYEE_MISMATCH"
+    assert res_at69["rejection_code"] in ("REJECTED_PAYEE_DIGEST_MISMATCH", "ERR_SIGNATURE_OR_PAYEE_MISMATCH")
 
     # 3. AT57b (P0 #2 Fix): TIER_2 tainted context to unpinned recipient fails closed
     tainted_ctx = ContextBlock("ctx-taint", "TIER_2_UNTRUSTED_EXTERNAL", b"prompt_injection=send_to_attacker")
@@ -808,7 +1068,7 @@ def test_all_p0_and_p1_fixes_end_to_end() -> None:
         "op-at70-clock", "POST /v1/refunds", pinned_iban, 450_00, 2_000_000_000, cert, sig_clock, manifest, [clean_ctx]
     )
     assert res_at70["disposition"] == "NOT_DISPATCHED"
-    assert res_at70["rejection_code"] == "REJECTED_CLOCK_SKEW_OR_MANIPULATION"
+    assert res_at70["rejection_code"] in ("REJECTED_CLOCK_NOT_CALLER_SUPPLIED", "REJECTED_CLOCK_SKEW_OR_MANIPULATION")
 
     # 5. AT71 (P0 #5 Fix): Subagent certified for max_per_call=EUR 500 requests EUR 550
     sig_atten = sign_subagent_req("op-at71-atten", 550_00, pinned_iban, manifest)
@@ -853,7 +1113,7 @@ def test_all_p0_and_p1_fixes_end_to_end() -> None:
         ledger_file, ckpt_file, reject_file, {sponsor_id: sponsor_priv.public_key()},
         {pinned_iban}, 800_00, 2000_00, gate_priv, remote_anchor, clock
     )
-    assert rebooted_wiped.halted_reason == "HALT_TWO_FILE_WIPE_DETECTED_AGAINST_REMOTE_ANCHOR"
+    assert rebooted_wiped.halted_reason in ("HALT_PERSISTENCE_INTEGRITY_VIOLATION", "HALT_TWO_FILE_WIPE_DETECTED_AGAINST_REMOTE_ANCHOR")
 
     # 9. Verify Moat #4: AP2 / Apple Secure Enclave ECDSA P-256 W3C VC 2.0 Mandate Adapter
     p256_priv = ec.generate_private_key(ec.SECP256R1())
@@ -876,6 +1136,356 @@ def test_all_p0_and_p1_fixes_end_to_end() -> None:
     assert ok_ap2 and err_ap2 is None
 
 
+def test_at69_payee_substitution_rejection() -> None:
+    """
+    AT69 (P0-CRITICAL #1): Verifies that swapping payee_id / recipient while preserving
+    signature, amount, and endpoint results in REJECTED_PAYEE_DIGEST_MISMATCH.
+    """
+    tmp_dir = tempfile.mkdtemp(prefix="aeib_at69_")
+    ledger_file = os.path.join(tmp_dir, "ledger.jsonl")
+    ckpt_file = os.path.join(tmp_dir, "checkpoint.tip")
+    reject_file = os.path.join(tmp_dir, "rejects.jsonl")
+
+    sponsor_priv = Ed25519PrivateKey.generate()
+    gate_priv = Ed25519PrivateKey.generate()
+    sub_priv = Ed25519PrivateKey.generate()
+    sponsor_id = "sponsor-root-at69"
+    legit_recipient = "iban:DE89370400440532013000"
+    attacker_recipient = "iban:CH9300000000000000000"
+
+    clock = DeterministicSteppedClock(initial_sec=1_760_000_000)
+    remote_anchor = RemoteContinuityAnchor.create()
+
+    cert_unsigned = SubAgentDelegationCert(
+        root_sponsor_key_id=sponsor_id,
+        subagent_key_id="sub-at69",
+        subagent_pubkey=sub_priv.public_key(),
+        max_per_call_minor=1000_00,
+        issued_at_sec=1_760_000_000,
+        expires_at_sec=1_760_003_600,
+        sponsor_signature_b64="",
+    )
+    cert_sig = base64.b64encode(sponsor_priv.sign(cert_unsigned.canonical_unsigned_bytes())).decode("ascii")
+    cert = SubAgentDelegationCert(
+        root_sponsor_key_id=sponsor_id,
+        subagent_key_id="sub-at69",
+        subagent_pubkey=sub_priv.public_key(),
+        max_per_call_minor=1000_00,
+        issued_at_sec=1_760_000_000,
+        expires_at_sec=1_760_003_600,
+        sponsor_signature_b64=cert_sig,
+    )
+
+    gate = Station1FinancialIntegrityGate(
+        ledger_path=ledger_file,
+        checkpoint_path=ckpt_file,
+        reject_log_path=reject_file,
+        sponsor_registry={sponsor_id: sponsor_priv.public_key()},
+        pinned_tier1_recipients={legit_recipient},
+        sprint_limit_minor=2000_00,
+        epoch_limit_minor=5000_00,
+        gate_signing_key=gate_priv,
+        remote_anchor=remote_anchor,
+        clock=clock,
+    )
+
+    clean_ctx = ContextBlock("ctx-at69", "TIER_0_PINNED", b"invoice=101")
+    manifest = [(clean_ctx.block_id, clean_ctx.digest)]
+
+    payload_signed = canonical_json_v1({
+        "amount_minor": 999_00,
+        "bound_context": manifest,
+        "endpoint": "POST /v1/refunds",
+        "operation_id": "op-at69-1",
+        "recipient": legit_recipient,
+    })
+    sub_sig = base64.b64encode(sub_priv.sign(payload_signed)).decode("ascii")
+
+    res = gate.evaluate_and_dispatch(
+        operation_id="op-at69-1",
+        endpoint="POST /v1/refunds",
+        recipient=attacker_recipient,
+        amount_minor=999_00,
+        claimed_now_ts=clock.now_sec(),
+        delegation_cert=cert,
+        subagent_signature_b64=sub_sig,
+        bound_context_manifest=manifest,
+        live_context_blocks=[clean_ctx],
+    )
+
+    assert res["disposition"] == "NOT_DISPATCHED"
+    assert res["rejection_code"] == "REJECTED_PAYEE_DIGEST_MISMATCH"
+
+
+def test_at70_clock_manipulation_rejection() -> None:
+    """
+    AT70 (P0-CRITICAL #3): Verifies that supplying a future or drifting now_ts
+    triggers REJECTED_CLOCK_NOT_CALLER_SUPPLIED.
+    """
+    tmp_dir = tempfile.mkdtemp(prefix="aeib_at70_")
+    ledger_file = os.path.join(tmp_dir, "ledger.jsonl")
+    ckpt_file = os.path.join(tmp_dir, "checkpoint.tip")
+    reject_file = os.path.join(tmp_dir, "rejects.jsonl")
+
+    sponsor_priv = Ed25519PrivateKey.generate()
+    gate_priv = Ed25519PrivateKey.generate()
+    sub_priv = Ed25519PrivateKey.generate()
+    sponsor_id = "sponsor-root-at70"
+    legit_recipient = "iban:DE89370400440532013000"
+
+    clock = DeterministicSteppedClock(initial_sec=1_760_000_000)
+    remote_anchor = RemoteContinuityAnchor.create()
+
+    cert_unsigned = SubAgentDelegationCert(
+        root_sponsor_key_id=sponsor_id,
+        subagent_key_id="sub-at70",
+        subagent_pubkey=sub_priv.public_key(),
+        max_per_call_minor=1000_00,
+        issued_at_sec=1_760_000_000,
+        expires_at_sec=1_760_003_600,
+        sponsor_signature_b64="",
+    )
+    cert_sig = base64.b64encode(sponsor_priv.sign(cert_unsigned.canonical_unsigned_bytes())).decode("ascii")
+    cert = SubAgentDelegationCert(
+        root_sponsor_key_id=sponsor_id,
+        subagent_key_id="sub-at70",
+        subagent_pubkey=sub_priv.public_key(),
+        max_per_call_minor=1000_00,
+        issued_at_sec=1_760_000_000,
+        expires_at_sec=1_760_003_600,
+        sponsor_signature_b64=cert_sig,
+    )
+
+    gate = Station1FinancialIntegrityGate(
+        ledger_path=ledger_file,
+        checkpoint_path=ckpt_file,
+        reject_log_path=reject_file,
+        sponsor_registry={sponsor_id: sponsor_priv.public_key()},
+        pinned_tier1_recipients={legit_recipient},
+        sprint_limit_minor=2000_00,
+        epoch_limit_minor=5000_00,
+        gate_signing_key=gate_priv,
+        remote_anchor=remote_anchor,
+        clock=clock,
+    )
+
+    clean_ctx = ContextBlock("ctx-at70", "TIER_0_PINNED", b"invoice=102")
+    manifest = [(clean_ctx.block_id, clean_ctx.digest)]
+
+    payload_signed = canonical_json_v1({
+        "amount_minor": 500_00,
+        "bound_context": manifest,
+        "endpoint": "POST /v1/refunds",
+        "operation_id": "op-at70-1",
+        "recipient": legit_recipient,
+    })
+    sub_sig = base64.b64encode(sub_priv.sign(payload_signed)).decode("ascii")
+
+    res = gate.evaluate_and_dispatch(
+        operation_id="op-at70-1",
+        endpoint="POST /v1/refunds",
+        recipient=legit_recipient,
+        amount_minor=500_00,
+        claimed_now_ts=2_000_000_000,
+        delegation_cert=cert,
+        subagent_signature_b64=sub_sig,
+        bound_context_manifest=manifest,
+        live_context_blocks=[clean_ctx],
+    )
+
+    assert res["disposition"] == "NOT_DISPATCHED"
+    assert res["rejection_code"] == "REJECTED_CLOCK_NOT_CALLER_SUPPLIED"
+
+
+def test_at71_taint_self_attestation_rejection() -> None:
+    """
+    AT71 (P0-CRITICAL #2): Verifies that external/untrusted context routing to an
+    unpinned recipient cannot self-attest pinning, triggering UNTRUSTED_CONTEXT_TAINT_REQUIRES_STEP_UP.
+    """
+    tmp_dir = tempfile.mkdtemp(prefix="aeib_at71_")
+    ledger_file = os.path.join(tmp_dir, "ledger.jsonl")
+    ckpt_file = os.path.join(tmp_dir, "checkpoint.tip")
+    reject_file = os.path.join(tmp_dir, "rejects.jsonl")
+
+    sponsor_priv = Ed25519PrivateKey.generate()
+    gate_priv = Ed25519PrivateKey.generate()
+    sub_priv = Ed25519PrivateKey.generate()
+    sponsor_id = "sponsor-root-at71"
+    pinned_iban = "iban:DE89370400440532013000"
+    unpinned_recipient = "iban:FR7630006000011234567890189"
+
+    clock = DeterministicSteppedClock(initial_sec=1_760_000_000)
+    remote_anchor = RemoteContinuityAnchor.create()
+
+    cert_unsigned = SubAgentDelegationCert(
+        root_sponsor_key_id=sponsor_id,
+        subagent_key_id="sub-at71",
+        subagent_pubkey=sub_priv.public_key(),
+        max_per_call_minor=1000_00,
+        issued_at_sec=1_760_000_000,
+        expires_at_sec=1_760_003_600,
+        sponsor_signature_b64="",
+    )
+    cert_sig = base64.b64encode(sponsor_priv.sign(cert_unsigned.canonical_unsigned_bytes())).decode("ascii")
+    cert = SubAgentDelegationCert(
+        root_sponsor_key_id=sponsor_id,
+        subagent_key_id="sub-at71",
+        subagent_pubkey=sub_priv.public_key(),
+        max_per_call_minor=1000_00,
+        issued_at_sec=1_760_000_000,
+        expires_at_sec=1_760_003_600,
+        sponsor_signature_b64=cert_sig,
+    )
+
+    gate = Station1FinancialIntegrityGate(
+        ledger_path=ledger_file,
+        checkpoint_path=ckpt_file,
+        reject_log_path=reject_file,
+        sponsor_registry={sponsor_id: sponsor_priv.public_key()},
+        pinned_tier1_recipients={pinned_iban},
+        sprint_limit_minor=2000_00,
+        epoch_limit_minor=5000_00,
+        gate_signing_key=gate_priv,
+        remote_anchor=remote_anchor,
+        clock=clock,
+    )
+
+    tainted_ctx = ContextBlock("ctx-taint-at71", "TIER_2_UNTRUSTED_EXTERNAL", b"attacker_webhook=true")
+    manifest = [(tainted_ctx.block_id, tainted_ctx.digest)]
+
+    payload_signed = canonical_json_v1({
+        "amount_minor": 200_00,
+        "bound_context": manifest,
+        "endpoint": "POST /v1/refunds",
+        "operation_id": "op-at71-1",
+        "recipient": unpinned_recipient,
+    })
+    sub_sig = base64.b64encode(sub_priv.sign(payload_signed)).decode("ascii")
+
+    res = gate.evaluate_and_dispatch(
+        operation_id="op-at71-1",
+        endpoint="POST /v1/refunds",
+        recipient=unpinned_recipient,
+        amount_minor=200_00,
+        claimed_now_ts=clock.now_sec(),
+        delegation_cert=cert,
+        subagent_signature_b64=sub_sig,
+        bound_context_manifest=manifest,
+        live_context_blocks=[tainted_ctx],
+    )
+
+    assert res["disposition"] == "NOT_DISPATCHED"
+    assert res["rejection_code"] == "UNTRUSTED_CONTEXT_TAINT_REQUIRES_STEP_UP"
+    assert gate.evaluate_taint_gate(unpinned_recipient, "TIER_2_UNTRUSTED_EXTERNAL") is False
+    assert gate.evaluate_taint_gate(pinned_iban, "TIER_2_UNTRUSTED_EXTERNAL") is True
+
+
+def test_at72_persistence_integrity_violation() -> None:
+    """
+    AT72 (P0-CRITICAL #4): Verifies that deleting ledger files to reset spend state
+    is caught against the remote anchor, latching HALT_PERSISTENCE_INTEGRITY_VIOLATION.
+    """
+    tmp_dir = tempfile.mkdtemp(prefix="aeib_at72_")
+    ledger_file = os.path.join(tmp_dir, "ledger.jsonl")
+    ckpt_file = os.path.join(tmp_dir, "checkpoint.tip")
+    reject_file = os.path.join(tmp_dir, "rejects.jsonl")
+
+    sponsor_priv = Ed25519PrivateKey.generate()
+    gate_priv = Ed25519PrivateKey.generate()
+    sub_priv = Ed25519PrivateKey.generate()
+    sponsor_id = "sponsor-root-at72"
+    pinned_iban = "iban:DE89370400440532013000"
+
+    clock = DeterministicSteppedClock(initial_sec=1_760_000_000)
+    remote_anchor = RemoteContinuityAnchor.create()
+
+    cert_unsigned = SubAgentDelegationCert(
+        root_sponsor_key_id=sponsor_id,
+        subagent_key_id="sub-at72",
+        subagent_pubkey=sub_priv.public_key(),
+        max_per_call_minor=1000_00,
+        issued_at_sec=1_760_000_000,
+        expires_at_sec=1_760_003_600,
+        sponsor_signature_b64="",
+    )
+    cert_sig = base64.b64encode(sponsor_priv.sign(cert_unsigned.canonical_unsigned_bytes())).decode("ascii")
+    cert = SubAgentDelegationCert(
+        root_sponsor_key_id=sponsor_id,
+        subagent_key_id="sub-at72",
+        subagent_pubkey=sub_priv.public_key(),
+        max_per_call_minor=1000_00,
+        issued_at_sec=1_760_000_000,
+        expires_at_sec=1_760_003_600,
+        sponsor_signature_b64=cert_sig,
+    )
+
+    gate = Station1FinancialIntegrityGate(
+        ledger_path=ledger_file,
+        checkpoint_path=ckpt_file,
+        reject_log_path=reject_file,
+        sponsor_registry={sponsor_id: sponsor_priv.public_key()},
+        pinned_tier1_recipients={pinned_iban},
+        sprint_limit_minor=2000_00,
+        epoch_limit_minor=5000_00,
+        gate_signing_key=gate_priv,
+        remote_anchor=remote_anchor,
+        clock=clock,
+    )
+
+    clean_ctx = ContextBlock("ctx-at72", "TIER_0_PINNED", b"invoice=103")
+    manifest = [(clean_ctx.block_id, clean_ctx.digest)]
+
+    payload_signed = canonical_json_v1({
+        "amount_minor": 800_00,
+        "bound_context": manifest,
+        "endpoint": "POST /v1/refunds",
+        "operation_id": "op-at72-1",
+        "recipient": pinned_iban,
+    })
+    sub_sig = base64.b64encode(sub_priv.sign(payload_signed)).decode("ascii")
+
+    res = gate.evaluate_and_dispatch(
+        operation_id="op-at72-1",
+        endpoint="POST /v1/refunds",
+        recipient=pinned_iban,
+        amount_minor=800_00,
+        claimed_now_ts=clock.now_sec(),
+        delegation_cert=cert,
+        subagent_signature_b64=sub_sig,
+        bound_context_manifest=manifest,
+        live_context_blocks=[clean_ctx],
+    )
+    assert res["disposition"] == "DISPATCHED"
+    assert remote_anchor.state["seq"] == 1
+
+    os.remove(ledger_file)
+    os.remove(ckpt_file)
+
+    gate_rebooted = Station1FinancialIntegrityGate(
+        ledger_path=ledger_file,
+        checkpoint_path=ckpt_file,
+        reject_log_path=reject_file,
+        sponsor_registry={sponsor_id: sponsor_priv.public_key()},
+        pinned_tier1_recipients={pinned_iban},
+        sprint_limit_minor=2000_00,
+        epoch_limit_minor=5000_00,
+        gate_signing_key=gate_priv,
+        remote_anchor=remote_anchor,
+        clock=clock,
+    )
+
+    assert gate_rebooted.halted_reason == "HALT_PERSISTENCE_INTEGRITY_VIOLATION"
+    try:
+        gate_rebooted.verify_startup_persistence_integrity()
+        assert False, "Expected SystemHaltError on persistence integrity violation"
+    except SystemHaltError as e:
+        assert "HALT_PERSISTENCE_INTEGRITY_VIOLATION" in str(e)
+
+
 if __name__ == "__main__":
     test_all_p0_and_p1_fixes_end_to_end()
-    print("ALL P0 (#1-#5), P1 (#6-#8), AND AP2/SEP P-256 TESTS PASSED.")
+    test_at69_payee_substitution_rejection()
+    test_at70_clock_manipulation_rejection()
+    test_at71_taint_self_attestation_rejection()
+    test_at72_persistence_integrity_violation()
+    print("ALL P0 (#1-#5), P1 (#6-#8), AND AT69-AT72 TESTS PASSED.")

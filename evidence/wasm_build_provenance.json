@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "https://in-toto.io/Statement/v1",
+  "predicateType": "https://slsa.dev/provenance/v1",
+  "subject": [
+    {
+      "name": "smaos_verify.wasm",
+      "digest": {
+        "sha256": "6ecc360af19008632c950d94910b70220e3c2cc36a5cc29fe0c33ba64d2bb041"
+      }
+    }
+  ],
+  "predicate": {
+    "buildDefinition": {
+      "buildType": "https://github.com/sovreignnexus/smaos/wasm-reproducible-build/v1",
+      "externalParameters": {
+        "entrypoint": "crates/smaos-verify/src/lib.rs",
+        "target": "wasm32-unknown-unknown",
+        "profile": "release",
+        "opt_level": "z",
+        "lto": true,
+        "codegen_units": 1,
+        "panic": "abort"
+      },
+      "internalParameters": {
+        "rustc_version": "rustc 1.95.0 (59807616e 2026-04-14)",
+        "cargo_version": "cargo 1.95.0 (f2d3ce0bd 2026-03-21)",
+        "git_commit": "d1b51af7b5aaf802b81031f8c04e405210446cd9",
+        "build_timestamp": "2026-10-20T17:36:41Z"
+      },
+      "resolvedDependencies": [
+        {
+          "uri": "crates/smaos-verify/Cargo.toml",
+          "digest": {
+            "sha256": "3c3ba03eebe5b30514181ad2f2f596e536f599de4e16a87d5764a67f93dbb1d8"
+          }
+        },
+        {
+          "uri": "crates/smaos-verify/Cargo.lock",
+          "digest": {
+            "sha256": "77f51faa9ca1e24d74ac6e7754a5f1dc6e2eecb50ff9c50bd5f314d0a77c2347"
+          }
+        }
+      ]
+    },
+    "runDetails": {
+      "builder": {
+        "id": "local-reproducible-builder"
+      },
+      "metadata": {
+        "reproducibilityVerdict": "DETERMINISTIC_MATCH",
+        "binaryByteSize": 199770
+      }
+    }
+  }
+}

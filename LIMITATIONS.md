@@ -250,9 +250,27 @@ agent_execution_integrity_requirements:
 | :--- | :--- |
 | "Complete, mathematically grounded, industry-validated architecture" | A layered pre-production architecture informed by current isolation, attestation, and MCP-security practices. |
 | "Secure against kernel escapes" | Designed to reduce blast radius through VM isolation and host-side egress policy; escape resistance must be tested per platform. |
-| "Immune to Chain-of-Thought unfaithfulness" | Does not treat CoT as authorization evidence; authorization depends strictly on structured, signed, and durable inputs. |
+| "Protected against Chain-of-Thought unfaithfulness" | Does not treat CoT as authorization evidence; authorization depends strictly on structured, signed, and durable inputs. |
 | "Compliant with EU AI Act EN 18286 and DORA" | May support an operator's EU AI Act QMS and DORA logging program; compliance remains operator- and context-specific. |
 | "Optimized for sub-millisecond execution" | Performance targets require measured p50/p99/p999 latency under load and fault conditions. |
 | "Credential Starvation Principle" | An internal design principle ensuring the agent process holds zero external bearer credentials. |
 | "SPACE-style Firecracker microVM" | SPACE-inspired Firecracker microVM isolation topology. |
+
+---
+
+## 13. W3C BBS+ Cryptosuite Standards-Tracking Prototype Status
+
+The selective disclosure module (`src/bbs_plus_redactable.py`) implements vector commitments based on BLS12-381:
+- The **W3C Data Integrity BBS Cryptosuites v1.0** specification is currently a **Candidate Recommendation**, dependent on finalization of the underlying pairing-friendly curves and BBS signature primitives in the IETF CFRG (`draft-irtf-cfrg-bbs-signatures`).
+- In AEIB, BBS+ selective redaction is categorized as a **standards-tracking interoperability prototype**. It demonstrates mathematical resolution of the tension between GDPR Article 17 (Right to Erasure) and DORA / EU AI Act Article 12 (Immutable Audit Logging), but does not constitute an immutable, final cryptographic standard.
+
+---
+
+## 14. Kernel eBPF LSM & Hardware TPM Scaffolding Boundaries
+
+The eBPF LSM controller crate (`crates/aeib-ebpf-lsm`) and TPM attestation module (`src/tpm_pcr_attestation.py`):
+- **Development & Local Test Environments:** On Darwin/macOS or unprivileged hosts, these components operate as **clean-room software simulation scaffolds**. They evaluate policy state machines, map capacity, and event serialization, but do not provide live Ring 0 syscall interception or hardware PCR extension.
+- **Production Kernel Requirements:** Real kernel enforcement requires deploying onto an evaluated Linux kernel (e.g. Linux 6.1 LTS, 6.6 LTS, or 6.12 LTS) compiled with `CONFIG_BPF_LSM=y`, valid BTF (`/sys/kernel/btf/vmlinux`), and execution within the host root namespace with `CAP_SYS_ADMIN` or `CAP_BPF`.
+- **Hardware Root of Trust:** Platform attestation quotes require physical TPM 2.0 chips, virtual TPMs (vTPM), or cloud confidential computing enclaves (AMD SEV-SNP, Intel TDX, AWS Nitro Enclaves). Software simulation does not establish a hardware-rooted cryptographic chain.
+
 

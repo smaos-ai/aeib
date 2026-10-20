@@ -1,0 +1,69 @@
+{
+  "evaluation_timestamp": "2026-10-20T17:36:42Z",
+  "backup_source": "/Volumes/EXTssd/SovereignNexus_Backup",
+  "restoration_directory": "/var/folders/y7/fxmrtvyn21j3ns3zng5kn6x80000gn/T/aeib_restore_eval__trkw39_",
+  "restorability_verified": true,
+  "measured_rto_seconds": 0.1274,
+  "target_rto_threshold_seconds": 60.0,
+  "rto_sla_met": true,
+  "rpo_basis": "Synchronized at commit HEAD",
+  "files_evaluated_count": 6,
+  "files_verified_count": 6,
+  "restored_wasm_instantiation_code": 0,
+  "hash_comparisons": [
+    {
+      "target": "smaos_verify.wasm",
+      "restored_sha256": "6ecc360af19008632c950d94910b70220e3c2cc36a5cc29fe0c33ba64d2bb041",
+      "live_sha256": "6ecc360af19008632c950d94910b70220e3c2cc36a5cc29fe0c33ba64d2bb041",
+      "manifest_sha256": "6ecc360af19008632c950d94910b70220e3c2cc36a5cc29fe0c33ba64d2bb041",
+      "matched_live": true,
+      "matched_manifest": true,
+      "verdict": "VERIFIED"
+    },
+    {
+      "target": "output/dst-report-20261020.json",
+      "restored_sha256": "3f2c3c01b510225092b46ea604ab88f873012d9149abb2bd1771c0ad401510d2",
+      "live_sha256": "3f2c3c01b510225092b46ea604ab88f873012d9149abb2bd1771c0ad401510d2",
+      "manifest_sha256": "3f2c3c01b510225092b46ea604ab88f873012d9149abb2bd1771c0ad401510d2",
+      "matched_live": true,
+      "matched_manifest": true,
+      "verdict": "VERIFIED"
+    },
+    {
+      "target": "output/dst-traces-20261020/traces.jsonl",
+      "restored_sha256": "796ab2307c17c2a3fe529972143c986581b86556869e2f5e4d2b1f00f0466197",
+      "live_sha256": "796ab2307c17c2a3fe529972143c986581b86556869e2f5e4d2b1f00f0466197",
+      "manifest_sha256": "796ab2307c17c2a3fe529972143c986581b86556869e2f5e4d2b1f00f0466197",
+      "matched_live": true,
+      "matched_manifest": true,
+      "verdict": "VERIFIED"
+    },
+    {
+      "target": "evidence/cbom.json",
+      "restored_sha256": "9db3e7f8e6c23928c1ccf56f97cc3700b2b8a392a48b5bb71ac86466763fa1fc",
+      "live_sha256": "9db3e7f8e6c23928c1ccf56f97cc3700b2b8a392a48b5bb71ac86466763fa1fc",
+      "manifest_sha256": null,
+      "matched_live": true,
+      "matched_manifest": true,
+      "verdict": "VERIFIED"
+    },
+    {
+      "target": "docs/compliance/CISO_DORA_EXECUTIVE_DECISION_PACK.md",
+      "restored_sha256": "1e296ca6b185a274524c6d62d48e7971aba786d0e1f1a65e29194b9602e9cbd2",
+      "live_sha256": "1e296ca6b185a274524c6d62d48e7971aba786d0e1f1a65e29194b9602e9cbd2",
+      "manifest_sha256": null,
+      "matched_live": true,
+      "matched_manifest": true,
+      "verdict": "VERIFIED"
+    },
+    {
+      "target": "Cargo.toml",
+      "restored_sha256": "c8f3022667cd9e49b081211de22d65224c8fb9ec35867a8370dfbcfb7b971076",
+      "live_sha256": "c8f3022667cd9e49b081211de22d65224c8fb9ec35867a8370dfbcfb7b971076",
+      "manifest_sha256": null,
+      "matched_live": true,
+      "matched_manifest": true,
+      "verdict": "VERIFIED"
+    }
+  ]
+}

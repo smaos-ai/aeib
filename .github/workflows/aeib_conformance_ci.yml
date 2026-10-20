@@ -1,0 +1,100 @@
+name: AEIB Conformance & DORA Governance CI
+
+on:
+  push:
+    branches:
+      - main
+      - "feat/*"
+      - "release/*"
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - main
+      - "feat/*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-conformance:
+    name: "AEIB Multi-Platform Conformance & Evidence Gate"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ["3.12"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Set up Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+          components: clippy, rustfmt
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Python dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install cryptography pytest anyio
+
+      - name: 1. Execute AST Purity & Zone Boundary Scanners
+        run: |
+          python3 compliance/check_zone_boundary.py
+          python3 compliance/ast_purity.py .
+          python3 compliance/no_mock_enforcer.py
+
+      - name: 2. Compile & Test Rust eBPF LSM and Data-Plane Crates
+        run: |
+          cargo test -p aeib-data-plane -p aeib-ebpf-lsm
+          cargo clippy -p aeib-ebpf-lsm -- -D warnings
+
+      - name: 3. Verify Reproducible WebAssembly Build & Acceptance Suite
+        run: |
+          chmod +x scripts/build_reproducible_wasm.sh
+          ./scripts/build_reproducible_wasm.sh
+          node tests/test_smaos_verify_wasm.js
+
+      - name: 4. Execute Core Industrial & Adversarial Fuzzing Suites
+        run: |
+          pytest \
+            tests/test_industrial_protection_matrix.py \
+            tests/test_ansi_50bf_breaker_failure.py \
+            tests/test_saga_compensation.py \
+            tests/test_falsifiability_matrix.py \
+            tests/test_adversarial_fuzz_and_negative_invariants.py -v
+
+      - name: 5. Execute Deterministic 500-Episode Conformance Benchmark
+        run: |
+          python3 benchmarks/aeib_execution_integrity/run_episodes.py --episodes 500 --seed 42
+
+      - name: 6. Verify Evidence Hashes Integrity
+        run: |
+          shasum -a 256 smaos_verify.wasm | awk '{print $1}' | grep -q "6ecc360af19008632c950d94910b70220e3c2cc36a5cc29fe0c33ba64d2bb041"
+          echo "[✓] Core release binary digest verified against locked manifest."
+
+      - name: 7. Upload Certified Governance Evidence Artifacts
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: aeib-certified-evidence-pack
+          path: |
+            evidence/cbom.json
+            evidence/wasm_build_provenance.json
+            output/evidence-hashes.txt
+            docs/compliance/CISO_DORA_EXECUTIVE_DECISION_PACK.md
+          retention-days: 90

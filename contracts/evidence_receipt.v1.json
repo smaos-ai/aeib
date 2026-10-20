@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/SovereignNexus/agentic-fabric/contracts/evidence_receipt.v1.json",
+  "title": "AEIB Canonical Evidence Receipt (v1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "receipt_version",
+    "receipt_caid",
+    "capsule_id",
+    "operation_id",
+    "disposition",
+    "payload_sha256",
+    "signer_public_key_hex",
+    "signature_hex",
+    "signed_at_utc"
+  ],
+  "properties": {
+    "receipt_version": { "type": "string", "const": "1.0.0" },
+    "receipt_caid": { "type": "string", "pattern": "^urn:aeib:receipt:sha256:[a-f0-9]{64}$" },
+    "capsule_id": { "type": "string", "format": "uuid" },
+    "operation_id": { "type": "string", "format": "uuid" },
+    "disposition": {
+      "type": "string",
+      "enum": ["DISPATCHED", "CONFIRMED", "REFUTED", "EFFECT_INDETERMINATE", "REJECTED"]
+    },
+    "payload_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "signer_public_key_hex": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "signature_hex": { "type": "string", "pattern": "^[a-f0-9]{128}$" },
+    "signed_at_utc": { "type": "string" },
+    "merkle_inclusion_proof": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["leaf_index", "tree_size", "root_hash", "audit_path"],
+      "properties": {
+        "leaf_index": { "type": "integer", "minimum": 0 },
+        "tree_size": { "type": "integer", "minimum": 1 },
+        "root_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "audit_path": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        }
+      }
+    }
+  }
+}

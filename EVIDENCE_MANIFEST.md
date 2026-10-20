@@ -441,8 +441,17 @@ negative_control_falsification:
 | **Canonical Capability Warrant Schema**| `contracts/capability.v1.json` | `9c5b534a314275bea7d2ad8699901e854eaefb3da701f5629f7ad7fc74067430` | Capability-scoped attenuation, allowed_export_dirs, spending limits | `FROZEN` |
 | **Station 1 Protobuf Specification** | `contracts/station1.proto` | `aad3ca9d00fb3b815f235d0a67b3ca622658dbf71197914f07a5165d2821475d` | Language-neutral gRPC/Proto interface for Station1Gatekeeper | `SPECIFIED` |
 | **Temporal Logic Invariant Rules** | `contracts/temporal_rules.yaml` | `cdf510db5320e7cf3106c8e98c4bb08feb571f157f2cd03ae75fb376ae70d322` | T1–T6 operational state machine invariants | `SPECIFIED` |
-| **Station 1 Gatekeeper Engine** | `simulation-lab/station1_gate_engine.py` | `473dfee224d9c384f35cf8e6c66d42ae1f48ac55816a1b6b3f7af5e91dcd7237` | Path containment, schema gating, monotonic taint enforcer | `IMPLEMENTED` |
+| **Station 1 Gatekeeper Engine** | `simulation-lab/station1_gate_engine.py` | `059d9875c543facc9ccb9867f00af0307697720b918ff5ec55008420d4f565fe` | Path containment, schema gating, monotonic taint enforcer | `IMPLEMENTED` |
 | **Adversarial Blank-Box TDD Suite** | `simulation-lab/test_black_box.py` | `f142fb87125f60b35ace2d87179d50f90216781cb0999c3edb4831d045eeb521` | 9/9 passed (CVE-2026-43901, CVE-2025-53110, 250 generative fuzzed vectors) | `VERIFIED` |
+| **Canonical Work Capsule Schema** | `contracts/work_capsule.v1.json` | `e730abfc6f5e3275817f0c7a9f4b1335ecbce34a94a048a7c99bfcdb80859b98` | 6-plane work capsule schema draft 2020-12 | `FROZEN` |
+| **Canonical Evidence Receipt Schema** | `contracts/evidence_receipt.v1.json` | `52eadb6d7eb08aec6132a776606c84a3d5e3552cae73c394d8ab3667f1c29fd0` | Cryptographic evidence receipt schema with RFC 8785 + Ed25519 | `FROZEN` |
+| **Work Capsule Lifecycle & Human Gate** | `src/work_capsule_engine.py` | `27c918e8bc3aa5a7a8c9cf2cd6360b57645463a95613fe1c82b53bbb875b940a` | Lifecycle automaton, fail-closed human gate, Jidoka uncertainty latch | `IMPLEMENTED` |
+| **Universal Conformance Runner** | `tools/vaf_conformance_runner.py` | `876070e0a2b5638d55600aa7fa203fd6e960bcd2c0d13155d1359da3c5b8e6f7` | Declarative black-box conformance runner across 20 vectors | `VERIFIED` |
+| **VAF Automated Mutation Gate** | `tools/vaf_mutation_gate.py` | `e28ea389a0228bbff86d385a9a1ac0a2ba13ea970e535b22e847f10def49a53b` | Automated mutation testing harness (10/10 mutants killed, 100% score) | `VERIFIED` |
+| **Mutation Gate Test Suite** | `tests/test_vaf_mutation_gate.py` | `07df3f302396f5a1aaabc01af99ed05eed0737a197741bbd10771eb7d4da409e` | 4/4 passed (100% kill rate, non-tautological negative control) | `VERIFIED` |
+| **Work Capsule & Conformance Integration** | `tests/test_vaf_work_capsule_and_conformance.py` | `8dd6aae433e8f1b1db9ba0a405b9e5adb268ee2a2cf4daae639ba4969e0bb465` | 7/7 passed (lifecycle transitions, human gate, 20-vector run) | `VERIFIED` |
+| **Universal Conformance Run Report** | `output/conformance_run_report.json` | `50df44eb46154b0ab7e83124b9fa629fb6f564a27b54bd020e9ac895625cf34f` | 20/20 passed (100.0% pass rate, Merkle root fd9aeec0...) | `RECORDED` |
+| **Mutation Gate Execution Report** | `output/vaf_mutation_gate_report.json` | `74d23bdb6bc57e3fb4bbcc0d7fe2088bf4860850ecdc1fe680f5cb9288feefcd` | 10/10 mutants killed, 100.0% mutation score, disposition PASS | `RECORDED` |
 
 
 

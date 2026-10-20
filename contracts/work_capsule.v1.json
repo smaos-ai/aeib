@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/SovereignNexus/agentic-fabric/contracts/work_capsule.v1.json",
+  "title": "AEIB Canonical Work Capsule (v1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "capsule_version",
+    "capsule_id",
+    "intent_id",
+    "state",
+    "contract_refs",
+    "policy_context",
+    "candidate_ref",
+    "execution_plan",
+    "evidence_receipts",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "capsule_version": { "type": "string", "const": "1" },
+    "capsule_id": { "type": "string", "format": "uuid" },
+    "intent_id": { "type": "string", "format": "uuid" },
+    "state": {
+      "type": "string",
+      "enum": [
+        "DRAFT",
+        "PROPOSED",
+        "VERIFIED",
+        "HUMAN_APPROVAL_PENDING",
+        "AUTHORIZED",
+        "DISPATCHED",
+        "CONFIRMED",
+        "REFUTED",
+        "EFFECT_INDETERMINATE",
+        "SETTLED",
+        "HALTED"
+      ]
+    },
+    "contract_refs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["act_schema_version", "behavior_contract_id"],
+      "properties": {
+        "act_schema_version": { "type": "string" },
+        "behavior_contract_id": { "type": "string" },
+        "capability_id": { "type": "string" }
+      }
+    },
+    "policy_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy_epoch", "taint_tier", "requires_human_gate"],
+      "properties": {
+        "policy_epoch": { "type": "string" },
+        "taint_tier": { "type": "string", "enum": ["TIER_0_PINNED", "TIER_1_REVIEWED", "TIER_2_UNTRUSTED"] },
+        "requires_human_gate": { "type": "boolean" },
+        "human_approval_signature": { "type": "string" }
+      }
+    },
+    "candidate_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_revision", "artifact_sha256"],
+      "properties": {
+        "source_revision": { "type": "string" },
+        "artifact_sha256": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "parameters_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+      }
+    },
+    "execution_plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target_endpoint", "action_type", "idempotency_key", "amount_minor"],
+      "properties": {
+        "target_endpoint": { "type": "string" },
+        "action_type": { "type": "string" },
+        "idempotency_key": { "type": "string", "format": "uuid" },
+        "amount_minor": { "type": "integer", "minimum": 0 },
+        "currency": { "type": "string", "pattern": "^[A-Z]{3}$" }
+      }
+    },
+    "evidence_receipts": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "created_at": { "type": "integer", "minimum": 1 },
+    "updated_at": { "type": "integer", "minimum": 1 }
+  }
+}

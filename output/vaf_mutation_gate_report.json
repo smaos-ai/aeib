@@ -1,0 +1,101 @@
+{
+  "run_timestamp": "2026-10-20T21:55:27.009091+00:00",
+  "total_mutants": 10,
+  "mutants_killed": 10,
+  "mutants_survived": 0,
+  "mutation_score_pct": 100.0,
+  "gate_disposition": "PASS",
+  "report_sha256": "c39089cd8694bd79a32eb1c3a94104594424f831c7e8b2287ab627ead129ab1b",
+  "results": [
+    {
+      "mutant_id": "MUTANT_01_BYPASS_PATH_CONTAINMENT",
+      "category": "PATH_TRAVERSAL",
+      "description": "Alters check_path_containment to return True unconditionally, simulating disabled containment",
+      "status": "KILLED",
+      "killed_by_test": "vector:act-dot-dot-slash-cve-2025-53110-009",
+      "detected_discrepancy": "Expected disposition NOT_DISPATCHED with error ERR_PATH_TRAVERSAL_DENIED, but observed NOT_DISPATCHED with error ERR_SCHEMA_ADDITIONAL_PROPERTY",
+      "evaluation_latency_ms": 0.642
+    },
+    {
+      "mutant_id": "MUTANT_02_DISABLE_ADDITIONAL_PROPERTIES_CHECK",
+      "category": "SCHEMA_CONFORMANCE",
+      "description": "Bypasses additionalProperties: false check at the root schema level",
+      "status": "KILLED",
+      "killed_by_test": "probe:additional_properties_injection",
+      "detected_discrepancy": "Mutant bypassed additionalProperties check: {'disposition': 'DISPATCHED', 'caid': 'sha256:2c3201fd7f87e6289be575f285c2167670ad4acd492eef22b8b378374eae26da', 'operation_id': '11111111-2222-3333-4444-555555555555', 'escrowed_minor': 1000, 'status_code': 200, 'error_code': None}",
+      "evaluation_latency_ms": 31.86
+    },
+    {
+      "mutant_id": "MUTANT_03_BYPASS_SPRINT_BUDGET_CEILING",
+      "category": "BUDGET_CONSERVATION",
+      "description": "Bypasses the cumulative sprint budget ceiling invariant check",
+      "status": "KILLED",
+      "killed_by_test": "vector:act-sprint-budget-exceeded-017",
+      "detected_discrepancy": "Expected disposition NOT_DISPATCHED with error ERR_SPRINT_BUDGET_EXCEEDED, but observed DISPATCHED with error None",
+      "evaluation_latency_ms": 27.826
+    },
+    {
+      "mutant_id": "MUTANT_04_BYPASS_MAX_PER_CALL_LIMIT",
+      "category": "BUDGET_CONSERVATION",
+      "description": "Disables amount_minor > max_per_call_minor ceiling enforcement",
+      "status": "KILLED",
+      "killed_by_test": "vector:act-64bit-integer-overflow-011",
+      "detected_discrepancy": "Expected disposition NOT_DISPATCHED with error ERR_EXCEEDS_MAX_PER_CALL, but observed NOT_DISPATCHED with error ERR_SPRINT_BUDGET_EXCEEDED",
+      "evaluation_latency_ms": 0.208
+    },
+    {
+      "mutant_id": "MUTANT_05_DISABLE_UNTRUSTED_TAINT_GATE",
+      "category": "TAINT_LATTICE",
+      "description": "Permits TIER_2_UNTRUSTED to disburse large transactions without step-up",
+      "status": "KILLED",
+      "killed_by_test": "vector:act-untrusted-taint-downgrade-012",
+      "detected_discrepancy": "Expected disposition NOT_DISPATCHED with error ERR_UNTRUSTED_TAINT_REQUIRES_STEP_UP, but observed DISPATCHED with error None",
+      "evaluation_latency_ms": 19.939
+    },
+    {
+      "mutant_id": "MUTANT_06_BYPASS_SIGNATURE_VERIFICATION",
+      "category": "CRYPTOGRAPHIC_INTEGRITY",
+      "description": "Skips Ed25519 signature verification against registered public keys",
+      "status": "KILLED",
+      "killed_by_test": "probe:invalid_ed25519_signature",
+      "detected_discrepancy": "Mutant bypassed Ed25519 signature verification: {'disposition': 'DISPATCHED', 'caid': 'sha256:a2f1ae7b80875169fecc7d21c5c51aefe5fc4a94846f1613ebb727f3a0f27b61', 'operation_id': '11111111-2222-3333-4444-555555555555', 'escrowed_minor': 1000, 'status_code': 200, 'error_code': None}",
+      "evaluation_latency_ms": 22.403
+    },
+    {
+      "mutant_id": "MUTANT_07_DISABLE_IDEMPOTENCY_REPLAY_LATCH",
+      "category": "IDEMPOTENCY_FINALITY",
+      "description": "Disables seen_idempotency_keys tracking, permitting duplicate dispatches",
+      "status": "KILLED",
+      "killed_by_test": "vector:act-idempotent-replay-004",
+      "detected_discrepancy": "Expected disposition DISPATCHED with error IDEMPOTENT_REPLAY, but observed DISPATCHED with error None",
+      "evaluation_latency_ms": 0.554
+    },
+    {
+      "mutant_id": "MUTANT_08_ALLOW_NEGATIVE_OR_ZERO_AMOUNTS",
+      "category": "SCHEMA_CONFORMANCE",
+      "description": "Relaxes amount_minor constraint to accept 0 or negative values",
+      "status": "KILLED",
+      "killed_by_test": "vector:act-negative-amount-trap-010",
+      "detected_discrepancy": "Expected disposition NOT_DISPATCHED with error ERR_SCHEMA_INVALID_AMOUNT_MINOR, but observed DISPATCHED with error None",
+      "evaluation_latency_ms": 0.635
+    },
+    {
+      "mutant_id": "MUTANT_09_BYPASS_UUID_FORMAT_CHECK",
+      "category": "SCHEMA_CONFORMANCE",
+      "description": "Accepts arbitrary non-UUID strings for operation_id",
+      "status": "KILLED",
+      "killed_by_test": "probe:malformed_uuid",
+      "detected_discrepancy": "Mutant bypassed operation_id UUID validation: {'disposition': 'DISPATCHED', 'caid': 'sha256:2c3201fd7f87e6289be575f285c2167670ad4acd492eef22b8b378374eae26da', 'operation_id': '11111111-2222-3333-4444-555555555555', 'escrowed_minor': 1000, 'status_code': 200, 'error_code': None}",
+      "evaluation_latency_ms": 20.436
+    },
+    {
+      "mutant_id": "MUTANT_10_ALLOW_PAST_EXPIRES_AT",
+      "category": "TEMPORAL_VALIDITY",
+      "description": "Removes minimum timestamp sanity check for expires_at",
+      "status": "KILLED",
+      "killed_by_test": "vector:act-expired-capability-003",
+      "detected_discrepancy": "Expected disposition NOT_DISPATCHED with error ERR_SCHEMA_INVALID_EXPIRES_AT, but observed DISPATCHED with error None",
+      "evaluation_latency_ms": 0.751
+    }
+  ]
+}

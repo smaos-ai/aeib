@@ -58,6 +58,10 @@ pytest \
   tests/test_tier3_post_perfection_matrix.py \
   scripts/verify_research_claims.py \
   tools/aeib_surviving_principles_engine.py \
+  tools/epistemic_action_compiler_ab_test.py \
+  tests/test_epistemic_action_compiler.py \
+  tools/palantir_ontology_joint_witness_engine.py \
+  tests/test_palantir_ontology_joint_witness_engine.py \
   tools/regulatory_three_tier_and_matrix.py \
   tools/context_ram_and_maseval_harness.py \
   tools/tlaplus_model_conformance_checker.py \
@@ -80,6 +84,12 @@ echo ">>> [CLEANROOM SCAN] Scanning Code & Documentation for Banned Overclaims"
   src/defection_activation_probe.py \
   scripts/verify_research_claims.py \
   tools/aeib_surviving_principles_engine.py \
+  src/epistemic_action_compiler.py \
+  tools/epistemic_action_compiler_ab_test.py \
+  tests/test_epistemic_action_compiler.py \
+  tools/palantir_ontology_joint_witness_engine.py \
+  tests/test_palantir_ontology_joint_witness_engine.py \
+  docs/architecture/EPISTEMIC_ACTION_COMPILATION_AND_CONFLICT_REGISTER.md \
   docs/specs/admissibility_and_oo_harness_spec.md
 
 # 6. Physical NVMe Cold Vault Synchronization

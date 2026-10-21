@@ -105,6 +105,26 @@ from scripts.verify_research_claims import (
 from tools.aeib_surviving_principles_engine import (
     test_five_surviving_principles_engine,
 )
+from tools.epistemic_action_compiler_ab_test import (
+    test_epistemic_action_compiler_ab_evaluation,
+)
+from tests.test_epistemic_action_compiler import (
+    test_epistemic_macros_execution,
+    test_non_dilutable_conflict_register_tamper_and_resolution,
+    test_epistemic_ontic_wire_gate_blocking,
+    test_banned_words_absence as test_epistemic_compiler_banned_words,
+)
+from tests.test_palantir_ontology_joint_witness_engine import (
+    test_canonical_jcs_float_rejection,
+    test_nominal_6way_joint_witness_commit,
+    test_proposal_to_commit_object_state_drift_rejection,
+    test_caplease_semantic_replay_blocked,
+    test_cim_narration_poisoning_silent_approval_bypass_rejected,
+    test_post_qualification_authority_revocation_blocked,
+    test_policy_or_epoch_drift_rejected,
+    test_monotonic_subclass_tightening_treasury_harness,
+    test_banned_words_absence as test_palantir_ontology_banned_words,
+)
 from benchmarks.locomo_context_quality import evaluate_locomo_benchmark
 from benchmarks.maseval_integration import run_maseval_comparative_benchmark
 from tools.context_ram_and_maseval_harness import (
@@ -204,6 +224,20 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
     test_tier3_banned_words()
     test_antigravity_decide_claim_verifier()
     test_five_surviving_principles_engine()
+    test_epistemic_action_compiler_ab_evaluation()
+    test_epistemic_macros_execution()
+    test_non_dilutable_conflict_register_tamper_and_resolution()
+    test_epistemic_ontic_wire_gate_blocking()
+    test_epistemic_compiler_banned_words()
+    test_canonical_jcs_float_rejection()
+    test_nominal_6way_joint_witness_commit()
+    test_proposal_to_commit_object_state_drift_rejection()
+    test_caplease_semantic_replay_blocked()
+    test_cim_narration_poisoning_silent_approval_bypass_rejected()
+    test_post_qualification_authority_revocation_blocked()
+    test_policy_or_epoch_drift_rejected()
+    test_monotonic_subclass_tightening_treasury_harness()
+    test_palantir_ontology_banned_words()
     locomo_report = _sanitize_for_canonical_json(evaluate_locomo_benchmark())
     maseval_report = _sanitize_for_canonical_json(run_maseval_comparative_benchmark())
     tla_report = explore_tla_state_space_and_verify_conformance()
@@ -242,6 +276,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
         [
             "benchmarks/locomo_context_quality.py",
             "benchmarks/maseval_integration.py",
+            "docs/architecture/EPISTEMIC_ACTION_COMPILATION_AND_CONFLICT_REGISTER.md",
             "docs/benchmarks/maseval_results.md",
             "docs/compliance/china_agent_regulation_crosswalk.md",
             "docs/interop/distributed_db_contract.md",
@@ -258,6 +293,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "src/deception/__init__.py",
             "src/deception/agent_deception_interlock.py",
             "src/defection_activation_probe.py",
+            "src/epistemic_action_compiler.py",
             "src/governance/cross_tenant_sovereign_governor.py",
             "src/hansard_causal_provenance.py",
             "src/hlc_hybrid_logical_clock.py",
@@ -273,11 +309,13 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "src/wasm_symbolic_path_explorer.py",
             "tests/test_agent_deception_interlock.py",
             "tests/test_cve_2026_33017_langflow_rce.py",
+            "tests/test_epistemic_action_compiler.py",
             "tests/test_hansard_and_defection_probe.py",
             "tests/test_hlc_hypergraph_and_persist_gate.py",
             "tests/test_leviathan_and_cross_tenant_isolation.py",
             "tests/test_local_system1_leviathan_daemon.py",
             "tests/test_otel_genai_evidence_chain.py",
+            "tests/test_palantir_ontology_joint_witness_engine.py",
             "tests/test_poseidon2_merkle_tree.py",
             "tests/test_tier3_post_perfection_matrix.py",
             "tests/test_runtime_boundary_and_state_machine.py",
@@ -285,7 +323,9 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "tests/test_vibe_coding_and_long_horizon_guard.py",
             "tools/aeib_surviving_principles_engine.py",
             "tools/context_ram_and_maseval_harness.py",
+            "tools/epistemic_action_compiler_ab_test.py",
             "tools/local_system1_leviathan_daemon.py",
+            "tools/palantir_ontology_joint_witness_engine.py",
             "tools/phase0_integrity_reset_core.py",
             "tools/regulatory_three_tier_and_matrix.py",
             "tools/smf_frontier_oct2026_upgrades.py",

@@ -99,6 +99,12 @@ from tests.test_tier3_post_perfection_matrix import (
     test_actuarial_multisig_signature_verification,
     test_banned_words_absence as test_tier3_banned_words,
 )
+from scripts.verify_research_claims import (
+    test_antigravity_decide_claim_verifier,
+)
+from tools.aeib_surviving_principles_engine import (
+    test_five_surviving_principles_engine,
+)
 from benchmarks.locomo_context_quality import evaluate_locomo_benchmark
 from benchmarks.maseval_integration import run_maseval_comparative_benchmark
 from tools.context_ram_and_maseval_harness import (
@@ -196,6 +202,8 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
     test_actuarial_multisig_risk_calculation_and_escalation()
     test_actuarial_multisig_signature_verification()
     test_tier3_banned_words()
+    test_antigravity_decide_claim_verifier()
+    test_five_surviving_principles_engine()
     locomo_report = _sanitize_for_canonical_json(evaluate_locomo_benchmark())
     maseval_report = _sanitize_for_canonical_json(run_maseval_comparative_benchmark())
     tla_report = explore_tla_state_space_and_verify_conformance()
@@ -237,11 +245,13 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "docs/benchmarks/maseval_results.md",
             "docs/compliance/china_agent_regulation_crosswalk.md",
             "docs/interop/distributed_db_contract.md",
+            "docs/specs/admissibility_and_oo_harness_spec.md",
             "docs/specs/stochastic_acid_formal_proof.md",
             "formal/tlaplus/AEIBStation1And2.tla",
             "formal/tlaplus/TLC_OUTPUT.md",
             "papers/osdi_shared_nothing_agents/manuscript.md",
             "papers/vldb_stochastic_acid/manuscript.md",
+            "scripts/verify_research_claims.py",
             "src/actuarial_multisig_gate.py",
             "src/context/__init__.py",
             "src/context/leviathan_context_engine.py",
@@ -273,6 +283,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "tests/test_runtime_boundary_and_state_machine.py",
             "tests/test_structural_cve_boundary_fixtures.py",
             "tests/test_vibe_coding_and_long_horizon_guard.py",
+            "tools/aeib_surviving_principles_engine.py",
             "tools/context_ram_and_maseval_harness.py",
             "tools/local_system1_leviathan_daemon.py",
             "tools/phase0_integrity_reset_core.py",

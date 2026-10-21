@@ -125,6 +125,19 @@ from tests.test_palantir_ontology_joint_witness_engine import (
     test_monotonic_subclass_tightening_treasury_harness,
     test_banned_words_absence as test_palantir_ontology_banned_words,
 )
+from tests.test_eac_typestate_conflict_engine import (
+    test_end_to_end_p0_p1_gates,
+    test_typestate_target_mismatch_and_invalid_signature,
+    test_cryptographic_supervisor_conflict_resolution,
+    test_banned_words_absence as test_eac_typestate_banned_words,
+)
+from tests.test_epistemic_core_bec import (
+    test_1000_agent_phase_transition_simulation,
+    test_missing_or_fabricated_bose_witness_rejected,
+    test_provenance_entropy_synthetic_overload_rejected,
+    test_intermediate_phase_transition_blocks_mutation,
+    test_banned_words_absence as test_epistemic_core_bec_banned_words,
+)
 from benchmarks.locomo_context_quality import evaluate_locomo_benchmark
 from benchmarks.maseval_integration import run_maseval_comparative_benchmark
 from tools.context_ram_and_maseval_harness import (
@@ -238,6 +251,15 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
     test_policy_or_epoch_drift_rejected()
     test_monotonic_subclass_tightening_treasury_harness()
     test_palantir_ontology_banned_words()
+    test_end_to_end_p0_p1_gates()
+    test_typestate_target_mismatch_and_invalid_signature()
+    test_cryptographic_supervisor_conflict_resolution()
+    test_eac_typestate_banned_words()
+    test_1000_agent_phase_transition_simulation()
+    test_missing_or_fabricated_bose_witness_rejected()
+    test_provenance_entropy_synthetic_overload_rejected()
+    test_intermediate_phase_transition_blocks_mutation()
+    test_epistemic_core_bec_banned_words()
     locomo_report = _sanitize_for_canonical_json(evaluate_locomo_benchmark())
     maseval_report = _sanitize_for_canonical_json(run_maseval_comparative_benchmark())
     tla_report = explore_tla_state_space_and_verify_conformance()
@@ -276,6 +298,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
         [
             "benchmarks/locomo_context_quality.py",
             "benchmarks/maseval_integration.py",
+            "compliance/eac_typestate_conflict_engine.py",
             "docs/architecture/EPISTEMIC_ACTION_COMPILATION_AND_CONFLICT_REGISTER.md",
             "docs/benchmarks/maseval_results.md",
             "docs/compliance/china_agent_regulation_crosswalk.md",
@@ -294,6 +317,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "src/deception/agent_deception_interlock.py",
             "src/defection_activation_probe.py",
             "src/epistemic_action_compiler.py",
+            "src/epistemic_core.py",
             "src/governance/cross_tenant_sovereign_governor.py",
             "src/hansard_causal_provenance.py",
             "src/hlc_hybrid_logical_clock.py",
@@ -309,7 +333,9 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "src/wasm_symbolic_path_explorer.py",
             "tests/test_agent_deception_interlock.py",
             "tests/test_cve_2026_33017_langflow_rce.py",
+            "tests/test_eac_typestate_conflict_engine.py",
             "tests/test_epistemic_action_compiler.py",
+            "tests/test_epistemic_core_bec.py",
             "tests/test_hansard_and_defection_probe.py",
             "tests/test_hlc_hypergraph_and_persist_gate.py",
             "tests/test_leviathan_and_cross_tenant_isolation.py",

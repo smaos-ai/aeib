@@ -62,6 +62,9 @@ pytest \
   tests/test_epistemic_action_compiler.py \
   tools/palantir_ontology_joint_witness_engine.py \
   tests/test_palantir_ontology_joint_witness_engine.py \
+  compliance/eac_typestate_conflict_engine.py \
+  tests/test_eac_typestate_conflict_engine.py \
+  tests/test_epistemic_core_bec.py \
   tools/regulatory_three_tier_and_matrix.py \
   tools/context_ram_and_maseval_harness.py \
   tools/tlaplus_model_conformance_checker.py \
@@ -89,6 +92,10 @@ echo ">>> [CLEANROOM SCAN] Scanning Code & Documentation for Banned Overclaims"
   tests/test_epistemic_action_compiler.py \
   tools/palantir_ontology_joint_witness_engine.py \
   tests/test_palantir_ontology_joint_witness_engine.py \
+  compliance/eac_typestate_conflict_engine.py \
+  src/epistemic_core.py \
+  tests/test_eac_typestate_conflict_engine.py \
+  tests/test_epistemic_core_bec.py \
   docs/architecture/EPISTEMIC_ACTION_COMPILATION_AND_CONFLICT_REGISTER.md \
   docs/specs/admissibility_and_oo_harness_spec.md
 

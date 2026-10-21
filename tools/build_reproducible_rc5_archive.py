@@ -53,7 +53,14 @@ from tests.test_local_system1_leviathan_daemon import (
     test_daemon_subagent_handback_bounding,
     test_daemon_parent_memory_ceiling_and_packing,
     test_daemon_scoped_forgetting,
-    test_banned_words_absence,
+    test_banned_words_absence as test_local_daemon_banned_words,
+)
+from tests.test_hlc_hypergraph_and_persist_gate import (
+    test_hlc_monotonicity_and_causal_ordering,
+    test_causal_visibility_fence,
+    test_hypergraph_emergent_collusion_sink_convergence,
+    test_persist_memory_gate_memmorph_tool_redirect,
+    test_banned_words_absence as test_hlc_gate_banned_words,
 )
 from benchmarks.locomo_context_quality import evaluate_locomo_benchmark
 from benchmarks.maseval_integration import run_maseval_comparative_benchmark
@@ -115,7 +122,12 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
     test_daemon_subagent_handback_bounding()
     test_daemon_parent_memory_ceiling_and_packing()
     test_daemon_scoped_forgetting()
-    test_banned_words_absence()
+    test_local_daemon_banned_words()
+    test_hlc_monotonicity_and_causal_ordering()
+    test_causal_visibility_fence()
+    test_hypergraph_emergent_collusion_sink_convergence()
+    test_persist_memory_gate_memmorph_tool_redirect()
+    test_hlc_gate_banned_words()
     locomo_report = _sanitize_for_canonical_json(evaluate_locomo_benchmark())
     maseval_report = _sanitize_for_canonical_json(run_maseval_comparative_benchmark())
     tla_report = explore_tla_state_space_and_verify_conformance()
@@ -167,12 +179,16 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "src/deception/__init__.py",
             "src/deception/agent_deception_interlock.py",
             "src/governance/cross_tenant_sovereign_governor.py",
+            "src/hlc_hybrid_logical_clock.py",
+            "src/hypergraph_causal_audit.py",
             "src/observability/__init__.py",
             "src/observability/otel_genai_evidence_chain.py",
+            "src/persist_memory_gate.py",
             "src/runtime_boundary/__init__.py",
             "src/runtime_boundary/runtime_execution_boundary.py",
             "tests/test_agent_deception_interlock.py",
             "tests/test_cve_2026_33017_langflow_rce.py",
+            "tests/test_hlc_hypergraph_and_persist_gate.py",
             "tests/test_leviathan_and_cross_tenant_isolation.py",
             "tests/test_local_system1_leviathan_daemon.py",
             "tests/test_otel_genai_evidence_chain.py",

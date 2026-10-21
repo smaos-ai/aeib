@@ -47,6 +47,7 @@ pytest \
   tests/test_cve_2026_33017_langflow_rce.py \
   tests/test_vibe_coding_and_long_horizon_guard.py \
   tests/test_local_system1_leviathan_daemon.py \
+  tests/test_hlc_hypergraph_and_persist_gate.py \
   tools/regulatory_three_tier_and_matrix.py \
   tools/context_ram_and_maseval_harness.py \
   tools/tlaplus_model_conformance_checker.py \

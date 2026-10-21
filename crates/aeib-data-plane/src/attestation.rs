@@ -1,5 +1,5 @@
 //! crates/aeib-data-plane/src/attestation.rs
-//! ============================================================================
+//!
 //! AEIB Hardware TEE Attestation & Ephemeral Signer Scaffold.
 //!
 //! Architectural Scaffolding Awareness (AGENTS.md §5):
@@ -9,7 +9,6 @@
 //!   under a stated prototype model and does NOT provide live hardware isolation.
 //! - Enclave-static secrets are vulnerable to DDR5 bus interposition (TEE.Fail);
 //!   therefore, AEIB uses ephemeral key derivation zeroized post-session.
-//! ============================================================================
 
 use ed25519_dalek::{Signature, Signer, SigningKey, VerifyingKey};
 use rand::rngs::OsRng;
@@ -87,10 +86,10 @@ impl EphemeralSigner {
     ) -> EnclaveAttestationEvidence {
         let mut hasher = Sha256::new();
         hasher.update(b"AEIB_TEE_ATTESTATION_V1:");
-        hasher.update(&pcr0);
-        hasher.update(&pcr1);
-        hasher.update(&pcr2);
-        hasher.update(&nonce);
+        hasher.update(pcr0);
+        hasher.update(pcr1);
+        hasher.update(pcr2);
+        hasher.update(nonce);
         hasher.update(self.verifying_key.as_bytes());
         let digest_bytes = hasher.finalize();
 
@@ -131,11 +130,11 @@ pub fn verify_enclave_evidence(
 
     let mut hasher = Sha256::new();
     hasher.update(b"AEIB_TEE_ATTESTATION_V1:");
-    hasher.update(&evidence.pcr0);
-    hasher.update(&evidence.pcr1);
-    hasher.update(&evidence.pcr2);
-    hasher.update(&evidence.nonce);
-    hasher.update(&evidence.ephemeral_pubkey);
+    hasher.update(evidence.pcr0);
+    hasher.update(evidence.pcr1);
+    hasher.update(evidence.pcr2);
+    hasher.update(evidence.nonce);
+    hasher.update(evidence.ephemeral_pubkey);
     let computed_digest = hasher.finalize();
 
     let digest_match = evidence.evidence_digest.ct_eq(&computed_digest);

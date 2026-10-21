@@ -1,5 +1,5 @@
 //! crates/aeib-data-plane/src/wal.rs
-//! ============================================================================
+//!
 //! AEIB High-Performance Group-Commit Durability Write-Ahead Log (WAL).
 //!
 //! Systems Engineering Context (LIMITATIONS.md §4):
@@ -10,7 +10,6 @@
 //! - Group Commit: Batches concurrent agent dispatches into static memory slots
 //!   (default 64) and flushes them in a single physical sync operation.
 //! - Linux/POSIX: Scaffolds fdatasync/fsync with zero-allocation ring-buffer slots.
-//! ============================================================================
 
 use serde::{Deserialize, Serialize};
 use std::fs::{File, OpenOptions};
@@ -337,6 +336,7 @@ impl DirectIoWal {
                     .create(true)
                     .read(true)
                     .write(true)
+                    .truncate(false)
                     .open(path)?;
                 let fd = f.as_raw_fd();
                 unsafe {

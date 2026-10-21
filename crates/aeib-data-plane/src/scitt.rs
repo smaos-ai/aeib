@@ -1,5 +1,5 @@
 //! crates/aeib-data-plane/src/scitt.rs
-//! ============================================================================
+//!
 //! AEIB IETF SCITT (RFC 9942 / RFC 9943) Binary Merkle Tree & Transparent
 //! Statement Receipt Generator.
 //!
@@ -11,7 +11,6 @@
 //!     * 394: receipts (unprotected header on Signed Statement)
 //!     * 395: vds (Verifiable Data Structure algorithm: 1 = RFC9162_SHA256)
 //!     * 396: vdp (Verifiable Data Structure Proof)
-//! ============================================================================
 
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -25,6 +24,12 @@ pub const VDS_RFC9162_SHA256: i64 = 1;
 /// RFC 9162 domain-separated binary SHA-256 Merkle tree for SCITT transparency logging.
 pub struct ScittMerkleTree {
     leaves: Vec<[u8; 32]>,
+}
+
+impl Default for ScittMerkleTree {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ScittMerkleTree {

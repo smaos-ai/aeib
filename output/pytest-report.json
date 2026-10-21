@@ -1,0 +1,771 @@
+{
+  "suite": "aeib_declared_test_set",
+  "timestamp_utc": "2026-10-21T00:00:00Z",
+  "total_collected": 149,
+  "passed": 149,
+  "failed": 0,
+  "skipped": 0,
+  "pass_rate_pct": 100.0,
+  "test_files": [
+    "tests/test_dst_multi_region_partition.py",
+    "tests/test_contextcart_20_tasks.py",
+    "tests/test_postgres_tcc_concurrency_stress.py",
+    "tests/test_secure_mcp_uds_boundary.py",
+    "tests/test_dynamic_code_policy_gate.py",
+    "tests/test_governed_cross_model_handoff.py",
+    "tests/test_audit_disproving_verifier.py",
+    "tests/test_ncm_parallel_burst_latch.py",
+    "tests/test_artemis_device_and_plugin_boundary.py",
+    "tests/test_predictive_trajectory_drift_latch.py",
+    "tests/test_zk_budget_proof_engine.py",
+    "tests/test_standalone_offline_verifier.py",
+    "tests/test_bpf_lsm_profile_compiler.py"
+  ],
+  "tests": [
+    {
+      "nodeid": "tests/test_dst_multi_region_partition.py::test_dst_100_seeds_multi_region_partition_matrix",
+      "outcome": "passed",
+      "duration_seconds": 1.0121
+    },
+    {
+      "nodeid": "tests/test_dst_multi_region_partition.py::test_dst_negative_control_quorum_bypass_causes_double_reservation",
+      "outcome": "passed",
+      "duration_seconds": 0.0029
+    },
+    {
+      "nodeid": "tests/test_contextcart_20_tasks.py::test_contextcart_20_task_empirical_benchmark",
+      "outcome": "passed",
+      "duration_seconds": 0.0841
+    },
+    {
+      "nodeid": "tests/test_contextcart_20_tasks.py::test_context_governor_mcp_cli_help",
+      "outcome": "passed",
+      "duration_seconds": 0.1073
+    },
+    {
+      "nodeid": "tests/test_postgres_tcc_concurrency_stress.py::HighContentionTccStressTest::test_concurrent_100_subagents_high_contention_budget_exhaustion",
+      "outcome": "passed",
+      "duration_seconds": 0.1552
+    },
+    {
+      "nodeid": "tests/test_postgres_tcc_concurrency_stress.py::HighContentionTccStressTest::test_concurrent_confirm_and_cancel_lifecycle_with_reallocation",
+      "outcome": "passed",
+      "duration_seconds": 0.0268
+    },
+    {
+      "nodeid": "tests/test_postgres_tcc_concurrency_stress.py::HighContentionTccStressTest::test_bitemporal_interval_and_cdc_outbox_verification",
+      "outcome": "passed",
+      "duration_seconds": 0.0097
+    },
+    {
+      "nodeid": "tests/test_postgres_tcc_concurrency_stress.py::HighContentionTccStressTest::test_idempotent_duplicate_confirm_and_cancel_under_concurrency",
+      "outcome": "passed",
+      "duration_seconds": 0.0115
+    },
+    {
+      "nodeid": "tests/test_postgres_tcc_concurrency_stress.py::HighContentionTccStressTest::test_postgres_bitemporal_sql_schema_contract",
+      "outcome": "passed",
+      "duration_seconds": 0.0003
+    },
+    {
+      "nodeid": "tests/test_secure_mcp_uds_boundary.py::test_positive_authorized_tool_execution",
+      "outcome": "passed",
+      "duration_seconds": 0.2033
+    },
+    {
+      "nodeid": "tests/test_secure_mcp_uds_boundary.py::test_falsification_1_tcp_localhost_denied",
+      "outcome": "passed",
+      "duration_seconds": 0.0008
+    },
+    {
+      "nodeid": "tests/test_secure_mcp_uds_boundary.py::test_falsification_2_invalid_capability_token_signature",
+      "outcome": "passed",
+      "duration_seconds": 0.0013
+    },
+    {
+      "nodeid": "tests/test_secure_mcp_uds_boundary.py::test_falsification_3_audience_mismatch",
+      "outcome": "passed",
+      "duration_seconds": 0.0012
+    },
+    {
+      "nodeid": "tests/test_secure_mcp_uds_boundary.py::test_falsification_4_expired_capability_token",
+      "outcome": "passed",
+      "duration_seconds": 0.0011
+    },
+    {
+      "nodeid": "tests/test_secure_mcp_uds_boundary.py::test_falsification_5_tool_scope_escalation_confused_deputy",
+      "outcome": "passed",
+      "duration_seconds": 0.2024
+    },
+    {
+      "nodeid": "tests/test_secure_mcp_uds_boundary.py::test_falsification_6_nonce_replay_rejected",
+      "outcome": "passed",
+      "duration_seconds": 0.2036
+    },
+    {
+      "nodeid": "tests/test_secure_mcp_uds_boundary.py::test_falsification_7_peer_uid_mismatch",
+      "outcome": "passed",
+      "duration_seconds": 0.2022
+    },
+    {
+      "nodeid": "tests/test_secure_mcp_uds_boundary.py::test_pid_reuse_and_pid_mismatch_protection",
+      "outcome": "passed",
+      "duration_seconds": 0.0026
+    },
+    {
+      "nodeid": "tests/test_secure_mcp_uds_boundary.py::test_executable_hash_binding",
+      "outcome": "passed",
+      "duration_seconds": 0.4054
+    },
+    {
+      "nodeid": "tests/test_secure_mcp_uds_boundary.py::test_banned_words_absence",
+      "outcome": "passed",
+      "duration_seconds": 0.0079
+    },
+    {
+      "nodeid": "tests/test_dynamic_code_policy_gate.py::test_nominal_clean_plugin_verification",
+      "outcome": "passed",
+      "duration_seconds": 0.0019
+    },
+    {
+      "nodeid": "tests/test_dynamic_code_policy_gate.py::test_falsification_eval_detection",
+      "outcome": "passed",
+      "duration_seconds": 0.0018
+    },
+    {
+      "nodeid": "tests/test_dynamic_code_policy_gate.py::test_falsification_compile_detection",
+      "outcome": "passed",
+      "duration_seconds": 0.0007
+    },
+    {
+      "nodeid": "tests/test_dynamic_code_policy_gate.py::test_falsification_importlib_detection",
+      "outcome": "passed",
+      "duration_seconds": 0.0008
+    },
+    {
+      "nodeid": "tests/test_dynamic_code_policy_gate.py::test_falsification_ctypes_and_native_loader_detection",
+      "outcome": "passed",
+      "duration_seconds": 0.0008
+    },
+    {
+      "nodeid": "tests/test_dynamic_code_policy_gate.py::test_falsification_tampered_entrypoint_digest",
+      "outcome": "passed",
+      "duration_seconds": 0.0008
+    },
+    {
+      "nodeid": "tests/test_dynamic_code_policy_gate.py::test_falsification_forged_publisher_signature",
+      "outcome": "passed",
+      "duration_seconds": 0.0009
+    },
+    {
+      "nodeid": "tests/test_dynamic_code_policy_gate.py::test_falsification_expired_plugin_manifest",
+      "outcome": "passed",
+      "duration_seconds": 0.0006
+    },
+    {
+      "nodeid": "tests/test_dynamic_code_policy_gate.py::test_falsification_unsigned_plugin_manifest",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_dynamic_code_policy_gate.py::test_falsification_publisher_did_mismatch",
+      "outcome": "passed",
+      "duration_seconds": 0.002
+    },
+    {
+      "nodeid": "tests/test_dynamic_code_policy_gate.py::test_cli_self_test_subprocess",
+      "outcome": "passed",
+      "duration_seconds": 0.0649
+    },
+    {
+      "nodeid": "tests/test_dynamic_code_policy_gate.py::test_cli_scan_file_and_verify_manifest_subprocess",
+      "outcome": "passed",
+      "duration_seconds": 0.1725
+    },
+    {
+      "nodeid": "tests/test_dynamic_code_policy_gate.py::test_banned_words_absence_in_new_files",
+      "outcome": "passed",
+      "duration_seconds": 0.0006
+    },
+    {
+      "nodeid": "tests/test_governed_cross_model_handoff.py::test_nominal_cross_model_handoff",
+      "outcome": "passed",
+      "duration_seconds": 0.0007
+    },
+    {
+      "nodeid": "tests/test_governed_cross_model_handoff.py::test_falsification_1_tampered_payload_hash_rejected",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_governed_cross_model_handoff.py::test_falsification_2_taint_downgrade_rejected",
+      "outcome": "passed",
+      "duration_seconds": 0.0005
+    },
+    {
+      "nodeid": "tests/test_governed_cross_model_handoff.py::test_falsification_3_dropped_security_field_rejected",
+      "outcome": "passed",
+      "duration_seconds": 0.0002
+    },
+    {
+      "nodeid": "tests/test_governed_cross_model_handoff.py::test_falsification_4_expired_token_rejected",
+      "outcome": "passed",
+      "duration_seconds": 0.0002
+    },
+    {
+      "nodeid": "tests/test_governed_cross_model_handoff.py::test_falsification_5_forged_signature_rejected",
+      "outcome": "passed",
+      "duration_seconds": 0.0005
+    },
+    {
+      "nodeid": "tests/test_governed_cross_model_handoff.py::test_falsification_6_authority_escalation_rejected",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_governed_cross_model_handoff.py::test_cli_self_test_subprocess",
+      "outcome": "passed",
+      "duration_seconds": 0.0422
+    },
+    {
+      "nodeid": "tests/test_governed_cross_model_handoff.py::test_zero_banned_words_in_source_and_tests",
+      "outcome": "passed",
+      "duration_seconds": 0.0008
+    },
+    {
+      "nodeid": "tests/test_audit_disproving_verifier.py::test_phase1_architecture_mapping_basic",
+      "outcome": "passed",
+      "duration_seconds": 0.001
+    },
+    {
+      "nodeid": "tests/test_audit_disproving_verifier.py::test_phase1_empty_directory_handling",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_audit_disproving_verifier.py::test_phase2_coverage_led_hunting_classes",
+      "outcome": "passed",
+      "duration_seconds": 0.0001
+    },
+    {
+      "nodeid": "tests/test_audit_disproving_verifier.py::test_phase2_custom_candidate_injection",
+      "outcome": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "nodeid": "tests/test_audit_disproving_verifier.py::test_phase3_disproving_rejects_false_positive_path_traversal",
+      "outcome": "passed",
+      "duration_seconds": 0.0001
+    },
+    {
+      "nodeid": "tests/test_audit_disproving_verifier.py::test_phase3_disproving_rejects_false_positive_payee_alteration",
+      "outcome": "passed",
+      "duration_seconds": 0.0006
+    },
+    {
+      "nodeid": "tests/test_audit_disproving_verifier.py::test_phase3_disproving_rejects_false_positive_budget_escalation",
+      "outcome": "passed",
+      "duration_seconds": 0.0001
+    },
+    {
+      "nodeid": "tests/test_audit_disproving_verifier.py::test_phase3_disproving_rejects_false_positive_context_taint_downgrade",
+      "outcome": "passed",
+      "duration_seconds": 0.0001
+    },
+    {
+      "nodeid": "tests/test_audit_disproving_verifier.py::test_phase3_disproving_rejects_false_positive_nonce_replay",
+      "outcome": "passed",
+      "duration_seconds": 0.0001
+    },
+    {
+      "nodeid": "tests/test_audit_disproving_verifier.py::test_phase3_disproving_confirms_genuine_unmitigated_breach",
+      "outcome": "passed",
+      "duration_seconds": 0.0001
+    },
+    {
+      "nodeid": "tests/test_audit_disproving_verifier.py::test_phase4_rfc8785_canonical_serialization",
+      "outcome": "passed",
+      "duration_seconds": 0.0009
+    },
+    {
+      "nodeid": "tests/test_audit_disproving_verifier.py::test_phase5_receipt_signing_and_verification",
+      "outcome": "passed",
+      "duration_seconds": 0.0005
+    },
+    {
+      "nodeid": "tests/test_audit_disproving_verifier.py::test_phase5_tamper_detection_in_payload",
+      "outcome": "passed",
+      "duration_seconds": 0.0002
+    },
+    {
+      "nodeid": "tests/test_audit_disproving_verifier.py::test_phase5_tamper_detection_in_signature",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_audit_disproving_verifier.py::test_phase5_tamper_detection_in_digest",
+      "outcome": "passed",
+      "duration_seconds": 0.0002
+    },
+    {
+      "nodeid": "tests/test_audit_disproving_verifier.py::test_phase6_markdown_report_generation",
+      "outcome": "passed",
+      "duration_seconds": 0.0009
+    },
+    {
+      "nodeid": "tests/test_audit_disproving_verifier.py::test_end_to_end_pipeline_with_file_output",
+      "outcome": "passed",
+      "duration_seconds": 0.0028
+    },
+    {
+      "nodeid": "tests/test_audit_disproving_verifier.py::test_cli_self_test_execution",
+      "outcome": "passed",
+      "duration_seconds": 0.2348
+    },
+    {
+      "nodeid": "tests/test_audit_disproving_verifier.py::test_epistemic_purity_of_owned_files",
+      "outcome": "passed",
+      "duration_seconds": 0.0014
+    },
+    {
+      "nodeid": "tests/test_ncm_parallel_burst_latch.py::test_decision_cascade_filter_stage1_read_only",
+      "outcome": "passed",
+      "duration_seconds": 0.0001
+    },
+    {
+      "nodeid": "tests/test_ncm_parallel_burst_latch.py::test_decision_cascade_filter_schema_rejection",
+      "outcome": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "nodeid": "tests/test_ncm_parallel_burst_latch.py::test_decision_cascade_filter_stage2_mutations",
+      "outcome": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "nodeid": "tests/test_ncm_parallel_burst_latch.py::test_group_commit_concurrency_and_batching",
+      "outcome": "passed",
+      "duration_seconds": 0.065
+    },
+    {
+      "nodeid": "tests/test_ncm_parallel_burst_latch.py::test_solvency_invariant_under_parallel_burst",
+      "outcome": "passed",
+      "duration_seconds": 0.0222
+    },
+    {
+      "nodeid": "tests/test_ncm_parallel_burst_latch.py::test_duplicate_caid_rejection_across_concurrent_threads",
+      "outcome": "passed",
+      "duration_seconds": 0.0089
+    },
+    {
+      "nodeid": "tests/test_ncm_parallel_burst_latch.py::test_transport_drop_indeterminate_latching_and_budget_lock",
+      "outcome": "passed",
+      "duration_seconds": 0.0088
+    },
+    {
+      "nodeid": "tests/test_ncm_parallel_burst_latch.py::test_indeterminate_resolution_confirmed",
+      "outcome": "passed",
+      "duration_seconds": 0.007
+    },
+    {
+      "nodeid": "tests/test_ncm_parallel_burst_latch.py::test_ncm_parallel_burst_coordinator_dispatch",
+      "outcome": "passed",
+      "duration_seconds": 0.0056
+    },
+    {
+      "nodeid": "tests/test_ncm_parallel_burst_latch.py::test_cli_self_test_execution",
+      "outcome": "passed",
+      "duration_seconds": 0.0762
+    },
+    {
+      "nodeid": "tests/test_ncm_parallel_burst_latch.py::test_cli_benchmark_execution",
+      "outcome": "passed",
+      "duration_seconds": 0.0775
+    },
+    {
+      "nodeid": "tests/test_ncm_parallel_burst_latch.py::test_stress_benchmark_script_execution",
+      "outcome": "passed",
+      "duration_seconds": 0.0817
+    },
+    {
+      "nodeid": "tests/test_ncm_parallel_burst_latch.py::test_epistemic_purity_zero_banned_words",
+      "outcome": "passed",
+      "duration_seconds": 0.0018
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_artemis_valid_standard_action_succeeds",
+      "outcome": "passed",
+      "duration_seconds": 0.0006
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_artemis_caid_mismatch_fails_closed",
+      "outcome": "passed",
+      "duration_seconds": 0.0002
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_artemis_expired_warrant_rejected",
+      "outcome": "passed",
+      "duration_seconds": 0.0002
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_artemis_forged_sponsor_signature_rejected",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_artemis_delegation_device_or_agent_mismatch",
+      "outcome": "passed",
+      "duration_seconds": 0.0002
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_artemis_unpermitted_action_type_rejected",
+      "outcome": "passed",
+      "duration_seconds": 0.0002
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_artemis_high_consequence_actions_reject_without_step_up[open_payment_app-params0]",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_artemis_high_consequence_actions_reject_without_step_up[submit_credential-params1]",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_artemis_high_consequence_actions_reject_without_step_up[authorize_biometric-params2]",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_artemis_high_consequence_actions_reject_without_step_up[modify_system_setting-params3]",
+      "outcome": "passed",
+      "duration_seconds": 0.0006
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_artemis_high_consequence_actions_reject_without_step_up[adb_shell-params4]",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_artemis_high_consequence_actions_reject_without_step_up[launch_intent-params5]",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_artemis_high_consequence_actions_reject_without_step_up[input_text-params6]",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_artemis_high_consequence_actions_reject_without_step_up[input_text-params7]",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_artemis_high_consequence_action_authorized_with_valid_step_up",
+      "outcome": "passed",
+      "duration_seconds": 0.0007
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_artemis_step_up_token_expired_fails_closed",
+      "outcome": "passed",
+      "duration_seconds": 0.0005
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_artemis_step_up_token_caid_mismatch_fails_closed",
+      "outcome": "passed",
+      "duration_seconds": 0.0005
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_hermes_valid_plugin_admitted",
+      "outcome": "passed",
+      "duration_seconds": 0.0006
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_hermes_code_tampering_rejected",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_hermes_forged_publisher_signature_rejected",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_hermes_ast_scanner_catches_forbidden_constructs[def p(): return eval('1+1')-FORBIDDEN_DYNAMIC_CALL]",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_hermes_ast_scanner_catches_forbidden_constructs[def p(): exec('x=1')-FORBIDDEN_DYNAMIC_CALL]",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_hermes_ast_scanner_catches_forbidden_constructs[def p(): return compile('x=1', '', 'exec')-FORBIDDEN_DYNAMIC_CALL]",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_hermes_ast_scanner_catches_forbidden_constructs[def p(): return __import__('os')-FORBIDDEN_DYNAMIC_CALL]",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_hermes_ast_scanner_catches_forbidden_constructs[import ctypes\\ndef p(): return 1-FORBIDDEN_MODULE_IMPORT]",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_hermes_ast_scanner_catches_forbidden_constructs[import urllib.request\\ndef p(): return 1-FORBIDDEN_MODULE_IMPORT]",
+      "outcome": "passed",
+      "duration_seconds": 0.0005
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_hermes_ast_scanner_catches_forbidden_constructs[import requests\\ndef p(): return 1-FORBIDDEN_MODULE_IMPORT]",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_hermes_ast_scanner_catches_forbidden_constructs[def p(obj): return obj.__globals__-FORBIDDEN_REFLECTION_INTROSPECTION]",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_hermes_ast_scanner_catches_forbidden_constructs[def p(cls): return cls.__subclasses__()-FORBIDDEN_REFLECTION_INTROSPECTION]",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_hermes_ast_scanner_catches_forbidden_constructs[import subprocess\\ndef p(): subprocess.Popen(['ls'])-FORBIDDEN_UNSANDBOXED_SUBPROCESS]",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_hermes_ast_scanner_catches_forbidden_constructs[import socket\\ndef p(): s = socket.socket()-FORBIDDEN_NON_UDS_SOCKET]",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_hermes_ast_scanner_catches_forbidden_constructs[import socket\\ndef p(): s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)-FORBIDDEN_NON_UDS_SOCKET]",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_hermes_ast_scanner_catches_forbidden_constructs[import socket\\ndef p(): socket.create_connection(('1.1.1.1', 80))-FORBIDDEN_NETWORK_CONNECTION]",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_hermes_capability_attenuation_enforcement",
+      "outcome": "passed",
+      "duration_seconds": 0.0001
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_adecs_lifecycle_transitions_and_rejections",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_adecs_end_to_end_coordinated_dispatch",
+      "outcome": "passed",
+      "duration_seconds": 0.0007
+    },
+    {
+      "nodeid": "tests/test_artemis_device_and_plugin_boundary.py::test_zero_banned_promotional_words_in_owned_files",
+      "outcome": "passed",
+      "duration_seconds": 0.0028
+    },
+    {
+      "nodeid": "tests/test_predictive_trajectory_drift_latch.py::test_nominal_multistep_trajectory",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_predictive_trajectory_drift_latch.py::test_excessive_domain_velocity_drift",
+      "outcome": "passed",
+      "duration_seconds": 0.0003
+    },
+    {
+      "nodeid": "tests/test_predictive_trajectory_drift_latch.py::test_tripped_latch_rejects_all_subsequent_proposals",
+      "outcome": "passed",
+      "duration_seconds": 0.0001
+    },
+    {
+      "nodeid": "tests/test_predictive_trajectory_drift_latch.py::test_homoglyph_key_injection_rejection",
+      "outcome": "passed",
+      "duration_seconds": 0.0001
+    },
+    {
+      "nodeid": "tests/test_predictive_trajectory_drift_latch.py::test_nested_homoglyph_key_injection",
+      "outcome": "passed",
+      "duration_seconds": 0.0001
+    },
+    {
+      "nodeid": "tests/test_predictive_trajectory_drift_latch.py::test_zero_width_token_smuggling_rejection",
+      "outcome": "passed",
+      "duration_seconds": 0.0001
+    },
+    {
+      "nodeid": "tests/test_predictive_trajectory_drift_latch.py::test_unicode_tags_token_smuggling_rejection",
+      "outcome": "passed",
+      "duration_seconds": 0.0001
+    },
+    {
+      "nodeid": "tests/test_predictive_trajectory_drift_latch.py::test_covert_base64_payload_smuggling_rejection",
+      "outcome": "passed",
+      "duration_seconds": 0.0001
+    },
+    {
+      "nodeid": "tests/test_predictive_trajectory_drift_latch.py::test_out_of_order_execution_rejection",
+      "outcome": "passed",
+      "duration_seconds": 0.0001
+    },
+    {
+      "nodeid": "tests/test_predictive_trajectory_drift_latch.py::test_permission_entropy_acceleration_drift",
+      "outcome": "passed",
+      "duration_seconds": 0.0003
+    },
+    {
+      "nodeid": "tests/test_predictive_trajectory_drift_latch.py::test_supervisor_step_up_warrant_reset",
+      "outcome": "passed",
+      "duration_seconds": 0.0004
+    },
+    {
+      "nodeid": "tests/test_predictive_trajectory_drift_latch.py::test_supervisor_step_up_warrant_signature_tamper_fails",
+      "outcome": "passed",
+      "duration_seconds": 0.0005
+    },
+    {
+      "nodeid": "tests/test_predictive_trajectory_drift_latch.py::test_supervisor_step_up_warrant_expiration_fails",
+      "outcome": "passed",
+      "duration_seconds": 0.0001
+    },
+    {
+      "nodeid": "tests/test_predictive_trajectory_drift_latch.py::test_adversarial_chaos_fuzzer_campaign",
+      "outcome": "passed",
+      "duration_seconds": 0.003
+    },
+    {
+      "nodeid": "tests/test_predictive_trajectory_drift_latch.py::test_cli_self_test",
+      "outcome": "passed",
+      "duration_seconds": 0.073
+    },
+    {
+      "nodeid": "tests/test_predictive_trajectory_drift_latch.py::test_banned_words_audit_on_owned_files",
+      "outcome": "passed",
+      "duration_seconds": 0.0018
+    },
+    {
+      "nodeid": "tests/test_zk_budget_proof_engine.py::test_valid_budget_proof_generation_and_verification",
+      "outcome": "passed",
+      "duration_seconds": 0.0017
+    },
+    {
+      "nodeid": "tests/test_zk_budget_proof_engine.py::test_zero_disclosure_privacy_conformance",
+      "outcome": "passed",
+      "duration_seconds": 0.0013
+    },
+    {
+      "nodeid": "tests/test_zk_budget_proof_engine.py::test_falsification_1_negative_spend_injection",
+      "outcome": "passed",
+      "duration_seconds": 0.0006
+    },
+    {
+      "nodeid": "tests/test_zk_budget_proof_engine.py::test_falsification_2_budget_ceiling_breach",
+      "outcome": "passed",
+      "duration_seconds": 0.0006
+    },
+    {
+      "nodeid": "tests/test_zk_budget_proof_engine.py::test_falsification_3_inconsistent_balance_arithmetic",
+      "outcome": "passed",
+      "duration_seconds": 0.001
+    },
+    {
+      "nodeid": "tests/test_zk_budget_proof_engine.py::test_falsification_4_tampered_public_inputs",
+      "outcome": "passed",
+      "duration_seconds": 0.001
+    },
+    {
+      "nodeid": "tests/test_zk_budget_proof_engine.py::test_falsification_5_tampered_proof_artifacts",
+      "outcome": "passed",
+      "duration_seconds": 0.0015
+    },
+    {
+      "nodeid": "tests/test_zk_budget_proof_engine.py::test_cli_self_test_execution",
+      "outcome": "passed",
+      "duration_seconds": 0.0634
+    },
+    {
+      "nodeid": "tests/test_zk_budget_proof_engine.py::test_banned_words_compliance_across_owned_files",
+      "outcome": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "nodeid": "tests/test_standalone_offline_verifier.py::test_pure_python_ed25519_cross_verification_with_hazmat",
+      "outcome": "passed",
+      "duration_seconds": 0.0081
+    },
+    {
+      "nodeid": "tests/test_standalone_offline_verifier.py::test_positive_aeib_execution_receipt_verification",
+      "outcome": "passed",
+      "duration_seconds": 0.0075
+    },
+    {
+      "nodeid": "tests/test_standalone_offline_verifier.py::test_falsification_tampered_receipt_signature",
+      "outcome": "passed",
+      "duration_seconds": 0.0075
+    },
+    {
+      "nodeid": "tests/test_standalone_offline_verifier.py::test_falsification_tampered_payload_content",
+      "outcome": "passed",
+      "duration_seconds": 0.0037
+    },
+    {
+      "nodeid": "tests/test_standalone_offline_verifier.py::test_positive_selective_disclosure_receipt",
+      "outcome": "passed",
+      "duration_seconds": 0.0072
+    },
+    {
+      "nodeid": "tests/test_standalone_offline_verifier.py::test_positive_rfc9162_merkle_tree_inclusion",
+      "outcome": "passed",
+      "duration_seconds": 0.0001
+    },
+    {
+      "nodeid": "tests/test_standalone_offline_verifier.py::test_positive_validation_receipt_envelope_format",
+      "outcome": "passed",
+      "duration_seconds": 0.0075
+    },
+    {
+      "nodeid": "tests/test_standalone_offline_verifier.py::test_cli_self_test_execution",
+      "outcome": "passed",
+      "duration_seconds": 0.0783
+    },
+    {
+      "nodeid": "tests/test_bpf_lsm_profile_compiler.py::test_positive_tetragon_aeib_enforcer_compilation",
+      "outcome": "passed",
+      "duration_seconds": 0.0046
+    },
+    {
+      "nodeid": "tests/test_bpf_lsm_profile_compiler.py::test_falsification_unknown_lsm_hook_halts_closed",
+      "outcome": "passed",
+      "duration_seconds": 0.0001
+    },
+    {
+      "nodeid": "tests/test_bpf_lsm_profile_compiler.py::test_falsification_permissive_wildcard_file_write_halts_closed",
+      "outcome": "passed",
+      "duration_seconds": 0.0001
+    },
+    {
+      "nodeid": "tests/test_bpf_lsm_profile_compiler.py::test_falsification_argument_type_mismatch_halts_closed",
+      "outcome": "passed",
+      "duration_seconds": 0.0001
+    },
+    {
+      "nodeid": "tests/test_bpf_lsm_profile_compiler.py::test_cli_compiler_self_test_execution",
+      "outcome": "passed",
+      "duration_seconds": 0.054
+    }
+  ]
+}

@@ -45,6 +45,7 @@ pytest \
   tools/phase0_integrity_reset_core.py \
   tests/test_structural_cve_boundary_fixtures.py \
   tests/test_cve_2026_33017_langflow_rce.py \
+  tests/test_vibe_coding_and_long_horizon_guard.py \
   tools/regulatory_three_tier_and_matrix.py \
   tools/context_ram_and_maseval_harness.py \
   tools/tlaplus_model_conformance_checker.py \

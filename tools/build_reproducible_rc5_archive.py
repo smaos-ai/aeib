@@ -42,6 +42,11 @@ from tests.test_cve_2026_33017_langflow_rce import (
     test_cve_2026_33017_aeib_ast_policy_gate_containment,
     test_cve_2026_33017_aeib_station1_taint_and_authorization_gate,
 )
+from tests.test_vibe_coding_and_long_horizon_guard import (
+    test_gitai_bisect_isolates_breaking_patch,
+    test_iaps_agent_honeypot_detection_and_deterrence,
+    test_vibe_coding_missing_auth_and_rls_detection,
+)
 from benchmarks.locomo_context_quality import evaluate_locomo_benchmark
 from benchmarks.maseval_integration import run_maseval_comparative_benchmark
 from tools.context_ram_and_maseval_harness import (
@@ -94,6 +99,9 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
     test_cross_tenant_governor_seven_isolation_properties()
     test_cve_2026_33017_aeib_ast_policy_gate_containment()
     test_cve_2026_33017_aeib_station1_taint_and_authorization_gate()
+    test_vibe_coding_missing_auth_and_rls_detection()
+    test_gitai_bisect_isolates_breaking_patch()
+    test_iaps_agent_honeypot_detection_and_deterrence()
     locomo_report = _sanitize_for_canonical_json(evaluate_locomo_benchmark())
     maseval_report = _sanitize_for_canonical_json(run_maseval_comparative_benchmark())
     tla_report = explore_tla_state_space_and_verify_conformance()
@@ -151,11 +159,13 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "tests/test_otel_genai_evidence_chain.py",
             "tests/test_runtime_boundary_and_state_machine.py",
             "tests/test_structural_cve_boundary_fixtures.py",
+            "tests/test_vibe_coding_and_long_horizon_guard.py",
             "tools/context_ram_and_maseval_harness.py",
             "tools/phase0_integrity_reset_core.py",
             "tools/regulatory_three_tier_and_matrix.py",
             "tools/smf_frontier_oct2026_upgrades.py",
             "tools/tlaplus_model_conformance_checker.py",
+            "tools/vibe_coding_and_long_horizon_guard.py",
         ]
     ):
         p = Path(rel_file)

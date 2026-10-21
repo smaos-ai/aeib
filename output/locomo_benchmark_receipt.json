@@ -1,0 +1,40 @@
+{
+  "benchmark": "LoCoMo-Context-Quality-v1",
+  "turns_evaluated": 100,
+  "naive_baseline": {
+    "mean_context_tokens": 3669,
+    "recall_accuracy_pct": 100.0
+  },
+  "contextcart_hawkes": {
+    "mean_context_tokens": 1493.5,
+    "max_context_limit": 1500,
+    "recall_accuracy_pct": 100.0,
+    "token_compression_factor": 2.46
+  },
+  "query_breakdown": [
+    {
+      "query_id": "Q-SINGLE-01",
+      "category": "SINGLE_HOP",
+      "recalled": true,
+      "context_tokens": 1494
+    },
+    {
+      "query_id": "Q-SINGLE-02",
+      "category": "SINGLE_HOP",
+      "recalled": true,
+      "context_tokens": 1493
+    },
+    {
+      "query_id": "Q-MULTI-01",
+      "category": "MULTI_HOP",
+      "recalled": true,
+      "context_tokens": 1495
+    },
+    {
+      "query_id": "Q-TEMPORAL-01",
+      "category": "TEMPORAL",
+      "recalled": true,
+      "context_tokens": 1492
+    }
+  ]
+}

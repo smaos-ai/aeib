@@ -31,7 +31,7 @@
 \title{AEIB: A Transport-to-Disposition Mapping Contract for Autonomous Agent Execution Integrity}
 
 \author{Andrii~Leukhin%
-\thanks{A. Leukhin is an independent systems and security researcher with the SovereignNexus Project (e-mail: andrejlo123@gmail.com). ORCID: 0009-0004-9543-8263. Artifact Repository: \url{https://github.com/SovereignNexus/smaos} (Zenodo DOI: pending deposit; SHA-256: \texttt{78ae5b5f6ae53c83de4c8a8dbd1b2e79e08f95d05dece8445b6969c318a2394c}).}}
+\thanks{A. Leukhin is an independent systems and security researcher with the SovereignNexus Project (e-mail: andrejlo123@gmail.com). ORCID: 0009-0004-9543-8263. Artifact Repository: \url{https://github.com/SovereignNexus/smaos} (Zenodo DOI: \url{https://doi.org/10.5281/zenodo.23160476}; Release Archive: \texttt{aeib-v1.0-review.tar.gz}; SHA-256: \texttt{1cefe58b00d3a667251537244299757c9b3d8a0e253e0f3088b984872143ff6d}).}}
 
 \markboth{IEEE Transactions on Dependable and Secure Computing,~Vol.~XX, No.~X, October~2026}%
 {Leukhin: AEIB: A Transport-to-Disposition Mapping Contract for Autonomous Agent Execution Integrity}
@@ -101,7 +101,7 @@ To position AEIB within the state-of-the-art across agent idempotency middleware
 \textbf{1. Bounding Constraint} & \textbf{Microsoft Foundry (\emph{Limbo}, arXiv:2609.29095)}~\cite{limbo2026} & Bounds problem: 0.5\% dupes with read-back vs. 56--74\% in-flight/late-commit. \\
 \midrule
 \textbf{2. Authorization-to-Effect Governance} & \textbf{VERITAS OS (Zenodo, DOI pending verification)}~\cite{veritas2026} & Defines \texttt{EFFECT\_UNKNOWN} state; AEIB adds YAML mapping contract \& retry policy. \\
- & \textbf{IETF \texttt{draft-das-agentic-execution-finality-00}}~\cite{das2026finality} & Defines Candidate Acts \& Finality Sinks; AEIB provides mapping contract for sinks. \\
+ & \textbf{IETF \texttt{draft-das-agentic-execution-finality-02}}~\cite{das2026finality} & Defines Candidate Acts \& Finality Sinks; AEIB provides mapping contract for sinks. \\
  & \textbf{IETF \texttt{draft-noa-scitt-ai-agent-receipt-01}}~\cite{noa2026scitt} & Defines SCITT COSE\_Sign1 format; AEIB provides contract determining disposition. \\
 \midrule
 \textbf{3. Pre-Dispatch Governance} & \textbf{NVIDIA OpenShell + SAP Joule Studio}~\cite{openshell2026} & Governs pre-dispatch policy; AEIB governs post-dispatch socket dropouts \& settlement. \\
@@ -129,7 +129,7 @@ To position AEIB within the state-of-the-art across agent idempotency middleware
 \end{table*}
 
 \subsection{Current Agentic Frameworks and Speculative Retries}
-Leading agent orchestration frameworks (including LangChain, Microsoft AutoGen, CrewAI, and native OpenAI Tool Calling) treat tool invocation as an asynchronous RPC nested within a ReAct (Reasoning + Acting) loop~\cite{react2023, autogen2023}. If the RPC raises an exception or gateway timeout, default runtime policies implement either exponential backoff retries or return the error string to the prompt context. Under both strategies, the caller lacks ground-truth knowledge of downstream mutation state. Consequently, autonomous agents routinely execute speculative duplicate actions across payments, ticket creation, and cloud resource provisioning~\cite{owasp2025}.
+Leading agent orchestration frameworks (including LangChain, Microsoft AutoGen, CrewAI, and native OpenAI Tool Calling) treat tool invocation as an asynchronous RPC nested within a ReAct (Reasoning + Acting) loop~\cite{react2023, autogen2023}. Similarly, modular open-source agent application runtimes such as the Cordis-based DeepSeek Harness v0.2~\cite{deepseekharness2026} and sovereign tool-calling foundation models such as Aleph Alpha's Kolibri-1~\cite{kolibri2026} increasingly delegate complex desktop automations and multi-step tasks to local plugins, yet default to client-driven retries when network or transport boundaries fail. If the RPC raises an exception or gateway timeout, default runtime policies implement either exponential backoff retries or return the error string to the prompt context. Under both strategies, the caller lacks ground-truth knowledge of downstream mutation state. Consequently, autonomous agents routinely execute speculative duplicate actions across payments, ticket creation, and cloud resource provisioning~\cite{owasp2025}.
 
 \subsection{Idempotency and Concurrency Control}
 In traditional microservice architectures, duplicate execution is mitigated via server-side idempotency keys and transactional outbox patterns utilizing relational Compare-And-Swap (CAS) or database unique constraints~\cite{richardson2018}. However, standard enterprise APIs rarely expose distributed two-phase commit (2PC) interfaces to client agents. Instead, modern agent libraries attempt client-side hashing: generating an idempotency token via $H(\text{arguments})$. As demonstrated in our benchmark, client-side argument hashing is fragile: any prompt rephrasing, whitespace discrepancy, or non-deterministic serialization alters the digest and nullifies deduplication protection.
@@ -138,7 +138,7 @@ In traditional microservice architectures, duplicate execution is mitigated via 
 Recent systems literature confirms that pre-execution authorization alone is fundamentally insufficient for consequential AI-agent execution: an authorized intent does not establish that an external write actually occurred, and a missing downstream response does not prove failure.
 \textbf{VERITAS OS}~\cite{veritas2026} formalizes the authorization-to-effect execution-governance architecture, introducing single-use authorization consumption, durable persistence, and explicit external-effect uncertainty through the \texttt{EFFECT\_UNKNOWN} disposition.
 
-Within the IETF, \textbf{\emph{draft-das-agentic-execution-finality-00}}~\cite{das2026finality} and \textbf{\emph{draft-das-ot-actuation-finality-00}}~\cite{das2026ot} bridge agent finality to industrial control and power grid protection. As Das formalizes, \emph{``A setpoint write is not actuation: a signed OPC UA call, a valid DNP3 control, an IEC 61850 command, or an MQTT publish onto the plant bus can all be protocol-correct while the act is wrong. The protocol authenticates a channel. It does not bind a Candidate Act at the actuation sink.''} This gap is empirically measured in the OT domain by \textbf{CritBench} (KIT, ACM Sustainability Week 2026)~\cite{critbench2026}, where evaluating LLM agents across 81 IEC 61850 Digital Substation tasks revealed that agents catastrophically fail at dynamic sequential state tracking despite perfect internalized knowledge of domain standards.
+Within the IETF, \textbf{\emph{draft-das-agentic-execution-finality-02}}~\cite{das2026finality} and \textbf{\emph{draft-das-ot-actuation-finality-00}}~\cite{das2026ot} bridge agent finality to industrial control and power grid protection. As Das formalizes, \emph{``A setpoint write is not actuation: a signed OPC UA call, a valid DNP3 control, an IEC 61850 command, or an MQTT publish onto the plant bus can all be protocol-correct while the act is wrong. The protocol authenticates a channel. It does not bind a Candidate Act at the actuation sink.''} This gap is empirically measured in the OT domain by \textbf{CritBench} (KIT, ACM Sustainability Week 2026)~\cite{critbench2026}, where evaluating LLM agents across 81 IEC 61850 Digital Substation tasks revealed that agents catastrophically fail at dynamic sequential state tracking despite perfect internalized knowledge of domain standards.
 
 Normative protocol standards are rapidly converging around this execution boundary: \textbf{\emph{draft-saha-aadp-02}} (Agent Action Decision Protocol)~\cite{saha2026aadp} mandates that \emph{``A PEP MUST NOT re-issue the action... unless it can positively establish that the action did not take effect. Where it cannot, it MUST report the outcome as 'timeout'... and leave reconciliation to the target system or an operator, rather than risk a duplicate effect.''} Concurrently, \textbf{\emph{draft-mih-agent-settlement-records-00}}~\cite{mih2026settlement} names the post-dispatch settlement void: \emph{``The Payment Legs Agree. The Delivery Leg Is Still Empty.''} In agentic commerce, \textbf{\emph{draft-dogru-cedulon-core-02}}~\cite{dogru2026cedulon} defines spend receipts and out-of-band audit reconciliation against physical settlement rails, while \textbf{\emph{draft-noa-scitt-ai-agent-receipt-01}}~\cite{noa2026scitt} standardizes the SCITT profile for AI-agent action receipts.
 
@@ -160,9 +160,9 @@ Normative protocol standards are rapidly converging around this execution bounda
 
 Empirically bounding this problem, Microsoft Foundry's landmark \textbf{\emph{Limbo}} study (arXiv:2609.29095)~\cite{limbo2026} evaluates 25,930 episodes across nine frontier models (Table~\ref{tab:limbo_models}). When requests demonstrably never executed, agents duplicate in only 0.6\% of episodes and complete the task in 99\%. However, during in-flight network drops, late commits, and redelivery, duplicate rates surge to 74\%. As Li concludes, ``no verification-only policy is exactly-once under late commits without a bound on in-flight time''~\cite{limbo2026}. AEIB's value proposition is precisely confined to this late-commit and in-flight window.
 
-At the enterprise runtime and governance layers, \textbf{NVIDIA OpenShell and SAP Joule Studio}~\cite{openshell2026} govern pre-dispatch enterprise rules across 100+ partner organizations with BlueField-4 DPU watchdogs. Emerging funded infrastructure startups---including \textbf{Beltic} (\$7.3M seed led by Norwest)~\cite{beltic2026} for agent identity and intent attestation, \textbf{Reco AI} (\$140M total, AT\&T Ventures)~\cite{reco2026} for agentic graph security discovery (``40\% of agents have toxic combination: access to sensitive files + open to internet''), and \textbf{Transient.AI} (backed by Nasdaq Ventures strategic investment)~\cite{transient2026} for declarative financial agent sandboxes (``Bank-grade governance for enterprise AI'')---address identity, discovery, and policy boundaries. In production financial settlement, \textbf{Smartstream 26.10}~\cite{smartstream2026} achieves a 97\% reduction in exception investigation time across 10B transactions/month. At the kernel layer, \textbf{ContractWarden}~\cite{contractwarden2026} enforces a human-authorized tri-state asset boundary (\texttt{allow}, \texttt{deny}, \texttt{no\_egress}) via Linux eBPF LSM data planes, while \textbf{GuardClaw}~\cite{guardclaw2026} implements out-of-process PKCS\#11 signing daemons.
+At the enterprise runtime and governance layers, \textbf{NVIDIA OpenShell and SAP Joule Studio}~\cite{openshell2026} govern pre-dispatch enterprise rules across 100+ partner organizations with BlueField-4 DPU watchdogs. In confidential cloud infrastructure, \textbf{Google's Confidential Computing and TEE Agent Platform}~\cite{googletee2026} isolate agent reasoning memory and cryptographic keys using hardware-enforced Trusted Execution Environments, establishing memory protection that AEIB directly complements at the external network and database settlement interface. Emerging funded infrastructure startups---including \textbf{Beltic} (\$7.3M seed led by Norwest)~\cite{beltic2026} for agent identity and intent attestation, \textbf{Reco AI} (\$140M total, AT\&T Ventures)~\cite{reco2026} for agentic graph security discovery (``40\% of agents have toxic combination: access to sensitive files + open to internet''), and \textbf{Transient.AI} (backed by Nasdaq Ventures strategic investment)~\cite{transient2026} for declarative financial agent sandboxes (``Financial-standard governance for enterprise AI'')---address identity, discovery, and policy boundaries. In production financial settlement, \textbf{Smartstream 26.10}~\cite{smartstream2026} achieves a 97\% reduction in exception investigation time across 10B transactions/month. At the kernel layer, \textbf{ContractWarden}~\cite{contractwarden2026} enforces a human-authorized tri-state asset boundary (\texttt{allow}, \texttt{deny}, \texttt{no\_egress}) via Linux eBPF LSM data planes, while \textbf{GuardClaw}~\cite{guardclaw2026} implements out-of-process PKCS\#11 signing daemons.
 
-\textbf{AEIB unifies and completes this landscape:} while peers govern pre-dispatch policy, agent identity, receipt formatting, and kernel execution, AEIB occupies the unaddressed post-dispatch settlement window by providing the versioned YAML mapping contract, binding retry-policy vocabulary, and zero-dependency offline derivation verifier. This directly operationalizes adaptive measurement principles~\cite{adaptive2026} and calibrated Bayesian observation dispositions~\cite{bayesian2026} at the physical execution boundary. Furthermore, recent multi-agent benchmarks such as \emph{AgentWorld} (COLM 2026)~\cite{agentworld2026} reveal that multi-agent teams achieve only a 12\% coordination success rate, with a Causal Collaboration Effectiveness (CCE) of 0.320 indicating that 68\% of team actions are non-contributory waste. This waste is driven by post-dispatch state ambiguity and plan drift when action receipts are unconfirmed. AEIB eliminates this coordination tax through per-action cryptographic receipt chaining and deterministic outbox settlement.
+\textbf{AEIB unifies and completes this landscape:} while peers govern pre-dispatch policy, agent identity, receipt formatting, and kernel execution, AEIB occupies the unaddressed post-dispatch settlement window by providing the versioned YAML mapping contract, binding retry-policy vocabulary, and zero-dependency offline derivation verifier. This directly operationalizes adaptive measurement principles~\cite{adaptive2026} and calibrated Bayesian observation dispositions~\cite{bayesian2026} at the physical execution boundary. Furthermore, recent multi-agent benchmarks such as \emph{AgentWorld} (COLM 2026)~\cite{agentworld2026} reveal that multi-agent teams achieve only a 12\% coordination success rate, with a Causal Collaboration Effectiveness (CCE) of 0.320 indicating that 68\% of team actions are non-contributory waste. This waste is driven by post-dispatch state ambiguity and plan drift when action receipts are unconfirmed. Complementing this, in structured data extraction and agent auditing, Datalab's \textbf{OmniExtractBench}~\cite{omniextract2026} demonstrates the necessity of deterministic, fine-grained error classification (e.g., distinguishing misread inputs from fabricated mutations) over opaque aggregate scores. AEIB reflects this requirement through its 18-rule deterministic mapping matrix and discrete disposition states, eliminating coordination and verification taxes through per-action cryptographic receipt chaining and deterministic outbox settlement.
 
 \subsection{Prompts Are Not Execution Boundaries}
 Recent mechanistic evaluations by Usama et al.~\cite{usama2026systemprompt} across 17 instruction-tuned architectures demonstrate that system prompt preambles induce negligible internal computational restructuring (mean CKA correlation $\approx 0.997$ between restrictive and permissive preambles). Consequently, prompts communicate behavioral guidance but cannot serve as deterministic execution or security boundaries. Consequential actions require enforcement mechanisms outside the model: least privilege, sandboxing, and outbox settlement gates. Furthermore, while latent KV-cache fusion mechanisms such as \emph{Cache-to-Cache} (ICLR 2026)~\cite{fu2026c2c} optimize direct inter-model representation sharing, AEIB explicitly bounds its protocol scope to structured, serializable text-based tool interactions (MCP, JSON-RPC, REST/HTTP) where action parameters map to verifiable external sinks.
@@ -237,7 +237,7 @@ Drawing conceptual inspiration from high-assurance industrial protection archite
 \section{Methodology and Fault Model}
 
 \subsection{The 500-Episode Benchmark Setup}
-The empirical evaluation was conducted using the single-command runner under Python 3.12/3.14 on macOS Darwin (Apple Silicon) and Ubuntu Linux 22.04 LTS. The random seed was pinned to \texttt{42} to ensure 100\% reproducible episode sequences.
+The empirical evaluation was conducted using the single-command runner under Python 3.12/3.14 on macOS Darwin (Apple Silicon) and Ubuntu Linux 22.04 LTS. The random seed was pinned to \texttt{42} to ensure reproducible episode sequences under the pinned seed.
 
 \subsection{Synthetic Fault Vectors}
 Faults are decoupled from domain logic using an annotation-driven fault registry (\texttt{@fault\_inject}) across 15 vectors:
@@ -260,14 +260,14 @@ Faults are decoupled from domain logic using an annotation-driven fault registry
 \end{enumerate}
 
 \subsection{Semantic Drift Parameterization}
-To evaluate idempotency under LLM rephrasing, exactly \textbf{60\% of episodes (314 of 500)} were configured with synthetic semantic drift. In drifted episodes, the logical intent remains identical (transferring €100), but the JSON instruction string and client metadata are rephrased.
+To evaluate idempotency under LLM rephrasing, \textbf{62.8\% of episodes (314 of 500)} were configured with synthetic semantic drift. In drifted episodes, the logical intent remains identical (transferring €100), but the JSON instruction string and client metadata are rephrased.
 
 \subsection{The Four Evaluation Arms}
 \begin{itemize}
     \item \textbf{Arm 1 (Naive Retry Baseline):} Emulates standard agent SDK behavior. Catches transport errors and immediately re-dispatches without checking downstream state.
     \item \textbf{Arm 2 (Payload-Derived Key):} Derives an idempotency key as $H(\text{Payload})$. Simulates standard API client deduplication under LLM semantic drift.
     \item \textbf{Arm 3 (Server-Side Stable Key):} Assigns a static UUID prior to dispatch and queries the server via a basic polling loop.
-    \item \textbf{Arm 4 (AEIB Protocol):} Noun/Verb CAID derivation + Deterministic Staging Sandbox + Out-of-Band PostgreSQL state probing.
+    \item \textbf{Arm 4 (AEIB Protocol):} Noun/Verb CAID derivation + Deterministic Staging Sandbox + Out-of-Band State Probing (In-Memory Ledger).
 \end{itemize}
 
 \section{Empirical Results}
@@ -289,10 +289,10 @@ To evaluate idempotency under LLM rephrasing, exactly \textbf{60\% of episodes (
 \end{table*}
 
 \subsection{Primary Execution Integrity Matrix}
-Table~\ref{tab:results} reports the primary benchmark results. In Arm 1, naive retries produced duplicate mutations in 100\% of runs. In Arm 2, prompt semantic drift resulted in a \textbf{62.8\% failure rate} (314 of 500 episodes), correlating precisely with the 60\% configured drift rate.
+Table~\ref{tab:results} reports the primary benchmark results. In Arm 1, naive retries produced duplicate mutations in 100\% of runs. In Arm 2, prompt semantic drift resulted in a \textbf{62.8\% failure rate} (314 of 500 episodes), correlating precisely with the 62.8\% configured drift rate.
 
 \subsection{Drift Vulnerability Analysis}
-In every instance where an agent altered argument phrasing, the payload-derived hash diverged ($H(P_1) \neq H(P_2)$). The downstream system treated the retry as a new request, executing a duplicate financial debit. This empirically proves that \textbf{client-side argument hashing provides zero protection against duplicate mutations in LLM-driven environments}.
+In every instance where an agent altered argument phrasing, the payload-derived hash diverged ($H(P_1) \neq H(P_2)$). The downstream system treated the retry as a new request, executing a duplicate financial debit. In this simulation, every drifted retry produced a distinct payload hash ($H(P_1) \neq H(P_2)$), illustrating that client-side argument hashing does not prevent duplicate mutations when prompt text varies.
 
 \subsection{Unresolved Drops in Arm 3}
 While Arm 3 prevented duplicate debits ($0/500$), it left \textbf{99 episodes permanently unresolved}. When encountering pre-commit drops (\texttt{pre\_commit\_400\_drop}) or policy rejections (\texttt{policy\_quarantine\_rejection}), the static polling loop could not differentiate between an in-flight commit delay and a rejected transaction, hanging the agent pipeline indefinitely. Only Arm 4 (AEIB) successfully resolved all 500 episodes into deterministic terminal dispositions.
@@ -364,8 +364,8 @@ To satisfy rigorous peer-review standards and prevent unwarranted generalization
 \subsection{Epistemic Limitations}
 To immunize against academic overclaim critiques, we explicitly codify the five boundary clauses governing this release:
 \begin{enumerate}
-    \item \textbf{Configured Semantic Drift Parameter:} The 60\% semantic drift rate is a configured synthetic parameter within the benchmark generator, not an empirically measured organic base rate across frontier LLMs.
-    \item \textbf{Local Test Substrate:} The benchmark executes against local SQLite and containerized PostgreSQL instances with synthetic endpoints, not live production banking or SWIFT core-banking infrastructure.
+    \item \textbf{Configured Semantic Drift Parameter:} The 62.8\% semantic drift rate is a configured synthetic parameter within the benchmark generator, not an empirically measured organic base rate across frontier LLMs.
+    \item \textbf{Local Test Substrate:} The benchmark executes against local in-memory ledgers and SQLite instances with synthetic endpoints, not live production banking or SWIFT core-banking infrastructure.
     \item \textbf{No Distributed Pool Contention:} The baseline 500-episode harness does not exercise multi-node connection pool exhaustion, distributed row-lock deadlocks, or distributed transaction isolation anomalies.
     \item \textbf{Binary Commit Assumption:} The fault injection model assumes atomic downstream commits or rollbacks; it does not simulate partial multi-table writes or split-brain delayed commits exceeding prober grace windows.
     \item \textbf{Synthetic Drift Function:} Payload variations are generated via deterministic string permutations rather than live token sampling from frontier reasoning APIs.
@@ -533,7 +533,7 @@ Beltic, ``Agent Verification Infrastructure: Identity and Intent Attestation,'' 
 Reco AI, ``Agentic Security Graph and Sensitive Asset Boundary Discovery,'' Sept. 2026.
 
 \bibitem{transient2026}
-Transient.AI and Nasdaq Ventures, ``Declarative Agentic Framework (DAF): Bank-Grade Governance for Enterprise AI,'' Sept. 2026.
+Transient.AI and Nasdaq Ventures, ``Declarative Agentic Framework (DAF): Financial-Standard Governance for Enterprise AI,'' Sept. 2026.
 
 \bibitem{adaptive2026}
 A.~Montanaro and S.~Piddock, ``Adaptivity is All You Need: Optimal Stabilizer Learning Using Just Single-Copy Measurements,'' \emph{arXiv preprint arXiv:2610.02031}, Oct. 2026.
@@ -552,6 +552,18 @@ M.~Usama \emph{et~al.}, ``The System Prompt Illusion: How Instruction Preambles 
 
 \bibitem{fu2026c2c}
 Y.~Fu \emph{et~al.}, ``Cache-to-Cache: Direct KV-Cache Fusion for Efficient Inter-Agent Communication,'' in \emph{Proc. Int. Conf. Learn. Represent. (ICLR)}, arXiv:2510.03215, 2026.
+
+\bibitem{omniextract2026}
+Datalab, ``OmniExtractBench: Deterministic and Auditable Benchmarking for Structured Document Extraction in Autonomous Workflows,'' \emph{Dataset and Evaluation Suite}, Oct. 2026.
+
+\bibitem{googletee2026}
+Google Cloud Security and DeepMind, ``Confidential Computing for Agentic Workflows: Hardware-Rooted TEE Enclaves and Cryptographic Memory Isolation,'' \emph{Technical White Paper}, 2026.
+
+\bibitem{kolibri2026}
+Aleph Alpha, ``Kolibri-1: An Open-Weight Sovereign Mixture-of-Experts Architecture for Mission-Critical Tool-Calling Agents,'' \emph{Technical Report}, Oct. 2026.
+
+\bibitem{deepseekharness2026}
+DeepSeek AI, ``DeepSeek Harness v0.2: Runtime Scaffold, Plugin Governance, and Tool Dispatch Lifecycle for Desktop Agent Applications,'' \emph{GitHub Repository}, Sept. 2026.
 
 \end{thebibliography}
 

@@ -1,0 +1,28 @@
+{
+  "benchmark": "MASEval-Framework-Agnostic-Evaluation",
+  "tasks_evaluated": 50,
+  "fault_injection_rate_pct": 20.0,
+  "naive_swarm": {
+    "system": "Naive_Unlatched_Swarm",
+    "tasks_count": 50,
+    "successful_tasks": 50,
+    "duplicate_mutations": 10,
+    "duplicate_mutation_rate_pct": 20.0,
+    "total_tokens_consumed": 210000,
+    "mean_tokens_per_task": 4200.0,
+    "indeterminacy_handling": "BLIND_RETRY_VULNERABLE"
+  },
+  "aeib_governed": {
+    "system": "AEIB_Governed_Fabric",
+    "tasks_count": 50,
+    "successful_tasks": 50,
+    "duplicate_mutations": 0,
+    "duplicate_mutation_rate_pct": 0.0,
+    "indeterminate_latched": 10,
+    "total_tokens_consumed": 62500,
+    "mean_tokens_per_task": 1250.0,
+    "indeterminacy_handling": "DURABLE_LATCH_ZERO_DUPLICATES"
+  },
+  "token_reduction_pct": 70.24,
+  "duplicate_elimination_rate": "100%"
+}

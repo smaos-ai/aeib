@@ -62,6 +62,31 @@ from tests.test_hlc_hypergraph_and_persist_gate import (
     test_persist_memory_gate_memmorph_tool_redirect,
     test_banned_words_absence as test_hlc_gate_banned_words,
 )
+from tests.test_hansard_and_defection_probe import (
+    test_hansard_choke_point_witnessing_and_dag_tip,
+    test_hansard_attribution_laundering_detection,
+    test_hansard_additive_harms_no_laundering,
+    test_defection_probe_initialization_and_validation,
+    test_defection_probe_benign_activation,
+    test_defection_probe_defection_activation_halt,
+    test_defection_probe_sigmoid_numerical_stability,
+    test_banned_words_absence as test_hansard_defection_banned_words,
+)
+from tests.test_poseidon2_merkle_tree import (
+    test_sbox_and_field_properties,
+    test_linear_layers,
+    test_poseidon2_permutation_avalanche_and_non_commutativity,
+    test_poseidon2_hash_bytes_and_canonical_json,
+    test_poseidon2_merkle_tree_construction_and_padding,
+    test_poseidon2_merkle_tree_all_leaves_proof_verification,
+    test_poseidon2_proof_serialization_roundtrip,
+    test_tampered_leaf_rejected,
+    test_tampered_sibling_rejected,
+    test_wrong_expected_root_rejected,
+    test_invalid_leaf_index_raises,
+    test_empty_leaves_raises,
+    test_banned_words_absence as test_poseidon2_banned_words,
+)
 from benchmarks.locomo_context_quality import evaluate_locomo_benchmark
 from benchmarks.maseval_integration import run_maseval_comparative_benchmark
 from tools.context_ram_and_maseval_harness import (
@@ -128,6 +153,27 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
     test_hypergraph_emergent_collusion_sink_convergence()
     test_persist_memory_gate_memmorph_tool_redirect()
     test_hlc_gate_banned_words()
+    test_hansard_choke_point_witnessing_and_dag_tip()
+    test_hansard_attribution_laundering_detection()
+    test_hansard_additive_harms_no_laundering()
+    test_defection_probe_initialization_and_validation()
+    test_defection_probe_benign_activation()
+    test_defection_probe_defection_activation_halt()
+    test_defection_probe_sigmoid_numerical_stability()
+    test_hansard_defection_banned_words()
+    test_sbox_and_field_properties()
+    test_linear_layers()
+    test_poseidon2_permutation_avalanche_and_non_commutativity()
+    test_poseidon2_hash_bytes_and_canonical_json()
+    test_poseidon2_merkle_tree_construction_and_padding()
+    test_poseidon2_merkle_tree_all_leaves_proof_verification()
+    test_poseidon2_proof_serialization_roundtrip()
+    test_tampered_leaf_rejected()
+    test_tampered_sibling_rejected()
+    test_wrong_expected_root_rejected()
+    test_invalid_leaf_index_raises()
+    test_empty_leaves_raises()
+    test_poseidon2_banned_words()
     locomo_report = _sanitize_for_canonical_json(evaluate_locomo_benchmark())
     maseval_report = _sanitize_for_canonical_json(run_maseval_comparative_benchmark())
     tla_report = explore_tla_state_space_and_verify_conformance()
@@ -178,20 +224,25 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "src/context/leviathan_context_engine.py",
             "src/deception/__init__.py",
             "src/deception/agent_deception_interlock.py",
+            "src/defection_activation_probe.py",
             "src/governance/cross_tenant_sovereign_governor.py",
+            "src/hansard_causal_provenance.py",
             "src/hlc_hybrid_logical_clock.py",
             "src/hypergraph_causal_audit.py",
             "src/observability/__init__.py",
             "src/observability/otel_genai_evidence_chain.py",
             "src/persist_memory_gate.py",
+            "src/poseidon2_merkle_tree.py",
             "src/runtime_boundary/__init__.py",
             "src/runtime_boundary/runtime_execution_boundary.py",
             "tests/test_agent_deception_interlock.py",
             "tests/test_cve_2026_33017_langflow_rce.py",
+            "tests/test_hansard_and_defection_probe.py",
             "tests/test_hlc_hypergraph_and_persist_gate.py",
             "tests/test_leviathan_and_cross_tenant_isolation.py",
             "tests/test_local_system1_leviathan_daemon.py",
             "tests/test_otel_genai_evidence_chain.py",
+            "tests/test_poseidon2_merkle_tree.py",
             "tests/test_runtime_boundary_and_state_machine.py",
             "tests/test_structural_cve_boundary_fixtures.py",
             "tests/test_vibe_coding_and_long_horizon_guard.py",

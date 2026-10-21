@@ -48,6 +48,8 @@ pytest \
   tests/test_vibe_coding_and_long_horizon_guard.py \
   tests/test_local_system1_leviathan_daemon.py \
   tests/test_hlc_hypergraph_and_persist_gate.py \
+  tests/test_hansard_and_defection_probe.py \
+  tests/test_poseidon2_merkle_tree.py \
   tools/regulatory_three_tier_and_matrix.py \
   tools/context_ram_and_maseval_harness.py \
   tools/tlaplus_model_conformance_checker.py \

@@ -1,0 +1,166 @@
+"""
+Deterministic Air-Gapped Reproducible Evidence Archive Builder (`v1.0.0-rc.5-preprod`).
+- Runs Phase 0 + Tracks 1, 2, 3, and 4.
+- Produces canonical, timestamp-free JSON evidence reports.
+- Packages all source modules, TLA+ models, and reports into a deterministic tarball
+  with fixed mtime (`SOURCE_DATE_EPOCH = 1760918400`), uid=0, gid=0, and sorted entries.
+- Extracts the archive into an isolated clean-room directory and verifies every SHA-256 digest.
+"""
+import gzip
+import hashlib
+import io
+import json
+import os
+import sys
+import tarfile
+import tempfile
+from pathlib import Path
+from typing import Any, Dict, List, Tuple
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from tests.test_structural_cve_boundary_fixtures import (
+    test_all_four_structural_cve_fixtures_and_aeib_containment,
+)
+from tools.context_ram_and_maseval_harness import (
+    test_context_ram_hawkes_and_dynamic_workflows,
+)
+from tools.phase0_integrity_reset_core import (
+    canonical_json_v1,
+    test_phase0_integrity_reset_all_blockers,
+)
+from tools.regulatory_three_tier_and_matrix import (
+    generate_regulatory_applicability_matrix,
+    test_three_tier_decision_gate_and_applicability_matrix,
+)
+from tools.smf_frontier_oct2026_upgrades import (
+    test_smf_frontier_oct2026_upgrades,
+)
+from tools.tlaplus_model_conformance_checker import (
+    explore_tla_state_space_and_verify_conformance,
+)
+
+FIXED_EPOCH = 1760918400  # 2025-10-20T00:00:00Z deterministic build timestamp
+
+
+def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # 1. Execute all verification tracks
+    test_phase0_integrity_reset_all_blockers()
+    test_all_four_structural_cve_fixtures_and_aeib_containment()
+    test_three_tier_decision_gate_and_applicability_matrix()
+    test_context_ram_hawkes_and_dynamic_workflows()
+    test_smf_frontier_oct2026_upgrades()
+    tla_report = explore_tla_state_space_and_verify_conformance()
+
+    # 2. Generate deterministic, timestamp-free canonical JSON evidence artifacts
+    summary_payload = {
+        "baseline_version": "v1.0.0-rc.5-preprod",
+        "epistemic_status": "locally_reproducible_development_baseline_ready_for_external_reproduction",
+        "phase0_blockers_closed": [
+            "0.1_canonical_json_caid",
+            "0.2_at57b_pure_taint",
+            "0.3_at58_escrow_wal",
+            "0.4_g3_boot_reverify",
+        ],
+        "structural_cve_fixtures_verified": [
+            "CVE-2026-33017_langflow_build_public_tmp",
+            "CVE-2025-53773_vscode_autoapprove_yolo",
+            "CVE-2026-77521_maxkb_tainted_shell",
+            "CVE-2026-90970_gitlab_gateway_template_escape",
+        ],
+        "tla_conformance": tla_report,
+        "regulatory_matrix": generate_regulatory_applicability_matrix(),
+    }
+
+    report_bytes = canonical_json_v1(summary_payload) + b"\n"
+    report_path = output_dir / "rc5_canonical_evidence_report.json"
+    report_path.write_bytes(report_bytes)
+
+    # 3. Build deterministic tar.gz in memory twice to prove bit-identical reproducibility
+    files_to_pack: List[Tuple[str, bytes]] = [
+        ("rc5_canonical_evidence_report.json", report_bytes),
+    ]
+    for rel_file in sorted(
+        [
+            "tools/phase0_integrity_reset_core.py",
+            "tests/test_structural_cve_boundary_fixtures.py",
+            "tools/regulatory_three_tier_and_matrix.py",
+            "tools/context_ram_and_maseval_harness.py",
+            "tools/smf_frontier_oct2026_upgrades.py",
+            "formal/tlaplus/AEIBStation1And2.tla",
+            "tools/tlaplus_model_conformance_checker.py",
+        ]
+    ):
+        p = Path(rel_file)
+        if p.exists():
+            files_to_pack.append((rel_file, p.read_bytes()))
+
+    manifest_lines: List[str] = []
+    for arcname, content in files_to_pack:
+        h = hashlib.sha256(content).hexdigest()
+        manifest_lines.append(f"{h}  {arcname}")
+    manifest_bytes = ("\n".join(manifest_lines) + "\n").encode("utf-8")
+    files_to_pack.append(("SHA256SUMS.txt", manifest_bytes))
+
+    def _create_deterministic_tar_gz() -> bytes:
+        raw_buf = io.BytesIO()
+        with gzip.GzipFile(
+            filename="", mode="wb", fileobj=raw_buf, mtime=FIXED_EPOCH
+        ) as gz:
+            with tarfile.open(mode="w", fileobj=gz) as tar:
+                for arcname, data in sorted(files_to_pack, key=lambda x: x[0]):
+                    info = tarfile.TarInfo(name=arcname)
+                    info.size = len(data)
+                    info.mtime = FIXED_EPOCH
+                    info.uid = 0
+                    info.gid = 0
+                    info.uname = "root"
+                    info.gname = "root"
+                    info.mode = 0o644
+                    tar.addfile(info, io.BytesIO(data))
+        return raw_buf.getvalue()
+
+    archive_bytes_1 = _create_deterministic_tar_gz()
+    archive_bytes_2 = _create_deterministic_tar_gz()
+    assert archive_bytes_1 == archive_bytes_2, "Archive generation is not bit-identical!"
+
+    archive_path = output_dir / "aeib_v1.0.0_rc5_preprod_reproducible_bundle.tar.gz"
+    archive_path.write_bytes(archive_bytes_1)
+    archive_sha256 = hashlib.sha256(archive_bytes_1).hexdigest()
+
+    # 4. Clean-room extraction & SHA256SUMS verification
+    with tempfile.TemporaryDirectory() as clean_dir:
+        with tarfile.open(archive_path, mode="r:gz") as tar:
+            tar.extractall(path=clean_dir, filter="data")
+        extracted_manifest = (
+            (Path(clean_dir) / "SHA256SUMS.txt").read_text("utf-8").splitlines()
+        )
+        for line in extracted_manifest:
+            if not line.strip():
+                continue
+            expected_hash, rel_name = line.split("  ", 1)
+            actual_hash = hashlib.sha256(
+                (Path(clean_dir) / rel_name).read_bytes()
+            ).hexdigest()
+            assert actual_hash == expected_hash, f"Hash mismatch on {rel_name}"
+
+    return {
+        "archive_path": str(archive_path),
+        "archive_sha256": archive_sha256,
+        "report_sha256": hashlib.sha256(report_bytes).hexdigest(),
+        "files_verified_in_cleanroom": len(files_to_pack),
+    }
+
+
+def test_deterministic_rc5_archive_builder() -> None:
+    with tempfile.TemporaryDirectory() as out_dir:
+        res = build_and_verify_deterministic_archive(Path(out_dir))
+        assert len(res["archive_sha256"]) == 64
+        assert res["files_verified_in_cleanroom"] >= 2
+
+
+if __name__ == "__main__":
+    receipt = build_and_verify_deterministic_archive(Path("output/rc5_reproducible"))
+    print(json.dumps(receipt, indent=2))

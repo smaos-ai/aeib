@@ -1,0 +1,11 @@
+{
+  "blind_retries_blocked": 3345,
+  "dispatches_attempted": 10000,
+  "duplicate_mutations_observed": 0,
+  "failure_rate_percent": 0.0,
+  "indeterminate_latches_engaged": 3345,
+  "invariant_verdict": "PASSED",
+  "nominal_successes": 3310,
+  "schedules_evaluated": 10000,
+  "seed": 20261020
+}

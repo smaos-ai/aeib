@@ -44,12 +44,17 @@ echo ">>> [PYTEST BATTERY] Running Full Test Suite"
 pytest \
   tools/phase0_integrity_reset_core.py \
   tests/test_structural_cve_boundary_fixtures.py \
+  tests/test_cve_2026_33017_langflow_rce.py \
   tools/regulatory_three_tier_and_matrix.py \
   tools/context_ram_and_maseval_harness.py \
   tools/tlaplus_model_conformance_checker.py \
   tools/build_reproducible_rc5_archive.py \
   tools/paired_run_bill_denominated_evaluator.py \
   -v
+
+echo ">>> [BENCHMARK RUNNERS] Validating LoCoMo & MASEval"
+python3 benchmarks/locomo_context_quality.py > output/locomo_benchmark_receipt.json
+python3 benchmarks/maseval_integration.py > output/maseval_benchmark_receipt.json
 
 echo ">>> [NVME SYNC] Mirroring to Physical External SSD Cold Vault"
 SSD_TARGET="/Volumes/EXTssd/SovereignNexus_Backup"

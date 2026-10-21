@@ -38,6 +38,12 @@ from tests.test_runtime_boundary_and_state_machine import (
 from tests.test_structural_cve_boundary_fixtures import (
     test_all_four_structural_cve_fixtures_and_aeib_containment,
 )
+from tests.test_cve_2026_33017_langflow_rce import (
+    test_cve_2026_33017_aeib_ast_policy_gate_containment,
+    test_cve_2026_33017_aeib_station1_taint_and_authorization_gate,
+)
+from benchmarks.locomo_context_quality import evaluate_locomo_benchmark
+from benchmarks.maseval_integration import run_maseval_comparative_benchmark
 from tools.context_ram_and_maseval_harness import (
     test_context_ram_hawkes_and_dynamic_workflows,
 )
@@ -59,6 +65,16 @@ from tools.tlaplus_model_conformance_checker import (
 FIXED_EPOCH = 1760918400  # 2025-10-20T00:00:00Z deterministic build timestamp
 
 
+def _sanitize_for_canonical_json(val: Any) -> Any:
+    if isinstance(val, float):
+        return f"{val:.4f}"
+    if isinstance(val, dict):
+        return {k: _sanitize_for_canonical_json(v) for k, v in val.items()}
+    if isinstance(val, list):
+        return [_sanitize_for_canonical_json(x) for x in val]
+    return val
+
+
 def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -76,6 +92,10 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
     test_deception_interlock_nominal_and_tripwire_catches()
     test_leviathan_fts5_bounded_cards_and_invariant_retention()
     test_cross_tenant_governor_seven_isolation_properties()
+    test_cve_2026_33017_aeib_ast_policy_gate_containment()
+    test_cve_2026_33017_aeib_station1_taint_and_authorization_gate()
+    locomo_report = _sanitize_for_canonical_json(evaluate_locomo_benchmark())
+    maseval_report = _sanitize_for_canonical_json(run_maseval_comparative_benchmark())
     tla_report = explore_tla_state_space_and_verify_conformance()
 
     # 2. Generate deterministic, timestamp-free canonical JSON evidence artifacts
@@ -94,6 +114,8 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "CVE-2026-77521_maxkb_tainted_shell",
             "CVE-2026-90970_gitlab_gateway_template_escape",
         ],
+        "locomo_context_quality": locomo_report,
+        "maseval_consequential_mutations": maseval_report,
         "tla_conformance": tla_report,
         "regulatory_matrix": generate_regulatory_applicability_matrix(),
     }
@@ -108,7 +130,12 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
     ]
     for rel_file in sorted(
         [
+            "benchmarks/locomo_context_quality.py",
+            "benchmarks/maseval_integration.py",
+            "docs/benchmarks/maseval_results.md",
+            "docs/compliance/china_agent_regulation_crosswalk.md",
             "formal/tlaplus/AEIBStation1And2.tla",
+            "formal/tlaplus/TLC_OUTPUT.md",
             "src/context/__init__.py",
             "src/context/leviathan_context_engine.py",
             "src/deception/__init__.py",
@@ -119,6 +146,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "src/runtime_boundary/__init__.py",
             "src/runtime_boundary/runtime_execution_boundary.py",
             "tests/test_agent_deception_interlock.py",
+            "tests/test_cve_2026_33017_langflow_rce.py",
             "tests/test_leviathan_and_cross_tenant_isolation.py",
             "tests/test_otel_genai_evidence_chain.py",
             "tests/test_runtime_boundary_and_state_machine.py",

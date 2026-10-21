@@ -19,6 +19,22 @@ from typing import Any, Dict, List, Tuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from tests.test_agent_deception_interlock import (
+    test_deception_interlock_nominal_and_tripwire_catches,
+)
+from tests.test_leviathan_and_cross_tenant_isolation import (
+    test_cross_tenant_governor_seven_isolation_properties,
+    test_leviathan_fts5_bounded_cards_and_invariant_retention,
+)
+from tests.test_otel_genai_evidence_chain import (
+    test_evidence_receipt_hash_chain_and_tamper_detection,
+    test_human_override_ledger_warrant_validation,
+    test_otel_genai_semantic_span_attributes,
+)
+from tests.test_runtime_boundary_and_state_machine import (
+    test_runtime_boundary_falsifications_and_uncertainty_latch,
+    test_runtime_boundary_nominal_and_consequential_flow,
+)
 from tests.test_structural_cve_boundary_fixtures import (
     test_all_four_structural_cve_fixtures_and_aeib_containment,
 )
@@ -52,6 +68,14 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
     test_three_tier_decision_gate_and_applicability_matrix()
     test_context_ram_hawkes_and_dynamic_workflows()
     test_smf_frontier_oct2026_upgrades()
+    test_runtime_boundary_nominal_and_consequential_flow()
+    test_runtime_boundary_falsifications_and_uncertainty_latch()
+    test_otel_genai_semantic_span_attributes()
+    test_evidence_receipt_hash_chain_and_tamper_detection()
+    test_human_override_ledger_warrant_validation()
+    test_deception_interlock_nominal_and_tripwire_catches()
+    test_leviathan_fts5_bounded_cards_and_invariant_retention()
+    test_cross_tenant_governor_seven_isolation_properties()
     tla_report = explore_tla_state_space_and_verify_conformance()
 
     # 2. Generate deterministic, timestamp-free canonical JSON evidence artifacts
@@ -84,12 +108,25 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
     ]
     for rel_file in sorted(
         [
-            "tools/phase0_integrity_reset_core.py",
-            "tests/test_structural_cve_boundary_fixtures.py",
-            "tools/regulatory_three_tier_and_matrix.py",
-            "tools/context_ram_and_maseval_harness.py",
-            "tools/smf_frontier_oct2026_upgrades.py",
             "formal/tlaplus/AEIBStation1And2.tla",
+            "src/context/__init__.py",
+            "src/context/leviathan_context_engine.py",
+            "src/deception/__init__.py",
+            "src/deception/agent_deception_interlock.py",
+            "src/governance/cross_tenant_sovereign_governor.py",
+            "src/observability/__init__.py",
+            "src/observability/otel_genai_evidence_chain.py",
+            "src/runtime_boundary/__init__.py",
+            "src/runtime_boundary/runtime_execution_boundary.py",
+            "tests/test_agent_deception_interlock.py",
+            "tests/test_leviathan_and_cross_tenant_isolation.py",
+            "tests/test_otel_genai_evidence_chain.py",
+            "tests/test_runtime_boundary_and_state_machine.py",
+            "tests/test_structural_cve_boundary_fixtures.py",
+            "tools/context_ram_and_maseval_harness.py",
+            "tools/phase0_integrity_reset_core.py",
+            "tools/regulatory_three_tier_and_matrix.py",
+            "tools/smf_frontier_oct2026_upgrades.py",
             "tools/tlaplus_model_conformance_checker.py",
         ]
     ):

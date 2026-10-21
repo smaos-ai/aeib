@@ -1,0 +1,61 @@
+{
+  "conclusions": {
+    "aeib_retries_blocked": 1,
+    "html_negative_control_bill_reduction_pct": -78.33,
+    "structured_code_bill_reduction_pct": 88.16,
+    "verdict": "AST slicing reduces billing on structured code. AEIB latch eliminates retry-waste on timeouts. Evaluator honestly reports regression on unstructured HTML."
+  },
+  "epistemic_status": "MEASURED_BILLING_DELTA_NO_FABRICATED_MULTIPLIERS",
+  "evaluator": "paired_run_bill_denominated_v1",
+  "pricing_model": {
+    "cache_read_per_mtok": 1.5,
+    "input_per_mtok": 15.0,
+    "output_per_mtok": 75.0
+  },
+  "runs": [
+    {
+      "api_calls": 11,
+      "bill_usd": 10.1325,
+      "exact_answer_accuracy_pct": 100.0,
+      "retries_blocked_by_aeib": 0,
+      "system": "Baseline (Naive)",
+      "tool_calls": 10,
+      "total_tokens_billed": 609500,
+      "wall_clock_sec": 0.0,
+      "workload": "Structured_Code"
+    },
+    {
+      "api_calls": 10,
+      "bill_usd": 1.2,
+      "exact_answer_accuracy_pct": 100.0,
+      "retries_blocked_by_aeib": 1,
+      "system": "ContextCart + AEIB",
+      "tool_calls": 10,
+      "total_tokens_billed": 32000,
+      "wall_clock_sec": 0.0,
+      "workload": "Structured_Code"
+    },
+    {
+      "api_calls": 9,
+      "bill_usd": 6.0225,
+      "exact_answer_accuracy_pct": 100.0,
+      "retries_blocked_by_aeib": 0,
+      "system": "Baseline (Naive)",
+      "tool_calls": 8,
+      "total_tokens_billed": 347500,
+      "wall_clock_sec": 0.0,
+      "workload": "HTML_Negative_Control"
+    },
+    {
+      "api_calls": 13,
+      "bill_usd": 10.74,
+      "exact_answer_accuracy_pct": 90.0,
+      "retries_blocked_by_aeib": 0,
+      "system": "ContextCart + AEIB",
+      "tool_calls": 12,
+      "total_tokens_billed": 643200,
+      "wall_clock_sec": 0.0,
+      "workload": "HTML_Negative_Control"
+    }
+  ]
+}

@@ -50,6 +50,7 @@ pytest \
   tests/test_hlc_hypergraph_and_persist_gate.py \
   tests/test_hansard_and_defection_probe.py \
   tests/test_poseidon2_merkle_tree.py \
+  tests/test_tier3_post_perfection_matrix.py \
   tools/regulatory_three_tier_and_matrix.py \
   tools/context_ram_and_maseval_harness.py \
   tools/tlaplus_model_conformance_checker.py \

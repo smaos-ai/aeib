@@ -87,6 +87,18 @@ from tests.test_poseidon2_merkle_tree import (
     test_empty_leaves_raises,
     test_banned_words_absence as test_poseidon2_banned_words,
 )
+from tests.test_tier3_post_perfection_matrix import (
+    test_nash_equilibrium_nominal_and_exploit_detection,
+    test_nash_equilibrium_matrix_validation,
+    test_tee_cvm_lifecycle_allocation_and_read,
+    test_tee_cvm_hardware_key_shredding_and_memory_scrubbing,
+    test_tee_cvm_remanence_detection_falsification,
+    test_wasm_symbolic_path_explorer_clean_and_bounds_check,
+    test_wasm_symbolic_path_explorer_violations,
+    test_actuarial_multisig_risk_calculation_and_escalation,
+    test_actuarial_multisig_signature_verification,
+    test_banned_words_absence as test_tier3_banned_words,
+)
 from benchmarks.locomo_context_quality import evaluate_locomo_benchmark
 from benchmarks.maseval_integration import run_maseval_comparative_benchmark
 from tools.context_ram_and_maseval_harness import (
@@ -174,6 +186,16 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
     test_invalid_leaf_index_raises()
     test_empty_leaves_raises()
     test_poseidon2_banned_words()
+    test_nash_equilibrium_nominal_and_exploit_detection()
+    test_nash_equilibrium_matrix_validation()
+    test_tee_cvm_lifecycle_allocation_and_read()
+    test_tee_cvm_hardware_key_shredding_and_memory_scrubbing()
+    test_tee_cvm_remanence_detection_falsification()
+    test_wasm_symbolic_path_explorer_clean_and_bounds_check()
+    test_wasm_symbolic_path_explorer_violations()
+    test_actuarial_multisig_risk_calculation_and_escalation()
+    test_actuarial_multisig_signature_verification()
+    test_tier3_banned_words()
     locomo_report = _sanitize_for_canonical_json(evaluate_locomo_benchmark())
     maseval_report = _sanitize_for_canonical_json(run_maseval_comparative_benchmark())
     tla_report = explore_tla_state_space_and_verify_conformance()
@@ -220,6 +242,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "formal/tlaplus/TLC_OUTPUT.md",
             "papers/osdi_shared_nothing_agents/manuscript.md",
             "papers/vldb_stochastic_acid/manuscript.md",
+            "src/actuarial_multisig_gate.py",
             "src/context/__init__.py",
             "src/context/leviathan_context_engine.py",
             "src/deception/__init__.py",
@@ -229,12 +252,15 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "src/hansard_causal_provenance.py",
             "src/hlc_hybrid_logical_clock.py",
             "src/hypergraph_causal_audit.py",
+            "src/nash_equilibrium_gate.py",
             "src/observability/__init__.py",
             "src/observability/otel_genai_evidence_chain.py",
             "src/persist_memory_gate.py",
             "src/poseidon2_merkle_tree.py",
             "src/runtime_boundary/__init__.py",
             "src/runtime_boundary/runtime_execution_boundary.py",
+            "src/tee_cvm_memory_scrubbing.py",
+            "src/wasm_symbolic_path_explorer.py",
             "tests/test_agent_deception_interlock.py",
             "tests/test_cve_2026_33017_langflow_rce.py",
             "tests/test_hansard_and_defection_probe.py",
@@ -243,6 +269,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "tests/test_local_system1_leviathan_daemon.py",
             "tests/test_otel_genai_evidence_chain.py",
             "tests/test_poseidon2_merkle_tree.py",
+            "tests/test_tier3_post_perfection_matrix.py",
             "tests/test_runtime_boundary_and_state_machine.py",
             "tests/test_structural_cve_boundary_fixtures.py",
             "tests/test_vibe_coding_and_long_horizon_guard.py",

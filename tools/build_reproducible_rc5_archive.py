@@ -174,6 +174,13 @@ from tests.test_aeib_2026_unified_metrics_evaluator import (
     test_unified_audit_suite_execution,
     test_banned_words_absence as test_aeib_evaluator_banned_words,
 )
+from tests.test_camel_fides_ifc_and_acid_hardening import (
+    test_camel_fides_dual_lattice_ifc_and_declassification_warrant,
+    test_progent_monotonic_confinement_and_step_up_warrant,
+    test_acid_agent_workspace_snapshot_commit_and_rollback,
+    test_pep578_audit_hook_and_rfc8707_mcp_resource_binding,
+    test_banned_words_absence as test_camel_fides_acid_banned_words,
+)
 from tools.cross_hemisphere_epistemic_council import (
     test_integrated_tri_partition_architecture,
 )
@@ -339,6 +346,11 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
     test_adjusted_rand_index_clustering()
     test_unified_audit_suite_execution()
     test_aeib_evaluator_banned_words()
+    test_camel_fides_dual_lattice_ifc_and_declassification_warrant()
+    test_progent_monotonic_confinement_and_step_up_warrant()
+    test_acid_agent_workspace_snapshot_commit_and_rollback()
+    test_pep578_audit_hook_and_rfc8707_mcp_resource_binding()
+    test_camel_fides_acid_banned_words()
     test_epistemic_5why_fts5_merkle_and_conflict_loop()
     test_epistemic_5why_banned_words()
     test_scitt_ap2_x402_otel_and_cbom_engine()
@@ -411,6 +423,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "papers/vldb_stochastic_acid/manuscript.md",
             "scripts/verify_research_claims.py",
             "src/actuarial_multisig_gate.py",
+            "src/camel_fides_ifc_and_acid_hardening.py",
             "src/context/__init__.py",
             "src/context/leviathan_context_engine.py",
             "src/deception/__init__.py",
@@ -434,6 +447,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "src/wasm_symbolic_path_explorer.py",
             "tests/test_agent_deception_interlock.py",
             "tests/test_aeib_2026_unified_metrics_evaluator.py",
+            "tests/test_camel_fides_ifc_and_acid_hardening.py",
             "tests/test_cross_hemisphere_council_decide.py",
             "tests/test_cve_2026_33017_langflow_rce.py",
             "tests/test_defense_in_depth_and_intent_outcome.py",

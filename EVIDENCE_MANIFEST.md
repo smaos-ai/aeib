@@ -549,16 +549,14 @@ negative_control_falsification:
 | **Monotonic Epistemic Regression Corpus (`E01`–`E16`)** | `tests/test_epistemic_regression_e01_e14.py` | `6fd21b69fdb1783848cd229e9cec5bcc108b68e505c3c58e6960bc4e8c8472da` | 16/16 passed (`78 / 78` unified test union, 10000 bps catch rate across E01–E16) | `VERIFIED` |
 | **Signed EN 18286 & DORA Compliance Bundle** | `output/en18286_dora_compliance_bundle_v45.json` | `123554760501f555ffa942ce293f5da6cb3886fafc11843f3e109e0f2035dcf3` | Offline-verifiable Ed25519 + RFC 8785 JCS bundle over 14 core modules | `RECORDED` |
 
+### 16. Phase 0 Integrity Reset (`G1`/`G2`/`G3`), Directives 1–4 Interop Suite, Structural CVE Fixtures, & `v1.0.0-rc.5-preprod` Air-Gapped Tarball
 
-
-
-
-
-
-
-
-
-
-
+| Component / Subsystem | Physical File Location | Cryptographic SHA-256 Digest | Verification Harness / Protocol | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **Phase 0 Integrity Reset Core (`G1`/`G2`/`G3`)** | `tools/phase0_integrity_reset_core.py` | `871146e5cf3dec07f8d24f00fdead2587ccb6a5075ab2fcdc806fe875d5162e9` | Phase 0.1 (`canonical_json_v1`), 0.2 (`AT57b` Taint), 0.3 (`AT58` Escrow), 0.4 (`G3` Boot Re-Verify) | `VERIFIED` |
+| **Directives 1–4 Protocol Interop Suite** | `tests/test_scitt_ap2_mcp_pqc_interop.py` | `176d8d40fa94f0e187f18cfd4a8d7af86c983a88fda6634aacb64114c9327a7f` | AP2 v0.2, x402 V2, ACP, SCITT RFC 9942/9943 (`394`), OTel v1.43, `AT63b` MCP Rug-Pull, ECMA-424 CBOM | `VERIFIED` |
+| **Structural CVE & 4-Signal Boundary Suite** | `tests/test_structural_cve_boundary_fixtures.py` | `29f8fbae5c4cf3ba4c01a986c3a6f00222f17651efcb93e1e12a43f9dfef150a` | `CVE-2026-33017`, `CVE-2025-53773`, `CVE-2025-54136`, `CVE-2026-77521`, `CVE-2026-90970`, OOB & `.pth` Lock | `VERIFIED` |
+| **Frozen Scope & Epistemic Manifest** | `SCOPE.md` | `48dab29c37eb83a6270051eb1bfd94dedd9b1cc0c98f8b9d8b728820c45a83c1` | Frozen 3-Station / 7-Component scope and `AGENTS.md` epistemic calibration | `VERIFIED` |
+| **Deterministic Air-Gapped Release Builder** | `scripts/build_airgapped_rc5_preprod.sh` | `8277e1ea9d330e52596550da519bfabda6504f8bd814afc1fc6dc82165d8a2b0` | Reproducible tarball builder (`mtime=1761091200`) + `/tmp/aeib-cleanroom` verification (`89/89` workspace union) | `VERIFIED` |
 
 

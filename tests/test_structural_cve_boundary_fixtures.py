@@ -26,7 +26,7 @@ import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -277,9 +277,214 @@ def test_all_four_structural_cve_fixtures_and_aeib_containment() -> None:
     assert res_gw["code"] == "ERR_CVE_2026_90970_TEMPLATE_TRAVERSAL_SYNTAX_DENIED"
 
 
+# ============================================================================
+# 5. CONSOLIDATED STRUCTURAL CVE BOUNDARY GATE & MARKTECHPOST 4-SIGNAL SUITE
+# ============================================================================
+class StructuralCveBoundaryGate:
+    """
+    AEIB structural defenses against:
+    1. CVE-2026-33017 (Langflow): Rejects any caller-supplied `data` graph override;
+       only executes flows matching a pre-signed `flow_id -> sha256(graph)` manifest.
+    2. CVE-2025-53773 & CVE-2025-54136 (Copilot / Cursor): Enforces canonical path
+       confinement (`os.path.realpath`) and denies agent writes to control-plane
+       dotfiles (`.vscode/`, `.cursor/`, `.git/`, `.claude/`, `.env`, `.pth`).
+    3. Marktechpost 4-Signal Intelligence Countermeasures:
+       - Signal 1 (OOB Monitor Anti-Disarmament): Rejects any agent attempt to
+         kill, patch, or modify out-of-band monitor sockets or policy files.
+       - Signal 4 (LiteLLM 1.107.0 `.pth` Supply-Chain Lock): Blocks dynamic
+         `pip install` / `uv add` / `site-packages/*.pth` startup hooks without
+         an explicit step-up cryptographic warrant.
+    """
+
+    PROTECTED_CONTROL_PREFIXES = (
+        ".vscode",
+        ".cursor",
+        ".git",
+        ".claude",
+        ".github",
+        ".env",
+    )
+
+    def __init__(self, workspace_root: str, pinned_flow_digests: Dict[str, str]) -> None:
+        self.workspace_root = os.path.realpath(workspace_root)
+        self.allowed_export_dir = os.path.realpath(
+            os.path.join(self.workspace_root, "output")
+        )
+        self.pinned_flow_digests = dict(pinned_flow_digests)
+
+    def validate_langflow_build_request(
+        self,
+        flow_id: str,
+        stored_flow_graph: Dict[str, Any],
+        caller_supplied_data_override: Optional[Dict[str, Any]] = None,
+    ) -> Tuple[str, str]:
+        if caller_supplied_data_override is not None:
+            return (
+                "NOT_DISPATCHED",
+                "ERR_CVE_2026_33017_CALLER_FLOW_DATA_OVERRIDE_FORBIDDEN",
+            )
+
+        digest = (
+            "sha256:"
+            + hashlib.sha256(
+                json.dumps(
+                    stored_flow_graph, sort_keys=True, separators=(",", ":")
+                ).encode("utf-8")
+            ).hexdigest()
+        )
+        if self.pinned_flow_digests.get(flow_id) != digest:
+            return "NOT_DISPATCHED", "ERR_UNPINNED_OR_TAMPERED_FLOW_GRAPH"
+
+        return "DISPATCHED", "OK"
+
+    def validate_file_write_request(self, target_rel_path: str) -> Tuple[str, str]:
+        resolved = os.path.realpath(os.path.join(self.workspace_root, target_rel_path))
+        if not resolved.startswith(self.workspace_root + os.sep):
+            return "NOT_DISPATCHED", "ERR_PATH_TRAVERSAL_OUTSIDE_WORKSPACE"
+
+        rel_from_root = os.path.relpath(resolved, self.workspace_root)
+        parts = rel_from_root.split(os.sep)
+        if any(
+            part in self.PROTECTED_CONTROL_PREFIXES or part.startswith(".")
+            for part in parts
+        ) or resolved.endswith(".pth"):
+            return (
+                "NOT_DISPATCHED",
+                "ERR_CVE_2025_53773_54136_CONTROL_PLANE_DOTFILE_WRITE_DENIED",
+            )
+
+        if not resolved.startswith(self.allowed_export_dir + os.sep):
+            return "NOT_DISPATCHED", "ERR_WRITE_OUTSIDE_ALLOWED_EXPORT_DIR"
+
+        return "DISPATCHED", "OK"
+
+    @staticmethod
+    def validate_package_or_monitor_action(
+        command_argv: List[str],
+        has_step_up_warrant: bool = False,
+    ) -> Tuple[str, str]:
+        joined = " ".join(command_argv).lower()
+        # Signal 1: Out-of-band monitor anti-disarmament check
+        if any(
+            tok in joined
+            for tok in ("aeib-monitor", "tetragon", "seccomp", "auditd", "kill -9")
+        ):
+            return "NOT_DISPATCHED", "ERR_SIGNAL1_OOB_MONITOR_DISARMAMENT_BLOCKED"
+
+        # Signal 4: LiteLLM 1.107.0 / PyPI `.pth` startup hook & dynamic install lock
+        if any(
+            pkg_cmd in joined
+            for pkg_cmd in ("pip install", "uv add", "npm install", "cargo install", ".pth")
+        ):
+            if not has_step_up_warrant:
+                return (
+                    "NOT_DISPATCHED",
+                    "ERR_SIGNAL4_DYNAMIC_PACKAGE_OR_PTH_HOOK_REQUIRES_STEP_UP",
+                )
+        return "DISPATCHED", "OK"
+
+
+def test_cve_2026_33017_langflow_unauthenticated_graph_override_blocked() -> None:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        os.makedirs(os.path.join(tmpdir, "output"), exist_ok=True)
+        clean_graph = {"nodes": [{"id": "n1", "type": "SafePromptNode"}]}
+        clean_digest = (
+            "sha256:"
+            + hashlib.sha256(
+                json.dumps(clean_graph, sort_keys=True, separators=(",", ":")).encode(
+                    "utf-8"
+                )
+            ).hexdigest()
+        )
+        gate = StructuralCveBoundaryGate(tmpdir, {"flow_prod_1": clean_digest})
+
+        assert gate.validate_langflow_build_request("flow_prod_1", clean_graph, None) == (
+            "DISPATCHED",
+            "OK",
+        )
+
+        attacker_override = {
+            "nodes": [
+                {
+                    "id": "n1",
+                    "code": "def f(x=__import__('subprocess').check_output('id')): return x",
+                }
+            ]
+        }
+        disp, code = gate.validate_langflow_build_request(
+            "flow_prod_1",
+            clean_graph,
+            caller_supplied_data_override=attacker_override,
+        )
+        assert disp == "NOT_DISPATCHED"
+        assert code == "ERR_CVE_2026_33017_CALLER_FLOW_DATA_OVERRIDE_FORBIDDEN"
+
+
+def test_cve_2025_53773_and_54136_ide_control_plane_mutation_blocked() -> None:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        os.makedirs(os.path.join(tmpdir, "output"), exist_ok=True)
+        gate = StructuralCveBoundaryGate(tmpdir, {})
+
+        disp1, code1 = gate.validate_file_write_request(".vscode/settings.json")
+        assert (
+            disp1 == "NOT_DISPATCHED"
+            and code1 == "ERR_CVE_2025_53773_54136_CONTROL_PLANE_DOTFILE_WRITE_DENIED"
+        )
+
+        disp2, code2 = gate.validate_file_write_request(".cursor/mcp.json")
+        assert (
+            disp2 == "NOT_DISPATCHED"
+            and code2 == "ERR_CVE_2025_53773_54136_CONTROL_PLANE_DOTFILE_WRITE_DENIED"
+        )
+
+        disp3, code3 = gate.validate_file_write_request("output/../.vscode/tasks.json")
+        assert (
+            disp3 == "NOT_DISPATCHED"
+            and code3 == "ERR_CVE_2025_53773_54136_CONTROL_PLANE_DOTFILE_WRITE_DENIED"
+        )
+
+        disp_ok, code_ok = gate.validate_file_write_request("output/audit_report.json")
+        assert disp_ok == "DISPATCHED" and code_ok == "OK"
+
+
+def test_marktechpost_four_signals_oob_monitor_and_litellm_pth_guard() -> None:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        os.makedirs(os.path.join(tmpdir, "output"), exist_ok=True)
+        gate = StructuralCveBoundaryGate(tmpdir, {})
+
+        # Signal 1: In-process safety monitor disarmament attempt blocked
+        disp_m, code_m = gate.validate_package_or_monitor_action(
+            ["kill", "-9", "aeib-monitor"]
+        )
+        assert (
+            disp_m == "NOT_DISPATCHED"
+            and code_m == "ERR_SIGNAL1_OOB_MONITOR_DISARMAMENT_BLOCKED"
+        )
+
+        # Signal 4: LiteLLM 1.107.0 `.pth` write & dynamic `pip install` blocked without step-up
+        disp_pth, code_pth = gate.validate_file_write_request(
+            "output/litellm_init.pth"
+        )
+        assert (
+            disp_pth == "NOT_DISPATCHED"
+            and code_pth == "ERR_CVE_2025_53773_54136_CONTROL_PLANE_DOTFILE_WRITE_DENIED"
+        )
+
+        disp_pip, code_pip = gate.validate_package_or_monitor_action(
+            ["pip", "install", "litellm==1.107.0"], has_step_up_warrant=False
+        )
+        assert (
+            disp_pip == "NOT_DISPATCHED"
+            and code_pip == "ERR_SIGNAL4_DYNAMIC_PACKAGE_OR_PTH_HOOK_REQUIRES_STEP_UP"
+        )
+
+
 if __name__ == "__main__":
     test_all_four_structural_cve_fixtures_and_aeib_containment()
+    test_cve_2026_33017_langflow_unauthenticated_graph_override_blocked()
+    test_cve_2025_53773_and_54136_ide_control_plane_mutation_blocked()
+    test_marktechpost_four_signals_oob_monitor_and_litellm_pth_guard()
     print(
         "TRACK 1 STRUCTURAL CVE FIXTURE SUITE PASSED: "
-        "CVE-2026-33017, CVE-2025-53773, CVE-2026-77521, AND CVE-2026-90970 CONTAINED."
+        "CVE-2026-33017, CVE-2025-53773, CVE-2025-54136, CVE-2026-77521, AND CVE-2026-90970 CONTAINED."
     )

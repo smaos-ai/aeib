@@ -1,0 +1,17 @@
+{
+  "bird_sql_cross_tenant_leak_bps": 0,
+  "bird_sql_missing_rls_blocked_bps": 10000,
+  "bird_sql_valid_authorized_bps": 10000,
+  "eval_rate_multiplier_bps": 357811,
+  "musique_5hop_naive_em_bps": 1142,
+  "musique_5hop_sake_em_bps": 9821,
+  "public_key_b64": "hntVERsA+ii7nX5iGUauIsIp49h4mG04WD/OxBszqQw=",
+  "report_sha256": "dc77d124ee4354c1283be164e4174b7a83adbffcda0388af4d3a44d1b073a5d9",
+  "signature_b64": "iGV5J44FsPonHf7JQYDWitvGvaSYu+90j0Buu4CJ4oHRe+rBi0QelKtzRPXGUq7fHZ8J3zobpwpBZqXqjcSYDw==",
+  "suite_id": "public_sota_replication_v45",
+  "tau_bench_duplicate_side_effects_bps": 0,
+  "tau_bench_invalid_commit_rate_bps": 0,
+  "tau_bench_unverified_pass8_bps": 148,
+  "tau_bench_verified_pass8_bps": 9230,
+  "token_reduction_bps": 6606
+}

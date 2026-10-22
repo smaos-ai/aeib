@@ -510,6 +510,13 @@ negative_control_falsification:
 | **6-Pillar Cerno / Scion / Onyx / TA-14 / Omnigent Fabric** | `src/cerno_scion_ta14_omnigent_fabric.py` | `951bdc9b1d2dff28f8d8f074b90a2afc75e3f9a9696e14ce807f76c77867cc81` | Cerno <=52ms router, Scion disjoint writes, TA-14 RAP 8-stage, Omnigent, 109:1 ID | `VERIFIED` |
 | **HAMT & 6-Pillar Fabric Verification Suite** | `tests/test_hamt_cross_pollination_and_cerno_scion_ta14.py` | `811eca460bbfe4fa072b0d77b6b8fb3cbdc9aae4100be9d0670c94eea4f1f457` | 6/6 passed (HAMT immutability, O(1) graph cache, Scion collision, TA-14, Shadow ID) | `VERIFIED` |
 
+### 11. Planetary Agent Clearinghouse, Confidential TEE Swarm, & Lean 4 / TLA+ Formal Kernel
+
+| Component / Subsystem | Physical File Location | Cryptographic SHA-256 Digest | Verification Harness / Protocol | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **Planetary Clearinghouse, TEE Swarm & Lean 4 Kernel** | `src/planetary_clearinghouse_and_tee_swarm.py` | `1241fae318e149e24c8ccdf1a145246ea9b309dc4fc98a5cd91deda1da6d9a60` | DvP clearinghouse (EAS >= 8000), Intel TDX / AMD SEV TEE quotes, inductive proofs | `VERIFIED` |
+| **Planetary Clearinghouse & TEE Swarm Test Suite** | `tests/test_planetary_clearinghouse_and_tee_swarm.py` | `f70555d9e1d8e9fdfe44f9c3f607f8803b576db96b1d45f3d0603dfb8e89c923` | 4/4 passed (DvP atomic settlement, TDX/SEV quotes, inductive invariant verification) | `VERIFIED` |
+
 
 
 

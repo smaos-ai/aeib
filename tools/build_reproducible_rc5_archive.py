@@ -197,6 +197,12 @@ from tests.test_hamt_cross_pollination_and_cerno_scion_ta14 import (
     test_omnigent_three_tier_policy_and_machine_identity_shadow_agent_guard,
     test_banned_words_absence as test_hamt_cerno_scion_ta14_banned_words,
 )
+from tests.test_planetary_clearinghouse_and_tee_swarm import (
+    test_planetary_clearinghouse_eas_and_dvp_settlement,
+    test_confidential_tee_swarm_attestation_and_inter_agent_exchange,
+    test_lean4_tla_formal_verification_kernel_inductive_proof,
+    test_banned_words_absence as test_planetary_tee_swarm_banned_words,
+)
 from tools.cross_hemisphere_epistemic_council import (
     test_integrated_tri_partition_architecture,
 )
@@ -379,6 +385,10 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
     test_onyx_nemotron_hybrid_retriever_and_ta14_runtime_admissibility()
     test_omnigent_three_tier_policy_and_machine_identity_shadow_agent_guard()
     test_hamt_cerno_scion_ta14_banned_words()
+    test_planetary_clearinghouse_eas_and_dvp_settlement()
+    test_confidential_tee_swarm_attestation_and_inter_agent_exchange()
+    test_lean4_tla_formal_verification_kernel_inductive_proof()
+    test_planetary_tee_swarm_banned_words()
     test_epistemic_5why_fts5_merkle_and_conflict_loop()
     test_epistemic_5why_banned_words()
     test_scitt_ap2_x402_otel_and_cbom_engine()
@@ -470,6 +480,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "src/observability/__init__.py",
             "src/observability/otel_genai_evidence_chain.py",
             "src/persist_memory_gate.py",
+            "src/planetary_clearinghouse_and_tee_swarm.py",
             "src/poseidon2_merkle_tree.py",
             "src/runtime_boundary/__init__.py",
             "src/runtime_boundary/runtime_execution_boundary.py",
@@ -495,6 +506,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "tests/test_opencode_codemode_hotreload.py",
             "tests/test_otel_genai_evidence_chain.py",
             "tests/test_palantir_ontology_joint_witness_engine.py",
+            "tests/test_planetary_clearinghouse_and_tee_swarm.py",
             "tests/test_poseidon2_merkle_tree.py",
             "tests/test_scitt_ap2_mcp_pqc_interop.py",
             "tests/test_tcc_parallel_acid_vs_base.py",

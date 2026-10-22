@@ -559,4 +559,15 @@ negative_control_falsification:
 | **Frozen Scope & Epistemic Manifest** | `SCOPE.md` | `48dab29c37eb83a6270051eb1bfd94dedd9b1cc0c98f8b9d8b728820c45a83c1` | Frozen 3-Station / 7-Component scope and `AGENTS.md` epistemic calibration | `VERIFIED` |
 | **Deterministic Air-Gapped Release Builder** | `scripts/build_airgapped_rc5_preprod.sh` | `8277e1ea9d330e52596550da519bfabda6504f8bd814afc1fc6dc82165d8a2b0` | Reproducible tarball builder (`mtime=1761091200`) + `/tmp/aeib-cleanroom` verification (`89/89` workspace union) | `VERIFIED` |
 
+### 17. `/decide` v5.0: 5-Stage Recursive Parallel Evidence-Producing Decision Engine, RuleTrek (`arXiv:2610.19698`), Limbo Proposition 1 Visibility-Lag Fence, & Five Deep-Tech Moats
+
+| Component / Subsystem | Physical File Location | Cryptographic SHA-256 Digest | Verification Harness / Protocol | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **RuleTrek Cross-Model Decide Engine (`v4.6`)** | `tools/ruletrek_cross_model_decide_engine.py` | `919bda034b43241ee119d5d99272b80efbe7569f29ff47522a67a005a40b0f6d` | RuleTrek (`arXiv:2610.19698`) AST Rule Dependency Graph + Asymmetric Minority Dominance | `VERIFIED` |
+| **Limbo Proposition 1 Visibility-Lag & PARL Suite** | `tests/test_limbo_proposition_1_fence.py` | `9210488f401e19ff677b88e734175f47ef32a5320a02dcd5c7817a23e29b9dc3` | `arXiv:2609.29095` ($t \ge t_{\text{dispatch}} + \delta + \lambda$) + `arXiv:2610.10263` PARL Spurious Parallelism | `VERIFIED` |
+| **`/decide` v5.0 Recursive Evidence & Deep-Tech Engine** | `src/decide_v5_recursive_evidence_engine.py` | `45854d109535c15586bc7a31254d6a90f3ebe283627b0eac490b4be2b2ec74c1` | 5-Stage Engine, `Dossier` Ledger, 10 Modes (`--falsify`), `zkTLS`, Shannon Gate, Joule Escrow, VCG, Antigen Gossip | `VERIFIED` |
+| **`/decide` v5.0 & 5 Deep-Tech Vectors Test Suite** | `tests/test_decide_v5_recursive_evidence_engine.py` | `ec5da8de6a5c0f9b1a53ae0d0f9fadd9c6381994dcd6c33bbdf5579977ea8e1f` | 7/7 passed (`99 / 99` unified test union across 17 suites in `3.93s`) | `VERIFIED` |
+| **`/decide` v5.0 Skill Definition** | `.agents/skills/decide/SKILL.md` | `658fa8eb634e57a604b30ce12423abfbb13dc633f381b44f3f8eae074e0a5351` | 5-Stage Evidence Envelope, 10 Action Modes, `T0`–`T4` Claim Hierarchy, 7 Mathematical Laws | `VERIFIED` |
+
+
 

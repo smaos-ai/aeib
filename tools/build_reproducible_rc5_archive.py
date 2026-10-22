@@ -181,6 +181,14 @@ from tests.test_camel_fides_ifc_and_acid_hardening import (
     test_pep578_audit_hook_and_rfc8707_mcp_resource_binding,
     test_banned_words_absence as test_camel_fides_acid_banned_words,
 )
+from tests.test_china_and_global_leaders_hardening_suite import (
+    test_a3s_bench_temporal_spatial_and_semantic_evasion_guard,
+    test_toolsafe_step_level_alignment_and_ts_flow_feedback,
+    test_minja_and_agentpoison_query_only_memory_guard,
+    test_seccodebench_ast_cwe_security_gate,
+    test_12_leader_benchmarks_scorecard_100_percent,
+    test_banned_words_absence as test_china_global_leaders_banned_words,
+)
 from tools.cross_hemisphere_epistemic_council import (
     test_integrated_tri_partition_architecture,
 )
@@ -351,6 +359,12 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
     test_acid_agent_workspace_snapshot_commit_and_rollback()
     test_pep578_audit_hook_and_rfc8707_mcp_resource_binding()
     test_camel_fides_acid_banned_words()
+    test_a3s_bench_temporal_spatial_and_semantic_evasion_guard()
+    test_toolsafe_step_level_alignment_and_ts_flow_feedback()
+    test_minja_and_agentpoison_query_only_memory_guard()
+    test_seccodebench_ast_cwe_security_gate()
+    test_12_leader_benchmarks_scorecard_100_percent()
+    test_china_global_leaders_banned_words()
     test_epistemic_5why_fts5_merkle_and_conflict_loop()
     test_epistemic_5why_banned_words()
     test_scitt_ap2_x402_otel_and_cbom_engine()
@@ -424,6 +438,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "scripts/verify_research_claims.py",
             "src/actuarial_multisig_gate.py",
             "src/camel_fides_ifc_and_acid_hardening.py",
+            "src/china_and_global_leaders_hardening_suite.py",
             "src/context/__init__.py",
             "src/context/leviathan_context_engine.py",
             "src/deception/__init__.py",
@@ -448,6 +463,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "tests/test_agent_deception_interlock.py",
             "tests/test_aeib_2026_unified_metrics_evaluator.py",
             "tests/test_camel_fides_ifc_and_acid_hardening.py",
+            "tests/test_china_and_global_leaders_hardening_suite.py",
             "tests/test_cross_hemisphere_council_decide.py",
             "tests/test_cve_2026_33017_langflow_rce.py",
             "tests/test_defense_in_depth_and_intent_outcome.py",

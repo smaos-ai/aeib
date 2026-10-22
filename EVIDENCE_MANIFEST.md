@@ -493,12 +493,14 @@ negative_control_falsification:
 | **AEIB 2026 Unified Metrics Evaluator** | `tools/aeib_2026_unified_metrics_evaluator.py` | `eb0b0f40cec1571964b8139b39160310d6a2c4e960f6549cba5f7e6f9fdde60e` | Categories #4-#12 + 7 Frontier Metrics (Pass^k, S-VES, DSER, ICR, HDR) | `VERIFIED` |
 | **Unified Metrics Evaluator Test Suite** | `tests/test_aeib_2026_unified_metrics_evaluator.py` | `9588033eb43817b03eafa72d23333e5732027d52672e3559fa7cd5d3ae60a9e6` | 7/7 passed (MRR, NDCG@5, Pass^8, S-VES RLS gate, ARI clustering) | `VERIFIED` |
 
-### 9. 2026 Market & Academic Hardening Suite (CaMeL/FIDES Dual-Lattice IFC, Progent, ACID-Agent, PEP 578 + RFC 8707)
+### 9. 2026 Market & Academic Hardening Suite (CaMeL/FIDES Dual-Lattice IFC, Progent, ACID-Agent, PEP 578 + RFC 8707, & China/Global Leaders 12-Benchmark Suite)
 
 | Component / Subsystem | Physical File Location | Cryptographic SHA-256 Digest | Verification Harness / Protocol | Status |
 | :--- | :--- | :--- | :--- | :---: |
 | **CaMeL/FIDES IFC, Progent, ACID-Agent & PEP 578 Hardening** | `src/camel_fides_ifc_and_acid_hardening.py` | `b9a6891615d3621b95a7aaff175169baa333711be1681f81fe053bb1aa7dfee2` | Dual-Lattice IFC, Monotonic Confinement, Pre-Image Rollback, RFC 8707 | `VERIFIED` |
 | **Market Hardening Verification Test Suite** | `tests/test_camel_fides_ifc_and_acid_hardening.py` | `d7f6a3f333356da8f1d4c862c25a85cd3736427e94117e1d5a2e09f04999796e` | 5/5 passed (Declassification Warrant, Step-Up, ACID Rollback, PEP 578) | `VERIFIED` |
+| **China & Global Leaders 12-Benchmark Hardening Suite** | `src/china_and_global_leaders_hardening_suite.py` | `93e37fc5242f92464464c9504600b23ef41300b3d3eb5be7ae318a813df1ec61` | A3S-Bench, ToolSafe TS-Flow, MINJA/AgentPoison Memory, SecCodeBench AST | `VERIFIED` |
+| **China & Global Leaders 12-Benchmark Test Suite** | `tests/test_china_and_global_leaders_hardening_suite.py` | `e167363ec5f8a985c48ba4f1cfba5f21356ac643c3dc986ba32ce53f3b9e5367` | 6/6 passed (12/12 Leader Benchmarks = 10000 bps pass rate) | `VERIFIED` |
 
 
 

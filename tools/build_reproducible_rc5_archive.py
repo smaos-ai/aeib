@@ -165,6 +165,15 @@ from tests.test_defense_in_depth_and_intent_outcome import (
     test_epistemic_intent_outcome_two_phase_execution,
     test_banned_words_absence as test_defense_in_depth_banned_words,
 )
+from tests.test_aeib_2026_unified_metrics_evaluator import (
+    test_aeib_unified_handbook_and_2026_metrics,
+    test_mrr_and_ndcg_at_k_calculation,
+    test_pass_at_k_vs_tau_bench_pass_hat_k_gap,
+    test_bird_sql_and_secure_ves_with_rls,
+    test_adjusted_rand_index_clustering,
+    test_unified_audit_suite_execution,
+    test_banned_words_absence as test_aeib_evaluator_banned_words,
+)
 from tools.cross_hemisphere_epistemic_council import (
     test_integrated_tri_partition_architecture,
 )
@@ -323,6 +332,13 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
     test_network_egress_intent_registration()
     test_epistemic_intent_outcome_two_phase_execution()
     test_defense_in_depth_banned_words()
+    test_aeib_unified_handbook_and_2026_metrics()
+    test_mrr_and_ndcg_at_k_calculation()
+    test_pass_at_k_vs_tau_bench_pass_hat_k_gap()
+    test_bird_sql_and_secure_ves_with_rls()
+    test_adjusted_rand_index_clustering()
+    test_unified_audit_suite_execution()
+    test_aeib_evaluator_banned_words()
     test_epistemic_5why_fts5_merkle_and_conflict_loop()
     test_epistemic_5why_banned_words()
     test_scitt_ap2_x402_otel_and_cbom_engine()
@@ -417,6 +433,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "src/tee_cvm_memory_scrubbing.py",
             "src/wasm_symbolic_path_explorer.py",
             "tests/test_agent_deception_interlock.py",
+            "tests/test_aeib_2026_unified_metrics_evaluator.py",
             "tests/test_cross_hemisphere_council_decide.py",
             "tests/test_cve_2026_33017_langflow_rce.py",
             "tests/test_defense_in_depth_and_intent_outcome.py",
@@ -442,6 +459,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "tests/test_vibe_coding_and_honeypot.py",
             "tests/test_vibe_coding_and_long_horizon_guard.py",
             "tools/aeib_surviving_principles_engine.py",
+            "tools/aeib_2026_unified_metrics_evaluator.py",
             "tools/context_ram_and_maseval_harness.py",
             "tools/cross_hemisphere_council_decide.py",
             "tools/cross_hemisphere_epistemic_council.py",

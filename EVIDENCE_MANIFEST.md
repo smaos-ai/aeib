@@ -486,6 +486,14 @@ negative_control_falsification:
 | **Epistemic Intent-Outcome Engine** | `tools/epistemic_intent_outcome_engine.py` | `7a2e3b8aaf60ee9cc98309c3e92a19744f3813161345e9fea2538843a7551b3b` | Vercel durable-harness alignment, WAL fsync, 0 duplicate replay | `VERIFIED` |
 | **Defense-in-Depth & Intent-Outcome Suite** | `tests/test_defense_in_depth_and_intent_outcome.py` | `6dff6d63deb2cd30d5283534725e523c0e6e0fc7a84174f62ad218deda96c167` | 6/6 passed (anti-disarmament, .pth hooks, pip step-up, replay WAL) | `VERIFIED` |
 
+### 8. AI Evaluation Metrics Handbook & 2026 SOTA Frontier Unified Evaluator
+
+| Component / Subsystem | Physical File Location | Cryptographic SHA-256 Digest | Verification Harness / Protocol | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **AEIB 2026 Unified Metrics Evaluator** | `tools/aeib_2026_unified_metrics_evaluator.py` | `eb0b0f40cec1571964b8139b39160310d6a2c4e960f6549cba5f7e6f9fdde60e` | Categories #4-#12 + 7 Frontier Metrics (Pass^k, S-VES, DSER, ICR, HDR) | `VERIFIED` |
+| **Unified Metrics Evaluator Test Suite** | `tests/test_aeib_2026_unified_metrics_evaluator.py` | `9588033eb43817b03eafa72d23333e5732027d52672e3559fa7cd5d3ae60a9e6` | 7/7 passed (MRR, NDCG@5, Pass^8, S-VES RLS gate, ARI clustering) | `VERIFIED` |
+
+
 
 
 

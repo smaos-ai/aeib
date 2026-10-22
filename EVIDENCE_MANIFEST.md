@@ -569,5 +569,16 @@ negative_control_falsification:
 | **`/decide` v5.0 & 5 Deep-Tech Vectors Test Suite** | `tests/test_decide_v5_recursive_evidence_engine.py` | `ec5da8de6a5c0f9b1a53ae0d0f9fadd9c6381994dcd6c33bbdf5579977ea8e1f` | 7/7 passed (`99 / 99` unified test union across 17 suites in `3.93s`) | `VERIFIED` |
 | **`/decide` v5.0 Skill Definition** | `.agents/skills/decide/SKILL.md` | `658fa8eb634e57a604b30ce12423abfbb13dc633f381b44f3f8eae074e0a5351` | 5-Stage Evidence Envelope, 10 Action Modes, `T0`–`T4` Claim Hierarchy, 7 Mathematical Laws | `VERIFIED` |
 
+### 18. Four Deep-Tech Sprint Tracks: ZK-TLSNotary API Attestation (Alpha), Thermodynamic eBPF (Beta), China BSN/CTID DID Mapping (Gamma), & Hybrid PQC SCITT Anchor (Delta)
+
+| Component / Subsystem | Physical File Location | Cryptographic SHA-256 Digest | Verification Harness / Protocol | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **Track Alpha: ZK-TLSNotary API Attestation** | `tools/zk_tlsnotary_integration.py` | `0c88a6deb8a19b3716768a790b18827de47d93184ca7e95684216d21bd3572f9` | ZK-TLS / TLSNotary selective disclosure proving `balance_minor > $100.00` without raw PII leak | `VERIFIED` |
+| **Track Beta: Thermodynamic & Egress Tetragon Policy** | `compliance/tetragon_rapl_throttle.yaml` | `857b41888e2b016b3cf8c194eca060359bc759818992bab71e483ed7730afec0` | Tetragon `TracingPolicy` structural scaffold (`security_socket_connect`, `security_file_open`, `bprm_check_security`) | `VERIFIED` |
+| **Track Gamma: China BSN/CTID DID Cross-Border Interop** | `docs/interop/china_bsn_did_mapping.md` | `597517d494a7da89ffdcbae950f5ee9b6e86de6ab182768fd34445164f411981` | Cross-border DID translation (`did:key` / `did:web` <-> `did:bsn:wenchang`) & PIPL zero-raw-PII commitments | `VERIFIED` |
+| **Track Delta: Hybrid PQC SCITT Transparency Anchor** | `src/hybrid_pqc_scitt_anchor.rs` | `c2d790b24ce0dd678daed5d15f5076aaa6066299cb7a81beb1d799e8f842c139` | Rust RFC 9964 / RFC 9942 dual-slot COSE Sign1 envelope (`Ed25519` `-8` + `ML-DSA-65` `-49`, header `394`) | `VERIFIED` |
+| **Tracks Alpha–Delta End-to-End Test Suite** | `tests/test_deep_tech_tracks_alpha_beta_gamma_delta.py` | `af76b51a45ec2fa828b4fa700b86c550de95d18e9ea38c63c1dbd0bbff5a8f20` | 3/3 passed (`205 / 205` unified test suite in `6.40s`, zero promotional words) | `VERIFIED` |
+
+
 
 

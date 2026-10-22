@@ -1,0 +1,65 @@
+# File: compliance/tetragon_rapl_throttle.yaml
+# Track Beta: Thermodynamic & Kernel Socket Boundary TracingPolicy Scaffold
+# Epistemic Note (AGENTS.md Rule 5): This YAML is structural scaffolding for Linux
+# BPF_LSM / Cilium Tetragon environments. It is validated statically by
+# `src/bpf_lsm_profile_compiler.py` and is not claimed as live kernel enforcement on Darwin/macOS.
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicy
+metadata:
+  name: aeib-thermodynamic-and-egress-enforcer
+  annotations:
+    aeib.sovereignnexus.io/track: "Track-Beta-Thermodynamic-eBPF"
+    aeib.sovereignnexus.io/joule-ceiling-watts: "50"
+    aeib.sovereignnexus.io/epistemic-status: "structural-scaffold-evaluated-under-stated-model"
+spec:
+  kprobes:
+    - call: "security_socket_connect"
+      syscall: false
+      args:
+        - index: 0
+          type: "sock"
+        - index: 1
+          type: "sockaddr"
+      selectors:
+        - matchArgs:
+            - index: 1
+              operator: "NotDAddr"
+              values:
+                - "127.0.0.1"
+                - "10.96.0.10"
+          matchActions:
+            - action: "Override"
+              argError: -13
+            - action: "Post"
+    - call: "security_file_open"
+      syscall: false
+      args:
+        - index: 0
+          type: "file"
+      selectors:
+        - matchArgs:
+            - index: 0
+              operator: "Prefix"
+              values:
+                - "/etc/shadow"
+                - "/var/lib/aeib/keys"
+                - "/sys/class/powercap/intel-rapl"
+          matchActions:
+            - action: "Override"
+              argError: -1
+            - action: "Post"
+    - call: "bprm_check_security"
+      syscall: false
+      args:
+        - index: 0
+          type: "linux_binprm"
+      selectors:
+        - matchArgs:
+            - index: 0
+              operator: "Prefix"
+              values:
+                - "/tmp/"
+                - "/dev/shm/"
+          matchActions:
+            - action: "Sigkill"
+            - action: "Post"

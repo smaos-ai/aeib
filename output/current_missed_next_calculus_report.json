@@ -1,0 +1,12 @@
+{
+  "current_snapshot_digest": "sha256:4df63097598f0401f62e74b583b61c111dddef8f07ff559c0cdef557f9f22120",
+  "hard_clauses_count": 2,
+  "hard_clauses_satisfied": true,
+  "missed_unabsorbed_count": 3,
+  "next_status": "SYNTHESIS_LOCKED_READY",
+  "oracle_gap_prevented": true,
+  "panel_verdict": "READY_TO_SYNTHESIZE",
+  "soft_weight_total_bps": 0,
+  "synthesis_digest": "sha256:33ea539adb1df0c59519db26314f1fb5514793cbb36612754ed8d2fd6b773c59",
+  "unresolved_conflicts_count": 0
+}

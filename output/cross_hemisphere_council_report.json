@@ -1,0 +1,52 @@
+{
+  "developer_questions_schema": [
+    {
+      "allowed_choices": [
+        "OPTION_A: Single-Node CVM Appliance (SQLite + io_uring)",
+        "OPTION_B: Multi-Region Active-Active (Raft + TigerBeetle)"
+      ],
+      "asked_by_model": "qwen-3-max",
+      "default_if_unanswered": "FAIL_CLOSED_HOLD",
+      "question": "Should v1.0 deploy as Single-Node Appliance or Multi-Region Active-Active?",
+      "question_id": "ask-dev-03",
+      "why_needed_for_architecture": "Determines whether SQLite BEGIN IMMEDIATE suffices or TiDB/Raft is required"
+    }
+  ],
+  "module": "tools/cross_hemisphere_council_decide.py",
+  "oracle_gap_prevented": true,
+  "panel_verdict": "HOLD_FOR_DEVELOPER_ANSWERS",
+  "receipt_sha256": "sha256:c17b5e449b99d9a18bf4b0659244c9ad1fc9558c2bd83e6e54ba6bfb243d60f7",
+  "resolved_ask_records": [
+    {
+      "answer_payload": "SQLite WAL BEGIN IMMEDIATE + Rust io_uring 4K-aligned DirectIO",
+      "answered_by": "PARENT_O1_SNAPSHOT",
+      "origin_model": "qwen-3-max",
+      "question_id": "ask-local-01",
+      "resolution_status": "ANSWERED_DETERMINISTICALLY"
+    },
+    {
+      "answer_payload": "Verified: Action-only binding has 60.527% Invalid Commit Rate under state drift; requires 6-Way Joint Commit Witness.",
+      "answered_by": "WEB_SEARCH_PROBE",
+      "origin_model": "qwen-3-max",
+      "question_id": "ask-web-02",
+      "resolution_status": "ANSWERED_DETERMINISTICALLY"
+    },
+    {
+      "answer_payload": "",
+      "answered_by": "PENDING_DEVELOPER",
+      "origin_model": "qwen-3-max",
+      "question_id": "ask-dev-03",
+      "resolution_status": "NEEDS_DEVELOPER_INPUT"
+    }
+  ],
+  "signature_verified": true,
+  "unique_minority_insights_preserved": [
+    {
+      "overruled_majority_models": "gemini-3.7,gpt-5.6,qwen-3-max",
+      "topic_key": "commit_drift_defense",
+      "verified_evidence": "https://arxiv.org/abs/2609.37475 (Table 6.3: 60.527% ICR on action-only vs 0.000% on Joint Witness)",
+      "winning_minority_model": "deepseek-v4-pro+perplexity-sonar",
+      "winning_position": "Require 6-Way Joint Commit Witness (Action + Object Version + Epoch + Policy + CapLease + WYSIWYS)"
+    }
+  ]
+}

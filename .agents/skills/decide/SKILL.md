@@ -1,33 +1,35 @@
 ---
 name: decide
-description: Epistemic Adversarial Research & Categorical Decision Engine (v3.1). Formalizes the 4-Stage Epistemic Loop — Category 1 CURRENT (O(1) Local Codebase Snapshot + Verified Humanity/Web SOTA via 8-Axis Orthogonal Keyword Tag Expansion), Category 2 MISSED (FCA Galois Differential Operator d(CURRENT) analyzing CURRENT only), Category 2.5 BRAINSTORM (Cross-Ecosystem Multi-Model Hypothesis Generation across China Qwen/DeepSeek + USA Gemini/Perplexity with GLS Diversity Combining & Developer Pair-Programming Decision Schemas), and Category 3 NEXT (Higher-Order Synthesis Functor Phi(CURRENT, MISSED, BRAINSTORM) contracting blind spots to 0 bps). Trigger on /decide, $decide, 'what we missed', or 'adversarial research'.
+description: Epistemic Adversarial Research & Cross-Hemisphere Council Decision Engine (v3.2). Formalizes CURRENT -> MISSED(CURRENT) -> BRAINSTORM -> NEXT with the Decide | Ask | Defer 3-Action Policy (arXiv:2610.04542), 3-Tier Ask Resolution Router (Parent O(1) Snapshot -> Live Web/GitHub Probe -> Developer Clarification Schema), Asymmetric Evidence Dominance defeating the 32.3% Oracle Gap (arXiv:2605.00914), Typed Cross-Critique (arXiv:2609.08016), and Weighted Partial MaxSAT synthesis. Trigger on /decide, $decide, 'what we missed', or 'adversarial research'.
 ---
 
-# `/decide` v3.1 — Categorical 4-Stage Epistemic Engine (`CURRENT` $\to$ `MISSED` $\to$ `BRAINSTORM` $\to$ `NEXT`)
+# `/decide` v3.2 — Categorical Epistemic Engine & Cross-Hemisphere `Decide | Ask | Defer` Council
 
-The `/decide` v3.1 skill transforms the agent from single-shot autocomplete into a **Mathematically Grounded, Cross-Ecosystem Multi-Model Epistemic Synthesis Engine** (`src/decide_categorical_epistemic_engine.py` & `tools/decide_v2_constant_time_snapshot.py`).
+The `/decide` v3.2 skill transforms the agent from single-shot autocomplete into a **Mathematically Grounded, Cross-Hemisphere Multi-Model Epistemic Council & `Ask` Router** (`tools/cross_hemisphere_council_decide.py`, `tools/current_missed_next_calculus.py`, `src/decide_categorical_epistemic_engine.py`, & `tools/decide_v2_constant_time_snapshot.py`).
 
 ---
 
 ## 🏛️ I. Philosophical & Mathematical Foundation
 
-### The Four Mathematical Theorems of `/decide` v3.1
-1. **Theorem 1 — Submodular Information Gain via 8-Axis Orthogonal Keyword Tag Expansion (`arXiv:2502.08557`, Nemhauser-Wolsey-Fisher)**:
+### The Five Mathematical & Empirical Laws of `/decide` v3.2
+1. **Law 1 — Submodular Information Gain via 8-Axis Orthogonal Keyword Tag Expansion (`arXiv:2502.08557`, Nemhauser-Wolsey-Fisher)**:
    Expanding any research query across $D = 8$ mutually orthogonal keyword tag axes $K = \{k_1, \dots, k_8\}$ maximizes the monotone submodular mutual information function $F(K) = I(\Omega; X_K)$. Across $N = 28$ combined moat and invariant nodes, this resolves $\binom{28}{2} + 28 = 406$ pairwise cross-domain interaction edges versus $3$ edges in a single-shot prompt — a **$135\times$ ($\ge 100\times$) Pairwise Compositional Coverage Multiplier**.
-2. **Theorem 2 — Formal Concept Analysis (FCA) Galois Boundary Operator (`MISSED` $= \partial(\text{CURRENT})$)**:
-   `MISSED` operates **strictly on `CURRENT` only** ($\mathcal{C} = \mathcal{C}_{\text{local}} \oplus \mathcal{C}_{\text{humanity}}$). Over the incidence matrix $\mathcal{I} \subseteq \mathcal{O} \times \mathcal{A}$, $\partial(\mathcal{C})$ extracts:
+2. **Law 2 — Formal Concept Analysis (FCA) Galois Boundary Operator (`MISSED` $= \partial(\text{CURRENT})$)**:
+   `MISSED` operates **strictly on `CURRENT` only** ($\mathcal{C} = \mathcal{C}_{\text{local}} \cup \mathcal{C}_{\text{humanity\_today}}$). Over the incidence matrix $\mathcal{I} \subseteq \mathcal{O} \times \mathcal{A}$, $\partial(\mathcal{C})$ extracts:
    - **Local Absorption Gaps**: $\text{Attr}(\mathcal{C}_{\text{humanity}}) \setminus \text{Attr}(\mathcal{C}_{\text{local}})$
    - **Humanity Wire-Finality Flaws**: $\text{Attr}(\mathcal{C}_{\text{local}}) \setminus \text{Attr}(\mathcal{C}_{\text{humanity}})$
    - **Galois Frontier Voids**: $\mathcal{A}_{\text{universal}} \setminus (\text{Attr}(\mathcal{C}_{\text{local}}) \cup \text{Attr}(\mathcal{C}_{\text{humanity}}))$
-3. **Theorem 3 — Generalized Least Squares (GLS) Diversity Combining Across China & USA Frontier Models (`BRAINSTORM` $= \Psi(q_{\text{expanded}}, \mathcal{C}, \mathcal{M})$ — `Yu et al., NeurIPS Sep 2026`; `Chetlapalli et al., Aug 2026`)**:
-   When the **same** 8-axis expanded question is sent to $K = 4$ **heterogeneous cross-ecosystem model families** — **China Frontier (`DeepSeek-R1`, `Qwen-Max`)** and **USA Frontier (`Gemini-Pro`, `Perplexity-Sonar`)** — the inter-model error/pre-training correlation drops from $\bar{\rho}_{\text{homogeneous}} \approx 0.80$ to $\bar{\rho}_{\text{cross-ecosystem}} \approx 0.15$. By the GLS Effective Sample Size formula:
-   $$N_{\text{eff}} = \frac{K}{1 + (K - 1)\bar{\rho}}$$
-   the heterogeneous China+USA ensemble achieves $N_{\text{eff}} = 2.7586$ ($27,586\text{ bps}$) vs. $1.1764$ ($11,764\text{ bps}$) for 4 samples from a single model family — a **$2.34\times$ ($23,449\text{ bps}$) effective independent discovery gain**.
-   - **Defeating the MoA "Interaction Tax"**: Instead of averaging different model answers into bland prose, `CrossEcosystemBrainstormEngine` partitions hypotheses into:
-     - **Convergent Validated Hypotheses**: Auto-admitted into `NEXT` when backed by primary citations and reproducible tests across ecosystems.
-     - **Divergent Architectural Trade-Off Forks $\to$ `DeveloperPairDecisionQuestion` Schema**: Surfaces productive disagreements between models (e.g., `Qwen-Max` vs. `Perplexity-Sonar`) as a structured multiple-choice schema (`question`, `options` with `(Recommended)` first, `is_multi_select`, `diverging_agent_positions`) so the human developer pair can answer directly or via `ask_question`.
-4. **Theorem 4 — Iterative Epistemic Contraction Functor (`NEXT` $= \Phi(\text{CURRENT}, \text{MISSED}, \text{BRAINSTORM})$)**:
-   `NEXT` embeds `CURRENT`, `MISSED`, and the resolved `BRAINSTORM` pair-decisions, contracting uncovered blind-spot mass $U(\mathcal{C}^{(t)}) \to 0\text{ bps}$ with an `Ed25519` signature over RFC 8785 JCS.
+3. **Law 3 — Cross-Hemisphere `Decide | Ask | Defer` Policy Divergence & 3-Tier `Ask` Router (`arXiv:2610.04542`, Oct 2026)**:
+   Across 200 incomplete-evidence states, `Qwen` (China) and `Gemini`/`GPT` (USA) diverge on action selection in **137 of 200 states** (and 37 of 50 in incomplete-evidence subsets): `Qwen` selects `ASK` up to 80% of the time under low evidence while `Gemini`/`GPT` jump straight to `DECIDE`. Instead of dropping `Qwen`'s `ASK` queries, `ThreeTierAskResolutionRouter` routes every `ModelAskQuery` through a 3-Tier hierarchy before synthesis:
+   - **Tier 1 (`PARENT_O1_SNAPSHOT`)**: Instant $O(1)$ hash-table lookup against `CurrentCategorySnapshot` / `ConstantTimeCodebaseSnapshot` if the question asks about our existing codebase, moats, or invariants.
+   - **Tier 2 (`WEB_SEARCH_PROBE`)**: Deterministic live web/arXiv/GitHub probe if the question asks about external 2026 SOTA or empirical failure rates (e.g., `arXiv:2609.37475` `60.527%` Invalid Commit Rate on action-only binding).
+   - **Tier 3 (`PENDING_DEVELOPER` Schema Escalation)**: Emits a structured `developer_questions_schema` (and `to_ask_question_modal_payload()`) when only the human developer pair can decide an architectural deployment branch.
+4. **Law 4 — Asymmetric Evidence Dominance Defeating the 32.3% Oracle Gap (`arXiv:2605.00914`, Bertalanič & Fortuna, ACM CAIS 2026; `arXiv:2609.08016`, Chen Qian, CMU)**:
+   Unguided multi-agent debate suffers from **85.5% Sycophantic Conformity**, **32.3% Consensus Collapse (Oracle Gap)**, **2.1×–3.4× Token Inflation**, and superficial tone-driven dissent (`arXiv:2609.08016`). In `CrossHemisphereEpistemicCouncil`:
+   - **Asymmetric Evidence Dominance**: A single minority model (`1 against 3`, e.g., `deepseek-v4-pro+perplexity-sonar`) backed by a verified deterministic counterexample or primary source URL (`has_verified_counterexample_or_url=True`) mathematically overrides $N$ unverified majority votes (`unique_minority_insights_preserved`, `oracle_gap_prevented=True`).
+   - **Typed Cross-Critique (`TypedCrossCritiqueTuple`)**: Rhetorical tone (`HOSTILE` / `FRIENDLY`) without a deterministic counterexample witness never flips a model's position.
+5. **Law 5 — Weighted Partial MaxSAT & Non-Dilutable Conflict Register Contraction (`NEXT` $= \Phi(\text{CURRENT}, \text{MISSED}, \text{BRAINSTORM})$)**:
+   `WeightedPartialMaxSatSynthesizer` (`tools/current_missed_next_calculus.py`) enforces every conflict in `NonDilutableConflictRegister` (`arXiv:2610.12360`) and every verified minority counterexample as a **Hard Clause**, contracting residual blind-spot mass $U(\mathcal{C}^{(t)}) \to 0\text{ bps}$ and emitting an `Ed25519`-signed RFC 8785 JCS receipt.
 
 ---
 

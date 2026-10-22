@@ -82,6 +82,7 @@ pytest \
   tests/test_eac_typestate_conflict_engine.py \
   tests/test_epistemic_core_bec.py \
   tests/test_decide_v2_constant_time_snapshot.py \
+  tests/test_decide_categorical_epistemic_engine.py \
   tools/regulatory_three_tier_and_matrix.py \
   tools/context_ram_and_maseval_harness.py \
   tools/tlaplus_model_conformance_checker.py \
@@ -115,6 +116,8 @@ echo ">>> [G9] Scanning Code & Documentation for Banned Overclaims"
   tests/test_epistemic_core_bec.py \
   tools/decide_v2_constant_time_snapshot.py \
   tests/test_decide_v2_constant_time_snapshot.py \
+  src/decide_categorical_epistemic_engine.py \
+  tests/test_decide_categorical_epistemic_engine.py \
   tools/epistemic_5why_loop.py \
   tools/scitt_ap2_x402_otel_engine.py \
   benchmarks/stochastic_saga_chaos/run_chaosbench.py \

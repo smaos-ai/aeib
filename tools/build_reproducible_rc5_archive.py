@@ -143,6 +143,12 @@ from tests.test_decide_v2_constant_time_snapshot import (
     test_decide_v2_five_why_and_two_iteration_convergence,
     test_banned_words_absence as test_decide_v2_banned_words,
 )
+from tests.test_decide_categorical_epistemic_engine import (
+    test_submodular_monotonicity_and_100x_pairwise_coverage,
+    test_missed_operator_enforces_current_only_constraint,
+    test_current_missed_next_categorical_contraction_and_ed25519_receipt,
+    test_banned_words_absence as test_decide_v3_banned_words,
+)
 from tools.epistemic_5why_loop import (
     test_epistemic_5why_fts5_merkle_and_conflict_loop,
     test_banned_words_absence as test_epistemic_5why_banned_words,
@@ -281,6 +287,10 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
     test_o1_constant_time_codebase_snapshot_index_and_lookup()
     test_decide_v2_five_why_and_two_iteration_convergence()
     test_decide_v2_banned_words()
+    test_submodular_monotonicity_and_100x_pairwise_coverage()
+    test_missed_operator_enforces_current_only_constraint()
+    test_current_missed_next_categorical_contraction_and_ed25519_receipt()
+    test_decide_v3_banned_words()
     test_epistemic_5why_fts5_merkle_and_conflict_loop()
     test_epistemic_5why_banned_words()
     test_scitt_ap2_x402_otel_and_cbom_engine()
@@ -354,6 +364,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "src/context/leviathan_context_engine.py",
             "src/deception/__init__.py",
             "src/deception/agent_deception_interlock.py",
+            "src/decide_categorical_epistemic_engine.py",
             "src/defection_activation_probe.py",
             "src/epistemic_action_compiler.py",
             "src/epistemic_core.py",
@@ -372,6 +383,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "src/wasm_symbolic_path_explorer.py",
             "tests/test_agent_deception_interlock.py",
             "tests/test_cve_2026_33017_langflow_rce.py",
+            "tests/test_decide_categorical_epistemic_engine.py",
             "tests/test_decide_v2_constant_time_snapshot.py",
             "tests/test_eac_typestate_conflict_engine.py",
             "tests/test_epistemic_action_compiler.py",

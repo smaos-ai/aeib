@@ -1,0 +1,20 @@
+{
+  "architecture": "CROSS-HEMISPHERE-TRI-PARTITION-v3.2",
+  "initial_verdict": "HOLD_FOR_DEVELOPER_ANSWERS",
+  "locked_verdict": "READY_TO_SYNTHESIZE",
+  "maxsat_synthesis": {
+    "current_snapshot_digest": "sha256:0c18361385b375dbdcc2c90542ed3629126241124a274f6d7283b0918a432f67",
+    "hard_clauses_count": 2,
+    "hard_clauses_satisfied": true,
+    "missed_unabsorbed_count": 4,
+    "next_status": "SYNTHESIS_LOCKED_READY",
+    "oracle_gap_prevented": true,
+    "panel_verdict": "READY_TO_SYNTHESIZE",
+    "soft_weight_total_bps": 0,
+    "synthesis_digest": "sha256:fd0396c2b8f8f9739a9e0c8192ee49cc6c783f3f83d2dc87a4ecffecb76555ec",
+    "unresolved_conflicts_count": 0
+  },
+  "oracle_gap_prevented": true,
+  "receipt_sha256": "sha256:142ec2ac5d33841042b4dfadc5f081495d5ad5580f340e7c8b7fc02ebec0d546",
+  "signature_verified": true
+}

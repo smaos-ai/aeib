@@ -83,6 +83,8 @@ pytest \
   tests/test_epistemic_core_bec.py \
   tests/test_decide_v2_constant_time_snapshot.py \
   tests/test_decide_categorical_epistemic_engine.py \
+  tests/test_cross_hemisphere_council_decide.py \
+  tools/cross_hemisphere_epistemic_council.py \
   tools/regulatory_three_tier_and_matrix.py \
   tools/context_ram_and_maseval_harness.py \
   tools/tlaplus_model_conformance_checker.py \
@@ -118,6 +120,11 @@ echo ">>> [G9] Scanning Code & Documentation for Banned Overclaims"
   tests/test_decide_v2_constant_time_snapshot.py \
   src/decide_categorical_epistemic_engine.py \
   tests/test_decide_categorical_epistemic_engine.py \
+  tools/cross_hemisphere_council_decide.py \
+  tools/cross_hemisphere_epistemic_council.py \
+  tools/current_missed_next_calculus.py \
+  tests/test_cross_hemisphere_council_decide.py \
+  decide.md \
   tools/epistemic_5why_loop.py \
   tools/scitt_ap2_x402_otel_engine.py \
   benchmarks/stochastic_saga_chaos/run_chaosbench.py \

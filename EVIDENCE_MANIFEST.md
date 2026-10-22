@@ -465,6 +465,19 @@ negative_control_falsification:
 | **Execution Integrity 500-Episode Report** | `output/execution-integrity-500.json` | `6db32d4ae82544fb684b474ace1ba97926b670b94c95c0f872a614f823f0febc` | 500 fault episodes (0 duplicates, upper bound <= 0.60%) | `RECORDED` |
 | **Boundary Limitations Specification** | `LIMITATIONS.md` | `b379aa8a5e78441ef028bf279d5cbc8097665c14a0efe3ba06fec46b559a00aa` | Section 16 single-process/single-machine SQLite WAL boundary documentation | `DOCUMENTED` |
 
+### 6. Epistemic Action Compiler (EAC), Palantir 6-Way Joint Witness, and Cross-Hemisphere Council Artifacts
+
+| Component / Subsystem | Physical File Location | Cryptographic SHA-256 Digest | Verification Harness / Protocol | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **EAC Typestate & Conflict WAL Engine** | `compliance/eac_typestate_conflict_engine.py` | `33836cb6b4ddd1173b7eb6b1cd3f9f91fdc8efc5aad0f97166c8866ff5d0d07b` | `tests/test_eac_typestate_conflict_engine.py` (P0 WAL & P1 Typestate) | `VERIFIED` |
+| **Palantir Ontology & 6-Way Joint Witness** | `tools/palantir_ontology_joint_witness_engine.py` | `f4131233f8da669a22f9974b5624fe28e93f5fb4db1300b45807b94661ff5d26` | `tests/test_palantir_ontology_joint_witness_engine.py` (P2 6-Way Witness, 0.000% ICR) | `VERIFIED` |
+| **`/decide` v3.2 Epistemic Skill Spec** | `decide.md` / `.agents/skills/decide/SKILL.md` | `1b5ab098ae19da38c9c6047effb196e4c98ce453fa97a8f7847a6d4ecec77113` | 5 Mathematical Laws & Cross-Hemisphere `Decide \| Ask \| Defer` Protocol | `VERIFIED` |
+| **Cross-Hemisphere Council & 3-Tier `Ask` Router** | `tools/cross_hemisphere_council_decide.py` | `10d0f53908867b763e07d9dc2ba31ac65138a9616e0a325e0aee33bea6512b2e` | `tests/test_cross_hemisphere_council_decide.py` (3-Tier `Ask` & Oracle Dominance) | `VERIFIED` |
+| **Unified Tri-Partition Council Fabric** | `tools/cross_hemisphere_epistemic_council.py` | `f7958378c124d9496a598d78982b143cf15855df6472d092ee384ead5a1db5f3` | Integrated P0/P1/P2/P3/P4 Cleanroom Verification Runner | `VERIFIED` |
+| **CURRENT $\to$ MISSED $\to$ NEXT MaxSAT Calculus** | `tools/current_missed_next_calculus.py` | `663728b3f34af276fdb24b7f6fa50e88b05394824b8d2e062625f73118e3e3e4` | O(1) `CurrentCategorySnapshot` + `NonDilutableConflictRegister` + MaxSAT | `VERIFIED` |
+| **Categorical 8-Axis Submodular & FCA Engine** | `src/decide_categorical_epistemic_engine.py` | `473c04a93aa7971de62e9124c8d2a1c0d638d52a6e7cd65b639bcee2cc12901b` | `tests/test_decide_categorical_epistemic_engine.py` (135x coverage, GLS $N_{\text{eff}}$) | `VERIFIED` |
+
+
 
 
 

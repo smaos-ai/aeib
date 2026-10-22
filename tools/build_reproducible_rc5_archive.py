@@ -150,6 +150,16 @@ from tests.test_decide_categorical_epistemic_engine import (
     test_current_missed_next_categorical_contraction_and_ed25519_receipt,
     test_banned_words_absence as test_decide_v3_banned_words,
 )
+from tests.test_cross_hemisphere_council_decide import (
+    test_cross_hemisphere_council_and_3tier_ask_router_hold_and_dominance,
+    test_cross_hemisphere_council_developer_answer_unlocks_synthesis,
+    test_typed_cross_critique_prevents_tone_sycophancy_arxiv_2609_08016,
+    test_current_missed_next_calculus_maxsat_and_nondilutable_register,
+    test_banned_words_absence as test_cross_hemisphere_council_banned_words,
+)
+from tools.cross_hemisphere_epistemic_council import (
+    test_integrated_tri_partition_architecture,
+)
 from tools.epistemic_5why_loop import (
     test_epistemic_5why_fts5_merkle_and_conflict_loop,
     test_banned_words_absence as test_epistemic_5why_banned_words,
@@ -293,6 +303,12 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
     test_cross_ecosystem_brainstorm_gls_diversity_and_pair_decision_schema()
     test_current_missed_next_categorical_contraction_and_ed25519_receipt()
     test_decide_v3_banned_words()
+    test_cross_hemisphere_council_and_3tier_ask_router_hold_and_dominance()
+    test_cross_hemisphere_council_developer_answer_unlocks_synthesis()
+    test_typed_cross_critique_prevents_tone_sycophancy_arxiv_2609_08016()
+    test_current_missed_next_calculus_maxsat_and_nondilutable_register()
+    test_cross_hemisphere_council_banned_words()
+    test_integrated_tri_partition_architecture()
     test_epistemic_5why_fts5_merkle_and_conflict_loop()
     test_epistemic_5why_banned_words()
     test_scitt_ap2_x402_otel_and_cbom_engine()
@@ -340,6 +356,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
     for rel_file in sorted(
         [
             ".agents/skills/decide/SKILL.md",
+            "decide.md",
             "benchmarks/locomo_context_quality.py",
             "benchmarks/maseval_integration.py",
             "benchmarks/stochastic_saga_chaos/run_chaosbench.py",
@@ -384,6 +401,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "src/tee_cvm_memory_scrubbing.py",
             "src/wasm_symbolic_path_explorer.py",
             "tests/test_agent_deception_interlock.py",
+            "tests/test_cross_hemisphere_council_decide.py",
             "tests/test_cve_2026_33017_langflow_rce.py",
             "tests/test_decide_categorical_epistemic_engine.py",
             "tests/test_decide_v2_constant_time_snapshot.py",
@@ -408,6 +426,9 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "tests/test_vibe_coding_and_long_horizon_guard.py",
             "tools/aeib_surviving_principles_engine.py",
             "tools/context_ram_and_maseval_harness.py",
+            "tools/cross_hemisphere_council_decide.py",
+            "tools/cross_hemisphere_epistemic_council.py",
+            "tools/current_missed_next_calculus.py",
             "tools/decide_v2_constant_time_snapshot.py",
             "tools/epistemic_5why_loop.py",
             "tools/epistemic_action_compiler_ab_test.py",

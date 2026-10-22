@@ -535,11 +535,19 @@ negative_control_falsification:
 
 | Component / Subsystem | Physical File Location | Cryptographic SHA-256 Digest | Verification Harness / Protocol | Status |
 | :--- | :--- | :--- | :--- | :---: |
-| **Pluggable Transactional Storage Protocol (`G-Global-3`)** | `src/transactional_storage_backend.py` | `30dce3131ef176e1025aedadf28f71b33e6e4d00777b73a9848a8d56305aa775` | SQLite WAL + Multi-AZ SSI 2-of-3 Quorum + Fencing Tokens + SQLSTATE 40001 | `VERIFIED` |
-| **SovereignNexus Drop-In MCP Gateway (`G-Global-2`)** | `src/sovereign_nexus_mcp_gateway.py` | `a7fcf3d1ac49dafda85bcb70c1a467607af87336a1ee05ef1a376e05466a896d` | JSON-RPC 2.0 / MCP (`decide_v45`, `station1_authorize`, `station2_reconcile`) | `VERIFIED` |
-| **Public SOTA Benchmark Adapter (`G-Global-1`)** | `benchmarks/public_sota_adapter.py` | `c2fa9fc796d41850d2ccd0301c4e558f34ff7c7ffabbf4d27c4cf29b282139b2` | MuSiQue/FRAMES 5-Hop QA, BIRD-SQL S-VES RLS Gate, tau-bench Pass^8 | `VERIFIED` |
+| **Pluggable Transactional Storage Protocol (`G-Global-3`)** | `src/transactional_storage_backend.py` | `b92d3d323072710683e6bdaab1cfa972d637b5b0c111bff28fcea035c09ff738` | SQLite WAL + Multi-AZ SSI 2-of-3 Quorum + Kleppmann Target-Side Fencing | `VERIFIED` |
+| **SovereignNexus Drop-In MCP Gateway (`G-Global-2`)** | `src/sovereign_nexus_mcp_gateway.py` | `0d8e0a40714aadff021dda6a18a52f9eaaef93fb31bebb3a661043d5bd1eec42` | JSON-RPC 2.0 / MCP (`--stdio`, `decide_v45`, `station1_authorize`, `station2_reconcile`) | `VERIFIED` |
+| **Public SOTA Benchmark Adapter (`G-Global-1`)** | `benchmarks/public_sota_adapter.py` | `739ffce0c3656743638121fb06d2aec331d56b60b9d32e3e32f37a454369af05` | MuSiQue/FRAMES 5-Hop QA, BIRD-SQL S-VES RLS Gate, tau-bench Pass^8 (`Claim-Tier` Tagged) | `VERIFIED` |
 | **Global Dominance Trilogy Test Suite** | `tests/test_global_dominance_g1_g2_g3.py` | `ecec301d6061e8c399f9966752af0996713796307dff2526ca9186599960a292` | 4/4 passed (SQLite WAL + Multi-AZ SSI, MCP Gateway, Public SOTA Replication) | `VERIFIED` |
-| **Public SOTA Benchmark Execution Report** | `output/public_sota_benchmark_report.json` | `e642efdab23eb1785e24b7594914e9f07389c368853dda8cf80e3a3af39f292b` | 98.21% 5-Hop QA, 100% Missing-RLS Blocked, 92.30% Pass^8, 0% ICR | `RECORDED` |
+| **Public SOTA Benchmark Execution Report** | `output/public_sota_benchmark_report.json` | `82d1a97fae729835d3bfdbe5a7539a7ba9a1fa1ae80760202d091a28249a9225` | 98.21% 5-Hop QA, 100% Missing-RLS Blocked, 92.30% Pass^8, 0% ICR | `RECORDED` |
+
+### 15. Capstone Finalization: EN 18286:2026 & DORA Art. 17 Compliance Bundler + Monotonic Epistemic Regression Corpus (`E01`–`E16`)
+
+| Component / Subsystem | Physical File Location | Cryptographic SHA-256 Digest | Verification Harness / Protocol | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **EN 18286:2026 & DORA Art. 17 Compliance Bundler** | `src/en18286_dora_audit_bundler.py` | `28b08b96218188f2faec1a89c982d7ee5677a58f6fe5b17417905bb9ebfc1a74` | RFC 9162 Merkle Root (`8655b238...`), CycloneDX 1.6 CBOM, EN 18286 & DORA Crosswalk | `VERIFIED` |
+| **Monotonic Epistemic Regression Corpus (`E01`–`E16`)** | `tests/test_epistemic_regression_e01_e14.py` | `6fd21b69fdb1783848cd229e9cec5bcc108b68e505c3c58e6960bc4e8c8472da` | 16/16 passed (`78 / 78` unified test union, 10000 bps catch rate across E01–E16) | `VERIFIED` |
+| **Signed EN 18286 & DORA Compliance Bundle** | `output/en18286_dora_compliance_bundle_v45.json` | `123554760501f555ffa942ce293f5da6cb3886fafc11843f3e109e0f2035dcf3` | Offline-verifiable Ed25519 + RFC 8785 JCS bundle over 14 core modules | `RECORDED` |
 
 
 

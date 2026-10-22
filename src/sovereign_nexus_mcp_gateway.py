@@ -289,11 +289,44 @@ class SovereignNexusMcpGateway:
 
         return {"status": "HALT_UNKNOWN_RECONCILE_ACTION", "caid": caid}
 
+    def run_stdio_loop(self, input_stream: Any = None, output_stream: Any = None) -> int:
+        """
+        Executes line-delimited JSON-RPC 2.0 transport over stdio for direct
+        attachment via `.mcp.json` in Claude Code, Cursor, or Gemini CLI.
+        """
+        in_stream = input_stream if input_stream is not None else sys.stdin
+        out_stream = output_stream if output_stream is not None else sys.stdout
+        processed = 0
+        for raw_line in in_stream:
+            line = raw_line.strip()
+            if not line:
+                continue
+            try:
+                req = json.loads(line)
+                resp = self.handle_jsonrpc(req)
+            except Exception as exc:
+                resp = {
+                    "jsonrpc": "2.0",
+                    "id": None,
+                    "error": {"code": -32700, "message": f"Parse error: {exc}"},
+                }
+            out_stream.write(json.dumps(resp, sort_keys=True) + "\n")
+            out_stream.flush()
+            processed += 1
+        return processed
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="SovereignNexus MCP Gateway Server")
     parser.add_argument("--self-test", action="store_true", help="Run gateway self-test")
+    parser.add_argument("--stdio", action="store_true", help="Run line-delimited JSON-RPC 2.0 stdio transport")
     args = parser.parse_args()
+
+    if args.stdio:
+        gw = SovereignNexusMcpGateway()
+        gw.storage.register_workflow_budget("wf_default", 1000000)
+        gw.run_stdio_loop()
+        return 0
 
     if args.self_test:
         import tempfile

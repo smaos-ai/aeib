@@ -64,6 +64,7 @@ class PublicSotaBenchmarkReport:
     report_sha256: str
     public_key_b64: str
     signature_b64: str
+    claim_tier: str = "MEASURED_LOCAL_ARCHETYPE_DETERMINISTIC_REPLAY_SEED_42"
 
 
 class PublicSotaBenchmarkAdapter:
@@ -355,6 +356,11 @@ class PublicSotaBenchmarkAdapter:
         if output_json_path is not None:
             output_json_path.parent.mkdir(parents=True, exist_ok=True)
             full_out = dict(payload_obj)
+            full_out["claim_tier"] = "MEASURED_LOCAL_ARCHETYPE_DETERMINISTIC_REPLAY_SEED_42"
+            full_out["evaluation_scope_note"] = (
+                "Deterministic archetype replay (seed=42) evaluating architectural invariant enforcement; "
+                "distinct from stochastic full-corpus LLM evaluation."
+            )
             full_out["report_sha256"] = digest
             full_out["public_key_b64"] = pub_b64
             full_out["signature_b64"] = sig_b64

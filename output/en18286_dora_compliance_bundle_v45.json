@@ -1,0 +1,173 @@
+{
+  "benchmark_summary": {
+    "bird_sql_missing_rls_blocked_bps": 10000,
+    "eval_rate_multiplier_bps": 357811,
+    "musique_5hop_sake_em_bps": 9821,
+    "report_sha256": "dc77d124ee4354c1283be164e4174b7a83adbffcda0388af4d3a44d1b073a5d9",
+    "suite_id": "public_sota_replication_v45",
+    "tau_bench_invalid_commit_rate_bps": 0,
+    "tau_bench_verified_pass8_bps": 9230
+  },
+  "bundle_id": "bundle_en18286_dora_v45_section15",
+  "bundle_sha256": "d3cb6e21af215b00ab36726a6ba6a04a10db289893ad96b3478c1962c361fb20",
+  "claim_tier": "MEASURED_LOCAL_ARCHETYPE_DETERMINISTIC_REPLAY_SEED_42",
+  "cyclonedx_cbom": [
+    {
+      "bom_ref": "crypto-ed25519-rfc8032",
+      "key_length_bits": 256,
+      "name": "Ed25519",
+      "primitive": "digital-signature",
+      "standard": "RFC 8032 / FIPS 186-5",
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom_ref": "crypto-sha256-fips180",
+      "digest_length_bits": 256,
+      "name": "SHA-256",
+      "primitive": "hash-function",
+      "standard": "FIPS 180-4 / RFC 9162",
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom_ref": "crypto-jcs-rfc8785",
+      "key_length_bits": 0,
+      "name": "JSON Canonicalization Scheme (JCS)",
+      "primitive": "canonical-encoding",
+      "standard": "RFC 8785",
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom_ref": "crypto-mldsa65-fips204",
+      "key_length_bits": 1952,
+      "name": "ML-DSA-65 Dual-Slot PQC Profile",
+      "primitive": "post-quantum-signature-profile",
+      "standard": "NIST FIPS 204",
+      "type": "cryptographic-asset"
+    }
+  ],
+  "dora_art17_controls": [
+    {
+      "control_id": "DORA_ART_17_1_A",
+      "enforcing_module": "src/transactional_storage_backend.py",
+      "requirement": "Pre-Dispatch Intent Latching & Indeterminate Timeout Containment",
+      "verification_evidence": "0 / 500 duplicate writes under HTTP 504 fault injection (seed=42)"
+    },
+    {
+      "control_id": "DORA_ART_17_2_B",
+      "enforcing_module": "src/transactional_storage_backend.py",
+      "requirement": "Multi-AZ Quorum & Target-Side Atomic Fencing Token Enforcement",
+      "verification_evidence": "2-of-3 AZ quorum, SQLSTATE 40001 SSI conflict abort, Kleppmann target fencing"
+    },
+    {
+      "control_id": "DORA_ART_17_3_C",
+      "enforcing_module": "src/sovereign_nexus_mcp_gateway.py",
+      "requirement": "Out-of-Band Reconciliation Before Retry Authorization",
+      "verification_evidence": "station2_reconcile requires cryptographic probe_evidence_hash"
+    },
+    {
+      "control_id": "DORA_ART_17_4_D",
+      "enforcing_module": "src/planetary_clearinghouse_and_tee_swarm.py",
+      "requirement": "Counterparty Economic Alignment & Confidential Enclave Binding",
+      "verification_evidence": "DvP EAS >= 8000 bps floor + TDX/SEV-SNP REPORT_DATA key binding"
+    }
+  ],
+  "en18286_clauses": [
+    {
+      "clause_id": "EN_18286_2026_CLAUSE_5_2",
+      "enforcing_module": "src/decide_evaluation_rate_and_decay_solver.py",
+      "requirement": "AI Risk Management & Epistemic Decay Control",
+      "verification_evidence": "SAKE 9821 bps deep-hop retention, 35.78x CELF EvalRate, 9230 bps Pass^8"
+    },
+    {
+      "clause_id": "EN_18286_2026_CLAUSE_6_4",
+      "enforcing_module": "src/sovereign_nexus_mcp_gateway.py",
+      "requirement": "Data Governance, Row-Level Security & DPI Handoff Integrity",
+      "verification_evidence": "S-VES 10000 bps missing-RLS blocked, DPI lossless SHA-256 vault pointers"
+    },
+    {
+      "clause_id": "EN_18286_2026_CLAUSE_7_1",
+      "enforcing_module": "src/transactional_storage_backend.py",
+      "requirement": "Automatic Event Logging & Cryptographic Traceability",
+      "verification_evidence": "Ed25519 RFC 8785 JCS receipts + RFC 9162 Merkle transparency root"
+    },
+    {
+      "clause_id": "EN_18286_2026_CLAUSE_7_3",
+      "enforcing_module": "tools/cross_hemisphere_council_decide.py",
+      "requirement": "Human Oversight & Incomplete-Evidence Escalation",
+      "verification_evidence": "Decide | Ask | Defer 3-Tier Ask Router & Developer Clarification Schema"
+    },
+    {
+      "clause_id": "EN_18286_2026_CLAUSE_8_2",
+      "enforcing_module": "compliance/defense_in_depth_policy_gate.py",
+      "requirement": "Cybersecurity, Proposal-to-Commit Drift & OOB Monitor Integrity",
+      "verification_evidence": "6-Way Joint Commit Witness (0 bps ICR) + PEP 578 + OOB monitor guard"
+    }
+  ],
+  "file_inventory": [
+    {
+      "path": "src/planetary_clearinghouse_and_tee_swarm.py",
+      "sha256": "1241fae318e149e24c8ccdf1a145246ea9b309dc4fc98a5cd91deda1da6d9a60"
+    },
+    {
+      "path": "src/decide_autonomous_query_research_engine.py",
+      "sha256": "94ec41b16d41b09377708d0aa7cef30a5b5e29d148a7ec597a6e1c576518207f"
+    },
+    {
+      "path": "src/decide_evaluation_rate_and_decay_solver.py",
+      "sha256": "ea8bac3405f65b58ef8ca9723868eb36da35cc12d4233cee980752f717a90a0d"
+    },
+    {
+      "path": "src/transactional_storage_backend.py",
+      "sha256": "b92d3d323072710683e6bdaab1cfa972d637b5b0c111bff28fcea035c09ff738"
+    },
+    {
+      "path": "src/sovereign_nexus_mcp_gateway.py",
+      "sha256": "0d8e0a40714aadff021dda6a18a52f9eaaef93fb31bebb3a661043d5bd1eec42"
+    },
+    {
+      "path": "benchmarks/public_sota_adapter.py",
+      "sha256": "739ffce0c3656743638121fb06d2aec331d56b60b9d32e3e32f37a454369af05"
+    },
+    {
+      "path": "tools/cross_hemisphere_council_decide.py",
+      "sha256": "10d0f53908867b763e07d9dc2ba31ac65138a9616e0a325e0aee33bea6512b2e"
+    },
+    {
+      "path": "tools/current_missed_next_calculus.py",
+      "sha256": "663728b3f34af276fdb24b7f6fa50e88b05394824b8d2e062625f73118e3e3e4"
+    },
+    {
+      "path": "src/decide_categorical_epistemic_engine.py",
+      "sha256": "473c04a93aa7971de62e9124c8d2a1c0d638d52a6e7cd65b639bcee2cc12901b"
+    },
+    {
+      "path": "compliance/defense_in_depth_policy_gate.py",
+      "sha256": "65fd15e8cc2f068f6c40ee150a60947f33002445cc43913c90f7fe20ff4590a5"
+    },
+    {
+      "path": "tools/epistemic_intent_outcome_engine.py",
+      "sha256": "7a2e3b8aaf60ee9cc98309c3e92a19744f3813161345e9fea2538843a7551b3b"
+    },
+    {
+      "path": "tools/aeib_2026_unified_metrics_evaluator.py",
+      "sha256": "eb0b0f40cec1571964b8139b39160310d6a2c4e960f6549cba5f7e6f9fdde60e"
+    },
+    {
+      "path": "src/camel_fides_ifc_and_acid_hardening.py",
+      "sha256": "b9a6891615d3621b95a7aaff175169baa333711be1681f81fe053bb1aa7dfee2"
+    },
+    {
+      "path": "src/china_and_global_leaders_hardening_suite.py",
+      "sha256": "93e37fc5242f92464464c9504600b23ef41300b3d3eb5be7ae318a813df1ec61"
+    }
+  ],
+  "merkle_transparency_root": "8655b2389bc20ec3f455185db00753127c462afc5bf93c482a450d539d21fb24",
+  "public_key_b64": "EAqF9boXHu2styW3dMTahMGAK7gXGF+lJDEisyM7xac=",
+  "signature_b64": "+JyGCBgJXPkfC8pRuLZQ0Q/55IADXUkuRGzG9c1XFz4q2mLtZ5cB10hP/b8Q4x8MrVOnq2SkDifpzxtX5mYmCg==",
+  "standard_profiles": [
+    "CEN-CENELEC EN 18286:2026 (EU AI Act Art. 17 QMS)",
+    "Regulation (EU) 2022/2554 (DORA Article 17)",
+    "IETF RFC 8785 (JCS) & RFC 9162 (Merkle Transparency)"
+  ],
+  "verified_files_count": 14
+}

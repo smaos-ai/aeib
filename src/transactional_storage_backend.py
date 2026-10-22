@@ -400,10 +400,38 @@ class SqliteWalTransactionalBackend:
             conn.close()
 
 
+class ReplicaTargetStorageNode:
+    """
+    Target-side per-AZ storage node enforcing Kleppmann's Fencing Token Lemma:
+    Even if a coordinator leader experiences a GC/scheduling pause after a pre-check,
+    each target storage replica atomically checks `fencing_token >= highest_seen_token`
+    inside the target state mutation itself and rejects delayed zombie leader writes.
+    """
+
+    def __init__(self, az_id: str) -> None:
+        self.az_id = az_id
+        self.highest_seen_fencing_token: Dict[str, int] = {}
+        self.committed_records: Dict[str, IntentStorageRecord] = {}
+
+    def atomic_verify_and_apply(
+        self,
+        workflow_id: str,
+        fencing_token: int,
+        record: IntentStorageRecord,
+    ) -> bool:
+        highest = self.highest_seen_fencing_token.get(workflow_id, 0)
+        if fencing_token < highest:
+            return False
+        self.highest_seen_fencing_token[workflow_id] = fencing_token
+        self.committed_records[record.caid] = record
+        return True
+
+
 class SerializableMultiNodeConsensusBackend:
     """
     Multi-AZ Serializable Snapshot Isolation (SSI) + Majority Quorum (2-of-3 AZs)
-    transactional backend adapter modeling PostgreSQL SERIALIZABLE / FoundationDB / TiDB.
+    transactional backend adapter modeling PostgreSQL SERIALIZABLE / FoundationDB / TiDB,
+    with target-side per-replica atomic fencing token enforcement.
     """
 
     AZ_REPLICAS = ("az-eu-central-1a", "az-eu-central-1b", "az-eu-central-1c")
@@ -415,6 +443,9 @@ class SerializableMultiNodeConsensusBackend:
         self.signing_key = signing_key or Ed25519PrivateKey.generate()
         self.public_key = self.signing_key.public_key()
         self.reachable_azs: Set[str] = set(self.AZ_REPLICAS)
+        self.replicas: Dict[str, ReplicaTargetStorageNode] = {
+            az: ReplicaTargetStorageNode(az) for az in self.AZ_REPLICAS
+        }
         self.workflow_ceilings: Dict[str, int] = {}
         self.workflow_fencing_tokens: Dict[str, int] = {}
         self.workflow_version: Dict[str, int] = {}
@@ -423,6 +454,45 @@ class SerializableMultiNodeConsensusBackend:
     def set_reachable_azs(self, azs: Set[str]) -> None:
         """Configures reachable AZs for deterministic partition testing."""
         self.reachable_azs = set(azs)
+
+    def advance_replica_fencing_token_directly(
+        self, workflow_id: str, new_leader_token: int
+    ) -> None:
+        """
+        Simulates a newer leader committing a higher fencing token directly to
+        the target AZ replicas while an older leader is paused mid-flight.
+        """
+        for az in self.reachable_azs.intersection(self.AZ_REPLICAS):
+            rep = self.replicas[az]
+            cur = rep.highest_seen_fencing_token.get(workflow_id, 0)
+            if new_leader_token > cur:
+                rep.highest_seen_fencing_token[workflow_id] = new_leader_token
+
+    def _apply_to_target_replicas(
+        self,
+        workflow_id: str,
+        fencing_token: int,
+        record: IntentStorageRecord,
+    ) -> Tuple[bool, int, bool]:
+        """
+        Applies mutation across reachable AZ target replicas.
+        Returns (quorum_ok, acks_count, rejected_by_target_fencing).
+        """
+        active_azs = sorted(self.reachable_azs.intersection(self.AZ_REPLICAS))
+        if len(active_azs) < 2:
+            return False, len(active_azs), False
+
+        acks = 0
+        fencing_rejected = False
+        for az in active_azs:
+            if self.replicas[az].atomic_verify_and_apply(workflow_id, fencing_token, record):
+                acks += 1
+            else:
+                fencing_rejected = True
+
+        if fencing_rejected or acks < 2:
+            return False, acks, fencing_rejected
+        return True, acks, False
 
     def _has_majority_quorum(self) -> Tuple[bool, int]:
         acks = len(self.reachable_azs.intersection(self.AZ_REPLICAS))
@@ -538,9 +608,7 @@ class SerializableMultiNodeConsensusBackend:
                 ceiling - used,
             )
 
-        self.workflow_fencing_tokens[workflow_id] = fencing_token
-        self.workflow_version[workflow_id] = current_ver + 1
-        self.intents[caid] = IntentStorageRecord(
+        candidate_record = IntentStorageRecord(
             caid=caid,
             workflow_id=workflow_id,
             amount_minor=amount_minor,
@@ -549,9 +617,26 @@ class SerializableMultiNodeConsensusBackend:
             state="STAGED_ESCROW",
             probe_evidence_hash="",
         )
+        rep_ok, rep_acks, target_fenced = self._apply_to_target_replicas(
+            workflow_id, fencing_token, candidate_record
+        )
+        if target_fenced or not rep_ok:
+            return self._sign_receipt(
+                caid,
+                workflow_id,
+                "HALT_STORAGE_STALE_FENCING_TOKEN" if target_fenced else "HALT_QUORUM_MINORITY_PARTITION",
+                "REJECTED",
+                fencing_token,
+                rep_acks,
+                ceiling - used,
+            )
+
+        self.workflow_fencing_tokens[workflow_id] = fencing_token
+        self.workflow_version[workflow_id] = current_ver + 1
+        self.intents[caid] = candidate_record
         rem = ceiling - (used + amount_minor)
         return self._sign_receipt(
-            caid, workflow_id, "COMMITTED_STAGED_ESCROW", "STAGED_ESCROW", fencing_token, acks, rem
+            caid, workflow_id, "COMMITTED_STAGED_ESCROW", "STAGED_ESCROW", fencing_token, rep_acks, rem
         )
 
     def latch_indeterminate(

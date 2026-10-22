@@ -502,6 +502,14 @@ negative_control_falsification:
 | **China & Global Leaders 12-Benchmark Hardening Suite** | `src/china_and_global_leaders_hardening_suite.py` | `93e37fc5242f92464464c9504600b23ef41300b3d3eb5be7ae318a813df1ec61` | A3S-Bench, ToolSafe TS-Flow, MINJA/AgentPoison Memory, SecCodeBench AST | `VERIFIED` |
 | **China & Global Leaders 12-Benchmark Test Suite** | `tests/test_china_and_global_leaders_hardening_suite.py` | `e167363ec5f8a985c48ba4f1cfba5f21356ac643c3dc986ba32ce53f3b9e5367` | 6/6 passed (12/12 Leader Benchmarks = 10000 bps pass rate) | `VERIFIED` |
 
+### 10. HAMT Cross-Pollination Orchestrator, SQLite O(1) Evidence Graph, & 6-Pillar Cerno / Scion / TA-14 / Omnigent Fabric
+
+| Component / Subsystem | Physical File Location | Cryptographic SHA-256 Digest | Verification Harness / Protocol | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **HAMT Cross-Pollination & SQLite O(1) Evidence Graph** | `tools/hamt_cross_pollination_and_evidence_graph.py` | `42fe0613d6a49194793f08a258a6976a1dfb705b19d74a7d8cd87fc44444970c` | 32-way HAMT state fork, anti-sycophancy web critique, SQLite Tier-4 O(1) graph | `VERIFIED` |
+| **6-Pillar Cerno / Scion / Onyx / TA-14 / Omnigent Fabric** | `src/cerno_scion_ta14_omnigent_fabric.py` | `951bdc9b1d2dff28f8d8f074b90a2afc75e3f9a9696e14ce807f76c77867cc81` | Cerno <=52ms router, Scion disjoint writes, TA-14 RAP 8-stage, Omnigent, 109:1 ID | `VERIFIED` |
+| **HAMT & 6-Pillar Fabric Verification Suite** | `tests/test_hamt_cross_pollination_and_cerno_scion_ta14.py` | `811eca460bbfe4fa072b0d77b6b8fb3cbdc9aae4100be9d0670c94eea4f1f457` | 6/6 passed (HAMT immutability, O(1) graph cache, Scion collision, TA-14, Shadow ID) | `VERIFIED` |
+
 
 
 

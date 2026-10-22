@@ -189,6 +189,14 @@ from tests.test_china_and_global_leaders_hardening_suite import (
     test_12_leader_benchmarks_scorecard_100_percent,
     test_banned_words_absence as test_china_global_leaders_banned_words,
 )
+from tests.test_hamt_cross_pollination_and_cerno_scion_ta14 import (
+    test_hamt_persistent_state_tree_o1_fork_and_structural_sharing,
+    test_adversarial_cross_pollination_and_sqlite_evidence_graph_o1_cache,
+    test_cerno_system_one_fast_router_and_scion_disjoint_write_sets,
+    test_onyx_nemotron_hybrid_retriever_and_ta14_runtime_admissibility,
+    test_omnigent_three_tier_policy_and_machine_identity_shadow_agent_guard,
+    test_banned_words_absence as test_hamt_cerno_scion_ta14_banned_words,
+)
 from tools.cross_hemisphere_epistemic_council import (
     test_integrated_tri_partition_architecture,
 )
@@ -365,6 +373,12 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
     test_seccodebench_ast_cwe_security_gate()
     test_12_leader_benchmarks_scorecard_100_percent()
     test_china_global_leaders_banned_words()
+    test_hamt_persistent_state_tree_o1_fork_and_structural_sharing()
+    test_adversarial_cross_pollination_and_sqlite_evidence_graph_o1_cache()
+    test_cerno_system_one_fast_router_and_scion_disjoint_write_sets()
+    test_onyx_nemotron_hybrid_retriever_and_ta14_runtime_admissibility()
+    test_omnigent_three_tier_policy_and_machine_identity_shadow_agent_guard()
+    test_hamt_cerno_scion_ta14_banned_words()
     test_epistemic_5why_fts5_merkle_and_conflict_loop()
     test_epistemic_5why_banned_words()
     test_scitt_ap2_x402_otel_and_cbom_engine()
@@ -438,6 +452,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "scripts/verify_research_claims.py",
             "src/actuarial_multisig_gate.py",
             "src/camel_fides_ifc_and_acid_hardening.py",
+            "src/cerno_scion_ta14_omnigent_fabric.py",
             "src/china_and_global_leaders_hardening_suite.py",
             "src/context/__init__.py",
             "src/context/leviathan_context_engine.py",
@@ -472,6 +487,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "tests/test_eac_typestate_conflict_engine.py",
             "tests/test_epistemic_action_compiler.py",
             "tests/test_epistemic_core_bec.py",
+            "tests/test_hamt_cross_pollination_and_cerno_scion_ta14.py",
             "tests/test_hansard_and_defection_probe.py",
             "tests/test_hlc_hypergraph_and_persist_gate.py",
             "tests/test_leviathan_and_cross_tenant_isolation.py",
@@ -498,6 +514,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "tools/epistemic_5why_loop.py",
             "tools/epistemic_action_compiler_ab_test.py",
             "tools/epistemic_intent_outcome_engine.py",
+            "tools/hamt_cross_pollination_and_evidence_graph.py",
             "tools/local_system1_leviathan_daemon.py",
             "tools/palantir_ontology_joint_witness_engine.py",
             "tools/phase0_integrity_reset_core.py",

@@ -645,11 +645,20 @@ def test_cross_hemisphere_council_and_ask_router() -> None:
 
 if __name__ == "__main__":
     initial_report = run_cross_hemisphere_council_scenario()
+    locked_dev_choice = (
+        "(Recommended) Hybrid Tiered Topology: Default v1.0 to Single-Node CVM Appliance "
+        "(SQLite WAL BEGIN IMMEDIATE + Rust io_uring 4K DirectIO) with optional "
+        "Multi-Region Active-Active (3-node Raft + TigerBeetle VSR) profile"
+    )
+    locked_report = run_cross_hemisphere_council_scenario(
+        developer_answers={"ask-dev-03": locked_dev_choice}
+    )
     summary = {
         "module": "tools/cross_hemisphere_council_decide.py",
-        "oracle_gap_prevented": initial_report.oracle_gap_prevented,
-        "panel_verdict": initial_report.panel_verdict,
-        "unique_minority_insights_preserved": initial_report.unique_minority_insights_preserved,
+        "oracle_gap_prevented": locked_report.oracle_gap_prevented,
+        "pre_answer_panel_verdict": initial_report.panel_verdict,
+        "post_answer_panel_verdict": locked_report.panel_verdict,
+        "unique_minority_insights_preserved": locked_report.unique_minority_insights_preserved,
         "resolved_ask_records": [
             {
                 "question_id": r.question_id,
@@ -658,12 +667,13 @@ if __name__ == "__main__":
                 "resolution_status": r.resolution_status,
                 "answer_payload": r.answer_payload,
             }
-            for r in initial_report.resolved_ask_records
+            for r in locked_report.resolved_ask_records
         ],
-        "developer_questions_schema": initial_report.developer_questions_schema,
-        "receipt_sha256": initial_report.receipt_sha256,
+        "initial_developer_questions_schema": initial_report.developer_questions_schema,
+        "locked_developer_answers": {"ask-dev-03": locked_dev_choice},
+        "receipt_sha256": locked_report.receipt_sha256,
         "signature_verified": CrossHemisphereEpistemicCouncil.verify_council_report_signature(
-            initial_report
+            locked_report
         ),
     }
     print(json.dumps(summary, indent=2, sort_keys=True))

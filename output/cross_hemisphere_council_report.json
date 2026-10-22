@@ -1,5 +1,5 @@
 {
-  "developer_questions_schema": [
+  "initial_developer_questions_schema": [
     {
       "allowed_choices": [
         "OPTION_A: Single-Node CVM Appliance (SQLite + io_uring)",
@@ -12,10 +12,14 @@
       "why_needed_for_architecture": "Determines whether SQLite BEGIN IMMEDIATE suffices or TiDB/Raft is required"
     }
   ],
+  "locked_developer_answers": {
+    "ask-dev-03": "(Recommended) Hybrid Tiered Topology: Default v1.0 to Single-Node CVM Appliance (SQLite WAL BEGIN IMMEDIATE + Rust io_uring 4K DirectIO) with optional Multi-Region Active-Active (3-node Raft + TigerBeetle VSR) profile"
+  },
   "module": "tools/cross_hemisphere_council_decide.py",
   "oracle_gap_prevented": true,
-  "panel_verdict": "HOLD_FOR_DEVELOPER_ANSWERS",
-  "receipt_sha256": "sha256:c17b5e449b99d9a18bf4b0659244c9ad1fc9558c2bd83e6e54ba6bfb243d60f7",
+  "post_answer_panel_verdict": "READY_TO_SYNTHESIZE",
+  "pre_answer_panel_verdict": "HOLD_FOR_DEVELOPER_ANSWERS",
+  "receipt_sha256": "sha256:142ec2ac5d33841042b4dfadc5f081495d5ad5580f340e7c8b7fc02ebec0d546",
   "resolved_ask_records": [
     {
       "answer_payload": "SQLite WAL BEGIN IMMEDIATE + Rust io_uring 4K-aligned DirectIO",
@@ -32,11 +36,11 @@
       "resolution_status": "ANSWERED_DETERMINISTICALLY"
     },
     {
-      "answer_payload": "",
-      "answered_by": "PENDING_DEVELOPER",
+      "answer_payload": "(Recommended) Hybrid Tiered Topology: Default v1.0 to Single-Node CVM Appliance (SQLite WAL BEGIN IMMEDIATE + Rust io_uring 4K DirectIO) with optional Multi-Region Active-Active (3-node Raft + TigerBeetle VSR) profile",
+      "answered_by": "DEVELOPER_LOCKED",
       "origin_model": "qwen-3-max",
       "question_id": "ask-dev-03",
-      "resolution_status": "NEEDS_DEVELOPER_INPUT"
+      "resolution_status": "ANSWERED_DETERMINISTICALLY"
     }
   ],
   "signature_verified": true,

@@ -230,7 +230,11 @@ if __name__ == "__main__":
 
     council_rep = run_cross_hemisphere_council_scenario(
         developer_answers={
-            "ask-dev-03": "OPTION_A: Single-Node CVM Appliance (SQLite + io_uring)"
+            "ask-dev-03": (
+                "(Recommended) Hybrid Tiered Topology: Default v1.0 to Single-Node CVM Appliance "
+                "(SQLite WAL BEGIN IMMEDIATE + Rust io_uring 4K DirectIO) with optional "
+                "Multi-Region Active-Active (3-node Raft + TigerBeetle VSR) profile"
+            )
         }
     )
     synth = WeightedPartialMaxSatSynthesizer.synthesize_next(

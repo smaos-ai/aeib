@@ -1,17 +1,21 @@
 # File: tests/test_decide_categorical_epistemic_engine.py
 """
-Verification suite for /decide v3.0:
+Verification suite for /decide v3.1 (CURRENT -> MISSED -> BRAINSTORM -> NEXT):
 - Submodular monotonicity and diminishing marginal returns across the 8 Orthogonal Keyword Tag Axes.
 - Category 1 (CURRENT = C_local (+) C_humanity) O(1) snapshot + 2025-2026 science grounding.
 - Category 2 (MISSED = d(C)) strict domain enforcement (analyzes CURRENT only) & FCA Galois voids.
-- Category 3 (NEXT = Phi(C, M)) iterative epistemic contraction to 0 bps, >= 100x pairwise
-  compositional coverage multiplier vs. single-shot prompt baseline, and Ed25519 JCS receipt verification.
+- Category 2.5 (BRAINSTORM = Psi(q, C, M)) Cross-Ecosystem Multi-Model Hypothesis Generation
+  (China DeepSeek-R1 + Qwen-Max vs. USA Gemini-Pro + Perplexity-Sonar), GLS Diversity Combining
+  Effective Sample Size proof, and Structured Developer Pair-Programming Decision Schema generation.
+- Category 3 (NEXT = Phi(C, M, B)) iterative epistemic contraction to 0 bps, >= 100x pairwise
+  compositional coverage multiplier, and Ed25519 JCS receipt verification.
 """
 from pathlib import Path
 import pytest
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from src.decide_categorical_epistemic_engine import (
+    CrossEcosystemBrainstormEngine,
     CurrentCategoryBuilder,
     MissedDifferentialOperator,
     NextCategorySynthesisFunctor,
@@ -62,11 +66,46 @@ def test_submodular_monotonicity_and_100x_pairwise_coverage() -> None:
 
 
 def test_missed_operator_enforces_current_only_constraint() -> None:
-    # Passing a non-CURRENT dictionary into MissedDifferentialOperator must fail closed
     with pytest.raises(ValueError, match="HALT_MISSED_REQUIRES_CURRENT_ONLY"):
         MissedDifferentialOperator.analyze_current_only(
             {"category": "UNVERIFIED_SPECULATION"}
         )
+
+
+def test_cross_ecosystem_brainstorm_gls_diversity_and_pair_decision_schema() -> None:
+    builder = CurrentCategoryBuilder()
+    cur = builder.build_current_category()
+    mis = MissedDifferentialOperator.analyze_current_only(cur)
+    expander = OrthogonalKeywordTagExpander()
+    exp_q = expander.expand_query_with_orthogonal_tags("Cross-ecosystem brainstorm test")
+
+    b_engine = CrossEcosystemBrainstormEngine()
+    b_state = b_engine.execute_cross_ecosystem_brainstorm(exp_q, cur, mis)
+
+    assert b_state["category"] == "CATEGORY_2B_BRAINSTORM"
+    assert b_state["models_queried"] == [
+        "DeepSeek-R1",
+        "Gemini-Pro",
+        "Qwen-Max",
+        "Perplexity-Sonar",
+    ]
+    gls = b_state["gls_diversity_combining_proof"]
+    # Heterogeneous China+USA 4-model ensemble (N_eff = 2.7586 -> 27586 bps) > 2x homogeneous (1.1764 -> 11764 bps)
+    assert gls["heterogeneous_china_usa_4model_n_eff_bps"] > 25000
+    assert gls["homogeneous_4model_n_eff_bps"] < 12000
+    assert gls["effective_sample_size_gain_bps"] > 23000
+
+    # Verify convergent vs. divergent developer pair decision schema
+    assert len(b_state["convergent_hypotheses"]) == 1
+    pair_schemas = b_state["developer_pair_decision_schemas"]
+    assert len(pair_schemas) == 1
+    q_schema = pair_schemas[0]
+    assert q_schema["question_id"] == "DEV_PAIR_Q_TOPIC_2_MULTIHOP_DISAGREEMENT_RESOLUTION"
+    assert q_schema["is_multi_select"] is False
+    assert len(q_schema["options"]) == 3
+    assert q_schema["options"][0].startswith("(Recommended)")
+    assert "Qwen-Max" in q_schema["diverging_agent_positions"]
+    assert "Perplexity-Sonar" in q_schema["diverging_agent_positions"]
 
 
 def test_current_missed_next_categorical_contraction_and_ed25519_receipt() -> None:
@@ -86,9 +125,22 @@ def test_current_missed_next_categorical_contraction_and_ed25519_receipt() -> No
     assert c2["galois_frontier_voids_count"] == 4
     assert c2["initial_local_blind_spot_bps"] > 0
 
-    # Category 3: NEXT (Phi(C, M))
+    # Category 2.5: BRAINSTORM (Psi(q, C, M))
+    cb = report["category_2b_brainstorm"]
+    assert cb["models_queried"] == [
+        "DeepSeek-R1",
+        "Gemini-Pro",
+        "Qwen-Max",
+        "Perplexity-Sonar",
+    ]
+    assert cb["convergent_hypotheses_count"] == 1
+    assert len(cb["developer_pair_decision_schemas"]) == 1
+
+    # Category 3: NEXT (Phi(C, M, B))
     c3 = report["category_3_next"]
     assert c3["pairwise_coverage_multiplier_x"] >= 100
+    assert len(c3["resolved_developer_pair_decisions"]) == 1
+    assert c3["resolved_developer_pair_decisions"][0]["selected_option_index"] == 0
     trace = c3["contraction_trace"]
     assert len(trace) == 3
     assert (

@@ -146,6 +146,7 @@ from tests.test_decide_v2_constant_time_snapshot import (
 from tests.test_decide_categorical_epistemic_engine import (
     test_submodular_monotonicity_and_100x_pairwise_coverage,
     test_missed_operator_enforces_current_only_constraint,
+    test_cross_ecosystem_brainstorm_gls_diversity_and_pair_decision_schema,
     test_current_missed_next_categorical_contraction_and_ed25519_receipt,
     test_banned_words_absence as test_decide_v3_banned_words,
 )
@@ -289,6 +290,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
     test_decide_v2_banned_words()
     test_submodular_monotonicity_and_100x_pairwise_coverage()
     test_missed_operator_enforces_current_only_constraint()
+    test_cross_ecosystem_brainstorm_gls_diversity_and_pair_decision_schema()
     test_current_missed_next_categorical_contraction_and_ed25519_receipt()
     test_decide_v3_banned_words()
     test_epistemic_5why_fts5_merkle_and_conflict_loop()

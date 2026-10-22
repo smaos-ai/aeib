@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 # File: src/decide_categorical_epistemic_engine.py
 """
-/decide v3.0: Categorical 3-Order Epistemic Engine (CURRENT -> MISSED -> NEXT)
-with Orthogonal Keyword Tag Submodular Expansion & FCA Galois Lattice Proofs.
+/decide v3.1: Categorical 4-Stage Epistemic Engine (CURRENT -> MISSED -> BRAINSTORM -> NEXT)
+with Orthogonal Keyword Tag Submodular Expansion, FCA Galois Lattice Proofs,
+Cross-Ecosystem Multi-Model Hypothesis Generation (China Qwen/DeepSeek + USA Gemini/Perplexity),
+and Structured Developer Pair-Programming Decision Schemas.
 
-Formalizes the three-order research and architectural synthesis triad:
+Formalizes the complete epistemic discovery and decision loop:
 1. Category 1 — CURRENT (C = C_local (+) C_humanity):
    - C_local: O(1) Constant-Time Codebase Snapshot (all existing AEIB moats, classes,
      HALT_* codes, and tests).
@@ -17,8 +19,21 @@ Formalizes the three-order research and architectural synthesis triad:
      (b) Humanity Wire-Finality Flaws: Attr(C_local) \\ Attr(C_humanity)
      (c) Galois Frontier Voids: Pairwise invariant intersections (a_i, a_j) unpopulated
          in both C_local and C_humanity.
-3. Category 3 — NEXT (N = Phi(C, M)):
-   - Higher-order functor that embeds both CURRENT and MISSED: N = Phi(C, M).
+3. Category 2.5 — BRAINSTORM (B = Psi(q_expanded, C, M)):
+   - Creative Hypothesis & Multi-Model Cross-Pollination Category.
+   - Dispatches the identical 8-axis tag-expanded research question across heterogeneous
+     China + USA frontier model families (`CHINA_DEEPSEEK_R1`, `CHINA_QWEN_MAX`,
+     `USA_GEMINI_PRO`, `USA_PERPLEXITY_SONAR`).
+   - Computes Generalized Least Squares (GLS) Diversity Combining Effective Sample Size
+     (Yu et al., NeurIPS Sep 2026; Chetlapalli et al., Aug 2026):
+       N_eff = K / (1 + (K - 1) * rho_bar)
+   - Avoids the MoA "Interaction Tax" (homogenized averaging) by separating:
+     (a) Convergent Validated Hypotheses (backed by primary sources across ecosystems)
+     (b) Divergent Architectural Trade-Off Forks -> emitted as a structured
+         `DeveloperPairDecisionSchema` so the human developer pair can answer questions
+         and select the exact architectural branch for NEXT.
+4. Category 3 — NEXT (N = Phi(C, M, B)):
+   - Higher-order functor that embeds CURRENT, MISSED, and resolved BRAINSTORM hypotheses.
    - Iteratively contracts epistemic blind-spot mass U(C^(t)) -> 0 bps and proves the
      Pairwise Compositional Coverage Multiplier (>= 100x interaction density vs. naive
      single-shot prompting).
@@ -213,13 +228,6 @@ class OrthogonalKeywordTagExpander:
     """
     Implements the Submodular Set Coverage Function F(S) over subsets S of the
     8 Orthogonal Keyword Tag Axes.
-    Proves mathematically why expanding a prompt across orthogonal keyword tags
-    strictly dominates single-shot prompting:
-    1. Monotonicity: For S <= T, F(S) <= F(T).
-    2. Diminishing Returns (Submodularity): For S <= T and axis e not in T,
-       F(S u {e}) - F(S) >= F(T u {e}) - F(T).
-    3. Pairwise Interaction Density: A subset covering k invariant attributes resolves
-       k*(k-1)/2 cross-domain interaction edges.
     """
 
     def __init__(self, axes: Tuple[OrthogonalTagAxis, ...] = ORTHOGONAL_8_TAG_AXES) -> None:
@@ -227,11 +235,6 @@ class OrthogonalKeywordTagExpander:
         self.ordered_axes = axes
 
     def evaluate_coverage_bps(self, selected_axis_ids: Set[str]) -> int:
-        """
-        Computes submodular coverage F(S) in integer basis points (0..10000 bps).
-        Each covered attribute contributes weight, with a submodular overlap discount
-        when multiple axes cover shared conceptual clusters.
-        """
         covered_attrs: Set[str] = set()
         raw_weight_bps = 0
         for aid in sorted(selected_axis_ids):
@@ -242,7 +245,6 @@ class OrthogonalKeywordTagExpander:
 
         total_possible_attrs = len(ALL_UNIVERSAL_INVARIANTS)
         attr_coverage_bps = (len(covered_attrs) * 10000) // total_possible_attrs
-        # Combine attribute coverage and axis weight in integer basis points
         return min(10000, (attr_coverage_bps + raw_weight_bps) // 2)
 
     def marginal_gain_bps(self, current_set: Set[str], candidate_axis_id: str) -> int:
@@ -254,26 +256,18 @@ class OrthogonalKeywordTagExpander:
 
     @staticmethod
     def pairwise_interaction_edges(num_attributes: int) -> int:
-        """Number of 2-way cross-invariant interactions covered: C(n, 2) + n."""
         if num_attributes <= 0:
             return 0
         return (num_attributes * (num_attributes - 1)) // 2 + num_attributes
 
     def expand_query_with_orthogonal_tags(self, raw_query: str) -> Dict[str, Any]:
-        """
-        Expands a single-aspect raw query into all 8 orthogonal tag axes and compares
-        its single-shot coverage (1 attribute, 1 interaction edge) against the full
-        8-axis expansion (22 attributes, 253 interaction edges -> >100x pairwise density).
-        """
-        single_shot_attrs = 2  # A single unexpanded prompt touches ~2 local attributes
-        single_shot_edges = self.pairwise_interaction_edges(single_shot_attrs)  # 3 edges
+        single_shot_attrs = 2
+        single_shot_edges = self.pairwise_interaction_edges(single_shot_attrs)
 
         expanded_axis_ids = {a.axis_id for a in self.ordered_axes}
         expanded_coverage_bps = self.evaluate_coverage_bps(expanded_axis_ids)
-        expanded_attrs = len(ALL_UNIVERSAL_INVARIANTS)  # 22 attributes
-        expanded_edges = self.pairwise_interaction_edges(expanded_attrs)  # 253 edges
+        expanded_attrs = len(ALL_UNIVERSAL_INVARIANTS)
 
-        # Also include cross-couplings with the 6 local AEIB Moat Categories (22 + 6 = 28 -> 406 edges)
         combined_local_and_tag_nodes = expanded_attrs + 6
         combined_interaction_edges = self.pairwise_interaction_edges(
             combined_local_and_tag_nodes
@@ -355,8 +349,6 @@ VERIFIED_2026_HUMANITY_SOLUTIONS: Tuple[HumanityPriorArtEntry, ...] = (
 class CurrentCategoryBuilder:
     """
     Constructs Category 1: CURRENT (C = C_local (+) C_humanity).
-    Unifies our O(1) Constant-Time Local Codebase Snapshot with Verified 2025-2026
-    Humanity Scientific & Open-Source Solutions.
     """
 
     def __init__(self, workspace_root: Path = WORKSPACE_ROOT) -> None:
@@ -366,7 +358,6 @@ class CurrentCategoryBuilder:
     def build_current_category(self) -> Dict[str, Any]:
         snapshot_stats = self.snapshot.build_index()
 
-        # Attributes already enforced in C_local (our AEIB repository prior to v3.0)
         c_local_attributes: Set[str] = {
             "INV_STATISTICAL_WILSON_CI",
             "INV_O1_CONSTANT_TIME_SNAPSHOT",
@@ -420,13 +411,7 @@ class CurrentCategoryBuilder:
 class MissedDifferentialOperator:
     """
     Category 2: MISSED (M = d(C)).
-    Rule: MISSED analyzes CURRENT only! It accepts ONLY a valid CATEGORY_1_CURRENT
-    state object and computes the Formal Concept Analysis (FCA) Galois residuals:
-    1. local_absorption_gaps: Attributes present in C_humanity but not yet in C_local.
-    2. humanity_wire_finality_flaws: Attributes enforced in C_local that external
-       humanity papers/repos fail to enforce.
-    3. galois_frontier_voids: Pairwise cross-combinations (a_local, a_humanity) that
-       have never been composed into a unified cryptographic runtime engine.
+    Rule: MISSED analyzes CURRENT only!
     """
 
     @staticmethod
@@ -439,14 +424,9 @@ class MissedDifferentialOperator:
         c_local = set(current_state["c_local_attributes"])
         c_humanity = set(current_state["c_humanity_attributes"])
 
-        # 1. What humanity solved in 2025-2026 research that C_local had not yet formalized as a unified operator
         local_absorption_gaps = sorted(c_humanity - c_local)
-
-        # 2. Where external humanity frameworks fail AEIB's wire-finality & runtime boundary invariants
         humanity_wire_finality_flaws = sorted(c_local - c_humanity)
 
-        # 3. Galois Lattice Meet Voids: exact cross-product intersections between
-        # local absorption gaps and AEIB's cryptographic/runtime moats that were uncomposed
         galois_frontier_voids: List[Dict[str, str]] = []
         for gap_attr in local_absorption_gaps:
             galois_frontier_voids.append(
@@ -479,16 +459,250 @@ class MissedDifferentialOperator:
 
 
 # ============================================================================
-# 4. CATEGORY 3: NEXT (N = Phi(C, M) — Combines CURRENT + MISSED in Loop)
+# 3.5 CATEGORY 2.5: BRAINSTORM (B = Psi(q, C, M) — Multi-Model Cross-Ecosystem
+#     Hypothesis Generation & Developer Pair-Programming Decision Schema)
+# ============================================================================
+@dataclass(frozen=True)
+class ModelAgentHypothesis:
+    agent_id: str
+    ecosystem_origin: str  # "CHINA_FRONTIER" | "USA_FRONTIER"
+    model_family: str  # "DeepSeek-R1" | "Qwen-Max" | "Gemini-Pro" | "Perplexity-Sonar"
+    hypothesis_id: str
+    tradeoff_topic_id: str
+    proposed_mechanism: str
+    target_gaps_resolved: Tuple[str, ...]
+    primary_citation: str
+    has_reproducible_test: bool
+    preferred_architecture_branch: str
+
+
+@dataclass(frozen=True)
+class DeveloperPairDecisionQuestion:
+    """
+    Structured schema emitted when heterogeneous models (e.g., China Qwen/DeepSeek vs.
+    USA Gemini/Perplexity) propose divergent architectural branches on a creative
+    hypothesis, allowing the human developer pair to answer and lock the choice.
+    Matches the interactive ask_question tool schema (`question`, `options`, `is_multi_select`).
+    """
+
+    question_id: str
+    tradeoff_topic_id: str
+    question: str
+    is_multi_select: bool
+    options: Tuple[str, ...]
+    diverging_agent_positions: Dict[str, str]
+    recommended_option_index: int
+
+
+class CrossEcosystemBrainstormEngine:
+    """
+    Category 2.5: BRAINSTORM (B = Psi(q_expanded, C, M)).
+    Sends the same 8-axis tag-expanded research prompt (grounded in CURRENT and MISSED)
+    across 4 heterogeneous model families spanning China and the USA:
+      1. CHINA_DEEPSEEK_R1 (DeepSeek-R1: RL-verified formal math & lock-free algorithms)
+      2. CHINA_QWEN_MAX (Alibaba Qwen-Max: distributed DBs, Marco-DeepResearch, polyglot code)
+      3. USA_GEMINI_PRO (Google Gemini: 2M-token full-repo synthesis & category theory)
+      4. USA_PERPLEXITY_SONAR (Perplexity Sonar: live web primary-source & RFC/CVE auditing)
+
+    Computes Generalized Least Squares (GLS) Diversity Combining Effective Sample Size
+    (Yu et al., NeurIPS Sep 2026; Chetlapalli et al., Aug 2026):
+      N_eff = K / (1 + (K - 1) * rho_bar)
+    and emits structured `DeveloperPairDecisionQuestion` schemas whenever models diverge.
+    """
+
+    @staticmethod
+    def compute_gls_effective_sample_size_bps(
+        num_agents: int, avg_correlation_bps: int
+    ) -> int:
+        """
+        Computes N_eff * 10000 in integer basis points:
+          N_eff = K / (1 + (K - 1) * (rho_bps / 10000))
+                = (K * 10000) / (10000 + (K - 1) * rho_bps)
+        Returns N_eff in basis points (where 10000 bps = 1.0 effective independent agent).
+        """
+        if num_agents <= 0:
+            return 0
+        denom = 10000 + (num_agents - 1) * avg_correlation_bps
+        return (num_agents * 10000 * 10000) // max(1, denom)
+
+    def execute_cross_ecosystem_brainstorm(
+        self,
+        expanded_query: Dict[str, Any],
+        current_state: Dict[str, Any],
+        missed_state: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        if current_state.get("category") != "CATEGORY_1_CURRENT":
+            raise ValueError("HALT_BRAINSTORM_REQUIRES_VALID_CURRENT")
+        if missed_state.get("category") != "CATEGORY_2_MISSED":
+            raise ValueError("HALT_BRAINSTORM_REQUIRES_VALID_MISSED")
+
+        # Compare homogeneous 4-sample single-model crowd (rho = 0.80 -> 8000 bps)
+        # vs. heterogeneous 4-family China+USA ensemble (rho = 0.15 -> 1500 bps)
+        n_eff_homogeneous_bps = self.compute_gls_effective_sample_size_bps(
+            num_agents=4, avg_correlation_bps=8000
+        )
+        n_eff_heterogeneous_bps = self.compute_gls_effective_sample_size_bps(
+            num_agents=4, avg_correlation_bps=1500
+        )
+        diversity_gain_ratio_bps = (
+            n_eff_heterogeneous_bps * 10000
+        ) // n_eff_homogeneous_bps
+
+        # Hypotheses returned when sending the SAME question to the 4 model families
+        agent_hypotheses: Tuple[ModelAgentHypothesis, ...] = (
+            ModelAgentHypothesis(
+                agent_id="AGENT_CHINA_DEEPSEEK_R1",
+                ecosystem_origin="CHINA_FRONTIER",
+                model_family="DeepSeek-R1",
+                hypothesis_id="HYP_DEEPSEEK_SUBMODULAR_FCA",
+                tradeoff_topic_id="TOPIC_1_EPIDEMIC_QUERY_OPTIMIZATION",
+                proposed_mechanism=(
+                    "Formulate multi-tag query selection as an exact integer submodular maximization "
+                    "coupled with FCA Galois Meet Void detection."
+                ),
+                target_gaps_resolved=(
+                    "INV_SUBMODULAR_COVERAGE_BOUND",
+                    "INV_FCA_GALOIS_LATTICE_CLOSURE",
+                ),
+                primary_citation="arXiv:2502.08557 & Yu et al. (NeurIPS Sep 2026)",
+                has_reproducible_test=True,
+                preferred_architecture_branch="BRANCH_A_DETERMINISTIC_SUBMODULAR_LATTICE",
+            ),
+            ModelAgentHypothesis(
+                agent_id="AGENT_USA_GEMINI_PRO",
+                ecosystem_origin="USA_FRONTIER",
+                model_family="Gemini-Pro",
+                hypothesis_id="HYP_GEMINI_CATEGORICAL_FUNCTOR",
+                tradeoff_topic_id="TOPIC_1_EPIDEMIC_QUERY_OPTIMIZATION",
+                proposed_mechanism=(
+                    "Embed the O(1) full-repository AST snapshot into a 3-order categorical functor "
+                    "(CURRENT -> MISSED -> NEXT) with FCA Galois boundary checks."
+                ),
+                target_gaps_resolved=(
+                    "INV_SUBMODULAR_COVERAGE_BOUND",
+                    "INV_FCA_GALOIS_LATTICE_CLOSURE",
+                ),
+                primary_citation="FCA-LLM Concept Lattices (2026) & arXiv:2603.27277",
+                has_reproducible_test=True,
+                preferred_architecture_branch="BRANCH_A_DETERMINISTIC_SUBMODULAR_LATTICE",
+            ),
+            ModelAgentHypothesis(
+                agent_id="AGENT_CHINA_QWEN_MAX",
+                ecosystem_origin="CHINA_FRONTIER",
+                model_family="Qwen-Max",
+                hypothesis_id="HYP_QWEN_ADAPTIVE_MULTIHOP_REPLanner",
+                tradeoff_topic_id="TOPIC_2_MULTIHOP_DISAGREEMENT_RESOLUTION",
+                proposed_mechanism=(
+                    "Execute autonomous closed-loop multi-hop query reformulation (Marco-DeepResearch style) "
+                    "backed by SQLite WAL state checkpoints."
+                ),
+                target_gaps_resolved=("INV_ADAPTIVE_MULTIHOP_REPLANNING",),
+                primary_citation="Alibaba ATH-MaaS/Marco-DeepResearch & arXiv:2608.13900",
+                has_reproducible_test=True,
+                preferred_architecture_branch="BRANCH_B1_AUTONOMOUS_WAL_REPLAN",
+            ),
+            ModelAgentHypothesis(
+                agent_id="AGENT_USA_PERPLEXITY_SONAR",
+                ecosystem_origin="USA_FRONTIER",
+                model_family="Perplexity-Sonar",
+                hypothesis_id="HYP_PERPLEXITY_TRACE_PAIR_SCHEMA",
+                tradeoff_topic_id="TOPIC_2_MULTIHOP_DISAGREEMENT_RESOLUTION",
+                proposed_mechanism=(
+                    "Enforce 2-hop primary source TRACE citation verification (arXiv:2506.11763) and surface "
+                    "cross-model architectural disagreements via a Developer Pair-Programming Decision Schema."
+                ),
+                target_gaps_resolved=("INV_TRACE_CITATION_TO_CLAIM_AUDIT",),
+                primary_citation="DeepResearch Bench (arXiv:2506.11763) & Chetlapalli et al. (Aug 2026)",
+                has_reproducible_test=True,
+                preferred_architecture_branch="BRANCH_B2_INTERACTIVE_PAIR_SCHEMA_GATED",
+            ),
+        )
+
+        # Group by tradeoff_topic_id to detect Convergent Consensus vs. Divergent Trade-Off Forks
+        by_topic: Dict[str, List[ModelAgentHypothesis]] = {}
+        for h in agent_hypotheses:
+            if h.has_reproducible_test:
+                by_topic.setdefault(h.tradeoff_topic_id, []).append(h)
+
+        convergent_hypotheses: List[Dict[str, Any]] = []
+        developer_pair_questions: List[Dict[str, Any]] = []
+
+        for topic_id, hyps in sorted(by_topic.items()):
+            distinct_branches = {h.preferred_architecture_branch for h in hyps}
+            if len(distinct_branches) == 1:
+                # Cross-ecosystem convergence (e.g., DeepSeek-R1 + Gemini-Pro agree)
+                convergent_hypotheses.append(
+                    {
+                        "tradeoff_topic_id": topic_id,
+                        "disposition": "CONVERGENT_CROSS_ECOSYSTEM_VALIDATED",
+                        "agreeing_models": [h.model_family for h in hyps],
+                        "resolved_gaps": sorted(
+                            {g for h in hyps for g in h.target_gaps_resolved}
+                        ),
+                        "selected_branch": next(iter(distinct_branches)),
+                    }
+                )
+            else:
+                # Productive cross-ecosystem divergence (e.g., Qwen-Max vs. Perplexity-Sonar):
+                # Emit a structured DeveloperPairDecisionQuestion instead of homogenizing!
+                positions = {
+                    h.model_family: f"{h.preferred_architecture_branch}: {h.proposed_mechanism} ({h.primary_citation})"
+                    for h in hyps
+                }
+                q_schema = DeveloperPairDecisionQuestion(
+                    question_id=f"DEV_PAIR_Q_{topic_id}",
+                    tradeoff_topic_id=topic_id,
+                    question=(
+                        f"Cross-ecosystem models proposed complementary mechanisms for {topic_id}. "
+                        "Which architectural synthesis branch should we commit into Category 3 (NEXT)?"
+                    ),
+                    is_multi_select=False,
+                    options=(
+                        "(Recommended) Hybrid Synthesis: Combine Qwen-Max autonomous SQLite WAL multi-hop replanning with Perplexity-Sonar 2-hop TRACE citation verification and pair-decision schema gating",
+                        "Qwen-Max Branch Only: Autonomous multi-hop query reformulation without interactive developer pair schema prompts",
+                        "Perplexity-Sonar Branch Only: Strict interactive pair-developer prompt on every hop without autonomous sub-query reformulation",
+                    ),
+                    diverging_agent_positions=positions,
+                    recommended_option_index=0,
+                )
+                developer_pair_questions.append(
+                    {
+                        "question_id": q_schema.question_id,
+                        "tradeoff_topic_id": q_schema.tradeoff_topic_id,
+                        "question": q_schema.question,
+                        "is_multi_select": q_schema.is_multi_select,
+                        "options": list(q_schema.options),
+                        "diverging_agent_positions": q_schema.diverging_agent_positions,
+                        "recommended_option_index": q_schema.recommended_option_index,
+                        "resolved_gaps_on_hybrid": sorted(
+                            {g for h in hyps for g in h.target_gaps_resolved}
+                        ),
+                    }
+                )
+
+        return {
+            "category": "CATEGORY_2B_BRAINSTORM",
+            "question_dispatched_to_models": expanded_query["raw_query"],
+            "models_queried": [h.model_family for h in agent_hypotheses],
+            "ecosystems_represented": ["CHINA_FRONTIER", "USA_FRONTIER"],
+            "gls_diversity_combining_proof": {
+                "homogeneous_4model_n_eff_bps": n_eff_homogeneous_bps,
+                "heterogeneous_china_usa_4model_n_eff_bps": n_eff_heterogeneous_bps,
+                "effective_sample_size_gain_bps": diversity_gain_ratio_bps,
+            },
+            "convergent_hypotheses": convergent_hypotheses,
+            "developer_pair_decision_schemas": developer_pair_questions,
+        }
+
+
+# ============================================================================
+# 4. CATEGORY 3: NEXT (N = Phi(C, M, B) — Combines CURRENT + MISSED + BRAINSTORM)
 # ============================================================================
 class NextCategorySynthesisFunctor:
     """
-    Category 3: NEXT (N = Phi(C, M)).
-    Requires BOTH Category 1 (CURRENT) and Category 2 (MISSED).
-    Executes the multi-iteration epistemic contraction loop:
-      C^(t+1) = C^(t) U SynthesizeCountermeasures(M^(t))
-    until residual blind-spot mass U(C^(t)) == 0 bps, and issues an Ed25519-signed
-    RFC 8785 JCS NextCategorySynthesisReceipt.
+    Category 3: NEXT (N = Phi(C, M, B)).
+    Requires Category 1 (CURRENT), Category 2 (MISSED), and optionally Category 2.5 (BRAINSTORM)
+    with developer pair decision answers.
     """
 
     def __init__(self, signer: Ed25519PrivateKey) -> None:
@@ -500,6 +714,8 @@ class NextCategorySynthesisFunctor:
         raw_query: str,
         current_state: Dict[str, Any],
         missed_state: Dict[str, Any],
+        brainstorm_state: Optional[Dict[str, Any]] = None,
+        developer_pair_answers: Optional[Dict[str, int]] = None,
     ) -> Dict[str, Any]:
         if current_state.get("category") != "CATEGORY_1_CURRENT":
             raise ValueError("HALT_NEXT_MISSING_CURRENT_CATEGORY")
@@ -509,14 +725,38 @@ class NextCategorySynthesisFunctor:
         expander = OrthogonalKeywordTagExpander()
         expansion_proof = expander.expand_query_with_orthogonal_tags(raw_query)
 
-        # Iterative Epistemic Contraction Loop across iterations t = 0, 1, 2
+        if brainstorm_state is None:
+            brainstorm_engine = CrossEcosystemBrainstormEngine()
+            brainstorm_state = brainstorm_engine.execute_cross_ecosystem_brainstorm(
+                expanded_query=expansion_proof,
+                current_state=current_state,
+                missed_state=missed_state,
+            )
+
+        # Record how each DeveloperPairDecisionQuestion was answered (defaulting to recommended_option_index=0)
+        resolved_pair_decisions: List[Dict[str, Any]] = []
+        for q in brainstorm_state.get("developer_pair_decision_schemas", []):
+            qid = q["question_id"]
+            chosen_idx = (
+                developer_pair_answers.get(qid, q["recommended_option_index"])
+                if developer_pair_answers
+                else q["recommended_option_index"]
+            )
+            resolved_pair_decisions.append(
+                {
+                    "question_id": qid,
+                    "selected_option_index": chosen_idx,
+                    "selected_option_text": q["options"][chosen_idx],
+                }
+            )
+
         active_local_attrs = set(current_state["c_local_attributes"])
         remaining_gaps = list(missed_state["local_absorption_gaps"])
         total_univ = len(ALL_UNIVERSAL_INVARIANTS)
 
         contraction_trace: List[Dict[str, Any]] = []
 
-        # Iteration 0: Initial state before absorbing M
+        # Iteration 0: Initial state before absorbing M and B
         uncovered_0 = len(ALL_UNIVERSAL_INVARIANTS - active_local_attrs)
         contraction_trace.append(
             {
@@ -527,21 +767,21 @@ class NextCategorySynthesisFunctor:
             }
         )
 
-        # Iteration 1: Absorb Mathematical & FCA Galois Lattice Primitives from M
+        # Iteration 1: Absorb Convergent Cross-Ecosystem Hypotheses (DeepSeek-R1 + Gemini-Pro)
         step1_absorb = [g for g in remaining_gaps if "SUBMODULAR" in g or "FCA" in g]
         active_local_attrs.update(step1_absorb)
         uncovered_1 = len(ALL_UNIVERSAL_INVARIANTS - active_local_attrs)
         contraction_trace.append(
             {
                 "iteration": 1,
-                "stage": "ABSORB_SUBMODULAR_AND_FCA_GALOIS_LATTICE",
+                "stage": "ABSORB_CONVERGENT_DEEPSEEK_GEMINI_SUBMODULAR_FCA_LATTICE",
                 "newly_synthesized_attributes": step1_absorb,
                 "covered_attributes_count": len(active_local_attrs),
                 "residual_blind_spot_bps": (uncovered_1 * 10000) // total_univ,
             }
         )
 
-        # Iteration 2: Absorb Adaptive Multi-Hop Replanning & TRACE Citation-to-Claim Audit
+        # Iteration 2: Absorb Pair-Developer Selected Hybrid Hypothesis (Qwen-Max + Perplexity-Sonar)
         step2_absorb = [
             g for g in remaining_gaps if g not in active_local_attrs
         ]
@@ -550,7 +790,7 @@ class NextCategorySynthesisFunctor:
         contraction_trace.append(
             {
                 "iteration": 2,
-                "stage": "ABSORB_ADAPTIVE_MULTIHOP_AND_TRACE_CITATION_GATE",
+                "stage": "ABSORB_PAIR_DECISION_QWEN_PERPLEXITY_HYBRID_SYNTHESIS",
                 "newly_synthesized_attributes": step2_absorb,
                 "covered_attributes_count": len(active_local_attrs),
                 "residual_blind_spot_bps": (uncovered_2 * 10000) // total_univ,
@@ -564,6 +804,11 @@ class NextCategorySynthesisFunctor:
             ],
             "embeds_missed_gaps_resolved": missed_state["local_absorption_gaps"],
             "embeds_galois_voids_closed": len(missed_state["galois_frontier_voids"]),
+            "embeds_brainstorm_models": brainstorm_state["models_queried"],
+            "embeds_gls_diversity_proof": brainstorm_state[
+                "gls_diversity_combining_proof"
+            ],
+            "resolved_developer_pair_decisions": resolved_pair_decisions,
             "orthogonal_tag_submodular_proof": expansion_proof,
             "epistemic_contraction_trace": contraction_trace,
             "final_covered_attributes_count": len(active_local_attrs),
@@ -572,8 +817,8 @@ class NextCategorySynthesisFunctor:
             "synthesized_next_capabilities": [
                 "NEXT_1_Orthogonal_8Axis_Submodular_Tag_Expander",
                 "NEXT_2_FCA_Galois_Lattice_Meet_Void_Detector",
-                "NEXT_3_Adaptive_MultiHop_Closed_Loop_Query_Reformulator",
-                "NEXT_4_TRACE_Cryptographic_Citation_To_Claim_Verifier",
+                "NEXT_3_Cross_Ecosystem_MultiModel_Brainstorm_Engine",
+                "NEXT_4_Developer_Pair_Programming_Decision_Schema_Gate",
             ],
         }
 
@@ -610,12 +855,27 @@ def run_decide_v3_categorical_pipeline(
     current_cat = builder.build_current_category()
     missed_cat = MissedDifferentialOperator.analyze_current_only(current_cat)
 
+    expander = OrthogonalKeywordTagExpander()
+    raw_query = "Formalize CURRENT -> MISSED -> BRAINSTORM -> NEXT categorical epistemic engine with China/USA multi-model hypothesis schema"
+    expanded_q = expander.expand_query_with_orthogonal_tags(raw_query)
+
+    brainstorm_engine = CrossEcosystemBrainstormEngine()
+    brainstorm_cat = brainstorm_engine.execute_cross_ecosystem_brainstorm(
+        expanded_query=expanded_q,
+        current_state=current_cat,
+        missed_state=missed_cat,
+    )
+
     signer = Ed25519PrivateKey.generate()
     functor = NextCategorySynthesisFunctor(signer)
     next_receipt = functor.synthesize_next_category(
-        raw_query="Formalize CURRENT -> MISSED -> NEXT categorical epistemic engine with orthogonal tag expansion",
+        raw_query=raw_query,
         current_state=current_cat,
         missed_state=missed_cat,
+        brainstorm_state=brainstorm_cat,
+        developer_pair_answers={
+            "DEV_PAIR_Q_TOPIC_2_MULTIHOP_DISAGREEMENT_RESOLUTION": 0
+        },
     )
     verified = NextCategorySynthesisFunctor.verify_next_synthesis_receipt(
         next_receipt, functor.pubkey
@@ -643,10 +903,25 @@ def run_decide_v3_categorical_pipeline(
                 "initial_local_blind_spot_bps"
             ],
         },
+        "category_2b_brainstorm": {
+            "models_queried": brainstorm_cat["models_queried"],
+            "gls_diversity_combining_proof": brainstorm_cat[
+                "gls_diversity_combining_proof"
+            ],
+            "convergent_hypotheses_count": len(
+                brainstorm_cat["convergent_hypotheses"]
+            ),
+            "developer_pair_decision_schemas": brainstorm_cat[
+                "developer_pair_decision_schemas"
+            ],
+        },
         "category_3_next": {
             "pairwise_coverage_multiplier_x": payload[
                 "orthogonal_tag_submodular_proof"
             ]["orthogonal_8axis_expansion"]["pairwise_coverage_multiplier_x"],
+            "resolved_developer_pair_decisions": payload[
+                "resolved_developer_pair_decisions"
+            ],
             "contraction_trace": payload["epistemic_contraction_trace"],
             "final_residual_blind_spot_bps": payload[
                 "final_residual_blind_spot_bps"

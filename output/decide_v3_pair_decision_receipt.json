@@ -1,0 +1,96 @@
+{
+  "category_1_current": {
+    "humanity_2026_solutions_count": 4,
+    "local_attributes_count": 18,
+    "local_keywords_indexed": 7306,
+    "local_modules_indexed": 427
+  },
+  "category_2_missed": {
+    "analyzed_current_only": true,
+    "galois_frontier_voids_count": 4,
+    "initial_local_blind_spot_bps": 1818,
+    "local_absorption_gaps": [
+      "INV_ADAPTIVE_MULTIHOP_REPLANNING",
+      "INV_FCA_GALOIS_LATTICE_CLOSURE",
+      "INV_SUBMODULAR_COVERAGE_BOUND",
+      "INV_TRACE_CITATION_TO_CLAIM_AUDIT"
+    ]
+  },
+  "category_2b_brainstorm": {
+    "convergent_hypotheses_count": 1,
+    "developer_pair_decision_schemas": [
+      {
+        "diverging_agent_positions": {
+          "Perplexity-Sonar": "BRANCH_B2_INTERACTIVE_PAIR_SCHEMA_GATED: Enforce 2-hop primary source TRACE citation verification (arXiv:2506.11763) and surface cross-model architectural disagreements via a Developer Pair-Programming Decision Schema. (DeepResearch Bench (arXiv:2506.11763) & Chetlapalli et al. (Aug 2026))",
+          "Qwen-Max": "BRANCH_B1_AUTONOMOUS_WAL_REPLAN: Execute autonomous closed-loop multi-hop query reformulation (Marco-DeepResearch style) backed by SQLite WAL state checkpoints. (Alibaba ATH-MaaS/Marco-DeepResearch & arXiv:2608.13900)"
+        },
+        "is_multi_select": false,
+        "options": [
+          "(Recommended) Hybrid Synthesis: Combine Qwen-Max autonomous SQLite WAL multi-hop replanning with Perplexity-Sonar 2-hop TRACE citation verification and pair-decision schema gating",
+          "Qwen-Max Branch Only: Autonomous multi-hop query reformulation without interactive developer pair schema prompts",
+          "Perplexity-Sonar Branch Only: Strict interactive pair-developer prompt on every hop without autonomous sub-query reformulation"
+        ],
+        "question": "Cross-ecosystem models proposed complementary mechanisms for TOPIC_2_MULTIHOP_DISAGREEMENT_RESOLUTION. Which architectural synthesis branch should we commit into Category 3 (NEXT)?",
+        "question_id": "DEV_PAIR_Q_TOPIC_2_MULTIHOP_DISAGREEMENT_RESOLUTION",
+        "recommended_option_index": 0,
+        "resolved_gaps_on_hybrid": [
+          "INV_ADAPTIVE_MULTIHOP_REPLANNING",
+          "INV_TRACE_CITATION_TO_CLAIM_AUDIT"
+        ],
+        "tradeoff_topic_id": "TOPIC_2_MULTIHOP_DISAGREEMENT_RESOLUTION"
+      }
+    ],
+    "gls_diversity_combining_proof": {
+      "effective_sample_size_gain_bps": 23449,
+      "heterogeneous_china_usa_4model_n_eff_bps": 27586,
+      "homogeneous_4model_n_eff_bps": 11764
+    },
+    "models_queried": [
+      "DeepSeek-R1",
+      "Gemini-Pro",
+      "Qwen-Max",
+      "Perplexity-Sonar"
+    ]
+  },
+  "category_3_next": {
+    "contraction_trace": [
+      {
+        "covered_attributes_count": 18,
+        "iteration": 0,
+        "residual_blind_spot_bps": 1818,
+        "stage": "INITIAL_CURRENT_LOCAL_STATE"
+      },
+      {
+        "covered_attributes_count": 20,
+        "iteration": 1,
+        "newly_synthesized_attributes": [
+          "INV_FCA_GALOIS_LATTICE_CLOSURE",
+          "INV_SUBMODULAR_COVERAGE_BOUND"
+        ],
+        "residual_blind_spot_bps": 909,
+        "stage": "ABSORB_CONVERGENT_DEEPSEEK_GEMINI_SUBMODULAR_FCA_LATTICE"
+      },
+      {
+        "covered_attributes_count": 22,
+        "iteration": 2,
+        "newly_synthesized_attributes": [
+          "INV_ADAPTIVE_MULTIHOP_REPLANNING",
+          "INV_TRACE_CITATION_TO_CLAIM_AUDIT"
+        ],
+        "residual_blind_spot_bps": 0,
+        "stage": "ABSORB_PAIR_DECISION_QWEN_PERPLEXITY_HYBRID_SYNTHESIS"
+      }
+    ],
+    "final_residual_blind_spot_bps": 0,
+    "pairwise_coverage_multiplier_x": 135,
+    "receipt_sha256": "sha256:16756b7b2a03eb9bf5ec2b5e0d8817aa696825f2519c3e5b3a201c61ad90ba09",
+    "resolved_developer_pair_decisions": [
+      {
+        "question_id": "DEV_PAIR_Q_TOPIC_2_MULTIHOP_DISAGREEMENT_RESOLUTION",
+        "selected_option_index": 0,
+        "selected_option_text": "(Recommended) Hybrid Synthesis: Combine Qwen-Max autonomous SQLite WAL multi-hop replanning with Perplexity-Sonar 2-hop TRACE citation verification and pair-decision schema gating"
+      }
+    ],
+    "signature_verified": true
+  }
+}

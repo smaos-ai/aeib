@@ -44,8 +44,10 @@ Apply `MissedDifferentialOperator.analyze_current_only` strictly to `CURRENT` to
 
 ### Stage 3: Construct Category 2.5 — `BRAINSTORM` ($\mathcal{B} = \Psi(q_{\text{expanded}}, \mathcal{C}, \mathcal{M})$)
 Evaluate the expanded query across the 4 heterogeneous China + USA frontier agent profiles (`DeepSeek-R1`, `Qwen-Max`, `Gemini-Pro`, `Perplexity-Sonar`):
-1. Identify **Convergent Validated Hypotheses** (backed by primary citations and reproducible tests).
-2. Identify **Divergent Trade-Off Forks** and format them into the `DeveloperPairDecisionQuestion` schema (and if human pair input is required before code execution, present the structured question via `ask_question`).
+1. Identify **Convergent Validated Hypotheses** (backed by primary citations and reproducible tests) using **GLS Diversity-Weighted + FCA Galois Meet Synthesis** (Locked Pair Decision `A2`).
+2. Identify **Divergent Trade-Off Forks** and format them into the `DeveloperPairDecisionQuestion` schema. Per Locked Pair Decision `A1` & `A3`:
+   - Default synthesis combines `Qwen-Max` autonomous SQLite WAL multi-hop replanning with `Perplexity-Sonar` 2-hop TRACE citation verification (`arXiv:2506.11763`) and pair-decision schema gating.
+   - **Auto-Trigger Interactive `ask_question` Modal (`A3`)**: Whenever China (`Qwen`/`DeepSeek`) and USA (`Gemini`/`Perplexity`) models propose divergent architectural branches on a Galois lattice trade-off in `/decide`, automatically invoke the interactive `ask_question` modal with `DeveloperPairDecisionQuestion.to_ask_question_payload()` so the developer pair can choose the exact synthesis branch before locking Category 3 (`NEXT`).
 
 ### Stage 4: Construct Category 3 — `NEXT` ($\mathcal{N} = \Phi(\mathcal{C}, \mathcal{M}, \mathcal{B})$)
 Synthesize the higher-order solution category by combining `CURRENT`, `MISSED`, and the resolved `BRAINSTORM` hypotheses, auditing our own proposed `NEXT` code layer until $U(\mathcal{C}^{(T)}) = 0\text{ bps}$.

@@ -517,6 +517,14 @@ negative_control_falsification:
 | **Planetary Clearinghouse, TEE Swarm & Lean 4 Kernel** | `src/planetary_clearinghouse_and_tee_swarm.py` | `1241fae318e149e24c8ccdf1a145246ea9b309dc4fc98a5cd91deda1da6d9a60` | DvP clearinghouse (EAS >= 8000), Intel TDX / AMD SEV TEE quotes, inductive proofs | `VERIFIED` |
 | **Planetary Clearinghouse & TEE Swarm Test Suite** | `tests/test_planetary_clearinghouse_and_tee_swarm.py` | `f70555d9e1d8e9fdfe44f9c3f607f8803b576db96b1d45f3d0603dfb8e89c923` | 4/4 passed (DvP atomic settlement, TDX/SEV quotes, inductive invariant verification) | `VERIFIED` |
 
+### 12. Decide-v4 Autonomous Query Research & Multi-Hop Epistemic Action Engine (AER-Engine)
+
+| Component / Subsystem | Physical File Location | Cryptographic SHA-256 Digest | Verification Harness / Protocol | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **Autonomous Query Research & Action Engine** | `src/decide_autonomous_query_research_engine.py` | `94ec41b16d41b09377708d0aa7cef30a5b5e29d148a7ec597a6e1c576518207f` | 8-Axis Query Expansion, Multi-Hop Inquiry Tree, Adversarial Falsification | `VERIFIED` |
+| **Autonomous Query Research Test Suite** | `tests/test_decide_autonomous_query_research_engine.py` | `34a828b1b4fcea2d18a2c637427815ba0b170bcfe6452f28c8827fa3036b782e` | 5/5 passed (Multi-hop tree, 8 axes, Oracle Gap elimination, Ed25519 receipts) | `VERIFIED` |
+
+
 
 
 

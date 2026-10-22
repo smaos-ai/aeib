@@ -1,0 +1,23 @@
+{
+  "description": "Automated IDE & CLI hook for /decide v3.2 enforcing the 5 Epistemic Clamps (Falsification, Synergy, Minimax Oracle Dominance, Wire 6-Way Joint Witness, and De-Narration) plus the 3-Tier Ask Resolution Router.",
+  "enabled": true,
+  "events": [
+    "slash_command:/decide",
+    "pre_synthesis",
+    "pre_commit"
+  ],
+  "fail_closed": true,
+  "hook_id": "aeib-decide-v3.2-epistemic-council-hook",
+  "name": "AEIB /decide v3.2 Cross-Hemisphere Council & 5-Clamp IDE Hook",
+  "runner": {
+    "args": [
+      "scripts/decide_ide_hook.py",
+      "--query",
+      "${USER_QUERY}"
+    ],
+    "command": "python3",
+    "timeout_ms": 5000
+  },
+  "schema_version": "1.0.0",
+  "skill_path": ".agents/skills/decide/SKILL.md"
+}

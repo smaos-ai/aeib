@@ -1,0 +1,39 @@
+{
+  "public_key_b64": "qreLaY83zbNOnYH2mcvvbI85Yoxc7prqxCoZHlLy7kc=",
+  "signature_b64": "WE0mkDMbw9n9MylMgos7HRhOoOxY9uwv34OSY+REPeN04+UItLJ9ATl3A1dc0Jb4N+sPoe5KJRh+Ab5UJhlECA==",
+  "statement": {
+    "archive_filename": "aeib-smf-v1.0.0-rc.3.tar.gz",
+    "archive_sha256": "sha256:7b8de799be4025e812c632fcf6eb1326f230ff09895ddc0c02be714ca79200b7",
+    "cleanroom_files_verified": 25,
+    "file_digests": {
+      ".agents/skills/decide/SKILL.md": "1b5ab098ae19da38c9c6047effb196e4c98ce453fa97a8f7847a6d4ecec77113",
+      "EVIDENCE_MANIFEST.md": "ef890573906a668f6864628557a7b2a2407e33bc7ec48497fe816452147c2c34",
+      "compliance/ast_purity.py": "2d9e11ccf153ec34f3d61e0b3d6602ec6b3cdcbaae82d33724b61e77309cf587",
+      "compliance/check_zone_boundary.py": "c62955ffef950708c24dec1ab84846cdac5699a9f6fb123e9b1ed0a7471de68d",
+      "compliance/eac_typestate_conflict_engine.py": "33836cb6b4ddd1173b7eb6b1cd3f9f91fdc8efc5aad0f97166c8866ff5d0d07b",
+      "compliance/no_mock_enforcer.py": "1b38c778310e6835485f9dc2e9f2f69bc6d0e8afccd0d2462bfd6950e98b227f",
+      "decide.md": "1b5ab098ae19da38c9c6047effb196e4c98ce453fa97a8f7847a6d4ecec77113",
+      "scripts/decide_ide_hook.py": "d4565e951496500547f2eced1685b4c3546a02d4ea179f63ba4a005f15bc330c",
+      "src/decide_categorical_epistemic_engine.py": "473c04a93aa7971de62e9124c8d2a1c0d638d52a6e7cd65b639bcee2cc12901b",
+      "src/epistemic_action_compiler.py": "9b42c0d518126cbe102bbd0b5da1b4f7a1463c274b2f72794264f9fe6832bb81",
+      "src/epistemic_core.py": "837d57f8c3c989321a811b5c3d3946c22ed015fdffb0605610bcb6342bca442f",
+      "tests/test_cross_hemisphere_council_decide.py": "a377691eebcc110295527a65fb70315c9e543cc48f0e08ca399533a95dfa1d77",
+      "tests/test_decide_categorical_epistemic_engine.py": "1a292cbfee757bd84f3debbe19609e2d884c22e6a53bcab9003fe40c9bca4a53",
+      "tests/test_decide_v2_constant_time_snapshot.py": "3ba7b6d2c05c109c3baa35ad4d3a628d589744f9e40e6dce764bdfe28fcff813",
+      "tests/test_eac_typestate_conflict_engine.py": "3a758f7a274d1ebf9da7f73bc4ffb1fb30fdb35b125fc013cd2d9abebf4572f5",
+      "tests/test_palantir_ontology_joint_witness_engine.py": "e23fc650899e10932790fa0012afe1608d1d083b9f8afb6a68e2c63d13526c3f",
+      "tools/cross_hemisphere_council_decide.py": "10d0f53908867b763e07d9dc2ba31ac65138a9616e0a325e0aee33bea6512b2e",
+      "tools/cross_hemisphere_epistemic_council.py": "f7958378c124d9496a598d78982b143cf15855df6472d092ee384ead5a1db5f3",
+      "tools/current_missed_next_calculus.py": "663728b3f34af276fdb24b7f6fa50e88b05394824b8d2e062625f73118e3e3e4",
+      "tools/decide_v2_constant_time_snapshot.py": "6418bd078d2fa6a7d8c74091e71a275802e90dd63d5c2d02d5abe666db39dd3e",
+      "tools/epistemic_5why_loop.py": "1ae4de285c65e4a4352d8a3212060b7ccf427f9dc11f78b23165185fead185bb",
+      "tools/epistemic_action_compiler_ab_test.py": "d44e1e5a650551ac20b3a8596442e99b79c1323eb44170fae6206e1160ec66ad",
+      "tools/palantir_ontology_joint_witness_engine.py": "f4131233f8da669a22f9974b5624fe28e93f5fb4db1300b45807b94661ff5d26",
+      "tools/scitt_ap2_x402_otel_engine.py": "fa1cf2c4005b98854a5124bea536750f1449fdfb2650424054bd7af9d24eac7e"
+    },
+    "oracle_gap_prevented": true,
+    "release_version": "aeib-smf-v1.0.0-rc.3",
+    "tri_partition_verdict": "READY_TO_SYNTHESIZE"
+  },
+  "statement_jcs_sha256": "sha256:91829feae16df732f847f1e23348cb90aaa91ce90ebc29cbdbec2f6d0577e31c"
+}

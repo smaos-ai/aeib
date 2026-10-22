@@ -1,0 +1,10 @@
+{
+  "archive_path": "/Users/andriileukhin/Documents/SovereignNexus/output/aeib-smf-v1.0.0-rc.3.tar.gz",
+  "archive_sha256": "sha256:7b8de799be4025e812c632fcf6eb1326f230ff09895ddc0c02be714ca79200b7",
+  "cleanroom_files_verified": 25,
+  "public_key_b64": "qreLaY83zbNOnYH2mcvvbI85Yoxc7prqxCoZHlLy7kc=",
+  "signature_b64": "WE0mkDMbw9n9MylMgos7HRhOoOxY9uwv34OSY+REPeN04+UItLJ9ATl3A1dc0Jb4N+sPoe5KJRh+Ab5UJhlECA==",
+  "signature_file": "/Users/andriileukhin/Documents/SovereignNexus/output/aeib-smf-v1.0.0-rc.3.tar.gz.sig.json",
+  "signature_verified": true,
+  "statement_jcs_sha256": "sha256:91829feae16df732f847f1e23348cb90aaa91ce90ebc29cbdbec2f6d0577e31c"
+}

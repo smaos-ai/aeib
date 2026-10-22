@@ -1,0 +1,15 @@
+{
+  "clamps": {
+    "clamp_1_falsification_p0_p1": true,
+    "clamp_2_synergy_tri_partition": true,
+    "clamp_3_minimax_oracle_dominance": true,
+    "clamp_4_wire_6way_joint_witness": true,
+    "clamp_5_denarration_linguistic_lock": true
+  },
+  "clamps_evaluated": 5,
+  "disposition": "ALLOW_SYNTHESIS",
+  "halt_code": "NONE",
+  "hook_receipt_sha256": "sha256:55d98f01a31204d6256b1699ac807b4859f81db4ff2e4a204e471b9b68198980",
+  "query": "/decide cross-hemisphere council synthesis",
+  "tri_partition_receipt_sha256": "sha256:142ec2ac5d33841042b4dfadc5f081495d5ad5580f340e7c8b7fc02ebec0d546"
+}

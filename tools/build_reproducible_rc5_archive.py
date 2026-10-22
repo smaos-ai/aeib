@@ -143,6 +143,19 @@ from tests.test_decide_v2_constant_time_snapshot import (
     test_decide_v2_five_why_and_two_iteration_convergence,
     test_banned_words_absence as test_decide_v2_banned_words,
 )
+from tools.epistemic_5why_loop import (
+    test_epistemic_5why_fts5_merkle_and_conflict_loop,
+    test_banned_words_absence as test_epistemic_5why_banned_words,
+)
+from tools.scitt_ap2_x402_otel_engine import (
+    test_scitt_ap2_x402_otel_and_cbom_engine,
+    test_banned_words_absence as test_scitt_ap2_x402_banned_words,
+)
+from benchmarks.stochastic_saga_chaos.run_chaosbench import (
+    run_500_episode_chaosbench,
+    test_stochastic_saga_chaosbench_500_episodes,
+    test_banned_words_absence as test_chaosbench_banned_words,
+)
 from benchmarks.locomo_context_quality import evaluate_locomo_benchmark
 from benchmarks.maseval_integration import run_maseval_comparative_benchmark
 from tools.context_ram_and_maseval_harness import (
@@ -268,6 +281,15 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
     test_o1_constant_time_codebase_snapshot_index_and_lookup()
     test_decide_v2_five_why_and_two_iteration_convergence()
     test_decide_v2_banned_words()
+    test_epistemic_5why_fts5_merkle_and_conflict_loop()
+    test_epistemic_5why_banned_words()
+    test_scitt_ap2_x402_otel_and_cbom_engine()
+    test_scitt_ap2_x402_banned_words()
+    test_stochastic_saga_chaosbench_500_episodes()
+    test_chaosbench_banned_words()
+    chaosbench_report = _sanitize_for_canonical_json(
+        run_500_episode_chaosbench(episodes=500, seed=42)
+    )
     locomo_report = _sanitize_for_canonical_json(evaluate_locomo_benchmark())
     maseval_report = _sanitize_for_canonical_json(run_maseval_comparative_benchmark())
     tla_report = explore_tla_state_space_and_verify_conformance()
@@ -290,6 +312,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
         ],
         "locomo_context_quality": locomo_report,
         "maseval_consequential_mutations": maseval_report,
+        "stochastic_saga_chaosbench_500": chaosbench_report,
         "tla_conformance": tla_report,
         "regulatory_matrix": generate_regulatory_applicability_matrix(),
     }
@@ -307,12 +330,19 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             ".agents/skills/decide/SKILL.md",
             "benchmarks/locomo_context_quality.py",
             "benchmarks/maseval_integration.py",
+            "benchmarks/stochastic_saga_chaos/run_chaosbench.py",
             "compliance/eac_typestate_conflict_engine.py",
             "docs/architecture/EPISTEMIC_ACTION_COMPILATION_AND_CONFLICT_REGISTER.md",
             "docs/benchmarks/maseval_results.md",
             "docs/compliance/china_agent_regulation_crosswalk.md",
+            "docs/compliance/dora-crosswalk.md",
+            "docs/compliance/en18286_and_cbom_spec.md",
+            "docs/compliance/nist_si_guide_mapping.md",
             "docs/interop/distributed_db_contract.md",
+            "docs/interop/rail-mandate-mapping.md",
             "docs/specs/admissibility_and_oo_harness_spec.md",
+            "docs/specs/cose_sign1_receipt.md",
+            "docs/specs/otel_genai_schema.md",
             "docs/specs/stochastic_acid_formal_proof.md",
             "formal/tlaplus/AEIBStation1And2.tla",
             "formal/tlaplus/TLC_OUTPUT.md",
@@ -350,21 +380,28 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "tests/test_hlc_hypergraph_and_persist_gate.py",
             "tests/test_leviathan_and_cross_tenant_isolation.py",
             "tests/test_local_system1_leviathan_daemon.py",
+            "tests/test_opencode_codemode_hotreload.py",
             "tests/test_otel_genai_evidence_chain.py",
             "tests/test_palantir_ontology_joint_witness_engine.py",
             "tests/test_poseidon2_merkle_tree.py",
+            "tests/test_scitt_ap2_mcp_pqc_interop.py",
+            "tests/test_tcc_parallel_acid_vs_base.py",
             "tests/test_tier3_post_perfection_matrix.py",
+            "tests/test_tool_provenance_and_otel.py",
             "tests/test_runtime_boundary_and_state_machine.py",
             "tests/test_structural_cve_boundary_fixtures.py",
+            "tests/test_vibe_coding_and_honeypot.py",
             "tests/test_vibe_coding_and_long_horizon_guard.py",
             "tools/aeib_surviving_principles_engine.py",
             "tools/context_ram_and_maseval_harness.py",
             "tools/decide_v2_constant_time_snapshot.py",
+            "tools/epistemic_5why_loop.py",
             "tools/epistemic_action_compiler_ab_test.py",
             "tools/local_system1_leviathan_daemon.py",
             "tools/palantir_ontology_joint_witness_engine.py",
             "tools/phase0_integrity_reset_core.py",
             "tools/regulatory_three_tier_and_matrix.py",
+            "tools/scitt_ap2_x402_otel_engine.py",
             "tools/smf_frontier_oct2026_upgrades.py",
             "tools/tlaplus_model_conformance_checker.py",
             "tools/vibe_coding_and_long_horizon_guard.py",

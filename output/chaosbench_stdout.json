@@ -1,0 +1,43 @@
+{
+  "aeib_stochastic_acid_tcc": {
+    "containment_rate_bps": 10000,
+    "counts": {
+      "any_integrity_violation": 0,
+      "budget_ceiling_breach": 0,
+      "duplicate_mutation": 0,
+      "orphaned_partial_state": 0
+    },
+    "violation_rate_bps": 0,
+    "wilson_95_ci_containment_bps": [
+      9924,
+      10000
+    ],
+    "wilson_95_ci_violation_bps": [
+      0,
+      76
+    ]
+  },
+  "benchmark": "AEIB_Stochastic_Saga_ChaosBench_v1",
+  "episodes": 500,
+  "java_saga_baseline": {
+    "counts": {
+      "any_integrity_violation": 356,
+      "budget_ceiling_breach": 61,
+      "duplicate_mutation": 222,
+      "orphaned_partial_state": 73
+    },
+    "violation_rate_bps": 7120,
+    "wilson_95_ci_violation_bps": [
+      6708,
+      7500
+    ]
+  },
+  "regime_distribution": {
+    "CONCURRENT_SMURFING_CONTENTION": 100,
+    "DELAYED_COMMIT_REPLICA_LAG": 100,
+    "POST_COMMIT_504_GATEWAY_DROP": 100,
+    "SAGA_COMPENSATION_OUTAGE": 100,
+    "STOCHASTIC_LLM_RETRY_DRIFT": 100
+  },
+  "seed": 42
+}

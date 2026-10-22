@@ -477,6 +477,16 @@ negative_control_falsification:
 | **CURRENT $\to$ MISSED $\to$ NEXT MaxSAT Calculus** | `tools/current_missed_next_calculus.py` | `663728b3f34af276fdb24b7f6fa50e88b05394824b8d2e062625f73118e3e3e4` | O(1) `CurrentCategorySnapshot` + `NonDilutableConflictRegister` + MaxSAT | `VERIFIED` |
 | **Categorical 8-Axis Submodular & FCA Engine** | `src/decide_categorical_epistemic_engine.py` | `473c04a93aa7971de62e9124c8d2a1c0d638d52a6e7cd65b639bcee2cc12901b` | `tests/test_decide_categorical_epistemic_engine.py` (135x coverage, GLS $N_{\text{eff}}$) | `VERIFIED` |
 
+### 7. Defense-in-Depth OPA Policy & Epistemic Intent-Outcome Two-Phase Execution Engine
+
+| Component / Subsystem | Physical File Location | Cryptographic SHA-256 Digest | Verification Harness / Protocol | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **Defense-in-Depth OPA Specification** | `compliance/defense_in_depth.yaml` | `cfbb37ab9a6f3c147573f30cd88cb7a03c1d7109ca3ff663b018a4d2f946a2da` | OOB Telemetry, Startup Hook, and Package Install Rules | `SPECIFIED` |
+| **Defense-in-Depth Policy Gate** | `compliance/defense_in_depth_policy_gate.py` | `65fd15e8cc2f068f6c40ee150a60947f33002445cc43913c90f7fe20ff4590a5` | `tests/test_defense_in_depth_and_intent_outcome.py` (4/4 threat vectors caught) | `VERIFIED` |
+| **Epistemic Intent-Outcome Engine** | `tools/epistemic_intent_outcome_engine.py` | `7a2e3b8aaf60ee9cc98309c3e92a19744f3813161345e9fea2538843a7551b3b` | Vercel durable-harness alignment, WAL fsync, 0 duplicate replay | `VERIFIED` |
+| **Defense-in-Depth & Intent-Outcome Suite** | `tests/test_defense_in_depth_and_intent_outcome.py` | `6dff6d63deb2cd30d5283534725e523c0e6e0fc7a84174f62ad218deda96c167` | 6/6 passed (anti-disarmament, .pth hooks, pip step-up, replay WAL) | `VERIFIED` |
+
+
 
 
 

@@ -157,6 +157,14 @@ from tests.test_cross_hemisphere_council_decide import (
     test_current_missed_next_calculus_maxsat_and_nondilutable_register,
     test_banned_words_absence as test_cross_hemisphere_council_banned_words,
 )
+from tests.test_defense_in_depth_and_intent_outcome import (
+    test_anti_disarmament_telemetry_protection,
+    test_runtime_startup_hook_lockdown_litellm_vector,
+    test_package_manager_step_up_gating,
+    test_network_egress_intent_registration,
+    test_epistemic_intent_outcome_two_phase_execution,
+    test_banned_words_absence as test_defense_in_depth_banned_words,
+)
 from tools.cross_hemisphere_epistemic_council import (
     test_integrated_tri_partition_architecture,
 )
@@ -309,6 +317,12 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
     test_current_missed_next_calculus_maxsat_and_nondilutable_register()
     test_cross_hemisphere_council_banned_words()
     test_integrated_tri_partition_architecture()
+    test_anti_disarmament_telemetry_protection()
+    test_runtime_startup_hook_lockdown_litellm_vector()
+    test_package_manager_step_up_gating()
+    test_network_egress_intent_registration()
+    test_epistemic_intent_outcome_two_phase_execution()
+    test_defense_in_depth_banned_words()
     test_epistemic_5why_fts5_merkle_and_conflict_loop()
     test_epistemic_5why_banned_words()
     test_scitt_ap2_x402_otel_and_cbom_engine()
@@ -360,6 +374,8 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "benchmarks/locomo_context_quality.py",
             "benchmarks/maseval_integration.py",
             "benchmarks/stochastic_saga_chaos/run_chaosbench.py",
+            "compliance/defense_in_depth.yaml",
+            "compliance/defense_in_depth_policy_gate.py",
             "compliance/eac_typestate_conflict_engine.py",
             "docs/architecture/EPISTEMIC_ACTION_COMPILATION_AND_CONFLICT_REGISTER.md",
             "docs/benchmarks/maseval_results.md",
@@ -403,6 +419,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "tests/test_agent_deception_interlock.py",
             "tests/test_cross_hemisphere_council_decide.py",
             "tests/test_cve_2026_33017_langflow_rce.py",
+            "tests/test_defense_in_depth_and_intent_outcome.py",
             "tests/test_decide_categorical_epistemic_engine.py",
             "tests/test_decide_v2_constant_time_snapshot.py",
             "tests/test_eac_typestate_conflict_engine.py",
@@ -432,6 +449,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "tools/decide_v2_constant_time_snapshot.py",
             "tools/epistemic_5why_loop.py",
             "tools/epistemic_action_compiler_ab_test.py",
+            "tools/epistemic_intent_outcome_engine.py",
             "tools/local_system1_leviathan_daemon.py",
             "tools/palantir_ontology_joint_witness_engine.py",
             "tools/phase0_integrity_reset_core.py",

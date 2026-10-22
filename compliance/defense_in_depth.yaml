@@ -1,0 +1,86 @@
+# File: compliance/defense_in_depth.yaml
+# Specification: AEIB Defense-in-Depth OPA / Rego Policy Definition
+# Evaluated under the stated model. Strict epistemic lock.
+
+apiVersion: policy.aeib.sovereign.nexus/v1
+kind: DefenseInDepthPolicy
+metadata:
+  name: aeib-core-defense-in-depth
+  policy_epoch: "2026-Q4-SOTA"
+  schema_version: "1.0.0"
+
+spec:
+  enforcement_points:
+    - station: "Station 1: Pre-Dispatch Gatekeeper"
+      mechanism: "Loopback UDS & AST Inspection"
+    - station: "Station 2: Out-of-Band Hardware / Kernel Interlock"
+      mechanism: "eBPF LSM & Append-Only WORM WAL"
+
+  rules:
+    # -------------------------------------------------------------------------
+    # Rule 1: Anti-Disarmament / Out-of-Band Telemetry & Monitor Protection
+    # Threat: Agents with terminal access disarming their own observability
+    # -------------------------------------------------------------------------
+    - id: DID_R1_PROTECT_OBSERVABILITY
+      description: "Denies attempts by agent guest code to terminate, modify, or silence logging, telemetry, or security daemons."
+      action: FAIL_CLOSED_HALT
+      halt_code: HALT_TELEMETRY_TAMPER_DETECTED
+      match_conditions:
+        prohibited_commands:
+          - "pkill -9"
+          - "killall"
+          - "systemctl stop auditd"
+          - "systemctl stop otel-collector"
+          - "launchctl unload"
+        prohibited_file_patterns:
+          - "/var/log/**"
+          - "**/audit.log"
+          - "**/telemetry.csv"
+          - "**/otel_traces.jsonl"
+          - "**/.system_generated/**"
+
+    # -------------------------------------------------------------------------
+    # Rule 2: Supply-Chain Runtime Startup Hook Lockdown (LiteLLM Attack Vector)
+    # Threat: Malicious packages injecting hooks into sitecustomize.py / .pth
+    # -------------------------------------------------------------------------
+    - id: DID_R2_RUNTIME_STARTUP_HOOK_LOCKDOWN
+      description: "Denies write privileges to Python runtime startup hooks and package directories."
+      action: FAIL_CLOSED_HALT
+      halt_code: HALT_RUNTIME_HOOK_TAMPER_DETECTED
+      match_conditions:
+        prohibited_file_writes:
+          - "**/sitecustomize.py"
+          - "**/usercustomize.py"
+          - "**/*.pth"
+          - "**/site-packages/**"
+          - "/usr/lib/**"
+          - "/Library/Python/**"
+
+    # -------------------------------------------------------------------------
+    # Rule 3: Unsigned Package Manager Interception
+    # Threat: Autonomous unvetted pip/npm/cargo installs introducing dependencies
+    # -------------------------------------------------------------------------
+    - id: DID_R3_PACKAGE_MANAGER_GATING
+      description: "Requires an out-of-band, Ed25519-signed RFC 9470 Step-Up warrant for package management operations."
+      action: REQUIRE_STEP_UP_WARRANT
+      halt_code: HALT_UNSIGNED_PACKAGE_INSTALL
+      match_conditions:
+        prohibited_unauthorized_executables:
+          - "pip"
+          - "pip3"
+          - "npm"
+          - "cargo"
+          - "uv pip"
+        required_warrant_scope: "SECURITY_OPERATIONS_PACKAGE_INSTALL"
+
+    # -------------------------------------------------------------------------
+    # Rule 4: Outbound Network Socket Intent Registration
+    # Threat: Rogue agents initiating un-tracked network connections
+    # -------------------------------------------------------------------------
+    - id: DID_R4_OUTBOUND_EGRESS_INTENT_MANDATE
+      description: "Blocks network egress attempts lacking an approved pre-dispatch CAID Intent."
+      action: FAIL_CLOSED_HALT
+      halt_code: HALT_UNREGISTERED_EGRESS_SOCKET
+      match_conditions:
+        enforce_pre_dispatch_intent: true
+        require_valid_caid: true

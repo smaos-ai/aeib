@@ -524,6 +524,14 @@ negative_control_falsification:
 | **Autonomous Query Research & Action Engine** | `src/decide_autonomous_query_research_engine.py` | `94ec41b16d41b09377708d0aa7cef30a5b5e29d148a7ec597a6e1c576518207f` | 8-Axis Query Expansion, Multi-Hop Inquiry Tree, Adversarial Falsification | `VERIFIED` |
 | **Autonomous Query Research Test Suite** | `tests/test_decide_autonomous_query_research_engine.py` | `34a828b1b4fcea2d18a2c637427815ba0b170bcfe6452f28c8827fa3036b782e` | 5/5 passed (Multi-hop tree, 8 axes, Oracle Gap elimination, Ed25519 receipts) | `VERIFIED` |
 
+### 13. Decide-v4.5 Evaluation Rate Optimizer & Four-Decay Mathematical Solver (SAKE, DPI, IG-Search CELF, & Multi-Hop Pass^k)
+
+| Component / Subsystem | Physical File Location | Cryptographic SHA-256 Digest | Verification Harness / Protocol | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **Decide-v4.5 Anti-Decay & Evaluation Rate Solver** | `src/decide_evaluation_rate_and_decay_solver.py` | `ea8bac3405f65b58ef8ca9723868eb36da35cc12d4233cee980752f717a90a0d` | SAKE (`arXiv:2602.09517`), DPI Gate (`arXiv:2604.02460`), IG-Search CELF (`arXiv:2604.15148`) | `VERIFIED` |
+| **Decide-v4.5 Anti-Decay Test Suite** | `tests/test_decide_evaluation_rate_and_decay_solver.py` | `32df215b18a5a20a5c222d6b13f73fccf5fb2415b6eed84e7c70fc65703854ba` | 6/6 passed (35.78x EvalRate, 66.06% token reduction, 98.21% SAKE retention, 92.30% Pass^8) | `VERIFIED` |
+
+
 
 
 

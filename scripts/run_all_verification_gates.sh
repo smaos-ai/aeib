@@ -65,6 +65,7 @@ pytest \
   compliance/eac_typestate_conflict_engine.py \
   tests/test_eac_typestate_conflict_engine.py \
   tests/test_epistemic_core_bec.py \
+  tests/test_decide_v2_constant_time_snapshot.py \
   tools/regulatory_three_tier_and_matrix.py \
   tools/context_ram_and_maseval_harness.py \
   tools/tlaplus_model_conformance_checker.py \
@@ -96,6 +97,9 @@ echo ">>> [CLEANROOM SCAN] Scanning Code & Documentation for Banned Overclaims"
   src/epistemic_core.py \
   tests/test_eac_typestate_conflict_engine.py \
   tests/test_epistemic_core_bec.py \
+  tools/decide_v2_constant_time_snapshot.py \
+  tests/test_decide_v2_constant_time_snapshot.py \
+  .agents/skills/decide/SKILL.md \
   docs/architecture/EPISTEMIC_ACTION_COMPILATION_AND_CONFLICT_REGISTER.md \
   docs/specs/admissibility_and_oo_harness_spec.md
 

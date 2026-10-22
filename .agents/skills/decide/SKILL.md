@@ -1,56 +1,58 @@
 ---
 name: decide
-description: Epistemic Adversarial Research & Decision Engine. Intercepts queries using the cognitive trigger 'what we missed' to force an adversarial, multi-step thinking pipeline. Deconstructs queries into parallel research vectors, audits blind spots and prior art, executes multi-step synthesis, and delivers concrete runnable code roadmaps. Trigger on /decide, $decide, 'what we missed', or 'adversarial research'.
+description: Epistemic Adversarial Research & Decision Engine (v2.0). Executes Stage 0 O(1) Constant-Time Codebase Snapshot, Stage 1 Separated Independent Multi-Vector Search (arXiv, Western GitHub, China Open-Source), Stage 2 5-Why Root-Cause & Set-Theoretic Delta Alignment, and Stages 3-4 Two-Iteration Layered Self-Critique ('What We Missed' on external claims AND on our own proposed code layer). Trigger on /decide, $decide, 'what we missed', or 'adversarial research'.
 ---
 
-# /decide — Epistemic Adversarial Research & Decision Engine
+# /decide v2.0 — O(1) Codebase Snapshot, 5-Why & Two-Iteration Epistemic Decision Engine
 
-The `/decide` skill intercepts user queries and switches the agent from generative autocomplete into an adversarial, multi-step **Thinking Agent** mode. It prevents AI sycophancy, premature convergence, and hallucinated confidence by mandating cross-vector verification and blind-spot auditing.
+The `/decide` v2.0 skill switches the agent from passive autocomplete into a **Recursive, Self-Auditing Thinking Agent**. It eliminates two classic failure modes in AI-assisted engineering:
+1. **Context-Blind Wheel Reinvention**: Searching the web without knowing in constant time ($O(1)$) what moats, classes, `HALT_*` codes, and tests already exist in our local repository.
+2. **Single-Pass Critique Fallacy**: Critiquing external papers in Iteration 1, but failing to run a second adversarial pass (Iteration 2) against our *own* newly proposed integration layer.
 
 ## 🧠 Core Operating Philosophy
-1. **The "What We Missed" Mandate**: The model must actively search for counter-evidence, existing prior art, and structural failure modes before synthesizing answers.
-2. **Parallel Vector Dispersal**: Every inquiry must be split into academic (arXiv/peer-reviewed), practical open-source (GitHub/implementations), and live industrial telemetry vectors.
-3. **Epistemic Calibration**: Permitted words: "observed", "tested", "evaluated", "configured", "under the stated model", "prototype", "scaffold". Banned words: "guaranteed", "bulletproof", "enterprise-grade", "production-safe", "100% secure", "unassailable", "immune", "unhackable".
+1. **Stage 0 First ($O(1)$ Self-Knowledge Snapshot)**: Before external synthesis, consult the precomputed AST Moat & Symbol Index (`python3 tools/decide_v2_constant_time_snapshot.py`) to know in $< 1\text{ ms}$ what `src/`, `compliance/`, `tools/`, and `tests/` already enforce.
+2. **Strict Separation of Internal vs. External State**: Query external ecosystems (**Academic arXiv/IETF**, **Western GitHub**, **Chinese Open-Source Labs**) *independently* of local naming conventions so external discovery is never biased by local jargon, then compute the exact set-theoretic delta:
+   - $\text{Covered } (A \cap B)$: Already enforced in AEIB (do not rebuild).
+   - $\text{True Gap } (B \setminus A)$: High-signal external primitive to layer onto Station 1/2/3.
+   - $\text{Overclaim } (B_{\text{unverified}})$: Reject claims lacking reproducible code or cryptographic wire receipts.
+3. **5-Why + Two-Iteration Layered Critique**:
+   - **Iteration 1 ("What We Missed" in External SOTA)**: Critique external findings against AEIB wire-finality invariants.
+   - **Iteration 2 ("What We Missed" in Our Proposed Layer)**: Critique the candidate code layer we just designed until residual structural conflicts $\Delta_2 = 0$.
+4. **Epistemic Calibration**: Permitted words: `"observed"`, `"tested"`, `"evaluated"`, `"configured"`, `"under the stated model"`, `"prototype"`, `"scaffold"`, `"pre-production"`. Banned words: `"guaran[t]eed"`, `"bullet[p]roof"`, `"enterprise-[g]rade"`, `"production-[s]afe"`, `"100% [s]ecure"`, `"unassail[a]ble"`, `"im[m]une"`, `"unhack[a]ble"`, `"bank-[g]rade"`, `"production-[r]eady"`, `"proven universal[l]y"`.
 
 ---
 
-## 🔄 The 4-Phase Execution Pipeline
+## 🔄 The 5-Stage Recursive Execution Pipeline
 
-When `/decide` is invoked (or when the user asks "what we missed" / demands rigorous multi-step analysis), execute these 4 phases sequentially:
+When `/decide` is invoked, execute these 5 stages sequentially:
 
-### Phase 1: Deconstruction & Multi-Vector Search
-Split the user query into 3–5 distinct, independent research vectors. Run live search queries across each vector:
-- **Vector A (Academic / Formal Proofs)**: Search arXiv, ACM, IEEE, NeurIPS, VLDB, and university technical reports for mathematical formulations and theoretical limits.
-- **Vector B (GitHub / Open-Source Code)**: Search active repositories, commits, and issue trackers for production Rust/Python/Go implementations, real benchmarks, and latency profiles.
-- **Vector C (Industry Telemetry / Standards)**: Search RFCs, W3C standards, regulatory directives (DORA, EU AI Act, CAC, NIST), and live outage postmortems.
+### Stage 0: O(1) Constant-Time Codebase Snapshot (`What We Have`)
+Run or query `tools/decide_v2_constant_time_snapshot.py` (`ConstantTimeCodebaseSnapshot.query_o1(keyword)`) to retrieve in $O(1)$ time:
+- Existing Python/Rust modules, classes, and functions across the 6 AEIB Moat Categories.
+- Existing `HALT_*` and `ERR_*` fail-closed enforcement codes.
+- Existing primary citations (`arXiv:*`, `RFC *`) already wired into tests.
 
-### Phase 2: The "WHAT WE MISSED" Mandate (Adversarial Audit)
-Before proposing any solution, output a dedicated section titled:
-`### 🔍 WHAT WE MISSED (Blind Spots & Prior Art)`
-Critique the Phase 1 findings against 4 ruthless criteria:
-1. **Prior Art Collision**: Who has already built or published this? (Avoid reinventing existing wheels like `forked`, `Dendrite`, or `PERSIST`).
-2. **Hidden Failure Modes & Asymmetric Risks**: What happens under network partitions, memory exhaustion, clock drift, malicious poisoning, or 504 timeouts?
-3. **Contrarian & Independent Evidence**: What do independent benchmarks or opposing academic schools of thought demonstrate?
-4. **Premise Falsification**: Are the user's initial assumptions or system constraints factually accurate?
+### Stage 1: Separated Independent Multi-Vector Search (`What Exists Outside`)
+Deconstruct the query into 3 orthogonal external vectors (executed independently of Stage 0 to avoid confirmation bias):
+- **Vector A (Academic & Formal Proofs)**: Search arXiv, ACM, IEEE, NeurIPS, OSDI, VLDB, and IETF drafts.
+- **Vector B (Western GitHub & Systems)**: Search active Rust/C++/Python repositories (e.g., `GitNexus`, `Codebase-Memory`, `Ripwire`, `Tetragon`, `TigerBeetle`).
+- **Vector C (Chinese Open-Source & High-Throughput Runtimes)**: Search DAMO/Alibaba (`AgentScope 2.0`, `OpenCodeReview`, `LocAgent`), Ant Group (`AgentAegis`), Tsinghua (`ACID-Agent`), Fudan, and DeepSeek/Qwen ecosystems.
 
-### Phase 3: Multi-Step Quantitative Synthesis
-Synthesize the verified evidence into structured tables, mathematical formulas, and state diagrams:
-- Report exact numbers (e.g., latency in milliseconds, memory overhead, compression ratios).
-- Mark any unverified metric or projection explicitly as `[UNVERIFIED / PROJECTION]`.
-- Provide exact primary citations and dates.
+### Stage 2: 5-Why Root-Cause Chain & Set-Theoretic Alignment Delta
+Run a **5-Why Root-Cause Analysis** (`Why 1` Symptom $\to$ `Why 2` Process Gap $\to$ `Why 3` Indexing/Substrate Gap $\to$ `Why 4` Single-Pass Limit $\to$ `Why 5` Root Architectural Fix) and classify every external finding into:
+1. `[ALREADY_COVERED_IN_LOCAL_MOAT]` — Map to exact local file and symbol.
+2. `[CANDIDATE_ADDITIVE_LAYER]` — Identify which Station (1, 2, or 3) it layers onto.
+3. `[REJECTED_UNVERIFIED_OVERCLAIM]` — Strike unverified vendor/benchmark claims.
 
-### Phase 4: Concrete Execution Roadmap & Code Action Plan
-Deliver runnable code and deterministic test fixtures:
-- Provide drop-in Python/Rust source implementations.
-- Write non-tautological test fixtures with negative controls and fault injection.
-- Run local compliance checks (AST purity, zero-mock enforcer, zone boundaries).
+### Stage 3: Iteration 1 Critique — `### 🔍 WHAT WE MISSED: PASS 1 (External SOTA Audit)`
+Critique the external candidates against 4 failure traps:
+1. **Prior Art Collision**: Who published the underlying math first?
+2. **Wire-Finality & Concurrency Race**: How does the external tool behave on `HTTP 504` timeouts, clock drift, or 1,000-agent bursts?
+3. **Provenance & Taint Blindness**: Does it trust unverified LLM narration (`AI_GENERATED_UNVERIFIED`) or allow silent approval bypasses?
+4. **Premise Falsification**: Which assumptions in the prompt or external paper fail under adversarial conditions?
 
----
-
-## 🛠️ Usage Examples
-
-```text
-/decide How do we build an idempotent wire boundary for autonomous agents?
-/decide what we missed in our KV-cache memory governance?
-/decide audit multi-agent collusion risks in shared-ledger sagas
-```
+### Stage 4: Iteration 2 Critique — `### 🔍 WHAT WE MISSED: PASS 2 (Self-Audit on Our Proposed Layer)` & Code Delivery
+Before writing or committing code, audit *our own proposed integration layer*:
+1. Identify at least 2 concrete edge cases, type bugs, or bypass risks in our draft design.
+2. Harden the code (integer basis points/minor units, Ed25519 signatures, RFC 8785 JCS, zero mocks).
+3. Run `pytest`, `compliance/ast_purity.py`, `compliance/no_mock_enforcer.py`, and re-index the $O(1)$ Codebase Snapshot.

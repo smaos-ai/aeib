@@ -138,6 +138,11 @@ from tests.test_epistemic_core_bec import (
     test_intermediate_phase_transition_blocks_mutation,
     test_banned_words_absence as test_epistemic_core_bec_banned_words,
 )
+from tests.test_decide_v2_constant_time_snapshot import (
+    test_o1_constant_time_codebase_snapshot_index_and_lookup,
+    test_decide_v2_five_why_and_two_iteration_convergence,
+    test_banned_words_absence as test_decide_v2_banned_words,
+)
 from benchmarks.locomo_context_quality import evaluate_locomo_benchmark
 from benchmarks.maseval_integration import run_maseval_comparative_benchmark
 from tools.context_ram_and_maseval_harness import (
@@ -260,6 +265,9 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
     test_provenance_entropy_synthetic_overload_rejected()
     test_intermediate_phase_transition_blocks_mutation()
     test_epistemic_core_bec_banned_words()
+    test_o1_constant_time_codebase_snapshot_index_and_lookup()
+    test_decide_v2_five_why_and_two_iteration_convergence()
+    test_decide_v2_banned_words()
     locomo_report = _sanitize_for_canonical_json(evaluate_locomo_benchmark())
     maseval_report = _sanitize_for_canonical_json(run_maseval_comparative_benchmark())
     tla_report = explore_tla_state_space_and_verify_conformance()
@@ -296,6 +304,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
     ]
     for rel_file in sorted(
         [
+            ".agents/skills/decide/SKILL.md",
             "benchmarks/locomo_context_quality.py",
             "benchmarks/maseval_integration.py",
             "compliance/eac_typestate_conflict_engine.py",
@@ -333,6 +342,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "src/wasm_symbolic_path_explorer.py",
             "tests/test_agent_deception_interlock.py",
             "tests/test_cve_2026_33017_langflow_rce.py",
+            "tests/test_decide_v2_constant_time_snapshot.py",
             "tests/test_eac_typestate_conflict_engine.py",
             "tests/test_epistemic_action_compiler.py",
             "tests/test_epistemic_core_bec.py",
@@ -349,6 +359,7 @@ def build_and_verify_deterministic_archive(output_dir: Path) -> Dict[str, Any]:
             "tests/test_vibe_coding_and_long_horizon_guard.py",
             "tools/aeib_surviving_principles_engine.py",
             "tools/context_ram_and_maseval_harness.py",
+            "tools/decide_v2_constant_time_snapshot.py",
             "tools/epistemic_action_compiler_ab_test.py",
             "tools/local_system1_leviathan_daemon.py",
             "tools/palantir_ontology_joint_witness_engine.py",

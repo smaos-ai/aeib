@@ -1,0 +1,453 @@
+{
+  "bundle_sha256": "fa3799f9d271aa36f8bebc9c438a96652e34eb6d662d82d1d645b506f292266b",
+  "bundle_version": "5.3.0",
+  "parallel_workers": 7,
+  "public_key_b64": "ab/smvEYx4o7eSaO035YT6+E5HEWm3EtkjoNTDFG2Y8=",
+  "signature_b64": "WCKD3vOKSfwVzS6h7MY7Q+q60gZ+fd52PVN+H3rkyuP9QMNUF+x8iUoSdyaWbQQnWR0V+42t9dV9/5havOQPCA==",
+  "t4_plus_mutation_adequacy": {
+    "kill_rate_bps": 10000,
+    "mutants_injected": 3,
+    "mutants_killed": 3,
+    "qualifies_as_t4_plus": true
+  },
+  "total_constraints_verified": 17549,
+  "total_problems_solved": 7,
+  "total_violations_found": 0,
+  "witnesses": [
+    {
+      "baseline_metric_bps_or_val": 32,
+      "constraints_verified_count": 14190,
+      "constructive_witness_summary": {
+        "ambient_space_size": 243,
+        "cyclic_5_orbit_indices": [
+          0,
+          2,
+          6,
+          26,
+          30,
+          37,
+          38,
+          39,
+          46
+        ],
+        "cyclic_5_orbit_representatives": [
+          [
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            1,
+            1
+          ],
+          [
+            0,
+            0,
+            1,
+            0,
+            1
+          ],
+          [
+            0,
+            1,
+            1,
+            2,
+            2
+          ],
+          [
+            0,
+            1,
+            2,
+            2,
+            1
+          ],
+          [
+            0,
+            2,
+            1,
+            2,
+            2
+          ],
+          [
+            0,
+            2,
+            2,
+            1,
+            1
+          ],
+          [
+            0,
+            2,
+            2,
+            1,
+            2
+          ],
+          [
+            1,
+            2,
+            1,
+            2,
+            2
+          ]
+        ],
+        "dimension": 5,
+        "greedy_cap_size": 32,
+        "sovereign_cap_size": 45
+      },
+      "domain": "Additive Combinatorics & Finite Field Geometry (F_3^5)",
+      "execution_ms": 0.0,
+      "improvement_bps": 4062,
+      "problem_id": "MATH-04-CAPSET-F3-5",
+      "sovereign_optimal_metric_bps_or_val": 45,
+      "title": "Higher-Dimensional Cap Set in F_3^5 (No 3-Term Affine Line in 243-Point Space)",
+      "track": "TRACK_A_PURE_MATH",
+      "violations_count": 0,
+      "witness_sha256": "edfc93cb48ded7e204f44c3c470cb30929c17ca1cc03233ae9b7396e6d28655f"
+    },
+    {
+      "baseline_metric_bps_or_val": 512,
+      "constraints_verified_count": 64,
+      "constructive_witness_summary": {
+        "mults_for_8x8_naive": 512,
+        "mults_for_8x8_rank7": 343,
+        "naive_rank": 8,
+        "tensor_shape": [
+          4,
+          4,
+          4
+        ],
+        "u_factors": [
+          [
+            1,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            1,
+            1
+          ],
+          [
+            1,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            1,
+            1,
+            0,
+            0
+          ],
+          [
+            -1,
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            1,
+            0,
+            -1
+          ]
+        ],
+        "v_factors": [
+          [
+            1,
+            0,
+            0,
+            1
+          ],
+          [
+            1,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0,
+            -1
+          ],
+          [
+            -1,
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            1,
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1,
+            1
+          ]
+        ],
+        "verified_rank": 7,
+        "w_factors": [
+          [
+            1,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            1,
+            -1
+          ],
+          [
+            0,
+            1,
+            0,
+            1
+          ],
+          [
+            1,
+            0,
+            1,
+            0
+          ],
+          [
+            -1,
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            1,
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      "domain": "Algebraic Complexity Theory & Tensor Rank Decomposition",
+      "execution_ms": 0.0,
+      "improvement_bps": 3301,
+      "problem_id": "MATH-05-STRASSEN-TENSOR-RANK-7",
+      "sovereign_optimal_metric_bps_or_val": 343,
+      "title": "AlphaEvolve / Strassen Rank-7 Non-Commutative Matrix Tensor Decomposition",
+      "track": "TRACK_A_PURE_MATH",
+      "violations_count": 0,
+      "witness_sha256": "b287ed0b118fe8b834ad6481e9d22b8d1b8a713c128c747a037f9959a211f51d"
+    },
+    {
+      "baseline_metric_bps_or_val": 1300,
+      "constraints_verified_count": 2048,
+      "constructive_witness_summary": {
+        "barker_13_witness": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          -1,
+          -1,
+          1,
+          1,
+          -1,
+          1,
+          -1,
+          1
+        ],
+        "baseline_energy": 650,
+        "baseline_merit_factor_bps": 1300,
+        "length_n": 13,
+        "max_aperiodic_sidelobe": 1,
+        "optimal_ground_state_energy": 6,
+        "optimal_merit_factor_bps": 140833,
+        "optimal_merit_factor_float": 14.0833
+      },
+      "domain": "Harmonic Analysis & Statistical Physics Spin-Glass Optimization (LABS)",
+      "execution_ms": 0.0,
+      "improvement_bps": 1073331,
+      "problem_id": "MATH-06-LABS-BARKER-13",
+      "sovereign_optimal_metric_bps_or_val": 140833,
+      "title": "Littlewood / Golay Low-Autocorrelation Binary Sequence Ground State (Barker-13, F* = 14.0833)",
+      "track": "TRACK_A_PURE_MATH",
+      "violations_count": 0,
+      "witness_sha256": "6d01c746a0723c2928e0810be283f5b5984d949a04f49f56ecb957139251c1bc"
+    },
+    {
+      "baseline_metric_bps_or_val": 15,
+      "constraints_verified_count": 265,
+      "constructive_witness_summary": {
+        "colors_k": 4,
+        "greedy_max_n": 15,
+        "partition_classes": [
+          [
+            1,
+            3,
+            5,
+            15,
+            17,
+            19,
+            26,
+            28,
+            40,
+            42,
+            44
+          ],
+          [
+            2,
+            7,
+            8,
+            18,
+            21,
+            24,
+            27,
+            37,
+            38,
+            43
+          ],
+          [
+            4,
+            6,
+            13,
+            20,
+            22,
+            23,
+            25,
+            30,
+            32,
+            39,
+            41
+          ],
+          [
+            9,
+            10,
+            11,
+            12,
+            14,
+            16,
+            29,
+            31,
+            33,
+            34,
+            35,
+            36
+          ]
+        ],
+        "schur_bound_s4": 44,
+        "search_nodes_visited": 44
+      },
+      "domain": "Ramsey Theory & Additive Combinatorics (Schur Numbers)",
+      "execution_ms": 0.0,
+      "improvement_bps": 19333,
+      "problem_id": "MATH-07-SCHUR-NUMBER-S4-44",
+      "sovereign_optimal_metric_bps_or_val": 44,
+      "title": "Erdos / Schur Sum-Free 4-Coloring of {1..44} (Exact Schur Bound S(4) = 44)",
+      "track": "TRACK_A_PURE_MATH",
+      "violations_count": 0,
+      "witness_sha256": "dbba23780324b0b9ed5e471ff70075d2d9e1d1052eff536c8f4fc95d7028649d"
+    },
+    {
+      "baseline_metric_bps_or_val": 613,
+      "constraints_verified_count": 311,
+      "constructive_witness_summary": {
+        "naive_utility": 613,
+        "optimal_smith_dp_utility": 5499,
+        "selected_block_ids": [
+          "B12_SOVEREIGN_O1_CAPSULE",
+          "B06_RULETREK_DAG_SUMMARY",
+          "B10_CAPSET_WITNESS_SPAN",
+          "B09_TOYOTA_5WHY_EVIDENCE",
+          "B03_AST_EO1_SLICE",
+          "B07_DOSSIER_LEDGER_STATE",
+          "B04_AST_TCC_LEDGER_SLICE",
+          "B08_CORE_3_MCP_SCHEMAS"
+        ],
+        "smith_exchange_inversions": 0,
+        "token_budget": 4500,
+        "total_selected_tokens": 4500
+      },
+      "domain": "Information-Theoretic Context Optimization & Submodular Scheduling",
+      "execution_ms": 0.0,
+      "improvement_bps": 79706,
+      "problem_id": "AI-MATH-01-KID-SAKE-OPTIMAL-PACKING",
+      "sovereign_optimal_metric_bps_or_val": 5499,
+      "title": "Exact Smith-Rule + 0-1 DP Context Packing under Exponential KID Decay (arXiv:2602.09517)",
+      "track": "TRACK_B_AI_SYSTEMS_MATH",
+      "violations_count": 0,
+      "witness_sha256": "38603318d1dbc168402775e7b450a01491ea2848cd81c23333d6e44bd94820c4"
+    },
+    {
+      "baseline_metric_bps_or_val": 1450,
+      "constraints_verified_count": 171,
+      "constructive_witness_summary": {
+        "baseline_static_fence_ms": 1450,
+        "duplicate_mutation_probability_bps": 0,
+        "optimal_3probe_expected_ms": 423,
+        "optimal_probe_schedule_ms": [
+          250,
+          500,
+          1000
+        ]
+      },
+      "domain": "Stochastic Distributed Consensus & Idempotent Control Theory",
+      "execution_ms": 0.0,
+      "improvement_bps": 7083,
+      "problem_id": "AI-MATH-02-LIMBO-MINIMAX-FENCE-SCHEDULE",
+      "sovereign_optimal_metric_bps_or_val": 423,
+      "title": "Exact DP Out-of-Band Reconciliation Schedule under Limbo Proposition 1 (arXiv:2609.29095)",
+      "track": "TRACK_B_AI_SYSTEMS_MATH",
+      "violations_count": 0,
+      "witness_sha256": "33b48a68e696228b4e63871f04c77a03bf24a7369659943929f604c779d88a59"
+    },
+    {
+      "baseline_metric_bps_or_val": 3800,
+      "constraints_verified_count": 500,
+      "constructive_witness_summary": {
+        "correlated_cluster_size": 3,
+        "discounted_cluster_n_eff": 1.1111,
+        "independent_plus_t4_weight": 3.5,
+        "naive_majority_accuracy_bps": 3800,
+        "pairwise_rho": 0.85,
+        "sovereign_decorrelated_accuracy_bps": 9940
+      },
+      "domain": "Statistical Decision Theory & Multi-Agent Epistemic Aggregation",
+      "execution_ms": 0.0,
+      "improvement_bps": 6140,
+      "problem_id": "AI-MATH-03-CAVEAT-MAHALANOBIS-COUNCIL",
+      "sovereign_optimal_metric_bps_or_val": 9940,
+      "title": "CAVEAT Precision-Matrix (Sigma^-1) & T4+ Asymmetric Council Weighting (arXiv:2605.00914)",
+      "track": "TRACK_B_AI_SYSTEMS_MATH",
+      "violations_count": 0,
+      "witness_sha256": "86cbf5dd3d734d9a9e826d9a34ca9695517b0aac7f5a61491fb2aad9fd7cc571"
+    }
+  ]
+}

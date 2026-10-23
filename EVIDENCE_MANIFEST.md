@@ -579,6 +579,18 @@ negative_control_falsification:
 | **Track Delta: Hybrid PQC SCITT Transparency Anchor** | `src/hybrid_pqc_scitt_anchor.rs` | `c2d790b24ce0dd678daed5d15f5076aaa6066299cb7a81beb1d799e8f842c139` | Rust RFC 9964 / RFC 9942 dual-slot COSE Sign1 envelope (`Ed25519` `-8` + `ML-DSA-65` `-49`, header `394`) | `VERIFIED` |
 | **Tracks Alpha–Delta End-to-End Test Suite** | `tests/test_deep_tech_tracks_alpha_beta_gamma_delta.py` | `af76b51a45ec2fa828b4fa700b86c550de95d18e9ea38c63c1dbd0bbff5a8f20` | 3/3 passed (`205 / 205` unified test suite in `6.40s`, zero promotional words) | `VERIFIED` |
 
+### 19. Sovereign Decade-Dominance Architecture: Credential Starvation, Builder-Breaker (`arXiv:2610.14224`), Orca+Caprock+EVAE Enforcer, & Sovereign Blueprint Compiler
+
+| Component / Subsystem | Physical File Location | Cryptographic SHA-256 Digest | Verification Harness / Protocol | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **Credential Starvation & Supply-Chain Cooldown Gateway** | `tools/credential_starvation_gateway.py` | `c90b9313e6694286ca3bf7e4b10f1b990a7965df279356b5b071764311737157` | Phantom placeholders, in-flight Ed25519 injection, & LiteLLM `.pth` / 48h cooldown gate | `VERIFIED` |
+| **Builder-Breaker Engine & TokenEconomizer Pruner** | `tools/builder_breaker_adversarial_engine.py` | `b1c40ac9746a92c40ccd40f3a4d0e427fa019e608421f66e9cb86ed7780e42d2` | `arXiv:2610.14224` non-self-grading verification + `microsoft/TokenEconomizer` 5-turn pruning | `VERIFIED` |
+| **Orca Worktree + Caprock FinOps + EVAE Enforcer** | `tools/aeib_orca_caprock_enforcer.py` | `544541ac24eaeb435f35b24a9c57671a6e17a9496e03ef88021b43e870285c2c` | `--yolo` fast-path, disjoint write-sets, Seatbelt `.sb`, Caprock `7500 bps` SLO, EVAE `HOLD` | `VERIFIED` |
+| **Declarative Orca+Caprock+AEIB Policy Schema** | `compliance/aeib_orca_integration.yaml` | `bc0af54996e59c365d54cc7246f3b5d6313dcccf48c7ab276b5c210b1ba7ec47` | Worktree jail, substrate containment, Caprock FinOps escrow, & EVAE Pilot matrix | `VERIFIED` |
+| **Sovereign Agent Blueprint & Beads Frontier Compiler** | `src/sovereign_agent_blueprint.py` | `1adc5d84da56bb81ef9b546fc04f600de80b7ca2629cf95a2b85cd471355654f` | Epistemic + Ontic JCS compiler, Ed25519 verification, & `steveyegge/beads` `bd ready` | `VERIFIED` |
+| **Sovereign Decade-Dominance Verification Suite** | `tests/test_sovereign_decade_dominance_suite.py` | `0da71d252b78a1c0f432cd1ddf125e96c804d4fac7a08306bd62f760ac039ad2` | 4/4 passed (`209 / 209` unified test union across 24 suites in `6.18s`) | `VERIFIED` |
+
+
 
 
 

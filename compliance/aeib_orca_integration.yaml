@@ -1,0 +1,91 @@
+# File: compliance/aeib_orca_integration.yaml
+# Epistemic Note (AGENTS.md Rule 5): Structural policy specification for Orca Git Worktree,
+# Caprock FinOps telemetry, and AEIB Station 1/2 enforcement under the stated model.
+apiVersion: aeib.sovereign.io/v1alpha5
+kind: SovereignWorktreeExecutionPolicy
+metadata:
+  name: aeib-orca-caprock-fusion
+  policy_epoch: "2026-Q4-v5.0"
+  description: >
+    Permits high-velocity autonomous execution (--yolo / skip-permissions) strictly
+    inside isolated Orca Git Worktrees while enforcing OS/kernel containment,
+    CAID RPC verification, EVAE (EXECUTE | HOLD | BLOCK) Pilot governance, and
+    Caprock-driven FinOps circuit breaking outside the worktree.
+
+spec:
+  orca_worktree_jail:
+    allow_internal_yolo_mode: true
+    worktree_root_pattern: "/var/lib/orca/worktrees/{session_id}/{agent_id}"
+    daemon_transport:
+      unix_socket_path: "/var/run/orca/daemon.sock"
+      socket_permissions: "0600"
+      require_so_peercred: true
+      require_caid_jcs_envelope: true
+    ssh_relay_guard:
+      allow_remote_relay: true
+      require_host_pinned_ed25519: true
+      forbid_agent_ssh_agent_forwarding: true
+    concurrency_isolation:
+      enforce_disjoint_write_sets: true
+      on_overlapping_file_touch: "HALT_ORCA_WORKTREE_WRITE_COLLISION"
+
+  substrate_containment:
+    writable_mount_whitelist:
+      - "/var/lib/orca/worktrees/{session_id}/{agent_id}/**"
+      - "/tmp/orca-scratch-{agent_id}/**"
+    forbidden_host_paths:
+      hard_sigkill_on_access:
+        - "~/.ssh/**"
+        - "~/.aws/**"
+        - "~/.config/gcloud/**"
+        - "~/.kube/**"
+        - "/etc/shadow"
+        - "/var/run/docker.sock"
+      require_rfc9470_step_up_on_write:
+        - ".vscode/settings.json"
+        - ".cursor/mcp.json"
+        - ".mcp.json"
+        - ".git/hooks/**"
+        - "compliance/**"
+    syscall_interlock:
+      linux_engine: "cilium-tetragon-lsm"
+      macos_engine: "sandbox-exec-seatbelt"
+      blocked_syscalls_outside_worktree:
+        - "sys_unlinkat"
+        - "sys_renameat2"
+        - "sys_chmod"
+        - "sys_chown"
+      egress_network_policy:
+        default_disposition: "DENY_UNWARRANTED_EGRESS"
+        allowed_loopback_proxies:
+          - "127.0.0.1:8080"
+          - "/var/run/aeib/station2.sock"
+
+  caprock_finops_escrow:
+    telemetry_ingest_socket: "/var/run/caprock/telemetry.sock"
+    accounting_windows:
+      per_worktree_session_cap_usd_minor: 500
+      sprint_5h_root_sponsor_cap_usd_minor: 25000
+      epoch_7d_root_sponsor_cap_usd_minor: 100000
+    cache_efficiency_slos:
+      min_prompt_cache_hit_ratio_bps: 7500
+      max_unamortized_burn_velocity_usd_minor_per_min: 150
+      on_cache_thrash_detected: "THROTTLE_AND_FORCE_SAKE_PREFIX_PINNING"
+      on_budget_avalanche_detected: "HALT_CAPROCK_BUDGET_AVALANCHE"
+
+  evae_pilot_governance_matrix:
+    - action_scope: "WORKTREE_LOCAL_EDIT_AND_TEST"
+      condition: "target_path_inside_worktree == true && control_plane_file == false"
+      evae_armor_state: "EXECUTE"
+      disposition: "ALLOW_FAST_PATH_YOLO"
+      caid_audit_mode: "ASYNC_WAL_APPEND"
+    - action_scope: "CROSS_WORKTREE_MERGE_OR_GIT_PUSH"
+      condition: "rpc_method in ['git.push', 'worktree.merge']"
+      evae_armor_state: "HOLD"
+      disposition: "REQUIRE_STATION1_CAID_AND_TEST_RECEIPT"
+      caid_audit_mode: "SYNC_PRE_DISPATCH_LOCK"
+    - action_scope: "HOST_ESCAPE_OR_EXTERNAL_NETWORK_MUTATION"
+      condition: "target_path_inside_worktree == false || requires_external_egress == true"
+      evae_armor_state: "HOLD"
+      disposition: "ESCALATE_REQUIRE_RFC9470_HUMAN_STEP_UP"
+      caid_audit_mode: "SYNC_PRE_DISPATCH_LOCK"

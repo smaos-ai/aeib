@@ -611,8 +611,8 @@ negative_control_falsification:
 | :--- | :--- | :--- | :--- | :---: |
 | **Independent State Capsule, Moat Proxy, & Math Prover Engine** | `src/sovereign_state_capsule_and_math_prover.py` | `7051437f3201abf29c3261cb9d4ca86c81ed32a630ecb1f8507a055382ee392f` | $O(1)$ State String (`0xfff` 12-moat bitmask), Auto-Proxy, & 3 Live Solved Math Targets | `VERIFIED` |
 | **State Capsule & Frontier Math Prover Test Suite** | `tests/test_sovereign_state_capsule_and_math_prover.py` | `71f121bb139a8a5ccc138e15d5b5c3fb1df5acbf51b1f361db88b726de558788` | 4/4 passed (`241 / 241` unified test union across 29 suites in `19.21s`) | `VERIFIED` |
-| **Independent Portable Project State Capsule (JSON)** | `state/SOVEREIGN_STATE_CAPSULE.json` | `5f9da75ec46045814ba217b0fa542a45a2242eddf738c098b1bf3199c5c7eed5` | Synced to local `state/` & `/Volumes/EXTssd/SovereignNexus_Backup/sovereign-independent-state/` | `RECORDED` |
-| **Independent Portable Project State Dashboard (MD)** | `state/SOVEREIGN_STATE_DASHBOARD.md` | `1800e823339f47d303d3f3e55f7c59209cccdc1ee06dc6b9b474edba84d97827` | Human & IDE-readable $O(1)$ Moat Catalog & Token Analytics Dashboard | `RECORDED` |
+| **Independent Portable Project State Capsule (JSON)** | `state/SOVEREIGN_STATE_CAPSULE.json` | `1aef9f62802c9338f387a87d7d52c90f7415f067239141e252cc1f3ea0d2f074` | Synced to local `state/` & `/Volumes/EXTssd/SovereignNexus_Backup/sovereign-independent-state/` | `RECORDED` |
+| **Independent Portable Project State Dashboard (MD)** | `state/SOVEREIGN_STATE_DASHBOARD.md` | `f506bbf0d37d7c659486c74893c99727217a9e46ca7ccf2d9a1757035331b5af` | Human & IDE-readable $O(1)$ Moat Catalog & Token Analytics Dashboard | `RECORDED` |
 | **Signed Frontier Math Solved Witness Bundle** | `state/FRONTIER_MATH_SOLVED_WITNESS_BUNDLE.json` | `febe46a23c22ef830a2027fb67e3827918c894bf9e9351fc812b163ff0b8fc3d` | Ed25519 + JCS signed witnesses: Cap Set $\mathbb{F}_3^4$ ($20$), Erdős-Sidon $B_2$ ($L^*=34$), No-3-In-Line ($20$) | `VERIFIED` |
 
 ### 23. Parallel 7-Worker Frontier Mathematical & AI Systems Optimization Prover (`MATH-04`–`MATH-07` & `AI-MATH-01`–`AI-MATH-03`)
@@ -622,6 +622,16 @@ negative_control_falsification:
 | **Parallel 7-Worker Math & AI Systems Prover Engine** | `src/parallel_frontier_math_and_ai_prover.py` | `c8cbcda30ef4c277de542845bece1db92e1fad4277a6a09fc22b7a65ac803feb` | 7 Concurrent Solvers: $\mathbb{F}_3^5$ Cap Set ($45$), Rank-7 Tensor ($343$), Barker-13 ($14.0833$), Schur $S(4)=44$, Smith-DP, Limbo-DP, $\Sigma^{-1}$ Council | `VERIFIED` |
 | **Parallel Math & AI Prover Verification Suite** | `tests/test_parallel_frontier_math_and_ai_prover.py` | `4d929fcc29d5f1908818fb1944aef8ff3e24dc8664fe9b54b0ec672a124278a1` | 4/4 passed (`245 / 245` unified test union across 30 suites, `17,549` constraints checked, `0` violations) | `VERIFIED` |
 | **Signed Parallel 7-Problem Witness Bundle** | `state/PARALLEL_MATH_AND_AI_SOLVED_BUNDLE.json` | `9db0f24fe40fb148aeb0596b08c50069a4d931e7bcb5e4727f86281eeb9f168e` | Ed25519 + RFC 8785 JCS signed bundle with `10,000 bps` `T4+` mutation-kill adequacy | `VERIFIED` |
+
+### 24. Proof-Carrying Contract (`PC2`) Escrow Airlock, Lean 4 (`by decide`) Witness Exporter, & `leanprover/comparator` Sandbox Auditor
+
+| Component / Subsystem | Physical File Location | Cryptographic SHA-256 Digest | Verification Harness / Protocol | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **PC2 Escrow Airlock & Lean 4 Comparator Exporter** | `src/proof_carrying_lean4_airlock.py` | `3a028433910d56f9b8851ae4d9f35d6407214a3fa82151efa7200082344d68d2` | `leanprover/comparator` 5-check axiom/definition auditor + PC2 escrow settlement | `VERIFIED` |
+| **PC2 Airlock & Lean 4 Comparator Test Suite** | `tests/test_proof_carrying_lean4_airlock.py` | `026f268dd423e792c0e0b4523051efacdc3f47b2373c9b6d2c64c4e8df15b8c7` | 3/3 passed (`248 / 248` unified test union across 31 suites) | `VERIFIED` |
+| **Standalone One-Command Reproducibility Harness** | `scripts/verify_reproduce.sh` | `a0618980182fba6e3329a0cfc065bcccfff5191f8a7630f3e202bd46f9f78c3a` | Runs all 4 `AGENTS.md` compliance gates, Sections 22–24 provers, and 500-ep chaos suite | `VERIFIED` |
+| **Exported Lean 4 Proof Modules & Comparator Config** | `proofs/comparator_config.json` | `f19205bdd5aaa7931189c665edcddb6b24d47acd7508fd978a5bc70a8e0e276b` | `Math06Barker13.lean` (`74dd8889...`), `Math02Golomb8.lean` (`9b9502b6...`), `FinSec15c35PreTrade.lean` (`a94aa79a...`) | `RECORDED` |
+
 
 
 

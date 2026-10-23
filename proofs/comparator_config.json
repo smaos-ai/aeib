@@ -1,0 +1,43 @@
+{
+  "challenges": [
+    {
+      "definitions_sha256": "sha256:d6c51300eee9354060b0fce5b5815830ecb67892ef99b1e63195018185499b63",
+      "permitted_axioms": [
+        "propext",
+        "Quot.sound",
+        "Classical.choice"
+      ],
+      "problem_id": "MATH-06-LABS-BARKER-13",
+      "theorem_header_sha256": "sha256:676e99bc3ff54facffa00d018efba6f049e09d2d3b4b43dc4f99d71b73895648",
+      "theorem_names": [
+        "math06_labs_barker13_optimal"
+      ]
+    },
+    {
+      "definitions_sha256": "sha256:d03517043c474705302b78652d685b0b7e32c77600a5726d44a46476ad0a502f",
+      "permitted_axioms": [
+        "propext",
+        "Quot.sound",
+        "Classical.choice"
+      ],
+      "problem_id": "MATH-02-ERDOS-SIDON-GOLOMB-8",
+      "theorem_header_sha256": "sha256:c2fb8e4e9f1416a689464bcff0ed72f0fa1154b711da7ad19266b9a7d7f48bd8",
+      "theorem_names": [
+        "math02_golomb8_optimal"
+      ]
+    },
+    {
+      "definitions_sha256": "sha256:7abb4253c1c1cae3e6c9d9123ae7d57e2d4ed043e86d9b4dcaa25faa8f3ea568",
+      "permitted_axioms": [
+        "propext",
+        "Quot.sound",
+        "Classical.choice"
+      ],
+      "problem_id": "FIN-SEC-15C3-5-PRETRADE",
+      "theorem_header_sha256": "sha256:485853aa1b9bb5849598808346a3f880a0da9370442db4b54bd79f2fdd837c3b",
+      "theorem_names": [
+        "sec_15c3_5_pretrade_compliance"
+      ]
+    }
+  ]
+}

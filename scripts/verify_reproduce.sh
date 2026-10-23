@@ -14,10 +14,11 @@ echo "[2/5] Running Zero-Mock & Cryptographic AST Purity Gates..."
 python3 compliance/ast_purity.py .
 python3 compliance/no_mock_enforcer.py
 
-echo "[3/5] Executing Section 22-24 Math Provers, Lean 4 Exporter, & O(1) State Capsule..."
+echo "[3/5] Executing Section 22-25 Math Provers, Lean 4 Exporter, CEGIS Gate, & O(1) State Capsule..."
 python3 -m src.sovereign_state_capsule_and_math_prover --self-test
 python3 -m src.parallel_frontier_math_and_ai_prover --self-test
 python3 -m src.proof_carrying_lean4_airlock --self-test
+python3 -m src.vendor_independent_prepush_cegis_gate --self-test
 
 echo "[4/5] Running Pytest Verification Suites..."
 pytest tests/test_industrial_protection_matrix.py \
@@ -27,7 +28,8 @@ pytest tests/test_industrial_protection_matrix.py \
        tests/test_toyota_5why_semantic_rca_and_token_analytics.py \
        tests/test_sovereign_state_capsule_and_math_prover.py \
        tests/test_parallel_frontier_math_and_ai_prover.py \
-       tests/test_proof_carrying_lean4_airlock.py -v
+       tests/test_proof_carrying_lean4_airlock.py \
+       tests/test_vendor_independent_prepush_cegis_gate.py -v
 
 echo "[5/5] Running Deterministic 500-Episode Execution Integrity Benchmark (seed=42)..."
 python3 benchmarks/aeib_execution_integrity/run_episodes.py --episodes 500 --seed 42

@@ -611,8 +611,8 @@ negative_control_falsification:
 | :--- | :--- | :--- | :--- | :---: |
 | **Independent State Capsule, Moat Proxy, & Math Prover Engine** | `src/sovereign_state_capsule_and_math_prover.py` | `7051437f3201abf29c3261cb9d4ca86c81ed32a630ecb1f8507a055382ee392f` | $O(1)$ State String (`0xfff` 12-moat bitmask), Auto-Proxy, & 3 Live Solved Math Targets | `VERIFIED` |
 | **State Capsule & Frontier Math Prover Test Suite** | `tests/test_sovereign_state_capsule_and_math_prover.py` | `71f121bb139a8a5ccc138e15d5b5c3fb1df5acbf51b1f361db88b726de558788` | 4/4 passed (`241 / 241` unified test union across 29 suites in `19.21s`) | `VERIFIED` |
-| **Independent Portable Project State Capsule (JSON)** | `state/SOVEREIGN_STATE_CAPSULE.json` | `1aef9f62802c9338f387a87d7d52c90f7415f067239141e252cc1f3ea0d2f074` | Synced to local `state/` & `/Volumes/EXTssd/SovereignNexus_Backup/sovereign-independent-state/` | `RECORDED` |
-| **Independent Portable Project State Dashboard (MD)** | `state/SOVEREIGN_STATE_DASHBOARD.md` | `f506bbf0d37d7c659486c74893c99727217a9e46ca7ccf2d9a1757035331b5af` | Human & IDE-readable $O(1)$ Moat Catalog & Token Analytics Dashboard | `RECORDED` |
+| **Independent Portable Project State Capsule (JSON)** | `state/SOVEREIGN_STATE_CAPSULE.json` | `92e48f19ba862dc590ba82b8462b355a6fbcf0a4115de67fb65ce4d9a7102893` | Synced to local `state/` & `/Volumes/EXTssd/SovereignNexus_Backup/sovereign-independent-state/` | `RECORDED` |
+| **Independent Portable Project State Dashboard (MD)** | `state/SOVEREIGN_STATE_DASHBOARD.md` | `52c6956ebc379ab8589f3341f299253c40f1ecf8526e2493b5a1c49563e537e3` | Human & IDE-readable $O(1)$ Moat Catalog & Token Analytics Dashboard | `RECORDED` |
 | **Signed Frontier Math Solved Witness Bundle** | `state/FRONTIER_MATH_SOLVED_WITNESS_BUNDLE.json` | `febe46a23c22ef830a2027fb67e3827918c894bf9e9351fc812b163ff0b8fc3d` | Ed25519 + JCS signed witnesses: Cap Set $\mathbb{F}_3^4$ ($20$), Erdős-Sidon $B_2$ ($L^*=34$), No-3-In-Line ($20$) | `VERIFIED` |
 
 ### 23. Parallel 7-Worker Frontier Mathematical & AI Systems Optimization Prover (`MATH-04`–`MATH-07` & `AI-MATH-01`–`AI-MATH-03`)
@@ -629,8 +629,16 @@ negative_control_falsification:
 | :--- | :--- | :--- | :--- | :---: |
 | **PC2 Escrow Airlock & Lean 4 Comparator Exporter** | `src/proof_carrying_lean4_airlock.py` | `3a028433910d56f9b8851ae4d9f35d6407214a3fa82151efa7200082344d68d2` | `leanprover/comparator` 5-check axiom/definition auditor + PC2 escrow settlement | `VERIFIED` |
 | **PC2 Airlock & Lean 4 Comparator Test Suite** | `tests/test_proof_carrying_lean4_airlock.py` | `026f268dd423e792c0e0b4523051efacdc3f47b2373c9b6d2c64c4e8df15b8c7` | 3/3 passed (`248 / 248` unified test union across 31 suites) | `VERIFIED` |
-| **Standalone One-Command Reproducibility Harness** | `scripts/verify_reproduce.sh` | `a0618980182fba6e3329a0cfc065bcccfff5191f8a7630f3e202bd46f9f78c3a` | Runs all 4 `AGENTS.md` compliance gates, Sections 22–24 provers, and 500-ep chaos suite | `VERIFIED` |
+| **Standalone One-Command Reproducibility Harness** | `scripts/verify_reproduce.sh` | `07986deb7c7768e901a0151f38cb1a9e0ae1251ccb9215f319973c19bd7816c1` | Runs all 4 `AGENTS.md` compliance gates, Sections 22–25 provers, and 500-ep chaos suite | `VERIFIED` |
 | **Exported Lean 4 Proof Modules & Comparator Config** | `proofs/comparator_config.json` | `f19205bdd5aaa7931189c665edcddb6b24d47acd7508fd978a5bc70a8e0e276b` | `Math06Barker13.lean` (`74dd8889...`), `Math02Golomb8.lean` (`9b9502b6...`), `FinSec15c35PreTrade.lean` (`a94aa79a...`) | `RECORDED` |
+
+### 25. Vendor-Independent Pre-Push CI/CD Gate: Metamorphic Oracles (`MR-01`–`MR-05`), `CEGIS` Shrunk-Counterexample Repair, & Asymptotic Big-O Complexity Enforcer
+
+| Component / Subsystem | Physical File Location | Cryptographic SHA-256 Digest | Verification Harness / Protocol | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **Vendor-Independent Pre-Push CEGIS & Big-O Gate** | `src/vendor_independent_prepush_cegis_gate.py` | `557a9db822bd79449cc82495f593b9effe085470e029f1a8ec1d7f4938b4b0b1` | 5 Metamorphic Oracles (`169` trials, `0` violations), Zeller `ddmin` Shrinker (`9,515 bps` token cut), & Big-O Doubling Gate | `VERIFIED` |
+| **Vendor-Independent Pre-Push Gate Test Suite** | `tests/test_vendor_independent_prepush_cegis_gate.py` | `7de4fcafb28e3892a060bdba224f0ecf08edb203e4c005f4284480740ccbd65b` | 4/4 passed (`252 / 252` unified test union across 32 suites in `6.22s`) | `VERIFIED` |
+
 
 
 

@@ -1,11 +1,11 @@
 ---
 name: decide
-description: Epistemic Adversarial Research, Cross-Hemisphere Council, & 5-Stage Recursive Parallel Evidence-Producing Decision Engine (v5.0). Formalizes CURRENT -> MISSED(CURRENT) -> BRAINSTORM -> NEXT with RuleTrek AST Rule Dependency Graphs (arXiv:2610.19698), Dossier Persistent Research Ledger, FlowSearch Knowledge DAG (arXiv:2510.08521), AgentDisCo Critic-Generator (arXiv:2605.11732), OpenSaC Search-as-Code (arXiv:2610.25779), WebSwarm Recursive Delegation (arXiv:2607.08662), Argus Jigsaw Assembly (arXiv:2605.16217), the Decide | Ask | Defer 3-Action Policy (arXiv:2610.04542), Asymmetric Evidence Dominance (arXiv:2605.00914), and 10 Action Modes (including --falsify, --deep, --security, --release, --compliance). Trigger on /decide, $decide, 'what we missed', or 'adversarial research'.
+description: Epistemic Adversarial Research, Cross-Hemisphere Council, & 5-Stage Recursive Parallel Evidence-Producing Decision Engine (v5.1). Formalizes CURRENT -> MISSED(CURRENT) -> BRAINSTORM -> NEXT with Multi-Flag Join-Semilattice Composition, T4+ Mutation-Killed Oracles (MLReproMutate), CAVEAT Correlated-Error Discounting, POIROT Citation Echo Deduplication, Epistemic Half-Life Decay, RuleTrek AST Rule Dependency Graphs (arXiv:2610.19698), Dossier Persistent Research Ledger, FlowSearch Knowledge DAG (arXiv:2510.08521), AgentDisCo Critic-Generator (arXiv:2605.11732), OpenSaC Search-as-Code (arXiv:2610.25779), WebSwarm Recursive Delegation (arXiv:2607.08662), Argus Jigsaw Assembly (arXiv:2605.16217), the Decide | Ask | Defer 3-Action Policy (arXiv:2610.04542), Asymmetric Evidence Dominance (arXiv:2605.00914), and 10 Action Modes (including --falsify, --deep, --security, --release, --compliance). Trigger on /decide, $decide, 'what we missed', or 'adversarial research'.
 ---
 
-# `/decide` v5.0 — 5-Stage Recursive Parallel Evidence-Producing Decision Engine & Cross-Hemisphere Council
+# `/decide` v5.1 — 5-Stage Recursive Parallel Evidence-Producing Decision Engine & Meta-Hardened Council
 
-The `/decide` v5.0 skill (`src/decide_v5_recursive_evidence_engine.py`, `tools/ruletrek_cross_model_decide_engine.py`, `src/decide_evaluation_rate_and_decay_solver.py`, `src/decide_autonomous_query_research_engine.py`, `tools/cross_hemisphere_council_decide.py`, & `src/decide_categorical_epistemic_engine.py`) upgrades `/decide` from a research synthesizer into a **5-Stage Recursive Parallel Evidence-Producing Decision Engine**.
+The `/decide` v5.1 skill (`src/decide_v51_meta_hardening_engine.py`, `src/decide_v5_recursive_evidence_engine.py`, `tools/ruletrek_cross_model_decide_engine.py`, `src/decide_evaluation_rate_and_decay_solver.py`, `src/decide_autonomous_query_research_engine.py`, `tools/cross_hemisphere_council_decide.py`, & `src/decide_categorical_epistemic_engine.py`) upgrades `/decide` into a **Meta-Hardened 5-Stage Recursive Parallel Evidence-Producing Decision Engine**.
 
 Every `/decide` execution returns four mandatory artifacts inside a signed JSON/Markdown envelope:
 1. **A decision-ready recommendation** (`VALIDATED_RECOMMENDATION` | `CONDITIONAL_RECOMMENDATION` | `CONDITIONAL_NO` | `HOLD` | `ASK`)
@@ -31,6 +31,12 @@ Every `/decide` execution returns four mandatory artifacts inside a signed JSON/
    A single minority model backed by a reproduced counterexample (`T3`/`T4`) or verified primary source (`T2`) overrides unverified majority consensus, defeating the 32.3% Oracle Gap and 85.5% sycophantic conformity.
 7. **Law 7 — Four-Decay Mathematical Compensation (`SAKE` `arXiv:2602.09517`, `DPI` `arXiv:2604.02460`)**:
    Maintains `9821 bps` (`98.21%`) deep-hop evidence utilization via `SAKE` dual-anchoring and prevents Shannon Data Processing Inequality handoff loss by requiring content-addressed raw evidence spans (`caid`) at every subagent handoff.
+8. **Law 8 — Multi-Flag Join-Semilattice Composition (`src/decide_v51_meta_hardening_engine.py`)**:
+   When multiple flags are invoked simultaneously (e.g., `/decide --research --deep --compliance --security --falsify --benchmark`), `MultiFlagLatticeComposer` composes the join-semilattice union of all mode obligations ($\bigvee_{m \in \text{Flags}} \mathcal{O}(m)$) so zero constraints are dropped.
+9. **Law 9 — `T4+` Mutation-Killed Oracle Verification (`MLReproMutate` & `The Verification Horizon`, 2026)**:
+   Prevents vacuous `T4` tests by injecting synthetic boundary and cryptographic mutants into the invariant under test (`MutationKilledOracleVerifier`), requiring a `10000 bps` (`100%`) mutant kill rate (`qualifies_as_t4_plus = True`).
+10. **Law 10 — `CAVEAT` Pre-Training Error-Correlation Discounting, `POIROT` Origin Deduplication, & Epistemic Half-Life (`CaveatAndPoirotMetaAuditor`)**:
+    Collapses secondary citation echo-chambers sharing a `root_origin_caid`, discounts correlated LLM agreement via $N_{\text{eff}} = N / (1 + (N - 1)\rho_{\text{corr}})$, requires a non-LLM orthogonal witness whenever $\rho_{\text{corr}} \ge 0.30$, and halts on expired supply-chain/CVE half-life ($\tau_{1/2}$).
 
 ---
 

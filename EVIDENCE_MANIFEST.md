@@ -590,6 +590,15 @@ negative_control_falsification:
 | **Sovereign Agent Blueprint & Beads Frontier Compiler** | `src/sovereign_agent_blueprint.py` | `1adc5d84da56bb81ef9b546fc04f600de80b7ca2629cf95a2b85cd471355654f` | Epistemic + Ontic JCS compiler, Ed25519 verification, & `steveyegge/beads` `bd ready` | `VERIFIED` |
 | **Sovereign Decade-Dominance Verification Suite** | `tests/test_sovereign_decade_dominance_suite.py` | `0da71d252b78a1c0f432cd1ddf125e96c804d4fac7a08306bd62f760ac039ad2` | 4/4 passed (`209 / 209` unified test union across 24 suites in `6.18s`) | `VERIFIED` |
 
+### 20. `/decide` v5.1 Meta-Hardening Engine: Multi-Flag Semilattice, `T4+` Mutation-Killed Oracles (`MLReproMutate`), `CAVEAT` Error-Correlation Discounting, & `POIROT` Origin Deduplication
+
+| Component / Subsystem | Physical File Location | Cryptographic SHA-256 Digest | Verification Harness / Protocol | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **`/decide` v5.1 Meta-Hardening Engine** | `src/decide_v51_meta_hardening_engine.py` | `d0288cdca2abb78497b5e056c221264730d0dbdc66ea1253117c5473de401804` | Multi-Flag Semilattice, `T4+` 10000 bps Mutation Kill, `CAVEAT` $N_{\text{eff}}$, `POIROT` Dedup, $\tau_{1/2}$ | `VERIFIED` |
+| **`/decide` v5.1 Meta-Hardening Test Suite** | `tests/test_decide_v51_meta_hardening_engine.py` | `103085dbd3bb5d5c42efe4a07591ed5624016f2e5072b276039b9a5b1f1d2d67` | 4/4 passed (`213 / 213` unified test union across 25 suites in `6.47s`) | `VERIFIED` |
+| **`/decide` v5.1 Skill Definition (Laws 1–10)** | `.agents/skills/decide/SKILL.md` | `87630ea03c5841303d503c06d1831a2c3878e2c40941135c499ff7fcd051a79d` | 10 Mathematical Laws (`SAKE`, `DPI`, `RuleTrek`, `MLReproMutate`, `CAVEAT`, `POIROT`) | `VERIFIED` |
+
+
 
 
 

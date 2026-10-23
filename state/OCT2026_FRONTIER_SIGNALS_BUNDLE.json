@@ -1,0 +1,99 @@
+{
+  "all_passed": true,
+  "bundle_caid": "sha256:6f0630e46ad8beb30029f77d375a2f825747c031eb015f601278885821a57105",
+  "parallel_wall_time_ms": 2.34,
+  "schema_version": "SOVEREIGN-OCT2026-FRONTIER-SIGNALS-V1",
+  "signals": [
+    {
+      "checks_executed": 497,
+      "details": {
+        "batch_400_approved_count": 244,
+        "batch_400_decisions_count": 400,
+        "batch_400_latency_ms": 0.099,
+        "cohere_rerank5_pro_reference_ms": 11700.0,
+        "phonon_80ms_frame_budget_ok": true,
+        "rerank_96_docs_result": {
+          "documents_evaluated": 96,
+          "focused_tokens": 576,
+          "latency_ms": 0.374,
+          "raw_tokens": 3984,
+          "retained_count": 24,
+          "token_reduction_bps": 8554
+        },
+        "ripl_p95_reference_ms": 34.6
+      },
+      "improvement_bps": 5054,
+      "industry_baseline_metric": 3500.0,
+      "passed": true,
+      "signal_id": "SIGNAL-01-SUB50MS-DECISIONS-AND-CALIBRATED-RERANK",
+      "sovereign_verified_metric": 8554.0,
+      "title": "Sub-50ms 400-Question Batch Decisions & 96-Doc Calibrated Context-Focus Reranker",
+      "violations_found": 0,
+      "witness_caid": "sha256:4c2015a23a8799a2de96919b499b7e8035ca19632382a68fe197e1d4eba5cbcb"
+    },
+    {
+      "checks_executed": 3,
+      "details": {
+        "clean_interface_verdict": "VERIFIED_SAFE_EVOLVED_INTERFACE",
+        "evolved_macro_steps": 3,
+        "missing_caid_rejected": "HALT_EVOLVED_INTERFACE_MISSING_CAID",
+        "raw_primitive_steps": 12,
+        "step_compression_ratio_x100": 400,
+        "unsafe_ast_rejected": "HALT_EVOLVED_INTERFACE_UNSAFE_AST"
+      },
+      "improvement_bps": 7500,
+      "industry_baseline_metric": 12.0,
+      "passed": true,
+      "signal_id": "SIGNAL-02-AGENT-S4-GOVERNED-TOOL-EVOLUTION-AIRLOCK",
+      "sovereign_verified_metric": 3.0,
+      "title": "Governed Agent-S4 Self-Evolving Python Interface Airlock (4.0x Compression)",
+      "violations_found": 0,
+      "witness_caid": "sha256:5ca2ceecc0db2445d7fea916aff621156591e16814cb6047cc44e29cf8e888c3"
+    },
+    {
+      "checks_executed": 6,
+      "details": {
+        "litellm_1_107_0_verdict": "HALT_POISONED_DEPENDENCY_LITELLM_1_107_0",
+        "nodejs_20_eol_verdict": "HALT_VULNERABLE_NODEJS_BROTLI_RCE_EOL_NODE20",
+        "nodejs_22_23_0_verdict": "HALT_VULNERABLE_NODEJS_BROTLI_RCE",
+        "nodejs_24_22_1_clean_verdict": "VERIFIED_CLEAN_RUNTIME_AND_PACKAGE",
+        "nominal_auth_verdict": "OK_NOMINAL_AUTH_RATE",
+        "storm0940_2900_rpm_verdict": "HALT_STORM0940_AGENT_VELOCITY_BREAKER"
+      },
+      "improvement_bps": 10000,
+      "industry_baseline_metric": 0.0,
+      "passed": true,
+      "signal_id": "SIGNAL-03-LITELLM-NODE-BROTLI-STORM0940-DEFENSE",
+      "sovereign_verified_metric": 10000.0,
+      "title": "LiteLLM v1.107.0 Poison Quarantine, Node.js Brotli RCE Gate, & Storm-0940 Breaker",
+      "violations_found": 0,
+      "witness_caid": "sha256:c992beb04c3d7ba01511d8bd40c78d5534b31aae7877198a50d12e8ca5b84a0c"
+    },
+    {
+      "checks_executed": 20,
+      "details": {
+        "gpt6_astra_cobol_reference_bps": 7210,
+        "gpt6_astra_multilang_avg_reference_bps": 8740,
+        "omniparse_verdict_bundle_caid": "sha256:c48e11066530a16396b6a88a9eae4f35df57e07e00771f6416240d288dc3148e",
+        "pass_rate_bps": 10000,
+        "passed_tests": 20,
+        "total_acid_and_cobol_tests": 20,
+        "wal_commit_tip_sha256": "sha256:d49e507a1419cc80fa8c2f8b61796d40ed8d90813c9f4fce98cf91d9b104edff",
+        "zero_model_calls_in_scorer": true
+      },
+      "improvement_bps": 2790,
+      "industry_baseline_metric": 7210.0,
+      "passed": true,
+      "signal_id": "SIGNAL-04-MULTILANGBENCH-OMNIPARSE-ZERO-MODEL-ACID-SCORER",
+      "sovereign_verified_metric": 10000.0,
+      "title": "MultiLangBench SQLite B-Tree/WAL ACID & OmniParseBench Zero-Model Scorer",
+      "violations_found": 0,
+      "witness_caid": "sha256:d80a121076b88d13b35699dbcbd7cbaa64d3e64eca3e9ccb2c8d4907c546269d"
+    }
+  ],
+  "signature_b64": "bXMxd0SKJkFxS+YaEls7wlh7tYcxrXfrDPA+zk8RUyWkYaaZSpI8yIJ4OQDIZT3keDnbYP0yGr7oW/yYRtTLCg==",
+  "signer_public_key_b64": "OYgvbZQwbyX+CZYxRtcMLXdlCus4A2+X/3b+3oTf6X0=",
+  "total_checks_executed": 526,
+  "total_violations": 0,
+  "workers_executed": 4
+}

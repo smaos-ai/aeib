@@ -1,16 +1,16 @@
 # SovereignNexus Independent O(1) State Capsule Dashboard
 
 - **Capsule Version:** `5.2.0`
-- **Capsule SHA-256:** `e7b211e75369bf560e244ea46ffb003be6f6ea50dd8f246b419ef74a17ac068e`
-- **Evidence Manifest Sections:** `32`
-- **Source & Tool Modules:** `177`
-- **Verified Pytest Suites:** `221`
+- **Capsule SHA-256:** `866eddfc0f7415eccbdb3753d403def4848b53978eda5d6a7a922c3f7d066013`
+- **Evidence Manifest Sections:** `34`
+- **Source & Tool Modules:** `179`
+- **Verified Pytest Suites:** `222`
 - **12-Moat Bitmask:** `0xfff` (`4095`)
 
 ## O(1) Constant-Time Context Injection String
 
 ```text
-[SOVEREIGN_STATE_O1 v5.2 | Sections=32 | Modules=177 | TestSuites=221 | MoatMask=0xfff (0:EO1_LATCH|1:CONTEXTCART_AST|2:TOKEN_ECONOMIZER|3:RULETREK_DAG|4:TOYOTA_5WHY_RRF|5:BUILDER_BREAKER_T4PLUS|6:CREDENTIAL_STARVATION|7:UDS_PEERCRED|8:HYBRID_PQC_SCITT|9:ZK_TLS_BUDGET|10:BPF_SEATBELT_SUBSTRATE|11:ALPHAEVOLVE_MATH_SOLVER) | TokenCut=78.34% (Argon4:$4.43->$0.93, Cascade:$0.38, Flash3.8:$0.73->$0.15) | Gates=ZoneBoundary+ASTPurity+NoMock+500EpChaos]
+[SOVEREIGN_STATE_O1 v5.2 | Sections=34 | Modules=179 | TestSuites=222 | MoatMask=0xfff (0:EO1_LATCH|1:CONTEXTCART_AST|2:TOKEN_ECONOMIZER|3:RULETREK_DAG|4:TOYOTA_5WHY_RRF|5:BUILDER_BREAKER_T4PLUS|6:CREDENTIAL_STARVATION|7:UDS_PEERCRED|8:HYBRID_PQC_SCITT|9:ZK_TLS_BUDGET|10:BPF_SEATBELT_SUBSTRATE|11:ALPHAEVOLVE_MATH_SOLVER) | TokenCut=78.34% (Argon4:$4.43->$0.93, Cascade:$0.38, Flash3.8:$0.73->$0.15) | Gates=ZoneBoundary+ASTPurity+NoMock+500EpChaos]
 ```
 
 ## Combinatorial Moat Catalog

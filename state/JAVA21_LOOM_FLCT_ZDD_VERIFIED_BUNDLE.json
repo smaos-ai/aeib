@@ -1,0 +1,126 @@
+{
+  "all_passed": true,
+  "bundle_caid": "sha256:3d44b0c4f6d074e68a56fe58f37fce858019ee31458e926b200d59b6c3b9b107",
+  "parallel_wall_time_ms": 598,
+  "schema_version": "SOVEREIGN-JAVA21-LOOM-FLCT-ZDD-V1",
+  "signature_b64": "lQc+EppAnhdHEim0+N33KwcQXXgvdWcMCi6RTo33AXIvt0odX6olLeAfl+XaXDUwsQtMA9IH9emib1sBfQhkAA==",
+  "signer_public_key_b64": "x0ilh9/08s59TbUC1cgrdOySCOejDk64r7kJrPXui2I=",
+  "total_checks_executed": 3334,
+  "total_violations": 0,
+  "workers": [
+    {
+      "achieved_metric": 20,
+      "baseline_metric": 2,
+      "checks_executed": 2192,
+      "details": {
+        "compiled_openjdk21_output": {
+          "flct_collinear_violations": 0,
+          "flct_nodes_explored": 19120,
+          "flct_zero_copy_capset_f3_4_size": 20,
+          "golomb_8_mark_span": 34,
+          "golomb_8_mark_valid": true,
+          "java_version": "21.0.2",
+          "total_runtime_micros": 54875,
+          "virtual_threads_completed": 1024,
+          "virtual_threads_is_virtual_verified": 1024,
+          "virtual_threads_spawned": 1024,
+          "witness_caid": "sha256:578b53b8b716582f25811d70c61d89b8c93f208e81faf634a892eea112ae81c0"
+        },
+        "naive_draft_falsification": {
+          "duplicate_points_bug_confirmed": true,
+          "heap_array_allocations": 8,
+          "naive_path_output": [
+            0,
+            0,
+            1,
+            0,
+            0,
+            1,
+            0,
+            0
+          ],
+          "requested_target_size": 8,
+          "unique_points_count": 2
+        }
+      },
+      "improvement_bps": 9000,
+      "passed": true,
+      "title": "Compiled OpenJDK 21 Virtual-Thread (1,024 Fibers) & 128-Bit Zero-Copy FLCT Prover",
+      "violations_found": 0,
+      "witness_caid": "sha256:7b4f971f57f109262f1b5d8b3f4243aae10e7048bdf6b31aff7628af830b9b57",
+      "worker_id": "JAVA21-LOOM-FLCT-NATIVE-BRIDGE"
+    },
+    {
+      "achieved_metric": 28,
+      "baseline_metric": 2047,
+      "checks_executed": 1024,
+      "details": {
+        "canonical_zdd_nodes": 28,
+        "compression_bps": 9863,
+        "n_vars": 10,
+        "raw_decision_tree_nodes": 2047,
+        "zdd_root_id": 27
+      },
+      "improvement_bps": 9863,
+      "passed": true,
+      "title": "Donald Knuth Zero-Suppressed Decision Diagram (ZDD) Canonical DAG Compression",
+      "violations_found": 0,
+      "witness_caid": "sha256:ceab9d9fe37383099603ea3f3528a9a1e0cbf4e8286000bc1e74771af6196155",
+      "worker_id": "KNUTH-DANCING-CELLS-ZDD-COMPRESSION"
+    },
+    {
+      "achieved_metric": 198,
+      "baseline_metric": 1569,
+      "checks_executed": 114,
+      "details": {
+        "distilled_generator_audit": {
+          "conceptual_compression_bps": 8738,
+          "exact_reconstruction_verified": true,
+          "generator_law_bytes": 198,
+          "passed": true,
+          "raw_witness_bytes": 1569,
+          "status_code": "VERIFIED_HUMAN_COMPREHENSIBLE_GENERATOR"
+        },
+        "opaque_brute_force_audit": {
+          "conceptual_compression_bps": -402,
+          "exact_reconstruction_verified": true,
+          "generator_law_bytes": 1632,
+          "passed": false,
+          "raw_witness_bytes": 1569,
+          "status_code": "HALT_OPAQUE_BRUTE_FORCE_WITNESS_REJECTED"
+        }
+      },
+      "improvement_bps": 8738,
+      "passed": true,
+      "title": "Sept 2026 Fields-Medalist Conceptual Compression & Invariant Distillation Gate",
+      "violations_found": 0,
+      "witness_caid": "sha256:a338bf6f44c7c62c9792bbe5fdc6f58d63087c3bafcca99da802d22f6ee991cb",
+      "worker_id": "FIELDS-MEDALIST-CONCEPTUAL-COMPRESSION-GATE"
+    },
+    {
+      "achieved_metric": 121,
+      "baseline_metric": 517000,
+      "checks_executed": 4,
+      "details": {
+        "audio_duration_ms": 720,
+        "cloud_egress_bytes": 0,
+        "halt_code": "HALT_ASK_OR_ASSUME_VOI_THRESHOLD",
+        "latent_frames_80ms": 9,
+        "model_profile": "GRADIUM_PHONON_31M_APACHE_2_0_LOCAL",
+        "rfc9470_stepup_signature_b64": "TCKTrTz8KLciuzYH0g1ZHWkXzOIxc5IdKuOJIqfCCEVPXdP2DZQ39oLb13GNrjS6zpx9KCewz8d4i3fwZrNsBQ==",
+        "sample_rate_hz": 24000,
+        "target_action_caid": "sha256:cab6f80e2c699ae12cd9c273fb022751b8238231fb50b89b76aa00c78765bfd6",
+        "ttfa_micros": 121,
+        "ttfa_under_6900_micros_budget": true,
+        "utterance_transcript": "ALERT HALT_ASK_OR_ASSUME_VOI_THRESHOLD ON ACTION sha256:cab6f80e2c6 REQUIRES STEP UP APPROVAL"
+      },
+      "improvement_bps": 9998,
+      "passed": true,
+      "title": "Gradium Phonon 31m Sub-7ms Zero-Egress Edge Voice Alert & RFC 9470 Step-Up Binder",
+      "violations_found": 0,
+      "witness_caid": "sha256:d5726684dff90b853316ef1e9fe0903ccc6dff02a9ea7e834d51f1294b61c943",
+      "worker_id": "GRADIUM-PHONON-EDGE-STEPUP-VOICE-ALERT-GATE"
+    }
+  ],
+  "workers_executed": 4
+}

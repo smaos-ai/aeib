@@ -14,7 +14,7 @@ echo "[2/5] Running Zero-Mock & Cryptographic AST Purity Gates..."
 python3 compliance/ast_purity.py .
 python3 compliance/no_mock_enforcer.py
 
-echo "[3/5] Executing Section 22-28 Math Provers, Lean 4 Exporter, CEGIS Gate, Urgent 2026 & Oct 2026 Signals, & O(1) State Capsule..."
+echo "[3/5] Executing Section 22-29 Math Provers, Lean 4 Exporter, CEGIS Gate, Urgent 2026 & Oct 2026 Signals, Java 21 Loom+FLCT/ZDD Bridge, & O(1) State Capsule..."
 python3 -m src.sovereign_state_capsule_and_math_prover --self-test
 python3 -m src.parallel_frontier_math_and_ai_prover --self-test
 python3 -m src.proof_carrying_lean4_airlock --self-test
@@ -22,6 +22,7 @@ python3 -m src.vendor_independent_prepush_cegis_gate --self-test
 python3 -m src.urgent_open_problems_and_frontier_experiment_engine --self-test
 python3 tools/parallel_open_frontier_and_urgent_solver.py
 python3 -m src.oct2026_frontier_signals_and_agent_s4_airlock --self-test
+python3 -m src.java21_loom_flct_zdd_bridge_engine --self-test
 
 echo "[4/5] Running Pytest Verification Suites..."
 pytest tests/test_industrial_protection_matrix.py \
@@ -35,7 +36,8 @@ pytest tests/test_industrial_protection_matrix.py \
        tests/test_vendor_independent_prepush_cegis_gate.py \
        tests/test_urgent_open_problems_and_frontier_experiment_engine.py \
        tools/parallel_open_frontier_and_urgent_solver.py \
-       tests/test_oct2026_frontier_signals_and_agent_s4_airlock.py -v
+       tests/test_oct2026_frontier_signals_and_agent_s4_airlock.py \
+       tests/test_java21_loom_flct_zdd_bridge_engine.py -v
 
 echo "[5/5] Running Deterministic 500-Episode Execution Integrity Benchmark (seed=42)..."
 python3 benchmarks/aeib_execution_integrity/run_episodes.py --episodes 500 --seed 42

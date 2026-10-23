@@ -1,0 +1,264 @@
+{
+  "bundle_sha256": "ec687e218fcc683cb2988ea8234dda7c9f45f1ccb3b46d7eaa425b6e37a3141c",
+  "bundle_version": "5.2.0",
+  "public_key_b64": "N5nhwtzwhoiG83qLEs81Z6iKwf8TlWUcbR2ko3U/zao=",
+  "signature_b64": "e7mf97lsASiYQ8Us0sqRgLYtdpNs9QYMDyOfnShjoEmGhzkYLjnrCrO8NPa0QrPKQ+w6tHftS+f61wYVtGShBA==",
+  "t4_plus_mutation_adequacy": {
+    "kill_rate_bps": 10000,
+    "mutants_injected": 3,
+    "mutants_killed": 3,
+    "qualifies_as_t4_plus": true
+  },
+  "witnesses": [
+    {
+      "challenge_id": "MATH-01-CAPSET-F3-4",
+      "constraint_violations_found": 0,
+      "improvement_bps": 2500,
+      "is_globally_optimal_or_bound_tight": true,
+      "mathematical_domain": "Additive Combinatorics / Finite Field Geometry (F_3^4)",
+      "naive_llm_or_greedy_score": 16,
+      "solution_elements": [
+        [
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          2,
+          2,
+          2,
+          2
+        ],
+        [
+          1,
+          1,
+          1,
+          2
+        ],
+        [
+          2,
+          2,
+          2,
+          1
+        ],
+        [
+          1,
+          1,
+          2,
+          1
+        ],
+        [
+          2,
+          2,
+          1,
+          2
+        ],
+        [
+          1,
+          1,
+          2,
+          2
+        ],
+        [
+          2,
+          2,
+          1,
+          1
+        ],
+        [
+          1,
+          2,
+          1,
+          1
+        ],
+        [
+          2,
+          1,
+          2,
+          2
+        ],
+        [
+          1,
+          2,
+          1,
+          2
+        ],
+        [
+          2,
+          1,
+          2,
+          1
+        ],
+        [
+          1,
+          2,
+          2,
+          0
+        ],
+        [
+          2,
+          1,
+          1,
+          0
+        ],
+        [
+          0,
+          1,
+          1,
+          0
+        ],
+        [
+          0,
+          2,
+          2,
+          0
+        ],
+        [
+          1,
+          0,
+          2,
+          0
+        ],
+        [
+          2,
+          0,
+          1,
+          0
+        ],
+        [
+          1,
+          2,
+          0,
+          0
+        ],
+        [
+          2,
+          1,
+          0,
+          0
+        ]
+      ],
+      "sovereign_verified_score": 20,
+      "title": "FunSearch / Erdos-Moser Maximum Cap Set in F_3^4 (No 3-Term Affine Line)",
+      "total_constraints_checked": 1140,
+      "witness_sha256": "b4ca431554b48d55d5d204a0a9a7b3fb98eb8f9d83da4be3d716ad7caded50a4"
+    },
+    {
+      "challenge_id": "MATH-02-ERDOS-SIDON-GOLOMB-8",
+      "constraint_violations_found": 0,
+      "improvement_bps": 2273,
+      "is_globally_optimal_or_bound_tight": true,
+      "mathematical_domain": "Combinatorial Number Theory (Sidon B_2 Sets / Golomb Rulers)",
+      "naive_llm_or_greedy_score": 44,
+      "solution_elements": [
+        0,
+        1,
+        4,
+        9,
+        15,
+        22,
+        32,
+        34
+      ],
+      "sovereign_verified_score": 34,
+      "title": "Erdos-Turan Problem #30: Optimal 8-Mark Sidon B_2 Set / Golomb Ruler (Span L* = 34)",
+      "total_constraints_checked": 28,
+      "witness_sha256": "44bd8b595148dd55519868b93382ef42aa7bc3e100a4cbae1db5803722806b54"
+    },
+    {
+      "challenge_id": "MATH-03-NO-THREE-IN-LINE-10X10",
+      "constraint_violations_found": 0,
+      "improvement_bps": 5385,
+      "is_globally_optimal_or_bound_tight": true,
+      "mathematical_domain": "Discrete & Computational Geometry (Lattice Point Collinearity)",
+      "naive_llm_or_greedy_score": 13,
+      "solution_elements": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          4
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          1,
+          7
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          8
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          3,
+          8
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          4,
+          9
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          5,
+          2
+        ],
+        [
+          6,
+          6
+        ],
+        [
+          6,
+          9
+        ],
+        [
+          7,
+          3
+        ],
+        [
+          7,
+          5
+        ],
+        [
+          8,
+          6
+        ],
+        [
+          8,
+          7
+        ],
+        [
+          9,
+          2
+        ],
+        [
+          9,
+          5
+        ]
+      ],
+      "sovereign_verified_score": 20,
+      "title": "Dudeney / Guy-Erdos No-Three-In-Line Problem on 10x10 Grid (2N = 20 Points)",
+      "total_constraints_checked": 1140,
+      "witness_sha256": "d04f65cf0a66c920632b107a5c3b29a6025dc7451e86d2ad8a184370dd40e7ce"
+    }
+  ]
+}

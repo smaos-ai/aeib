@@ -1,0 +1,180 @@
+{
+  "all_moats_bitmask": 4095,
+  "capsule_sha256": "0ba18c19f778f2afd1b65492c95a8a5b2ffbdd2a4ac3f37cacae57f578459690",
+  "capsule_version": "5.2.0",
+  "chain_presets": {
+    "CHAIN-A_FINOPS_SPEED": {
+      "default_flags": "--deep --benchmark",
+      "moats": [
+        "M02_CONTEXTCART_AST",
+        "M03_TOKEN_ECONOMIZER",
+        "M04_RULETREK_DAG"
+      ],
+      "title": "Token & Cost Optimization Chain (78.34% Token Cut + 91.4% Cascade Savings)"
+    },
+    "CHAIN-B_ZERO_TRUST_SECURITY": {
+      "default_flags": "--security --falsify --compliance",
+      "moats": [
+        "M01_EO1_LATCH",
+        "M07_CREDENTIAL_STARVATION",
+        "M08_UDS_PEERCRED",
+        "M11_BPF_SEATBELT_SUBSTRATE"
+      ],
+      "title": "Zero-Trust Execution & Supply-Chain Hardening Chain"
+    },
+    "CHAIN-C_ROOT_CAUSE_5WHY": {
+      "default_flags": "--deep --repo --falsify",
+      "moats": [
+        "M05_TOYOTA_5WHY_RRF",
+        "M06_BUILDER_BREAKER_T4PLUS",
+        "M01_EO1_LATCH"
+      ],
+      "title": "Toyota 5-Why Causal Root-Cause & Hybrid Semantic-BM25-AST RRF Chain"
+    },
+    "CHAIN-D_FORMAL_MATH_DISCOVERY": {
+      "default_flags": "--deep --research --benchmark --falsify",
+      "moats": [
+        "M12_ALPHAEVOLVE_MATH_SOLVER",
+        "M06_BUILDER_BREAKER_T4PLUS",
+        "M04_RULETREK_DAG"
+      ],
+      "title": "AlphaEvolve / FunSearch / Erdos Constructive Math & T4+ Breaker Chain"
+    },
+    "CHAIN-E_FULL_SOVEREIGN_DECADE": {
+      "default_flags": "--deep --research --compliance --security --falsify --benchmark",
+      "moats": [
+        "M01_EO1_LATCH",
+        "M02_CONTEXTCART_AST",
+        "M03_TOKEN_ECONOMIZER",
+        "M04_RULETREK_DAG",
+        "M05_TOYOTA_5WHY_RRF",
+        "M06_BUILDER_BREAKER_T4PLUS",
+        "M07_CREDENTIAL_STARVATION",
+        "M08_UDS_PEERCRED",
+        "M09_HYBRID_PQC_SCITT",
+        "M10_ZK_TLS_BUDGET",
+        "M11_BPF_SEATBELT_SUBSTRATE",
+        "M12_ALPHAEVOLVE_MATH_SOLVER"
+      ],
+      "title": "Full 12-Moat SovereignNexus Synthesis Chain"
+    }
+  },
+  "constant_time_state_string": "[SOVEREIGN_STATE_O1 v5.2 | Sections=27 | Modules=173 | TestSuites=217 | MoatMask=0xfff (0:EO1_LATCH|1:CONTEXTCART_AST|2:TOKEN_ECONOMIZER|3:RULETREK_DAG|4:TOYOTA_5WHY_RRF|5:BUILDER_BREAKER_T4PLUS|6:CREDENTIAL_STARVATION|7:UDS_PEERCRED|8:HYBRID_PQC_SCITT|9:ZK_TLS_BUDGET|10:BPF_SEATBELT_SUBSTRATE|11:ALPHAEVOLVE_MATH_SOLVER) | TokenCut=78.34% (Argon4:$4.43->$0.93, Cascade:$0.38, Flash3.8:$0.73->$0.15) | Gates=ZoneBoundary+ASTPurity+NoMock+500EpChaos]",
+  "external_ssd_state_dir": "/Volumes/EXTssd/SovereignNexus_Backup/sovereign-independent-state",
+  "generated_at_epoch": 1761206400,
+  "manifest_sections_count": 27,
+  "moat_index": [
+    {
+      "bit": 0,
+      "bitmask_hex": "0x001",
+      "code": "M01_EO1_LATCH",
+      "invariant": "Durable WAL/F_FULLFSYNC intent latch before external side effects; halts blind retries on EFFECT_INDETERMINATE.",
+      "module": "src/eo1_write_before_execute.py",
+      "name": "Pre-Dispatch Write-Before-Execute Latch"
+    },
+    {
+      "bit": 1,
+      "bitmask_hex": "0x002",
+      "code": "M02_CONTEXTCART_AST",
+      "invariant": "89.74% file-read token reduction via bounded AST symbol extraction (<=1,500 tokens).",
+      "module": "contextcart-mcp/benchmarks/run_20_task_empirical_benchmark.py",
+      "name": "ContextCart Tree-Sitter AST Slicer"
+    },
+    {
+      "bit": 2,
+      "bitmask_hex": "0x004",
+      "code": "M03_TOKEN_ECONOMIZER",
+      "invariant": "86.95% MCP tool schema token cut + 80% KV-cache hit rate via immutable prefix pinning.",
+      "module": "tools/builder_breaker_adversarial_engine.py",
+      "name": "TokenEconomizer 5-Turn MCP Schema Pruner & SAKE Prefix Lock"
+    },
+    {
+      "bit": 3,
+      "bitmask_hex": "0x008",
+      "code": "M04_RULETREK_DAG",
+      "invariant": "Multi-flag join-semilattice + CAVEAT error-correlation discounting + POIROT origin deduplication.",
+      "module": "src/decide_v51_meta_hardening_engine.py",
+      "name": "RuleTrek AST Rule Dependency Graph & Decide v5.1 Lattice"
+    },
+    {
+      "bit": 4,
+      "bitmask_hex": "0x010",
+      "code": "M05_TOYOTA_5WHY_RRF",
+      "invariant": "Jidoka stop-the-line + Genchi Genbutsu physical evidence + Poka-Yoke interlock + RRF (k=60) search.",
+      "module": "src/toyota_5why_semantic_rca_and_token_analytics.py",
+      "name": "Toyota 5-Why Causal RCA & Hybrid Semantic-BM25-AST RRF Search"
+    },
+    {
+      "bit": 5,
+      "bitmask_hex": "0x020",
+      "code": "M06_BUILDER_BREAKER_T4PLUS",
+      "invariant": "Non-self-grading Breaker + Cloudflare 6-phase disproving verifier + 10000 bps mutant kill rate.",
+      "module": "src/audit_disproving_verifier.py",
+      "name": "Harness2 Builder-Breaker & T4+ Mutation-Killed Verifier"
+    },
+    {
+      "bit": 6,
+      "bitmask_hex": "0x040",
+      "code": "M07_CREDENTIAL_STARVATION",
+      "invariant": "Zero raw secrets in agent env; host-side Ed25519 warrant injection + LiteLLM .pth / 48h cooldown gate.",
+      "module": "tools/credential_starvation_gateway.py",
+      "name": "Credential Starvation Phantom Gateway & 48h Supply-Chain Cooldown"
+    },
+    {
+      "bit": 7,
+      "bitmask_hex": "0x080",
+      "code": "M08_UDS_PEERCRED",
+      "invariant": "Denies TCP localhost; verifies kernel SO_PEERCRED/LOCAL_PEERCRED UID+PID + Ed25519 capability token.",
+      "module": "src/secure_mcp_uds_boundary.py",
+      "name": "Secure MCP Unix Domain Socket (0o600) & Kernel PeerCred Boundary"
+    },
+    {
+      "bit": 8,
+      "bitmask_hex": "0x100",
+      "code": "M09_HYBRID_PQC_SCITT",
+      "invariant": "Dual-slot COSE Sign1 (-8 Ed25519 + -49 ML-DSA-65) + RFC 9162 Merkle root + EN 18286 / DORA Art. 17.",
+      "module": "src/hybrid_pqc_scitt_anchor.rs",
+      "name": "Hybrid Post-Quantum SCITT Anchor (Ed25519 + ML-DSA-65) & DORA Bundler"
+    },
+    {
+      "bit": 9,
+      "bitmask_hex": "0x200",
+      "code": "M10_ZK_TLS_BUDGET",
+      "invariant": "Zero-knowledge proof of balance conservation and ceiling solvency over BN254 without raw PII disclosure.",
+      "module": "src/zk_budget_proof_engine.py",
+      "name": "zk-AEIB BN254 Budget Solvency Circuit & ZK-TLSNotary Attestation"
+    },
+    {
+      "bit": 10,
+      "bitmask_hex": "0x400",
+      "code": "M11_BPF_SEATBELT_SUBSTRATE",
+      "invariant": "Kernel-level file/socket containment + disjoint parallel git worktree write-set isolation.",
+      "module": "src/bpf_lsm_profile_compiler.py",
+      "name": "Darwin Seatbelt (.sb) + Linux BPF_LSM Compiler + Orca Worktree Jail"
+    },
+    {
+      "bit": 11,
+      "bitmask_hex": "0x800",
+      "code": "M12_ALPHAEVOLVE_MATH_SOLVER",
+      "invariant": "Evolutionary priority search paired with exact deterministic combinatorial verification (0% hallucination).",
+      "module": "src/sovereign_state_capsule_and_math_prover.py",
+      "name": "AlphaEvolve/FunSearch Priority Evolution & Erdos Combinatorial Prover"
+    }
+  ],
+  "src_modules_count": 106,
+  "test_suites_count": 217,
+  "token_analytics": {
+    "argon4_governed_usd": 0.93,
+    "argon4_naive_usd": 4.43,
+    "flash38_governed_usd": 0.15,
+    "flash38_naive_usd": 0.73,
+    "hybrid_cascade_usd": 0.38,
+    "sprint_20_task_governed_tokens": 223831,
+    "sprint_20_task_naive_tokens": 1033529,
+    "super_prompt_6vector_prefix_save_bps": 8333,
+    "token_reduction_bps": 7834
+  },
+  "tools_modules_count": 67,
+  "total_moats_count": 12,
+  "workspace_root": "/Users/andriileukhin/Documents/SovereignNexus"
+}

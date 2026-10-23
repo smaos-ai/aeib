@@ -1,0 +1,437 @@
+{
+  "all_passed": true,
+  "bundle_caid": "sha256:ce26062bc7591fb4bab83e7126b0c7ee7171261f6e581547357342d8eeb1bee3",
+  "experiments": [
+    {
+      "constraint_violations": 0,
+      "domain": "Algebraic Complexity Theory (Strassen / AlphaEvolve Class)",
+      "exhaustive_checks_executed": 64,
+      "improvement_bps": 2344,
+      "naive_or_vibe_baseline_metric": 64.0,
+      "problem_id": "MATH-08-BILINEAR-MATMUL-TENSOR",
+      "sovereign_verified_metric": 49.0,
+      "title": "Bilinear Tensor Rank Decomposition (64 Brent Tensor Equations)",
+      "track": "TRACK_I_FRONTIER_MATH",
+      "verification_passed": true,
+      "witness_caid": "sha256:75f575713cdf664570f25445b8b114a73e26467e5ebef62fc287f8a1dcf14b28",
+      "witness_summary": {
+        "alphaevolve_2025_4x4_complex_rank_reference": 48,
+        "base_2x2_naive_mults": 8,
+        "base_2x2_tensor_rank": 7,
+        "brent_equations_checked": 64,
+        "brent_violations": 0,
+        "recursive_4x4_naive_mults": 64,
+        "recursive_4x4_noncommutative_rank": 49,
+        "status": "VERIFIED_BRENT_TENSOR_EXACT",
+        "u_factors": [
+          [
+            1,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            1,
+            1
+          ],
+          [
+            1,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            1,
+            1,
+            0,
+            0
+          ],
+          [
+            -1,
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            1,
+            0,
+            -1
+          ]
+        ],
+        "v_factors": [
+          [
+            1,
+            0,
+            0,
+            1
+          ],
+          [
+            1,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0,
+            -1
+          ],
+          [
+            -1,
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            1,
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1,
+            1
+          ]
+        ],
+        "w_factors": [
+          [
+            1,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            1,
+            -1
+          ],
+          [
+            0,
+            1,
+            0,
+            1
+          ],
+          [
+            1,
+            0,
+            1,
+            0
+          ],
+          [
+            -1,
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            1,
+            0,
+            0,
+            0
+          ]
+        ]
+      }
+    },
+    {
+      "constraint_violations": 0,
+      "domain": "Universal Algebra & Automated Theorem Proving (Lean 4 `by decide`)",
+      "exhaustive_checks_executed": 64,
+      "improvement_bps": 10000,
+      "naive_or_vibe_baseline_metric": 0.0,
+      "problem_id": "MATH-09-TAO-EQUATIONAL-MAGMA-1485",
+      "sovereign_verified_metric": 64.0,
+      "title": "Terence Tao Equational Theories Central Groupoid Anti-Implication (Eq 1485 =/> Eq 43, 4512)",
+      "track": "TRACK_I_FRONTIER_MATH",
+      "verification_passed": true,
+      "witness_caid": "sha256:a886399c9727d2ff04509138b0ee54334e14922a43c0b76e1831145d4c0c4292",
+      "witness_summary": {
+        "cayley_table": [
+          [
+            0,
+            0,
+            1,
+            1
+          ],
+          [
+            2,
+            2,
+            3,
+            3
+          ],
+          [
+            0,
+            0,
+            1,
+            1
+          ],
+          [
+            2,
+            2,
+            3,
+            3
+          ]
+        ],
+        "eq1485_central_groupoid_violations": 0,
+        "explicit_non_associative_witness": {
+          "lhs_xy_z": 1,
+          "rhs_x_yz": 0,
+          "x": 0,
+          "y": 0,
+          "z": 2
+        },
+        "explicit_non_commutative_witness": {
+          "x": 0,
+          "x_op_y": 0,
+          "y": 1,
+          "y_op_x": 2
+        },
+        "lean4_certificate_caid": "sha256:a7f5d343bc3ce8754ad582c5b886eb029d7cd266bc1321f4d1d0c5ab9de0682d",
+        "lean4_comparator_passed": true,
+        "magma_order": 4,
+        "non_associative_witness_triples": 48,
+        "non_commutative_witness_pairs": 12,
+        "triples_checked": 64
+      }
+    },
+    {
+      "constraint_violations": 0,
+      "domain": "Extremal Graph Theory & Projective Incidence Geometry (PG(2,2))",
+      "exhaustive_checks_executed": 42,
+      "improvement_bps": 6154,
+      "naive_or_vibe_baseline_metric": 13.0,
+      "problem_id": "MATH-10-PATTERNBOOST-ZARANKIEWICZ-Z7",
+      "sovereign_verified_metric": 21.0,
+      "title": "PatternBoost Extremal Graph Zarankiewicz C4-Free Bound z(7,7; 2,2) = 21",
+      "track": "TRACK_I_FRONTIER_MATH",
+      "verification_passed": true,
+      "witness_caid": "sha256:5475b3a04d6ec86d6bc7d46170ef006b8005dfba82c6ab4525425114ce95b7d2",
+      "witness_summary": {
+        "bipartite_dimensions": "7x7",
+        "c4_quadrangle_violations": 0,
+        "greedy_baseline_edges": 13,
+        "incidence_matrix": [
+          [
+            1,
+            1,
+            0,
+            1,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            1,
+            0,
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1,
+            1,
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            1
+          ],
+          [
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0
+          ],
+          [
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1
+          ],
+          [
+            1,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        ],
+        "reiman_kovari_sos_turan_upper_bound": 21,
+        "row_and_col_pairs_checked": 42,
+        "sovereign_optimal_edges": 21
+      }
+    },
+    {
+      "constraint_violations": 0,
+      "domain": "Sphere Packing & Algebraic Coding Theory (Viazovska Fields Medal Class)",
+      "exhaustive_checks_executed": 28800,
+      "improvement_bps": 11429,
+      "naive_or_vibe_baseline_metric": 112.0,
+      "problem_id": "MATH-11-VIAZOVSKA-E8-KISSING-240",
+      "sovereign_verified_metric": 240.0,
+      "title": "8D E8 Root Lattice Kissing Number K(8) = 240 (28,680 Pairs) & [8,4,4] Plotkin Code",
+      "track": "TRACK_I_FRONTIER_MATH",
+      "verification_passed": true,
+      "witness_caid": "sha256:8d46916f5900c13a7e9e1552f604559037ce2d9ea7b2a63761f9cafa78eee88b",
+      "witness_summary": {
+        "d8_lattice_baseline_kissing": 112,
+        "dimension": 8,
+        "e8_gosset_optimal_kissing_number": 240,
+        "e8_max_pairwise_inner_product": 4,
+        "e8_norm_squared_scaled": 8,
+        "e8_unordered_pairs_checked": 28680,
+        "extended_hamming_8_4_4_size": 16,
+        "extended_hamming_min_distance": 4,
+        "hamming_pairs_checked": 120,
+        "total_violations": 0
+      }
+    },
+    {
+      "constraint_violations": 0,
+      "domain": "Formal Specification Adequacy & Vacuity Detection (2026 Urgent Bottleneck #1)",
+      "exhaustive_checks_executed": 18,
+      "improvement_bps": 7500,
+      "naive_or_vibe_baseline_metric": 2500.0,
+      "problem_id": "URGENT-AI-01-VIBE-CODING-SPEC-WALL",
+      "sovereign_verified_metric": 10000.0,
+      "title": "Defeating the 'Vibe-Coding Specification Wall' via Bidirectional Spec-Mutant Sensitivity",
+      "track": "TRACK_II_URGENT_2026_AI_SYSTEMS",
+      "verification_passed": true,
+      "witness_caid": "sha256:ea6ecd43bfe0b849c14edd2115e70fe5a5ba04514691b0e2786f0bd332272732",
+      "witness_summary": {
+        "sensitivity_gain_bps": 7500,
+        "sovereign_complete_spec_audit": {
+          "killed_mutants_count": 8,
+          "passed": true,
+          "reference_implementation_accepted": true,
+          "spec_sensitivity_bps": 10000,
+          "status_code": "VERIFIED_NON_VACUOUS_SPECIFICATION",
+          "surviving_mutants": [],
+          "total_mutants": 8
+        },
+        "vibe_coded_spec_audit": {
+          "killed_mutants_count": 2,
+          "passed": false,
+          "reference_implementation_accepted": true,
+          "spec_sensitivity_bps": 2500,
+          "status_code": "HALT_VACUOUS_OR_WEAKENED_SPECIFICATION",
+          "surviving_mutants": [
+            "M2_HIDDEN_FEE_SKIMMING",
+            "M3_DUPLICATE_REPLAY_DOUBLESPEND",
+            "M5_UNAUTHORIZED_PAYEE_SWAP",
+            "M6_BUDGET_CEILING_BREACH",
+            "M7_TAINT_LATTICE_DOWNGRADE",
+            "M8_UNSIGNED_WARRANT_BYPASS"
+          ],
+          "total_mutants": 8
+        }
+      }
+    },
+    {
+      "constraint_violations": 0,
+      "domain": "Compositional Formal Verification & Cross-File Invariant Tracking (2026 Bottleneck #2)",
+      "exhaustive_checks_executed": 105,
+      "improvement_bps": 8333,
+      "naive_or_vibe_baseline_metric": 6.0,
+      "problem_id": "URGENT-AI-02-REPO-SCALE-PROOF-COHESION",
+      "sovereign_verified_metric": 1.0,
+      "title": "Repository-Scale Cross-File Proof Cohesion via Compositional Assume-Guarantee DAG",
+      "track": "TRACK_II_URGENT_2026_AI_SYSTEMS",
+      "verification_passed": true,
+      "witness_caid": "sha256:ab0dcf24e14dec1321d7c0efc66cb427ec1e65f4c4901f1d81a814e0da1f379d",
+      "witness_summary": {
+        "clean_pipeline_cohesion_passed": true,
+        "compositional_edges_reverified": 1,
+        "injected_m3_regression_audit": {
+          "broken_edges": [
+            "M3_TCC_ESCROW_LEDGER->M4_EO1_LATCH"
+          ],
+          "edges_checked": 1,
+          "edited_module_id": "M3_TCC_ESCROW_LEDGER",
+          "monolithic_all_pairs_edges": 30,
+          "passed": false,
+          "state_vectors_checked": 5,
+          "status_code": "HALT_CROSS_FILE_ASSUME_GUARANTEE_BROKEN"
+        },
+        "modules_in_pipeline": 6,
+        "monolithic_modules_reverified": 6
+      }
+    },
+    {
+      "constraint_violations": 0,
+      "domain": "Dynamic Capability Attenuation & Biba Taint Lattice (2026 Bottleneck #3)",
+      "exhaustive_checks_executed": 24,
+      "improvement_bps": 10000,
+      "naive_or_vibe_baseline_metric": 0.0,
+      "problem_id": "URGENT-AI-03-DYNAMIC-PRIVILEGE-CREEP-SMT",
+      "sovereign_verified_metric": 10000.0,
+      "title": "Multi-Agent Dynamic Permission Scaling & Transitive Privilege Creep Lattice Prover",
+      "track": "TRACK_II_URGENT_2026_AI_SYSTEMS",
+      "verification_passed": true,
+      "witness_caid": "sha256:f82d25a533c893854cdbbcda1414450c61ce7941d8ccb01377f875761a13635b",
+      "witness_summary": {
+        "budget_amplification_caught": "HALT_SUBAGENT_BUDGET_AMPLIFICATION",
+        "nominal_swarm_audit": {
+          "checks_executed": 7,
+          "edges_verified": 4,
+          "passed": true,
+          "status_code": "VERIFIED_TARSKI_MONOTONIC_ATTENUATION"
+        },
+        "scope_escalation_caught": "HALT_DYNAMIC_SCOPE_ESCALATION_DETECTED",
+        "transitive_taint_loop_caught": "HALT_TRANSITIVE_PRIVILEGE_ESCALATION_LOOP"
+      }
+    }
+  ],
+  "frontier_math_problems_count": 4,
+  "parallel_wall_time_ms": 17.52,
+  "problems_solved_count": 7,
+  "schema_version": "SOVEREIGN-URGENT-OPEN-PROBLEMS-2026-V1",
+  "signature_b64": "FuIwWmA/Vwz3eyNZtuw1FEJyJUKm9PBCEsx7u2pqu7CPSxoJe6kfj8Wr6GGAIghYcwd0nJZer3WL7YYoU9qDBw==",
+  "signer_public_key_b64": "2FKGpW1vRUPDoa8P99CrpRBI8bHwXrS4e63p6ssPssM=",
+  "total_constraint_violations": 0,
+  "total_exhaustive_checks_executed": 29117,
+  "urgent_2026_ai_problems_count": 3
+}

@@ -1,6 +1,6 @@
 {
   "all_moats_bitmask": 4095,
-  "capsule_sha256": "d8e87a4d267a0cca181db116de97d69a1f409d6f12e5d9e71d5b27fe92a1f042",
+  "capsule_sha256": "e7b211e75369bf560e244ea46ffb003be6f6ea50dd8f246b419ef74a17ac068e",
   "capsule_version": "5.2.0",
   "chain_presets": {
     "CHAIN-A_FINOPS_SPEED": {
@@ -59,10 +59,10 @@
       "title": "Full 12-Moat SovereignNexus Synthesis Chain"
     }
   },
-  "constant_time_state_string": "[SOVEREIGN_STATE_O1 v5.2 | Sections=30 | Modules=176 | TestSuites=220 | MoatMask=0xfff (0:EO1_LATCH|1:CONTEXTCART_AST|2:TOKEN_ECONOMIZER|3:RULETREK_DAG|4:TOYOTA_5WHY_RRF|5:BUILDER_BREAKER_T4PLUS|6:CREDENTIAL_STARVATION|7:UDS_PEERCRED|8:HYBRID_PQC_SCITT|9:ZK_TLS_BUDGET|10:BPF_SEATBELT_SUBSTRATE|11:ALPHAEVOLVE_MATH_SOLVER) | TokenCut=78.34% (Argon4:$4.43->$0.93, Cascade:$0.38, Flash3.8:$0.73->$0.15) | Gates=ZoneBoundary+ASTPurity+NoMock+500EpChaos]",
+  "constant_time_state_string": "[SOVEREIGN_STATE_O1 v5.2 | Sections=32 | Modules=177 | TestSuites=221 | MoatMask=0xfff (0:EO1_LATCH|1:CONTEXTCART_AST|2:TOKEN_ECONOMIZER|3:RULETREK_DAG|4:TOYOTA_5WHY_RRF|5:BUILDER_BREAKER_T4PLUS|6:CREDENTIAL_STARVATION|7:UDS_PEERCRED|8:HYBRID_PQC_SCITT|9:ZK_TLS_BUDGET|10:BPF_SEATBELT_SUBSTRATE|11:ALPHAEVOLVE_MATH_SOLVER) | TokenCut=78.34% (Argon4:$4.43->$0.93, Cascade:$0.38, Flash3.8:$0.73->$0.15) | Gates=ZoneBoundary+ASTPurity+NoMock+500EpChaos]",
   "external_ssd_state_dir": "/Volumes/EXTssd/SovereignNexus_Backup/sovereign-independent-state",
   "generated_at_epoch": 1761206400,
-  "manifest_sections_count": 30,
+  "manifest_sections_count": 32,
   "moat_index": [
     {
       "bit": 0,
@@ -161,8 +161,8 @@
       "name": "AlphaEvolve/FunSearch Priority Evolution & Erdos Combinatorial Prover"
     }
   ],
-  "src_modules_count": 109,
-  "test_suites_count": 220,
+  "src_modules_count": 110,
+  "test_suites_count": 221,
   "token_analytics": {
     "argon4_governed_usd": 0.93,
     "argon4_naive_usd": 4.43,

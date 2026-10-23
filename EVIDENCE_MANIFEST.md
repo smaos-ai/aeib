@@ -598,8 +598,11 @@ negative_control_falsification:
 | **`/decide` v5.1 Meta-Hardening Test Suite** | `tests/test_decide_v51_meta_hardening_engine.py` | `103085dbd3bb5d5c42efe4a07591ed5624016f2e5072b276039b9a5b1f1d2d67` | 4/4 passed (`213 / 213` unified test union across 25 suites in `6.47s`) | `VERIFIED` |
 | **`/decide` v5.1 Skill Definition (Laws 1–10)** | `.agents/skills/decide/SKILL.md` | `87630ea03c5841303d503c06d1831a2c3878e2c40941135c499ff7fcd051a79d` | 10 Mathematical Laws (`SAKE`, `DPI`, `RuleTrek`, `MLReproMutate`, `CAVEAT`, `POIROT`) | `VERIFIED` |
 
+### 21. Toyota 5-Why Causal Root-Cause Engine (`TPS` / `Jidoka` / `Genchi Genbutsu` / `Poka-Yoke`), Hybrid Semantic-BM25-AST RRF Search (`TRACE`), & Antigravity `Argon 4` / `Gemini 3.8` Token Analytics
 
-
-
+| Component / Subsystem | Physical File Location | Cryptographic SHA-256 Digest | Verification Harness / Protocol | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **Toyota 5-Why RCA, Hybrid RRF Search, & Token Analytics Engine** | `src/toyota_5why_semantic_rca_and_token_analytics.py` | `7b3aa931649d533439777f15a00aa649bc278e82dfb21028a1b17fe1404aa083` | `78.34%` Token Cut (`$4.43` -> `$0.93` Argon, `$0.38` Cascade), Hybrid RRF (`k=60`), 5-Why DAG | `VERIFIED` |
+| **Toyota 5-Why RCA & Token Analytics Verification Suite** | `tests/test_toyota_5why_semantic_rca_and_token_analytics.py` | `b0717f876b16ea2d2fe262f02a2bced44d3b10df7a4e0897cc82ccad5e43ad47` | 4/4 passed (`217 / 217` unified test union across 26 suites in `6.14s`) | `VERIFIED` |
 
 

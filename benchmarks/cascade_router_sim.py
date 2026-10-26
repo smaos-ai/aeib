@@ -24,6 +24,7 @@ from src.accuracy_cascade_router import (  # noqa: E402
     LedgerEntry,
     RoutingLedger,
 )
+from tools.finalize_repo_intelligence_packer import measure_repository_compression  # noqa: E402
 
 # claim: assumption — hypothetical per-cluster true pass probabilities and costs
 CLUSTERS = {
@@ -47,7 +48,14 @@ def run(policy, episodes, seed):
     rng = random.Random(seed)
     ledger = RoutingLedger()
     router = AccuracyCascadeRouter(
-        ledger, "cheap", "strong", accuracy_floor=0.85, min_samples=30, exploration_bps=2000
+        ledger,
+        "cheap",
+        "strong",
+        accuracy_floor=0.85,
+        min_samples=30,
+        exploration_bps=2000,
+        max_consecutive_failures=4,
+        drift_window=50,
     )
     cost = verified = accepted_wrong = unresolved = 0.0
     names = list(CLUSTERS)
@@ -88,14 +96,80 @@ def run(policy, episodes, seed):
     }
 
 
+def run_drift_experiment(episodes, seed, enable_crc_breaker=True):
+    """
+    Non-stationary drift simulation (arXiv:2506.00911):
+    `simple_cleanup` cheap model starts at p=0.96 for first half of episodes,
+    then degrades to p=0.50 in the second half.
+    """
+    rng = random.Random(seed)
+    ledger = RoutingLedger()
+    router = AccuracyCascadeRouter(
+        ledger,
+        "cheap",
+        "strong",
+        accuracy_floor=0.85,
+        min_samples=30,
+        exploration_bps=2000,
+        max_consecutive_failures=4 if enable_crc_breaker else 999999,
+        drift_window=50 if enable_crc_breaker else 999999,
+    )
+    pre_drift_cheap_picks = 0
+    pre_drift_episodes = 0
+    post_drift_cheap_picks = 0
+    post_drift_first_pass_ok = 0
+    post_drift_episodes = 0
+    for i in range(episodes):
+        degraded = i >= (episodes // 2)
+        p_cheap = 0.50 if degraded else 0.96  # claim: assumption (mid-run model drift)
+        p_strong = 0.97  # claim: assumption
+        task = CodingTask(f"drift-{i}", "simple_cleanup", "T1", False, COST)
+        first = router.route(task).model
+        p_first = p_cheap if first == "cheap" else p_strong
+        correct, ok = attempt(rng, p_first)
+        ledger.record(LedgerEntry("simple_cleanup", first, ok, ok and not correct, COST[first], 0))
+        if not degraded:
+            pre_drift_episodes += 1
+            if first == "cheap":
+                pre_drift_cheap_picks += 1
+        else:
+            post_drift_episodes += 1
+            if first == "cheap":
+                post_drift_cheap_picks += 1
+            if ok and correct:
+                post_drift_first_pass_ok += 1
+    return {
+        "mode": "crc_drift_breaker_enabled" if enable_crc_breaker else "cumulative_wilson_only",
+        "pre_drift_cheap_route_bps": (
+            (pre_drift_cheap_picks * 10000) // pre_drift_episodes if pre_drift_episodes else 0
+        ),
+        "post_drift_cheap_route_bps": (
+            (post_drift_cheap_picks * 10000) // post_drift_episodes if post_drift_episodes else 0
+        ),
+        "post_drift_first_pass_verified_bps": (
+            (post_drift_first_pass_ok * 10000) // post_drift_episodes if post_drift_episodes else 0
+        ),
+    }
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--episodes", type=int, default=5000)
     ap.add_argument("--seed", type=int, default=42)
     a = ap.parse_args()
     rows = [run(p, a.episodes, a.seed) for p in ("always_cheap", "always_strong", "oracle_cascade")]
-    print("SYNTHETIC SIMULATION — parameters are assumptions, not measured model accuracy")
+    drift_rows = [
+        run_drift_experiment(a.episodes, a.seed, enable_crc_breaker=False),
+        run_drift_experiment(a.episodes, a.seed, enable_crc_breaker=True),
+    ]
+    repo_root = Path(__file__).resolve().parent.parent
+    repo_measurement = measure_repository_compression(repo_root, max_files=200)
+    print("1. SYNTHETIC STATIONARY SIMULATION — parameters are assumptions, not measured model accuracy")
     print(json.dumps(rows, indent=2))
+    print("\n2. SYNTHETIC NON-STATIONARY DRIFT SIMULATION (arXiv:2506.00911, mid-run degradation at episode N/2)")
+    print(json.dumps(drift_rows, indent=2))
+    print("\n3. REAL MEASURED REPOSITORY COMPRESSION ON SOVEREIGNNEXUS (src/*.py)")
+    print(json.dumps(repo_measurement, indent=2))
 
 
 if __name__ == "__main__":

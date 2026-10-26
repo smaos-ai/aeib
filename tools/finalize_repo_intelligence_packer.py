@@ -48,7 +48,22 @@ import sys
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, FrozenSet, List, Optional, Sequence, Set, Tuple
+from typing import Any, Dict, FrozenSet, List, Mapping, Optional, Sequence, Set, Tuple
+
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
+from src.accuracy_cascade_router import (
+    AcceptanceOracle,
+    AccuracyCascadeRouter,
+    BPS_SCALE,
+    CodingTask,
+    LedgerEntry,
+    OracleVerdict,
+    RouteDecision,
+    build_escalation_packet,
+)
+from src.jcs_canonicalizer import encode_jcs
 
 # Regex to detect volatile timestamps, UUIDs, and nanosecond counters
 VOLATILE_TIMESTAMP_RE = re.compile(
@@ -56,6 +71,8 @@ VOLATILE_TIMESTAMP_RE = re.compile(
     r"\btimestamp_ns\s*[:=]\s*\d+\b|"
     r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b"
 )
+
+LEXICAL_TOKEN_RE = re.compile(r"[A-Za-z_][A-Za-z0-9_]*|\d+(?:\.\d+)?|[^\sA-Za-z0-9_]")
 
 # Block size for RadixAttention / Mooncake page quantization (standard 64 tokens)
 KV_CACHE_BLOCK_TOKENS = 64
@@ -67,10 +84,17 @@ def sha256_exact(data: bytes) -> str:
 
 
 def estimate_tokens(text: str) -> int:
-    """Deterministic token estimator (~4 chars per token, minimum 1 token for non-empty text)."""
+    """Deterministic char/4 token estimator (~4 chars per token, minimum 1 token for non-empty text)."""
     if not text:
         return 0
     return max(1, math.ceil(len(text) / 4))
+
+
+def estimate_lexical_tokens(text: str) -> int:
+    """Deterministic lexical token counter (identifiers, literals, and punctuation tokens)."""
+    if not text:
+        return 0
+    return len(LEXICAL_TOKEN_RE.findall(text))
 
 
 # ==============================================================================
@@ -617,9 +641,13 @@ class RadixAlignedPrompt:
 
 class RadixKVCacheAligner:
     """
-    Configured for byte-exact prefix stability and discrete 64-token block-boundary alignment
-    so GPU / inference server RadixAttention achieves observed cache hits at $0.20/1M instead of
-    recomputing partial cache blocks.
+    Keeps the static prompt prefix byte-identical across turns (the precondition for any
+    exact-prefix cache) and optionally pads it to a 64-token block boundary.
+
+    Not measured: no provider or serving-engine cache hit rate has been recorded for this
+    packer. Hosted APIs (Anthropic, OpenAI, Gemini) document exact-prefix matching with
+    minimum lengths; no evidence was found that 64-token padding changes hosted hit rates.
+    Block padding is only relevant to self-hosted paged-KV engines and is untested here.
     """
 
     def __init__(self, block_size: int = KV_CACHE_BLOCK_TOKENS) -> None:
@@ -640,9 +668,12 @@ class RadixKVCacheAligner:
         remainder = current_tokens % self.block_size
         if remainder == 0:
             return text, 0
-        needed_tokens = self.block_size - remainder
-        # Each padding line '# [KV_PAD_SLOT]\n' is ~4 tokens
-        pad_str = "\n# [KV_BLOCK_BOUNDARY_PAD]\n" * math.ceil(needed_tokens / 4)
+        target_tokens = current_tokens + (self.block_size - remainder)
+        chars_to_add = target_tokens * 4 - len(text)
+        prefix_marker = "\n# "
+        body_len = max(0, chars_to_add - len(prefix_marker) - 1)
+        pad_body = ("KV_BLOCK_PAD_" * ((body_len // 13) + 1))[:body_len]
+        pad_str = (prefix_marker + pad_body + "\n")[:chars_to_add]
         padded_text = text + pad_str
         added_tokens = estimate_tokens(padded_text) - current_tokens
         return padded_text, added_tokens
@@ -827,12 +858,205 @@ class OpenCodeReviewAsymmetricReflector:
 
 
 # ==============================================================================
-# 8. Complete Verification & Falsification Self-Test Suite
+# 8. Closed-Loop Verified Cascade Execution & Real Repository Measurement
+# ==============================================================================
+
+
+@dataclass(frozen=True)
+class VerifiedCascadeStepResult:
+    route_decision: RouteDecision
+    blast_radius: BlastRadiusReport
+    diff_review: DiffReviewVerdict
+    oracle_verdict: OracleVerdict
+    escalation_packet: Optional[Dict[str, object]]
+    jcs_receipt: Dict[str, object]
+    receipt_digest: str
+    ed25519_signature_hex: str
+    public_key_hex: str
+
+
+def execute_verified_cascade_step(
+    repo_files: Dict[str, str],
+    target_file: str,
+    target_symbol: str,
+    task: CodingTask,
+    router: AccuracyCascadeRouter,
+    candidate_diff: str,
+    oracle_evidence: Mapping[str, bool],
+    hard_rules: Sequence[str],
+    signing_key: Ed25519PrivateKey,
+    reviewer_id: str = "independent_diff_reflector",
+    mutation_kill_ratio_bps: Optional[int] = None,
+    min_mutation_kill_bps: int = 0,
+    latency_ms: int = 100,
+    failing_output: str = "",
+    attempt: int = 1,
+    token_budget: int = 1000,
+) -> VerifiedCascadeStepResult:
+    """
+    Executes the unified closed-loop pipeline:
+    PolyglotASTExtractor -> RipwireBlastRadiusAnalyzer -> AccuracyCascadeRouter ->
+    OpenCodeReviewAsymmetricReflector -> AcceptanceOracle (with UTBoost mutation floor) ->
+    RoutingLedger feedback -> failed-slice EscalationPacket -> Ed25519 RFC 8785 JCS receipt.
+    """
+    nodes = PolyglotASTExtractor.index_files(repo_files)
+    blast = RipwireBlastRadiusAnalyzer.compute_blast_radius(
+        target_file=target_file,
+        target_symbol=target_symbol,
+        nodes=nodes,
+        token_budget=token_budget,
+    )
+    decision = router.route(task)
+    diff_review = OpenCodeReviewAsymmetricReflector.evaluate_diff(
+        unified_diff=candidate_diff,
+        blast_radius=blast,
+        hard_rules=hard_rules,
+    )
+
+    merged_evidence: Dict[str, bool] = dict(oracle_evidence)
+    merged_evidence["no_stub_signals"] = (
+        merged_evidence.get("no_stub_signals", True) and len(diff_review.unregistered_mutations) == 0
+    )
+    if task.risk_tier in ("T2", "T3"):
+        merged_evidence["independent_diff_only_review"] = (
+            merged_evidence.get("independent_diff_only_review", True) and diff_review.approved
+        )
+        merged_evidence["blast_radius_updated"] = (
+            merged_evidence.get("blast_radius_updated", True) and len(diff_review.broken_callers) == 0
+        )
+
+    verdict = AcceptanceOracle.evaluate(
+        risk_tier=task.risk_tier,
+        evidence=merged_evidence,
+        produced_by=decision.model,
+        reviewed_by=reviewer_id,
+        mutation_kill_ratio_bps=mutation_kill_ratio_bps,
+        min_mutation_kill_bps=min_mutation_kill_bps,
+    )
+
+    escalation_pkt: Optional[Dict[str, object]] = None
+    if not verdict.accepted and decision.escalation_allowed:
+        escalation_pkt = build_escalation_packet(
+            task={"task_id": task.task_id, "cluster": task.task_cluster, "tier": task.risk_tier},
+            contract={"rules": list(hard_rules), "min_mutation_kill_bps": min_mutation_kill_bps},
+            failed_candidate_diff=candidate_diff,
+            verdict=verdict,
+            failing_output=failing_output or diff_review.verdict_message,
+            affected_symbols=[f"{target_file}::{target_symbol}"],
+            reverse_callers=list(blast.reverse_caller_signatures) or list(blast.reverse_caller_files),
+            constraints=list(hard_rules),
+            attempt=attempt,
+        )
+
+    if decision.model != "none":
+        router.ledger.record(
+            LedgerEntry(
+                task_cluster=task.task_cluster,
+                model=decision.model,
+                oracle_passed=verdict.accepted,
+                regression_detected=False,
+                cost_usd=decision.estimated_cost_usd,
+                latency_ms=latency_ms,
+                escalated=(escalation_pkt is not None),
+                human_approved=bool(merged_evidence.get("exact_human_approval", False)),
+            )
+        )
+
+    # RFC 8785 JCS receipt uses integer basis points / micro-units only (zero raw floats)
+    jcs_receipt: Dict[str, object] = {
+        "schema": "aeib.verified_cascade_receipt.v1",
+        "task_id": task.task_id,
+        "task_cluster": task.task_cluster,
+        "risk_tier": task.risk_tier,
+        "routed_model": decision.model,
+        "route_reason": decision.reason,
+        "accuracy_lb_bps": int(round(decision.accuracy_lower_bound * BPS_SCALE)),
+        "estimated_cost_micro_usd": int(round(decision.estimated_cost_usd * 1_000_000)),
+        "target_file": target_file,
+        "target_symbol": target_symbol,
+        "reverse_caller_count": len(blast.reverse_caller_files),
+        "blast_radius_token_cost": blast.blast_radius_token_cost,
+        "asymmetric_diff_approved": diff_review.approved,
+        "oracle_accepted": verdict.accepted,
+        "oracle_reason": verdict.reason,
+        "mutation_kill_ratio_bps": mutation_kill_ratio_bps if mutation_kill_ratio_bps is not None else -1,
+        "min_mutation_kill_bps": min_mutation_kill_bps,
+        "escalated": escalation_pkt is not None,
+    }
+    canonical_bytes = encode_jcs(jcs_receipt)
+    receipt_digest = sha256_exact(canonical_bytes)
+    sig_hex = signing_key.sign(canonical_bytes).hex()
+    pub_hex = (
+        signing_key.public_key()
+        .public_bytes(serialization.Encoding.Raw, serialization.PublicFormat.Raw)
+        .hex()
+    )
+    return VerifiedCascadeStepResult(
+        route_decision=decision,
+        blast_radius=blast,
+        diff_review=diff_review,
+        oracle_verdict=verdict,
+        escalation_packet=escalation_pkt,
+        jcs_receipt=jcs_receipt,
+        receipt_digest=receipt_digest,
+        ed25519_signature_hex=sig_hex,
+        public_key_hex=pub_hex,
+    )
+
+
+def measure_repository_compression(
+    repo_root: Path,
+    max_files: int = 40,
+) -> Dict[str, object]:
+    """
+    Measures real byte counts, char/4 token estimates, and lexical token counts across
+    `src/*.py` files in `repo_root`, comparing full-file ingestion against AST skeletons
+    and targeted 1-file + reverse-caller slices.
+    """
+    src_dir = repo_root / "src"
+    py_paths = sorted(p for p in src_dir.glob("*.py") if p.is_file())[:max_files]
+    repo_files: Dict[str, str] = {}
+    for p in py_paths:
+        rel = str(p.relative_to(repo_root))
+        repo_files[rel] = p.read_text(encoding="utf-8", errors="replace")
+
+    nodes = PolyglotASTExtractor.index_files(repo_files)
+    full_bytes = sum(len(code.encode("utf-8")) for code in repo_files.values())
+    full_char4_tokens = sum(estimate_tokens(code) for code in repo_files.values())
+    full_lexical_tokens = sum(estimate_lexical_tokens(code) for code in repo_files.values())
+
+    skel_bytes = sum(len(n.skeleton_source.encode("utf-8")) for n in nodes.values())
+    skel_char4_tokens = sum(n.token_cost for n in nodes.values())
+    skel_lexical_tokens = sum(estimate_lexical_tokens(n.skeleton_source) for n in nodes.values())
+
+    return {
+        "files_measured": len(repo_files),
+        "full_repo_bytes": full_bytes,
+        "full_repo_char4_tokens": full_char4_tokens,
+        "full_repo_lexical_tokens": full_lexical_tokens,
+        "ast_skeleton_bytes": skel_bytes,
+        "ast_skeleton_char4_tokens": skel_char4_tokens,
+        "ast_skeleton_lexical_tokens": skel_lexical_tokens,
+        "skeleton_char4_reduction_bps": (
+            ((full_char4_tokens - skel_char4_tokens) * BPS_SCALE) // full_char4_tokens
+            if full_char4_tokens
+            else 0
+        ),
+        "skeleton_lexical_reduction_bps": (
+            ((full_lexical_tokens - skel_lexical_tokens) * BPS_SCALE) // full_lexical_tokens
+            if full_lexical_tokens
+            else 0
+        ),
+    }
+
+
+# ==============================================================================
+# 9. Complete Verification & Falsification Self-Test Suite
 # ==============================================================================
 
 
 def run_self_test() -> None:
-    """Comprehensive test validating all 7 frontier mechanisms and 4 falsification vectors."""
+    """Comprehensive test validating all 8 frontier mechanisms and falsification vectors."""
     print("=" * 80)
     print("  FINALIZE REPO-INTELLIGENCE & RADIX KV-CACHE PACKER SELF-TEST")
     print("  (Evaluated under Mooncake, DeepSeek-V3 MLA, RepoGraph, LocAgent, & OpenCodeReview)")
@@ -929,7 +1153,8 @@ def run_self_test() -> None:
         enforce_block_alignment=True,
     )
     assert p_turn1.frozen_prefix_sha256 == p_turn2.frozen_prefix_sha256
-    print(f"[PASS] 5. Radix KV-Cache Block-Aligned Prefix: {p_turn1.frozen_prefix_sha256} (100% cache hit)")
+    assert p_turn1.prefix_tokens % 64 == 0
+    print(f"[PASS] 5. Radix KV-Cache Block-Aligned Prefix: {p_turn1.frozen_prefix_sha256} (prefix_tokens={p_turn1.prefix_tokens}, multiple of 64)")
 
     # 6. Passau Type-Aware Memory Triage
     mset = MemoryWorkingSet(
@@ -961,8 +1186,34 @@ def run_self_test() -> None:
     assert len(review_bad.broken_callers) > 0
     print("[PASS] 7. OpenCodeReview Asymmetric Reflector caught missing caller updates")
 
+    # 8. Closed-Loop Verified Cascade Execution & Ed25519 JCS Receipt
+    from src.accuracy_cascade_router import BASE_ORACLE_CHECKS, RoutingLedger, T2_ORACLE_CHECKS
+    ledger = RoutingLedger()
+    for i in range(40):
+        ledger.record(LedgerEntry("boundary_refactor", "cheap", True, False, 0.2, 50 + i))
+        ledger.record(LedgerEntry("boundary_refactor", "strong", True, False, 1.5, 120 + i))
+    router = AccuracyCascadeRouter(ledger, "cheap", "strong", 0.80)
+    signing_key = Ed25519PrivateKey.generate()
+    step_bad = execute_verified_cascade_step(
+        repo_files=repo_files,
+        target_file="src/eo1_tracekit.py",
+        target_symbol="append_tool_call",
+        task=CodingTask("t-cascade-1", "boundary_refactor", "T2", False, {"cheap": 0.2, "strong": 1.5}),
+        router=router,
+        candidate_diff=bad_diff,
+        oracle_evidence={c: True for c in BASE_ORACLE_CHECKS + T2_ORACLE_CHECKS},
+        hard_rules=("C1", "C2"),
+        signing_key=signing_key,
+        mutation_kill_ratio_bps=(29 * BPS_SCALE) // 30,
+        min_mutation_kill_bps=(27 * BPS_SCALE) // 30,
+    )
+    assert step_bad.route_decision.model == "cheap"
+    assert not step_bad.oracle_verdict.accepted
+    assert step_bad.escalation_packet is not None
+    print(f"[PASS] 8. Closed-Loop Verified Cascade Step & Ed25519 Receipt: {step_bad.receipt_digest}")
+
     print("-" * 80)
-    print("ALL 7 FRONTIER MECHANISMS AND FALSIFICATION VECTORS EVALUATED SUCCESSFULLY.")
+    print("ALL 8 FRONTIER MECHANISMS AND FALSIFICATION VECTORS EVALUATED SUCCESSFULLY.")
     print("=" * 80)
 
 

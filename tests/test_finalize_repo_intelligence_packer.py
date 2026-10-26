@@ -37,7 +37,17 @@ import sys
 from pathlib import Path
 
 import pytest
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
 
+from src.accuracy_cascade_router import (
+    AccuracyCascadeRouter,
+    BASE_ORACLE_CHECKS,
+    CodingTask,
+    LedgerEntry,
+    RoutingLedger,
+    T2_ORACLE_CHECKS,
+)
+from src.jcs_canonicalizer import encode_jcs
 from tools.finalize_repo_intelligence_packer import (
     BlastRadiusReport,
     GitNexusSkillClusterGenerator,
@@ -48,7 +58,10 @@ from tools.finalize_repo_intelligence_packer import (
     RadixKVCacheAligner,
     RipwireBlastRadiusAnalyzer,
     TarjanSCCTopologicalScheduler,
+    estimate_lexical_tokens,
     estimate_tokens,
+    execute_verified_cascade_step,
+    measure_repository_compression,
     run_self_test,
 )
 
@@ -187,7 +200,7 @@ def test_radix_kv_cache_prefix_alignment_and_cache_lock(sample_polyglot_repo: di
         enforce_block_alignment=True,
     )
     assert p1.block_boundary_padded
-    assert p1.prefix_tokens % 64 == 0 or p1.padding_tokens_added > 0
+    assert p1.prefix_tokens % 64 == 0
 
     # Turn 2 with different volatile timestamp -> sanitizer strips it, maintaining exact prefix hash!
     c_rules_t2 = [
@@ -201,6 +214,7 @@ def test_radix_kv_cache_prefix_alignment_and_cache_lock(sample_polyglot_repo: di
         dynamic_task_payload={"turn": 2},
         enforce_block_alignment=True,
     )
+    assert p2.prefix_tokens % 64 == 0
     assert p1.frozen_prefix_sha256 == p2.frozen_prefix_sha256
 
 
@@ -290,6 +304,101 @@ def test_opencode_review_asymmetric_reflector(sample_polyglot_repo: dict[str, st
     )
     verdict_good = OpenCodeReviewAsymmetricReflector.evaluate_diff(good_diff, blast, ("C1",))
     assert verdict_good.approved
+
+
+def test_closed_loop_verified_cascade_step_and_ed25519_receipt(
+    sample_polyglot_repo: dict[str, str],
+) -> None:
+    """
+    Verifies the unified closed loop:
+    AST + Blast Radius -> Router -> Asymmetric Diff Review -> AcceptanceOracle (with UTBoost floor)
+    -> EscalationPacket on failure -> Ed25519-signed RFC 8785 JCS receipt.
+    """
+    ledger = RoutingLedger()
+    for i in range(40):
+        ledger.record(LedgerEntry("auth_refactor", "cheap", True, False, 0.2, 50 + i))
+        ledger.record(LedgerEntry("auth_refactor", "strong", True, False, 1.5, 120 + i))
+    router = AccuracyCascadeRouter(ledger, "cheap", "strong", 0.80)
+    signing_key = Ed25519PrivateKey.from_private_bytes(b"\x22" * 32)
+    full_t2_evidence = {c: True for c in BASE_ORACLE_CHECKS + T2_ORACLE_CHECKS}
+
+    # 1. Falsification: signature changed without updating caller -> rejected & escalated with slice only
+    bad_diff = (
+        "--- a/src/auth_service.py\n"
+        "+++ b/src/auth_service.py\n"
+        "@@ -2,2 +2,2 @@\n"
+        "-    def authenticate(self, token: str) -> bool:\n"
+        "+    def authenticate(self, token: str, context: dict) -> bool:\n"
+    )
+    step_bad = execute_verified_cascade_step(
+        repo_files=sample_polyglot_repo,
+        target_file="src/auth_service.py",
+        target_symbol="authenticate",
+        task=CodingTask("t-bad", "auth_refactor", "T2", False, {"cheap": 0.2, "strong": 1.5}),
+        router=router,
+        candidate_diff=bad_diff,
+        oracle_evidence=full_t2_evidence,
+        hard_rules=("C1: Update reverse callers",),
+        signing_key=signing_key,
+        mutation_kill_ratio_bps=9500,
+        min_mutation_kill_bps=9000,
+    )
+    assert step_bad.route_decision.model == "cheap"
+    assert not step_bad.diff_review.approved
+    assert not step_bad.oracle_verdict.accepted
+    assert "blast_radius_updated" in step_bad.oracle_verdict.failed_checks
+    assert step_bad.escalation_packet is not None
+    assert step_bad.escalation_packet["affected_symbols"] == ["src/auth_service.py::authenticate"]
+    assert any("src/api_gateway.py" in c for c in step_bad.escalation_packet["reverse_callers"])
+    assert "frontend/src/client.ts" not in str(step_bad.escalation_packet["reverse_callers"])
+
+    # Verify Ed25519 signature over RFC 8785 JCS receipt
+    pub = Ed25519PublicKey.from_public_bytes(bytes.fromhex(step_bad.public_key_hex))
+    pub.verify(bytes.fromhex(step_bad.ed25519_signature_hex), encode_jcs(step_bad.jcs_receipt))
+
+    # 2. Positive acceptance: caller updated + mutation floor satisfied -> accepted, no escalation
+    good_diff = (
+        "--- a/src/auth_service.py\n"
+        "+++ b/src/auth_service.py\n"
+        "@@ -2,2 +2,2 @@\n"
+        "-    def authenticate(self, token: str) -> bool:\n"
+        "+    def authenticate(self, token: str, context: dict) -> bool:\n"
+        "--- a/src/api_gateway.py\n"
+        "+++ b/src/api_gateway.py\n"
+        "@@ -6,2 +6,2 @@\n"
+        "-        if self.auth.authenticate(req.get('token', '')):\n"
+        "+        if self.auth.authenticate(req.get('token', ''), {}):\n"
+    )
+    step_good = execute_verified_cascade_step(
+        repo_files=sample_polyglot_repo,
+        target_file="src/auth_service.py",
+        target_symbol="authenticate",
+        task=CodingTask("t-good", "auth_refactor", "T2", False, {"cheap": 0.2, "strong": 1.5}),
+        router=router,
+        candidate_diff=good_diff,
+        oracle_evidence=full_t2_evidence,
+        hard_rules=("C1: Update reverse callers",),
+        signing_key=signing_key,
+        mutation_kill_ratio_bps=9667,
+        min_mutation_kill_bps=9000,
+    )
+    assert step_good.oracle_verdict.accepted is True
+    assert step_good.escalation_packet is None
+    assert step_good.jcs_receipt["oracle_accepted"] is True
+    pub.verify(bytes.fromhex(step_good.ed25519_signature_hex), encode_jcs(step_good.jcs_receipt))
+
+
+def test_real_repository_compression_measurement() -> None:
+    """Verifies real repository compression measurement across src/*.py and lexical tokenizer."""
+    assert estimate_lexical_tokens("") == 0
+    assert estimate_lexical_tokens("def foo(x: int) -> int: return x + 1") >= 10
+    metrics = measure_repository_compression(Path("."), max_files=10)
+    assert metrics["files_measured"] == 10
+    assert metrics["full_repo_bytes"] > metrics["ast_skeleton_bytes"] > 0
+    assert metrics["full_repo_char4_tokens"] > metrics["ast_skeleton_char4_tokens"] > 0
+    assert metrics["full_repo_lexical_tokens"] > metrics["ast_skeleton_lexical_tokens"] > 0
+    assert 0 < metrics["skeleton_char4_reduction_bps"] < 10000
+    assert 0 < metrics["skeleton_lexical_reduction_bps"] < 10000
 
 
 def test_cli_self_test() -> None:

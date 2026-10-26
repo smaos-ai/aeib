@@ -70,8 +70,16 @@ def test_decision_cascade_filter_stage1_read_only() -> None:
         assert decision.is_mutation is False
         assert decision.validated_schema is True
         assert decision.disposition == "APPROVED_FAST_PATH"
-        # Latency evaluated in sub-50 microseconds
-        assert decision.latency_us < 200.0, f"Latency exceeded expectation: {decision.latency_us} us"
+        # Latency: a single wall-clock sample is order-dependent under a full
+        # suite run (GC pauses, import warm-up; one observed 925 us outlier).
+        # Gate on the warm median of 50 calls; the 200 us bound is unchanged.
+        DecisionCascadeFilter.evaluate(tool_name, payload)  # warm-up
+        samples = sorted(
+            DecisionCascadeFilter.evaluate(tool_name, payload).latency_us
+            for _ in range(50)
+        )
+        median_us = samples[len(samples) // 2]
+        assert median_us < 200.0, f"Median latency exceeded expectation: {median_us} us"
 
 
 def test_decision_cascade_filter_schema_rejection() -> None:

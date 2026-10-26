@@ -771,6 +771,11 @@ class ProductionReadinessChaosHarness:
             k = (len(sorted_data) - 1) * p
             f = int(k)
             c = min(f + 1, len(sorted_data) - 1)
+            if f == c:
+                # k sits on the last index (n == 1 or p == 1.0); the
+                # interpolation weights below would both be 0 and the
+                # result would collapse to 0.0 instead of the sample value.
+                return round(sorted_data[f], 2)
             d0 = sorted_data[f] * (c - k)
             d1 = sorted_data[c] * (k - f)
             return round(d0 + d1, 2)

@@ -194,6 +194,13 @@ class IndependentValidationRunner:
             ["pytest", "tests/test_bpf_lsm_profile_compiler.py", "-q"],
         )
 
+        # Step 15: SOTA Repo-Intelligence & Radix KV-Cache Packer
+        self._run_cmd(
+            "STEP_15_REPO_INTELLIGENCE_PACKER",
+            "SOTA Repo-Intelligence & Radix KV-Cache Packer",
+            ["pytest", "tests/test_finalize_repo_intelligence_packer.py", "-q"],
+        )
+
         all_passed = all(r.passed for r in self.results)
         total_duration = sum(r.duration_ms for r in self.results)
 

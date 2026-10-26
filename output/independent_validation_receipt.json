@@ -2,109 +2,115 @@
   "receipt_body": {
     "validation_run": {
       "engine": "AEIB Independent Validation Runner v1.0.0-rc.5",
-      "timestamp_utc": "2026-10-20T20:35:22Z",
-      "total_steps": 15,
-      "passed_steps": 15,
+      "timestamp_utc": "2026-10-26T12:31:06Z",
+      "total_steps": 16,
+      "passed_steps": 16,
       "all_passed": true,
-      "total_duration_ms": 13813.13
+      "total_duration_ms": 32554.43
     },
     "steps": [
       {
         "step_id": "STEP_01_ZONE_BOUNDARY",
         "name": "Zone Boundary Isolation Scanner",
         "passed": true,
-        "duration_ms": 361.07
+        "duration_ms": 1321.08
       },
       {
         "step_id": "STEP_02_AST_PURITY",
         "name": "Zero-Mock and AST Purity Enforcer",
         "passed": true,
-        "duration_ms": 8853.01
+        "duration_ms": 14135.85
       },
       {
         "step_id": "STEP_02B_NO_MOCK",
         "name": "Zero Fake Crypto Verification",
         "passed": true,
-        "duration_ms": 384.5
+        "duration_ms": 932.45
       },
       {
         "step_id": "STEP_03_PQEE_DUAL_VERIFY",
         "name": "FIPS 204 ML-DSA-65 + Ed25519 Dual Verification",
         "passed": true,
-        "duration_ms": 501.85
+        "duration_ms": 1203.33
       },
       {
         "step_id": "STEP_04_COMMIT_TIME_BSCR",
         "name": "Commit-Time Consistency Guard (BSC-R)",
         "passed": true,
-        "duration_ms": 222.35
+        "duration_ms": 925.31
       },
       {
         "step_id": "STEP_05_AEIT_TELEMETRY",
         "name": "Agent Execution Integrity Telemetry",
         "passed": true,
-        "duration_ms": 211.15
+        "duration_ms": 586.47
       },
       {
         "step_id": "STEP_06_DIRECT_IO_WAL",
         "name": "Rust Direct-I/O WAL & Sector Alignment",
         "passed": true,
-        "duration_ms": 1018.98
+        "duration_ms": 2710.91
       },
       {
         "step_id": "STEP_07_INDUSTRIAL_MATRIX",
         "name": "Industrial Protection Matrix & 50BF Breaker Cascade",
         "passed": true,
-        "duration_ms": 713.41
+        "duration_ms": 1175.97
       },
       {
         "step_id": "STEP_08_DST_BENCHMARK",
         "name": "Deterministic 500-Episode Execution Integrity Benchmark",
         "passed": true,
-        "duration_ms": 90.48
+        "duration_ms": 194.42
       },
       {
         "step_id": "STEP_09_SELECTIVE_DISCLOSURE",
         "name": "Selective Disclosure & Redaction Engine (GDPR/DORA)",
         "passed": true,
-        "duration_ms": 212.31
+        "duration_ms": 644.26
       },
       {
         "step_id": "STEP_10_EBV_MODEL_CHECKER",
         "name": "EBV State Machine Formal Model Checker",
         "passed": true,
-        "duration_ms": 29.64
+        "duration_ms": 293.45
       },
       {
         "step_id": "STEP_11_PREDICTIVE_TRAJECTORY_LATCH",
         "name": "Predictive Trajectory Drift Latch & Adversarial Fuzzing",
         "passed": true,
-        "duration_ms": 287.52
+        "duration_ms": 933.86
       },
       {
         "step_id": "STEP_12_ZK_BUDGET_PROOFS",
         "name": "Zero-Knowledge Budget Proof Engine (Pedersen + Schnorr)",
         "passed": true,
-        "duration_ms": 314.07
+        "duration_ms": 962.75
       },
       {
         "step_id": "STEP_13_STANDALONE_OFFLINE_VERIFIER",
         "name": "Standalone Zero-Dependency Offline Verifier",
         "passed": true,
-        "duration_ms": 349.42
+        "duration_ms": 5665.59
       },
       {
         "step_id": "STEP_14_BPF_LSM_PROFILE_COMPILER",
         "name": "Tetragon / BPF_LSM Security Profile Compiler",
         "passed": true,
-        "duration_ms": 263.37
+        "duration_ms": 473.26
+      },
+      {
+        "step_id": "STEP_15_REPO_INTELLIGENCE_PACKER",
+        "name": "SOTA Repo-Intelligence & Radix KV-Cache Packer",
+        "passed": true,
+        "duration_ms": 395.47
       }
     ]
   },
   "signature_envelope": {
     "algorithm": "Ed25519",
-    "public_key_hex": "2e01f18b6f63e9e4e95c33e2d03017e420d7019ba925d6de9c99a1e3ebe001da",
-    "signature_b64": "hSLJVghsYd+97w495gGAaVfSaS8H9zk2KBa7YLGYoUDK1mXf/qT7oflw7BwvCH0ZxYUuXIu+d7wIXBoYuDFlDg==",
-    "canonical_hash_sha256": "sha256:938c5a6565ecbb8ffcc6d3b13a7c0d6e2a6cfeb757f5260c361ac01a5d3a2205"
+    "public_key_hex": "3c0fe2de82eea4d5f4b41b62cb624866f2b0b01ded7f6bfa1ff28dce68f33bfa",
+    "signature_b64": "Hv70QtBS8lj/2pXkvNtwgTHqL/6vwUCSPRJ3ycaZGrqZl9IxopEwhbWiRlTvOkFLUyT9SeGZFH2WFVJ88r/dAw==",
+    "canonical_hash_sha256": "sha256:280c870dba39ce012683d7997c2bfab445f39380b88564587e8c749d97d1b06a"
   }
 }

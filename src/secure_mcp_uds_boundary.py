@@ -25,14 +25,35 @@ Implements local IPC boundaries for Model Context Protocol (MCP) servers:
 4. Ed25519 Capability Token Gating: RFC 8785 JCS signed tokens with audience, TTL, nonce replay,
    and tool scope enforcement (defeating Confused Deputy).
 5. Audit Evidence Logging: append-only JSONL log with RFC 8785 JCS canonical formatting and SHA-256 digests.
+6. Resource bounds (tested under the stated model): newline-delimited request frames are capped at
+   `max_frame_bytes` (HALT_FRAME_TOO_LARGE) and read within a per-connection deadline
+   (HALT_FRAME_READ_TIMEOUT); connections are served by a bounded thread pool so one idle peer
+   does not block other peers.
+7. Socket directory hygiene: the socket is bound inside a dedicated 0o700 directory owned by the
+   effective UID (symlinks refused, HALT_SOCKET_DIR_INSECURE) under umask 0o177.
+8. Durable nonce replay cache: consumed nonces are appended (fsync) to a JSONL store with expiry
+   and reloaded on construction; expired entries are pruned.
+9. Strict JSON ingress: request frames (server) and response frames (client) are parsed with
+   src/strict_json_ingress.loads_strict, so duplicate member names, NaN/Infinity and lone
+   surrogates fail closed (HALT_STRICT_JSON_REJECTED) instead of being silently resolved.
+10. Tool-definition pinning (opt-in per server via `tool_pins`): before a registered tool becomes
+   dispatchable, the server's advertised definitions are checked against a
+   src/mcp_schema_pinning.ToolDefinitionPinSet; definition change, added/removed tools and
+   cross-server name shadowing halt with HALT_TOOL_DEFINITION_DRIFT, and calls to tools outside
+   the pinned set halt with HALT_TOOL_NOT_PINNED. First-use pinning ("learn mode") is OFF by
+   default. `McpToolPinGuard` and the signed pin-manifest helpers are shared with
+   aeib_mcp_proxy.py and adapters/mcp/idempotent_mcp_proxy.py.
 """
 
 import base64
+import concurrent.futures
 import ctypes
 import hashlib
 import json
+import math
 import os
 import socket
+import stat
 import struct
 import sys
 import threading
@@ -40,11 +61,18 @@ import time
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional, Set, Tuple
 
 from cryptography.hazmat.primitives.asymmetric import ed25519
 
 from src.jcs_canonicalizer import encode_jcs
+from src.mcp_schema_pinning import (
+    ToolDefinitionFinding,
+    ToolDefinitionPinSet,
+    ToolDriftKind,
+    ToolSetCheckResult,
+)
+from src.strict_json_ingress import StrictJSONError, loads_strict
 
 
 HALT_TCP_LOCALHOST_DENIED = "HALT_TCP_LOCALHOST_DENIED"
@@ -57,6 +85,25 @@ HALT_TOOL_SCOPE_NOT_AUTHORIZED = "HALT_TOOL_SCOPE_NOT_AUTHORIZED"
 HALT_TOKEN_NONCE_REPLAY = "HALT_TOKEN_NONCE_REPLAY"
 HALT_EXECUTABLE_HASH_MISMATCH = "HALT_EXECUTABLE_HASH_MISMATCH"
 HALT_EXECUTABLE_NOT_FOUND = "HALT_EXECUTABLE_NOT_FOUND"
+HALT_FRAME_TOO_LARGE = "HALT_FRAME_TOO_LARGE"
+HALT_FRAME_READ_TIMEOUT = "HALT_FRAME_READ_TIMEOUT"
+HALT_SOCKET_DIR_INSECURE = "HALT_SOCKET_DIR_INSECURE"
+HALT_NONCE_STORE_UNAVAILABLE = "HALT_NONCE_STORE_UNAVAILABLE"
+HALT_NONCE_STORE_CORRUPT = "HALT_NONCE_STORE_CORRUPT"
+HALT_STRICT_JSON_REJECTED = "HALT_STRICT_JSON_REJECTED"
+HALT_INVALID_SERVER_RESPONSE = "HALT_INVALID_SERVER_RESPONSE"
+HALT_TOOL_DEFINITION_DRIFT = "HALT_TOOL_DEFINITION_DRIFT"
+HALT_TOOL_NOT_PINNED = "HALT_TOOL_NOT_PINNED"
+HALT_TOOL_PIN_MANIFEST_INVALID = "HALT_TOOL_PIN_MANIFEST_INVALID"
+
+# JSON-RPC error code used by the MCP proxies for tool-pin violations.
+JSONRPC_TOOL_PIN_VIOLATION = -32040
+TOOL_PIN_MANIFEST_VERSION = 1
+
+DEFAULT_MAX_FRAME_BYTES = 1024 * 1024
+DEFAULT_CONNECTION_TIMEOUT_S = 2.0
+DEFAULT_MAX_WORKERS = 8
+_RECV_CHUNK_BYTES = 65536
 
 
 class McpSecurityHaltError(Exception):
@@ -68,6 +115,197 @@ class McpSecurityHaltError(Exception):
         self.response: Optional[Dict[str, Any]] = None
         message = f"{halt_code}: {detail}" if detail else halt_code
         super().__init__(message)
+
+
+# ---------------------------------------------------------------------------
+# Tool-definition pinning shared by the three MCP boundaries
+# ---------------------------------------------------------------------------
+
+
+def finding_to_dict(finding: ToolDefinitionFinding) -> Dict[str, Any]:
+    """JSON-safe view of a typed pinning finding (for error payloads and audit)."""
+    return {
+        "expected": finding.expected,
+        "kind": finding.kind.value,
+        "observed": finding.observed,
+        "other_server_id": finding.other_server_id,
+        "server_id": finding.server_id,
+        "tool_name": finding.tool_name,
+    }
+
+
+class ToolPinViolation(McpSecurityHaltError):
+    """Raised when a tool advertisement or call violates the approved pin set."""
+
+    def __init__(self, halt_code: str, server_id: str,
+                 findings: Iterable[ToolDefinitionFinding], detail: str):
+        self.server_id = server_id
+        self.findings: Tuple[ToolDefinitionFinding, ...] = tuple(findings)
+        kinds = ",".join(f.kind.value for f in self.findings)
+        super().__init__(halt_code, f"{detail} [server={server_id} findings={kinds}]")
+
+    def to_error_data(self) -> Dict[str, Any]:
+        return {
+            "findings": [finding_to_dict(f) for f in self.findings],
+            "halt_code": self.halt_code,
+            "server_id": self.server_id,
+        }
+
+    def to_jsonrpc_error(self) -> Dict[str, Any]:
+        return {
+            "code": JSONRPC_TOOL_PIN_VIOLATION,
+            "message": self.halt_code,
+            "data": self.to_error_data(),
+        }
+
+
+class McpToolPinGuard:
+    """
+    Gates one upstream server's tool advertisements and tool calls against a
+    ToolDefinitionPinSet (which may be shared by several guards so that name
+    shadowing across servers is detected).
+
+    * check_advertisement(tools): a server that has no approved pins is refused
+      (UNPINNED_SERVER) unless learn_mode is True, in which case the first
+      advertisement is pinned (and still refused if it shadows another server).
+      For a pinned server any finding from check_server blocks the advertisement.
+    * Any drift finding is latched: every later advertisement and call through
+      this guard is refused until an operator builds a new guard from a
+      reviewed pin set. UNPINNED_SERVER alone is not latched.
+    * check_call(tool_name): refused while drift is latched; for a pinned server
+      the tool must be present in the approved set. For an unpinned server the
+      caller decides via `require_pins`.
+    """
+
+    def __init__(self, server_id: str, pin_set: Optional[ToolDefinitionPinSet] = None,
+                 learn_mode: bool = False) -> None:
+        if not isinstance(server_id, str) or not server_id:
+            raise ValueError("server_id must be a non-empty string")
+        self.server_id = server_id
+        self.pin_set = pin_set if pin_set is not None else ToolDefinitionPinSet()
+        self.learn_mode = learn_mode is True
+        self._lock = threading.Lock()
+        self._latched: Tuple[ToolDefinitionFinding, ...] = ()
+
+    @property
+    def latched_findings(self) -> Tuple[ToolDefinitionFinding, ...]:
+        return self._latched
+
+    def is_pinned(self) -> bool:
+        probe = self.pin_set.check_server(self.server_id, [])
+        return all(f.kind is not ToolDriftKind.UNPINNED_SERVER for f in probe.findings)
+
+    def _raise_latched(self, what: str) -> None:
+        if self._latched:
+            raise ToolPinViolation(
+                HALT_TOOL_DEFINITION_DRIFT, self.server_id, self._latched,
+                f"{what} refused: tool-definition drift latched for this server",
+            )
+
+    def check_advertisement(self, tools: Any) -> ToolSetCheckResult:
+        """Verify a tools/list result; raises ToolPinViolation on any finding."""
+        with self._lock:
+            self._raise_latched("tools/list")
+            if not isinstance(tools, list):
+                finding = ToolDefinitionFinding(ToolDriftKind.INVALID_DEFINITION, self.server_id, "")
+                self._latched = (finding,)
+                raise ToolPinViolation(
+                    HALT_TOOL_DEFINITION_DRIFT, self.server_id, self._latched,
+                    "tools/list result.tools is not a JSON array",
+                )
+            if self.is_pinned():
+                result = self.pin_set.check_server(self.server_id, tools)
+            elif self.learn_mode:
+                result = self.pin_set.pin_server(self.server_id, tools)
+            else:
+                raise ToolPinViolation(
+                    HALT_TOOL_NOT_PINNED, self.server_id,
+                    (ToolDefinitionFinding(ToolDriftKind.UNPINNED_SERVER, self.server_id, ""),),
+                    "no approved tool pins for server and learn mode is off",
+                )
+            if result.findings:
+                self._latched = tuple(result.findings)
+                raise ToolPinViolation(
+                    HALT_TOOL_DEFINITION_DRIFT, self.server_id, self._latched,
+                    "tools/list advertisement does not match approved pins",
+                )
+            return result
+
+    def check_call(self, tool_name: Any, require_pins: bool = True) -> None:
+        """Refuse a tools/call that is not covered by the approved pin set."""
+        with self._lock:
+            self._raise_latched("tools/call")
+            if not self.is_pinned():
+                if require_pins:
+                    raise ToolPinViolation(
+                        HALT_TOOL_NOT_PINNED, self.server_id,
+                        (ToolDefinitionFinding(ToolDriftKind.UNPINNED_SERVER, self.server_id, ""),),
+                        "tools/call refused: no approved tool pins for server",
+                    )
+                return
+            name = tool_name if isinstance(tool_name, str) else ""
+            if name not in self.pin_set.pinned_digests(self.server_id):
+                raise ToolPinViolation(
+                    HALT_TOOL_NOT_PINNED, self.server_id,
+                    (ToolDefinitionFinding(ToolDriftKind.TOOL_ADDED, self.server_id, name),),
+                    f"tools/call refused: tool {name!r} is not in the approved pin set",
+                )
+
+
+def _manifest_signing_payload(servers: Mapping[str, Any]) -> Dict[str, Any]:
+    return {"servers": servers, "version": TOOL_PIN_MANIFEST_VERSION}
+
+
+def sign_tool_pin_manifest(servers: Mapping[str, List[Dict[str, Any]]],
+                           private_key: ed25519.Ed25519PrivateKey) -> Dict[str, Any]:
+    """Return a manifest {servers, version, signature_b64}; Ed25519 over JCS(servers, version)."""
+    payload = _manifest_signing_payload(dict(servers))
+    signature = private_key.sign(encode_jcs(payload))
+    doc = dict(payload)
+    doc["signature_b64"] = base64.b64encode(signature).decode("ascii")
+    return doc
+
+
+def load_tool_pin_manifest(source: str | Path | bytes,
+                           trusted_public_key: ed25519.Ed25519PublicKey) -> ToolDefinitionPinSet:
+    """
+    Load a reviewed, Ed25519-signed tool pin manifest into a ToolDefinitionPinSet.
+    `source` is a path or the raw manifest bytes. Parsing uses loads_strict; any
+    signature, shape, definition or cross-server shadowing problem halts with
+    HALT_TOOL_PIN_MANIFEST_INVALID (fail closed, nothing is partially pinned).
+    """
+    raw = source if isinstance(source, bytes) else Path(source).read_bytes()
+    try:
+        doc = loads_strict(raw)
+    except StrictJSONError as exc:
+        raise McpSecurityHaltError(HALT_TOOL_PIN_MANIFEST_INVALID, f"manifest JSON rejected: {exc}")
+    if not isinstance(doc, dict) or set(doc) != {"servers", "signature_b64", "version"}:
+        raise McpSecurityHaltError(
+            HALT_TOOL_PIN_MANIFEST_INVALID,
+            "manifest must contain exactly servers, version, signature_b64",
+        )
+    servers = doc["servers"]
+    if doc["version"] != TOOL_PIN_MANIFEST_VERSION or not isinstance(servers, dict):
+        raise McpSecurityHaltError(HALT_TOOL_PIN_MANIFEST_INVALID, "unsupported manifest version or servers shape")
+    try:
+        signature = base64.b64decode(str(doc["signature_b64"]), validate=True)
+        trusted_public_key.verify(signature, encode_jcs(_manifest_signing_payload(servers)))
+    except Exception:
+        raise McpSecurityHaltError(HALT_TOOL_PIN_MANIFEST_INVALID, "manifest signature verification failed")
+    staged = ToolDefinitionPinSet()
+    for server_id in sorted(servers):
+        tools = servers[server_id]
+        if not server_id or not isinstance(tools, list):
+            raise McpSecurityHaltError(
+                HALT_TOOL_PIN_MANIFEST_INVALID, f"server {server_id!r} must map to a tool list"
+            )
+        result = staged.pin_server(server_id, tools)
+        if result.findings:
+            raise ToolPinViolation(
+                HALT_TOOL_PIN_MANIFEST_INVALID, server_id, result.findings,
+                "manifest tool definitions rejected",
+            )
+    return staged
 
 
 @dataclass(frozen=True)
@@ -222,31 +460,29 @@ def get_process_info(pid: int) -> Tuple[Optional[str], Optional[float]]:
 
 def compute_executable_sha256(path: str) -> str:
     """Computes SHA-256 digest of executable binary on disk."""
-    hasher = hashlib.sha256()
     with open(path, "rb") as f:
-        while chunk := f.read(65536):
-            hasher.update(chunk)
-    return hasher.hexdigest()
+        return hashlib.file_digest(f, "sha256").hexdigest()
 
 
-def extract_peer_credentials(conn: socket.socket) -> PeerCredentials:
+def extract_peer_credentials(conn: socket.socket, platform: Optional[str] = None) -> PeerCredentials:
     """
     Extracts kernel peer credentials (pid, uid, gid) from an active Unix Domain Socket.
-    Denies TCP sockets with HALT_TCP_LOCALHOST_DENIED.
+    Denies TCP sockets with HALT_TCP_LOCALHOST_DENIED. `platform` defaults to sys.platform.
     """
+    platform = sys.platform if platform is None else platform
     if conn.family != socket.AF_UNIX:
         raise McpSecurityHaltError(
             HALT_TCP_LOCALHOST_DENIED,
             f"Socket family {conn.family} is not AF_UNIX; TCP loopback is forbidden",
         )
 
-    if sys.platform.startswith("linux"):
+    if platform.startswith("linux"):
         so_peercred = getattr(socket, "SO_PEERCRED", 17)
         cred_len = struct.calcsize("3i")
         cred_bytes = conn.getsockopt(socket.SOL_SOCKET, so_peercred, cred_len)
         pid, uid, gid = struct.unpack("3i", cred_bytes)
         return PeerCredentials(pid=pid, uid=uid, gid=gid)
-    elif sys.platform == "darwin":
+    elif platform == "darwin":
         local_peercred = getattr(socket, "LOCAL_PEERCRED", 1)
         cred_bytes = conn.getsockopt(0, local_peercred, 1024)
         _version, uid = struct.unpack_from("II", cred_bytes, 0)
@@ -269,7 +505,7 @@ def extract_peer_credentials(conn: socket.socket) -> PeerCredentials:
     else:
         raise McpSecurityHaltError(
             "HALT_UNSUPPORTED_PLATFORM",
-            f"Peer credential extraction not implemented for platform {sys.platform}",
+            f"Peer credential extraction not implemented for platform {platform}",
         )
 
 
@@ -290,7 +526,19 @@ class SecureMcpUdsBoundaryServer:
         expected_uid: Optional[int] = None,
         audit_log_path: Optional[str | Path] = None,
         clock_skew_tolerance: float = 0.5,
+        max_frame_bytes: int = DEFAULT_MAX_FRAME_BYTES,
+        connection_timeout: float = DEFAULT_CONNECTION_TIMEOUT_S,
+        max_workers: int = DEFAULT_MAX_WORKERS,
+        nonce_store_path: Optional[str | Path] = None,
+        tool_pins: Optional[ToolDefinitionPinSet] = None,
+        tool_pin_learn_mode: bool = False,
     ):
+        if max_frame_bytes < 1:
+            raise ValueError("max_frame_bytes must be >= 1")
+        if connection_timeout <= 0:
+            raise ValueError("connection_timeout must be > 0")
+        if max_workers < 1:
+            raise ValueError("max_workers must be >= 1")
         self.mcp_server_id = mcp_server_id
         self.socket_path = Path(socket_path) if socket_path else None
         self.trusted_issuer_pubkeys = trusted_issuer_pubkeys or {}
@@ -304,18 +552,154 @@ class SecureMcpUdsBoundaryServer:
         self.expected_uid = expected_uid if expected_uid is not None else os.getuid()
         self.audit_log_path = Path(audit_log_path) if audit_log_path else None
         self.clock_skew_tolerance = clock_skew_tolerance
+        self.max_frame_bytes = int(max_frame_bytes)
+        self.connection_timeout = float(connection_timeout)
+        self.max_workers = int(max_workers)
+        # Default nonce store lives beside the socket inside its dedicated 0o700 directory.
+        if nonce_store_path is not None:
+            self.nonce_store_path: Optional[Path] = Path(nonce_store_path)
+        elif self.socket_path is not None:
+            self.nonce_store_path = self.socket_path.parent / f"{self.socket_path.name}.nonces.jsonl"
+        else:
+            self.nonce_store_path = None
 
         self._tools: Dict[str, Callable[[Dict[str, Any]], Any]] = {}
-        self._seen_nonces: Set[str] = set()
+        self._tool_definitions: Dict[str, Dict[str, Any]] = {}
+        # Tool-definition pinning is enforced only when a pin set is supplied or learn mode
+        # is explicitly enabled; learn mode is OFF by default.
+        self.tool_pin_learn_mode = tool_pin_learn_mode is True
+        self._tool_pin_guard: Optional[McpToolPinGuard] = (
+            McpToolPinGuard(mcp_server_id, tool_pins, learn_mode=self.tool_pin_learn_mode)
+            if tool_pins is not None or self.tool_pin_learn_mode
+            else None
+        )
+        # Guards nonce cache, nonce store, and audit hash chain across worker threads.
+        self._state_lock = threading.RLock()
+        # nonce -> expiry in integer milliseconds since the epoch
+        self._seen_nonces: Dict[str, int] = {}
         self._server_sock: Optional[socket.socket] = None
         self._running = False
         self._worker_thread: Optional[threading.Thread] = None
+        self._executor: Optional[concurrent.futures.ThreadPoolExecutor] = None
+        self._slots: Optional[threading.BoundedSemaphore] = None
         self._last_audit_hash = "0" * 64
         self.audit_records: List[Dict[str, Any]] = []
+        self._load_nonce_store()
 
-    def register_tool(self, name: str, handler: Callable[[Dict[str, Any]], Any]) -> None:
-        """Registers a callable tool on this boundary server."""
+    # ------------------------------------------------------------------
+    # Durable nonce replay cache
+    # ------------------------------------------------------------------
+
+    def _load_nonce_store(self) -> None:
+        """Reloads consumed nonces from the append-only store, pruning expired entries."""
+        path = self.nonce_store_path
+        if path is None or not os.path.lexists(path):
+            return
+        if stat.S_ISLNK(os.lstat(path).st_mode):
+            raise McpSecurityHaltError(HALT_NONCE_STORE_CORRUPT, f"Nonce store {path} is a symlink")
+        with open(path, "r", encoding="utf-8") as f:
+            text = f.read()
+        # A trailing torn line (crash mid-append) is tolerated; that nonce never reached dispatch.
+        complete, _sep, _torn = text.rpartition("\n")
+        lines = complete.split("\n")
+        now_ms = int(time.time() * 1000)
+        loaded: Dict[str, int] = {}
+        total = 0
+        for line in lines:
+            if not line:
+                continue
+            total += 1
+            try:
+                rec = json.loads(line)
+                nonce = rec["nonce"]
+                expiry_ms = rec["expires_at_ms"]
+            except Exception as exc:
+                raise McpSecurityHaltError(
+                    HALT_NONCE_STORE_CORRUPT, f"Malformed nonce store entry: {exc}"
+                )
+            if not isinstance(nonce, str) or not isinstance(expiry_ms, int):
+                raise McpSecurityHaltError(HALT_NONCE_STORE_CORRUPT, "Nonce store entry has wrong types")
+            if expiry_ms >= now_ms:
+                loaded[nonce] = max(expiry_ms, loaded.get(nonce, expiry_ms))
+        self._seen_nonces = loaded
+        if len(loaded) != total:
+            self._rewrite_nonce_store()
+
+    def _rewrite_nonce_store(self) -> None:
+        """Atomically compacts the nonce store to the live (unexpired) entries."""
+        path = self.nonce_store_path
+        if path is None:
+            return
+        tmp = path.with_name(path.name + ".tmp")
+        data = "".join(
+            encode_jcs({"expires_at_ms": exp, "nonce": n}).decode("utf-8") + "\n"
+            for n, exp in sorted(self._seen_nonces.items())
+        )
+        fd = os.open(str(tmp), os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_NOFOLLOW, 0o600)
+        try:
+            os.write(fd, data.encode("utf-8"))
+            os.fsync(fd)
+        finally:
+            os.close(fd)
+        os.replace(str(tmp), str(path))
+
+    def _persist_nonce(self, nonce: str, expiry_ms: int) -> None:
+        path = self.nonce_store_path
+        if path is None:
+            return
+        line = encode_jcs({"expires_at_ms": expiry_ms, "nonce": nonce}) + b"\n"
+        try:
+            fd = os.open(
+                str(path), os.O_WRONLY | os.O_CREAT | os.O_APPEND | os.O_NOFOLLOW, 0o600
+            )
+            try:
+                os.write(fd, line)
+                os.fsync(fd)
+            finally:
+                os.close(fd)
+        except OSError as exc:
+            raise McpSecurityHaltError(
+                HALT_NONCE_STORE_UNAVAILABLE, f"Failed to persist consumed nonce: {exc}"
+            )
+
+    def _consume_nonce(self, token: CapabilityToken) -> None:
+        """Atomically checks, records, and durably persists a token nonce (fail-closed)."""
+        expiry_ms = int(math.ceil(token.expires_at * 1000))
+        with self._state_lock:
+            now_ms = int(time.time() * 1000)
+            expired = [n for n, exp in self._seen_nonces.items() if exp < now_ms]
+            for n in expired:
+                del self._seen_nonces[n]
+            if token.nonce in self._seen_nonces:
+                raise McpSecurityHaltError(
+                    HALT_TOKEN_NONCE_REPLAY,
+                    f"Capability token nonce '{token.nonce}' has already been evaluated",
+                )
+            self._persist_nonce(token.nonce, expiry_ms)
+            self._seen_nonces[token.nonce] = expiry_ms
+
+    def register_tool(
+        self,
+        name: str,
+        handler: Callable[[Dict[str, Any]], Any],
+        definition: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """
+        Registers a callable tool on this boundary server. `definition` is the MCP tool
+        definition (name, description, inputSchema) checked against `tool_pins`; a tool
+        registered without one cannot pass a configured pin check.
+        """
+        if definition is not None and (not isinstance(definition, dict) or definition.get("name") != name):
+            raise ValueError("tool definition must be an object whose name equals the registered name")
         self._tools[name] = handler
+        if definition is None:
+            self._tool_definitions.pop(name, None)
+        else:
+            self._tool_definitions[name] = dict(definition)
+
+    def advertised_tool_definitions(self) -> List[Dict[str, Any]]:
+        """Current tool advertisement (registration without a definition yields {'name': ...})."""
+        return [dict(self._tool_definitions.get(n, {"name": n})) for n in sorted(self._tools)]
 
     def _extract_peer_credentials(self, conn: socket.socket) -> PeerCredentials:
         return extract_peer_credentials(conn)
@@ -395,12 +779,7 @@ class SecureMcpUdsBoundaryServer:
                 f"Capability token expired at {token.expires_at} (current time {now})",
             )
 
-        if token.nonce in self._seen_nonces:
-            raise McpSecurityHaltError(
-                HALT_TOKEN_NONCE_REPLAY,
-                f"Capability token nonce '{token.nonce}' has already been evaluated",
-            )
-        self._seen_nonces.add(token.nonce)
+        self._consume_nonce(token)
 
         if requested_tool not in token.allowed_tools:
             raise McpSecurityHaltError(
@@ -418,6 +797,23 @@ class SecureMcpUdsBoundaryServer:
         requested_tool: Optional[str] = None,
         detail: Optional[str] = None,
         payload_hash: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        with self._state_lock:
+            return self._record_audit_event_locked(
+                event_type, disposition, halt_code, peer_creds, token,
+                requested_tool, detail, payload_hash,
+            )
+
+    def _record_audit_event_locked(
+        self,
+        event_type: str,
+        disposition: str,
+        halt_code: Optional[str],
+        peer_creds: Optional[PeerCredentials],
+        token: Optional[CapabilityToken],
+        requested_tool: Optional[str],
+        detail: Optional[str],
+        payload_hash: Optional[str],
     ) -> Dict[str, Any]:
         entry_payload = {
             "disposition": disposition,
@@ -452,6 +848,46 @@ class SecureMcpUdsBoundaryServer:
 
         return full_entry
 
+    def _read_frame(self, conn: socket.socket) -> bytes:
+        """
+        Reads one newline-terminated frame into an incremental bytearray.
+        Halts with HALT_FRAME_TOO_LARGE once more than max_frame_bytes arrive without a
+        newline (no further buffering), and with HALT_FRAME_READ_TIMEOUT when the
+        per-connection deadline elapses (covers idle and drip-feeding peers).
+        """
+        buf = bytearray()
+        deadline = time.monotonic() + self.connection_timeout
+        while True:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise McpSecurityHaltError(
+                    HALT_FRAME_READ_TIMEOUT,
+                    f"No complete frame within {self.connection_timeout}s",
+                )
+            conn.settimeout(remaining)
+            try:
+                chunk = conn.recv(min(_RECV_CHUNK_BYTES, self.max_frame_bytes + 1 - len(buf)))
+            except (socket.timeout, TimeoutError):
+                raise McpSecurityHaltError(
+                    HALT_FRAME_READ_TIMEOUT,
+                    f"No complete frame within {self.connection_timeout}s",
+                )
+            if not chunk:
+                return bytes(buf)
+            start = len(buf)
+            buf += chunk
+            nl = buf.find(b"\n", start)
+            if nl >= 0:
+                if nl + 1 > self.max_frame_bytes:
+                    break
+                return bytes(buf[: nl + 1])
+            if len(buf) > self.max_frame_bytes:
+                break
+        raise McpSecurityHaltError(
+            HALT_FRAME_TOO_LARGE,
+            f"Request frame exceeds max_frame_bytes={self.max_frame_bytes}",
+        )
+
     def handle_connection(
         self, conn: socket.socket, raise_on_halt: bool = False
     ) -> Optional[Dict[str, Any]]:
@@ -476,24 +912,31 @@ class SecureMcpUdsBoundaryServer:
             peer_creds = self._extract_peer_credentials(conn)
             self._verify_peer_credentials(peer_creds)
 
-            # 3. Read message frame
-            raw = b""
-            while not raw.endswith(b"\n"):
-                chunk = conn.recv(4096)
-                if not chunk:
-                    break
-                raw += chunk
+            # 3. Read message frame (bounded size, bounded wall-clock deadline)
+            raw = self._read_frame(conn)
 
             if not raw:
                 return None
 
             payload_hash = hashlib.sha256(raw).hexdigest()
             try:
-                req_data = json.loads(raw.decode("utf-8"))
-            except Exception as e:
+                req_data = loads_strict(raw)
+            except RecursionError:
+                raise McpSecurityHaltError(
+                    HALT_STRICT_JSON_REJECTED,
+                    "Failed to parse request JSON: ERR_NESTING_TOO_DEEP",
+                )
+            except StrictJSONError as e:
+                raise McpSecurityHaltError(
+                    HALT_INVALID_CAPABILITY_TOKEN_SIGNATURE
+                    if e.code == "ERR_INVALID_JSON"
+                    else HALT_STRICT_JSON_REJECTED,
+                    f"Failed to parse request JSON: {e}",
+                )
+            if not isinstance(req_data, dict):
                 raise McpSecurityHaltError(
                     HALT_INVALID_CAPABILITY_TOKEN_SIGNATURE,
-                    f"Failed to parse request JSON: {e}",
+                    "Failed to parse request JSON: request frame is not a JSON object",
                 )
 
             request_id = str(req_data.get("request_id", ""))
@@ -522,6 +965,12 @@ class SecureMcpUdsBoundaryServer:
                     HALT_TOOL_SCOPE_NOT_AUTHORIZED,
                     f"Tool '{requested_tool}' not registered on server",
                 )
+
+            # 6b. Tool-definition pinning: the advertisement must match the approved pins
+            # and the requested tool must be in the pinned set before it is dispatchable.
+            if self._tool_pin_guard is not None:
+                self._tool_pin_guard.check_advertisement(self.advertised_tool_definitions())
+                self._tool_pin_guard.check_call(requested_tool)
 
             result = tool_fn(arguments)
 
@@ -609,45 +1058,130 @@ class SecureMcpUdsBoundaryServer:
             except Exception:
                 pass
 
+    def _ensure_private_socket_dir(self, directory: Path) -> None:
+        """
+        Ensures `directory` is a real (non-symlink) directory owned by the effective UID
+        with mode exactly 0o700, creating it with that mode when missing.
+        """
+        created = False
+        if not os.path.lexists(directory):
+            directory.parent.mkdir(parents=True, exist_ok=True)
+            old_umask = os.umask(0o077)
+            try:
+                os.mkdir(str(directory), 0o700)
+                created = True
+            except FileExistsError:
+                pass
+            finally:
+                os.umask(old_umask)
+        st = os.lstat(directory)
+        if stat.S_ISLNK(st.st_mode) or not stat.S_ISDIR(st.st_mode):
+            raise McpSecurityHaltError(
+                HALT_SOCKET_DIR_INSECURE, f"Socket directory {directory} is not a real directory"
+            )
+        if st.st_uid != os.geteuid():
+            raise McpSecurityHaltError(
+                HALT_SOCKET_DIR_INSECURE,
+                f"Socket directory {directory} owned by UID {st.st_uid}, expected {os.geteuid()}",
+            )
+        if created and stat.S_IMODE(st.st_mode) != 0o700:
+            os.chmod(str(directory), 0o700)
+            st = os.lstat(directory)
+        if stat.S_IMODE(st.st_mode) != 0o700:
+            raise McpSecurityHaltError(
+                HALT_SOCKET_DIR_INSECURE,
+                f"Socket directory {directory} has mode {oct(stat.S_IMODE(st.st_mode))}, expected 0o700",
+            )
+
     def bind_and_listen(self, backlog: int = 128) -> None:
-        """Binds to the local Unix Domain Socket with permissions 0o600."""
+        """
+        Binds the Unix Domain Socket inside a dedicated 0o700 directory. The bind runs
+        under umask 0o177 so the socket node is created 0o600 (no post-bind chmod window).
+        """
         if not self.socket_path:
             raise ValueError("socket_path must be configured to bind")
 
-        if os.path.exists(self.socket_path):
+        self._ensure_private_socket_dir(self.socket_path.parent)
+
+        if os.path.lexists(self.socket_path):
+            if not stat.S_ISSOCK(os.lstat(self.socket_path).st_mode):
+                raise McpSecurityHaltError(
+                    HALT_SOCKET_DIR_INSECURE,
+                    f"Refusing to replace non-socket file at {self.socket_path}",
+                )
             os.unlink(self.socket_path)
 
-        self.socket_path.parent.mkdir(parents=True, exist_ok=True)
-
         sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        sock.bind(str(self.socket_path))
-        os.chmod(str(self.socket_path), 0o600)
+        old_umask = os.umask(0o177)
+        try:
+            sock.bind(str(self.socket_path))
+        except Exception:
+            sock.close()
+            raise
+        finally:
+            os.umask(old_umask)
+        # Verify (rather than chmod) so the node is never observable with wider permissions.
+        st = os.lstat(self.socket_path)
+        if (
+            not stat.S_ISSOCK(st.st_mode)
+            or stat.S_IMODE(st.st_mode) != 0o600
+            or st.st_uid != os.geteuid()
+        ):
+            sock.close()
+            os.unlink(self.socket_path)
+            raise McpSecurityHaltError(
+                HALT_SOCKET_DIR_INSECURE,
+                f"Socket node {self.socket_path} has mode {oct(stat.S_IMODE(st.st_mode))}, expected 0o600",
+            )
         sock.listen(backlog)
         sock.settimeout(0.2)
         self._server_sock = sock
 
     def start(self, backlog: int = 128) -> None:
-        """Starts background listener worker thread."""
+        """Starts background accept thread feeding a bounded worker pool."""
         self.bind_and_listen(backlog=backlog)
+        self._executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=self.max_workers, thread_name_prefix="mcp-uds-worker"
+        )
+        # Accept only when a worker slot is free; excess peers wait in the kernel backlog.
+        self._slots = threading.BoundedSemaphore(self.max_workers)
         self._running = True
         self._worker_thread = threading.Thread(target=self._serve_loop, daemon=True)
         self._worker_thread.start()
 
+    def _handle_and_release(self, conn: socket.socket) -> None:
+        try:
+            self.handle_connection(conn, raise_on_halt=False)
+        except Exception:
+            pass
+        finally:
+            if self._slots is not None:
+                self._slots.release()
+
     def _serve_loop(self) -> None:
+        slots = self._slots
+        executor = self._executor
+        if slots is None or executor is None:
+            return
         while self._running and self._server_sock:
+            if not slots.acquire(timeout=0.2):
+                continue
             try:
                 conn, _ = self._server_sock.accept()
             except socket.timeout:
+                slots.release()
                 continue
-            except OSError:
-                break
             except Exception:
+                slots.release()
                 break
 
+            conn.settimeout(self.connection_timeout)
             try:
-                self.handle_connection(conn, raise_on_halt=False)
-            except Exception:
-                pass
+                executor.submit(self._handle_and_release, conn)
+            except RuntimeError:
+                slots.release()
+                conn.close()
+                break
 
     def stop(self) -> None:
         """Stops background listener and cleans up ephemeral socket file."""
@@ -661,11 +1195,17 @@ class SecureMcpUdsBoundaryServer:
 
         if self._worker_thread and self._worker_thread.is_alive():
             self._worker_thread.join(timeout=2.0)
-            self._worker_thread = None
+        self._worker_thread = None
 
-        if self.socket_path and os.path.exists(self.socket_path):
+        if self._executor is not None:
+            # In-flight connections end within connection_timeout.
+            self._executor.shutdown(wait=True)
+            self._executor = None
+
+        if self.socket_path and os.path.lexists(self.socket_path):
             try:
-                os.unlink(self.socket_path)
+                if stat.S_ISSOCK(os.lstat(self.socket_path).st_mode):
+                    os.unlink(self.socket_path)
             except Exception:
                 pass
 
@@ -744,7 +1284,16 @@ class SecureMcpUdsClient:
                     "Connection closed without server response",
                 )
 
-            resp_data = json.loads(raw.decode("utf-8"))
+            try:
+                resp_data = loads_strict(raw)
+            except StrictJSONError as exc:
+                raise McpSecurityHaltError(
+                    HALT_INVALID_SERVER_RESPONSE, f"Server response JSON rejected: {exc}"
+                )
+            if not isinstance(resp_data, dict):
+                raise McpSecurityHaltError(
+                    HALT_INVALID_SERVER_RESPONSE, "Server response is not a JSON object"
+                )
 
             # Verify server signature if server public key configured
             if self.server_public_key and "signature_b64" in resp_data:

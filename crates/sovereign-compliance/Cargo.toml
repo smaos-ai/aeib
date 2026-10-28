@@ -1,0 +1,9 @@
+[package]
+name = "sovereign-compliance"
+version = "0.1.0"
+edition = "2021"
+description = "USA Enterprise Hardening (FINRA, HIPAA, FedRAMP) for SovereignNexus"
+
+[dependencies]
+tokio = { version = "1.25", features = ["full"] }
+# Mocking AWS SDKs for demonstration

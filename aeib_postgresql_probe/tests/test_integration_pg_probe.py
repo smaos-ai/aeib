@@ -1,16 +1,17 @@
 import os
 import pytest
-import psycopg2
+psycopg2 = pytest.importorskip("psycopg2")
 from aeib_postgresql_probe.adapter import PostgresProbeAdapter, ProbeResult
 
 DSN = os.getenv("PG_LEDGER_DSN", "postgresql://postgres:password@localhost:55432/aeib_ledger")
 
 @pytest.fixture(scope="module")
 def pg_adapter():
+    try:
+        conn = psycopg2.connect(DSN)
+    except Exception as e:
+        pytest.skip(f"Live PostgreSQL required on {DSN}: {e}")
     adapter = PostgresProbeAdapter(DSN, minconn=1, maxconn=3)
-    
-    # Deterministic Schema Setup
-    conn = psycopg2.connect(DSN)
     cur = conn.cursor()
     cur.execute("""
         DROP TABLE IF EXISTS transactions CASCADE;

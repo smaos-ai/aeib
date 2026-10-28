@@ -6,11 +6,12 @@ Stores in local JSON (not phone-home)
 
 import json
 import hashlib
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from dataclasses import dataclass, asdict
 from typing import Optional
 import os
+from cryptography.hazmat.primitives.asymmetric import ed25519
 
 
 @dataclass
@@ -30,26 +31,22 @@ class WorkReceipt:
 
 
 class AgentAcct:
-    """Fail-closed work receipt tracking using Ed25519 signatures"""
+    """Fail-closed work receipt tracking using authentic Ed25519 signatures"""
 
     def __init__(self, storage_dir: Optional[str] = None):
         self.storage_dir = Path(storage_dir or "./.smaos/work_receipts")
         self.storage_dir.mkdir(parents=True, exist_ok=True)
         self.receipts = []
 
-        # Simulate Ed25519 keypair (in production: load from KMS)
-        self.private_key = "ed25519_private_001"
-        self.public_key = "ed25519_key_001"
+        # Authentic Ed25519 keypair generated at runtime
+        self._private_key = ed25519.Ed25519PrivateKey.generate()
+        self.public_key = self._private_key.public_key().public_bytes_raw().hex()
+        self.private_key = "ed25519_secured"
 
     def _sign_ed25519(self, data: str) -> str:
-        """
-        Simulate Ed25519 signature (HMAC-SHA512 for testing).
-        In production: use cryptography.hazmat.primitives.asymmetric.ed25519
-        """
-        signature_bytes = hashlib.sha512(
-            (data + self.private_key).encode()
-        ).digest()
-        return signature_bytes.hex()[:128]  # Truncate to 64 chars for readability
+        """Sign payload with authentic RFC 8032 Ed25519 curve cryptography."""
+        sig_bytes = self._private_key.sign(data.encode("utf-8"))
+        return sig_bytes.hex()
 
     def capture(
         self,
@@ -62,7 +59,7 @@ class AgentAcct:
         Capture work receipt with Ed25519 signature.
         Data flow: action → capture → signature → local JSON
         """
-        timestamp = datetime.utcnow().isoformat()
+        timestamp = datetime.now(timezone.utc).isoformat()
 
         # Create signable payload (deterministic)
         payload = json.dumps(
@@ -101,7 +98,7 @@ class AgentAcct:
         Persist receipts to local JSON file (not phone-home).
         Fail-closed: persists before agent can use result.
         """
-        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         filename = self.storage_dir / f"work_receipts_{timestamp}.json"
 
         with open(filename, "w") as f:
@@ -113,8 +110,7 @@ class AgentAcct:
 
     def verify_signature(self, receipt: WorkReceipt) -> bool:
         """
-        Verify Ed25519 signature of receipt.
-        In production: use cryptography library for actual Ed25519.
+        Verify Ed25519 signature of receipt using asymmetric public key cryptography.
         """
         payload = json.dumps(
             {
@@ -125,10 +121,16 @@ class AgentAcct:
                 "timestamp": receipt.timestamp,
             },
             sort_keys=True,
-        )
+        ).encode("utf-8")
 
-        expected_signature = self._sign_ed25519(payload)
-        return receipt.signature == expected_signature
+        try:
+            pub_bytes = bytes.fromhex(receipt.public_key)
+            pub_key = ed25519.Ed25519PublicKey.from_public_bytes(pub_bytes)
+            sig_bytes = bytes.fromhex(receipt.signature)
+            pub_key.verify(sig_bytes, payload)
+            return True
+        except Exception:
+            return False
 
 
 # Usage example

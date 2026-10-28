@@ -28,10 +28,21 @@ import argparse
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 
+# RFC 8785 single source of truth: delegate to src/jcs_canonicalizer.encode_jcs
+# (differential-tested in tests/test_jcs_single_source.py).
+try:
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+except ImportError:  # loaded without the repository root on sys.path
+    import sys as _jcs_sys
+    from pathlib import Path as _JcsPath
+
+    _jcs_sys.path.insert(0, str(_JcsPath(__file__).resolve().parents[0]))
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+
 
 def canonical_json_bytes(obj: Any) -> bytes:
     """RFC 8785 JSON Canonicalization Scheme (JCS) deterministic subset."""
-    return json.dumps(obj, ensure_ascii=False, separators=(',', ':'), sort_keys=True).encode('utf-8')
+    return _reference_encode_jcs(obj)
 
 
 def load_yaml_contract(contract_path: Path) -> Dict[str, Any]:
@@ -68,7 +79,8 @@ def load_yaml_contract(contract_path: Path) -> Dict[str, Any]:
 
 
 def verify_receipt(receipt_data: Dict[str, Any], contract_data: Dict[str, Any], strict: bool = False) -> bool:
-    """Verifies cryptographic hash binding and contract rule conformance."""
+    """Verifies cryptographic hash binding, contract rule conformance, and signatures."""
+    # 1. Payload hash verification
     if "unsigned_payload" in receipt_data:
         payload = receipt_data["unsigned_payload"]
         computed_hash = hashlib.sha256(canonical_json_bytes(payload)).hexdigest()
@@ -78,13 +90,75 @@ def verify_receipt(receipt_data: Dict[str, Any], contract_data: Dict[str, Any], 
                 raise ValueError(f"Payload hash mismatch: computed {computed_hash} != {recorded_hash}")
             return False
 
+    # 2. Extract disposition and wire signals
+    payload = receipt_data.get("unsigned_payload", {})
+    aeib_data = (
+        receipt_data.get("org.smaos.aeib")
+        or payload.get("org.smaos.aeib")
+        or receipt_data
+    )
     disposition = (
         receipt_data.get("disposition")
-        or receipt_data.get("org.smaos.aeib", {}).get("disposition")
-        or receipt_data.get("unsigned_payload", {}).get("org.smaos.aeib", {}).get("disposition")
+        or aeib_data.get("disposition")
+        or aeib_data.get("aeib.disposition")
     )
-    if not disposition and strict:
-        raise ValueError("Receipt missing disposition field")
+    if not disposition:
+        if strict:
+            raise ValueError("Receipt missing required disposition field")
+        return False
+
+    transport_code = (
+        aeib_data.get("transport_code")
+        or aeib_data.get("aeib.transport.status_code")
+        or receipt_data.get("transport_code")
+    )
+    probe_status = (
+        aeib_data.get("probe_status")
+        or aeib_data.get("aeib.probe.query_status")
+        or receipt_data.get("probe_status")
+    )
+
+    # 3. Contract rule matching: Match transport and probe signals to target disposition
+    rules = contract_data.get("rules", [])
+    if transport_code is not None and probe_status is not None and rules:
+        sorted_rules = sorted(rules, key=lambda r: r.get("priority", 100))
+        matched_rule = None
+        for r in sorted_rules:
+            m = r.get("match", {})
+            if m.get("transport_code") == transport_code and m.get("probe_status") == probe_status:
+                matched_rule = r
+                break
+
+        if matched_rule:
+            expected_disp = matched_rule.get("target_disposition")
+            if disposition != expected_disp:
+                if strict:
+                    raise ValueError(
+                        f"Receipt disposition '{disposition}' violates contract rule {matched_rule.get('id')}: "
+                        f"expected '{expected_disp}' for transport_code={transport_code}, probe_status={probe_status}"
+                    )
+                return False
+
+    # 4. Cryptographic signature verification (if present)
+    signatures = receipt_data.get("signatures", {})
+    if "ed25519" in signatures:
+        ed = signatures["ed25519"]
+        pk_hex = ed.get("public_key")
+        sig_hex = ed.get("signature")
+        raw_payload = receipt_data.get("payload")
+        if pk_hex and sig_hex and raw_payload:
+            try:
+                from cryptography.hazmat.primitives.asymmetric import ed25519
+                pk_bytes = bytes.fromhex(pk_hex)
+                sig_bytes = bytes.fromhex(sig_hex)
+                vk = ed25519.Ed25519PublicKey.from_public_bytes(pk_bytes)
+                msg_bytes = raw_payload.encode("utf-8") if isinstance(raw_payload, str) else raw_payload
+                vk.verify(sig_bytes, msg_bytes)
+            except Exception as e:
+                if strict:
+                    raise ValueError(f"Ed25519 signature verification failed: {e}")
+                return False
+
     return True
 
 
@@ -107,8 +181,8 @@ def main() -> None:
     parser.add_argument(
         "--contract",
         type=str,
-        default="transport-to-disposition-mapping.yaml",
-        help="Path to transport-to-disposition mapping YAML contract"
+        default=None,
+        help="Path to transport-to-disposition mapping YAML contract (defaults to transport-to-disposition-mapping.yaml or docs/transport-to-disposition-mapping.yaml)"
     )
     parser.add_argument(
         "--strict",
@@ -118,7 +192,17 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    contract_file = Path(args.contract)
+    if args.contract:
+        contract_file = Path(args.contract)
+    else:
+        candidates = [
+            Path("transport-to-disposition-mapping.yaml"),
+            Path("docs/transport-to-disposition-mapping.yaml"),
+            Path(__file__).resolve().parent / "docs/transport-to-disposition-mapping.yaml",
+            Path(__file__).resolve().parent / "transport-to-disposition-mapping.yaml"
+        ]
+        contract_file = next((c for c in candidates if c.exists()), candidates[0])
+
     if not contract_file.exists():
         print(f"[-] Contract not found: {contract_file}", file=sys.stderr)
         sys.exit(1)

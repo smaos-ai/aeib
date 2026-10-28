@@ -20,24 +20,103 @@ import json
 from typing import Any, Dict, Optional
 
 
-def jcs_canonicalize(data: Any) -> bytes:
-    """Canonicalizes JSON according to RFC 8785 (JCS)."""
-    if isinstance(data, dict):
-        sorted_keys = sorted(data.keys())
-        items = []
-        for k in sorted_keys:
-            key_bytes = json.dumps(k, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-            val_bytes = jcs_canonicalize(data[k])
-            items.append(key_bytes + b":" + val_bytes)
-        return b"{" + b",".join(items) + b"}"
-    elif isinstance(data, list):
-        return b"[" + b",".join(jcs_canonicalize(x) for x in data) + b"]"
-    elif isinstance(data, str):
-        return json.dumps(data, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-    elif isinstance(data, (int, float, bool)) or data is None:
-        return json.dumps(data, separators=(",", ":")).encode("utf-8")
+def _jcs_format_number(num: float) -> str:
+    """ECMAScript 7.1.12.1 Number::toString per RFC 8785 Section 3.2.2.3.
+
+    Port of SovereignNexus src/jcs_canonicalizer._format_jcs_number, kept local
+    because the ocr_audit package ships standalone; parity is differential-tested
+    in the SovereignNexus tests/test_jcs_single_source.py.
+    """
+    if num != num or num in (float("inf"), float("-inf")):
+        raise ValueError("NaN and Infinity are not permitted in RFC 8785")
+    if num == 0.0:
+        return "0"
+    if num < 0:
+        return "-" + _jcs_format_number(-num)
+    rep = repr(num)
+    if "e" in rep:
+        mantissa, exp_str = rep.split("e")
+        exp = int(exp_str)
     else:
-        return json.dumps(str(data), separators=(",", ":")).encode("utf-8")
+        mantissa, exp = rep, 0
+    if "." in mantissa:
+        int_part, frac_part = mantissa.split(".")
+        frac_part = frac_part.rstrip("0")
+    else:
+        int_part, frac_part = mantissa, ""
+    int_part = int_part.lstrip("0")
+    if int_part:
+        digits = int_part + frac_part
+        n = len(int_part) + exp
+    else:
+        leading_zeros = len(frac_part) - len(frac_part.lstrip("0"))
+        digits = frac_part.lstrip("0")
+        n = -leading_zeros + exp
+    if not digits:
+        return "0"
+    k = len(digits)
+    if k <= n <= 21:
+        return digits + "0" * (n - k)
+    if 0 < n <= 21:
+        return digits[:n] + "." + digits[n:]
+    if -6 < n <= 0:
+        return "0." + "0" * (-n) + digits
+    exp_sign = "+" if (n - 1) > 0 else ""
+    if k == 1:
+        return f"{digits}e{exp_sign}{n - 1}"
+    return f"{digits[0]}.{digits[1:]}e{exp_sign}{n - 1}"
+
+
+def _jcs_utf16_key(key: Any) -> bytes:
+    if not isinstance(key, str):
+        raise TypeError(f"RFC 8785 requires object keys to be strings, got {type(key).__name__}")
+    return key.encode("utf-16-be")
+
+
+def _jcs_serialize(val: Any) -> str:
+    if val is None:
+        return "null"
+    if isinstance(val, bool):
+        return "true" if val else "false"
+    if isinstance(val, int):
+        return str(val)
+    if isinstance(val, float):
+        return _jcs_format_number(val)
+    if isinstance(val, str):
+        return json.dumps(val, ensure_ascii=False)
+    if isinstance(val, (list, tuple)):
+        return "[" + ",".join(_jcs_serialize(x) for x in val) + "]"
+    if isinstance(val, dict):
+        return "{" + ",".join(
+            f"{json.dumps(k, ensure_ascii=False)}:{_jcs_serialize(val[k])}"
+            for k in sorted(val.keys(), key=_jcs_utf16_key)
+        ) + "}"
+    raise TypeError(f"Type {type(val).__name__} is not JSON serializable")
+
+
+def _coerce_unknown_to_str(data: Any) -> Any:
+    """Legacy CompareJCSDigest policy: non-JSON leaf types are hashed as str(data)."""
+    if isinstance(data, dict):
+        return {k: _coerce_unknown_to_str(v) for k, v in data.items()}
+    if isinstance(data, (list, tuple)):
+        return [_coerce_unknown_to_str(x) for x in data]
+    if data is None or isinstance(data, (str, int, float, bool)):
+        return data
+    return str(data)
+
+
+def jcs_canonicalize_strict(data: Any) -> bytes:
+    """RFC 8785 canonical bytes; raises TypeError on non-JSON types."""
+    return _jcs_serialize(data).encode("utf-8")
+
+
+def jcs_canonicalize(data: Any) -> bytes:
+    """Canonicalizes JSON according to RFC 8785 (JCS).
+
+    Object keys are sorted by UTF-16 code units and numbers follow ECMAScript
+    7.1.12.1. Non-JSON leaf values keep the legacy policy of hashing str(value).
+    """
+    return jcs_canonicalize_strict(_coerce_unknown_to_str(data))
 
 
 def jcs_digest(data: Any) -> str:

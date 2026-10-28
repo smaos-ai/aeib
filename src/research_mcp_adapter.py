@@ -10,15 +10,21 @@ import json
 import time
 from typing import Any, Dict, Optional, Tuple
 
+# RFC 8785 single source of truth: delegate to src/jcs_canonicalizer.encode_jcs
+# (differential-tested in tests/test_jcs_single_source.py).
+try:
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+except ImportError:  # loaded without the repository root on sys.path
+    import sys as _jcs_sys
+    from pathlib import Path as _JcsPath
+
+    _jcs_sys.path.insert(0, str(_JcsPath(__file__).resolve().parents[1]))
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+
 
 def jcs_canonicalize(data: Any) -> bytes:
     """RFC 8785 JSON Canonicalization Scheme (JCS)."""
-    return json.dumps(
-        data,
-        ensure_ascii=False,
-        separators=(",", ":"),
-        sort_keys=True,
-    ).encode("utf-8")
+    return _reference_encode_jcs(data)
 
 
 def derive_caid(noun: str, verb: str, payload: Dict[str, Any]) -> str:

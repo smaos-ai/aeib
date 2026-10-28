@@ -32,13 +32,22 @@ from typing import Any, Dict, List, Optional, Protocol, Set, Tuple
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
+# RFC 8785 single source of truth: delegate to src/jcs_canonicalizer.encode_jcs
+# (differential-tested in tests/test_jcs_single_source.py).
+try:
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+except ImportError:  # loaded without the repository root on sys.path
+    import sys as _jcs_sys
+    from pathlib import Path as _JcsPath
+
+    _jcs_sys.path.insert(0, str(_JcsPath(__file__).resolve().parents[1]))
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+
 
 def canonical_jcs(obj: Any) -> bytes:
     """Serialize object to RFC 8785 JCS canonical UTF-8 bytes (no floats)."""
     _reject_floats(obj)
-    return json.dumps(
-        obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False
-    ).encode("utf-8")
+    return _reference_encode_jcs(obj)
 
 
 def _reject_floats(val: Any) -> None:
@@ -385,16 +394,18 @@ class SqliteWalTransactionalBackend:
                 "SELECT caid, workflow_id, amount_minor, fencing_token, payload_hash, state, probe_evidence_hash FROM intents WHERE caid = ?;",
                 (caid,),
             ).fetchone()
-            if row is None:
-                return None
-            return IntentStorageRecord(
-                caid=str(row[0]),
-                workflow_id=str(row[1]),
-                amount_minor=int(row[2]),
-                fencing_token=int(row[3]),
-                payload_hash=str(row[4]),
-                state=str(row[5]),
-                probe_evidence_hash=str(row[6]),
+            return (
+                None
+                if row is None
+                else IntentStorageRecord(
+                    caid=str(row[0]),
+                    workflow_id=str(row[1]),
+                    amount_minor=int(row[2]),
+                    fencing_token=int(row[3]),
+                    payload_hash=str(row[4]),
+                    state=str(row[5]),
+                    probe_evidence_hash=str(row[6]),
+                )
             )
         finally:
             conn.close()

@@ -30,10 +30,44 @@ Core Functions:
 8. Enforces separate retention TTL and uncertainty resolution deadlines (never purges unresolved uncertainty).
 9. Halts blind retries under uncertainty and drives authoritative `tools/status` reconciliation.
 10. Preserves latched uncertainty across policy epoch rotations.
+11. Strict JSON ingress via `handle_raw_frame` (src/strict_json_ingress.loads_strict): duplicate
+    keys, NaN/Infinity and lone surrogates are rejected with JSON-RPC -32700.
+12. Tool-definition pinning: upstream `tools/list` results are checked against an approved
+    ToolDefinitionPinSet via McpToolPinGuard (unpinned server, rug pull, added/removed tool,
+    cross-server shadowing -> JSON-RPC -32040 with typed findings); once pinned, `tools/call`
+    for a tool outside the pinned set is refused. Learn mode is OFF by default.
+13. Optional effect-key CAID (``effect_key_registry``, src/eo1_effect_key.py): the intent hash is
+    the schema-declared effect CAID, so a regenerated retry (new idempotency_key / client UUID,
+    changed memo; same recipient, amount, business reference) matches the earlier record
+    (ACRFence, arXiv:2603.20625). The digest of the exact raw arguments is stored next to it
+    (``raw_payload_digest``). A tool without a schema, or a missing / invalid identity field,
+    is refused with JSON-RPC -32095 EFFECT_KEY_SCHEMA_REJECTED before any upstream call.
+14. Optional settle-before-retry (``reconcile_probe_fn``): a call that matches a record in
+    EFFECT_INDETERMINATE probes the target first. APPLIED -> the record is settled CONFIRMED with
+    an Ed25519-signed settlement receipt and the duplicate is refused (-32012
+    OPERATION_RECONCILED_CONFIRMED_DUPLICATE_BLOCKED). NOT_APPLIED -> fail closed by default:
+    a read-back cannot distinguish "never applied" from "still in flight, will commit late"
+    (LIMBO, arXiv:2609.29095, Prop. 1). The prior attempt is settled SUPERSEDED_NOT_APPLIED and one
+    fresh attempt is dispatched only on a settlement basis recorded in the signed receipt:
+    "deadline" (the prior attempt carried a target-enforced not-after, forwarded as
+    `_meta.aeib_not_after_ms` when `dispatch_not_after_ms` is set, that has passed + `deadline_skew_ms`),
+    "fence" (`fence_probe_fn(tool, caid, next_attempt_no)` returned True: the target will refuse
+    attempts with a lower `_meta.aeib_attempt_no`), or "unsafe_opt_in"
+    (`trust_not_applied_without_fence=True`; a late commit can then duplicate). Without a basis the
+    latch stays (-32009, reason NOT_APPLIED_UNFENCED). Whether the target enforces the deadline or
+    fence is the operator's configuration claim; the proxy cannot verify it. UNKNOWN, any
+    other answer, or a probe exception -> the latch stays (-32009
+    EXECUTION_HALTED_INDETERMINATE_LATCH). The probe runs while the proxy holds its lock and the
+    SQLite write transaction, so settlement and the decision to dispatch are serialized. A record
+    whose dispatch has not yet returned in this process is never probed (a read-back cannot tell
+    "in flight" from "not applied"); this in-flight set is per process. The read-back
+    is only as authoritative as the target (a target that applies a request after answering
+    NOT_APPLIED can still produce a duplicate).
 """
 
 from __future__ import annotations
 
+import base64
 import concurrent.futures
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
@@ -45,13 +79,62 @@ import sqlite3
 import sys
 import threading
 import time
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Mapping, Optional, Tuple
+
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
+from cryptography.hazmat.primitives import serialization
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from src.eo1_effect_key import EffectKeyError, EffectKeySchemaRegistry, bind_effect_key
 from src.jcs_canonicalizer import encode_jcs
+from src.mcp_schema_pinning import ToolDefinitionPinSet
+from src.secure_mcp_uds_boundary import McpToolPinGuard, ToolPinViolation
+from src.strict_json_ingress import StrictJSONError, loads_strict
+
+PROBE_APPLIED = "APPLIED"
+PROBE_NOT_APPLIED = "NOT_APPLIED"
+PROBE_UNKNOWN = "UNKNOWN"
+STATE_SUPERSEDED_NOT_APPLIED = "SUPERSEDED_NOT_APPLIED"
+SETTLEMENT_RECEIPT_TYPE = "AEIB_MCP_SETTLEMENT_RECEIPT_V1"
+_RECEIPT_STATEMENT_FIELDS = (
+    "receipt_type", "idempotency_key", "effect_caid", "raw_payload_digest", "settled_state",
+    "probe_outcome", "settlement_basis", "settled_attempt_no", "next_attempt_no", "settled_at_ms",
+    "signer_public_key_hex",
+)
+SETTLEMENT_BASIS_READ_BACK_APPLIED = "read_back_applied"
+SETTLEMENT_BASIS_DEADLINE = "deadline"
+SETTLEMENT_BASIS_FENCE = "fence"
+SETTLEMENT_BASIS_UNSAFE_OPT_IN = "unsafe_opt_in"
+
+
+def _public_key_hex(public_key: Ed25519PublicKey) -> str:
+    return public_key.public_bytes(serialization.Encoding.Raw, serialization.PublicFormat.Raw).hex()
+
+
+def verify_settlement_receipt(receipt: Mapping[str, Any], public_key: Ed25519PublicKey) -> bool:
+    """
+    Verifies an Ed25519 settlement receipt against a caller-supplied trusted public key.
+    The key embedded in the receipt is never trusted on its own: it must equal ``public_key``.
+    """
+    if not isinstance(receipt, Mapping) or not isinstance(public_key, Ed25519PublicKey):
+        return False
+    if receipt.get("receipt_type") != SETTLEMENT_RECEIPT_TYPE:
+        return False
+    if any(name not in receipt for name in _RECEIPT_STATEMENT_FIELDS):
+        return False
+    if receipt["signer_public_key_hex"] != _public_key_hex(public_key):
+        return False
+    statement = {name: receipt[name] for name in _RECEIPT_STATEMENT_FIELDS}
+    try:
+        signature = base64.b64decode(str(receipt.get("signature_b64", "")), validate=True)
+        public_key.verify(signature, encode_jcs(statement))
+    except (InvalidSignature, ValueError, TypeError):
+        return False
+    return True
 
 
 def canonical_json_v1(obj: Any) -> bytes:
@@ -88,6 +171,16 @@ class HardenedIdempotentMcpProxy:
         ttl_sec: int = 86400,
         uncertainty_deadline_sec: int = 300,
         active_policy_epoch: str = "epoch-2026-Q4",
+        tool_pins: Optional[ToolDefinitionPinSet] = None,
+        upstream_server_id: str = "upstream",
+        tool_pin_learn_mode: bool = False,
+        effect_key_registry: Optional[EffectKeySchemaRegistry] = None,
+        reconcile_probe_fn: Optional[Callable[[str, str, Dict[str, Any]], str]] = None,
+        receipt_signing_key: Optional[Ed25519PrivateKey] = None,
+        fence_probe_fn: Optional[Callable[[str, str, int], bool]] = None,
+        trust_not_applied_without_fence: bool = False,
+        dispatch_not_after_ms: Optional[int] = None,
+        deadline_skew_ms: int = 0,
     ) -> None:
         self.upstream = upstream_transport_fn
         self.db_path = str(db_path)
@@ -96,6 +189,35 @@ class HardenedIdempotentMcpProxy:
         self.uncertainty_deadline_sec = uncertainty_deadline_sec
         self.active_policy_epoch = active_policy_epoch
         self.lock = threading.Lock()
+        # Optional effect-key CAID and settle-before-retry probe (both off when None).
+        self.effect_key_registry = effect_key_registry
+        self.reconcile_probe_fn = reconcile_probe_fn
+        # Settlement receipts are signed with this key. Without an explicit key the proxy holds an
+        # ephemeral one; receipts then verify only against receipt_public_key() of this instance.
+        self.receipt_signing_key = receipt_signing_key if receipt_signing_key is not None else Ed25519PrivateKey.generate()
+        # Keys whose upstream dispatch has not returned in this process. Their EFFECT_INDETERMINATE
+        # record is never settled by probe (a read-back cannot tell "in flight" from "not applied").
+        # Not visible across processes sharing one database file.
+        self._in_flight_keys: set = set()
+        # Late-commit fail-closed policy (LIMBO arXiv:2609.29095 Prop. 1): a NOT_APPLIED read-back
+        # unlocks a fresh dispatch only on a settlement basis -- "deadline" (the prior attempt carried
+        # a not-after that the target enforces and it has passed + skew), "fence" (fence_probe_fn
+        # returned True: the target will refuse attempts older than the new attempt number), or
+        # "unsafe_opt_in" (trust_not_applied_without_fence=True). Otherwise the latch stays.
+        if dispatch_not_after_ms is not None and (isinstance(dispatch_not_after_ms, bool)
+                                                  or not isinstance(dispatch_not_after_ms, int)
+                                                  or dispatch_not_after_ms <= 0):
+            raise ValueError("dispatch_not_after_ms must be a positive int (milliseconds) or None")
+        if isinstance(deadline_skew_ms, bool) or not isinstance(deadline_skew_ms, int) or deadline_skew_ms < 0:
+            raise ValueError("deadline_skew_ms must be a non-negative int (milliseconds)")
+        self.fence_probe_fn = fence_probe_fn
+        self.trust_not_applied_without_fence = trust_not_applied_without_fence is True
+        self.dispatch_not_after_ms = dispatch_not_after_ms
+        self.deadline_skew_ms = deadline_skew_ms
+        # tools/list is always gated; learn mode (first-use pinning) is OFF by default.
+        self.tool_pin_guard = McpToolPinGuard(
+            upstream_server_id, tool_pins, learn_mode=tool_pin_learn_mode
+        )
 
         # If disk path provided, ensure parent directory exists
         if self.db_path != ":memory:":
@@ -130,6 +252,164 @@ class HardenedIdempotentMcpProxy:
             "CREATE INDEX IF NOT EXISTS idx_tenant_caid ON mcp_idempotency(tenant_id, principal, tool_name, caid);"
         )
         self.conn.execute("CREATE INDEX IF NOT EXISTS idx_caid_tool ON mcp_idempotency(caid, tool_name);")
+        # Additive columns (older databases are migrated in place; existing rows get NULL).
+        existing_cols = {r[1] for r in self.conn.execute("PRAGMA table_info(mcp_idempotency);").fetchall()}
+        for col, col_type in (("raw_payload_digest", "TEXT"), ("settlement_receipt", "TEXT"),
+                              ("attempt_no", "INTEGER"), ("not_after_ms", "INTEGER")):
+            if col not in existing_cols:
+                self.conn.execute(f"ALTER TABLE mcp_idempotency ADD COLUMN {col} {col_type};")
+
+    def receipt_public_key(self) -> Ed25519PublicKey:
+        """Public half of the settlement-receipt signing key."""
+        return self.receipt_signing_key.public_key()
+
+    def _sign_settlement(self, idem_key: str, caid: str, raw_digest: Optional[str], settled_state: str,
+                         probe_outcome: str, now: float, settlement_basis: str, settled_attempt_no: int,
+                         next_attempt_no: int) -> Dict[str, Any]:
+        statement = {
+            "receipt_type": SETTLEMENT_RECEIPT_TYPE,
+            "idempotency_key": idem_key,
+            "effect_caid": caid,
+            "raw_payload_digest": raw_digest or "",
+            "settled_state": settled_state,
+            "probe_outcome": probe_outcome,
+            "settlement_basis": settlement_basis,
+            "settled_attempt_no": settled_attempt_no,
+            "next_attempt_no": next_attempt_no,
+            "settled_at_ms": int(now * 1000),
+            "signer_public_key_hex": _public_key_hex(self.receipt_public_key()),
+        }
+        signature = self.receipt_signing_key.sign(encode_jcs(statement))
+        return {**statement, "signature_b64": base64.b64encode(signature).decode("ascii")}
+
+    def _probe_target(self, tool_name: str, caid: str, args: Any) -> Tuple[str, str]:
+        """Calls reconcile_probe_fn; only the exact strings APPLIED / NOT_APPLIED are acted on."""
+        try:
+            answer = self.reconcile_probe_fn(tool_name, caid, dict(args) if isinstance(args, dict) else {})
+        except Exception as exc:  # any probe failure keeps the latch (fail closed)
+            return PROBE_UNKNOWN, f"probe_raised:{type(exc).__name__}"
+        if answer in (PROBE_APPLIED, PROBE_NOT_APPLIED) and isinstance(answer, str):
+            return answer, "probe_answer"
+        return PROBE_UNKNOWN, "probe_answer" if answer == PROBE_UNKNOWN else "probe_answer_unrecognised"
+
+    def _settle_indeterminate(
+        self, prior_key: str, prior_raw: Optional[str], caid: str, tool_name: str, args: Any,
+        retry_raw: Optional[str], now: float,
+    ) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
+        """
+        Settle-before-retry for a record in EFFECT_INDETERMINATE (caller holds lock + transaction).
+        Returns (response, None) when the call must not be dispatched (transaction committed), or
+        (None, receipt) when the prior attempt was settled NOT_APPLIED and the fresh attempt may proceed.
+        """
+        if prior_key in self._in_flight_keys:
+            outcome, detail = PROBE_UNKNOWN, "not_probed_attempt_in_flight"
+        else:
+            outcome, detail = self._probe_target(tool_name, caid, args)
+        prior = self.conn.execute(
+            "SELECT tenant_id, principal, tool_name, attempt_no, not_after_ms FROM mcp_idempotency WHERE idem_key = ?;",
+            (prior_key,),
+        ).fetchone()
+        p_tenant, p_principal, p_tool, p_attempt, p_not_after = prior
+        settled_attempt = int(p_attempt or 0)
+        if outcome == PROBE_APPLIED:
+            receipt = self._sign_settlement(prior_key, caid, prior_raw, "CONFIRMED", outcome, now,
+                                            SETTLEMENT_BASIS_READ_BACK_APPLIED, settled_attempt, 0)
+            cached = {"reconciled_state": "CONFIRMED", "effect_caid": caid, "settlement_receipt": receipt}
+            self.conn.execute(
+                "UPDATE mcp_idempotency SET state = 'CONFIRMED', settlement_receipt = ?, cached_response = ? "
+                "WHERE idem_key = ? AND state = 'EFFECT_INDETERMINATE';",
+                (json.dumps(receipt), json.dumps(cached), prior_key),
+            )
+            self.conn.execute("COMMIT;")
+            return {
+                "jsonrpc": "2.0",
+                "error": {
+                    "code": -32012,
+                    "message": "OPERATION_RECONCILED_CONFIRMED_DUPLICATE_BLOCKED",
+                    "data": {
+                        "effect_caid": caid,
+                        "raw_payload_digest": prior_raw,
+                        "retry_raw_payload_digest": retry_raw,
+                        "reconciled_state": "CONFIRMED",
+                        "existing_idempotency_key": prior_key,
+                        "settlement_receipt": receipt,
+                    },
+                },
+            }, None
+        if outcome == PROBE_NOT_APPLIED:
+            next_attempt = self._next_attempt_no(p_tenant, p_principal, p_tool, caid)
+            basis, fence_detail = self._not_applied_basis(tool_name, caid, next_attempt, p_not_after, now)
+            if basis is None:
+                self.conn.execute("COMMIT;")
+                return {
+                    "jsonrpc": "2.0",
+                    "error": {
+                        "code": -32009,
+                        "message": "EXECUTION_HALTED_INDETERMINATE_LATCH",
+                        "data": {
+                            "state": "EFFECT_INDETERMINATE",
+                            "idempotency_key": prior_key,
+                            "caid": caid,
+                            "probe_outcome": outcome,
+                            "probe_detail": detail,
+                            "reason": "NOT_APPLIED_UNFENCED",
+                            "fence_detail": fence_detail,
+                            "settled_attempt_no": settled_attempt,
+                        },
+                    },
+                }, None
+            receipt = self._sign_settlement(prior_key, caid, prior_raw, STATE_SUPERSEDED_NOT_APPLIED, outcome, now,
+                                            basis, settled_attempt, next_attempt)
+            self.conn.execute(
+                "UPDATE mcp_idempotency SET state = ?, settlement_receipt = ? "
+                "WHERE idem_key = ? AND state = 'EFFECT_INDETERMINATE';",
+                (STATE_SUPERSEDED_NOT_APPLIED, json.dumps(receipt), prior_key),
+            )
+            return None, receipt
+        self.conn.execute("COMMIT;")
+        return {
+            "jsonrpc": "2.0",
+            "error": {
+                "code": -32009,
+                "message": "EXECUTION_HALTED_INDETERMINATE_LATCH",
+                "data": {
+                    "state": "EFFECT_INDETERMINATE",
+                    "idempotency_key": prior_key,
+                    "caid": caid,
+                    "probe_outcome": outcome,
+                    "probe_detail": detail,
+                },
+            },
+        }, None
+
+    def _next_attempt_no(self, tenant_id: str, principal: str, tool_name: str, caid: str) -> int:
+        """1 + the highest attempt number recorded for this intent (rows without a number count as 1)."""
+        row = self.conn.execute(
+            "SELECT MAX(COALESCE(attempt_no, 1)) FROM mcp_idempotency "
+            "WHERE tenant_id = ? AND principal = ? AND tool_name = ? AND caid = ?;",
+            (tenant_id, principal, tool_name, caid),
+        ).fetchone()
+        return int(row[0] or 0) + 1
+
+    def _not_applied_basis(self, tool_name: str, caid: str, next_attempt: int, prior_not_after_ms: Optional[int],
+                           now: float) -> Tuple[Optional[str], str]:
+        """Returns (settlement basis or None, fence detail) for a NOT_APPLIED read-back."""
+        now_ms = int(now * 1000)
+        if prior_not_after_ms is not None and now_ms > int(prior_not_after_ms) + self.deadline_skew_ms:
+            return SETTLEMENT_BASIS_DEADLINE, "not_attempted_deadline_elapsed"
+        fence_detail = "no_fence_probe_configured"
+        if self.fence_probe_fn is not None:
+            try:
+                acked = self.fence_probe_fn(tool_name, caid, next_attempt)
+            except Exception as exc:  # a failed fence never unlocks a dispatch
+                acked, fence_detail = False, f"fence_raised:{type(exc).__name__}"
+            else:
+                fence_detail = "fence_acked" if acked is True else "fence_not_acked"
+            if acked is True:
+                return SETTLEMENT_BASIS_FENCE, fence_detail
+        if self.trust_not_applied_without_fence:
+            return SETTLEMENT_BASIS_UNSAFE_OPT_IN, fence_detail
+        return None, fence_detail
 
     def compute_caid(self, arguments: Dict[str, Any], tool_name: str = "") -> str:
         """Computes deterministic Content-Addressed Action Identifier over canonical arguments."""
@@ -193,11 +473,40 @@ class HardenedIdempotentMcpProxy:
         self.conn.execute(
             """
             DELETE FROM mcp_idempotency 
-            WHERE state IN ('CONFIRMED', 'REFUTED') 
+            WHERE state IN ('CONFIRMED', 'REFUTED', 'SUPERSEDED_NOT_APPLIED') 
               AND ? - created_at > ?;
             """,
             (current_ts, self.ttl_sec),
         )
+
+    def handle_raw_frame(self, raw: str | bytes) -> Dict[str, Any]:
+        """Strictly parses one inbound JSON-RPC frame (I-JSON profile) and routes it."""
+        try:
+            frame = loads_strict(raw)
+        except RecursionError:
+            return {
+                "jsonrpc": "2.0",
+                "error": {
+                    "code": -32700,
+                    "message": "Parse error",
+                    "data": {"strict_json_code": "ERR_NESTING_TOO_DEEP", "detail": ""},
+                },
+            }
+        except StrictJSONError as exc:
+            return {
+                "jsonrpc": "2.0",
+                "error": {
+                    "code": -32700,
+                    "message": "Parse error",
+                    "data": {"strict_json_code": exc.code, "detail": exc.detail},
+                },
+            }
+        if not isinstance(frame, dict):
+            return {
+                "jsonrpc": "2.0",
+                "error": {"code": -32600, "message": "Invalid Request: expected object"},
+            }
+        return self.handle_json_rpc(frame)
 
     def handle_json_rpc(self, request_frame: Dict[str, Any]) -> Dict[str, Any]:
         """Routes inbound JSON-RPC frame based on method."""
@@ -213,6 +522,10 @@ class HardenedIdempotentMcpProxy:
                         "message": "Invalid params: expected object",
                     },
                 }
+            try:
+                self.tool_pin_guard.check_call(params.get("name"), require_pins=False)
+            except ToolPinViolation as exc:
+                return {"jsonrpc": "2.0", "error": exc.to_jsonrpc_error()}
             return self._handle_tools_call(params)
         elif method == "tools/status":
             if not isinstance(params, dict):
@@ -224,8 +537,21 @@ class HardenedIdempotentMcpProxy:
                     },
                 }
             return self._handle_tools_status(params)
+        elif method == "tools/list":
+            # Tool advertisements are never passed through unchecked.
+            resp = self.upstream(request_frame)
+            if "error" in resp:
+                return resp
+            result = resp.get("result")
+            try:
+                self.tool_pin_guard.check_advertisement(
+                    result.get("tools") if isinstance(result, dict) else None
+                )
+            except ToolPinViolation as exc:
+                return {"jsonrpc": "2.0", "error": exc.to_jsonrpc_error()}
+            return resp
         else:
-            # Pass-through for non-consequential inspection methods (e.g., tools/list, resources/list)
+            # Pass-through for non-consequential inspection methods (e.g., resources/list)
             return self.upstream(request_frame)
 
     def _handle_tools_call(self, params: Dict[str, Any]) -> Dict[str, Any]:
@@ -252,6 +578,28 @@ class HardenedIdempotentMcpProxy:
         caid = params.get("caid") or self.compute_caid(args, tool_name=tool_name)
         epoch = params.get("policy_epoch", self.active_policy_epoch)
 
+        binding = None
+        if self.effect_key_registry is not None:
+            # Effect-key mode: the schema-declared effect CAID is the intent hash; a caller-supplied
+            # "caid" is ignored so it cannot steer matching. No schema / bad identity -> refuse.
+            try:
+                binding = bind_effect_key(tool_name, args, self.effect_key_registry)
+            except EffectKeyError as exc:
+                return {
+                    "jsonrpc": "2.0",
+                    "error": {
+                        "code": -32095,
+                        "message": "EFFECT_KEY_SCHEMA_REJECTED",
+                        "data": {"tool": tool_name, "reason": type(exc).__name__, "detail": str(exc)},
+                    },
+                }
+            caid = binding.effect_caid
+            if not key:
+                key = f"effect:{caid}"
+                op_id = params.get("operation_id") or key
+        raw_digest = binding.raw_payload_digest if binding is not None else None
+        prior_receipt: Optional[Dict[str, Any]] = None
+
         if not key:
             return {
                 "jsonrpc": "2.0",
@@ -272,15 +620,19 @@ class HardenedIdempotentMcpProxy:
                 # Query matching record by idempotency_key
                 row = self.conn.execute(
                     """
-                    SELECT idem_key, tenant_id, principal, operation_id, tool_name, caid, state, cached_response, policy_epoch, created_at, uncertainty_resolution_deadline
+                    SELECT idem_key, tenant_id, principal, operation_id, tool_name, caid, state, cached_response, policy_epoch, created_at, uncertainty_resolution_deadline, raw_payload_digest
                     FROM mcp_idempotency 
                     WHERE idem_key = ?;
                     """,
                     (key,),
                 ).fetchone()
 
+                if row and row[6] == STATE_SUPERSEDED_NOT_APPLIED:
+                    # This key's attempt was settled NOT_APPLIED and superseded; resolve by intent below.
+                    row = None
+
                 if row:
-                    r_key, r_tenant, r_principal, r_op_id, r_tool, r_caid, state, cached_resp, old_epoch, created_at, deadline = row
+                    r_key, r_tenant, r_principal, r_op_id, r_tool, r_caid, state, cached_resp, old_epoch, created_at, deadline, r_raw = row
 
                     # Payload consistency check: reject reuse of same key with different arguments
                     if r_caid != caid:
@@ -316,6 +668,12 @@ class HardenedIdempotentMcpProxy:
                                 "result": cached_data,
                                 "meta": {"replay": True, "caid": caid},
                             }
+                        elif state == "EFFECT_INDETERMINATE" and self.reconcile_probe_fn is not None:
+                            halt, prior_receipt = self._settle_indeterminate(
+                                r_key, r_raw, caid, tool_name, args, raw_digest, now)
+                            if halt is not None:
+                                return halt
+                            row = None
                         elif state == "EFFECT_INDETERMINATE":
                             self.conn.execute("COMMIT;")
                             return {
@@ -355,15 +713,16 @@ class HardenedIdempotentMcpProxy:
                     # Query by composite request intent (tenant_id, principal, tool_name, caid)
                     caid_row = self.conn.execute(
                         """
-                        SELECT idem_key, operation_id, state, cached_response, policy_epoch
+                        SELECT idem_key, operation_id, state, cached_response, policy_epoch, raw_payload_digest
                         FROM mcp_idempotency
-                        WHERE tenant_id = ? AND principal = ? AND tool_name = ? AND caid = ?;
+                        WHERE tenant_id = ? AND principal = ? AND tool_name = ? AND caid = ?
+                          AND state != 'SUPERSEDED_NOT_APPLIED';
                         """,
                         (tenant_id, principal, tool_name, caid),
                     ).fetchone()
 
                     if caid_row:
-                        c_key, c_op_id, c_state, c_resp, c_epoch = caid_row
+                        c_key, c_op_id, c_state, c_resp, c_epoch, c_raw = caid_row
                         # Disambiguate request-intent digest (CAID) from operation identity
                         has_explicit_op_id = bool(params.get("operation_id"))
                         if (has_explicit_op_id and c_op_id and c_op_id != params.get("operation_id")) or params.get("require_distinct_operation"):
@@ -390,6 +749,11 @@ class HardenedIdempotentMcpProxy:
                                 "result": cached_data,
                                 "meta": {"replay": True, "caid": caid},
                             }
+                        elif c_state == "EFFECT_INDETERMINATE" and self.reconcile_probe_fn is not None:
+                            halt, prior_receipt = self._settle_indeterminate(
+                                c_key, c_raw, caid, tool_name, args, raw_digest, now)
+                            if halt is not None:
+                                return halt
                         elif c_state == "EFFECT_INDETERMINATE":
                             self.conn.execute("COMMIT;")
                             return {
@@ -427,15 +791,20 @@ class HardenedIdempotentMcpProxy:
 
                 # Latch fresh intent as EFFECT_INDETERMINATE before network call (Write-Before-Execute)
                 deadline = now + self.uncertainty_deadline_sec
+                attempt_no = self._next_attempt_no(tenant_id, principal, tool_name, caid)
+                not_after_ms = (int(now * 1000) + self.dispatch_not_after_ms
+                                if self.dispatch_not_after_ms is not None else None)
                 self.conn.execute(
                     """
                     INSERT OR REPLACE INTO mcp_idempotency 
-                    (idem_key, tenant_id, principal, operation_id, tool_name, caid, state, policy_epoch, created_at, uncertainty_resolution_deadline, cached_response) 
-                    VALUES (?, ?, ?, ?, ?, ?, 'EFFECT_INDETERMINATE', ?, ?, ?, NULL);
+                    (idem_key, tenant_id, principal, operation_id, tool_name, caid, state, policy_epoch, created_at, uncertainty_resolution_deadline, cached_response, raw_payload_digest, settlement_receipt, attempt_no, not_after_ms) 
+                    VALUES (?, ?, ?, ?, ?, ?, 'EFFECT_INDETERMINATE', ?, ?, ?, NULL, ?, ?, ?, ?);
                     """,
-                    (key, tenant_id, principal, op_id, tool_name, caid, epoch, now, deadline),
+                    (key, tenant_id, principal, op_id, tool_name, caid, epoch, now, deadline, raw_digest,
+                     json.dumps(prior_receipt) if prior_receipt is not None else None, attempt_no, not_after_ms),
                 )
                 self.conn.execute("COMMIT;")
+                self._in_flight_keys.add(key)
             except sqlite3.Error as io_err:
                 try:
                     self.conn.execute("ROLLBACK;")
@@ -457,12 +826,23 @@ class HardenedIdempotentMcpProxy:
                 raise
 
         # Dispatch upstream OUTSIDE the SQLite lock to prevent thread starvation
+        # Effect-key mode forwards the effect CAID and the (possibly derived) key so the target can
+        # index the effect for read-back.
+        forward_params = params if binding is None else {**params, "caid": caid, "idempotency_key": key}
+        if binding is not None or self.fence_probe_fn is not None or not_after_ms is not None:
+            # Attempt metadata lets the target honour a fence (refuse attempt_no below the fenced
+            # number) and a not-after deadline (refuse to execute after it).
+            meta = dict(params["_meta"]) if isinstance(params.get("_meta"), dict) else {}
+            meta.update({"aeib_caid": caid, "aeib_attempt_no": attempt_no})
+            if not_after_ms is not None:
+                meta["aeib_not_after_ms"] = not_after_ms
+            forward_params = {**forward_params, "_meta": meta}
         try:
             resp = self.upstream(
                 {
                     "jsonrpc": "2.0",
                     "method": "tools/call",
-                    "params": params,
+                    "params": forward_params,
                 }
             )
 
@@ -513,6 +893,9 @@ class HardenedIdempotentMcpProxy:
                     },
                 },
             }
+        finally:
+            with self.lock:
+                self._in_flight_keys.discard(key)
 
     def _update_state(self, key: str, state: str, result_obj: Optional[Dict[str, Any]]) -> None:
         """Updates the state and cached response for an idempotency key in SQLite WAL."""
@@ -605,6 +988,13 @@ class HardenedIdempotentMcpProxy:
 # Backwards compatibility alias
 IdempotentMcpProxyMiddleware = HardenedIdempotentMcpProxy
 
+# Tool definition advertised by the conformance suite's simulated upstream.
+SIMULATED_TOOL_DEFINITION = {
+    "name": "refund.create",
+    "description": "Create a refund.",
+    "inputSchema": {"type": "object"},
+}
+
 
 def run_conformance_suite_vectors(
     vectors_file: Path,
@@ -679,7 +1069,7 @@ def run_conformance_suite_vectors(
                     return {"result": {"state": "CONFIRMED"}}
 
                 elif method == "tools/list":
-                    return {"result": {"tools": [{"name": "refund.create"}]}}
+                    return {"result": {"tools": [dict(SIMULATED_TOOL_DEFINITION)]}}
 
                 return {"error": {"code": -32601, "message": "Method not found"}}
 
@@ -837,8 +1227,23 @@ def run_conformance_suite_vectors(
                 passed = len(upstream_log) == 2
 
             elif v_id == "mcp-vec-017":
+                # tools/list is pass-through only for a pinned advertisement; the same
+                # advertisement without approved pins is refused (no silent pass-through).
                 res = proxy.handle_json_rpc(v["input"])
-                passed = "result" in res and "tools" in res["result"]
+                pins = ToolDefinitionPinSet()
+                pins.pin_server("upstream", [dict(SIMULATED_TOOL_DEFINITION)])
+                pinned_proxy = HardenedIdempotentMcpProxy(
+                    upstream_transport_fn=make_simulated_upstream(v), tool_pins=pins
+                )
+                try:
+                    pinned_res = pinned_proxy.handle_json_rpc(v["input"])
+                finally:
+                    pinned_proxy.close()
+                passed = (
+                    "result" in pinned_res
+                    and "tools" in pinned_res["result"]
+                    and res.get("error", {}).get("code") == -32040
+                )
 
             elif v_id == "mcp-vec-018":
                 res = proxy.handle_json_rpc(v["input"])

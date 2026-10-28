@@ -302,7 +302,7 @@ node demo-server.js
 | **Live demo** | Simulator shows gate protection in action | "This really works" moment |
 | **Black box export** | Download proof as JSON | Can show compliance to CTO/CEO |
 | **Inline help** | 💡 text everywhere | Never stuck, always understand |
-| **Beautiful design** | Apple-grade, smooth, responsive | Enterprise-grade first impression |
+| **Beautiful design** | Apple-grade, smooth, responsive | High-impact first impression |
 
 ---
 
@@ -351,7 +351,7 @@ node demo-server.js
 
 ## 🚀 READY TO LAUNCH
 
-**This is a complete, production-ready, enterprise-grade AI compliance demo.**
+**This is a complete, evaluated, high-assurance AI compliance demo.**
 
 Next steps:
 1. Deploy to https://demo.smaos.ai

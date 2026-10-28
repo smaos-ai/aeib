@@ -77,8 +77,8 @@ class GovernanceCheckResult:
     timestamp: str
 
 
-class ColibriGovernanceGate:
-    """Fail-closed governance gate for Colibri model execution"""
+class AEIBGovernanceGate:
+    """Fail-closed governance gate for model execution and runtime dispatch (AEIB Layer 6)"""
 
     def __init__(self, policy_path: str = "config/colibri_governance_policy.json"):
         self.policy_path = Path(policy_path)
@@ -271,15 +271,18 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Backward compatibility alias
+ColibriGovernanceGate = AEIBGovernanceGate
+
 # Initialize governance gate (singleton)
-_gate: Optional[ColibriGovernanceGate] = None
+_gate: Optional[AEIBGovernanceGate] = None
 
 
-def get_gate() -> ColibriGovernanceGate:
+def get_gate() -> AEIBGovernanceGate:
     """Lazy-load governance gate"""
     global _gate
     if _gate is None:
-        _gate = ColibriGovernanceGate()
+        _gate = AEIBGovernanceGate()
     return _gate
 
 

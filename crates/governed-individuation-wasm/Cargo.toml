@@ -1,0 +1,25 @@
+[workspace]
+
+[package]
+name = "governed-individuation-wasm"
+version = "0.1.0"
+edition = "2021"
+authors = ["Andrei Leukhin <andrejlo123@gmail.com>"]
+license = "Apache-2.0"
+description = "Air-gapped WebAssembly Semantic Effect Gate and Governed Individuation Runtime (arXiv:2607.04613)"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+sha2 = { version = "0.10", default-features = false }
+hex = { version = "0.4", default-features = false, features = ["alloc"] }
+serde = { version = "1.0", default-features = false, features = ["derive", "alloc"] }
+serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

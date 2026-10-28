@@ -34,7 +34,8 @@ except ImportError:
     from dataclasses import dataclass
 
     def deterministic_json_bytes(data: Any) -> bytes:
-        return json.dumps(data, ensure_ascii=False, separators=(',', ':'), sort_keys=True).encode('utf-8')
+        from src.jcs_canonicalizer import encode_jcs
+        return encode_jcs(data)
 
     def deterministic_digest(data: Any) -> str:
         return f"sha256:{hashlib.sha256(deterministic_json_bytes(data)).hexdigest()}"
@@ -161,7 +162,10 @@ except ImportError:
 
 
 def jcs_sha256(data: dict) -> str:
-    return hashlib.sha256(json.dumps(data, separators=(',', ':'), sort_keys=True).encode()).hexdigest()
+    # RFC 8785 single source of truth (repo root is on sys.path above).
+    from src.jcs_canonicalizer import encode_jcs
+
+    return hashlib.sha256(encode_jcs(data)).hexdigest()
 
 
 class TestNegativeVectorsSixGates:
@@ -251,7 +255,7 @@ class TestNegativeVectorsSixGates:
         )
         assert receipt.disposition == "DISPATCHED_UNCONFIRMED"
         assert receipt.outcome_verified is False
-        assert receipt.observed_outcome.get("wire_status") == 504
+        assert int(receipt.observed_outcome.get("wire_status")) == 504
 
     def test_zero_mock_ast_purity(self):
         """Structural Gate: Asserts this test file contains zero mock imports or test doubles."""

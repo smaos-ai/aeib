@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://smaos.ai/schemas/receipt_payload_v1_1.json",
+  "title": "ReceiptPayload_v1_1",
+  "description": "RFC 8785 JCS-Canonicalized Cryptographic Receipt Schema v1.1 featuring Decision Reproducibility via Attestation Closure (IETF draft-sharif-agent-audit-trail-03 §13.6), Five-Verdict Relying-Party Sufficiency (IETF draft-schrock-ep-action-evidence-graph-00), and Hardware-Rooted Attestation (IETF RATS / arXiv:2608.00801).",
+  "type": "object",
+  "required": [
+    "version",
+    "action_id",
+    "leaf_index",
+    "tree_size",
+    "timestamp",
+    "intent_digest",
+    "verdict",
+    "root_hash",
+    "signature",
+    "signer_pubkey"
+  ],
+  "properties": {
+    "version": {
+      "type": "string",
+      "enum": ["1.0.0", "1.1.0"],
+      "description": "Semantic version of the receipt payload specification. v1.1.0 introduces attestation closure and relying-party sufficiency."
+    },
+    "action_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Unique deterministic identifier for the tool dispatch / action."
+    },
+    "leaf_index": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "0-based leaf ordinal of this receipt in the Merkle audit log."
+    },
+    "tree_size": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Total number of committed leaves in the Merkle tree at checkpoint time (leaf_index < tree_size)."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "RFC 3339 / ISO 8601 UTC timestamp of receipt issuance."
+    },
+    "intent_digest": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{64}$",
+      "description": "SHA-256 hex digest of the canonical action input / tool parameters."
+    },
+    "verdict": {
+      "type": "string",
+      "enum": [
+        "CONFIRMED",
+        "UNKNOWN",
+        "MISSING_EVIDENCE",
+        "CONFLICT",
+        "REFUSED",
+        "INVALID_INPUT"
+      ],
+      "description": "Six-disposition precedence cascade classification from the agent harness perspective."
+    },
+    "relying_party_verdict": {
+      "type": "string",
+      "enum": [
+        "admissible",
+        "missing_evidence",
+        "stale",
+        "conflicted",
+        "unverifiable"
+      ],
+      "description": "IETF draft-schrock-ep-action-evidence-graph-00 §4.2 five-verdict closed set evaluated from the relying party (bank / auditor / regulator) perspective."
+    },
+    "root_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{64}$",
+      "description": "SHA-256 Merkle root digest over tree_size committed leaves."
+    },
+    "inclusion_proof": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{64}$"
+      },
+      "description": "RFC 9162 Merkle audit path hashes demonstrating leaf membership."
+    },
+    "attestation_closure": {
+      "type": "object",
+      "description": "Decision Reproducibility via Attestation Closure per IETF draft-sharif-agent-audit-trail-03 §13.6. Seals model weights, tokenizer, prompt template, engine binary, and numeric backend.",
+      "required": [
+        "model_weights_digest",
+        "tokenizer_digest",
+        "chat_template_digest",
+        "engine_build_digest",
+        "numeric_environment_digest"
+      ],
+      "properties": {
+        "model_weights_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{64}$",
+          "description": "SHA-256 hex digest of the base model weights tensor checkpoint (e.g. safetensors)."
+        },
+        "tokenizer_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{64}$",
+          "description": "SHA-256 hex digest of tokenizer.json and vocabulary files."
+        },
+        "chat_template_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{64}$",
+          "description": "SHA-256 hex digest of the chat/prompt Jinja template formatting instructions."
+        },
+        "engine_build_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{64}$",
+          "description": "SHA-256 hex digest of the inference engine binary/runtime build."
+        },
+        "inference_config_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{64}$",
+          "description": "SHA-256 hex digest of generation config parameters (temperature, top_p, seed)."
+        },
+        "numeric_environment_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{64}$",
+          "description": "SHA-256 hex digest of compute backend, CUDA/Metal kernel versions, and precision parameters."
+        }
+      },
+      "additionalProperties": false
+    },
+    "hardware_attestation": {
+      "type": "object",
+      "description": "Hardware-Rooted Attestation bindings per IETF RATS and arXiv:2608.00801.",
+      "properties": {
+        "tpm_quote": {
+          "type": "string",
+          "description": "Base64 or hex TPM 2.0 PCR quote signed by the Attestation Identity Key (AIK)."
+        },
+        "sev_snp_measurement": {
+          "type": "string",
+          "description": "AMD SEV-SNP launch measurement or Intel TDX Quote."
+        },
+        "enclave_measurement": {
+          "type": "string",
+          "description": "AWS Nitro Enclave or Apple Secure Enclave attestation document."
+        }
+      },
+      "additionalProperties": true
+    },
+    "audit_anchor": {
+      "type": "object",
+      "properties": {
+        "xid": { "type": "integer", "description": "PostgreSQL transaction ID" },
+        "etag": { "type": "string", "description": "S3 object ETag" },
+        "idempotency_key": { "type": "string", "description": "Payment gateway idempotency key" },
+        "partition_offset": { "type": "integer", "description": "Kafka partition offset" }
+      },
+      "additionalProperties": true,
+      "description": "System of record reconciliation anchors."
+    },
+    "signature": {
+      "type": "string",
+      "minLength": 64,
+      "description": "Ed25519 signature hex string over RFC 8785 JCS-canonicalized receipt payload."
+    },
+    "signer_pubkey": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{64}$",
+      "description": "32-byte Ed25519 public key hex of the authorized attestor."
+    }
+  },
+  "additionalProperties": false
+}

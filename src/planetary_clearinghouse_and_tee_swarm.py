@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # File: src/planetary_clearinghouse_and_tee_swarm.py
 """
-Planetary Agent Clearinghouse, Confidential TEE Swarm, and Lean 4/TLA+ Formal Kernel (`v1.0.0-rc.5-preprod`).
+Planetary Agent Clearinghouse, Confidential TEE Swarm, and Lean 4/TLA+ Formal Kernel (`v1.0.0-rc.5-preprod` — Structural Scaffold / Simulated TEE Quotes).
 
 Synthesizes the next macro-level architectural leap beyond single-cluster boundaries:
 1. Cross-Organization Agent Economic Settlement & Clearinghouse (`PlanetaryAgentClearinghouse`):
@@ -36,6 +36,17 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
     Ed25519PublicKey,
 )
 
+# RFC 8785 single source of truth: delegate to src/jcs_canonicalizer.encode_jcs
+# (differential-tested in tests/test_jcs_single_source.py).
+try:
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+except ImportError:  # loaded without the repository root on sys.path
+    import sys as _jcs_sys
+    from pathlib import Path as _JcsPath
+
+    _jcs_sys.path.insert(0, str(_JcsPath(__file__).resolve().parents[1]))
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+
 
 def canonical_jcs(obj: Any) -> bytes:
     """Serialize object to RFC 8785 JCS canonical UTF-8 bytes (rejecting floats)."""
@@ -51,9 +62,7 @@ def canonical_jcs(obj: Any) -> bytes:
                 _reject_float(item)
 
     _reject_float(obj)
-    return json.dumps(
-        obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False
-    ).encode("utf-8")
+    return _reference_encode_jcs(obj)
 
 
 def sha256_prefixed(data: bytes) -> str:
@@ -82,7 +91,7 @@ class PlanetaryAgentClearinghouse:
     - Computes bilateral and multilateral net balance settlements.
     """
 
-    MIN_EAS_SCORE_FLOOR_BPS: int = 8000
+    MIN_EAS_SCORE_FLOOR_BPS: int = 8000  # claim: config
 
     def __init__(self, clearinghouse_privkey: Ed25519PrivateKey) -> None:
         self._privkey = clearinghouse_privkey

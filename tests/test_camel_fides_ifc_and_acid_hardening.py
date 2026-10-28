@@ -303,6 +303,112 @@ def test_pep578_audit_hook_and_rfc8707_mcp_resource_binding() -> None:
         assert summary["pep578_in_interpreter_hook_verified"] is True
 
 
+def test_camel_fides_ifc_and_acid_hardening_mutation_boundaries(tmp_path: Path) -> None:
+    import ast as _ast
+    import shutil
+    import pytest
+    import src.camel_fides_ifc_and_acid_hardening as cf_mod
+    from src.camel_fides_ifc_and_acid_hardening import (
+        LabeledValue,
+        SecurityLabel,
+        _GLOBAL_AUDIT_STATE,
+    )
+
+    tree = _ast.parse(Path(cf_mod.__file__).read_text(encoding="utf-8"))
+    main_if = tree.body[-1]
+    assert isinstance(main_if, _ast.If)
+    found_sort_keys = False
+    for node in _ast.walk(main_if):
+        if isinstance(node, _ast.keyword) and node.arg == "sort_keys":
+            found_sort_keys = True
+            assert isinstance(node.value, _ast.Constant) and node.value.value is True
+    assert found_sort_keys is True
+
+    assert int(ConfidentialityLevel.PUBLIC) == 0
+    assert int(ConfidentialityLevel.PRIVATE) == 1
+    assert PrivilegeEnvelope.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+
+    lbl = SecurityLabel(IntegrityLevel.TRUSTED, ConfidentialityLevel.PUBLIC)
+    lv_a = LabeledValue("va", {"b": 1, "a": 2}, lbl)
+    lv_b = LabeledValue("vb", {"a": 2, "b": 1}, lbl)
+    assert lv_a.value_sha256 == lv_b.value_sha256
+
+    sup_priv = Ed25519PrivateKey.generate()
+    ifc = CaMeLFidesDualLatticeIfcEngine(sup_priv.public_key())
+    v_t = ifc.register_trusted_user_intent("vt", "ok")
+    v_u = ifc.quarantined_llm_extract("vu", "raw", lambda _: "bad", "src://u")
+    v_der = ifc.derive_value("vd", [v_u, v_t], lambda vals: vals[0])
+    assert v_der.label.integrity == IntegrityLevel.UNTRUSTED
+
+    p_base = PrivilegeEnvelope(
+        0,
+        frozenset({"read_file"}),
+        frozenset({"/workspace"}),
+        frozenset({"h1.local"}),
+        1000,
+    )
+    p_bad_host = PrivilegeEnvelope(
+        1,
+        frozenset({"read_file"}),
+        frozenset({"/workspace"}),
+        frozenset({"h1.local", "h2.local"}),
+        1000,
+    )
+    assert p_bad_host.is_sub_privilege_of(p_base)[0] is False
+    p_bad_budget = PrivilegeEnvelope(
+        1,
+        frozenset({"read_file"}),
+        frozenset({"/workspace"}),
+        frozenset({"h1.local"}),
+        1001,
+    )
+    assert p_bad_budget.is_sub_privilege_of(p_base)[0] is False
+
+    confiner = ProgentMonotonicPrivilegeConfiner(p_base, sup_priv.public_key())
+    assert (
+        confiner.check_action_against_envelope("read_file", target_host="evil.local")["halt_code"]
+        == "HALT_PROGENT_HOST_OUTSIDE_CONFINEMENT"
+    )
+    assert (
+        confiner.check_action_against_envelope(
+            "read_file", target_path="/workspace/a.py", target_host="h1.local", spend_minor=500
+        )["allowed"]
+        is True
+    )
+
+    # Nested rollback parent recreation test (line 635 parents=True)
+    ws_rb = tmp_path / "rb_ws"
+    nested_f = ws_rb / "d1" / "d2" / "cfg.txt"
+    nested_f.parent.mkdir(parents=True, exist_ok=True)
+    nested_f.write_text("orig", encoding="utf-8")
+    mgr = AcidAgentWorkspaceTransactionManager(ws_rb)
+
+    def _wipe_dirs(root: Path) -> None:
+        shutil.rmtree(root / "d1")
+        raise RuntimeError("abort after rmtree")
+
+    res_nested = mgr.execute_atomic_workflow(
+        "tx-nested",
+        [TransactionStepSpec("s1", (), ("d1/d2/cfg.txt",), _wipe_dirs)],
+    )
+    assert res_nested["status"] == "ROLLED_BACK"
+    assert nested_f.read_text(encoding="utf-8") == "orig"
+
+    # Reset hook_installed and verify install_once sets hook_installed = True
+    _GLOBAL_AUDIT_STATE.hook_installed = True
+    _GLOBAL_AUDIT_STATE.install_once()
+    assert _GLOBAL_AUDIT_STATE.hook_installed is True
+    _GLOBAL_AUDIT_STATE.hook_installed = False
+    _GLOBAL_AUDIT_STATE.install_once()
+    assert _GLOBAL_AUDIT_STATE.hook_installed is True
+
+    # Self-test on nested non-existent path twice (tests parents=True and exist_ok=True on line 937)
+    nested_self_ws = tmp_path / "deep_a" / "deep_b"
+    s1 = run_market_hardening_self_test(nested_self_ws)
+    s2 = run_market_hardening_self_test(nested_self_ws)
+    assert s1["acid_rollback_digest_verified"] is True and s2["acid_rollback_digest_verified"] is True
+
+
 def test_banned_words_absence() -> None:
     banned = [
         "guaran" + "teed",

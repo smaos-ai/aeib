@@ -1,0 +1,41 @@
+{
+  "vector_id": "act-expired-capability-003",
+  "description": "Capability expiration timestamp in past",
+  "input_payload": {
+    "act_version": "1",
+    "operation_id": "44ebec9d-4db1-4e2b-a627-6e0917b41102",
+    "idempotency_key": "5141e6d2-be53-4542-b478-75c39d2859c9",
+    "tenant_id": "tenant-corp-101",
+    "principal": {
+      "agent_id": "agent-worker-01",
+      "subject_id": "user-corp-99",
+      "capability_id": "cap-refund-v1"
+    },
+    "action": {
+      "type": "refund.create",
+      "target": "payments.stripe",
+      "resource": "pi_3MtwBwLkdIwHu7ix28a3tqPa",
+      "parameters_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "constraints": {
+      "amount_minor": 15000,
+      "currency": "EUR",
+      "max_per_call_minor": 20000,
+      "policy_epoch": "2026-Q4",
+      "expires_at": 1600000000
+    },
+    "context": {
+      "harness_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "taint_tier": "TIER_1_REVIEWED",
+      "source_trace_id": "otel-trace-001"
+    },
+    "signature": {
+      "alg": "Ed25519",
+      "key_id": "key-oper-01",
+      "value": "3045022100e4b8..."
+    }
+  },
+  "expected_disposition": "NOT_DISPATCHED",
+  "expected_error_code": "ERR_SCHEMA_INVALID_EXPIRES_AT",
+  "expected_budget_delta_minor": 0
+}

@@ -329,3 +329,116 @@ def test_07_persistence_and_restart_recovery(tmp_path: Path) -> None:
     assert res2.status == "REJECTED_ATTEMPT_EXHAUSTED"
     assert res2.disposition == "EFFECT_INDETERMINATE"
     assert res2.retry_safe is False
+
+
+def test_08_journal_counts_refill_deadlines_and_cleanup(tmp_path: Path) -> None:
+    """8. Covers deep journal creation, attempt counting, token refill, tenant rate limit, deadlines, unknown state, and queue/concurrency cleanup."""
+    DurableProbeJournal = aps.DurableProbeJournal
+    TokenBucketRateLimiter = aps.TokenBucketRateLimiter
+
+    # Deep nested journal path creation (parents=True, exist_ok=True) and exact PROBE_ATTEMPT counting
+    deep_journal_path = tmp_path / "nested" / "dir" / "probes.jsonl"
+    j1 = DurableProbeJournal(deep_journal_path)
+    j2 = DurableProbeJournal(deep_journal_path)
+    assert j1.load_consumed_attempts() == {}
+    j2.persist_probe_attempt("op_cnt", "https://t", "ten1", 1, 100.0)
+    j2.persist_probe_attempt("op_cnt", "https://t", "ten1", 2, 101.0)
+    j2.persist_probe_resolution("op_other", "EXECUTED", "CONFIRMED", True, "CONFIRMED", 102.0)
+    with open(deep_journal_path, "a", encoding="utf-8") as f:
+        f.write("\nnot-valid-json\n")
+    assert j2.load_consumed_attempts() == {"op_cnt": 2}
+
+    # TokenBucketRateLimiter refill arithmetic (+ elapsed * rate)
+    limiter = TokenBucketRateLimiter(rate_per_second=200.0, burst_capacity=1.0)
+    assert limiter.allow(1.0) is True
+    assert limiter.allow(1.0) is False
+    time.sleep(0.015)
+    assert limiter.allow(1.0) is True
+
+    # Tenant-specific rate limit rejection (global_rate high, tenant_rate=1.0)
+    sched_tenant = AggregateProbeScheduler(
+        global_rate_per_sec=1000.0,
+        tenant_rate_per_sec=1.0,
+        max_attempts_per_op=5,
+    )
+    r_t1 = sched_tenant.schedule_and_probe(
+        ProbeScheduleRequest(
+            operation_id="op_t_rate_1",
+            action_caid="sha256:1",
+            target_identity="https://t",
+            tenant_id="ten_limited",
+            probe_fn=lambda: "CONFIRMED",
+        )
+    )
+    r_t2 = sched_tenant.schedule_and_probe(
+        ProbeScheduleRequest(
+            operation_id="op_t_rate_2",
+            action_caid="sha256:2",
+            target_identity="https://t",
+            tenant_id="ten_limited",
+            probe_fn=lambda: "CONFIRMED",
+        )
+    )
+    assert r_t1.status == "EXECUTED"
+    assert r_t2.status == "REJECTED_RATE_EXCEEDED"
+    assert r_t2.disposition == "EFFECT_INDETERMINATE"
+    assert r_t2.retry_safe is False
+    assert "Tenant ten_limited" in r_t2.detail
+
+    # timeout_seconds=0.0 falls back to default_timeout_seconds (> 0 check)
+    sched_fallback_to = AggregateProbeScheduler(default_timeout_seconds=5.0)
+    r_fb = sched_fallback_to.schedule_and_probe(
+        ProbeScheduleRequest(
+            operation_id="op_fb_to",
+            action_caid="sha256:fb",
+            target_identity="https://t_fb",
+            tenant_id="ten_fb",
+            probe_fn=lambda: "UNRECOGNIZED_CUSTOM_STATE",
+            timeout_seconds=0.0,
+        )
+    )
+    assert r_fb.status == "EXECUTED"
+    assert r_fb.disposition == "EFFECT_INDETERMINATE"
+    assert r_fb.retry_safe is False
+    assert "Unrecognized target state" in r_fb.detail
+    assert sched_fallback_to._active_concurrency["https://t_fb"] == 0
+
+    # Queue depth decrement by exactly 1 when another item is queued
+    sched_fallback_to._queue_depth = 1
+    sched_fallback_to.schedule_and_probe(
+        ProbeScheduleRequest(
+            operation_id="op_qd",
+            action_caid="sha256:qd",
+            target_identity="https://t_fb",
+            tenant_id="ten_fb",
+            probe_fn=lambda: "CONFIRMED",
+        )
+    )
+    assert sched_fallback_to._queue_depth == 1
+    assert sched_fallback_to._active_concurrency["https://t_fb"] == 0
+
+    # Pre-execution DEADLINE_EXCEEDED both with and without journal
+    for with_journal in (True, False):
+        j_path = (tmp_path / "dl_journal.jsonl") if with_journal else None
+        sched_dl = AggregateProbeScheduler(
+            storage_path=j_path,
+            default_timeout_seconds=-1.0,
+        )
+        r_dl = sched_dl.schedule_and_probe(
+            ProbeScheduleRequest(
+                operation_id="op_dl",
+                action_caid="sha256:dl",
+                target_identity="https://t_dl",
+                tenant_id="ten_dl",
+                probe_fn=lambda: "CONFIRMED",
+                timeout_seconds=0.0,
+            )
+        )
+        assert r_dl.status == "DEADLINE_EXCEEDED"
+        assert r_dl.disposition == "EFFECT_INDETERMINATE"
+        assert r_dl.retry_safe is False
+        assert sched_dl._active_concurrency["https://t_dl"] == 0
+        if j_path is not None:
+            lines = [aps.json.loads(line) for line in j_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+            assert any(ev["event"] == "PROBE_RESOLUTION" and ev["status"] == "DEADLINE_EXCEEDED" for ev in lines)
+

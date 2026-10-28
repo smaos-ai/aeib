@@ -1,0 +1,7 @@
+{
+  "entry_module": "solution",
+  "id": "leap_year_fix",
+  "instruction": "Fix the bug in is_leap(year) so it follows the Gregorian rule (divisible by 4, except centuries unless divisible by 400).",
+  "starter_source": "def is_leap(year: int) -> bool:\n    return year % 4 == 0\n",
+  "type": "bugfix"
+}

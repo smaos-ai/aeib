@@ -1,0 +1,7 @@
+{
+  "entry_module": "solution",
+  "id": "semver_compare",
+  "instruction": "Implement compare(a, b) for semantic versions 'MAJOR.MINOR.PATCH' with optional '-prerelease' (compare prerelease identifiers as strings, but any prerelease < the same version without one). Return -1, 0 or 1. Raise ValueError on malformed versions.",
+  "starter_source": "def compare(a: str, b: str) -> int:\n    \"\"\"-1 if a<b, 0 if equal, 1 if a>b.\"\"\"\n    return 0\n",
+  "type": "parsing"
+}

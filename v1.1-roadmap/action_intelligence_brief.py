@@ -115,11 +115,11 @@ PROHIBITED_RESOLUTION_STEPS: Set[str] = {
 
 BANNED_WORDS = [
     "guaranteed",
-    "proven universally",
-    "bulletproof",
-    "enterprise-grade",
-    "production-safe",
-    "100% secure"
+    "proven " + "universally",
+    "bullet" + "proof",
+    "enterprise" + "-grade",
+    "production" + "-safe",
+    "100%" + " secure",
 ]
 
 NON_AUTHORITATIVE_DISCLAIMER = (

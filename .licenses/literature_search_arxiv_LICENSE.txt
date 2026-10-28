@@ -1,0 +1,2 @@
+Timestamp: 2026-10-23T17:56:55+02:00
+Notification: Please check the arXiv API Terms of Use at https://info.arxiv.org/help/api/index.html and always check the license of the papers retrieved by the literature-search-arxiv skill for any restrictions.

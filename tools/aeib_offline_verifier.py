@@ -45,7 +45,7 @@ import json
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Set
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import serialization
@@ -59,6 +59,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from src.jcs_canonicalizer import encode_jcs  # noqa: E402  (RFC 8785)
+from src.strict_json_ingress import StrictJSONError, loads_strict  # noqa: E402  (duplicate keys / NaN)
 
 SUPPORTED_SCHEMA_VERSION = "aeib.receipt.v1"
 GENESIS_PREV_HASH = "sha256:" + ("0" * 64)
@@ -76,6 +77,125 @@ REQUIRED_BINDING_KEYS = frozenset(
     }
 )
 UNSIGNED_EXCLUDED_KEYS = ("entry_hash", "signature_b64")
+
+
+# ==============================================================================
+# Pure-Python Ed25519 point screening (stdlib only)
+# ------------------------------------------------------------------------------
+# Copied from tools/standalone_offline_verifier.py (_recover_x / _point_add /
+# _point_mul / _decompress_point / _is_small_order). pyca/OpenSSL Ed25519
+# verification accepts small-order public keys (measured in the wave-6 red-team
+# probe b0: identity key + (R=identity, s=0) verified 20/20 random messages), so
+# keys and signature R components are screened here before any verify() call.
+# ==============================================================================
+
+_ED_P = 2**255 - 19
+_ED_L = 2**252 + 27742317777372353535851937790883648493
+_ED_D = (-121665 * pow(121666, _ED_P - 2, _ED_P)) % _ED_P
+_ED_SQRT_M1 = pow(2, (_ED_P - 1) // 4, _ED_P)
+_ED_IDENTITY = (0, 1, 1, 0)
+
+ERR_POINT_ENCODING_LENGTH = "ERR_POINT_ENCODING_LENGTH"
+ERR_NON_CANONICAL_POINT = "ERR_NON_CANONICAL_POINT_ENCODING"
+ERR_POINT_NOT_ON_CURVE = "ERR_POINT_NOT_ON_CURVE"
+ERR_SMALL_ORDER_POINT = "ERR_SMALL_ORDER_POINT"
+ERR_SIGNATURE_LENGTH = "ERR_SIGNATURE_LENGTH"
+ERR_NON_CANONICAL_SCALAR = "ERR_NON_CANONICAL_SCALAR"
+
+
+def _ed_point_add(p1: Tuple[int, int, int, int], p2: Tuple[int, int, int, int]) -> Tuple[int, int, int, int]:
+    x1, y1, z1, t1 = p1
+    x2, y2, z2, t2 = p2
+    a = ((y1 - x1) * (y2 - x2)) % _ED_P
+    b = ((y1 + x1) * (y2 + x2)) % _ED_P
+    c = (2 * t1 * t2 * _ED_D) % _ED_P
+    d = (2 * z1 * z2) % _ED_P
+    e, f, g, h = (b - a) % _ED_P, (d - c) % _ED_P, (d + c) % _ED_P, (b + a) % _ED_P
+    return ((e * f) % _ED_P, (g * h) % _ED_P, (f * g) % _ED_P, (e * h) % _ED_P)
+
+
+def _ed_times_eight_is_identity(p: Tuple[int, int, int, int]) -> bool:
+    q = p
+    for _ in range(3):
+        q = _ed_point_add(q, q)
+    x, y, z, _t = q
+    return x % _ED_P == 0 and (y - z) % _ED_P == 0
+
+
+def ed25519_point_weakness(encoded: bytes) -> Optional[str]:
+    """
+    Returns None for a canonical, on-curve, non-small-order 32-byte point
+    encoding; otherwise a typed error code. Rejects y >= p, x == 0 with the sign
+    bit set, off-curve encodings and the 8 torsion points (8*P == identity),
+    which together cover every encoding (canonical or not) of a small-order point.
+    """
+    if not isinstance(encoded, (bytes, bytearray)) or len(encoded) != 32:
+        return ERR_POINT_ENCODING_LENGTH
+    y = int.from_bytes(bytes(encoded[:31]) + bytes([encoded[31] & 0x7F]), "little")
+    sign = (encoded[31] >> 7) & 1
+    if y >= _ED_P:
+        return ERR_NON_CANONICAL_POINT
+    u = (y * y - 1) % _ED_P
+    v = (_ED_D * y * y + 1) % _ED_P
+    x = (u * pow(v, 3, _ED_P) * pow(u * pow(v, 7, _ED_P), (_ED_P - 5) // 8, _ED_P)) % _ED_P
+    vx2 = (v * x * x) % _ED_P
+    if vx2 == (-u) % _ED_P:
+        x = (x * _ED_SQRT_M1) % _ED_P
+    elif vx2 != u:
+        return ERR_POINT_NOT_ON_CURVE
+    if x == 0 and sign == 1:
+        return ERR_NON_CANONICAL_POINT
+    if (x & 1) != sign:
+        x = _ED_P - x
+    if _ed_times_eight_is_identity((x, y, 1, (x * y) % _ED_P)):
+        return ERR_SMALL_ORDER_POINT
+    return None
+
+
+def ed25519_signature_weakness(signature: bytes) -> Optional[str]:
+    """Screens a 64-byte signature: R must pass ed25519_point_weakness and s < L."""
+    if not isinstance(signature, (bytes, bytearray)) or len(signature) != 64:
+        return ERR_SIGNATURE_LENGTH
+    r_code = ed25519_point_weakness(bytes(signature[:32]))
+    if r_code is not None:
+        return r_code
+    if int.from_bytes(bytes(signature[32:]), "little") >= _ED_L:
+        return ERR_NON_CANONICAL_SCALAR
+    return None
+
+
+MAX_JSON_DEPTH = 64  # claim: config (containers deeper than this are rejected before canonicalization)
+
+
+def exceeds_max_depth(value: Any, limit: int = MAX_JSON_DEPTH) -> bool:
+    """Iterative container-depth check (never recurses, so it cannot raise RecursionError)."""
+    stack = [(value, 1)]
+    while stack:
+        item, depth = stack.pop()
+        if isinstance(item, dict):
+            if depth > limit:
+                return True
+            stack.extend((child, depth + 1) for child in item.values())
+        elif isinstance(item, (list, tuple)):
+            if depth > limit:
+                return True
+            stack.extend((child, depth + 1) for child in item)
+    return False
+
+
+class WeakTrustAnchorError(ValueError):
+    """Raised by key loaders for small-order / non-canonical / off-curve Ed25519 keys."""
+
+    def __init__(self, code: str, detail: str = "") -> None:
+        self.code = code
+        super().__init__(f"ERR_WEAK_TRUST_ANCHOR_KEY ({code}) {detail}".strip())
+
+
+def trust_anchor_weakness(pub: Any) -> Optional[str]:
+    """Typed weakness code for a trust-anchor object, or None if acceptable."""
+    if not isinstance(pub, Ed25519PublicKey):
+        return ERR_POINT_ENCODING_LENGTH
+    return ed25519_point_weakness(pub.public_bytes_raw())
 
 
 def canonical_json_v1(obj: Any, allow_nan: bool = False) -> bytes:
@@ -154,6 +274,14 @@ class StandaloneOfflineVerifier:
             raise ValueError("max_clock_drift_ms must be a non-negative int")
         self.trust_anchors = dict(trust_anchors)
         self.max_clock_drift_ms = max_clock_drift_ms
+        # Small-order / non-canonical / non-Ed25519 anchors are recorded and any
+        # entry whose kid resolves to one fails with ERR_WEAK_TRUST_ANCHOR_KEY
+        # (pyca/OpenSSL verify() alone would accept forgeries under such keys).
+        self.weak_anchor_codes: Dict[str, str] = {}
+        for anchor_kid, anchor_key in self.trust_anchors.items():
+            weakness = trust_anchor_weakness(anchor_key)
+            if weakness is not None:
+                self.weak_anchor_codes[anchor_kid] = weakness
 
     def verify_bundle(
         self,
@@ -162,12 +290,31 @@ class StandaloneOfflineVerifier:
         expected_operation_ids: Iterable[str],
         previously_seen_operation_ids: Iterable[str] = (),
     ) -> VerificationResult:
+        """Verifies a bundle; malformed input yields a coded result, never an exception."""
+        try:
+            return self._verify_bundle_impl(
+                manifest, ledger_entries, expected_operation_ids, previously_seen_operation_ids
+            )
+        except RecursionError:
+            return VerificationResult(False, "ERR_INPUT_NESTING_TOO_DEEP")
+        except (TypeError, ValueError, AttributeError, KeyError):
+            return VerificationResult(False, "ERR_MALFORMED_INPUT")
+
+    def _verify_bundle_impl(
+        self,
+        manifest: Dict[str, Any],
+        ledger_entries: List[Dict[str, Any]],
+        expected_operation_ids: Iterable[str],
+        previously_seen_operation_ids: Iterable[str],
+    ) -> VerificationResult:
         expected_ops: Set[str] = set(expected_operation_ids)
         prior_ops: Set[str] = set(previously_seen_operation_ids)
 
         # 1. Manifest integrity & non-empty ledger
         if not isinstance(manifest, dict):
             return VerificationResult(False, "ERR_MANIFEST_MALFORMED")
+        if exceeds_max_depth(manifest):
+            return VerificationResult(False, "ERR_INPUT_NESTING_TOO_DEEP")
         if not ledger_entries:
             return VerificationResult(False, "ERR_EMPTY_LEDGER")
 
@@ -188,6 +335,8 @@ class StandaloneOfflineVerifier:
         for idx, entry in enumerate(ledger_entries):
             if not isinstance(entry, dict):
                 return VerificationResult(False, "ERR_ENTRY_MALFORMED", failed_seq=idx + 1)
+            if exceeds_max_depth(entry):
+                return VerificationResult(False, "ERR_INPUT_NESTING_TOO_DEEP", failed_seq=idx + 1)
 
             seq = entry.get("seq")
             if not _is_int(seq) or seq != idx + 1:
@@ -255,11 +404,15 @@ class StandaloneOfflineVerifier:
             pubkey = self.trust_anchors.get(kid) if isinstance(kid, str) else None
             if pubkey is None:
                 return VerificationResult(False, "ERR_UNTRUSTED_KEY_ID", failed_seq=seq)
+            if kid in self.weak_anchor_codes:
+                return VerificationResult(False, "ERR_WEAK_TRUST_ANCHOR_KEY", failed_seq=seq)
             sig_b64 = entry.get("signature_b64")
             if not isinstance(sig_b64, str):
                 return VerificationResult(False, "ERR_INVALID_SIGNATURE", failed_seq=seq)
             try:
                 sig_bytes = base64.b64decode(sig_b64, validate=True)
+                if ed25519_signature_weakness(sig_bytes) is not None:
+                    return VerificationResult(False, "ERR_INVALID_SIGNATURE", failed_seq=seq)
                 pubkey.verify(sig_bytes, canonical_bytes)
             except (ValueError, InvalidSignature):
                 return VerificationResult(False, "ERR_INVALID_SIGNATURE", failed_seq=seq)
@@ -342,7 +495,7 @@ def run_negative_vector_suite() -> Dict[str, VerificationResult]:
     trusted = Ed25519PrivateKey.generate()
     rogue = Ed25519PrivateKey.generate()
     kid = "aeib-station3-key-2026-q4"
-    verifier = StandaloneOfflineVerifier({kid: trusted.public_key()}, max_clock_drift_ms=500)
+    verifier = StandaloneOfflineVerifier({kid: trusted.public_key()}, max_clock_drift_ms=500)  # claim: config
 
     e1 = build_signed_entry(1, "op-001", GENESIS_PREV_HASH, kid, trusted)
     e2 = build_signed_entry(2, "op-002", e1["entry_hash"], kid, trusted)
@@ -364,7 +517,7 @@ def run_negative_vector_suite() -> Dict[str, VerificationResult]:
     results["NEG_3_MISSING_RECEIPT"] = verifier.verify_bundle(build_manifest([e1]), [e1], both)
 
     # NEG_4: Stale temporal authority
-    stale = build_signed_entry(2, "op-002", e1["entry_hash"], kid, trusted, dispatched_at_ms=1_760_000_015_000)
+    stale = build_signed_entry(2, "op-002", e1["entry_hash"], kid, trusted, dispatched_at_ms=1_760_000_015_000)  # claim: config
     results["NEG_4_STALE_AUTHORITY"] = verifier.verify_bundle(build_manifest([e1, stale]), [e1, stale], both)
 
     # NEG_5: Duplicate operation_id in sequence
@@ -468,7 +621,26 @@ def _load_pem_public_key(path: Path) -> Ed25519PublicKey:
     key = serialization.load_pem_public_key(path.read_bytes())
     if not isinstance(key, Ed25519PublicKey):
         raise ValueError(f"{path} is not an Ed25519 public key")
+    weakness = trust_anchor_weakness(key)
+    if weakness is not None:
+        raise WeakTrustAnchorError(weakness, str(path))
     return key
+
+
+def _emit_cli_rejection(error_code: str, failed_seq: Optional[int] = None) -> int:
+    print(json.dumps({"valid": False, "error_code": error_code, "failed_seq": failed_seq}))
+    return 2
+
+
+def _load_strict_json_text(text: str) -> Any:
+    """Strict JSON ingress (src.strict_json_ingress) plus the nesting cap; raises StrictJSONError."""
+    try:
+        value = loads_strict(text)
+    except RecursionError as exc:
+        raise StrictJSONError("ERR_INPUT_NESTING_TOO_DEEP", "parser recursion limit") from exc
+    if exceeds_max_depth(value):
+        raise StrictJSONError("ERR_INPUT_NESTING_TOO_DEEP", f"nesting deeper than {MAX_JSON_DEPTH}")
+    return value
 
 
 def generate_ciso_decision_pack(
@@ -701,14 +873,23 @@ def _cli(argv: List[str]) -> int:
         kid, sep, path = spec.partition("=")
         if not sep or not kid:
             parser.error(f"bad --anchor {spec!r}; expected KID=path")
-        anchors[kid] = _load_pem_public_key(Path(path))
+        try:
+            anchors[kid] = _load_pem_public_key(Path(path))
+        except WeakTrustAnchorError:
+            return _emit_cli_rejection("ERR_WEAK_TRUST_ANCHOR_KEY")
 
-    manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
-    entries = [
-        json.loads(ln)
-        for ln in args.ledger.read_text(encoding="utf-8").splitlines()
-        if ln.strip()
-    ]
+    try:
+        manifest = _load_strict_json_text(args.manifest.read_text(encoding="utf-8"))
+    except StrictJSONError as exc:
+        return _emit_cli_rejection(f"ERR_MANIFEST_{exc.code[4:] if exc.code.startswith('ERR_') else exc.code}")
+    entries = []
+    for line_no, ln in enumerate(args.ledger.read_text(encoding="utf-8").splitlines(), start=1):
+        if not ln.strip():
+            continue
+        try:
+            entries.append(_load_strict_json_text(ln))
+        except StrictJSONError as exc:
+            return _emit_cli_rejection(exc.code, failed_seq=len(entries) + 1)
     res = StandaloneOfflineVerifier(anchors, args.max_drift_ms).verify_bundle(
         manifest, entries, args.expect
     )

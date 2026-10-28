@@ -24,8 +24,8 @@ python3 compliance/check_zone_boundary.py
 python3 compliance/ast_purity.py .
 python3 compliance/no_mock_enforcer.py
 
-# Gate 3: Core Logic & Protection Matrix Tests (32 Tests)
-pytest tests/ -v
+# Gate 3: Core Logic & Protection Matrix Replication Suite (41 Tests)
+python3 replication/reproduce_all.py
 
 # Gate 4: Deterministic 500-Episode Fault-Injection Benchmark
 python3 benchmarks/aeib_execution_integrity/run_episodes.py --episodes 500 --seed 42
@@ -45,4 +45,4 @@ python3 benchmarks/aeib_execution_integrity/run_episodes.py --episodes 500 --see
 ## 4. Substrate & Scaffolding Boundaries
 
 * **Kernel & Hardware Scaffolding**: Code in `ebpf/` or `hardware_attestation/` represents prototype scaffolding and structural definitions.
-* **Eventual Consistency**: Distributed state reconciliation is guaranteed via asynchronous saga compensation queues, not two-phase commit (2PC) atomic rollbacks.
+* **Eventual Consistency**: Distributed state reconciliation is configured via asynchronous saga compensation queues, not two-phase commit (2PC) atomic rollbacks.

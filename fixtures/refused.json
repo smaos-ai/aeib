@@ -1,0 +1,19 @@
+{
+  "scenario_id": "refused",
+  "scenario": "refused",
+  "description": "Downstream Policy Gate Refusal",
+  "dispatched_by": "Agent-LangChain-Treasury",
+  "destination_account": "CZ6508000000001234567890",
+  "amount": 50000.0,
+  "currency": "EUR",
+  "auth_header": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.x",
+  "idempotency_key": "tx-8823-disburse-003",
+  "transport_fault": "HTTP_403_FORBIDDEN",
+  "wire_event": "HTTP 403 from policy gateway",
+  "sdk_claimed_state": "REFUSED",
+  "claimed_by_agent": "REFUSED",
+  "evaluated_disposition": "REFUSED",
+  "final_disposition": "REFUSED",
+  "discrepancy_detected": false,
+  "reason": "Explicit refusal recorded by downstream policy gate."
+}

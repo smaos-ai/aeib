@@ -165,9 +165,7 @@ def validate_schema_strict(payload: Dict[str, Any]) -> Tuple[bool, str]:
         return False, "ERR_SCHEMA_INVALID_MAX_PER_CALL"
     if not isinstance(con.get("policy_epoch"), str) or len(con["policy_epoch"]) < 1:
         return False, "ERR_SCHEMA_INVALID_POLICY_EPOCH"
-    if not isinstance(con.get("expires_at"), int) or con["expires_at"] < 1:
-        return False, "ERR_SCHEMA_INVALID_EXPIRES_AT"
-    if con["expires_at"] < 1700000000:
+    if not isinstance(con.get("expires_at"), int) or con["expires_at"] < 1700000000:
         return False, "ERR_SCHEMA_INVALID_EXPIRES_AT"
 
     # context

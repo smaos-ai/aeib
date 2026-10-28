@@ -14,7 +14,8 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Any, Tuple
 
-sys.path.insert(0, '/Users/andriileukhin/Documents/SovereignNexus')
+REPO_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(REPO_ROOT))
 
 # Aequitas-like implementation (simplified version without external dependency)
 class BiasAnalyzer:
@@ -134,7 +135,7 @@ class FairnessReporter:
 @pytest.fixture
 def fairness_golden_set() -> List[Dict[str, Any]]:
     """Load the 50-applicant golden set."""
-    golden_file = Path('/Users/andriileukhin/Documents/SovereignNexus/tests/golden/fairness_50q.json')
+    golden_file = REPO_ROOT / 'tests' / 'golden' / 'fairness_50q.json'
     with open(golden_file, 'r') as f:
         data = json.load(f)
     return data['applicants']
@@ -380,7 +381,7 @@ def test_save_fairness_report(fairness_golden_set):
     report = reporter.generate_report()
 
     # Save report
-    output_dir = Path('/Users/andriileukhin/Documents/SovereignNexus/reports')
+    output_dir = REPO_ROOT / 'reports'
     output_dir.mkdir(parents=True, exist_ok=True)
     output_file = output_dir / 'fairness_test_results.json'
 

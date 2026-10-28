@@ -18,6 +18,14 @@ Key Invariants:
   5. Sanitized Quarantined Error (code -32000): Enforces PROHIBITED_AWAITING_PROBE retry
      policies, eliminating hallucinated double-spends and duplicate mutations.
   6. Zero-Mock Policy: AST-pure, zero mocks, real database adapters.
+  7. Strict JSON ingress: agent requests and downstream responses on the stdio wire are parsed
+     with src/strict_json_ingress.loads_strict (duplicate keys, NaN/Infinity, lone surrogates
+     are rejected with JSON-RPC -32700 instead of being silently resolved).
+  8. Tool-definition pinning: every downstream `tools/list` result is checked against an
+     approved ToolDefinitionPinSet (src/mcp_schema_pinning.py) via McpToolPinGuard; an unpinned
+     server, definition change (rug pull), added/removed tool or cross-server shadowing returns
+     JSON-RPC -32040 with typed findings. Once a pin set exists, `tools/call` for a tool outside
+     it (or after latched drift) is refused. First-use pinning ("learn mode") is OFF by default.
 """
 
 import os
@@ -33,6 +41,27 @@ import subprocess
 from pathlib import Path
 from typing import Dict, Any, Optional, Tuple, List, Callable
 
+# RFC 8785 single source of truth: delegate to src/jcs_canonicalizer.encode_jcs
+# (differential-tested in tests/test_jcs_single_source.py).
+try:
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+except ImportError:  # loaded without the repository root on sys.path
+    import sys as _jcs_sys
+    from pathlib import Path as _JcsPath
+
+    _jcs_sys.path.insert(0, str(_JcsPath(__file__).resolve().parents[0]))
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+
+from cryptography.hazmat.primitives.asymmetric import ed25519
+
+from src.mcp_schema_pinning import ToolDefinitionPinSet
+from src.secure_mcp_uds_boundary import (
+    McpToolPinGuard,
+    ToolPinViolation,
+    load_tool_pin_manifest,
+)
+from src.strict_json_ingress import StrictJSONError, loads_strict
+
 # Standard RFC 4122 namespace for AEIB Idempotency Keys
 NAMESPACE_AEIB = uuid.UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
 
@@ -42,7 +71,7 @@ DEFAULT_MAPPING_PATH = Path(__file__).resolve().parent / "transport-to-dispositi
 
 def canonical_json_bytes(data: Any) -> bytes:
     """Deterministic JSON serialization matching RFC 8785 JCS subset."""
-    return json.dumps(data, separators=(',', ':'), sort_keys=True, ensure_ascii=False).encode('utf-8')
+    return _reference_encode_jcs(data)
 
 
 from dataclasses import dataclass
@@ -327,6 +356,9 @@ class AEIBMCPProxy:
         db_path: str = ":memory:",
         mapping_path: Optional[Path] = None,
         state_prober_func: Optional[Callable[[str], str]] = None,
+        tool_pins: Optional[ToolDefinitionPinSet] = None,
+        upstream_server_id: str = "upstream",
+        tool_pin_learn_mode: bool = False,
     ):
         self.mapping = MappingContract(mapping_path)
         self.outbox = OutboxLedger(db_path)
@@ -334,6 +366,10 @@ class AEIBMCPProxy:
         self.custom_prober = state_prober_func
         self.pg_adapter = None
         self.quarantined_operations = set()
+        # tools/list is always gated; learn mode (first-use pinning) is OFF by default.
+        self.tool_pin_guard = McpToolPinGuard(
+            upstream_server_id, tool_pins, learn_mode=tool_pin_learn_mode
+        )
         self._init_pg_adapter()
 
     def format_mcp_quarantined_result(
@@ -386,6 +422,24 @@ class AEIBMCPProxy:
                 }
             }
         return {"jsonrpc": "2.0", "id": req_id, "result": {"intercepted": False}}
+
+    def _gate_tools_list(self, req_id: Any, resp: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+        """Return the downstream tools/list response only if it matches the approved pins."""
+        if resp is None:
+            return {
+                "jsonrpc": "2.0",
+                "id": req_id,
+                "error": {"code": -32000, "message": "Downstream tools/list unavailable"},
+            }
+        if "error" in resp:
+            return resp
+        result = resp.get("result")
+        tools = result.get("tools") if isinstance(result, dict) else None
+        try:
+            self.tool_pin_guard.check_advertisement(tools)
+        except ToolPinViolation as exc:
+            return {"jsonrpc": "2.0", "id": req_id, "error": exc.to_jsonrpc_error()}
+        return resp
 
 
     def _init_pg_adapter(self):
@@ -443,7 +497,12 @@ class AEIBMCPProxy:
         method = msg.get("method", "")
         req_id = msg.get("id")
 
-        # Pass-through non-mutating / lifecycle RPCs (initialize, tools/list, ping, etc.)
+        # tools/list is never passed through unchecked: the advertisement must match the pins.
+        if method == "tools/list":
+            resp, _, _ = downstream_sender(msg)
+            return self._gate_tools_list(req_id, resp)
+
+        # Pass-through non-mutating / lifecycle RPCs (initialize, ping, etc.)
         if method != "tools/call":
             resp, _, _ = downstream_sender(msg)
             return resp if resp is not None else {"jsonrpc": "2.0", "id": req_id, "result": {}}
@@ -453,6 +512,12 @@ class AEIBMCPProxy:
         arguments = params.get("arguments", params.get("args", {}))
         if not isinstance(arguments, dict):
             arguments = {}
+
+        # Once a pin set exists (or drift was latched) the tool must be in the approved set.
+        try:
+            self.tool_pin_guard.check_call(tool_name, require_pins=False)
+        except ToolPinViolation as exc:
+            return {"jsonrpc": "2.0", "id": req_id, "error": exc.to_jsonrpc_error()}
 
         if not self.is_mutating_tool(tool_name):
             resp, _, _ = downstream_sender(msg)
@@ -589,11 +654,22 @@ class AEIBMCPProxy:
         }
 
 
-def run_stdio_proxy(downstream_command: List[str], mapping_path: Optional[Path] = None):
+def run_stdio_proxy(
+    downstream_command: List[str],
+    mapping_path: Optional[Path] = None,
+    tool_pins: Optional[ToolDefinitionPinSet] = None,
+    upstream_server_id: str = "upstream",
+    tool_pin_learn_mode: bool = False,
+):
     """
     Runs the MCP Proxy in full stdio mode, piping sys.stdin/stdout to a downstream subprocess.
     """
-    proxy = AEIBMCPProxy(mapping_path=mapping_path)
+    proxy = AEIBMCPProxy(
+        mapping_path=mapping_path,
+        tool_pins=tool_pins,
+        upstream_server_id=upstream_server_id,
+        tool_pin_learn_mode=tool_pin_learn_mode,
+    )
     proc = subprocess.Popen(
         downstream_command,
         stdin=subprocess.PIPE,
@@ -618,7 +694,7 @@ def run_stdio_proxy(downstream_command: List[str], mapping_path: Optional[Path] 
             if not resp_line:
                 return None, 504, "Downstream MCP process closed pipe (TCP RST equivalent)"
 
-            resp_data = json.loads(resp_line.strip())
+            resp_data = loads_strict(resp_line.strip())
             return resp_data, 200, None
         except Exception as exc:
             return None, 504, str(exc)
@@ -629,7 +705,21 @@ def run_stdio_proxy(downstream_command: List[str], mapping_path: Optional[Path] 
             if not line_str:
                 continue
             try:
-                req_obj = json.loads(line_str)
+                try:
+                    req_obj = loads_strict(line_str)
+                except StrictJSONError as strict_exc:
+                    err_resp = {
+                        "jsonrpc": "2.0",
+                        "id": None,
+                        "error": {
+                            "code": -32700,
+                            "message": f"Parse error: {strict_exc}",
+                            "data": {"strict_json_code": strict_exc.code},
+                        },
+                    }
+                    sys.stdout.write(json.dumps(err_resp) + "\n")
+                    sys.stdout.flush()
+                    continue
                 resp_obj = proxy.process_rpc_message(req_obj, _downstream_sender)
                 sys.stdout.write(json.dumps(resp_obj) + "\n")
                 sys.stdout.flush()
@@ -654,6 +744,14 @@ def main():
     parser.add_argument("--downstream", nargs="+", help="Downstream MCP command line to execute")
     parser.add_argument("--mapping", type=Path, default=DEFAULT_MAPPING_PATH, help="Path to transport mapping YAML")
     parser.add_argument("--test-roundtrip", action="store_true", help="Run self-test roundtrip and exit")
+    parser.add_argument("--tool-pins", type=Path, default=None,
+                        help="Ed25519-signed tool pin manifest (requires --tool-pins-pubkey)")
+    parser.add_argument("--tool-pins-pubkey", type=Path, default=None,
+                        help="File holding the hex-encoded raw Ed25519 public key of the manifest signer")
+    parser.add_argument("--upstream-server-id", default="upstream",
+                        help="Server id of the downstream MCP server inside the pin manifest")
+    parser.add_argument("--tool-pin-learn-mode", action="store_true",
+                        help="Explicit opt-in: pin the first tools/list result (OFF by default)")
     args = parser.parse_args()
 
     if args.test_roundtrip:
@@ -704,7 +802,21 @@ def main():
         sys.exit(0)
 
     if args.downstream:
-        run_stdio_proxy(args.downstream, args.mapping)
+        tool_pins = None
+        if args.tool_pins is not None or args.tool_pins_pubkey is not None:
+            if args.tool_pins is None or args.tool_pins_pubkey is None:
+                parser.error("--tool-pins and --tool-pins-pubkey must be given together")
+            pubkey = ed25519.Ed25519PublicKey.from_public_bytes(
+                bytes.fromhex(args.tool_pins_pubkey.read_text(encoding="utf-8").strip())
+            )
+            tool_pins = load_tool_pin_manifest(args.tool_pins, pubkey)
+        run_stdio_proxy(
+            args.downstream,
+            args.mapping,
+            tool_pins=tool_pins,
+            upstream_server_id=args.upstream_server_id,
+            tool_pin_learn_mode=args.tool_pin_learn_mode,
+        )
     else:
         parser.print_help()
 

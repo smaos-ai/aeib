@@ -397,7 +397,7 @@ All deliverables:
 - ✅ Committed to main branch
 - ✅ Audit-ready
 
-The SovereignNexus system now has **enterprise-grade security controls** aligned with EU AI Act Annex III requirements. All encryption, access control, and audit mechanisms are fully functional and verified.
+The SovereignNexus system now has **high-assurance security controls** aligned with EU AI Act Annex III requirements. All encryption, access control, and audit mechanisms are fully functional and verified.
 
 **Status: READY FOR DEPLOYMENT**
 

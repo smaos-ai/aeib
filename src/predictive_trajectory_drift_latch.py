@@ -55,18 +55,10 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-try:
-    from src.jcs_canonicalizer import encode_jcs
-except ImportError:
-    # Deterministic fallback conforming to RFC 8785 Section 3.2
-    def encode_jcs(payload: Any) -> bytes:
-        return json.dumps(
-            payload,
-            sort_keys=True,
-            separators=(",", ":"),
-            ensure_ascii=False,
-            allow_nan=False,
-        ).encode("utf-8")
+# RFC 8785 single source of truth. No local fallback: a json.dumps(sort_keys=True)
+# copy diverged from RFC 8785 on non-BMP key order and number formatting, so a
+# missing reference canonicalizer now fails closed at import time.
+from src.jcs_canonicalizer import encode_jcs
 
 
 # ==============================================================================

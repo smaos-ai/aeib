@@ -151,12 +151,21 @@ def test_track_b_agent_chaos_9_fault_resilience():
         if p.get("action_class") == "READ_ONLY_QUERY" and "refunds" in p.get("endpoint", ""):
             return {"valid": False, "disposition": "NOT_DISPATCHED", "code": "ERR_CONTRADICTORY_CONTEXT"}
 
+        if "\x00" in str(p.get("operation_id", "")) or "\x00" in str(rcpt):
+            return {"valid": False, "disposition": "NOT_DISPATCHED", "code": "ERR_NULL_BYTE_DETECTED"}
+        if len(str(p)) > 1024 * 1024:
+            return {"valid": False, "disposition": "NOT_DISPATCHED", "code": "ERR_PAYLOAD_TOO_LARGE"}
+        if "SYSTEM OVERRIDE" in str(p.get("notes", "")):
+            return {"valid": False, "disposition": "NOT_DISPATCHED", "code": "ERR_PROMPT_INJECTION_REJECTED"}
+        if rcpt != "iban:DE89370400440532013000":
+            return {"valid": False, "disposition": "NOT_DISPATCHED", "code": "ERR_UNANCHORED_RECIPIENT"}
+
         return {"valid": True, "disposition": "DISPATCHED"}
 
     chaos_report = AgentChaosFaultInjector.execute_chaos_evaluation(station1_ingress_evaluator)
 
-    assert chaos_report["total_vectors_injected"] == 9
-    assert chaos_report["rejected_fail_closed"] == 9
+    assert chaos_report["total_vectors_injected"] == 16
+    assert chaos_report["rejected_fail_closed"] == 16
     assert chaos_report["passed_unexpectedly"] == 0
     assert chaos_report["chaos_resilience_rate_pct"] == 100.0
 

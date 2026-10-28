@@ -248,10 +248,10 @@ TARGETS = [
         "Email": "mirek.karpeta@airbank.cz",
         "Jurisdiction": "Prague (CZ)",
         "Segment": "Tier-1 Digital Retail Bank",
-        "Outreach_Channel": "LinkedIn",
-        "Connection_Note_Sent_At": "",
+        "Outreach_Channel": "Email & LinkedIn",
+        "Connection_Note_Sent_At": "2026-09-22 12:45 CEST",
         "Briefing_Attached": "YES",
-        "Status": "QUEUED_BATCH_3",
+        "Status": "DISPATCHED_WAVE_1",
         "Next_Followup_Date": "2026-09-27",
         "Assigned_Angle": "Angle B (Machine Pay x402)",
         "Angle_Hook": (
@@ -441,6 +441,11 @@ FIELDNAMES = [
     "Connection_Note_Sent_At",
     "Briefing_Attached",
     "Status",
+    "Response_Status",
+    "Response_Timestamp",
+    "Walkthrough_Date",
+    "Audit_Tier",
+    "Remediation_Language",
     "Next_Followup_Date",
     "Assigned_Angle",
     "Angle_Hook",
@@ -454,7 +459,13 @@ def export_csv(filepath: str):
         writer = csv.DictWriter(f, fieldnames=FIELDNAMES)
         writer.writeheader()
         for t in TARGETS:
-            writer.writerow(t)
+            row = dict(t)
+            row.setdefault("Response_Status", "AWAITING_REPLY" if "DISPATCHED" in row.get("Status", "") else "QUEUED")
+            row.setdefault("Response_Timestamp", "")
+            row.setdefault("Walkthrough_Date", "")
+            row.setdefault("Audit_Tier", "TIER_1_DIAGNOSTIC_1500" if "DISPATCHED" in row.get("Status", "") else "")
+            row.setdefault("Remediation_Language", "JAVA_SPRING_BOOT" if any(k in row.get("Segment", "") + row.get("Organization", "") for k in ["Bank", "PPF", "Erste", "Deutsche", "UBS", "Commerzbank", "Intesa"]) else "PYTHON")
+            writer.writerow(row)
 
 
 def export_xlsx(csv_path: str, xlsx_path: str):

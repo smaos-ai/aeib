@@ -370,7 +370,7 @@ http://127.0.0.1:5173
 
 ## 🎯 Summary
 
-**Rebuilt entire dashboard with Palantir Blueprint.** The result is a professional, enterprise-grade UI that looks dramatically better than hand-styled CSS. Users see a polished product that inspires confidence.
+**Rebuilt entire dashboard with Palantir Blueprint.** The result is a professional, standardized UI that looks dramatically better than hand-styled CSS. Users see a polished product that inspires confidence.
 
 **Key improvements:**
 - ✅ Professional component library
@@ -397,5 +397,5 @@ http://127.0.0.1:5173
 5. **Internationalization** — Multi-language support
 6. **Theme switcher** — Let users pick light/dark/custom colors
 
-**You now have an enterprise-grade dashboard.** 🎉
+**You now have a standardized dashboard.** 🎉
 

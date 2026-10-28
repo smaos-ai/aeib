@@ -1,6 +1,6 @@
 {
   "schema_version": "1.1.0-5arm-benchmark",
-  "timestamp_utc": "2026-10-16T16:42:37Z",
+  "timestamp_utc": "2026-10-18T06:29:49Z",
   "seed": 42,
   "total_episodes": 500,
   "fault_vector_count": 15,
@@ -64,8 +64,8 @@
       "verified_ledger_records_on_disk": 1000,
       "offline_verifiability": true,
       "crash_survivability": true,
-      "latency_p50_ms": 0.45,
-      "latency_p99_ms": 0.72,
+      "latency_p50_ms": 0.43,
+      "latency_p99_ms": 1.58,
       "disposition_counts": {
         "OUTCOME_VERIFIED": 302,
         "NOT_FOUND_AFTER_GRACE": 66,

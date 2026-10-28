@@ -1,0 +1,7 @@
+{
+  "entry_module": "solution",
+  "id": "iban_check",
+  "instruction": "Implement iban_normalize(raw) -> str: remove spaces, uppercase, verify the ISO 13616 mod-97 checksum (must equal 1), length 15..34, first two chars letters; raise ValueError otherwise. Return the normalized IBAN.",
+  "starter_source": "def iban_normalize(raw: str) -> str:\n    \"\"\"Normalize and validate an IBAN.\"\"\"\n    return raw\n",
+  "type": "validation"
+}

@@ -209,3 +209,105 @@ def test_banned_words_absence() -> None:
         text = (repo_root / rel).read_text(encoding="utf-8").lower()
         for w in banned:
             assert w not in text, f"Forbidden word found in {rel}"
+
+
+def test_section7_mutation_boundaries(tmp_path: Path) -> None:
+    import ast as _ast
+    import compliance.defense_in_depth_policy_gate as did_mod
+    import tools.epistemic_intent_outcome_engine as eio_mod
+    from tools.epistemic_intent_outcome_engine import (
+        IndeterminateRecord,
+        IntentToken,
+        OutcomeToken,
+    )
+
+    # 1. AST & structural checks on both modules
+    did_tree = _ast.parse(Path(did_mod.__file__).read_text(encoding="utf-8"))
+    found_did_exc = False
+    for node in _ast.walk(did_tree):
+        if isinstance(node, _ast.ExceptHandler) and isinstance(node.type, _ast.Name):
+            for stmt in node.body:
+                if isinstance(stmt, _ast.Expr) and isinstance(stmt.value, _ast.Call):
+                    found_did_exc = True
+                    assert isinstance(stmt.value.args[0], _ast.Constant) and stmt.value.args[0].value == 0
+    assert found_did_exc is True
+
+    eio_tree = _ast.parse(Path(eio_mod.__file__).read_text(encoding="utf-8"))
+    found_eio_exc = False
+    found_eio_path = False
+    found_fsync_51 = False
+    for node in _ast.walk(eio_tree):
+        if isinstance(node, _ast.ExceptHandler) and isinstance(node.type, _ast.Name) and node.type.id == "ImportError":
+            for stmt in node.body:
+                if isinstance(stmt, _ast.Expr) and isinstance(stmt.value, _ast.Call):
+                    found_eio_exc = True
+                    sub = stmt.value.args[1].args[0]  # type: ignore[attr-defined]
+                    assert isinstance(sub.slice, _ast.Constant) and sub.slice.value == 1
+        if isinstance(node, _ast.If) and isinstance(node.test, _ast.Compare):
+            if isinstance(node.test.ops[0], _ast.NotIn):
+                found_eio_path = True
+                call = node.body[0].value  # type: ignore[attr-defined]
+                assert isinstance(call.args[0], _ast.Constant) and call.args[0].value == 0
+        if isinstance(node, _ast.Call) and isinstance(node.func, _ast.Attribute) and node.func.attr == "fcntl":
+            if len(node.args) == 2 and isinstance(node.args[1], _ast.Constant):
+                found_fsync_51 = True
+                assert node.args[1].value == 50 + 1
+    assert found_eio_exc is True and found_eio_path is True and found_fsync_51 is True
+
+    # 2. DefenseInDepthPolicyGate boundaries
+    assert DefenseInDepthPolicyGate.evaluate_package_install([]).allowed is True
+    assert DefenseInDepthPolicyGate.evaluate_package_install(["pip"]).allowed is True
+    assert DefenseInDepthPolicyGate.evaluate_package_install(["pip", "install"]).allowed is False
+    assert DefenseInDepthPolicyGate.evaluate_package_install(["pip", "list"]).allowed is True
+    assert DefenseInDepthPolicyGate.evaluate_package_install(["git", "install", "pkg"]).allowed is True
+
+    sup_priv = Ed25519PrivateKey.generate()
+    sup_pub = sup_priv.public_key()
+    assert (
+        DefenseInDepthPolicyGate.evaluate_package_install(
+            ["pip", "install", "pkg"],
+            step_up_warrant={"scope": "WRONG_SCOPE"},
+            supervisor_pubkey=sup_pub,
+        ).allowed
+        is False
+    )
+    assert (
+        DefenseInDepthPolicyGate.evaluate_package_install(
+            ["pip", "install", "pkg"],
+            step_up_warrant={"scope": "SECURITY_OPERATIONS_PACKAGE_INSTALL", "signature_b64": "YWJj"},
+            supervisor_pubkey=sup_pub,
+        ).allowed
+        is False
+    )
+
+    # 3. EpistemicIntentOutcomeEngine boundaries
+    assert IntentToken.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+    assert OutcomeToken.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+    assert IndeterminateRecord.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+
+    ind_def = IndeterminateRecord(intent_hash="sha256:00", error_reason="err")
+    assert ind_def.retry_safe is False and ind_def.timestamp_ns == 0
+
+    wal_p = tmp_path / "b.wal"
+    eng = EpistemicIntentOutcomeEngine(wal_path=wal_p, signing_key=sup_priv)
+    assert eng.total_budget_minor == 1000000
+    assert eng.signing_key is sup_priv
+
+    ok_ov, tok_ov, msg_ov = eng.record_intent({"x": 1}, "POST /x", 1000001)
+    assert ok_ov is False and tok_ov is None and "HALT_INSUFFICIENT_ESCROW_BUDGET" in msg_ov
+
+    ok_1, tok_1, _ = eng.record_intent({"x": 1}, "POST /x", 2000)
+    assert ok_1 is True and tok_1 is not None
+    assert tok_1.token_id == f"intent:{tok_1.intent_hash[7:23]}"
+    assert len(tok_1.token_id) == 23
+    assert '{"entry_type": "INTENT_RECORDED", "escrow_minor": 2000' in wal_p.read_text(encoding="utf-8")
+
+    eng.record_outcome(tok_1, {"ok": True})
+    ok_2, tok_2, _ = eng.record_intent({"x": 2}, "POST /x", 3000)
+    assert ok_2 is True and tok_2 is not None
+    eng.handle_timeout_or_fault(tok_2, "TIMEOUT")
+
+    eng_rec = EpistemicIntentOutcomeEngine(wal_path=wal_p)
+    assert eng_rec._settled_expenditure_minor == 2000
+    assert eng_rec._escrow_locked_minor == 3000
+    assert eng_rec._indeterminate[tok_2.intent_hash].retry_safe is False

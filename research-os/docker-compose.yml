@@ -1,0 +1,78 @@
+version: "3.8"
+
+networks:
+  sovereign-net:
+    driver: bridge
+
+volumes:
+  vane_data:
+  searxng_data:
+  ollama_data:
+
+services:
+  # 1. The Eyes: Self-Hosted SearXNG Meta-Search Engine (Port 8080)
+  searxng:
+    image: searxng/searxng:latest
+    container_name: sovereign_searxng
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - searxng_data:/etc/searxng
+      - ./searxng/settings.yml:/etc/searxng/settings.yml:ro
+    environment:
+      - BASE_URL=http://localhost:8080/
+      - INSTANCE_NAME=SovereignResearchOS
+    networks:
+      - sovereign-net
+
+  # 2. The Brain: Local Ollama LLM Daemon (Port 11434, Zero Cloud Egress)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: sovereign_ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - sovereign-net
+
+  # 3. Open-Source Perplexity UI Clone (Vane / formerly Perplexica, Port 3000)
+  vane:
+    image: itzcrazykns/vane:latest
+    container_name: sovereign_vane
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - SEARXNG_API_URL=http://searxng:8080
+      - OLLAMA_API_URL=http://ollama:11434
+    volumes:
+      - vane_data:/home/vane/data
+    networks:
+      - sovereign-net
+    depends_on:
+      - searxng
+      - ollama
+
+  # 4. In-Process SQL OLAP Analytics Worker (DuckDB / chDB, Port 8123)
+  chdb-olap:
+    image: python:3.12-slim
+    container_name: sovereign_chdb_analytics
+    restart: unless-stopped
+    ports:
+      - "8123:8123"
+    working_dir: /app
+    volumes:
+      - ../src:/app/src:ro
+      - ../provenance:/app/provenance:ro
+      - ../audit_out:/app/audit_out:ro
+      - ../scripts:/app/scripts:ro
+      - ../keys:/app/keys:ro
+    command: >
+      bash -c "pip install chdb pydantic cryptography &&
+               python3 -u -c 'import time; print(\"Sovereign OLAP worker online\"); time.sleep(infinity)'"
+    networks:
+      - sovereign-net

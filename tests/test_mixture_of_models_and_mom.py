@@ -77,6 +77,12 @@ def test_mom_router_dispatch_logic() -> None:
     assert dec_def.assigned_model == "gemini-4-argon-standard"
     assert dec_def.requires_escalation is False
 
+    # 6. Exact tier boundaries: 4999 / 5000 and 49999 / 50000
+    assert MixtureOfModelsSemanticRouter.route_request(4999, "medium").assigned_model == "gemini-flash-reflex"
+    assert MixtureOfModelsSemanticRouter.route_request(5000, "medium").assigned_model == "gemini-4-argon-standard"
+    assert MixtureOfModelsSemanticRouter.route_request(49999, "medium").assigned_model == "gemini-4-argon-standard"
+    assert MixtureOfModelsSemanticRouter.route_request(50000, "medium").assigned_model == "gemini-4-argon-high-thinking"
+
 
 def test_harnessmm_guarded_decision_reuse() -> None:
     cache = HarnessMMGuardedDecisionCache()
@@ -151,3 +157,54 @@ def test_radix_kv_block_aligner() -> None:
     # 100 tokens needs 28 padding to reach 128
     assert RadixKVBlockAligner.compute_padding_tokens(100) == 28
     assert RadixKVBlockAligner.align_token_count(100) == 128
+
+
+def test_sovereign_mom_routing_integration() -> None:
+    from src.sovereign_moat_upgrades import (
+        Jurisdiction,
+        ModelManifest,
+        SovereignRoutingRequest,
+    )
+
+    req_pii = SovereignRoutingRequest(
+        task_id="wire-task-01",
+        contains_pii_or_finance=True,
+        required_jurisdiction=Jurisdiction.EU_US_DOMESTIC,
+    )
+    foreign_model = ModelManifest(
+        model_id="qwen-72b-node",
+        weight_snapshot_digest="sha256:weights_qwen",
+        hosting_jurisdiction=Jurisdiction.RESTRICTED_EXPORT,
+    )
+
+    # Sensitive task to restricted export jurisdiction MUST HALT
+    with pytest.raises(ValueError, match="HALT_GEOPOLITICAL_TAINT_VIOLATION"):
+        MixtureOfModelsSemanticRouter.route_sovereign_request(
+            request=req_pii,
+            candidate_model=foreign_model,
+            repo_tokens=10000,
+            task_risk="medium",
+        )
+
+    # Domestic model succeeds and returns both MoMRoutingDecision and sovereign receipt
+    domestic_model = ModelManifest(
+        model_id="claude-opus-domestic",
+        weight_snapshot_digest="sha256:weights_domestic",
+        hosting_jurisdiction=Jurisdiction.EU_US_DOMESTIC,
+    )
+    decision, receipt = MixtureOfModelsSemanticRouter.route_sovereign_request(
+        request=req_pii,
+        candidate_model=domestic_model,
+        repo_tokens=75000,
+        task_risk="medium",
+    )
+    assert decision.assigned_model == "gemini-4-argon-high-thinking"
+    assert receipt == "OK_ROUTED_TO_SOVEREIGN_MODEL:claude-opus-domestic"
+
+    # repo_tokens has no silent default: a caller that omits the context size
+    # must not be routed as if it were a 10k-token repository.
+    with pytest.raises(TypeError):
+        MixtureOfModelsSemanticRouter.route_sovereign_request(  # type: ignore[call-arg]
+            request=req_pii, candidate_model=domestic_model
+        )
+

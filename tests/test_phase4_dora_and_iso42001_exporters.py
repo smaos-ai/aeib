@@ -274,7 +274,7 @@ class TestPhase4Iso42001AndEn18286SoaScanner:
         assert report["standard"] == "ISO/IEC 42001:2023"
         assert report["total_controls"] == 14
         assert report["implemented_controls"] == 14
-        assert report["observed_and_tested_controls"] == 12
+        assert int(report["observed_and_tested_controls"]) == 12
         assert report["scaffold_only_controls"] == 2
         assert report["coverage_percentage"] == 100.0
 

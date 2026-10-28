@@ -1,0 +1,77 @@
+[
+  {
+    "file": "001_valid_single_leaf.json",
+    "description": "Valid single leaf audit log receipt",
+    "sha256": "46271f0706438d72bbfeed7b8549db9f6e769cc244922af60509deefad5ca183"
+  },
+  {
+    "file": "002_valid_balanced_tree.json",
+    "description": "Valid balanced tree (size 8, index 3)",
+    "sha256": "ddf0a009b534cda11f5f5b6e0f1a64a9c2705684935069deb6f465ddefb43633"
+  },
+  {
+    "file": "003_valid_unbalanced_tree.json",
+    "description": "Valid unbalanced tree (size 7, index 6)",
+    "sha256": "392fe3c409e8de672170d5998060dcba42ceac273b46c3ca3934e23c37bdfc67"
+  },
+  {
+    "file": "004_tampered_payload_digest.json",
+    "description": "Tampered intent_digest -> proof mismatch",
+    "sha256": "81520523b3eeb386e7b36c6f475d8459824a398457c004610d49a6bf7068dc58"
+  },
+  {
+    "file": "005_tampered_signature.json",
+    "description": "Corrupted Ed25519 signature -> invalid signature",
+    "sha256": "880d8c4e985949871a9709df0ee7d5b5d1833a6a82fb3d2a162ba3e92f015221"
+  },
+  {
+    "file": "006_tampered_root_hash.json",
+    "description": "Mismatched root_hash -> proof mismatch",
+    "sha256": "746a97a76ed3a001d80e5e52b286f49bb686f2d4f36448ffa704b0fd0a0a19b8"
+  },
+  {
+    "file": "007_ordinal_violation_index_gte_size.json",
+    "description": "Ordinal violation (leaf_index >= tree_size)",
+    "sha256": "5125565def4af1581472c977332a6cb931f16b010d6e64e901fd99f823287302"
+  },
+  {
+    "file": "008_ordinal_negative_index.json",
+    "description": "Negative leaf index boundary violation",
+    "sha256": "d61001f59fbeb67049872fe6ee2341abaec90c86de42fa9ea0a5a9ff448f6b70"
+  },
+  {
+    "file": "009_empty_tree_size_zero.json",
+    "description": "Empty tree tree_size=0 violation",
+    "sha256": "d14c9de905d19732ee821e5311a2c1219c4c0afe7146d2ad68c327d9e8095562"
+  },
+  {
+    "file": "010_tampered_sibling_hash.json",
+    "description": "Corrupt sibling hash in audit path",
+    "sha256": "01ae36d941316a9aefcfef1f976bd3cf991f3fb8221ac6b40336c32042e24f14"
+  },
+  {
+    "file": "011_expired_timestamp.json",
+    "description": "Expired timestamp (year 2020 < 2024)",
+    "sha256": "c819d11ade03d83455ae44bfcb446f91160903966b3d1530c94cf5e4149728d4"
+  },
+  {
+    "file": "012_future_timestamp.json",
+    "description": "Future timestamp clock skew (year 2035 > 2030)",
+    "sha256": "748effc9147945d98b4662071245ddb389979e29bfc6a80687da622937ad908d"
+  },
+  {
+    "file": "013_preserved_uncertainty_unknown.json",
+    "description": "Preserved uncertainty: verdict UNKNOWN",
+    "sha256": "5d4f3c6e2a5623a055e3001da8f4dddce95835752cb5b8f970af11ab4751a342"
+  },
+  {
+    "file": "014_toxic_receipt_assertion.json",
+    "description": "Illegal toxic verdict assertion",
+    "sha256": "864132dcf189686d02c55b96b01e6684176806bceddd5c6d262c692c8fed58b9"
+  },
+  {
+    "file": "015_invalid_schema_missing_fields.json",
+    "description": "Malformed schema missing required properties",
+    "sha256": "9d57f7aa99c2d8abd1cace37f375f224241baec7cefddcd9c1d39d3a9b98cf07"
+  }
+]

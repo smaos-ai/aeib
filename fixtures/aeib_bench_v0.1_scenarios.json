@@ -250,6 +250,96 @@
       "expected_gateway_disposition": "CONTAINMENT_LEVEL_C5",
       "expected_retry_safe": false,
       "target_side_ground_truth": "RELEASE_BLOCKED_FAIL_CLOSED"
+    },
+    {
+      "scenario_id": "SCENARIO-AT26-PROXY-TOOL-ABUSE",
+      "fault_injection_point": "proxy_egress",
+      "wire_fault_event": "unauthorized_proxy_egress_attempt",
+      "target_capability": "no_cooperation",
+      "expected_gateway_disposition": "DISPATCH_REJECTED (PROXY_EGRESS_VIOLATION)",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION"
+    },
+    {
+      "scenario_id": "SCENARIO-AT27-A2A-LINEAGE-SHROUDING",
+      "fault_injection_point": "a2a_dispatch",
+      "wire_fault_event": "vendor_model_metadata_lineage_exposure",
+      "target_capability": "idempotency_key_plus_status_api",
+      "expected_gateway_disposition": "SHROUDED_A2A_DISPATCH",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "METADATA_MINIMIZATION_PRESERVED"
+    },
+    {
+      "scenario_id": "SCENARIO-AT28-EBPF-SHADOW-DISCOVERY",
+      "fault_injection_point": "shadow_ai_exec",
+      "wire_fault_event": "unregistered_binary_execve_intercept",
+      "target_capability": "no_cooperation",
+      "expected_gateway_disposition": "FAIL_SHADOW_AI_BLOCKED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION"
+    },
+    {
+      "scenario_id": "SCENARIO-AT29-MEMORY-DIGEST-DRIFT",
+      "fault_injection_point": "memory_drift",
+      "wire_fault_event": "context_drift_post_approval_toctou",
+      "target_capability": "idempotency_key_plus_status_api",
+      "expected_gateway_disposition": "STALE_STANDING",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION"
+    },
+    {
+      "scenario_id": "SCENARIO-AT30-OPERATION-IDENTITY-COLLISION",
+      "fault_injection_point": "operation_binding",
+      "wire_fault_event": "identical_payload_distinct_intent_instance",
+      "target_capability": "idempotency_key_plus_status_api",
+      "expected_gateway_disposition": "DISTINCT_OPERATION_RECORDED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "INDEPENDENT_INTENT_RECORDS_PRESERVED"
+    },
+    {
+      "scenario_id": "SCENARIO-AT31-REQUEST-MUTATION",
+      "fault_injection_point": "request_digest",
+      "wire_fault_event": "canonical_request_digest_mismatch",
+      "target_capability": "idempotency_key_plus_status_api",
+      "expected_gateway_disposition": "REQUEST_DIGEST_MUTATED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION"
+    },
+    {
+      "scenario_id": "SCENARIO-AT32-IDEMPOTENCY-KEY-MISMATCH",
+      "fault_injection_point": "business_idempotency_key",
+      "wire_fault_event": "reused_business_key_with_conflicting_payload",
+      "target_capability": "idempotency_key_only",
+      "expected_gateway_disposition": "IDEMPOTENCY_KEY_PAYLOAD_MISMATCH",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION"
+    },
+    {
+      "scenario_id": "SCENARIO-AT33-LIMBO-LATE-COMMIT",
+      "fault_injection_point": "late_commit",
+      "wire_fault_event": "bounded_wait_timeout_prior_to_target_commit",
+      "target_capability": "status_api_only",
+      "expected_gateway_disposition": "LATE_COMMIT_RESOLVED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "TARGET_COMMITTED_LATER_RESOLVED_BY_PROBE"
+    },
+    {
+      "scenario_id": "SCENARIO-AT34-MISSING-READBACK",
+      "fault_injection_point": "readback_probe",
+      "wire_fault_event": "unsupported_readback_status_endpoint",
+      "target_capability": "no_cooperation",
+      "expected_gateway_disposition": "EFFECT_INDETERMINATE",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCERTAINTY_PRESERVED_NO_CLAIM_OF_ABSENCE"
+    },
+    {
+      "scenario_id": "SCENARIO-AT35-OTEL-PROJECTION",
+      "fault_injection_point": "telemetry_projection",
+      "wire_fault_event": "semantic_conventions_event_mapping",
+      "target_capability": "idempotency_key_plus_status_api",
+      "expected_gateway_disposition": "OTEL_EVENT_PROJECTED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "GENAI_EFFECT_DISPOSITION_EMITTED"
     }
   ],
   "headline_metrics": [

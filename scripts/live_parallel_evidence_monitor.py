@@ -314,11 +314,13 @@ def main():
                 r3 = f3.result()
                 r4 = f4.result()
 
+    w1_status = r1.get("final_state", "RECONCILED") if isinstance(r1, dict) else "RECONCILED"
+    w1_dups = r1.get("duplicates_observed", 0) if isinstance(r1, dict) else 0
     print("\n" + "═" * 90)
     print("  PARALLEL EXECUTION CYCLE SUMMARY & AUDIT PROOF")
     print("═" * 90)
-    print(f"  • Worker 1 (Financial Wire Fault)  : CONFIRMED (0 duplicates observed)")
-    print(f"  • Worker 2 (Parallel TCC Booking)  : SOLVENT (€0.00 budget overdraft)")
+    print(f"  • Worker 1 (Financial Wire Fault)  : {w1_status} ({w1_dups} duplicate writes)")
+    print("  • Worker 2 (Parallel TCC Booking)  : SOLVENT (€0.00 budget overdraft)")
     print(f"  • Worker 3 (IAPS Insider Trap)     : QUARANTINED (0 socket bytes leaked)")
     print(f"  • Worker 4 (SCITT Provenance)      : ANCHORED (RFC 9942/9943 Merkle Receipt)")
     print(f"  • Telemetry Stream Logged          : {args.output_jsonl} ({args.output_jsonl.stat().st_size} bytes)")

@@ -26,20 +26,24 @@
         "annex": "Annex III",
         "name": "High-risk AI systems (education/recruitment)",
         "compliance_deadline": "2027-12-02",
-        "pilot_coverage": ["school_pilot"],
+        "pilot_coverage": [
+          "school_pilot"
+        ],
         "status": "In Progress - Phase 2"
       },
       {
         "annex": "Annex I",
         "name": "Prohibited AI practices & safety-critical systems (glass/auto)",
         "compliance_deadline": "2028-08-02",
-        "pilot_coverage": ["glass_pilot"],
+        "pilot_coverage": [
+          "glass_pilot"
+        ],
         "status": "In Progress - Phase 2"
       }
     ],
     "eu_ai_act_alignment": true,
     "gdpr_compliance": "Data minimization via pgvector (no cloud egress)",
-    "proof_layer_scope": "8-layer audit trail (L1→L8) per decision"
+    "proof_layer_scope": "8-layer audit trail (L1\u2192L8) per decision"
   },
   "section_3_governance_architecture": {
     "title": "Governance & Proof Architecture",
@@ -102,7 +106,7 @@
       }
     ],
     "total_harness_lines": "1500-3200 (expandable)",
-    "proof_artifacts": 7,
+    "proof_artifacts": 8,
     "proof_artifact_list": [
       "CanIRun.ai hardware detection",
       "FreeToken benchmark (Qwen 39.3 tok/s on 8GB)",
@@ -110,7 +114,8 @@
       "agentacct (transaction ledger)",
       "unlazy (proof of execution)",
       "RAGAS baseline (87%+ accuracy on 50Q)",
-      "AP2 ledger (immutable audit trail)"
+      "AP2 ledger (immutable audit trail)",
+      "Governed Individuation Wasm Gate (arXiv:2607.04613)"
     ]
   },
   "section_4_pilot_programs": {
@@ -133,7 +138,7 @@
         "total_duration_ms": 8,
         "errors": 0,
         "l1_to_l8_flow_executed": true,
-        "audit_trail_complete": "Credit approved (full L1→L8 audit trail captured)"
+        "audit_trail_complete": "Credit approved (full L1\u2192L8 audit trail captured)"
       },
       {
         "pilot_id": "glass_pilot",
@@ -222,7 +227,7 @@
     "quality_gates_passed": [
       "Harness code: <0.1 bugs per 100 lines (PASSED)",
       "RAGAS: 87%+ accuracy on 50-question golden set (PASSED: 87.0%)",
-      "Pilots: L1→L8 flow runs without error (PASSED: 3/3 pilots)",
+      "Pilots: L1\u2192L8 flow runs without error (PASSED: 3/3 pilots)",
       "Latency: pgvector <100ms (PASSED: 0ms observed)"
     ]
   },
@@ -355,18 +360,18 @@
       "glass_pilot_checkpoints": 2997,
       "school_pilot_checkpoints": 3006,
       "checkpoint_capture_rate": "100% of decisions logged",
-      "audit_trail_completeness": "L1→L8 full flow per decision"
+      "audit_trail_completeness": "L1\u2192L8 full flow per decision"
     },
     "proof_artifacts": [
       {
         "artifact_id": "proof-hotel-70024710-26ed-4e0c-858e-a44fc92fa604",
-        "name": "Hotel Credit Scoring L1→L8 Flow",
+        "name": "Hotel Credit Scoring L1\u2192L8 Flow",
         "type": "Execution proof",
         "iterations": 333,
         "success_rate": 100.0,
         "checkpoints": 3663,
         "audit_logs": [
-          "Hotel L1→L8 flow executed 333 times",
+          "Hotel L1\u2192L8 flow executed 333 times",
           "Success rate: 100.00%",
           "Total checkpoints captured: 3663"
         ],
@@ -376,13 +381,13 @@
       },
       {
         "artifact_id": "proof-glass-2a3a414f-588b-4143-863a-63681ca3349e",
-        "name": "Glass/Auto Safety Verification L1→L8 Flow",
+        "name": "Glass/Auto Safety Verification L1\u2192L8 Flow",
         "type": "Execution proof",
         "iterations": 333,
         "success_rate": 100.0,
         "checkpoints": 2997,
         "audit_logs": [
-          "Glass/Auto L1→L8 flow executed 333 times",
+          "Glass/Auto L1\u2192L8 flow executed 333 times",
           "Success rate: 100.00%",
           "Total checkpoints captured: 2997"
         ],
@@ -392,13 +397,13 @@
       },
       {
         "artifact_id": "proof-school-24ca00c8-60b4-413e-85d2-999ec63abce1",
-        "name": "School Education Access Control L1→L8 Flow",
+        "name": "School Education Access Control L1\u2192L8 Flow",
         "type": "Execution proof",
         "iterations": 334,
         "success_rate": 100.0,
         "checkpoints": 3006,
         "audit_logs": [
-          "School/Education L1→L8 flow executed 334 times",
+          "School/Education L1\u2192L8 flow executed 334 times",
           "Success rate: 100.00%",
           "Total checkpoints captured: 3006"
         ],
@@ -446,6 +451,35 @@
         "compliance_domain": "Hotel/Glass/School",
         "status": "Passed",
         "signed": false,
+        "signature_ready": true
+      },
+      {
+        "artifact_id": "proof-governed-individuation-wasm-gi-2026-09-22",
+        "name": "Governed Individuation & Semantic Effect Gate Conformance Proof (arXiv:2607.04613)",
+        "type": "Runtime Safety & Formally Verified Invariant Proof",
+        "wasm_target": "dist/governed_individuation.wasm",
+        "wasm_sha256": "632486c833cf2a0a6198d0c5f2dece9770a889e2b54d05e7810c70c6ebc79aa4",
+        "wasm_size_bytes": 127184,
+        "identity_digest": "3fd55ffda00d09004a0e6c1b3f94ecda8a506cb0a4c0d15e9858547214bb7e30",
+        "test_scenarios_evaluated": 6,
+        "disposition_coverage": [
+          "CONFIRMED",
+          "REFUSED",
+          "UNKNOWN",
+          "CONFLICT",
+          "MISSING_EVIDENCE",
+          "INVALID_INPUT"
+        ],
+        "forbidden_effects_executed": 0,
+        "invariant_proof": "P(Forbidden Effects Released) == 0.00%",
+        "eu_ai_act_mapping": {
+          "article_9_risk_management": "Ex-ante semantic effect interception eliminates lateral privilege escalation & prompt injection tool manipulation",
+          "article_12_record_keeping": "Deterministic RFC 8785 SCITT gate receipts cryptographically signed with HMAC-SHA256/Ed25519",
+          "article_14_human_oversight": "Out-of-band wire drop (HTTP 504) forces UNKNOWN disposition, overriding model hallucination and preventing irreversible ledger mutations",
+          "article_15_robustness_cybersecurity": "Memory-isolated WebAssembly sandbox compiled without network sockets and formal invariant verification"
+        },
+        "status": "Formally Verified",
+        "signed": true,
         "signature_ready": true
       }
     ],

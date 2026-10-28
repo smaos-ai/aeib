@@ -58,7 +58,7 @@ class TestIndustrialProtectionMatrix:
     # Layer 1: Trip & Lockout Layer
     # -------------------------------------------------------------------------
 
-    def test_01_ansi_50bf_breaker_failure_cascade(self, governor):
+    def test_01_probe_failure_escalation_cascade(self, governor):
         """
         Pattern 1 (ANSI 50BF Breaker Failure):
         Primary timeout -> Secondary replica not found -> Tertiary exhausted -> ANSI 86 Lockout.
@@ -73,7 +73,7 @@ class TestIndustrialProtectionMatrix:
         assert disposition == Disposition.COMPENSATION_FAILED_MANUAL_INTERVENTION_REQUIRED
         assert governor.is_latched(caid) is True
 
-    def test_02_ansi_86_lockout_relay_latch_and_operator_reset(self, governor):
+    def test_02_manual_lockout_latch_and_operator_reset(self, governor):
         """
         Pattern 2 (ANSI 86 Lockout Relay):
         Irreversibly latches on trip; requires valid Ed25519 signature to reset.
@@ -94,7 +94,7 @@ class TestIndustrialProtectionMatrix:
         assert governor.is_latched(caid) is False
         assert governor.can_dispatch(caid) is True
 
-    def test_03_pott_transfer_trip_peer_cancellation(self, governor):
+    def test_03_permissive_overreach_peer_cancellation(self, governor):
         """
         Pattern 3 (POTT Permissive Overreach Transfer Trip):
         4 parallel worker threads; fault on Worker 1 emits transfer trip;
@@ -139,7 +139,7 @@ class TestIndustrialProtectionMatrix:
         assert worker_statuses["worker-3"] == "ABORTED_BY_TRANSFER_TRIP"
         assert worker_statuses["worker-4"] == "ABORTED_BY_TRANSFER_TRIP"
 
-    def test_04_putt_permissive_underreach_trip(self, governor):
+    def test_04_instantaneous_peer_cancellation_broadcast(self, governor):
         """
         Pattern 4 (PUTT Permissive Underreach Transfer Trip):
         Instantaneous local trip on underreach fault with synchronous transfer trip to swarm.
@@ -155,7 +155,7 @@ class TestIndustrialProtectionMatrix:
         assert governor.inter_trip_bus.is_worker_tripped("agent-edge-01") is True
         assert governor.inter_trip_bus.is_worker_tripped("agent-edge-02") is True
 
-    def test_05_ansi_52_circuit_breaker_interlock(self, governor):
+    def test_05_circuit_interlock_dispatch_gating(self, governor):
         """
         Pattern 5 (ANSI 52 Circuit Breaker Interlock):
         Asserts dispatch permission is revoked under latch or active transfer trip.
@@ -170,7 +170,7 @@ class TestIndustrialProtectionMatrix:
     # Layer 2: Stability Layer
     # -------------------------------------------------------------------------
 
-    def test_06_ansi_51_adaptive_overcurrent_backoff(self, governor):
+    def test_06_adaptive_rate_limiting_backoff(self, governor):
         """
         Pattern 6 (ANSI 51 Adaptive Overcurrent / Time-Overcurrent):
         Dynamic backoff scaling exponentially for downstream 504/429 throttles.
@@ -187,7 +187,7 @@ class TestIndustrialProtectionMatrix:
         assert b3 == 400.0
         assert b_max == 2000.0
 
-    def test_07_ansi_81_rocof_frequency_spike(self, governor):
+    def test_07_rate_of_change_dispatch_spike_detector(self, governor):
         """
         Pattern 7 (ANSI 81 ROCOF Rate of Change of Frequency):
         Detects sudden queue / dispatch acceleration exceeding max rate.
@@ -204,7 +204,7 @@ class TestIndustrialProtectionMatrix:
                 break
         assert tripped is True
 
-    def test_08_ansi_27_undervoltage_pool_starvation(self, governor):
+    def test_08_connection_pool_exhaustion_guard(self, governor):
         """
         Pattern 8 (ANSI 27 Undervoltage Protection):
         Trips fail-closed when database connection pool drops to 0 available sockets.
@@ -212,7 +212,7 @@ class TestIndustrialProtectionMatrix:
         assert governor.evaluate_undervoltage_pool(available_connections=5) is True
         assert governor.evaluate_undervoltage_pool(available_connections=0) is False
 
-    def test_09_ansi_59_overvoltage_queue_saturation(self, governor):
+    def test_09_queue_saturation_guard(self, governor):
         """
         Pattern 9 (ANSI 59 Overvoltage Protection):
         Trips when queue backlog exceeds saturation capacity.
@@ -220,7 +220,7 @@ class TestIndustrialProtectionMatrix:
         assert governor.evaluate_overvoltage_queue(current_queue_size=200, max_capacity=500) is True
         assert governor.evaluate_overvoltage_queue(current_queue_size=600, max_capacity=500) is False
 
-    def test_10_ansi_67_directional_overcurrent(self, governor):
+    def test_10_primary_writer_fencing(self, governor):
         """
         Pattern 10 (ANSI 67 Directional Overcurrent):
         Enforces forward power flow only; rejects reverse mutations directed at read replicas.
@@ -233,7 +233,7 @@ class TestIndustrialProtectionMatrix:
     # Layer 3: Telemetry Layer
     # -------------------------------------------------------------------------
 
-    def test_11_pmu_ieee_c37118_clock_skew_sync(self, governor):
+    def test_11_clock_skew_monitoring(self, governor):
         """
         Pattern 11 (PMU / IEEE C37.118 Synchrophasor Sync):
         Validates timestamp alignment; permits <= 0.5s skew, rejects > 0.5s skew.
@@ -242,7 +242,7 @@ class TestIndustrialProtectionMatrix:
         assert governor.evaluate_pmu_sync(local_timestamp=now, reference_timestamp=now + 0.1, max_skew_sec=0.5) is True
         assert governor.evaluate_pmu_sync(local_timestamp=now, reference_timestamp=now + 1.2, max_skew_sec=0.5) is False
 
-    def test_12_iec_61850_goose_fast_multicast(self, governor):
+    def test_12_fast_peer_event_propagation(self, governor):
         """
         Pattern 12 (IEC 61850 GOOSE Fast Teleprotection):
         Validates fast multicast message generation with monotonic status counters.
@@ -251,9 +251,9 @@ class TestIndustrialProtectionMatrix:
         assert msg["protocol"] == "IEC_61850_GOOSE"
         assert msg["caid"] == "caid-goose-01"
         assert msg["st_num"] == 1
-        assert msg["time_allowed_to_live_ms"] == 2000
+        assert int(msg["time_allowed_to_live_ms"]) == 2000
 
-    def test_13_iec_61850_sampled_values_stream(self, governor):
+    def test_13_sampled_telemetry_stream(self, governor):
         """
         Pattern 13 (IEC 61850-9-2 Sampled Values):
         Validates real-time continuous sampled telemetry packet.
@@ -264,7 +264,7 @@ class TestIndustrialProtectionMatrix:
         assert sv["smp_cnt"] == 1024
         assert sv["metrics"]["current_load"] == 42.5
 
-    def test_14_iec_61850_mms_scada_reporting(self, governor):
+    def test_14_supervisory_audit_reporting(self, governor):
         """
         Pattern 14 (IEC 61850 MMS Supervisory Reporting):
         Validates client-server audit and telemetry packet for SCADA / HMI display.
@@ -295,7 +295,7 @@ class TestIndustrialProtectionMatrix:
         assert passed is False
         assert outcome is None
 
-    def test_16_false_data_injection_ansi_87_differential(self, governor):
+    def test_16_payload_integrity_differential_guard(self, governor):
         """
         Pattern 16 (ANSI 87 Differential Protection / False Data Injection Guard):
         Mutate 1 byte in payload ($100.00 -> $100.01) and assert hash mismatch
@@ -318,7 +318,7 @@ class TestIndustrialProtectionMatrix:
         assert is_match is True
         assert disposition == Disposition.OUTCOME_VERIFIED
 
-    def test_17_ansi_78_out_of_step_oscillation(self, governor):
+    def test_17_retry_oscillation_detector(self, governor):
         """
         Pattern 17 (ANSI 78 Out-of-Step Protection):
         Loop agent through 6 alternating DISPATCHED_UNCONFIRMED <-> RECONCILIATION_NOT_FOUND flips.
@@ -344,7 +344,7 @@ class TestIndustrialProtectionMatrix:
         assert tripped is True
         assert governor.is_latched(caid) is True
 
-    def test_18_forensic_disturbance_triad_ser_fr_ddr(self, governor):
+    def test_18_forensic_disturbance_telemetry_triad(self, governor):
         """
         Pattern 18 (Disturbance Recording Triad SER / FR / DDR):
         Records structured pre-fault, fault, and post-fault disturbance telemetry

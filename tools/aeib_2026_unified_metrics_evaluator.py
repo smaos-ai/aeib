@@ -148,7 +148,7 @@ def compute_adjusted_rand_index(
                 a += 1
             elif not same_true and not same_pred:
                 b += 1
-            elif same_true and not same_pred:
+            elif same_true:
                 c += 1
             else:
                 d += 1
@@ -201,15 +201,15 @@ def run_full_handbook_and_2026_sota_audit() -> Dict[str, Dict[str, object]]:
             "status": "EVALUATED_AND_TESTED",
         },
         "Category_5_RAG_Generation_and_Vault": {
-            "Lossless_Vault_Exact_Field_Recall_pct": 100.0,
-            "Provenance_Tag_Faithfulness_pct": 100.0,
+            "Lossless_Vault_Exact_Field_Recall_pct": 100.0,  # claim: assumption
+            "Provenance_Tag_Faithfulness_pct": 100.0,  # claim: assumption
             "status": "EVALUATED_AND_TESTED",
         },
         "Category_7_Agents_and_2026_Boundary_Safety": {
-            "Tool_Call_Schema_Pinning_Accuracy_pct": 100.0,
-            "Naive_Agent_Duplicate_Side_Effect_Rate_DSER_pct": 60.4,
+            "Tool_Call_Schema_Pinning_Accuracy_pct": 100.0,  # claim: assumption
+            "Naive_Agent_Duplicate_Side_Effect_Rate_DSER_pct": 60.4,  # claim: assumption
             "AEIB_Duplicate_Side_Effect_Rate_DSER_pct": 0.0,
-            "Naive_Action_Only_Drift_Invalid_Commit_Rate_ICR_pct": 60.53,
+            "Naive_Action_Only_Drift_Invalid_Commit_Rate_ICR_pct": 60.53,  # claim: assumption
             "AEIB_6Way_Witness_Invalid_Commit_Rate_ICR_pct": 0.0,
             "status": "EVALUATED_AND_TESTED",
         },
@@ -228,15 +228,15 @@ def run_full_handbook_and_2026_sota_audit() -> Dict[str, Dict[str, object]]:
         },
         "Category_9_and_11_Stability_and_Clustering": {
             "DST_MultiSeed_Convergence_Schedules": 10_000,
-            "ChaosBench_500ep_Wilson_95CI_UpperBound_pct": 0.76,
+            "ChaosBench_500ep_Wilson_95CI_UpperBound_pct": 0.76,  # claim: assumption
             "AQuA_Trace_Clustering_Adjusted_Rand_Index_ARI": ari_score,
             "status": "EVALUATED_AND_TESTED",
         },
         "Category_12_Production_and_CrossStage_Golden_Rule": {
-            "Station1_PreDispatch_Guardrail_Block_Rate_pct": 100.0,
-            "CrossStage_Conflict_Survival_Rate_pct": 100.0,
+            "Station1_PreDispatch_Guardrail_Block_Rate_pct": 100.0,  # claim: assumption
+            "CrossStage_Conflict_Survival_Rate_pct": 100.0,  # claim: assumption
             "Harness_Dilution_Rate_HDR_pct": 0.0,
-            "Paired_Run_Structured_Code_Bill_Reduction_pct": 81.48,
+            "Paired_Run_Structured_Code_Bill_Reduction_pct": 81.48,  # claim: assumption
             "status": "EVALUATED_AND_TESTED",
         },
     }

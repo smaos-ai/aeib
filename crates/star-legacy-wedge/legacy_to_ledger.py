@@ -10,6 +10,13 @@ import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Optional
+from cryptography.hazmat.primitives.asymmetric import ed25519
+
+# Deterministic key material derived from domain seed for golden baseline reproducibility
+_DEFAULT_KEY = ed25519.Ed25519PrivateKey.from_private_bytes(
+    hashlib.sha256(b"smaos:star:legacy_wedge_key_v1").digest()
+)
 
 
 def parse_legacy_file(file_path: str) -> dict:
@@ -37,24 +44,12 @@ def build_merkle_dag(ast_data: dict) -> str:
     return merkle_root
 
 
-def sign_with_ed25519(merkle_root: str) -> str:
-    """Sign Merkle root with Ed25519 (using subprocess call to openssl for PoC)"""
-    # For PoC: use a mock signature (real impl uses ed25519-dalek)
-    try:
-        result = subprocess.run(
-            ["openssl", "version"],
-            capture_output=True,
-            timeout=2
-        )
-        if result.returncode == 0:
-            # OpenSSL available - use for signing in real implementation
-            sig = hashlib.sha256(f"{merkle_root}:SIGNING_KEY_MATERIAL".encode()).hexdigest()
-        else:
-            sig = "ed25519:mock_signature_for_poc"
-    except:
-        sig = "ed25519:mock_signature_for_poc"
-
-    return sig
+def sign_with_ed25519(merkle_root: str, private_key: Optional[ed25519.Ed25519PrivateKey] = None) -> str:
+    """Sign Merkle root with genuine RFC 8032 Ed25519 curve cryptography."""
+    if private_key is None:
+        private_key = _DEFAULT_KEY
+    sig_bytes = private_key.sign(merkle_root.encode("utf-8"))
+    return f"ed25519:{sig_bytes.hex()}"
 
 
 def mint_golden_baseline(file_path: str, output_path: str = "golden_baseline.json") -> dict:

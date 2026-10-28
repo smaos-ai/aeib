@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+###############################################################################
+# AEIB Local Pre-Commit Gate (scripts/hooks/pre-commit)
+#
+# Active because `git config core.hooksPath` = scripts/hooks (so .git/hooks/*
+# is NOT consulted). Evaluates the staged index under the stated model:
+#   1. Claim-integrity gate on staged .py files (ratchet vs baseline)
+#   2. AST purity + zero-mock enforcer + Zone 1 / Zone 2 boundary gate
+#   3. Banned-word scan of lines ADDED in the staged diff (AGENTS.md section 1)
+#   4. Fast core pytest subset
+# Target budget: ~30 s. Per-step timing is printed.
+#
+# Bypass (emergency only, leaves an audit trail in shell history):
+#   git commit --no-verify
+###############################################################################
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+cd "$REPO_ROOT"
+
+PY="${PYTHON:-python3}"
+if ! command -v "$PY" >/dev/null 2>&1; then
+    echo "❌ [PRE-COMMIT] python3 not found; cannot evaluate gates." >&2
+    exit 1
+fi
+
+now() { "$PY" -c 'import time; print(f"{time.time():.3f}")'; }
+elapsed() { "$PY" -c "import sys; print(f'{float(sys.argv[2]) - float(sys.argv[1]):.2f}')" "$1" "$2"; }
+
+T0="$(now)"
+step_start=""
+begin() { step_start="$(now)"; echo "🔎 [PRE-COMMIT] $1"; }
+end() { echo "   ⏱  $(elapsed "$step_start" "$(now)")s"; }
+
+# 1. Claim-integrity gate (staged index content only).
+begin "1/4 claim-integrity gate (--staged)"
+"$PY" compliance/claim_integrity_gate.py --staged
+end
+
+# 2. AST purity, zero-mock, zone boundary.
+begin "2/4 AST purity + zero-mock + zone boundary"
+"$PY" compliance/ast_purity.py . >/dev/null
+"$PY" compliance/no_mock_enforcer.py >/dev/null
+"$PY" compliance/check_zone_boundary.py >/dev/null
+echo "   ast_purity / no_mock_enforcer / check_zone_boundary: exit 0"
+end
+
+# 3. Banned-word scan on added lines of the staged diff.
+#    Bracketed character classes keep this file from matching its own pattern.
+begin "3/4 banned-word scan (staged added lines)"
+BANNED_RE='guaran[t]eed|bullet[p]roof|enterprise-[g]rade|production-[s]afe|100% [s]ecure|proven universal[l]y'
+BANNED_HITS="$(git diff --cached -U0 --diff-filter=ACMR --no-color \
+    | grep -E '^\+' | grep -Ev '^\+\+\+ ' | grep -E -i -n "$BANNED_RE" || true)"
+if [ -n "$BANNED_HITS" ]; then
+    echo "❌ [BLOCKED] Banned wording (AGENTS.md section 1) in staged additions:" >&2
+    echo "$BANNED_HITS" | head -20 >&2
+    exit 1
+fi
+echo "   no banned wording in staged additions"
+end
+
+# 4. Fast core tests.
+begin "4/4 fast core tests"
+"$PY" -m pytest -q -o addopts="" -p no:cacheprovider \
+    tests/test_industrial_protection_matrix.py \
+    tests/test_ansi_50bf_breaker_failure.py \
+    tests/test_saga_compensation.py \
+    tests/test_falsifiability_matrix.py \
+    tests/test_claim_integrity_gate.py
+end
+
+echo "✅ [PRE-COMMIT] all gates exited 0 in $(elapsed "$T0" "$(now)")s"
+exit 0

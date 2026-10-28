@@ -1,0 +1,467 @@
+[
+  {
+    "id": "p01_pass",
+    "before": null,
+    "after": "def f(x):\n    pass\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": true,
+    "expected_categories": [
+      "SCAFFOLD_PASS_BODY"
+    ],
+    "note": ""
+  },
+  {
+    "id": "p02_pass_docstring",
+    "before": null,
+    "after": "def f(x):\n    \"\"\"Doc.\"\"\"\n    pass\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": true,
+    "expected_categories": [
+      "SCAFFOLD_PASS_BODY"
+    ],
+    "note": ""
+  },
+  {
+    "id": "p03_ellipsis",
+    "before": null,
+    "after": "def f(x):\n    ...\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": true,
+    "expected_categories": [
+      "SCAFFOLD_ELLIPSIS_BODY"
+    ],
+    "note": ""
+  },
+  {
+    "id": "p04_notimpl_name",
+    "before": null,
+    "after": "def f(x):\n    raise NotImplementedError\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": true,
+    "expected_categories": [
+      "SCAFFOLD_NOT_IMPLEMENTED"
+    ],
+    "note": ""
+  },
+  {
+    "id": "p05_notimpl_call",
+    "before": null,
+    "after": "def f(x):\n    raise NotImplementedError('later')\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": true,
+    "expected_categories": [
+      "SCAFFOLD_NOT_IMPLEMENTED"
+    ],
+    "note": ""
+  },
+  {
+    "id": "p06_docstring_only",
+    "before": null,
+    "after": "def f(x):\n    \"\"\"Will do it.\"\"\"\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": true,
+    "expected_categories": [
+      "SCAFFOLD_DOCSTRING_ONLY"
+    ],
+    "note": ""
+  },
+  {
+    "id": "p07_todo_added",
+    "before": "def f(x):\n    return x\n",
+    "after": "def f(x):\n    # TODO handle negatives\n    return abs(x)\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": true,
+    "expected_categories": [
+      "SCAFFOLD_TODO_ADDED"
+    ],
+    "note": ""
+  },
+  {
+    "id": "p08_fixme_added",
+    "before": null,
+    "after": "def f(x):\n    return x  # FIXME wrong\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": true,
+    "expected_categories": [
+      "SCAFFOLD_TODO_ADDED"
+    ],
+    "note": ""
+  },
+  {
+    "id": "p09_mock_class_prod",
+    "before": null,
+    "after": "class MockGateway:\n    def charge(self, amt):\n        return amt\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": true,
+    "expected_categories": [
+      "SCAFFOLD_TEST_DOUBLE_IN_PRODUCTION"
+    ],
+    "note": ""
+  },
+  {
+    "id": "p10_fake_class_prod",
+    "before": null,
+    "after": "class FakeClock:\n    def now(self):\n        return 0\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": true,
+    "expected_categories": [
+      "SCAFFOLD_TEST_DOUBLE_IN_PRODUCTION"
+    ],
+    "note": ""
+  },
+  {
+    "id": "p11_stub_class_prod",
+    "before": null,
+    "after": "class Stub:\n    x = 1\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": true,
+    "expected_categories": [
+      "SCAFFOLD_TEST_DOUBLE_IN_PRODUCTION"
+    ],
+    "note": ""
+  },
+  {
+    "id": "p12_method_pass",
+    "before": null,
+    "after": "class Svc:\n    def run(self, job):\n        pass\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": true,
+    "expected_categories": [
+      "SCAFFOLD_PASS_BODY"
+    ],
+    "note": ""
+  },
+  {
+    "id": "p13_async_ellipsis",
+    "before": null,
+    "after": "async def fetch(url):\n    ...\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": true,
+    "expected_categories": [
+      "SCAFFOLD_ELLIPSIS_BODY"
+    ],
+    "note": ""
+  },
+  {
+    "id": "p14_nested_pass",
+    "before": null,
+    "after": "def outer(x):\n    def inner(y):\n        pass\n    return inner(x)\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": true,
+    "expected_categories": [
+      "SCAFFOLD_PASS_BODY"
+    ],
+    "note": ""
+  },
+  {
+    "id": "p15_changed_to_pass",
+    "before": "def f(x):\n    return x + 1\n",
+    "after": "def f(x):\n    pass\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": true,
+    "expected_categories": [
+      "SCAFFOLD_PASS_BODY"
+    ],
+    "note": "real body replaced by pass"
+  },
+  {
+    "id": "p16_syntax_error",
+    "before": null,
+    "after": "def f(x:\n    return x\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": true,
+    "expected_categories": [
+      "SYNTAX_ERROR"
+    ],
+    "note": ""
+  },
+  {
+    "id": "p17_two_stubs",
+    "before": null,
+    "after": "def a(x):\n    pass\n\ndef b(y):\n    ...\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": true,
+    "expected_categories": [
+      "SCAFFOLD_ELLIPSIS_BODY",
+      "SCAFFOLD_PASS_BODY"
+    ],
+    "note": ""
+  },
+  {
+    "id": "p18_pass_no_word_pass_in_text",
+    "before": null,
+    "after": "def handle(evt):\n    pass\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": true,
+    "expected_categories": [
+      "SCAFFOLD_PASS_BODY"
+    ],
+    "note": "flagged by both detectors"
+  },
+  {
+    "id": "p19_ellipsis_no_space",
+    "before": null,
+    "after": "def f(x): ...\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": true,
+    "expected_categories": [
+      "SCAFFOLD_ELLIPSIS_BODY"
+    ],
+    "note": "substring pattern '... ' misses this (no trailing space)"
+  },
+  {
+    "id": "p20_todo_lowercase_marker",
+    "before": null,
+    "after": "def f(x):\n    return x  # TODO(andrii): verify\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": true,
+    "expected_categories": [
+      "SCAFFOLD_TODO_ADDED"
+    ],
+    "note": ""
+  },
+  {
+    "id": "n01_real_impl",
+    "before": null,
+    "after": "def f(x):\n    return x * 2\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": false,
+    "expected_categories": [],
+    "note": ""
+  },
+  {
+    "id": "n02_passthrough_name",
+    "before": null,
+    "after": "def process_passthrough(data):\n    return list(data)\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": false,
+    "expected_categories": [],
+    "note": "contains the substring 'pass'"
+  },
+  {
+    "id": "n03_mockingbird",
+    "before": null,
+    "after": "class MockingbirdDecoder:\n    def decode(self, b):\n        return b.decode()\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": false,
+    "expected_categories": [],
+    "note": "name merely contains 'Mock'"
+  },
+  {
+    "id": "n04_abstractmethod",
+    "before": null,
+    "after": "from abc import ABC, abstractmethod\nclass Base(ABC):\n    @abstractmethod\n    def run(self):\n        pass\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": false,
+    "expected_categories": [],
+    "note": ""
+  },
+  {
+    "id": "n05_protocol",
+    "before": null,
+    "after": "from typing import Protocol\nclass Reader(Protocol):\n    def read(self, n: int) -> bytes:\n        ...\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": false,
+    "expected_categories": [],
+    "note": ""
+  },
+  {
+    "id": "n06_overload",
+    "before": null,
+    "after": "from typing import overload\n@overload\ndef f(x: int) -> int: ...\n@overload\ndef f(x: str) -> str: ...\ndef f(x):\n    return x\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": false,
+    "expected_categories": [],
+    "note": ""
+  },
+  {
+    "id": "n07_exception_pass",
+    "before": null,
+    "after": "class PaymentError(Exception):\n    pass\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": false,
+    "expected_categories": [],
+    "note": ""
+  },
+  {
+    "id": "n08_abc_docstring_only",
+    "before": null,
+    "after": "from abc import ABC\nclass Port(ABC):\n    def send(self, msg):\n        \"\"\"Subclasses send msg.\"\"\"\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": false,
+    "expected_categories": [],
+    "note": ""
+  },
+  {
+    "id": "n09_unchanged_todo",
+    "before": "def f(x):\n    # TODO legacy note\n    return x\n",
+    "after": "def f(x):\n    # TODO legacy note\n    return x + 1\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": false,
+    "expected_categories": [],
+    "note": ""
+  },
+  {
+    "id": "n10_unchanged_stub",
+    "before": "def old():\n    pass\n",
+    "after": "def old():\n    pass\n\ndef new(x):\n    return x\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": false,
+    "expected_categories": [],
+    "note": "pre-existing stub untouched"
+  },
+  {
+    "id": "n11_mock_in_test_file",
+    "before": null,
+    "after": "class MockGateway:\n    def charge(self, a):\n        return a\n",
+    "is_test_file": true,
+    "test_doubles_allowed": false,
+    "expected_scaffold": false,
+    "expected_categories": [],
+    "note": ""
+  },
+  {
+    "id": "n12_doubles_allowed",
+    "before": null,
+    "after": "class FakeClock:\n    def now(self):\n        return 0\n",
+    "is_test_file": false,
+    "test_doubles_allowed": true,
+    "expected_scaffold": false,
+    "expected_categories": [],
+    "note": ""
+  },
+  {
+    "id": "n13_pass_in_loop",
+    "before": null,
+    "after": "def drain(q):\n    for _ in q:\n        pass\n    return len(q)\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": false,
+    "expected_categories": [],
+    "note": "pass inside a loop of a real body"
+  },
+  {
+    "id": "n14_string_mentions_todo",
+    "before": null,
+    "after": "def f():\n    return 'TODO list app'\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": false,
+    "expected_categories": [],
+    "note": "not a comment"
+  },
+  {
+    "id": "n15_comment_mentions_pass",
+    "before": null,
+    "after": "def f(x):\n    # we pass x through unchanged\n    return x\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": false,
+    "expected_categories": [],
+    "note": ""
+  },
+  {
+    "id": "n16_ellipsis_value",
+    "before": null,
+    "after": "def f(x):\n    return x[...]\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": false,
+    "expected_categories": [],
+    "note": "Ellipsis used as a value"
+  },
+  {
+    "id": "n17_constant_return_warn",
+    "before": null,
+    "after": "def is_enabled(flag):\n    return True\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": false,
+    "expected_categories": [
+      "WARN_CONSTANT_RETURN"
+    ],
+    "note": "warning only"
+  },
+  {
+    "id": "n18_noarg_constant",
+    "before": null,
+    "after": "def version():\n    return '1.0'\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": false,
+    "expected_categories": [],
+    "note": ""
+  },
+  {
+    "id": "n19_bare_except_warn",
+    "before": null,
+    "after": "def f(x):\n    try:\n        return int(x)\n    except:\n        pass\n    return 0\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": false,
+    "expected_categories": [
+      "WARN_BARE_EXCEPT_PASS"
+    ],
+    "note": ""
+  },
+  {
+    "id": "n20_stub_word_function",
+    "before": null,
+    "after": "def stub_out_whitespace(s):\n    return s.strip()\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": false,
+    "expected_categories": [],
+    "note": "function name starts with stub_"
+  },
+  {
+    "id": "n21_raise_valueerror",
+    "before": null,
+    "after": "def f(x):\n    raise ValueError('bad')\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": false,
+    "expected_categories": [],
+    "note": ""
+  },
+  {
+    "id": "n22_notimpl_in_branch",
+    "before": null,
+    "after": "def f(x):\n    if x < 0:\n        raise NotImplementedError\n    return x\n",
+    "is_test_file": false,
+    "test_doubles_allowed": false,
+    "expected_scaffold": false,
+    "expected_categories": [],
+    "note": ""
+  }
+]

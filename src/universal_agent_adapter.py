@@ -22,13 +22,24 @@ import hashlib
 from typing import Dict, Any, List, Optional, Callable, Tuple
 from dataclasses import dataclass, asdict
 
+# RFC 8785 single source of truth: delegate to src/jcs_canonicalizer.encode_jcs
+# (differential-tested in tests/test_jcs_single_source.py).
+try:
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+except ImportError:  # loaded without the repository root on sys.path
+    import sys as _jcs_sys
+    from pathlib import Path as _JcsPath
+
+    _jcs_sys.path.insert(0, str(_JcsPath(__file__).resolve().parents[1]))
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+
 # UUIDv5 Namespace for Sovereign Actions
 NAMESPACE_SMAOS_ACTIONS = uuid.UUID("6ba7b811-9dad-11d1-80b4-00c04fd430c8")
 
 
 def rfc8785_jcs_canonicalize(data: Any) -> str:
     """Deterministic JSON serialization matching RFC 8785 JCS subset."""
-    return json.dumps(data, separators=(',', ':'), sort_keys=True, ensure_ascii=False)
+    return _reference_encode_jcs(data).decode("utf-8")
 
 
 def compute_payload_digest(arguments: Dict[str, Any]) -> str:

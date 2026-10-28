@@ -59,6 +59,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
     Ed25519PublicKey,
 )
 
+from src.capability_status import REAL_EXECUTED, TEXT_LINT_ONLY
 from src.jcs_canonicalizer import encode_jcs
 from tools.parallel_open_frontier_and_urgent_solver import (
     construct_exact_112_capset_f3_6,
@@ -200,7 +201,7 @@ class Java21LoomFlctNativeBridge:
             title="Compiled OpenJDK 21 Virtual-Thread (1,024 Fibers) & 128-Bit Zero-Copy FLCT Prover",
             baseline_metric=int(naive_audit["unique_points_count"]),  # 2 unique points in buggy draft
             achieved_metric=cap20_size,  # 20 unique non-collinear points in F_3^4
-            improvement_bps=9000,
+            improvement_bps=((cap20_size - int(naive_audit["unique_points_count"])) * 10000) // max(1, cap20_size),
             checks_executed=1140 + 28 + 1024,
             violations_found=violations if passed else 1,
             passed=passed,
@@ -309,22 +310,79 @@ class KnuthZddCombinatorialCompressor:
 
 
 class FieldsMedalistConceptualCompressionGate:
-    """Enforces the Sept 2026 25-Fields-Medalists Standard: proofs must carry compact
-    human-interpretable algebraic generators, rejecting opaque brute-force coordinate dumps.
+    """Enforces MDL / Algebraic Reconstruction: a compact generator descriptor must
+    actually reconstruct the target point set via `reconstruct_from_descriptor`
+    AND verify the cap-set non-collinearity invariant. Passing a fake descriptor
+    like `{"law": "lol"}` fails reconstruction (`reconstructed_count == 0`).
     """
+
+    @staticmethod
+    def reconstruct_from_descriptor(
+        descriptor: Mapping[str, object],
+    ) -> List[List[int]]:
+        """Reconstructs the 112-cap in F_3^6 directly from the Hill/Potechin
+        R_32 + D_80 2-(6,3,2) block descriptor. Returns [] if the descriptor does
+        not specify a valid `R_32` rule and `D_80_blocks` 3-subset design.
+        """
+        r32_rule = descriptor.get("R_32")
+        d80_blocks = descriptor.get("D_80_blocks")
+        if (
+            r32_rule != "weight==6 in {1,2}^6 with count(2)%2==0"
+            or not isinstance(d80_blocks, list)
+            or len(d80_blocks) != 10
+        ):
+            return []
+
+        points: List[List[int]] = []
+        # 1. R_32: all vectors in {1, 2}^6 with an even number of 2s (32 points)
+        for mask in range(1 << 6):
+            vec = [2 if ((mask >> i) & 1) else 1 for i in range(6)]
+            if vec.count(2) % 2 == 0:
+                points.append(vec)
+
+        # 2. D_80: for each of the 10 blocks of 3 coordinates, all 2^3 = 8 vectors in {1,2}^3
+        for block in d80_blocks:
+            if (
+                not isinstance(block, list)
+                or len(block) != 3
+                or len(set(block)) != 3
+                or not all(isinstance(idx, int) and 0 <= idx < 6 for idx in block)
+            ):
+                return []
+            for mask in range(1 << 3):
+                vec = [0] * 6
+                for bit_pos, coord_idx in enumerate(block):
+                    vec[coord_idx] = 2 if ((mask >> bit_pos) & 1) else 1
+                points.append(vec)
+
+        return points
 
     @staticmethod
     def evaluate_conceptual_compression(
         raw_witness_points: Sequence[Sequence[int]],
         algebraic_generator_descriptor: Mapping[str, object],
-        reconstructed_points: Sequence[Sequence[int]],
+        reconstructed_points: Sequence[Sequence[int]] | None = None,
         min_compression_bps: int = 8000,
     ) -> Dict[str, object]:
         raw_bytes = len(encode_jcs([list(p) for p in raw_witness_points]))
         gen_bytes = len(encode_jcs(dict(algebraic_generator_descriptor)))
-        exact_match = [list(p) for p in raw_witness_points] == [
-            list(p) for p in reconstructed_points
-        ]
+        # Always reconstruct from the descriptor itself; ignore caller-supplied reconstructed_points
+        # if the descriptor cannot generate them.
+        derived_points = (
+            FieldsMedalistConceptualCompressionGate.reconstruct_from_descriptor(
+                algebraic_generator_descriptor
+            )
+        )
+        target_set = {tuple(p) for p in raw_witness_points}
+        derived_set = {tuple(p) for p in derived_points}
+        exact_match = (
+            len(derived_points) == len(raw_witness_points)
+            and derived_set == target_set
+        )
+        if reconstructed_points is not None:
+            caller_set = {tuple(p) for p in reconstructed_points}
+            exact_match = exact_match and (caller_set == target_set)
+
         compression_bps = (
             int(round((raw_bytes - gen_bytes) / float(raw_bytes) * 10000))
             if raw_bytes > 0
@@ -333,6 +391,7 @@ class FieldsMedalistConceptualCompressionGate:
         passed = exact_match and (compression_bps >= min_compression_bps)
         return {
             "passed": passed,
+            "status": REAL_EXECUTED,
             "status_code": (
                 "VERIFIED_HUMAN_COMPREHENSIBLE_GENERATOR"
                 if passed
@@ -340,6 +399,7 @@ class FieldsMedalistConceptualCompressionGate:
             ),
             "raw_witness_bytes": raw_bytes,
             "generator_law_bytes": gen_bytes,
+            "reconstructed_point_count": len(derived_points),
             "exact_reconstruction_verified": exact_match,
             "conceptual_compression_bps": compression_bps,
         }
@@ -365,16 +425,22 @@ class FieldsMedalistConceptualCompressionGate:
             ],
         }
         good_audit = cls.evaluate_conceptual_compression(
-            cap112, compact_generator_law, cap112, min_compression_bps=8000
+            cap112, compact_generator_law, min_compression_bps=8000  # claim: config
         )
 
-        # Negative Control: Opaque brute-force coordinate dump with no algebraic compression
+        # Negative Control 1: Opaque brute-force coordinate dump with no algebraic compression
         opaque_dump_descriptor = {
             "law": "RAW_UNCOMPRESSED_ENUMERATION_DUMP",
             "hardcoded_points": [list(p) for p in cap112],
         }
         bad_audit = cls.evaluate_conceptual_compression(
-            cap112, opaque_dump_descriptor, cap112, min_compression_bps=8000
+            cap112, opaque_dump_descriptor, min_compression_bps=8000  # claim: config
+        )
+
+        # Negative Control 2: Trivial fake descriptor `{"law": "lol"}` fails reconstruction
+        fake_short_descriptor = {"law": "lol"}
+        fake_short_audit = cls.evaluate_conceptual_compression(
+            cap112, fake_short_descriptor, cap112, min_compression_bps=8000  # claim: config
         )
 
         passed = (
@@ -384,19 +450,21 @@ class FieldsMedalistConceptualCompressionGate:
             and bad_audit["passed"] is False
             and bad_audit["status_code"]
             == "HALT_OPAQUE_BRUTE_FORCE_WITNESS_REJECTED"
+            and fake_short_audit["passed"] is False
         )
         details = {
             "distilled_generator_audit": good_audit,
             "opaque_brute_force_audit": bad_audit,
+            "fake_short_descriptor_audit": fake_short_audit,
         }
         caid = sha256_prefixed(encode_jcs(details))
         return Section29WorkerResult(
             worker_id="FIELDS-MEDALIST-CONCEPTUAL-COMPRESSION-GATE",
-            title="Sept 2026 Fields-Medalist Conceptual Compression & Invariant Distillation Gate",
+            title="Algebraic Generator Reconstruction & MDL Compression Gate",
             baseline_metric=int(good_audit["raw_witness_bytes"]),
             achieved_metric=int(good_audit["generator_law_bytes"]),
             improvement_bps=int(good_audit["conceptual_compression_bps"]),
-            checks_executed=112 + 2,
+            checks_executed=112 + 3,
             violations_found=0 if passed else 1,
             passed=passed,
             details=details,
@@ -405,12 +473,17 @@ class FieldsMedalistConceptualCompressionGate:
 
 
 # ---------------------------------------------------------------------------
-# Worker 4: Gradium Phonon 31M Sub-7ms Edge Voice Alert & RFC 9470 Step-Up Gate
+# Worker 4: Edge Alert Utterance Packetizer & RFC 9470 Step-Up Binder (Text Stub)
 # ---------------------------------------------------------------------------
 
 
 class GradiumPhononEdgeVoiceStepUpGate:
-    """Zero-egress local operator voice-alert packetizer & RFC 9470 step-up binder."""
+    """Local operator alert utterance packetizer & RFC 9470 Ed25519 step-up binder.
+
+    Honest Boundary: This class formats an alert utterance and signs it with
+    Ed25519 (`status=TEXT_LINT_ONLY`). It does NOT load or execute Gradium Phonon 31m
+    neural TTS weights or synthesize audio waveforms.
+    """
 
     @staticmethod
     def synthesize_edge_voice_alert_and_stepup_receipt(
@@ -419,24 +492,22 @@ class GradiumPhononEdgeVoiceStepUpGate:
         signing_key: Ed25519PrivateKey,
     ) -> Dict[str, object]:
         t0 = time.perf_counter()
-        # SentencePiece 4,000-vocab style direct text frame tokenization (1 frame per 80ms audio)
         utterance = f"ALERT {halt_code} ON ACTION {caid[:18]} REQUIRES STEP UP APPROVAL"
         tokens = utterance.split()
         latent_frames_80ms = len(tokens)
         audio_duration_ms = latent_frames_80ms * 80
-        ttfa_micros = int((time.perf_counter() - t0) * 1_000_000) + 120  # sub-7ms (< 6,900 us)
+        packetize_micros = int((time.perf_counter() - t0) * 1_000_000)
 
         alert_payload = {
-            "model_profile": "GRADIUM_PHONON_31M_APACHE_2_0_LOCAL",
+            "model_profile": "TEXT_ALERT_PACKETIZER_PHONON_WEIGHTS_NOT_LOADED",
+            "execution_status": TEXT_LINT_ONLY,
             "cloud_egress_bytes": 0,
-            "sample_rate_hz": 24000,
             "halt_code": halt_code,
             "target_action_caid": caid,
             "utterance_transcript": utterance,
-            "latent_frames_80ms": latent_frames_80ms,
-            "audio_duration_ms": audio_duration_ms,
-            "ttfa_micros": ttfa_micros,
-            "ttfa_under_6900_micros_budget": ttfa_micros < 6900,
+            "estimated_frames_80ms": latent_frames_80ms,
+            "estimated_audio_duration_ms": audio_duration_ms,
+            "packetize_micros": packetize_micros,
         }
         sig_b64 = base64.b64encode(
             signing_key.sign(encode_jcs(alert_payload))
@@ -448,36 +519,25 @@ class GradiumPhononEdgeVoiceStepUpGate:
 
     @classmethod
     def run_experiment(cls) -> Section29WorkerResult:
-        key = Ed25519PrivateKey.from_private_bytes(
-            hashlib.sha256(b"PHONON_EDGE_STEPUP_KEY").digest()
-        )
+        key = Ed25519PrivateKey.generate()
         receipt = cls.synthesize_edge_voice_alert_and_stepup_receipt(
             halt_code="HALT_ASK_OR_ASSUME_VOI_THRESHOLD",
             caid="sha256:cab6f80e2c699ae12cd9c273fb022751b8238231fb50b89b76aa00c78765bfd6",
             signing_key=key,
         )
-        # Kokoro CPU baseline TTFA = 517,000 us (517 ms); Phonon 31m target <= 6,900 us (6.9 ms)
-        kokoro_baseline_us = 517_000
-        achieved_us = int(receipt["ttfa_micros"])
         passed = (
-            bool(receipt["ttfa_under_6900_micros_budget"]) is True
+            receipt["execution_status"] == TEXT_LINT_ONLY
             and int(receipt["cloud_egress_bytes"]) == 0
-        )
-        improvement_bps = int(
-            round(
-                (kokoro_baseline_us - achieved_us)
-                / float(kokoro_baseline_us)
-                * 10000
-            )
+            and len(str(receipt["rfc9470_stepup_signature_b64"])) > 0
         )
         caid = sha256_prefixed(encode_jcs(receipt))
         return Section29WorkerResult(
             worker_id="GRADIUM-PHONON-EDGE-STEPUP-VOICE-ALERT-GATE",
-            title="Gradium Phonon 31m Sub-7ms Zero-Egress Edge Voice Alert & RFC 9470 Step-Up Binder",
-            baseline_metric=kokoro_baseline_us,
-            achieved_metric=achieved_us,
-            improvement_bps=improvement_bps,
-            checks_executed=4,
+            title="Zero-Egress Edge Alert Packetizer & RFC 9470 Step-Up Binder (TEXT_LINT_ONLY)",
+            baseline_metric=len(str(receipt["utterance_transcript"])),
+            achieved_metric=int(receipt["estimated_frames_80ms"]),
+            improvement_bps=0,
+            checks_executed=3,
             violations_found=0 if passed else 1,
             passed=passed,
             details=receipt,
@@ -498,11 +558,7 @@ class ParallelJava21LoomAndZddBridgeEngine:
         cls, signing_key: Ed25519PrivateKey | None = None
     ) -> Dict[str, object]:
         if signing_key is None:
-            signing_key = Ed25519PrivateKey.from_private_bytes(
-                hashlib.sha256(
-                    b"SOVEREIGN_SECTION_29_JAVA21_ZDD_SEED"
-                ).digest()
-            )
+            signing_key = Ed25519PrivateKey.generate()
         t0 = time.perf_counter()
         tasks: List[Tuple[str, Callable[[], Section29WorkerResult]]] = [
             ("W1_JAVA21", Java21LoomFlctNativeBridge.run_experiment),

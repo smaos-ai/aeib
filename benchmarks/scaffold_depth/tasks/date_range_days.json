@@ -1,0 +1,7 @@
+{
+  "entry_module": "solution",
+  "id": "date_range_days",
+  "instruction": "Implement days_in_range(text) for 'YYYY-MM-DD/YYYY-MM-DD', returning the inclusive day count. Raise ValueError if malformed or if the end is before the start.",
+  "starter_source": "def days_in_range(text: str) -> int:\n    \"\"\"Inclusive day count of an ISO date range.\"\"\"\n    pass\n",
+  "type": "dates"
+}

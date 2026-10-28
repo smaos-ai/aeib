@@ -1,0 +1,16 @@
+[package]
+name = "smaos-pqc-signer"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+ed25519-dalek = { workspace = true, features = ["rand_core"] }
+hex.workspace = true
+ml-dsa = "0.1.1"
+rand.workspace = true
+rand_core = "0.10.1"
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true

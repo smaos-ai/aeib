@@ -1,0 +1,19 @@
+{
+  "scenario_id": "tcp_reset",
+  "scenario": "tcp_reset",
+  "description": "Connection Reset Mid-Flight",
+  "dispatched_by": "Agent-LangChain-Treasury",
+  "destination_account": "CZ6508000000001234567890",
+  "amount": 50000.0,
+  "currency": "EUR",
+  "auth_header": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.x",
+  "idempotency_key": "tx-8824-disburse-004",
+  "transport_fault": "TCP_RST",
+  "wire_event": "TCP RST after partial write, no confirmation",
+  "sdk_claimed_state": "UNKNOWN",
+  "claimed_by_agent": "UNKNOWN",
+  "evaluated_disposition": "UNKNOWN",
+  "final_disposition": "UNKNOWN",
+  "discrepancy_detected": false,
+  "reason": "Connection reset mid-flight. Confirmation absent. Unknown effect."
+}

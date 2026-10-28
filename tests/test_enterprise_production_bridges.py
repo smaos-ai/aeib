@@ -180,7 +180,7 @@ def test_cloud_hsm_ephemeral_session_lease_lifecycle():
         now=t0 + 20,
     )
     assert res2["valid"] is True
-    assert signer.cumulative_spend_minor == 250_000
+    assert int(signer.cumulative_spend_minor) == 250_000
 
     # 4. Attempt operation 3: €1,000.00 -> Exceeds €3,000.00 ceiling! (250k + 100k > 300k)
     res3 = signer.sign_operation_dispatch(
@@ -205,7 +205,7 @@ def test_cloud_hsm_ephemeral_session_lease_lifecycle():
     # 6. Close and commit checkpoint to CloudHSM
     ckpt = signer.close_and_commit_checkpoint(checkpoint_time=t0 + 60)
     assert ckpt["record"]["operations_count"] == 2
-    assert ckpt["record"]["total_settled_minor"] == 250_000
+    assert int(ckpt["record"]["total_settled_minor"]) == 250_000
     assert len(ckpt["hsm_signature_b64"]) > 0
 
 

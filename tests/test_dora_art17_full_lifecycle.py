@@ -129,7 +129,7 @@ class TestDoraIts2025302LifecycleStages:
         assert inter_pkg["reporting_stage"] == "INTERMEDIATE_REPORT"
         assert inter_pkg["timeline"]["intermediate_report_deadline_utc"] == "2026-10-20T12:30:00Z"
         inter_details = inter_pkg["its_2025_302_lifecycle_report"]["intermediate_report_details"]
-        assert inter_details["deadline_window_hours"] == 72
+        assert int(inter_details["deadline_window_hours"]) == 72
         assert inter_details["root_cause_category"] == "SYSTEM_FAILURE_POST_DISPATCH_WIRE_SEVERANCE"
         assert "SEPA Instant Settlement Gateway" in inter_details["impacted_critical_functions"]
         assert inter_details["bcp_dr_activation_status"]["bcp_activated"] is True
@@ -163,10 +163,10 @@ class TestDoraIts2025302LifecycleStages:
         assert final_pkg["reporting_stage"] == "FINAL_REPORT"
         assert final_pkg["timeline"]["final_report_deadline_utc"] == "2026-11-19T12:30:00Z"
         final_details = final_pkg["its_2025_302_lifecycle_report"]["final_report_details"]
-        assert final_details["deadline_window_days"] == 30
+        assert int(final_details["deadline_window_days"]) == 30
         assert final_details["economic_impact_eur"]["currency"] == "EUR"
         assert final_details["economic_impact_eur"]["direct_costs_eur"] == 110000
-        assert final_details["economic_impact_eur"]["indirect_costs_eur"] == 15000
+        assert int(final_details["economic_impact_eur"]["indirect_costs_eur"]) == 15000
         assert final_details["economic_impact_eur"]["total_gross_impact_eur"] == 125000
         assert final_details["economic_impact_eur"]["financial_recoveries_eur"] == 105000
         assert final_details["economic_impact_eur"]["net_economic_impact_eur"] == 20000

@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0",
+  "action_id": "act-ccs-002-balanced-3",
+  "leaf_index": 3,
+  "tree_size": 8,
+  "timestamp": "2026-09-18T10:05:00Z",
+  "intent_digest": "dac4c65aaddccf7e2199c0334169e72ca1b0bfaf118df9adfe9e4027c926e2fb",
+  "verdict": "CONFIRMED",
+  "root_hash": "60bca1bb2afcfd6d494646ee1955ebc1d7f09729af37db3e4eee6db5d980a919",
+  "inclusion_proof": [
+    "90d91d30d0a7993170c997074f9b619ac3d09dbaadc5f6916ba0266314fb0ed6",
+    "31d8effc919b99c0981130601fbb451be8f96f15c78be603f7cd1bc5189fa764",
+    "52eb6022574cea3724476c3da42147908783e14071c8f0c93a28f90877f749aa"
+  ],
+  "audit_anchor": {
+    "xid": 100002,
+    "idempotency_key": "idem-002"
+  },
+  "signature": "2b3755c7fa72178650f03bfba93d616e638f336495775f2ad3d84ee0d3aeb7c4cfaa4697bcf94f1eaef690fcb4e5e752a27dcaa351a3441d8b0ab9a6c4a08f0a",
+  "signer_pubkey": "8a88e3dd7409f195fd52db2d3cba5d72ca6709bf1d94121bf3748801b40f6f5c"
+}

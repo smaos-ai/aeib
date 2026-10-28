@@ -1,0 +1,54 @@
+{
+  "timestamp_utc": "2026-10-28T13:50:27Z",
+  "seed": 42,
+  "total_episodes": 500,
+  "fault_vector_count": 15,
+  "results": {
+    "naive_retry_baseline": {
+      "arm": "naive_retry_baseline",
+      "total_episodes": 500,
+      "duplicate_mutations": 302,
+      "duplicate_effects": 302,
+      "failure_rate_pct": 60.4,
+      "status": "FAIL_DUPLICATES_OBSERVED"
+    },
+    "payload_derived_key": {
+      "arm": "payload_derived_key",
+      "total_episodes": 500,
+      "duplicate_mutations": 187,
+      "duplicate_effects": 187,
+      "failure_rate_pct": 37.4,
+      "status": "FAIL_DRIFT_VULNERABLE"
+    },
+    "server_side_stable_key": {
+      "arm": "server_side_stable_key",
+      "total_episodes": 500,
+      "duplicate_mutations": 0,
+      "duplicate_effects": 0,
+      "unresolved_episodes": 198,
+      "failure_rate_pct": 0.0,
+      "status": "ZERO_DUPLICATES_UNRESOLVED_DROPS"
+    },
+    "aeib": {
+      "arm": "aeib",
+      "total_episodes": 500,
+      "duplicate_mutations": 0,
+      "duplicate_writes": 0,
+      "duplicate_attempts_blocked": 302,
+      "duplicate_attempts_blocked_by_gate": 234,
+      "duplicate_attempts_blocked_by_ledger_idempotency": 68,
+      "duplicate_effects": 0,
+      "failure_rate_pct": 0.0,
+      "rule_of_three_95_upper_bound_pct": 0.6,
+      "latency_p50_ms": 0.02,
+      "latency_p99_ms": 0.03,
+      "disposition_counts": {
+        "OUTCOME_VERIFIED": 302,
+        "NOT_FOUND_AFTER_GRACE": 66,
+        "RECONCILIATION_CONFLICT": 33,
+        "POLICY_REFUSED": 99
+      },
+      "status": "PASS_ZERO_DUPLICATES"
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "entry_module": "solution",
+  "id": "clamp_int",
+  "instruction": "Implement clamp(x, lo, hi) for integers. Raise ValueError if lo > hi. Reject bool arguments with TypeError.",
+  "starter_source": "def clamp(x: int, lo: int, hi: int) -> int:\n    \"\"\"Return x limited to [lo, hi].\"\"\"\n    pass\n",
+  "type": "algorithm"
+}

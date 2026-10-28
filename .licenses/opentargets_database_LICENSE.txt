@@ -1,0 +1,2 @@
+Notification recorded at 2026-10-24T07:58:10+02:00:
+Please check the Open Targets Platform licence and terms of use at https://platform-docs.opentargets.org/licence and verify any restrictions on data retrieved via the opentargets-database skill.

@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://smaos.ai/schemas/receipt_payload_v1.json",
+  "title": "ReceiptPayload",
+  "description": "RFC 8785 JCS-Canonicalized Cryptographic Receipt Schema v1.0 for SMAOS/STAR Protocol",
+  "type": "object",
+  "required": [
+    "version",
+    "action_id",
+    "leaf_index",
+    "tree_size",
+    "timestamp",
+    "intent_digest",
+    "verdict",
+    "root_hash",
+    "signature",
+    "signer_pubkey"
+  ],
+  "properties": {
+    "version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Semantic version of the receipt payload specification."
+    },
+    "action_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Unique deterministic identifier for the tool dispatch / action."
+    },
+    "leaf_index": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "0-based leaf ordinal of this receipt in the Merkle audit log."
+    },
+    "tree_size": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Total number of committed leaves in the Merkle tree at checkpoint time (leaf_index < tree_size)."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "RFC 3339 / ISO 8601 UTC timestamp of receipt issuance."
+    },
+    "intent_digest": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{64}$",
+      "description": "SHA-256 hex digest of the canonical action input / tool parameters."
+    },
+    "verdict": {
+      "type": "string",
+      "enum": [
+        "CONFIRMED",
+        "UNKNOWN",
+        "MISSING_EVIDENCE",
+        "CONFLICT",
+        "REFUSED",
+        "INVALID_INPUT"
+      ],
+      "description": "Six-disposition precedence cascade classification."
+    },
+    "root_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{64}$",
+      "description": "SHA-256 Merkle root digest over tree_size committed leaves."
+    },
+    "inclusion_proof": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{64}$"
+      },
+      "description": "RFC 9162 Merkle audit path hashes demonstrating leaf membership."
+    },
+    "audit_anchor": {
+      "type": "object",
+      "properties": {
+        "xid": { "type": "integer", "description": "PostgreSQL transaction ID" },
+        "etag": { "type": "string", "description": "S3 object ETag" },
+        "idempotency_key": { "type": "string", "description": "Payment gateway idempotency key" },
+        "partition_offset": { "type": "integer", "description": "Kafka partition offset" }
+      },
+      "additionalProperties": true,
+      "description": "System of record reconciliation anchors."
+    },
+    "signature": {
+      "type": "string",
+      "minLength": 64,
+      "description": "Ed25519 signature hex string over RFC 8785 JCS-canonicalized receipt payload."
+    },
+    "signer_pubkey": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{64}$",
+      "description": "32-byte Ed25519 public key hex of the authorized attestor."
+    }
+  },
+  "additionalProperties": false
+}

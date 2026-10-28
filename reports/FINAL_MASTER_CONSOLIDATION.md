@@ -147,7 +147,7 @@ All artifacts documented, packaged, and verified:
 - Classification: SMAOS validates compliance with Machinery Directive 2006/42/EC
 - Gate: Safety-critical action requires human sign-off (no exceptions)
 - Authorization: Plant manager confirms safety assessment
-- Ledger: Timestamped, non-repudiable proof
+- Ledger: Timestamped, tamper-evident proof
 - Status: ✅ PASSING (manufacturing environment simulation)
 
 **Pilot 3: School Budgeting Access (Annex III)**

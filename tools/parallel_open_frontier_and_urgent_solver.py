@@ -345,7 +345,7 @@ def solve_and_verify_math09_knuth_taocp_hamiltonian() -> WorkerBenchmarkResult:
         category="COMBINATORIAL_FRONTIER",
         baseline_metric=1,
         achieved_metric=3,
-        improvement_bps=20000,
+        improvement_bps=((3 - 1) * 10000) // 1,
         constraints_checked=81 + 3 * 27 + failover_checks,
         violations_found=violations,
         mutation_killed=mutant_caught,
@@ -408,7 +408,7 @@ def solve_and_verify_urgent_sys01_ask_or_assume() -> WorkerBenchmarkResult:
         category="URGENT_AGENTIC_PRODUCTION",
         baseline_metric=naive_wrong_assumptions,
         achieved_metric=voi_wrong_assumptions,
-        improvement_bps=10000,
+        improvement_bps=((naive_wrong_assumptions - voi_wrong_assumptions) * 10000) // max(1, naive_wrong_assumptions),
         constraints_checked=scenarios_checked,
         violations_found=voi_wrong_assumptions,
         mutation_killed=mutant_caught,
@@ -513,7 +513,7 @@ def solve_and_verify_urgent_sys02_anti_reward_hack() -> WorkerBenchmarkResult:
         category="URGENT_AGENTIC_PRODUCTION",
         baseline_metric=0,
         achieved_metric=blocked_count,
-        improvement_bps=10000,
+        improvement_bps=(blocked_count * 10000) // len(exploit_attempts),
         constraints_checked=len(exploit_attempts) + 1,
         violations_found=len(exploit_attempts) - blocked_count,
         mutation_killed=(blocked_count == 4 and clean_ok),
@@ -671,7 +671,7 @@ def solve_and_verify_worker5_isolated_container_sandbox() -> WorkerBenchmarkResu
         category="ISOLATED_CONTAINER_VERIFICATION",
         baseline_metric=0,
         achieved_metric=blocked_attacks,
-        improvement_bps=10000,
+        improvement_bps=(blocked_attacks * 10000) // 3,
         constraints_checked=4,
         violations_found=0 if passed else 1,
         mutation_killed=passed,
@@ -706,9 +706,7 @@ def run_all_4_parallel_open_and_urgent_workers(
         assert r.violations_found == 0
         assert r.mutation_killed is True
 
-    signing_key = Ed25519PrivateKey.from_private_bytes(
-        hashlib.sha256(b"SOVEREIGN_SECTION_27_OPEN_FRONTIER_KEY").digest()
-    )
+    signing_key = Ed25519PrivateKey.generate()
     pub_b64 = base64.b64encode(
         signing_key.public_key().public_bytes(
             encoding=serialization.Encoding.Raw,

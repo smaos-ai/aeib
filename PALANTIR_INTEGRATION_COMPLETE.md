@@ -404,7 +404,7 @@ The FLYING phase is now a multi-view command center where users can:
 4. **Monitor** system health (terminal)
 5. **Prove** compliance (signatures + ledger)
 
-This is enterprise-grade, investor-ready, and regulator-friendly.
+This is high-assurance, investor-ready, and regulator-friendly.
 
 **Test it:** http://127.0.0.1:5173 🚀
 

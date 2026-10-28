@@ -327,7 +327,7 @@ class Tier1DurableDispatchExecutor:
 
         # Step 5: Classify outcome
         http_status = raw_outcome.get("http_status", 500)
-        transport_ambiguous = raw_outcome.get("transport_ambiguity", False) or http_status in (504, 502, 503)
+        transport_ambiguous = bool(raw_outcome.get("transport_ambiguity", False))
 
         final_disposition: str
         retry_safe: bool

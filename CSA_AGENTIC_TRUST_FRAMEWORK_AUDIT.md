@@ -24,7 +24,7 @@ SMAOS (Sovereign Multi-Agent Operating System) achieves **full compliance** with
 ## 1. IDENTITY CORE ELEMENT
 
 ### Requirement
-Agents must have verifiable, non-repudiable identity tied to cryptographic keys. All actions must be attributable to a specific agent + operator combination.
+Agents must have verifiable, tamper-evident identity tied to cryptographic keys. All actions must be attributable to a specific agent + operator combination.
 
 ### SMAOS Implementation
 

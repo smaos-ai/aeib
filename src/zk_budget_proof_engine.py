@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 """
-src/zk_budget_proof_engine.py — zk-AEIB Arithmetic Circuit & Privacy-Preserving Budget Proof Engine
+src/zk_budget_proof_engine.py — Signed Linear-Combination Budget Transcript Scaffold
 Sovereign Multi-Agent OS (SMAOS) / Agent Execution Integrity (AEIB)
 
-Evaluated under the stated model as a pre-production arithmetic circuit prototype.
-Implements privacy-preserving zero-knowledge proof generation and verification
-for multi-agent budget solvency without disclosing individual transaction amounts,
-salts, or payee identities.
-
-Cryptographic Primitives:
-- Standard BN254 / alt_bn128 scalar field prime r
-- Real Ed25519 asymmetric cryptography (cryptography.hazmat.primitives.asymmetric.ed25519)
-- Real SHA-256 cryptographic hashing (hashlib.sha256)
-- Strict RFC 8785 JSON Canonicalization Scheme (src.jcs_canonicalizer.encode_jcs)
-- Finite field polynomial commitments and Fiat-Shamir heuristics
+IMPORTANT SECURITY & SOUNDNESS NOTICE (Scaffold / Opt-In Simulation Only):
+- This module is a linear mod-r arithmetic transcript scaffold, NOT a sound
+  zero-knowledge proof system and NOT a hiding Pedersen commitment scheme:
+  1. `_commit_poly` computes a linear integer combination modulo `r` where the
+     discrete logs between `G_BASIS` and `H_BLINDING` are publicly known integers.
+  2. `verify_budget_proof` checks linear evaluations at `X=2` and `X=challenge_x`
+     without enforcing bitness (`b_{i,j} * (1 - b_{i,j}) = 0`) on the verifier side,
+     meaning a malicious prover can forge transcripts for negative or out-of-range
+     spends that sum to the public delta.
+- Consequently, `verify_budget_proof` is quarantined behind `require_simulation_opt_in`
+  (`allow_simulation=True` or `AEIB_ALLOW_SIMULATION=1`) and always reports
+  `status=SIMULATED_OPT_IN` (never `REAL_EXECUTED`).
 """
 
 from __future__ import annotations
@@ -35,10 +36,20 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
 )
 
 try:
+    from src.capability_status import (
+        SIMULATED_OPT_IN,
+        CapabilityUnavailableError,
+        require_simulation_opt_in,
+    )
     from src.jcs_canonicalizer import encode_jcs, generate_jcs_payload_hash
 except ImportError:
     from pathlib import Path
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from src.capability_status import (
+        SIMULATED_OPT_IN,
+        CapabilityUnavailableError,
+        require_simulation_opt_in,
+    )
     from src.jcs_canonicalizer import encode_jcs, generate_jcs_payload_hash
 
 
@@ -142,11 +153,12 @@ class BudgetPublicInputs:
 
 @dataclass(frozen=True)
 class ZkVerificationResult:
-    """Structured verification outcome with explicit rejection codes."""
+    """Structured verification outcome with explicit rejection codes and capability status."""
     valid: bool
     rejection_code: Optional[str] = None
     reason: Optional[str] = None
     verification_time_ms: float = 0.0
+    status: str = SIMULATED_OPT_IN
 
     def __bool__(self) -> bool:
         return self.valid
@@ -453,13 +465,20 @@ class ZkBudgetProofEngine:
         self,
         public_inputs: BudgetPublicInputs,
         proof: ZkBudgetProof,
+        allow_simulation: Optional[bool] = None,
     ) -> ZkVerificationResult:
         """
-        Verifies a zk-AEIB budget proof using ONLY public inputs in < 15ms.
-        Yields True if all arithmetic constraints hold, without disclosing any
-        individual spend amount, salt, or payee identity.
-        Fails closed with explicit rejection codes on any violation.
+        Verifies a signed linear-combination budget transcript scaffold.
+        NOTE: Because this module checks linear mod-r combinations rather than a
+        sound zero-knowledge range/bitness proof, verification requires explicit
+        simulation opt-in (`allow_simulation=True` or `AEIB_ALLOW_SIMULATION=1`)
+        and reports `status=SIMULATED_OPT_IN`.
         """
+        status = require_simulation_opt_in(
+            "zk_budget_proof_engine.verify_budget_proof",
+            allow_simulation,
+            detail="Linear mod-r transcript check is not a sound zero-knowledge proof.",
+        )
         t0 = time.perf_counter()
         r = self.field_prime
 
@@ -691,8 +710,9 @@ class ZkBudgetProofEngine:
         return ZkVerificationResult(
             valid=True,
             rejection_code=None,
-            reason="All zk-AEIB arithmetic constraints verified successfully under the stated model",
+            reason="Signed linear-combination budget transcript checked under SIMULATED_OPT_IN (not a sound ZK proof)",
             verification_time_ms=elapsed_ms,
+            status=status,
         )
 
 
@@ -701,10 +721,10 @@ class ZkBudgetProofEngine:
 # ============================================================================
 
 def run_self_test() -> bool:
-    """Demonstrates proof generation and independent verification under the stated model."""
+    """Demonstrates transcript generation, default simulation quarantine, and opt-in check."""
     print("========================================================================")
-    print("  zk-AEIB Arithmetic Circuit & Privacy-Preserving Budget Proof Engine")
-    print("  Self-Test Harness (Evaluated under the stated model)")
+    print("  Signed Linear-Combination Budget Transcript Scaffold")
+    print("  Self-Test Harness (Opt-In Simulation Quarantine Active)")
     print("========================================================================")
 
     engine = ZkBudgetProofEngine()
@@ -733,21 +753,27 @@ def run_self_test() -> bool:
 
     witness = PrivateWitness(transactions=txs)
 
-    # 1. Valid Proof Generation & Verification
+    # 1. Valid Transcript Generation & Default Quarantine Check
     t_gen_start = time.perf_counter()
     proof = engine.generate_budget_proof(witness, public_inputs)
     t_gen_ms = (time.perf_counter() - t_gen_start) * 1000
 
-    print(f"[*] Generated valid zk-AEIB proof in {t_gen_ms:.3f} ms")
+    print(f"[*] Generated budget transcript in {t_gen_ms:.3f} ms")
     print(f"    Transcript Hash : {proof.transcript_hash}")
     print(f"    Commitment Root : {public_inputs.commitment_merkle_root}")
 
-    # Independent verifier instance
     verifier = ZkBudgetProofEngine()
-    result = verifier.verify_budget_proof(public_inputs, proof)
+    try:
+        verifier.verify_budget_proof(public_inputs, proof, allow_simulation=False)
+        print("[!] FAILED: Default verify_budget_proof did not enforce simulation quarantine", file=sys.stderr)
+        return False
+    except CapabilityUnavailableError as exc:
+        print(f"[*] Confirmed default quarantine: {exc.code}")
 
-    print(f"[*] Verification Result: valid={result.valid} in {result.verification_time_ms:.3f} ms (< 15 ms target)")
-    if not result.valid:
+    result = verifier.verify_budget_proof(public_inputs, proof, allow_simulation=True)
+
+    print(f"[*] Opt-In Result: valid={result.valid}, status={result.status} in {result.verification_time_ms:.3f} ms")
+    if not result.valid or result.status != SIMULATED_OPT_IN:
         print(f"[!] FAILED: {result.rejection_code}: {result.reason}", file=sys.stderr)
         return False
     if result.verification_time_ms >= 15.0:
@@ -817,7 +843,7 @@ def run_self_test() -> bool:
         commitment_merkle_root="00" * 32,
         epoch=public_inputs.epoch,
     )
-    res_tampered_root = verifier.verify_budget_proof(tampered_inputs_root, proof)
+    res_tampered_root = verifier.verify_budget_proof(tampered_inputs_root, proof, allow_simulation=True)
     if res_tampered_root.valid or res_tampered_root.rejection_code != HALT_ZK_COMMITMENT_ROOT_MISMATCH:
         print(f"[!] FAILED: Tampered root expected {HALT_ZK_COMMITMENT_ROOT_MISMATCH}, got {res_tampered_root.rejection_code}", file=sys.stderr)
         return False
@@ -827,16 +853,18 @@ def run_self_test() -> bool:
     proof_dict = proof.to_dict()
     proof_dict["aggregate_blinding_eval"] = (proof.aggregate_blinding_eval + 1) % BN254_SCALAR_FIELD_PRIME
     tampered_proof = ZkBudgetProof.from_dict(proof_dict)
-    res_tampered_bytes = verifier.verify_budget_proof(public_inputs, tampered_proof)
+    res_tampered_bytes = verifier.verify_budget_proof(public_inputs, tampered_proof, allow_simulation=True)
     if res_tampered_bytes.valid:
         print("[!] FAILED: Tampered proof bytes were accepted", file=sys.stderr)
         return False
     print(f"[*] Confirmed: Tampered proof bytes rejected with {res_tampered_bytes.rejection_code}")
 
-    print("========================================================================")
-    print("  [PASS] zk-AEIB Arithmetic Circuit Self-Test Completed Successfully")
-    print("========================================================================")
-    return True
+    all_checks_ok = result.valid and not res_tampered_root.valid and not res_tampered_bytes.valid
+    if all_checks_ok:
+        print("========================================================================")
+        print("  zk-AEIB Arithmetic Circuit Self-Test Completed Successfully")
+        print("========================================================================")
+    return all_checks_ok
 
 
 def main() -> None:

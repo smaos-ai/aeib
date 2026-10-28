@@ -167,7 +167,7 @@ class RealMcpWireAdapter:
         # Handle notifications (no id)
         if msg_id is None:
             self._handle_notification(method, params, session_id)
-            return None
+            return
 
         # Handle request methods
         if method == "initialize":

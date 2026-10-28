@@ -1,0 +1,7 @@
+{
+  "entry_module": "solution",
+  "id": "moving_average",
+  "instruction": "Implement moving_average(xs, window) over integers returning floor averages (sum // window) for each full window, in order. Raise ValueError if window <= 0; return [] if len(xs) < window.",
+  "starter_source": "def moving_average(xs, window: int) -> list:\n    \"\"\"Integer floor moving average over full windows.\"\"\"\n    return [0]\n",
+  "type": "algorithm"
+}

@@ -1,10 +1,10 @@
 # AEIB / SMAOS — TPRM Buyer Security, Competitive & Regulatory Alignment Dossier
 
-**Document Version:** `1.0.0-rc.1` / `1.0.0-rc.2`  
+**Document Version:** `1.0.0-rc.3` (Commit `2a36f2c34d55cd32d11ab49928fd683056df0909`)  
 **Core Positioning & Epistemic Boundary (`AGENTS.md` §1):**  
 > **AEIB/SMAOS contributes a narrow, testable dispatch boundary: pre-dispatch standing checks, explicit uncertain-transport classification, bounded reconciliation, and operation-bound RFC 8785 + Ed25519 receipts. It does not provide complete governance, model safety, universal exactly-once effects, or regulatory compliance.**
 >
-> **AEIB/SMAOS v1.0.0-rc.1 is a runtime dispatch-boundary and evidence component for AI agent tool calls. It complements—not replaces—identity, sandboxing, model safety, observability, and governance platforms. Its claims are limited to behavior demonstrated by its tests, hosted CI artifacts, verifier vectors, and separate-party reproduction under the stated models.**
+> **AEIB/SMAOS v1.0.0-rc.3 is a runtime dispatch-boundary and evidence component for AI agent tool calls. It complements—not replaces—identity, sandboxing, model safety, observability, and governance platforms. Its claims are limited to behavior demonstrated by its tests, hosted CI artifacts (Matrix CI run 38566505507, Minimal CI run 38566505929, RC Verify run 38566505377), verifier vectors, and separate-party reproduction under the stated models.**
 
 ---
 
@@ -14,7 +14,7 @@ Signed, hash-chained receipts for AI agent tool calls are an active 2026 categor
 
 | Framework / Project | Primary Mechanism | Signature / Framing | Post-Dispatch Drop (`HTTP 504` / `TCP RST`) Handling | Offline Verifier Parity | DORA EBA DPM 4.0 Mapping |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **AEIB (`v1.0.0-rc.1`)** | 4-Station Wire Boundary + Out-of-Band Reconciler | RFC 8785 JCS + Ed25519 (`ContinuityReceipt`), WASM & JVM CLI | Explicit **`EFFECT_INDETERMINATE`** state latch (`retry_safe: false`) + bounded `ProbeBudget` target reconciliation + signed `RESOLUTION_RECEIPT` | **Observed**: Java 21 (`ReceiptVerifier`) + Python 3 (`jvm_native_diff_engine.py`) + Rust/WASM (`smaos-verify.html`) (`14/14` vector parity) | Generates candidate xBRL-CSV output for `RT.01.01`–`RT.01.03`; schema and regulatory acceptance require separate conformance testing |
+| **AEIB (`v1.0.0-rc.3`)** | 4-Station Wire Boundary + Out-of-Band Reconciler | RFC 8785 JCS + Ed25519 (`ContinuityReceipt`), WASM & JVM CLI | Explicit **`EFFECT_INDETERMINATE`** state latch (`retry_safe: false`) + bounded `ProbeBudget` target reconciliation + signed `RESOLUTION_RECEIPT` | **Observed**: Java 21 (`ReceiptVerifier`) + Python 3 (`jvm_native_diff_engine.py`) + Rust/WASM (`smaos-verify.html`) (`14/14` vector parity) | Generates candidate xBRL-CSV output for `RT.01.01`–`RT.01.03`; schema and regulatory acceptance require separate conformance testing |
 | **Obsigna / AgentReceipts** | MCP Proxy + W3C Verifiable Credentials | Ed25519 + Hash Chain | Records proxy call completion/error; no dedicated out-of-band target semantic state reconciler | TypeScript / CLI verifier | Not included |
 | **AER-1** | Portable Execution Receipt Spec | Ed25519 + Hosted Verify Endpoint | Standard success/failure receipt states | Public verification endpoint | Not included |
 | **Pipelock / Signet** | Mediator-Signed / Bilateral Co-Signed Receipts | Ed25519 | Bilateral co-signing prior to or upon response; does not reconcile severed post-dispatch sockets | Single-runtime SDK | Not included |
@@ -28,7 +28,7 @@ Signed, hash-chained receipts for AI agent tool calls are an active 2026 categor
 
 ### 2.1 Candidate AEIB Receipt $\rightarrow$ COSE/SCITT Representation Mapping (Gap 2)
 * **IETF SCITT Architecture:** `RFC 9943` (with receipt/profile work remaining draft-stage).
-* **Boundary Statement:** AEIB `v1.0.0-rc.1` emits JSON receipts canonicalized via **RFC 8785 (JCS)** and does **not** claim SCITT or COSE wire conformance. The field mapping below is a **candidate conversion design**, not an implemented standard profile; it requires a separate specification, test vectors, and interoperability evidence.
+* **Boundary Statement:** AEIB `v1.0.0-rc.3` emits JSON receipts canonicalized via **RFC 8785 (JCS)** and does **not** claim SCITT or COSE wire conformance. The field mapping below is a **candidate conversion design**, not an implemented standard profile; it requires a separate specification, test vectors, and interoperability evidence.
 
 | AEIB `ContinuityReceipt` JSON Field | Candidate RFC 9052 `COSE_Sign1` / SCITT Field | Candidate Conversion Rule |
 | :--- | :--- | :--- |
@@ -99,7 +99,7 @@ Per the Model Context Protocol (`2025-11-25`) authorization specification:
    * **Status:** **`[UNVERIFIED - Pending ČNB/MPO formal response]`**. No specific Czech national sandbox application window or deadline is claimed.
 4. **EU Cyber Resilience Act (CRA, Regulation (EU) 2024/2847) Applicability Memo (Gap 12):**
    * **Applicability Qualification:** **AEIB’s vulnerability-handling process is designed to support practices associated with the EU Cyber Resilience Act (applicable from 11 September 2026 for vulnerability reporting and 11 December 2027 for essential requirements). CRA applicability, manufacturer status, reporting duties, and conformity obligations require a product-specific legal and regulatory assessment.**
-   * **Process Support:** Each release candidate generates a CycloneDX 1.6 (`ECMA-424`) JSON SBOM (`bom.json`), documents Coordinated Vulnerability Disclosure via [`SECURITY.md`](file:///Users/andriileukhin/Documents/SovereignNexus/SECURITY.md) and [`.well-known/security.txt`](file:///Users/andriileukhin/Documents/SovereignNexus/.well-known/security.txt), and generates SLSA v1.1-compatible provenance.
+   * **Process Support:** Each release candidate generates a CycloneDX 1.6 (`ECMA-424`) JSON SBOM (`bom.json`), documents Coordinated Vulnerability Disclosure via [`SECURITY.md`](../SECURITY.md) and [`.well-known/security.txt`](../.well-known/security.txt), and generates SLSA v1.1-compatible provenance.
 
 ---
 
@@ -113,7 +113,7 @@ A local hash chain (`chainTip`) signed by an operator-held Ed25519 private key d
 
 ### 6.2 Post-Quantum Cryptography (PQC) Agility (Action 22)
 For banking audit logs requiring 7–10 year retention:
-* `ContinuityReceipt` includes `HybridSignature(ed25519Signature, mlDsa65Signature, keyId, keyEpoch)` in [`FOUR_STATION_INTERFACES.java`](file:///Users/andriileukhin/Documents/SovereignNexus/aeib-native-runtime/aeib-core/src/main/java/ai/sovereign/aeib/core/FOUR_STATION_INTERFACES.java#L85-L90).
+* `ContinuityReceipt` includes `HybridSignature(ed25519Signature, mlDsa65Signature, keyId, keyEpoch)` in [`FOUR_STATION_INTERFACES.java`](../aeib-native-runtime/aeib-core/src/main/java/ai/sovereign/aeib/core/FOUR_STATION_INTERFACES.java#L85-L90).
 * In `v1.0.0-rc.1` (JDK 21), `ed25519Signature` is active and `mlDsa65Signature` is `null`. Dual-signature hybrid signing (`Ed25519 + ML-DSA-65` per NIST FIPS 204 / OpenJDK JEP 497 in JDK 24+) is reserved for the `v1.2` roadmap.
 
 ### 6.3 Third-Party Dependency & License Audit (Action 24)
@@ -150,7 +150,7 @@ To prevent any ambiguity during technical due diligence or live demonstrations:
 ## 7. Category E: Architectural Reference Models (`LuMay AI Framework` & `Context Mode`)
 
 ### 7.1 LuMay AI Framework (8-Layer Governance Taxonomy Reference)
-AEIB uses the 8-layer AI governance taxonomy as an architectural boundary map (`LuMayGovernanceLayerMapper` in [`unified_governance_stack.py`](file:///Users/andriileukhin/Documents/SovereignNexus/v1.1-roadmap/unified_governance_stack.py)). AEIB does **not** claim to provide an end-to-end 8-layer governance platform; it contributes machine-verifiable runtime evidence strictly for a narrow subset of **Layer 6** and **Layer 7**:
+AEIB uses the 8-layer AI governance taxonomy as an architectural boundary map (`LuMayGovernanceLayerMapper` in [`unified_governance_stack.py`](../v1.1-roadmap/unified_governance_stack.py)). AEIB does **not** claim to provide an end-to-end 8-layer governance platform; it contributes machine-verifiable runtime evidence strictly for a narrow subset of **Layer 6** and **Layer 7**:
 
 | Layer ID | Governance Layer | AEIB Disposition | Technical Scope Boundary |
 | :--- | :--- | :--- | :--- |
@@ -165,4 +165,55 @@ AEIB uses the 8-layer AI governance taxonomy as an architectural boundary map (`
 
 ### 7.2 Context Mode (Script-as-Interface Isolation Pattern Reference & License Separation)
 * **Architectural Pattern:** Decouples the agent's reasoning context window from bulk data responses by filtering/projecting large tool payloads inside an isolated deterministic execution boundary and returning only a bounded summary (`boundedSummary`) plus a SHA-256 `rawPayloadCaid` over the RFC 8785 JCS bulk payload.
-* **License & Implementation Boundary:** External `Context Mode` software is distributed under the **Elastic License 2.0 (ELv2)**, which is a non-OSI source-available license. **AEIB references the general script-as-interface pattern only. AEIB’s implementation (`ContextModeScriptInterfaceSandbox` in [`unified_governance_stack.py`](file:///Users/andriileukhin/Documents/SovereignNexus/v1.1-roadmap/unified_governance_stack.py)) is intended to be independent of Context Mode code and distributed under AEIB’s license, subject to license, dependency, and IP review.**
+* **License & Implementation Boundary:** External `Context Mode` software is distributed under the **Elastic License 2.0 (ELv2)**, which is a non-OSI source-available license. **AEIB references the general script-as-interface pattern only. AEIB’s implementation (`ContextModeScriptInterfaceSandbox` in [`unified_governance_stack.py`](../v1.1-roadmap/unified_governance_stack.py)) is intended to be independent of Context Mode code and distributed under AEIB’s license, subject to license, dependency, and IP review.**
+
+### 7.3 External Landscape Context & Production Harness References (MIT, OECD, Marques)
+* **MIT AI Risk Initiative (Broad Landscape Context):** Expert-elicitation risk taxonomy covering catastrophic and societal concerns. Provides general risk background only; does **not** evaluate AEIB, specify runtime controls, or establish that AEIB mitigates listed risks. Strictly excluded from capability claims.
+* **OECD Artificial Intelligence Papers No. 65 (Practitioner-Acknowledged Gap):** Empirical observation across sectors confirming agentic AI is in production while governance, oversight, and accountability frameworks remain immature. Documents that the governance gap is real, urgent, and practitioner-acknowledged at an intergovernmental level; describes the **problem space**; does **not** endorse or specify AEIB as the solution.
+* **David Marques — Agent Harness Anatomy (Architectural Reference):** Source-grounded, commit-linked teardown of 9 production agent harnesses (`pi`, `aider`, `Cline`, `Goose`, `Codex CLI`, `OpenHands`, `OpenCode`, `Hermes`, `OpenClaw`). Validates the **"harness is where the design lives"** principle. Provides concrete reference implementations for studying approval-gate placement, turn loops, and state isolation—informing AEIB’s `v1.1` Gateway Adapter research (with Codex CLI and OpenHands as primary approval-gate analogues).
+* **Buyer-Safe Boundary Formulation:**
+  > *These artifacts provide context and design references. The OECD report documents practitioner-recognized governance needs; the harness teardowns offer source-grounded architectural comparisons across 9 production harnesses; the MIT report provides broad risk taxonomy. None validates AEIB, establishes market demand for AEIB, or changes the `v1.0.0-rc.3` scope.*
+* **Frozen Release Baseline Invariant:**
+  ```text
+  The evidence remains the work: hosted CI, reproducible artifacts, 
+  verifier vectors, benchmark evidence, and separate-party Gate 5 reproduction.
+  ```
+
+---
+
+## 8. Policy-Driven Signal Activation & Anti-Self-Authorization Contract (`SignedDeploymentProfileGate`)
+
+> **Core Rule:** *AEIB signals are opt-in by deployment profile and risk surface. The core boundary evaluates a signed configuration before dispatch; the agent proposes actions but cannot enable, disable, or bypass enforcement. `EFFECT_INDETERMINATE` is enabled for state-mutating action classes and is produced when a dispatch’s external effect cannot be determined from the available evidence.*
+>
+> **Baseline Statement:** *The v1.0 baseline provides the core dispatch-boundary primitives. A deployment profile determines which checks apply to which action classes; the resulting configuration and enforcement decisions are recorded in receipts.*
+
+### 8.1 Signal & Gate Activation Matrix
+
+| Signal / Gate | Turn On When Needed From | Default |
+| :--- | :--- | :--- |
+| **Manifest Gate** | The deployment exposes tools, MCP servers, URIs, or capabilities to an agent | **On** for consequential tool dispatch |
+| **Standing / Dispatch Interlock** | An action may mutate state, spend money, send communications, change records, or cross a trust boundary | **On** for consequential actions |
+| **Credential Isolation** | The agent needs external API access and credentials must not be exposed in prompts, tool arguments, logs, or downstream calls | **On** when secrets are involved |
+| **Reasoning Flush / Wire `CAID`** | Model output contains reasoning, rationale, explanations, or other non-binding fields that must not affect canonical wire identity | **On** when such fields can appear |
+| **Memory / Epoch Freshness** | Multi-turn sessions, RAG, cached context, workspace facts, or policy grants can become stale | **On** for stateful or RAG-enabled agents |
+| **Anti-Spec-Gaming Reconciliation** | An agent framework reports success internally, but the actual target state must be verified | **On** when agent self-reports are used as completion evidence |
+| **`EFFECT_INDETERMINATE` Reconciliation** | A mutating HTTP/TCP dispatch completes ambiguously because of timeout, reset, unreadable response, or equivalent transport uncertainty | **On** for mutating external calls (not applied to pure read-only calls unless policy requires effect confirmation) |
+| **Typed Pre-Dispatch / MCP OAuth Gate** | MCP servers, dynamic URIs, OAuth resources, or user-controlled endpoint parameters are exposed | **On** for MCP/OAuth surfaces |
+| **Bulk-Output Isolation** | Tool responses may exceed context limits or contain large record sets | **On** when response-size policy requires it |
+| **BPF-LSM Diagnostic** | A supported Linux host has the required kernel hooks, privileges, and operator-approved policy | **Off by default**; diagnostic/scaffold only in `v1.0` |
+| **Hardware Attestation** | The deployment uses supported TDX/SEV-SNP infrastructure and has an attestation verification model | **Off by default**; scaffold only in `v1.0` |
+
+### 8.2 Distinction Between Signal Activation and `EFFECT_INDETERMINATE` Classification
+`EFFECT_INDETERMINATE` is **not** a signal turned on after an HTTP 504 occurs; it is a **state classification** produced when a mutating dispatch was attempted under an enabled profile (`indeterminate_reconciliation: true`) and its external effect cannot be determined:
+```text
+Trigger: mutating dispatch attempted + transport outcome ambiguous (HTTP 504, TCP RST, timeout, unreadable response).
+Action:  latch EFFECT_INDETERMINATE, set retry_safe=false, perform bounded reconciliation if configured.
+```
+
+### 8.3 Seven Off-Limits Agent Self-Modification Vectors & Dynamic Discovery Rule
+Implemented and verified in [`SignedDeploymentProfileGate`](../v1.1-roadmap/unified_governance_stack.py) and [`test_policy_driven_deployment_profile_and_seven_off_limits_vectors`](../tests/test_unified_governance_stack.py):
+1. **No Agent Control-Plane Overrides:** The agent is rejected fail-closed (`AGENT_SELF_AUTHORIZATION_ATTEMPT`) if its `CandidateAction` attempts to: (1) enable or disable Signal 10, (2) change `probe_budget`, (3) mark itself authorized, (4) suppress a receipt, (5) alter the policy epoch, (6) bypass credential isolation, or (7) self-declare an action read-only.
+2. **Defense Against MCP `readOnlyHint` Spoofing (`READ_ONLY_MASQUERADE_REJECTED`):** Per the MCP 2025-11-25 specification, tool annotations (`readOnlyHint`, `destructiveHint`) are untrusted hints. Action-class classification comes strictly from the operator-signed pinned manifest; an untrusted `readOnlyHint: true` on a state-mutating capability is rejected fail-closed.
+3. **Dynamic Discovery Does Not Create Authority (`DISCOVERY_DOES_NOT_CREATE_AUTHORITY` & `MCP_SCHEMA_RUG_PULL_DETECTED`):** Tools discovered at runtime via `tools/list` must still match an owner-enabled, fresh, schema-pinned (`schema_sha256`) manifest entry.
+4. **Profile Attestation Binding in Receipts:** Every receipt records `profileCaid` (`SHA-256(JCS(profile))`), `actionClass`, and `enabledSignals` so an offline auditor can verify which controls were active at dispatch.
+

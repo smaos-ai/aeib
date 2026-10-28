@@ -137,7 +137,7 @@ class WeightedPartialMaxSatSynthesizer:
                     clause_id=f"HARD_CONFLICT_{c.conflict_id}",
                     proposition=c.description,
                     is_hard=True,
-                    weight_bps=10000,
+                    weight_bps=10000,  # claim: config
                     source_reference=c.primary_reference,
                     satisfied=c.resolved_in_design,
                 )
@@ -149,7 +149,7 @@ class WeightedPartialMaxSatSynthesizer:
                     clause_id=f"HARD_MINORITY_DOMINANCE_{item['topic_key']}",
                     proposition=item["winning_position"],
                     is_hard=True,
-                    weight_bps=10000,
+                    weight_bps=10000,  # claim: config
                     source_reference=item["verified_evidence"],
                     satisfied=True,
                 )
@@ -161,7 +161,7 @@ class WeightedPartialMaxSatSynthesizer:
                     clause_id=f"SOFT_CONSENSUS_{row['topic_key']}",
                     proposition=row["agreed_position"],
                     is_hard=False,
-                    weight_bps=9000,
+                    weight_bps=9000,  # claim: config
                     source_reference=row["models_agreeing"],
                     satisfied=True,
                 )

@@ -142,7 +142,33 @@
               "cross_boundary_delegation",
               "standing_race",
               "payload_mutation",
-              "ledger_fork"
+              "ledger_fork",
+              "proxy_egress",
+              "a2a_dispatch",
+              "shadow_ai_exec",
+              "memory_drift",
+              "operation_binding",
+              "request_digest",
+              "business_idempotency_key",
+              "late_commit",
+              "readback_probe",
+              "telemetry_projection",
+              "trace_reflection",
+              "handshake_discovery",
+              "agent_card_metadata",
+              "redirect_chain",
+              "workload_binding",
+              "network_namespace",
+              "memory_segmentation",
+              "protocol_bridge",
+              "policy_evaluator",
+              "epoch_synchronization",
+              "intervention_binding",
+              "replay_mode_interlock",
+              "inspection_isolation",
+              "target_oracle_reconciliation",
+              "replay_pack_verification",
+              "release_authorization"
             ]
           },
           "wire_fault_event": { "type": "string" },
@@ -268,6 +294,266 @@
       "expected_retry_safe": false,
       "target_side_ground_truth": "RELEASE_BLOCKED_FAIL_CLOSED",
       "governance_metadata_requirements": ["ledger_integrity", "containment_level"]
+    },
+    "AT26_proxy_tool_abuse": {
+      "scenario_id": "SCENARIO-AT26-PROXY-TOOL-ABUSE",
+      "target_semantics_class": "no_cooperation",
+      "fault_trigger": "unauthorized_proxy_egress_attempt",
+      "fault_injection_point": "proxy_egress",
+      "required_fail_closed_disposition": "DISPATCH_REJECTED (PROXY_EGRESS_VIOLATION)",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION",
+      "governance_metadata_requirements": ["target_uri", "containment_level"]
+    },
+    "AT27_a2a_lineage_shrouding": {
+      "scenario_id": "SCENARIO-AT27-A2A-LINEAGE-SHROUDING",
+      "target_semantics_class": "idempotency_key_plus_status_api",
+      "fault_trigger": "vendor_model_metadata_lineage_exposure",
+      "fault_injection_point": "a2a_dispatch",
+      "required_fail_closed_disposition": "SHROUDED_A2A_DISPATCH",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "METADATA_MINIMIZATION_PRESERVED",
+      "governance_metadata_requirements": ["principal_id", "grant_id", "delegation_scope", "standing_version"]
+    },
+    "AT28_ebpf_shadow_discovery": {
+      "scenario_id": "SCENARIO-AT28-EBPF-SHADOW-DISCOVERY",
+      "target_semantics_class": "no_cooperation",
+      "fault_trigger": "unregistered_binary_execve_intercept",
+      "fault_injection_point": "shadow_ai_exec",
+      "required_fail_closed_disposition": "FAIL_SHADOW_AI_BLOCKED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION",
+      "governance_metadata_requirements": ["exec_path", "containment_level"]
+    },
+    "AT29_memory_digest_drift": {
+      "scenario_id": "SCENARIO-AT29-MEMORY-DIGEST-DRIFT",
+      "target_semantics_class": "idempotency_key_plus_status_api",
+      "fault_trigger": "context_drift_post_approval_toctou",
+      "fault_injection_point": "memory_drift",
+      "required_fail_closed_disposition": "STALE_STANDING",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION",
+      "governance_metadata_requirements": ["memory_digest", "approved_memory_digest"]
+    },
+    "AT30_operation_identity_collision": {
+      "scenario_id": "SCENARIO-AT30-OPERATION-IDENTITY-COLLISION",
+      "target_semantics_class": "idempotency_key_plus_status_api",
+      "fault_trigger": "identical_payload_distinct_intent_instance",
+      "fault_injection_point": "operation_binding",
+      "required_fail_closed_disposition": "DISTINCT_OPERATION_RECORDED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "INDEPENDENT_INTENT_RECORDS_PRESERVED",
+      "governance_metadata_requirements": ["operation_id", "request_digest"]
+    },
+    "AT31_request_mutation": {
+      "scenario_id": "SCENARIO-AT31-REQUEST-MUTATION",
+      "target_semantics_class": "idempotency_key_plus_status_api",
+      "fault_trigger": "canonical_request_digest_mismatch",
+      "fault_injection_point": "request_digest",
+      "required_fail_closed_disposition": "REQUEST_DIGEST_MUTATED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION",
+      "governance_metadata_requirements": ["operation_id", "request_digest", "approved_request_digest"]
+    },
+    "AT32_idempotency_key_mismatch": {
+      "scenario_id": "SCENARIO-AT32-IDEMPOTENCY-KEY-MISMATCH",
+      "target_semantics_class": "idempotency_key_only",
+      "fault_trigger": "reused_business_key_with_conflicting_payload",
+      "fault_injection_point": "business_idempotency_key",
+      "required_fail_closed_disposition": "IDEMPOTENCY_KEY_PAYLOAD_MISMATCH",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION",
+      "governance_metadata_requirements": ["business_idempotency_key", "request_digest"]
+    },
+    "AT33_limbo_late_commit": {
+      "scenario_id": "SCENARIO-AT33-LIMBO-LATE-COMMIT",
+      "target_semantics_class": "status_api_only",
+      "fault_trigger": "bounded_wait_timeout_prior_to_target_commit",
+      "fault_injection_point": "late_commit",
+      "required_fail_closed_disposition": "LATE_COMMIT_RESOLVED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "TARGET_COMMITTED_LATER_RESOLVED_BY_PROBE",
+      "governance_metadata_requirements": ["operation_id", "business_key", "reconciliation_status"]
+    },
+    "AT34_missing_readback": {
+      "scenario_id": "SCENARIO-AT34-MISSING-READBACK",
+      "target_semantics_class": "no_cooperation",
+      "fault_trigger": "unsupported_readback_status_endpoint",
+      "fault_injection_point": "readback_probe",
+      "required_fail_closed_disposition": "EFFECT_INDETERMINATE",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCERTAINTY_PRESERVED_NO_CLAIM_OF_ABSENCE",
+      "governance_metadata_requirements": ["operation_id", "reconciliation_status", "absence_claimed"]
+    },
+    "AT35_otel_projection": {
+      "scenario_id": "SCENARIO-AT35-OTEL-PROJECTION",
+      "target_semantics_class": "idempotency_key_plus_status_api",
+      "fault_trigger": "semantic_conventions_event_mapping",
+      "fault_injection_point": "telemetry_projection",
+      "required_fail_closed_disposition": "OTEL_EVENT_PROJECTED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "GENAI_EFFECT_DISPOSITION_EMITTED",
+      "governance_metadata_requirements": ["operation_id", "tool_call_id", "request_digest", "effect_status"]
+    },
+    "AT36_secret_leakage": {
+      "scenario_id": "SCENARIO-AT36-CREDENTIAL-LEAKAGE-GUARD",
+      "target_semantics_class": "idempotency_key_plus_status_api",
+      "fault_trigger": "reflected_trace_credential_leakage",
+      "fault_injection_point": "trace_reflection",
+      "required_fail_closed_disposition": "SECRET_LEAKAGE_BLOCKED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "CREDENTIAL_SCRUBBED_NO_EGRESS",
+      "governance_metadata_requirements": ["target_uri", "credential_type", "sanitization_status"]
+    },
+    "AT37_handshake_discovery_ssrf": {
+      "scenario_id": "SCENARIO-AT37-HANDSHAKE-DISCOVERY-SSRF",
+      "target_semantics_class": "no_cooperation",
+      "fault_trigger": "oauth_discovery_www_authenticate_ssrf",
+      "fault_injection_point": "handshake_discovery",
+      "required_fail_closed_disposition": "HANDSHAKE_DISCOVERY_BLOCKED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION",
+      "governance_metadata_requirements": ["target_uri", "discovery_endpoint", "containment_level"]
+    },
+    "AT38_agent_card_context_poisoning": {
+      "scenario_id": "SCENARIO-AT38-AGENT-CARD-CONTEXT-POISONING",
+      "target_semantics_class": "idempotency_key_plus_status_api",
+      "fault_trigger": "agent_card_prompt_injection_mutation",
+      "fault_injection_point": "agent_card_metadata",
+      "required_fail_closed_disposition": "AGENT_CARD_MUTATION_REJECTED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "METADATA_UNMODIFIED_ORIGINAL_PINNED",
+      "governance_metadata_requirements": ["agent_id", "card_hash", "instruction_authority"]
+    },
+    "AT39_per_hop_redirect_validation": {
+      "scenario_id": "SCENARIO-AT39-PER-HOP-REDIRECT-VALIDATION",
+      "target_semantics_class": "no_cooperation",
+      "fault_trigger": "http_302_307_redirect_hop_to_internal_ip",
+      "fault_injection_point": "redirect_chain",
+      "required_fail_closed_disposition": "REDIRECT_CHAIN_TERMINATED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION",
+      "governance_metadata_requirements": ["initial_uri", "hop_target_uri", "dns_ip"]
+    },
+    "AT40_infrastructure_identity_mismatch": {
+      "scenario_id": "SCENARIO-AT40-INFRASTRUCTURE-IDENTITY-MISMATCH",
+      "target_semantics_class": "idempotency_key_plus_status_api",
+      "fault_trigger": "workload_identity_oidc_token_mismatch",
+      "fault_injection_point": "workload_binding",
+      "required_fail_closed_disposition": "IDENTITY_MISMATCH_REJECTED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION",
+      "governance_metadata_requirements": ["service_account", "expected_spiffe_id", "actual_spiffe_id"]
+    },
+    "AT41_sidecar_direct_socket_bypass": {
+      "scenario_id": "SCENARIO-AT41-SIDECAR-DIRECT-SOCKET-BYPASS",
+      "target_semantics_class": "no_cooperation",
+      "fault_trigger": "sidecar_direct_socket_bypass_attempt",
+      "fault_injection_point": "network_namespace",
+      "required_fail_closed_disposition": "EGRESS_INTERCEPTED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION",
+      "governance_metadata_requirements": ["socket_family", "bypass_vector", "containment_level"]
+    },
+    "AT42_unprovenanced_memory_write": {
+      "scenario_id": "SCENARIO-AT42-UNPROVENANCED-MEMORY-WRITE",
+      "target_semantics_class": "idempotency_key_plus_status_api",
+      "fault_trigger": "memory_write_lacking_signed_provenance",
+      "fault_injection_point": "memory_segmentation",
+      "required_fail_closed_disposition": "UNPROVENANCED_WRITE_BLOCKED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "MEMORY_RESTORED_PREVIOUS_EPOCH",
+      "governance_metadata_requirements": ["memory_digest", "provenance_grant", "standing_version"]
+    },
+    "AT43_cross_protocol_delegation_handoff": {
+      "scenario_id": "SCENARIO-AT43-CROSS-PROTOCOL-DELEGATION-HANDOFF",
+      "target_semantics_class": "idempotency_key_plus_status_api",
+      "fault_trigger": "a2a_to_mcp_unauthenticated_handoff",
+      "fault_injection_point": "protocol_bridge",
+      "required_fail_closed_disposition": "DELEGATION_CHAIN_BROKEN",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION",
+      "governance_metadata_requirements": ["upstream_protocol", "downstream_protocol", "delegation_chain"]
+    },
+    "AT44_control_degradation_fallback": {
+      "scenario_id": "SCENARIO-AT44-CONTROL-DEGRADATION-FALLBACK",
+      "target_semantics_class": "no_cooperation",
+      "fault_trigger": "policy_engine_unavailability",
+      "fault_injection_point": "policy_evaluator",
+      "required_fail_closed_disposition": "FAIL_CLOSED_DISPATCH_LOCKED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION",
+      "governance_metadata_requirements": ["engine_status", "degradation_policy", "containment_level"]
+    },
+    "AT45_governance_version_staleness": {
+      "scenario_id": "SCENARIO-AT45-GOVERNANCE-VERSION-STALENESS",
+      "target_semantics_class": "idempotency_key_plus_status_api",
+      "fault_trigger": "runtime_policy_version_behind_governance_head",
+      "fault_injection_point": "epoch_synchronization",
+      "required_fail_closed_disposition": "STALE_STANDING",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION",
+      "governance_metadata_requirements": ["active_epoch", "governance_epoch", "standing_version"]
+    },
+    "GOD_01_intervention_binding": {
+      "scenario_id": "SCENARIO-GOD-01-INTERVENTION-BINDING",
+      "target_semantics_class": "idempotency_key_plus_status_api",
+      "fault_trigger": "replayed_operator_intervention_prior_step",
+      "fault_injection_point": "intervention_binding",
+      "required_fail_closed_disposition": "STALE_STANDING",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION",
+      "governance_metadata_requirements": ["step_id", "policy_epoch", "candidate_caid"]
+    },
+    "GOD_02_replay_immutability": {
+      "scenario_id": "SCENARIO-GOD-02-REPLAY-IMMUTABILITY",
+      "target_semantics_class": "no_cooperation",
+      "fault_trigger": "physical_dispatch_attempt_in_replay_mode",
+      "fault_injection_point": "replay_mode_interlock",
+      "required_fail_closed_disposition": "REPLAY_DISPATCH_BLOCKED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "UNCONTACTED_TARGET_ZERO_MUTATION",
+      "governance_metadata_requirements": ["execution_mode", "dry_run", "socket_blocked"]
+    },
+    "GOD_03_ask_intervene_separation": {
+      "scenario_id": "SCENARIO-GOD-03-ASK-INTERVENE-SEPARATION",
+      "target_semantics_class": "idempotency_key_plus_status_api",
+      "fault_trigger": "state_mutation_during_read_inspection",
+      "fault_injection_point": "inspection_isolation",
+      "required_fail_closed_disposition": "INSPECTION_MUTATION_REJECTED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "ZERO_STATE_DRIFT_PRESERVED",
+      "governance_metadata_requirements": ["operation_mode", "candidate_caid", "mutation_authorized"]
+    },
+    "GOD_04_target_primacy_divergence": {
+      "scenario_id": "SCENARIO-GOD-04-TARGET-PRIMACY-DIVERGENCE",
+      "target_semantics_class": "status_api_only",
+      "fault_trigger": "simulation_success_target_ledger_indeterminate",
+      "fault_injection_point": "target_oracle_reconciliation",
+      "required_fail_closed_disposition": "EFFECT_INDETERMINATE",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "TARGET_LEDGER_EVIDENCE_OVERRIDES_SIMULATION",
+      "governance_metadata_requirements": ["simulation_prediction", "target_status", "retry_safe"]
+    },
+    "GOD_05_export_tamper_detection": {
+      "scenario_id": "SCENARIO-GOD-05-EXPORT-TAMPER-DETECTION",
+      "target_semantics_class": "idempotency_key_plus_status_api",
+      "fault_trigger": "replay_pack_modification_hash_mismatch",
+      "fault_injection_point": "replay_pack_verification",
+      "required_fail_closed_disposition": "TAMPER_DETECTED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "WASM_VERIFICATION_FAILED",
+      "governance_metadata_requirements": ["payload_hash", "jcs_digest", "signature_valid"]
+    },
+    "GOD_06_operator_authority_rbac": {
+      "scenario_id": "SCENARIO-GOD-06-OPERATOR-AUTHORITY-RBAC",
+      "target_semantics_class": "no_cooperation",
+      "fault_trigger": "observation_role_release_attempt",
+      "fault_injection_point": "release_authorization",
+      "required_fail_closed_disposition": "UNAUTHORIZED_RELEASE_BLOCKED",
+      "expected_retry_safe": false,
+      "target_side_ground_truth": "RELEASE_AUTHORIZATION_DENIED",
+      "governance_metadata_requirements": ["operator_id", "observation_role", "release_authority"]
     }
   }
 }

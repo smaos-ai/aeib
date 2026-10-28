@@ -1,6 +1,6 @@
 # 🌍 AXIOM Vision API
 
-**Enterprise-grade AI governance with <500ms latency, Ed25519 signatures, Merkle proofs, and fail-closed safety gates.**
+**High-assurance AI governance with <500ms latency, Ed25519 signatures, Merkle proofs, and fail-closed safety gates.**
 
 ## Quick Start
 

@@ -1,0 +1,7 @@
+{
+  "entry_module": "solution",
+  "id": "extract_digits_refactor",
+  "instruction": "Refactor: extract the digit-filtering logic of format_phone into a new public function extract_digits(text) -> str, and make format_phone use it. format_phone(text) must keep its behaviour: 10 digits -> '(AAA) BBB-CCCC', otherwise ValueError.",
+  "starter_source": "def format_phone(text: str) -> str:\n    digits = \"\".join(ch for ch in text if ch.isdigit())\n    if len(digits) != 10:\n        raise ValueError(\"need 10 digits\")\n    return f\"({digits[:3]}) {digits[3:6]}-{digits[6:]}\"\n",
+  "type": "refactor"
+}

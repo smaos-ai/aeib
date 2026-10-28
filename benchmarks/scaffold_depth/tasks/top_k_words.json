@@ -1,0 +1,7 @@
+{
+  "entry_module": "solution",
+  "id": "top_k_words",
+  "instruction": "Implement top_k(text, k): split on non-letters, casefold, return the k most frequent words as a list of (word, count), ties broken alphabetically. k <= 0 returns [].",
+  "starter_source": "def top_k(text: str, k: int) -> list:\n    \"\"\"Most frequent words, ties alphabetical.\"\"\"\n    ...\n",
+  "type": "text"
+}

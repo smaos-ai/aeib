@@ -1,5 +1,5 @@
 """
-SMF / AEIB Late-October 2026 Frontier Upgrades:
+SMF / AEIB Late-October 2026 Frontier Upgrades (Simulated / Structural Scaffold for Prime-Field Sponge Metadata):
 1. Laya System-1 Non-Autoregressive Decision Primitives (`choice`, `score`, `noul`)
    with Strictly Proper Brier Score Calibration (`RLCD`) and Prefix-Cache Pinned Layout.
 2. UC Berkeley/Stanford Hard-Forget Discovery Controller (`arXiv:2610.20563`):

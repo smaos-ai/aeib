@@ -1,0 +1,39 @@
+rules:
+  - id: toxic-receipt-unjustified-confirmed
+    patterns:
+      - pattern-either:
+          - pattern: |
+              except ...:
+                  ...
+                  return "CONFIRMED"
+          - pattern: |
+              except ...:
+                  ...
+                  return {"status": "CONFIRMED", ...}
+          - pattern: |
+              except ...:
+                  ...
+                  verdict = "CONFIRMED"
+    message: "DORA Art. 17 Violation: Catching transport exception and returning CONFIRMED without SCITT cryptographic evidence."
+    languages: [python]
+    severity: ERROR
+
+  - id: swallowed-504-timeout
+    patterns:
+      - pattern: |
+          except (socket.timeout, TimeoutError, requests.exceptions.Timeout):
+              ...
+              return "SUCCESS"
+    message: "Toxic Receipt Hazard: HTTP 504 / timeout swallowed into SUCCESS. Must force state downgrade to UNKNOWN."
+    languages: [python]
+    severity: ERROR
+
+  - id: unhashed-pii-in-logs
+    patterns:
+      - pattern-either:
+          - pattern: logging.$LEVEL(..., $X.iban, ...)
+          - pattern: print(..., $X.ssn, ...)
+          - pattern: logger.$LEVEL(..., $X.credit_card, ...)
+    message: "EDPB 02/2026 Privacy Violation: Raw PII emitted to execution logs. Use hash_identifier() instead."
+    languages: [python]
+    severity: WARNING

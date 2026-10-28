@@ -253,7 +253,7 @@ SMAOS v1.0 is a governance-first agent harness for high-risk, human-supervised d
 
 **Regulatory Category:** Article 10(3) — Biometric systems for identification
 **Expected Volume (May 2027):** 50+ daily access decisions
-**Human Oversight:** 100% human confirmation on all identity-based decisions (no auto-approve)
+**Human Oversight:** Mandatory human confirmation on all identity-based decisions (no auto-approve)
 
 ### Decision Types
 1. **Approval (auto-grant):** Score above threshold, no flags
@@ -374,6 +374,7 @@ SMAOS v1.0 is a governance-first agent harness for high-risk, human-supervised d
         benchmark = self.extract_benchmark_metrics()
         agentacct = self.extract_agentacct_metrics()
         ragas = self.extract_ragas_metrics()
+        latency_status = "✅ WITHIN SLA" if benchmark.get("avg_latency_ms", 0) < 100 else "⚠️ ABOVE SLA"
 
         return f"""## Section 4: Performance & Efficiency Metrics
 
@@ -382,7 +383,7 @@ SMAOS v1.0 is a governance-first agent harness for high-risk, human-supervised d
 **Latency (Response Time)**
 - Measured: {benchmark.get('avg_latency_ms', 0):.2f} ms
 - Target (Article 50 resilience): <100 ms
-- Status: ✅ PASS
+- Status: {latency_status}
 
 **Throughput (Token Generation Rate)**
 - Measured: {benchmark.get('throughput_tps', 0):.1f} tokens/second
@@ -407,7 +408,7 @@ SMAOS v1.0 is a governance-first agent harness for high-risk, human-supervised d
 | Latency (p99) | <100ms | {benchmark.get('avg_latency_ms', 0):.2f} ms | ✅ |
 | Uptime | >99.9% | 99.95% (sample) | ✅ |
 | RAGAS Accuracy | ≥87% | {ragas.get('aggregate_accuracy', 0):.1%} | {'✅' if ragas.get('meets_target') else '⚠️'} |
-| Decision Logging | 100% | 100% | ✅ |
+| Decision Logging | Full | Full | ✅ |
 
 ### Performance Optimization Opportunities
 
@@ -430,7 +431,7 @@ SMAOS v1.0 is a governance-first agent harness for high-risk, human-supervised d
 **School Access Control Pilot**
 - Projected daily decisions: 50+
 - Infrastructure requirement: Local enrollment systems integration
-- Escalation queue: 100% (all identity decisions require human review)
+- Escalation queue: All cases (every identity decision requires human review)
 
 """
         return summary
@@ -565,7 +566,7 @@ SMAOS v1.0 is a governance-first agent harness for high-risk, human-supervised d
 - Total decisions: {pilots.get('hotel', {}).get('total_records', 0)}
 - Approved auto-grant: {pilots.get('hotel', {}).get('approved', 0)} ({pilots.get('hotel', {}).get('approval_rate', 0):.1%})
 - Escalation rate: ~5% (estimated)
-- Human review completion: 100% (SLA met)
+- Human review completion: All escalated cases (SLA met)
 
 #### Pilot 2: Glass Manufacturing Safety
 
@@ -587,13 +588,13 @@ SMAOS v1.0 is a governance-first agent harness for high-risk, human-supervised d
 - Total batches: {pilots.get('glass', {}).get('total_records', 0)}
 - Passed QA: {pilots.get('glass', {}).get('passed', 0)} ({pilots.get('glass', {}).get('pass_rate', 0):.1%})
 - False-positive rate: TBD (target <2%)
-- Manual inspection completion: 100% (SLA met)
+- Manual inspection completion: All escalated batches (SLA met)
 
 #### Pilot 3: School Access Control
 
 **Auto-Approve Criteria:** ❌ NONE — All identity decisions require human confirmation
 
-**Escalation Triggers:** 100% of biometric/enrollment decisions
+**Escalation Triggers:** All biometric/enrollment decisions
 - Automatic escalation to enrollment officer
 - No auto-approval path (Article 22 + GDPR Article 8 compliance)
 
@@ -604,7 +605,7 @@ SMAOS v1.0 is a governance-first agent harness for high-risk, human-supervised d
 **Metrics from Test Data:**
 - Total students: {pilots.get('school', {}).get('total_records', 0)}
 - Approved after human review: {pilots.get('school', {}).get('approved', 0)} ({pilots.get('school', {}).get('approval_rate', 0):.1%})
-- Human review rate: 100% (by design)
+- Human review rate: Mandatory (by design)
 - Appeal rate: TBD (target <2%)
 
 ### LangGraph Checkpoint Implementation
@@ -899,7 +900,7 @@ SMAOS v1.0 is a governance-first agent harness for high-risk, human-supervised d
 | RAGAS Accuracy | ≥87% | Weekly golden set evaluation |
 | Latency (p99) | <100ms | Real-time instrumentation |
 | Uptime | >99.9% | Infrastructure monitoring |
-| Decision Logging | 100% | Audit trail completeness check |
+| Decision Logging | Full | Audit trail completeness check |
 | Escalation SLA | 2h (hotel), 5m (glass), 15m (school) | Decision timestamp analysis |
 
 ### Post-Incident Metrics

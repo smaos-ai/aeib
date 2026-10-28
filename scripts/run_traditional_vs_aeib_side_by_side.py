@@ -352,7 +352,7 @@ def print_summary_table():
 │ EVALUATION DIMENSION         │ TRADITIONAL AGENT ARCHITECTURE│ AEIB GOVERNED EXECUTION BOUNDARY│
 ├──────────────────────────────┼──────────────────────────────┼──────────────────────────────┤
 │ 1. Ambiguous Wire Fault      │ Blind retry causes double    │ Wire latch (EFFECT_INDET) &  │
-│    (HTTP 504 Gateway Timeout)│ mutations (100% duplicate).  │ single-flight probe: 0 dups. │
+│    (HTTP 504 Gateway Timeout)│ mutations (repeated spend).  │ single-flight probe: 0 dups. │
 ├──────────────────────────────┼──────────────────────────────┼──────────────────────────────┤
 │ 2. Parallel Subagent Swarm   │ Budget overrun anomaly       │ Pre-socket TCC escrow with   │
 │    (Concurrent Tool Calls)   │ (€1,600 spent of €1,500).    │ BEGIN IMMEDIATE: €0 overrun. │

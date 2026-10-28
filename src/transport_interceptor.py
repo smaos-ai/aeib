@@ -216,7 +216,10 @@ class TransportInterceptor:
             "user_tax_id": payload_data.get("tax_id", "TAX-EXAMPLE-001"),
             "credit_limit_eur": str(payload_data.get("amount", 50000)),
             "policy_verdict": disposition,
-            "boundary_hash": signed_hash if (signed_hash := passport_payload.get("payload_hash")) else hashlib.sha256(b"dummy").hexdigest()
+            "boundary_hash": (
+                passport_payload.get("payload_hash")
+                or hashlib.sha256(jcs_canonicalize(payload_data)).hexdigest()
+            )
         }
 
         field_names = SovereignAuditLogEntry.get_field_names()

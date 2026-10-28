@@ -129,15 +129,30 @@ def _compress_point(p: Tuple[int, int, int, int]) -> bytes:
 
 
 def _decompress_point(bs: bytes) -> Optional[Tuple[int, int, int, int]]:
-    """Deserializes 32-byte string into Extended Edwards point."""
+    """
+    Deserializes 32-byte string into Extended Edwards point.
+
+    Strict decoding: rejects non-canonical encodings, i.e. y >= p (RFC 8032
+    Section 5.1.3 step 1) and the x == 0 / sign == 1 encoding (step 4), so each
+    accepted point has exactly one accepted byte representation.
+    """
     if len(bs) != 32:
         return None
     y = int.from_bytes(bs[:31] + bytes([bs[31] & 0x7F]), "little")
+    if y >= FIELD_P:
+        return None
     sign = (bs[31] >> 7) & 1
     x = _recover_x(y, sign)
     if x is None:
         return None
+    if x == 0 and sign == 1:
+        return None
     return (x, y, 1, (x * y) % FIELD_P)
+
+
+def _is_small_order(p: Tuple[int, int, int, int]) -> bool:
+    """Returns True if the point lies in the order-8 torsion subgroup (8*P == identity)."""
+    return _points_equal(_point_mul(8, p), IDENTITY_POINT)
 
 
 def _points_equal(
@@ -158,11 +173,17 @@ def ed25519_verify(
     """
     Pure Python RFC 8032 Section 5.1.7 Ed25519 Signature Verification.
     Zero external dependencies.
+
+    Additional strictness beyond the base RFC text (evaluated against
+    small-order / key-substitution forgeries):
+      - A and R must be canonically encoded (y < p, no x == 0 with sign bit set).
+      - A and R must not be small-order points (8*P != identity).
+      - s must satisfy s < L (rejects s + L malleability).
     """
     if len(public_key_bytes) != 32 or len(signature_bytes) != 64:
         return False
     point_a = _decompress_point(public_key_bytes)
-    if point_a is None:
+    if point_a is None or _is_small_order(point_a):
         return False
 
     r_bytes = signature_bytes[:32]
@@ -171,7 +192,7 @@ def ed25519_verify(
         return False
 
     point_r = _decompress_point(r_bytes)
-    if point_r is None:
+    if point_r is None or _is_small_order(point_r):
         return False
 
     hasher = hashlib.sha512(r_bytes + public_key_bytes + message_bytes)
@@ -262,10 +283,12 @@ def _format_jcs_number(num: float) -> str:
         return digits[:n] + "." + digits[n:]
     elif -6 < n <= 0:
         return "0." + "0" * (-n) + digits
-    elif k == 1:
-        return f"{digits}e{n - 1}"
-    else:
-        return f"{digits[0]}.{digits[1:]}e{n - 1}"
+    # ECMA-262 Number::toString: exponent carries an explicit sign ("+" or "-"),
+    # e.g. 1e+21 and 1e-7.
+    exp_sign = "+" if (n - 1) > 0 else ""
+    if k == 1:
+        return f"{digits}e{exp_sign}{n - 1}"
+    return f"{digits[0]}.{digits[1:]}e{exp_sign}{n - 1}"
 
 
 def _serialize_jcs_str(obj: Any) -> str:
@@ -307,7 +330,51 @@ def compute_jcs_sha256(payload: Any) -> str:
 # 3. Public Key Parsing (Hex, Base64, PEM, Raw)
 # ------------------------------------------------------------------------------
 
+ERR_WEAK_PUBLIC_KEY = "ERR_WEAK_PUBLIC_KEY"
+
+
+def ed25519_public_key_weakness(public_key_bytes: Any) -> Optional[str]:
+    """
+    Typed weakness code for a 32-byte Ed25519 public key, or None if acceptable.
+    Rejects non-canonical encodings (y >= p, x == 0 with sign bit), off-curve
+    encodings and the 8 small-order points (8*A == identity).
+    """
+    if not isinstance(public_key_bytes, (bytes, bytearray)) or len(public_key_bytes) != 32:
+        return "ERR_POINT_ENCODING_LENGTH"
+    y = int.from_bytes(bytes(public_key_bytes[:31]) + bytes([public_key_bytes[31] & 0x7F]), "little")
+    if y >= FIELD_P:
+        return "ERR_NON_CANONICAL_POINT_ENCODING"
+    point = _decompress_point(bytes(public_key_bytes))
+    if point is None:
+        if _recover_x(y, 0) is None:
+            return "ERR_POINT_NOT_ON_CURVE"
+        return "ERR_NON_CANONICAL_POINT_ENCODING"
+    if _is_small_order(point):
+        return "ERR_SMALL_ORDER_POINT"
+    return None
+
+
+class WeakPublicKeyError(ValueError):
+    """Raised by parse_ed25519_public_key for small-order / non-canonical / off-curve keys."""
+
+    def __init__(self, code: str) -> None:
+        self.code = code
+        super().__init__(f"{ERR_WEAK_PUBLIC_KEY} ({code})")
+
+
 def parse_ed25519_public_key(key_input: Union[str, bytes, Path]) -> bytes:
+    """
+    Parses a 32-byte Ed25519 public key (formats as in _parse_ed25519_public_key_raw)
+    and rejects weak keys with WeakPublicKeyError (typed code in `.code`).
+    """
+    raw = _parse_ed25519_public_key_raw(key_input)
+    weakness = ed25519_public_key_weakness(raw)
+    if weakness is not None:
+        raise WeakPublicKeyError(weakness)
+    return raw
+
+
+def _parse_ed25519_public_key_raw(key_input: Union[str, bytes, Path]) -> bytes:
     """
     Parses a 32-byte Ed25519 public key from multiple input formats:
       - 32-byte raw bytes
@@ -369,6 +436,90 @@ def parse_ed25519_public_key(key_input: Union[str, bytes, Path]) -> bytes:
     raise ValueError("Could not parse valid 32-byte Ed25519 public key from input")
 
 
+# ==============================================================================
+# Strict JSON ingress + nesting cap (stdlib only)
+# ==============================================================================
+
+MAX_JSON_DEPTH = 64  # claim: config (containers deeper than this are rejected before canonicalization)
+
+ERR_DUPLICATE_KEY = "ERR_DUPLICATE_KEY"
+ERR_NON_FINITE_NUMBER = "ERR_NON_FINITE_NUMBER"
+ERR_INVALID_JSON = "ERR_INVALID_JSON"
+ERR_NESTING_TOO_DEEP = "ERR_NESTING_TOO_DEEP"
+
+
+class StrictIngressError(ValueError):
+    """Typed rejection raised by strict JSON ingress (duplicate keys, NaN/Infinity, depth)."""
+
+    def __init__(self, code: str, detail: str = "") -> None:
+        self.code = code
+        self.detail = detail
+        super().__init__(f"{code}: {detail}" if detail else code)
+
+
+def exceeds_max_depth(value: Any, limit: int = MAX_JSON_DEPTH) -> bool:
+    """Iterative container-depth check (never recurses, so it cannot raise RecursionError)."""
+    stack = [(value, 1)]
+    while stack:
+        item, depth = stack.pop()
+        if isinstance(item, dict):
+            if depth > limit:
+                return True
+            stack.extend((child, depth + 1) for child in item.values())
+        elif isinstance(item, (list, tuple)):
+            if depth > limit:
+                return True
+            stack.extend((child, depth + 1) for child in item)
+    return False
+
+
+def loads_strict_json(text: Union[str, bytes]) -> Any:
+    """json.loads with duplicate-key, NaN/Infinity and nesting-depth rejection (typed codes)."""
+    if isinstance(text, (bytes, bytearray)):
+        try:
+            text = bytes(text).decode("utf-8")
+        except UnicodeDecodeError as exc:
+            raise StrictIngressError(ERR_INVALID_JSON, "input is not UTF-8") from exc
+
+    def _pairs(pairs: List[Tuple[str, Any]]) -> Dict[str, Any]:
+        obj: Dict[str, Any] = {}
+        for key, val in pairs:
+            if key in obj:
+                raise StrictIngressError(ERR_DUPLICATE_KEY, repr(key)[:60])
+            obj[key] = val
+        return obj
+
+    def _constant(name: str) -> Any:
+        raise StrictIngressError(ERR_NON_FINITE_NUMBER, name)
+
+    def _float(literal: str) -> float:
+        val = float(literal)
+        if val != val or val in (float("inf"), float("-inf")):
+            raise StrictIngressError(ERR_NON_FINITE_NUMBER, literal[:60])
+        return val
+
+    try:
+        result = json.loads(text, object_pairs_hook=_pairs, parse_constant=_constant, parse_float=_float)
+    except StrictIngressError:
+        raise
+    except RecursionError as exc:
+        raise StrictIngressError(ERR_NESTING_TOO_DEEP, "parser recursion limit") from exc
+    except ValueError as exc:
+        raise StrictIngressError(ERR_INVALID_JSON, str(exc)[:120]) from exc
+    if exceeds_max_depth(result):
+        raise StrictIngressError(ERR_NESTING_TOO_DEEP, f"nesting deeper than {MAX_JSON_DEPTH}")
+    return result
+
+
+def _decode_signature_strict(value: Any) -> bytes:
+    """128 hex chars -> hex; otherwise strict base64 (validate=True). Raises ValueError otherwise."""
+    if not isinstance(value, str):
+        raise ValueError("signature must be a string")
+    if len(value) == 128:
+        return bytes.fromhex(value)
+    return base64.b64decode(value, validate=True)
+
+
 # ------------------------------------------------------------------------------
 # 4. RFC 9162 Merkle Tree Functions
 # ------------------------------------------------------------------------------
@@ -393,6 +544,10 @@ def verify_rfc9162_inclusion(
     """
     Verifies an RFC 9162 inclusion proof demonstrating membership of leaf_hash
     at leaf_index in a Merkle tree of size tree_size with root_hash.
+
+    Follows RFC 9162 Section 2.1.3.2 step by step, including the final
+    ``sn == 0`` check, so a proof that is too short (an interior node passed
+    off as a leaf) or too long is rejected.
     """
     if tree_size <= 0 or leaf_index < 0 or leaf_index >= tree_size:
         return False
@@ -408,23 +563,58 @@ def verify_rfc9162_inclusion(
     for sibling in audit_path:
         if sn == 0:
             return False
-        is_right = (fn % 2 == 1) or (fn == sn)
-        if is_right:
+        if (fn % 2 == 1) or (fn == sn):
             current = rfc9162_hash_children(sibling, current)
-            while (fn % 2 == 0) and (fn < sn):
-                fn //= 2
-                sn //= 2
+            # Right-shift fn and sn equally until LSB(fn) is set or fn is 0.
+            while (fn % 2 == 0) and (fn != 0):
+                fn >>= 1
+                sn >>= 1
         else:
             current = rfc9162_hash_children(current, sibling)
-        fn //= 2
-        sn //= 2
+        fn >>= 1
+        sn >>= 1
 
-    return hmac.compare_digest(current, root_hash)
+    return sn == 0 and hmac.compare_digest(current, root_hash)
 
 
 # ------------------------------------------------------------------------------
 # 5. Selective Disclosure Verification Functions
 # ------------------------------------------------------------------------------
+
+UNPINNED_KEY_ERROR = (
+    "No trusted public key supplied; refusing to verify against a key embedded "
+    "in the receipt (an attacker can substitute both key and signature). Pass "
+    "--public-key, or --allow-embedded-key / allow_embedded_key=True to accept "
+    "an unpinned self-asserted key (result then carries key_pinned=False)."
+)
+
+UNPINNED_ROOT_ERROR = (
+    "No pinned Merkle root supplied and no signed tree head verified; a "
+    "self-asserted root_hash does not establish inclusion. Pass --pinned-root."
+)
+
+
+APPROVED_SIGNATURE_ALGORITHMS: Set[str] = {"Ed25519", "EdDSA", "-8"}
+
+
+def declared_algorithm_violation(receipt: Dict[str, Any]) -> Optional[str]:
+    """
+    Returns the first declared signature algorithm that is not Ed25519, or None.
+    Checked locations: top-level alg/algorithm, signature_metadata.algorithm,
+    attestation_signature.alg/algorithm, signature_envelope.alg/algorithm.
+    Receipt formats without any declared algorithm are accepted (Ed25519 is the
+    only primitive this tool implements).
+    """
+    containers = [receipt]
+    for key in ("signature_metadata", "attestation_signature", "signature_envelope"):
+        if isinstance(receipt.get(key), dict):
+            containers.append(receipt[key])
+    for container in containers:
+        for field in ("alg", "algorithm"):
+            if field in container and str(container[field]) not in APPROVED_SIGNATURE_ALGORITHMS:
+                return str(container[field])
+    return None
+
 
 def compute_field_commitment(key: str, value: Any, salt: str) -> str:
     """Computes deterministic salted blind commitment for a single key-value pair."""
@@ -443,6 +633,7 @@ def compute_receipt_root(field_commitments: Dict[str, str]) -> str:
 def verify_selective_disclosure_receipt(
     receipt: Dict[str, Any],
     trusted_pubkey_bytes: Optional[bytes] = None,
+    allow_embedded_key: bool = False,
 ) -> Dict[str, Any]:
     """
     Verifies an AEIB selective disclosure receipt:
@@ -450,6 +641,10 @@ def verify_selective_disclosure_receipt(
       2. Merges blind commitments for redacted claims.
       3. Verifies that reconstructed root hash matches receipt root_hash.
       4. Verifies Ed25519 signature over root_hash.
+
+    Key pinning: without trusted_pubkey_bytes the receipt is rejected, unless
+    allow_embedded_key=True, in which case the key embedded in the receipt is
+    used and the result carries key_pinned=False.
     """
     receipt_id = str(receipt.get("receipt_id", "UNKNOWN"))
     disclosed_claims = receipt.get("disclosed_claims", {})
@@ -462,6 +657,7 @@ def verify_selective_disclosure_receipt(
             "valid": False,
             "receipt_type": "SELECTIVE_DISCLOSURE",
             "receipt_id": receipt_id,
+            "error_code": "ERR_SCHEMA_INVALID",
             "error": "Malformed disclosed_claims or disclosed_salts mapping",
         }
 
@@ -474,6 +670,7 @@ def verify_selective_disclosure_receipt(
                 "valid": False,
                 "receipt_type": "SELECTIVE_DISCLOSURE",
                 "receipt_id": receipt_id,
+                "error_code": "ERR_SCHEMA_INVALID",
                 "error": f"Missing or invalid salt for disclosed claim '{k}'",
             }
         reconstructed_commitments[k] = compute_field_commitment(k, v, salt)
@@ -484,6 +681,7 @@ def verify_selective_disclosure_receipt(
                 "valid": False,
                 "receipt_type": "SELECTIVE_DISCLOSURE",
                 "receipt_id": receipt_id,
+                "error_code": "ERR_SCHEMA_INVALID",
                 "error": f"Field '{k}' cannot be simultaneously disclosed and redacted",
             }
         if not isinstance(commit, str) or len(commit) != 64:
@@ -491,6 +689,7 @@ def verify_selective_disclosure_receipt(
                 "valid": False,
                 "receipt_type": "SELECTIVE_DISCLOSURE",
                 "receipt_id": receipt_id,
+                "error_code": "ERR_SCHEMA_INVALID",
                 "error": f"Invalid redacted commitment format for field '{k}'",
             }
         reconstructed_commitments[k] = commit
@@ -501,6 +700,7 @@ def verify_selective_disclosure_receipt(
             "valid": False,
             "receipt_type": "SELECTIVE_DISCLOSURE",
             "receipt_id": receipt_id,
+            "error_code": "ERR_ROOT_HASH_MISMATCH",
             "error": f"Root hash mismatch: computed '{computed_root}' != receipt '{root_hash}'",
         }
 
@@ -515,6 +715,17 @@ def verify_selective_disclosure_receipt(
         sig_b64 = receipt.get("signature_b64") or receipt.get("signature")
         pub_hex = receipt.get("public_key_hex") or receipt.get("public_key")
 
+    key_pinned = trusted_pubkey_bytes is not None
+    if not key_pinned and not allow_embedded_key:
+        return {
+            "valid": False,
+            "receipt_type": "SELECTIVE_DISCLOSURE",
+            "receipt_id": receipt_id,
+            "key_pinned": False,
+            "error_code": "ERR_UNPINNED_KEY",
+            "error": UNPINNED_KEY_ERROR,
+        }
+
     active_pubkey = trusted_pubkey_bytes
     if active_pubkey is None and pub_hex:
         try:
@@ -524,6 +735,7 @@ def verify_selective_disclosure_receipt(
                 "valid": False,
                 "receipt_type": "SELECTIVE_DISCLOSURE",
                 "receipt_id": receipt_id,
+                "error_code": "ERR_MALFORMED_KEY",
                 "error": "Malformed public_key_hex in receipt",
             }
 
@@ -532,6 +744,7 @@ def verify_selective_disclosure_receipt(
             "valid": False,
             "receipt_type": "SELECTIVE_DISCLOSURE",
             "receipt_id": receipt_id,
+            "error_code": "ERR_UNPINNED_KEY",
             "error": "No trusted public key supplied or found in receipt",
         }
 
@@ -540,17 +753,29 @@ def verify_selective_disclosure_receipt(
             "valid": False,
             "receipt_type": "SELECTIVE_DISCLOSURE",
             "receipt_id": receipt_id,
+            "error_code": "ERR_MISSING_SIGNATURE",
             "error": "Missing signature in selective disclosure receipt",
         }
 
     try:
-        sig_bytes = bytes.fromhex(sig_b64) if len(sig_b64) == 128 else base64.b64decode(sig_b64)
+        sig_bytes = _decode_signature_strict(sig_b64)
     except Exception:
         return {
             "valid": False,
             "receipt_type": "SELECTIVE_DISCLOSURE",
             "receipt_id": receipt_id,
+            "error_code": "ERR_MALFORMED_SIGNATURE_ENCODING",
             "error": "Malformed signature encoding",
+        }
+
+    key_weakness = ed25519_public_key_weakness(active_pubkey)
+    if key_weakness is not None:
+        return {
+            "valid": False,
+            "receipt_type": "SELECTIVE_DISCLOSURE",
+            "receipt_id": receipt_id,
+            "error_code": ERR_WEAK_PUBLIC_KEY,
+            "error": f"Public key rejected: {key_weakness}",
         }
 
     sig_valid = ed25519_verify(active_pubkey, root_hash.encode("utf-8"), sig_bytes)
@@ -559,6 +784,7 @@ def verify_selective_disclosure_receipt(
             "valid": False,
             "receipt_type": "SELECTIVE_DISCLOSURE",
             "receipt_id": receipt_id,
+            "error_code": "ERR_INVALID_SIGNATURE",
             "error": "Ed25519 signature verification failed over root_hash",
         }
 
@@ -569,6 +795,7 @@ def verify_selective_disclosure_receipt(
         "root_hash": root_hash,
         "disclosed_fields_count": len(disclosed_claims),
         "redacted_fields_count": len(redacted_commitments),
+        "key_pinned": key_pinned,
     }
 
 
@@ -595,6 +822,7 @@ def verify_aeib_execution_receipt(
     receipt: Dict[str, Any],
     trusted_pubkey_bytes: Optional[bytes] = None,
     current_epoch: Optional[int] = None,
+    allow_embedded_key: bool = False,
 ) -> Dict[str, Any]:
     """
     Verifies an AEIB execution receipt:
@@ -603,6 +831,10 @@ def verify_aeib_execution_receipt(
       3. Validates policy epoch.
       4. Validates timestamp sanity.
       5. Verifies author Ed25519 signature.
+
+    Key pinning: without trusted_pubkey_bytes the receipt is rejected, unless
+    allow_embedded_key=True, in which case the key embedded in the receipt is
+    used and the result carries key_pinned=False.
     """
     op_id = (
         receipt.get("operation_id")
@@ -631,6 +863,7 @@ def verify_aeib_execution_receipt(
             "valid": False,
             "receipt_type": "AEIB_EXECUTION",
             "operation_id": op_id,
+            "error_code": "ERR_INVALID_DISPOSITION",
             "error": f"Invalid disposition '{disposition}'",
         }
 
@@ -652,6 +885,7 @@ def verify_aeib_execution_receipt(
                     "valid": False,
                     "receipt_type": "AEIB_EXECUTION",
                     "operation_id": op_id,
+                    "error_code": "ERR_CAID_MISMATCH",
                     "error": f"CAID mismatch: claimed '{claimed_caid}', computed '{computed_digest}'",
                 }
 
@@ -663,6 +897,7 @@ def verify_aeib_execution_receipt(
                 "valid": False,
                 "receipt_type": "AEIB_EXECUTION",
                 "operation_id": op_id,
+                "error_code": "ERR_INVALID_POLICY_EPOCH",
                 "error": f"Invalid policy epoch format: '{epoch}'",
             }
         if current_epoch is not None and epoch > current_epoch:
@@ -670,6 +905,7 @@ def verify_aeib_execution_receipt(
                 "valid": False,
                 "receipt_type": "AEIB_EXECUTION",
                 "operation_id": op_id,
+                "error_code": "ERR_POLICY_EPOCH_IN_FUTURE",
                 "error": f"Policy epoch {epoch} exceeds current configured epoch {current_epoch}",
             }
 
@@ -696,7 +932,7 @@ def verify_aeib_execution_receipt(
         att = receipt["attestation_signature"]
         raw_sig = att.get("signature_b64") or att.get("signature_hex")
         if raw_sig:
-            sig_bytes = bytes.fromhex(raw_sig) if len(raw_sig) == 128 else base64.b64decode(raw_sig)
+            sig_bytes = _decode_signature_strict(raw_sig)
         if pub_bytes is None and att.get("public_key_hex"):
             pub_bytes = bytes.fromhex(att["public_key_hex"])
         unsigned_body = {k: v for k, v in receipt.items() if k != "attestation_signature"}
@@ -706,7 +942,7 @@ def verify_aeib_execution_receipt(
     elif "signature_b64" in receipt or "signature_hex" in receipt:
         raw_sig = receipt.get("signature_b64") or receipt.get("signature_hex")
         if raw_sig:
-            sig_bytes = bytes.fromhex(raw_sig) if len(raw_sig) == 128 else base64.b64decode(raw_sig)
+            sig_bytes = _decode_signature_strict(raw_sig)
         if pub_bytes is None and receipt.get("public_key_hex"):
             pub_bytes = bytes.fromhex(receipt["public_key_hex"])
         elif pub_bytes is None and receipt.get("signer_pubkey"):
@@ -721,7 +957,7 @@ def verify_aeib_execution_receipt(
     elif "root_hash" in receipt and "signature" in receipt and "signer_pubkey" in receipt:
         raw_sig = receipt.get("signature")
         if raw_sig:
-            sig_bytes = bytes.fromhex(raw_sig) if len(raw_sig) == 128 else base64.b64decode(raw_sig)
+            sig_bytes = _decode_signature_strict(raw_sig)
         if pub_bytes is None:
             pub_bytes = bytes.fromhex(receipt["signer_pubkey"])
         root_b = bytes.fromhex(receipt["root_hash"])
@@ -735,12 +971,12 @@ def verify_aeib_execution_receipt(
         env = receipt["signature_envelope"]
         raw_sig = env.get("signature_b64") or env.get("signature") or env.get("signature_hex")
         if raw_sig:
-            sig_bytes = bytes.fromhex(raw_sig) if len(raw_sig) == 128 else base64.b64decode(raw_sig)
+            sig_bytes = _decode_signature_strict(raw_sig)
         if pub_bytes is None and env.get("public_key_hex"):
             pub_bytes = bytes.fromhex(env["public_key_hex"])
         elif pub_bytes is None and env.get("public_key"):
             pk_val = env["public_key"]
-            pub_bytes = bytes.fromhex(pk_val) if len(pk_val) == 64 else base64.b64decode(pk_val)
+            pub_bytes = bytes.fromhex(pk_val) if len(pk_val) == 64 else base64.b64decode(pk_val, validate=True)
         signable_message = encode_jcs(receipt["receipt_body"])
 
     if sig_bytes is None or signable_message is None:
@@ -748,6 +984,7 @@ def verify_aeib_execution_receipt(
             "valid": False,
             "receipt_type": "AEIB_EXECUTION",
             "operation_id": op_id,
+            "error_code": "ERR_MISSING_SIGNATURE",
             "error": "Could not extract cryptographic signature and signable body from receipt",
         }
 
@@ -756,7 +993,29 @@ def verify_aeib_execution_receipt(
             "valid": False,
             "receipt_type": "AEIB_EXECUTION",
             "operation_id": op_id,
+            "error_code": "ERR_UNPINNED_KEY",
             "error": "No trusted public key provided or resolved for receipt",
+        }
+
+    key_pinned = trusted_pubkey_bytes is not None
+    if not key_pinned and not allow_embedded_key:
+        return {
+            "valid": False,
+            "receipt_type": "AEIB_EXECUTION",
+            "operation_id": op_id,
+            "key_pinned": False,
+            "error_code": "ERR_UNPINNED_KEY",
+            "error": UNPINNED_KEY_ERROR,
+        }
+
+    key_weakness = ed25519_public_key_weakness(pub_bytes)
+    if key_weakness is not None:
+        return {
+            "valid": False,
+            "receipt_type": "AEIB_EXECUTION",
+            "operation_id": op_id,
+            "error_code": ERR_WEAK_PUBLIC_KEY,
+            "error": f"Public key rejected: {key_weakness}",
         }
 
     sig_ok = ed25519_verify(pub_bytes, signable_message, sig_bytes)
@@ -765,6 +1024,7 @@ def verify_aeib_execution_receipt(
             "valid": False,
             "receipt_type": "AEIB_EXECUTION",
             "operation_id": op_id,
+            "error_code": "ERR_INVALID_SIGNATURE",
             "error": "Ed25519 signature verification failed",
         }
 
@@ -775,6 +1035,7 @@ def verify_aeib_execution_receipt(
         "disposition": disposition or "CONFIRMED",
         "caid": claimed_caid,
         "epoch": epoch,
+        "key_pinned": key_pinned,
     }
 
 
@@ -789,8 +1050,19 @@ def verify_merkle_receipt(
     """
     Verifies an RFC 9162 Merkle tree inclusion receipt:
       - Validates leaf_index, tree_size, inclusion_proof, and root_hash.
-      - If pinned_root_bytes provided, checks proof against pinned root.
+      - Requires pinned_root_bytes: the receipt's own root_hash is
+        self-asserted, so without a pinned root (or a verified signed tree
+        head, not implemented in this scaffold) the result is valid=False.
     """
+    if pinned_root_bytes is None:
+        return {
+            "valid": False,
+            "receipt_type": "RFC9162_MERKLE",
+            "root_pinned": False,
+            "error_code": "ERR_UNPINNED_ROOT",
+            "error": UNPINNED_ROOT_ERROR,
+        }
+
     leaf_idx = receipt.get("leaf_index")
     tree_size = receipt.get("tree_size")
     root_hex = receipt.get("root_hash")
@@ -800,6 +1072,7 @@ def verify_merkle_receipt(
         return {
             "valid": False,
             "receipt_type": "RFC9162_MERKLE",
+            "error_code": "ERR_SCHEMA_INVALID",
             "error": "Missing or non-integer leaf_index or tree_size",
         }
 
@@ -807,6 +1080,7 @@ def verify_merkle_receipt(
         return {
             "valid": False,
             "receipt_type": "RFC9162_MERKLE",
+            "error_code": "ERR_SCHEMA_INVALID",
             "error": "Invalid or missing root_hash 64-hex string",
         }
 
@@ -816,13 +1090,15 @@ def verify_merkle_receipt(
         return {
             "valid": False,
             "receipt_type": "RFC9162_MERKLE",
+            "error_code": "ERR_SCHEMA_INVALID",
             "error": "Invalid hex format in root_hash",
         }
 
-    if pinned_root_bytes is not None and not hmac.compare_digest(root_bytes, pinned_root_bytes):
+    if not hmac.compare_digest(root_bytes, pinned_root_bytes):
         return {
             "valid": False,
             "receipt_type": "RFC9162_MERKLE",
+            "error_code": "ERR_ROOT_HASH_MISMATCH",
             "error": f"Root hash mismatch against pinned root: receipt '{root_hex}', pinned '{pinned_root_bytes.hex()}'",
         }
 
@@ -832,7 +1108,7 @@ def verify_merkle_receipt(
         try:
             leaf_hash = bytes.fromhex(receipt["leaf_hash"])
         except ValueError:
-            return {"valid": False, "receipt_type": "RFC9162_MERKLE", "error": "Invalid leaf_hash hex"}
+            return {"valid": False, "receipt_type": "RFC9162_MERKLE", "error_code": "ERR_SCHEMA_INVALID", "error": "Invalid leaf_hash hex"}
     elif "action_id" in receipt and "intent_digest" in receipt and "verdict" in receipt:
         action_id = str(receipt["action_id"])
         intent_bytes = bytes.fromhex(receipt["intent_digest"])
@@ -847,6 +1123,7 @@ def verify_merkle_receipt(
         return {
             "valid": False,
             "receipt_type": "RFC9162_MERKLE",
+            "error_code": "ERR_SCHEMA_INVALID",
             "error": "Could not derive 32-byte RFC 9162 leaf hash",
         }
 
@@ -854,6 +1131,7 @@ def verify_merkle_receipt(
         return {
             "valid": False,
             "receipt_type": "RFC9162_MERKLE",
+            "error_code": "ERR_SCHEMA_INVALID",
             "error": "Missing inclusion_proof list",
         }
 
@@ -865,6 +1143,7 @@ def verify_merkle_receipt(
                 return {
                     "valid": False,
                     "receipt_type": "RFC9162_MERKLE",
+                    "error_code": "ERR_SCHEMA_INVALID",
                     "error": "Sibling node in inclusion proof must be 32 bytes",
                 }
             audit_path.append(sb)
@@ -872,6 +1151,7 @@ def verify_merkle_receipt(
             return {
                 "valid": False,
                 "receipt_type": "RFC9162_MERKLE",
+                "error_code": "ERR_SCHEMA_INVALID",
                 "error": f"Malformed sibling hex '{sibling_hex}'",
             }
 
@@ -887,6 +1167,7 @@ def verify_merkle_receipt(
         return {
             "valid": False,
             "receipt_type": "RFC9162_MERKLE",
+            "error_code": "ERR_INCLUSION_PROOF_INVALID",
             "error": "RFC 9162 inclusion proof validation failed against root_hash",
         }
 
@@ -896,6 +1177,7 @@ def verify_merkle_receipt(
         "leaf_index": leaf_idx,
         "tree_size": tree_size,
         "root_hash": root_hex,
+        "root_pinned": True,
     }
 
 
@@ -908,21 +1190,55 @@ def verify_any_receipt(
     trusted_pubkey_bytes: Optional[bytes] = None,
     pinned_root_bytes: Optional[bytes] = None,
     current_epoch: Optional[int] = None,
+    allow_embedded_key: bool = False,
 ) -> Dict[str, Any]:
-    """Inspects receipt data and routes to the appropriate verification engine."""
+    """
+    Inspects receipt data and routes to the appropriate verification engine.
+    Input nesting deeper than MAX_JSON_DEPTH is rejected before canonicalization
+    and malformed input yields a coded rejection (error_code), never an exception.
+    """
+    if exceeds_max_depth(receipt_data):
+        return {"valid": False, "error_code": ERR_NESTING_TOO_DEEP, "error": f"Receipt nesting exceeds {MAX_JSON_DEPTH}"}
+    try:
+        return _route_receipt(receipt_data, trusted_pubkey_bytes, pinned_root_bytes, current_epoch, allow_embedded_key)
+    except RecursionError:
+        return {"valid": False, "error_code": ERR_NESTING_TOO_DEEP, "error": "Receipt nesting exceeds recursion limit"}
+    except (TypeError, ValueError, AttributeError, KeyError) as exc:
+        return {"valid": False, "error_code": "ERR_MALFORMED_RECEIPT", "error": f"Malformed receipt: {type(exc).__name__}"}
+
+
+def _route_receipt(
+    receipt_data: Any,
+    trusted_pubkey_bytes: Optional[bytes],
+    pinned_root_bytes: Optional[bytes],
+    current_epoch: Optional[int],
+    allow_embedded_key: bool,
+) -> Dict[str, Any]:
     if not isinstance(receipt_data, dict):
-        return {"valid": False, "error": "Receipt must be a JSON object"}
+        return {"valid": False, "error_code": "ERR_SCHEMA_INVALID", "error": "Receipt must be a JSON object"}
+
+    bad_alg = declared_algorithm_violation(receipt_data)
+    if bad_alg is not None:
+        return {
+            "valid": False,
+            "error_code": "ERR_UNSUPPORTED_ALGORITHM",
+            "error": f"Unsupported declared signature algorithm '{bad_alg}' (only Ed25519/EdDSA)",
+        }
 
     # Case 1: Selective Disclosure Receipt
     if "disclosed_claims" in receipt_data and "redacted_field_commitments" in receipt_data:
-        return verify_selective_disclosure_receipt(receipt_data, trusted_pubkey_bytes)
+        return verify_selective_disclosure_receipt(
+            receipt_data, trusted_pubkey_bytes, allow_embedded_key=allow_embedded_key
+        )
 
     # Case 2: Pure RFC 9162 Merkle Receipt
     if "inclusion_proof" in receipt_data and "leaf_index" in receipt_data and "tree_size" in receipt_data and "format" not in receipt_data:
         return verify_merkle_receipt(receipt_data, pinned_root_bytes)
 
     # Case 3: AEIB Execution Receipt
-    return verify_aeib_execution_receipt(receipt_data, trusted_pubkey_bytes, current_epoch)
+    return verify_aeib_execution_receipt(
+        receipt_data, trusted_pubkey_bytes, current_epoch, allow_embedded_key=allow_embedded_key
+    )
 
 
 def verify_bundle_directory(
@@ -930,6 +1246,7 @@ def verify_bundle_directory(
     trusted_pubkey_bytes: Optional[bytes] = None,
     pinned_root_bytes: Optional[bytes] = None,
     current_epoch: Optional[int] = None,
+    allow_embedded_key: bool = False,
 ) -> Dict[str, Any]:
     """Recursively parses and verifies all receipts inside a bundle directory."""
     if not bundle_dir.is_dir():
@@ -951,24 +1268,37 @@ def verify_bundle_directory(
                     line = line.strip()
                     if not line:
                         continue
-                    item = json.loads(line)
+                    item = loads_strict_json(line)
                     total_count += 1
-                    res = verify_any_receipt(item, trusted_pubkey_bytes, pinned_root_bytes, current_epoch)
+                    res = verify_any_receipt(
+                        item, trusted_pubkey_bytes, pinned_root_bytes, current_epoch,
+                        allow_embedded_key=allow_embedded_key,
+                    )
                     if res.get("valid"):
                         valid_count += 1
                     else:
-                        failures.append({"file": str(file_path), "line": line_idx, "error": res.get("error")})
+                        failures.append({
+                            "file": str(file_path), "line": line_idx,
+                            "error_code": res.get("error_code"), "error": res.get("error"),
+                        })
             else:
-                item = json.loads(content)
+                item = loads_strict_json(content)
                 total_count += 1
-                res = verify_any_receipt(item, trusted_pubkey_bytes, pinned_root_bytes, current_epoch)
+                res = verify_any_receipt(
+                    item, trusted_pubkey_bytes, pinned_root_bytes, current_epoch,
+                    allow_embedded_key=allow_embedded_key,
+                )
                 if res.get("valid"):
                     valid_count += 1
                 else:
-                    failures.append({"file": str(file_path), "error": res.get("error")})
+                    failures.append({"file": str(file_path), "error_code": res.get("error_code"), "error": res.get("error")})
         except Exception as exc:
             total_count += 1
-            failures.append({"file": str(file_path), "error": f"Failed to read/parse: {exc}"})
+            failures.append({
+                "file": str(file_path),
+                "error_code": getattr(exc, "code", "ERR_UNREADABLE_RECEIPT_FILE"),
+                "error": f"Failed to read/parse: {exc}",
+            })
 
     all_valid = (total_count > 0) and (valid_count == total_count)
     return {
@@ -1130,12 +1460,27 @@ def main() -> None:
     parser.add_argument(
         "--public-key",
         type=str,
-        help="Trusted Ed25519 public key (hex string, base64 string, PEM string, or path to key file).",
+        help=(
+            "Trusted Ed25519 public key (hex string, base64 string, PEM string, or path to key file). "
+            "Required for signed receipts unless --allow-embedded-key is given."
+        ),
+    )
+    parser.add_argument(
+        "--allow-embedded-key",
+        action="store_true",
+        help=(
+            "Accept the public key embedded in the receipt when no --public-key is pinned. "
+            "This only shows the receipt is self-consistent, not who signed it; verdicts "
+            "then carry key_pinned=False. Off by default (unpinned receipts fail)."
+        ),
     )
     parser.add_argument(
         "--pinned-root",
         type=str,
-        help="Pinned RFC 9162 Merkle root hex string (32 bytes / 64 hex characters).",
+        help=(
+            "Pinned RFC 9162 Merkle root hex string (32 bytes / 64 hex characters). "
+            "Required for Merkle inclusion receipts; without it they fail."
+        ),
     )
     parser.add_argument(
         "--policy-epoch",
@@ -1197,9 +1542,14 @@ def main() -> None:
             print(f"[FAIL] Receipt file not found: {args.verify_receipt}", file=sys.stderr)
             sys.exit(2)
         try:
-            data = json.loads(args.verify_receipt.read_text(encoding="utf-8"))
+            data = loads_strict_json(args.verify_receipt.read_text(encoding="utf-8"))
+        except StrictIngressError as exc:
+            if args.json:
+                print(json.dumps({"valid": False, "error_code": exc.code, "error": str(exc)}, indent=2))
+            print(f"[FAIL] Receipt rejected by strict JSON ingress: {exc}", file=sys.stderr)
+            sys.exit(2)
         except Exception as exc:
-            print(f"[FAIL] Could not parse receipt JSON: {exc}", file=sys.stderr)
+            print(f"[FAIL] Could not read receipt file: {exc}", file=sys.stderr)
             sys.exit(2)
 
         verdict = verify_any_receipt(
@@ -1207,6 +1557,7 @@ def main() -> None:
             trusted_pubkey_bytes=trusted_pub,
             pinned_root_bytes=pinned_root,
             current_epoch=args.policy_epoch,
+            allow_embedded_key=args.allow_embedded_key,
         )
 
         if args.json:
@@ -1229,6 +1580,7 @@ def main() -> None:
                 trusted_pubkey_bytes=trusted_pub,
                 pinned_root_bytes=pinned_root,
                 current_epoch=args.policy_epoch,
+                allow_embedded_key=args.allow_embedded_key,
             )
         except Exception as exc:
             print(f"[FAIL] Bundle verification error: {exc}", file=sys.stderr)

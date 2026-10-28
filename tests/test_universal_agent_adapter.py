@@ -128,7 +128,7 @@ def test_mcp_proxy_jsonrpc_quarantine():
     }
     resp = proxy.process_jsonrpc_request(req, backend_failing)
     assert "error" in resp
-    assert resp["error"]["code"] == -32000
+    assert int(resp["error"]["code"]) == -32000
     assert "DISPATCHED_UNCONFIRMED" in resp["error"]["message"] or "Quarantined" in resp["error"]["message"]
 
 

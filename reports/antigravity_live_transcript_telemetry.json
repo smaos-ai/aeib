@@ -1,0 +1,26 @@
+{
+  "archived_observation_count": 263,
+  "bytes_by_kind": {
+    "EO1_APPROVAL_RECORD": 246822,
+    "SAFETY_INVARIANT": 4874,
+    "SCRATCH_SUMMARY": 934472,
+    "TOOL_OBSERVATION": 1448927,
+    "USER_INSTRUCTION": 678
+  },
+  "cli_progress_bar_bloat_bytes": 26977,
+  "host_cache_read_tokens_sum": 46232633,
+  "host_input_tokens_sum": 1624617,
+  "host_output_tokens_sum": 362152,
+  "host_total_prompt_tokens": 47857250,
+  "lossless_sha256_recoveries_verified": 263,
+  "planner_turn_count": 319,
+  "post_contextcart_bytes": 1346924,
+  "post_contextcart_estimated_tokens": 336731,
+  "raw_estimated_tokens": 658944,
+  "raw_total_bytes": 2635773,
+  "reclaimed_bytes": 1288849,
+  "reclaimed_estimated_tokens": 322213,
+  "total_steps": 982,
+  "transcript_path": "/Users/andriileukhin/.gemini/antigravity/brain/0086c6b5-41fe-4cdc-9df1-b8953aad2dcf/.system_generated/logs/transcript_full.jsonl",
+  "transcript_payload_sha256": "88d6f43db59a2872f0b7e5d825fcce6473fac7e1f807c6be49393435359fe07b"
+}

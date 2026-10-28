@@ -105,7 +105,7 @@ class EuAiActEvidenceExporter:
                 "total_operations_evaluated": 1000,
                 "pre_execution_blocks": 25,
                 "unresolved_indeterminate_operations": 0,
-                "mean_reconciliation_time_ms": 420.5,
+                "mean_reconciliation_time_ms": 420.5,  # claim: assumption
             },
         }
 

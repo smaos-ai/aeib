@@ -1,0 +1,7 @@
+{
+  "entry_module": "solution",
+  "id": "parse_money_minor",
+  "instruction": "Implement parse_minor(text) converting a decimal string like '12.34', '-0.50', '7' into integer minor units (cents). At most 2 decimals; no floats anywhere; raise ValueError on malformed input (empty, '1.234', '1.2.3', 'abc', '+-1').",
+  "starter_source": "def parse_minor(text: str) -> int:\n    \"\"\"'12.34' -> 1234; '-0.5' -> -50; '7' -> 700.\"\"\"\n    ...\n",
+  "type": "money"
+}

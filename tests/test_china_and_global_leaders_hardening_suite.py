@@ -206,3 +206,67 @@ def test_banned_words_absence() -> None:
         text = Path(path_str).read_text(encoding="utf-8").lower()
         for word in banned:
             assert word not in text, f"Forbidden term '{word}' found in {path_str}"
+
+
+def test_china_and_global_leaders_mutation_boundaries(monkeypatch: object) -> None:
+    import ast as _ast
+    import pytest
+    import src.china_and_global_leaders_hardening_suite as cgl
+    from src.china_and_global_leaders_hardening_suite import TSFlowCorrectiveFeedback
+
+    mp = pytest.MonkeyPatch()
+    tree = _ast.parse(Path(cgl.__file__).read_text(encoding="utf-8"))
+    found_exc = False
+    for node in _ast.walk(tree):
+        if isinstance(node, _ast.ExceptHandler) and isinstance(node.type, _ast.Name) and node.type.id == "ImportError":
+            for stmt in node.body:
+                if isinstance(stmt, _ast.Expr) and isinstance(stmt.value, _ast.Call):
+                    found_exc = True
+                    assert isinstance(stmt.value.args[0], _ast.Constant) and stmt.value.args[0].value == 0
+    assert found_exc is True
+    assert isinstance(tree.body[-1], _ast.If)
+    assert isinstance(tree.body[-1].test, _ast.Compare)
+    assert isinstance(tree.body[-1].test.ops[0], _ast.Eq)
+
+    assert TSFlowCorrectiveFeedback.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+
+    g_sp = A3SBenchMultiDimensionalEvasionGuard(window_size=4)
+    g_sp.register_spatial_artifact_fragment("doc://safe.md", "normal text")
+    assert g_sp.evaluate_spatial_composition(["doc://safe.md"])["allowed"] is True
+
+    gate = SecCodeBenchAstSecurityGate()
+    assert gate._resolve_call_name(_ast.Constant(value=42)) == ""
+
+    # Synthetic AST nodes without .lineno to exercise getattr(node, "lineno", 0) on lines 493 & 515
+    call_md5 = _ast.Call(
+        func=_ast.Attribute(value=_ast.Name(id="hashlib"), attr="md5"),
+        args=[],
+        keywords=[],
+    )
+    call_sql_binop = _ast.Call(
+        func=_ast.Attribute(value=_ast.Name(id="cur"), attr="execute"),
+        args=[_ast.BinOp(left=_ast.Constant(value="SELECT "), op=_ast.Add(), right=_ast.Name(id="u"))],
+        keywords=[],
+    )
+    synth_mod = _ast.Module(body=[_ast.Expr(value=call_md5), _ast.Expr(value=call_sql_binop)], type_ignores=[])
+    mp.setattr(_ast, "parse", lambda _src: synth_mod)
+    try:
+        res_synth = gate.scan_generated_python_code("ignored")
+        assert res_synth["allowed"] is False
+        assert [v["lineno"] for v in res_synth["violations"]] == [0, 0]
+    finally:
+        mp.undo()
+
+    seen_win: list[int] = []
+    orig_init = A3SBenchMultiDimensionalEvasionGuard.__init__
+
+    def _spy_init(self: A3SBenchMultiDimensionalEvasionGuard, window_size: int = 8) -> None:
+        seen_win.append(window_size)
+        orig_init(self, window_size=window_size)
+
+    mp.setattr(A3SBenchMultiDimensionalEvasionGuard, "__init__", _spy_init)
+    try:
+        evaluate_12_leader_benchmarks_scorecard()
+    finally:
+        mp.undo()
+    assert seen_win == [6]

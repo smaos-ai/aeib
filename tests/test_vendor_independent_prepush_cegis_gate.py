@@ -104,6 +104,126 @@ def test_boundary3_asymptotic_complexity_and_ast_spaghetti_rejection() -> None:
     assert v_spag.max_nesting_depth == 5
 
 
+def test_section25_mutation_adequacy_boundary_oracles() -> None:
+    """Comprehensive boundary, arithmetic, and CLI oracles for Section 25."""
+    import builtins
+    import sys
+    import src.vendor_independent_prepush_cegis_gate as v_mod
+
+    gate = VendorIndependentPrePushGate()
+    report = gate.run_full_vendor_independence_audit()
+    assert report["metamorphic_total_trials"] == 169
+    assert report["complexity_gate_quadratic_rejected"] is True
+    assert report["cegis_shrunk_repair"]["original_failing_input_size"] == 20
+
+    # MR-02 default trials == 30
+    mr02_v = MetamorphicRelationalOracleEngine.check_mr02_idempotent_dispatch_invariance(
+        lambda c, a: ("COMMITTED", a)
+    )
+    assert mr02_v.trials_executed == 3 * 10
+
+    # MR-03 exact branch & invariant tracking via int subclasses
+    lt_zero_checks = {"count": 0}
+
+    class _ModInt(int):
+        def __eq__(self, other: object) -> bool:
+            if other != 0:
+                raise ValueError(f"Expected == 0 in t % 2 == 0, got {other}")
+            return int(self) == int(other)  # type: ignore[arg-type]
+
+    class _AmtInt(int):
+        def __le__(self, other: int) -> bool:
+            return int(self) <= int(other)
+
+        def __gt__(self, other: int) -> bool:
+            raise ValueError("Mutated available >= amt to available < amt")
+
+        def __lt__(self, other: int) -> bool:
+            if other == 0:
+                lt_zero_checks["count"] += 1
+            return int(self) < int(other)
+
+        def __add__(self, other: int) -> "_AmtInt":
+            return _AmtInt(int(self) + int(other))
+
+        def __radd__(self, other: int) -> "_AmtInt":
+            return _AmtInt(int(other) + int(self))
+
+        def __sub__(self, other: int) -> "_AmtInt":
+            return _AmtInt(int(self) - int(other))
+
+        def __rsub__(self, other: int) -> "_AmtInt":
+            return _AmtInt(int(other) - int(self))
+
+    class _StepInt(int):
+        def __mul__(self, other: int) -> "_StepInt":
+            return _StepInt(int(self) * int(other))
+
+        def __mod__(self, divisor: int) -> int:
+            if divisor == 4000:
+                return _StepInt(int(self) % 4000)
+            if divisor != 2:
+                raise ValueError(f"Expected t % 2, got divisor {divisor}")
+            return _ModInt(int(self) % 2)
+
+        def __add__(self, other: int) -> "_AmtInt":
+            return _AmtInt(int(self) + int(other))
+
+    orig_range = builtins.range
+    builtins.range = lambda *a: (_StepInt(x) for x in orig_range(*a))  # type: ignore[assignment]
+    try:
+        mr03_v = MetamorphicRelationalOracleEngine.check_mr03_monetary_mass_conservation(4)
+        assert mr03_v.passed is True
+        assert lt_zero_checks["count"] == 8
+    finally:
+        builtins.range = orig_range  # type: ignore[assignment]
+
+    # MR-05 exact (t_a, t_b) pairs
+    orig_max = builtins.max
+    seen_pairs = []
+
+    def _recording_max(a: int, b: int) -> int:
+        seen_pairs.append((a, b))
+        return orig_max(a, b)
+
+    builtins.max = _recording_max  # type: ignore[assignment]
+    try:
+        MetamorphicRelationalOracleEngine.check_mr05_taint_lattice_monotonicity(10)
+        assert seen_pairs == [
+            (0, 0), (1, 0), (2, 0),
+            (0, 1), (1, 1), (2, 1),
+            (0, 2), (1, 2), (2, 2),
+            (0, 0),
+        ]
+    finally:
+        builtins.max = orig_max  # type: ignore[assignment]
+
+    # Scaling exponent across all 3 intervals (64->128, 128->256, 256->512)
+    alpha, _ = AsymptoticComplexityAndAstMaintainabilityGate.measure_empirical_scaling_exponent(
+        lambda n: 64 if n < 512 else 512
+    )
+    assert alpha == 1.0
+
+    # CLI main() without --self-test flag
+    class _DummyCapsule:
+        capsule_sha256 = "sha256:00"
+
+    orig_argv = sys.argv
+    orig_sync = v_mod.SovereignIndependentStateCapsuleEngine.build_and_sync_capsule
+    orig_print = builtins.print
+    printed = []
+    sys.argv = ["vendor_independent_prepush_cegis_gate.py"]
+    v_mod.SovereignIndependentStateCapsuleEngine.build_and_sync_capsule = lambda self, persist=True: _DummyCapsule()  # type: ignore[assignment]
+    builtins.print = lambda *a, **kw: printed.append(a)  # type: ignore[assignment]
+    try:
+        assert v_mod.main() == 0
+        assert len(printed) == 1
+    finally:
+        sys.argv = orig_argv
+        v_mod.SovereignIndependentStateCapsuleEngine.build_and_sync_capsule = orig_sync  # type: ignore[assignment]
+        builtins.print = orig_print  # type: ignore[assignment]
+
+
 def test_zero_banned_promotional_words_in_section25_files() -> None:
     """Ensure strict adherence to AGENTS.md epistemic boundaries."""
     banned = [

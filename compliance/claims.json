@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AEIB Claim-to-Evidence Register",
+  "version": "v0.2.4",
+  "commit": "b688bff6fee0ed480178307fab3333e3f0fdd823",
+  "evidence_grading": "local_harness",
+  "claims": [
+    {
+      "claim_id": "C1",
+      "assertion": "Autonomous agents suffer duplicate state mutations when retrying after HTTP 504 transport severance; AEIB boundary eliminates duplicates across 50 trials under synthetic fault model.",
+      "evidence_log": "02-reproduction-benchmark.log",
+      "test_suite": "verify_reproduction.py",
+      "empirical_result": {
+        "C0_naive_retry_violations": "50/50 (100.0%) under synthetic model",
+        "C1_gateway_violations": "0/50 (0.0%)",
+        "C2_semantic_drift_violations": "50/50 (100.0%) under synthetic model",
+        "AEIB_duplicate_mutations": "0/50",
+        "negative_controls": "20/20 fail-closed"
+      },
+      "statistical_bound": "Rule-of-Three 95% confidence upper bound of 5.8% on 0/50 trials; 15.0% on 0/20 negative controls.",
+      "limitation_boundary": "Evaluated strictly under the synthetic post-commit HTTP 504 ASGI fault injector on local SQLite. Does not claim universal exactly-once delivery across arbitrary multi-node database topologies."
+    },
+    {
+      "claim_id": "C2",
+      "assertion": "Authoritative PostgreSQL out-of-band probe detects committed outcome or missing row, traps statement_timeout query cancellation, and cleans connection pool without deadlocking.",
+      "evidence_log": "01-postgres-integration.log",
+      "test_suite": "test_integration_pg_probe.py",
+      "empirical_result": "4/4 passed (0.73s). Trapped psycopg2.errors.QueryCanceled on 200ms statement_timeout; ThreadedConnectionPool recovered cleanly.",
+      "statistical_bound": "4/4 deterministic pass on evaluated schema.",
+      "limitation_boundary": "Bounded to the evaluated postgres:16-alpine primary-key schema and ThreadedConnectionPool on local loopback. Does not evaluate distributed read-replicas, multi-region failover, or write-ahead-log replication lag."
+    },
+    {
+      "claim_id": "C3",
+      "assertion": "Offline verification of receipts, JCS canonicalization, and Ed25519 signatures requires zero network egress.",
+      "evidence_log": "05-air-gapped-verification.log",
+      "test_suite": "aeib_verify.py / tcpdump",
+      "empirical_result": "0 packets egressed under Docker --network none with active tcpdump capture.",
+      "statistical_bound": "100% air-gapped packet capture parity (0 egress bytes).",
+      "limitation_boundary": "Restricted to the evaluated Docker --network none + tcpdump capture harness using local pre-shared Ed25519 public keys."
+    },
+    {
+      "claim_id": "C4",
+      "assertion": "Ambiguous 504 transport severance transitions through two-phase outbox saga into compensated terminal state when authoritative probe indicates missing downstream persistence.",
+      "evidence_log": "03-saga-compensation.log",
+      "test_suite": "test_saga_compensation.py",
+      "empirical_result": "1/1 passed. CAID 7a9c8f12b trapped at DISPATCHED_UNCONFIRMED; probe returned RECONCILIATION_NOT_FOUND; enqueued compensation CAID 9b1e2c34d and transitioned to COMPENSATED.",
+      "statistical_bound": "1/1 deterministic pass.",
+      "limitation_boundary": "Evaluated on single-step compensating transaction; does not coordinate distributed multi-participant two-phase commit across heterogeneous external systems."
+    },
+    {
+      "claim_id": "C5",
+      "assertion": "Release manifest enforces byte-level tamper-rejection across all release artifacts.",
+      "evidence_log": "04-manifest-integrity.log",
+      "test_suite": "verify_reproduction.py (Step 7)",
+      "empirical_result": "13/13 SHA-256 digests match manifest exactly.",
+      "statistical_bound": "Cryptographic SHA-256 collision resistance.",
+      "limitation_boundary": "Verifies byte untamperedness (V(B) = ok); epistemic truth and operational bounds are governed separately by LIMITATIONS.md."
+    }
+  ]
+}

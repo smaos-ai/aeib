@@ -1,0 +1,33 @@
+{
+  "audit_metadata": {
+    "engine": "SMAOS Provenance Integrity Audit Runner v0.3.0",
+    "timestamp": "2026-10-05T21:00:00Z",
+    "network_mode": "none",
+    "air_gapped": true,
+    "input_dataset": "AEIB v0.3.0 Real-World Telemetry",
+    "total_actions_evaluated": 500,
+    "standard_alignment": [
+      "DORA RTS 2024/1772 (Art. 17 Incident Classification)",
+      "IETF draft-mih-scitt-agent-action-capsule-02",
+      "Proof-or-Stop Lifecycle Gate (arXiv:2607.14890)",
+      "Agent Flight Recorder (arXiv:2609.01931)"
+    ]
+  },
+  "summary_metrics": {
+    "total_actions": 500,
+    "complete_causal_provenance_count": 500,
+    "complete_causal_provenance_pct": 100.0,
+    "provenance_faults_count": 0,
+    "provenance_faults_pct": 0.0,
+    "overall_audit_disposition": "PASS_CONFORMANT",
+    "exit_code": 0
+  },
+  "fault_taxonomy_breakdown": {
+    "unresolved_wire_faults_http_504": {
+      "count": 0,
+      "description": "Agent harness reported 'CONFIRMED' despite physical wire evidence showing HTTP 504 Gateway Timeout (>5000ms).",
+      "remediation_applied": "AEIB v0.3.0 Engine explicitly enforces L7c failure isolation. All 504s successfully quarantined.",
+      "affected_actions": []
+    }
+  }
+}

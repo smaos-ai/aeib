@@ -1,0 +1,465 @@
+{
+  "af_format_version": "Letta-AF-1.0+MemOS-MemCube-2026",
+  "bitemporal_entry": {
+    "git_branch": "feat/v1.1-temporal-standing",
+    "git_head_commit": "fd67d97c",
+    "hybrid_cascade_cost_cents": 38,
+    "prev_snapshot_caid": "sha256:bdd77c81aa8e2a3c49f8cb3630655d8039200b5503698662683f50210161de8c",
+    "recorded_at_unix": 1792734183,
+    "snapshot_caid": "sha256:038e835b58111c0e07efc0d7c77bfdc1ef134672cf8f0d3c93d963a0b9a3e9ab",
+    "snapshot_id": "SNAP-fd67d97c-1792734183",
+    "sprint_token_reduction_bps": 7834,
+    "total_manifest_sections": 21,
+    "total_pytest_suites": 215,
+    "total_python_modules": 235,
+    "valid_at_unix": 1792734183
+  },
+  "capsule_caid": "sha256:aadbcf6aa355e163d1327aaae632ba3b2b8ddb820a21e531da89bb6978210975",
+  "choice_chains_catalog": [
+    {
+      "chain_id": "C1",
+      "chain_name": "FAST_PULSE_REPO_LOOKUP",
+      "decide_flags": [
+        "--repo"
+      ],
+      "description": "Instant O(1) lookup of existing repo modules and state without external web sweep.",
+      "estimated_cost_usd_cents": 1,
+      "estimated_tokens": 8000,
+      "operator_sequence": [
+        "PageRank_RepoMap",
+        "RuleTrek_Graph",
+        "Existing_Module_Match"
+      ],
+      "recommended_model_routing": "100% Gemini 3.8 Flash (System-1 Fast Path)",
+      "target_keywords": [
+        "where",
+        "find",
+        "status",
+        "list",
+        "quick",
+        "existing",
+        "have"
+      ]
+    },
+    {
+      "chain_id": "C2",
+      "chain_name": "TOYOTA_5WHY_ROOT_CAUSE_FIX",
+      "decide_flags": [
+        "--deep",
+        "--repo",
+        "--falsify"
+      ],
+      "description": "Deep causal debugging via Hybrid RRF search and Toyota 5-Why with Poka-Yoke interlock.",
+      "estimated_cost_usd_cents": 4,
+      "estimated_tokens": 22000,
+      "operator_sequence": [
+        "Hybrid_BM25_Semantic_AST_RRF",
+        "Toyota_5Why_Causal_DAG",
+        "Jidoka_Shallow_Patch_Gate",
+        "PokaYoke_T4Plus_Mutant_Test"
+      ],
+      "recommended_model_routing": "70% Gemini 3.8 Flash + 30% Gemini 4 Argon",
+      "target_keywords": [
+        "why",
+        "bug",
+        "error",
+        "fail",
+        "root",
+        "cause",
+        "fix",
+        "5why",
+        "toyota"
+      ]
+    },
+    {
+      "chain_id": "C3",
+      "chain_name": "SOTA_RESEARCH_NO_WHEEL_INVENTION",
+      "decide_flags": [
+        "--research",
+        "--deep",
+        "--repo"
+      ],
+      "description": "Checks existing repo first, sweeps global/China SOTA (MemOS/AFlow/Letta/Aider), and prevents reinventing the wheel.",
+      "estimated_cost_usd_cents": 9,
+      "estimated_tokens": 35000,
+      "operator_sequence": [
+        "PageRank_Existing_Inventory_Check",
+        "CELF_8Axis_Global_China_Sweep",
+        "POIROT_CAVEAT_Deduplication",
+        "Adopt_Adapt_Build_Matrix"
+      ],
+      "recommended_model_routing": "70% Gemini 3.8 Flash + 30% Gemini 4 Argon",
+      "target_keywords": [
+        "research",
+        "china",
+        "github",
+        "paper",
+        "arxiv",
+        "wheel",
+        "exist",
+        "already",
+        "brainstorm",
+        "missed",
+        "scientist",
+        "open-source"
+      ]
+    },
+    {
+      "chain_id": "C4",
+      "chain_name": "SECURITY_SUBSTRATE_AND_BREAKER_AUDIT",
+      "decide_flags": [
+        "--security",
+        "--falsify",
+        "--compliance"
+      ],
+      "description": "Adversarial red-team falsification, kernel eBPF/Seatbelt audit, and T4+ mutation kill verification.",
+      "estimated_cost_usd_cents": 18,
+      "estimated_tokens": 45000,
+      "operator_sequence": [
+        "RuleTrek_Invariant_Scan",
+        "Cloudflare_6Phase_Disproving_Verifier",
+        "Harness2_Builder_Breaker_Mutant_Kill",
+        "BPF_LSM_And_UDS_Credential_Starvation_Gate"
+      ],
+      "recommended_model_routing": "50% Gemini 3.8 Flash + 50% Gemini 4 Argon",
+      "target_keywords": [
+        "security",
+        "cve",
+        "attack",
+        "kernel",
+        "ebpf",
+        "hardware",
+        "credential",
+        "sandbox"
+      ]
+    },
+    {
+      "chain_id": "C5",
+      "chain_name": "FINOPS_TOKEN_AND_CHAOS_BENCHMARK",
+      "decide_flags": [
+        "--benchmark",
+        "--deep",
+        "--falsify"
+      ],
+      "description": "Empirical token/cost analytics on Argon 4 vs Gemini 3.8 Flash + 500-episode chaos benchmark.",
+      "estimated_cost_usd_cents": 8,
+      "estimated_tokens": 30000,
+      "operator_sequence": [
+        "ContextCart_AST_Slice_Measurement",
+        "Argon4_Flash38_Cost_Delta_Solver",
+        "Limbo_Prop1_500Episode_DST",
+        "Postgres_TCC_100Thread_Stress"
+      ],
+      "recommended_model_routing": "80% Gemini 3.8 Flash + 20% Gemini 4 Argon",
+      "target_keywords": [
+        "token",
+        "cost",
+        "argon",
+        "gemini",
+        "benchmark",
+        "latency",
+        "throughput",
+        "analytics"
+      ]
+    },
+    {
+      "chain_id": "C6",
+      "chain_name": "OMEGA_FULL_SCOPE_DECADE_DOMINANCE",
+      "decide_flags": [
+        "--deep",
+        "--research",
+        "--compliance",
+        "--security",
+        "--falsify",
+        "--benchmark"
+      ],
+      "description": "Full 6-flag join-semilattice synthesis, code delivery, 4-gate verification, and External SSD State Hub sync.",
+      "estimated_cost_usd_cents": 24,
+      "estimated_tokens": 58000,
+      "operator_sequence": [
+        "MultiFlag_Join_Semilattice_Union",
+        "PageRank_RepoMap_And_NoWheel_Audit",
+        "CrossHemisphere_Council_Sweep",
+        "Toyota_5Why_And_BuilderBreaker_T4Plus",
+        "External_SSD_MemCube_BiTemporal_Sync"
+      ],
+      "recommended_model_routing": "70% Gemini 3.8 Flash + 30% Gemini 4 Argon (Hybrid Cascade)",
+      "target_keywords": [
+        "all",
+        "full",
+        "everything",
+        "dominate",
+        "omega",
+        "complete",
+        "sync",
+        "ssd",
+        "proxy"
+      ]
+    }
+  ],
+  "ed25519_signature_b64": "zMxGO0NebLq0ey/kIJnjvr3uSV8f1pKmr4seCSUL5tsNWY6weDnQ1aGAzAAbeodRjmHRRAFUrh42QNOqnWSnBA==",
+  "git_branch": "feat/v1.1-temporal-standing",
+  "git_head_commit": "fd67d97c",
+  "live_analytics_summary": {
+    "antigravity_20_task_sprint_with_system_tokens": 223831,
+    "antigravity_20_task_sprint_without_system_tokens": 1033529,
+    "chaos_500_episodes_seed_42_status": "PASSED_0_DUPLICATES",
+    "end_to_end_token_reduction_bps": 7834,
+    "gemini_3_8_flash_with_system_cents": 15,
+    "gemini_3_8_flash_without_system_cents": 73,
+    "gemini_4_argon_with_system_cents": 93,
+    "gemini_4_argon_without_system_cents": 443,
+    "hybrid_cascade_70_flash_30_argon_cents": 38,
+    "super_prompt_6_vector_prefix_savings_bps": 8333,
+    "t4_plus_mutation_kill_rate_bps": 10000
+  },
+  "memcube_id": "MEMCUBE-SOVEREIGN-fd67d97c",
+  "no_wheel_sota_matrix": [
+    {
+      "capability_domain": "Portable Multi-IDE & External SSD Agent State Capsule",
+      "disposition": "ADAPT_PATTERN_INTO_LOCAL_MODULE",
+      "existing_local_module": "src/work_capsule_engine.py + src/sovereign_agent_blueprint.py",
+      "external_sota_reference": "MemOS MemCube (arXiv:2507.03724, Shanghai AI Lab/Tsinghua) + Letta Agent File (.af)",
+      "rationale": "Extend existing WorkCapsule & Blueprint with MemCube + Letta .af portable state hub synced to External SSD."
+    },
+    {
+      "capability_domain": "Bi-Temporal State History & Fact Invalidation",
+      "disposition": "ALREADY_BUILT_IN_REPO",
+      "existing_local_module": "src/storage/postgres_bitemporal_outbox.sql",
+      "external_sota_reference": "Zep Graphiti Bi-Temporal Knowledge Graph (valid_at / recorded_at)",
+      "rationale": "Reuse our bi-temporal valid_time / system_time outbox schema directly for state hub snapshots."
+    },
+    {
+      "capability_domain": "Dynamic Codebase Discovery Without Full-File Reads",
+      "disposition": "ADAPT_PATTERN_INTO_LOCAL_MODULE",
+      "existing_local_module": "src/jcs_canonicalizer.py",
+      "external_sota_reference": "Aider RepoMap (AST + Personalized PageRank) & Repomix (--compress)",
+      "rationale": "Combine ContextCart AST slicing with Personalized PageRank over cross-module imports."
+    },
+    {
+      "capability_domain": "Zero-Memory Decision Workflow & Chain Selection",
+      "disposition": "ADAPT_PATTERN_INTO_LOCAL_MODULE",
+      "existing_local_module": "src/decide_v51_meta_hardening_engine.py",
+      "external_sota_reference": "AFlow (arXiv:2410.10762, DeepWisdom/MetaGPT MCTS Chains) + RouteLLM",
+      "rationale": "Map AFlow operator DAG selection onto our 6 predefined /decide choice chains (C1-C6)."
+    },
+    {
+      "capability_domain": "Zero-Repetition Context Injection Across IDEs & Messengers",
+      "disposition": "ADOPT_STANDARD_DIRECTLY",
+      "existing_local_module": "src/sovereign_nexus_mcp_gateway.py",
+      "external_sota_reference": "Anthropic MCP 2025-11-25 (resources/read & prompts/get primitives)",
+      "rationale": "Use native MCP resources/list and prompts/get so Antigravity/Claude/Messengers auto-attach state."
+    }
+  ],
+  "project_name": "SovereignNexus-AEIB",
+  "public_key_b64": "L1vqJHJpKE5i/3f+Do5CSoWfmPQFkQhhS5DgXB+g4Is=",
+  "top_repomap_modules": [
+    {
+      "defined_classes": [],
+      "defined_functions": [
+        "normalize_nfc",
+        "encode_jcs",
+        "generate_jcs_payload_hash"
+      ],
+      "docstring_summary": "jcs_canonicalizer.py \u2014 RFC 8785 JSON Canonicalization Scheme (JCS) Implementation",
+      "imported_stems": [
+        "hashlib",
+        "json",
+        "math",
+        "typing",
+        "unicodedata"
+      ],
+      "module_stem": "jcs_canonicalizer",
+      "pagerank_score_bps": 10000,
+      "rel_path": "src/jcs_canonicalizer.py",
+      "sha256_digest": "sha256:2be49725bf6af1508eab7aab97e94484966ab5894e48f0d627ff56a5ff81823c"
+    },
+    {
+      "defined_classes": [
+        "RepoMapModuleNode",
+        "AstPersonalizedPageRankRepoMapper",
+        "DecideChoiceChainSpec",
+        "NoWheelAdoptAdaptBuildItem",
+        "AFlowZeroMemoryChainSelector",
+        "BiTemporalStateEntry",
+        "SovereignProjectMemCubeCapsule",
+        "SovereignIndependentStateHubManager"
+      ],
+      "defined_functions": [
+        "canonical_jcs_bytes",
+        "sha256_prefixed",
+        "build_personalized_pagerank_repomap",
+        "select_chain",
+        "build_and_sync_state_hub",
+        "verify_capsule_signature",
+        "render_compact_context_brief",
+        "wrap_short_query"
+      ],
+      "docstring_summary": "Sovereign Independent Project State Hub (`MemOS MemCube` + `Letta .af` + `Graphiti` Bi-Temporal),",
+      "imported_stems": [
+        "__future__",
+        "ast",
+        "base64",
+        "dataclasses",
+        "ed25519",
+        "exceptions",
+        "hashlib",
+        "json",
+        "math",
+        "pathlib",
+        "re",
+        "subprocess",
+        "sys",
+        "time",
+        "typing"
+      ],
+      "module_stem": "sovereign_independent_state_hub_and_chain_proxy",
+      "pagerank_score_bps": 1572,
+      "rel_path": "src/sovereign_independent_state_hub_and_chain_proxy.py",
+      "sha256_digest": "sha256:8d9e477d620cad5c96e83df7f315a6830a78f8ed7508bd67d32e72889cc3167e"
+    },
+    {
+      "defined_classes": [
+        "A3SBenchMultiDimensionalEvasionGuard",
+        "TSFlowCorrectiveFeedback",
+        "ToolSafeStepLevelAlignmentGuard",
+        "MinjaQueryOnlyMemoryPoisoningGuard",
+        "SecCodeBenchAstSecurityGate"
+      ],
+      "defined_functions": [
+        "canonical_jcs",
+        "sha256_prefixed",
+        "evaluate_12_leader_benchmarks_scorecard",
+        "evaluate_turn_and_accumulate",
+        "register_spatial_artifact_fragment",
+        "evaluate_spatial_composition",
+        "to_dict",
+        "evaluate_step_invocation"
+      ],
+      "docstring_summary": "China & Global Frontier Leaders Agent Security & Execution Hardening Suite (`v1.0.0-rc.5-preprod`).",
+      "imported_stems": [
+        "__future__",
+        "ast",
+        "base64",
+        "dataclasses",
+        "ed25519",
+        "exceptions",
+        "hashlib",
+        "json",
+        "pathlib",
+        "re",
+        "typing"
+      ],
+      "module_stem": "china_and_global_leaders_hardening_suite",
+      "pagerank_score_bps": 1350,
+      "rel_path": "src/china_and_global_leaders_hardening_suite.py",
+      "sha256_digest": "sha256:93e37fc5242f92464464c9504600b23ef41300b3d3eb5be7ae318a813df1ec61"
+    },
+    {
+      "defined_classes": [
+        "ChoiceChainStep",
+        "DecideChoiceChain",
+        "ManifestArtifactEntry",
+        "SovereignMemCubeCapsule",
+        "SovereignMemCubeAllStateHub",
+        "WrappedQueryEnvelope",
+        "SovereignAllStateQueryProxy"
+      ],
+      "defined_functions": [
+        "build_default_workspace_corpus",
+        "build_sovereign_choice_chains",
+        "parse_evidence_manifest",
+        "build_sake_pinned_prefix_header",
+        "build_allstate_capsule",
+        "verify_capsule_integrity",
+        "render_dashboard_markdown",
+        "sync_allstate_to_local_and_extssd"
+      ],
+      "docstring_summary": "Sovereign AllState Hub, Zero-Re-Type Query Proxy, & /decide Choice-Chain Selector",
+      "imported_stems": [
+        "__future__",
+        "argparse",
+        "asymmetric",
+        "dataclasses",
+        "exceptions",
+        "hashlib",
+        "jcs_canonicalizer",
+        "json",
+        "os",
+        "pathlib",
+        "primitives",
+        "re",
+        "shutil",
+        "toyota_5why_semantic_rca_and_token_analytics",
+        "typing"
+      ],
+      "module_stem": "sovereign_allstate_hub_and_query_proxy",
+      "pagerank_score_bps": 1350,
+      "rel_path": "src/sovereign_allstate_hub_and_query_proxy.py",
+      "sha256_digest": "sha256:a8855c41e699e4f4c28b3bdaa176e6b55fe73c1bada61696571067957378b3d3"
+    },
+    {
+      "defined_classes": [
+        "ModelPricingProfile",
+        "SprintTokenComparisonReport",
+        "AntigravityArgonFlashTokenAnalyticsEngine",
+        "IndexedCorpusNode",
+        "HybridSemanticAstSearchEngine",
+        "WhyCausalHop",
+        "PokaYokeMistakeProofGate",
+        "Toyota5WhySignedReceipt"
+      ],
+      "defined_functions": [
+        "canonical_jcs_bytes",
+        "sha256_prefixed",
+        "run_self_test",
+        "evaluate_20_task_sprint",
+        "search_rrf",
+        "decompose_multi_vector_query",
+        "verify_and_sign_5why_chain"
+      ],
+      "docstring_summary": "Toyota 5-Why Causal Root-Cause Engine (`TRACE` + `EvoCause` arXiv:2607.27290 +",
+      "imported_stems": [
+        "__future__",
+        "base64",
+        "dataclasses",
+        "ed25519",
+        "hashlib",
+        "json",
+        "math",
+        "re",
+        "typing"
+      ],
+      "module_stem": "toyota_5why_semantic_rca_and_token_analytics",
+      "pagerank_score_bps": 1033,
+      "rel_path": "src/toyota_5why_semantic_rca_and_token_analytics.py",
+      "sha256_digest": "sha256:7b3aa931649d533439777f15a00aa649bc278e82dfb21028a1b17fe1404aa083"
+    },
+    {
+      "defined_classes": [
+        "Station1StateEngine"
+      ],
+      "defined_functions": [
+        "canonical_json_v1",
+        "atomic_checkpoint_write",
+        "log_rejection_audit_entry",
+        "evaluate_dispatch"
+      ],
+      "docstring_summary": "src/station1_state_engine.py",
+      "imported_stems": [
+        "__future__",
+        "fcntl",
+        "hmac",
+        "json",
+        "os",
+        "sys",
+        "tempfile",
+        "typing"
+      ],
+      "module_stem": "station1_state_engine",
+      "pagerank_score_bps": 851,
+      "rel_path": "src/station1_state_engine.py",
+      "sha256_digest": "sha256:3a9aedd0aef35753b83c12e8544fddd002e4d453bcf4d446ea121f0616abcf1f"
+    }
+  ]
+}

@@ -93,8 +93,11 @@ class CausalWitnessRecord:
             "used": sorted(self.used_entity_ids),
             "generated": sorted(self.generated_entity_ids),
         }
-        canonical_repr = json.dumps(payload, sort_keys=True)
-        return hashlib.sha256(canonical_repr.encode("utf-8")).hexdigest()
+        try:
+            from src.jcs_canonicalizer import encode_jcs
+        except ImportError:
+            from jcs_canonicalizer import encode_jcs
+        return hashlib.sha256(encode_jcs(payload)).hexdigest()
 
 
 @dataclass(frozen=True)

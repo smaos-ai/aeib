@@ -466,7 +466,7 @@ Each Phase 3 increment targets +2-3% coverage.
 - AP2 merkle/rollback: +5% (immutability proven)
 
 **Phase 2 End Result:**
-- 90%+ coverage: enterprise-grade testing
+- 90%+ coverage: comprehensive testing
 - All 6 layers >85%: consistent quality
 - Mutation score >80%: tests actively kill bugs
 - Hotel pilot verified: real end-to-end flow working

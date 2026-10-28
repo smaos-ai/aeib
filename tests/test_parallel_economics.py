@@ -67,7 +67,7 @@ def test_analyze_parallel_stage_spurious_parallelism() -> None:
 
     assert report.governance_verdict == "DEGRADED_SPURIOUS_PARALLELISM"
     assert "sub-2" in report.spurious_subagent_ids
-    assert report.spurious_token_waste == 105_000
+    assert int(report.spurious_token_waste) == 105_000
 
 
 def test_analyze_parallel_stage_concurrency_failure_pattern() -> None:

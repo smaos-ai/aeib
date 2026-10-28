@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AEIB Raw-Evidence CISO Dashboard</title>
+    <style>
+        body { font-family: monospace; background: #000; color: #0f0; padding: 20px; }
+        .receipt-box { border: 1px solid #0f0; padding: 15px; margin-bottom: 20px; white-space: pre-wrap; background: #111; word-break: break-all; }
+        .controls { margin-top: 20px; }
+        button { background: #0f0; color: #000; border: none; padding: 10px 20px; font-family: monospace; font-size: 16px; cursor: pointer; font-weight: bold; margin-right: 10px; }
+        button.refuse { background: #f00; color: #fff; }
+        button:hover { opacity: 0.8; }
+        #status { margin-top: 15px; font-weight: bold; }
+        .verified { color: #0f0; }
+        .failed { color: #f00; }
+        input { background: #222; color: #0f0; border: 1px solid #0f0; padding: 5px; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h1>AEIB Raw-Evidence Review Portal</h1>
+    <p>No AI summary. Ed25519 verified locally in WASM with pinned trust anchor. Prototype: decision records bound to CAID.</p>
+    
+    <p>
+        <label>Receipt File: <input type="file" id="receipt-file" accept=".json"></label><br><br>
+        <label>Reviewer ID: <input id="reviewer" placeholder="SecOps Operator"></label><br><br>
+        <label>Trusted Signer Public Key (Hex): <input id="trusted-key" placeholder="Pinned or configured 64-char Ed25519 public key hex" size="70"></label>
+    </p>
+    <h3>Raw receipt (exactly as loaded):</h3>
+    <div id="payload" class="receipt-box">No receipt loaded.</div>
+    
+    <h3>Verification Status (smaos_verify.wasm):</h3>
+    <div id="status">Waiting for WASM...</div>
+    
+    <div class="controls">
+        <button id="btn-approve">[APPROVE_RELEASE]</button>
+        <button id="btn-refuse" class="refuse">[REFUSE_AND_HALT]</button>
+    </div>
+
+    <h3>Decision record:</h3>
+    <pre id="decision-log" class="receipt-box"></pre>
+    <script type="module" src="app.js"></script>
+</body>
+</html>

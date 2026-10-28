@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/aeib-bench/web-mutation-v0.1.json",
+  "title": "AEIB_Bench_Track_B_Web_Mutation_v0.1",
+  "description": "JSON Schema for Track B (Web Mutation Finality) of the Agent Execution Integrity Benchmark (AEIB). Defines valid structures for scenario_id (B01-B11, BT12-BT18), target capabilities, candidate action bindings (caid), wire fault execution phases, and expected disposition/retry locks.",
+  "type": "object",
+  "required": [
+    "benchmark_track",
+    "version",
+    "ground_truth_rule",
+    "scenarios"
+  ],
+  "properties": {
+    "benchmark_track": {
+      "type": "string",
+      "const": "Track B: Web Mutation Finality"
+    },
+    "version": {
+      "type": "string",
+      "const": "0.1.0"
+    },
+    "ground_truth_rule": {
+      "type": "string",
+      "const": "SHOW_ME_CHANGE_IT_PROVE_IT: Target-side ledger commit status determines outcome; DOM text and proxy self-reports ignored."
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 11,
+      "maxItems": 18,
+      "items": {
+        "type": "object",
+        "required": [
+          "scenario_id",
+          "name",
+          "execution_phase",
+          "wire_fault_event",
+          "target_capability",
+          "expected_gateway_disposition",
+          "expected_retry_safe",
+          "expected_latch_engaged",
+          "expected_target_state"
+        ],
+        "properties": {
+          "scenario_id": {
+            "type": "string",
+            "enum": [
+              "B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B09", "B10", "B11",
+              "BT12", "BT13", "BT14", "BT15", "BT16", "BT17", "BT18"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "execution_phase": {
+            "type": "string",
+            "enum": [
+              "pre_dispatch",
+              "pre_body",
+              "mid_body",
+              "post_commit",
+              "post_click",
+              "post_response",
+              "probe"
+            ]
+          },
+          "wire_fault_event": {
+            "type": "string",
+            "enum": [
+              "HTTP_200_OK",
+              "HTTP_504_GATEWAY_TIMEOUT",
+              "TCP_RST",
+              "FAULT_TCP_RST_POST_COMMIT",
+              "CONNECTION_DROP",
+              "FAULT_CONNECTION_DROP_POST_COMMIT",
+              "FAULT_BROWSER_KILL_POST_COMMIT",
+              "STALE_DOM_CONFIRMATION",
+              "VALIDATION_FAILED"
+            ]
+          },
+          "target_capability": {
+            "type": "string",
+            "enum": [
+              "idempotency_key_plus_status_api",
+              "idempotency_key_only",
+              "status_api_only",
+              "browser_only_workflow",
+              "no_cooperation"
+            ]
+          },
+          "expected_gateway_disposition": {
+            "type": "string",
+            "enum": [
+              "OUTCOME_CONFIRMED",
+              "ACTION_CONFIRMED",
+              "EFFECT_INDETERMINATE",
+              "DISPATCH_REJECTED",
+              "OUTCOME_VERIFIED",
+              "DISPATCHED_UNCONFIRMED"
+            ]
+          },
+          "expected_probe_reconciliation": {
+            "type": "string",
+            "enum": [
+              "EFFECT_CONFIRMED_VIA_PROBE",
+              "EFFECT_ABSENT_VIA_PROBE",
+              "PROBE_NOT_ATTEMPTED"
+            ]
+          },
+          "expected_retry_safe": {
+            "type": "boolean"
+          },
+          "expected_latch_engaged": {
+            "type": "boolean"
+          },
+          "expected_target_state": {
+            "type": "string",
+            "enum": ["COMMITTED", "NOT_FOUND"]
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

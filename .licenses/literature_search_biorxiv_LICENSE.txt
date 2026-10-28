@@ -1,0 +1,2 @@
+Notification recorded at 2026-10-24T08:32:00+02:00:
+Please check the bioRxiv and medRxiv API terms of use at https://api.biorxiv.org/ and https://www.biorxiv.org/content/about-biorxiv, and always verify the individual paper license on retrieved preprints for any restrictions.

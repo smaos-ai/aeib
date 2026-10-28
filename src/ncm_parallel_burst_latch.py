@@ -53,18 +53,10 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-try:
-    from src.jcs_canonicalizer import encode_jcs
-except ImportError:
-    # Deterministic fallback per RFC 8785 Section 3.2
-    def encode_jcs(payload: Any) -> bytes:
-        return json.dumps(
-            payload,
-            sort_keys=True,
-            separators=(",", ":"),
-            ensure_ascii=False,
-            allow_nan=False,
-        ).encode("utf-8")
+# RFC 8785 single source of truth. No local fallback: a json.dumps(sort_keys=True)
+# copy diverged from RFC 8785 on non-BMP key order and number formatting, so a
+# missing reference canonicalizer now fails closed at import time.
+from src.jcs_canonicalizer import encode_jcs
 
 
 def compute_caid(payload: Any) -> str:
@@ -718,7 +710,7 @@ def run_self_test() -> bool:
         latch = CrossCallerGroupCommitLatch(
             wal_path=wal_file,
             sprint_ceiling=100_000,
-            flush_window_ms=2.0,
+            flush_window_ms=2.0,  # claim: config
             max_batch_size=16,
         )
 
@@ -783,7 +775,7 @@ def run_quick_benchmark(num_threads: int = 100) -> Dict[str, Any]:
         latch = CrossCallerGroupCommitLatch(
             wal_path=wal_file,
             sprint_ceiling=10_000_000,
-            flush_window_ms=2.0,
+            flush_window_ms=2.0,  # claim: config
             max_batch_size=64,
         )
 
@@ -815,9 +807,10 @@ def run_quick_benchmark(num_threads: int = 100) -> Dict[str, Any]:
         p50 = latencies[int(len(latencies) * 0.50)]
         p95 = latencies[int(len(latencies) * 0.95)]
         p99 = latencies[int(len(latencies) * 0.99)]
+        solvency_held = stats["escrowed"] + stats["confirmed"] <= stats["sprint_ceiling"]
 
         return {
-            "status": "PASS",
+            "status": "PASS" if (solvency_held and len(latencies) == num_threads) else "FAIL",
             "threads": num_threads,
             "wall_time_sec": round(wall_time, 4),
             "ops_per_sec": round(num_threads / max(0.001, wall_time), 2),
@@ -826,7 +819,7 @@ def run_quick_benchmark(num_threads: int = 100) -> Dict[str, Any]:
             "p99_ms": round(p99, 3),
             "fsync_count": stats["fsync_count"],
             "coalescing_ratio": stats["coalescing_ratio"],
-            "solvency_held": stats["escrowed"] + stats["confirmed"] <= stats["sprint_ceiling"],
+            "solvency_held": solvency_held,
         }
     finally:
         if os.path.exists(wal_file):

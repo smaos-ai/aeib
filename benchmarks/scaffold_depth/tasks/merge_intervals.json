@@ -1,0 +1,7 @@
+{
+  "entry_module": "solution",
+  "id": "merge_intervals",
+  "instruction": "Implement merge(intervals) for closed integer intervals [a, b] (a <= b). Return sorted, merged intervals as a list of tuples; touching intervals like (1,2),(3,4) are NOT merged, overlapping ones like (1,3),(3,5) are. Raise ValueError if any a > b.",
+  "starter_source": "def merge(intervals):\n    \"\"\"Merge overlapping closed integer intervals.\"\"\"\n    pass\n",
+  "type": "algorithm"
+}

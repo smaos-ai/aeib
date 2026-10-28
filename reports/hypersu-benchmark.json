@@ -1,0 +1,224 @@
+{
+  "benchmark": "hypersu_fts5_vs_like_retrieval",
+  "queries_per_size": 200,
+  "results": [
+    {
+      "by_query_type": {
+        "adversarial_fts_syntax": {
+          "count": 33,
+          "p50_ms": 0.0323,
+          "p95_ms": 0.1962
+        },
+        "empty_query": {
+          "count": 33,
+          "p50_ms": 0.0002,
+          "p95_ms": 0.0004
+        },
+        "multi_term": {
+          "count": 34,
+          "p50_ms": 0.0767,
+          "p95_ms": 0.217
+        },
+        "phrase": {
+          "count": 33,
+          "p50_ms": 0.0413,
+          "p95_ms": 0.2041
+        },
+        "single_term": {
+          "count": 34,
+          "p50_ms": 0.0615,
+          "p95_ms": 0.1868
+        },
+        "wildcard_or_special_characters": {
+          "count": 33,
+          "p50_ms": 0.0614,
+          "p95_ms": 0.106
+        }
+      },
+      "corpus_size": 100,
+      "fts5_latency_ms": {
+        "p50_latency_ms": 0.0589,
+        "p95_latency_ms": 0.1352,
+        "p99_latency_ms": 0.2473
+      },
+      "fts_sync_integrity_ok": true,
+      "index_size_mb": 0.1523,
+      "ingestion_time_s": 0.0099,
+      "like_scan_latency_ms": {
+        "p50_latency_ms": 0.0474,
+        "p95_latency_ms": 0.0674,
+        "p99_latency_ms": 0.1478
+      },
+      "precision_at_10": 1.0,
+      "provenance_validity_rate": 1.0,
+      "queries_executed": 200,
+      "recall_at_10": 1.0,
+      "speedup_p95_x": 0.5
+    },
+    {
+      "by_query_type": {
+        "adversarial_fts_syntax": {
+          "count": 33,
+          "p50_ms": 0.0341,
+          "p95_ms": 0.632
+        },
+        "empty_query": {
+          "count": 33,
+          "p50_ms": 0.0003,
+          "p95_ms": 0.0008
+        },
+        "multi_term": {
+          "count": 34,
+          "p50_ms": 0.0775,
+          "p95_ms": 0.192
+        },
+        "phrase": {
+          "count": 33,
+          "p50_ms": 0.0442,
+          "p95_ms": 0.1868
+        },
+        "single_term": {
+          "count": 34,
+          "p50_ms": 0.0632,
+          "p95_ms": 0.1962
+        },
+        "wildcard_or_special_characters": {
+          "count": 33,
+          "p50_ms": 0.0653,
+          "p95_ms": 0.2178
+        }
+      },
+      "corpus_size": 1000,
+      "fts5_latency_ms": {
+        "p50_latency_ms": 0.0592,
+        "p95_latency_ms": 0.2178,
+        "p99_latency_ms": 0.6096
+      },
+      "fts_sync_integrity_ok": true,
+      "index_size_mb": 0.8516,
+      "ingestion_time_s": 0.0131,
+      "like_scan_latency_ms": {
+        "p50_latency_ms": 0.3077,
+        "p95_latency_ms": 0.4249,
+        "p99_latency_ms": 0.6659
+      },
+      "precision_at_10": 1.0,
+      "provenance_validity_rate": 1.0,
+      "queries_executed": 200,
+      "recall_at_10": 1.0,
+      "speedup_p95_x": 1.95
+    },
+    {
+      "by_query_type": {
+        "adversarial_fts_syntax": {
+          "count": 33,
+          "p50_ms": 0.0538,
+          "p95_ms": 5.3503
+        },
+        "empty_query": {
+          "count": 33,
+          "p50_ms": 0.0008,
+          "p95_ms": 0.0021
+        },
+        "multi_term": {
+          "count": 34,
+          "p50_ms": 0.1745,
+          "p95_ms": 0.3054
+        },
+        "phrase": {
+          "count": 33,
+          "p50_ms": 0.1134,
+          "p95_ms": 0.1734
+        },
+        "single_term": {
+          "count": 34,
+          "p50_ms": 0.1427,
+          "p95_ms": 0.2793
+        },
+        "wildcard_or_special_characters": {
+          "count": 33,
+          "p50_ms": 0.1571,
+          "p95_ms": 0.2672
+        }
+      },
+      "corpus_size": 10000,
+      "fts5_latency_ms": {
+        "p50_latency_ms": 0.1249,
+        "p95_latency_ms": 0.2807,
+        "p99_latency_ms": 5.3345
+      },
+      "fts_sync_integrity_ok": true,
+      "index_size_mb": 7.8789,
+      "ingestion_time_s": 0.1025,
+      "like_scan_latency_ms": {
+        "p50_latency_ms": 3.7876,
+        "p95_latency_ms": 4.7763,
+        "p99_latency_ms": 5.0838
+      },
+      "precision_at_10": 1.0,
+      "provenance_validity_rate": 1.0,
+      "queries_executed": 200,
+      "recall_at_10": 1.0,
+      "speedup_p95_x": 17.02
+    },
+    {
+      "by_query_type": {
+        "adversarial_fts_syntax": {
+          "count": 33,
+          "p50_ms": 0.1277,
+          "p95_ms": 56.1084
+        },
+        "empty_query": {
+          "count": 33,
+          "p50_ms": 0.0019,
+          "p95_ms": 0.003
+        },
+        "multi_term": {
+          "count": 34,
+          "p50_ms": 0.2911,
+          "p95_ms": 0.3656
+        },
+        "phrase": {
+          "count": 33,
+          "p50_ms": 0.206,
+          "p95_ms": 0.3111
+        },
+        "single_term": {
+          "count": 34,
+          "p50_ms": 0.2445,
+          "p95_ms": 0.364
+        },
+        "wildcard_or_special_characters": {
+          "count": 33,
+          "p50_ms": 0.2471,
+          "p95_ms": 0.3569
+        }
+      },
+      "corpus_size": 100000,
+      "fts5_latency_ms": {
+        "p50_latency_ms": 0.2217,
+        "p95_latency_ms": 0.3656,
+        "p99_latency_ms": 51.3697
+      },
+      "fts_sync_integrity_ok": true,
+      "index_size_mb": 78.4297,
+      "ingestion_time_s": 0.6983,
+      "like_scan_latency_ms": {
+        "p50_latency_ms": 38.4144,
+        "p95_latency_ms": 44.2313,
+        "p99_latency_ms": 62.7011
+      },
+      "precision_at_10": 1.0,
+      "provenance_validity_rate": 1.0,
+      "queries_executed": 200,
+      "recall_at_10": 1.0,
+      "speedup_p95_x": 120.98
+    }
+  ],
+  "sizes": [
+    100,
+    1000,
+    10000,
+    100000
+  ]
+}

@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://smaos.ai/schemas/aeib-receipt-v0.4.0.json",
+  "title": "AEIBReceipt_v0.4.0",
+  "description": "AEIB v0.4.0 execution receipt schema. Binds canonicalization to RFC 8785 with UTF-16 code-unit key ordering (implemented in src/jcs_canonicalizer.py; NFC is an opt-in ingress pre-pass, never applied inside JCS per RFC 8785 Section 3.1). Defines the dual DORA Article 17 timestamps and the aeib_compaction_safe_v2 marker; fields marked 'not yet emitted' are schema-level definitions with no engine emitter at the time of authoring and must not be reported as implemented capabilities.",
+  "type": "object",
+  "required": [
+    "receipt_version",
+    "receipt_type",
+    "caid",
+    "disposition",
+    "retry_safe",
+    "latch_engaged",
+    "timestamp_utc",
+    "payload_hash",
+    "canonicalization"
+  ],
+  "properties": {
+    "receipt_version": {
+      "const": "v0.4.0",
+      "description": "Receipt schema version marker."
+    },
+    "receipt_type": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Receipt class, e.g. EXECUTION_INTEGRITY_RECEIPT or RESEARCH_PROVENANCE_RECEIPT."
+    },
+    "caid": {
+      "type": "string",
+      "pattern": "^caid:sha256:[0-9a-f]{64}$",
+      "description": "Canonical Action Identifier derived by src/aeib_v040_engine.derive_caid over noun/verb/payload."
+    },
+    "disposition": {
+      "type": "string",
+      "enum": [
+        "DISPATCHED_UNCONFIRMED",
+        "OUTCOME_VERIFIED",
+        "CONFIRMED",
+        "PROBE_OUTAGE_HOLD",
+        "RECONCILIATION_NOT_FOUND",
+        "RECONCILIATION_FAILED",
+        "STRUCTURAL_VERIFICATION_FAILED"
+      ],
+      "description": "Fail-closed Layer 7c disposition vocabulary. DISPATCHED_UNCONFIRMED is the post-dispatch ambiguity state (spec term CLAIMED); OUTCOME_VERIFIED is out-of-band probe confirmation (spec term SUPPORTED_BY_EVIDENCE); PROBE_OUTAGE_HOLD freezes on transport ambiguity (HTTP 504 / TCP RST)."
+    },
+    "retry_safe": {
+      "type": "boolean",
+      "description": "Re-dispatch permission. Latches false on ambiguous or unconfirmed transport; re-issuance requires a proven idempotency contract."
+    },
+    "latch_engaged": {
+      "type": "boolean",
+      "description": "True when the fail-closed lockout latch is engaged for this effect, physically blocking speculative retries."
+    },
+    "retry_policy": {
+      "type": "string",
+      "description": "Named retry policy applied by the Layer 7c derivation (e.g. PROHIBITED_DEFAULT_LATCH)."
+    },
+    "mapping_rule_id": {
+      "type": "string",
+      "description": "Identifier of the transport-to-disposition mapping rule that produced this disposition."
+    },
+    "timestamp_utc": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Receipt issuance timestamp (RFC 3339, UTC)."
+    },
+    "payload_hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "SHA-256 over the RFC 8785 canonicalized payload as produced by encode_jcs."
+    },
+    "previous_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "Optional append-only hash-chain link to the preceding receipt in the audit sequence."
+    },
+    "canonicalization": {
+      "type": "object",
+      "description": "Binds the receipt to a single canonicalization profile so verifiers cannot disagree on byte-level serialization.",
+      "required": ["implementation", "key_sorting", "normalization"],
+      "properties": {
+        "implementation": {
+          "const": "src/jcs_canonicalizer.py:encode_jcs",
+          "description": "Single source of truth shared by cose_signer.py and cose_verifier.py."
+        },
+        "key_sorting": {
+          "const": "utf16_code_units",
+          "description": "RFC 8785 Section 3.2.3: object keys ordered by UTF-16 code units."
+        },
+        "normalization": {
+          "enum": ["none", "nfc_opt_in_ingress"],
+          "description": "String data is preserved as-is inside JCS (RFC 8785 Section 3.1). NFC normalization is applied only when a caller invokes normalize_nfc() at ingress before canonicalization."
+        }
+      },
+      "additionalProperties": false
+    },
+    "detection_timestamp_utc": {
+      "type": "string",
+      "format": "date-time",
+      "description": "DORA Article 17 detection timestamp of the incident. Schema-level definition only: no engine emitter exists at authoring time (not yet emitted)."
+    },
+    "notification_timestamp_utc": {
+      "type": "string",
+      "format": "date-time",
+      "description": "DORA Article 17 initial-notification timestamp. Schema-level definition only: no engine emitter exists at authoring time (not yet emitted)."
+    },
+    "probe_authority": {
+      "type": "string",
+      "description": "Identity of the out-of-band probe authority that produced the disposition (e.g. SQLiteOutcomeProbeAdapter)."
+    },
+    "consistency_scope": {
+      "type": "string",
+      "enum": ["eventual", "strong", "unknown"],
+      "description": "Declared consistency scope within which the probe result is authoritative."
+    },
+    "aeib_compaction_safe_v2": {
+      "type": "string",
+      "enum": ["preserved", "compacted_with_constraints", "constraints_violated"],
+      "description": "Compaction Classifier Protocol marker for structural constraint retention across context compression. Schema-level definition only: the classifier protocol is not implemented at authoring time (PROPOSED; see config/claims.jsonl CLM-09)."
+    },
+    "signature": {
+      "type": "string",
+      "minLength": 64,
+      "description": "Ed25519 signature hex over the canonicalized receipt payload."
+    },
+    "signer_pubkey": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "32-byte Ed25519 public key hex of the attestor."
+    }
+  },
+  "additionalProperties": false
+}

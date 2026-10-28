@@ -1,0 +1,7 @@
+{
+  "entry_module": "solution",
+  "id": "binary_search_fix",
+  "instruction": "Fix the bug in binary_search(xs, target): it must return the index of target in the sorted list xs, or -1 if absent, for all inputs including empty lists and the last element.",
+  "starter_source": "def binary_search(xs, target):\n    lo, hi = 0, len(xs) - 1\n    while lo < hi:\n        mid = (lo + hi) // 2\n        if xs[mid] == target:\n            return mid\n        if xs[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return -1\n",
+  "type": "bugfix"
+}

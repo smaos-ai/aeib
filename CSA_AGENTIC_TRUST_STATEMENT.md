@@ -38,7 +38,7 @@
 ## 5 CORE ELEMENTS: SMAOS STATUS
 
 ### 1. IDENTITY ✅ Level 2
-**What:** Agents have cryptographic, non-repudiable identity  
+**What:** Agents have cryptographic, tamper-evident identity  
 **Why It Matters:** Prevents identity spoofing; enables operator attribution (GDPR Article 5 — accountability)
 
 **SMAOS Implementation:**

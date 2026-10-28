@@ -55,12 +55,15 @@ VDP_INCLUSION_PATH = cose_mod.VDP_INCLUSION_PATH
 
 COSE_ALG_EDDSA = cose_mod.COSE_ALG_EDDSA
 COSE_TAG_SIGN1 = cose_mod.COSE_TAG_SIGN1
+COSE_HEADER_AEIB_SIGNED_VDP_POSITION = cose_mod.COSE_HEADER_AEIB_SIGNED_VDP_POSITION
+admit_ed25519_public_key = cose_mod.admit_ed25519_public_key
 
 append_receipt_to_signed_statement = cose_mod.append_receipt_to_signed_statement
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519
 from src.jcs_canonicalizer import encode_jcs
+from src.strict_json_ingress import StrictJSONError, loads_strict
 
 
 LEAF_DOMAIN_PREFIX = b"\x00"
@@ -150,6 +153,14 @@ class SCITTMerkleTree:
         """
         Offline verification of an RFC 9162 / RFC 9942 SHA-256 Merkle inclusion proof.
         Evaluated fail-closed under the stated model.
+
+        Scope: a True result shows statement_cbor is a leaf under expected_root_hex.
+        It does NOT authenticate proof["leaf_index"] / proof["tree_size"]: a root
+        hash does not commit to the tree size, so the same audit path can also
+        verify under other (leaf_index, tree_size) pairs with the same split
+        directions (e.g. (1, 2) and (2, 3)). Callers must take the position from
+        signed material (binary receipts: protected header
+        COSE_HEADER_AEIB_SIGNED_VDP_POSITION; JSON bundles: signed JCS claims).
         """
         if not isinstance(proof, dict) or not isinstance(expected_root_hex, str):
             return False
@@ -241,7 +252,8 @@ class SCITTTransparencyService:
         """
         Appends statement_cbor to SCITTMerkleTree and issues a binary CBOR RFC 9942 COSE_Sign1
         (Tag 18) Receipt where:
-          - Protected header has {1: -8 (EdDSA), 4: ts_kid, 395: 1 (VDS_RFC9162_SHA256)}
+          - Protected header has {1: -8 (EdDSA), 4: ts_kid, 395: 1 (VDS_RFC9162_SHA256),
+            -65537: {-1: tree_size, -2: leaf_index}} (signed Merkle position)
           - Unprotected header has {396: {-1: tree_size, -2: leaf_index, -3: [bstr sibling_hashes]}}
           - Payload is the 32-byte Merkle root hash signed by ts_privkey.
         """
@@ -271,6 +283,12 @@ class SCITTTransparencyService:
         protected_extra: Dict[int, Any] = {
             COSE_HEADER_KID: self.ts_kid.encode("utf-8"),
             COSE_HEADER_VDS: VDS_RFC9162_SHA256,
+            # Bind the Merkle position under the TS signature (see
+            # COSE_HEADER_AEIB_SIGNED_VDP_POSITION in rfc9052_cose_profile.py).
+            COSE_HEADER_AEIB_SIGNED_VDP_POSITION: {
+                VDP_TREE_SIZE: proof["tree_size"],
+                VDP_LEAF_INDEX: proof["leaf_index"],
+            },
         }
         unprotected_extra: Dict[int, Any] = {
             COSE_HEADER_VDP: vdp_map,
@@ -408,17 +426,8 @@ def verify_binary_transparent_statement(
             ts_pubkey,
             expected_external_aad=expected_aad,
         )
-        if not rcpt_res.valid and expected_aad != b"":
-            # RFC 9942 binary receipts issued via issue_binary_cose_receipt(stmt_cbor)
-            # use empty external_aad by default.
-            rcpt_res_empty_aad = RFC9052CoseVerifier.verify(
-                rcpt_bytes,
-                ts_pubkey,
-                expected_external_aad=b"",
-            )
-            if rcpt_res_empty_aad.valid:
-                rcpt_res = rcpt_res_empty_aad
-
+        # No empty-AAD fallback: a receipt must be signed over the caller's
+        # expected_aad exactly, otherwise it is not bound to that context.
         if not rcpt_res.valid:
             return {
                 "valid": False,
@@ -464,6 +473,37 @@ def verify_binary_transparent_statement(
             return {
                 "valid": False,
                 "error": f"Malformed VDP (396) fields in receipt [{idx}]",
+            }
+
+        # 3b'. The reported position must come from signed data: the protected
+        # header carries {tree_size, leaf_index}; the unprotected VDP copy must match.
+        signed_position = rcpt_res.protected_headers.get(COSE_HEADER_AEIB_SIGNED_VDP_POSITION)
+        if not isinstance(signed_position, dict) or set(signed_position) != {
+            VDP_TREE_SIZE,
+            VDP_LEAF_INDEX,
+        }:
+            return {
+                "valid": False,
+                "error": (
+                    f"ERR_VDP_POSITION_NOT_SIGNED: receipt [{idx}] lacks a protected "
+                    f"{COSE_HEADER_AEIB_SIGNED_VDP_POSITION} {{tree_size, leaf_index}} map"
+                ),
+            }
+        signed_tree_size = signed_position[VDP_TREE_SIZE]
+        signed_leaf_index = signed_position[VDP_LEAF_INDEX]
+        if (
+            type(signed_tree_size) is not int
+            or type(signed_leaf_index) is not int
+            or signed_tree_size != tree_size
+            or signed_leaf_index != leaf_index
+        ):
+            return {
+                "valid": False,
+                "error": (
+                    f"ERR_VDP_POSITION_MISMATCH: receipt [{idx}] unprotected VDP "
+                    f"(tree_size={tree_size!r}, leaf_index={leaf_index!r}) differs from the "
+                    f"signed position (tree_size={signed_tree_size!r}, leaf_index={signed_leaf_index!r})"
+                ),
             }
 
         audit_path_hex: List[str] = []
@@ -572,14 +612,30 @@ def verify_transparent_statement(
         }
 
     try:
-        receipt_claims = json.loads(rcpt_res.payload.decode("utf-8"))
-        if encode_jcs(receipt_claims) != rcpt_res.payload:
-            return {
-                "valid": False,
-                "error": "COSE Receipt payload is not RFC 8785 JCS canonical",
-            }
-    except Exception as exc:
+        # I-JSON ingress: duplicate keys, NaN/Infinity and lone surrogates are
+        # rejected with a coded StrictJSONError before canonical comparison.
+        receipt_claims = loads_strict(rcpt_res.payload)
+    except StrictJSONError as exc:
         return {"valid": False, "error": f"Malformed COSE Receipt JSON payload: {exc}"}
+    except RecursionError:
+        return {
+            "valid": False,
+            "error": "Malformed COSE Receipt JSON payload: ERR_JSON_NESTING_TOO_DEEP",
+        }
+    if not isinstance(receipt_claims, dict):
+        return {
+            "valid": False,
+            "error": "Malformed COSE Receipt JSON payload: ERR_RECEIPT_NOT_OBJECT",
+        }
+    try:
+        canonical_ok = encode_jcs(receipt_claims) == rcpt_res.payload
+    except (TypeError, ValueError, RecursionError) as exc:
+        return {"valid": False, "error": f"Malformed COSE Receipt JSON payload: {exc}"}
+    if not canonical_ok:
+        return {
+            "valid": False,
+            "error": "COSE Receipt payload is not RFC 8785 JCS canonical",
+        }
 
     # 3. Verify Statement SHA-256 binding
     actual_stmt_sha256 = hashlib.sha256(signed_statement_cbor).hexdigest()
@@ -638,7 +694,7 @@ def verify_transparent_statement(
     }
 
 
-def load_public_key(pubkey_str: str) -> ed25519.Ed25519PublicKey:
+def _parse_public_key(pubkey_str: str) -> ed25519.Ed25519PublicKey:
     path = Path(pubkey_str)
     if path.exists():
         data = path.read_bytes()
@@ -674,6 +730,19 @@ def load_public_key(pubkey_str: str) -> ed25519.Ed25519PublicKey:
     except Exception:
         pass
     raise ValueError(f"Unable to parse public key from: {pubkey_str}")
+
+
+def load_public_key(pubkey_str: str) -> ed25519.Ed25519PublicKey:
+    """
+    Loads an Ed25519 public key (PEM file, raw 32-byte file, hex or base64) and
+    admits it: small-order points, non-canonical encodings and non-Ed25519 keys
+    raise ValueError with a stable ERR_ED25519_* code.
+    """
+    key = _parse_public_key(pubkey_str)
+    rejection = admit_ed25519_public_key(key)
+    if rejection is not None:
+        raise ValueError(f"{rejection}: public key rejected")
+    return key
 
 
 def load_private_key(privkey_str: str) -> ed25519.Ed25519PrivateKey:
@@ -836,13 +905,9 @@ def run_self_test() -> int:
     Runs a deterministic 4-leaf SCITT Transparency Service and offline verification
     demonstration under the stated model (evaluating both JSON bundle and binary RFC 9942 / 9943).
     """
-    issuer_priv = ed25519.Ed25519PrivateKey.from_private_bytes(
-        hashlib.sha256(b"aeib-scitt-self-test-issuer-key").digest()
-    )
+    issuer_priv = ed25519.Ed25519PrivateKey.generate()
     issuer_pub = issuer_priv.public_key()
-    ts_priv = ed25519.Ed25519PrivateKey.from_private_bytes(
-        hashlib.sha256(b"aeib-scitt-self-test-ts-key").digest()
-    )
+    ts_priv = ed25519.Ed25519PrivateKey.generate()
     ts_pub = ts_priv.public_key()
 
     issuer_signer = RFC9052CoseSigner(private_key=issuer_priv, key_id="issuer:aeib-gatekeeper-01")
@@ -958,7 +1023,11 @@ def _cmd_append_receipt(args: argparse.Namespace) -> int:
         return 1
 
     signed_statement_cbor = env_path.read_bytes()
-    issuer_pubkey = load_public_key(args.issuer_pubkey)
+    try:
+        issuer_pubkey = load_public_key(args.issuer_pubkey)
+    except ValueError as exc:
+        print(f"[-] Issuer public key rejected: {exc}", file=sys.stderr)
+        return 1
     ts_privkey = load_private_key(args.ts_key)
     aad_bytes = _decode_aad(args.aad)
 
@@ -1004,8 +1073,12 @@ def _cmd_verify_scitt(args: argparse.Namespace) -> int:
         return 1
 
     transparent_cbor = ts_path.read_bytes()
-    issuer_pubkey = load_public_key(args.issuer_pubkey)
-    ts_pubkey = load_public_key(args.ts_pubkey)
+    try:
+        issuer_pubkey = load_public_key(args.issuer_pubkey)
+        ts_pubkey = load_public_key(args.ts_pubkey)
+    except ValueError as exc:
+        print(f"[-] Public key rejected: {exc}", file=sys.stderr)
+        return 1
     aad_bytes = _decode_aad(args.aad)
 
     res = verify_binary_transparent_statement(
@@ -1149,7 +1222,11 @@ def main() -> None:
         sys.exit(1)
 
     envelope_bytes = envelope_path.read_bytes()
-    pubkey = load_public_key(args.public_key)
+    try:
+        pubkey = load_public_key(args.public_key)
+    except ValueError as exc:
+        print(f"[-] Public key rejected: {exc}", file=sys.stderr)
+        sys.exit(1)
     aad_bytes = _decode_aad(args.aad)
 
     verifier = RFC9052CoseVerifier()

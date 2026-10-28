@@ -159,3 +159,11 @@ SMAOS establishes an explicit division of responsibilities with frontier models:
 - **Wire Dropping:** Trapped at socket layer; prevents LLM speculative retries from duplicating mutations.
 - **Data Exfiltration:** Zero network egress design; all verification occurs locally within air-gapped container boundaries (`--network none`).
 - **Cryptographic Tampering:** Any byte mutation in receipts breaks Ed25519 signature verification.
+
+---
+
+## 6. Enterprise Sovereign Agent Application Server Specification
+
+For complete technical specifications on hardware-density VRAM multiplexing (MLX), I/O resiliency under 10k probe storms (Java 24 JEP 491 Virtual Threads), deterministic 4-part partitioned memory, and immutable identity propagation (Java 25 JEP 506 Scoped Values), see:
+👉 **[`docs/architecture/SOVEREIGN_AGENT_APPLICATION_SERVER.md`](docs/architecture/SOVEREIGN_AGENT_APPLICATION_SERVER.md)**
+

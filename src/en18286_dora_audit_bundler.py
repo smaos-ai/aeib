@@ -8,7 +8,8 @@ Compiles verified artifacts across Sections 1-15 of EVIDENCE_MANIFEST.md,
 re-computes live on-disk SHA-256 digests, embeds the Public SOTA Archetype
 Benchmark report, constructs a CycloneDX 1.6 Cryptographic Bill of Materials
 (CBOM), computes an RFC 9162 Merkle transparency root, and emits an
-offline-verifiable Ed25519-signed RFC 8785 JCS compliance bundle.
+offline-verifiable Ed25519-signed RFC 8785 JCS compliance bundle (hardware TEE
+references are structural scaffold metadata).
 """
 
 from __future__ import annotations

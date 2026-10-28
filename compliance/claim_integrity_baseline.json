@@ -1,0 +1,8 @@
+{
+ "version": 1,
+ "tool": "compliance/claim_integrity_gate.py",
+ "description": "Claim-integrity ratchet: pre-existing findings keyed by rule|file|snippet-hash -> count. New findings beyond these counts fail the gate.",
+ "summary": {},
+ "total": 0,
+ "entries": {}
+}

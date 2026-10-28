@@ -11,7 +11,7 @@ Fields (16 total):
 
 from dataclasses import dataclass, field
 from typing import Dict, List, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 @dataclass
@@ -50,7 +50,7 @@ class Receipt:
     def add_access_log_entry(self, user: str, action: str, timestamp: Optional[str] = None) -> None:
         """Add access log entry for audit trail."""
         if timestamp is None:
-            timestamp = datetime.utcnow().isoformat()
+            timestamp = datetime.now(timezone.utc).isoformat()
         self.access_log.append({
             "user": user,
             "action": action,

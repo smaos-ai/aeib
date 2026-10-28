@@ -289,7 +289,7 @@ def test_at56_at57_full_six_step_red_team_sequence(tmp_path: Path) -> None:
         finally:
             conn.close()
 
-        assert direct_resp.status == 401
+        assert int(direct_resp.status) == 401
         assert direct_body["status"] == "UNAUTHORIZED"
         assert bank_server.unauthorized_direct_attempts == 1
         assert len(bank_server.executed_mutations) == mutations_before_direct
@@ -316,7 +316,7 @@ def test_at56_at57_full_six_step_red_team_sequence(tmp_path: Path) -> None:
         finally:
             conn2.close()
 
-        assert direct_resp2.status == 401
+        assert int(direct_resp2.status) == 401
         assert bank_server.unauthorized_direct_attempts == 2
         assert len(bank_server.executed_mutations) == mutations_before_direct
 
@@ -380,7 +380,7 @@ def test_at56_at57_full_six_step_red_team_sequence(tmp_path: Path) -> None:
         )
         assert clean_decision.allowed is True
         assert clean_decision.status_code == "AUTHORIZED"
-        assert clean_decision.http_status == 200
+        assert int(clean_decision.http_status) == 200
         assert len(bank_server.executed_mutations) == mutations_before_direct + 1
     finally:
         bank_server.stop_background()

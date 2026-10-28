@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  ocr-audit:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    volumes:
+      - ../traces:/data/traces
+      - ../reports:/data/reports
+    command: ["/data/traces/production.jsonl", "--output-findings", "/data/reports/findings.json"]

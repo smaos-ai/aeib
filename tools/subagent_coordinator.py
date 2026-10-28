@@ -41,6 +41,12 @@ from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 from tools.semantic_validator import SemanticValidationError, validate_handback_semantics
 
+# RFC 8785 single source of truth: delegate to src/jcs_canonicalizer.encode_jcs
+# (differential-tested in tests/test_jcs_single_source.py). The former local
+# copy formatted floats with "%.16g" (e.g. 1e+21 -> "1e+21" but 1e-07 -> "1e-07",
+# 0.1+0.2 -> "0.3"), which diverged from ECMAScript Number::toString.
+from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+
 REQUIRED_HANDBACK_KEYS = {
     "status",
     "scope_reviewed",
@@ -53,32 +59,7 @@ VALID_STATUSES = {"COMPLETED", "INDETERMINATE", "FAILED"}
 
 def encode_jcs(obj: Any) -> bytes:
     """Strict RFC 8785 JSON Canonicalization Scheme (JCS)."""
-    if obj is None:
-        return b"null"
-    if isinstance(obj, bool):
-        return b"true" if obj else b"false"
-    if isinstance(obj, int):
-        return str(obj).encode("utf-8")
-    if isinstance(obj, float):
-        if obj != obj or obj == float("inf") or obj == float("-inf"):
-            raise ValueError(f"JCS does not support non-finite float {obj}")
-        if obj.is_integer():
-            return str(int(obj)).encode("utf-8")
-        return f"{obj:.16g}".encode("utf-8")
-    if isinstance(obj, str):
-        return json.dumps(obj, ensure_ascii=False).encode("utf-8")
-    if isinstance(obj, list):
-        items = [encode_jcs(x) for x in obj]
-        return b"[" + b",".join(items) + b"]"
-    if isinstance(obj, dict):
-        sorted_keys = sorted(obj.keys(), key=lambda k: k.encode("utf-16-be"))
-        parts = []
-        for k in sorted_keys:
-            encoded_k = json.dumps(k, ensure_ascii=False).encode("utf-8")
-            encoded_v = encode_jcs(obj[k])
-            parts.append(encoded_k + b":" + encoded_v)
-        return b"{" + b",".join(parts) + b"}"
-    raise TypeError(f"Type {type(obj)} not serializable in RFC 8785 JCS")
+    return _reference_encode_jcs(obj)
 
 
 def _atomic_write_json(path: Path, payload: Dict[str, Any]) -> bytes:

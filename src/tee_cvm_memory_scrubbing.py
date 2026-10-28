@@ -24,7 +24,12 @@ Core Mechanics:
   Scans deallocated frames; any detected non-zero residue triggers
   HALT_TEE_MEMORY_REMANENCE_DETECTED.
 
-Evaluated under the stated model. Strict zero-mock AST purity enforced.
+Honest Platform Boundary (Simulated Memory Scrubbing Scaffold):
+- This module is an in-memory Python `bytearray` zeroization model scaffold
+  (`operational_status=SIMULATED_OPT_IN`).
+- It models the state transitions of key shredding and frame zeroization in
+  userspace memory; it does NOT program hardware AES-XTS DRAM encryption keys
+  or hypervisor Reverse Map Tables (RMP).
 """
 
 from __future__ import annotations
@@ -36,6 +41,8 @@ import secrets
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
+
+from src.capability_status import SIMULATED_OPT_IN
 
 
 PAGE_SIZE: int = 4096
@@ -56,6 +63,7 @@ class EnclaveAttestationQuote:
     key_fingerprint: str
     allocated_page_count: int
     state: EnclaveState
+    operational_status: str = SIMULATED_OPT_IN
 
 
 class TeeCvmEnclaveLifecycle:

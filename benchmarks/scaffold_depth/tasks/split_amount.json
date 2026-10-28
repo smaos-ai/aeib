@@ -1,0 +1,7 @@
+{
+  "entry_module": "solution",
+  "id": "split_amount",
+  "instruction": "Implement split(total_minor, n) splitting an integer amount into n integer parts that sum to total, differ by at most 1, larger parts first. Raise ValueError if n <= 0 or total < 0.",
+  "starter_source": "def split(total_minor: int, n: int) -> list:\n    \"\"\"Fair integer split, larger parts first.\"\"\"\n    raise NotImplementedError()\n",
+  "type": "money"
+}

@@ -1,0 +1,22 @@
+{
+  "dora_rts_2025_301_annex_ii": {
+    "governance_and_review_gate": {
+      "severity_status": "PENDING_HUMAN_REVIEW",
+      "submission_status": "NOT_SUBMITTED",
+      "regulatory_disclaimer": "Unsubmitted draft pre-filled from local execution receipts."
+    },
+    "initial_notification_fields": {
+      "incident_identifier": "DORA-INC-41480D620A188191",
+      "timestamps": {
+        "first_detected_utc": "2026-09-28T15:00:00Z",
+        "classification_timestamp_utc": "PENDING_RISK_OFFICER_REVIEW"
+      },
+      "quarantined_504_rst_count": 2,
+      "containment_actions_taken": [
+        "Socket-level 504 exception trapped into DISPATCHED_UNCONFIRMED.",
+        "Halted agent retry loop.",
+        "Ran out-of-band UUIDv5 state probe (RECONCILIATION_NOT_FOUND)."
+      ]
+    }
+  }
+}

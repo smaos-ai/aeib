@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0",
+  "action_id": "act-ccs-012-future",
+  "leaf_index": 0,
+  "tree_size": 1,
+  "timestamp": "2035-05-01T12:00:00Z",
+  "intent_digest": "75cdb904cf1dbd2b8377e23b6933f1a5d8ff9853829e2138bc718b7be4082052",
+  "verdict": "CONFIRMED",
+  "root_hash": "301afd7a35174bb10246e34a110e98a9d89ab90d5087d684d82feb6a43f7e1bb",
+  "inclusion_proof": [],
+  "signature": "793b8ffddf31768557984c0c626c321fc6e67218064f34f69165c4f518e5d9c9dce801da86031034db0b00e60d6005bf21e2861c4ebec489548c21f7ea15130a",
+  "signer_pubkey": "8a88e3dd7409f195fd52db2d3cba5d72ca6709bf1d94121bf3748801b40f6f5c"
+}

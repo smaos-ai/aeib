@@ -1,0 +1,22 @@
+{
+  "benchmark": "AEIB",
+  "summary": {
+    "conservation_delta": 0,
+    "failed": 0,
+    "passed": 10,
+    "total": 10
+  },
+  "verdicts": {
+    "01_confirmed_settlement": "CONFIRMED",
+    "02_timeout_unknown": "UNKNOWN",
+    "03_missing_dispatch_evidence": "MISSING_EVIDENCE",
+    "04_idempotency_collision": "CONFLICT",
+    "05_conflicting_state_claim": "CONFLICT",
+    "06_refused_policy_violation": "REFUSED",
+    "07_mismatched_payload": "CONFLICT",
+    "08_malformed_input": "INVALID_INPUT",
+    "09_circuit_breaker_refusal": "REFUSED",
+    "10_divergent_retry_payload": "CONFLICT"
+  },
+  "version": "0.1.0"
+}

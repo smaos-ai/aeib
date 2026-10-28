@@ -1,0 +1,14 @@
+{
+  "system": "Pure Frontier LLM (Claude Code / GPT-4o)",
+  "benchmark_date": "2026-09-18",
+  "dataset_size_lines": 100000,
+  "metrics": {
+    "precision_pct": 7.23,
+    "recall_pct": 81.20,
+    "false_positive_rate_pct": 66.10,
+    "line_number_drift_avg_lines": 34.2,
+    "total_tokens_consumed": 9840000,
+    "token_cost_usd": 246.00,
+    "duration_seconds": 1420.0
+  }
+}

@@ -104,7 +104,7 @@ class LoopbackTrackingServer(http.server.HTTPServer):
 def loopback_server():
     """Provides a running loopback tracking HTTP server bound to 127.0.0.1 on an ephemeral port."""
     srv = LoopbackTrackingServer(("127.0.0.1", 0))
-    t = threading.Thread(target=srv.serve_forever, daemon=True)
+    t = threading.Thread(target=srv.serve_forever, kwargs={"poll_interval": 0.01}, daemon=True)
     t.start()
     try:
         yield srv
@@ -574,3 +574,237 @@ def test_custom_dispatch_fn_success_and_failure(tmp_path: Path):
     assert interlock.is_caid_latched(caid_fail) is True
     latched = interlock.get_latched_caids()
     assert latched[caid_fail].retry_safe is False
+
+
+def test_mutation_adequacy_oracle_gap_closures(tmp_path: Path):
+    """
+    Closes behavioral oracle gaps discovered by tools/mutation_adequacy_gate.py on
+    src/eo1_write_before_execute.py:
+    1. Post-Approval Tool Substitution (line 1066): approval granted for tool_name='refund_api'
+       must raise ApprovalMismatchError if consumed on tool_name='wire_transfer'.
+    2. Direct outcome classification return values (lines 212 & 238):
+       classify_reconciliation_outcome({}, target_outcome='NOT_COMMITTED') == 'NOT_COMMITTED'
+       and classify_reconciliation_outcome({}) == 'COMMITTED'.
+    3. Manual latch_indeterminate(caid, intent_id=None) inherits the unresolved DISPATCH_INTENT
+       intent_id from disk rather than synthesizing a fallback ID (lines 1015 & 1023).
+    4. Invalid disposition value in _emit_receipt raises ValueError (line 1351).
+    5. _durable_unlink returns True when removing an existing file and False when missing (lines 374 & 376).
+    """
+    from src.eo1_write_before_execute import (
+        ApprovalMismatchError,
+        OperationApprovalGrant,
+        _durable_unlink,
+        classify_reconciliation_outcome,
+    )
+
+    # 1. Post-Approval Tool Substitution (Line 1066)
+    interlock = PreDispatchIntentInterlock(
+        ledger_path=tmp_path / "oracle_ledger.jsonl",
+        output_state_dir=tmp_path / "oracle_state",
+        authority_id="actor-alpha",
+    )
+    payload = {"amount_minor": 10000, "currency": "USD"}
+    caid = compute_caid(payload)
+    grant = OperationApprovalGrant(
+        approval_id="appr-tool-bind-001",
+        subject_actor_id="actor-alpha",
+        tool_name="refund_api_v1",
+        operation_caid=caid,
+    )
+    with pytest.raises(ApprovalMismatchError, match="Approval tool mismatch"):
+        interlock.record_intent(
+            target_uri="custom://in-memory",
+            tool_name="wire_transfer_v1",
+            payload=payload,
+            approval=grant,
+            actor_id="actor-alpha",
+        )
+
+    # 2. Direct classify_reconciliation_outcome assertions (Lines 212 & 238)
+    assert classify_reconciliation_outcome({}, target_outcome="NOT_COMMITTED") == "NOT_COMMITTED"
+    assert classify_reconciliation_outcome({}, target_outcome="COMMITTED") == "COMMITTED"
+    assert classify_reconciliation_outcome({}) == "COMMITTED"
+
+    # 3. Manual latch_intent inherits unresolved intent_id (Lines 1015 & 1023)
+    rec = interlock.record_intent(
+        target_uri="custom://target-svc",
+        tool_name="refund_api_v1",
+        payload=payload,
+        intent_id="intent-explicit-from-disk-001",
+        approval=grant,
+        actor_id="actor-alpha",
+    )
+    latch_state = interlock.latch_intent(caid)
+    assert latch_state.intent_id == rec.intent_id
+    assert latch_state.target_uri == "custom://target-svc"
+    assert latch_state.tool_name == "refund_api_v1"
+    runtime_latch_file = (tmp_path / "oracle_state") / f"latched_{caid}.json"
+    assert (runtime_latch_file.stat().st_mode & 0o111) == 0
+    assert '\n  "caid":' in runtime_latch_file.read_text(encoding="utf-8")
+
+    # 4. Invalid disposition in _emit_receipt raises ValueError (Line 1351)
+    with pytest.raises(ValueError, match="Unknown effect disposition"):
+        interlock._emit_receipt(
+            intent_id=rec.intent_id,
+            caid=caid,
+            status="RECONCILED",
+            lifecycle_state="RECONCILED",
+            retry_safe=False,
+            details={},
+            disposition="BOGUS_DISPOSITION",
+        )
+
+    # 5. _durable_unlink return value contract (Lines 374 & 376)
+    marker = tmp_path / "unlink_probe.txt"
+    marker.write_text("probe", encoding="utf-8")
+    assert _durable_unlink(marker) is True
+    assert _durable_unlink(marker) is False
+
+    # 6. Frozen dataclass immutability on ContinuityReceipt & RecoveredIntentState (Lines 497 & 546)
+    with pytest.raises(AttributeError):
+        latch_state.retry_safe = True  # type: ignore[misc]
+    orphan_caid = compute_caid({"orphan": "reconcile"})
+    orphan_receipt = interlock.reconcile_out_of_band(
+        caid=orphan_caid,
+        reconciliation_evidence={"status": "ABORTED"},
+        target_outcome="NOT_COMMITTED",
+    )
+    assert orphan_receipt.intent_id == f"reconciled-{orphan_caid[:16]}"
+    with pytest.raises(AttributeError):
+        orphan_receipt.retry_safe = True  # type: ignore[misc]
+
+    # 7. Disk-only latch without intent_id key uses f"latched-{caid[:16]}" and reconciles cleanly (Lines 895 & 1319)
+    disk_latch_caid = compute_caid({"disk_only_latch": 1})
+    latch_path = (tmp_path / "oracle_state") / f"latched_{disk_latch_caid}.json"
+    latch_path.write_text(
+        json.dumps({"caid": disk_latch_caid, "target_uri": "custom://x", "tool_name": "t"}),
+        encoding="utf-8",
+    )
+    interlock2 = PreDispatchIntentInterlock(
+        ledger_path=tmp_path / "oracle_ledger.jsonl",
+        output_state_dir=tmp_path / "oracle_state",
+        authority_id="actor-alpha",
+    )
+    loaded_latches = interlock2.get_latched_caids()
+    assert loaded_latches[disk_latch_caid].intent_id == f"latched-{disk_latch_caid[:16]}"
+    rec_disk = interlock2.reconcile_out_of_band(
+        caid=disk_latch_caid,
+        reconciliation_evidence={"status": "ABORTED"},
+        target_outcome="NOT_COMMITTED",
+    )
+    assert rec_disk.intent_id == f"latched-{disk_latch_caid[:16]}"
+
+    # 8. Remaining survivor closures (Lines 234, 288, 290, 309, 321, 351, 742, 813, 846, 880, 1116)
+    import errno
+    import os
+    from src.eo1_write_before_execute import (
+        PreDispatchLedgerWriteError,
+        _fsync_dir,
+        _fsync_fd,
+        _write_all,
+        recover_unresolved_intents,
+    )
+
+    # Line 234: target_observed=True overrides a NOT_COMMITTED outcome token in evidence
+    assert (
+        classify_reconciliation_outcome({"outcome": "NOT_COMMITTED", "target_observed": True})
+        == "COMMITTED"
+    )
+    assert (
+        classify_reconciliation_outcome({"outcome": "NOT_COMMITTED", "target_observed": False})
+        == "NOT_COMMITTED"
+    )
+
+    # Lines 288 & 290: _fsync_fd uses fcntl(F_FULLFSYNC) on darwin without falling back to os.fsync
+    probe_fd_path = tmp_path / "fsync_probe.bin"
+    probe_fd_path.write_bytes(b"ok")
+    fd_probe = os.open(str(probe_fd_path), os.O_RDONLY)
+    try:
+        orig_fsync = os.fsync
+
+        def _forbid_os_fsync(_fd: int) -> None:
+            raise RuntimeError("Unexpected fallback to os.fsync when F_FULLFSYNC is available")
+
+        os.fsync = _forbid_os_fsync  # type: ignore[assignment]
+        try:
+            _fsync_fd(fd_probe)
+        finally:
+            os.fsync = orig_fsync  # type: ignore[assignment]
+    finally:
+        os.close(fd_probe)
+
+    # Line 309: _fsync_dir re-raises non-ignored OSError (e.g. errno.EIO)
+    def _fail_eio(_fd: int) -> None:
+        raise OSError(errno.EIO, "simulated disk I/O error")
+
+    with pytest.raises(OSError, match="simulated disk I/O error"):
+        _fsync_dir(tmp_path, fsync_fn=_fail_eio)
+
+    # Line 321: _write_all raises OSError(errno.EIO) if os.write returns 0
+    orig_write = os.write
+    zero_calls = 0
+
+    def _zero_write(_fd: int, _buf: bytes) -> int:
+        nonlocal zero_calls
+        zero_calls += 1
+        if zero_calls > 1:
+            raise RuntimeError("unbounded loop after 0-byte write")
+        return 0
+
+    os.write = _zero_write  # type: ignore[assignment]
+    try:
+        with pytest.raises(OSError, match="os.write returned 0 bytes"):
+            _write_all(1, b"payload")
+    finally:
+        os.write = orig_write  # type: ignore[assignment]
+
+    # Lines 351 & 742: recover_unresolved_intents mode 0o644 and 2-space JSON indent
+    rec_ledger = tmp_path / "rec_indent_ledger.jsonl"
+    rec_state_dir = tmp_path / "rec_indent_state"
+    rec_interlock = PreDispatchIntentInterlock(
+        ledger_path=rec_ledger,
+        output_state_dir=rec_state_dir,
+        authority_id="actor-rec",
+    )
+    rec_payload = {"op": "recover_indent_check"}
+    rec_caid = compute_caid(rec_payload)
+    rec_interlock.record_intent(
+        target_uri="custom://rec",
+        tool_name="rec_tool",
+        payload=rec_payload,
+    )
+    recovered_list = recover_unresolved_intents(rec_ledger, rec_state_dir)
+    assert any(r.caid == rec_caid for r in recovered_list)
+    rec_latch_file = rec_state_dir / f"latched_{rec_caid}.json"
+    assert '\n  "caid":' in rec_latch_file.read_text(encoding="utf-8")
+
+    # Line 846: re-entrant _exclusive() increments _flock_depth by exactly 1
+    with rec_interlock._exclusive():
+        assert rec_interlock._flock_depth == 1
+        with rec_interlock._exclusive():
+            assert rec_interlock._flock_depth == 2
+        assert rec_interlock._flock_depth == 1
+    assert rec_interlock._flock_depth == 0
+
+    # Line 880: _sync_ledger_locked handles a 1-byte leading newline (last_nl == 0)
+    nl_ledger = tmp_path / "leading_newline_ledger.jsonl"
+    nl_ledger.write_bytes(b"\n")
+    nl_interlock = PreDispatchIntentInterlock(
+        ledger_path=nl_ledger,
+        output_state_dir=tmp_path / "nl_state",
+        authority_id="actor-nl",
+    )
+    assert nl_interlock._view.offset == 1
+
+    # Line 1116: OSError during _exclusive() lock acquisition raises PreDispatchLedgerWriteError
+    nl_interlock._lock_path.unlink(missing_ok=True)
+    nl_interlock._lock_path.mkdir(parents=True, exist_ok=True)
+    with pytest.raises(PreDispatchLedgerWriteError, match="Pre-dispatch ledger lock/read failed"):
+        nl_interlock.record_intent(
+            target_uri="custom://in-memory",
+            tool_name="refund_api_v1",
+            payload={"x": 1},
+        )
+
+
+

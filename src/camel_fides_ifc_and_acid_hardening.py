@@ -51,6 +51,17 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
     Ed25519PublicKey,
 )
 
+# RFC 8785 single source of truth: delegate to src/jcs_canonicalizer.encode_jcs
+# (differential-tested in tests/test_jcs_single_source.py).
+try:
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+except ImportError:  # loaded without the repository root on sys.path
+    import sys as _jcs_sys
+    from pathlib import Path as _JcsPath
+
+    _jcs_sys.path.insert(0, str(_JcsPath(__file__).resolve().parents[1]))
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+
 
 def canonical_jcs(obj: Any) -> bytes:
     """Serialize object to RFC 8785 JCS canonical UTF-8 bytes (rejecting floats)."""
@@ -66,9 +77,7 @@ def canonical_jcs(obj: Any) -> bytes:
                 _check_no_floats(item)
 
     _check_no_floats(obj)
-    return json.dumps(
-        obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False
-    ).encode("utf-8")
+    return _reference_encode_jcs(obj)
 
 
 def sha256_prefixed(data: bytes) -> str:

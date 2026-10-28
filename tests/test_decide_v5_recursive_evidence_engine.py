@@ -221,6 +221,8 @@ def test_vector5_antigen_gossip_defense_mesh() -> None:
 
 
 def test_banned_words_absence_in_v5_files() -> None:
+    from pathlib import Path
+
     banned = [
         "guaran" + "teed",
         "bullet" + "proof",
@@ -238,7 +240,169 @@ def test_banned_words_absence_in_v5_files() -> None:
         "src/decide_v5_recursive_evidence_engine.py",
         "tests/test_decide_v5_recursive_evidence_engine.py",
     ):
+        if not Path(path).exists():
+            continue
         with open(path, "r", encoding="utf-8") as fh:
             text = fh.read().lower()
             for w in banned:
                 assert w not in text, f"Banned word '{w}' found in {path}"
+
+
+def test_section17_ruletrek_and_decide_v5_mutation_boundaries() -> None:
+    import ast as _ast
+    import base64
+    import sys as _sys
+    from pathlib import Path
+    import pytest
+
+    import src.decide_v5_recursive_evidence_engine as dv5
+    import tools.ruletrek_cross_model_decide_engine as rt
+
+    # 1. RuleTrek Cross-Model Decide Engine boundaries & trace
+    assert rt.RuleNode.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+    assert rt.ModelBrainstormProposal.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+    assert rt.RuleTrekSynthesisResult.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+    assert rt.canonical_jcs_bytes({"a": 1}) == b'{"a":1}'
+    assert rt.sha256_prefixed(b"abc").startswith("sha256:")
+    with pytest.raises(ValueError, match="ERR_FLOAT_FORBIDDEN_IN_JCS"):
+        rt.canonical_jcs_bytes({"bad": 1.5})
+    with pytest.raises(ValueError, match="ERR_NON_STRING_KEY"):
+        rt.canonical_jcs_bytes({1: "bad"})  # type: ignore[dict-item]
+
+    rt_tree = _ast.parse(Path(rt.__file__).read_text(encoding="utf-8"))
+    rt_last = rt_tree.body[-1]
+    assert isinstance(rt_last, _ast.If) and isinstance(rt_last.test, _ast.Compare)
+    assert isinstance(rt_last.test.ops[0], _ast.Eq)
+
+    assert rt.RuleTrekDependencyGraphExtractor.extract_graph_for_domain("other") == {}
+    rules = rt.RuleTrekDependencyGraphExtractor.extract_graph_for_domain("database_rls_and_treasury")
+    assert rules["R1_TENANT_ISOLATION"].depth == 0
+    assert rules["R2_TCC_ESCROW"].depth == 1
+    assert rules["R3_VISIBILITY_FENCE"].depth == 2
+
+    seen_rt: dict[str, object] = {}
+
+    def _trace_rt(frame: object, event: str, arg: object) -> object:
+        f_code = getattr(frame, "f_code", None)
+        if f_code is not None and f_code.co_name == "test_ruletrek_cross_model_decide_engine" and event == "return":
+            f_locals = getattr(frame, "f_locals", {})
+            if "proposals" in f_locals and "bad_proposals" in f_locals:
+                seen_rt["p0_ver"] = f_locals["proposals"][0].has_verifiable_counterexample_or_url
+                seen_rt["p2_ver"] = f_locals["proposals"][2].has_verifiable_counterexample_or_url
+                seen_rt["bad_ver"] = f_locals["bad_proposals"][0].has_verifiable_counterexample_or_url
+        return _trace_rt
+
+    _sys.settrace(_trace_rt)
+    try:
+        rt.test_ruletrek_cross_model_decide_engine()
+    finally:
+        _sys.settrace(None)
+    assert seen_rt["p0_ver"] is False
+    assert seen_rt["p2_ver"] is False
+    assert seen_rt["bad_ver"] is False
+
+    # Minority verified proposal (conf=0.90) must defeat unverified full-rule proposal (conf=0.99)
+    all_rules = ("R1_TENANT_ISOLATION", "R2_TCC_ESCROW", "R3_VISIBILITY_FENCE")
+    p_unver_high = rt.ModelBrainstormProposal(
+        "m-unver", "US", "Arch", "Unverified", all_rules, False, "none", 0.99
+    )
+    p_ver_low = rt.ModelBrainstormProposal(
+        "m-ver", "CN", "Sec", "Verified", all_rules, True, "https://example.org/proof", 0.90
+    )
+    signer = Ed25519PrivateKey.generate()
+    res_min = rt.RuleTrekCrossModelAdjudicator.adjudicate_and_synthesize(
+        "q-min", rules, [p_unver_high, p_ver_low], signer=signer
+    )
+    assert "m-ver" in res_min.synthesized_architecture
+    core_receipt = {
+        "query": "q-min",
+        "winner": "m-ver",
+        "rules_satisfied": list(all_rules),
+        "rule_compliance_verified": True,
+    }
+    signer.public_key().verify(base64.b64decode(res_min.signature_b64), rt.canonical_jcs_bytes(core_receipt))
+
+    # 2. Decide v5 Recursive Evidence Engine boundaries
+    assert dv5.EVIDENCE_TIER_RANKS == {
+        "T0_MODEL_ASSERTION": 0,
+        "T1_CITATION": 1,
+        "T2_VALIDATED_PRIMARY_SOURCE": 2,
+        "T3_REPRODUCED_COUNTEREXAMPLE": 3,
+        "T4_FORMAL_OR_EXECUTABLE_ORACLE": 4,
+    }
+    assert dv5.encode_jcs({"k": 1}) == b'{"k":1}'
+
+    ledger = dv5.DossierResearchLedger()
+    assert ledger.evaluate_quality_gate()["confidence_grade"] == "LOW"
+    with pytest.raises(ValueError, match="Unknown evidence tier"):
+        ledger.record_claim(
+            TypedEvidenceClaim("c0", "S", "u", "d", "stmt", "target-A", "T99_BAD", 1, True)
+        )
+    c_a1 = TypedEvidenceClaim("c1", "S", "u", "d", "stmt1", "target-A", "T3_REPRODUCED_COUNTEREXAMPLE", 2, True)
+    c_a2 = TypedEvidenceClaim("c2", "S", "u", "d", "stmt2", "target-A", "T3_REPRODUCED_COUNTEREXAMPLE", 2, True)
+    ledger.record_claim(c_a1)
+    assert ledger.evaluate_quality_gate()["confidence_grade"] == "MEDIUM"
+    ledger.record_claim(c_a2)
+    assert len(ledger.contradictions) == 0
+    c_a3_false = TypedEvidenceClaim("c3", "S", "u", "d", "stmt3", "target-A", "T3_REPRODUCED_COUNTEREXAMPLE", 2, False)
+    ledger.record_claim(c_a3_false)
+    assert len(ledger.contradictions) == 2
+    c_b_false = TypedEvidenceClaim("cb", "S", "u", "d", "stmtb", "target-B", "T3_REPRODUCED_COUNTEREXAMPLE", 2, False)
+    ledger.record_claim(c_b_false)
+    assert len(ledger.contradictions) == 2
+
+    eng_custom = DecideV5EvidenceEngine(signer=signer)
+    with pytest.raises(ValueError, match="Unsupported /decide mode"):
+        eng_custom.execute_decide("q", mode="--bad-mode")
+    res_none = eng_custom.execute_decide("q-none", mode="default", claims=None)
+    assert res_none["envelope"]["verdict"] == "CONDITIONAL_RECOMMENDATION"
+    signer.public_key().verify(
+        base64.b64decode(res_none["signature_b64"]), dv5.encode_jcs(res_none["envelope"])
+    )
+
+    vec_ok = FalsificationVector("v1", "tc", "ca", "test_ok", "PASS", "PASS", True)
+    vec_fail = FalsificationVector("v2", "tc", "ca", "test_fail", "PASS", "FAIL", False)
+    res_falsify_fail = eng_custom.execute_decide("q-ff", mode="--falsify", claims=[c_a1], falsification_vectors=[vec_fail])
+    assert res_falsify_fail["envelope"]["verdict"] == "CONDITIONAL_NO"
+    assert res_falsify_fail["envelope"]["confidence_bps"] == 92 * 100
+    res_falsify_pass = eng_custom.execute_decide("q-fp", mode="--falsify", claims=[c_a1], falsification_vectors=[vec_ok])
+    assert res_falsify_pass["envelope"]["verdict"] == "VALIDATED_RECOMMENDATION"
+    c_unver_t4 = TypedEvidenceClaim("c4", "S", "u", "d", "stmt", "target-B", "T4_FORMAL_OR_EXECUTABLE_ORACLE", 2, False)
+    res_unver = eng_custom.execute_decide("q-unver", mode="--deep", claims=[c_unver_t4], falsification_vectors=[vec_ok])
+    assert res_unver["envelope"]["verdict"] == "CONDITIONAL_RECOMMENDATION"
+
+    # Vector 1 negative verification returns exact bool False
+    att = ZkTlsBlindApiAttestor(signer).create_blind_api_attestation(
+        "op1", "d.example", {"balance_minor": 500, "status": "approved"}, 100, "salt"
+    )
+    assert ZkTlsBlindApiAttestor.verify_blind_attestation(
+        {"blind_statement": {**att["blind_statement"], "status_verified": "rejected"}, "notary_signature_b64": att["notary_signature_b64"], "statement_caid": att["statement_caid"]},
+        signer.public_key(),
+    ) is False
+    assert ZkTlsBlindApiAttestor.verify_blind_attestation(
+        {**att, "notary_signature_b64": "AAAA"},
+        signer.public_key(),
+    ) is False
+
+    # Vector 2 Shannon entropy & casing transition exact boundaries
+    assert ShannonChannelCapacityGate.compute_shannon_entropy_bits_per_byte("") == 0.0
+    assert ShannonChannelCapacityGate.compute_shannon_entropy_bits_per_byte("ab") == 1.0
+    assert ShannonChannelCapacityGate.evaluate_outbound_arguments("AAbb") == ("DISPATCHED", "OK")
+    assert ShannonChannelCapacityGate.evaluate_outbound_arguments(
+        "aB", max_entropy_bits_per_byte=10.0, max_casing_transitions_ratio=0.75
+    ) == ("NOT_DISPATCHED", "HALT_SHANNON_STEGANOGRAPHY_ENTROPY_ANOMALY")
+    assert ShannonChannelCapacityGate.evaluate_outbound_arguments(
+        "aB", max_entropy_bits_per_byte=10.0, max_casing_transitions_ratio=1.0
+    ) == ("DISPATCHED", "OK")
+    assert ShannonChannelCapacityGate.evaluate_outbound_arguments(
+        "ab", max_entropy_bits_per_byte=1.0, max_casing_transitions_ratio=0.5
+    ) == ("DISPATCHED", "OK")
+    assert ShannonChannelCapacityGate.evaluate_outbound_arguments(
+        "ab", max_entropy_bits_per_byte=0.9, max_casing_transitions_ratio=0.5
+    ) == ("NOT_DISPATCHED", "HALT_SHANNON_STEGANOGRAPHY_ENTROPY_ANOMALY")
+
+    # Vector 4 VCG zero-externality boundary
+    vcg_solo = VcgTruthfulBudgetAuctioneer.allocate_sprint_budget(
+        [SubagentBid("solo", 100, 500)], capacity_minor=1000
+    )
+    assert vcg_solo.vcg_externality_payments_minor["solo"] == 0

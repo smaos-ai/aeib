@@ -400,6 +400,51 @@ def test_e15_en18286_dora_compliance_bundler_and_offline_verification(tmp_path: 
     tampered_path.write_text(json.dumps(doc), encoding="utf-8")
     assert En18286DoraAuditBundler.verify_exported_bundle_file(tampered_path) is False
 
+    # Boundary & structural mutation-adequacy checks for En18286DoraAuditBundler
+    import hashlib
+    import sys as _sys
+    import src.en18286_dora_audit_bundler as edab
+    from src.decide_evaluation_rate_and_decay_solver import sha256_hex
+
+    assert edab.En18286DoraAuditBundle.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+    edab_tree = ast.parse(Path(edab.__file__).read_text(encoding="utf-8"))
+    found_notin = False
+    for node in edab_tree.body:
+        if isinstance(node, ast.If) and isinstance(node.test, ast.Compare):
+            if isinstance(node.test.ops[0], ast.NotIn):
+                found_notin = True
+    assert found_notin is True
+
+    assert bundler.compute_merkle_root([]) == sha256_hex(b"")
+    h0 = "00" * 32
+    h1 = "11" * 32
+    l0 = hashlib.sha256(b"\x00" + bytes.fromhex(h0)).digest()
+    l1 = hashlib.sha256(b"\x00" + bytes.fromhex(h1)).digest()
+    expected_m2 = hashlib.sha256(b"\x01" + l0 + l1).hexdigest()
+    assert bundler.compute_merkle_root([h0, h1]) == expected_m2
+    h2 = "22" * 32
+    l2 = hashlib.sha256(b"\x00" + bytes.fromhex(h2)).digest()
+    expected_m3 = hashlib.sha256(b"\x01" + hashlib.sha256(b"\x01" + l0 + l1).digest() + l2).hexdigest()
+    assert bundler.compute_merkle_root([h0, h1, h2]) == expected_m3
+
+    cbom = bundler.build_cyclonedx_cbom()
+    assert cbom[1]["digest_length_bits"] == 256
+    assert cbom[2]["key_length_bits"] == 0
+    assert cbom[3]["key_length_bits"] == 244 * 8
+
+    nested_out = tmp_path / "nested_a" / "nested_b" / "bundle.json"
+    bundler.export_compliance_bundle(output_path=nested_out)
+    bundler.export_compliance_bundle(output_path=nested_out)
+    raw_nested = nested_out.read_text(encoding="utf-8")
+    assert raw_nested.startswith('{\n  "')
+
+    old_argv = list(_sys.argv)
+    try:
+        _sys.argv = ["en18286_dora_audit_bundler.py", "--output", str(tmp_path / "cli_out.json")]
+        assert edab.main() == 0
+    finally:
+        _sys.argv = old_argv
+
 
 def test_e16_banned_words_absence():
     """E16: Enforces AGENTS.md epistemic boundary across Section 14-15 files."""

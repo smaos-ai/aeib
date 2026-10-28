@@ -1,0 +1,121 @@
+{
+  "claims": [
+    {
+      "claim_id": "manifesto.pinned",
+      "statement": "TRUTH_MANIFESTO.md is the reviewed version (no silent edits)",
+      "falsifier": "file hash differs from the pinned hash",
+      "safety_critical": true,
+      "evidence": {
+        "kind": "FILE_SHA256",
+        "targets": [
+          "TRUTH_MANIFESTO.md"
+        ],
+        "expected_sha256": "0b72d2300338b619858f26070936d32e9c918e2cb2f1b7643be66d586445b272"
+      },
+      "entailment": "a byte-identical file cannot contain an unreviewed edit"
+    },
+    {
+      "claim_id": "agents-rules.pinned",
+      "statement": "AGENTS.md agent rules are the reviewed version (no silent edits)",
+      "falsifier": "file hash differs from the pinned hash",
+      "safety_critical": true,
+      "evidence": {
+        "kind": "FILE_SHA256",
+        "targets": [
+          "AGENTS.md"
+        ],
+        "expected_sha256": "e076002cbe44d290f1c0fc179fee17af274df5eea8591f9144a0a2796b3c77f3"
+      },
+      "entailment": "a byte-identical file cannot contain an unreviewed edit"
+    },
+    {
+      "claim_id": "jcs.single-source",
+      "statement": "Every canonical-JSON function found by name (canonical/jcs/rfc8785) either delegates to the RFC 8785 reference, is byte-compared against it, or is a listed reviewed exception",
+      "falsifier": "a differential vector diverges, or the AST discovery finds an unregistered json.dumps(sort_keys) canonicalizer",
+      "safety_critical": true,
+      "evidence": {
+        "kind": "PYTEST",
+        "targets": [
+          "tests/test_jcs_single_source.py",
+          "tests/test_jcs_canonicalizer_discovery.py"
+        ]
+      },
+      "entailment": "registered functions are byte-compared on cyberphone vectors plus seeded edge payloads; the discovery test fails on any unregistered local copy matching the name rule"
+    },
+    {
+      "claim_id": "ios.seatbelt-enforced",
+      "statement": "Toolchain calls run under Seatbelt: writes outside the workspace and local network are denied on this host",
+      "falsifier": "sandboxed write to $HOME succeeds or sandboxed nc reaches a local listener",
+      "safety_critical": true,
+      "evidence": {
+        "kind": "PYTEST",
+        "targets": [
+          "tests/test_ios_harness_boundary.py::test_seatbelt_denies_writes_outside_workspace_and_local_network",
+          "tests/test_ios_harness_boundary.py::test_seatbelt_swiftc_works_inside_but_cannot_write_outside"
+        ]
+      },
+      "entailment": "the tests run real writes and a real local TCP connect under the harness profile, with an unsandboxed control that succeeds"
+    },
+    {
+      "claim_id": "ios.test-oracle-pinned",
+      "statement": "Edits, deletions and renames of existing XCTest files are detected from the real git worktree",
+      "falsifier": "a modified, deleted or renamed test file yields ALLOW",
+      "safety_critical": true,
+      "evidence": {
+        "kind": "PYTEST",
+        "targets": [
+          "tests/test_ios_harness_boundary.py::test_xctest_worktree_scan_covers_delete_rename_new_and_other_tools",
+          "tests/test_ios_harness_boundary.py::test_xctest_expected_value_change_is_caught_without_lexical_pattern"
+        ]
+      },
+      "entailment": "the tests modify, delete and rename a test file in a real git repo and assert HALT"
+    },
+    {
+      "claim_id": "truth-compass.self-test",
+      "statement": "The compass computes statuses from re-run checks and rejects self-asserted VERIFIED",
+      "falsifier": "a ledger declaring VERIFIED without a check loads, or a failing test yields VERIFIED",
+      "safety_critical": true,
+      "evidence": {
+        "kind": "PYTEST",
+        "targets": [
+          "tests/test_truth_compass.py"
+        ]
+      },
+      "entailment": "the tests exercise parsing, real pytest exits 0/1/2, timeout, staleness and every tier branch",
+      "depends_on": [
+        "jcs.single-source"
+      ]
+    },
+    {
+      "claim_id": "ios.xcodebuild-under-seatbelt",
+      "statement": "xcodebuild and simctl work under the Seatbelt profile",
+      "falsifier": "xcodebuild build/test fails with sandbox denials on a full-Xcode host",
+      "safety_critical": false,
+      "declared_status": "UNKNOWN",
+      "accepted_by": "andrii@sovereignnexus.local",
+      "depends_on": [
+        "ios.seatbelt-enforced"
+      ]
+    },
+    {
+      "claim_id": "seatbelt.future-availability",
+      "statement": "/usr/bin/sandbox-exec stays available on future macOS releases (it is marked deprecated)",
+      "falsifier": "the binary is absent on a new macOS release",
+      "safety_critical": false,
+      "declared_status": "ASSUMED",
+      "accepted_by": "andrii@sovereignnexus.local"
+    },
+    {
+      "claim_id": "ledger.reduces-unverified-claims",
+      "statement": "Using this ledger daily reduces unverified numbers in our reports",
+      "falsifier": "after 30 days, the share of report numbers without a re-runnable check has not dropped",
+      "safety_critical": false,
+      "declared_status": "HYPOTHESIS",
+      "accepted_by": "andrii@sovereignnexus.local",
+      "depends_on": [
+        "manifesto.pinned",
+        "truth-compass.self-test"
+      ]
+    }
+  ]
+}

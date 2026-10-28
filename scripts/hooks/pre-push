@@ -1,41 +1,100 @@
 #!/usr/bin/env bash
 ###############################################################################
-# AEIB Stage 0 Local Pre-Push Defense-in-Depth Gate (.githooks/pre-push)
+# AEIB Stage 0 Local Pre-Push Defense-in-Depth Gate (scripts/hooks/pre-push)
 #
-# Evaluates local repository state prior to push under the stated model:
-#   1. Secret scanning via Gitleaks AND deterministic regex pattern scan
-#   2. Forbidden private file blocklist check against tracked git index
+# Active because `git config core.hooksPath` = scripts/hooks.
+# Evaluates the commits actually being pushed (not the staged index) under the
+# stated model:
+#   1. Secret scanning via Gitleaks (when installed) AND a deterministic regex
+#      pattern scan over the added lines of the pushed commit range
+#   2. Forbidden private file blocklist check against the pushed range's
+#      changed-file list
 #   3. Python AST & Zero-Mock compliance verification
-#   4. Gradle verification suite (./gradlew test --no-daemon) when present
-#   5. Optional local GitHub Actions container verification via `act` on
+#   4. Claim-integrity gate over all in-scope files (ratchet vs baseline)
+#   5. Reproducibility harness (scripts/verify_reproduce.sh)
+#   6. Gradle verification suite (./gradlew test --no-daemon) when present
+#   7. Optional local GitHub Actions container verification via `act` on
 #      Apple Silicon (M3 Pro) when AEIB_RUN_ACT=1 is configured.
 #
-# Activation:
-#   git config core.hooksPath .githooks
-#   cp .githooks/pre-push .git/hooks/pre-push && chmod +x .git/hooks/pre-push
+# Range computation per ref read from stdin (`local_ref local_sha remote_ref remote_sha`):
+#   - deleted ref (local_sha all zeros)        -> skipped
+#   - existing remote ref                      -> remote_sha..local_sha
+#   - new branch (remote_sha all zeros)        -> merge-base with origin default
+#                                                 branch, else the last 20 commits
+# When run manually without stdin, HEAD is evaluated against @{upstream} or the
+# same fallbacks.
+#
+# Optional skips (explicit, printed): AEIB_PREPUSH_SKIP_REPRO=1
 ###############################################################################
 set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 cd "$REPO_ROOT"
 
-echo "🔒 [PRE-PUSH] Running security & secret leak scan before push..."
+PY="${PYTHON:-python3}"
+ZERO_SHA="0000000000000000000000000000000000000000"
+EMPTY_TREE="$(git hash-object -t tree /dev/null)"
+FALLBACK_DEPTH=20
 
-# 1. Run Gitleaks if installed
-if command -v gitleaks >/dev/null 2>&1; then
-    echo "   -> Running gitleaks secret scan..."
-    gitleaks protect --verbose --staged --redact
-else
-    echo "   -> gitleaks not installed; running regex secret pattern scan..."
+echo "🔒 [PRE-PUSH] Running security & secret leak scan on the pushed commit range..."
+
+default_remote_branch() {
+    local ref
+    ref="$(git symbolic-ref -q refs/remotes/origin/HEAD 2>/dev/null || true)"
+    if [ -n "$ref" ]; then echo "$ref"; return 0; fi
+    for cand in refs/remotes/origin/main refs/remotes/origin/master; do
+        if git show-ref --verify --quiet "$cand"; then echo "$cand"; return 0; fi
+    done
+    return 1
+}
+
+# Echo the base commit (or the empty tree) for a pushed tip whose remote side is unknown.
+fallback_base() {
+    local tip="$1" def mb oldest
+    if def="$(default_remote_branch)"; then
+        mb="$(git merge-base "$tip" "$def" 2>/dev/null || true)"
+        if [ -n "$mb" ]; then echo "$mb"; return 0; fi
+    fi
+    oldest="$(git rev-list --max-count="$FALLBACK_DEPTH" "$tip" | tail -n 1)"
+    if git rev-parse --verify --quiet "${oldest}^" >/dev/null; then
+        git rev-parse "${oldest}^"
+    else
+        echo "$EMPTY_TREE"
+    fi
+}
+
+RANGES=()  # entries "base tip"
+STDIN_SEEN=0
+if [ ! -t 0 ]; then
+    while read -r local_ref local_sha remote_ref remote_sha; do
+        [ -z "${local_ref:-}" ] && continue
+        STDIN_SEEN=1
+        if [ "$local_sha" = "$ZERO_SHA" ]; then
+            echo "   -> $remote_ref: deletion, nothing to scan"
+            continue
+        fi
+        if [ "$remote_sha" = "$ZERO_SHA" ] || ! git cat-file -e "${remote_sha}^{commit}" 2>/dev/null; then
+            base="$(fallback_base "$local_sha")"
+            echo "   -> $local_ref -> $remote_ref: new/unknown remote tip; base=${base:0:12}"
+        else
+            base="$remote_sha"
+        fi
+        RANGES+=("$base $local_sha")
+    done
+fi
+if [ "$STDIN_SEEN" -eq 0 ]; then
+    tip="$(git rev-parse HEAD)"
+    if up="$(git rev-parse --verify --quiet '@{upstream}' 2>/dev/null)"; then
+        base="$(git merge-base "$tip" "$up")"
+    else
+        base="$(fallback_base "$tip")"
+    fi
+    echo "   -> manual run: evaluating ${base:0:12}..${tip:0:12}"
+    RANGES+=("$base $tip")
 fi
 
-# 2. High-entropy / secret pattern scan on staged & HEAD commit diffs
-if git diff --cached -U0 | grep -E -i '(sk-[a-zA-Z0-9]{32,}|ghp_[a-zA-Z0-9]{36}|AKIA[0-9A-Z]{16}|-----BEGIN (OPENSSH |ENCRYPTED |EC |RSA |DSA )?PRIVATE KEY-----)' >/dev/null 2>&1; then
-    echo "❌ [BLOCKED] Potential secret or private key detected in staged diff!" >&2
-    exit 1
-fi
-
-# 3. Block forbidden private files if tracked in the git index
+# 1. Secret scanning on the pushed range.
+SECRET_RE='(sk-[a-zA-Z0-9]{32,}|ghp_[a-zA-Z0-9]{36}|AKIA[0-9A-Z]{16}|-----BEGIN (OPENSSH |ENCRYPTED |EC |RSA |DSA )?PRIVATE KEY-----)'
 FORBIDDEN_FILES=(
     ".env"
     ".env.production"
@@ -48,22 +107,66 @@ FORBIDDEN_FILES=(
     "LP_TARGET_LIST.csv"
     "OUTREACH_TRACKING.csv"
 )
-BLOCKED_TRACKED=0
-for f in "${FORBIDDEN_FILES[@]}"; do
-    if git diff --cached --name-only | grep -E "^${f}$" >/dev/null 2>&1; then
-        echo "❌ [BLOCKED] Forbidden private file '$f' is staged for commit/push! Run: git reset HEAD \"$f\"" >&2
-        BLOCKED_TRACKED=1
+
+for range in ${RANGES[@]+"${RANGES[@]}"}; do
+    base="${range% *}"
+    tip="${range#* }"
+    echo "   -> scanning range ${base:0:12}..${tip:0:12} ($(git rev-list --count "$tip" ${base:+"^$base"} 2>/dev/null || echo '?') commits)"
+
+    # 1a. Gitleaks over the pushed commits, if installed.
+    if command -v gitleaks >/dev/null 2>&1; then
+        echo "   -> Running gitleaks secret scan on pushed commits..."
+        if [ "$base" = "$EMPTY_TREE" ]; then
+            gitleaks detect --verbose --redact --log-opts="$tip"
+        else
+            gitleaks detect --verbose --redact --log-opts="${base}..${tip}"
+        fi
+    else
+        echo "   -> gitleaks not installed; running regex secret pattern scan..."
+    fi
+
+    # Per-commit history (not the net diff), so a secret added then removed inside
+    # the pushed range is still detected.
+    if [ "$base" = "$EMPTY_TREE" ]; then REVS="$tip"; else REVS="${base}..${tip}"; fi
+
+    # 1b. Deterministic regex scan of added lines in every pushed commit.
+    if git log -p -U0 --no-color --format= --diff-filter=ACMR "$REVS" \
+        | grep -E '^\+' | grep -Ev '^\+\+\+ ' | grep -E -i "$SECRET_RE" >/dev/null 2>&1; then
+        echo "❌ [BLOCKED] Potential secret or private key detected in pushed range ${base:0:12}..${tip:0:12}!" >&2
+        exit 1
+    fi
+
+    # 2. Forbidden private files in the pushed range's changed-file list.
+    CHANGED="$(git log --name-only --format= --diff-filter=ACMR "$REVS" | sort -u)"
+    BLOCKED_TRACKED=0
+    for f in "${FORBIDDEN_FILES[@]}"; do
+        if printf '%s\n' "$CHANGED" | awk -v f="$f" '{ n = split($0, p, "/") } $0 == f || (index(f, "/") == 0 && p[n] == f) { found = 1 } END { exit found ? 0 : 1 }'; then
+            echo "❌ [BLOCKED] Forbidden private file '$f' is part of the pushed range! Remove it from history before pushing." >&2
+            BLOCKED_TRACKED=1
+        fi
+    done
+    if [ "$BLOCKED_TRACKED" -ne 0 ]; then
+        exit 1
     fi
 done
-if [ "$BLOCKED_TRACKED" -ne 0 ]; then
-    exit 1
+
+# 3. Evaluate Python AST & Zero-Mock compliance
+echo "   -> Evaluating AST & zero-mock compliance..."
+"$PY" compliance/ast_purity.py . && "$PY" compliance/no_mock_enforcer.py
+
+# 4. Claim-integrity gate (all in-scope files, ratchet against baseline)
+echo "   -> Running claim-integrity gate (--all, baseline ratchet)..."
+"$PY" compliance/claim_integrity_gate.py --all
+
+# 5. Reproducibility harness
+if [ "${AEIB_PREPUSH_SKIP_REPRO:-0}" = "1" ]; then
+    echo "   -> NOTE: AEIB_PREPUSH_SKIP_REPRO=1 set; scripts/verify_reproduce.sh NOT run."
+else
+    echo "   -> Running scripts/verify_reproduce.sh..."
+    bash scripts/verify_reproduce.sh
 fi
 
-# 4. Evaluate Python AST & Zero-Mock compliance
-echo "   -> Evaluating AST & zero-mock compliance..."
-python3 compliance/ast_purity.py . && python3 compliance/no_mock_enforcer.py
-
-# 5. Gradle Test Suite Execution (if Java runtime and root wrapper are present)
+# 6. Gradle Test Suite Execution (if Java runtime and root wrapper are present)
 if [ -x "./gradlew" ] && [ -n "${JAVA_HOME:-}" ] && [ -x "${JAVA_HOME}/bin/java" ]; then
     echo "   -> Running ./gradlew test --no-daemon..."
     ./gradlew test --no-daemon
@@ -71,7 +174,7 @@ elif [ -x "./gradlew" ]; then
     echo "   -> Note: Executable Java binary not found under JAVA_HOME; skipping local Gradle test."
 fi
 
-# 6. Optional Local GitHub Actions Verification via `act` (Apple Silicon M3 Pro)
+# 7. Optional Local GitHub Actions Verification via `act` (Apple Silicon M3 Pro)
 if [ "${AEIB_RUN_ACT:-0}" = "1" ]; then
     if ! command -v act >/dev/null 2>&1; then
         echo "❌ [BLOCKED] AEIB_RUN_ACT=1 is set, but 'act' is not installed." >&2

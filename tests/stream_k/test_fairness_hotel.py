@@ -13,8 +13,8 @@ import json
 import pytest
 import random
 from pathlib import Path
-
-sys.path.insert(0, '/Users/andriileukhin/Documents/SovereignNexus')
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(REPO_ROOT))
 
 from fairness_testing import (
     FairnessAnalyzer,
@@ -357,7 +357,7 @@ def test_synthetic_data_persistence():
 
 def test_compliance_threshold_constant():
     """Test 19: Demographic parity threshold is correctly set to 0.80"""
-    assert FairnessAnalyzer.DEMOGRAPHIC_PARITY_THRESHOLD == 0.80
+    assert float(FairnessAnalyzer.DEMOGRAPHIC_PARITY_THRESHOLD) == 0.80
 
 
 def test_dataset_statistics_comprehensive():

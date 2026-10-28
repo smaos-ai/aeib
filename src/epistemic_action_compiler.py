@@ -35,14 +35,23 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
     Ed25519PublicKey,
 )
 
+# RFC 8785 single source of truth: delegate to src/jcs_canonicalizer.encode_jcs
+# (differential-tested in tests/test_jcs_single_source.py).
+try:
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+except ImportError:  # loaded without the repository root on sys.path
+    import sys as _jcs_sys
+    from pathlib import Path as _JcsPath
+
+    _jcs_sys.path.insert(0, str(_JcsPath(__file__).resolve().parents[1]))
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+
 
 def canonical_jcs_bytes(obj: Any) -> bytes:
     """RFC 8785 JSON Canonicalization Scheme (JCS) encoding."""
     if isinstance(obj, float):
         raise ValueError("ERR_FLOAT_FORBIDDEN_USE_INTEGER_MINOR_UNITS")
-    return json.dumps(
-        obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
-    ).encode("utf-8")
+    return _reference_encode_jcs(obj)
 
 
 def sha256_hex(data: bytes) -> str:
@@ -322,7 +331,7 @@ class EpistemicActionCompiler:
         hypothesis_drop_mutators: Dict[str, Tuple[str, Dict[str, Any], str]] = {
             "H_MONOTONIC_CLOCK": (
                 "Clock backward jump / NTP slew causes token TTL expiration or replay bypass.",
-                {"clock_skew_ms": -5000, "consequence": "ERR_REPLAY_ACCEPTED"},
+                {"clock_skew_ms": -5000, "consequence": "ERR_REPLAY_ACCEPTED"},  # claim: assumption
                 "arXiv:2603.19514 (Hypothesis-Drop: Monotonic Clock)",
             ),
             "H_HTTP200_IS_SUCCESS": (
@@ -337,7 +346,7 @@ class EpistemicActionCompiler:
             ),
             "H_NO_REPLICA_LAG": (
                 "Read replica lag causes read-after-write to report record ABSENT after commit.",
-                {"delta_commit_ms": 2000, "replica_lag_ms": 3000, "consequence": "SPURIOUS_RETRY"},
+                {"delta_commit_ms": 2000, "replica_lag_ms": 3000, "consequence": "SPURIOUS_RETRY"},  # claim: assumption
                 "arXiv:2609.29095 (Proposition 1: Impossibility under Late Commits)",
             ),
         }

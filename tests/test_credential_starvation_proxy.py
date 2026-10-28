@@ -132,7 +132,7 @@ def test_nominal_credential_starvation_injection(tmp_path: Path):
 
     # 2. Assert agent response had sensitive upstream headers stripped
     assert "Set-Cookie" not in resp["headers"]
-    assert resp["status_code"] == 200
+    assert int(resp["status_code"]) == 200
     assert proxy.total_dispatches_forwarded == 1
 
     # 3. Assert persistent audit record created

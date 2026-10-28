@@ -1,0 +1,7 @@
+{
+  "entry_module": "solution",
+  "id": "backoff_schedule",
+  "instruction": "Implement backoff(attempts, base_ms, cap_ms) returning a list of integer delays: base*2**i capped at cap_ms, for i in range(attempts). Raise ValueError for attempts < 0, base_ms <= 0, or cap_ms < base_ms.",
+  "starter_source": "def backoff(attempts: int, base_ms: int, cap_ms: int) -> list:\n    \"\"\"Exponential backoff schedule (integers).\"\"\"\n    return []\n",
+  "type": "feature"
+}

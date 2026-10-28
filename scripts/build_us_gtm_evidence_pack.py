@@ -83,38 +83,82 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 PACK_DIR = Path(__file__).resolve().parent.parent
 
 
+def _jcs_format_number(num: float) -> str:
+    """ECMAScript 7.1.12.1 Number::toString per RFC 8785 Section 3.2.2.3.
+
+    Port of SovereignNexus src/jcs_canonicalizer._format_jcs_number, kept local
+    so the emitted verifier has no repository imports.
+    """
+    if num != num or num in (float("inf"), float("-inf")):
+        raise ValueError("NaN and Infinity are not permitted in RFC 8785")
+    if num == 0.0:
+        return "0"
+    if num < 0:
+        return "-" + _jcs_format_number(-num)
+    rep = repr(num)
+    if "e" in rep:
+        mantissa, exp_str = rep.split("e")
+        exp = int(exp_str)
+    else:
+        mantissa, exp = rep, 0
+    if "." in mantissa:
+        int_part, frac_part = mantissa.split(".")
+        frac_part = frac_part.rstrip("0")
+    else:
+        int_part, frac_part = mantissa, ""
+    int_part = int_part.lstrip("0")
+    if int_part:
+        digits = int_part + frac_part
+        n = len(int_part) + exp
+    else:
+        leading_zeros = len(frac_part) - len(frac_part.lstrip("0"))
+        digits = frac_part.lstrip("0")
+        n = -leading_zeros + exp
+    if not digits:
+        return "0"
+    k = len(digits)
+    if k <= n <= 21:
+        return digits + "0" * (n - k)
+    if 0 < n <= 21:
+        return digits[:n] + "." + digits[n:]
+    if -6 < n <= 0:
+        return "0." + "0" * (-n) + digits
+    exp_sign = "+" if (n - 1) > 0 else ""
+    if k == 1:
+        return f"{digits}e{exp_sign}{n - 1}"
+    return f"{digits[0]}.{digits[1:]}e{exp_sign}{n - 1}"
+
+
+def _jcs_utf16_key(key: Any) -> bytes:
+    if not isinstance(key, str):
+        raise TypeError(f"RFC 8785 requires object keys to be strings, got {type(key).__name__}")
+    return key.encode("utf-16-be")
+
+
+def _jcs_serialize(val: Any) -> str:
+    if val is None:
+        return "null"
+    if isinstance(val, bool):
+        return "true" if val else "false"
+    if isinstance(val, int):
+        return str(val)
+    if isinstance(val, float):
+        return _jcs_format_number(val)
+    if isinstance(val, str):
+        return json.dumps(val, ensure_ascii=False)
+    if isinstance(val, (list, tuple)):
+        return "[" + ",".join(_jcs_serialize(x) for x in val) + "]"
+    if isinstance(val, dict):
+        return "{" + ",".join(
+            f"{json.dumps(k, ensure_ascii=False)}:{_jcs_serialize(val[k])}"
+            for k in sorted(val.keys(), key=_jcs_utf16_key)
+        ) + "}"
+    raise TypeError(f"Type {type(val).__name__} is not JSON serializable")
+
+
 def encode_jcs(val: Any) -> bytes:
     """Strict RFC 8785 JSON Canonicalization Scheme (JCS)."""
-    if val is None:
-        return b"null"
-    if isinstance(val, bool):
-        return b"true" if val else b"false"
-    if isinstance(val, int):
-        return str(val).encode("utf-8")
-    if isinstance(val, float):
-        if val != val or val == float("inf") or val == float("-inf"):
-            raise ValueError(f"JCS does not support non-finite float {val}")
-        if val.is_integer():
-            return str(int(val)).encode("utf-8")
-        s = f"{val:.16g}"
-        return s.encode("utf-8")
-    if isinstance(val, str):
-        return json.dumps(val, ensure_ascii=False).encode("utf-8")
-    if isinstance(val, list):
-        items = [encode_jcs(x) for x in val]
-        return b"[" + b",".join(items) + b"]"
-    if isinstance(val, dict):
-        sorted_keys = sorted(
-            val.keys(),
-            key=lambda k: k.encode("utf-16-be")
-        )
-        parts = []
-        for k in sorted_keys:
-            encoded_k = json.dumps(k, ensure_ascii=False).encode("utf-8")
-            encoded_v = encode_jcs(val[k])
-            parts.append(encoded_k + b":" + encoded_v)
-        return b"{" + b",".join(parts) + b"}"
-    raise TypeError(f"Type {type(val)} not serializable in RFC 8785 JCS")
+    return _jcs_serialize(val).encode("utf-8")
 
 
 def verify_manifest():

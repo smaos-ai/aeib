@@ -1,0 +1,7 @@
+{
+  "entry_module": "solution",
+  "id": "normalize_whitespace",
+  "instruction": "Implement normalize(text): Unicode NFC normalize, replace every run of whitespace (including tabs/newlines/non-breaking space) with a single space, strip ends.",
+  "starter_source": "def normalize(text: str) -> str:\n    \"\"\"NFC + collapse whitespace + strip.\"\"\"\n    ...\n",
+  "type": "text"
+}

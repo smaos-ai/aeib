@@ -1,0 +1,2 @@
+Notification recorded at 2026-10-24T07:58:10+02:00:
+Please check the RCSB Protein Data Bank (PDB) usage and data policy terms at https://www.rcsb.org/pages/usage-policy and verify any restrictions on structures and metadata retrieved via the pdb-database skill.

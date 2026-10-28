@@ -1,0 +1,7 @@
+{
+  "entry_module": "solution",
+  "id": "luhn_valid",
+  "instruction": "Implement luhn_valid(number) for a string of digits possibly containing spaces. Return False for any non-digit (after removing spaces) or fewer than 2 digits.",
+  "starter_source": "def luhn_valid(number: str) -> bool:\n    \"\"\"Luhn checksum.\"\"\"\n    pass\n",
+  "type": "validation"
+}

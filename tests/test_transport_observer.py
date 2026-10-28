@@ -144,7 +144,7 @@ class TestTransportObserver(unittest.TestCase):
         )
 
         self.assertEqual(error_response["id"], "tx-timeout-01")
-        self.assertEqual(error_response["error"]["code"], -32000)
+        self.assertEqual(int(error_response["error"]["code"]), -32000)
         self.assertEqual(error_response["error"]["data"]["disposition"], "OUTCOME_VERIFIED")
         self.assertFalse(error_response["error"]["data"]["retry_permitted"])
 

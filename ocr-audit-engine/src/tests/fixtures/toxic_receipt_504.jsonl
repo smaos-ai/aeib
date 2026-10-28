@@ -1,0 +1,6 @@
+{"action_id": "health-001", "method": "GET", "http_status": 200, "verdict": "CONFIRMED", "timestamp": "2026-09-18T10:00:00Z"}
+{"action_id": "health-002", "method": "GET", "http_status": 200, "verdict": "CONFIRMED", "timestamp": "2026-09-18T10:00:01Z"}
+{"action_id": "health-003", "method": "GET", "http_status": 200, "verdict": "CONFIRMED", "timestamp": "2026-09-18T10:00:02Z"}
+{"action_id": "health-004", "method": "GET", "http_status": 200, "verdict": "CONFIRMED", "timestamp": "2026-09-18T10:00:03Z"}
+{"action_id": "health-005", "method": "GET", "http_status": 200, "verdict": "CONFIRMED", "timestamp": "2026-09-18T10:00:04Z"}
+{"action_id": "tx-pay-504", "method": "POST", "http_status": 504, "wire_fault": "TIMEOUT", "verdict": "CONFIRMED", "amount": 100000, "currency": "EUR", "timestamp": "2026-09-18T10:00:05Z"}

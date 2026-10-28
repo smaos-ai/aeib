@@ -1,0 +1,34 @@
+services:
+  smaos-demo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sovereignnexus/aeib-receipt-fuzzer:v0.1.0
+    container_name: smaos-audit
+    
+    # Secure defaults: Runs entirely locally on loopback.
+    # Use network_mode: "none" for strict CLI-only offline mode.
+    ports:
+      - "127.0.0.1:8765:8765"
+    
+    volumes:
+      - ./audit_out:/app/audit_out:rw
+      - ./fixtures:/app/fixtures:ro
+    
+    environment:
+      PYTHONUNBUFFERED: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+      
+      # --- THE CONTAINER SHOP MENU ---
+      # Prospects can toggle these to test their specific stack
+      RUNTIME: "java21"             # java21 | python
+      FRAMEWORK: "spring-boot"      # spring-boot | langchain4j | fastapi
+      FAULT_MODES: "504,TCP_RST"    # 504 | TCP_RST
+      PRIVACY_GUARD: "true"         # IBAN/PAN/JWT memory scrubbing
+      COMPLIANCE_EXPORT: "DORA,ISO42001,ATH"
+      
+      # Demo Launcher Configuration
+      DEMO_MODE: "live"             # live | offline
+    
+    # Ensures container runs as non-root (UID 1000 matched to host)
+    user: "${UID:-1000}:${GID:-1000}"

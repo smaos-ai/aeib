@@ -34,8 +34,13 @@ import base64
 import json
 import os
 import re
+import tracemalloc
+import shutil
 import socket
+import stat
 import sys
+import tempfile
+import threading
 import time
 import uuid
 from pathlib import Path
@@ -66,17 +71,14 @@ from src.secure_mcp_uds_boundary import (
 
 @pytest.fixture
 def ephemeral_sock_path() -> Generator[Path, None, None]:
-    """Provides a temporary, short Unix Domain Socket path within /tmp."""
-    sock_id = uuid.uuid4().hex[:12]
-    path = Path(f"/tmp/uds_test_{sock_id}.sock")
-    if path.exists():
-        path.unlink()
+    """
+    Provides a short Unix Domain Socket path inside a dedicated 0o700 directory under /tmp
+    (the server refuses shared directories such as /tmp itself).
+    """
+    sock_dir = Path(tempfile.mkdtemp(prefix="uds_test_", dir="/tmp"))
+    path = sock_dir / "s.sock"
     yield path
-    if path.exists():
-        try:
-            path.unlink()
-        except OSError:
-            pass
+    shutil.rmtree(sock_dir, ignore_errors=True)
 
 
 @pytest.fixture
@@ -610,3 +612,691 @@ def test_banned_words_absence():
                     violations.append(f"{f}:{idx}: contains prohibited token '{token}'")
 
     assert len(violations) == 0, f"Prohibited tokens detected: {violations}"
+
+
+# ----------------------------------------------------------------------------
+# Regression tests for red-team findings (A5): frame cap, idle-client blocking,
+# socket directory hygiene, durable nonce replay cache. Real UDS sockets and
+# real threads; halt codes are string literals so the tests also run (and fail
+# behaviorally) against the pre-fix module.
+# ----------------------------------------------------------------------------
+
+
+def _server_and_token(sock_path: Path, issuer_keypair, **server_kwargs):
+    issuer_priv, issuer_pub = issuer_keypair
+    issuer_did = "did:aeib:station1:authority"
+    server_id = "mcp-server-boundary-alpha"
+    server = SecureMcpUdsBoundaryServer(
+        mcp_server_id=server_id,
+        socket_path=sock_path,
+        trusted_issuer_pubkeys={issuer_did: issuer_pub},
+        **server_kwargs,
+    )
+    server.register_tool("lookup_record", lambda args: {"status": "ok"})
+
+    def make_token(nonce=None):
+        return create_signed_capability_token(
+            issuer_privkey=issuer_priv,
+            issuer_did=issuer_did,
+            audience=server_id,
+            client_pid=os.getpid(),
+            allowed_tools=["lookup_record"],
+            nonce=nonce,
+        )
+
+    return server, make_token
+
+
+def _recv_line(sock: socket.socket) -> bytes:
+    buf = b""
+    while not buf.endswith(b"\n"):
+        chunk = sock.recv(65536)
+        if not chunk:
+            break
+        buf += chunk
+    return buf
+
+
+def _halt_codes(server: SecureMcpUdsBoundaryServer):
+    return [r.get("halt_code") for r in server.audit_records]
+
+
+def test_regression_idle_client_does_not_block_second_client(ephemeral_sock_path: Path, issuer_keypair):
+    """
+    Finding 2: one idle peer must not block other peers. The second client uses a 1.5 s
+    timeout, shorter than the default 2 s per-connection deadline, so it is only served
+    if connections are handled concurrently. The idle peer is then closed by the server
+    with HALT_FRAME_READ_TIMEOUT.
+    """
+    server, make_token = _server_and_token(ephemeral_sock_path, issuer_keypair)
+    with server:
+        idle = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        idle.connect(str(ephemeral_sock_path))
+        try:
+            time.sleep(0.3)
+            client = SecureMcpUdsClient(socket_path=ephemeral_sock_path, timeout=1.5)
+            t0 = time.monotonic()
+            resp = client.call_tool("lookup_record", {}, make_token())
+            assert resp["status"] == "SUCCESS"
+            assert time.monotonic() - t0 < 1.5
+
+            idle.settimeout(5.0)
+            t1 = time.monotonic()
+            line = _recv_line(idle)
+            assert time.monotonic() - t1 < 4.0
+            assert json.loads(line)["halt_code"] == "HALT_FRAME_READ_TIMEOUT"
+        finally:
+            idle.close()
+    assert "HALT_FRAME_READ_TIMEOUT" in _halt_codes(server)
+
+
+def test_regression_drip_feed_client_bounded_by_deadline(ephemeral_sock_path: Path, issuer_keypair):
+    """
+    Finding 2 (variant): a peer sending one byte every 0.2 s never completes a frame;
+    the total per-connection deadline (not only per-recv) closes it.
+    """
+    server, _make_token = _server_and_token(
+        ephemeral_sock_path, issuer_keypair, connection_timeout=1.0
+    )
+    with server:
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        s.connect(str(ephemeral_sock_path))
+        s.settimeout(0.05)
+        t0 = time.monotonic()
+        resp = b""
+        try:
+            while time.monotonic() - t0 < 5.0 and not resp.endswith(b"\n"):
+                try:
+                    s.sendall(b"{")
+                except OSError:
+                    break
+                try:
+                    chunk = s.recv(4096)
+                    if not chunk:
+                        break
+                    resp += chunk
+                except (socket.timeout, TimeoutError):
+                    pass
+                time.sleep(0.15)
+            elapsed = time.monotonic() - t0
+        finally:
+            s.close()
+        assert elapsed < 2.5
+    assert "HALT_FRAME_READ_TIMEOUT" in _halt_codes(server)
+
+
+def test_regression_oversize_frame_rejected_quickly_with_bounded_memory(
+    ephemeral_sock_path: Path, issuer_keypair
+):
+    """
+    Finding 1: a 16 MiB frame without newline is rejected after at most
+    max_frame_bytes (default 1 MiB) with HALT_FRAME_TOO_LARGE, quickly and without
+    buffering the whole frame (traced allocation peak stays far below 16 MiB).
+    """
+    server, _make_token = _server_and_token(ephemeral_sock_path, issuer_keypair)
+    big = b"A" * (16 * 1024 * 1024)
+    with server:
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        s.settimeout(10.0)
+        s.connect(str(ephemeral_sock_path))
+
+        def sender():
+            try:
+                s.sendall(big)
+            except OSError:
+                pass
+
+        tracemalloc.start()
+        t0 = time.monotonic()
+        th = threading.Thread(target=sender, daemon=True)
+        th.start()
+        try:
+            line = _recv_line(s)
+        except OSError:
+            line = b""
+        th.join(timeout=10.0)
+        elapsed = time.monotonic() - t0
+        _cur, peak = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
+        s.close()
+
+        assert elapsed < 3.0
+        assert peak < 6 * 1024 * 1024, f"server buffered {peak} bytes"
+        if line:
+            assert json.loads(line)["halt_code"] == "HALT_FRAME_TOO_LARGE"
+    assert _halt_codes(server) == ["HALT_FRAME_TOO_LARGE"]
+
+
+def test_regression_frame_size_boundary(ephemeral_sock_path: Path, issuer_keypair):
+    """
+    Finding 1 (boundary): a frame of exactly max_frame_bytes (newline included) is
+    accepted; one byte more is rejected with HALT_FRAME_TOO_LARGE.
+    """
+    server, make_token = _server_and_token(ephemeral_sock_path, issuer_keypair, max_frame_bytes=4096)
+    with server:
+        def send_padded(total_len: int):
+            req = {
+                "arguments": {"pad": ""},
+                "capability_token": make_token().to_dict(),
+                "request_id": "r",
+                "tool_name": "lookup_record",
+            }
+            base_len = len(json.dumps(req, separators=(",", ":")).encode()) + 1
+            req["arguments"]["pad"] = "x" * (total_len - base_len)
+            wire = json.dumps(req, separators=(",", ":")).encode() + b"\n"
+            assert len(wire) == total_len
+            s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            s.settimeout(5.0)
+            s.connect(str(ephemeral_sock_path))
+            try:
+                s.sendall(wire)
+                return json.loads(_recv_line(s))
+            finally:
+                s.close()
+
+        assert send_padded(4096)["status"] == "SUCCESS"
+        assert send_padded(4097)["halt_code"] == "HALT_FRAME_TOO_LARGE"
+
+
+def test_regression_socket_dir_mode_0700_and_umask_restored(issuer_keypair):
+    """
+    Finding 3: the socket is created inside a dedicated 0o700 directory (created when
+    missing, even under a permissive process umask), the socket node is 0o600, and the
+    process umask is restored after bind.
+    """
+    base = Path(tempfile.mkdtemp(prefix="uds_dir_", dir="/tmp"))
+    sock_path = base / "sub" / "s.sock"
+    server, _make_token = _server_and_token(sock_path, issuer_keypair)
+    old = os.umask(0o002)
+    try:
+        with server:
+            assert os.umask(0o002) == 0o002
+            dir_mode = stat.S_IMODE(os.lstat(sock_path.parent).st_mode)
+            sock_mode = stat.S_IMODE(os.lstat(sock_path).st_mode)
+            # owner-only: rwx for the directory, rw for the socket, no group/other bits
+            assert dir_mode == stat.S_IRWXU
+            assert sock_mode == stat.S_IRUSR | stat.S_IWUSR
+            assert (dir_mode | sock_mode) & (stat.S_IRWXG | stat.S_IRWXO) == 0
+            assert stat.S_ISSOCK(os.lstat(sock_path).st_mode)
+    finally:
+        os.umask(old)
+        shutil.rmtree(base, ignore_errors=True)
+
+
+def test_regression_socket_dir_insecure_refused(issuer_keypair):
+    """
+    Finding 3: an existing group/world-accessible directory, a symlinked directory,
+    and a non-socket file at the socket path are refused with HALT_SOCKET_DIR_INSECURE.
+    """
+    base = Path(tempfile.mkdtemp(prefix="uds_dir_", dir="/tmp"))
+    try:
+        loose = base / "loose"
+        loose.mkdir()
+        os.chmod(loose, 0o755)
+        server, _ = _server_and_token(loose / "s.sock", issuer_keypair)
+        with pytest.raises(McpSecurityHaltError) as exc:
+            server.start()
+        assert exc.value.halt_code == "HALT_SOCKET_DIR_INSECURE"
+        assert not (loose / "s.sock").exists()
+
+        real = base / "real"
+        real.mkdir(mode=0o700)
+        link = base / "link"
+        link.symlink_to(real)
+        server, _ = _server_and_token(link / "s.sock", issuer_keypair)
+        with pytest.raises(McpSecurityHaltError) as exc:
+            server.start()
+        assert exc.value.halt_code == "HALT_SOCKET_DIR_INSECURE"
+
+        regular = real / "s.sock"
+        regular.write_text("not a socket")
+        server, _ = _server_and_token(regular, issuer_keypair)
+        with pytest.raises(McpSecurityHaltError) as exc:
+            server.start()
+        assert exc.value.halt_code == "HALT_SOCKET_DIR_INSECURE"
+        assert regular.read_text() == "not a socket"
+    finally:
+        shutil.rmtree(base, ignore_errors=True)
+
+
+def test_regression_nonce_replay_rejected_after_restart(ephemeral_sock_path: Path, issuer_keypair):
+    """
+    Finding 4: a consumed nonce stays consumed across a server restart (durable store
+    beside the socket in its 0o700 directory).
+    """
+    server, make_token = _server_and_token(ephemeral_sock_path, issuer_keypair)
+    token = make_token(nonce="restart-nonce-0001")
+    with server:
+        client = SecureMcpUdsClient(socket_path=ephemeral_sock_path)
+        assert client.call_tool("lookup_record", {}, token)["status"] == "SUCCESS"
+
+    server2, _ = _server_and_token(ephemeral_sock_path, issuer_keypair)
+    with server2:
+        client = SecureMcpUdsClient(socket_path=ephemeral_sock_path)
+        with pytest.raises(McpSecurityHaltError) as exc:
+            client.call_tool("lookup_record", {}, token)
+        assert exc.value.halt_code == HALT_TOKEN_NONCE_REPLAY
+        fresh = make_token()
+        assert client.call_tool("lookup_record", {}, fresh)["status"] == "SUCCESS"
+
+
+def test_regression_nonce_store_prunes_expired_and_rejects_corruption(issuer_keypair):
+    """
+    Finding 4: on load, expired entries are pruned (and compacted on disk), live entries
+    are kept, a torn trailing line is tolerated, and a malformed interior line halts.
+    """
+    base = Path(tempfile.mkdtemp(prefix="uds_nonce_", dir="/tmp"))
+    try:
+        store = base / "nonces.jsonl"
+        now_ms = int(time.time() * 1000)
+        store.write_text(
+            json.dumps({"expires_at_ms": now_ms - 60_000, "nonce": "old"}) + "\n"
+            + json.dumps({"expires_at_ms": now_ms + 60_000, "nonce": "live"}) + "\n"
+            + '{"expires_at_ms": 1, "non',
+            encoding="utf-8",
+        )
+        server, make_token = _server_and_token(
+            base / "s.sock", issuer_keypair, nonce_store_path=store
+        )
+        assert set(server._seen_nonces) == {"live"}
+        lines = store.read_text(encoding="utf-8").splitlines()
+        assert [json.loads(x)["nonce"] for x in lines] == ["live"]
+
+        with pytest.raises(McpSecurityHaltError) as exc:
+            server._verify_capability_token(make_token(nonce="live"), "lookup_record")
+        assert exc.value.halt_code == HALT_TOKEN_NONCE_REPLAY
+
+        server._verify_capability_token(make_token(nonce="n2"), "lookup_record")
+        assert json.loads(store.read_text(encoding="utf-8").splitlines()[-1])["nonce"] == "n2"
+
+        store.write_text("garbage\n" + json.dumps({"expires_at_ms": now_ms + 1, "nonce": "x"}) + "\n")
+        with pytest.raises(McpSecurityHaltError) as exc:
+            _server_and_token(base / "s.sock", issuer_keypair, nonce_store_path=store)
+        assert exc.value.halt_code == "HALT_NONCE_STORE_CORRUPT"
+    finally:
+        shutil.rmtree(base, ignore_errors=True)
+
+
+
+# ----------------------------------------------------------------------------
+# Hardening tests (mutation adequacy): configuration defaults, real kernel peer
+# credentials over a socketpair, request-shape halts, nonce store invariants,
+# bounded worker pool behavior. All use real sockets, files and threads.
+# ----------------------------------------------------------------------------
+
+import math  # noqa: E402
+
+import src.secure_mcp_uds_boundary as boundary_mod  # noqa: E402
+from src.jcs_canonicalizer import encode_jcs  # noqa: E402
+from src.secure_mcp_uds_boundary import PeerCredentials, extract_peer_credentials  # noqa: E402
+
+
+def test_defaults_and_constructor_validation(issuer_keypair):
+    assert boundary_mod.DEFAULT_MAX_FRAME_BYTES == 1048576
+    assert boundary_mod.DEFAULT_CONNECTION_TIMEOUT_S == 2.0
+    assert boundary_mod.DEFAULT_MAX_WORKERS == 8
+    sock_path = Path("/tmp/uds_defaults_probe/s.sock")
+    server, _ = _server_and_token(sock_path, issuer_keypair)
+    assert server.max_frame_bytes == 1048576
+    assert server.connection_timeout == 2.0
+    assert server.max_workers == 8
+    assert server.nonce_store_path == sock_path.parent / "s.sock.nonces.jsonl"
+    assert SecureMcpUdsBoundaryServer(mcp_server_id="x").nonce_store_path is None
+    explicit = SecureMcpUdsBoundaryServer(mcp_server_id="x", nonce_store_path="/tmp/uds_n.jsonl")
+    assert explicit.nonce_store_path == Path("/tmp/uds_n.jsonl")
+    # minimum accepted values
+    ok = SecureMcpUdsBoundaryServer(
+        mcp_server_id="x", max_frame_bytes=1, connection_timeout=0.001, max_workers=1
+    )
+    assert (ok.max_frame_bytes, ok.max_workers) == (1, 1)
+    for kwargs in ({"max_frame_bytes": 0}, {"connection_timeout": 0}, {"max_workers": 0}):
+        with pytest.raises(ValueError):
+            SecureMcpUdsBoundaryServer(mcp_server_id="x", **kwargs)
+
+
+def test_token_identifier_formats(issuer_keypair):
+    issuer_priv, _ = issuer_keypair
+    tok = create_signed_capability_token(
+        issuer_privkey=issuer_priv,
+        issuer_did="did:x",
+        audience="aud",
+        client_pid=1,
+        allowed_tools=["t"],
+        ttl_seconds=30.0,
+        issued_at=1000.0,
+    )
+    assert re.fullmatch(r"tok-[0-9a-f]{12}", tok.token_id)
+    assert re.fullmatch(r"nonce-[0-9a-f]{16}", tok.nonce)
+    assert tok.issued_at == 1000.0 and tok.expires_at == 1030.0
+
+
+def _tcp_loopback_pair():
+    lst = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    lst.bind(("127.0.0.1", 0))
+    lst.listen(1)
+    cli = socket.create_connection(lst.getsockname(), timeout=5.0)
+    srv, _ = lst.accept()
+    lst.close()
+    return srv, cli
+
+
+def test_real_kernel_peer_credentials_over_socketpair():
+    a, b = socket.socketpair(socket.AF_UNIX, socket.SOCK_STREAM)
+    try:
+        creds = extract_peer_credentials(a)
+        assert creds.uid == os.getuid()
+        assert creds.pid == os.getpid()
+        assert creds.gid in set(os.getgroups()) | {os.getgid(), os.getegid()}
+        with pytest.raises(McpSecurityHaltError) as exc:
+            extract_peer_credentials(a, platform="plan9")
+        assert exc.value.halt_code == "HALT_UNSUPPORTED_PLATFORM"
+    finally:
+        a.close()
+        b.close()
+    t1, t2 = _tcp_loopback_pair()
+    try:
+        with pytest.raises(McpSecurityHaltError) as exc:
+            extract_peer_credentials(t1)
+        assert exc.value.halt_code == HALT_TCP_LOCALHOST_DENIED
+    finally:
+        t1.close()
+        t2.close()
+
+
+def test_get_process_info_reports_current_process():
+    exe, start = get_process_info(os.getpid())
+    assert exe and os.path.exists(exe)
+    now = time.time()
+    assert start is not None and now - 7 * 86400 < start <= now
+    assert get_process_info(0) == (None, None)
+
+
+def test_issued_at_zero_skips_pid_reuse_window(issuer_keypair):
+    issuer_priv, issuer_pub = issuer_keypair
+    server = SecureMcpUdsBoundaryServer(
+        mcp_server_id="aud", trusted_issuer_pubkeys={"did:x": issuer_pub}
+    )
+    tok = create_signed_capability_token(
+        issuer_privkey=issuer_priv,
+        issuer_did="did:x",
+        audience="aud",
+        client_pid=os.getpid(),
+        allowed_tools=["t"],
+        ttl_seconds=time.time() + 60.0,
+        issued_at=0.0,
+    )
+    creds = PeerCredentials(pid=os.getpid(), uid=os.getuid(), gid=os.getgid())
+    server._verify_process_binding(creds, tok)  # no halt: issued_at == 0 disables the window
+    late = create_signed_capability_token(
+        issuer_privkey=issuer_priv,
+        issuer_did="did:x",
+        audience="aud",
+        client_pid=os.getpid(),
+        allowed_tools=["t"],
+        issued_at=1.0,
+        ttl_seconds=time.time() + 60.0,
+    )
+    with pytest.raises(McpSecurityHaltError) as exc:
+        server._verify_process_binding(creds, late)
+    assert exc.value.halt_code == HALT_PID_REUSE_DETECTED
+
+
+def _handle_raw(server: SecureMcpUdsBoundaryServer, wire: bytes) -> McpSecurityHaltError:
+    a, b = socket.socketpair(socket.AF_UNIX, socket.SOCK_STREAM)
+    try:
+        b.sendall(wire)
+        with pytest.raises(McpSecurityHaltError) as exc:
+            server.handle_connection(a, raise_on_halt=True)
+        return exc.value
+    finally:
+        a.close()
+        b.close()
+
+
+def test_request_shape_halts_over_socketpair(issuer_keypair):
+    issuer_priv, issuer_pub = issuer_keypair
+    server = SecureMcpUdsBoundaryServer(
+        mcp_server_id="aud", trusted_issuer_pubkeys={"did:x": issuer_pub}
+    )
+    server.register_tool("t", lambda args: {"ok": True})
+    err = _handle_raw(server, b'{"tool_name":"t","capability_token":"abc"}\n')
+    assert err.halt_code == HALT_INVALID_CAPABILITY_TOKEN_SIGNATURE
+    assert "missing capability token dictionary" in err.detail
+    err = _handle_raw(server, b"not json\n")
+    assert "Failed to parse request JSON" in err.detail
+
+    tok = create_signed_capability_token(
+        issuer_privkey=issuer_priv, issuer_did="did:x", audience="aud",
+        client_pid=os.getpid(), allowed_tools=["t"],
+    )
+    tok.signature_b64 = ""
+    req = {"tool_name": "t", "capability_token": tok.to_dict(), "arguments": {}}
+    err = _handle_raw(server, json.dumps(req).encode() + b"\n")
+    assert err.halt_code == HALT_INVALID_CAPABILITY_TOKEN_SIGNATURE
+    assert "missing Ed25519 signature" in err.detail
+
+    t1, t2 = _tcp_loopback_pair()
+    try:
+        with pytest.raises(McpSecurityHaltError) as exc:
+            server.handle_connection(t1, raise_on_halt=True)
+        assert exc.value.halt_code == HALT_TCP_LOCALHOST_DENIED
+        assert "TCP loopback is forbidden" in exc.value.detail
+    finally:
+        t1.close()
+        t2.close()
+
+
+def test_nonce_store_invariants(issuer_keypair):
+    base = Path(tempfile.mkdtemp(prefix="uds_nonce_", dir="/tmp"))
+    try:
+        store = base / "nonces.jsonl"
+        now_ms = int(time.time() * 1000)
+        # live-only store in non-sorted order: loaded verbatim, not rewritten
+        original = (
+            json.dumps({"expires_at_ms": now_ms + 90_000, "nonce": "zz"}) + "\n"
+            + json.dumps({"expires_at_ms": now_ms + 90_000, "nonce": "aa"}) + "\n"
+        )
+        store.write_text(original, encoding="utf-8")
+        server, make_token = _server_and_token(base / "s.sock", issuer_keypair, nonce_store_path=store)
+        assert server._seen_nonces == {"zz": now_ms + 90_000, "aa": now_ms + 90_000}
+        assert store.read_text(encoding="utf-8") == original
+
+        # persisted line is RFC 8785 JCS with ceil(ms) expiry; file mode 0o600
+        tok = make_token(nonce="n-persist")
+        server._verify_capability_token(tok, "lookup_record")
+        last = store.read_bytes().splitlines()[-1]
+        expected_ms = int(math.ceil(tok.expires_at * 1000))
+        assert last == encode_jcs({"expires_at_ms": expected_ms, "nonce": "n-persist"})
+        assert server._seen_nonces["n-persist"] == expected_ms
+
+        # expired in-memory entries are pruned on consume
+        server._seen_nonces["stale"] = now_ms - 1000
+        server._verify_capability_token(make_token(), "lookup_record")
+        assert "stale" not in server._seen_nonces
+
+        # compaction writes 0o600, sorted, leaves no temp file
+        store.write_text(
+            json.dumps({"expires_at_ms": now_ms + 90_000, "nonce": "b"}) + "\n"
+            + json.dumps({"expires_at_ms": now_ms - 90_000, "nonce": "gone"}) + "\n"
+            + json.dumps({"expires_at_ms": now_ms + 90_000, "nonce": "a"}) + "\n",
+            encoding="utf-8",
+        )
+        os.chmod(store, 0o600)
+        _server_and_token(base / "s.sock", issuer_keypair, nonce_store_path=store)
+        assert [json.loads(x)["nonce"] for x in store.read_text().splitlines()] == ["a", "b"]
+        assert stat.S_IMODE(os.lstat(store).st_mode) == stat.S_IRUSR | stat.S_IWUSR
+        assert not (base / "nonces.jsonl.tmp").exists()
+
+        # wrong types and symlinked store halt
+        store.write_text(json.dumps({"expires_at_ms": "1", "nonce": "x"}) + "\n")
+        with pytest.raises(McpSecurityHaltError) as exc:
+            _server_and_token(base / "s.sock", issuer_keypair, nonce_store_path=store)
+        assert exc.value.halt_code == "HALT_NONCE_STORE_CORRUPT"
+        store.unlink()
+        target = base / "target.jsonl"
+        target.write_text("")
+        store.symlink_to(target)
+        with pytest.raises(McpSecurityHaltError) as exc:
+            _server_and_token(base / "s.sock", issuer_keypair, nonce_store_path=store)
+        assert exc.value.halt_code == "HALT_NONCE_STORE_CORRUPT"
+
+        # unwritable store fails closed and does not record the nonce in memory
+        bad, make_bad = _server_and_token(
+            base / "s.sock", issuer_keypair, nonce_store_path=base / "missing" / "n.jsonl"
+        )
+        with pytest.raises(McpSecurityHaltError) as exc:
+            bad._verify_capability_token(make_bad(nonce="n-fail"), "lookup_record")
+        assert exc.value.halt_code == "HALT_NONCE_STORE_UNAVAILABLE"
+        assert "n-fail" not in bad._seen_nonces
+    finally:
+        shutil.rmtree(base, ignore_errors=True)
+
+
+def test_context_manager_and_socket_mode_under_open_umask(ephemeral_sock_path: Path, issuer_keypair):
+    server, make_token = _server_and_token(ephemeral_sock_path, issuer_keypair)
+    old = os.umask(0)
+    try:
+        with server as entered:
+            assert entered is server
+            assert os.umask(0) == 0
+            assert stat.S_IMODE(os.lstat(ephemeral_sock_path).st_mode) == stat.S_IRUSR | stat.S_IWUSR
+            client = SecureMcpUdsClient(socket_path=ephemeral_sock_path)
+            assert client.call_tool("lookup_record", {}, make_token())["status"] == "SUCCESS"
+    finally:
+        os.umask(old)
+    assert not os.path.lexists(ephemeral_sock_path)
+
+
+def test_bounded_pool_queues_beyond_max_workers(ephemeral_sock_path: Path, issuer_keypair):
+    """With max_workers=1 an idle peer holds the only slot until its deadline; the next
+    peer is then served (queued in the kernel backlog, not dropped)."""
+    server, make_token = _server_and_token(
+        ephemeral_sock_path, issuer_keypair, max_workers=1, connection_timeout=1.0
+    )
+    with server:
+        idle = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        idle.connect(str(ephemeral_sock_path))
+        try:
+            time.sleep(0.2)
+            client = SecureMcpUdsClient(socket_path=ephemeral_sock_path, timeout=5.0)
+            t0 = time.monotonic()
+            resp = client.call_tool("lookup_record", {}, make_token())
+            elapsed = time.monotonic() - t0
+            assert resp["status"] == "SUCCESS"
+            assert 0.5 < elapsed < 3.0
+        finally:
+            idle.close()
+    assert _halt_codes(server)[0] == "HALT_FRAME_READ_TIMEOUT"
+
+
+def test_read_frame_returns_exactly_one_frame(issuer_keypair):
+    server = SecureMcpUdsBoundaryServer(mcp_server_id="aud", max_frame_bytes=64)
+    a, b = socket.socketpair(socket.AF_UNIX, socket.SOCK_STREAM)
+    try:
+        b.sendall(b'{"k":1}\nTRAILING')
+        assert server._read_frame(a) == b'{"k":1}\n'
+        b.sendall(b"partial")
+        b.shutdown(socket.SHUT_WR)
+        # one request per connection: bytes after the first newline are not carried over;
+        # EOF without newline returns the partial frame
+        assert server._read_frame(a) == b"partial"
+    finally:
+        a.close()
+        b.close()
+
+
+def test_missing_peer_executable_halts_when_allowlist_configured(issuer_keypair):
+    issuer_priv, issuer_pub = issuer_keypair
+    server = SecureMcpUdsBoundaryServer(
+        mcp_server_id="aud",
+        trusted_issuer_pubkeys={"did:x": issuer_pub},
+        allowed_executable_digests={"0" * 64},
+    )
+    dead_pid = 2_000_000_000  # far above any live PID on this host
+    tok = create_signed_capability_token(
+        issuer_privkey=issuer_priv, issuer_did="did:x", audience="aud",
+        client_pid=dead_pid, allowed_tools=["t"],
+    )
+    creds = PeerCredentials(pid=dead_pid, uid=os.getuid(), gid=os.getgid())
+    with pytest.raises(McpSecurityHaltError) as exc:
+        server._verify_process_binding(creds, tok)
+    assert exc.value.halt_code == "HALT_EXECUTABLE_NOT_FOUND"
+
+
+def test_client_halts_on_empty_server_response(ephemeral_sock_path: Path, issuer_keypair):
+    os.chmod(ephemeral_sock_path.parent, 0o700)
+    lst = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    lst.bind(str(ephemeral_sock_path))
+    lst.listen(1)
+
+    def close_after_read():
+        conn, _ = lst.accept()
+        conn.settimeout(5.0)
+        try:
+            buf = b""
+            while not buf.endswith(b"\n"):
+                chunk = conn.recv(65536)
+                if not chunk:
+                    break
+                buf += chunk
+        finally:
+            conn.close()
+
+    th = threading.Thread(target=close_after_read, daemon=True)
+    th.start()
+    try:
+        _server, make_token = _server_and_token(Path("/tmp/uds_unused/s.sock"), issuer_keypair)
+        client = SecureMcpUdsClient(socket_path=ephemeral_sock_path, timeout=5.0)
+        with pytest.raises(McpSecurityHaltError) as exc:
+            client.call_tool("lookup_record", {}, make_token())
+        assert exc.value.halt_code == "HALT_EMPTY_SERVER_RESPONSE"
+    finally:
+        th.join(timeout=5.0)
+        lst.close()
+
+
+def test_handle_connection_default_returns_signed_halt_dict(issuer_keypair):
+    """Default raise_on_halt=False returns the signed HALTED payload (no exception)."""
+    _issuer_priv, issuer_pub = issuer_keypair
+    server = SecureMcpUdsBoundaryServer(mcp_server_id="aud", trusted_issuer_pubkeys={"did:x": issuer_pub})
+    a, b = socket.socketpair(socket.AF_UNIX, socket.SOCK_STREAM)
+    try:
+        b.sendall(b'{"tool_name":"t"}\n')
+        out = server.handle_connection(a)
+        reply = b.recv(65536)
+    finally:
+        a.close()
+        b.close()
+    assert out["status"] == "HALTED"
+    assert out["halt_code"] == HALT_INVALID_CAPABILITY_TOKEN_SIGNATURE
+    unsigned = {k: v for k, v in out.items() if k != "signature_b64"}
+    from src.jcs_canonicalizer import encode_jcs
+
+    server.server_public_key.verify(base64.b64decode(out["signature_b64"]), encode_jcs(unsigned))
+    assert json.loads(reply) == out
+
+
+def test_bind_without_socket_path_raises(issuer_keypair):
+    server = SecureMcpUdsBoundaryServer(mcp_server_id="aud")
+    with pytest.raises(ValueError, match="socket_path must be configured"):
+        server.bind_and_listen()
+
+
+def test_client_rejects_forged_server_signature(ephemeral_sock_path: Path, issuer_keypair):
+    """A response signed by a key other than the pinned server key is rejected."""
+    issuer_priv, issuer_pub = issuer_keypair
+    server = SecureMcpUdsBoundaryServer(
+        mcp_server_id="aud", socket_path=ephemeral_sock_path,
+        trusted_issuer_pubkeys={"did:x": issuer_pub},
+    )
+    server.register_tool("t", lambda args: {"ok": True})
+    wrong_key = ed25519.Ed25519PrivateKey.generate().public_key()
+    with server:
+        client = SecureMcpUdsClient(socket_path=ephemeral_sock_path, server_public_key=wrong_key)
+        tok = create_signed_capability_token(
+            issuer_privkey=issuer_priv, issuer_did="did:x", audience="aud",
+            client_pid=os.getpid(), allowed_tools=["t"],
+        )
+        with pytest.raises(McpSecurityHaltError) as exc:
+            client.call_tool("t", {}, tok)
+    assert exc.value.halt_code == "HALT_INVALID_SERVER_SIGNATURE"

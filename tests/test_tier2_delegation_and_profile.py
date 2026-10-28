@@ -420,3 +420,299 @@ def test_07_tampered_profile_signature_raises_error() -> None:
             operator_public_key=operator_key.public_key(),
             profile=profile,
         )
+
+
+def test_08_delegation_and_profile_exhaustive_boundary_and_error_variants() -> None:
+    """8. Exhaustive boundary, frozen dataclass, sentinel, and error-path assertions."""
+    import inspect
+
+    root_key = Ed25519PrivateKey.generate()
+    agent1_key = Ed25519PrivateKey.generate()
+    wrong_key = Ed25519PrivateKey.generate()
+
+    verifier = DelegationChainVerifier(
+        root_sponsor_public_key=root_key.public_key(),
+        root_sponsor_principal_id="human_sponsor_root",
+        known_agent_keys={"agent_1": agent1_key.public_key()},
+    )
+
+    # Empty chain
+    v_empty = verifier.verify_chain([], target_audience="aud", current_timestamp=1000)
+    assert v_empty is not None
+    assert v_empty.valid is False
+    assert v_empty.effective_scopes == set()
+    assert v_empty.effective_max_spend_eur == 0
+    assert v_empty.delegation_depth == 0
+    assert "CHAIN_EMPTY" in v_empty.diagnostic_message
+
+    # Frozen dataclasses on DelegationHop and DelegationVerdict
+    hop_base = _mint_hop(
+        root_key,
+        delegator_principal_id="human_sponsor_root",
+        delegatee_agent_id="agent_1",
+        audience="https://api.bank.internal/transfer",
+        permitted_scopes=["read"],
+        max_spend_eur=100,
+        valid_until_epoch=2000,
+    )
+    with pytest.raises(Exception):
+        hop_base.max_spend_eur = 999  # type: ignore[misc]
+    with pytest.raises(Exception):
+        v_empty.valid = True  # type: ignore[misc]
+
+    # Exact sentinel boundary (1 << 62) valid, (1 << 62) + 1 rejected
+    sentinel_val = 1 << 62
+    hop_sentinel_ok = _mint_hop(
+        root_key,
+        delegator_principal_id="human_sponsor_root",
+        delegatee_agent_id="agent_1",
+        audience="*",
+        permitted_scopes=["read"],
+        max_spend_eur=sentinel_val,
+        valid_until_epoch=sentinel_val,
+    )
+    v_sent_ok = verifier.verify_chain([hop_sentinel_ok], target_audience="aud", current_timestamp=sentinel_val)
+    assert v_sent_ok.valid is True
+    assert v_sent_ok.effective_max_spend_eur == sentinel_val
+
+    hop_sentinel_spend_over = _mint_hop(
+        root_key,
+        delegator_principal_id="human_sponsor_root",
+        delegatee_agent_id="agent_1",
+        audience="*",
+        permitted_scopes=["read"],
+        max_spend_eur=sentinel_val + 1,
+        valid_until_epoch=sentinel_val,
+    )
+    v_sent_spend = verifier.verify_chain([hop_sentinel_spend_over], target_audience="aud", current_timestamp=1000)
+    assert v_sent_spend.valid is False
+    assert v_sent_spend.effective_max_spend_eur == 0
+    assert v_sent_spend.delegation_depth == 0
+    assert "BUDGET_EXPANSION_VIOLATION" in v_sent_spend.diagnostic_message
+
+    hop_sentinel_exp_over = _mint_hop(
+        root_key,
+        delegator_principal_id="human_sponsor_root",
+        delegatee_agent_id="agent_1",
+        audience="*",
+        permitted_scopes=["read"],
+        max_spend_eur=100,
+        valid_until_epoch=sentinel_val + 1,
+    )
+    v_sent_exp = verifier.verify_chain([hop_sentinel_exp_over], target_audience="aud", current_timestamp=1000)
+    assert v_sent_exp.valid is False
+    assert v_sent_exp.effective_max_spend_eur == 0
+    assert v_sent_exp.delegation_depth == 0
+    assert "EXPIRY_EXPANSION_VIOLATION" in v_sent_exp.diagnostic_message
+
+    # Hop expiration check (current_timestamp > valid_until_epoch)
+    v_expired = verifier.verify_chain(
+        [hop_base],
+        target_audience="https://api.bank.internal/transfer",
+        current_timestamp=2001,
+    )
+    assert v_expired is not None
+    assert v_expired.valid is False
+    assert v_expired.effective_max_spend_eur == 0
+    assert v_expired.delegation_depth == 0
+    assert "HOP_EXPIRED" in v_expired.diagnostic_message
+
+    # Expiry expansion on hop 1
+    hop1_exp_expand = _mint_hop(
+        agent1_key,
+        delegator_principal_id="agent_1",
+        delegatee_agent_id="agent_2",
+        audience="https://api.bank.internal/transfer",
+        permitted_scopes=["read"],
+        max_spend_eur=100,
+        valid_until_epoch=2001,
+    )
+    v_exp_expand = verifier.verify_chain(
+        [hop_base, hop1_exp_expand],
+        target_audience="https://api.bank.internal/transfer",
+        current_timestamp=1500,
+    )
+    assert v_exp_expand.valid is False
+    assert v_exp_expand.effective_max_spend_eur == 0
+    assert v_exp_expand.delegation_depth == 1
+    assert "EXPIRY_EXPANSION_VIOLATION" in v_exp_expand.diagnostic_message
+
+    # Audience mismatch
+    v_aud = verifier.verify_chain(
+        [hop_base],
+        target_audience="https://wrong.audience.internal",
+        current_timestamp=1500,
+    )
+    assert v_aud.valid is False
+    assert v_aud.effective_max_spend_eur == 0
+    assert v_aud.delegation_depth == 0
+    assert "AUDIENCE_MISMATCH" in v_aud.diagnostic_message
+
+    # Unknown signer key on hop 1
+    hop0_unknown_delegate = _mint_hop(
+        root_key,
+        delegator_principal_id="human_sponsor_root",
+        delegatee_agent_id="unregistered_agent",
+        audience="*",
+        permitted_scopes=["read"],
+        max_spend_eur=100,
+        valid_until_epoch=2000,
+    )
+    hop1_from_unknown = _mint_hop(
+        wrong_key,
+        delegator_principal_id="unregistered_agent",
+        delegatee_agent_id="leaf",
+        audience="*",
+        permitted_scopes=["read"],
+        max_spend_eur=100,
+        valid_until_epoch=2000,
+    )
+    v_unknown_key = verifier.verify_chain(
+        [hop0_unknown_delegate, hop1_from_unknown],
+        target_audience="aud",
+        current_timestamp=1500,
+    )
+    assert v_unknown_key.valid is False
+    assert v_unknown_key.effective_max_spend_eur == 0
+    assert v_unknown_key.delegation_depth == 1
+    assert "UNKNOWN_SIGNER_KEY" in v_unknown_key.diagnostic_message
+
+    # Invalid signature on hop 0
+    hop_bad_sig = _mint_hop(
+        wrong_key,
+        delegator_principal_id="human_sponsor_root",
+        delegatee_agent_id="agent_1",
+        audience="*",
+        permitted_scopes=["read"],
+        max_spend_eur=100,
+        valid_until_epoch=2000,
+    )
+    v_bad_sig = verifier.verify_chain([hop_bad_sig], target_audience="aud", current_timestamp=1500)
+    assert v_bad_sig.valid is False
+    assert v_bad_sig.effective_max_spend_eur == 0
+    assert v_bad_sig.delegation_depth == 0
+    assert "SIGNATURE_INVALID" in v_bad_sig.diagnostic_message
+
+    # Verify effective_max_spend_eur == 0 on continuity, scope, budget, and revocation errors
+    hop1_continuity = _mint_hop(
+        agent1_key,
+        delegator_principal_id="wrong_delegator",
+        delegatee_agent_id="agent_2",
+        audience="*",
+        permitted_scopes=["read"],
+        max_spend_eur=100,
+        valid_until_epoch=2000,
+    )
+    v_cont = verifier.verify_chain([hop_base, hop1_continuity], target_audience="https://api.bank.internal/transfer", current_timestamp=1500)
+    assert v_cont.effective_max_spend_eur == 0
+    assert v_cont.delegation_depth == 1
+
+    hop1_scope = _mint_hop(
+        agent1_key,
+        delegator_principal_id="agent_1",
+        delegatee_agent_id="agent_2",
+        audience="https://api.bank.internal/transfer",
+        permitted_scopes=["read", "write"],
+        max_spend_eur=100,
+        valid_until_epoch=2000,
+    )
+    v_scope = verifier.verify_chain([hop_base, hop1_scope], target_audience="https://api.bank.internal/transfer", current_timestamp=1500)
+    assert v_scope.effective_max_spend_eur == 0
+    assert v_scope.delegation_depth == 1
+
+    hop1_budget = _mint_hop(
+        agent1_key,
+        delegator_principal_id="agent_1",
+        delegatee_agent_id="agent_2",
+        audience="https://api.bank.internal/transfer",
+        permitted_scopes=["read"],
+        max_spend_eur=200,
+        valid_until_epoch=2000,
+    )
+    v_budget = verifier.verify_chain([hop_base, hop1_budget], target_audience="https://api.bank.internal/transfer", current_timestamp=1500)
+    assert v_budget.effective_max_spend_eur == 0
+    assert v_budget.delegation_depth == 1
+
+    revoked_verifier = DelegationChainVerifier(
+        root_sponsor_public_key=root_key.public_key(),
+        root_sponsor_principal_id="human_sponsor_root",
+        known_agent_keys={"agent_1": agent1_key.public_key()},
+        revoked_principal_ids={"agent_1"},
+    )
+    v_rev = revoked_verifier.verify_chain([hop_base, hop1_scope], target_audience="https://api.bank.internal/transfer", current_timestamp=1500)
+    assert v_rev.effective_max_spend_eur == 0
+    assert v_rev.delegation_depth == 1
+
+    # SignedDeploymentProfile frozen dataclass & temporal / default-spend boundaries
+    op_key = Ed25519PrivateKey.generate()
+    raw_zero_profile = {
+        "allowedTargets": ["https://api.bank.internal/wire"],
+        "deniedActions": ["forbidden_op"],
+        "maxSpendPerOpEur": 0,
+        "operatorPrincipalId": "secops_admin",
+        "pinnedManifestDigest": "sha256:manifest_0",
+        "policyEpoch": 7,
+        "profileId": "prof_zero",
+        "validFromEpoch": 1000,
+        "validUntilEpoch": 2000,
+    }
+    sig_zero = op_key.sign(encode_jcs(raw_zero_profile)).hex()
+    prof_zero = SignedDeploymentProfile(
+        profile_id="prof_zero",
+        policy_epoch=7,
+        operator_principal_id="secops_admin",
+        pinned_manifest_digest="sha256:manifest_0",
+        allowed_targets=["https://api.bank.internal/wire"],
+        denied_actions=["forbidden_op"],
+        max_spend_per_op_eur=0,
+        valid_from_epoch=1000,
+        valid_until_epoch=2000,
+        signature_hex=sig_zero,
+    )
+    with pytest.raises(Exception):
+        prof_zero.policy_epoch = 8  # type: ignore[misc]
+
+    eval_zero = DeploymentProfileEvaluator(
+        operator_public_key=op_key.public_key(),
+        profile=prof_zero,
+    )
+    assert inspect.signature(eval_zero.evaluate_dispatch).parameters["requested_spend_eur"].default == 0
+
+    # Default requested_spend_eur=0 succeeds at boundary timestamps 1000 and 2000
+    res_at_start = eval_zero.evaluate_dispatch(
+        target_identity="https://api.bank.internal/wire",
+        action_name="read_balance",
+        current_timestamp=1000,
+    )
+    assert res_at_start is not None
+    assert res_at_start.allowed is True
+    with pytest.raises(Exception):
+        res_at_start.allowed = False  # type: ignore[misc]
+
+    res_at_end = eval_zero.evaluate_dispatch(
+        target_identity="https://api.bank.internal/wire",
+        action_name="read_balance",
+        current_timestamp=2000,
+    )
+    assert res_at_end.allowed is True
+
+    # Before valid_from_epoch -> PROFILE_NOT_YET_ACTIVE
+    res_before = eval_zero.evaluate_dispatch(
+        target_identity="https://api.bank.internal/wire",
+        action_name="read_balance",
+        current_timestamp=999,
+    )
+    assert res_before is not None
+    assert res_before.allowed is False
+    assert "PROFILE_NOT_YET_ACTIVE" in res_before.diagnostic_message
+
+    # After valid_until_epoch -> PROFILE_EXPIRED
+    res_after = eval_zero.evaluate_dispatch(
+        target_identity="https://api.bank.internal/wire",
+        action_name="read_balance",
+        current_timestamp=2001,
+    )
+    assert res_after is not None
+    assert res_after.allowed is False
+    assert "PROFILE_EXPIRED" in res_after.diagnostic_message
+

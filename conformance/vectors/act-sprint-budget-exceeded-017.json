@@ -1,0 +1,41 @@
+{
+  "vector_id": "act-sprint-budget-exceeded-017",
+  "description": "Cumulative spend exceeds sprint ceiling",
+  "input_payload": {
+    "act_version": "1",
+    "operation_id": "2964309e-f01e-46ff-8df2-dce4280be681",
+    "idempotency_key": "52b03941-cb0a-489b-96b5-724a07a4b36f",
+    "tenant_id": "tenant-corp-101",
+    "principal": {
+      "agent_id": "agent-worker-01",
+      "subject_id": "user-corp-99",
+      "capability_id": "cap-refund-v1"
+    },
+    "action": {
+      "type": "refund.create",
+      "target": "payments.stripe",
+      "resource": "pi_3MtwBwLkdIwHu7ix28a3tqPa",
+      "parameters_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "constraints": {
+      "amount_minor": 600000,
+      "currency": "EUR",
+      "max_per_call_minor": 1000000,
+      "policy_epoch": "2026-Q4",
+      "expires_at": 1798761600
+    },
+    "context": {
+      "harness_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "taint_tier": "TIER_1_REVIEWED",
+      "source_trace_id": "otel-trace-001"
+    },
+    "signature": {
+      "alg": "Ed25519",
+      "key_id": "key-oper-01",
+      "value": "3045022100e4b8..."
+    }
+  },
+  "expected_disposition": "NOT_DISPATCHED",
+  "expected_error_code": "ERR_SPRINT_BUDGET_EXCEEDED",
+  "expected_budget_delta_minor": 0
+}

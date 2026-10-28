@@ -1,0 +1,2 @@
+Notification recorded at 2026-10-24T08:32:00+02:00:
+Please check the OpenAlex API terms of use at https://developers.openalex.org/ and always verify the individual license of papers retrieved via OpenAlex for any restrictions.

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOW - SMAOS Diagnostic Audit</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: #1a1a1a;
+            line-height: 1.6;
+            margin: 0 auto;
+            max-width: 850px;
+            padding: 40px;
+            font-size: 11pt;
+            background-color: #ffffff;
+        }
+        .header {
+            border-bottom: 2px solid #000;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 22pt;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+        }
+        .meta-table {
+            width: 100%;
+            margin-bottom: 30px;
+            border-collapse: collapse;
+        }
+        .meta-table td {
+            padding: 8px 0;
+            vertical-align: top;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .meta-table td:first-child {
+            font-weight: 600;
+            width: 160px;
+            color: #4a4a4a;
+        }
+        h2 {
+            font-size: 11pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid #1a1a1a;
+            padding-bottom: 5px;
+            margin-top: 25px;
+            margin-bottom: 12px;
+            color: #000;
+        }
+        p, ul {
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 6px;
+        }
+        code {
+            font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+            background-color: #f4f4f5;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-size: 9.5pt;
+        }
+        table.deliverables-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 10pt;
+        }
+        table.deliverables-table th, table.deliverables-table td {
+            border: 1px solid #e4e4e7;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        table.deliverables-table th {
+            background-color: #18181b;
+            color: #ffffff;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 8.5pt;
+            letter-spacing: 0.05em;
+        }
+        .signatures {
+            margin-top: 50px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .sig-block {
+            width: 45%;
+        }
+        .sig-line {
+            border-bottom: 1px solid #000;
+            height: 45px;
+            margin-bottom: 8px;
+        }
+        .sig-text {
+            font-size: 9pt;
+            color: #52525b;
+        }
+        @media print {
+            body { padding: 0; }
+            @page { margin: 20mm; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div>
+            <h1>Statement of Work</h1>
+            <div style="font-size: 10pt; color: #52525b; margin-top: 4px;">Wire-Truth Verification & Diagnostic Audit</div>
+        </div>
+        <div style="text-align: right; font-weight: 700; font-size: 12pt;">SovereignNexus s.r.o.</div>
+    </div>
+
+    <table class="meta-table">
+        <tr><td>Project:</td><td><strong>48-Hour Staging Diagnostic Audit (Wire-Truth Verification)</strong></td></tr>
+        <tr><td>Client:</td><td>[Client Company Name]</td></tr>
+        <tr><td>Date:</td><td>September 22, 2026</td></tr>
+        <tr><td>Fixed Investment:</td><td><strong>€1,500 (Excl. VAT)</strong></td></tr>
+        <tr><td>Execution Boundary:</td><td>100% Local / Air-Gapped (<code>127.0.0.1</code>)</td></tr>
+    </table>
+
+    <h2>1. Objective</h2>
+    <p>To evaluate the evidence-integrity of the Client’s autonomous agent harnesses under simulated wire-fault conditions (e.g., HTTP 504 Gateway Timeout, TCP Reset). This diagnostic is performed entirely locally on Client infrastructure to ensure zero data egress, identifying instances where agent SDKs falsely log <code>CONFIRMED</code> when external settlement evidence is absent.</p>
+
+    <h2>2. Scope of Work</h2>
+    <p>SovereignNexus s.r.o. will execute the following using the <code>smaos-audit</code> local verification engine:</p>
+    <ul>
+        <li><strong>Ingestion:</strong> Process up to 250 anonymized staging execution traces provided by the Client.</li>
+        <li><strong>Fault Injection:</strong> Simulate out-of-band network transport failure modes (HTTP 504 Gateway Timeout, TCP RST) against payment dispatch payloads.</li>
+        <li><strong>Privacy Guard:</strong> Apply in-memory PII/PCI-DSS scrubbing (redacting IBANs, PANs, JWT bearer tokens) before any diagnostic data touches local disk.</li>
+        <li><strong>Classification:</strong> Evaluate agent responses against the 6-state precedence taxonomy (<code>CONFIRMED</code>, <code>REFUSED</code>, <code>UNKNOWN</code>, <code>CONFLICT</code>, <code>MISSING_EVIDENCE</code>, <code>INVALID_INPUT</code>).</li>
+    </ul>
+
+    <h2>3. Deliverable Package</h2>
+    <p>Upon completion of the 48-hour diagnostic run, the Client will receive the complete 5-artifact audit bundle:</p>
+    <table class="deliverables-table">
+        <thead>
+            <tr>
+                <th style="width: 30%;">Artifact</th>
+                <th style="width: 70%;">Description & Business Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>TRI_Scorecard.md</code></td>
+                <td>Toxic Receipt Index (%) scorecard evaluating unsupported completion claims across 250 staging traces.</td>
+            </tr>
+            <tr>
+                <td><code>dora_art17_gap_report.json</code></td>
+                <td>Machine-readable EBA DORA RTS 2024/1772 Article 17 major incident compliance report.</td>
+            </tr>
+            <tr>
+                <td><code>audit_trace.mermaid</code></td>
+                <td>Visual sequence trace mapping physical transport drops vs. agent SDK overclaims.</td>
+            </tr>
+            <tr>
+                <td><code>ProofOrStopFilter.java</code></td>
+                <td>Drop-in Spring Boot WebClient / LangChain4j fail-closed filter (15-line patch).</td>
+            </tr>
+            <tr>
+                <td><code>RT.01.03_vendor_entry.csv</code></td>
+                <td>Pre-filled xBRL-CSV information register submission for ICT third-party risk management.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>4. Security & Data Protection Guarantees</h2>
+    <ul>
+        <li><strong>Zero Cloud Egress:</strong> The audit engine runs 100% locally on Client hardware via Docker (<code>network_mode: none</code>) or native loopback execution.</li>
+        <li><strong>In-Memory Sanitization:</strong> All sensitive transaction data (IBANs, card numbers, authorization tokens) is sanitized in-memory prior to trace evaluation. No raw PII is logged.</li>
+        <li><strong>Non-Intrusive Access:</strong> SovereignNexus requires read-only access to anonymized staging traces. No production database access or production API credentials are required.</li>
+    </ul>
+
+    <h2>5. Authorization & Sign-Off</h2>
+
+    <div class="signatures">
+        <div class="sig-block">
+            <div class="sig-text"><strong>FOR CLIENT:</strong> [Client Company Name]</div>
+            <div class="sig-line"></div>
+            <div class="sig-text">Name: ___________________________</div>
+            <div class="sig-text">Title: ____________________________</div>
+            <div class="sig-text">Date: ____ / ____ / 2026</div>
+        </div>
+        <div class="sig-block">
+            <div class="sig-text"><strong>FOR PROVIDER:</strong> SovereignNexus s.r.o.</div>
+            <div class="sig-line"></div>
+            <div class="sig-text">Name: Andrii Leukhin</div>
+            <div class="sig-text">Title: Founder & Lead Architect</div>
+            <div class="sig-text">Date: 22 / 09 / 2026</div>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,36 @@
+{
+  "vector_id": "act-missing-required-signature-014",
+  "description": "Payload missing mandatory signature block",
+  "input_payload": {
+    "act_version": "1",
+    "operation_id": "895d1fca-dc35-4601-abaa-80a37805ab64",
+    "idempotency_key": "4be61b46-0fab-4baa-b269-800306c8d414",
+    "tenant_id": "tenant-corp-101",
+    "principal": {
+      "agent_id": "agent-worker-01",
+      "subject_id": "user-corp-99",
+      "capability_id": "cap-refund-v1"
+    },
+    "action": {
+      "type": "refund.create",
+      "target": "payments.stripe",
+      "resource": "pi_3MtwBwLkdIwHu7ix28a3tqPa",
+      "parameters_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "constraints": {
+      "amount_minor": 15000,
+      "currency": "EUR",
+      "max_per_call_minor": 20000,
+      "policy_epoch": "2026-Q4",
+      "expires_at": 1798761600
+    },
+    "context": {
+      "harness_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "taint_tier": "TIER_1_REVIEWED",
+      "source_trace_id": "otel-trace-001"
+    }
+  },
+  "expected_disposition": "NOT_DISPATCHED",
+  "expected_error_code": "ERR_SCHEMA_MISSING_REQUIRED_SIGNATURE",
+  "expected_budget_delta_minor": 0
+}

@@ -17,7 +17,8 @@ from dataclasses import dataclass, asdict
 import sys
 
 # Add paths for importing project modules
-sys.path.insert(0, '/Users/andriileukhin/Documents/SovereignNexus')
+REPO_ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(REPO_ROOT))
 
 from agentacct_capture import AgentAcct, WorkReceipt
 from unlazy_gates import FailClosedGate, GatePolicy
@@ -1104,8 +1105,7 @@ class TestSecurityHarness:
         }
 
         # Write to file
-        output_path = Path('/Users/andriileukhin/Documents/SovereignNexus') / \
-                     'SECURITY_TEST_RESULTS.json'
+        output_path = REPO_ROOT / 'SECURITY_TEST_RESULTS.json'
 
         with open(output_path, 'w') as f:
             json.dump(report, f, indent=2)

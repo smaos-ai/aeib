@@ -599,7 +599,7 @@ def test_at39_monotonic_delegation_attenuation_and_cascade_revocation(tmp_path: 
     # Nominal 2-hop delegation verified cleanly
     verdict = verifier.verify_chain([hop1, hop2], target_audience="urn:service:payments", current_timestamp=1500000000)
     assert verdict.valid is True
-    assert verdict.effective_max_spend_eur == 500
+    assert float(verdict.effective_max_spend_eur) == 500
     assert verdict.effective_scopes == {"refund"}
 
     # Falsification 1: Subagent attempts scope expansion -> Rejected fail-closed

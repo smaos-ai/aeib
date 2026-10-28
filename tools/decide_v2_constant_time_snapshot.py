@@ -25,6 +25,17 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
+# RFC 8785 single source of truth: delegate to src/jcs_canonicalizer.encode_jcs
+# (differential-tested in tests/test_jcs_single_source.py).
+try:
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+except ImportError:  # loaded without the repository root on sys.path
+    import sys as _jcs_sys
+    from pathlib import Path as _JcsPath
+
+    _jcs_sys.path.insert(0, str(_JcsPath(__file__).resolve().parents[1]))
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+
 
 def _check_no_floats(val: Any) -> None:
     if isinstance(val, float):
@@ -40,9 +51,7 @@ def _check_no_floats(val: Any) -> None:
 def canonical_jcs(obj: Any) -> bytes:
     """RFC 8785 JSON Canonicalization Scheme (JCS) encoding with integer-only enforcement."""
     _check_no_floats(obj)
-    return json.dumps(
-        obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
-    ).encode("utf-8")
+    return _reference_encode_jcs(obj)
 
 
 def sha256_hex(data: bytes) -> str:

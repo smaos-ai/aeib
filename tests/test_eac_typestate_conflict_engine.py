@@ -137,3 +137,85 @@ def test_banned_words_absence() -> None:
         content = p.read_text(encoding="utf-8")
         matches = pattern.findall(content)
         assert not matches, f"Banned tokens {matches} found in {p}"
+
+
+def test_eac_mutation_boundaries() -> None:
+    import ast as _ast
+    import compliance.eac_typestate_conflict_engine as eac_mod
+
+    tree = _ast.parse(Path(eac_mod.__file__).read_text(encoding="utf-8"))
+    found_exc = False
+    found_main = False
+    for node in _ast.walk(tree):
+        if isinstance(node, _ast.ExceptHandler) and isinstance(node.type, _ast.Name) and node.type.id == "ImportError":
+            for stmt in node.body:
+                if isinstance(stmt, _ast.Expr) and isinstance(stmt.value, _ast.Call):
+                    found_exc = True
+                    assert isinstance(stmt.value.args[0], _ast.Constant) and stmt.value.args[0].value == 0
+        if isinstance(node, _ast.If) and isinstance(node.test, _ast.Compare):
+            if isinstance(node.test.left, _ast.Name) and node.test.left.id == "__name__":
+                assert isinstance(node.test.ops[0], _ast.Eq)
+                found_main = True
+                for sub in _ast.walk(node):
+                    if isinstance(sub, _ast.Call) and isinstance(sub.func, _ast.Attribute) and sub.func.attr == "dumps":
+                        kw_map = {k.arg: k.value for k in sub.keywords if isinstance(k.value, _ast.Constant)}
+                        assert kw_map["sort_keys"].value is True
+    assert found_exc is True and found_main is True
+
+    sup_priv = Ed25519PrivateKey.generate()
+    wal = Station2ConflictRegister(supervisor_pubkey=sup_priv.public_key())
+    c1 = wal.register_conflict("p-1", "obj-1", "summary-1")
+    c2 = wal.register_conflict("p-2", "obj-2", "summary-2")
+    assert c1 == "conflict-1" and c2 == "conflict-2"
+    h0 = wal.wal_ledger[0].compute_entry_hash()
+    assert isinstance(h0, str) and h0.startswith("sha256:")
+    assert wal.wal_ledger[1].prev_entry_hash == h0
+    assert wal.verify_wal_chain_integrity() is True
+    assert wal.has_unresolved_conflicts("obj-other") is False
+    assert wal.resolve_conflict("conflict-nonexistent") is False
+
+    # Tamper WAL chain continuity -> verify_wal_chain_integrity() returns False
+    from compliance.eac_typestate_conflict_engine import ConflictEntry
+    wal_tampered = Station2ConflictRegister()
+    wal_tampered.wal_ledger.append(
+        ConflictEntry("conflict-t", "p-t", "obj-t", "sum-t", 100, "tampered-prev")
+    )
+    assert wal_tampered.verify_wal_chain_integrity() is False
+
+    rationale = "Approved override"
+    valid_sig = base64.b64encode(
+        sup_priv.sign(canonical_jcs({"conflict_id": c1, "resolution_rationale": rationale}))
+    ).decode("ascii")
+    # Non-base64 trailing chars rejected by validate=True
+    assert wal.resolve_conflict(c1, rationale, valid_sig + "!!!") is False
+    assert wal.resolve_conflict(c1, rationale, valid_sig) is True
+
+    wal_nosup = Station2ConflictRegister()
+    assert wal_nosup.resolve_conflict("conflict-missing") is False
+
+    # EACGatekeeperHarness validate=True check on verifier_signature_b64
+    v_priv = Ed25519PrivateKey.generate()
+    harness = EACGatekeeperHarness(verifier_pubkey=v_priv.public_key(), conflict_register=wal_nosup)
+    obs = EpistemicObservation(
+        probe_id="probe-val",
+        target_object_id="order:1",
+        probe_action="ReadOrder",
+        timestamp_ns=1000,
+        conflict_detected=False,
+        evidence_digest="sha256:ok",
+        verifier_signature_b64="",
+    )
+    v_sig = base64.b64encode(v_priv.sign(obs.compute_signature_payload())).decode("ascii")
+    obs_nonb64 = EpistemicObservation(
+        probe_id=obs.probe_id,
+        target_object_id=obs.target_object_id,
+        probe_action=obs.probe_action,
+        timestamp_ns=obs.timestamp_ns,
+        conflict_detected=obs.conflict_detected,
+        evidence_digest=obs.evidence_digest,
+        verifier_signature_b64=v_sig + "!!!",
+    )
+    res_nonb64 = harness.dispatch_ontic_action("Act", "order:1", {}, epistemic_receipt=obs_nonb64)
+    assert res_nonb64["disposition"] == "DENIED"
+    assert res_nonb64["code"] == "HALT_INVALID_EPISTEMIC_SIGNATURE"
+

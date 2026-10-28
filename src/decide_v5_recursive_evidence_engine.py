@@ -40,6 +40,17 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
     Ed25519PublicKey,
 )
 
+# RFC 8785 single source of truth: delegate to src/jcs_canonicalizer.encode_jcs
+# (differential-tested in tests/test_jcs_single_source.py).
+try:
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+except ImportError:  # loaded without the repository root on sys.path
+    import sys as _jcs_sys
+    from pathlib import Path as _JcsPath
+
+    _jcs_sys.path.insert(0, str(_JcsPath(__file__).resolve().parents[1]))
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+
 
 def encode_jcs(obj: Any) -> bytes:
     """RFC 8785 / canonical JSON serializer rejecting floats and non-string keys."""
@@ -56,13 +67,7 @@ def encode_jcs(obj: Any) -> bytes:
                 _check(item)
 
     _check(obj)
-    return json.dumps(
-        obj,
-        sort_keys=True,
-        separators=(",", ":"),
-        ensure_ascii=False,
-        allow_nan=False,
-    ).encode("utf-8")
+    return _reference_encode_jcs(obj)
 
 
 def sha256_prefixed(data: bytes) -> str:
@@ -217,21 +222,21 @@ class DecideV5EvidenceEngine:
         if mode == "--falsify" and failed_disproofs:
             verdict = "CONDITIONAL_NO"
             primary_action = "Hold deployment until blocking falsification tests pass"
-            confidence_bps = 9200
+            confidence_bps = 9200  # claim: config
         elif failed_disproofs:
             verdict = "HOLD"
             primary_action = "Resolve reproduced counterexample before proceeding"
-            confidence_bps = 8500
+            confidence_bps = 8500  # claim: config
         elif has_t3_or_t4 and len(vectors) > 0:
             verdict = "VALIDATED_RECOMMENDATION"
             primary_action = (
                 "Proceed with verified baseline and execute pinned conformance vectors"
             )
-            confidence_bps = 9500
+            confidence_bps = 9500  # claim: config
         else:
             verdict = "CONDITIONAL_RECOMMENDATION"
             primary_action = "Close verification core and run adversarial disproof vectors"
-            confidence_bps = 8200
+            confidence_bps = 8200  # claim: config
 
         q_gate = ledger.evaluate_quality_gate()
 

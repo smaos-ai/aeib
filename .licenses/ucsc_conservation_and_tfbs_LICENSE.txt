@@ -1,0 +1,1 @@
+User notified on 2026-10-24T12:35:35+02:00 to check UCSC Genome Browser conditions of use and REST API policy at https://genome.ucsc.edu/conditions.html and https://genome.ucsc.edu/goldenPath/help/api.html.

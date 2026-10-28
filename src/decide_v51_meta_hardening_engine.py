@@ -39,6 +39,17 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
     Ed25519PublicKey,
 )
 
+# RFC 8785 single source of truth: delegate to src/jcs_canonicalizer.encode_jcs
+# (differential-tested in tests/test_jcs_single_source.py).
+try:
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+except ImportError:  # loaded without the repository root on sys.path
+    import sys as _jcs_sys
+    from pathlib import Path as _JcsPath
+
+    _jcs_sys.path.insert(0, str(_JcsPath(__file__).resolve().parents[1]))
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+
 
 def canonical_jcs_bytes(obj: Any) -> bytes:
     def _check(val: Any) -> None:
@@ -54,9 +65,7 @@ def canonical_jcs_bytes(obj: Any) -> bytes:
                 _check(item)
 
     _check(obj)
-    return json.dumps(
-        obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
-    ).encode("utf-8")
+    return _reference_encode_jcs(obj)
 
 
 def sha256_prefixed(data: bytes) -> str:
@@ -422,7 +431,7 @@ def run_self_test() -> None:
         evidence_items=items,
         mutation_report=strong_report,
         model_count=4,
-        rho_corr_bps=4000,
+        rho_corr_bps=4000,  # claim: assumption
     )
     assert verdict.final_disposition == "VALIDATED_HIGH_CONFIDENCE"
     assert verdict.independent_origins_count == 2

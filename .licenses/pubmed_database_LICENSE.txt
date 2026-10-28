@@ -1,0 +1,1 @@
+PubMed skill notice (2026-10-24T10:02:15Z): Users must check the terms at https://pubmed.ncbi.nlm.nih.gov/disclaimer/ and https://www.ncbi.nlm.nih.gov/home/about/policies/ and always check the license of retrieved papers for restrictions.

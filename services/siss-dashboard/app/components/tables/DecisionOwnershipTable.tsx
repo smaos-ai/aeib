@@ -78,7 +78,7 @@ export function DecisionOwnershipTable({ capsules }: DecisionOwnershipTableProps
         </table>
       </div>
       <div className="mt-4 text-sm text-gray-400">
-        <p>Every high-risk action is tied to a verified Ed25519 public key — cryptographically non-repudiable.</p>
+        <p>Every high-risk action is tied to a verified Ed25519 public key — cryptographically tamper-evident.</p>
       </div>
     </div>
   );

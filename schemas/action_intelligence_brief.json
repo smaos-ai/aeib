@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sovereignnexus.com/schemas/aeib/v1.1/action-intelligence-brief.json",
+  "title": "AEIB Action Intelligence Brief & Human Resolution Authority v1.1",
+  "description": "Schema for decision-ready action intelligence briefs and policy-bounded human resolution authority records under RFC 8785 canonicalization.",
+  "type": "object",
+  "required": [
+    "brief_id",
+    "priority",
+    "operation_id",
+    "action_id",
+    "caid",
+    "principal",
+    "target_uri",
+    "what_was_authorized",
+    "what_happened_externally",
+    "what_aeib_did",
+    "evidence_links",
+    "permitted_next_steps",
+    "prohibited_next_steps"
+  ],
+  "properties": {
+    "brief_id": {
+      "type": "string",
+      "description": "Unique identifier for this action intelligence brief."
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["P1", "P2", "P3", "P4"],
+      "description": "Risk-based alert priority: P1 (Unresolved mutation), P2 (Outage / probe exhaustion), P3 (Policy step-up), P4 (Informational)."
+    },
+    "operation_id": {
+      "type": "string",
+      "description": "Business operation identifier bound to the target transaction."
+    },
+    "action_id": {
+      "type": "string",
+      "description": "Proposal action identifier submitted by the agent."
+    },
+    "caid": {
+      "type": "string",
+      "pattern": "^caid:sha256:[a-f0-9]{64}$",
+      "description": "Content-Addressed Action Identifier derived via RFC 8785 JCS canonicalization over Dead Salmons filtered payload."
+    },
+    "principal": {
+      "type": "string",
+      "description": "Agent or workflow identity proposing the action."
+    },
+    "target_uri": {
+      "type": "string",
+      "format": "uri",
+      "description": "Target API endpoint for the financial mutation."
+    },
+    "what_was_authorized": {
+      "type": "object",
+      "required": ["action_summary", "amount_cents", "currency", "policy_version", "policy_epoch"],
+      "properties": {
+        "action_summary": { "type": "string" },
+        "amount_cents": { "type": "integer", "minimum": 0 },
+        "currency": { "type": "string" },
+        "policy_version": { "type": "string" },
+        "policy_epoch": { "type": "integer" }
+      },
+      "additionalProperties": false
+    },
+    "what_happened_externally": {
+      "type": "object",
+      "required": ["transport_outcome", "http_status", "target_reconciliation_status", "probes_executed"],
+      "properties": {
+        "transport_outcome": { "type": "string" },
+        "http_status": { "type": "integer" },
+        "target_reconciliation_status": {
+          "type": "string",
+          "enum": ["INCONCLUSIVE", "COMMITTED", "NOT_FOUND", "CONFLICT", "OUTAGE", "NOMINAL"]
+        },
+        "probes_executed": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "what_aeib_did": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Audit trail of deterministic actions performed by the AEIB boundary."
+    },
+    "evidence_links": {
+      "type": "object",
+      "required": ["authorization_receipt_sha256", "dispatch_intent_receipt_sha256", "chain_tip", "public_key_pem", "timestamp_utc"],
+      "properties": {
+        "authorization_receipt_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "dispatch_intent_receipt_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "chain_tip": { "type": "string" },
+        "public_key_pem": { "type": "string" },
+        "timestamp_utc": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "permitted_next_steps": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "ESCALATE",
+          "MARK_TARGET_FAILED_IF_EVIDENCE_SUPPORTS_IT",
+          "REQUEST_ADDITIONAL_RECONCILIATION"
+        ]
+      },
+      "description": "The exact set of policy-allowed human escalation decisions."
+    },
+    "prohibited_next_steps": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "DECLARE_SUCCESS_WITHOUT_TARGET_EVIDENCE",
+          "RETRY_BLINDLY",
+          "CHANGE_POLICY",
+          "GRANT_NEW_FINANCIAL_AUTHORITY"
+        ]
+      },
+      "description": "Prohibited operations that a human cannot authorize regardless of interface interaction."
+    },
+    "human_resolution_authority": {
+      "type": "object",
+      "properties": {
+        "ticket_id": { "type": "string" },
+        "operation_id": { "type": "string" },
+        "approver_principal": { "type": "string" },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "ESCALATE",
+            "MARK_TARGET_FAILED_IF_EVIDENCE_SUPPORTS_IT",
+            "REQUEST_ADDITIONAL_RECONCILIATION"
+          ]
+        },
+        "step_up_context": {
+          "type": "object",
+          "properties": {
+            "acr_values": { "type": "string" },
+            "auth_time": { "type": "number" }
+          }
+        },
+        "issued_at": { "type": "number" },
+        "expires_at": { "type": "number" },
+        "consumed": { "type": "boolean" },
+        "signature_hex": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "llm_summary": {
+      "type": "object",
+      "required": ["text", "disclaimer", "is_authoritative"],
+      "properties": {
+        "text": { "type": "string" },
+        "disclaimer": { "type": "string" },
+        "is_authoritative": { "type": "boolean", "const": false }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

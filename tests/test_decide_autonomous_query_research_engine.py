@@ -154,3 +154,106 @@ def test_banned_words_absence():
             content = f.read().lower()
             for b in banned:
                 assert b not in content, f"Banned word '{b}' found in {fpath}"
+
+
+def test_decide_autonomous_query_research_engine_mutation_boundaries() -> None:
+    import ast as _ast
+    from pathlib import Path
+    import src.decide_autonomous_query_research_engine as daqre
+    from src.decide_autonomous_query_research_engine import (
+        ActionExecutionRecord,
+        AutonomousResearchReceipt,
+        EpistemicBrainstormHypothesis,
+        ResearchQueryNode,
+    )
+
+    tree = _ast.parse(Path(daqre.__file__).read_text(encoding="utf-8"))
+    found_exc = False
+    for node in _ast.walk(tree):
+        if isinstance(node, _ast.ExceptHandler):
+            for stmt in node.body:
+                if isinstance(stmt, _ast.Expr) and isinstance(stmt.value, _ast.Call):
+                    found_exc = True
+                    assert isinstance(stmt.value.args[0], _ast.Constant) and stmt.value.args[0].value == 0
+                    sub = stmt.value.args[1].args[0]  # type: ignore[attr-defined]
+                    assert isinstance(sub.slice, _ast.Constant) and sub.slice.value == 1
+    assert found_exc is True
+
+    assert ActionExecutionRecord.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+    assert AutonomousResearchReceipt.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+
+    dispatcher = AutonomousQueryResearchDispatcher()
+    ast_info = dispatcher._default_ast_inspector("sym_x")
+    assert ast_info["symbol"] == "sym_x" and ast_info["callers_count"] == 0
+    assert dispatcher._default_ast_inspector("canonical_jcs")["callers_count"] > 0
+
+    for kw in ("deep research", "autonomous research"):
+        res = dispatcher._default_mockless_web_search(kw)
+        assert [r["url"] for r in res] == ["https://arxiv.org/abs/2508.05668"]
+    for kw in ("action space", "expa", "earl"):
+        res = dispatcher._default_mockless_web_search(kw)
+        assert [r["url"] for r in res] == ["https://arxiv.org/abs/2510.07581"]
+    for kw in ("oracle gap", "cost of consensus", "bertalanic"):
+        res = dispatcher._default_mockless_web_search(kw)
+        assert [r["url"] for r in res] == ["https://arxiv.org/abs/2605.00914"]
+    for kw in ("incomplete evidence", "clinical llms", "2610.04542"):
+        res = dispatcher._default_mockless_web_search(kw)
+        assert [r["url"] for r in res] == ["https://arxiv.org/abs/2610.04542"]
+    res_fallback = dispatcher._default_mockless_web_search("totally_unmatched_query")
+    assert [r["url"] for r in res_fallback] == ["https://sovereignnexus.org/evidence/verified_probe"]
+
+    # Micro duration_ms boundary (probe_ms = max(1, len(payload) // 4 + len(evidence)))
+    disp_empty = AutonomousQueryResearchDispatcher(web_search_fn=lambda _q: [{"snippet": "s", "url": "u"}])
+    disp_empty.expand_query_8axis = lambda _rq: [ResearchQueryNode("n0", None, "X", "", 0)]  # type: ignore[method-assign]
+    disp_empty.web_search_fn = lambda _q: []
+    _, acts_empty = disp_empty.execute_multi_hop_research("", max_depth=0)
+    assert acts_empty[0].duration_ms == 1
+
+    n_cc, _ = dispatcher.execute_multi_hop_research("cost of consensus", max_depth=0)
+    assert all(n.has_counterexample is True for n in n_cc)
+    n_og, _ = dispatcher.execute_multi_hop_research("oracle gap", max_depth=0)
+    assert all(n.has_counterexample is True for n in n_og)
+    n_plain, _ = dispatcher.execute_multi_hop_research("plain topic", max_depth=0)
+    assert all(n.has_counterexample is False for n in n_plain)
+
+    n_d1, a_d1 = dispatcher.execute_multi_hop_research("plain topic", max_depth=1)
+    assert len(n_d1) == 10 and len(a_d1) == 10
+
+    hyp_dummy = EpistemicBrainstormHypothesis(
+        "h1", "a", "US", "claim", ("A",), 8000, False, "", ()
+    )
+    for trig in ("counterexample", "collapse", "oracle gap"):
+        d_trig = AutonomousQueryResearchDispatcher(
+            web_search_fn=lambda _q, t=trig: [{"url": "u", "snippet": f"found {t} here"}]
+        )
+        ok_t, wit_t, _ = d_trig.execute_adversarial_falsification_probe(hyp_dummy)
+        assert ok_t is True and trig in wit_t
+    d_none = AutonomousQueryResearchDispatcher(
+        web_search_fn=lambda _q: [{"url": "u", "snippet": "benign observation"}]
+    )
+    ok_n, wit_n, _ = d_none.execute_adversarial_falsification_probe(hyp_dummy)
+    assert ok_n is False and wit_n == ""
+
+    seen_pre_synth_conf: list[int] = []
+    orig_synth = dispatcher.synthesize_brainstorm_with_evidence_dominance
+
+    def _spy_synth(hyps: list[EpistemicBrainstormHypothesis]) -> tuple[list[EpistemicBrainstormHypothesis], bool]:
+        seen_pre_synth_conf.extend(h.confidence_bps for h in hyps)
+        return orig_synth(hyps)
+
+    dispatcher.synthesize_brainstorm_with_evidence_dominance = _spy_synth  # type: ignore[method-assign]
+    rcpt = dispatcher.execute_complete_research_and_brainstorm_cycle("test root query")
+    assert seen_pre_synth_conf == [9500, 9800, 9200, 9600]
+    assert rcpt.total_query_nodes_explored == 10
+    assert rcpt.max_hop_depth == 1
+    assert rcpt.counterexamples_identified == 3
+    assert len(rcpt.receipt_id) == len("rcpt_aer_") + 16
+    assert [h["confidence_bps"] for h in rcpt.synthesized_hypotheses] == [10000, 10000, 9200, 10000]
+
+    # Trigger falsification promotion of non-counterexample candidates (line 445-457)
+    d_all_counter = AutonomousQueryResearchDispatcher(
+        web_search_fn=lambda _q: [{"title": "t", "url": "u", "snippet": "counterexample found"}]
+    )
+    rcpt_all = d_all_counter.execute_complete_research_and_brainstorm_cycle("q_all")
+    assert rcpt_all.counterexamples_identified == 4
+    assert all(h["evidence_dominant"] is True for h in rcpt_all.synthesized_hypotheses)

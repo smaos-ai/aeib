@@ -1,0 +1,2 @@
+{"action_id": "tx-dup-01", "method": "POST", "http_status": 504, "wire_fault": "TIMEOUT", "verdict": "CONFIRMED", "xid": 1001, "timestamp": "2026-09-18T10:00:00Z"}
+{"action_id": "tx-dup-01", "method": "POST", "http_status": 200, "wire_fault": "NONE", "verdict": "CONFIRMED", "xid": 1002, "timestamp": "2026-09-18T10:00:02Z"}

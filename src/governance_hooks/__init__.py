@@ -5,6 +5,7 @@ Colibri RCE pre-execution approval with fail-closed semantics
 
 from src.governance_hooks.colibri_rce_check import (
     app,
+    AEIBGovernanceGate,
     ColibriGovernanceGate,
     RCECheckRequest,
     RCECheckResponse,
@@ -13,6 +14,7 @@ from src.governance_hooks.colibri_rce_check import (
 
 __all__ = [
     "app",
+    "AEIBGovernanceGate",
     "ColibriGovernanceGate",
     "RCECheckRequest",
     "RCECheckResponse",

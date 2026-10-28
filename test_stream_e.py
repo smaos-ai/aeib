@@ -24,9 +24,10 @@ from pathlib import Path
 from typing import Dict, List, Any
 import base64
 import statistics
+import pytest
 
-# Artifact output directory
-ARTIFACT_DIR = Path("/Users/andriileukhin/Documents/SovereignNexus/.proof-artifacts")
+REPO_ROOT = Path(__file__).resolve().parent
+ARTIFACT_DIR = REPO_ROOT / ".proof-artifacts"
 ARTIFACT_DIR.mkdir(exist_ok=True)
 
 class ProofValidator:
@@ -60,6 +61,12 @@ class ProofValidator:
         status = "ALL TESTS PASSED ✓" if success else f"{self.tests_failed} TESTS FAILED ✗"
         print(f"\nStatus: {status}\n")
         return success
+
+
+@pytest.fixture
+def validator():
+    """Fixture providing a fresh ProofValidator instance."""
+    return ProofValidator()
 
 
 # ============================================================================
@@ -1137,7 +1144,7 @@ Failed: {validator.tests_failed}
 
 ## Output Files
 
-All artifacts saved to: `/Users/andriileukhin/Documents/SovereignNexus/.proof-artifacts/`
+All artifacts saved to: `.proof-artifacts/`
 
 1. is-agentic-report.json
 2. canrun-grades.json

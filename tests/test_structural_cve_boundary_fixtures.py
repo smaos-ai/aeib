@@ -479,6 +479,136 @@ def test_marktechpost_four_signals_oob_monitor_and_litellm_pth_guard() -> None:
         )
 
 
+def test_phase0_integrity_reset_core_mutation_boundaries() -> None:
+    import sqlite3
+    import pytest
+    import tools.phase0_integrity_reset_core as p0
+
+    # AST invariant on record_downstream_effect (`http_status >= 500`)
+    src_tree = ast.parse(Path(p0.__file__).read_text(encoding="utf-8"))
+    found_500 = False
+    for node in ast.walk(src_tree):
+        if isinstance(node, ast.FunctionDef) and node.name == "record_downstream_effect":
+            for sub in ast.walk(node):
+                if (
+                    isinstance(sub, ast.Compare)
+                    and len(sub.ops) == 1
+                    and isinstance(sub.ops[0], ast.GtE)
+                    and isinstance(sub.comparators[0], ast.Constant)
+                    and sub.comparators[0].value == 500
+                ):
+                    found_500 = True
+    assert found_500 is True
+
+    # 1. parse_strict_json_bytes exact boundaries
+    assert p0.parse_strict_json_bytes(b'{"a":1,"b":2}') == {"a": 1, "b": 2}
+    with pytest.raises(ValueError, match="ERR_FORBIDDEN_JSON_CONSTANT"):
+        p0.parse_strict_json_bytes(b'{"a":NaN}')
+    with pytest.raises(ValueError, match="ERR_DUPLICATE_KEYS_OR_NON_OBJECT"):
+        p0.parse_strict_json_bytes(b'{"a":1,"a":2}')
+    with pytest.raises(ValueError, match="ERR_DUPLICATE_KEYS_OR_NON_OBJECT"):
+        p0.parse_strict_json_bytes(b"[1, 2]")
+
+    # 2. Trace & execute test_phase0_integrity_reset_all_blockers()
+    seen_p0: Dict[str, Any] = {"limits": [], "statuses": []}
+
+    def _trace_p0(frame: Any, event: str, arg: Any) -> Any:
+        f_code = getattr(frame, "f_code", None)
+        if f_code is not None and event == "call":
+            if f_code.co_name == "__init__":
+                f_locals = getattr(frame, "f_locals", {})
+                if "sprint_limit_minor" in f_locals:
+                    seen_p0["limits"].append(f_locals["sprint_limit_minor"])
+            elif f_code.co_name == "record_downstream_effect":
+                f_locals = getattr(frame, "f_locals", {})
+                if "http_status" in f_locals:
+                    seen_p0["statuses"].append(f_locals["http_status"])
+        return _trace_p0
+
+    sys.settrace(_trace_p0)
+    try:
+        p0.test_phase0_integrity_reset_all_blockers()
+    finally:
+        sys.settrace(None)
+    assert seen_p0["limits"] == [1000_00, 1000_00, 1000_00]
+    assert 503 in seen_p0["statuses"]
+
+    # 3. Additional boundary & multi-entry chain checks
+    priv = Ed25519PrivateKey.generate()
+    good_iban = "iban:DE89370400440532013000"
+    with tempfile.NamedTemporaryFile(suffix=".sqlite", delete=False) as tmp_db:
+        db_path = tmp_db.name
+    try:
+        gate = Phase0ExecutionBoundary(
+            db_path=db_path,
+            public_keys={"k1": priv.public_key()},
+            sprint_limit_minor=1000_00,
+            pinned_recipients={good_iban},
+        )
+        assert gate.authorize_and_reserve({"act_core": "bad", "signature": {}}).code == "ERR_MALFORMED_ACT_ENVELOPE"
+        assert (
+            gate.authorize_and_reserve(
+                {"act_core": {"operation_id": "", "amount_minor": -1, "max_per_call_minor": 10}, "signature": {}}
+            ).code
+            == "ERR_INVALID_NUMERIC_OR_ID"
+        )
+
+        # amt == 0 with unpinned recipient is allowed; amt > 0 with unpinned recipient is blocked
+        zero_unpinned = {
+            "operation_id": "op-z0",
+            "action_type": "read.info",
+            "amount_minor": 0,
+            "max_per_call_minor": 0,
+            "recipient": "iban:UNPINNED",
+            "taint_tier": "TIER_1_REVIEWED",
+            "policy_epoch": "2026-Q4",
+        }
+        v_z0 = gate.authorize_and_reserve(_sign_act(priv, "k1", zero_unpinned))
+        assert v_z0.disposition == "DISPATCHED"
+        assert gate.record_downstream_effect("op-z0", http_status=200) == "CONFIRMED"
+
+        pos_unpinned = {**zero_unpinned, "operation_id": "op-unp", "amount_minor": 100, "max_per_call_minor": 100}
+        assert gate.authorize_and_reserve(_sign_act(priv, "k1", pos_unpinned)).code == "ERR_UNPINNED_RECIPIENT"
+
+        # Second & third dispatches test tip_row[0], http_status=403/404, and active_exposure_minor = reserved + settled
+        act2 = {**zero_unpinned, "operation_id": "op-403", "amount_minor": 100, "max_per_call_minor": 200, "recipient": good_iban}
+        assert gate.authorize_and_reserve(_sign_act(priv, "k1", act2)).disposition == "DISPATCHED"
+        assert gate.record_downstream_effect("op-403", http_status=403) == "REFUTED"
+
+        act3 = {**act2, "operation_id": "op-404"}
+        assert gate.authorize_and_reserve(_sign_act(priv, "k1", act3)).disposition == "DISPATCHED"
+        assert gate.record_downstream_effect("op-404", http_status=404) == "REFUTED"
+
+        act4 = {**act2, "operation_id": "op-200", "amount_minor": 200}
+        assert gate.authorize_and_reserve(_sign_act(priv, "k1", act4)).disposition == "DISPATCHED"
+        assert gate.record_downstream_effect("op-200", http_status=200) == "CONFIRMED"
+
+        act5 = {**act2, "operation_id": "op-500", "amount_minor": 150}
+        assert gate.authorize_and_reserve(_sign_act(priv, "k1", act5)).disposition == "DISPATCHED"
+        assert gate.record_downstream_effect("op-500", http_status=500) == "EFFECT_INDETERMINATE"
+
+        exp = gate.get_budget_exposure()
+        assert exp["settled_minor"] == 2 * 100
+        assert exp["reserved_minor"] == 150
+        assert exp["active_exposure_minor"] == 350
+
+        fg = p0.execute_scoped_forget(["x"], gate)
+        assert fg["authoritative_ledger_entries_retained"] == 5
+
+        # Halted boundary rejects all dispatches
+        gate.halted_reason = "HALT_MANUAL"
+        assert gate.authorize_and_reserve(_sign_act(priv, "k1", act2)).code == "HALT_MANUAL"
+        gate.halted_reason = None
+
+        # Trigger rollback + re-raise in authorize_and_reserve when table is dropped
+        gate.conn.execute("DROP TABLE authoritative_ledger;")
+        with pytest.raises(sqlite3.OperationalError):
+            gate.authorize_and_reserve(_sign_act(priv, "k1", {**act2, "operation_id": "op-err"}))
+    finally:
+        if os.path.exists(db_path):
+            os.remove(db_path)
+
+
 if __name__ == "__main__":
     test_all_four_structural_cve_fixtures_and_aeib_containment()
     test_cve_2026_33017_langflow_unauthenticated_graph_override_blocked()

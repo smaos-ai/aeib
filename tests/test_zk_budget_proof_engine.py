@@ -17,6 +17,11 @@ from typing import List
 
 import pytest
 
+from src.capability_status import (
+    ERR_CAPABILITY_UNAVAILABLE_ON_HOST,
+    SIMULATED_OPT_IN,
+    CapabilityUnavailableError,
+)
 from src.zk_budget_proof_engine import (
     BN254_SCALAR_FIELD_PRIME,
     HALT_ZK_BALANCE_CONSERVATION_FAILED,
@@ -47,8 +52,32 @@ def sample_txs() -> List[PrivateTransaction]:
     ]
 
 
+def test_default_quarantine_refuses_without_opt_in(test_engine, sample_txs, monkeypatch):
+    """By default, verify_budget_proof refuses to run and raises CapabilityUnavailableError."""
+    monkeypatch.delenv("AEIB_ALLOW_SIMULATION", raising=False)
+    total_spend = sum(t.spend_minor for t in sample_txs)
+    leaves = [
+        test_engine.compute_leaf_commitment(t.salt, t.spend_minor, t.payee)
+        for t in sample_txs
+    ]
+    merkle_root = test_engine.compute_merkle_root(leaves)
+    public_inputs = BudgetPublicInputs(
+        initial_balance_minor=100000,
+        final_balance_minor=100000 - total_spend,
+        budget_ceiling_minor=15000,
+        commitment_merkle_root=merkle_root,
+        epoch=202610,
+    )
+    proof = test_engine.generate_budget_proof(PrivateWitness(transactions=sample_txs), public_inputs)
+
+    verifier = ZkBudgetProofEngine()
+    with pytest.raises(CapabilityUnavailableError) as exc_info:
+        verifier.verify_budget_proof(public_inputs, proof)
+    assert exc_info.value.code == ERR_CAPABILITY_UNAVAILABLE_ON_HOST
+
+
 def test_valid_budget_proof_generation_and_verification(test_engine, sample_txs):
-    """Evaluates valid batch proof generation and independent verification using only public inputs."""
+    """Evaluates batch transcript generation and opt-in verification with honest SIMULATED_OPT_IN status."""
     total_spend = sum(t.spend_minor for t in sample_txs)
     leaves = [
         test_engine.compute_leaf_commitment(t.salt, t.spend_minor, t.payee)
@@ -70,9 +99,10 @@ def test_valid_budget_proof_generation_and_verification(test_engine, sample_txs)
     assert len(proof.leaf_commitments) == len(sample_txs)
 
     verifier = ZkBudgetProofEngine()
-    result = verifier.verify_budget_proof(public_inputs, proof)
+    result = verifier.verify_budget_proof(public_inputs, proof, allow_simulation=True)
 
     assert result.valid is True
+    assert result.status == SIMULATED_OPT_IN
     assert bool(result) is True
     assert result.rejection_code is None
     assert result.verification_time_ms < 15.0
@@ -151,7 +181,7 @@ def test_falsification_1_negative_spend_injection(test_engine):
         commitment_merkle_root=root,
         epoch=202610,
     )
-    res = test_engine.verify_budget_proof(inflated_inputs, proof)
+    res = test_engine.verify_budget_proof(inflated_inputs, proof, allow_simulation=True)
     assert res.valid is False
     assert res.rejection_code == HALT_ZK_NEGATIVE_SPEND_DETECTED
 
@@ -198,7 +228,7 @@ def test_falsification_2_budget_ceiling_breach(test_engine):
         commitment_merkle_root=v_root,
         epoch=202610,
     )
-    res = test_engine.verify_budget_proof(low_ceiling_inputs, proof)
+    res = test_engine.verify_budget_proof(low_ceiling_inputs, proof, allow_simulation=True)
     assert res.valid is False
     assert res.rejection_code == HALT_ZK_CEILING_BREACH
 
@@ -240,7 +270,7 @@ def test_falsification_3_inconsistent_balance_arithmetic(test_engine, sample_txs
         commitment_merkle_root=root,
         epoch=202610,
     )
-    res = test_engine.verify_budget_proof(mismatched_inputs, proof)
+    res = test_engine.verify_budget_proof(mismatched_inputs, proof, allow_simulation=True)
     assert res.valid is False
     assert res.rejection_code in (HALT_ZK_PROOF_INVALID, HALT_ZK_BALANCE_CONSERVATION_FAILED)
 
@@ -268,7 +298,7 @@ def test_falsification_4_tampered_public_inputs(test_engine, sample_txs):
         commitment_merkle_root="ff" * 32,
         epoch=inputs.epoch,
     )
-    res_root = test_engine.verify_budget_proof(tampered_root_inputs, proof)
+    res_root = test_engine.verify_budget_proof(tampered_root_inputs, proof, allow_simulation=True)
     assert res_root.valid is False
     assert res_root.rejection_code == HALT_ZK_COMMITMENT_ROOT_MISMATCH
 
@@ -280,7 +310,7 @@ def test_falsification_4_tampered_public_inputs(test_engine, sample_txs):
         commitment_merkle_root=inputs.commitment_merkle_root,
         epoch=999999,
     )
-    res_epoch = test_engine.verify_budget_proof(tampered_epoch_inputs, proof)
+    res_epoch = test_engine.verify_budget_proof(tampered_epoch_inputs, proof, allow_simulation=True)
     assert res_epoch.valid is False
     assert res_epoch.rejection_code == HALT_ZK_PROOF_INVALID
 
@@ -305,21 +335,21 @@ def test_falsification_5_tampered_proof_artifacts(test_engine, sample_txs):
     sig_bytes = bytearray.fromhex(proof.tenant_signature_hex)
     sig_bytes[0] ^= 0xFF
     proof_dict_sig["tenant_signature_hex"] = sig_bytes.hex()
-    res_sig = test_engine.verify_budget_proof(inputs, ZkBudgetProof.from_dict(proof_dict_sig))
+    res_sig = test_engine.verify_budget_proof(inputs, ZkBudgetProof.from_dict(proof_dict_sig), allow_simulation=True)
     assert res_sig.valid is False
     assert res_sig.rejection_code == HALT_ZK_PROOF_INVALID
 
     # Tamper Transcript Hash
     proof_dict_hash = proof.to_dict()
     proof_dict_hash["transcript_hash"] = "00" * 32
-    res_hash = test_engine.verify_budget_proof(inputs, ZkBudgetProof.from_dict(proof_dict_hash))
+    res_hash = test_engine.verify_budget_proof(inputs, ZkBudgetProof.from_dict(proof_dict_hash), allow_simulation=True)
     assert res_hash.valid is False
     assert res_hash.rejection_code == HALT_ZK_PROOF_INVALID
 
     # Tamper Blinding Evaluation
     proof_dict_eval = proof.to_dict()
     proof_dict_eval["aggregate_blinding_eval"] = (proof.aggregate_blinding_eval + 42) % BN254_SCALAR_FIELD_PRIME
-    res_eval = test_engine.verify_budget_proof(inputs, ZkBudgetProof.from_dict(proof_dict_eval))
+    res_eval = test_engine.verify_budget_proof(inputs, ZkBudgetProof.from_dict(proof_dict_eval), allow_simulation=True)
     assert res_eval.valid is False
     assert res_eval.rejection_code in (HALT_ZK_BALANCE_CONSERVATION_FAILED, HALT_ZK_PROOF_INVALID)
 

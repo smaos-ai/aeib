@@ -44,9 +44,16 @@ def canonical_evidence_digest(record: Dict[str, Any]) -> str:
     """
     Returns a hex SHA-256 digest of the record's deterministic
     JSON representation (sort_keys=True, compact separators, UTF-8).
+    Handles Decimal and custom DB types cleanly.
     """
+    def _default_serializer(obj):
+        import decimal
+        if isinstance(obj, decimal.Decimal):
+            return str(obj)
+        raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
+
     canonical_json = json.dumps(
-        record, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+        record, sort_keys=True, separators=(",", ":"), ensure_ascii=False, default=_default_serializer
     )
     return hashlib.sha256(canonical_json.encode("utf-8")).hexdigest()
 
@@ -156,7 +163,7 @@ class PostgreSQLProbeAdapter:
                                 "caid": row[0],
                                 "idempotency_key": row[1],
                                 "state": row[2],
-                                "amount": row[3],
+                                "amount": float(row[3]) if row[3] is not None else 0.0,
                                 "account_id": row[4],
                                 "created_at": str(row[5])
                             }

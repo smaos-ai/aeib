@@ -1,0 +1,51 @@
+groups:
+  - id: aeib.effect_disposition
+    type: event
+    brief: "The final computed disposition of an agent tool call based on AEIB rules."
+    name: "aeib.effect_disposition"
+    attributes:
+      - id: aeib.effect_id
+        type: string
+        brief: "Deterministic SHA-256 ID of the effect"
+      - id: aeib.attempt_id
+        type: string
+        brief: "Socket attempt identifier"
+      - id: aeib.inference_id
+        type: string
+        brief: "Model turn inference identifier"
+      - id: aeib.transport.observation
+        type: string
+        brief: "Immutable transport observation"
+      - id: aeib.model_hypothesis
+        type: string
+        brief: "L1 model hypothesis"
+      - id: aeib.probe.result
+        type: string
+        brief: "Result of the explicit probe"
+      - id: aeib.probe.authority_scope
+        type: string
+        brief: "Authority scope of the probe"
+      - id: aeib.probe.consistency_model
+        type: string
+        brief: "Consistency model of the probe"
+      - id: aeib.probe.observed_at
+        type: string
+        brief: "Timestamp of probe observation"
+      - id: aeib.disposition
+        type: string
+        brief: "Resolved disposition state"
+      - id: aeib.retry.safe
+        type: boolean
+        brief: "Is the operation safe to retry?"
+      - id: aeib.recovery
+        type: string
+        brief: "Recovery path"
+      - id: aeib.receipt.digest
+        type: string
+        brief: "SHA-256 digest of the receipt"
+      - id: aeib.contract.hash
+        type: string
+        brief: "SHA-256 digest of the AEIB mapping contract"
+      - id: aeib.release.authorization
+        type: string
+        brief: "Human release authorization state"

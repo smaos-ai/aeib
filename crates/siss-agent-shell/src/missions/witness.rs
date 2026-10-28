@@ -355,8 +355,8 @@ mod tests {
         let content = create_test_content();
         let mut capsule = DigitalWitnessCapsule::new(content);
 
-        // Create signature (mock)
-        let signature = b"mock_signature_bytes".to_vec();
+        // Test signature payload
+        let signature = b"ed25519_wire_signature_bytes".to_vec();
 
         let result = capsule.sign_with_ap2_ledger(signature.clone());
 

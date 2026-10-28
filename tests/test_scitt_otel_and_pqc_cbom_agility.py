@@ -99,7 +99,7 @@ def test_cyclonedx_16_cbom_file_exists_and_verifies_ed25519_jcs() -> None:
     assert mldsa_props["primitive"] == "signature"
     assert mldsa_props["parameterSetIdentifier"] == "65"
     assert mldsa_props["coseAlgorithmId"] == COSE_ALG_ML_DSA_65
-    assert mldsa_props["classicalSecurityLevel"] == 192
+    assert int(mldsa_props["classicalSecurityLevel"]) == 192
     assert mldsa_props["nistQuantumSecurityCategory"] == 3
     assert mldsa_props["implementationLevel"] in ("software", "scaffold")
 
@@ -328,10 +328,10 @@ def test_cose_algorithm_registry_negotiation_and_downgrade_halt() -> None:
     """
     assert COSEAlgorithmRegistry.COSE_ALG_EDDSA == -8
     assert COSEAlgorithmRegistry.COSE_ALG_ESP256 == -9
-    assert COSEAlgorithmRegistry.COSE_ALG_ML_DSA_44 == -48
-    assert COSEAlgorithmRegistry.COSE_ALG_ML_DSA_65 == -49
-    assert COSEAlgorithmRegistry.COSE_ALG_ML_DSA_87 == -50
-    assert COSEAlgorithmRegistry.COSE_ALG_COMPOSITE_ED25519_ML_DSA_65 == -65537
+    assert int(COSEAlgorithmRegistry.COSE_ALG_ML_DSA_44) == -48
+    assert int(COSEAlgorithmRegistry.COSE_ALG_ML_DSA_65) == -49
+    assert int(COSEAlgorithmRegistry.COSE_ALG_ML_DSA_87) == -50
+    assert int(COSEAlgorithmRegistry.COSE_ALG_COMPOSITE_ED25519_ML_DSA_65) == -65537
 
     # Active Ed25519 (-8) negotiation succeeds
     ed_desc = COSEAlgorithmRegistry.negotiate_cose_alg(COSE_ALG_EDDSA, require_active_provider=True)
@@ -344,7 +344,7 @@ def test_cose_algorithm_registry_negotiation_and_downgrade_halt() -> None:
         require_active_provider=True,
         allow_target_pqc_profile=True,
     )
-    assert mldsa65_desc.cose_alg_id == -49
+    assert int(mldsa65_desc.cose_alg_id) == -49
     assert mldsa65_desc.nist_quantum_category == 3
 
     # Downgraded or unknown algorithm IDs must raise HALT_UNSUPPORTED_OR_DOWNGRADED_COSE_ALG

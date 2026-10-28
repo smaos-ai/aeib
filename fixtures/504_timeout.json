@@ -1,0 +1,19 @@
+{
+  "scenario_id": "504_timeout",
+  "scenario": "504_timeout",
+  "description": "EUR 50,000 Loan Disbursement dropped with HTTP 504 Gateway Timeout",
+  "dispatched_by": "Agent-LangChain-Treasury",
+  "destination_account": "CZ6508000000001234567890",
+  "amount": 50000.0,
+  "currency": "EUR",
+  "auth_header": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.x",
+  "idempotency_key": "tx-8821-disburse-001",
+  "transport_fault": "HTTP_504_TIMEOUT",
+  "wire_event": "HTTP 504 Gateway Timeout, no confirmation",
+  "sdk_claimed_state": "CONFIRMED",
+  "claimed_by_agent": "CONFIRMED",
+  "evaluated_disposition": "UNKNOWN",
+  "final_disposition": "UNKNOWN",
+  "discrepancy_detected": true,
+  "reason": "Dispatch observed, confirmation absent. Unknown effect."
+}

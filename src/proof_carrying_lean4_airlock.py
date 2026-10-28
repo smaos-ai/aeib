@@ -9,16 +9,22 @@ with Station 2 TCC Escrow and Lean 4 (`leanprover/comparator`) verification hygi
      standalone Lean 4 (`by decide`) proof modules under `proofs/` along with
      `leanprover/comparator` challenge specifications.
 2. LeanComparatorSandboxAuditor:
-   - Enforces the 5 zero-trust verification rules of `leanprover/comparator`:
-     (a) Rejects `sorry` and `sorryAx` placeholders.
-     (b) Rejects user-declared `axiom` or `constant` declarations.
+   - Runs a TEXT LINT modelled on (not equivalent to) `leanprover/comparator`:
+     (a) Rejects `sorry` / `sorryAx` / `admit` placeholders (comments stripped first).
+     (b) Rejects user-declared `axiom` declarations.
      (c) Rejects `unsafe`, `implemented_by`, or `extern` FFI escapes.
-     (d) Verifies SHA-256 parity on `trusted_definitions_lean`.
-     (e) Verifies SHA-256 parity on `trusted_theorem_header_lean`.
+     (d) Checks the trusted definitions text is present verbatim.
+     (e) Checks the trusted theorem header clause is present verbatim.
+   - The text lint alone is NOT a proof check: a false theorem can pass it.
+     Only when a `lean` binary is on PATH is the submission actually elaborated
+     (`lean <file>`, with timeout); a nonzero exit or a `sorry` warning fails.
+     Without `lean` the verdict is `status=TEXT_LINT_ONLY`,
+     `rejection_code=LEAN_NOT_EXECUTED`, `passed=False` (never VERIFIED).
 3. Pc2ProofCarryingEscrowAirlock:
-   - Holds client funds in escrow and releases settlement only when a contractor
-     agent submits a deliverable that passes both `LeanComparatorSandboxAuditor`
-     and the independent deterministic semantic evaluator.
+   - Holds client funds in escrow and releases settlement only when the Lean
+     kernel was actually executed on the submission (`status=REAL_EXECUTED`)
+     AND the independent deterministic semantic evaluator accepts the witness.
+     A TEXT_LINT_ONLY verdict never releases funds (escrow stays locked).
 """
 
 from __future__ import annotations
@@ -28,6 +34,9 @@ import base64
 import hashlib
 import json
 import re
+import shutil
+import subprocess
+import tempfile
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Sequence, Tuple
@@ -38,6 +47,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
     Ed25519PublicKey,
 )
 
+from src.capability_status import REAL_EXECUTED, TEXT_LINT_ONLY
 from src.jcs_canonicalizer import encode_jcs
 from src.sovereign_state_capsule_and_math_prover import (
     SovereignIndependentStateCapsuleEngine,
@@ -222,29 +232,140 @@ class Lean4WitnessCertificateExporter:
 
 
 # ---------------------------------------------------------------------------
-# 2. Lean FRO `Comparator` Axiom-Hygiene & Definition Parity Auditor
+# 2. Comparator-style TEXT LINT + optional real `lean` execution
 # ---------------------------------------------------------------------------
+
+LEAN_NOT_EXECUTED = "LEAN_NOT_EXECUTED"
+OK_LEAN_KERNEL_CHECKED = "OK_LEAN_KERNEL_CHECKED"
+HALT_LEAN_KERNEL_REJECTED = "HALT_LEAN_KERNEL_REJECTED"
+HALT_LEAN_SORRY_WARNING = "HALT_LEAN_SORRY_WARNING"
+HALT_LEAN_TIMEOUT = "HALT_LEAN_TIMEOUT"
+HALT_LEAN_UNPERMITTED_AXIOM = "HALT_LEAN_UNPERMITTED_AXIOM"
+LEAN_EXEC_TIMEOUT_SECONDS = 120.0
 
 
 @dataclass(frozen=True)
 class ComparatorVerificationVerdict:
+    """Outcome of the auditor.
+
+    ``passed`` is True only when the Lean kernel was actually executed on the
+    submission and accepted it (``status == REAL_EXECUTED``). When no ``lean``
+    binary is available the text lint result is reported in
+    ``text_lint_passed`` and ``status == TEXT_LINT_ONLY``; ``passed`` stays
+    False. ``certificate_caid`` is a digest of (comparator config, submitted
+    file); it is a submission identifier, not evidence that the proof checks.
+    """
+
     passed: bool
     rejection_code: str
     problem_id: str
     certificate_caid: str
+    status: str = TEXT_LINT_ONLY
+    text_lint_passed: bool = False
+    lean_executed: bool = False
+
+
+def strip_lean_comments(code: str) -> str:
+    """Remove Lean 4 line comments (`-- ...`) and nested block comments (`/- ... -/`).
+
+    String literals are not parsed; a `--` or `/-` inside a string literal is
+    treated as a comment start (fail-closed for the lint: more text removed can
+    only make the required-clause checks fail, never pass a forbidden token).
+    """
+    out: List[str] = []
+    i, n, depth = 0, len(code), 0
+    while i < n:
+        if code.startswith("/-", i):
+            depth += 1
+            i += 2
+            continue
+        if depth > 0:
+            if code.startswith("-/", i):
+                depth -= 1
+                i += 2
+            else:
+                if code[i] == "\n":
+                    out.append("\n")
+                i += 1
+            continue
+        if code.startswith("--", i):
+            j = code.find("\n", i)
+            i = n if j == -1 else j
+            continue
+        out.append(code[i])
+        i += 1
+    return "".join(out)
 
 
 class LeanComparatorSandboxAuditor:
-    """Enforces `leanprover/comparator` axiom and declaration-parity checks."""
+    """Text lint modelled on `leanprover/comparator`, plus real `lean` when present."""
 
     FORBIDDEN_ESCAPE_PATTERNS: Tuple[Tuple[str, str], ...] = (
         (r"\bsorry\b", "HALT_COMPARATOR_SORRY_AXIOM_DETECTED"),
         (r"\bsorryAx\b", "HALT_COMPARATOR_SORRY_AXIOM_DETECTED"),
+        (r"\badmit\b", "HALT_COMPARATOR_SORRY_AXIOM_DETECTED"),
         (r"\baxiom\s+", "HALT_COMPARATOR_CUSTOM_AXIOM_FORBIDDEN"),
         (r"\bunsafe\s+", "HALT_COMPARATOR_UNSAFE_CODE_FORBIDDEN"),
         (r"@\[implemented_by", "HALT_COMPARATOR_IMPLEMENTED_BY_ESCAPE_FORBIDDEN"),
         (r"@\[extern", "HALT_COMPARATOR_EXTERN_FFI_ESCAPE_FORBIDDEN"),
+        (r"\bnative_decide\b", "HALT_COMPARATOR_NATIVE_DECIDE_FORBIDDEN"),
     )
+
+    @staticmethod
+    def _reject(code: str, spec: TrustedLeanChallengeSpec) -> ComparatorVerificationVerdict:
+        return ComparatorVerificationVerdict(
+            passed=False,
+            rejection_code=code,
+            problem_id=spec.problem_id,
+            certificate_caid="",
+            status=TEXT_LINT_ONLY,
+            text_lint_passed=False,
+            lean_executed=False,
+        )
+
+    @staticmethod
+    def run_lean_kernel(
+        trusted_spec: TrustedLeanChallengeSpec,
+        submitted_lean_code: str,
+        lean_bin: str,
+        timeout_s: float = LEAN_EXEC_TIMEOUT_SECONDS,
+    ) -> Tuple[bool, str]:
+        """Elaborate the submission with a real `lean` binary.
+
+        Appends `#print axioms <theorem>` and fails on: nonzero exit, any
+        "declaration uses 'sorry'" warning, timeout, or an axiom outside
+        ``trusted_spec.permitted_axioms``.
+        """
+        probe = f"{submitted_lean_code}\n\n#print axioms {trusted_spec.theorem_name}\n"
+        with tempfile.TemporaryDirectory(prefix="aeib_lean_") as tmp:
+            path = Path(tmp) / "Submission.lean"
+            path.write_text(probe, encoding="utf-8")
+            try:
+                proc = subprocess.run(
+                    [lean_bin, str(path)],
+                    capture_output=True,
+                    text=True,
+                    timeout=timeout_s,
+                    check=False,
+                )
+            except subprocess.TimeoutExpired:
+                return False, HALT_LEAN_TIMEOUT
+        output = f"{proc.stdout}\n{proc.stderr}"
+        if proc.returncode != 0:
+            return False, HALT_LEAN_KERNEL_REJECTED
+        if "declaration uses 'sorry'" in output:
+            return False, HALT_LEAN_SORRY_WARNING
+        match = re.search(r"depends on axioms:\s*\[([^\]]*)\]", output)
+        if match:
+            used = [a.strip() for a in match.group(1).split(",") if a.strip()]
+            allowed = set(trusted_spec.permitted_axioms)
+            for ax in used:
+                if ax not in allowed:
+                    return False, f"{HALT_LEAN_UNPERMITTED_AXIOM}:{ax}"
+        elif "does not depend on any axioms" not in output:
+            # `#print axioms` output missing -> cannot confirm the theorem exists.
+            return False, HALT_LEAN_KERNEL_REJECTED
+        return True, OK_LEAN_KERNEL_CHECKED
 
     @classmethod
     def verify_submission_against_trusted_spec(
@@ -253,45 +374,25 @@ class LeanComparatorSandboxAuditor:
         submitted_lean_code: str,
         declared_axioms_used: Tuple[str, ...] = ("propext", "Quot.sound"),
     ) -> ComparatorVerificationVerdict:
-        # Strip single-line comments before scanning for forbidden tokens
-        code_no_comments = "\n".join(
-            line for line in submitted_lean_code.splitlines() if not line.strip().startswith("--")
-        )
+        # Strip line and (nested) block comments before every textual check, so a
+        # required clause hidden in a comment does not count and a `sorry` inside
+        # a comment is not a false positive.
+        code_no_comments = strip_lean_comments(submitted_lean_code)
         for pattern, err_code in cls.FORBIDDEN_ESCAPE_PATTERNS:
             if re.search(pattern, code_no_comments):
-                return ComparatorVerificationVerdict(
-                    passed=False,
-                    rejection_code=err_code,
-                    problem_id=trusted_spec.problem_id,
-                    certificate_caid="",
-                )
+                return cls._reject(err_code, trusted_spec)
 
         allowed_set = set(trusted_spec.permitted_axioms)
         for ax in declared_axioms_used:
             if ax not in allowed_set:
-                return ComparatorVerificationVerdict(
-                    passed=False,
-                    rejection_code=f"HALT_COMPARATOR_UNPERMITTED_AXIOM:{ax}",
-                    problem_id=trusted_spec.problem_id,
-                    certificate_caid="",
-                )
+                return cls._reject(f"HALT_COMPARATOR_UNPERMITTED_AXIOM:{ax}", trusted_spec)
 
-        if trusted_spec.trusted_definitions_lean.strip() not in submitted_lean_code:
-            return ComparatorVerificationVerdict(
-                passed=False,
-                rejection_code="HALT_COMPARATOR_DEFINITION_REDEFINITION_DETECTED",
-                problem_id=trusted_spec.problem_id,
-                certificate_caid="",
-            )
+        if trusted_spec.trusted_definitions_lean.strip() not in code_no_comments:
+            return cls._reject("HALT_COMPARATOR_DEFINITION_REDEFINITION_DETECTED", trusted_spec)
 
         expected_clause = f"{trusted_spec.trusted_theorem_header_lean.strip()} := by decide"
-        if expected_clause not in submitted_lean_code:
-            return ComparatorVerificationVerdict(
-                passed=False,
-                rejection_code="HALT_COMPARATOR_THEOREM_STATEMENT_MISMATCH",
-                problem_id=trusted_spec.problem_id,
-                certificate_caid="",
-            )
+        if expected_clause not in code_no_comments:
+            return cls._reject("HALT_COMPARATOR_THEOREM_STATEMENT_MISMATCH", trusted_spec)
 
         cert_caid = sha256_prefixed(
             encode_jcs(
@@ -303,11 +404,29 @@ class LeanComparatorSandboxAuditor:
                 }
             )
         )
+
+        lean_bin = shutil.which("lean")
+        if lean_bin is None:
+            # Text lint passed, but no proof checker ran: never report VERIFIED.
+            return ComparatorVerificationVerdict(
+                passed=False,
+                rejection_code=LEAN_NOT_EXECUTED,
+                problem_id=trusted_spec.problem_id,
+                certificate_caid=cert_caid,
+                status=TEXT_LINT_ONLY,
+                text_lint_passed=True,
+                lean_executed=False,
+            )
+
+        ok, code = cls.run_lean_kernel(trusted_spec, submitted_lean_code, lean_bin)
         return ComparatorVerificationVerdict(
-            passed=True,
-            rejection_code="OK_COMPARATOR_VERIFIED",
+            passed=ok,
+            rejection_code=code,
             problem_id=trusted_spec.problem_id,
-            certificate_caid=cert_caid,
+            certificate_caid=cert_caid if ok else "",
+            status=REAL_EXECUTED,
+            text_lint_passed=True,
+            lean_executed=True,
         )
 
 
@@ -332,9 +451,7 @@ class Pc2ProofCarryingEscrowAirlock:
     """Enforces Proof-Carrying Contract (PC2) escrow lock and verified settlement."""
 
     def __init__(self, airlock_privkey: Optional[Ed25519PrivateKey] = None) -> None:
-        self._priv = airlock_privkey or Ed25519PrivateKey.from_private_bytes(
-            hashlib.sha256(b"sovereign-nexus-pc2-airlock-v54-key").digest()
-        )
+        self._priv = airlock_privkey or Ed25519PrivateKey.generate()
         self.contracts: Dict[str, ProofCarryingContractEscrow] = {}
 
     @property
@@ -369,10 +486,19 @@ class Pc2ProofCarryingEscrowAirlock:
                 contract.required_challenge_spec, submitted_lean_proof
             )
         )
-        if not comp_verdict.passed:
+        if comp_verdict.status != REAL_EXECUTED and comp_verdict.text_lint_passed:
+            # Text lint passed but no Lean kernel ran: funds are NOT released.
+            return {
+                "disposition": "AIRLOCK_HELD_TEXT_LINT_ONLY",
+                "code": comp_verdict.rejection_code,
+                "verification_status": comp_verdict.status,
+                "escrow_status": contract.status,
+            }
+        if not comp_verdict.passed or comp_verdict.status != REAL_EXECUTED:
             return {
                 "disposition": "AIRLOCK_REJECTED_PROOF",
                 "code": comp_verdict.rejection_code,
+                "verification_status": comp_verdict.status,
                 "escrow_status": contract.status,
             }
 
@@ -400,6 +526,7 @@ class Pc2ProofCarryingEscrowAirlock:
         return {
             "disposition": "AIRLOCK_ACCEPTED_ESCROW_RELEASED",
             "code": "OK",
+            "verification_status": comp_verdict.status,
             "settlement_receipt": receipt_core,
             "airlock_public_key_b64": self.public_key_b64,
             "airlock_signature_b64": sig_b64,
@@ -445,7 +572,16 @@ def main() -> int:
     res = airlock.submit_proof_carrying_deliverable(
         "pc2-contract-radar-barker13", valid_lean, barker_seq
     )
-    assert res["disposition"] == "AIRLOCK_ACCEPTED_ESCROW_RELEASED"
+    lean_present = shutil.which("lean") is not None
+    if lean_present:
+        # Real Lean kernel ran; the exported Barker-13 proof must check.
+        assert res["disposition"] == "AIRLOCK_ACCEPTED_ESCROW_RELEASED", res
+        status_label = "SECTION_24_PC2_LEAN4_KERNEL_EXECUTED"
+    else:
+        # No Lean on this host: text lint only, escrow must stay locked.
+        assert res["disposition"] == "AIRLOCK_HELD_TEXT_LINT_ONLY", res
+        assert contract.status == "ESCROW_LOCKED"
+        status_label = "SECTION_24_PC2_TEXT_LINT_ONLY_LEAN_NOT_EXECUTED"
 
     state_engine = SovereignIndependentStateCapsuleEngine(workspace_root=workspace_root)
     capsule = state_engine.build_and_sync_capsule(persist=True)
@@ -454,9 +590,11 @@ def main() -> int:
         print(
             json.dumps(
                 {
-                    "status": "SECTION_24_PC2_LEAN4_AIRLOCK_VERIFIED",
+                    "status": status_label,
+                    "verification_status": res.get("verification_status"),
+                    "escrow_disposition": res["disposition"],
                     "exported_lean4_proof_digests": exported_digests,
-                    "settlement_receipt": res["settlement_receipt"],
+                    "settlement_receipt": res.get("settlement_receipt"),
                     "state_capsule_sha256": capsule.capsule_sha256,
                 },
                 indent=2,

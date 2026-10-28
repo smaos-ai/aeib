@@ -1,0 +1,990 @@
+{
+  "available_choice_chains": [
+    {
+      "already_built_summary": "Built: Darwin F_FULLFSYNC (51) PreDispatchIntentInterlock (EO-1), Seatbelt (.sb) Orca worktree jail, Linux BPF_LSM static compiler, Tetragon RAPL/egress YAML, CrossCallerGroupCommitLatch, and Rust dual-slot Ed25519 + ML-DSA-65 SCITT anchor.",
+      "auto_generated_decide_prompt": "/decide --deep --security --benchmark --falsify Execute CHAIN-A (Split-TCB TEE PCR-11 verifier + NVMe torn-write WAL fault simulator + PQC receipt bridge)",
+      "chain_id": "CHAIN-A-KERNEL-HARDWARE-SUBSTRATE",
+      "domain_title": "Kernel, Hardware, & Physical Ring-0 Substrate Hardening",
+      "expected_impact_bps": 9500,
+      "missed_frontier_gap": "Frontier Next: Hardware enclave attestation binding (Intel TDX / AMD SEV-SNP / Apple Secure Enclave quote verification) + deterministic io_uring ring-buffer replay audit under power-loss simulation.",
+      "recommended_flags": [
+        "--deep",
+        "--security",
+        "--benchmark",
+        "--falsify"
+      ],
+      "short_code": "A",
+      "steps": [
+        {
+          "concrete_deliverable": "Verify hardware attestation quotes and bind BPF map SHA-256 digests into PCR-11 before Station 1 key release.",
+          "scientific_anchor": "Janus Split-TCB & IETF RATS (RFC 9334)",
+          "step_id": "A1-TEE-QUOTE-VERIFIER",
+          "step_number": 1,
+          "title": "Split-TCB Enclave Quote & PCR-11 Map Pinning Verifier",
+          "verification_gate": "Tampered PCR-11 digest or stale nonce fails closed with HALT_TEE_QUOTE_MISMATCH."
+        },
+        {
+          "concrete_deliverable": "Inject deterministic byte-truncation and CRC corruption into group-commit WAL frames during parallel burst.",
+          "scientific_anchor": "TigerBeetle Storage Fault Model & Limbo (arXiv:2609.29095)",
+          "step_id": "A2-NVME-TORN-WRITE-SIM",
+          "step_number": 2,
+          "title": "NVMe Torn-Write & Power-Loss Crash Recovery Simulator",
+          "verification_gate": "100% detection of torn WAL tail frames on reboot with 0 silent state corruptions."
+        },
+        {
+          "concrete_deliverable": "Verify dual-slot classical + post-quantum receipts across Python and Rust boundaries.",
+          "scientific_anchor": "RFC 9942 SCITT + FIPS 204 ML-DSA-65",
+          "step_id": "A3-WASM-OFFLINE-VERIFIER",
+          "step_number": 3,
+          "title": "Sub-Millisecond WASM + Rust Receipt Verifier Bridge",
+          "verification_gate": "Cross-language receipt verification passes 100% of RFC 8785 JCS test vectors."
+        }
+      ]
+    },
+    {
+      "already_built_summary": "Built: ContextCart TreeSitterSlicer (-89.74% file read tokens), TokenEconomizer 5-turn tool pruning (-86.95% schema overhead), CELF submodular pruning (-66.06%), SAKE prefix pinning (-78.34% total sprint tokens; $4.43 -> $0.93 on Argon 4, $0.38 Cascade).",
+      "auto_generated_decide_prompt": "/decide --deep --research --benchmark --falsify Execute CHAIN-B (MemOS Delta Cube compactor + Gemini 3.8 Flash / Argon 4 cascade router + FinOps circuit breaker)",
+      "chain_id": "CHAIN-B-TOKEN-FINOPS-CONTEXT-OS",
+      "domain_title": "MemOS Context Compression, Token FinOps, & Antigravity Speedup",
+      "expected_impact_bps": 9142,
+      "missed_frontier_gap": "Frontier Next: MemOS MemCube delta-checkpointing across multi-day Antigravity sessions + automatic System-1 (Gemini 3.8 Flash) / System-2 (Gemini 4 Argon) difficulty router.",
+      "recommended_flags": [
+        "--deep",
+        "--research",
+        "--benchmark",
+        "--falsify"
+      ],
+      "short_code": "B",
+      "steps": [
+        {
+          "concrete_deliverable": "Emit only bi-temporal state diffs (delta MemCubes) when syncing between Antigravity turns.",
+          "scientific_anchor": "MemOS (SJTU/Zhejiang arXiv:2507.03724) & Graphiti Bi-Temporal Graph",
+          "step_id": "B1-MEMOS-DELTA-CUBE",
+          "step_number": 1,
+          "title": "MemOS MemCube Cross-Session Delta Compactor",
+          "verification_gate": "Reduces cross-session state hydration overhead below 500 uncached tokens per turn."
+        },
+        {
+          "concrete_deliverable": "Route AST lookups, linting, and Tier-1 verification to Gemini 3.8 Flash while reserving Gemini 4 Argon for multi-hop architecture synthesis.",
+          "scientific_anchor": "Opus 5.5 Decision Cascade & FrugalGPT / RouteLLM",
+          "step_id": "B2-ARGON-FLASH-ROUTER",
+          "step_number": 2,
+          "title": "Complexity-Aware System-1 (Flash 3.8) / System-2 (Argon 4) Router",
+          "verification_gate": "Maintains >=91% USD cost reduction ($0.38 vs $4.43 per 20-task sprint) with zero accuracy drop."
+        },
+        {
+          "concrete_deliverable": "Halt runaway subagent loops if marginal information gain per 1,000 tokens drops below threshold.",
+          "scientific_anchor": "Caprock FinOps SLO & PARL Spurious Parallelism (arXiv:2610.10263)",
+          "step_id": "B3-CAPROCK-FINOPS-BREAKER",
+          "step_number": 3,
+          "title": "Real-Time Token & Joule FinOps Circuit Breaker",
+          "verification_gate": "Blocks 100% of simulated cyclic retry storms within 3 turns."
+        }
+      ]
+    },
+    {
+      "already_built_summary": "Built: ToyotaFiveWhyRootCauseEngine (Jidoka, Genchi Genbutsu, Poka-Yoke), HybridSemanticAstRrfSearchEngine (k=60), BuilderBreakerAdversarialEngine (arXiv:2610.14224), Cloudflare 6-Phase FreshDisprovingVerifier, and T4+ MLReproMutate (10000 bps kill rate).",
+      "auto_generated_decide_prompt": "/decide --deep --build --benchmark --falsify Execute CHAIN-C (Autonomous stack-trace 5-Why localizer + Poka-Yoke mutant synthesizer + 1000-episode chaos matrix)",
+      "chain_id": "CHAIN-C-TOYOTA-5WHY-ADVERSARIAL-QUALITY",
+      "domain_title": "Toyota 5-Why Root-Cause Automation, Mutation Oracles, & Chaos Fuzzing",
+      "expected_impact_bps": 9600,
+      "missed_frontier_gap": "Frontier Next: Automated CI/CD failure-to-5-Why-to-Poka-Yoke closed loop that automatically localizes any pytest failure via Hybrid RRF and synthesizes a mutation-killed guard.",
+      "recommended_flags": [
+        "--deep",
+        "--build",
+        "--benchmark",
+        "--falsify"
+      ],
+      "short_code": "C",
+      "steps": [
+        {
+          "concrete_deliverable": "Parse exception traces and traverse the AST call graph upstream to pinpoint the Depth-5 architectural invariant gap.",
+          "scientific_anchor": "EvoCause (arXiv:2607.27290) & AgentTrace (arXiv:2603.14688)",
+          "step_id": "C1-AUTONOMOUS-RCA-TRACE",
+          "step_number": 1,
+          "title": "Stack-Trace to AST Call-Graph 5-Why Localizer",
+          "verification_gate": "Ranks true root-cause file at Top-1 across seeded multi-file regression scenarios."
+        },
+        {
+          "concrete_deliverable": "Verify every bug fix against 5 synthetic AST mutants to prevent shallow symptom patching.",
+          "scientific_anchor": "MLReproMutate & RuleTrek (arXiv:2610.19698)",
+          "step_id": "C2-POKA-YOKE-SYNTHESIZER",
+          "step_number": 2,
+          "title": "Poka-Yoke AST Interlock & Mutant Generator",
+          "verification_gate": "Rejects 100% of shallow patches that fail to kill injected boundary mutants."
+        },
+        {
+          "concrete_deliverable": "Stress test 2-of-3 quorum latch under simultaneous network split and monotonic clock drift.",
+          "scientific_anchor": "Serializable Snapshot Isolation (SSI 40001) & Jepsen Methodology",
+          "step_id": "C3-MULTI-REGION-CHAOS-MATRIX",
+          "step_number": 3,
+          "title": "1,000-Episode Multi-Region Partition & Clock-Skew Matrix",
+          "verification_gate": "0 split-brain double reservations across 1,000 seeded fault schedules."
+        }
+      ]
+    },
+    {
+      "already_built_summary": "Built: EN 18286:2026 & DORA Art. 17 Compliance Bundler (RFC 9162 Merkle Root + CycloneDX 1.6 CBOM), ZK-TLSNotary balance proof, BN254 ZkBudgetProofEngine, China BSN/CTID DID mapping, and AP2 v0.2 / x402 v2 / Stripe ACP payment rail verifiers.",
+      "auto_generated_decide_prompt": "/decide --deep --compliance --security --falsify Execute CHAIN-D (GDPR/PIPL selective redaction + Quad-Regime statutory crosswalk + air-gapped auditor pack)",
+      "chain_id": "CHAIN-D-GLOBAL-COMPLIANCE-ZKP-INTEROP",
+      "domain_title": "Global Regulatory Compliance (EU AI Act / DORA / China BSN) & ZK Privacy",
+      "expected_impact_bps": 9400,
+      "missed_frontier_gap": "Frontier Next: Automated Cross-Jurisdiction Auditor Pack generator producing simultaneous EU EN 18286:2026, DORA Art. 17, ISO/IEC 42001, and China TC260 / PIPL zero-PII bundles.",
+      "recommended_flags": [
+        "--deep",
+        "--compliance",
+        "--security",
+        "--falsify"
+      ],
+      "short_code": "D",
+      "steps": [
+        {
+          "concrete_deliverable": "Allow redaction of GDPR/PIPL PII leaf fields while preserving RFC 9942 SCITT Merkle root validity.",
+          "scientific_anchor": "W3C Data Integrity BBS+ / Salted Merkle Commitments",
+          "step_id": "D1-BBS-SELECTIVE-REDACTION",
+          "step_number": 1,
+          "title": "Selective Disclosure & GDPR Art. 17 Right-to-Erasure Receipt Verifier",
+          "verification_gate": "External offline verifier confirms Merkle inclusion after PII salt erasure."
+        },
+        {
+          "concrete_deliverable": "Map every Station 1-3 control to machine-verifiable statutory clauses with SHA-256 test receipts.",
+          "scientific_anchor": "CEN-CENELEC EN 18286:2026 & Implementing Decision (EU) 2026/2274",
+          "step_id": "D2-QUAD-REGIME-CROSSWALK",
+          "step_number": 2,
+          "title": "Quad-Regime Statutory Crosswalk Compiler (EU AI Act + DORA + ISO 42001 + TC260)",
+          "verification_gate": "100% clause coverage across all 4 regulatory frameworks with zero unverified claims."
+        },
+        {
+          "concrete_deliverable": "Package all compliance proofs into a self-verifying bundle runnable with `python3 standalone_offline_verifier.py`.",
+          "scientific_anchor": "RFC 8032 Pure-Python Verifier & ECMA-424 CBOM",
+          "step_id": "D3-AUDITOR-SINGLE-FILE-PACK",
+          "step_number": 3,
+          "title": "Air-Gapped Zero-Dependency Auditor Verification Bundle",
+          "verification_gate": "Verifies cleanly in an air-gapped environment with zero third-party pip packages."
+        }
+      ]
+    },
+    {
+      "already_built_summary": "Built: SovereignNexus MCP Gateway (2025-11-25), SecureMcpUdsBoundaryServer (0o600 UDS + SO_PEERCRED), GovernedCrossModelHandoffGate (taint monotonicity), ArtemisDeviceActuatorGate, and SovereignAllStateQueryProxy.",
+      "auto_generated_decide_prompt": "/decide --deep --research --build --security Execute CHAIN-E (Signed Messenger shorthand compiler + Multi-harness MCP resource sync + External SSD atomic snapshot)",
+      "chain_id": "CHAIN-E-OMNI-AGENT-MESSENGER-GATEWAY",
+      "domain_title": "Omni-Channel Messenger Proxy, Multi-Harness Routing, & Autonomous Delivery",
+      "expected_impact_bps": 9750,
+      "missed_frontier_gap": "Frontier Next: Bi-directional Messenger & IDE Context Proxy that lets you send 1-line commands from mobile/desktop messengers or Antigravity and receives signed AllState receipts with Memory Sandbox protection.",
+      "recommended_flags": [
+        "--deep",
+        "--research",
+        "--build",
+        "--security"
+      ],
+      "short_code": "E",
+      "steps": [
+        {
+          "concrete_deliverable": "Translate short mobile/messenger commands (e.g., `@decide chain B`, `@status`, `@audit`) into full context-hydrated workflows.",
+          "scientific_anchor": "Alibaba AgentScope Middleware & OWASP ASI-2026",
+          "step_id": "E1-MESSENGER-INTENT-COMPILER",
+          "step_number": 1,
+          "title": "Signed Messenger Command & Shorthand Intent Compiler",
+          "verification_gate": "100% of unsigned external messenger mutations require RFC 9470 step-up warrant."
+        },
+        {
+          "concrete_deliverable": "Expose `SOVEREIGN_MEMCUBE_ALLSTATE_CAPSULE.json` as an MCP resource and CLI pre-hook for every connected agent.",
+          "scientific_anchor": "MemOS Multi-Harness Plugin Architecture (arXiv:2507.03724)",
+          "step_id": "E2-CROSS-HARNESS-SYNC",
+          "step_number": 2,
+          "title": "Unified AllState Sync Across Antigravity, Claude Code, Codex, & Subagents",
+          "verification_gate": "All connected agents observe identical SHA-256 state tip within 1\u540c\u6b65 cycle."
+        },
+        {
+          "concrete_deliverable": "Write atomic timestamped state capsules to `/Volumes/EXTssd/SovereignNexus_AllState_Hub/` with SHA-256 manifest verification.",
+          "scientific_anchor": "Bi-Temporal Outbox & Content-Addressed Storage",
+          "step_id": "E3-SSD-ATOMIC-SNAPSHOT-DAEMON",
+          "step_number": 3,
+          "title": "Atomic External SSD AllState Snapshot & Integrity Verifier",
+          "verification_gate": "Survives simulated disconnect/reconnect with zero corrupted JSON state files."
+        }
+      ]
+    }
+  ],
+  "capsule_id": "MEMCUBE-SOVEREIGN-ALLSTATE-V1",
+  "capsule_jcs_sha256": "3ab7dfc3b64d9305cccc12701540e1abd69b7335b5931319bf53fa9bd5676c92",
+  "ed25519_public_key_hex": "be8c92675b2ca91c9790edbb9c3d2762a1875f836e9f9a0b92b6001ae0c8aa03",
+  "ed25519_signature_hex": "02c04842326bdcc1c1d906013a25f1550cd9d186dde0bf335bf5f937d91bb7847da2316a4445f1d16eef73c5643253c1d7d5915e9f14aa4411516aece088f00a",
+  "git_branch": "feat/v1.1-temporal-standing",
+  "git_head_Hint": "fd67d97c",
+  "manifest_sections_summary": [
+    {
+      "artifact_count": 0,
+      "artifacts": [],
+      "section_number": 1,
+      "section_title": "Prototype Component & Verification Summary"
+    },
+    {
+      "artifact_count": 0,
+      "artifacts": [],
+      "section_number": 2,
+      "section_title": "Production Readiness Chaos Benchmark Evidence (18 Failure Scenarios)"
+    },
+    {
+      "artifact_count": 0,
+      "artifacts": [],
+      "section_number": 3,
+      "section_title": "Core Operational Invariants Observed:"
+    },
+    {
+      "artifact_count": 0,
+      "artifacts": [],
+      "section_number": 1,
+      "section_title": "Verification Summary Table"
+    },
+    {
+      "artifact_count": 0,
+      "artifacts": [],
+      "section_number": 2,
+      "section_title": "Protocol-Aware Deterministic Simulation Testing (DST) Results (10,000 Schedules)"
+    },
+    {
+      "artifact_count": 0,
+      "artifacts": [],
+      "section_number": 3,
+      "section_title": "Production Remediations (#17\u2013#21) & Gap Closures Implementation Details"
+    },
+    {
+      "artifact_count": 0,
+      "artifacts": [],
+      "section_number": 1,
+      "section_title": "Operational Verification Summary Table"
+    },
+    {
+      "artifact_count": 0,
+      "artifacts": [],
+      "section_number": 2,
+      "section_title": "Operational Invariants Verified:"
+    },
+    {
+      "artifact_count": 11,
+      "artifacts": [
+        {
+          "component_name": "Two-Socket Black-Box TDD & SLO Harness",
+          "file_path": "tools/blackbox_two_socket_slo_and_fuzzer.py",
+          "sha256_digest": "3f8b1181da8724689a0e181f2d7b67edc798df463e39cca74e2d30c6d22a6856",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "SLO Performance Baseline Metrics",
+          "file_path": "output/slo_baseline_report.json",
+          "sha256_digest": "93e6543f8d6ede64fcf828a08e54e07891e0d000a722485e7ea3d2abe43eda9d",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "OpenAPI 3.1 Station 1 Contract",
+          "file_path": "schemas/aeib_station1_interface.yaml",
+          "sha256_digest": "4c915f91171aea2c07c8c6cea6bd95543b80c6a41ec062d0cfe40703a917bd68",
+          "status": "SPECIFIED"
+        },
+        {
+          "component_name": "Station 1 Declarative Conformance Vectors",
+          "file_path": "evidence/conformance_vectors_v1.jsonl",
+          "sha256_digest": "a3735807b53a3496237137cebfa232e45360a278a13911e1f515b899d7daaeda",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Cloudflare 6-Phase Disproving Verifier",
+          "file_path": "tools/cloudflare_6phase_disproving_verifier.py",
+          "sha256_digest": "ca756548dd55eb1653a0264bb69ad5be814aa691c8d6370a59ba93e5f56f1856",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Phase 1 AST Coverage Ledger",
+          "file_path": "output/coverage_ledger.json",
+          "sha256_digest": "0f35263577c8d13300fd73324643736cc3298f7975f0edd4f413b1c1b4c1a434",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Tri-Tier Disproving & Shadow Report",
+          "file_path": "output/cloudflare_disproving_report.json",
+          "sha256_digest": "0ca92379285a872c01e18084746b9ae39b7ee34c23c1964b67d6c25a0c80b6c5",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Hermetic Clean-Room CI Workflow",
+          "file_path": ".github/workflows/aeib_cleanroom_ci.yml",
+          "sha256_digest": "45c5f2615c66cc94530d78613fda1973ea6bf513e3920d2e8c6cf3a2d9ecaa5d",
+          "status": "CONFIGURED"
+        },
+        {
+          "component_name": "DORA Threat Model & Abuse Cases",
+          "file_path": "docs/compliance/THREAT_MODEL_AND_ABUSE_CASES.md",
+          "sha256_digest": "8f64d3fe5a238df581228603d61a2188912bf937eaee69e63b8493b6fed6537c",
+          "status": "DOCUMENTED"
+        },
+        {
+          "component_name": "DORA Incident Management & Rollback",
+          "file_path": "docs/compliance/INCIDENT_MANAGEMENT_AND_ROLLBACK_RUNBOOK.md",
+          "sha256_digest": "8b4db07a44f6e6f7646de1f77beaad33404d8d695abb05078d31ea7712290085",
+          "status": "DOCUMENTED"
+        },
+        {
+          "component_name": "DORA Key Management Policy",
+          "file_path": "docs/compliance/KEY_MANAGEMENT_POLICY.md",
+          "sha256_digest": "1bf4c9c544d0a377f2237df782eeb96e0b48f407b32d62f783237d4a59a7ba6a",
+          "status": "DOCUMENTED"
+        }
+      ],
+      "section_number": 3,
+      "section_title": "Blank-Box Two-Socket TDD, Cloudflare 6-Phase Disproving, and DORA Governance Artifacts"
+    },
+    {
+      "artifact_count": 16,
+      "artifacts": [
+        {
+          "component_name": "Canonical Act Envelope Schema",
+          "file_path": "contracts/act.v1.json",
+          "sha256_digest": "421fb374bb789610946afc6d73f7eebd0d3ce25f5b0a2c2069062227121f3767",
+          "status": "FROZEN"
+        },
+        {
+          "component_name": "Canonical Effect State Schema",
+          "file_path": "contracts/effect.v1.json",
+          "sha256_digest": "869472e6cd020fe42c04fea6dea4e6028461f94fd6a27f76c6cf19417d46f7fa",
+          "status": "FROZEN"
+        },
+        {
+          "component_name": "Canonical Capability Warrant Schema",
+          "file_path": "contracts/capability.v1.json",
+          "sha256_digest": "9c5b534a314275bea7d2ad8699901e854eaefb3da701f5629f7ad7fc74067430",
+          "status": "FROZEN"
+        },
+        {
+          "component_name": "Station 1 Protobuf Specification",
+          "file_path": "contracts/station1.proto",
+          "sha256_digest": "aad3ca9d00fb3b815f235d0a67b3ca622658dbf71197914f07a5165d2821475d",
+          "status": "SPECIFIED"
+        },
+        {
+          "component_name": "Temporal Logic Invariant Rules",
+          "file_path": "contracts/temporal_rules.yaml",
+          "sha256_digest": "cdf510db5320e7cf3106c8e98c4bb08feb571f157f2cd03ae75fb376ae70d322",
+          "status": "SPECIFIED"
+        },
+        {
+          "component_name": "Station 1 Gatekeeper Engine",
+          "file_path": "simulation-lab/station1_gate_engine.py",
+          "sha256_digest": "059d9875c543facc9ccb9867f00af0307697720b918ff5ec55008420d4f565fe",
+          "status": "IMPLEMENTED"
+        },
+        {
+          "component_name": "Adversarial Blank-Box TDD Suite",
+          "file_path": "simulation-lab/test_black_box.py",
+          "sha256_digest": "f142fb87125f60b35ace2d87179d50f90216781cb0999c3edb4831d045eeb521",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Canonical Work Capsule Schema",
+          "file_path": "contracts/work_capsule.v1.json",
+          "sha256_digest": "e730abfc6f5e3275817f0c7a9f4b1335ecbce34a94a048a7c99bfcdb80859b98",
+          "status": "FROZEN"
+        },
+        {
+          "component_name": "Canonical Evidence Receipt Schema",
+          "file_path": "contracts/evidence_receipt.v1.json",
+          "sha256_digest": "52eadb6d7eb08aec6132a776606c84a3d5e3552cae73c394d8ab3667f1c29fd0",
+          "status": "FROZEN"
+        },
+        {
+          "component_name": "Work Capsule Lifecycle & Human Gate",
+          "file_path": "src/work_capsule_engine.py",
+          "sha256_digest": "27c918e8bc3aa5a7a8c9cf2cd6360b57645463a95613fe1c82b53bbb875b940a",
+          "status": "IMPLEMENTED"
+        },
+        {
+          "component_name": "Universal Conformance Runner",
+          "file_path": "tools/vaf_conformance_runner.py",
+          "sha256_digest": "876070e0a2b5638d55600aa7fa203fd6e960bcd2c0d13155d1359da3c5b8e6f7",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "VAF Automated Mutation Gate",
+          "file_path": "tools/vaf_mutation_gate.py",
+          "sha256_digest": "e28ea389a0228bbff86d385a9a1ac0a2ba13ea970e535b22e847f10def49a53b",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Mutation Gate Test Suite",
+          "file_path": "tests/test_vaf_mutation_gate.py",
+          "sha256_digest": "07df3f302396f5a1aaabc01af99ed05eed0737a197741bbd10771eb7d4da409e",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Work Capsule & Conformance Integration",
+          "file_path": "tests/test_vaf_work_capsule_and_conformance.py",
+          "sha256_digest": "8dd6aae433e8f1b1db9ba0a405b9e5adb268ee2a2cf4daae639ba4969e0bb465",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Universal Conformance Run Report",
+          "file_path": "output/conformance_run_report.json",
+          "sha256_digest": "50df44eb46154b0ab7e83124b9fa629fb6f564a27b54bd020e9ac895625cf34f",
+          "status": "RECORDED"
+        },
+        {
+          "component_name": "Mutation Gate Execution Report",
+          "file_path": "output/vaf_mutation_gate_report.json",
+          "sha256_digest": "74d23bdb6bc57e3fb4bbcc0d7fe2088bf4860850ecdc1fe680f5cb9288feefcd",
+          "status": "RECORDED"
+        }
+      ],
+      "section_number": 4,
+      "section_title": "Verifiable Agent Fabric Canonical Contracts & Simulation-Lab TDD Harness"
+    },
+    {
+      "artifact_count": 6,
+      "artifacts": [
+        {
+          "component_name": "MCP Idempotency 30-Vector Suite",
+          "file_path": "conformance/vectors/mcp_idempotency.vectors.v1.json",
+          "sha256_digest": "c155fb22fb871bd9778201b32eba0e6e311c777cfd821e29f97fcc82d15137bf",
+          "status": "FROZEN"
+        },
+        {
+          "component_name": "Hardened Idempotent MCP Proxy",
+          "file_path": "adapters/mcp/idempotent_mcp_proxy.py",
+          "sha256_digest": "18773adf6d53051e566017f7d453564615ed11f4611875af58188f2c0605f701",
+          "status": "IMPLEMENTED"
+        },
+        {
+          "component_name": "Hardened Idempotent MCP Test Suite",
+          "file_path": "tests/test_idempotent_mcp_proxy.py",
+          "sha256_digest": "07312f22b0d49e6bdd4c851bb51d4ceb59ae22bea130884fa1a6158ad1edc8d2",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "MCP Conformance Run Report",
+          "file_path": "output/mcp-conformance-report.json",
+          "sha256_digest": "d175fc0f6989f5dbce75468141a1f616706b915c56d44a51c066455ccc9e542b",
+          "status": "RECORDED"
+        },
+        {
+          "component_name": "Execution Integrity 500-Episode Report",
+          "file_path": "output/execution-integrity-500.json",
+          "sha256_digest": "6db32d4ae82544fb684b474ace1ba97926b670b94c95c0f872a614f823f0febc",
+          "status": "RECORDED"
+        },
+        {
+          "component_name": "Boundary Limitations Specification",
+          "file_path": "LIMITATIONS.md",
+          "sha256_digest": "b379aa8a5e78441ef028bf279d5cbc8097665c14a0efe3ba06fec46b559a00aa",
+          "status": "DOCUMENTED"
+        }
+      ],
+      "section_number": 5,
+      "section_title": "Idempotent Model Context Protocol (MCP) Boundary Middleware & Golden Vectors"
+    },
+    {
+      "artifact_count": 6,
+      "artifacts": [
+        {
+          "component_name": "EAC Typestate & Conflict WAL Engine",
+          "file_path": "compliance/eac_typestate_conflict_engine.py",
+          "sha256_digest": "33836cb6b4ddd1173b7eb6b1cd3f9f91fdc8efc5aad0f97166c8866ff5d0d07b",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Palantir Ontology & 6-Way Joint Witness",
+          "file_path": "tools/palantir_ontology_joint_witness_engine.py",
+          "sha256_digest": "f4131233f8da669a22f9974b5624fe28e93f5fb4db1300b45807b94661ff5d26",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Cross-Hemisphere Council & 3-Tier `Ask` Router",
+          "file_path": "tools/cross_hemisphere_council_decide.py",
+          "sha256_digest": "10d0f53908867b763e07d9dc2ba31ac65138a9616e0a325e0aee33bea6512b2e",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Unified Tri-Partition Council Fabric",
+          "file_path": "tools/cross_hemisphere_epistemic_council.py",
+          "sha256_digest": "f7958378c124d9496a598d78982b143cf15855df6472d092ee384ead5a1db5f3",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "CURRENT $\\to$ MISSED $\\to$ NEXT MaxSAT Calculus",
+          "file_path": "tools/current_missed_next_calculus.py",
+          "sha256_digest": "663728b3f34af276fdb24b7f6fa50e88b05394824b8d2e062625f73118e3e3e4",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Categorical 8-Axis Submodular & FCA Engine",
+          "file_path": "src/decide_categorical_epistemic_engine.py",
+          "sha256_digest": "473c04a93aa7971de62e9124c8d2a1c0d638d52a6e7cd65b639bcee2cc12901b",
+          "status": "VERIFIED"
+        }
+      ],
+      "section_number": 6,
+      "section_title": "Epistemic Action Compiler (EAC), Palantir 6-Way Joint Witness, and Cross-Hemisphere Council Artifacts"
+    },
+    {
+      "artifact_count": 4,
+      "artifacts": [
+        {
+          "component_name": "Defense-in-Depth OPA Specification",
+          "file_path": "compliance/defense_in_depth.yaml",
+          "sha256_digest": "cfbb37ab9a6f3c147573f30cd88cb7a03c1d7109ca3ff663b018a4d2f946a2da",
+          "status": "SPECIFIED"
+        },
+        {
+          "component_name": "Defense-in-Depth Policy Gate",
+          "file_path": "compliance/defense_in_depth_policy_gate.py",
+          "sha256_digest": "65fd15e8cc2f068f6c40ee150a60947f33002445cc43913c90f7fe20ff4590a5",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Epistemic Intent-Outcome Engine",
+          "file_path": "tools/epistemic_intent_outcome_engine.py",
+          "sha256_digest": "7a2e3b8aaf60ee9cc98309c3e92a19744f3813161345e9fea2538843a7551b3b",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Defense-in-Depth & Intent-Outcome Suite",
+          "file_path": "tests/test_defense_in_depth_and_intent_outcome.py",
+          "sha256_digest": "6dff6d63deb2cd30d5283534725e523c0e6e0fc7a84174f62ad218deda96c167",
+          "status": "VERIFIED"
+        }
+      ],
+      "section_number": 7,
+      "section_title": "Defense-in-Depth OPA Policy & Epistemic Intent-Outcome Two-Phase Execution Engine"
+    },
+    {
+      "artifact_count": 2,
+      "artifacts": [
+        {
+          "component_name": "AEIB 2026 Unified Metrics Evaluator",
+          "file_path": "tools/aeib_2026_unified_metrics_evaluator.py",
+          "sha256_digest": "eb0b0f40cec1571964b8139b39160310d6a2c4e960f6549cba5f7e6f9fdde60e",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Unified Metrics Evaluator Test Suite",
+          "file_path": "tests/test_aeib_2026_unified_metrics_evaluator.py",
+          "sha256_digest": "9588033eb43817b03eafa72d23333e5732027d52672e3559fa7cd5d3ae60a9e6",
+          "status": "VERIFIED"
+        }
+      ],
+      "section_number": 8,
+      "section_title": "AI Evaluation Metrics Handbook & 2026 SOTA Frontier Unified Evaluator"
+    },
+    {
+      "artifact_count": 4,
+      "artifacts": [
+        {
+          "component_name": "CaMeL/FIDES IFC, Progent, ACID-Agent & PEP 578 Hardening",
+          "file_path": "src/camel_fides_ifc_and_acid_hardening.py",
+          "sha256_digest": "b9a6891615d3621b95a7aaff175169baa333711be1681f81fe053bb1aa7dfee2",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Market Hardening Verification Test Suite",
+          "file_path": "tests/test_camel_fides_ifc_and_acid_hardening.py",
+          "sha256_digest": "d7f6a3f333356da8f1d4c862c25a85cd3736427e94117e1d5a2e09f04999796e",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "China & Global Leaders 12-Benchmark Hardening Suite",
+          "file_path": "src/china_and_global_leaders_hardening_suite.py",
+          "sha256_digest": "93e37fc5242f92464464c9504600b23ef41300b3d3eb5be7ae318a813df1ec61",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "China & Global Leaders 12-Benchmark Test Suite",
+          "file_path": "tests/test_china_and_global_leaders_hardening_suite.py",
+          "sha256_digest": "e167363ec5f8a985c48ba4f1cfba5f21356ac643c3dc986ba32ce53f3b9e5367",
+          "status": "VERIFIED"
+        }
+      ],
+      "section_number": 9,
+      "section_title": "2026 Market & Academic Hardening Suite (CaMeL/FIDES Dual-Lattice IFC, Progent, ACID-Agent, PEP 578 + RFC 8707, & China/Global Leaders 12-Benchmark Suite)"
+    },
+    {
+      "artifact_count": 3,
+      "artifacts": [
+        {
+          "component_name": "HAMT Cross-Pollination & SQLite O(1) Evidence Graph",
+          "file_path": "tools/hamt_cross_pollination_and_evidence_graph.py",
+          "sha256_digest": "42fe0613d6a49194793f08a258a6976a1dfb705b19d74a7d8cd87fc44444970c",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "6-Pillar Cerno / Scion / Onyx / TA-14 / Omnigent Fabric",
+          "file_path": "src/cerno_scion_ta14_omnigent_fabric.py",
+          "sha256_digest": "951bdc9b1d2dff28f8d8f074b90a2afc75e3f9a9696e14ce807f76c77867cc81",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "HAMT & 6-Pillar Fabric Verification Suite",
+          "file_path": "tests/test_hamt_cross_pollination_and_cerno_scion_ta14.py",
+          "sha256_digest": "811eca460bbfe4fa072b0d77b6b8fb3cbdc9aae4100be9d0670c94eea4f1f457",
+          "status": "VERIFIED"
+        }
+      ],
+      "section_number": 10,
+      "section_title": "HAMT Cross-Pollination Orchestrator, SQLite O(1) Evidence Graph, & 6-Pillar Cerno / Scion / TA-14 / Omnigent Fabric"
+    },
+    {
+      "artifact_count": 2,
+      "artifacts": [
+        {
+          "component_name": "Planetary Clearinghouse, TEE Swarm & Lean 4 Kernel",
+          "file_path": "src/planetary_clearinghouse_and_tee_swarm.py",
+          "sha256_digest": "1241fae318e149e24c8ccdf1a145246ea9b309dc4fc98a5cd91deda1da6d9a60",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Planetary Clearinghouse & TEE Swarm Test Suite",
+          "file_path": "tests/test_planetary_clearinghouse_and_tee_swarm.py",
+          "sha256_digest": "f70555d9e1d8e9fdfe44f9c3f607f8803b576db96b1d45f3d0603dfb8e89c923",
+          "status": "VERIFIED"
+        }
+      ],
+      "section_number": 11,
+      "section_title": "Planetary Agent Clearinghouse, Confidential TEE Swarm, & Lean 4 / TLA+ Formal Kernel"
+    },
+    {
+      "artifact_count": 2,
+      "artifacts": [
+        {
+          "component_name": "Autonomous Query Research & Action Engine",
+          "file_path": "src/decide_autonomous_query_research_engine.py",
+          "sha256_digest": "94ec41b16d41b09377708d0aa7cef30a5b5e29d148a7ec597a6e1c576518207f",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Autonomous Query Research Test Suite",
+          "file_path": "tests/test_decide_autonomous_query_research_engine.py",
+          "sha256_digest": "34a828b1b4fcea2d18a2c637427815ba0b170bcfe6452f28c8827fa3036b782e",
+          "status": "VERIFIED"
+        }
+      ],
+      "section_number": 12,
+      "section_title": "Decide-v4 Autonomous Query Research & Multi-Hop Epistemic Action Engine (AER-Engine)"
+    },
+    {
+      "artifact_count": 2,
+      "artifacts": [
+        {
+          "component_name": "Decide-v4.5 Anti-Decay & Evaluation Rate Solver",
+          "file_path": "src/decide_evaluation_rate_and_decay_solver.py",
+          "sha256_digest": "ea8bac3405f65b58ef8ca9723868eb36da35cc12d4233cee980752f717a90a0d",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Decide-v4.5 Anti-Decay Test Suite",
+          "file_path": "tests/test_decide_evaluation_rate_and_decay_solver.py",
+          "sha256_digest": "32df215b18a5a20a5c222d6b13f73fccf5fb2415b6eed84e7c70fc65703854ba",
+          "status": "VERIFIED"
+        }
+      ],
+      "section_number": 13,
+      "section_title": "Decide-v4.5 Evaluation Rate Optimizer & Four-Decay Mathematical Solver (SAKE, DPI, IG-Search CELF, & Multi-Hop Pass^k)"
+    },
+    {
+      "artifact_count": 5,
+      "artifacts": [
+        {
+          "component_name": "Pluggable Transactional Storage Protocol (`G-Global-3`)",
+          "file_path": "src/transactional_storage_backend.py",
+          "sha256_digest": "b92d3d323072710683e6bdaab1cfa972d637b5b0c111bff28fcea035c09ff738",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "SovereignNexus Drop-In MCP Gateway (`G-Global-2`)",
+          "file_path": "src/sovereign_nexus_mcp_gateway.py",
+          "sha256_digest": "0d8e0a40714aadff021dda6a18a52f9eaaef93fb31bebb3a661043d5bd1eec42",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Public SOTA Benchmark Adapter (`G-Global-1`)",
+          "file_path": "benchmarks/public_sota_adapter.py",
+          "sha256_digest": "739ffce0c3656743638121fb06d2aec331d56b60b9d32e3e32f37a454369af05",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Global Dominance Trilogy Test Suite",
+          "file_path": "tests/test_global_dominance_g1_g2_g3.py",
+          "sha256_digest": "ecec301d6061e8c399f9966752af0996713796307dff2526ca9186599960a292",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Public SOTA Benchmark Execution Report",
+          "file_path": "output/public_sota_benchmark_report.json",
+          "sha256_digest": "82d1a97fae729835d3bfdbe5a7539a7ba9a1fa1ae80760202d091a28249a9225",
+          "status": "RECORDED"
+        }
+      ],
+      "section_number": 14,
+      "section_title": "Global Dominance Trilogy: Public Benchmark Replication (`G-Global-1`), Drop-In MCP Gateway (`G-Global-2`), & Multi-AZ Serializable Consensus Storage (`G-Global-3`)"
+    },
+    {
+      "artifact_count": 3,
+      "artifacts": [
+        {
+          "component_name": "EN 18286:2026 & DORA Art. 17 Compliance Bundler",
+          "file_path": "src/en18286_dora_audit_bundler.py",
+          "sha256_digest": "28b08b96218188f2faec1a89c982d7ee5677a58f6fe5b17417905bb9ebfc1a74",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Monotonic Epistemic Regression Corpus (`E01`\u2013`E16`)",
+          "file_path": "tests/test_epistemic_regression_e01_e14.py",
+          "sha256_digest": "6fd21b69fdb1783848cd229e9cec5bcc108b68e505c3c58e6960bc4e8c8472da",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Signed EN 18286 & DORA Compliance Bundle",
+          "file_path": "output/en18286_dora_compliance_bundle_v45.json",
+          "sha256_digest": "123554760501f555ffa942ce293f5da6cb3886fafc11843f3e109e0f2035dcf3",
+          "status": "RECORDED"
+        }
+      ],
+      "section_number": 15,
+      "section_title": "Capstone Finalization: EN 18286:2026 & DORA Art. 17 Compliance Bundler + Monotonic Epistemic Regression Corpus (`E01`\u2013`E16`)"
+    },
+    {
+      "artifact_count": 5,
+      "artifacts": [
+        {
+          "component_name": "Phase 0 Integrity Reset Core (`G1`/`G2`/`G3`)",
+          "file_path": "tools/phase0_integrity_reset_core.py",
+          "sha256_digest": "871146e5cf3dec07f8d24f00fdead2587ccb6a5075ab2fcdc806fe875d5162e9",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Directives 1\u20134 Protocol Interop Suite",
+          "file_path": "tests/test_scitt_ap2_mcp_pqc_interop.py",
+          "sha256_digest": "176d8d40fa94f0e187f18cfd4a8d7af86c983a88fda6634aacb64114c9327a7f",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Structural CVE & 4-Signal Boundary Suite",
+          "file_path": "tests/test_structural_cve_boundary_fixtures.py",
+          "sha256_digest": "29f8fbae5c4cf3ba4c01a986c3a6f00222f17651efcb93e1e12a43f9dfef150a",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Frozen Scope & Epistemic Manifest",
+          "file_path": "SCOPE.md",
+          "sha256_digest": "48dab29c37eb83a6270051eb1bfd94dedd9b1cc0c98f8b9d8b728820c45a83c1",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Deterministic Air-Gapped Release Builder",
+          "file_path": "scripts/build_airgapped_rc5_preprod.sh",
+          "sha256_digest": "8277e1ea9d330e52596550da519bfabda6504f8bd814afc1fc6dc82165d8a2b0",
+          "status": "VERIFIED"
+        }
+      ],
+      "section_number": 16,
+      "section_title": "Phase 0 Integrity Reset (`G1`/`G2`/`G3`), Directives 1\u20134 Interop Suite, Structural CVE Fixtures, & `v1.0.0-rc.5-preprod` Air-Gapped Tarball"
+    },
+    {
+      "artifact_count": 5,
+      "artifacts": [
+        {
+          "component_name": "RuleTrek Cross-Model Decide Engine (`v4.6`)",
+          "file_path": "tools/ruletrek_cross_model_decide_engine.py",
+          "sha256_digest": "919bda034b43241ee119d5d99272b80efbe7569f29ff47522a67a005a40b0f6d",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Limbo Proposition 1 Visibility-Lag & PARL Suite",
+          "file_path": "tests/test_limbo_proposition_1_fence.py",
+          "sha256_digest": "9210488f401e19ff677b88e734175f47ef32a5320a02dcd5c7817a23e29b9dc3",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "`/decide` v5.0 Recursive Evidence & Deep-Tech Engine",
+          "file_path": "src/decide_v5_recursive_evidence_engine.py",
+          "sha256_digest": "45854d109535c15586bc7a31254d6a90f3ebe283627b0eac490b4be2b2ec74c1",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "`/decide` v5.0 & 5 Deep-Tech Vectors Test Suite",
+          "file_path": "tests/test_decide_v5_recursive_evidence_engine.py",
+          "sha256_digest": "ec5da8de6a5c0f9b1a53ae0d0f9fadd9c6381994dcd6c33bbdf5579977ea8e1f",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "`/decide` v5.0 Skill Definition",
+          "file_path": ".agents/skills/decide/SKILL.md",
+          "sha256_digest": "658fa8eb634e57a604b30ce12423abfbb13dc633f381b44f3f8eae074e0a5351",
+          "status": "VERIFIED"
+        }
+      ],
+      "section_number": 17,
+      "section_title": "`/decide` v5.0: 5-Stage Recursive Parallel Evidence-Producing Decision Engine, RuleTrek (`arXiv:2610.19698`), Limbo Proposition 1 Visibility-Lag Fence, & Five Deep-Tech Moats"
+    },
+    {
+      "artifact_count": 5,
+      "artifacts": [
+        {
+          "component_name": "Track Alpha: ZK-TLSNotary API Attestation",
+          "file_path": "tools/zk_tlsnotary_integration.py",
+          "sha256_digest": "0c88a6deb8a19b3716768a790b18827de47d93184ca7e95684216d21bd3572f9",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Track Beta: Thermodynamic & Egress Tetragon Policy",
+          "file_path": "compliance/tetragon_rapl_throttle.yaml",
+          "sha256_digest": "857b41888e2b016b3cf8c194eca060359bc759818992bab71e483ed7730afec0",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Track Gamma: China BSN/CTID DID Cross-Border Interop",
+          "file_path": "docs/interop/china_bsn_did_mapping.md",
+          "sha256_digest": "597517d494a7da89ffdcbae950f5ee9b6e86de6ab182768fd34445164f411981",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Track Delta: Hybrid PQC SCITT Transparency Anchor",
+          "file_path": "src/hybrid_pqc_scitt_anchor.rs",
+          "sha256_digest": "c2d790b24ce0dd678daed5d15f5076aaa6066299cb7a81beb1d799e8f842c139",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Tracks Alpha\u2013Delta End-to-End Test Suite",
+          "file_path": "tests/test_deep_tech_tracks_alpha_beta_gamma_delta.py",
+          "sha256_digest": "af76b51a45ec2fa828b4fa700b86c550de95d18e9ea38c63c1dbd0bbff5a8f20",
+          "status": "VERIFIED"
+        }
+      ],
+      "section_number": 18,
+      "section_title": "Four Deep-Tech Sprint Tracks: ZK-TLSNotary API Attestation (Alpha), Thermodynamic eBPF (Beta), China BSN/CTID DID Mapping (Gamma), & Hybrid PQC SCITT Anchor (Delta)"
+    },
+    {
+      "artifact_count": 6,
+      "artifacts": [
+        {
+          "component_name": "Credential Starvation & Supply-Chain Cooldown Gateway",
+          "file_path": "tools/credential_starvation_gateway.py",
+          "sha256_digest": "c90b9313e6694286ca3bf7e4b10f1b990a7965df279356b5b071764311737157",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Builder-Breaker Engine & TokenEconomizer Pruner",
+          "file_path": "tools/builder_breaker_adversarial_engine.py",
+          "sha256_digest": "b1c40ac9746a92c40ccd40f3a4d0e427fa019e608421f66e9cb86ed7780e42d2",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Orca Worktree + Caprock FinOps + EVAE Enforcer",
+          "file_path": "tools/aeib_orca_caprock_enforcer.py",
+          "sha256_digest": "544541ac24eaeb435f35b24a9c57671a6e17a9496e03ef88021b43e870285c2c",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Declarative Orca+Caprock+AEIB Policy Schema",
+          "file_path": "compliance/aeib_orca_integration.yaml",
+          "sha256_digest": "bc0af54996e59c365d54cc7246f3b5d6313dcccf48c7ab276b5c210b1ba7ec47",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Sovereign Agent Blueprint & Beads Frontier Compiler",
+          "file_path": "src/sovereign_agent_blueprint.py",
+          "sha256_digest": "1adc5d84da56bb81ef9b546fc04f600de80b7ca2629cf95a2b85cd471355654f",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Sovereign Decade-Dominance Verification Suite",
+          "file_path": "tests/test_sovereign_decade_dominance_suite.py",
+          "sha256_digest": "0da71d252b78a1c0f432cd1ddf125e96c804d4fac7a08306bd62f760ac039ad2",
+          "status": "VERIFIED"
+        }
+      ],
+      "section_number": 19,
+      "section_title": "Sovereign Decade-Dominance Architecture: Credential Starvation, Builder-Breaker (`arXiv:2610.14224`), Orca+Caprock+EVAE Enforcer, & Sovereign Blueprint Compiler"
+    },
+    {
+      "artifact_count": 3,
+      "artifacts": [
+        {
+          "component_name": "`/decide` v5.1 Meta-Hardening Engine",
+          "file_path": "src/decide_v51_meta_hardening_engine.py",
+          "sha256_digest": "d0288cdca2abb78497b5e056c221264730d0dbdc66ea1253117c5473de401804",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "`/decide` v5.1 Meta-Hardening Test Suite",
+          "file_path": "tests/test_decide_v51_meta_hardening_engine.py",
+          "sha256_digest": "103085dbd3bb5d5c42efe4a07591ed5624016f2e5072b276039b9a5b1f1d2d67",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "`/decide` v5.1 Skill Definition (Laws 1\u201310)",
+          "file_path": ".agents/skills/decide/SKILL.md",
+          "sha256_digest": "87630ea03c5841303d503c06d1831a2c3878e2c40941135c499ff7fcd051a79d",
+          "status": "VERIFIED"
+        }
+      ],
+      "section_number": 20,
+      "section_title": "`/decide` v5.1 Meta-Hardening Engine: Multi-Flag Semilattice, `T4+` Mutation-Killed Oracles (`MLReproMutate`), `CAVEAT` Error-Correlation Discounting, & `POIROT` Origin Deduplication"
+    },
+    {
+      "artifact_count": 2,
+      "artifacts": [
+        {
+          "component_name": "Toyota 5-Why RCA, Hybrid RRF Search, & Token Analytics Engine",
+          "file_path": "src/toyota_5why_semantic_rca_and_token_analytics.py",
+          "sha256_digest": "7b3aa931649d533439777f15a00aa649bc278e82dfb21028a1b17fe1404aa083",
+          "status": "VERIFIED"
+        },
+        {
+          "component_name": "Toyota 5-Why RCA & Token Analytics Verification Suite",
+          "file_path": "tests/test_toyota_5why_semantic_rca_and_token_analytics.py",
+          "sha256_digest": "b0717f876b16ea2d2fe262f02a2bced44d3b10df7a4e0897cc82ccad5e43ad47",
+          "status": "VERIFIED"
+        }
+      ],
+      "section_number": 21,
+      "section_title": "Toyota 5-Why Causal Root-Cause Engine (`TPS` / `Jidoka` / `Genchi Genbutsu` / `Poka-Yoke`), Hybrid Semantic-BM25-AST RRF Search (`TRACE`), & Antigravity `Argon 4` / `Gemini 3.8` Token Analytics"
+    }
+  ],
+  "project_name": "SovereignNexus / AEIB / SMF",
+  "sake_pinned_prefix_header": "[SOVEREIGN_ALLSTATE_MEMCUBE_PREFIX_V1]\nProject: SovereignNexus / AEIB / SMF | Branch: feat/v1.1-temporal-standing\nPinned Manifest Coverage: 27 Sections | 92 SHA-256 Verified Artifacts\nCore Architecture: Station 1 PreDispatchIntentInterlock (EO-1, Darwin F_FULLFSYNC=51 / Group-Commit WAL), Station 2 ContextCart AST Slicer + SecureMcpUdsBoundary (0o600 UDS + SO_PEERCRED/LOCAL_PEERCRED) + CredentialStarvationGateway, Station 3 RFC 9942 SCITT + Dual-Slot Ed25519/ML-DSA-65 + EN 18286/DORA Bundler.\nToken & Cost Telemetry (20-Task Sprint): 1,033,529 -> 223,831 tokens (-78.34%); Argon 4: $4.43 -> $0.93 (Hybrid Cascade: $0.38); Flash 3.8: $0.73 -> $0.15.\nEpistemic Lock (AGENTS.md): Zero mocks, real Ed25519/SHA-256/RFC8785 JCS, zero banned promotional words.\n[/SOVEREIGN_ALLSTATE_MEMCUBE_PREFIX_V1]",
+  "schema_version": "1.0.0",
+  "scientific_laws_registry": [
+    "Law 1: CELF Submodular 8-Axis IG-Search (arXiv:2502.08557, arXiv:2604.15148)",
+    "Law 2: FCA Galois Boundary Operator MISSED = d(CURRENT)",
+    "Law 3: RuleTrek AST Rule Dependency Graph Extraction (arXiv:2610.19698)",
+    "Law 4: Dossier Persistent Ledger & FlowSearch Knowledge DAG (arXiv:2510.08521)",
+    "Law 5: Decide | Ask | Defer 3-Action Policy (arXiv:2610.04542)",
+    "Law 6: Asymmetric Evidence Dominance (arXiv:2605.00914)",
+    "Law 7: SAKE Prefix Dual-Anchoring & Shannon DPI Lock (arXiv:2602.09517, arXiv:2604.02460)",
+    "Law 8: Multi-Flag Join-Semilattice Composition",
+    "Law 9: T4+ Mutation-Killed Oracle Verification (MLReproMutate)",
+    "Law 10: CAVEAT Error-Correlation Discounting & POIROT Origin Deduplication",
+    "Law 11: Toyota 5-Why Causal DAG (Jidoka / Genchi Genbutsu / Poka-Yoke) & Hybrid RRF (arXiv:2607.27290)",
+    "Law 12: MemOS MemCube Cross-Session Capsule & Injection-Execution Memory Sandbox (arXiv:2507.03724, arXiv:2605.08442)"
+  ],
+  "system_time_epoch_ms": 1792733700000,
+  "token_cost_analytics": {
+    "argon_with_usd": 0.93,
+    "argon_without_usd": 4.43,
+    "baseline_total_tokens": 1033529,
+    "cascade_with_usd": 0.38,
+    "flash_with_usd": 0.15,
+    "flash_without_usd": 0.73,
+    "optimized_total_tokens": 223831,
+    "super_prompt_6_vector_prefix_savings_bps": 8333,
+    "token_reduction_bps": 7834
+  },
+  "total_manifest_sections": 27,
+  "total_pinned_artifacts": 92,
+  "valid_time_iso": "2026-10-23T07:35:00+02:00",
+  "verification_gates_summary": {
+    "ast_purity_and_no_mock": "PASS (0 mocks, 0 bypass gates)",
+    "chaos_500_episode_benchmark": "PASS (500/500 episodes, seed=42, 0 duplicate settlements)",
+    "t4_plus_mutation_kill_rate_bps": 10000,
+    "unified_pytest_suites": 27,
+    "unified_pytest_tests_passed": 221,
+    "zone_boundary_check": "PASS (0 violations)"
+  }
+}

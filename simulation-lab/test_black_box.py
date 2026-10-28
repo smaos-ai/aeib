@@ -246,6 +246,93 @@ def test_untrusted_taint_tier_requires_step_up():
     assert res["error_code"] == "ERR_UNTRUSTED_TAINT_REQUIRES_STEP_UP"
 
 
+def test_station1_schema_and_gate_boundaries():
+    """Verifies exact boundary conditions for validate_schema_strict and AEIBStation1Gate."""
+    assert validate_schema_strict([]) == (False, "ERR_SCHEMA_NOT_OBJECT")
+
+    p_extra = build_valid_act()
+    p_extra["extra"] = 1
+    assert validate_schema_strict(p_extra) == (False, "ERR_SCHEMA_ADDITIONAL_PROPERTY")
+
+    p_missing = build_valid_act()
+    del p_missing["tenant_id"]
+    assert validate_schema_strict(p_missing) == (False, "ERR_SCHEMA_MISSING_REQUIRED_TENANT_ID")
+
+    p_op = build_valid_act()
+    p_op["operation_id"] = "bad-uuid"
+    assert validate_schema_strict(p_op) == (False, "ERR_SCHEMA_INVALID_OPERATION_ID")
+
+    p_ten = build_valid_act()
+    p_ten["tenant_id"] = ""
+    assert validate_schema_strict(p_ten) == (False, "ERR_SCHEMA_INVALID_TENANT_ID")
+
+    p_act = build_valid_act()
+    p_act["action"] = "not-a-dict"
+    assert validate_schema_strict(p_act) == (False, "ERR_SCHEMA_INVALID_ACTION")
+
+    p_act_type = build_valid_act()
+    p_act_type["action"]["type"] = "INVALID"
+    assert validate_schema_strict(p_act_type) == (False, "ERR_SCHEMA_INVALID_ACTION_TYPE")
+
+    p_act_tgt = build_valid_act()
+    p_act_tgt["action"]["target"] = ""
+    assert validate_schema_strict(p_act_tgt) == (False, "ERR_SCHEMA_INVALID_ACTION_TARGET")
+
+    p_act_res_ok = build_valid_act()
+    p_act_res_ok["action"]["resource"] = "r"
+    assert validate_schema_strict(p_act_res_ok) == (True, "OK")
+
+    p_act_res_bad = build_valid_act()
+    p_act_res_bad["action"]["resource"] = ""
+    assert validate_schema_strict(p_act_res_bad) == (False, "ERR_SCHEMA_INVALID_ACTION_RESOURCE")
+
+    p_con_extra = build_valid_act()
+    p_con_extra["constraints"]["extra"] = 1
+    assert validate_schema_strict(p_con_extra) == (False, "ERR_SCHEMA_ADDITIONAL_PROPERTY")
+
+    p_epoch = build_valid_act()
+    p_epoch["constraints"]["policy_epoch"] = ""
+    assert validate_schema_strict(p_epoch) == (False, "ERR_SCHEMA_INVALID_POLICY_EPOCH")
+
+    base_exp = 17 * 10**8
+    p_exp_ok = build_valid_act()
+    p_exp_ok["constraints"]["expires_at"] = base_exp
+    assert validate_schema_strict(p_exp_ok) == (True, "OK")
+
+    p_exp_bad = build_valid_act()
+    p_exp_bad["constraints"]["expires_at"] = base_exp - 1
+    assert validate_schema_strict(p_exp_bad) == (False, "ERR_SCHEMA_INVALID_EXPIRES_AT")
+
+    p_ctx_extra = build_valid_act()
+    p_ctx_extra["context"]["extra"] = 1
+    assert validate_schema_strict(p_ctx_extra) == (False, "ERR_SCHEMA_ADDITIONAL_PROPERTY")
+
+    p_trace = build_valid_act()
+    p_trace["context"]["source_trace_id"] = ""
+    assert validate_schema_strict(p_trace) == (False, "ERR_SCHEMA_INVALID_SOURCE_TRACE_ID")
+
+    p_sig = build_valid_act()
+    p_sig["signature"] = "not-a-dict"
+    assert validate_schema_strict(p_sig) == (False, "ERR_SCHEMA_INVALID_SIGNATURE")
+
+    p_sig_alg = build_valid_act()
+    p_sig_alg["signature"]["alg"] = "BAD_ALG"
+    assert validate_schema_strict(p_sig_alg) == (False, "ERR_SCHEMA_INVALID_SIGNATURE_ALG")
+
+    p_sig_kid = build_valid_act()
+    p_sig_kid["signature"]["key_id"] = ""
+    assert validate_schema_strict(p_sig_kid) == (False, "ERR_SCHEMA_INVALID_KEY_ID")
+
+    gate_default = AEIBStation1Gate()
+    assert gate_default.committed_spend_minor == 0
+    assert gate_default.registered_public_keys == {}
+    assert gate_default.check_path_containment("/tmp/aeib_export/sub/report.json") is True
+    assert gate_default.check_path_containment("/etc/passwd") is False
+
+    gate_custom = AEIBStation1Gate(registered_public_keys={"k1": b"x" * 32})
+    assert gate_custom.registered_public_keys == {"k1": b"x" * 32}
+
+
 def test_epistemic_purity_of_simulation_lab():
     """Verifies zero prohibited promotional words exist in simulation-lab files."""
     banned = [

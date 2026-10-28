@@ -30,8 +30,8 @@ def test_dora_art17_exporter_happy_path_and_falsification():
     package = bundle["package"]
     assert package["dora_schema_version"] == "1.1.0-dora-art17"
     assert package["incident_id"] == "INC-2026-TEST-01"
-    assert package["timeline"]["initial_notification_window_target_4h"] == "T_classified + 4h"
-    assert package["eba_dpm_template_mapping"]["RT.01.04_economic_impact_estimate"] == 50000
+    assert package["timeline"]["initial_notification_deadline_utc"] == "2026-10-16T08:02:00Z"
+    assert package["incident_candidate"]["financial_exposure"] == "50000 EUR"
 
     # Verify Ed25519 signature over canonical RFC 8785 package
     pubkey = serialization.load_pem_public_key(bundle["boundary_public_key_pem"].encode("ascii"))
@@ -40,8 +40,8 @@ def test_dora_art17_exporter_happy_path_and_falsification():
 
     # Falsification: tampered impact estimate fails signature verification
     tampered_package = dict(package)
-    tampered_package["eba_dpm_template_mapping"] = dict(package["eba_dpm_template_mapping"])
-    tampered_package["eba_dpm_template_mapping"]["RT.01.04_economic_impact_estimate"] = 0
+    tampered_package["incident_candidate"] = dict(package["incident_candidate"])
+    tampered_package["incident_candidate"]["financial_exposure"] = "0 EUR"
     with pytest.raises(Exception):
         pubkey.verify(sig, encode_jcs(tampered_package))
 

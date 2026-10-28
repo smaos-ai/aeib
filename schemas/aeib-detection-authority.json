@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sovereignnexus.com/schemas/aeib/v0.3.0/detection-authority.json",
+  "title": "AEIB Detection Authority Registry v0.3.0",
+  "description": "Registry of explicit authority bounds and cannot_assert rules for all 9 AEIB layers.",
+  "type": "object",
+  "properties": {
+    "layers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "layer": { "type": "string" },
+          "authority_domain": { "type": "string" },
+          "primary_output_attribute": { "type": "string" },
+          "cannot_assert": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "required": ["layer", "authority_domain", "primary_output_attribute", "cannot_assert"]
+      }
+    }
+  },
+  "default": {
+    "layers": [
+      {
+        "layer": "L1",
+        "authority_domain": "Semantic Intent",
+        "primary_output_attribute": "aeib.model_hypothesis",
+        "cannot_assert": ["transport state", "authorization", "release"]
+      },
+      {
+        "layer": "L2",
+        "authority_domain": "Context Integrity",
+        "primary_output_attribute": "context_status",
+        "cannot_assert": ["transport state", "remote provider truth"]
+      },
+      {
+        "layer": "L3",
+        "authority_domain": "Policy & Capability",
+        "primary_output_attribute": "authorization_decision",
+        "cannot_assert": ["remote provider commit state"]
+      },
+      {
+        "layer": "L4",
+        "authority_domain": "Identity & Credential",
+        "primary_output_attribute": "credential_status",
+        "cannot_assert": ["authorization scope", "transport state"]
+      },
+      {
+        "layer": "L5",
+        "authority_domain": "Auth Freshness",
+        "primary_output_attribute": "authority_freshness_status",
+        "cannot_assert": ["provider commit state"]
+      },
+      {
+        "layer": "L6",
+        "authority_domain": "Memory Disclosure",
+        "primary_output_attribute": "memory_access_status",
+        "cannot_assert": ["transport bounds", "authorization bounds"]
+      },
+      {
+        "layer": "L7a",
+        "authority_domain": "Transport Physics",
+        "primary_output_attribute": "aeib.transport.observation",
+        "cannot_assert": ["provider commit state", "authorization", "release"]
+      },
+      {
+        "layer": "L7b",
+        "authority_domain": "Provider Probe",
+        "primary_output_attribute": "aeib.probe.result",
+        "cannot_assert": ["global external truth"]
+      },
+      {
+        "layer": "L7c",
+        "authority_domain": "Disposition Contract",
+        "primary_output_attribute": "aeib.disposition",
+        "cannot_assert": ["operational release authorization"]
+      },
+      {
+        "layer": "L8",
+        "authority_domain": "Evidence Verification",
+        "primary_output_attribute": "receipt_verification",
+        "cannot_assert": ["business validity", "legal authority"]
+      },
+      {
+        "layer": "L9",
+        "authority_domain": "Governance & Release",
+        "primary_output_attribute": "release_decision",
+        "cannot_assert": []
+      }
+    ]
+  }
+}

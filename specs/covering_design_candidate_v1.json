@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "sovereignnexus:specs/covering_design_candidate_v1.json",
+  "title": "Covering design candidate v1",
+  "description": "Structured, untrusted candidate C(v,k,t) covering design. Points are 0-based integers in [0, v). A candidate becomes evidence only after tools/covering_design_verifier.py returns valid=true and tools/covering_design_record_comparator.py compares it against the pinned baseline.",
+  "type": "object",
+  "required": ["candidate_id", "problem", "parameters", "construction_type", "blocks", "claimed_objective", "proposer"],
+  "additionalProperties": false,
+  "properties": {
+    "candidate_id": {"type": "string", "description": "sha256 of the canonical witness"},
+    "problem": {"const": "COVERING_DESIGN"},
+    "parameters": {
+      "type": "object",
+      "required": ["v", "k", "t"],
+      "additionalProperties": false,
+      "properties": {
+        "v": {"type": "integer", "minimum": 1, "maximum": 99},
+        "k": {"type": "integer", "minimum": 1},
+        "t": {"type": "integer", "minimum": 1}
+      }
+    },
+    "construction_type": {"enum": ["EXPLICIT_BLOCKS", "CYCLIC_ORBITS_Z_V"]},
+    "base_blocks": {"type": "array", "items": {"type": "array", "items": {"type": "integer", "minimum": 0}}},
+    "blocks": {"type": "array", "items": {"type": "array", "items": {"type": "integer", "minimum": 0}}},
+    "claimed_objective": {
+      "type": "object",
+      "required": ["metric", "value"],
+      "properties": {"metric": {"const": "block_count"}, "value": {"type": "integer", "minimum": 1}}
+    },
+    "proposer": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {"type": "string", "description": "e.g. CoveringDesignSearch.explicit, CoveringDesignSearch.cyclic, or an LLM model id for file-ingested proposals"},
+        "seed": {"type": "integer"},
+        "prompt_digest": {"type": "string"},
+        "moves": {"type": "integer"},
+        "seconds": {"type": "number"}
+      }
+    }
+  }
+}

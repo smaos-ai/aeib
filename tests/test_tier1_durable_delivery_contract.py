@@ -470,3 +470,164 @@ def test_09_reconciliation_exhausted_preserve_uncertainty_and_escalate(tmp_path:
     assert res["retrySafe"] is False
     assert res["receipt"]["disposition"] == "EFFECT_INDETERMINATE"
     assert res["receipt"]["retrySafe"] is False
+
+
+def test_10_complete_outcome_classification_reconciliation_and_ticket_guards(tmp_path: Path) -> None:
+    """10. Covers frozen ticket dataclass, recovery states, expiry, signature, 4xx refusals, and probe outcomes."""
+    import dataclasses
+
+    auth_key = Ed25519PrivateKey.generate()
+    wrong_key = Ed25519PrivateKey.generate()
+    ledger_key = Ed25519PrivateKey.generate()
+
+    ticket_store = PersistentAuthorityTicketStore(tmp_path / "a" / "b" / "tickets.jsonl")
+    journal = DurableDispatchJournal(tmp_path / "c" / "d" / "journal.jsonl")
+    assert journal.read_all_events() == []
+    assert journal.scan_recovery_state("nonexistent_op") == "NOT_RECORDED"
+
+    # Corrupt line in journal and ticket store is ignored gracefully, unknown event -> UNKNOWN
+    journal.journal_path.parent.mkdir(parents=True, exist_ok=True)
+    journal.journal_path.write_text('not-json\n{"operation_id": "op_unk", "event": "OTHER"}\n', encoding="utf-8")
+    assert journal.scan_recovery_state("op_unk") == "UNKNOWN"
+
+    ticket_store.storage_path.parent.mkdir(parents=True, exist_ok=True)
+    ticket_store.storage_path.write_text('not-json\n{"event": "OTHER", "decision_id": "d_ignore"}\n', encoding="utf-8")
+    reloaded_store = PersistentAuthorityTicketStore(ticket_store.storage_path)
+    assert reloaded_store.is_consumed("d_ignore") is False
+
+    action_payload = {"account": "ACC_FULL", "amount": 50}
+    t_frozen = _mint_valid_ticket(
+        auth_key,
+        decision_id="dec_frozen",
+        operation_id="op_frozen",
+        principal_id="agent_1",
+        target_identity="https://api.bank.internal/transfer",
+        payload=action_payload,
+        expires_at=1500,
+    )
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        t_frozen.policy_epoch = 99  # type: ignore[misc]
+
+    executor = Tier1DurableDispatchExecutor(
+        authority_public_key=auth_key.public_key(),
+        ledger_signing_key=ledger_key,
+        ticket_store=ticket_store,
+        journal=journal,
+        active_policy_epoch=10,
+        pinned_manifest_digest="sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    )
+
+    # Expired ticket check (expires_at < current_timestamp vs == current_timestamp)
+    with pytest.raises(GovernanceHaltError, match="TICKET_EXPIRED"):
+        executor.execute_governed_action(
+            ticket=t_frozen,
+            candidate_action_payload=action_payload,
+            target_identity="https://api.bank.internal/transfer",
+            current_timestamp=1501,
+            wire_dispatcher=lambda p: {"http_status": 200},
+        )
+
+    # Invalid authority signature
+    bad_sig_ticket = _mint_valid_ticket(
+        wrong_key,
+        decision_id="dec_bad_sig",
+        operation_id="op_bad_sig",
+        principal_id="agent_1",
+        target_identity="https://api.bank.internal/transfer",
+        payload=action_payload,
+    )
+    with pytest.raises(GovernanceHaltError, match="AUTHORITY_SIGNATURE_INVALID"):
+        executor.execute_governed_action(
+            ticket=bad_sig_ticket,
+            candidate_action_payload=action_payload,
+            target_identity="https://api.bank.internal/transfer",
+            current_timestamp=1000,
+            wire_dispatcher=lambda p: {"http_status": 200},
+        )
+
+    # Exact boundary expires_at == current_timestamp (1500) succeeds with http_status=200
+    res_ok = executor.execute_governed_action(
+        ticket=t_frozen,
+        candidate_action_payload=action_payload,
+        target_identity="https://api.bank.internal/transfer",
+        current_timestamp=1500,
+        wire_dispatcher=lambda p: {"http_status": 200},
+    )
+    assert res_ok["disposition"] == "CONFIRMED"
+    assert res_ok["retrySafe"] is True
+    assert res_ok["receipt"]["retrySafe"] is True
+
+    # HTTP 400, 401, 403, 422 without transport ambiguity -> REFUSED, retrySafe=False
+    for code in (400, 401, 403, 422):
+        t_ref = _mint_valid_ticket(
+            auth_key,
+            decision_id=f"dec_{code}",
+            operation_id=f"op_{code}",
+            principal_id="agent_1",
+            target_identity="https://api.bank.internal/transfer",
+            payload=action_payload,
+        )
+        res_ref = executor.execute_governed_action(
+            ticket=t_ref,
+            candidate_action_payload=action_payload,
+            target_identity="https://api.bank.internal/transfer",
+            current_timestamp=1000,
+            wire_dispatcher=lambda p, _c=code: {"http_status": _c},
+        )
+        assert res_ref["disposition"] == "REFUSED"
+        assert res_ref["retrySafe"] is False
+
+    # HTTP 200 or 400 with transport_ambiguity=True -> EFFECT_INDETERMINATE
+    for code in (200, 400):
+        t_amb = _mint_valid_ticket(
+            auth_key,
+            decision_id=f"dec_amb_{code}",
+            operation_id=f"op_amb_{code}",
+            principal_id="agent_1",
+            target_identity="https://api.bank.internal/transfer",
+            payload=action_payload,
+        )
+        res_amb = executor.execute_governed_action(
+            ticket=t_amb,
+            candidate_action_payload=action_payload,
+            target_identity="https://api.bank.internal/transfer",
+            current_timestamp=1000,
+            wire_dispatcher=lambda p, _c=code: {"http_status": _c, "transport_ambiguity": True},
+        )
+        assert res_amb["disposition"] == "EFFECT_INDETERMINATE"
+        assert res_amb["retrySafe"] is False
+
+    # Reconciler returning CONFIRMED, NOT_FOUND, ROLLED_BACK, and PENDING
+    for probe_ret, exp_disp, exp_retry in (
+        ("CONFIRMED", "CONFIRMED", True),
+        ("NOT_FOUND", "REFUTED", False),
+        ("ROLLED_BACK", "REFUTED", False),
+        ("PENDING", "EFFECT_INDETERMINATE", False),
+    ):
+        ex_probe = Tier1DurableDispatchExecutor(
+            authority_public_key=auth_key.public_key(),
+            ledger_signing_key=ledger_key,
+            ticket_store=ticket_store,
+            journal=journal,
+            active_policy_epoch=10,
+            pinned_manifest_digest="sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            probe_reconciler=lambda op_id, caid, _r=probe_ret: _r,
+        )
+        t_p = _mint_valid_ticket(
+            auth_key,
+            decision_id=f"dec_probe_{probe_ret}",
+            operation_id=f"op_probe_{probe_ret}",
+            principal_id="agent_1",
+            target_identity="https://api.bank.internal/transfer",
+            payload=action_payload,
+        )
+        res_p = ex_probe.execute_governed_action(
+            ticket=t_p,
+            candidate_action_payload=action_payload,
+            target_identity="https://api.bank.internal/transfer",
+            current_timestamp=1000,
+            wire_dispatcher=lambda p: {},  # default http_status=500 -> ambiguous
+        )
+        assert res_p["disposition"] == exp_disp
+        assert res_p["retrySafe"] is exp_retry
+

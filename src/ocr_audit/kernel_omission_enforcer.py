@@ -12,10 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Anti-Omission Kernel Guard Hook
+"""Anti-Omission Socket/Capsule Correlation Model (in-memory prototype)
 
-Enforces that every outbound socket connection forces a matching capsule ID lookup
-or triggers an immediate detection under DORA Art. 17 / eBPF monitoring.
+Correlates caller-reported socket-connect events with caller-reported capsule
+emissions inside a Python dict, and flags sockets that receive no matching
+capsule ID within ``max_unregistered_delta_sec`` as
+``SILENT_OMISSION_UNCACHED_EGRESS``.
+
+SCOPE (honest label, 2026-10-26 audit): this is a user-space, in-memory model.
+It does NOT attach eBPF programs, does NOT hook the kernel, and does NOT observe
+real sockets — it only sees events that callers explicitly pass to
+``register_socket_connect`` / ``register_capsule_emission``. State is lost on
+process exit. It is not a DORA Art. 17 control by itself; any kernel-level
+enforcement would require a separate eBPF component (scaffolding only in
+``ebpf/``).
 """
 
 import time

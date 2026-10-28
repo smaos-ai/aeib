@@ -1,0 +1,42 @@
+{
+  "vector_id": "act-additional-property-injection-018",
+  "description": "Payload contains unexpected root property violating additionalProperties: false",
+  "input_payload": {
+    "act_version": "1",
+    "operation_id": "dc1cea8b-4729-49ad-839f-eb232c2381e1",
+    "idempotency_key": "9a672647-a6e0-44ab-84af-dccaa96b9299",
+    "tenant_id": "tenant-corp-101",
+    "principal": {
+      "agent_id": "agent-worker-01",
+      "subject_id": "user-corp-99",
+      "capability_id": "cap-refund-v1"
+    },
+    "action": {
+      "type": "refund.create",
+      "target": "payments.stripe",
+      "resource": "pi_3MtwBwLkdIwHu7ix28a3tqPa",
+      "parameters_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "constraints": {
+      "amount_minor": 15000,
+      "currency": "EUR",
+      "max_per_call_minor": 20000,
+      "policy_epoch": "2026-Q4",
+      "expires_at": 1798761600
+    },
+    "context": {
+      "harness_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "taint_tier": "TIER_1_REVIEWED",
+      "source_trace_id": "otel-trace-001"
+    },
+    "signature": {
+      "alg": "Ed25519",
+      "key_id": "key-oper-01",
+      "value": "3045022100e4b8..."
+    },
+    "__evil_injected_root__": "attack"
+  },
+  "expected_disposition": "NOT_DISPATCHED",
+  "expected_error_code": "ERR_SCHEMA_ADDITIONAL_PROPERTY",
+  "expected_budget_delta_minor": 0
+}

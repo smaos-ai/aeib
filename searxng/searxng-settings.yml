@@ -1,0 +1,21 @@
+use_default_settings: true
+server:
+  bind_address: "0.0.0.0"
+  port: 8080
+  secret_key: "sovereign_nexus_searxng_secret_key_zero_cost"
+search:
+  formats:
+    - json
+    - html
+engines:
+  - name: google
+    engine: google
+  - name: bing
+    engine: bing
+  - name: duckduckgo
+    engine: duckduckgo
+  - name: wikipedia
+    engine: wikipedia
+disabled_engines:
+  - adwords
+  - google_news

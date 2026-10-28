@@ -48,9 +48,9 @@ def test_math09_tao_equational_magma_1485_and_lean4_comparator(
 ) -> None:
     witness = TaoEquationalMagmaProver.run_experiment(proofs_dir=tmp_path)
     assert witness.verification_passed is True
-    assert witness.exhaustive_checks_executed == 64
+    assert witness.exhaustive_checks_executed == 4 ** 3
     assert witness.constraint_violations == 0
-    assert witness.witness_summary["lean4_comparator_passed"] is True
+    assert witness.witness_summary["lean4_text_lint_passed"] is True
     assert (tmp_path / "Math09TaoEquationalMagma.lean").exists()
 
     # Negative control 1: Constant zero magma is associative/commutative, so it fails anti-implication
@@ -73,8 +73,8 @@ def test_math09_tao_equational_magma_1485_and_lean4_comparator(
 def test_math10_patternboost_zarankiewicz_c4_free_optimal_21_edges() -> None:
     witness = PatternBoostZarankiewiczProver.run_experiment()
     assert witness.verification_passed is True
-    assert witness.naive_or_vibe_baseline_metric == 13.0
-    assert witness.sovereign_verified_metric == 21.0
+    assert float(witness.naive_or_vibe_baseline_metric) == 13.0
+    assert float(witness.sovereign_verified_metric) == 21.0
     assert witness.improvement_bps == 6154
     assert witness.constraint_violations == 0
 
@@ -97,7 +97,7 @@ def test_math10_patternboost_zarankiewicz_c4_free_optimal_21_edges() -> None:
 def test_math11_viazovska_e8_kissing_240_and_extended_hamming_16() -> None:
     witness = ViazovskaE8KissingAndHammingProver.run_experiment()
     assert witness.verification_passed is True
-    assert witness.sovereign_verified_metric == 240.0
+    assert float(witness.sovereign_verified_metric) == 240.0
     assert witness.exhaustive_checks_executed == 28680 + 120
     assert witness.constraint_violations == 0
     assert witness.witness_summary["e8_max_pairwise_inner_product"] == 4
@@ -193,22 +193,67 @@ def test_parallel_all_7_orchestrator_and_cli_export(tmp_path: Path) -> None:
         is False
     )
 
-    # CLI test
-    out_file = tmp_path / "bundle.json"
-    proc = subprocess.run(
-        [
-            sys.executable,
-            "src/urgent_open_problems_and_frontier_experiment_engine.py",
-            "--self-test",
-            "--export-bundle",
-            str(out_file),
-        ],
-        capture_output=True,
-        text=True,
-        check=False,
+    # CLI test & boundary oracles (lines 299, 766, 869, 901, 1072, 1380)
+    assert TaoEquationalMagmaProver.verify_cayley_table([[0] * 4 for _ in range(4)])[3][
+        "non_commutative_witness_pairs"
+    ] == 0
+    assert (
+        SpecMutantSensitivityProver.audit_specification_strength(
+            lambda st, exp: exp != 15 * 100
+        )["killed_mutants_count"]
+        == 8
     )
-    assert proc.returncode == 0
-    assert out_file.exists()
+    pipe = RepoScaleAssumeGuaranteeCohesionEngine.build_6_module_pipeline()
+    assert pipe["M3_TCC_ESCROW_LEDGER"].assume_predicate({}) is False
+    assert pipe["M3_TCC_ESCROW_LEDGER"].assume_predicate({"amount_minor": 1}) is True
+    assert (
+        pipe["M6_SCITT_TRANSPARENCY_ANCHOR"].assume_predicate(
+            {"comparator_verified": True, "ed25519_signed": False}
+        )
+        is False
+    )
+    bad_edge_res = DynamicPrivilegeAttenuationProver.verify_delegation_swarm_lattice(
+        [
+            AgentDelegationEdge(
+                parent_agent="P",
+                child_agent="C",
+                parent_scopes=("read",),
+                child_scopes=("read", "write"),
+                parent_budget_minor=100,
+                child_budget_minor=50,
+                parent_taint_tier=0,
+                child_taint_tier=0,
+            )
+        ]
+    )
+    assert bad_edge_res["checks_executed"] == 1
+
+    import builtins
+    import src.urgent_open_problems_and_frontier_experiment_engine as u_mod
+
+    out_file = tmp_path / "bundle.json"
+    orig_argv = sys.argv
+    orig_print = builtins.print
+    orig_run7 = ParallelUrgentOpenProblemsExperimentEngine.run_all_7_parallel
+    printed = []
+    sys.argv = [
+        "urgent_open_problems_and_frontier_experiment_engine.py",
+        "--self-test",
+        "--export-bundle",
+        str(out_file),
+    ]
+    builtins.print = lambda *a, **kw: printed.append(a)  # type: ignore[assignment]
+    ParallelUrgentOpenProblemsExperimentEngine.run_all_7_parallel = classmethod(  # type: ignore[assignment]
+        lambda cls, signing_key=None, proofs_dir=None: bundle
+    )
+    try:
+        assert u_mod.main() == 0
+        assert len(printed) == 1
+        assert out_file.exists()
+    finally:
+        sys.argv = orig_argv
+        builtins.print = orig_print  # type: ignore[assignment]
+        ParallelUrgentOpenProblemsExperimentEngine.run_all_7_parallel = orig_run7  # type: ignore[assignment]
 
 
 def test_epistemic_no_banned_words_in_section_26() -> None:

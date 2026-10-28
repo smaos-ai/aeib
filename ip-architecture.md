@@ -12,7 +12,7 @@
 
 SovereignNexus establishes a deterministic, dual-zoned intellectual property (IP) architecture designed to simultaneously achieve two vital strategic goals:
 1. **Public Prior Art Preemption (Zone 1 — Open Core)**: Block aggressive patent trolling and establish an open, mathematically verifiable execution integrity standard for autonomous agent workflows under the **Apache License 2.0**.
-2. **Commercial Value Capture & Defensibility (Zone 2 — Enterprise Proprietary)**: Retain enterprise-grade, high-concurrency database connection pooling, confidential hardware attestation, and compliance export pipelines under a **Proprietary Commercial License**.
+2. **Commercial Value Capture & Defensibility (Zone 2 — Enterprise Proprietary)**: Retain high-assurance, high-concurrency database connection pooling, confidential hardware attestation, and compliance export pipelines under a **Proprietary Commercial License**.
 
 This dual-track model guarantees that enterprise CISOs, auditors, and platform engineers can inspect, verify, and embed the core execution boundary without fear of copyleft contamination, while proprietary production scaling technologies remain commercial assets of SovereignNexus.
 
@@ -76,7 +76,7 @@ Zone 1 comprises the foundational protocol specifications, cryptographic derivat
 
 ## 4. Zone 2: Enterprise Commercial Specification (Proprietary)
 
-Zone 2 contains mission-critical, enterprise-grade runtime infrastructure designed for Tier-1 financial institutions, critical infrastructure operators, and regulated healthcare platforms. These components are licensed under the **SovereignNexus Commercial License** and are treated as protected trade secrets.
+Zone 2 contains mission-critical, high-assurance runtime infrastructure designed for Tier-1 financial institutions, critical infrastructure operators, and regulated healthcare platforms. These components are licensed under the **SovereignNexus Commercial License** and are treated as protected trade secrets.
 
 ### Technical Scope & Commercial Assets
 * **Production PostgreSQL Prober (`aeib_postgresql_probe/pg_probe_adapter.py`)**:

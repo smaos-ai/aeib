@@ -93,7 +93,7 @@ ORTHOGONAL_8_TAG_AXES: Tuple[OrthogonalTagAxis, ...] = (
             "INV_FCA_GALOIS_LATTICE_CLOSURE",
             "INV_STATISTICAL_WILSON_CI",
         ),
-        marginal_weight_bps=1400,
+        marginal_weight_bps=1400,  # claim: config
     ),
     OrthogonalTagAxis(
         axis_id="AXIS_2_SYSTEMS_KERNEL_SUBSTRATE",
@@ -111,7 +111,7 @@ ORTHOGONAL_8_TAG_AXES: Tuple[OrthogonalTagAxis, ...] = (
             "INV_SUBSTRATE_MEMORY_ISOLATION",
             "INV_UDS_KERNEL_PEERCRED",
         ),
-        marginal_weight_bps=1350,
+        marginal_weight_bps=1350,  # claim: config
     ),
     OrthogonalTagAxis(
         axis_id="AXIS_3_CRYPTOGRAPHIC_WIRE_FINALITY",
@@ -129,7 +129,7 @@ ORTHOGONAL_8_TAG_AXES: Tuple[OrthogonalTagAxis, ...] = (
             "INV_SCITT_MERKLE_TRANSPARENCY",
             "INV_PQC_CBOM_AGILITY",
         ),
-        marginal_weight_bps=1400,
+        marginal_weight_bps=1400,  # claim: config
     ),
     OrthogonalTagAxis(
         axis_id="AXIS_4_DISTRIBUTED_DB_CONSISTENCY",
@@ -147,7 +147,7 @@ ORTHOGONAL_8_TAG_AXES: Tuple[OrthogonalTagAxis, ...] = (
             "INV_INDETERMINATE_FINALITY_LATCH",
             "INV_HLC_CAUSAL_MONOTONICITY",
         ),
-        marginal_weight_bps=1350,
+        marginal_weight_bps=1350,  # claim: config
     ),
     OrthogonalTagAxis(
         axis_id="AXIS_5_ADVERSARIAL_BYZANTINE_SECURITY",
@@ -165,7 +165,7 @@ ORTHOGONAL_8_TAG_AXES: Tuple[OrthogonalTagAxis, ...] = (
             "INV_NON_DILUTABLE_CONFLICT_WAL",
             "INV_BELL_LAPADULA_TAINT_LATTICE",
         ),
-        marginal_weight_bps=1300,
+        marginal_weight_bps=1300,  # claim: config
     ),
     OrthogonalTagAxis(
         axis_id="AXIS_6_REGULATORY_ACTUARIAL_GOVERNANCE",
@@ -183,7 +183,7 @@ ORTHOGONAL_8_TAG_AXES: Tuple[OrthogonalTagAxis, ...] = (
             "INV_OTEL_PII_PRIVACY_SPLIT",
             "INV_TRACE_CITATION_TO_CLAIM_AUDIT",
         ),
-        marginal_weight_bps=1150,
+        marginal_weight_bps=1150,  # claim: config
     ),
     OrthogonalTagAxis(
         axis_id="AXIS_7_CHINA_HIGH_THROUGHPUT_RUNTIMES",
@@ -199,7 +199,7 @@ ORTHOGONAL_8_TAG_AXES: Tuple[OrthogonalTagAxis, ...] = (
             "INV_ADAPTIVE_MULTIHOP_REPLANNING",
             "INV_DISTRIBUTED_SQL_RECONCILIATION",
         ),
-        marginal_weight_bps=1050,
+        marginal_weight_bps=1050,  # claim: config
     ),
     OrthogonalTagAxis(
         axis_id="AXIS_8_WESTERN_OPEN_SOURCE_SYSTEMS",
@@ -215,7 +215,7 @@ ORTHOGONAL_8_TAG_AXES: Tuple[OrthogonalTagAxis, ...] = (
             "INV_ONTOLOGY_6WAY_COMMIT_WITNESS",
             "INV_DISPROVING_VERIFIER_FALSIFICATION",
         ),
-        marginal_weight_bps=1000,
+        marginal_weight_bps=1000,  # claim: config
     ),
 )
 
@@ -285,7 +285,7 @@ class OrthogonalKeywordTagExpander:
             "single_shot_baseline": {
                 "attributes_covered": single_shot_attrs,
                 "pairwise_interaction_edges": single_shot_edges,
-                "coverage_bps": 900,
+                "coverage_bps": 900,  # claim: assumption
             },
             "orthogonal_8axis_expansion": {
                 "attributes_covered": expanded_attrs,
@@ -539,10 +539,10 @@ class CrossEcosystemBrainstormEngine:
         # Compare homogeneous 4-sample single-model crowd (rho = 0.80 -> 8000 bps)
         # vs. heterogeneous 4-family China+USA ensemble (rho = 0.15 -> 1500 bps)
         n_eff_homogeneous_bps = self.compute_gls_effective_sample_size_bps(
-            num_agents=4, avg_correlation_bps=8000
+            num_agents=4, avg_correlation_bps=8000  # claim: assumption
         )
         n_eff_heterogeneous_bps = self.compute_gls_effective_sample_size_bps(
-            num_agents=4, avg_correlation_bps=1500
+            num_agents=4, avg_correlation_bps=1500  # claim: assumption
         )
         diversity_gain_ratio_bps = (
             n_eff_heterogeneous_bps * 10000

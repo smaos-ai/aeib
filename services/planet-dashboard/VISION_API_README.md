@@ -294,7 +294,7 @@ python3 demo_vision_api.py
 ## Compliance
 
 ✓ **EU AI Act Article 12 Ready**
-- Non-repudiable cryptographic signatures (user_id logged)
+- Tamper-evident cryptographic signatures (user_id logged)
 - Immutable audit trail (Merkle chain)
 - Human oversight (approval required for high-risk)
 - Transparent decision reasoning

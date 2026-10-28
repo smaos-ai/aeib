@@ -1,0 +1,24 @@
+version: "3.8"
+
+services:
+  aeib-verifier:
+    image: python:3.11-slim
+    container_name: aeib_cleanroom_verifier
+    
+    # Secure defaults: Runs entirely locally without external network access
+    # to guarantee reproduction relies solely on committed code and bundled assets.
+    network_mode: "none"
+    
+    volumes:
+      - .:/workspace:rw
+    
+    working_dir: /workspace
+    
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      # Explicitly strictly mock-free execution profile
+      - SMAOS_STRICT_MODE=1
+      
+    # Keep the container alive for interactive shell entry
+    command: /bin/sh -c "while true; do sleep 3600; done"

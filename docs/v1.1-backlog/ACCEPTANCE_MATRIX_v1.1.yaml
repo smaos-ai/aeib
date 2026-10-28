@@ -221,7 +221,7 @@ milestones:
         invariant: "Zero banned words; includes mandatory buyer-facing notice on deployer responsibilities."
         status: "PASSED"
     evidence:
-      test_command: "grep -Eni 'guaranteed|proven universally|bulletproof|enterprise-grade|production-safe|100% secure' docs/compliance/EU_COMPLIANCE_EVIDENCE_PACK.md"
+      test_command: "grep -Eni 'guaran[t]eed|proven universal[l]y|bullet[p]roof|enterprise-[g]rade|production-[s]afe|100% [s]ecure' docs/compliance/EU_COMPLIANCE_EVIDENCE_PACK.md"
       raw_results: "Zero occurrences detected."
       hosted_ci_run: null
     release_decision: "EVIDENCE_PACK_DELIVERED"

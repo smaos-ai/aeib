@@ -25,11 +25,10 @@ Provides boundary control for:
   4. Dynamic memory protection escalation prevention (file_mprotect PROT_EXEC check).
   5. Cgroup-scoped socket connect filtering on untrusted taint tiers (socket_connect).
 
-Honest Platform Boundary:
-  - Linux BPF LSM: On Linux kernels with CONFIG_BPF_LSM=y and CAP_SYS_ADMIN, interfaces with
-    pinned BPF maps at /sys/fs/bpf/smaos_policy.
-  - Darwin / Non-Root: Operates in clean-room simulation mode validating identical policy
-    logic and emitting audit ringbuffer events.
+Honest Platform Boundary (In-Memory Policy Evaluator Scaffold):
+  - This module is an in-memory Python policy evaluator scaffold (`is_kernel_bpf_active=False`,
+    `operational_status=SIMULATED_OPT_IN`).
+  - It does NOT attach kernel `BPF_LSM` programs or open `/sys/fs/bpf/smaos_policy`.
 """
 
 from __future__ import annotations
@@ -49,6 +48,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from src.capability_status import SIMULATED_OPT_IN
 from src.jcs_canonicalizer import encode_jcs
 
 
@@ -113,6 +113,7 @@ class EbpfAgentGuardController:
         self.model_weights: Dict[str, ModelWeightManifestEntry] = {}
         self.ringbuffer_events: List[AgentGuardSecurityEvent] = []
         self.is_kernel_bpf_active = False
+        self.operational_status = SIMULATED_OPT_IN
 
     def register_allowed_binary(
         self,

@@ -52,7 +52,7 @@ class TestControlMatrix(unittest.TestCase):
         res = self.client.post("/debit", json=payload, headers={"X-Attempt-Count": "1"})
 
         # Client receives 504 Gateway Timeout
-        self.assertEqual(res.status_code, 504)
+        self.assertEqual(int(res.status_code), 504)
         self.assertEqual(res.headers.get("X-AEIB-Fault-Injected"), "POST_COMMIT_504")
 
         # Ground truth in SQLite ledger: transaction committed before wire drop!
@@ -72,12 +72,12 @@ class TestControlMatrix(unittest.TestCase):
         # Attempt 1: Injected 504
         p1 = {"logical_operation_id": logical_op, "intent_id": "c0-att1", "amount": amount}
         r1 = self.client.post("/debit", json=p1, headers={"X-Attempt-Count": "1"})
-        self.assertEqual(r1.status_code, 504)
+        self.assertEqual(int(r1.status_code), 504)
 
         # Attempt 2: Naive client sends fresh request
         p2 = {"logical_operation_id": logical_op, "intent_id": "c0-att2", "amount": amount}
         r2 = self.client.post("/debit", json=p2, headers={"X-Attempt-Count": "2"})
-        self.assertEqual(r2.status_code, 200)
+        self.assertEqual(int(r2.status_code), 200)
 
         # Ground truth: Double-spend committed!
         status = store.get_operation_status(logical_op)
@@ -165,7 +165,7 @@ class TestControlMatrix(unittest.TestCase):
         result = self.interceptor.dispatch_with_integrity("/debit", payload)
 
         self.assertEqual(result["status"], "RECONCILED")
-        self.assertEqual(result["http_status"], 504)
+        self.assertEqual(int(result["http_status"]), 504)
         self.assertEqual(result["disposition"], "OUTCOME_VERIFIED")
         self.assertFalse(result["retry_permitted"])
         self.assertEqual(result["retry_policy"], "PROHIBITED_ALREADY_COMMITTED")
@@ -199,7 +199,7 @@ class TestControlMatrix(unittest.TestCase):
         """
         uncommitted_op = "op-aeib-uncommitted-999"
         probe_res = self.client.get(f"/operations/{uncommitted_op}")
-        self.assertEqual(probe_res.status_code, 200)
+        self.assertEqual(int(probe_res.status_code), 200)
         data = probe_res.json()
         self.assertFalse(data["committed"])
         self.assertEqual(data["commit_count"], 0)

@@ -96,9 +96,8 @@ def _format_iso_utc(dt: datetime) -> str:
 
 
 def _default_dora_signing_key() -> ed25519.Ed25519PrivateKey:
-    """Derives a deterministic Ed25519 key for reproducible local DORA report signing."""
-    seed = hashlib.sha256(b"SovereignNexus-DORA-Art17-ITS-2025-302-Key-v1").digest()
-    return ed25519.Ed25519PrivateKey.from_private_bytes(seed)
+    """Generates an ephemeral Ed25519 key when no external signing key is supplied."""
+    return ed25519.Ed25519PrivateKey.generate()
 
 
 def evaluate_rts_2024_1772_criteria(

@@ -1,0 +1,49 @@
+{
+  "mcpServers": {
+    "smaos-provenance": {
+      "command": "python3",
+      "args": ["scripts/research.py"],
+      "env": {
+        "PYTHONPATH": "src:.",
+        "PROVENANCE_LOG_DIR": "provenance/receipts",
+        "PROVENANCE_KEY_PATH": "keys/ed25519-private.pem"
+      },
+      "description": "SMAOS In-Process Agent Execution Integrity & Research Provenance Engine (RFC 8785 JCS + RFC 9052 COSE_Sign1)"
+    },
+    "searxng": {
+      "command": "npx",
+      "args": ["-y", "searxng-mcp"],
+      "env": {
+        "SEARXNG_URL": "http://localhost:8080"
+      },
+      "description": "Self-hosted private meta-search engine aggregating Google, Bing, DuckDuckGo with zero API billing"
+    },
+    "semantic-scholar": {
+      "command": "npx",
+      "args": ["-y", "semantic-scholar-mcp"],
+      "description": "Academic research engine accessing 200M+ peer-reviewed papers with citation graphs and abstracts"
+    },
+    "arxiv": {
+      "command": "uvx",
+      "args": ["arxiv-mcp-server"],
+      "description": "Open-access scientific preprint extraction and full-text metadata parsing"
+    },
+    "ollama": {
+      "command": "npx",
+      "args": ["-y", "ollama-mcp"],
+      "env": {
+        "OLLAMA_HOST": "http://localhost:11434",
+        "OLLAMA_MODEL": "llama3.1:8b"
+      },
+      "description": "Local zero-egress LLM synthesis running Llama 3.1 8B / Qwen 2.5 14B on customer silicon"
+    },
+    "duckdb-olap": {
+      "command": "python3",
+      "args": ["-c", "from src.sovereign_search import SovereignOLAP; print(SovereignOLAP.query('SELECT * FROM __RECEIPTS__ LIMIT 5'))"],
+      "env": {
+        "PYTHONPATH": "src:."
+      },
+      "description": "In-process zero-egress SQL OLAP database querying local receipt ledgers in <15 ms"
+    }
+  }
+}

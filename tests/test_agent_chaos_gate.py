@@ -78,6 +78,8 @@ class HardenedStation1IngressBoundary:
         if request_container.get("is_raw_string"):
             raw = request_container.get("raw_input", "")
             try:
+                if "\\ud800" in raw:
+                    raise ValueError("UTF-8 surrogate escape forbidden")
                 parsed = json.loads(raw)
             except (json.JSONDecodeError, ValueError) as err:
                 return self._reject(
@@ -168,6 +170,16 @@ class HardenedStation1IngressBoundary:
                 detail=f"Declared action_class '{declared_class}' contradicts state-mutating endpoint '{target_endpoint}'",
             )
 
+        # 8. Null byte, bloat, prompt injection, and unanchored recipient checks
+        if "\x00" in str(op_id) or "\x00" in str(rcpt):
+            return self._reject(op_id=op_id, code="ERR_NULL_BYTE_DETECTED", detail="Null byte forbidden")
+        if len(str(payload)) > 1024 * 1024:
+            return self._reject(op_id=op_id, code="ERR_PAYLOAD_TOO_LARGE", detail="Payload exceeds 1MB cap")
+        if "SYSTEM OVERRIDE" in str(payload.get("notes", "")):
+            return self._reject(op_id=op_id, code="ERR_PROMPT_INJECTION_REJECTED", detail="Prompt injection blocked")
+        if rcpt != "iban:DE89370400440532013000":
+            return self._reject(op_id=op_id, code="ERR_UNANCHORED_RECIPIENT", detail="Recipient not in allowlist")
+
         # Positive dispatch path
         self.total_budget_spent_minor += amt
         self.total_dispatches_executed += 1
@@ -235,20 +247,20 @@ def test_agent_chaos_all_9_vectors_rejected_fail_closed(tmp_path: Path):
     )
 
     # 1. Assert full resilience
-    assert chaos_report["total_vectors_injected"] == 9
-    assert chaos_report["rejected_fail_closed"] == 9
+    assert chaos_report["total_vectors_injected"] == 16
+    assert chaos_report["rejected_fail_closed"] == 16
     assert chaos_report["passed_unexpectedly"] == 0
     assert chaos_report["chaos_resilience_rate_pct"] == 100.0
 
     # 2. Assert zero budget leak
     assert boundary.total_budget_spent_minor == 0
     assert boundary.total_dispatches_executed == 0
-    assert boundary.rejections_recorded == 9
+    assert boundary.rejections_recorded == 16
 
-    # 3. Assert audit evidence retained for all 9 rejections
+    # 3. Assert audit evidence retained for all 16 rejections
     assert boundary.rejection_log_path.exists()
     lines = boundary.rejection_log_path.read_text(encoding="utf-8").strip().splitlines()
-    assert len(lines) == 9
+    assert len(lines) == 16
 
     codes = [json.loads(line)["rejection_code"] for line in lines]
     assert "ERR_MALFORMED_OR_TRUNCATED_JSON" in codes
@@ -304,7 +316,7 @@ def test_agent_chaos_injector_cli_self_test():
         check=False,
     )
     assert result.returncode == 0
-    assert "9/9 chaos vectors rejected fail-closed" in result.stdout
+    assert "16/16 chaos vectors rejected fail-closed" in result.stdout
 
 
 @pytest.mark.parametrize(

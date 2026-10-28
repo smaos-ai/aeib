@@ -156,12 +156,12 @@ class TestIso42001Full38ControlsSoa:
         # Backward compatibility checks for Category H (14 controls)
         assert report["total_controls"] == 14
         assert report["implemented_controls"] == 14
-        assert report["observed_and_tested_controls"] == 12
+        assert int(report["observed_and_tested_controls"]) == 12
         assert report["scaffold_only_controls"] == 2
         assert len(report["statement_of_applicability"]) == 14
 
         # Full 38 Annex A control checks
-        assert report["annex_a_total_controls"] == 38
+        assert int(report["annex_a_total_controls"]) == 38
         assert report["annex_a_included_controls"] == 35
         assert report["annex_a_excluded_controls"] == 3
         assert report["annex_a_not_applicable_excluded_controls"] == 3
@@ -238,7 +238,7 @@ class TestIso42001Full38ControlsSoa:
         # Verify CLI --verify succeeds on authentic report
         verify_res = verify_soa_report(DEFAULT_REPORT_JSON_PATH)
         assert verify_res["verified"] is True
-        assert verify_res["annex_a_controls_verified"] == 38
+        assert int(verify_res["annex_a_controls_verified"]) == 38
         assert verify_res["category_h_controls_verified"] == 14
 
         proc = subprocess.run(

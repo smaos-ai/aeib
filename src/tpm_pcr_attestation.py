@@ -25,11 +25,11 @@ into TPM 2.0 PCR 11 via cryptographic extension:
 Generates cryptographically signed TPM Quotes over PCR registers for inclusion
 in AEIB Station 1 evidence receipts.
 
-Honest Platform Boundary:
-  - Linux TPM 2.0: On hosts with physical or virtual TPM 2.0 character devices
-    (/dev/tpmrm0 or /dev/tpm0), interrogates the hardware resource manager.
-  - Darwin / Non-TPM: Operates in software simulation mode verifying identical
-    extend arithmetic, quote structures, and Ed25519 signature verification.
+Honest Platform Boundary (Software PCR-11 Scaffold):
+  - This module is a software PCR-11 extend and Ed25519 quote structure scaffold.
+  - It does NOT execute `tpm2_pcrextend` or `tpm2_quote` against `/dev/tpmrm0`;
+    therefore `is_hardware_tpm` is always `False` and `operational_status` is
+    `SIMULATED_OPT_IN`.
 """
 
 from __future__ import annotations
@@ -51,6 +51,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from src.capability_status import SIMULATED_OPT_IN
 from src.jcs_canonicalizer import encode_jcs
 
 
@@ -95,7 +96,9 @@ class TpmPcrAttestationEngine:
         device_path: str = "/dev/tpmrm0",
     ) -> None:
         self.device_path = device_path
-        self.is_hardware_tpm = os.path.exists(device_path) and os.access(device_path, os.R_OK | os.W_OK)
+        # Software PCR model: never claim hardware TPM unless a real TPM2 quote tool ran.
+        self.is_hardware_tpm = False
+        self.operational_status = SIMULATED_OPT_IN
         self.ak_privkey = ak_privkey or ed25519.Ed25519PrivateKey.generate()
         self.ak_pubkey = self.ak_privkey.public_key()
         self.ak_pubkey_b64 = base64.b64encode(

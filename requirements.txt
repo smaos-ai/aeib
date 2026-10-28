@@ -1,0 +1,2 @@
+# SMAOS / AEIB Settlement Fuzzer & Wire Truth Engine
+# Zero external dependencies - Standard Library only (Python 3.10+)

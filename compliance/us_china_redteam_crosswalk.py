@@ -490,7 +490,7 @@ CHINA_FRAMEWORKS: Dict[str, Dict[str, Any]] = {
         ),
         "aeib_countermeasures": [
             "W3cDidKeyResolver and AuthorizedPrincipalBinding anchor every agent session to a verified RootSponsor (did:key Ed25519).",
-            "Station3ContinuousLedger records non-repudiable pre-dispatch and post-dispatch security assessment receipts.",
+            "Station3ContinuousLedger records tamper-evident pre-dispatch and post-dispatch security assessment receipts.",
         ],
         "mapped_invariants": [
             "INV_1_SPONSOR_CONSERVATION_LAW",
@@ -597,11 +597,8 @@ CHINA_FRAMEWORKS: Dict[str, Dict[str, Any]] = {
 
 
 def _default_crosswalk_signing_key() -> ed25519.Ed25519PrivateKey:
-    """Derives a deterministic Ed25519 private key for reproducible bilateral crosswalk signing."""
-    seed = hashlib.sha256(
-        b"SovereignNexus-US-China-RedTeam-Crosswalk-GBT45654-2025-Key-v1"
-    ).digest()
-    return ed25519.Ed25519PrivateKey.from_private_bytes(seed)
+    """Generates an ephemeral Ed25519 private key when no external signing key is supplied."""
+    return ed25519.Ed25519PrivateKey.generate()
 
 
 def _pubkey_to_did_key(pubkey: ed25519.Ed25519PublicKey) -> str:

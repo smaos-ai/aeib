@@ -202,7 +202,7 @@ def demo_audit_trail():
     print("Audit trail features:")
     print("  ✓ Cryptographically signed (SHA256)")
     print("  ✓ Immutable Merkle chain")
-    print("  ✓ Non-repudiable (user_id logged)")
+    print("  ✓ Tamper-evident (user_id logged)")
     print("  ✓ Compliant with EU AI Act Article 12")
 
 

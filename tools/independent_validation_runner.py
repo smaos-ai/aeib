@@ -34,13 +34,14 @@ import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Tuple
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
 from src.jcs_canonicalizer import encode_jcs
 
 
@@ -56,8 +57,13 @@ class StepResult:
 class IndependentValidationRunner:
     """Orchestrates the hermetic clean-room validation flow."""
 
-    def __init__(self, repo_root: Path = REPO_ROOT) -> None:
+    def __init__(
+        self,
+        repo_root: Path = REPO_ROOT,
+        signing_key: Optional[Ed25519PrivateKey] = None,
+    ) -> None:
         self.repo_root = repo_root
+        self.signing_key = signing_key
         self.results: List[StepResult] = []
 
     def _run_cmd(self, step_id: str, name: str, cmd: List[str]) -> StepResult:
@@ -204,8 +210,11 @@ class IndependentValidationRunner:
         all_passed = all(r.passed for r in self.results)
         total_duration = sum(r.duration_ms for r in self.results)
 
-        # Generate signed canonical receipt
-        signing_key = Ed25519PrivateKey.generate()
+        # Generate signed canonical receipt.
+        # If no caller key was supplied, record explicitly that the key is ephemeral
+        # (run-level integrity only, not pinned authorship).
+        key_pinned = self.signing_key is not None
+        signing_key = self.signing_key or Ed25519PrivateKey.generate()
         receipt_body = {
             "validation_run": {
                 "engine": "AEIB Independent Validation Runner v1.0.0-rc.5",
@@ -237,6 +246,12 @@ class IndependentValidationRunner:
                 "public_key_hex": pub_key_bytes.hex(),
                 "signature_b64": base64.b64encode(signature).decode("ascii"),
                 "canonical_hash_sha256": f"sha256:{hashlib.sha256(canonical_receipt_bytes).hexdigest()}",
+                "key_pinned": key_pinned,
+                "key_provenance": (
+                    "caller_supplied_signing_key"
+                    if key_pinned
+                    else "ephemeral_per_run_integrity_only"
+                ),
             },
         }
 
@@ -247,6 +262,52 @@ class IndependentValidationRunner:
         out_file.write_text(json.dumps(receipt, indent=2), encoding="utf-8")
 
         return receipt
+
+
+def verify_validation_receipt(
+    receipt: Dict[str, Any],
+    trusted_public_key_hex: Optional[str] = None,
+    allow_ephemeral_key: bool = False,
+) -> Tuple[bool, str, bool]:
+    """
+    Verify an IndependentValidationRunner receipt.
+    Fails closed when no trusted_public_key_hex is supplied unless allow_ephemeral_key=True,
+    returning (valid, reason, key_pinned).
+    """
+    if not isinstance(receipt, dict):
+        return False, "ERR_RECEIPT_NOT_OBJECT", False
+    body = receipt.get("receipt_body")
+    env = receipt.get("signature_envelope")
+    if not isinstance(body, dict) or not isinstance(env, dict):
+        return False, "ERR_MISSING_BODY_OR_ENVELOPE", False
+    embedded_hex = env.get("public_key_hex")
+    sig_b64 = env.get("signature_b64")
+    claimed_hash = env.get("canonical_hash_sha256")
+    if not isinstance(embedded_hex, str) or not isinstance(sig_b64, str):
+        return False, "ERR_INVALID_ENVELOPE_FIELDS", False
+
+    if trusted_public_key_hex is not None:
+        if embedded_hex.lower() != trusted_public_key_hex.lower():
+            return False, "ERR_PUBLIC_KEY_MISMATCH", False
+        key_pinned = True
+    elif allow_ephemeral_key:
+        key_pinned = False
+    else:
+        return False, "ERR_UNPINNED_PUBLIC_KEY_REJECTED", False
+
+    canonical_bytes = encode_jcs(body)
+    expected_hash = f"sha256:{hashlib.sha256(canonical_bytes).hexdigest()}"
+    if claimed_hash != expected_hash:
+        return False, "ERR_CANONICAL_HASH_MISMATCH", False
+
+    try:
+        pub = Ed25519PublicKey.from_public_bytes(bytes.fromhex(embedded_hex))
+        sig = base64.b64decode(sig_b64, validate=True)
+        pub.verify(sig, canonical_bytes)
+    except (ValueError, InvalidSignature):
+        return False, "ERR_SIGNATURE_INVALID", False
+
+    return True, "VERIFIED_PINNED" if key_pinned else "VERIFIED_EPHEMERAL_UNPINNED", key_pinned
 
 
 def main():

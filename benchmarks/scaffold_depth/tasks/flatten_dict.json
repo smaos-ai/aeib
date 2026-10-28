@@ -1,0 +1,7 @@
+{
+  "entry_module": "solution",
+  "id": "flatten_dict",
+  "instruction": "Implement flatten(d) turning nested dicts into a flat dict with dotted keys ({'a': {'b': 1}} -> {'a.b': 1}). Non-dict values are leaves; empty nested dicts produce no keys. Raise TypeError on non-str keys.",
+  "starter_source": "def flatten(d: dict) -> dict:\n    \"\"\"Flatten nested dicts with dotted keys.\"\"\"\n    raise NotImplementedError(\"later\")\n",
+  "type": "parsing"
+}

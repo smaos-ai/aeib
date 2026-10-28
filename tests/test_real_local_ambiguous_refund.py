@@ -386,9 +386,9 @@ def test_real_local_target_ambiguous_refund_end_to_end() -> None:
         )
         assert state_1 == "EFFECT_INDETERMINATE"
         assert reason_1 == "LATCHED_AWAITING_RECONCILIATION"
-        assert aeib.reserved_escrow_minor == 2500
+        assert int(aeib.reserved_escrow_minor) == 2500
         assert aeib.confirmed_spent_minor == 0
-        assert rail_state.total_disbursed_minor == 2500
+        assert int(rail_state.total_disbursed_minor) == 2500
 
         # Step 2: Stochastic LLM agent panics on timeout and tries a blind retry of `op-refund-101`
         # OR tries to open a new €30.00 refund that exceeds remaining unreserved budget (€25 left).
@@ -406,7 +406,7 @@ def test_real_local_target_ambiguous_refund_end_to_end() -> None:
 
         # Server still only received 1 POST attempt and disbursed exactly €25.00!
         assert rail_state.post_attempts_received == 1
-        assert rail_state.total_disbursed_minor == 2500
+        assert int(rail_state.total_disbursed_minor) == 2500
 
         # Step 3: AEIB Station 2 runs bounded authoritative reconciliation against `/v1/refunds/status`
         rec_outcome = aeib.reconcile_indeterminate_operation(
@@ -414,8 +414,8 @@ def test_real_local_target_ambiguous_refund_end_to_end() -> None:
         )
         assert rec_outcome == "RECONCILED_CONFIRMED"
         assert aeib.reserved_escrow_minor == 0
-        assert aeib.confirmed_spent_minor == 2500
-        assert rail_state.total_disbursed_minor == 2500
+        assert int(aeib.confirmed_spent_minor) == 2500
+        assert int(rail_state.total_disbursed_minor) == 2500
         assert len(aeib.ledger) == 2
         assert aeib.ledger[0]["finality_state"] == "EFFECT_INDETERMINATE"
         assert aeib.ledger[1]["finality_state"] == "CONFIRMED"

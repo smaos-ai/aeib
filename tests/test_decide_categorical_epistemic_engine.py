@@ -190,3 +190,70 @@ def test_banned_words_absence() -> None:
         text = path.read_text(encoding="utf-8").lower()
         for word in forbidden:
             assert word not in text, f"Forbidden token '{word}' found in {path}"
+
+
+def test_decide_categorical_mutation_boundaries() -> None:
+    from src.decide_categorical_epistemic_engine import (
+        HumanityPriorArtEntry,
+        ModelAgentHypothesis,
+    )
+
+    assert HumanityPriorArtEntry.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+    assert ModelAgentHypothesis.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+
+    expander = OrthogonalKeywordTagExpander()
+    assert expander.axes["AXIS_8_WESTERN_OPEN_SOURCE_SYSTEMS"].marginal_weight_bps == 1000
+    assert expander.evaluate_coverage_bps({"AXIS_1_MATH_INFORMATION_THEORY"}) == 1381
+    assert expander.evaluate_coverage_bps({"AXIS_8_WESTERN_OPEN_SOURCE_SYSTEMS"}) == 954
+    assert OrthogonalKeywordTagExpander.pairwise_interaction_edges(0) == 0
+    assert OrthogonalKeywordTagExpander.pairwise_interaction_edges(2) == 3
+
+    proof = expander.expand_query_with_orthogonal_tags("q")
+    assert proof["orthogonal_8axis_expansion"]["combined_moat_and_attribute_nodes"] == 28
+    assert proof["orthogonal_8axis_expansion"]["pairwise_coverage_multiplier_x"] == 135
+
+    # Exercise max(1, single_shot_edges) fallback when single_shot_edges == 0
+    expander_zero = OrthogonalKeywordTagExpander()
+    expander_zero.pairwise_interaction_edges = lambda n: 0 if n == 2 else OrthogonalKeywordTagExpander.pairwise_interaction_edges(n)  # type: ignore[method-assign]
+    proof_zero = expander_zero.expand_query_with_orthogonal_tags("q")
+    assert proof_zero["orthogonal_8axis_expansion"]["pairwise_coverage_multiplier_x"] == 406
+
+    # GLS exact boundaries
+    assert CrossEcosystemBrainstormEngine.compute_gls_effective_sample_size_bps(0, 5000) == 0
+    assert CrossEcosystemBrainstormEngine.compute_gls_effective_sample_size_bps(4, 8000) == 11764
+    assert CrossEcosystemBrainstormEngine.compute_gls_effective_sample_size_bps(4, 1500) == 27586
+
+    builder = CurrentCategoryBuilder()
+    cur = builder.build_current_category()
+    mis = MissedDifferentialOperator.analyze_current_only(cur)
+    assert len(mis["humanity_wire_finality_flaws"]) == 17
+    assert mis["initial_local_blind_spot_bps"] == 1818
+
+    b_engine = CrossEcosystemBrainstormEngine()
+    with pytest.raises(ValueError, match="HALT_BRAINSTORM_REQUIRES_VALID_CURRENT"):
+        b_engine.execute_cross_ecosystem_brainstorm(proof, {"category": "BAD"}, mis)
+    with pytest.raises(ValueError, match="HALT_BRAINSTORM_REQUIRES_VALID_MISSED"):
+        b_engine.execute_cross_ecosystem_brainstorm(proof, cur, {"category": "BAD"})
+
+    b_state = b_engine.execute_cross_ecosystem_brainstorm(proof, cur, mis)
+    assert b_state["gls_diversity_combining_proof"]["homogeneous_4model_n_eff_bps"] == 11764
+    assert b_state["convergent_hypotheses"][0]["agreeing_models"] == ["DeepSeek-R1", "Gemini-Pro"]
+
+    signer = Ed25519PrivateKey.generate()
+    functor = NextCategorySynthesisFunctor(signer)
+    rcpt = functor.synthesize_next_category("q", cur, mis, b_state)
+    trace = rcpt["next_synthesis_payload"]["epistemic_contraction_trace"]
+    assert trace[0]["residual_blind_spot_bps"] == 1818
+    assert trace[1]["residual_blind_spot_bps"] == 909
+    assert trace[1]["newly_synthesized_attributes"] == [
+        "INV_FCA_GALOIS_LATTICE_CLOSURE",
+        "INV_SUBMODULAR_COVERAGE_BOUND",
+    ]
+
+    # Exercise non-zero uncovered_2 in step 2 (kills L796 CONST_PERTURB 10000)
+    cur_partial = dict(cur, c_local_attributes=[])
+    mis_partial = dict(mis, local_absorption_gaps=["INV_SUBMODULAR_COVERAGE_BOUND"])
+    rcpt_partial = functor.synthesize_next_category("q", cur_partial, mis_partial, b_state)
+    trace_p = rcpt_partial["next_synthesis_payload"]["epistemic_contraction_trace"]
+    assert trace_p[2]["residual_blind_spot_bps"] == 9545
+

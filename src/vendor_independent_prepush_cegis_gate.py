@@ -170,9 +170,7 @@ class MetamorphicRelationalOracleEngine:
     @staticmethod
     def check_mr04_single_bit_flip_cryptographic_rejection(trials: int = 32) -> MetamorphicVerdict:
         """MR-04: Flipping any single bit in a signed JCS payload or Ed25519 signature must fail verification."""
-        priv = Ed25519PrivateKey.from_private_bytes(
-            hashlib.sha256(b"mr04-metamorphic-key").digest()
-        )
+        priv = Ed25519PrivateKey.generate()
         pub = priv.public_key()
         payload = encode_jcs({"action": "wire_transfer", "amount_minor": 50000, "epoch": 25})
         sig = bytearray(priv.sign(payload))
@@ -525,9 +523,7 @@ class VendorIndependentPrePushGate:
             )
         )
 
-        signing_key = private_key or Ed25519PrivateKey.from_private_bytes(
-            hashlib.sha256(b"sovereign-nexus-vendor-independent-v55-key").digest()
-        )
+        signing_key = private_key or Ed25519PrivateKey.generate()
         pub_b64 = base64.b64encode(
             signing_key.public_key().public_bytes(
                 encoding=serialization.Encoding.Raw,

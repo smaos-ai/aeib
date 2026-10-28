@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0",
+  "action_id": "act-ccs-011-expired",
+  "leaf_index": 0,
+  "tree_size": 1,
+  "timestamp": "2020-01-01T00:00:00Z",
+  "intent_digest": "75cdb904cf1dbd2b8377e23b6933f1a5d8ff9853829e2138bc718b7be4082052",
+  "verdict": "CONFIRMED",
+  "root_hash": "c8b7fc35ef3b17869a02f8d1b3011c72c3dedd40d7bc9dc1b70f41f5d8481676",
+  "inclusion_proof": [],
+  "signature": "365bc1d308100b9b7624405045110a5d4c966e29f9dc89917bc9cb1ce174cd4e5da30aad8e5917e3abbb836ca393f2ddf37c763b323a7fc53d4b2d1811acad05",
+  "signer_pubkey": "8a88e3dd7409f195fd52db2d3cba5d72ca6709bf1d94121bf3748801b40f6f5c"
+}

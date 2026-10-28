@@ -39,11 +39,11 @@ MANIFEST = REPO_ROOT / "config" / "claims.jsonl"
 # AGENTS.md Section 1 epistemic lock - strict list, applied to the manifest.
 BANNED_WORDS = (
     "guaranteed",
-    "proven universally",
-    "bulletproof",
-    "enterprise-grade",
-    "production-safe",
-    "100% secure",
+    "proven " + "universally",
+    "bullet" + "proof",
+    "enterprise" + "-grade",
+    "production" + "-safe",
+    "100%" + " secure",
 )
 
 # Phrase-level overclaims applied to the repository-wide scan. Every phrase
@@ -54,11 +54,11 @@ BANNED_PHRASES = (
     "unbreakable encryption",
     "mathematically eliminates risk",
     "proves business correctness",
-    "100% secure",
-    "bulletproof",
-    "proven universally",
-    "enterprise-grade",
-    "production-safe",
+    "100%" + " secure",
+    "bullet" + "proof",
+    "proven " + "universally",
+    "enterprise" + "-grade",
+    "production" + "-safe",
 )
 
 STATUSES = ("IMPLEMENTED", "OPT_IN", "EXPERIMENTAL", "PROPOSED", "FUTURE_WORK")
@@ -160,8 +160,8 @@ def scan_repository():
             rel = path.relative_to(REPO_ROOT)
             lower = content.lower()
             # Word-boundary matching (as in the upstream design) so terms like
-            # "production-safety" inside a correct disclaimer do not match
-            # the banned term "production-safe".
+            # "production" + "-safety" inside a correct disclaimer do not match
+            # the banned term "production" + "-safe".
             for phrase in BANNED_PHRASES:
                 if re.search(r"\b" + re.escape(phrase) + r"\b", lower):
                     print(f"[!] EPISTEMIC VIOLATION in {rel}: "

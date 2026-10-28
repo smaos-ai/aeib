@@ -1,0 +1,22 @@
+{
+  "release": "v0.2.4",
+  "package": "aeib-enterprise-v1.0",
+  "status": "LOCKED",
+  "files": {
+    "QUICK_START_REVIEW.md": "514d551399018f440856594c5b410c7924879b19a50380d878ea6efbcd240898",
+    "README.md": "e021ddfcca646b4e2f282a2be71049eba3d65eca24e05b30b78d6e3ee250f3f5",
+    "ZERO_MOCK_POLICY.md": "f05386d76e2be01ce7ce77911fa9682a61749b4ef5d9f8ec57335262543f3188",
+    "QUALITY_GATE_ARCHITECTURE.md": "7ee869a5a52709fc80f8be37729dd70efb77c1bbecca5e33c9f82b71beecd023",
+    "transport-to-disposition-mapping.yaml": "280823799d3c89b9f6c0fb304ac25ecb08007f1a0eabef9ef0bc899937a35746",
+    "aeib_mcp_proxy.py": "70eb12a669c37cdbb4f2b59976afd8710c8b4b12db7308f35c51c253fd0e0482",
+    "aeib_postgresql_probe/adapter.py": "0931de27058105f2ecae0403d1ce5106322ba1a099934139bb6722dd30d61951",
+    "benchmarks/test_negative_vectors.py": "bb1e7e1a0d60787277d5e65dfdff963abd854cd175be7ac794cc81b9a9dbac6c",
+    "benchmarks/soak_test_smoke.py": "680c479ab403ec53700c2bc521877c99d7fae0191643783de069fd1d25c23739",
+    "benchmarks/soak_test_long_haul.py": "a0a1341e6114261207656bb5a63f840d05c15cd4d7571bbae944a597da96bbc5",
+    "telemetry/observability.py": "93680133e45eb8f1c0e5cabc63588cff74a21d0d785fb5bf816f7175eb0233d6",
+    "telemetry/aeib_grafana_dashboard.json": "bc14ac8c6baaa0c41150496bd7945a75009d2c84e972a846a1263c8ab198281f",
+    "compliance/claims.json": "4a8826f3f2532fc5cfb9093410bb2892823e1bcbc095df38fb0b035aacc7a55d",
+    "compliance/verify-audit-pack.py": "026e0681747f993f14021d202af609695d3ef10a104fb41ff3aad0af61c21135",
+    ".github/workflows/matrix-ci.yml": "842edd9f9ec74d40d3d29c1510d8b167a6732bf7a66da14af7b7c69bb4edc9a1"
+  }
+}

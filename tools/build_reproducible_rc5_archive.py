@@ -1,5 +1,5 @@
 """
-Deterministic Air-Gapped Reproducible Evidence Archive Builder (`v1.0.0-rc.5-preprod`).
+Deterministic Air-Gapped Reproducible Evidence Archive Builder (`v1.0.0-rc.5-preprod` — Structural Scaffold for External Prover Packaging).
 - Runs Phase 0 + Tracks 1, 2, 3, and 4.
 - Produces canonical, timestamp-free JSON evidence reports.
 - Packages all source modules, TLA+ models, and reports into a deterministic tarball

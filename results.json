@@ -1,0 +1,80 @@
+{
+  "benchmark": "AEIB",
+  "evaluation_precedence": [
+    "INVALID_INPUT",
+    "MISSING_EVIDENCE",
+    "CONFLICT",
+    "REFUSED",
+    "CONFIRMED",
+    "UNKNOWN"
+  ],
+  "scenarios": {
+    "01_confirmed_settlement": {
+      "errors": [],
+      "reason": "Matching HTTP 200 receipt confirms execution",
+      "row_count": 2,
+      "verdict": "CONFIRMED"
+    },
+    "02_timeout_unknown": {
+      "errors": [],
+      "reason": "Action dispatched or claimed, but outcome unresolved",
+      "row_count": 2,
+      "verdict": "UNKNOWN"
+    },
+    "03_missing_dispatch_evidence": {
+      "errors": [],
+      "reason": "Receipt recorded without corresponding dispatch evidence",
+      "row_count": 1,
+      "verdict": "MISSING_EVIDENCE"
+    },
+    "04_idempotency_collision": {
+      "errors": [],
+      "reason": "Idempotency lock collision on active nonce",
+      "row_count": 2,
+      "verdict": "CONFLICT"
+    },
+    "05_conflicting_state_claim": {
+      "errors": [],
+      "reason": "Contradictory state claim: adapter (SETTLED) vs ledger (CANCELLED)",
+      "row_count": 3,
+      "verdict": "CONFLICT"
+    },
+    "06_refused_policy_violation": {
+      "errors": [],
+      "reason": "Policy refusal: MAX_TRANSFER_EXCEEDED",
+      "row_count": 2,
+      "verdict": "REFUSED"
+    },
+    "07_mismatched_payload": {
+      "errors": [],
+      "reason": "Contradictory payload hash between dispatch and receipt",
+      "row_count": 2,
+      "verdict": "CONFLICT"
+    },
+    "08_malformed_input": {
+      "errors": [
+        {
+          "error": "Expecting value: line 1 column 59 (char 58)",
+          "line": 2
+        }
+      ],
+      "reason": "Syntax error on line 2: Expecting value: line 1 column 59 (char 58)",
+      "row_count": 2,
+      "verdict": "INVALID_INPUT"
+    },
+    "09_circuit_breaker_refusal": {
+      "errors": [],
+      "reason": "Policy refusal: Constraint violation",
+      "row_count": 2,
+      "verdict": "REFUSED"
+    },
+    "10_divergent_retry_payload": {
+      "errors": [],
+      "reason": "Contradictory retry payload: amount 1000 -> 2000",
+      "row_count": 2,
+      "verdict": "CONFLICT"
+    }
+  },
+  "total_scenarios": 10,
+  "version": "0.1.0"
+}

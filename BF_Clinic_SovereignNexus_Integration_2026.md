@@ -975,7 +975,7 @@ Cost: €0 reuse + €15-25K development (servers + integration)
 
 SovereignNexus is designed for "sovereign AI" + "human-governed execution" but the healthcare domain is **the perfect proving ground** because:
 1. **Regulatory requirements** (HIPAA, GDPR) validate cryptographic audit trail
-2. **High liability** (medical malpractice) demands bulletproof compliance
+2. **High liability** (medical malpractice) demands rigorous compliance
 3. **Multi-stakeholder** (patient, surgeon, fellow, researcher) = test case for ReBAC
 4. **Real-time events** (surgical steps, complications) = stress test for event stream
 5. **Long-tail data** (before/after photos, outcomes over years) = test graph DB at scale

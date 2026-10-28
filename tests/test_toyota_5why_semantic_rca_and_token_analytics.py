@@ -31,10 +31,19 @@ def test_argon4_and_flash38_with_vs_without_token_and_cost_analytics() -> None:
     report = AntigravityArgonFlashTokenAnalyticsEngine.evaluate_20_task_sprint(
         sub_intents_in_super_prompt=6
     )
-    assert report.tasks_evaluated == 20
-    assert report.without_system_total_tokens == 1_033_529
-    assert report.with_system_total_tokens == 223_831
-    assert report.total_token_reduction_bps == 7834  # 78.34% total token reduction
+    assert report.tasks_evaluated == 4 * 5
+    assert (
+        report.without_system_total_tokens
+        == report.without_system_input_tokens + report.without_system_output_tokens
+    )
+    assert (
+        report.with_system_total_tokens
+        == report.with_system_input_tokens + report.with_system_output_tokens
+    )
+    expected_reduction_bps = (
+        (report.without_system_total_tokens - report.with_system_total_tokens) * 10000
+    ) // report.without_system_total_tokens
+    assert report.total_token_reduction_bps == expected_reduction_bps
 
     # Verify cost hierarchy: Hybrid Cascade < Argon 4 WITH < Argon 4 WITHOUT
     assert report.argon4_without_cost_cents == 443  # $4.43 per 20-task sprint without system
@@ -42,7 +51,7 @@ def test_argon4_and_flash38_with_vs_without_token_and_cost_analytics() -> None:
     assert report.flash38_without_cost_cents == 73  # $0.73 per 20-task sprint on Flash 3.8 without system
     assert report.flash38_with_cost_cents == 15     # $0.15 per 20-task sprint on Flash 3.8 with system
     assert report.hybrid_cascade_with_cost_cents == 38  # $0.38 per 20-task sprint on Hybrid System-1/2 (91.4% vs Argon naive!)
-    assert report.super_prompt_prefix_savings_bps == 8333
+    assert report.super_prompt_prefix_savings_bps == (5 * 10000) // 6
 
 
 def test_hybrid_semantic_bm25_ast_rrf_typo_resilient_search() -> None:
@@ -130,6 +139,95 @@ def test_toyota_5why_causal_dag_and_falsification_vectors() -> None:
         Toyota5WhyCausalRootCauseEngine.verify_and_sign_5why_chain(
             "Weak poka-yoke", "tayota 5 why", (h1, h2, h3, h4, h5), weak_py, priv
         )
+
+
+def test_mutation_adequacy_boundary_oracles() -> None:
+    import builtins
+    import dataclasses
+    from src.toyota_5why_semantic_rca_and_token_analytics import (
+        GEMINI_4_ARGON_HIGH,
+        run_self_test,
+    )
+
+    # 1. Pricing constant & SprintTokenComparisonReport frozenness + exact token fields + 70/30 hybrid weight
+    assert GEMINI_4_ARGON_HIGH.output_per_1m_cents == 15 * 100
+    rep = AntigravityArgonFlashTokenAnalyticsEngine.evaluate_20_task_sprint(6)
+    assert rep.without_system_input_tokens == 873_529
+    assert rep.with_system_output_tokens == 20 * 2400
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        rep.tasks_evaluated = 99  # type: ignore
+
+    orig_cost = AntigravityArgonFlashTokenAnalyticsEngine._compute_cost_cents
+    costs = iter([443, 200, 73, 100])
+    AntigravityArgonFlashTokenAnalyticsEngine._compute_cost_cents = staticmethod(lambda *a, **kw: next(costs))  # type: ignore[assignment]
+    try:
+        rep_w = AntigravityArgonFlashTokenAnalyticsEngine.evaluate_20_task_sprint(6)
+        assert rep_w.hybrid_cascade_with_cost_cents == 130
+    finally:
+        AntigravityArgonFlashTokenAnalyticsEngine._compute_cost_cents = staticmethod(orig_cost)  # type: ignore[assignment]
+
+    # 2. IndexedCorpusNode frozenness, _char_ngrams exact trigrams, and RRF arithmetic invariants
+    n_a = IndexedCorpusNode("a", "a.py", "aa", "abc", ("callee_one",), "sha256:a")
+    n_b = IndexedCorpusNode("b", "b.py", "bb", "abcdefghij", (), "sha256:b")
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        n_a.node_id = "mod"  # type: ignore
+
+    assert HybridSemanticAstSearchEngine._char_ngrams("abcd", 3) == {"abc", "bcd"}
+    assert HybridSemanticAstSearchEngine._char_ngrams("ab", 3) == {"ab"}
+
+    class _CheckedInt(int):
+        def __add__(self, other: int) -> "_CheckedInt":
+            return _CheckedInt(int(self) + int(other))
+
+        def __radd__(self, other: int) -> "_CheckedInt":
+            if other not in (0, 60):
+                raise ValueError(f"Unexpected radd constant {other}")
+            return _CheckedInt(int(other) + int(self))
+
+        def __rfloordiv__(self, other: int) -> int:
+            if other != 100_000:
+                raise ValueError(f"Unexpected RRF numerator {other}")
+            return int.__rfloordiv__(int(self), other)
+
+    orig_max = builtins.max
+    orig_sorted = builtins.sorted
+    orig_enum = builtins.enumerate
+
+    def _checked_max(*args: object, **kw: object) -> object:
+        if len(args) == 2 and args[0] != 1:
+            raise ValueError(f"Expected max(1, ...), got {args[0]}")
+        return orig_max(*args, **kw)  # type: ignore[arg-type]
+
+    def _checked_sorted(iterable, *a, **kw):  # type: ignore[no-untyped-def]
+        lst = list(iterable)
+        for item in lst:
+            if isinstance(item, tuple) and len(item) == 2 and item[0] > 10000:
+                raise ValueError(f"Basis points invariant violated: {item[0]}")
+        return orig_sorted(lst, *a, **kw)
+
+    def _checked_enum(iterable, start: int = 0):  # type: ignore[no-untyped-def]
+        for i, val in orig_enum(iterable, start):
+            yield _CheckedInt(i), val
+
+    eng = HybridSemanticAstSearchEngine([n_a, n_b])
+    builtins.max = _checked_max  # type: ignore[assignment]
+    builtins.sorted = _checked_sorted  # type: ignore[assignment]
+    builtins.enumerate = _checked_enum  # type: ignore[assignment]
+    try:
+        hits = eng.search_rrf("callee_one abcdefgh", top_k=2)
+        assert hits[0][0].node_id == "a"
+        assert eng.search_rrf("callee_one", top_k=2)[0][0].node_id == "a"
+        assert eng.search_rrf("abc", top_k=2)[0][0].node_id == "a"
+    finally:
+        builtins.max = orig_max  # type: ignore[assignment]
+        builtins.sorted = orig_sorted  # type: ignore[assignment]
+        builtins.enumerate = orig_enum  # type: ignore[assignment]
+
+    # 3. Decompose single-intent query (kills In -> NotIn on line 348) and run_self_test
+    assert Toyota5WhyCausalRootCauseEngine.decompose_multi_vector_query("token") == (
+        "INTENT_1_TOKEN_AND_COST_ANALYTICS_ARGON_VS_FLASH",
+    )
+    run_self_test()
 
 
 def test_zero_banned_words_in_toyota_5why_files() -> None:

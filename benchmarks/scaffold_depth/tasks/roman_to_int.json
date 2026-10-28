@@ -1,0 +1,7 @@
+{
+  "entry_module": "solution",
+  "id": "roman_to_int",
+  "instruction": "Implement roman_to_int(s) for canonical Roman numerals 1..3999 (I V X L C D M with subtractive forms). Raise ValueError for non-canonical input such as 'IIII', 'VX', 'IC', '' or lowercase.",
+  "starter_source": "def roman_to_int(s: str) -> int:\n    \"\"\"Canonical Roman numeral to int.\"\"\"\n    pass\n",
+  "type": "parsing"
+}

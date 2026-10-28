@@ -207,3 +207,100 @@ def test_banned_words_absence():
             txt = f.read().lower()
             for word in banned:
                 assert word not in txt, f"Banned term '{word}' found in {fpath}"
+
+
+def test_decide_evaluation_rate_and_decay_solver_mutation_boundaries() -> None:
+    from src.decide_evaluation_rate_and_decay_solver import CandidateQueryAction
+
+    gate_default = DataProcessingInequalityGate()
+    assert gate_default.prose_channel_loss_bps == 18 * 100
+    assert gate_default.min_external_entropy_bps == 15 * 10
+
+    z_rec = gate_default.evaluate_handoff(
+        handoff_id="h_z",
+        source_agent="a1",
+        target_agent="a2",
+        prior_mutual_info_bps=7000,
+        external_entropy_injected_bps=0,
+        uses_lossless_vault_pointer=True,
+    )
+    assert z_rec.uses_lossless_vault_pointer is True
+    assert z_rec.disposition == "HALT_DPI_ZERO_EXTERNAL_ENTROPY"
+
+    comp = MultiHopPassKAndHawkesCompensator()
+    res_def = comp.evaluate_multi_hop_pass_k()
+    assert res_def.unverified_pass_k_bps == 148
+    assert res_def.step_verified_pass_k_bps == 9230
+    assert res_def.hawkes_stale_intensity_bps == 2369
+    assert res_def.hawkes_reanchored_intensity_bps == 9695
+    assert comp.evaluate_multi_hop_pass_k(single_hop_accuracy_bps=7000).step_verified_pass_k_bps == 3346
+
+    engine = DecideV45AntiDecayEngine()
+    c_empty = CandidateQueryAction("c_0", "X", 0, "q", (), 5000, False, 100, 10)
+    assert engine.scheduler.compute_marginal_ig_bps(c_empty, set()) == 0
+
+    c_overlap = CandidateQueryAction("c_ov", "X", 0, "q", ("t1", "t2"), 10000, False, 100, 10)
+    assert engine.scheduler.compute_marginal_ig_bps(c_overlap, {"t2"}) == 5400
+
+    c_rate = CandidateQueryAction("c_r", "X", 0, "q", ("t1",), 10000, False, 10, 10)
+    rate_score, mig_bps, util_bps = engine.scheduler.compute_evaluation_rate(
+        c_rate, set(), 0, use_sake=False
+    )
+    assert (rate_score, mig_bps, util_bps) == (9900000, 10000, 9900)
+
+    c_fast = CandidateQueryAction("c_fast", "X", 0, "q1", ("t1",), 5000, False, 10, 10)
+    c_slow = CandidateQueryAction("c_slow", "X", 0, "q2", ("t2",), 9000, False, 1000, 100)
+    exec_order, _ = engine.scheduler.schedule_celf_optimal_sequence([c_slow, c_fast], token_budget=6000)
+    assert [s.action_id for s in exec_order] == ["c_fast", "c_slow"]
+
+    pool = engine.build_standard_candidate_pool()
+    assert [c.hop_depth for c in pool] == [0, 0, 1, 1, 1, 1, 2, 2, 3, 3]
+    assert [c.base_ig_bps for c in pool] == [9400, 9800, 9500, 9600, 9100, 8900, 3200, 2800, 2100, 1900]
+
+    recorded_handoff_entropy: list[int] = []
+    orig_handoff = engine.dpi_gate.evaluate_handoff
+
+    def _spy_handoff(
+        handoff_id: str,
+        source_agent: str,
+        target_agent: str,
+        prior_mutual_info_bps: int,
+        external_entropy_injected_bps: int,
+        uses_lossless_vault_pointer: bool,
+    ) -> object:
+        recorded_handoff_entropy.append(external_entropy_injected_bps)
+        return orig_handoff(
+            handoff_id=handoff_id,
+            source_agent=source_agent,
+            target_agent=target_agent,
+            prior_mutual_info_bps=prior_mutual_info_bps,
+            external_entropy_injected_bps=external_entropy_injected_bps,
+            uses_lossless_vault_pointer=uses_lossless_vault_pointer,
+        )
+
+    engine.dpi_gate.evaluate_handoff = _spy_handoff  # type: ignore[method-assign]
+    rep = engine.evaluate_complete_anti_decay_cycle()
+    assert recorded_handoff_entropy == [500, 0, 1800]
+    assert rep.naive_uniform_tokens == 8250
+    assert rep.celf_scheduled_tokens == 28 * 100
+    assert rep.token_reduction_bps == 6606
+    assert rep.naive_eval_rate_score == 5036
+    assert rep.celf_sake_eval_rate_score == 180194
+    assert rep.eval_rate_multiplier_bps == (rep.celf_sake_eval_rate_score * 10000) // rep.naive_eval_rate_score
+
+    # Custom 1-candidate micro-cycle to test exact naive_total_effective_ig=0 and max(1, naive_eval_rate)
+    eng_micro = DecideV45AntiDecayEngine()
+    eng_micro.build_standard_candidate_pool = lambda: [  # type: ignore[method-assign]
+        CandidateQueryAction("m1", "X", 0, "q", ("foundational_latch",), 5000, False, 1, 1)
+    ]
+    rep_micro = eng_micro.evaluate_complete_anti_decay_cycle()
+    assert rep_micro.naive_eval_rate_score == 4949000
+
+    eng_zero_naive = DecideV45AntiDecayEngine()
+    eng_zero_naive.build_standard_candidate_pool = lambda: [  # type: ignore[method-assign]
+        CandidateQueryAction("m2", "X", 0, "q", ("foundational_latch",), 5000, False, 1, 1)
+    ]
+    eng_zero_naive.kid_solver.compute_naive_utilization_bps = lambda _tok: 0  # type: ignore[method-assign]
+    rep_zero = eng_zero_naive.evaluate_complete_anti_decay_cycle()
+    assert rep_zero.naive_eval_rate_score == 0
+    assert rep_zero.eval_rate_multiplier_bps == rep_zero.celf_sake_eval_rate_score * 10000

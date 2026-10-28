@@ -438,7 +438,7 @@ class DoraArt17Exporter:
                     "retry_suppressed": True,
                     "probe_budget": probe_budget,
                     "probes_executed": effective_probes,
-                    "time_to_latch_ms": 1.25,
+                    "time_to_latch_ms": 1.25,  # claim: assumption
                     "tpsp_register_linkage": tpsp_info,
                 }
             ]
@@ -577,8 +577,7 @@ def run_self_test() -> Dict[str, Any]:
     6 materiality criteria evaluation, DORA Arts. 6-16 ICT Risk Framework metrics,
     and DORA Art. 28(3) TPSP Register of Information linkage.
     """
-    seed = hashlib.sha256(b"aeib-dora-art17-cli-self-test-ed25519-seed").digest()
-    privkey = ed25519.Ed25519PrivateKey.from_private_bytes(seed)
+    privkey = ed25519.Ed25519PrivateKey.generate()
     exporter = DoraArt17Exporter(signing_privkey=privkey)
 
     stage_bundles = exporter.generate_all_lifecycle_stages(
@@ -620,7 +619,7 @@ def run_self_test() -> Dict[str, Any]:
             "blocked_naive_retries": 2,
             "probe_budget": 1,
             "probes_executed": 1,
-            "time_to_latch_ms": 1.15,
+            "time_to_latch_ms": 1.15,  # claim: assumption
         },
         {
             "operation_id": "op:sepa:selftest:02",
@@ -630,7 +629,7 @@ def run_self_test() -> Dict[str, Any]:
             "blocked_naive_retries": 1,
             "probe_budget": 1,
             "probes_executed": 1,
-            "time_to_latch_ms": 1.35,
+            "time_to_latch_ms": 1.35,  # claim: assumption
         },
     ]
     ict_metrics = extract_ict_risk_framework_metrics(sample_receipts)
@@ -701,8 +700,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         print(json.dumps(summary, indent=2))
         return 0
 
-    seed = hashlib.sha256(b"aeib-dora-art17-cli-default-ed25519-seed").digest()
-    privkey = ed25519.Ed25519PrivateKey.from_private_bytes(seed)
+    privkey = ed25519.Ed25519PrivateKey.generate()
     exporter = DoraArt17Exporter(signing_privkey=privkey)
 
     caid_hex = hashlib.sha256(

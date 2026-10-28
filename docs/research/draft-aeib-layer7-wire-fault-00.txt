@@ -1,0 +1,95 @@
+Internet-Draft                                           A. Leukhin
+Intended status: Standards Track                         SovereignNexus
+Expires: April 6, 2027                                  October 6, 2026
+
+        Agent Evidence Interlock Boundary (AEIB): Layer 7 Wire-Fault Profile
+                   draft-aeib-layer7-wire-fault-00
+
+Abstract
+
+   This document defines the Layer 7 Wire-Fault Profile for the Agent
+   Evidence Interlock Boundary (AEIB). It specifies the deterministic
+   handling of mid-flight transport anomalies (e.g., HTTP 504 Gateway
+   Timeout, TCP RST) for autonomous agents interacting with external
+   APIs. By establishing a fail-closed structural boundary and a strict
+   reconciliation protocol, this profile mitigates the "HTTP 200 Illusion"
+   and suppresses un-gated speculative retries, designed to mitigate
+   uncoordinated duplicate mutations under the stated fault model.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+1.  Introduction
+
+   Autonomous systems invoking remote state-mutating APIs frequently
+   encounter mid-flight transport faults (e.g., HTTP 504, TCP RST).
+   When a fault occurs after the payload has been dispatched but before
+   the transport layer confirms the HTTP 200 OK response, the actual
+   state of the remote provider is indeterminate.
+
+   Current autonomous agents frequently default to a "retry-safe"
+   assumption, leading to duplicate side effects (as evaluated in
+   Li, arXiv:2609.29095). This document specifies the AEIB protocol,
+   which forces a fail-closed "retry_safe: false" interlock during
+   such transport faults until out-of-band reconciliation resolves state.
+
+2.  Terminology
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in
+   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+3.  The L7a Transport Capture
+
+   An AEIB-compliant gateway MUST trap network socket state changes.
+   If a connection terminates unexpectedly prior to the completion
+   of the application-layer HTTP response, the gateway MUST yield a
+   transport_observation of "DISPATCHED_UNCONFIRMED".
+
+4.  The L7c Disposition Mapping
+
+   Upon receiving a "DISPATCHED_UNCONFIRMED" observation, the engine
+   MUST NOT yield an "OUTCOME_VERIFIED" disposition. Instead, the
+   engine MUST query the out-of-band probe (L7b). If the probe fails to
+   reconcile the state within the consistency grace period, the engine
+   MUST yield "EFFECT_INDETERMINATE" and set "retry_safe: false".
+
+5.  Security & Human Oversight Considerations
+
+   The AEIB protocol relies on structural verification of the filesystem
+   and Git state (e.g., via the Tycho offline verifier) to prevent the
+   "HTTP 200 Illusion" where compromised APIs return false successes.
+   Receipts SHOULD be signed using FIPS 204 compliant PQC algorithms
+   (e.g., ML-DSA-65 or ML-DSA-87) alongside Ed25519 in COSE envelopes.
+
+   To mitigate cognitive memory distortion induced by generative model
+   summarization (empirically evaluated in Sim et al., arXiv:2609.28820),
+   human oversight review gates MUST inspect raw RFC 8785 canonical
+   JSON receipts directly without intermediary AI summarization.
+
+6.  References
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119, March 1997.
+   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in
+              RFC 2119 Key Words", BCP 14, RFC 8174, May 2017.
+   [RFC8785]  Rundgren, A., "JSON Canonicalization Scheme (JCS)",
+              RFC 8785, June 2020.
+   [RFC9052]  Schaad, J., "CBOR Object Signing and Encryption (COSE)",
+              RFC 9052, August 2022.
+
+Author's Address
+
+   Andrej Leukhin
+   SovereignNexus
+   Prague, Czech Republic
+   Email: andrejlo123@gmail.com

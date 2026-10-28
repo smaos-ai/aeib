@@ -292,6 +292,8 @@ def parse_yaml_tracing_policy(text: str) -> Dict[str, Any]:
 # ------------------------------------------------------------------------------
 
 def _jcs_utf16_sort(s: str) -> bytes:
+    if not isinstance(s, str):
+        raise TypeError(f"RFC 8785 requires object keys to be strings, got {type(s).__name__}")
     return s.encode("utf-16-be")
 
 
@@ -330,10 +332,12 @@ def _jcs_number(num: float) -> str:
         return digits[:n] + "." + digits[n:]
     elif -6 < n <= 0:
         return "0." + "0" * (-n) + digits
-    elif k == 1:
-        return f"{digits}e{n - 1}"
-    else:
-        return f"{digits[0]}.{digits[1:]}e{n - 1}"
+    # ECMA-262 7.1.12.1: positive exponents carry an explicit "+" (1e+21), matching
+    # src/jcs_canonicalizer (kept local: this module has no repository imports).
+    exp_sign = "+" if (n - 1) > 0 else ""
+    if k == 1:
+        return f"{digits}e{exp_sign}{n - 1}"
+    return f"{digits[0]}.{digits[1:]}e{exp_sign}{n - 1}"
 
 
 def _jcs_serialize(obj: Any) -> str:

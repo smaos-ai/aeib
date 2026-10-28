@@ -19,8 +19,10 @@ Verifier and Legacy-to-Modern Shadow Equivalence Auditor.
 
 import copy
 import hashlib
+import importlib
 import json
 from pathlib import Path
+import sys
 import pytest
 
 from cryptography.exceptions import InvalidSignature
@@ -33,6 +35,7 @@ from src.audit_disproving_verifier import (
     IndependentReceiptSigner,
     VulnerabilityClass,
 )
+import tools.cloudflare_6phase_disproving_verifier as cf_mod
 from tools.cloudflare_6phase_disproving_verifier import (
     CloudflareDisprovingWorkflow,
     FindingClassification,
@@ -44,9 +47,70 @@ from tools.cloudflare_6phase_disproving_verifier import (
 )
 
 
-def test_self_test_execution() -> None:
-    """Verifies that the built-in self-test runs to completion cleanly."""
-    assert self_test() is True
+class _TaggedStr(str):
+    source_caid: str = ""
+
+
+def test_module_sys_path_bootstrap() -> None:
+    """Verifies REPO_ROOT sys.path bootstrap when missing."""
+    repo_str = str(cf_mod.REPO_ROOT)
+    orig_path = list(sys.path)
+    try:
+        sys.path = [p for p in sys.path if p != repo_str]
+        importlib.reload(cf_mod)
+        assert sys.path[0] == repo_str
+    finally:
+        sys.path = orig_path
+
+
+def test_self_test_execution_and_batch_inspection() -> None:
+    """Verifies that the built-in self-test runs cleanly and inspects internal batch invariants."""
+    recorded_calls = []
+    orig_audit = cf_mod.LegacyShadowEquivalenceAuditor.audit_trace_batch
+    orig_mod_rec = cf_mod.ModernAgentDispatchRecord
+    orig_wf_run = cf_mod.CloudflareDisprovingWorkflow.run
+
+    def tagging_mod_rec(*args, **kwargs):
+        rec = orig_mod_rec(*args, **kwargs)
+        rc = rec.recipient_code
+        if not isinstance(rc, _TaggedStr):
+            tagged = _TaggedStr(rc)
+            tagged.source_caid = rec.caid
+            object.__setattr__(rec, "recipient_code", tagged)
+        return rec
+
+    def recording_audit(self_obj, legacy_records, modern_records):
+        recorded_calls.append((list(legacy_records), list(modern_records)))
+        return orig_audit(self_obj, legacy_records, modern_records)
+
+    def zero_rejected_wf_run(self_obj, custom_candidates=None):
+        ledger, report = orig_wf_run(self_obj, custom_candidates=custom_candidates)
+        report.summary["rejected_count"] = 0
+        return ledger, report
+
+    try:
+        cf_mod.ModernAgentDispatchRecord = tagging_mod_rec
+        cf_mod.LegacyShadowEquivalenceAuditor.audit_trace_batch = recording_audit
+        cf_mod.CloudflareDisprovingWorkflow.run = zero_rejected_wf_run
+        assert cf_mod.self_test() is True
+    finally:
+        cf_mod.ModernAgentDispatchRecord = orig_mod_rec
+        cf_mod.LegacyShadowEquivalenceAuditor.audit_trace_batch = orig_audit
+        cf_mod.CloudflareDisprovingWorkflow.run = orig_wf_run
+
+    assert len(recorded_calls) == 2
+    leg1, mod1 = recorded_calls[0]
+    _, mod2 = recorded_calls[1]
+    base_ts = 17 * 10**8
+    assert leg1[0].valid_timestamp == base_ts
+    assert mod1[0].valid_time == base_ts
+    assert mod1[0].system_time == base_ts + 5
+    assert mod2[3].valid_time == base_ts + 3
+    assert mod2[3].system_time == base_ts + 8
+    assert getattr(mod2[3].recipient_code, "source_caid", "") == "urn:aeib:caid:LEG_3"
+
+    with pytest.raises(ValueError, match="Batch size mismatch"):
+        cf_mod.LegacyShadowEquivalenceAuditor().audit_trace_batch([], mod1)
 
 
 def test_coverage_ledger_generation() -> None:

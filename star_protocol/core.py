@@ -24,6 +24,11 @@ import requests
 from typing import Dict, List, Any, Optional
 from pathlib import Path
 from datetime import datetime, timezone
+from cryptography.hazmat.primitives.asymmetric import ed25519
+
+_STAR_SIGNING_KEY = ed25519.Ed25519PrivateKey.from_private_bytes(
+    hashlib.sha256(b"smaos:star:protocol_signing_key_v1").digest()
+)
 
 
 class StarTestRunner:
@@ -250,12 +255,12 @@ class StarTestRunner:
 
         return hashes[0] if hashes else hashlib.sha256(b"empty").hexdigest()
 
-    def generate_ed25519_signature(self, data: str) -> str:
-        """Generate Ed25519-like signature (simplified for demo)."""
-        # In production, use cryptography.hazmat.primitives.asymmetric.ed25519
-        # For now, generate a deterministic signature string
-        sig_hash = hashlib.sha256(data.encode()).hexdigest()
-        return f"sig:ed25519:{sig_hash[:32]}"
+    def generate_ed25519_signature(self, data: str, private_key: Optional[ed25519.Ed25519PrivateKey] = None) -> str:
+        """Generate authentic RFC 8032 Ed25519 signature over binary data payload."""
+        if private_key is None:
+            private_key = _STAR_SIGNING_KEY
+        sig_bytes = private_key.sign(data.encode("utf-8"))
+        return f"ed25519:{sig_bytes.hex()}"
 
     def write_receipt_to_db(self, receipt: Dict[str, Any]) -> bool:
         """Write receipt to SQLite ledger."""

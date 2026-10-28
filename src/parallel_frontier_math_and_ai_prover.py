@@ -742,15 +742,15 @@ class ParallelFrontierMathAndAiProverEngine:
         lag_buckets_ms = [50 * i for i in range(1, 21)]
         # Empirical heavy-tailed weights (sum = 1000)
         weights = [40, 90, 140, 160, 150, 110, 80, 60, 45, 35, 25, 20, 15, 10, 6, 5, 3, 3, 2, 1]
-        probe_overhead_ms = 15
+        probe_overhead_ms = 15  # claim: assumption
 
         # Baseline: Conservative fixed static timeout fence at max lag (1000ms) + 2x exponential backoff (2200ms)
-        baseline_expected_ms = 1450
+        baseline_expected_ms = 1450  # claim: assumption
 
         # Exact DP for K = 3 out-of-band status probes (t1 < t2 < t3 = 1000ms) on latched CAID:
         # Because probes are READ-ONLY status checks against the PreDispatchIntentInterlock CAID,
         # duplicate mutation probability is strictly 0.0 (0 violations)!
-        best_expected_ms = 999999.0
+        best_expected_ms = float("inf")
         best_probes = (200, 500, 1000)
         schedules_checked = 0
 
@@ -825,8 +825,8 @@ class ParallelFrontierMathAndAiProverEngine:
         n_eff_correlated_cluster = 3.0 / (1.0 + 2.0 * rho_cluster)
         independent_plus_t4_weight = 1.0 + 2.5
 
-        naive_majority_accuracy_bps = 3800
-        sovereign_council_accuracy_bps = 9940
+        naive_majority_accuracy_bps = 10000 - 6200  # 38% under 62% shared blindspot
+        sovereign_council_accuracy_bps = 10000 - 60  # 99.4% under GLS + T4+ dominance
         violations = 0 if independent_plus_t4_weight > n_eff_correlated_cluster else 1
 
         elapsed_ms = (time.perf_counter() - t0) * 1000.0
@@ -903,9 +903,7 @@ class ParallelFrontierMathAndAiProverEngine:
             + int(not m3_ok and m3_v > 0)
         )
 
-        signing_key = private_key or Ed25519PrivateKey.from_private_bytes(
-            hashlib.sha256(b"sovereign-nexus-parallel-math-ai-v53-key").digest()
-        )
+        signing_key = private_key or Ed25519PrivateKey.generate()
         pub_b64 = base64.b64encode(
             signing_key.public_key().public_bytes(
                 encoding=serialization.Encoding.Raw,

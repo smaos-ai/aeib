@@ -19,7 +19,7 @@
 - ✅ Zero latency local inference (Mac Studio cluster)
 - ✅ Cryptographically proven fail-closed safety
 - ✅ Auto-scaling to 50+ agents
-- ✅ Enterprise-grade orchestration
+- ✅ High-reliability orchestration
 - ✅ Formal verification (Creusot)
 
 **Revenue Model:** €100K per enterprise customer × 10 customers = €1M (Year 1)

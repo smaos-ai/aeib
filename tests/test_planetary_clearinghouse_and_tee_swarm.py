@@ -240,3 +240,106 @@ def test_banned_words_absence() -> None:
         text = Path(path_str).read_text(encoding="utf-8").lower()
         for word in banned:
             assert word not in text, f"Forbidden term '{word}' found in {path_str}"
+
+
+def test_planetary_clearinghouse_and_tee_swarm_mutation_boundaries() -> None:
+    import ast as _ast
+    import pytest
+    import src.planetary_clearinghouse_and_tee_swarm as pcts
+    from src.planetary_clearinghouse_and_tee_swarm import (
+        InductiveTransitionStep,
+        SemanticDeliverableCommitment,
+    )
+
+    tree = _ast.parse(Path(pcts.__file__).read_text(encoding="utf-8"))
+    found_exc = False
+    for node in _ast.walk(tree):
+        if isinstance(node, _ast.ExceptHandler) and node.type is not None and isinstance(node.type, _ast.Name):
+            for stmt in node.body:
+                if isinstance(stmt, _ast.Expr) and isinstance(stmt.value, _ast.Call):
+                    found_exc = True
+                    assert isinstance(stmt.value.args[0], _ast.Constant) and stmt.value.args[0].value == 0
+    assert found_exc is True
+
+    with pytest.raises(ValueError, match="Floats are forbidden"):
+        canonical_jcs({"a": 1.25})
+
+    assert SemanticDeliverableCommitment.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+    assert InductiveTransitionStep.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+    assert PlanetaryAgentClearinghouse.MIN_EAS_SCORE_FLOOR_BPS == 80 * 100
+
+    ch = PlanetaryAgentClearinghouse(Ed25519PrivateKey.generate())
+    with pytest.raises(ValueError, match="strictly positive"):
+        ch.deposit_collateral("did:buyer", 0)
+    assert ch.deposit_collateral("did:buyer", 1000) == 1000
+    assert ch.deposit_collateral("did:buyer", 500) == 1500
+
+    r_7999 = ch.register_and_escrow_trade("d0", "did:seller", "did:buyer", sha256_prefixed(b"x"), 500, 7999)
+    assert r_7999["allowed"] is False
+    r_8000 = ch.register_and_escrow_trade("d1", "did:seller", "did:buyer", sha256_prefixed(b"x"), 500, 8000)
+    assert r_8000["allowed"] is True
+    r_set = ch.settle_dvp_deliverable("d1", b"x")
+    assert r_set["settled"] is True
+    assert ch._escrow_balances["did:seller"] == 500
+
+    mfg_priv = Ed25519PrivateKey.generate()
+    engine = ConfidentialTeeSwarmAttestationEngine(
+        mfg_priv.public_key(),
+        frozenset({"sha384:pinned_m1"}),
+    )
+    ag_pub = Ed25519PrivateKey.generate().public_key().public_bytes_raw()
+    rep_bind = sha256_prefixed(ag_pub)
+
+    r_arch = engine.verify_and_admit_confidential_agent(
+        "did:a1",
+        ag_pub,
+        HardwareAttestationQuote("ARM_CCA", "sha384:pinned_m1", rep_bind, 5, "sig"),
+    )
+    assert r_arch["admitted"] is False and r_arch["halt_code"] == "HALT_TEE_UNKNOWN_ARCHITECTURE"
+
+    r_svn = engine.verify_and_admit_confidential_agent(
+        "did:a1",
+        ag_pub,
+        HardwareAttestationQuote("INTEL_TDX", "sha384:pinned_m1", rep_bind, 3, "sig"),
+    )
+    assert r_svn["admitted"] is False and r_svn["halt_code"] == "HALT_TEE_PLATFORM_SVN_OUTDATED"
+
+    r_mren = engine.verify_and_admit_confidential_agent(
+        "did:a1",
+        ag_pub,
+        HardwareAttestationQuote("INTEL_TDX", "sha384:unpinned", rep_bind, 5, "sig"),
+    )
+    assert r_mren["admitted"] is False and r_mren["halt_code"] == "HALT_TEE_ENCLAVE_MEASUREMENT_UNAUTHORIZED"
+
+    r_sig = engine.verify_and_admit_confidential_agent(
+        "did:a1",
+        ag_pub,
+        HardwareAttestationQuote("INTEL_TDX", "sha384:pinned_m1", rep_bind, 5, base64.b64encode(b"badsig").decode("ascii")),
+    )
+    assert r_sig["admitted"] is False and r_sig["halt_code"] == "HALT_TEE_HARDWARE_SIGNATURE_INVALID"
+
+    q_ok_body = {
+        "measurement_mrenclave": "sha384:pinned_m1",
+        "platform_svn": 4,
+        "report_data_binding": rep_bind,
+        "tee_architecture": "INTEL_TDX",
+    }
+    q_ok_sig = base64.b64encode(mfg_priv.sign(canonical_jcs(q_ok_body))).decode("ascii")
+    assert engine.verify_and_admit_confidential_agent(
+        "did:a1",
+        ag_pub,
+        HardwareAttestationQuote("INTEL_TDX", "sha384:pinned_m1", rep_bind, 4, q_ok_sig),
+    )["admitted"] is True
+
+    x_unatt = engine.verify_inter_agent_context_share("did:a1", "did:unattested")
+    assert x_unatt["allowed"] is False
+    assert x_unatt["source_attested"] is True and x_unatt["target_attested"] is False
+
+    kernel = Lean4TlaFormalVerificationKernel(
+        invariant_predicate=lambda s: s.get("v", -1) >= 0,
+        transition_relation=lambda s, _a, args: {"v": s["v"] + args.get("d", 0)},
+        proof_kernel_privkey=Ed25519PrivateKey.generate(),
+    )
+    r_base_fail = kernel.verify_inductive_trajectory("t_base", {"v": -1}, [])
+    assert r_base_fail["verified"] is False
+    assert r_base_fail["halt_code"] == "HALT_FORMAL_KERNEL_BASE_INVARIANT_VIOLATED"

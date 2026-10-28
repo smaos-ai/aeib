@@ -1,0 +1,41 @@
+{
+  "vector_id": "act-invalid-payee-tamper-002",
+  "description": "Payee parameter modified causing CAID and signature mismatch",
+  "input_payload": {
+    "act_version": "1",
+    "operation_id": "ff37610f-1cc8-42c9-aa99-04a51db8c7d7",
+    "idempotency_key": "766ec9d2-7aa4-4e20-a124-1358c8c4d8ae",
+    "tenant_id": "tenant-corp-101",
+    "principal": {
+      "agent_id": "agent-worker-01",
+      "subject_id": "user-corp-99",
+      "capability_id": "cap-refund-v1"
+    },
+    "action": {
+      "type": "refund.create",
+      "target": "payments.stripe",
+      "resource": "pi_tampered_recipient_99",
+      "parameters_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "constraints": {
+      "amount_minor": 15000,
+      "currency": "EUR",
+      "max_per_call_minor": 20000,
+      "policy_epoch": "2026-Q4",
+      "expires_at": 1798761600
+    },
+    "context": {
+      "harness_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "taint_tier": "TIER_1_REVIEWED",
+      "source_trace_id": "otel-trace-001"
+    },
+    "signature": {
+      "alg": "Ed25519",
+      "key_id": "key-oper-01",
+      "value": "3045022100e4b8..."
+    }
+  },
+  "expected_disposition": "NOT_DISPATCHED",
+  "expected_error_code": "ERR_INVALID_SIGNATURE",
+  "expected_budget_delta_minor": 0
+}

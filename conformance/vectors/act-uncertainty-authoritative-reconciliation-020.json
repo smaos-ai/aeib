@@ -1,0 +1,41 @@
+{
+  "vector_id": "act-uncertainty-authoritative-reconciliation-020",
+  "description": "Authoritative status probe reconciles indeterminate state to confirmed",
+  "input_payload": {
+    "act_version": "1",
+    "operation_id": "a753f0af-f9c2-4e43-82ec-33101595b23c",
+    "idempotency_key": "ee3b9c44-8ae7-4dfd-a443-778df35269a9",
+    "tenant_id": "tenant-corp-101",
+    "principal": {
+      "agent_id": "agent-worker-01",
+      "subject_id": "user-corp-99",
+      "capability_id": "cap-refund-v1"
+    },
+    "action": {
+      "type": "refund.create",
+      "target": "reconciliation.authoritative.probe",
+      "resource": "pi_3MtwBwLkdIwHu7ix28a3tqPa",
+      "parameters_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "constraints": {
+      "amount_minor": 15000,
+      "currency": "EUR",
+      "max_per_call_minor": 20000,
+      "policy_epoch": "2026-Q4",
+      "expires_at": 1798761600
+    },
+    "context": {
+      "harness_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "taint_tier": "TIER_1_REVIEWED",
+      "source_trace_id": "otel-trace-001"
+    },
+    "signature": {
+      "alg": "Ed25519",
+      "key_id": "key-oper-01",
+      "value": "3045022100e4b8..."
+    }
+  },
+  "expected_disposition": "CONFIRMED",
+  "expected_error_code": null,
+  "expected_budget_delta_minor": 15000
+}

@@ -1,4 +1,4 @@
-"""October 2026 Frontier Signals & Governed Agent-S4 Evolution Airlock (Section 28).
+"""October 2026 Frontier Signals & Governed Agent-S4 Evolution Airlock (Section 28 — Evaluated Prototype / Simulated Phonon Frame Scaffold).
 
 Synthesizes and operationalizes the 4 October 2026 AI engineering breakthroughs and
 threat signals in parallel:
@@ -195,8 +195,8 @@ class Sub50msDecisionAndCalibratedFocusEngine:
         )
 
         # 3. Gradium Phonon 31m 80ms frame / sub-7ms TTFA budget check
-        frame_budget_ms = 80.0
-        measured_synth_frame_ms = 4.2  # >19x faster than real-time
+        frame_budget_ms = 80.0  # claim: config
+        measured_synth_frame_ms = 4.2  # claim: assumption
 
         passed = (
             len(verdicts) == 400
@@ -210,8 +210,8 @@ class Sub50msDecisionAndCalibratedFocusEngine:
             "batch_400_decisions_count": len(verdicts),
             "batch_400_approved_count": approved_count,
             "batch_400_latency_ms": batch_latency_ms,
-            "ripl_p95_reference_ms": 34.6,
-            "cohere_rerank5_pro_reference_ms": 11700.0,
+            "ripl_p95_reference_ms": 34.6,  # claim: assumption
+            "cohere_rerank5_pro_reference_ms": 11700.0,  # claim: assumption
             "rerank_96_docs_result": rerank_res,
             "phonon_80ms_frame_budget_ok": measured_synth_frame_ms < frame_budget_ms,
         }
@@ -474,7 +474,7 @@ class Oct2026SupplyChainAndStorm0940DefenseGate:
             title="LiteLLM v1.107.0 Poison Quarantine, Node.js Brotli RCE Gate, & Storm-0940 Breaker",
             industry_baseline_metric=0.0,
             sovereign_verified_metric=10000.0,
-            improvement_bps=10000,
+            improvement_bps=10000 if passed else 0,
             checks_executed=6,
             violations_found=0 if passed else 1,
             passed=passed,
@@ -590,14 +590,14 @@ class DeterministicMultiLangSqliteAcidVerifier:
         passed_tests = sum(1 for v in verdicts if v["passed"] is True)
         pass_rate_bps = int(round(passed_tests / float(total_tests) * 10000))
         # GPT-6 Astra MultiLangBench reference = 87.4% (8,740 bps); COBOL = 72.1% (7,210 bps)
-        gpt6_astra_cobol_bps = 7210
+        gpt6_astra_cobol_bps = 7210  # claim: assumption
 
         passed = passed_tests == 20 and btree_sorted_ok and rollback_atomic_ok
         details = {
             "total_acid_and_cobol_tests": total_tests,
             "passed_tests": passed_tests,
             "pass_rate_bps": pass_rate_bps,
-            "gpt6_astra_multilang_avg_reference_bps": 8740,
+            "gpt6_astra_multilang_avg_reference_bps": 8740,  # claim: assumption
             "gpt6_astra_cobol_reference_bps": gpt6_astra_cobol_bps,
             "wal_commit_tip_sha256": commit_sha_1,
             "omniparse_verdict_bundle_caid": verdict_merkle_digest,
@@ -631,11 +631,7 @@ class ParallelOct2026FrontierSignalsEngine:
         cls, signing_key: Ed25519PrivateKey | None = None
     ) -> Dict[str, object]:
         if signing_key is None:
-            signing_key = Ed25519PrivateKey.from_private_bytes(
-                hashlib.sha256(
-                    b"SOVEREIGN_OCT2026_FRONTIER_SIGNALS_SEED"
-                ).digest()
-            )
+            signing_key = Ed25519PrivateKey.generate()
         t0 = time.perf_counter()
         tasks: List[Tuple[str, Callable[[], Oct2026SignalWorkerResult]]] = [
             (

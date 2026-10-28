@@ -260,6 +260,7 @@ class LocalControlledBoundaryCoordinator:
             "disposition": disposition,
             "operation_id": op_id,
             "timestamp_epoch": int(time.time()),
+            "alg": "Ed25519",
         }
         sig_bytes = self.boundary_privkey.sign(encode_jcs(body))
         signed_receipt = dict(body)

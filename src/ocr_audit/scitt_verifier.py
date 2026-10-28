@@ -39,23 +39,11 @@ from cryptography.exceptions import InvalidSignature
 
 def rfc8785_canonicalize(obj: Any) -> bytes:
     """Canonicalizes JSON data according to RFC 8785 JSON Canonicalization Scheme (JCS)."""
-    if isinstance(obj, dict):
-        # Sort keys by UTF-16 code units (ASCII alphanumeric sorts identically)
-        sorted_items = sorted(obj.items(), key=lambda kv: kv[0])
-        parts = [
-            f"{json.dumps(k, ensure_ascii=False)}:{rfc8785_canonicalize(v).decode('utf-8')}"
-            for k, v in sorted_items
-        ]
-        return ("{" + ",".join(parts) + "}").encode("utf-8")
-    elif isinstance(obj, list):
-        parts = [rfc8785_canonicalize(x).decode("utf-8") for x in obj]
-        return ("[" + ",".join(parts) + "]").encode("utf-8")
-    elif isinstance(obj, str):
-        return json.dumps(obj, ensure_ascii=False).encode("utf-8")
-    elif isinstance(obj, (int, float, bool)) or obj is None:
-        return json.dumps(obj).encode("utf-8")
-    else:
-        raise TypeError(f"Object of type {type(obj)} is not JCS-canonicalizable")
+    # Single in-package RFC 8785 implementation (UTF-16 key order, ECMAScript
+    # number formatting); see ocr_audit/tools/jcs_digest.py.
+    from .tools.jcs_digest import jcs_canonicalize_strict
+
+    return jcs_canonicalize_strict(obj)
 
 
 def jcs_sha256_digest(obj: Any) -> str:

@@ -567,7 +567,7 @@ def step6_negative_controls(n: int = 20, manifest: Optional[Dict[str, Any]] = No
 
     passed = len(errors) == 0
     if passed:
-        print("      [+] Negative control check PASSED (100% fail-closed).")
+        print(f"      [+] Negative control check PASSED ({len(negative_lines)}/{len(negative_lines)} fail-closed).")
     else:
         for e in errors:
             print(f"      [-] {e}")

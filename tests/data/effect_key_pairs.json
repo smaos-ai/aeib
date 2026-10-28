@@ -1,0 +1,2399 @@
+{
+ "description": "Hand-written labelled pairs for effect-key CAID evaluation. Every payload and label was written by hand for this prototype; it is NOT field data and says nothing about real traffic rates.",
+ "provenance": "hand-written edits over four base payloads (scratch builder kept with the agent session)",
+ "label_definitions": {
+  "same_effect": "both calls should produce one business effect (a retry/regeneration of the same intent)",
+  "different_effect": "both calls are intended, distinct effects; merging them would refuse a wanted effect"
+ },
+ "schemas": [
+  {
+   "tool": "payments.sepa_transfer",
+   "schema_id": "payments.sepa_transfer.effect",
+   "schema_version": "1",
+   "effect_class": "irreversible",
+   "identity_fields": [
+    {
+     "path": "debtor.iban",
+     "normalizer": "iban"
+    },
+    {
+     "path": "creditor.iban",
+     "normalizer": "iban"
+    },
+    {
+     "path": "amount_minor",
+     "normalizer": "minor_units"
+    },
+    {
+     "path": "currency",
+     "normalizer": "currency_iso4217"
+    },
+    {
+     "path": "end_to_end_id",
+     "normalizer": "exact_nfc"
+    }
+   ]
+  },
+  {
+   "tool": "email.send",
+   "schema_id": "email.send.effect",
+   "schema_version": "1",
+   "effect_class": "irreversible",
+   "identity_fields": [
+    {
+     "path": "from",
+     "normalizer": "casefold_nfc"
+    },
+    {
+     "path": "to",
+     "normalizer": "casefold_nfc"
+    },
+    {
+     "path": "template_id",
+     "normalizer": "exact_nfc"
+    },
+    {
+     "path": "campaign_ref",
+     "normalizer": "exact_nfc"
+    }
+   ]
+  },
+  {
+   "tool": "tickets.create",
+   "schema_id": "tickets.create.effect",
+   "schema_version": "1",
+   "effect_class": "compensable",
+   "identity_fields": [
+    {
+     "path": "project",
+     "normalizer": "casefold_nfc"
+    },
+    {
+     "path": "external_ref",
+     "normalizer": "exact_nfc"
+    }
+   ]
+  },
+  {
+   "tool": "storage.put_object",
+   "schema_id": "storage.put_object.effect",
+   "schema_version": "1",
+   "effect_class": "idempotent",
+   "identity_fields": [
+    {
+     "path": "bucket",
+     "normalizer": "exact_nfc"
+    },
+    {
+     "path": "object_key",
+     "normalizer": "exact_nfc"
+    },
+    {
+     "path": "content_sha256",
+     "normalizer": "casefold_nfc"
+    }
+   ]
+  }
+ ],
+ "pairs": [
+  {
+   "id": "pay-s01",
+   "label": "same_effect",
+   "category": "memo_reworded",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Payment for invoice 2026-0042",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "note": "regenerated memo wording"
+  },
+  {
+   "id": "pay-s02",
+   "label": "same_effect",
+   "category": "new_client_uuid",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "e7d1f0a2-9b3c-4d5e-8f60-718293a4b5c6",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "note": "fresh client request UUID after restore"
+  },
+  {
+   "id": "pay-s03",
+   "label": "same_effect",
+   "category": "new_timestamp",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:04:31Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "note": "regenerated timestamp"
+  },
+  {
+   "id": "pay-s04",
+   "label": "same_effect",
+   "category": "list_reordered",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "q4",
+     "ap"
+    ]
+   },
+   "note": "optional list items reordered"
+  },
+  {
+   "id": "pay-s05",
+   "label": "same_effect",
+   "category": "object_keys_reordered",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "notify_creditor": true,
+     "priority": "normal"
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "note": "object member order only; JCS sorts keys, so the full-payload CAID also matches"
+  },
+  {
+   "id": "pay-s06",
+   "label": "same_effect",
+   "category": "iban_compact",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89370400440532013000",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "note": "creditor IBAN without spaces"
+  },
+  {
+   "id": "pay-s07",
+   "label": "same_effect",
+   "category": "iban_lowercase_spaced",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "de89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "note": "creditor IBAN lower-case"
+  },
+  {
+   "id": "pay-s08",
+   "label": "same_effect",
+   "category": "currency_case",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "eur",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "note": "currency code lower-case"
+  },
+  {
+   "id": "pay-s09",
+   "label": "same_effect",
+   "category": "amount_digit_string",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": "125000",
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "note": "minor units as digit string"
+  },
+  {
+   "id": "pay-s10",
+   "label": "same_effect",
+   "category": "display_name_variant",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "ACME GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "note": "creditor display name differs; not an identity field"
+  },
+  {
+   "id": "pay-s11",
+   "label": "same_effect",
+   "category": "f8_regenerated_retry",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Settling invoice 2026-0042",
+    "client_request_id": "5a4b3c2d-1e0f-4a9b-8c7d-6e5f4a3b2c1d",
+    "requested_at": "2026-10-26T10:07:02Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "q4",
+     "ap"
+    ]
+   },
+   "note": "memo + UUID + timestamp + list order all regenerated (benchmark F8 shape)"
+  },
+  {
+   "id": "pay-s12",
+   "label": "same_effect",
+   "category": "extra_optional_field",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ],
+    "purpose_code": "SUPP"
+   },
+   "note": "regenerated call adds an optional purpose code"
+  },
+  {
+   "id": "pay-s13",
+   "label": "same_effect",
+   "category": "ref_trailing_space",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042 ",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "note": "business reference with trailing whitespace"
+  },
+  {
+   "id": "pay-s14",
+   "label": "same_effect",
+   "category": "hard_regenerated_business_ref",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042-R1",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "note": "HARD CASE: the agent also regenerated the business reference; effect key cannot merge this"
+  },
+  {
+   "id": "pay-s15",
+   "label": "same_effect",
+   "category": "hard_amount_major_units_float",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 1250.0,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "note": "HARD CASE: agent emitted major units as a float; normalizer refuses (fail closed)"
+  },
+  {
+   "id": "pay-s16",
+   "label": "same_effect",
+   "category": "hard_business_ref_dropped",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "note": "HARD CASE: regenerated call dropped the business reference; refused (missing identity field)"
+  },
+  {
+   "id": "pay-s17",
+   "label": "same_effect",
+   "category": "debtor_iban_spacing",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "NL91ABNA0417164300",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "note": "debtor IBAN compact"
+  },
+  {
+   "id": "pay-d01",
+   "label": "different_effect",
+   "category": "amount_off_by_one",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125001,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "note": "amount differs by one cent"
+  },
+  {
+   "id": "pay-d02",
+   "label": "different_effect",
+   "category": "amount_factor_ten",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 12500,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "note": "amount differs by 10x"
+  },
+  {
+   "id": "pay-d03",
+   "label": "different_effect",
+   "category": "different_creditor",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "GB82 WEST 1234 5698 7654 32",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "note": "different creditor account, same display name"
+  },
+  {
+   "id": "pay-d04",
+   "label": "different_effect",
+   "category": "different_creditor_2",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "FR14 2004 1010 0505 0001 3M02 606",
+     "name": "Acme France SAS"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "note": "different creditor account"
+  },
+  {
+   "id": "pay-d05",
+   "label": "different_effect",
+   "category": "different_currency",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "USD",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "note": "same digits, different currency"
+  },
+  {
+   "id": "pay-d06",
+   "label": "different_effect",
+   "category": "different_business_ref",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0043",
+    "remittance_info": "Invoice 2026-0043, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "note": "next invoice, same amount and creditor"
+  },
+  {
+   "id": "pay-d07",
+   "label": "different_effect",
+   "category": "intentional_identical_rent",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "RENT-2026-10",
+    "remittance_info": "Monthly rent",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "RENT-2026-11",
+    "remittance_info": "Monthly rent",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "note": "two intended identical payments; only the business reference differs"
+  },
+  {
+   "id": "pay-d08",
+   "label": "different_effect",
+   "category": "intentional_split_payment",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-77-PART1",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-77-PART2",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "note": "split payment, two identical halves with distinct refs"
+  },
+  {
+   "id": "pay-d09",
+   "label": "different_effect",
+   "category": "refund_sign",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": -125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "note": "reversal with negative amount"
+  },
+  {
+   "id": "pay-d10",
+   "label": "different_effect",
+   "category": "amount_typo_same_incidentals",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 152000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "note": "every incidental field identical, amount edited"
+  },
+  {
+   "id": "pay-d11",
+   "label": "different_effect",
+   "category": "different_debtor",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "BE68 5390 0754 7034",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "note": "same payment debited from a different account"
+  },
+  {
+   "id": "pay-d12",
+   "label": "different_effect",
+   "category": "creditor_iban_checksum_broken",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 01",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 125000,
+    "currency": "EUR",
+    "end_to_end_id": "INV-2026-0042",
+    "remittance_info": "Invoice 2026-0042, thank you",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "note": "one digit changed; mod-97 fails, so the effect key refuses (fail closed)"
+  },
+  {
+   "id": "pay-d13",
+   "label": "different_effect",
+   "category": "intentional_identical_payroll_refs",
+   "tool": "payments.sepa_transfer",
+   "a": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 300000,
+    "currency": "EUR",
+    "end_to_end_id": "PAY-2026-10-E001",
+    "remittance_info": "Salary October",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "b": {
+    "debtor": {
+     "iban": "NL91 ABNA 0417 1643 00",
+     "name": "Sovereign Test BV"
+    },
+    "creditor": {
+     "iban": "DE89 3704 0044 0532 0130 00",
+     "name": "Acme GmbH"
+    },
+    "amount_minor": 300000,
+    "currency": "EUR",
+    "end_to_end_id": "PAY-2026-10-E002",
+    "remittance_info": "Salary October",
+    "client_request_id": "0b6f6c4e-5d1a-4f0e-9a51-2f0e7c9d1a11",
+    "requested_at": "2026-10-26T10:00:00Z",
+    "options": {
+     "priority": "normal",
+     "notify_creditor": true
+    },
+    "labels": [
+     "ap",
+     "q4"
+    ]
+   },
+   "note": "two identical salary lines to one account (e.g. two contracts), distinct refs"
+  },
+  {
+   "id": "mail-s01",
+   "label": "same_effect",
+   "category": "subject_reworded",
+   "tool": "email.send",
+   "a": {
+    "from": "billing@sovereign.example",
+    "to": "jane.doe@example.com",
+    "template_id": "tmpl-invoice-reminder",
+    "campaign_ref": "REM-2026-10-0042",
+    "subject": "Friendly reminder: invoice 0042",
+    "body": "Hi Jane, this is a reminder that invoice 0042 is due.",
+    "client_request_id": "3c1d2b8a-77e0-4c55-9a0b-1b2c3d4e5f60",
+    "sent_at": "2026-10-26T10:00:00Z",
+    "cc": [
+     "ar@sovereign.example",
+     "jane.manager@example.com"
+    ]
+   },
+   "b": {
+    "from": "billing@sovereign.example",
+    "to": "jane.doe@example.com",
+    "template_id": "tmpl-invoice-reminder",
+    "campaign_ref": "REM-2026-10-0042",
+    "subject": "Reminder: invoice 0042 is due",
+    "body": "Hi Jane, this is a reminder that invoice 0042 is due.",
+    "client_request_id": "3c1d2b8a-77e0-4c55-9a0b-1b2c3d4e5f60",
+    "sent_at": "2026-10-26T10:00:00Z",
+    "cc": [
+     "ar@sovereign.example",
+     "jane.manager@example.com"
+    ]
+   },
+   "note": "regenerated subject"
+  },
+  {
+   "id": "mail-s02",
+   "label": "same_effect",
+   "category": "recipient_case",
+   "tool": "email.send",
+   "a": {
+    "from": "billing@sovereign.example",
+    "to": "jane.doe@example.com",
+    "template_id": "tmpl-invoice-reminder",
+    "campaign_ref": "REM-2026-10-0042",
+    "subject": "Friendly reminder: invoice 0042",
+    "body": "Hi Jane, this is a reminder that invoice 0042 is due.",
+    "client_request_id": "3c1d2b8a-77e0-4c55-9a0b-1b2c3d4e5f60",
+    "sent_at": "2026-10-26T10:00:00Z",
+    "cc": [
+     "ar@sovereign.example",
+     "jane.manager@example.com"
+    ]
+   },
+   "b": {
+    "from": "billing@sovereign.example",
+    "to": "Jane.Doe@Example.com",
+    "template_id": "tmpl-invoice-reminder",
+    "campaign_ref": "REM-2026-10-0042",
+    "subject": "Friendly reminder: invoice 0042",
+    "body": "Hi Jane, this is a reminder that invoice 0042 is due.",
+    "client_request_id": "3c1d2b8a-77e0-4c55-9a0b-1b2c3d4e5f60",
+    "sent_at": "2026-10-26T10:00:00Z",
+    "cc": [
+     "ar@sovereign.example",
+     "jane.manager@example.com"
+    ]
+   },
+   "note": "address case"
+  },
+  {
+   "id": "mail-s03",
+   "label": "same_effect",
+   "category": "new_uuid_timestamp",
+   "tool": "email.send",
+   "a": {
+    "from": "billing@sovereign.example",
+    "to": "jane.doe@example.com",
+    "template_id": "tmpl-invoice-reminder",
+    "campaign_ref": "REM-2026-10-0042",
+    "subject": "Friendly reminder: invoice 0042",
+    "body": "Hi Jane, this is a reminder that invoice 0042 is due.",
+    "client_request_id": "3c1d2b8a-77e0-4c55-9a0b-1b2c3d4e5f60",
+    "sent_at": "2026-10-26T10:00:00Z",
+    "cc": [
+     "ar@sovereign.example",
+     "jane.manager@example.com"
+    ]
+   },
+   "b": {
+    "from": "billing@sovereign.example",
+    "to": "jane.doe@example.com",
+    "template_id": "tmpl-invoice-reminder",
+    "campaign_ref": "REM-2026-10-0042",
+    "subject": "Friendly reminder: invoice 0042",
+    "body": "Hi Jane, this is a reminder that invoice 0042 is due.",
+    "client_request_id": "9e8d7c6b-5a49-4382-9170-6f5e4d3c2b1a",
+    "sent_at": "2026-10-26T10:05:00Z",
+    "cc": [
+     "ar@sovereign.example",
+     "jane.manager@example.com"
+    ]
+   },
+   "note": "fresh UUID and timestamp"
+  },
+  {
+   "id": "mail-s04",
+   "label": "same_effect",
+   "category": "body_reworded_cc_reordered",
+   "tool": "email.send",
+   "a": {
+    "from": "billing@sovereign.example",
+    "to": "jane.doe@example.com",
+    "template_id": "tmpl-invoice-reminder",
+    "campaign_ref": "REM-2026-10-0042",
+    "subject": "Friendly reminder: invoice 0042",
+    "body": "Hi Jane, this is a reminder that invoice 0042 is due.",
+    "client_request_id": "3c1d2b8a-77e0-4c55-9a0b-1b2c3d4e5f60",
+    "sent_at": "2026-10-26T10:00:00Z",
+    "cc": [
+     "ar@sovereign.example",
+     "jane.manager@example.com"
+    ]
+   },
+   "b": {
+    "from": "billing@sovereign.example",
+    "to": "jane.doe@example.com",
+    "template_id": "tmpl-invoice-reminder",
+    "campaign_ref": "REM-2026-10-0042",
+    "subject": "Friendly reminder: invoice 0042",
+    "body": "Hello Jane, invoice 0042 is now due.",
+    "client_request_id": "3c1d2b8a-77e0-4c55-9a0b-1b2c3d4e5f60",
+    "sent_at": "2026-10-26T10:00:00Z",
+    "cc": [
+     "jane.manager@example.com",
+     "ar@sovereign.example"
+    ]
+   },
+   "note": "body wording and cc order"
+  },
+  {
+   "id": "mail-s05",
+   "label": "same_effect",
+   "category": "recipient_nfd_vs_nfc",
+   "tool": "email.send",
+   "a": {
+    "from": "billing@sovereign.example",
+    "to": "jos\u00e9@example.com",
+    "template_id": "tmpl-invoice-reminder",
+    "campaign_ref": "REM-2026-10-0042",
+    "subject": "Friendly reminder: invoice 0042",
+    "body": "Hi Jane, this is a reminder that invoice 0042 is due.",
+    "client_request_id": "3c1d2b8a-77e0-4c55-9a0b-1b2c3d4e5f60",
+    "sent_at": "2026-10-26T10:00:00Z",
+    "cc": [
+     "ar@sovereign.example",
+     "jane.manager@example.com"
+    ]
+   },
+   "b": {
+    "from": "billing@sovereign.example",
+    "to": "jose\u0301@example.com",
+    "template_id": "tmpl-invoice-reminder",
+    "campaign_ref": "REM-2026-10-0042",
+    "subject": "Friendly reminder: invoice 0042",
+    "body": "Hi Jane, this is a reminder that invoice 0042 is due.",
+    "client_request_id": "3c1d2b8a-77e0-4c55-9a0b-1b2c3d4e5f60",
+    "sent_at": "2026-10-26T10:00:00Z",
+    "cc": [
+     "ar@sovereign.example",
+     "jane.manager@example.com"
+    ]
+   },
+   "note": "precomposed vs decomposed e-acute"
+  },
+  {
+   "id": "mail-d01",
+   "label": "different_effect",
+   "category": "different_recipient",
+   "tool": "email.send",
+   "a": {
+    "from": "billing@sovereign.example",
+    "to": "jane.doe@example.com",
+    "template_id": "tmpl-invoice-reminder",
+    "campaign_ref": "REM-2026-10-0042",
+    "subject": "Friendly reminder: invoice 0042",
+    "body": "Hi Jane, this is a reminder that invoice 0042 is due.",
+    "client_request_id": "3c1d2b8a-77e0-4c55-9a0b-1b2c3d4e5f60",
+    "sent_at": "2026-10-26T10:00:00Z",
+    "cc": [
+     "ar@sovereign.example",
+     "jane.manager@example.com"
+    ]
+   },
+   "b": {
+    "from": "billing@sovereign.example",
+    "to": "john.roe@example.com",
+    "template_id": "tmpl-invoice-reminder",
+    "campaign_ref": "REM-2026-10-0042",
+    "subject": "Friendly reminder: invoice 0042",
+    "body": "Hi Jane, this is a reminder that invoice 0042 is due.",
+    "client_request_id": "3c1d2b8a-77e0-4c55-9a0b-1b2c3d4e5f60",
+    "sent_at": "2026-10-26T10:00:00Z",
+    "cc": [
+     "ar@sovereign.example",
+     "jane.manager@example.com"
+    ]
+   },
+   "note": "different person"
+  },
+  {
+   "id": "mail-d02",
+   "label": "different_effect",
+   "category": "different_template",
+   "tool": "email.send",
+   "a": {
+    "from": "billing@sovereign.example",
+    "to": "jane.doe@example.com",
+    "template_id": "tmpl-invoice-reminder",
+    "campaign_ref": "REM-2026-10-0042",
+    "subject": "Friendly reminder: invoice 0042",
+    "body": "Hi Jane, this is a reminder that invoice 0042 is due.",
+    "client_request_id": "3c1d2b8a-77e0-4c55-9a0b-1b2c3d4e5f60",
+    "sent_at": "2026-10-26T10:00:00Z",
+    "cc": [
+     "ar@sovereign.example",
+     "jane.manager@example.com"
+    ]
+   },
+   "b": {
+    "from": "billing@sovereign.example",
+    "to": "jane.doe@example.com",
+    "template_id": "tmpl-invoice-final-notice",
+    "campaign_ref": "REM-2026-10-0042",
+    "subject": "Friendly reminder: invoice 0042",
+    "body": "Hi Jane, this is a reminder that invoice 0042 is due.",
+    "client_request_id": "3c1d2b8a-77e0-4c55-9a0b-1b2c3d4e5f60",
+    "sent_at": "2026-10-26T10:00:00Z",
+    "cc": [
+     "ar@sovereign.example",
+     "jane.manager@example.com"
+    ]
+   },
+   "note": "different template"
+  },
+  {
+   "id": "mail-d03",
+   "label": "different_effect",
+   "category": "second_reminder",
+   "tool": "email.send",
+   "a": {
+    "from": "billing@sovereign.example",
+    "to": "jane.doe@example.com",
+    "template_id": "tmpl-invoice-reminder",
+    "campaign_ref": "REM-2026-10-0042",
+    "subject": "Friendly reminder: invoice 0042",
+    "body": "Hi Jane, this is a reminder that invoice 0042 is due.",
+    "client_request_id": "3c1d2b8a-77e0-4c55-9a0b-1b2c3d4e5f60",
+    "sent_at": "2026-10-26T10:00:00Z",
+    "cc": [
+     "ar@sovereign.example",
+     "jane.manager@example.com"
+    ]
+   },
+   "b": {
+    "from": "billing@sovereign.example",
+    "to": "jane.doe@example.com",
+    "template_id": "tmpl-invoice-reminder",
+    "campaign_ref": "REM-2026-10-0042-2",
+    "subject": "Friendly reminder: invoice 0042",
+    "body": "Hi Jane, this is a reminder that invoice 0042 is due.",
+    "client_request_id": "3c1d2b8a-77e0-4c55-9a0b-1b2c3d4e5f60",
+    "sent_at": "2026-10-26T10:00:00Z",
+    "cc": [
+     "ar@sovereign.example",
+     "jane.manager@example.com"
+    ]
+   },
+   "note": "intended second reminder, otherwise identical"
+  },
+  {
+   "id": "mail-d04",
+   "label": "different_effect",
+   "category": "plus_address",
+   "tool": "email.send",
+   "a": {
+    "from": "billing@sovereign.example",
+    "to": "jane.doe@example.com",
+    "template_id": "tmpl-invoice-reminder",
+    "campaign_ref": "REM-2026-10-0042",
+    "subject": "Friendly reminder: invoice 0042",
+    "body": "Hi Jane, this is a reminder that invoice 0042 is due.",
+    "client_request_id": "3c1d2b8a-77e0-4c55-9a0b-1b2c3d4e5f60",
+    "sent_at": "2026-10-26T10:00:00Z",
+    "cc": [
+     "ar@sovereign.example",
+     "jane.manager@example.com"
+    ]
+   },
+   "b": {
+    "from": "billing@sovereign.example",
+    "to": "jane.doe+billing@example.com",
+    "template_id": "tmpl-invoice-reminder",
+    "campaign_ref": "REM-2026-10-0042",
+    "subject": "Friendly reminder: invoice 0042",
+    "body": "Hi Jane, this is a reminder that invoice 0042 is due.",
+    "client_request_id": "3c1d2b8a-77e0-4c55-9a0b-1b2c3d4e5f60",
+    "sent_at": "2026-10-26T10:00:00Z",
+    "cc": [
+     "ar@sovereign.example",
+     "jane.manager@example.com"
+    ]
+   },
+   "note": "different mailbox via plus tag"
+  },
+  {
+   "id": "mail-d05",
+   "label": "different_effect",
+   "category": "different_sender",
+   "tool": "email.send",
+   "a": {
+    "from": "billing@sovereign.example",
+    "to": "jane.doe@example.com",
+    "template_id": "tmpl-invoice-reminder",
+    "campaign_ref": "REM-2026-10-0042",
+    "subject": "Friendly reminder: invoice 0042",
+    "body": "Hi Jane, this is a reminder that invoice 0042 is due.",
+    "client_request_id": "3c1d2b8a-77e0-4c55-9a0b-1b2c3d4e5f60",
+    "sent_at": "2026-10-26T10:00:00Z",
+    "cc": [
+     "ar@sovereign.example",
+     "jane.manager@example.com"
+    ]
+   },
+   "b": {
+    "from": "support@sovereign.example",
+    "to": "jane.doe@example.com",
+    "template_id": "tmpl-invoice-reminder",
+    "campaign_ref": "REM-2026-10-0042",
+    "subject": "Friendly reminder: invoice 0042",
+    "body": "Hi Jane, this is a reminder that invoice 0042 is due.",
+    "client_request_id": "3c1d2b8a-77e0-4c55-9a0b-1b2c3d4e5f60",
+    "sent_at": "2026-10-26T10:00:00Z",
+    "cc": [
+     "ar@sovereign.example",
+     "jane.manager@example.com"
+    ]
+   },
+   "note": "different sending identity"
+  },
+  {
+   "id": "tick-s01",
+   "label": "same_effect",
+   "category": "title_reworded",
+   "tool": "tickets.create",
+   "a": {
+    "project": "OPS",
+    "external_ref": "ALERT-88812",
+    "title": "Disk usage above 90% on db-3",
+    "description": "Alertmanager fired DiskUsageHigh for db-3.",
+    "labels": [
+     "disk",
+     "db"
+    ],
+    "client_request_id": "a1b2c3d4-0000-4000-8000-000000000001"
+   },
+   "b": {
+    "project": "OPS",
+    "external_ref": "ALERT-88812",
+    "title": "db-3 disk usage over 90%",
+    "description": "Alertmanager fired DiskUsageHigh for db-3.",
+    "labels": [
+     "disk",
+     "db"
+    ],
+    "client_request_id": "a1b2c3d4-0000-4000-8000-000000000001"
+   },
+   "note": "title"
+  },
+  {
+   "id": "tick-s02",
+   "label": "same_effect",
+   "category": "project_case",
+   "tool": "tickets.create",
+   "a": {
+    "project": "OPS",
+    "external_ref": "ALERT-88812",
+    "title": "Disk usage above 90% on db-3",
+    "description": "Alertmanager fired DiskUsageHigh for db-3.",
+    "labels": [
+     "disk",
+     "db"
+    ],
+    "client_request_id": "a1b2c3d4-0000-4000-8000-000000000001"
+   },
+   "b": {
+    "project": "ops",
+    "external_ref": "ALERT-88812",
+    "title": "Disk usage above 90% on db-3",
+    "description": "Alertmanager fired DiskUsageHigh for db-3.",
+    "labels": [
+     "disk",
+     "db"
+    ],
+    "client_request_id": "a1b2c3d4-0000-4000-8000-000000000001"
+   },
+   "note": "project key case"
+  },
+  {
+   "id": "tick-s03",
+   "label": "same_effect",
+   "category": "description_labels",
+   "tool": "tickets.create",
+   "a": {
+    "project": "OPS",
+    "external_ref": "ALERT-88812",
+    "title": "Disk usage above 90% on db-3",
+    "description": "Alertmanager fired DiskUsageHigh for db-3.",
+    "labels": [
+     "disk",
+     "db"
+    ],
+    "client_request_id": "a1b2c3d4-0000-4000-8000-000000000001"
+   },
+   "b": {
+    "project": "OPS",
+    "external_ref": "ALERT-88812",
+    "title": "Disk usage above 90% on db-3",
+    "description": "DiskUsageHigh alert on db-3.",
+    "labels": [
+     "db",
+     "disk"
+    ],
+    "client_request_id": "a1b2c3d4-0000-4000-8000-000000000002"
+   },
+   "note": "description, label order, UUID"
+  },
+  {
+   "id": "tick-d01",
+   "label": "different_effect",
+   "category": "different_alert",
+   "tool": "tickets.create",
+   "a": {
+    "project": "OPS",
+    "external_ref": "ALERT-88812",
+    "title": "Disk usage above 90% on db-3",
+    "description": "Alertmanager fired DiskUsageHigh for db-3.",
+    "labels": [
+     "disk",
+     "db"
+    ],
+    "client_request_id": "a1b2c3d4-0000-4000-8000-000000000001"
+   },
+   "b": {
+    "project": "OPS",
+    "external_ref": "ALERT-88813",
+    "title": "Disk usage above 90% on db-3",
+    "description": "Alertmanager fired DiskUsageHigh for db-3.",
+    "labels": [
+     "disk",
+     "db"
+    ],
+    "client_request_id": "a1b2c3d4-0000-4000-8000-000000000001"
+   },
+   "note": "next alert"
+  },
+  {
+   "id": "tick-d02",
+   "label": "different_effect",
+   "category": "different_project",
+   "tool": "tickets.create",
+   "a": {
+    "project": "OPS",
+    "external_ref": "ALERT-88812",
+    "title": "Disk usage above 90% on db-3",
+    "description": "Alertmanager fired DiskUsageHigh for db-3.",
+    "labels": [
+     "disk",
+     "db"
+    ],
+    "client_request_id": "a1b2c3d4-0000-4000-8000-000000000001"
+   },
+   "b": {
+    "project": "SEC",
+    "external_ref": "ALERT-88812",
+    "title": "Disk usage above 90% on db-3",
+    "description": "Alertmanager fired DiskUsageHigh for db-3.",
+    "labels": [
+     "disk",
+     "db"
+    ],
+    "client_request_id": "a1b2c3d4-0000-4000-8000-000000000001"
+   },
+   "note": "same alert filed in SEC"
+  },
+  {
+   "id": "tick-d03",
+   "label": "different_effect",
+   "category": "identical_text_distinct_refs",
+   "tool": "tickets.create",
+   "a": {
+    "project": "OPS",
+    "external_ref": "ALERT-9001",
+    "title": "Disk usage above 90% on db-3",
+    "description": "Alertmanager fired DiskUsageHigh for db-3.",
+    "labels": [
+     "disk",
+     "db"
+    ],
+    "client_request_id": "a1b2c3d4-0000-4000-8000-000000000001"
+   },
+   "b": {
+    "project": "OPS",
+    "external_ref": "ALERT-9002",
+    "title": "Disk usage above 90% on db-3",
+    "description": "Alertmanager fired DiskUsageHigh for db-3.",
+    "labels": [
+     "disk",
+     "db"
+    ],
+    "client_request_id": "a1b2c3d4-0000-4000-8000-000000000001"
+   },
+   "note": "two firings with identical text"
+  },
+  {
+   "id": "obj-s01",
+   "label": "same_effect",
+   "category": "metadata_changed",
+   "tool": "storage.put_object",
+   "a": {
+    "bucket": "reports",
+    "object_key": "2026/10/ledger-summary.json",
+    "content_sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+    "metadata": {
+     "uploaded_by": "agent-7",
+     "uploaded_at": "2026-10-26T10:00:00Z"
+    }
+   },
+   "b": {
+    "bucket": "reports",
+    "object_key": "2026/10/ledger-summary.json",
+    "content_sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+    "metadata": {
+     "uploaded_by": "agent-7",
+     "uploaded_at": "2026-10-26T10:06:00Z"
+    }
+   },
+   "note": "upload timestamp"
+  },
+  {
+   "id": "obj-s02",
+   "label": "same_effect",
+   "category": "hash_case",
+   "tool": "storage.put_object",
+   "a": {
+    "bucket": "reports",
+    "object_key": "2026/10/ledger-summary.json",
+    "content_sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+    "metadata": {
+     "uploaded_by": "agent-7",
+     "uploaded_at": "2026-10-26T10:00:00Z"
+    }
+   },
+   "b": {
+    "bucket": "reports",
+    "object_key": "2026/10/ledger-summary.json",
+    "content_sha256": "9F86D081884C7D659A2FEAA0C55AD015A3BF4F1B2B0B822CD15D6C15B0F00A08",
+    "metadata": {
+     "uploaded_by": "agent-7",
+     "uploaded_at": "2026-10-26T10:00:00Z"
+    }
+   },
+   "note": "hex case"
+  },
+  {
+   "id": "obj-d01",
+   "label": "different_effect",
+   "category": "different_content",
+   "tool": "storage.put_object",
+   "a": {
+    "bucket": "reports",
+    "object_key": "2026/10/ledger-summary.json",
+    "content_sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+    "metadata": {
+     "uploaded_by": "agent-7",
+     "uploaded_at": "2026-10-26T10:00:00Z"
+    }
+   },
+   "b": {
+    "bucket": "reports",
+    "object_key": "2026/10/ledger-summary.json",
+    "content_sha256": "60303ae22b998861bce3b28f33eec1be758a213c86c93c076dbe9f558c11c752",
+    "metadata": {
+     "uploaded_by": "agent-7",
+     "uploaded_at": "2026-10-26T10:00:00Z"
+    }
+   },
+   "note": "new content"
+  },
+  {
+   "id": "obj-d02",
+   "label": "different_effect",
+   "category": "different_key",
+   "tool": "storage.put_object",
+   "a": {
+    "bucket": "reports",
+    "object_key": "2026/10/ledger-summary.json",
+    "content_sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+    "metadata": {
+     "uploaded_by": "agent-7",
+     "uploaded_at": "2026-10-26T10:00:00Z"
+    }
+   },
+   "b": {
+    "bucket": "reports",
+    "object_key": "2026/11/ledger-summary.json",
+    "content_sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+    "metadata": {
+     "uploaded_by": "agent-7",
+     "uploaded_at": "2026-10-26T10:00:00Z"
+    }
+   },
+   "note": "other key"
+  },
+  {
+   "id": "obj-d03",
+   "label": "different_effect",
+   "category": "different_bucket",
+   "tool": "storage.put_object",
+   "a": {
+    "bucket": "reports",
+    "object_key": "2026/10/ledger-summary.json",
+    "content_sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+    "metadata": {
+     "uploaded_by": "agent-7",
+     "uploaded_at": "2026-10-26T10:00:00Z"
+    }
+   },
+   "b": {
+    "bucket": "reports-archive",
+    "object_key": "2026/10/ledger-summary.json",
+    "content_sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+    "metadata": {
+     "uploaded_by": "agent-7",
+     "uploaded_at": "2026-10-26T10:00:00Z"
+    }
+   },
+   "note": "other bucket"
+  }
+ ]
+}

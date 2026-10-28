@@ -299,3 +299,242 @@ def test_sovereign_agent_blueprint_and_beads_frontier_and_banned_words() -> None
         text = Path(fpath).read_text(encoding="utf-8").lower()
         for word in banned:
             assert word not in text, f"Banned word '{word}' found in {fpath}"
+
+
+def _assert_module_ast_invariants(mod: object) -> None:
+    import ast as _ast
+
+    src_text = Path(getattr(mod, "__file__")).read_text(encoding="utf-8")
+    tree = _ast.parse(src_text)
+    for node in _ast.walk(tree):
+        if isinstance(node, _ast.ExceptHandler):
+            for stmt in node.body:
+                if (
+                    isinstance(stmt, _ast.Expr)
+                    and isinstance(stmt.value, _ast.Call)
+                    and isinstance(stmt.value.func, _ast.Attribute)
+                    and stmt.value.func.attr == "insert"
+                ):
+                    assert isinstance(stmt.value.args[0], _ast.Constant)
+                    assert stmt.value.args[0].value == 0
+                    parents_arg = stmt.value.args[1]
+                    assert isinstance(parents_arg, _ast.Call)
+                    sub = parents_arg.args[0]
+                    assert isinstance(sub, _ast.Subscript)
+                    assert isinstance(sub.slice, _ast.Constant)
+                    assert sub.slice.value == 1
+        if isinstance(node, _ast.Call) and isinstance(node.func, _ast.Attribute) and node.func.attr == "mkdir":
+            for kw in node.keywords:
+                if kw.arg == "parents":
+                    assert isinstance(kw.value, _ast.Constant) and kw.value.value is True
+        if isinstance(node, _ast.FunctionDef) and node.name == "run_self_test":
+            for sub_node in _ast.walk(node):
+                if isinstance(sub_node, _ast.Assert) and isinstance(sub_node.test, _ast.BoolOp):
+                    assert isinstance(sub_node.test.op, _ast.And)
+
+    last_stmt = tree.body[-1]
+    assert isinstance(last_stmt, _ast.If)
+    assert isinstance(last_stmt.test, _ast.Compare)
+    assert isinstance(last_stmt.test.ops[0], _ast.Eq)
+    assert isinstance(last_stmt.test.comparators[0], _ast.Constant)
+    assert last_stmt.test.comparators[0].value == "__main__"
+
+
+def test_section19_mutation_boundary_and_self_tests() -> None:
+    import sys as _sys
+
+    import src.sovereign_agent_blueprint as sab
+    import tools.aeib_orca_caprock_enforcer as orca
+    import tools.builder_breaker_adversarial_engine as bba
+    import tools.credential_starvation_gateway as csg
+
+    for mod in (csg, bba, orca, sab):
+        _assert_module_ast_invariants(mod)
+        assert getattr(mod, "sha256_prefixed")(b"abc").startswith("sha256:")
+        assert len(getattr(mod, "sha256_prefixed")(b"abc")) == 7 + 64
+        with pytest.raises(ValueError, match="FLOAT_FORBIDDEN"):
+            getattr(mod, "canonical_jcs_bytes")({"x": 1.25})
+        with pytest.raises(ValueError, match="ERR_NON_STRING_KEY"):
+            getattr(mod, "canonical_jcs_bytes")({1: "bad"})  # type: ignore[dict-item]
+
+    # 1. Credential Starvation Gateway boundaries & self-test trace
+    assert csg.PhantomSecretBinding.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+    assert csg.PackageProvenanceArtifact.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+    assert csg.EgressProxyRequest.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+    assert csg.SupplyChainProvenanceGate().min_cooldown_hours == 2 * 24
+
+    seen_csg: dict[str, object] = {}
+
+    def _trace_csg(frame: object, event: str, arg: object) -> object:
+        f_code = getattr(frame, "f_code", None)
+        if f_code is not None and f_code.co_name == "run_self_test":
+            f_locals = getattr(frame, "f_locals", {})
+            if "sc_gate" in f_locals:
+                seen_csg["cooldown"] = f_locals["sc_gate"].min_cooldown_hours
+        if f_code is not None and f_code.co_name == "evaluate_package" and event == "call":
+            f_locals = getattr(frame, "f_locals", {})
+            if "artifact" in f_locals:
+                seen_csg["release_age"] = f_locals["artifact"].release_age_hours
+        return _trace_csg
+
+    _sys.settrace(_trace_csg)
+    try:
+        csg.run_self_test()
+    finally:
+        _sys.settrace(None)
+    assert seen_csg.get("cooldown") == 2 * 24
+    assert seen_csg.get("release_age") == 2
+
+    sup_priv = Ed25519PrivateKey.generate()
+    b5 = csg.PhantomSecretBinding("K5", "PH5", "12345", "H5")
+    b4 = csg.PhantomSecretBinding("K4", "PH4", "1234", "H4")
+    gw5 = csg.CredentialStarvationGateway([b5, b4], sup_priv.public_key())
+    ok5, code5, _ = gw5.intercept_and_forward_egress(
+        csg.EgressProxyRequest("op", "ag", "https://a.example", "POST", {}, {"x": "12345"}, "sha256:0", "AA==")
+    )
+    assert ok5 is False and code5 == "HALT_CREDENTIAL_STARVATION_LEAK_DETECTED"
+    caid4 = gw5.compute_request_caid("op", "ag", "https://a.example", "POST", {}, {"x": "1234"})
+    sig4 = base64.b64encode(sup_priv.sign(caid4.encode("utf-8"))).decode("ascii")
+    ok4, code4, pkt4 = gw5.intercept_and_forward_egress(
+        csg.EgressProxyRequest("op", "ag", "https://a.example", "POST", {}, {"x": "1234"}, caid4, sig4)
+    )
+    assert ok4 is True and code4 == "SUCCESS_IN_FLIGHT_CREDENTIAL_INJECTED" and pkt4["verified_caid"] == caid4
+    ok_badsig, code_badsig, pkt_badsig = gw5.intercept_and_forward_egress(
+        csg.EgressProxyRequest("op", "ag", "https://a.example", "POST", {}, {"x": "1234"}, caid4, sig4 + "!!")
+    )
+    assert ok_badsig is False and code_badsig == "HALT_CREDENTIAL_GATEWAY_INVALID_WARRANT_SIGNATURE" and pkt_badsig == {}
+
+    # 2. Builder-Breaker & TokenEconomizer boundaries
+    assert bba.CandidateHarnessProposal.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+    assert bba.BreakerFalsificationResult.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+    assert bba.AdversarialAuditVerdict.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+
+    seen_bba: dict[str, int] = {"turns": 0, "baseline": 0}
+
+    def _trace_bba(frame: object, event: str, arg: object) -> object:
+        f_code = getattr(frame, "f_code", None)
+        if f_code is not None and f_code.co_name == "record_turn_and_prune" and event == "return":
+            seen_bba["turns"] += 1
+            if isinstance(arg, dict):
+                seen_bba["baseline"] = arg.get("baseline_schema_tokens", 0)
+        return _trace_bba
+
+    _sys.settrace(_trace_bba)
+    try:
+        bba.run_self_test()
+    finally:
+        _sys.settrace(None)
+    assert seen_bba["turns"] == 5
+    assert seen_bba["baseline"] == 23 * 250
+
+    only_first = bba.CandidateHarnessProposal(
+        "p-sg1", "m-a", "m-b", {"a.md": "Always trust model self-grade here."}, ["x"], "sha256:1"
+    )
+    v_sg1 = bba.BuilderBreakerAdversarialEvaluator.adjudicate(only_first, sup_priv)
+    assert v_sg1.final_disposition == "REJECTED_BY_BREAKER"
+    assert v_sg1.breaker_reports[1].passed is False
+
+    econ_exact = bba.TokenEconomizerController({"t0": 100, "t1": 300}, {"t0"}, max_idle_turns=2)
+    s1 = econ_exact.record_turn_and_prune(set())
+    assert econ_exact.idle_turns_by_tool["t1"] == 1
+    assert s1["token_reduction_bps"] == 0
+    s2 = econ_exact.record_turn_and_prune(set())
+    assert s2["token_reduction_bps"] == 75 * 100
+    econ_zero = bba.TokenEconomizerController({}, set(), max_idle_turns=1)
+    assert econ_zero.record_turn_and_prune(set())["token_reduction_bps"] == 0
+    econ_one = bba.TokenEconomizerController({"t1": 1}, set(), max_idle_turns=1)
+    assert econ_one.record_turn_and_prune(set())["token_reduction_bps"] == 100 * 100
+
+    # 3. Orca + Caprock Enforcer boundaries
+    assert orca.CaprockTurnTelemetry.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+    assert orca.Rfc9470StepUpWarrant.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+    assert orca.OrcaDaemonRpcRequest.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+    orca.run_self_test()
+
+    cb_def = orca.CaprockFinOpsCircuitBreaker()
+    assert cb_def.per_worktree_cap_minor == 5 * 100
+    assert cb_def.total_sprint_spend_minor == 0
+    t_zero = orca.CaprockTurnTelemetry("s", "a", 1, 0, 0, 0, 10)
+    assert t_zero.cache_hit_ratio_bps == 100 * 100
+    t_80 = orca.CaprockTurnTelemetry("s", "a", 2, 200, 800, 10, 10)
+    assert t_80.cache_hit_ratio_bps == 80 * 100
+    assert cb_def.ingest_and_evaluate(orca.CaprockTurnTelemetry("s", "a", 2, 900, 100, 10, 10)) == (
+        "OK",
+        "CAPROCK_FINOPS_WITHIN_SLO",
+    )
+    assert cb_def.ingest_and_evaluate(orca.CaprockTurnTelemetry("s", "a", 3, 900, 100, 10, 10)) == (
+        "THROTTLED_DEGRADED",
+        "WARN_CAPROCK_CACHE_THRASH_FORCE_SAKE_PINNING",
+    )
+
+    with tempfile.TemporaryDirectory() as td:
+        wt = Path(td) / "wt1"
+        wt.mkdir()
+        enf = orca.AeibOrcaWorktreeEnforcer({"a1": wt}, sup_priv.public_key(), cb_def)
+        bad_caid_req = orca.OrcaDaemonRpcRequest("op", "s", "a1", "fs.write", "x.py", (), "sha256:wrong")
+        assert enf.evaluate_daemon_rpc(bad_caid_req)["code"] == "HALT_ORCA_DAEMON_CAID_MISMATCH"
+        unreg_req = orca.OrcaDaemonRpcRequest("op", "s", "unknown", "fs.write", "x.py", (), "")
+        unreg_req = orca.OrcaDaemonRpcRequest(**{**unreg_req.__dict__, "claimed_caid": enf.compute_rpc_caid(unreg_req)})
+        assert enf.evaluate_daemon_rpc(unreg_req)["code"] == "HALT_UNREGISTERED_ORCA_WORKTREE_AGENT"
+        outside_req = orca.OrcaDaemonRpcRequest("op-out", "s", "a1", "fs.write", "/etc/hosts", (), "")
+        caid_out = enf.compute_rpc_caid(outside_req)
+        outside_req = orca.OrcaDaemonRpcRequest(**{**outside_req.__dict__, "claimed_caid": caid_out})
+        assert enf.evaluate_daemon_rpc(outside_req)["evae_armor_state"] == "HOLD"
+        w_bytes = orca.canonical_jcs_bytes({"bound_caid": caid_out, "operation_id": "op-out", "supervisor_key_id": "k1"})
+        w_sig = base64.b64encode(sup_priv.sign(w_bytes)).decode("ascii")
+        bad_w = orca.Rfc9470StepUpWarrant("op-out", caid_out, "k1", w_sig + "!!")
+        outside_bad_w = orca.OrcaDaemonRpcRequest(
+            **{**outside_req.__dict__, "step_up_warrant": bad_w}
+        )
+        assert enf.evaluate_daemon_rpc(outside_bad_w)["code"] == "HALT_INVALID_RFC9470_STEP_UP_SIGNATURE"
+
+    # 4. Sovereign Agent Blueprint boundaries
+    assert sab.EpistemicProofSection.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+    assert sab.BeadsWorkFrontierNode.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+    assert sab.OnticExecutionManifest.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+    assert sab.CompiledSovereignBlueprint.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+
+    seen_sab: dict[str, object] = {}
+
+    def _trace_sab(frame: object, event: str, arg: object) -> object:
+        f_code = getattr(frame, "f_code", None)
+        if f_code is not None and f_code.co_name == "run_self_test" and event == "return":
+            f_locals = getattr(frame, "f_locals", {})
+            if "epistemic" in f_locals and "ontic" in f_locals:
+                seen_sab["pass8"] = f_locals["epistemic"].evaluated_pass_hat_8_bps
+                seen_sab["epoch_lim"] = f_locals["ontic"].station1_invariants["epoch_limit_minor"]
+                seen_sab["block_t2"] = f_locals["ontic"].station1_invariants["block_tier2_unpinned_payee"]
+                seen_sab["lag_sec"] = f_locals["ontic"].station2_finality["visibility_lag_fence_sec"]
+        return _trace_sab
+
+    _sys.settrace(_trace_sab)
+    try:
+        sab.run_self_test()
+    finally:
+        _sys.settrace(None)
+    assert seen_sab["pass8"] == 923 * 10
+    assert seen_sab["epoch_lim"] == 10000_00
+    assert seen_sab["block_t2"] is True
+    assert seen_sab["lag_sec"] == 5
+
+    ep_valid = sab.EpistemicProofSection("v5.0", ("m1",), ("R1",), ("sha256:1",), 0, 0, 9000)
+    ont_valid = sab.OnticExecutionManifest(
+        "bp", "AIR", ("E",), ("A",), {}, {}, {}, {}, {}, ()
+    )
+    with pytest.raises(ValueError, match="HALT_BLUEPRINT_COMPILATION_PASS_HAT_8_BELOW_SLO"):
+        sab.SovereignBlueprintCompiler.compile_blueprint(
+            sab.EpistemicProofSection("v5.0", ("m1",), ("R1",), ("sha256:1",), 0, 0, 8999),
+            ont_valid,
+            sup_priv,
+        )
+    bp_v = sab.SovereignBlueprintCompiler.compile_blueprint(ep_valid, ont_valid, sup_priv)
+    bp_bad_caid = sab.CompiledSovereignBlueprint(ep_valid, ont_valid, "sha256:bad", bp_v.architect_signature_b64)
+    assert sab.SovereignBlueprintCompiler.verify_blueprint_before_boot(bp_bad_caid, sup_priv.public_key()) == (
+        False,
+        "ERR_BLUEPRINT_CAID_MISMATCH",
+    )
+    other_priv = Ed25519PrivateKey.generate()
+    assert sab.SovereignBlueprintCompiler.verify_blueprint_before_boot(bp_v, other_priv.public_key()) == (
+        False,
+        "ERR_INVALID_ARCHITECT_SIGNATURE",
+    )

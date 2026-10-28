@@ -211,6 +211,12 @@ def run_maseval_comparative_benchmark(num_tasks: int = 50) -> Dict[str, Any]:
         (1.0 - (aeib_res["total_tokens_consumed"] / naive_res["total_tokens_consumed"])) * 100.0,
         2,
     )
+    dup_elim_pct = int(
+        round(
+            (1.0 - (aeib_res["duplicate_mutations"] / max(1, naive_res["duplicate_mutations"])))
+            * 100.0
+        )
+    )
 
     return {
         "benchmark": "MASEval-Framework-Agnostic-Evaluation",
@@ -219,7 +225,7 @@ def run_maseval_comparative_benchmark(num_tasks: int = 50) -> Dict[str, Any]:
         "naive_swarm": naive_res,
         "aeib_governed": aeib_res,
         "token_reduction_pct": token_savings_pct,
-        "duplicate_elimination_rate": "100%",
+        "duplicate_elimination_rate": f"{dup_elim_pct}%",
     }
 
 

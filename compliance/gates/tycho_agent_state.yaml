@@ -1,0 +1,44 @@
+version: "0.4.0"
+target_system: "tycho_agent_state_gate"
+verification_mode: "FAIL_CLOSED"
+
+gates:
+  - gate_id: "gate_filesystem_state"
+    description: "Verifies filesystem artifact existence and structural integrity."
+    constraints:
+      - rule: "file_exists"
+        path: "src/aeib_v040_engine.py"
+        severity: "CRITICAL"
+
+  - gate_id: "gate_lockfile_integrity"
+    description: "Verifies lockfile presence and hash consistency."
+    constraints:
+      - rule: "lockfile_integrity"
+        path: "Cargo.lock"
+        expected_hash_algorithm: "sha256"
+        severity: "HIGH"
+
+  - gate_id: "gate_git_commit_state"
+    description: "Verifies Git repository commit finality and signature."
+    constraints:
+      - rule: "clean_working_tree"
+        allow_untracked: false
+        severity: "CRITICAL"
+      - rule: "head_commit_verified"
+        require_signature: false
+        signature_type: "Ed25519"
+        severity: "HIGH"
+
+  - gate_id: "gate_artifact_signature"
+    description: "Verifies Ed25519/COSE signature on receipts and manifests."
+    constraints:
+      - rule: "cose_signature_valid"
+        key_type: "Ed25519"
+        pqc_target: "ML-DSA-65"
+        severity: "CRITICAL"
+
+disposition_mapping:
+  VERIFIED: "CONFIRMED"
+  FAILED: "STRUCTURAL_VERIFICATION_FAILED"
+  STALE: "EFFECT_INDETERMINATE"
+  INDETERMINATE: "EFFECT_INDETERMINATE"

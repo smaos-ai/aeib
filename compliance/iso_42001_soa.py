@@ -11,7 +11,7 @@ execution boundary to:
 2. The 14 Category H Runtime Agent Governance Controls under ISO/IEC 42001:2023 and CEN-CENELEC
    prEN 18286 (EU AI Act Art. 17 QMS).
 
-Evaluated under the stated model. All signatures use Ed25519 over RFC 8785 JCS canonical payloads,
+Evaluated under the stated model (hardware TEE/CVM references represent structural scaffold mappings). All signatures use Ed25519 over RFC 8785 JCS canonical payloads,
 and all file references are verified on disk with real SHA-256 digests.
 """
 
@@ -785,7 +785,7 @@ ISO_42001_ANNEX_A_38_CONTROLS: List[Dict[str, Any]] = [
             "JSON-RPC/MCP tool calls and database mutations; it does not synthesize audio, image, video, or text "
             "media for end-users (EU AI Act Art. 50 synthetic content watermarking is inapplicable). Compensating "
             "boundary controls: Every machine-generated execution receipt is cryptographically labeled and signed "
-            "via Ed25519 / IETF SCITT COSE_Sign1 (A.6.2.8, A.8.5) for non-repudiable machine origin provenance."
+            "via Ed25519 / IETF SCITT COSE_Sign1 (A.6.2.8, A.8.5) for tamper-evident machine origin provenance."
         ),
         "risk_assessment_mapping": (
             "RISK-KEY-COMPROMISE, RISK-DELEGATION | OWASP ASI07:2026 Insecure Inter-Agent Communication | "
@@ -963,9 +963,8 @@ ISO_42001_ANNEX_A_38_CONTROLS: List[Dict[str, Any]] = [
 
 
 def _default_soa_signing_key() -> ed25519.Ed25519PrivateKey:
-    """Derives a deterministic Ed25519 private key for reproducible local SoA signing."""
-    seed = hashlib.sha256(b"SovereignNexus-ISO42001-SoA-Deterministic-Key-v1").digest()
-    return ed25519.Ed25519PrivateKey.from_private_bytes(seed)
+    """Generates an ephemeral Ed25519 private key when no external signing key is supplied."""
+    return ed25519.Ed25519PrivateKey.generate()
 
 
 def _scan_control_files(target_files: List[str]) -> Dict[str, Any]:

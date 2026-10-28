@@ -1,0 +1,13 @@
+{
+  "source": "La Jolla Covering Repository (D. M. Gordon), GitHub port",
+  "repository": "https://github.com/dmgordo/LJCR",
+  "commit": "459bcaf247bd",
+  "commit_date": "2022-12-19T18:10:24Z",
+  "file": "coverings/coverdata.json",
+  "download_url": "https://raw.githubusercontent.com/dmgordo/LJCR/459bcaf247bd/coverings/coverdata.json",
+  "fetched_at": "2026-10-23T10:54:25Z",
+  "sha256": "0984bb8b4c89fe07268569b9814794e3c8852302d075f0794140f202e83d7fef",
+  "entries": 8759,
+  "live_site_status_at_fetch": "ljcr.dmgordon.org did not resolve (curl exit 6); ccrwest.org redirects to a parked lander; dmgordon.org/cover/ returned 404",
+  "staleness_warning": "Snapshot dated 2022-12-19. Improvements submitted after that date are not reflected. Any strict improvement against this snapshot MUST be re-checked against the maintainer's current data before any public claim."
+}

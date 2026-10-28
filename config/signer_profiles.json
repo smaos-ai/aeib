@@ -1,0 +1,6 @@
+{
+  "profiles": {
+    "default": "keys/signer_profiles/default.json",
+    "bench": "keys/signer_profiles/bench.json"
+  }
+}

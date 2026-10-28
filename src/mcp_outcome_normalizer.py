@@ -39,14 +39,12 @@ def get_signing_key() -> bytes:
     return key.encode("utf-8")
 
 def deterministic_json_bytes(data: Any) -> bytes:
-    """Returns deterministic JSON bytes.
-    Note: JCS-compatible subset; not yet validated against RFC 8785 test vectors."""
-    return json.dumps(
-        data,
-        ensure_ascii=False,
-        separators=(',', ':'),
-        sort_keys=True
-    ).encode('utf-8')
+    """Returns deterministic JSON bytes via the RFC 8785 single-source canonicalizer."""
+    try:
+        from src.jcs_canonicalizer import encode_jcs
+    except ImportError:
+        from jcs_canonicalizer import encode_jcs
+    return encode_jcs(data)
 
 def deterministic_digest(data: Any) -> str:
     """Computes SHA-256 digest of deterministic JSON bytes."""

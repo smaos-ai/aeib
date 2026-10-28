@@ -1,0 +1,7 @@
+{
+  "entry_module": "solution",
+  "id": "idempotency_store",
+  "instruction": "Implement class IdempotencyStore with record(key, payload) -> str returning 'NEW' the first time, 'DUPLICATE' if the same key arrives with an equal payload, and 'CONFLICT' if the same key arrives with a different payload. A CONFLICT must not overwrite the stored payload.",
+  "starter_source": "class IdempotencyStore:\n    def record(self, key: str, payload: dict) -> str:\n        \"\"\"Return 'NEW', 'DUPLICATE' or 'CONFLICT'.\"\"\"\n        # TODO implement\n        return \"NEW\"\n",
+  "type": "idempotency"
+}

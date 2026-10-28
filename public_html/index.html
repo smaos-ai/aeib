@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AEIB Offline WASM Verifier (Clean-Room Edition)</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; background: #121316; color: #e1e4e8; padding: 2rem; max-width: 900px; margin: 0 auto; line-height: 1.5; }
+        h2 { color: #58a6ff; margin-bottom: 0.5rem; }
+        .meta { color: #8b949e; font-size: 0.9rem; margin-bottom: 1.5rem; }
+        .dropzone { border: 2px dashed #30363d; border-radius: 8px; padding: 2.5rem; text-align: center; background: #161b22; cursor: pointer; transition: border-color 0.2s; }
+        .dropzone.active { border-color: #2ea043; background: #1b232c; }
+        .log { margin-top: 1.5rem; padding: 1.25rem; background: #0d1117; border-radius: 6px; border-left: 4px solid #58a6ff; white-space: pre-wrap; font-size: 0.88rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; min-height: 120px; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; margin-right: 6px; }
+        .badge-pass { background: #238636; color: #fff; }
+        .badge-fail { background: #da3633; color: #fff; }
+        .badge-info { background: #1f6feb; color: #fff; }
+    </style>
+</head>
+<body>
+    <h2>AEIB Offline WebAssembly Receipt Verifier</h2>
+    <div class="meta">
+        Sovereign Multi-Agent OS (SMAOS) / AEIB v0.4.1 &bull; Air-Gapped Clean-Room Verification
+    </div>
+    <p>Disconnect your network interface to verify offline execution. Drag and drop an execution receipt (<code>.json</code>) below.</p>
+    
+    <div id="dropzone" class="dropzone">Drop Execution Receipt File Here (.json)</div>
+    <div id="log" class="log">Initializing WebAssembly engine...</div>
+
+    <script>
+        const logEl = document.getElementById('log');
+        const dropzone = document.getElementById('dropzone');
+        let wasmInstance = null;
+
+        function log(msg) {
+            logEl.textContent += '\n' + msg;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        // Initialize standalone WebAssembly binary
+        async function initWasm() {
+            try {
+                const response = await fetch('smaos_verify.wasm');
+                if (!response.ok) throw new Error("smaos_verify.wasm not found (HTTP " + response.status + ")");
+                const wasmBytes = await response.arrayBuffer();
+                const wasmModule = await WebAssembly.instantiate(wasmBytes, {});
+                wasmInstance = wasmModule.instance;
+                const version = wasmInstance.exports.smaos_version ? wasmInstance.exports.smaos_version() : 110;
+                log(`[✓] WebAssembly engine instantiated (${(wasmBytes.byteLength / 1024).toFixed(1)} KB, ABI v${version}).`);
+                log("[✓] Memory allocator and cryptographic primitives bound.");
+                log("Ready for air-gapped receipt verification.");
+            } catch (err) {
+                log(`[!] Failed to load WebAssembly module: ${err.message}`);
+            }
+        }
+
+        initWasm();
+
+        dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('active'); });
+        dropzone.addEventListener('dragleave', (e) => { e.preventDefault(); dropzone.classList.remove('active'); });
+        dropzone.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('active');
+            
+            if (!wasmInstance) {
+                log("[!] WebAssembly verifier is not ready.");
+                return;
+            }
+
+            const file = e.dataTransfer.files[0];
+            if (!file) return;
+
+            log(`\n================================================================`);
+            log(`VERIFYING RECEIPT: ${file.name} (${file.size} bytes)`);
+            log(`================================================================`);
+
+            try {
+                const fileText = await file.text();
+                const encoder = new TextEncoder();
+                const inputBytes = encoder.encode(fileText);
+
+                const tStart = performance.now();
+                
+                // Allocate buffer in WASM memory space
+                const ptr = wasmInstance.exports.allocate(inputBytes.length);
+                const memoryView = new Uint8Array(wasmInstance.exports.memory.buffer, ptr, inputBytes.length);
+                memoryView.set(inputBytes);
+
+                // Execute cryptographic verification
+                const rc = wasmInstance.exports.smaos_verify_receipt(ptr, inputBytes.length);
+                const tElapsedMs = (performance.now() - tStart).toFixed(3);
+
+                // Deallocate memory
+                wasmInstance.exports.deallocate(ptr, inputBytes.length);
+
+                if (rc === 0) {
+                    log(`[PASS] Ed25519 Signature Verified (Strict Non-Malleable)`);
+                    log(`[PASS] RFC 9162 Merkle Inclusion Proof Validated against Root Hash`);
+                    log(`[PASS] Timestamp and Disposition Model Validated`);
+                    log(`[PASS] 14 Named Verification Properties Satisfied`);
+                    log(`\nVERDICT: ACCEPTED (rc=0 in ${tElapsedMs}ms)`);
+                    log(`Notice: Reported local benchmark latency; independent performance reproduction pending.`);
+                } else {
+                    const errorMap = {
+                        "-1": "ERR_JSON_PARSE: Malformed JSON or missing required fields",
+                        "-2": "ERR_MERKLE_BOUNDARY: Leaf index out of bounds for declared tree size",
+                        "-3": "ERR_MERKLE_PROOF_MISMATCH: Computed leaf hash does not resolve to root hash",
+                        "-4": "ERR_SIGNATURE_INVALID: Cryptographic Ed25519 digital signature mismatch",
+                        "-5": "ERR_TIMESTAMP_INVALID: Timestamp out of bounds or ancient/future skew",
+                        "-6": "ERR_DISPOSITION_TOXIC: Toxic disposition assertion rejected"
+                    };
+                    const errDetail = errorMap[rc] || `UNKNOWN_ERROR (rc=${rc})`;
+                    log(`[FAIL] Verification Failed: ${errDetail}`);
+                    log(`\nVERDICT: REJECTED (rc=${rc} in ${tElapsedMs}ms)`);
+                }
+            } catch (err) {
+                log(`[!] Error processing receipt: ${err.message}`);
+            }
+        });
+    </script>
+</body>
+</html>

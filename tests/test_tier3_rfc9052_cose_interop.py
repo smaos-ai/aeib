@@ -534,3 +534,69 @@ class TestRFC8785JcsIntegration:
         # Re-derive CAID from verified payload bytes
         verified_caid = hashlib.sha256(result.payload).hexdigest()
         assert verified_caid == expected_caid
+
+    def test_cbor_and_cose_exhaustive_edge_cases(self) -> None:
+        """Evaluates constants, simple values, float16/float32, non-canonical ints, UTF-8, and crit headers."""
+        assert cose_mod.COSE_HEADER_ALG == 1
+        assert cose_mod.COSE_HEADER_CRIT == 2
+        assert cose_mod.COSE_HEADER_CONTENT_TYPE == 3
+        assert cose_mod.COSE_HEADER_KID == 4
+        assert cose_mod.COSE_HEADER_RECEIPTS == 394
+        assert cose_mod.COSE_HEADER_VDS == 395
+        assert cose_mod.COSE_HEADER_VDP == 396
+        assert cose_mod.VDS_RFC9162_SHA256 == 1
+        assert cose_mod.VDP_TREE_SIZE == -1
+        assert cose_mod.VDP_LEAF_INDEX == -2
+        assert cose_mod.VDP_INCLUSION_PATH == -3
+        assert cose_mod.COSE_ALG_EDDSA == -8
+        assert cose_mod.COSE_TAG_SIGN1 == 18
+
+        # Simple value encoding & decoding (<= 23 and 32..255)
+        sv_small = CBORSimpleValue(19)
+        enc_small = RFC8949CBOR.encode(sv_small)
+        assert enc_small == bytes([0xE0 | 19])
+        assert RFC8949CBOR.decode(enc_small) == sv_small
+
+        sv_large = CBORSimpleValue(32)
+        enc_large = RFC8949CBOR.encode(sv_large)
+        assert enc_large == bytes([0xF8, 32])
+        assert RFC8949CBOR.decode(enc_large) == sv_large
+
+        # Non-canonical simple value (< 32 in 2-byte form)
+        with pytest.raises(ValueError, match="Non-canonical simple value"):
+            RFC8949CBOR.decode(bytes([0xF8, 31]), deterministic=True)
+
+        # Float16 and Float32 decoding & truncation
+        f16_bytes = bytes([0xF9]) + struct.pack(">e", 1.5)
+        assert RFC8949CBOR.decode(f16_bytes) == 1.5
+        with pytest.raises(ValueError, match="Truncated 16-bit float"):
+            RFC8949CBOR.decode(bytes([0xF9, 0x00]))
+
+        f32_bytes = bytes([0xFA]) + struct.pack(">f", 2.25)
+        assert RFC8949CBOR.decode(f32_bytes) == 2.25
+        with pytest.raises(ValueError, match="Truncated 32-bit float"):
+            RFC8949CBOR.decode(bytes([0xFA, 0x01, 0x02]))
+
+        # Non-canonical 2-byte, 4-byte, 8-byte integer encodings and truncated 8-byte int
+        with pytest.raises(ValueError, match="should be encoded in 1 byte"):
+            RFC8949CBOR.decode(b"\x19\x00\x10", deterministic=True)
+        with pytest.raises(ValueError, match="should be encoded in 2 bytes"):
+            RFC8949CBOR.decode(b"\x1a\x00\x00\x01\x00", deterministic=True)
+        with pytest.raises(ValueError, match="should be encoded in 4 bytes"):
+            RFC8949CBOR.decode(b"\x1b\x00\x00\x00\x00\x00\x01\x00\x00", deterministic=True)
+        with pytest.raises(ValueError, match="Truncated CBOR 8-byte argument"):
+            RFC8949CBOR.decode(b"\x1b\x01\x02\x03")
+
+        # Invalid UTF-8 in text string
+        with pytest.raises(ValueError, match="Invalid UTF-8 in CBOR text string"):
+            RFC8949CBOR.decode(b"\x62\xff\xfe")
+
+        # Non-list crit header in COSE_Sign1
+        priv = Ed25519PrivateKey.generate()
+        signer = RFC9052CoseSigner(priv, key_id="key-crit-nonlist")
+        env_bad_crit = signer.sign(b"payload", protected_extra={COSE_HEADER_CRIT: 123})
+        res_bad_crit = RFC9052CoseVerifier.verify(env_bad_crit, priv.public_key())
+        assert res_bad_crit is not None
+        assert res_bad_crit.valid is False
+        assert "must be an array" in (res_bad_crit.error or "")
+

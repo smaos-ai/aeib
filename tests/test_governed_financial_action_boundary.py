@@ -368,3 +368,133 @@ def test_13_crash_recovery_resynchronization(boundary_setup):
     assert resolutions[0]["status"] == "RECOVERED"
     assert resolutions[0]["disposition"] == DISPOSITION_CONFIRMED
     assert resolutions[0]["downstream_commit_count"] == 1
+    journal_entries = boundary.journal.read_all()
+    assert journal_entries[-1]["recovered"] is True
+    assert journal_entries[-1]["retry_safe"] is False
+
+
+def test_14_additional_boundary_and_simulator_branches(tmp_path):
+    import governed_financial_action_boundary as gfab_mod
+    from governed_financial_action_boundary import (
+        DurableDispatchJournal,
+        PersistentSingleUseTicketStore,
+    )
+
+    # Test deep directory creation (parents=True, exist_ok=True)
+    deep_store_path = tmp_path / "a" / "b" / "c" / "tickets.jsonl"
+    store1 = PersistentSingleUseTicketStore(deep_store_path)
+    store2 = PersistentSingleUseTicketStore(deep_store_path)
+    ok_missing, msg_missing = store1.burn_ticket("never_issued", "caid:none")
+    assert ok_missing is False
+    assert "TICKET_NOT_FOUND" in msg_missing
+
+    deep_journal_path = tmp_path / "d" / "e" / "f" / "journal.jsonl"
+    j1 = DurableDispatchJournal(deep_journal_path)
+    j2 = DurableDispatchJournal(deep_journal_path)
+    assert j1.read_all() == []
+    assert j2.read_all() == []
+
+    deep_base = tmp_path / "x" / "y" / "z"
+    boundary = GovernedFinancialActionBoundary(base_dir=deep_base, active_policy_epoch=1, probe_budget=1)
+    boundary_again = GovernedFinancialActionBoundary(base_dir=deep_base, active_policy_epoch=1, probe_budget=1)
+    assert boundary_again.active_policy_epoch == 1
+
+    sim = RealisticPaymentSimulator()
+
+    # Transaction ID length check (:8)
+    status_ok, body_ok, fault_ok = sim.dispatch_payment("op_1234567890", "idem_1", {"amount_cents": 100})
+    assert status_ok == 200
+    assert fault_ok == "NONE"
+    assert body_ok["transaction_id"] == "tx_bank_op_12345"
+
+    # DISPATCH_TIMEOUT and DISPATCH_MALFORMED
+    sim.set_dispatch_mode(sim.DISPATCH_TIMEOUT)
+    st_to, body_to, fault_to = sim.dispatch_payment("op_to", "idem_to", {})
+    assert (st_to, body_to, fault_to) == (0, None, "SOCKET_READ_TIMEOUT")
+
+    sim.set_dispatch_mode(sim.DISPATCH_MALFORMED)
+    st_mal, body_mal, fault_mal = sim.dispatch_payment("op_mal", "idem_mal", {})
+    assert (st_mal, body_mal, fault_mal) == (200, None, "MALFORMED_NON_JSON_RESPONSE")
+
+    # Probe delay seconds (> 0) and PROBE_OUTAGE (503) and PROBE_NOT_FOUND (404)
+    sleeps = []
+    orig_sleep = gfab_mod.time.sleep
+    gfab_mod.time.sleep = lambda s: sleeps.append(s)
+    try:
+        sim.probe_delay_seconds = 0.0
+        sim.set_probe_mode(sim.PROBE_OUTAGE)
+        p_st, p_body = sim.probe_reconciliation("op_to", "idem_to")
+        assert p_st == 500 + 3
+        assert sleeps == []
+
+        sim.probe_delay_seconds = 0.05
+        sim.set_probe_mode(sim.PROBE_NOT_FOUND)
+        p_st_nf, p_body_nf = sim.probe_reconciliation("op_to", "idem_to")
+        assert p_st_nf == 400 + 4
+        assert sleeps == [0.05]
+    finally:
+        gfab_mod.time.sleep = orig_sleep
+        sim.probe_delay_seconds = 0.0
+
+    # Ticket ID length (len("ticket_auth_") + 12) and replay retry_safe is False
+    cand = FinancialCandidateAction(
+        action_id="act_len_check",
+        principal="agent:test",
+        target_uri="https://api.bank.internal/v1/payments/refunds",
+        operation_type="customer_refund",
+        parameters={"amount_cents": 1000, "currency": "EUR"},
+        policy_epoch=1,
+        source_epoch=1,
+    )
+    is_auth, _, ticket = boundary.authorize_action(cand)
+    assert is_auth is True
+    assert len(ticket.ticket_id) == len("ticket_auth_") + 12
+
+    sim.set_dispatch_mode(sim.DISPATCH_NORMAL_SUCCESS)
+    sim.set_probe_mode(sim.PROBE_NORMAL)
+    r1 = boundary.execute_governed_action(cand, ticket, sim)
+    assert r1.disposition == DISPOSITION_CONFIRMED
+    r2 = boundary.execute_governed_action(cand, ticket, sim)
+    assert r2.disposition == DISPOSITION_DENY
+    assert r2.retry_safe is False
+
+    # Crash points BEFORE_INTENT, AFTER_INTENT_BEFORE_DISPATCH, AFTER_EFFECT_BEFORE_RECEIPT
+    for cp_name in ("BEFORE_INTENT", "AFTER_INTENT_BEFORE_DISPATCH", "AFTER_EFFECT_BEFORE_RECEIPT"):
+        c_cp = FinancialCandidateAction(
+            action_id=f"act_{cp_name}",
+            principal="agent:test",
+            target_uri="https://api.bank.internal/v1/payments/refunds",
+            operation_type="customer_refund",
+            parameters={"amount_cents": 500, "currency": "EUR"},
+            policy_epoch=1,
+            source_epoch=1,
+        )
+        _, _, t_cp = boundary.authorize_action(c_cp)
+        with pytest.raises(SystemExit):
+            boundary.execute_governed_action(c_cp, t_cp, sim, crash_point=cp_name)
+
+    # Custom 200 responses with empty dict and None body to exercise fallback commit_count=1
+    class _Minimal200Sim(RealisticPaymentSimulator):
+        def __init__(self, body_val):
+            super().__init__()
+            self._body_val = body_val
+
+        def dispatch_payment(self, operation_id, idempotency_key, payload):
+            return (200, self._body_val, "NONE")
+
+    for body_val in ({}, None):
+        c_min = FinancialCandidateAction(
+            action_id=f"act_min_{body_val is None}",
+            principal="agent:test",
+            target_uri="https://api.bank.internal/v1/payments/refunds",
+            operation_type="customer_refund",
+            parameters={"amount_cents": 500, "currency": "EUR"},
+            policy_epoch=1,
+            source_epoch=1,
+        )
+        _, _, t_min = boundary.authorize_action(c_min)
+        r_min = boundary.execute_governed_action(c_min, t_min, _Minimal200Sim(body_val))
+        assert r_min.disposition == DISPOSITION_CONFIRMED
+        assert r_min.downstream_commit_count == 1
+        assert r_min.retry_safe is False
+

@@ -54,7 +54,7 @@ TRIPARTITE_MAPPING: Dict[Disposition, Dict[str, Dict[str, str]]] = {
         "US_NIST_RMF": {
             "control": "NIST SP 800-53 AU-10 / PR.DS-1",
             "status": "CONFIRMED_STATE",
-            "narrative": "Confirmed state change proven with non-repudiable proof.",
+            "narrative": "Confirmed state change proven with tamper-evident proof.",
         },
     },
     Disposition.UNKNOWN: {
@@ -77,7 +77,7 @@ TRIPARTITE_MAPPING: Dict[Disposition, Dict[str, Dict[str, str]]] = {
             "control": "NIST SP 800-53 CP-10 / IR-4",
             "status": "UNCERTAINTY_HALT",
             "narrative": (
-                "Non-repudiable uncertainty; forced execution halt."
+                "Tamper-evident uncertainty; forced execution halt."
             ),
         },
     },

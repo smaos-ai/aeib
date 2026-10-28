@@ -84,7 +84,7 @@ def test_adversarial_cross_pollination_and_sqlite_evidence_graph_o1_cache() -> N
             },
             cross_critic_fn=lambda target_id, draft, search_fn: {
                 # Sycophantic response that must be rejected by the orchestrator!
-                "critique_text": "I think they are right and I agree completely.",
+                "critique_text": "I think they are right about this.",
                 "has_conflict": False,
                 "search_query": "",
                 "url_evidence": "",
@@ -370,3 +370,138 @@ def test_banned_words_absence() -> None:
         text = Path(path_str).read_text(encoding="utf-8").lower()
         for word in banned:
             assert word not in text, f"Forbidden term '{word}' found in {path_str}"
+
+
+def test_section10_mutation_boundaries(tmp_path: Path) -> None:
+    import ast as _ast
+    import pytest
+    import src.cerno_scion_ta14_omnigent_fabric as csto
+    import tools.hamt_cross_pollination_and_evidence_graph as hcp
+    from tools.hamt_cross_pollination_and_evidence_graph import (
+        CounterexampleGraphEdge,
+        HamtNode,
+    )
+
+    for mod in (hcp, csto):
+        tree = _ast.parse(Path(mod.__file__).read_text(encoding="utf-8"))
+        found_exc = False
+        for node in _ast.walk(tree):
+            if isinstance(node, _ast.ExceptHandler) and isinstance(node.type, _ast.Name) and node.type.id == "ImportError":
+                for stmt in node.body:
+                    if isinstance(stmt, _ast.Expr) and isinstance(stmt.value, _ast.Call):
+                        found_exc = True
+                        assert isinstance(stmt.value.args[0], _ast.Constant) and stmt.value.args[0].value == 0
+        assert found_exc is True
+
+    with pytest.raises(ValueError, match="Floats are forbidden"):
+        hcp.canonical_jcs({"f": 1.5})
+    with pytest.raises(ValueError, match="Floats are forbidden"):
+        csto.canonical_jcs({"f": 1.5})
+
+    assert HamtNode.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+    assert CounterexampleGraphEdge.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+    assert PersonaAgentSpec.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+    assert Ta14TripleAdmissibilityProof.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+
+    # HAMT multi-branch collision and update test (40 keys > 32-way root branching)
+    assert HamtPersistentStateTree._key_hash32("k_0") < (1 << 32)
+    hamt = HamtPersistentStateTree()
+    for i in range(40):
+        hamt = hamt.fork_with(f"k_{i}", i)
+    for i in range(40):
+        assert hamt.lookup(f"k_{i}") == i
+    for i in range(40):
+        hamt = hamt.fork_with(f"k_{i}", i + 1000)
+    for i in range(40):
+        assert hamt.lookup(f"k_{i}") == i + 1000
+    assert hamt.lookup("k_missing") is None
+
+    # SqliteCounterexampleEvidenceGraph exact field mapping
+    db_p = tmp_path / "eg.sqlite"
+    eg = SqliteCounterexampleEvidenceGraph(db_p)
+    edge = CounterexampleGraphEdge(
+        edge_id="e_1",
+        topic_key="top_1",
+        source_critic_agent="critic_1",
+        target_author_agent="author_1",
+        target_snapshot_caid="sha256:snap_1",
+        refuted_claim_text="claim_1",
+        counterexample_summary="sum_1",
+        url_evidence="https://example.org/ev1",
+        search_query_executed="q_1",
+    )
+    ecaid = eg.record_counterexample_edge(edge)
+    top_rows = eg.lookup_by_topic_o1("top_1")
+    assert len(top_rows) == 1
+    assert top_rows[0] == {
+        "counterexample_summary": "sum_1",
+        "edge_caid": ecaid,
+        "edge_id": "e_1",
+        "refuted_claim_text": "claim_1",
+        "search_query_executed": "https://example.org/ev1",
+        "source_critic_agent": "critic_1",
+        "target_author_agent": "author_1",
+        "target_snapshot_caid": "sha256:snap_1",
+        "topic_key": "top_1",
+        "url_evidence": "https://example.org/ev1",
+    }
+    assert eg.lookup_by_claim_exact_o1("missing_claim") is None
+    exact_hit = eg.lookup_by_claim_exact_o1("claim_1")
+    assert exact_hit == {
+        "counterexample_summary": "sum_1",
+        "edge_caid": ecaid,
+        "edge_id": "e_1",
+        "topic_key": "top_1",
+        "url_evidence": "https://example.org/ev1",
+    }
+    eg.close()
+
+    # CernoSystemOneFastRouter defaults & SLA boundary
+    r_def = CernoSystemOneFastRouter()
+    assert r_def._fast_allow_floor == 9500 and r_def._block_ceiling == 7000
+    r_sla = r_def.route_single_pass("t_sla", "read_x", True, 9900, 0, 52_001)
+    assert r_sla["allowed"] is False and r_sla["halt_code"] == "HALT_CERNO_SLA_LATENCY_EXCEEDED"
+    assert r_def.route_single_pass("t_9500", "read_x", True, 9500, 0, 1000)["route"] == "FAST_PATH_READ_ONLY_ALLOW"
+    assert r_def.route_single_pass("t_9499", "read_x", True, 9499, 0, 1000)["route"] == "STATION1_FULL_ADMISSIBILITY_GATE"
+    assert r_def.route_single_pass("t_7000", "read_x", True, 9900, 7000, 1000)["allowed"] is False
+    assert r_def.route_single_pass("t_6999", "read_x", True, 9900, 6999, 1000)["allowed"] is True
+
+    scion = ScionServerAuthoritativeDisjointMerger()
+    assert scion.rollback_branch_o1("nonexistent_commit")["allowed"] is False
+
+    # OnyxNemotronHybridRetriever default top_k=3, zero vector, and exact score math
+    ret = OnyxNemotronHybridRetriever()
+    for idx in range(4):
+        ret.index_chunk(
+            OnyxDocumentChunk(f"d_{idx}", "src", f"alpha beta {idx}", (3, 4, 0))
+        )
+    hits_def = ret.retrieve_hybrid(["alpha", "beta"], [3, 4, 0])
+    assert len(hits_def) == 3
+    assert hits_def[0]["hybrid_score_bps"] == 10000
+    hits_zero = ret.retrieve_hybrid(["alpha"], [0, 0, 0])
+    assert hits_zero[0]["hybrid_score_bps"] == 5000
+
+    # Ta14RuntimeAdmissibilityProtocol failure branches
+    auth_priv = Ed25519PrivateKey.generate()
+    ta14 = Ta14RuntimeAdmissibilityProtocol(auth_priv.public_key())
+    p_base = Ta14TripleAdmissibilityProof(
+        action_caid="caid:1",
+        reality_observation_digest="sha256:obs1",
+        continuity_hash_chain_tip="sha256:tip1",
+        admissible_evidence_present=True,
+        applicable_authority_scope=frozenset({"act_ok"}),
+        established_standing_active=True,
+        authority_signature_b64=base64.b64encode(b"badsig").decode("ascii"),
+    )
+    r_unauth = ta14.adjudicate_execution_admissibility("act_missing", p_base)
+    assert r_unauth["admissible"] is False and r_unauth["halt_code"] == "HALT_TA14_APPLICABLE_AUTHORITY_MISSING"
+    r_badsig = ta14.adjudicate_execution_admissibility("act_ok", p_base)
+    assert r_badsig["admissible"] is False and r_badsig["halt_code"] == "HALT_TA14_INVALID_AUTHORITY_BINDING"
+
+    # Omnigent fallback precedence default = 2
+    omni = OmnigentThreeTierMetaHarness(
+        server_tier_rules={"t": "DENY"},
+        agent_tier_rules={"t": "UNMAPPED_VERDICT"},
+        session_tier_rules={"t": "ALLOW"},
+    )
+    assert omni.evaluate_three_tier_policy("t")["deciding_tier"] == "SERVER"

@@ -208,7 +208,7 @@ WeChat/Mobile Portal (patient dashboard)
 ### **Option B: Zoom for Healthcare (Alternative)**
 
 **What it does:**
-- Enterprise-grade video conferencing
+- High-reliability video conferencing
 - HIPAA BAA included
 - Breakout rooms for group teaching
 - Recording + transcription

@@ -123,9 +123,6 @@ def parse_traceparent(traceparent: str) -> TraceParent:
     if version == "ff":
         raise InvalidTraceparentError("traceparent version 'ff' is forbidden by W3C specification")
 
-    if version == "00" and len(stripped) != 55:
-        raise InvalidTraceparentError("W3C traceparent version '00' must be exactly 55 characters")
-
     if trace_id == "0" * 32:
         raise InvalidTraceparentError("trace_id cannot be all zeros")
 

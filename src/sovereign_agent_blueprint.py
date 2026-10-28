@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # File: src/sovereign_agent_blueprint.py
 """
-Sovereign Agent Blueprint Compiler (`SovereignNexus` / `AEIB` v5.0 Artifact).
+Sovereign Agent Blueprint Compiler (`SovereignNexus` / `AEIB` v5.0 Artifact — Structural Scaffold for eBPF/Tetragon Metadata).
 
 Evaluated prototype under the stated model unifying the epistemic and ontic planes
 into a single compiled, cryptographically signed deployment bundle:
@@ -31,6 +31,17 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
     Ed25519PublicKey,
 )
 
+# RFC 8785 single source of truth: delegate to src/jcs_canonicalizer.encode_jcs
+# (differential-tested in tests/test_jcs_single_source.py).
+try:
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+except ImportError:  # loaded without the repository root on sys.path
+    import sys as _jcs_sys
+    from pathlib import Path as _JcsPath
+
+    _jcs_sys.path.insert(0, str(_JcsPath(__file__).resolve().parents[1]))
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+
 
 def canonical_jcs_bytes(obj: Any) -> bytes:
     def _validate(val: Any) -> None:
@@ -46,9 +57,7 @@ def canonical_jcs_bytes(obj: Any) -> bytes:
                 _validate(item)
 
     _validate(obj)
-    return json.dumps(
-        obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
-    ).encode("utf-8")
+    return _reference_encode_jcs(obj)
 
 
 def sha256_prefixed(data: bytes) -> str:
@@ -205,7 +214,7 @@ def run_self_test() -> None:
         ),
         unresolved_conflict_count=0,
         retraction_collisions_found=0,
-        evaluated_pass_hat_8_bps=9230,
+        evaluated_pass_hat_8_bps=9230,  # claim: assumption
         builder_breaker_disposition="APPROVED_FOR_EXPERIENCE_MD",
     )
 

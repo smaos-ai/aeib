@@ -22,16 +22,14 @@ import sys
 import tempfile
 from typing import Any, Dict, Optional, Tuple
 
+# RFC 8785 single source of truth: delegate to src/jcs_canonicalizer.encode_jcs
+# (differential-tested in tests/test_jcs_single_source.py).
+from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+
 
 def canonical_json_v1(obj: Any) -> bytes:
     """Deterministic JSON serialization profile v1 (`aeib.canonical_json.v1`)."""
-    return json.dumps(
-        obj,
-        sort_keys=True,
-        separators=(",", ":"),
-        ensure_ascii=False,
-        allow_nan=False,
-    ).encode("utf-8")
+    return _reference_encode_jcs(obj)
 
 
 class Station1StateEngine:
@@ -51,11 +49,7 @@ class Station1StateEngine:
     def _safe_full_fsync(self, fd: int) -> None:
         """Fix #20: Platform-safe F_FULLFSYNC fallback for macOS, Linux, and network mounts."""
         try:
-            # macOS F_FULLFSYNC (cmd = 51)
-            if hasattr(fcntl, "F_FULLFSYNC"):
-                fcntl.fcntl(fd, fcntl.F_FULLFSYNC)
-            else:
-                fcntl.fcntl(fd, 51)
+            fcntl.fcntl(fd, fcntl.F_FULLFSYNC)
         except (OSError, AttributeError):
             # Fallback to standard POSIX fsync on network volumes or Linux
             try:

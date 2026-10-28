@@ -471,10 +471,10 @@ class ActivityChecker:
 
 def main():
     """CLI for activity checking."""
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 2 or sys.argv[1] in ["--help", "-h"]:
         print("Usage: python actcheck_wrapper.py <decision_json_file>")
         print("   or: python actcheck_wrapper.py --batch <results_json_file>")
-        sys.exit(1)
+        sys.exit(0 if len(sys.argv) >= 2 and sys.argv[1] in ["--help", "-h"] else 1)
 
     checker = ActivityChecker()
 

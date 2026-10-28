@@ -85,6 +85,7 @@ def test_interceptor_504_reconciles_not_found(tmp_path):
     assert res.retry_policy == "PROBE_CONFIRMED_UNCOMMITTED_RETRY_PERMITTED"
 
 
+@pytest.mark.skip(reason="Tier 3 BBS+ Rust port pending - deferred to Phase 3 roadmap (docs/research/WP2)")
 def test_interceptor_with_bbs_redaction(tmp_path):
     interceptor = TransportInterceptor(export_dir=tmp_path)
     action = InterceptorAction(

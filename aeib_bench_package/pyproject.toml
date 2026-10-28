@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aeib-bench"
+version = "0.4.0"
+authors = [
+  { name="Andrej Leukhin", email="andrejlo123@gmail.com" },
+]
+description = "Deterministic 15-vector fault injection harness for the Agent Evidence Interlock Boundary (AEIB)."
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Security",
+]
+dependencies = [
+    "pydantic>=2.0",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/smaos-ai/smaos-ai-sandbox"
+"Bug Tracker" = "https://github.com/smaos-ai/smaos-ai-sandbox/issues"
+
+[project.scripts]
+aeib-bench = "aeib_bench.cli:main"

@@ -49,6 +49,13 @@ struct Station1ActorTests {
         #expect(walContent.contains("op-swift-1|iban:DE89370400440532013000|45000|DISPATCHED"))
     }
 
+    @Test("Cross-Language Golden Vector SHA-256 matches Python, Swift, and Rust")
+    func testCrossLanguageGoldenVector() throws {
+        let goldenBytes = "{\"amount_minor\":45000,\"context_digest\":\"sha256:ctx01\",\"endpoint\":\"POST /v1/refunds\",\"operation_id\":\"op-golden-001\",\"recipient\":\"iban:DE89370400440532013000\"}".data(using: .utf8)!
+        let digest = CanonicalJSONv1.sha256Prefixed(goldenBytes)
+        #expect(digest == "sha256:d31e155ef55db68b7dbdb14830c3fc50e5c94774155e61685b325c34b74ff74c")
+    }
+
     @Test("Tainted context to unpinned recipient is rejected fail-closed")
     func testTaintedContextToUnpinnedRecipient() async throws {
         let tempDir = FileManager.default.temporaryDirectory

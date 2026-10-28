@@ -1,0 +1,19 @@
+{
+  "scenario_id": "confirmed",
+  "scenario": "confirmed",
+  "description": "Nominal Path - Clean Settlement Confirmation",
+  "dispatched_by": "Agent-LangChain-Treasury",
+  "destination_account": "CZ6508000000001234567890",
+  "amount": 50000.0,
+  "currency": "EUR",
+  "auth_header": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.x",
+  "idempotency_key": "tx-8822-disburse-002",
+  "transport_fault": "NONE",
+  "wire_event": "HTTP 200 from settlement endpoint",
+  "sdk_claimed_state": "CONFIRMED",
+  "claimed_by_agent": "CONFIRMED",
+  "evaluated_disposition": "CONFIRMED",
+  "final_disposition": "CONFIRMED",
+  "discrepancy_detected": false,
+  "reason": "Qualifying confirmation received before deadline."
+}

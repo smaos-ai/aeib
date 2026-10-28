@@ -1,0 +1,11 @@
+{
+  "scenario": "EUR 50,000 Loan Disbursement",
+  "dispatched_by": "Agent-LangChain-Treasury",
+  "destination_account": "CZ6508000000001234567890",
+  "amount": 50000.00,
+  "currency": "EUR",
+  "auth_header": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.x",
+  "idempotency_key": "tx-8821-disburse-001",
+  "expected_transport_fault": "HTTP_504_TIMEOUT",
+  "target_invariant": "EVIDENCE_ABSENT_FORCE_UNKNOWN"
+}

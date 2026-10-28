@@ -1,44 +1,50 @@
 {
-  "title": "Agent Execution Integrity Benchmark (AEIB) & Sovereign Multi-Agent OS (SMAOS) Open Core Protocol Specification v1.0",
-  "description": "AEIB (Agent Execution Integrity Benchmark) is a bounded research prototype for a versioned transport-to-disposition mapping contract in structured research-agent workflows. It maps transport observations (such as HTTP 504 Gateway Timeouts, TCP resets, or dropped sockets)—combined with available probe evidence—to explicit dispositions and retry policies, emitting Ed25519-signed, JCS-canonicalized (RFC 8785) evidence receipts for offline verification.\n\nKey Repository Artifacts:\n1. Versioned Contract: docs/transport-to-disposition-mapping.yaml (15 wire fault vectors)\n2. Offline Verifier: Standalone Python receipt verifier (aeib_verify.py) executing with zero external network egress.\n3. Execution Governor & Latch: Software state-machine safeguards implementing retry suppression and quarantine state latching.\n4. Research Workflow Middleware: src/research_mcp_adapter.py (Figshare dataset staging & Dimensions query execution).\n5. Replication Harness: replication/reproduce_all.py (41 clean-room test cases).\n\nExplicit Scope Statement:\nAEIB builds on existing work in execution finality, action-evidence boundaries, consume-once settlement, execution receipts, and transactional outboxes; it does not claim novelty for those underlying primitives. Claims are strictly limited to the implemented test environments and declared simulation model.",
-  "version": "v1.0",
+  "title": "AEIB v0.4.0: Bounded Synthetic Benchmark and Local Runtime Reference for Agent Effect-Integrity Evidence",
+  "description": "AEIB v0.4.0 is a bounded synthetic benchmark and execution-evidence proposal prepared for independent reproduction. It evaluates how a gateway handles state-changing agent actions when transport outcomes become ambiguous. The package binds a unique operation to an exact request, records typed transport and effect dispositions, removes retry authority after uncertain dispatch, and reconciles target state where a declared status source exists.\n\nTrack B uses a target-side ledger oracle rather than agent self-report or browser-page text as the grading source. The package includes schemas, reference harnesses, comparative artifacts, negative tamper tests, and an offline verifier. Results are reported by the producing environment. Real third-party API behavior, live TinyFish execution, universal exactly-once behavior, deployment readiness, and regulatory compliance are not established.\n\nThe package contains the scenario suites listed below; exact test counts are provided in the machine-readable manifest:\n- Track B (Web-Mutation Wire Faults): 11 scenarios (B01–B11)\n- Extended Edge Cases: 7 scenarios (BT12–BT18)\n- Governance Boundary Tests: 11 scenarios (AT15–AT25)\n- MCP Egress & Federation: 7 scenarios (AT30–AT36)\nTotal test cases: 36 core execution-evidence scenarios across 36 scenario IDs.\n\nKey Deliverables:\n1. aeib-bench v0.1: Synthetic benchmark evaluating agent runtime behavior against an independent target-side ledger oracle.\n2. Identity Triad Specification: Separates unique intent instance (operation_id) from exact request hash (request_digest) and target idempotency identity (business_idempotency_key).\n3. Prior-Art Adjusted Integration: Explicitly positioned against LIMBO (arXiv:2609.29095), RFC 9110 HTTP semantics, and OpenTelemetry GenAI semantic conventions (proposing gen_ai.effect_disposition event projection).\n4. AEIB Gateway Adapter and AEIB PAP Adapter Proposal: Reference control-plane adapter enforcing RFC 8785 JCS payload binding, fail-closed uncertainty latching (retry_safe: false), single-flight out-of-band target probe coalescing, real Ed25519 cryptographic receipts, and decoupled human release separation.\n5. Regulated Evidence Export Reference: Supporting telemetry generation designed to inform DORA (Regulation (EU) 2022/2554) Article 17 incident timeline logs, Article 28(3) Register of Information templates (RT.01.01–RT.02.03 xBRL-CSV), EU AI Act Article 14/50 evidence workflows, and SCITT-compatible evidence architecture (RFC 9943).\n\nLocked Milestone Claim:\nUnder the declared synthetic Track B scenarios, the harness matched gateway dispositions to an independent target-side ledger and issued no speculative retry in the tested ambiguous cases (11/11 reported synthetic scenarios matched the declared oracle).\n\nLicensing Notice:\nCode, test harnesses, and verifiers are licensed under Apache-2.0. Specifications, documentation, and benchmark reports are licensed under Creative Commons Attribution 4.0 International (CC-BY-4.0). See per-directory LICENSE files for terms.",
+  "version": "v0.4.0",
   "upload_type": "software",
-  "publication_date": "2026-10-05",
+  "publication_date": "2026-10-08",
   "access_right": "open",
   "license": "Apache-2.0",
   "creators": [
     {
-      "name": "Leukhin, Andrii",
+      "name": "Leukhin, Andrej",
       "affiliation": "SovereignNexus",
       "orcid": "0009-0004-9543-8263",
       "email": "andrejlo123@gmail.com"
     }
   ],
   "keywords": [
-    "AI Agent Governance",
+    "Agentic AI",
+    "Autonomous Systems",
     "Execution Finality",
-    "Transport-to-Disposition Mapping",
-    "SCITT",
+    "GIRAI 2026",
+    "LIMBO Prior Art",
+    "DORA Regulation (EU) 2022/2554",
+    "EU AI Act Article 50",
     "RFC 8785 JCS",
+    "IETF SCITT RFC 9943",
+    "OpenTelemetry GenAI",
     "Retry Suppression",
-    "Scholarly Infrastructure",
-    "DORA",
-    "EU AI Act"
+    "Uncertainty Latching",
+    "Target-Side Ledger Benchmark",
+    "WebAssembly Verifier",
+    "Personal Agent Protocol"
   ],
-  "notes": "Archive SHA-256 Digest: 78ae5b5f6ae53c83de4c8a8dbd1b2e79e08f95d05dece8445b6969c318a2394c\nDistribution Bundle: aeib-v1.0-review.tar.gz\nLicensing: Apache License 2.0 (Zone 1 Open Core)\nScope Boundary: Bounded research prototype for transport-to-disposition mapping in scholarly agent workflows.",
+  "notes": "Status: AEIB v0.4.0 is a bounded synthetic benchmark and execution-evidence proposal, with reported passing tests and a prior-art-adjusted claim set, prepared for independent reproduction.\nWASM Verifier: dist/smaos_verify.wasm (199,770 bytes, SHA-256: 6ecc360af19008632c950d94910b70220e3c2cc36a5cc29fe0c33ba64d2bb041)\nDistribution Archive SHA-256: 6d52b322aeee795e445db4d8692f0ce3ca71157f718128746a1e8264faf61363 (371,213 bytes)\nLicensing: Dual-licensed / split-licensed: Apache-2.0 (Software, Test Harness, Verifier) and Creative Commons Attribution 4.0 International (CC-BY-4.0, Specifications, Schemas, Benchmark Reports).",
   "related_identifiers": [
+    {
+      "identifier": "arXiv:2608.09290",
+      "relation": "references",
+      "resource_type": "preprint"
+    },
     {
       "identifier": "arXiv:2609.29095",
       "relation": "references",
       "resource_type": "preprint"
     },
     {
-      "identifier": "arXiv:2609.38248",
-      "relation": "references",
-      "resource_type": "preprint"
-    },
-    {
-      "identifier": "arXiv:2609.31590",
+      "identifier": "arXiv:2609.35928",
       "relation": "references",
       "resource_type": "preprint"
     },

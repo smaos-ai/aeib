@@ -67,6 +67,110 @@ def test_track_alpha_zk_tlsnotary_blind_balance_proof() -> None:
             session_salt_hex="fedcba9876543210",
         )
 
+    # Boundary & structural mutation-adequacy assertions for Track Alpha
+    import ast as _ast
+    import hashlib as _hashlib
+    import sys as _sys
+    import tools.zk_tlsnotary_integration as zktls
+    from tools.zk_tlsnotary_integration import BlindApiReceipt, test_zk_tlsnotary_integration_prototype
+
+    assert BlindApiReceipt.__dataclass_params__.frozen is True  # type: ignore[attr-defined]
+    assert sha256_prefixed(b"abc") == f"sha256:{_hashlib.sha256(b'abc').hexdigest()}"
+    with pytest.raises(ValueError, match="ERR_FLOAT_FORBIDDEN_IN_JCS"):
+        encode_jcs({"bad": 1.5})
+    with pytest.raises(ValueError, match="ERR_NON_STRING_KEY"):
+        encode_jcs({1: "bad"})  # type: ignore[dict-item]
+
+    src_tree = _ast.parse(Path(zktls.__file__).read_text(encoding="utf-8"))
+    for node in _ast.walk(src_tree):
+        if isinstance(node, _ast.ExceptHandler):
+            for stmt in node.body:
+                if (
+                    isinstance(stmt, _ast.Expr)
+                    and isinstance(stmt.value, _ast.Call)
+                    and isinstance(stmt.value.func, _ast.Attribute)
+                    and stmt.value.func.attr == "insert"
+                ):
+                    assert isinstance(stmt.value.args[0], _ast.Constant) and stmt.value.args[0].value == 0
+                    sub = stmt.value.args[1].args[0]  # type: ignore[attr-defined]
+                    assert isinstance(sub, _ast.Subscript) and isinstance(sub.slice, _ast.Constant)
+                    assert sub.slice.value == 1
+    last_if = src_tree.body[-1]
+    assert isinstance(last_if, _ast.If) and isinstance(last_if.test, _ast.Compare)
+    assert isinstance(last_if.test.ops[0], _ast.Eq)
+
+    seen_proto: dict[str, int] = {}
+
+    def _trace_proto(frame: object, event: str, arg: object) -> object:
+        f_code = getattr(frame, "f_code", None)
+        if f_code is not None and f_code.co_name == "test_zk_tlsnotary_integration_prototype" and event == "return":
+            f_locals = getattr(frame, "f_locals", {})
+            if "raw_response" in f_locals and "receipt" in f_locals:
+                seen_proto["bal"] = f_locals["raw_response"]["balance_minor"]
+                seen_proto["floor"] = f_locals["receipt"].strict_floor_minor
+        return _trace_proto
+
+    _sys.settrace(_trace_proto)
+    try:
+        test_zk_tlsnotary_integration_prototype()
+    finally:
+        _sys.settrace(None)
+    assert seen_proto["bal"] == 14250 * 100 + 75
+    assert seen_proto["floor"] == 100_00
+
+    # Exact delta = 0 (`balance_minor = floor + 1`), delta = (1 << 64) - 1, and delta = (1 << 64)
+    r_d0 = proxy.attest_api_response_above_floor(
+        "op-d0", "sni.example", {"balance_minor": 100_01, "status": "approved"}, 100_00, "salt0"
+    )
+    assert len(r_d0.redacted_leaf_hashes) == 2
+    l0 = bytes.fromhex(r_d0.redacted_leaf_hashes["balance_minor"].split(":")[1])
+    l1 = bytes.fromhex(r_d0.redacted_leaf_hashes["status"].split(":")[1])
+    expected_2leaf_root = f"sha256:{_hashlib.sha256(b'\x01' + l0 + l1).hexdigest()}"
+    assert r_d0.transcript_merkle_root == expected_2leaf_root
+
+    # 3-leaf odd Merkle tree & multi-limb exact bit-decomposition (`delta = 0x123456789ABCDEF0`)
+    target_delta = (0x1234 << 48) | (0x5678 << 32) | (0x9ABC << 16) | 0xDEF0
+    r_3leaf = proxy.attest_api_response_above_floor(
+        "op-limbs",
+        "sni.example",
+        {"balance_minor": target_delta + 1, "id": "acc-1", "status": "approved"},
+        0,
+        "salt3",
+    )
+    expected_limbs = []
+    for idx, val in enumerate((0xDEF0, 0x9ABC, 0x5678, 0x1234)):
+        c_in = encode_jcs(
+            {"operation_id": "op-limbs", "limb_idx": idx, "limb_val": val, "salt": f"salt3:limb:{idx}"}
+        )
+        expected_limbs.append(sha256_prefixed(c_in))
+    assert r_3leaf.excess_limb_commitments == tuple(expected_limbs)
+
+    r_max = proxy.attest_api_response_above_floor(
+        "op-max", "sni.example", {"balance_minor": (1 << 64), "status": "approved"}, 0, "saltm"
+    )
+    assert ZkTlsNotaryProxyPrototype.verify_blind_receipt_offline(r_max, notary_priv.public_key(), 0) is True
+    with pytest.raises(ValueError, match="ERR_ZKTLS_BALANCE_NOT_STRICTLY_ABOVE_FLOOR"):
+        proxy.attest_api_response_above_floor(
+            "op-ovf", "sni.example", {"balance_minor": (1 << 64) + 1, "status": "approved"}, 0, "salto"
+        )
+
+    # Offline verification failure branches
+    assert (
+        ZkTlsNotaryProxyPrototype.verify_blind_receipt_offline(
+            receipt, notary_priv.public_key(), expected_min_floor_minor=100_01
+        )
+        is False
+    )
+    bad_sig_receipt = BlindApiReceipt(
+        **{**receipt.__dict__, "notary_signature_b64": receipt.notary_signature_b64 + "!!"}
+    )
+    assert (
+        ZkTlsNotaryProxyPrototype.verify_blind_receipt_offline(
+            bad_sig_receipt, notary_priv.public_key(), expected_min_floor_minor=100_00
+        )
+        is False
+    )
+
 
 def test_track_beta_tetragon_rapl_throttle_yaml_compiles_cleanly() -> None:
     yaml_path = Path("compliance/tetragon_rapl_throttle.yaml")

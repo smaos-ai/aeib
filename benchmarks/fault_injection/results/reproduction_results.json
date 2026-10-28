@@ -1,7 +1,7 @@
 {
   "report_schema": "AEIB-REPRODUCTION-REPORT-v1",
-  "release_id": "AEIB-RELEASE-v0.2.2",
-  "timestamp_utc": "2026-09-30T21:27:18Z",
+  "release_id": "AEIB-RELEASE-v0.2.4",
+  "timestamp_utc": "2026-10-01T18:41:19Z",
   "overall_pass": true,
   "environment": {
     "python_version": "3.14.3",
@@ -42,10 +42,10 @@
       "name": "git_revision",
       "passed": true,
       "details": {
-        "head_commit": "b00998b1a53986d7eddcf9aa49db173682571591",
-        "release_tag": "v0.2.2",
-        "release_tag_commit": "b00998b1a53986d7eddcf9aa49db173682571591",
-        "current_exact_tag": "v0.2.2"
+        "head_commit": "ab07188c0775193cdff316fc29d33b512307c78f",
+        "release_tag": "v0.2.4",
+        "release_tag_commit": "ab07188c0775193cdff316fc29d33b512307c78f",
+        "current_exact_tag": "v0.2.4"
       },
       "errors": []
     },
@@ -55,8 +55,8 @@
       "passed": true,
       "details": {
         "returncode": 0,
-        "duration_s": 0.74,
-        "stdout_tail": "....................                                                     [100%]\n20 passed in 0.45s"
+        "duration_s": 0.8,
+        "stdout_tail": "....................                                                     [100%]\n20 passed in 0.42s"
       },
       "errors": []
     },
@@ -92,8 +92,8 @@
         "duplicate_debits": 0,
         "signature_failures": 0,
         "receipts_verified": 50,
-        "mean_overhead_ms": 8.43,
-        "p95_overhead_ms": 10.28
+        "mean_overhead_ms": 9.35,
+        "p95_overhead_ms": 10.53
       },
       "errors": []
     },
@@ -121,7 +121,7 @@
         },
         "aeib_report_json_sha256": {
           "status": "MATCH",
-          "sha256": "03b7bdd864c586544789013e9ca173012347f04508913c80a072a13b629d34fc"
+          "sha256": "6326a5d972ad7d81fd434214afef2ffdb9c93aeb567c4acdcbcaa3cdd0feed25"
         },
         "ledger_db_sha256": {
           "status": "MATCH",
@@ -145,21 +145,33 @@
         },
         "verify_reproduction_py_sha256": {
           "status": "MATCH",
-          "sha256": "419b7b547960953477820dee39c0f83f497db166f21b9cd280b638e01e8c5fd3"
+          "sha256": "67c815fbd84c8278b06ec5efd292e7f23871119cef331177e0b01f99a9356ce1"
         },
         "paper_draft_md_sha256": {
           "status": "MATCH",
-          "sha256": "e975c542374df15c3640336625ddfacab7af84480a04d901e3ea458ae7a8db27"
+          "sha256": "3b5012f97bd0a99f61919dfd8327685ce9857de166c4f9a44a4e883aa060dfff"
         },
         "paper_tex_sha256": {
           "status": "MATCH",
-          "sha256": "0d252dcbd9f9fd4f83d011a6660040a75a3db53c4be9ab37bc928b3c5064ec4e"
+          "sha256": "9c97f7239231c949f877a3edb44ecadaddb948cb9689555fac44c8568ad7177d"
+        },
+        "pg_probe_adapter_py_sha256": {
+          "status": "MATCH",
+          "sha256": "9199913cf7c16406856e383e853228e0e661453d8401dc0fd06064c526506df2"
+        },
+        "test_integration_pg_probe_py_sha256": {
+          "status": "MATCH",
+          "sha256": "176b7c602ab6590a33700f7f9916c514b6144be1b36f2fa75596f2ac9d25c091"
+        },
+        "competitive_evaluation_md_sha256": {
+          "status": "MATCH",
+          "sha256": "59b75bbe9a0ddb579af5531e570012b5bf836054555f0ef7734b454500cf08e8"
         }
       },
       "errors": []
     }
   ],
-  "declared_manifest_path": "/Users/andriileukhin/Documents/SovereignNexus/benchmarks/fault_injection/results/RELEASE_MANIFEST_v0.2.2.json",
+  "declared_manifest_path": "/Users/andriileukhin/Documents/SovereignNexus/benchmarks/fault_injection/results/RELEASE_MANIFEST_v0.2.4.json",
   "declared_provenance": {
     "control_benchmark_commit": "68575eaa8067935ef19b783af508ff89c4d03c28",
     "aeib_benchmark_commit": "bd0d845b8c57fa8d90fa35599ebdb9c54f8fce0d",

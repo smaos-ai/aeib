@@ -32,6 +32,17 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey,
 from cryptography.hazmat.primitives import serialization
 from cryptography.exceptions import InvalidSignature
 
+# RFC 8785 single source of truth: delegate to src/jcs_canonicalizer.encode_jcs
+# (differential-tested in tests/test_jcs_single_source.py).
+try:
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+except ImportError:  # loaded without the repository root on sys.path
+    import sys as _jcs_sys
+    from pathlib import Path as _JcsPath
+
+    _jcs_sys.path.insert(0, str(_JcsPath(__file__).resolve().parents[1]))
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+
 
 class DuplicateExecutionBlockedError(Exception):
     """Raised when an ambiguous drop occurred and out-of-band probe verified mutation committed."""
@@ -69,7 +80,7 @@ def jcs_canonicalize(data: Dict[str, Any]) -> bytes:
     RFC 8785 JSON Canonicalization Scheme (JCS).
     Lexicographical UTF-16 code unit sorting, compact separators, no extra whitespace.
     """
-    return json.dumps(data, sort_keys=True, separators=(',', ':'), ensure_ascii=False).encode('utf-8')
+    return _reference_encode_jcs(data)
 
 
 def generate_keypair() -> Tuple[Ed25519PrivateKey, str]:

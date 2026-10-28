@@ -1,0 +1,42 @@
+{
+  "incident_identifier": "DORA-INC-37C0D7F7",
+  "receipt_action_id": "mcp://session/step/rpc/unspecified",
+  "idempotency_key": "37c0d7f7-ea73-46a1-be9e-4073c474af3b",
+  "reporting_entity_name": "Regulated Financial Entity",
+  "legal_entity_identifier_lei": "5493000IBP32UQZ0KL24",
+  "entity_type": "CREDIT_INSTITUTION",
+  "competent_authority": "National Competent Authority / EBA",
+  "contact_person": "Designated ICT Incident Officer (Pending Assignment)",
+  "detection_timestamp_utc": "2026-09-28T23:38:18.330996+00:00",
+  "start_timestamp_utc": "2026-09-28T23:38:18.330996+00:00",
+  "classification_timestamp_utc": "2026-09-28T23:38:18.330996+00:00",
+  "statutory_deadlines": {
+    "awareness_time_utc": "2026-09-28T23:38:18.330996+00:00",
+    "classification_time_utc": "2026-09-28T23:38:18.330996+00:00",
+    "initial_notification_deadline_utc": "2026-09-29T03:38:18.330996+00:00",
+    "intermediate_report_deadline_utc": "2026-10-01T23:38:18.330996+00:00",
+    "rts_2025_301_art4_2_non_adjustment": true,
+    "statutory_basis": "DORA Art. 19(4)(a) [min(T_class + 4h, T_aware + 24h)] \u2022 RTS 2025/301 Art. 4(2) non-adjustment applied (no weekend/holiday extension)"
+  },
+  "affected_ict_service": "mcp://session/step/rpc/unspecified",
+  "tool_name": "unknown_tool",
+  "supports_critical_or_important_function": true,
+  "critical_function_description": "Autonomous Agent Execution via unknown_tool under MCP Execution Boundary",
+  "transport_disruption_type": "NONE",
+  "downstream_reconciliation_status": "UNKNOWN",
+  "quarantine_enforced": true,
+  "technical_narrative": "Autonomous agent dispatched mutating tool 'unknown_tool' (Action ID: mcp://session/step/rpc/unspecified). Transport boundary detected disruption: NONE. Downstream state reconciliation yielded 'UNKNOWN'. Execution Integrity Boundary enforced fail-closed quarantine: retries halted, downstream transaction state isolated with UUIDv5 idempotency key 37c0d7f7-ea73-46a1-be9e-4073c474af3b.",
+  "impact_severity_rating": "PENDING_HUMAN_REVIEW",
+  "potential_materiality_triggers": [
+    "UNCONFIRMED_DOWNSTREAM_STATE_UNKNOWN",
+    "CRITICAL_OR_IMPORTANT_FUNCTION_IMPACTED"
+  ],
+  "human_sign_off_required": true,
+  "human_sign_off_status": "AWAITING_INCIDENT_COMMANDER",
+  "reviewed_by": null,
+  "review_timestamp_utc": null,
+  "reviewer_verdict_notes": null,
+  "receipt_sha256_hash": "4ac6545da37cdb6c3896fbd583194095c6b6ab0ce6cf361a189ac18d54567f43",
+  "signature_type": "Ed25519",
+  "cryptographic_tamper_seal": "sha256:4ac6545da37cdb6c3896fbd583194095c6b6ab0ce6cf361a189ac18d54567f43"
+}

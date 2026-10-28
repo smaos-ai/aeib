@@ -36,6 +36,13 @@ import math
 from dataclasses import dataclass
 from typing import Any, Dict, FrozenSet, List, Optional, Sequence, Tuple
 
+from src.sovereign_moat_upgrades import (
+    Jurisdiction,
+    ModelManifest,
+    SovereignMoMRouter,
+    SovereignRoutingRequest,
+)
+
 
 @dataclass(frozen=True)
 class MoMRoutingDecision:
@@ -135,6 +142,32 @@ class MixtureOfModelsSemanticRouter:
             oracle_failed=oracle_failed,
             has_syntax_errors=has_syntax_errors,
         )
+
+    @classmethod
+    def route_sovereign_request(
+        cls,
+        request: SovereignRoutingRequest,
+        candidate_model: ModelManifest,
+        repo_tokens: int,
+        task_risk: str = "medium",
+        oracle_failed: bool = False,
+        has_syntax_errors: bool = False,
+    ) -> Tuple[MoMRoutingDecision, str]:
+        """
+        Unified sovereign routing gate:
+        1. Enforces geopolitical export control boundaries via SovereignMoMRouter.
+        2. Routes to appropriate model tier via MoMRoutingDecision.
+        """
+        sovereign_receipt = SovereignMoMRouter.dispatch_sovereign_route(
+            request, candidate_model
+        )
+        decision = cls.route_request(
+            repo_tokens=repo_tokens,
+            task_risk=task_risk,
+            oracle_failed=oracle_failed,
+            has_syntax_errors=has_syntax_errors,
+        )
+        return decision, sovereign_receipt
 
 
 class HarnessMMGuardedDecisionCache:

@@ -1,0 +1,27 @@
+{
+  "linter": {
+    "iterations": 200,
+    "total_findings": 200,
+    "elapsed_ns": 44769459,
+    "avg_latency_micros": 223.847295
+  },
+  "scope_decoupler": {
+    "iterations": 100,
+    "valid_signatures": 100,
+    "elapsed_ns": 49749625,
+    "avg_latency_micros": 497.49625
+  },
+  "live_oracle": {
+    "runs_evaluated": 9,
+    "distinct_digests": 9,
+    "is_valid": true,
+    "total_elapsed_ns": 444166
+  },
+  "mutation_falsifier": {
+    "mutations_tested": 4,
+    "mutations_killed": 4,
+    "kill_ratio_bps": 10000,
+    "is_adequate": true,
+    "elapsed_ns": 701875
+  }
+}

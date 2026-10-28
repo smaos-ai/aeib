@@ -95,3 +95,54 @@ def test_banned_words_absence() -> None:
         text = (repo_root / rel).read_text(encoding="utf-8").lower()
         for w in banned:
             assert w not in text, f"Forbidden word found in {rel}"
+
+
+def test_section8_mutation_boundaries(monkeypatch: pytest.MonkeyPatch) -> None:
+    import ast as _ast
+    import tools.aeib_2026_unified_metrics_evaluator as ume
+
+    tree = _ast.parse(Path(ume.__file__).read_text(encoding="utf-8"))
+    assert isinstance(tree.body[-1], _ast.If)
+    assert isinstance(tree.body[-1].test, _ast.Compare)
+    assert isinstance(tree.body[-1].test.ops[0], _ast.Eq)
+
+    assert compute_mrr([]) == 0.0
+    assert compute_mrr([[0, 0, 1]]) == 0.3333
+    assert compute_ndcg_at_k([0, 0, 0], 3) == 0.0
+    assert compute_ndcg_at_k([1, 0, 0], 3) == 1.0
+    assert compute_ndcg_at_k([0, 1, 2], 3) < 1.0
+
+    assert compute_pass_at_k(10, 5, 5) == 0.996
+    assert compute_tau_bench_pass_hat_k(10, 5, 5) == 0.004
+
+    assert evaluate_bird_sql_and_secure_ves([])["EX"] == 0.0
+    res_safe_only = evaluate_bird_sql_and_secure_ves(
+        [SqlEvalCase("q1", True, 10.0, 10.0, has_rls_tenant_binding=True)]
+    )
+    assert res_safe_only["RLS_Violation_Block_Rate_pct"] == 100.0
+
+    assert compute_adjusted_rand_index([0], [0]) == 1.0
+    assert compute_adjusted_rand_index([0, 0, 0], [0, 0, 0]) == 1.0
+    assert compute_adjusted_rand_index([0, 0, 1, 1, 2, 2], [0, 0, 1, 2, 2, 2]) == 0.4444
+
+    rep = run_full_handbook_and_2026_sota_audit()
+    assert rep["Category_9_and_11_Stability_and_Clustering"]["AQuA_Trace_Clustering_Adjusted_Rand_Index_ARI"] == 1.0
+
+    seen_ndcg_inputs: list[list[int]] = []
+    seen_pass_hat_args: list[tuple[int, int, int]] = []
+    orig_ndcg = ume.compute_ndcg_at_k
+    orig_hat = ume.compute_tau_bench_pass_hat_k
+
+    def _spy_ndcg(rels: list[int], k: int) -> float:
+        seen_ndcg_inputs.append(list(rels))
+        return orig_ndcg(rels, k)
+
+    def _spy_hat(n: int, c: int, k: int) -> float:
+        seen_pass_hat_args.append((n, c, k))
+        return orig_hat(n, c, k)
+
+    monkeypatch.setattr(ume, "compute_ndcg_at_k", _spy_ndcg)
+    monkeypatch.setattr(ume, "compute_tau_bench_pass_hat_k", _spy_hat)
+    ume.run_full_handbook_and_2026_sota_audit()
+    assert seen_ndcg_inputs == [[3, 2, 0, 0, 0], [3, 1, 0, 0, 0], [3, 2, 1, 0, 0]]
+    assert seen_pass_hat_args == [(10, 6, 8), (10, 10, 8)]

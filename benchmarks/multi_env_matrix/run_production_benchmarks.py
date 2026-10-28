@@ -33,8 +33,10 @@ EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def jcs_hash(payload: Any) -> str:
-    canonical = json.dumps(payload, separators=(',', ':'), sort_keys=True)
-    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    # RFC 8785 single source of truth (repo root is on sys.path above).
+    from src.jcs_canonicalizer import encode_jcs
+
+    return hashlib.sha256(encode_jcs(payload)).hexdigest()
 
 
 # ==============================================================================
@@ -200,20 +202,23 @@ def run_env_sqlite_benchmark(env_name: str, python_version: str) -> Dict[str, An
         os.remove(db_path)
 
     latencies.sort()
+    c0_pct = int(round((c0_violations / max(1, n_trials)) * 100.0))
+    neg_pct = int(round((neg_controls_passed / 20) * 100.0))
+    status_str = "PASSED" if (observed_duplicates == 0 and neg_controls_passed == 20) else "FAILED"
     return {
         "environment": env_name,
         "runtime": f"Python {python_version}",
         "database": "SQLite 3 (WAL mode)",
         "fault_trials": n_trials,
-        "c0_naive_violations": f"{c0_violations}/{n_trials} (100%)",
+        "c0_naive_violations": f"{c0_violations}/{n_trials} ({c0_pct}%)",
         "aeib_observed_duplicates": observed_duplicates,
         "receipts_verified": f"{receipts_verified}/{n_trials}",
-        "negative_controls": f"{neg_controls_passed}/20 (100% fail-closed)",
+        "negative_controls": f"{neg_controls_passed}/20 ({neg_pct}% fail-closed)",
         "mean_latency_ms": round(statistics.mean(latencies), 3),
         "p50_latency_ms": round(latencies[len(latencies) // 2], 3),
         "p95_latency_ms": round(latencies[int(len(latencies) * 0.95)], 3),
         "p99_latency_ms": round(latencies[int(len(latencies) * 0.99)], 3),
-        "status": "PASSED"
+        "status": status_str
     }
 
 

@@ -1,0 +1,7 @@
+{
+  "entry_module": "solution",
+  "id": "token_bucket",
+  "instruction": "Implement TokenBucket(capacity, refill_per_sec, clock) where clock() returns integer milliseconds. allow() consumes one token and returns True if available, else False. Refill is continuous at refill_per_sec tokens per second (integer math, tokens capped at capacity). Starts full.",
+  "starter_source": "class TokenBucket:\n    def __init__(self, capacity: int, refill_per_sec: int, clock):\n        self.capacity = capacity\n    def allow(self) -> bool:\n        ...\n",
+  "type": "feature"
+}

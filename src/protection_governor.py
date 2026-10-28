@@ -38,6 +38,17 @@ from typing import Dict, Any, Optional, List, Tuple
 from dataclasses import dataclass, field
 from collections import defaultdict, deque
 
+# RFC 8785 single source of truth: delegate to src/jcs_canonicalizer.encode_jcs
+# (differential-tested in tests/test_jcs_single_source.py).
+try:
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+except ImportError:  # loaded without the repository root on sys.path
+    import sys as _jcs_sys
+    from pathlib import Path as _JcsPath
+
+    _jcs_sys.path.insert(0, str(_JcsPath(__file__).resolve().parents[1]))
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+
 logger = logging.getLogger("aeib.protection_governor")
 
 
@@ -57,7 +68,7 @@ class Disposition(str, Enum):
 
 def jcs_canonical_bytes(obj: Any) -> bytes:
     """RFC 8785 JSON Canonicalization Scheme (JCS) deterministic serialization."""
-    return json.dumps(obj, ensure_ascii=False, separators=(',', ':'), sort_keys=True).encode('utf-8')
+    return _reference_encode_jcs(obj)
 
 
 @dataclass
@@ -312,7 +323,7 @@ class IndustrialProtectionGovernor:
             "st_num": st_num,
             "sq_num": sq_num,
             "timestamp": time.time(),
-            "time_allowed_to_live_ms": 2000
+            "time_allowed_to_live_ms": 2000  # claim: config
         }
 
     def create_sampled_value(

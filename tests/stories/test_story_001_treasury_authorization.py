@@ -40,6 +40,12 @@ class TestStory001TreasuryAuthorization:
         self.frontend_url = "http://127.0.0.1:5173"
         self.db_path = Path("/tmp/agentacct.db")
         self.initial_db_row_count = self._get_db_row_count()
+
+        # Check if backend server is online before running story integration flow
+        health = self._http_get(f"{self.backend_url}/api/health")
+        if health.get("status_code") != 200:
+            pytest.skip(f"Story integration test requires active backend service at {self.backend_url}")
+
         yield
         # Cleanup after test
 

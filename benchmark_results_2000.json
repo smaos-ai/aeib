@@ -1,0 +1,50 @@
+{
+  "timestamp_utc": "2026-10-03T06:06:21Z",
+  "seed": 101,
+  "total_episodes": 2000,
+  "fault_vector_count": 15,
+  "results": {
+    "naive_retry_baseline": {
+      "arm": "naive_retry_baseline",
+      "total_episodes": 2000,
+      "duplicate_mutations": 2000,
+      "duplicate_effects": 2000,
+      "failure_rate_pct": 100.0,
+      "status": "FAIL_100_PCT"
+    },
+    "payload_derived_key": {
+      "arm": "payload_derived_key",
+      "total_episodes": 2000,
+      "duplicate_mutations": 1256,
+      "duplicate_effects": 1256,
+      "failure_rate_pct": 62.8,
+      "status": "FAIL_DRIFT_VULNERABLE"
+    },
+    "server_side_stable_key": {
+      "arm": "server_side_stable_key",
+      "total_episodes": 2000,
+      "duplicate_mutations": 0,
+      "duplicate_effects": 0,
+      "unresolved_episodes": 399,
+      "failure_rate_pct": 0.0,
+      "status": "ZERO_DUPLICATES_UNRESOLVED_DROPS"
+    },
+    "aeib": {
+      "arm": "aeib",
+      "total_episodes": 2000,
+      "duplicate_mutations": 0,
+      "duplicate_effects": 0,
+      "failure_rate_pct": 0.0,
+      "rule_of_three_95_upper_bound_pct": 0.15,
+      "latency_p50_ms": 0.03,
+      "latency_p99_ms": 0.17,
+      "disposition_counts": {
+        "OUTCOME_VERIFIED": 1468,
+        "NOT_FOUND_AFTER_GRACE": 133,
+        "RECONCILIATION_CONFLICT": 133,
+        "POLICY_REFUSED": 266
+      },
+      "status": "PASS_ZERO_DUPLICATES"
+    }
+  }
+}

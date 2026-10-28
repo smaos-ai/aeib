@@ -471,3 +471,141 @@ def test_outage_burst_continuity_violation_tamper_detection():
     with pytest.raises(CheckpointContinuityError) as exc_info:
         anchor.reconcile_outage_burst(current_time_epoch=25.0)
     assert "Hash-chain discontinuity" in str(exc_info.value)
+
+
+def test_telemetry_and_checkpoint_exhaustive_boundary_and_mutant_guards():
+    """Evaluates frozen dataclasses, OTLP value types, isolation guards, and checkpoint continuity branches."""
+    # 1. TraceParent frozen dataclass & non-str rejection
+    tp = parse_traceparent("00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01")
+    with pytest.raises(Exception):
+        tp.version = "01"  # type: ignore[misc]
+    with pytest.raises(InvalidTraceparentError, match="must be a string"):
+        parse_traceparent(None)  # type: ignore[arg-type]
+
+    # 2. _to_otlp_any_value and _normalize_attribute_key
+    assert tel_mod._to_otlp_any_value(True) == {"boolValue": True}
+    assert tel_mod._to_otlp_any_value(42) == {"intValue": "42"}
+    assert tel_mod._to_otlp_any_value(3.25) == {"doubleValue": 3.25}
+    assert tel_mod._to_otlp_any_value("abc") == {"stringValue": "abc"}
+    assert tel_mod._normalize_attribute_key("custom_attr_key") == "aeib.custom.attr.key"
+    assert tel_mod._normalize_attribute_key("gen_ai.existing") == "gen_ai.existing"
+    assert tel_mod._normalize_attribute_key("aeib.existing") == "aeib.existing"
+
+    # 3. start_trace defaults, parent_span_id="", operation_id fallback, OTLP kind/status/indent
+    bridge = TelemetryCorrelationBridge()
+    root_ctx = bridge.start_trace()
+    assert len(root_ctx.operation_id) == 32
+    assert root_ctx.parent_span_id is None
+    assert bridge._spans[-1]["parent_span_id"] == ""
+
+    # record_phase_event when operation_id is empty falls back to span_id
+    empty_op_ctx = SpanContext(
+        trace_id=root_ctx.trace_id,
+        span_id=root_ctx.span_id,
+        operation_id="",
+    )
+    ev = bridge.record_phase_event(
+        span_context=empty_op_ctx,
+        phase="CONFIRMED",
+        action_caid="caid-1",
+        target_tool="wire_tool",
+        extra_attributes={"custom_int": 7, "custom_float": 1.5},
+    )
+    assert ev["attributes"]["gen_ai.agent.action.id"] == root_ctx.span_id
+    assert ev["attributes"]["aeib.custom.int"] == 7
+    assert ev["attributes"]["aeib.custom.float"] == 1.5
+
+    otlp = bridge.export_spans_otlp_dict()
+    span0 = otlp["resourceSpans"][0]["scopeSpans"][0]["spans"][0]
+    assert span0["kind"] == 1
+    assert span0["status"] == {"code": 1}
+    assert "parentSpanId" not in span0
+
+    json_default = bridge.export_spans_json()
+    assert '\n  "resourceSpans":' in json_default
+
+    # 4. Telemetry isolation structural invariant checks
+    bridge._is_outbound_observer_only = False
+    with pytest.raises(TelemetryIsolationViolationError):
+        bridge.assert_telemetry_isolation()
+    delattr(bridge, "_is_outbound_observer_only")
+    with pytest.raises(TelemetryIsolationViolationError):
+        bridge.assert_telemetry_isolation()
+
+    # 5. Checkpoint frozen dataclasses, unanchored verify_signature, witness availability, empty leaves
+    witness_key = Ed25519PrivateKey.generate()
+    anchor = ExternalWitnessCheckpointAnchor(witness_private_key=witness_key)
+
+    # Calling set_witness_availability(True) while active keeps state ANCHOR_STATE_ACTIVE
+    anchor.set_witness_availability(True, current_time_epoch=50.0)
+    assert anchor.state == ANCHOR_STATE_ACTIVE
+    assert anchor.outage_start_timestamp is None
+
+    # Empty leaf list uses batch_size = max(1, 0) = 1
+    cp_empty = anchor.create_checkpoint(leaf_hashes=[], current_time_epoch=60.0)
+    assert cp_empty.commitment.start_seq == 1
+    assert cp_empty.commitment.end_seq == 1
+    assert anchor.last_end_seq == 1
+    with pytest.raises(Exception):
+        cp_empty.status = "TAMPERED"  # type: ignore[misc]
+    with pytest.raises(Exception):
+        cp_empty.commitment.end_seq = 99  # type: ignore[misc]
+
+    # Enter outage at t=100.0; second set_witness_availability(False) at t=200.0 preserves t=100.0
+    anchor.set_witness_availability(False, current_time_epoch=100.0)
+    assert anchor.state == ANCHOR_STATE_OUTAGE
+    assert anchor.outage_start_timestamp == 100.0
+    anchor.set_witness_availability(False, current_time_epoch=200.0)
+    assert anchor.outage_start_timestamp == 100.0
+
+    cp_unanchored = anchor.create_checkpoint(
+        leaf_hashes=[hashlib.sha256(b"u1").hexdigest(), hashlib.sha256(b"u2").hexdigest()],
+        current_time_epoch=110.0,
+    )
+    assert cp_unanchored.verify_signature() is False
+
+    receipt = anchor.reconcile_outage_burst(current_time_epoch=120.0)
+    assert anchor.last_end_seq == 3
+    with pytest.raises(Exception):
+        receipt.reconciled_batch_count = 99  # type: ignore[misc]
+
+    # Sequence mismatch and start_seq mismatch in reconcile_outage_burst
+    anchor.set_witness_availability(False, current_time_epoch=130.0)
+    cp_u2 = anchor.create_checkpoint(
+        leaf_hashes=[hashlib.sha256(b"u3").hexdigest()],
+        current_time_epoch=135.0,
+    )
+    bad_seq_comm = CheckpointCommitment(
+        checkpoint_seq=999,
+        start_seq=cp_u2.commitment.start_seq,
+        end_seq=cp_u2.commitment.end_seq,
+        merkle_root=cp_u2.commitment.merkle_root,
+        previous_checkpoint_root=cp_u2.commitment.previous_checkpoint_root,
+        timestamp_utc=cp_u2.commitment.timestamp_utc,
+    )
+    anchor.unanchored_buffer[0] = AnchoredCheckpoint(
+        commitment=bad_seq_comm,
+        witness_public_key_hex=anchor.witness_public_key_hex,
+        signature_hex="",
+        status=DISPATCH_UNANCHORED_LOCAL_ONLY,
+    )
+    with pytest.raises(CheckpointContinuityError, match="Checkpoint sequence mismatch"):
+        anchor.reconcile_outage_burst(current_time_epoch=140.0)
+
+    bad_start_comm = CheckpointCommitment(
+        checkpoint_seq=cp_u2.commitment.checkpoint_seq,
+        start_seq=999,
+        end_seq=cp_u2.commitment.end_seq,
+        merkle_root=cp_u2.commitment.merkle_root,
+        previous_checkpoint_root=cp_u2.commitment.previous_checkpoint_root,
+        timestamp_utc=cp_u2.commitment.timestamp_utc,
+    )
+    anchor.unanchored_buffer[0] = AnchoredCheckpoint(
+        commitment=bad_start_comm,
+        witness_public_key_hex=anchor.witness_public_key_hex,
+        signature_hex="",
+        status=DISPATCH_UNANCHORED_LOCAL_ONLY,
+    )
+    with pytest.raises(CheckpointContinuityError, match="Entry sequence mismatch"):
+        anchor.reconcile_outage_burst(current_time_epoch=140.0)
+

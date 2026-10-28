@@ -30,10 +30,11 @@ from __future__ import annotations
 
 import argparse
 import hashlib
-import json
 import math
 from dataclasses import asdict, dataclass
 from typing import Any, Dict, List, Optional, Sequence, Tuple
+
+from src.jcs_canonicalizer import encode_jcs
 
 # BN254 scalar field prime (order of the alt_bn128 curve scalar field)
 BN254_PRIME: int = (
@@ -194,12 +195,9 @@ def poseidon2_hash_canonical_json(obj: Any) -> int:
     """
     Computes Poseidon2 field hash over RFC 8785 canonical JSON bytes.
     """
-    canonical_bytes = json.dumps(
-        obj,
-        sort_keys=True,
-        separators=(",", ":"),
-        ensure_ascii=False,
-    ).encode("utf-8")
+    # Single-source RFC 8785 (the previous local json.dumps copy diverged on
+    # non-BMP key order, exponent format and -0).
+    canonical_bytes = encode_jcs(obj)
     return poseidon2_hash_bytes(canonical_bytes)
 
 

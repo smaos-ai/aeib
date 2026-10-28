@@ -78,7 +78,7 @@ def test_falsify_vacuous_t4_oracle_rejected_by_mutation_verifier() -> None:
         mutants,
     )
     assert vacuous_report.qualifies_as_t4_plus is False
-    assert vacuous_report.kill_rate_bps == 5000
+    assert int(vacuous_report.kill_rate_bps) == 5000
     assert vacuous_report.surviving_mutant_ids == ("M2_FORGED_SIG",)
 
     items = [
@@ -99,6 +99,9 @@ def test_falsify_vacuous_t4_oracle_rejected_by_mutation_verifier() -> None:
         rho_corr_bps=2000,
     )
     assert verdict.final_disposition == "HOLD_VACUOUS_T4_ORACLE_SURVIVING_MUTANTS"
+    assert verdict.independent_origins_count == 0
+    assert verdict.echo_duplicates_collapsed == 0
+    assert verdict.effective_models_bps == 0
 
 
 def test_poirot_citation_echo_chamber_and_caveat_correlated_blindspot() -> None:
@@ -131,9 +134,9 @@ def test_poirot_citation_echo_chamber_and_caveat_correlated_blindspot() -> None:
     )
     assert res_corr["status"] == "HALT_CAVEAT_CORRELATED_BLINDSPOT_NEEDS_ORTHOGONAL_WITNESS"
 
-    # 3. Expired half-life security evidence halts
+    # 3. Expired half-life security evidence halts (including half_life_hours=1 boundary)
     stale_items = [
-        ProvenanceEvidenceItem("e-stale", "c-stale", "https://pypi.org/p/litellm", "sha256:r1", "T2", True, 72, 48),
+        ProvenanceEvidenceItem("e-stale", "c-stale", "https://pypi.org/p/litellm", "sha256:r1", "T2", True, 2, 1),
     ]
     res_stale = CaveatAndPoirotMetaAuditor.audit_claim_evidence(
         claim_id="c-stale",
@@ -142,6 +145,60 @@ def test_poirot_citation_echo_chamber_and_caveat_correlated_blindspot() -> None:
         rho_corr_bps=1000,
     )
     assert res_stale["status"] == "HALT_STALE_EVIDENCE_HALF_LIFE_EXPIRED"
+
+    # 4. Effective model count boundaries, frozen immutability, JCS flags, and run_self_test
+    import dataclasses
+    import json as _json
+    import pytest
+    from src.decide_v51_meta_hardening_engine import canonical_jcs_bytes, run_self_test
+
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        stale_items[0].age_hours = 99  # type: ignore
+
+    # canonical_jcs_bytes delegates to the RFC 8785 reference encoder; the former
+    # json.dumps flag spy pinned the old local implementation. Assert behaviour.
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+
+    assert canonical_jcs_bytes({"u": "α"}) == '{"u":"α"}'.encode("utf-8")
+    probe = {"\U0001F600": 1, "\uffff": [2**64]}
+    assert canonical_jcs_bytes(probe) == _reference_encode_jcs(probe)
+    assert canonical_jcs_bytes(probe) == '{"\U0001F600":1,"\uffff":[18446744073709551616]}'.encode("utf-8")
+    with pytest.raises(ValueError):
+        canonical_jcs_bytes({"x": 0.5})
+
+    zero_eff = CaveatAndPoirotMetaAuditor.compute_effective_model_count_bps(0, 1000)
+    assert zero_eff is not None and zero_eff == 0
+    assert CaveatAndPoirotMetaAuditor.compute_effective_model_count_bps(1, 0) == 100 * 100
+    assert CaveatAndPoirotMetaAuditor.compute_effective_model_count_bps(4, 2000) == 250 * 100
+    with pytest.raises(ValueError, match="ERR_INVALID_RHO_CORR_BPS"):
+        CaveatAndPoirotMetaAuditor.compute_effective_model_count_bps(2, -1)
+    with pytest.raises(ValueError, match="ERR_INVALID_RHO_CORR_BPS"):
+        CaveatAndPoirotMetaAuditor.compute_effective_model_count_bps(2, 10001)
+
+    orig_eval = MutationKilledOracleVerifier.evaluate_oracle
+    orig_exec = DecideV51MetaHardeningEngine.execute_meta_decide
+
+    def _checked_eval(oracle_id, oracle_fn, nominal_state, mutants):  # type: ignore[no-untyped-def]
+        assert mutants[0].mutated_state["spend_minor"] == 60 * 100
+        assert mutants[1].mutated_state["ceiling_minor"] == 50 * 100
+        assert mutants[1].mutated_state["sig_valid"] is False
+        return orig_eval(oracle_id, oracle_fn, nominal_state, mutants)
+
+    def _checked_exec(self, **kw):  # type: ignore[no-untyped-def]
+        ev = kw["evidence_items"]
+        assert ev[0].half_life_hours == 7 * 24
+        assert ev[1].age_hours == 6
+        assert ev[2].half_life_hours == 0
+        assert kw["rho_corr_bps"] == 40 * 100
+        return orig_exec(self, **kw)
+
+    MutationKilledOracleVerifier.evaluate_oracle = staticmethod(_checked_eval)  # type: ignore[assignment]
+    DecideV51MetaHardeningEngine.execute_meta_decide = _checked_exec  # type: ignore[assignment]
+    try:
+        run_self_test()
+    finally:
+        MutationKilledOracleVerifier.evaluate_oracle = staticmethod(orig_eval)  # type: ignore[assignment]
+        DecideV51MetaHardeningEngine.execute_meta_decide = orig_exec  # type: ignore[assignment]
 
 
 def test_zero_banned_words_in_v51_files() -> None:

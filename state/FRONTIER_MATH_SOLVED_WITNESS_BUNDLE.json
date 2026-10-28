@@ -1,8 +1,8 @@
 {
-  "bundle_sha256": "ec687e218fcc683cb2988ea8234dda7c9f45f1ccb3b46d7eaa425b6e37a3141c",
+  "bundle_sha256": "7e4eb25f50f72b851fa2498d22e42970973cbc605e4093dbe7151c0db134b989",
   "bundle_version": "5.2.0",
-  "public_key_b64": "N5nhwtzwhoiG83qLEs81Z6iKwf8TlWUcbR2ko3U/zao=",
-  "signature_b64": "e7mf97lsASiYQ8Us0sqRgLYtdpNs9QYMDyOfnShjoEmGhzkYLjnrCrO8NPa0QrPKQ+w6tHftS+f61wYVtGShBA==",
+  "public_key_b64": "EqFCMejDur4VdoMNvIeY3MtQMB4FQ5lLuRUazQnK750=",
+  "signature_b64": "QammFhDeaO92bipo328azlzT7waLwTlJzOCVEX128BJF/E8/EwFiRyBH38BQarcXiryVevBR4nO5Q37AsiAiBg==",
   "t4_plus_mutation_adequacy": {
     "kill_rate_bps": 10000,
     "mutants_injected": 3,

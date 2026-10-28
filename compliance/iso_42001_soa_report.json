@@ -2,7 +2,7 @@
   "standard": "ISO/IEC 42001:2023",
   "qms_alignment": "CEN-CENELEC prEN 18286 / EU AI Act Art. 17 QMS",
   "annex": "ISO/IEC 42001:2023 Annex A (38 Controls) & Category H Runtime Controls (14 Controls)",
-  "timestamp_utc": "2026-10-17T01:56:06Z",
+  "timestamp_utc": "2026-10-28T13:51:12Z",
   "total_controls": 14,
   "implemented_controls": 14,
   "observed_and_tested_controls": 12,
@@ -22,7 +22,7 @@
         "README.md"
       ],
       "verified_files_sha256": {
-        "docs/architecture/SOVEREIGN_AGENT_APPLICATION_SERVER.md": "9383d1e995a90f40af90c8eb8458555516a580710ccadfdd92a0209f18653136",
+        "docs/architecture/SOVEREIGN_AGENT_APPLICATION_SERVER.md": "0b8bd18edfb63529393fb7155cca927614897c62734c55f5f5de19463c9eebce",
         "README.md": "e9b7f30764bc14ce0fd87a284bbbaf9ffad5344ade2b86988bb1ec63bea72512"
       },
       "missing_files": [],
@@ -42,7 +42,7 @@
       ],
       "verified_files_sha256": {
         "compliance/claims.json": "4a8826f3f2532fc5cfb9093410bb2892823e1bcbc095df38fb0b035aacc7a55d",
-        "LIMITATIONS.md": "614dfea3971be620e224972b42b9bbf7fbb30dc9e55a06b60386ddc0caeeeb18"
+        "LIMITATIONS.md": "b379aa8a5e78441ef028bf279d5cbc8097665c14a0efe3ba06fec46b559a00aa"
       },
       "missing_files": [],
       "description": "Epistemic claims registry and 5 bounded operational clauses."
@@ -77,7 +77,7 @@
         "crates/smaos-verify/src/lib.rs"
       ],
       "verified_files_sha256": {
-        "src/diagnostic_normalizer.py": "d5ab8b023b77f2448ef3b86e03eb678d8ee1c970fa3a21a41318bb337228dd55",
+        "src/diagnostic_normalizer.py": "4aeee01dc0accccde19531aa24c4580e53ca4415691b30ae39b8bbb7173fda25",
         "crates/smaos-verify/src/lib.rs": "40bd4f770d02d275bfdd9c9d934f436628e92ed6ba0f33d08d49d70eb382faa1"
       },
       "missing_files": [],
@@ -96,8 +96,8 @@
         "aeib_mcp_proxy.py"
       ],
       "verified_files_sha256": {
-        "benchmarks/aeib_execution_integrity/run_episodes.py": "fd84e0ec4c2fcc74143dd3bb3c182a59a57ff486de5b6ba1da7eec20c084205f",
-        "aeib_mcp_proxy.py": "90c87fed035c5bf80eebab0bcdf1f6e942af1fa31822d99b57e21f1aa45d6615"
+        "benchmarks/aeib_execution_integrity/run_episodes.py": "eaca62c64af96b43096878769c3ce823eebee8d9df4eb44f57e542f24278f545",
+        "aeib_mcp_proxy.py": "1fa09aa9fadedcff2ef3b82a00daed822ae4a32895880c806d30d6ae3a7d8a7e"
       },
       "missing_files": [],
       "description": "Causal Action Identifier derivation binding Noun, Verb, and JCS payload."
@@ -228,7 +228,7 @@
       ],
       "verified_files_sha256": {
         "transport-to-disposition-mapping.yaml": "280823799d3c89b9f6c0fb304ac25ecb08007f1a0eabef9ef0bc899937a35746",
-        "tools/export_dora_art17_evidence.py": "438e87ae34c894c35fbdccfdf3b499181181be9605c1b2ce0beeaf178d1ecc72"
+        "tools/export_dora_art17_evidence.py": "3af4eff14fe9fc499558e8f24eabb16bbe9e871ec0197061e2aed82126a4011f"
       },
       "missing_files": [],
       "description": "Priority-ordered normative state machine resolving transport severance to closed dispositions."
@@ -246,7 +246,7 @@
         "src/hardware_attestation.rs"
       ],
       "verified_files_sha256": {
-        "compliance/enclave_cvm.py": "514051ade9091223f6c9732feaf1b59845a6a2cdcf905157f4f3e6d57fd9306f",
+        "compliance/enclave_cvm.py": "f4dbac1827481bb24b9f501559b10d8f0f22066cdaa3a4388d2ab9df2225f725",
         "src/hardware_attestation.rs": "bafea9f3d85fdc1c7b322432d9cc9e942c8c098dd36e4565fce3d050a457b258"
       },
       "missing_files": [],
@@ -314,7 +314,7 @@
         "docs/architecture/AEIB_SPECIFICATION.md"
       ],
       "verified_files_sha256": {
-        "AGENTS.md": "99c1f35abd95b3a7675120fa002f44be8debb809f00c5bab4a519194a152fcd7",
+        "AGENTS.md": "af3177291686fb3a8b300aacf4cefdfefdf82397dea8bfd53f36eae3fb216e73",
         "docs/architecture/AEIB_SPECIFICATION.md": "4b707dd4dd6a0eaaaa7baed6458a55a7007bd5760ac611ed50715fc1b5a40fcd"
       },
       "missing_files": []
@@ -431,7 +431,7 @@
       ],
       "verified_files_sha256": {
         "src/human_review_console.py": "2979779657531c85c83ea9f0a5e0598ac002b5c49aec88e19c213a9449c5994c",
-        "tools/export_dora_art17_evidence.py": "438e87ae34c894c35fbdccfdf3b499181181be9605c1b2ce0beeaf178d1ecc72"
+        "tools/export_dora_art17_evidence.py": "3af4eff14fe9fc499558e8f24eabb16bbe9e871ec0197061e2aed82126a4011f"
       },
       "missing_files": []
     },
@@ -519,7 +519,7 @@
         "compliance/no_mock_enforcer.py"
       ],
       "verified_files_sha256": {
-        "aeib_mcp_proxy.py": "90c87fed035c5bf80eebab0bcdf1f6e942af1fa31822d99b57e21f1aa45d6615",
+        "aeib_mcp_proxy.py": "1fa09aa9fadedcff2ef3b82a00daed822ae4a32895880c806d30d6ae3a7d8a7e",
         "compliance/ast_purity.py": "2d9e11ccf153ec34f3d61e0b3d6602ec6b3cdcbaae82d33724b61e77309cf587",
         "compliance/no_mock_enforcer.py": "1b38c778310e6835485f9dc2e9f2f69bc6d0e8afccd0d2462bfd6950e98b227f"
       },
@@ -549,7 +549,7 @@
         "src/hardware_attestation.rs"
       ],
       "verified_files_sha256": {
-        "compliance/enclave_cvm.py": "514051ade9091223f6c9732feaf1b59845a6a2cdcf905157f4f3e6d57fd9306f",
+        "compliance/enclave_cvm.py": "f4dbac1827481bb24b9f501559b10d8f0f22066cdaa3a4388d2ab9df2225f725",
         "src/hardware_attestation.rs": "bafea9f3d85fdc1c7b322432d9cc9e942c8c098dd36e4565fce3d050a457b258"
       },
       "missing_files": []
@@ -607,7 +607,7 @@
         "compliance/claims.json"
       ],
       "verified_files_sha256": {
-        "src/protection_governor.py": "145df245dcb3d6842dc777b7ca5f2b452bc3f3ba34d829eb21fd7af820ca5276",
+        "src/protection_governor.py": "111564380c6f21b612828af53a35e436bf8b454aef6d6fdb991cb7a6132cfd0a",
         "compliance/claims.json": "4a8826f3f2532fc5cfb9093410bb2892823e1bcbc095df38fb0b035aacc7a55d"
       },
       "missing_files": []
@@ -637,7 +637,7 @@
       ],
       "verified_files_sha256": {
         "docs/THREAT_MODEL.md": "f4f6d29ca6cd8054a1c7c45be7a8c943da1d047155f5a0e542143083be2e0c16",
-        "LIMITATIONS.md": "614dfea3971be620e224972b42b9bbf7fbb30dc9e55a06b60386ddc0caeeeb18"
+        "LIMITATIONS.md": "b379aa8a5e78441ef028bf279d5cbc8097665c14a0efe3ba06fec46b559a00aa"
       },
       "missing_files": []
     },
@@ -814,7 +814,7 @@
       ],
       "verified_files_sha256": {
         "docs/architecture/SMAOS-three-plane-architecture.md": "a747490461c9e241f6983c4bffe4de44dff530855ce5aeb725fc3568efc5c62b",
-        "src/eo1_write_before_execute.py": "2437ede45bae1b82b2893d49de0954198d317b8cc97e1e1812ff668f67467c1a"
+        "src/eo1_write_before_execute.py": "5806fec2b33f3453197dbedec0805711962591442ca8efad24d49d03a5088c0b"
       },
       "missing_files": []
     },
@@ -843,7 +843,7 @@
         "tools/verify_phase3_evidence.py"
       ],
       "verified_files_sha256": {
-        "benchmarks/aeib_execution_integrity/run_episodes.py": "fd84e0ec4c2fcc74143dd3bb3c182a59a57ff486de5b6ba1da7eec20c084205f",
+        "benchmarks/aeib_execution_integrity/run_episodes.py": "eaca62c64af96b43096878769c3ce823eebee8d9df4eb44f57e542f24278f545",
         "tools/verify_phase3_evidence.py": "2f5e0bb2c7c82ff105db19d8c667e3549100dbc9cf52dd6e856e7518ea62af31"
       },
       "missing_files": []
@@ -960,8 +960,8 @@
         "tools/export_ai_act_art12_14_evidence.py"
       ],
       "verified_files_sha256": {
-        "src/eo1_write_before_execute.py": "2437ede45bae1b82b2893d49de0954198d317b8cc97e1e1812ff668f67467c1a",
-        "tools/export_ai_act_art12_14_evidence.py": "f91b6537771cae86e1744438e863fe17498cd3346d86645e58d1a48b601ddda6"
+        "src/eo1_write_before_execute.py": "5806fec2b33f3453197dbedec0805711962591442ca8efad24d49d03a5088c0b",
+        "tools/export_ai_act_art12_14_evidence.py": "919d33763dbbc949f5c4f8fb03d3eee57f9610eb48cc69e8cfd63f261010848e"
       },
       "missing_files": []
     },
@@ -989,7 +989,7 @@
         "src/jcs_canonicalizer.py"
       ],
       "verified_files_sha256": {
-        "benchmarks/aeib_execution_integrity/run_episodes.py": "fd84e0ec4c2fcc74143dd3bb3c182a59a57ff486de5b6ba1da7eec20c084205f",
+        "benchmarks/aeib_execution_integrity/run_episodes.py": "eaca62c64af96b43096878769c3ce823eebee8d9df4eb44f57e542f24278f545",
         "src/jcs_canonicalizer.py": "2be49725bf6af1508eab7aab97e94484966ab5894e48f0d627ff56a5ff81823c"
       },
       "missing_files": []
@@ -1018,7 +1018,7 @@
         "aeib_postgresql_probe/adapter.py"
       ],
       "verified_files_sha256": {
-        "src/mcp_outcome_normalizer.py": "9c343bb0a9ccfd61b50fc9f915cbb006e9ddbcab53c104c5faecd391cf72afc4",
+        "src/mcp_outcome_normalizer.py": "d17ae69f18866744638505f4f880cdc51e520a2b967b0e81f8040eaddb080465",
         "aeib_postgresql_probe/adapter.py": "d9465edcb240c8c3d407e40466752528d2996f06598d1522d57dd20512046b7f"
       },
       "missing_files": []
@@ -1047,7 +1047,7 @@
         "docs/compliance/EN_18286_AND_REGULATORY_APPLICABILITY_DOSSIER.md"
       ],
       "verified_files_sha256": {
-        "LIMITATIONS.md": "614dfea3971be620e224972b42b9bbf7fbb30dc9e55a06b60386ddc0caeeeb18",
+        "LIMITATIONS.md": "b379aa8a5e78441ef028bf279d5cbc8097665c14a0efe3ba06fec46b559a00aa",
         "docs/compliance/EN_18286_AND_REGULATORY_APPLICABILITY_DOSSIER.md": "d8ec3537f2a6c8509be02041d762747003d07ba70cb1068df7d903d297f291b0"
       },
       "missing_files": []
@@ -1076,7 +1076,7 @@
         "docs/compliance/STANDARDS_SYNCHRONIZATION_OCT_2026.md"
       ],
       "verified_files_sha256": {
-        "LIMITATIONS.md": "614dfea3971be620e224972b42b9bbf7fbb30dc9e55a06b60386ddc0caeeeb18",
+        "LIMITATIONS.md": "b379aa8a5e78441ef028bf279d5cbc8097665c14a0efe3ba06fec46b559a00aa",
         "docs/compliance/STANDARDS_SYNCHRONIZATION_OCT_2026.md": "abe2b5ec23dbd2d5484ecccfe414fadb98b4c6b994f9ff403f378488188907e4"
       },
       "missing_files": []
@@ -1106,7 +1106,7 @@
       ],
       "verified_files_sha256": {
         "src/jcs_canonicalizer.py": "2be49725bf6af1508eab7aab97e94484966ab5894e48f0d627ff56a5ff81823c",
-        "src/diagnostic_normalizer.py": "d5ab8b023b77f2448ef3b86e03eb678d8ee1c970fa3a21a41318bb337228dd55"
+        "src/diagnostic_normalizer.py": "4aeee01dc0accccde19531aa24c4580e53ca4415691b30ae39b8bbb7173fda25"
       },
       "missing_files": []
     },
@@ -1134,7 +1134,7 @@
         "docs/AUDIT_FIELD_MANUAL.md"
       ],
       "verified_files_sha256": {
-        "LIMITATIONS.md": "614dfea3971be620e224972b42b9bbf7fbb30dc9e55a06b60386ddc0caeeeb18",
+        "LIMITATIONS.md": "b379aa8a5e78441ef028bf279d5cbc8097665c14a0efe3ba06fec46b559a00aa",
         "docs/AUDIT_FIELD_MANUAL.md": "5ec6a27bc3684045af028325fd6d8bf4a247a484ba154c783042037cba789f4e"
       },
       "missing_files": []
@@ -1144,7 +1144,7 @@
       "clause": "A.8 Information for interested parties",
       "title": "Synthetic media and deepfake content labeling",
       "applicability": "EXCLUDED",
-      "justification": "EXCLUDED: AEIB is a deterministic Layer-7 wire-level execution proxy that intercepts structured JSON-RPC/MCP tool calls and database mutations; it does not synthesize audio, image, video, or text media for end-users (EU AI Act Art. 50 synthetic content watermarking is inapplicable). Compensating boundary controls: Every machine-generated execution receipt is cryptographically labeled and signed via Ed25519 / IETF SCITT COSE_Sign1 (A.6.2.8, A.8.5) for non-repudiable machine origin provenance.",
+      "justification": "EXCLUDED: AEIB is a deterministic Layer-7 wire-level execution proxy that intercepts structured JSON-RPC/MCP tool calls and database mutations; it does not synthesize audio, image, video, or text media for end-users (EU AI Act Art. 50 synthetic content watermarking is inapplicable). Compensating boundary controls: Every machine-generated execution receipt is cryptographically labeled and signed via Ed25519 / IETF SCITT COSE_Sign1 (A.6.2.8, A.8.5) for tamper-evident machine origin provenance.",
       "risk_assessment_mapping": "RISK-KEY-COMPROMISE, RISK-DELEGATION | OWASP ASI07:2026 Insecure Inter-Agent Communication | CEN-CENELEC prEN 18286 Clause 8.2 (Scoped Exclusion: Non-Generative Wire Proxy)",
       "risk_ids": [
         "RISK-KEY-COMPROMISE",
@@ -1164,7 +1164,7 @@
       ],
       "verified_files_sha256": {
         "src/cose_signer.py": "0576e21228cedecabc688a1c82b8467c300dcf220567094546e9995e1d21cf34",
-        "LIMITATIONS.md": "614dfea3971be620e224972b42b9bbf7fbb30dc9e55a06b60386ddc0caeeeb18"
+        "LIMITATIONS.md": "b379aa8a5e78441ef028bf279d5cbc8097665c14a0efe3ba06fec46b559a00aa"
       },
       "missing_files": []
     },
@@ -1192,8 +1192,8 @@
         "compliance/dora_art17_exporter.py"
       ],
       "verified_files_sha256": {
-        "tools/export_dora_art17_evidence.py": "438e87ae34c894c35fbdccfdf3b499181181be9605c1b2ce0beeaf178d1ecc72",
-        "compliance/dora_art17_exporter.py": "009e01942f804e657fbba8304baaef55827b2a72bb96b7410a0f94d19483e9ef"
+        "tools/export_dora_art17_evidence.py": "3af4eff14fe9fc499558e8f24eabb16bbe9e871ec0197061e2aed82126a4011f",
+        "compliance/dora_art17_exporter.py": "3d35022245bb9d24ffd9c3960a384523a284aa3e14bfcbedb0f0ef9bd00c0a7d"
       },
       "missing_files": []
     },
@@ -1221,7 +1221,7 @@
         "compliance/dora_art28_roi_exporter.py"
       ],
       "verified_files_sha256": {
-        "compliance/iso_42001_soa.py": "47f44b22a725dbc6efa605faf55317e01c2d1637e3cd3ab6b7a7305007adb855",
+        "compliance/iso_42001_soa.py": "3f41746ba5061e1e04ece9debd417da2b53af362b4b7ea3501b1da33cdc388c6",
         "compliance/dora_art28_roi_exporter.py": "9a0beb8de5609d0ea2bedf10306cd4cd2cc5be977098665d5e8d6722cd2d12f6"
       },
       "missing_files": []
@@ -1401,7 +1401,7 @@
       "missing_files": []
     }
   ],
-  "soa_digest": "8fb9f71e6806e3125b66b3ec8c0801ff473eb1841437b3b20d0c05307bd65929",
-  "soa_signature_b64": "AqymYmR8o5CjX0SSgIi7YJF03EwTwctVOmTfqq6in8H9kY7XEzjHeEDKOVFwvXXJ1uU98kdQPg4CS6ynI9yjDg==",
-  "signer_public_key_pem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAKXwVsSLRY/8vBfIlg5/VQUVo7bRqkJ82XvtM5lZz5aw=\n-----END PUBLIC KEY-----\n"
+  "soa_digest": "5afb1d654d3db2923b86fed8fb1d934096f65fe6e8f502609037f3d414389b02",
+  "soa_signature_b64": "aSzDreB/z6pnf0cd7NTLyPDRVBfulQVH5Xm+YB693l2y56IhtICDfCkwe9LcTsJlxGIto5GdDMsLw9iAtAXFDw==",
+  "signer_public_key_pem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAMoYOnyqDWaOO2G4VFwpAHMLqNbJcSJu364suDeY0J6k=\n-----END PUBLIC KEY-----\n"
 }

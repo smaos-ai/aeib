@@ -1,0 +1,16 @@
+{
+  "system": "OCR Audit Engine (5-Stage Deterministic Hybrid Pipeline)",
+  "benchmark_date": "2026-09-18",
+  "dataset_size_lines": 100000,
+  "metrics": {
+    "precision_pct": 40.48,
+    "recall_pct": 99.40,
+    "false_positive_rate_pct": 1.15,
+    "line_number_drift_pct": 0.00,
+    "stage1_noise_reduction_pct": 94.80,
+    "total_tokens_consumed": 720000,
+    "token_savings_pct": 92.80,
+    "token_cost_usd": 14.72,
+    "duration_seconds": 42.30
+  }
+}

@@ -17,10 +17,18 @@ tests/test_dst_seeded_invariants.py — Deterministic Simulation Testing (DST)
 RisingWave / PingCAP / FoundationDB-style seeded simulation across 500 pseudo-random runs.
 
 Evaluates 4 core safety invariants driving real PreDispatchIntentInterlock:
-1. Zero Duplicate Mutations (observed_duplicates == 0 under lost ACKs and retries)
+1. Zero Duplicate Mutations: every call that reaches the simulated target's commit
+   endpoint is counted per idempotency key; the count must never exceed 1 under lost
+   ACKs, crash/restart, blind retries and post-resolution re-sends.
 2. Durable Uncertainty Latching (EFFECT_INDETERMINATE on 504 / transport drops)
 3. Blind Retry Interception (LatchedCaidExecutionHaltedError after process restart)
 4. Idempotent Authoritative Reconciliation (bounded status lookup resolves outcome)
+
+Negative controls:
+- Un-governed retry without the interlock duplicates the mutation.
+- A subclass of the real interlock whose admission gate (latch / committed / unresolved
+  checks) is disabled makes the same DST harness observe duplicate commit calls, so the
+  invariant-1 assertion can fail if the latch regresses.
 """
 
 from __future__ import annotations
@@ -29,7 +37,7 @@ import hashlib
 import random
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Type
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
@@ -38,6 +46,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from src.eo1_write_before_execute import (
+    CaidAlreadyCommittedError,
     IntentLifecycleState,
     LatchedCaidExecutionHaltedError,
     PreDispatchIntentInterlock,
@@ -54,14 +63,18 @@ class SimulatedSettlementTarget:
     """
     Deterministic simulated settlement server with an append-only commit ledger.
     Tracks commits by idempotency key to evaluate duplication invariants.
+    Every call reaching the commit endpoint is counted per key in commit_calls_by_key
+    (including idempotent replays): a replay means the agent re-sent a mutation.
     """
 
     def __init__(self) -> None:
         self.committed_records: Dict[str, Dict[str, Any]] = {}
         self.total_commit_calls: int = 0
+        self.commit_calls_by_key: Dict[str, int] = {}
 
     def execute_mutation(self, idempotency_key: str, amount_minor: int, recipient: str) -> Dict[str, Any]:
         self.total_commit_calls += 1
+        self.commit_calls_by_key[idempotency_key] = self.commit_calls_by_key.get(idempotency_key, 0) + 1
         if idempotency_key in self.committed_records:
             # Idempotent response for previously committed key
             rec = self.committed_records[idempotency_key]
@@ -102,14 +115,28 @@ class SimulatedSettlementTarget:
         return {"status": "NOT_FOUND", "idempotency_key": idempotency_key}
 
 
+class _MutantInterlockAdmissionGateDisabled(PreDispatchIntentInterlock):
+    """
+    Negative-control mutant: the real interlock with its admission gate (latch check,
+    committed-CAID check and unresolved-intent check) disabled. Durable intent/receipt/latch
+    writes are unchanged. The DST harness must observe duplicate commit calls with this class.
+    """
+
+    def _check_admissible(self, caid: str) -> None:
+        self.skipped_admission_caids = getattr(self, "skipped_admission_caids", []) + [caid]
+
+
 def run_single_dst_episode(
     seed: int,
     base_dir: Path,
     boundary_key: Ed25519PrivateKey,
+    interlock_cls: Type[PreDispatchIntentInterlock] = PreDispatchIntentInterlock,
 ) -> Dict[str, Any]:
     """
     Executes a single deterministic simulation episode driving real PreDispatchIntentInterlock
-    with seed-driven fault scheduling and on-disk crash/restart recovery.
+    (or a subclass) with seed-driven fault scheduling and on-disk crash/restart recovery.
+    Records observations only; invariants are asserted by the caller so that the same
+    harness can evaluate the negative-control mutant.
     """
     rng = random.Random(seed)
     ep_dir = base_dir / f"ep_{seed:04d}"
@@ -119,7 +146,7 @@ def run_single_dst_episode(
     state_dir = ep_dir / "state"
 
     # Instantiate real PreDispatchIntentInterlock on disk
-    interlock = PreDispatchIntentInterlock(
+    interlock = interlock_cls(
         ledger_path=ledger_path,
         output_state_dir=state_dir,
         boundary_private_key=boundary_key,
@@ -158,7 +185,30 @@ def run_single_dst_episode(
         else:
             return target.execute_mutation(idem_key, amount_minor, recipient)
 
-    blind_retry_blocked = False
+    def naive_resend(active: PreDispatchIntentInterlock) -> str:
+        try:
+            active.dispatch(
+                target_uri=target_uri,
+                tool_name="financial_refund",
+                payload=payload,
+                dispatch_fn=lambda: target.execute_mutation(idem_key, amount_minor, recipient),
+            )
+            return "ADMITTED"
+        except CaidAlreadyCommittedError:
+            return "DENY_ALREADY_COMMITTED"
+        except LatchedCaidExecutionHaltedError:
+            return "DENY_LATCHED"
+
+    obs: Dict[str, Any] = {
+        "seed": seed,
+        "fault": fault,
+        "initial_dispatch_raised": False,
+        "latched_after_fault": False,
+        "latched_after_restart": False,
+        "blind_retry_blocked": False,
+        "blind_retry_target_calls": 0,
+        "nominal_reconciled": False,
+    }
 
     # Step 1: Initial Dispatch
     if fault in ("POST_COMMIT_LOST_ACK", "PRE_COMMIT_DROP"):
@@ -169,59 +219,41 @@ def run_single_dst_episode(
                 payload=payload,
                 dispatch_fn=dispatch_call,
             )
-            assert False, f"Seed {seed}: Expected dispatch to fail on wire fault"
         except RuntimeError:
-            pass
+            obs["initial_dispatch_raised"] = True
 
         # Invariant 2: Durable uncertainty latched on transport drop
-        assert interlock.is_caid_latched(caid), f"Seed {seed}: CAID not latched on wire fault"
+        obs["latched_after_fault"] = interlock.is_caid_latched(caid)
 
         # Step 2: Crash & Restart Recovery Simulation
-        # Simulate host process crash: instantiate a new PreDispatchIntentInterlock from disk
-        restarted_interlock = PreDispatchIntentInterlock(
+        # Simulate host process crash: instantiate a new interlock from disk
+        restarted_interlock = interlock_cls(
             ledger_path=ledger_path,
             output_state_dir=state_dir,
             boundary_private_key=boundary_key,
         )
-        assert restarted_interlock.is_caid_latched(caid), (
-            f"Seed {seed}: CAID failed to recover latch from disk on restart"
-        )
+        obs["latched_after_restart"] = restarted_interlock.is_caid_latched(caid)
 
-        # Step 3: Agent attempts naive blind retry
-        commit_calls_before_retry = target.total_commit_calls
-        try:
-            restarted_interlock.dispatch(
-                target_uri=target_uri,
-                tool_name="financial_refund",
-                payload=payload,
-                dispatch_fn=lambda: target.execute_mutation(idem_key, amount_minor, recipient),
-            )
-            assert False, f"Seed {seed}: Expected LatchedCaidExecutionHaltedError on blind retry"
-        except LatchedCaidExecutionHaltedError:
-            blind_retry_blocked = True
-
-        # Assert no wire connection reached target during blocked retry
-        assert target.total_commit_calls == commit_calls_before_retry, (
-            f"Seed {seed}: Target commit called during blocked retry"
-        )
+        # Step 3: Agent attempts naive blind retry; count calls that reach the target
+        calls_before_retry = target.commit_calls_by_key.get(idem_key, 0)
+        obs["blind_retry_blocked"] = naive_resend(restarted_interlock) != "ADMITTED"
+        obs["blind_retry_target_calls"] = target.commit_calls_by_key.get(idem_key, 0) - calls_before_retry
 
         # Step 4: Authoritative Status Probe Reconciliation
         status_resp = target.get_status(idem_key)
-        if fault == "POST_COMMIT_LOST_ACK":
-            assert status_resp["status"] == "COMMITTED"
+        obs["probe_status"] = status_resp["status"]
+        if status_resp["status"] == "COMMITTED":
             reconciliation_evidence = {"status": "COMMITTED", "target_observed": True}
         else:
-            assert status_resp["status"] == "NOT_FOUND"
             reconciliation_evidence = {"status": "NOT_FOUND", "target_observed": False}
 
-        receipt = restarted_interlock.reconcile_out_of_band(
-            caid=caid,
-            reconciliation_evidence=reconciliation_evidence,
-        )
-        assert receipt.lifecycle_state == "RECONCILED"
-        assert not restarted_interlock.is_caid_latched(caid), (
-            f"Seed {seed}: Latch not cleared after reconciliation"
-        )
+        if restarted_interlock.is_caid_latched(caid):
+            receipt = restarted_interlock.reconcile_out_of_band(
+                caid=caid,
+                reconciliation_evidence=reconciliation_evidence,
+            )
+            obs["reconcile_lifecycle_state"] = receipt.lifecycle_state
+        obs["latched_after_reconcile"] = restarted_interlock.is_caid_latched(caid)
         active_interlock = restarted_interlock
     else:
         disp = interlock.dispatch(
@@ -230,19 +262,21 @@ def run_single_dst_episode(
             payload=payload,
             dispatch_fn=dispatch_call,
         )
-        assert disp.lifecycle_state == IntentLifecycleState.RECONCILED
+        obs["nominal_reconciled"] = disp.lifecycle_state == IntentLifecycleState.RECONCILED
         active_interlock = interlock
 
-    # Invariant 1: Exactly-once or zero mutation on target, NEVER duplicate (>1)
-    target_commits = 1 if idem_key in target.committed_records else 0
+    # Step 5: Post-resolution re-sends (agent re-issues the same action twice)
+    obs["post_resolution_resends"] = [naive_resend(active_interlock), naive_resend(active_interlock)]
 
-    return {
-        "seed": seed,
-        "fault": fault,
-        "target_commits": target_commits,
-        "blind_retry_blocked": blind_retry_blocked,
-        "final_latched_count": len(active_interlock.get_latched_caids()),
-    }
+    # Invariant 1 input: REAL number of calls that reached the target commit endpoint for this key
+    obs["target_commit_calls"] = target.commit_calls_by_key.get(idem_key, 0)
+    obs["final_latched_count"] = len(active_interlock.get_latched_caids())
+    return obs
+
+
+def count_invariant_1_violations(results: list) -> int:
+    """Invariant 1: number of episodes where the target commit endpoint was called more than once."""
+    return sum(1 for res in results if res["target_commit_calls"] > 1)
 
 
 def test_dst_500_seeded_deterministic_simulation_invariants(tmp_path: Path) -> None:
@@ -251,20 +285,49 @@ def test_dst_500_seeded_deterministic_simulation_invariants(tmp_path: Path) -> N
     Verifies all 4 invariants across the entire batch with on-disk state recovery.
     """
     total_episodes = 500
-    observed_duplicate_mutations = 0
     total_retries_blocked = 0
     fault_counts: Dict[str, int] = {}
     boundary_key = Ed25519PrivateKey.generate()
+    results = []
 
     for seed in range(total_episodes):
         res = run_single_dst_episode(seed, tmp_path, boundary_key)
+        results.append(res)
         fault = res["fault"]
         fault_counts[fault] = fault_counts.get(fault, 0) + 1
 
-        # Invariant 1: Exactly-once or zero mutation on target, NEVER duplicate (>1)
-        assert res["target_commits"] <= 1, f"Seed {seed}: Duplicate mutation observed!"
-        if res["target_commits"] > 1:
-            observed_duplicate_mutations += 1
+        # Invariant 1: exactly one real commit call per key (never zero for a resolved
+        # episode, NEVER a duplicate), counted at the target.
+        assert res["target_commit_calls"] == 1, (
+            f"Seed {seed} ({fault}): target commit endpoint called {res['target_commit_calls']} times"
+        )
+
+        if fault == "NOMINAL_SUCCESS":
+            assert res["nominal_reconciled"], f"Seed {seed}: nominal dispatch not RECONCILED"
+            assert res["post_resolution_resends"] == ["DENY_ALREADY_COMMITTED", "DENY_ALREADY_COMMITTED"], (
+                f"Seed {seed}: re-send after clean success not refused: {res['post_resolution_resends']}"
+            )
+        else:
+            assert res["initial_dispatch_raised"], f"Seed {seed}: Expected dispatch to fail on wire fault"
+            # Invariant 2: durable uncertainty latched on transport drop and across restart
+            assert res["latched_after_fault"], f"Seed {seed}: CAID not latched on wire fault"
+            assert res["latched_after_restart"], f"Seed {seed}: CAID failed to recover latch from disk on restart"
+            # Invariant 3: blind retry intercepted with zero calls reaching the target
+            assert res["blind_retry_blocked"], f"Seed {seed}: Expected LatchedCaidExecutionHaltedError on blind retry"
+            assert res["blind_retry_target_calls"] == 0, f"Seed {seed}: Target commit called during blocked retry"
+            # Invariant 4: authoritative reconciliation clears the latch
+            assert res["reconcile_lifecycle_state"] == "RECONCILED"
+            assert not res["latched_after_reconcile"], f"Seed {seed}: Latch not cleared after reconciliation"
+            if fault == "POST_COMMIT_LOST_ACK":
+                assert res["probe_status"] == "COMMITTED"
+                assert res["post_resolution_resends"] == ["DENY_ALREADY_COMMITTED", "DENY_ALREADY_COMMITTED"], (
+                    f"Seed {seed}: re-send after reconcile-COMMITTED not refused: {res['post_resolution_resends']}"
+                )
+            else:
+                assert res["probe_status"] == "NOT_FOUND"
+                assert res["post_resolution_resends"] == ["ADMITTED", "DENY_ALREADY_COMMITTED"], (
+                    f"Seed {seed}: NOT_COMMITTED must admit exactly one fresh attempt: {res['post_resolution_resends']}"
+                )
 
         if res["blind_retry_blocked"]:
             total_retries_blocked += 1
@@ -273,12 +336,33 @@ def test_dst_500_seeded_deterministic_simulation_invariants(tmp_path: Path) -> N
         assert res["final_latched_count"] == 0, f"Seed {seed}: Dangling uncertainty unlatched!"
 
     # Across all 500 seeds:
+    observed_duplicate_mutations = count_invariant_1_violations(results)
     assert observed_duplicate_mutations == 0, f"Expected 0 duplicate mutations, observed {observed_duplicate_mutations}"
     assert total_retries_blocked > 0, "Expected blind retries to be blocked under fault injection"
     # Ensure all 3 fault modes were tested
     assert "POST_COMMIT_LOST_ACK" in fault_counts and fault_counts["POST_COMMIT_LOST_ACK"] > 100
     assert "PRE_COMMIT_DROP" in fault_counts and fault_counts["PRE_COMMIT_DROP"] > 100
     assert "NOMINAL_SUCCESS" in fault_counts and fault_counts["NOMINAL_SUCCESS"] > 100
+
+
+def test_dst_mutant_admission_gate_disabled_is_detected(tmp_path: Path) -> None:
+    """
+    Mutant negative control: the same DST harness driving a subclass of the real interlock with
+    the latch/admission gate disabled must observe duplicate commit calls. This demonstrates
+    that the invariant-1 check above can fail if the latch regresses.
+    """
+    boundary_key = Ed25519PrivateKey.generate()
+    results = [
+        run_single_dst_episode(seed, tmp_path, boundary_key, interlock_cls=_MutantInterlockAdmissionGateDisabled)
+        for seed in range(60)
+    ]
+    violations = count_invariant_1_violations(results)
+    lost_ack = [r for r in results if r["fault"] == "POST_COMMIT_LOST_ACK"]
+    assert lost_ack, "mutant run must include lost-ACK episodes"
+    assert violations > 0, "DST harness failed to detect duplicates with the admission gate disabled"
+    # Every lost-ACK episode re-sends through the mutant after restart: the duplicate reaches the target.
+    assert all(r["blind_retry_target_calls"] == 1 and r["target_commit_calls"] > 1 for r in lost_ack)
+    assert not any(r["blind_retry_blocked"] for r in results)
 
 
 def test_dst_negative_control_unlatched_retry_causes_duplication() -> None:

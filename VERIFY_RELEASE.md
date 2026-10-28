@@ -3,9 +3,18 @@
 **Target Release:** `v1.0.0-rc.2` (`release/v1.0-review-candidate`; supersedes `v1.0.0-rc.1`)  
 **Epistemic Boundary:** Build provenance is generated with `slsa-framework/slsa-github-generator` (`generator_generic_slsa3.yml@v2.1.0`) on GitHub-hosted runners and emits an `.intoto.jsonl` attestation. Formal SLSA Level 3 conformance depends on verifier check results and trust-root policy. This does not claim SLSA Source Track certification or hardware-isolated builder silicon.
 
-## Release Tag Integrity
+## Release Tag Integrity (Operationally Immutable Policy)
 
-Release candidate tags (`v1.0.0-rc.1`, `v1.0.0-rc.2`, etc.) are treated as immutable once published. Subsequent corrections are published as new release candidate tags rather than force-updating existing tags.
+Release-candidate tags (`v1.0.0-rc.1`, `v1.0.0-rc.2`, etc.) are operationally immutable under the project’s release policy. The project must not delete, force-move, or re-tag a published release candidate. If the candidate changes, create a new tag (e.g., `v1.0.0-rc.3`).
+
+```bash
+git fetch origin --tags
+git rev-parse v1.0.0-rc.2^{commit}
+# Expected: 7bfd43dcc27f741d04a67500abf1bc3b2a5888c4
+
+# When verifying a GPG/SSH-signed release tag:
+git verify-tag v1.0.0-rc.2
+```
 
 ---
 
@@ -52,7 +61,7 @@ slsa-verifier verify-artifact \
 
 ## 3. Verify GitHub Artifact Attestations (`gh attestation verify`)
 
-Artifacts attested by `.github/workflows/aeib-rc-verify.yml` (`actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be`, `v4.1.0`) can be verified using the GitHub CLI against the Sigstore public good instance (or an offline bundle):
+Artifacts attested by `.github/workflows/aeib-rc-verify.yml` (`actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be`, `v4.1.0`) can be verified using the GitHub CLI (`gh >= 2.67.0`, required for Sigstore's `PKIX_ED25519` transparency log public key in `trusted_root.json`) against the Sigstore public good instance (or an offline bundle):
 
 ```bash
 # Online verification against Sigstore public trust root

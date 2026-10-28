@@ -1,0 +1,18 @@
+name: Benchmarks
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+    - run: pip install -e .
+    - run: python scripts/generate_sample_logs.py --lines 10000 --output traces/bench.jsonl
+    - run: bash scripts/run_benchmarks.sh traces/bench.jsonl

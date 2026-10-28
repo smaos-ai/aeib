@@ -38,6 +38,17 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
     Ed25519PublicKey,
 )
 
+# RFC 8785 single source of truth: delegate to src/jcs_canonicalizer.encode_jcs
+# (differential-tested in tests/test_jcs_single_source.py).
+try:
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+except ImportError:  # loaded without the repository root on sys.path
+    import sys as _jcs_sys
+    from pathlib import Path as _JcsPath
+
+    _jcs_sys.path.insert(0, str(_JcsPath(__file__).resolve().parents[1]))
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+
 
 def canonical_jcs_bytes(obj: Any) -> bytes:
     def _check(val: Any) -> None:
@@ -53,9 +64,7 @@ def canonical_jcs_bytes(obj: Any) -> bytes:
                 _check(item)
 
     _check(obj)
-    return json.dumps(
-        obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
-    ).encode("utf-8")
+    return _reference_encode_jcs(obj)
 
 
 def sha256_prefixed(data: bytes) -> str:
@@ -156,16 +165,16 @@ class AntigravityArgonFlashTokenAnalyticsEngine:
         reduction_bps = ((without_total - with_total) * 10000) // without_total
 
         argon_without = cls._compute_cost_cents(
-            GEMINI_4_ARGON_HIGH, without_in, without_out, cache_hit_bps=3000
+            GEMINI_4_ARGON_HIGH, without_in, without_out, cache_hit_bps=3000  # claim: assumption
         )
         argon_with = cls._compute_cost_cents(
-            GEMINI_4_ARGON_HIGH, with_in, with_out, cache_hit_bps=8000
+            GEMINI_4_ARGON_HIGH, with_in, with_out, cache_hit_bps=8000  # claim: assumption
         )
         flash_without = cls._compute_cost_cents(
-            GEMINI_3_8_FLASH_HIGH, without_in, without_out, cache_hit_bps=3000
+            GEMINI_3_8_FLASH_HIGH, without_in, without_out, cache_hit_bps=3000  # claim: assumption
         )
         flash_with = cls._compute_cost_cents(
-            GEMINI_3_8_FLASH_HIGH, with_in, with_out, cache_hit_bps=8000
+            GEMINI_3_8_FLASH_HIGH, with_in, with_out, cache_hit_bps=8000  # claim: assumption
         )
 
         # Hybrid System-1 (70% turns on Gemini 3.8 Flash) + System-2 (30% turns on Gemini 4 Argon)
@@ -503,7 +512,7 @@ def run_self_test() -> None:
         root_axiom_caid="sha256:ev5",
         enforced_invariant_description="Enforce ContextCart <=1500 token AST slice + TokenEconomizer 5-turn pruning + Caprock 7500 bps cache floor",
         target_module_path="tools/aeib_orca_caprock_enforcer.py",
-        mutation_kill_rate_bps=10000,
+        mutation_kill_rate_bps=10000,  # claim: config
     )
     receipt = Toyota5WhyCausalRootCauseEngine.verify_and_sign_5why_chain(
         problem_statement="Eliminate multi-turn token bloat in Antigravity development",

@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ocr-audit-engine"
+version = "1.0.0"
+description = "Deterministic Hybrid Architecture for Enterprise Agentic AI Security Auditing"
+readme = "README.md"
+authors = [
+  { name = "SovereignNexus Research", email = "andrejlo123@gmail.com" }
+]
+license = { text = "Apache-2.0" }
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Financial and Insurance Industry",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+]
+requires-python = ">=3.11"
+dependencies = [
+    "cryptography>=41.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+]
+
+[project.scripts]
+ocr-audit = "ocr_audit.pipeline_runner:main"
+ocr-diff = "ocr_audit.diff:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

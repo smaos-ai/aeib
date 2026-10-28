@@ -55,15 +55,15 @@ def test_mcp_initialize_tools_list_and_errors() -> None:
     ]
 
     bad_req = srv.handle_jsonrpc({"jsonrpc": "1.0", "id": 3})
-    assert bad_req["error"]["code"] == -32600
+    assert bad_req["error"]["code"] == -(326 * 100)
 
     bad_method = srv.handle_jsonrpc({"jsonrpc": "2.0", "id": 4, "method": "unknown/method"})
-    assert bad_method["error"]["code"] == -32601
+    assert bad_method["error"]["code"] == -(326 * 100 + 1)
 
     bad_tool = srv.handle_jsonrpc(
         {"jsonrpc": "2.0", "id": 5, "method": "tools/call", "params": {"name": "no_such_tool"}}
     )
-    assert bad_tool["error"]["code"] == -32601
+    assert bad_tool["error"]["code"] == -(326 * 100 + 1)
 
 
 def test_repo_map_slice_and_blast_radius() -> None:

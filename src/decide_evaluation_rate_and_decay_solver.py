@@ -60,6 +60,17 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
     Ed25519PublicKey,
 )
 
+# RFC 8785 single source of truth: delegate to src/jcs_canonicalizer.encode_jcs
+# (differential-tested in tests/test_jcs_single_source.py).
+try:
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+except ImportError:  # loaded without the repository root on sys.path
+    import sys as _jcs_sys
+    from pathlib import Path as _JcsPath
+
+    _jcs_sys.path.insert(0, str(_JcsPath(__file__).resolve().parents[1]))
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+
 
 def canonical_jcs(obj: Any) -> bytes:
     """
@@ -68,9 +79,7 @@ def canonical_jcs(obj: Any) -> bytes:
     continuous metrics must be encoded as integer basis points (bps) or micro-units.
     """
     _assert_no_floats(obj)
-    return json.dumps(
-        obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False
-    ).encode("utf-8")
+    return _reference_encode_jcs(obj)
 
 
 def _assert_no_floats(val: Any) -> None:
@@ -568,10 +577,10 @@ class DecideV45AntiDecayEngine:
                 hop_depth=0,
                 query_string="Pre-dispatch WAL intent latch and idempotency invariants",
                 covered_topics=("foundational_latch", "latency_group_commit"),
-                base_ig_bps=9400,
+                base_ig_bps=9400,  # claim: assumption
                 has_falsification_witness=True,
                 token_cost=450,
-                latency_ms=18,
+                latency_ms=18,  # claim: assumption
             ),
             CandidateQueryAction(
                 action_id="act_02_adversarial_oracle_gap",
@@ -579,10 +588,10 @@ class DecideV45AntiDecayEngine:
                 hop_depth=0,
                 query_string="Falsification counterexample for multi-agent consensus collapse",
                 covered_topics=("adversarial_counterexample", "cross_hemisphere_ask_policy"),
-                base_ig_bps=9800,
+                base_ig_bps=9800,  # claim: assumption
                 has_falsification_witness=True,
                 token_cost=420,
-                latency_ms=16,
+                latency_ms=16,  # claim: assumption
             ),
             CandidateQueryAction(
                 action_id="act_03_sake_kid_solver",
@@ -590,10 +599,10 @@ class DecideV45AntiDecayEngine:
                 hop_depth=1,
                 query_string="Knowledge Integration Decay arXiv:2602.09517 SAKE dual anchoring",
                 covered_topics=("sake_kid_anchoring", "empirical_pass_k"),
-                base_ig_bps=9500,
+                base_ig_bps=9500,  # claim: assumption
                 has_falsification_witness=True,
                 token_cost=480,
-                latency_ms=19,
+                latency_ms=19,  # claim: assumption
             ),
             CandidateQueryAction(
                 action_id="act_04_dpi_stanford_bound",
@@ -601,10 +610,10 @@ class DecideV45AntiDecayEngine:
                 hop_depth=1,
                 query_string="Data Processing Inequality arXiv:2604.02460 lossless vault handoff",
                 covered_topics=("dpi_lossless_handoff", "formal_inductive_invariant"),
-                base_ig_bps=9600,
+                base_ig_bps=9600,  # claim: assumption
                 has_falsification_witness=True,
                 token_cost=460,
-                latency_ms=17,
+                latency_ms=17,  # claim: assumption
             ),
             CandidateQueryAction(
                 action_id="act_05_planetary_dvp_tee",
@@ -612,10 +621,10 @@ class DecideV45AntiDecayEngine:
                 hop_depth=1,
                 query_string="Planetary clearinghouse DvP escrow and TEE remote attestation",
                 covered_topics=("planetary_dvp_escrow", "tee_remote_attestation"),
-                base_ig_bps=9100,
+                base_ig_bps=9100,  # claim: assumption
                 has_falsification_witness=False,
                 token_cost=500,
-                latency_ms=20,
+                latency_ms=20,  # claim: assumption
             ),
             CandidateQueryAction(
                 action_id="act_06_supply_chain_dora",
@@ -623,10 +632,10 @@ class DecideV45AntiDecayEngine:
                 hop_depth=1,
                 query_string="PEP 578 audit hook and DORA Article 17 restoration",
                 covered_topics=("supply_chain_pep578", "regulatory_dora_art17"),
-                base_ig_bps=8900,
+                base_ig_bps=8900,  # claim: assumption
                 has_falsification_witness=False,
                 token_cost=490,
-                latency_ms=20,
+                latency_ms=20,  # claim: assumption
             ),
             # Redundant / low-marginal-gain deep hops that a naive engine blindly executes:
             CandidateQueryAction(
@@ -635,10 +644,10 @@ class DecideV45AntiDecayEngine:
                 hop_depth=2,
                 query_string="Rephrased query on pre-dispatch WAL latch",
                 covered_topics=("foundational_latch",),
-                base_ig_bps=3200,
+                base_ig_bps=3200,  # claim: assumption
                 has_falsification_witness=False,
                 token_cost=1200,
-                latency_ms=45,
+                latency_ms=45,  # claim: assumption
             ),
             CandidateQueryAction(
                 action_id="act_08_redundant_debate_prose",
@@ -646,10 +655,10 @@ class DecideV45AntiDecayEngine:
                 hop_depth=2,
                 query_string="Verbose unguided debate summary on consensus",
                 covered_topics=("cross_hemisphere_ask_policy",),
-                base_ig_bps=2800,
+                base_ig_bps=2800,  # claim: assumption
                 has_falsification_witness=False,
                 token_cost=1500,
-                latency_ms=55,
+                latency_ms=55,  # claim: assumption
             ),
             CandidateQueryAction(
                 action_id="act_09_redundant_dora_repeat",
@@ -657,10 +666,10 @@ class DecideV45AntiDecayEngine:
                 hop_depth=3,
                 query_string="Secondary duplicate search on DORA Art 17",
                 covered_topics=("regulatory_dora_art17",),
-                base_ig_bps=2100,
+                base_ig_bps=2100,  # claim: assumption
                 has_falsification_witness=False,
                 token_cost=1400,
-                latency_ms=50,
+                latency_ms=50,  # claim: assumption
             ),
             CandidateQueryAction(
                 action_id="act_10_redundant_tee_summary",
@@ -668,10 +677,10 @@ class DecideV45AntiDecayEngine:
                 hop_depth=3,
                 query_string="Repeated overview of enclave memory encryption",
                 covered_topics=("tee_remote_attestation",),
-                base_ig_bps=1900,
+                base_ig_bps=1900,  # claim: assumption
                 has_falsification_witness=False,
                 token_cost=1350,
-                latency_ms=48,
+                latency_ms=48,  # claim: assumption
             ),
         ]
 
@@ -730,7 +739,7 @@ class DecideV45AntiDecayEngine:
         pass_k_comp = self.pass_k_compensator.evaluate_multi_hop_pass_k(
             hop_count=5,
             k_trials=8,
-            single_hop_accuracy_bps=9000,
+            single_hop_accuracy_bps=9000,  # claim: assumption
             verifier_ensemble_size=3,
             staleness_hours=48,
         )
@@ -740,15 +749,15 @@ class DecideV45AntiDecayEngine:
             handoff_id="h_lossy_prose",
             source_agent="agent_alpha",
             target_agent="agent_beta",
-            prior_mutual_info_bps=7500,
-            external_entropy_injected_bps=500,
+            prior_mutual_info_bps=7500,  # claim: assumption
+            external_entropy_injected_bps=500,  # claim: assumption
             uses_lossless_vault_pointer=False,
         )
         h2 = self.dpi_gate.evaluate_handoff(
             handoff_id="h_zero_entropy",
             source_agent="agent_beta",
             target_agent="agent_gamma",
-            prior_mutual_info_bps=7500,
+            prior_mutual_info_bps=7500,  # claim: assumption
             external_entropy_injected_bps=0,
             uses_lossless_vault_pointer=True,
         )
@@ -756,8 +765,8 @@ class DecideV45AntiDecayEngine:
             handoff_id="h_valid_dpi_breaking",
             source_agent="qwen_3_max",
             target_agent="deepseek_v4_pro",
-            prior_mutual_info_bps=7500,
-            external_entropy_injected_bps=1800,
+            prior_mutual_info_bps=7500,  # claim: assumption
+            external_entropy_injected_bps=1800,  # claim: assumption
             uses_lossless_vault_pointer=True,
         )
         assert h3.disposition == "AUTHORIZED_ENTROPY_GAIN"

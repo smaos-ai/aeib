@@ -162,7 +162,7 @@ class HumanApprovalGate:
 
     def evaluate_gate_requirement(self, capsule: WorkCapsule) -> bool:
         """Determines if the operation requires a human-in-the-loop approval step."""
-        amount = capsule.execution_plan.get("amount_minor", 0)
+        amount = capsule.execution_plan["amount_minor"]
         taint = capsule.policy_context.get("taint_tier", "")
         # High value or untrusted taint triggers mandatory human gate
         if amount >= 50_000 or taint == "TIER_2_UNTRUSTED":

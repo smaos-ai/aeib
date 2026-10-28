@@ -1,0 +1,7 @@
+{
+  "entry_module": "solution",
+  "id": "order_state_machine",
+  "instruction": "Implement transition(state, event) for an order: CREATED --pay--> PAID --ship--> SHIPPED --deliver--> DELIVERED; CREATED or PAID --cancel--> CANCELLED. Any other (state, event) raises ValueError. Return the new state string.",
+  "starter_source": "def transition(state: str, event: str) -> str:\n    \"\"\"Return the next state or raise ValueError.\"\"\"\n    return state\n",
+  "type": "state_machine"
+}

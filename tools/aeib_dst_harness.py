@@ -210,6 +210,8 @@ def run_dst_campaign(schedules: int, master_seed: int) -> Dict[str, Any]:
     t0 = time.perf_counter()
     master_rng = random.Random(master_seed)
     op_ids = [f"op-{i}" for i in range(10)]
+    total_settled_minor = 0
+    total_escrowed_minor = 0
 
     for idx in range(schedules):
         schedule_seed = master_rng.getrandbits(64)
@@ -250,6 +252,8 @@ def run_dst_campaign(schedules: int, master_seed: int) -> Dict[str, Any]:
                     sim.step_inject_two_file_wipe_and_reboot()
 
         sim.assert_invariants_i1_to_i7(schedule_seed)
+        total_settled_minor += sim.settled_minor
+        total_escrowed_minor += sim.escrowed_minor
 
     elapsed_s = time.perf_counter() - t0
     return {
@@ -257,6 +261,8 @@ def run_dst_campaign(schedules: int, master_seed: int) -> Dict[str, Any]:
         "master_seed": master_seed,
         "invariant_violations": 0,
         "observed_duplicates": 0,
+        "total_settled_minor": total_settled_minor,
+        "total_escrowed_minor": total_escrowed_minor,
         "status": "PASS",
         "elapsed_sec": round(elapsed_s, 3),
     }
@@ -635,19 +641,18 @@ class AeibDstEngine:
             trace_file = open(traces_dir / "traces.jsonl", "w", encoding="utf-8")
 
         try:
+            gate_privkey = ed25519.Ed25519PrivateKey.generate()
+            target_privkey = ed25519.Ed25519PrivateKey.generate()
+            target_pubkey = target_privkey.public_key()
+            trust_anchors = {"iban:DE89370400440532013000": b"anchor_pub_key_bytes"}
+            sponsor_ceiling = 10000_00
+            sprint_limit = 2500_00
+
             for schedule_idx in range(schedules):
                 report.schedules_evaluated += 1
                 clock = DeterministicSteppedClock(1771400000000 + schedule_idx * 1000)
 
-                gate_privkey = ed25519.Ed25519PrivateKey.generate()
-                target_privkey = ed25519.Ed25519PrivateKey.generate()
-                target_pubkey = target_privkey.public_key()
-
                 target = VirtualSettlementTarget()
-                trust_anchors = {"iban:DE89370400440532013000": b"anchor_pub_key_bytes"}
-
-                sponsor_ceiling = 10000_00
-                sprint_limit = 2500_00
 
                 gate = DstStation1Gate(
                     sponsor_ceiling_minor=sponsor_ceiling,
@@ -948,6 +953,7 @@ class AeibDstEngine:
 
         return {
             "schedule_idx": schedule_idx,
+            "timestamp_ms": clock.now_ms(),
             "fault": fault.value,
             "op_id": op_id,
             "caid": caid.hex(),

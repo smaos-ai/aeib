@@ -1,0 +1,246 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://smaos.ai/schemas/aeib-pap-adapter-v0.1.json",
+  "title": "AEIB_PAP_Adapter_Proposal_v0.1",
+  "description": "AEIB PAP adapter proposal: Effect-integrity adapter contract proposal for the Personal Agent Protocol (PAP) draft extension namespace (pap-draft-2026-10). Binds personal agent execution intent, user delegation, candidate action identifiers (CAID), transport fault uncertainty latching, and authoritative target reconciliation probes. This schema is an adapter proposal and does not represent a standardized normative PAP schema.",
+  "type": "object",
+  "required": [
+    "protocol_version",
+    "agent_envelope",
+    "candidate_action",
+    "execution_channel",
+    "effect_integrity_policy",
+    "reconciliation_probe",
+    "release_governance"
+  ],
+  "properties": {
+    "protocol_version": {
+      "type": "string",
+      "const": "pap-aeib-v0.1",
+      "description": "Personal Agent Protocol AEIB adapter contract version."
+    },
+    "agent_envelope": {
+      "type": "object",
+      "required": [
+        "agent_id",
+        "user_principal_id",
+        "device_fingerprint",
+        "session_id",
+        "intent_hash"
+      ],
+      "properties": {
+        "agent_id": {
+          "type": "string",
+          "pattern": "^agent:personal:[a-zA-Z0-9_-]+$",
+          "description": "Unique identifier of the personal agent instance."
+        },
+        "user_principal_id": {
+          "type": "string",
+          "description": "Identifier of the delegating human principal (DID, email, or IdP subject)."
+        },
+        "device_fingerprint": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Cryptographic binding to the local personal device enclave or client key."
+        },
+        "session_id": {
+          "type": "string",
+          "description": "Unique session identifier for the personal agent task execution."
+        },
+        "delegation_grant_id": {
+          "type": "string",
+          "description": "Identifier of the active delegation grant authorization."
+        },
+        "intent_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "SHA-256 digest over the canonical user prompt and approval context."
+        }
+      },
+      "additionalProperties": false
+    },
+    "candidate_action": {
+      "type": "object",
+      "required": [
+        "noun",
+        "verb",
+        "target_uri",
+        "payload",
+        "payload_canonical_hash",
+        "candidate_caid"
+      ],
+      "properties": {
+        "noun": {
+          "type": "string",
+          "description": "Domain entity or tool resource name, e.g., FlightBooking, Order, Payment."
+        },
+        "verb": {
+          "type": "string",
+          "description": "State-mutating operation, e.g., Submit, Reserve, Authorize."
+        },
+        "target_uri": {
+          "type": "string",
+          "description": "Target endpoint URI, API route, or web application action URL."
+        },
+        "payload": {
+          "type": "object",
+          "description": "Exact JSON parameter payload proposed by the personal agent."
+        },
+        "payload_canonical_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "SHA-256 digest over RFC 8785 JCS canonicalized payload bytes."
+        },
+        "candidate_caid": {
+          "type": "string",
+          "pattern": "^caid:sha256:[0-9a-f]{64}$",
+          "description": "Canonical Action Identifier H(Noun || Verb || JCS(Payload))."
+        },
+        "economic_limits": {
+          "type": "object",
+          "properties": {
+            "max_amount": { "type": "number", "minimum": 0 },
+            "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+            "require_biometric_release": { "type": "boolean" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "execution_channel": {
+      "type": "object",
+      "required": [
+        "channel_type",
+        "target_capability",
+        "idempotency_token"
+      ],
+      "properties": {
+        "channel_type": {
+          "type": "string",
+          "enum": ["web_dom", "http_rest", "mcp_tool", "graphql"]
+        },
+        "target_capability": {
+          "type": "string",
+          "enum": [
+            "idempotency_key_plus_status_api",
+            "idempotency_key_only",
+            "status_api_only",
+            "browser_only_workflow",
+            "no_cooperation"
+          ]
+        },
+        "idempotency_token": {
+          "type": "string",
+          "description": "Deterministic token bound to CAID passed on dispatch headers or form fields."
+        }
+      },
+      "additionalProperties": false
+    },
+    "effect_integrity_policy": {
+      "type": "object",
+      "required": [
+        "uncertainty_latch",
+        "disposition_on_wire_anomaly",
+        "retry_policy",
+        "retry_safe"
+      ],
+      "properties": {
+        "uncertainty_latch": {
+          "type": "boolean",
+          "description": "When true, locks dispatch state fail-closed on any ambiguous wire response."
+        },
+        "disposition_on_wire_anomaly": {
+          "type": "string",
+          "enum": [
+            "EFFECT_INDETERMINATE",
+            "DISPATCHED_UNCONFIRMED",
+            "DISPATCH_REJECTED"
+          ]
+        },
+        "retry_policy": {
+          "type": "string",
+          "enum": [
+            "PROHIBITED_DEFAULT_LATCH",
+            "PROHIBITED_ALREADY_COMMITTED",
+            "PERMITTED_IDEMPOTENCY_BOUND",
+            "PROHIBITED_ESCALATE_HUMAN_OPERATOR"
+          ]
+        },
+        "retry_safe": {
+          "type": "boolean",
+          "description": "Strictly false on any unconfirmed or indeterminate wire outcome."
+        }
+      },
+      "additionalProperties": false
+    },
+    "reconciliation_probe": {
+      "type": "object",
+      "required": [
+        "probe_method",
+        "probe_authority",
+        "consistency_model",
+        "single_flight_coalescing",
+        "timeout_ms"
+      ],
+      "properties": {
+        "probe_method": {
+          "type": "string",
+          "enum": ["status_api_query", "order_lookup", "dom_recheck", "ledger_read"]
+        },
+        "probe_authority": {
+          "type": "string",
+          "enum": [
+            "provider_primary",
+            "authoritative_status_endpoint",
+            "ledger_direct"
+          ]
+        },
+        "consistency_model": {
+          "type": "string",
+          "enum": ["strong_read", "eventual_read"]
+        },
+        "single_flight_coalescing": {
+          "type": "boolean",
+          "const": true,
+          "description": "Ensures exactly one probe flight is executed, suppressing redundant concurrent probes."
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 60000
+        }
+      },
+      "additionalProperties": false
+    },
+    "release_governance": {
+      "type": "object",
+      "required": [
+        "release_authorization_required",
+        "release_status",
+        "human_confirmation_prompt"
+      ],
+      "properties": {
+        "release_authorization_required": {
+          "type": "boolean",
+          "description": "Enforces separation: target effect confirmation != business release."
+        },
+        "release_status": {
+          "type": "string",
+          "enum": [
+            "not_provided",
+            "user_confirmed",
+            "held_containment",
+            "blocked_conflict"
+          ]
+        },
+        "human_confirmation_prompt": {
+          "type": "string",
+          "description": "Plain text summary shown to the user on mobile/device UI for release approval."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -252,7 +252,7 @@ npm run dev
 ## Compliance & Security
 
 ### EU AI Act Article 12
-- ✅ Non-repudiable decisions (Ed25519)
+- ✅ Tamper-evident decisions (Ed25519)
 - ✅ Audit trail (Merkle chain)
 - ✅ Compliance export (JSON/CSV)
 

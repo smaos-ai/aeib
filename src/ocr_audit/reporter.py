@@ -14,16 +14,24 @@
 # limitations under the License.
 
 """
-ocr_audit/reporter.py — Sovereign Cross-Jurisdiction Translation Hub & PQC-Agile Reporter
+ocr_audit/reporter.py — Cross-Jurisdiction Mapping Reporter (UNSIGNED prototype)
 Sovereign Multi-Agent OS (SMAOS) / STAR Protocol v1.1.0
 
-Unifies:
+Maps SMAOS dispositions onto labels drawn from:
   1. EU DORA (RTS 2024/1772 Art. 17) & EU AI Act (Articles 12 & 14)
   2. China CAICT ATH 1.0 (9-Step User-Agent-Service Trusted Handshake)
   3. US NIST RMF (SP 800-53 / CAISI) & IETF SCITT
+These are descriptive label mappings only; they are not compliance
+attestations and have not been reviewed by any regulator or auditor.
 
-Also provides Post-Quantum Cryptographic (PQC) Agility:
-  Hybrid Ed25519 + ML-DSA-65 (CRYSTALS-Dilithium3 ready, NIST Level 3 / CNSA 2.0).
+SIGNATURE STATUS (honest label, 2026-10-26 audit):
+  This module produces NO signature of any kind — neither Ed25519 nor
+  ML-DSA-65. The only integrity field is ``report_digest``, a SHA-256 over a
+  ``json.dumps(sort_keys=True)`` serialisation (not RFC 8785 JCS).
+  ``PQCScheme`` values are scheme *identifiers* recorded as requested
+  metadata; selecting one does not cause any PQC signing to occur. For a real
+  hybrid Ed25519 + ML-DSA path see ``tools/hybrid_pqc_envelope.py``, which
+  invokes the Rust signer binary.
 
 Zero external dependencies (pure Python standard library).
 """
@@ -180,9 +188,12 @@ TRIPARTITE_MAPPING: Dict[Disposition, Dict[str, Dict[str, str]]] = {
 
 
 class SovereignReporter:
-    """Sovereign Reporter emitting tri-jurisdictional compliance attestations
+    """Reporter emitting tri-jurisdictional label mappings (UNSIGNED).
 
-    and Post-Quantum Cryptographic (PQC) readiness receipts.
+    Output is not a compliance attestation and carries no signature. The
+    ``pqc_readiness`` block records the requested scheme identifier only;
+    ``hybrid_attestation`` is reported as not produced because this module
+    never computes an Ed25519 or ML-DSA signature.
     """
 
     def __init__(
@@ -229,11 +240,15 @@ class SovereignReporter:
                 "CAICT_ATH_1_0": mapping.get("CAICT_ATH_1_0", {}),
                 "US_NIST_RMF": mapping.get("US_NIST_RMF", {}),
             },
+            # NOTE: no signature is computed anywhere in this module.
+            # "active_scheme" is the requested scheme identifier only;
+            # "pqc_agile" means the schema can carry a scheme label, NOT that
+            # a post-quantum signature exists on this report.
             "pqc_readiness": {
                 "active_scheme": pqc_active.value,
-                "quantum_security_level": "NIST-Level-3-CNSA-2.0",
+                "quantum_security_level": "NOT_APPLICABLE_UNSIGNED",
                 "pqc_agile": True,
-                "hybrid_attestation": "Ed25519+ML-DSA-65",
+                "hybrid_attestation": "NOT_PRODUCED_UNSIGNED_SHA256_DIGEST_ONLY",
             },
             "custom_metadata": custom_metadata or {},
         }
@@ -305,7 +320,7 @@ class GlobalAuditReporter:
             f for f in findings if f.get("verdict") == "VERIFIED_TOXIC_RECEIPT"
         ]
 
-        # 1. Cross-Jurisdiction Gap Report with Tripartite Mapping & PQC Agility
+        # 1. Cross-Jurisdiction Gap Report with Tripartite Mapping (unsigned)
         enriched_findings = []
         for f in findings:
             verdict = f.get("verdict") or f.get("disposition") or "UNKNOWN"
@@ -342,11 +357,13 @@ class GlobalAuditReporter:
                 "us_nist_caisi": "ZERO_EGRESS_VERIFIED",
                 "ietf_scitt": "RFC_9162_COMPLIANT",
             },
+            # NOTE: this bundle is written unsigned; no Ed25519 or ML-DSA
+            # signature is produced by GlobalAuditReporter.
             "pqc_agility": {
-                "classical_signature": "Ed25519",
-                "post_quantum_anchor": "CRYSTALS-Dilithium3 / ML-DSA-65 ready",
-                "quantum_security_level": "NIST-Level-3-CNSA-2.0",
-                "hardware_isolated_fob": "compatible",
+                "classical_signature": "NOT_PRODUCED_UNSIGNED",
+                "post_quantum_anchor": "NOT_PRODUCED_NO_ML_DSA_SIGNATURE",
+                "quantum_security_level": "NOT_APPLICABLE_UNSIGNED",
+                "hardware_isolated_fob": "NOT_EVALUATED",
             },
             "findings": enriched_findings,
         }

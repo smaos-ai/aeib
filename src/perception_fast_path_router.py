@@ -131,7 +131,7 @@ class PerceptionFastPathRouter:
             target_tool=detected_tool,
             proposed_arguments={"raw_query": raw_prompt, "synthetic_eval": True},
             is_consequential=is_consequential,
-            confidence_score=0.94,
+            confidence_score=0.94,  # claim: assumption
             generated_at=int(time.time()),
         )
 

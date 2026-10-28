@@ -1,0 +1,33 @@
+{
+  "title": "AEIB v0.4.1: Benchmark Specifications and Regulatory Evidence Artifacts",
+  "upload_type": "publication",
+  "publication_type": "report",
+  "access_right": "open",
+  "license": "cc-by-4.0",
+  "version": "0.4.1",
+  "creators": [
+    {
+      "name": "Leukhin, Andrej",
+      "affiliation": "SovereignNexus",
+      "orcid": "0009-0004-9543-8263"
+    }
+  ],
+  "description": "<p>Technical specifications, threat models, 14 named verification properties, regulatory evidence mappings (EU DORA RTS 2024/1772 & ITS 2024/2956, ISO 42001), SCITT-aligned evidence schemas, and independent clean-room reproduction guidelines for the Agent Evidence Interlock Boundary (AEIB v0.4.1).<br/><br/><b>License:</b> CC-BY-4.0. Executable source code and test harnesses are deposited under Apache-2.0 in the companion deposition record.</p>",
+  "keywords": [
+    "AI Agent Security",
+    "Specifications",
+    "Regulatory Compliance",
+    "DORA",
+    "ISO 42001",
+    "SCITT",
+    "Threat Model"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "10.5281/zenodo.aeib-v041-software",
+      "relation": "isSupplementedBy",
+      "resource_type": "software"
+    }
+  ],
+  "notes": "Evidence artifacts represent tested outputs within configured evaluation scenarios. SCITT alignment represents an evidence format mapping; transparency service registration requires external infrastructure."
+}

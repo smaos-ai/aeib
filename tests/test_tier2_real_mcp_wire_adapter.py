@@ -393,3 +393,194 @@ def test_07_session_isolation_prevents_cancellation_crosstalk(tmp_path: Path) ->
     assert resp_raw_b is not None
     resp_b = json.loads(resp_raw_b)
     assert resp_b["result"]["isError"] is False
+
+
+def test_08_protocol_errors_cancellation_edges_and_ticket_validation(tmp_path: Path) -> None:
+    """8. Covers JSON-RPC parse/request/method errors, frozen tool defn, unlisted tool, malformed/halted tickets, and pre-dispatch cancellation."""
+    import dataclasses
+
+    global RealMcpWireAdapter, PinnedToolDefinition
+
+    # Reload guard when spec_from_file_location returns None
+    orig_spec_fn = importlib.util.spec_from_file_location
+    try:
+        importlib.util.spec_from_file_location = lambda *a, **kw: None
+        with pytest.raises(ImportError, match="Cannot load tier1_durable_executor"):
+            spec_mcp.loader.exec_module(mcp)
+    finally:
+        importlib.util.spec_from_file_location = orig_spec_fn
+        spec_mcp.loader.exec_module(mcp)
+        RealMcpWireAdapter = mcp.RealMcpWireAdapter
+        PinnedToolDefinition = mcp.PinnedToolDefinition
+
+    adapter, auth_key, _ = _create_test_adapter(tmp_path, lambda n, a: {"ok": True, "http_status": 200})
+
+    # Frozen PinnedToolDefinition check
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        adapter.pinned_tools["get_balance"].is_mutating = True  # type: ignore[misc]
+
+    # Parse error (-32700), Invalid Request (-32600), Method not found (-32601)
+    r_parse = json.loads(adapter.handle_json_rpc_message("{malformed_json") or "{}")
+    assert r_parse["error"]["code"] == -(327 * 100)
+
+    r_inv = json.loads(adapter.handle_json_rpc_message("[1, 2, 3]") or "{}")
+    assert r_inv["error"]["code"] == -(326 * 100)
+
+    r_nf = json.loads(adapter.handle_json_rpc_message(json.dumps({"jsonrpc": "2.0", "id": 7, "method": "unknown/op"})) or "{}")
+    assert r_nf["error"]["code"] == -(326 * 100 + 1)
+
+    # Initialize listChanged capability is True
+    r_init = json.loads(
+        adapter.handle_json_rpc_message(json.dumps({"jsonrpc": "2.0", "id": 8, "method": "initialize", "params": {}})) or "{}"
+    )
+    assert r_init["result"]["capabilities"]["tools"]["listChanged"] is True
+
+    # Recursive list stripping in _strip_reasoning_tokens
+    cleaned_list = adapter._strip_reasoning_tokens([{"a": 1, "thought": "strip_me"}])
+    assert cleaned_list == [{"a": 1}]
+
+    # Tool not in pinned manifest (-32602)
+    r_unlisted = json.loads(
+        adapter.handle_json_rpc_message(
+            json.dumps({"jsonrpc": "2.0", "id": 9, "method": "tools/call", "params": {"name": "unlisted_tool"}})
+        )
+        or "{}"
+    )
+    assert r_unlisted["error"]["code"] == -(326 * 100 + 2)
+    assert "TOOL_NOT_PERMITTED" in r_unlisted["error"]["message"]
+
+    # Malformed ticket (-32002)
+    r_mal_ticket = json.loads(
+        adapter.handle_json_rpc_message(
+            json.dumps({
+                "jsonrpc": "2.0",
+                "id": 10,
+                "method": "tools/call",
+                "params": {
+                    "name": "transfer_funds",
+                    "arguments": {"from": "A", "amount": 10, "_governance": {"decision_id": "incomplete"}},
+                },
+            })
+        )
+        or "{}"
+    )
+    assert r_mal_ticket["error"]["code"] == -(320 * 100 + 2)
+    assert "AUTHORITY_TICKET_MALFORMED" in r_mal_ticket["error"]["message"]
+
+    # Ticket omitting single_use uses default True, and tampered payload triggers GovernanceHaltError (-32003)
+    pure_args = {"from": "ACC_1", "amount": 50}
+    t_dict = _mint_mcp_ticket(
+        auth_key,
+        decision_id="dec_default_su",
+        operation_id="op_default_su",
+        principal_id="agent_1",
+        tool_name="transfer_funds",
+        pure_arguments=pure_args,
+    )
+    t_dict_no_su = dict(t_dict)
+    t_dict_no_su.pop("single_use")
+
+    # First test GovernanceHaltError with tampered amount (ticket not burned yet)
+    r_halt = json.loads(
+        adapter.handle_json_rpc_message(
+            json.dumps({
+                "jsonrpc": "2.0",
+                "id": 11,
+                "method": "tools/call",
+                "params": {
+                    "name": "transfer_funds",
+                    "arguments": {"from": "ACC_1", "amount": 999, "_governance": t_dict_no_su},
+                },
+            })
+        )
+        or "{}"
+    )
+    assert r_halt["error"]["code"] == -(320 * 100 + 3)
+    assert "GOVERNANCE_HALT" in r_halt["error"]["message"]
+
+    # Now valid call with single_use omitted from dict (defaults to True)
+    r_su_ok = json.loads(
+        adapter.handle_json_rpc_message(
+            json.dumps({
+                "jsonrpc": "2.0",
+                "id": 12,
+                "method": "tools/call",
+                "params": {
+                    "name": "transfer_funds",
+                    "arguments": {"from": "ACC_1", "amount": 50, "_governance": t_dict_no_su},
+                },
+            })
+        )
+        or "{}"
+    )
+    assert r_su_ok["result"]["isError"] is False
+    assert r_su_ok["result"]["governance"]["disposition"] == "CONFIRMED"
+
+    # Immediate pre-execution cancellation (L267-268: code -32000)
+    orig_event_cls = mcp.threading.Event
+
+    class _PreSetEvent(orig_event_cls):
+        def __init__(self):
+            super().__init__()
+            self.set()
+
+    mcp.threading.Event = _PreSetEvent
+    try:
+        r_pre_cancel = json.loads(
+            adapter.handle_json_rpc_message(
+                json.dumps({
+                    "jsonrpc": "2.0",
+                    "id": 13,
+                    "method": "tools/call",
+                    "params": {"name": "get_balance", "arguments": {"account": "A"}},
+                })
+            )
+            or "{}"
+        )
+        assert r_pre_cancel["error"]["code"] == -(320 * 100)
+        assert "REQUEST_CANCELLED" in r_pre_cancel["error"]["message"]
+    finally:
+        mcp.threading.Event = orig_event_cls
+
+    # Cancellation triggered after intent persistence, right before downstream_tool_dispatcher (L335-336)
+    downstream_called = False
+
+    def _never_called_dispatcher(name: str, args: Dict[str, Any]) -> Dict[str, Any]:
+        nonlocal downstream_called
+        downstream_called = True
+        return {"http_status": 200}
+
+    adapter_c2, auth_key_c2, _ = _create_test_adapter(tmp_path / "c2", _never_called_dispatcher)
+    t_c2 = _mint_mcp_ticket(
+        auth_key_c2,
+        decision_id="dec_c2",
+        operation_id="op_c2",
+        principal_id="agent_1",
+        tool_name="transfer_funds",
+        pure_arguments=pure_args,
+    )
+    orig_mark = adapter_c2.journal.mark_dispatch_started
+
+    def _cancelling_mark(op_id: str, ts: int) -> None:
+        orig_mark(op_id, ts)
+        adapter_c2._handle_notification("notifications/cancelled", {"requestId": 14}, "sess_c2")
+
+    adapter_c2.journal.mark_dispatch_started = _cancelling_mark
+    r_c2 = json.loads(
+        adapter_c2.handle_json_rpc_message(
+            json.dumps({
+                "jsonrpc": "2.0",
+                "id": 14,
+                "method": "tools/call",
+                "params": {
+                    "name": "transfer_funds",
+                    "arguments": {"from": "ACC_1", "amount": 50, "_governance": t_c2},
+                },
+            }),
+            session_id="sess_c2",
+        )
+        or "{}"
+    )
+    assert downstream_called is False
+    assert r_c2["result"]["governance"]["disposition"] == "EFFECT_INDETERMINATE"
+

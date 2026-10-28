@@ -413,3 +413,52 @@ def test_banned_words_absence() -> None:
         content = p.read_text(encoding="utf-8")
         matches = pattern.findall(content)
         assert not matches, f"Banned tokens {matches} found in {p}"
+
+
+def test_palantir_ontology_mutation_boundaries() -> None:
+    import ast as _ast
+    import tools.palantir_ontology_joint_witness_engine as poj
+
+    tree = _ast.parse(Path(poj.__file__).read_text(encoding="utf-8"))
+    found_exc = False
+    for node in _ast.walk(tree):
+        if isinstance(node, _ast.ExceptHandler) and isinstance(node.type, _ast.Name) and node.type.id == "ImportError":
+            for stmt in node.body:
+                if isinstance(stmt, _ast.Expr) and isinstance(stmt.value, _ast.Call):
+                    found_exc = True
+                    assert isinstance(stmt.value.args[0], _ast.Constant) and stmt.value.args[0].value == 0
+                    for sub in _ast.walk(stmt):
+                        if isinstance(sub, _ast.Subscript) and isinstance(sub.slice, _ast.Constant):
+                            assert sub.slice.value == 1
+    assert found_exc is True
+
+    # Default max_disbursement_minor = 5000_00
+    t_def = TreasuryOntologyHarness("ep-1", "pol-1")
+    assert t_def.max_disbursement_minor == 5000 * 100
+
+    order = OntologyObject("CustomerOrder", "order:1", 1, {"status": "PAID"})
+    gt_prompt = ConsentIntegrityMediator.render_ground_truth_prompt("IssueRefund", order, {"refund_minor": 100})
+    assert isinstance(gt_prompt, str) and gt_prompt.startswith("ACTION=IssueRefund;TARGET=order:1;")
+    # Missing refund_minor defaults to 0 -> ERR_NON_POSITIVE_AMOUNT
+    p_missing = QualifiedActionProposal(
+        "op-m", "IssueRefund", "order:1", {}, order.semantic_projection_hash(), "ep-1", "pol-1", "slot-m"
+    )
+    assert t_def._check_subclass_criteria(p_missing, order) == (False, "ERR_NON_POSITIVE_AMOUNT")
+
+    # Boundary refund_minor = 1 (> 0) and refund_minor = 5000_00 (== max_disbursement_minor)
+    p_one = QualifiedActionProposal(
+        "op-1", "IssueRefund", "order:1", {"refund_minor": 1}, order.semantic_projection_hash(), "ep-1", "pol-1", "slot-1"
+    )
+    assert t_def._check_subclass_criteria(p_one, order) == (True, "OK")
+    p_exact_ceil = QualifiedActionProposal(
+        "op-c", "IssueRefund", "order:1", {"refund_minor": 5000_00}, order.semantic_projection_hash(), "ep-1", "pol-1", "slot-c"
+    )
+    assert t_def._check_subclass_criteria(p_exact_ceil, order) == (True, "OK")
+
+    # Policy digest drift with matching epoch
+    p_pol_drift = QualifiedActionProposal(
+        "op-pd", "IssueRefund", "order:1", {"refund_minor": 10}, order.semantic_projection_hash(), "ep-1", "pol-stale", "slot-pd"
+    )
+    r_pd = t_def.commit_ontology_action(p_pol_drift, order, "agent:1")
+    assert r_pd["disposition"] == "DENIED" and r_pd["code"] == "HALT_PROPOSAL_TO_COMMIT_POLICY_OR_EPOCH_DRIFT"
+

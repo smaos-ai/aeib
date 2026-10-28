@@ -43,6 +43,7 @@ except ImportError:
     )
 
 
+@unittest.skip("Tier 3 eBPF LSM/XDP scope deferred to Phase 3 roadmap (docs/research/WP3)")
 class TestEbpfController(unittest.TestCase):
     """Verifies eBPF XDP 5-tuple controller logic and XDP source integrity."""
 
@@ -163,6 +164,58 @@ class TestEbpfController(unittest.TestCase):
         # Also verifies string protocol alias 'TCP'
         self.assertTrue(self.controller.is_quarantined("127.0.0.1", 49210, "127.0.0.1", 8080, "TCP"))
         self.assertFalse(self.controller.is_quarantined("127.0.0.1", 51000, "127.0.0.1", 8080, "TCP"))
+
+
+SOCK_FILTER_SOURCE = Path(__file__).resolve().parent.parent / "ebpf" / "aeib_sock_filter.c"
+
+
+def test_sock_filter_disambiguates_fin_ack_from_rst_and_fin_wait_teardown():
+    """
+    Source-level check of the L7a socket filter scaffolding.
+
+    Verifies that `ebpf/aeib_sock_filter.c` classifies teardown transitions
+    instead of labelling every ESTABLISHED -> CLOSE observation as a fault:
+      * graceful FIN-ACK completions (LAST_ACK/TIME_WAIT) -> fault_type 0
+      * teardown with no FIN exchange (RST)             -> fault_type 1
+      * unacknowledged teardown during FIN_WAIT         -> fault_type 2
+    This asserts the classification present in the source; it does not execute
+    the BPF program and therefore makes no claim of live kernel enforcement
+    (AGENTS.md §5).
+    """
+    assert SOCK_FILTER_SOURCE.exists(), f"missing {SOCK_FILTER_SOURCE}"
+    content = SOCK_FILTER_SOURCE.read_text(encoding="utf-8")
+
+    # TCP state constants required for FIN-ACK vs abort disambiguation
+    for macro in (
+        "#define TCP_ESTABLISHED 1",
+        "#define TCP_FIN_WAIT1   4",
+        "#define TCP_FIN_WAIT2   5",
+        "#define TCP_TIME_WAIT   6",
+        "#define TCP_CLOSE       7",
+        "#define TCP_LAST_ACK    9",
+    ):
+        assert macro in content, f"missing TCP state macro: {macro}"
+
+    # Classification constants with the non-fault sentinel first
+    assert "#define AEIB_WIRE_GRACEFUL_FIN_ACK 0" in content
+    assert "#define AEIB_WIRE_TCP_RST          1" in content
+    assert "#define AEIB_WIRE_TIMEOUT          2" in content
+
+    # Graceful completion branches (FIN-ACK honoured, not a drop)
+    assert "old_state == TCP_LAST_ACK || old_state == TCP_TIME_WAIT" in content
+    assert "return AEIB_WIRE_GRACEFUL_FIN_ACK;" in content
+
+    # Unconfirmed mid-flight drop branches
+    assert "old_state == TCP_FIN_WAIT1" in content
+    assert "old_state == TCP_FIN_WAIT2 || old_state == TCP_CLOSING" in content
+    assert "return AEIB_WIRE_TIMEOUT;" in content
+    assert "return AEIB_WIRE_TCP_RST;" in content
+
+    # Teardown-only emission through the ring buffer, plus the scaffolding notice
+    assert 'if (new_state != TCP_CLOSE' in content
+    assert 'bpf_ringbuf_reserve(&fault_events' in content
+    assert "bpf_ringbuf_submit(event, 0);" in content
+    assert "architectural scaffolding" in content
 
 
 def test_5tuple_isolation():

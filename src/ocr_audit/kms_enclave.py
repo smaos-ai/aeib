@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Hardware Root of Trust & Key Management
+"""Hardware Root of Trust & Key Management (Simulated / Structural Scaffold)
 
-Binds Ed25519/FIPS 204 signing keys to hardware enclaves (TPM 2.0 PCRs,
+Binds Ed25519/FIPS 204 signing keys to hardware enclave metadata (TPM 2.0 PCRs,
 Apple Secure Enclave, YubiHSM) and maintains offline DID Revocation Lists (DRL).
 """
 

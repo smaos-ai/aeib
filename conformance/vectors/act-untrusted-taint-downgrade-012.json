@@ -1,0 +1,41 @@
+{
+  "vector_id": "act-untrusted-taint-downgrade-012",
+  "description": "TIER_2_UNTRUSTED attempting mutation > 500 minor units without step-up",
+  "input_payload": {
+    "act_version": "1",
+    "operation_id": "c43d6975-978d-4c8e-a49a-fb8f7a660b75",
+    "idempotency_key": "cae1ea4f-6631-44a6-b92f-5a08a2e5240b",
+    "tenant_id": "tenant-corp-101",
+    "principal": {
+      "agent_id": "agent-worker-01",
+      "subject_id": "user-corp-99",
+      "capability_id": "cap-refund-v1"
+    },
+    "action": {
+      "type": "refund.create",
+      "target": "payments.stripe",
+      "resource": "pi_3MtwBwLkdIwHu7ix28a3tqPa",
+      "parameters_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "constraints": {
+      "amount_minor": 75000,
+      "currency": "EUR",
+      "max_per_call_minor": 100000,
+      "policy_epoch": "2026-Q4",
+      "expires_at": 1798761600
+    },
+    "context": {
+      "harness_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "taint_tier": "TIER_2_UNTRUSTED",
+      "source_trace_id": "otel-trace-001"
+    },
+    "signature": {
+      "alg": "Ed25519",
+      "key_id": "key-oper-01",
+      "value": "3045022100e4b8..."
+    }
+  },
+  "expected_disposition": "NOT_DISPATCHED",
+  "expected_error_code": "ERR_UNTRUSTED_TAINT_REQUIRES_STEP_UP",
+  "expected_budget_delta_minor": 0
+}

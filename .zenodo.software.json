@@ -1,0 +1,32 @@
+{
+  "title": "AEIB v0.4.1: Execution-Integrity Reference Software and Test Harness",
+  "upload_type": "software",
+  "access_right": "open",
+  "license": "Apache-2.0",
+  "version": "0.4.1",
+  "creators": [
+    {
+      "name": "Leukhin, Andrej",
+      "affiliation": "SovereignNexus",
+      "orcid": "0009-0004-9543-8263"
+    }
+  ],
+  "description": "<p>AEIB v0.4.1 is an open-source reference execution-integrity boundary and test harness for state-mutating AI agent actions. Under the stated evaluation model, it evaluates pre-dispatch standing checks immediately before network dispatch, computes candidate action IDs using RFC 8785 JSON Canonicalization, latches transport uncertainty (fail-closed EFFECT_INDETERMINATE logic), suppresses speculative retries, and provides single-flight target reconciliation probes.<br/><br/><b>License:</b> Apache-2.0. Specification and evidence documentation artifacts are deposited under CC-BY-4.0 in the companion deposition record.</p>",
+  "keywords": [
+    "AI Agent Security",
+    "Execution Integrity",
+    "RFC 8785",
+    "Idempotency",
+    "Test Harness",
+    "DORA",
+    "EU AI Act"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "10.5281/zenodo.aeib-v041-specs",
+      "relation": "isSupplementTo",
+      "resource_type": "publication"
+    }
+  ],
+  "notes": "Cryptographic digests (SHA-256) of archive artifacts are attached as sibling files. Offline verifier performance metrics represent tested outcomes in configured local environments; independent reproduction is pending."
+}

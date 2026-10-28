@@ -1,0 +1,7 @@
+{
+  "entry_module": "solution",
+  "id": "dedup_by_key",
+  "instruction": "Implement dedup(items, key) returning a new list keeping the first item for each key(item), preserving order.",
+  "starter_source": "def dedup(items, key):\n    \"\"\"Keep the first occurrence per key, preserve order.\"\"\"\n    raise NotImplementedError\n",
+  "type": "dedup"
+}

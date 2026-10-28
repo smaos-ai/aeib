@@ -149,8 +149,8 @@ def test_defection_probe_initialization_and_validation():
         dimension=32, threshold=0.85, layer=31
     )
     assert probe.dimension == 32
-    assert probe.threshold == 0.85
-    assert probe.layer_inspected == 31
+    assert float(probe.threshold) == 0.85
+    assert int(probe.layer_inspected) == 31
 
     with pytest.raises(ValueError):
         # Passing wrong dimension vector raises ValueError
@@ -168,7 +168,7 @@ def test_defection_probe_benign_activation():
     assert res.is_defecting is False
     assert res.rejection_code is None
     assert res.defection_probability < 0.10
-    assert res.layer_inspected == 31
+    assert int(res.layer_inspected) == 31
 
 
 def test_defection_probe_defection_activation_halt():

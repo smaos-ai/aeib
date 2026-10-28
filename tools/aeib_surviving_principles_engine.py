@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # File: tools/aeib_surviving_principles_engine.py
 """
-AEIB 五大核心幸存架构原则（Five Surviving Principles）零 Mock 生产级实现：
+AEIB 五大核心幸存架构原则（Five Surviving Principles — Structural Scaffold for External Prover Metadata）零 Mock 生产级实现：
 1. 确定性先行 + 面向对象多态策略控制架 (Polymorphic OO-Policy Harness)
 2. 可采纳性三元组状态机 (Admissibility Triad: Evidence + Authority + Standing -> ALLOW/HOLD/DENY/ESCALATE)
 3. 溯源熵标签门控 (Provenance Tagging: AI_GENERATED_UNVERIFIED vs HUMAN_VERIFIED_SIGNED)
@@ -19,13 +19,22 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
     Ed25519PublicKey,
 )
 
+# RFC 8785 single source of truth: delegate to src/jcs_canonicalizer.encode_jcs
+# (differential-tested in tests/test_jcs_single_source.py).
+try:
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+except ImportError:  # loaded without the repository root on sys.path
+    import sys as _jcs_sys
+    from pathlib import Path as _JcsPath
+
+    _jcs_sys.path.insert(0, str(_JcsPath(__file__).resolve().parents[1]))
+    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+
 
 def canonical_json_bytes(obj: Any) -> bytes:
     if isinstance(obj, float):
         raise ValueError("ERR_FLOAT_FORBIDDEN")
-    return json.dumps(
-        obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
-    ).encode("utf-8")
+    return _reference_encode_jcs(obj)
 
 
 def sha256_digest(data: bytes) -> str:

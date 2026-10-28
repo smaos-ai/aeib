@@ -653,7 +653,7 @@ def test_adecs_lifecycle_transitions_and_rejections(crypto_actors):
     # 2. Deploy
     automaton.deploy_agent(agent_id, budget_ceiling=5000)
     assert automaton.agents[agent_id].state == AdecsAgentState.DEPLOYED
-    assert automaton.agents[agent_id].spend_budget == 5000
+    assert int(automaton.agents[agent_id].spend_budget) == 5000
 
     # Mutations on DEPLOYED agent decrement budget
     automaton.authorize_mutation(agent_id, cost_minor=1500)

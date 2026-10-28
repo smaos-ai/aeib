@@ -276,5 +276,108 @@ def test_fix21_failure_mask_bit_isolation(tmp_path: Path) -> None:
     assert "PAYEE_NOT_ANCHORED" in reason
 
 
+def test_station1_exhaustive_defaults_formatting_and_error_guards(tmp_path: Path) -> None:
+    """Verifies canonical_json_v1, 2-space checkpoint formatting, IOError cleanup, and default args."""
+    import inspect
+    from src.station1_state_engine import canonical_json_v1
+
+    assert canonical_json_v1({"b": 1, "a": 2}) == b'{"a":2,"b":1}'
+
+    engine = Station1StateEngine(
+        ledger_dir=str(tmp_path),
+        trust_anchors={"payee_1": b"key_1"},
+    )
+    engine.atomic_checkpoint_write({"chain_tip": "sha256:0011"})
+    raw_text = Path(engine.ledger_path).read_text(encoding="utf-8")
+    assert '\n  "chain_tip": "sha256:0011"' in raw_text
+
+    # Unserializable payload triggers IOError and cleans up temp file
+    with pytest.raises(IOError, match="HALT_ATOMIC_CHECKPOINT_FAILED"):
+        engine.atomic_checkpoint_write({"unserializable": object()})
+    leftover_tmps = list(tmp_path.glob(".chk_*.tmp"))
+    assert leftover_tmps == []
+
+    # Verify default parameter values and zero/one requested_minor boundaries
+    sig = inspect.signature(engine.evaluate_dispatch)
+    assert sig.parameters["remaining_budget_minor"].default == 10000_00
+    assert sig.parameters["taint_tier"].default == 0
+    assert sig.parameters["has_step_up_warrant"].default is False
+
+    caid = b"\x11" * 32
+    harness = b"\x22" * 32
+    tool = b"\x33" * 32
+    payee = "payee_1"
+
+    # Default remaining_budget_minor=10000_00 allows 10000_00 and rejects 10000_01
+    ok_exact, mask_exact, _ = engine.evaluate_dispatch(
+        caid=caid,
+        expected_caid=caid,
+        harness_digest=harness,
+        expected_harness=harness,
+        tool_digest=tool,
+        expected_tool=tool,
+        payee_id=payee,
+        expected_payee_id=payee,
+        requested_minor=10000_00,
+    )
+    assert ok_exact is True and mask_exact == 0
+
+    ok_over, mask_over, _ = engine.evaluate_dispatch(
+        caid=caid,
+        expected_caid=caid,
+        harness_digest=harness,
+        expected_harness=harness,
+        tool_digest=tool,
+        expected_tool=tool,
+        payee_id=payee,
+        expected_payee_id=payee,
+        requested_minor=10000_01,
+    )
+    assert ok_over is False and mask_over == 0x10
+
+    # requested_minor == 1 allowed, requested_minor == 0 rejected
+    ok_one, mask_one, _ = engine.evaluate_dispatch(
+        caid=caid,
+        expected_caid=caid,
+        harness_digest=harness,
+        expected_harness=harness,
+        tool_digest=tool,
+        expected_tool=tool,
+        payee_id=payee,
+        expected_payee_id=payee,
+        requested_minor=1,
+    )
+    assert ok_one is True and mask_one == 0
+
+    ok_zero, mask_zero, _ = engine.evaluate_dispatch(
+        caid=caid,
+        expected_caid=caid,
+        harness_digest=harness,
+        expected_harness=harness,
+        tool_digest=tool,
+        expected_tool=tool,
+        payee_id=payee,
+        expected_payee_id=payee,
+        requested_minor=0,
+    )
+    assert ok_zero is False and mask_zero == 0x10
+
+    # Default has_step_up_warrant=False rejects taint_tier=2 when omitted
+    ok_t2, mask_t2, _ = engine.evaluate_dispatch(
+        caid=caid,
+        expected_caid=caid,
+        harness_digest=harness,
+        expected_harness=harness,
+        tool_digest=tool,
+        expected_tool=tool,
+        payee_id=payee,
+        expected_payee_id=payee,
+        requested_minor=100,
+        taint_tier=2,
+    )
+    assert ok_t2 is False and mask_t2 == 0x20
+
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

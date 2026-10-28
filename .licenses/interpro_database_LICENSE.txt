@@ -1,0 +1,2 @@
+InterPro database skill used on 2026-10-28T13:12:48Z.
+User notified to check terms at https://www.ebi.ac.uk/interpro/ and https://www.ebi.ac.uk/about/terms-of-use/

@@ -229,7 +229,7 @@ def run_ab_test_on_proxy_design_question() -> Dict[str, ArmEvaluationMetrics]:
         concrete_failure_modes_found=2,
         prior_art_collisions_identified=0,
         conflicts_surviving_to_final_output=1,
-        harness_dilution_loss_pct=50.0,
+        harness_dilution_loss_pct=((2 - 1) / 2.0) * 100.0,
         contradicted_flawed_user_premise=True,
         ontic_execution_blocked_until_mitigated=False,
     )

@@ -131,13 +131,13 @@ def test_production_gateway_daemon_end_to_end_smoke(tmp_path: Path) -> None:
     try:
         # 3. Test /healthz and /readyz
         with urlopen(f"{base_url}/healthz", timeout=1.5) as h_resp:
-            assert h_resp.status == 200
+            assert int(h_resp.status) == 200
             h_data = json.loads(h_resp.read().decode("utf-8"))
             assert h_data["status"] == "HEALTHY"
             assert h_data["boundary_mode"] == "FAIL_CLOSED"
 
         with urlopen(f"{base_url}/readyz", timeout=1.5) as r_resp:
-            assert r_resp.status == 200
+            assert int(r_resp.status) == 200
             r_data = json.loads(r_resp.read().decode("utf-8"))
             assert r_data["ready"] is True
 
@@ -182,7 +182,7 @@ def test_production_gateway_daemon_end_to_end_smoke(tmp_path: Path) -> None:
             method="POST",
         )
         with urlopen(dispatch_req1, timeout=2.0) as d_resp1:
-            assert d_resp1.status == 200
+            assert int(d_resp1.status) == 200
             d_data1 = json.loads(d_resp1.read().decode("utf-8"))
             assert d_data1["verdict"] == "DISPATCHED"
             assert "rail_idempotency_key" in d_data1
@@ -210,7 +210,7 @@ def test_production_gateway_daemon_end_to_end_smoke(tmp_path: Path) -> None:
             assert False, "Expected HTTP 504 Gateway Timeout"
         except Exception as e:
             # urllib raises HTTPError for status 504
-            assert getattr(e, "code", None) == 504
+            assert int(getattr(e, "code", 0) or 0) == 504
             err_body = json.loads(e.read().decode("utf-8"))
             assert err_body["verdict"] == "INDETERMINATE_LATCHED"
             assert err_body["rejection_code"] == "EFFECT_INDETERMINATE"
@@ -236,7 +236,7 @@ def test_production_gateway_daemon_end_to_end_smoke(tmp_path: Path) -> None:
             urlopen(dispatch_req3, timeout=2.0)
             assert False, "Expected 403 Forbidden"
         except Exception as e:
-            assert getattr(e, "code", None) == 403
+            assert int(getattr(e, "code", 0) or 0) == 403
             overflow_body = json.loads(e.read().decode("utf-8"))
             assert overflow_body["verdict"] == "REJECTED"
             assert overflow_body["rejection_code"] == "HALT_CODEMODE_CUMULATIVE_SPRINT_EXCEEDED"
@@ -250,14 +250,14 @@ def test_production_gateway_daemon_end_to_end_smoke(tmp_path: Path) -> None:
             method="POST",
         )
         with urlopen(reconcile_req, timeout=2.0) as rec_resp:
-            assert rec_resp.status == 200
+            assert int(rec_resp.status) == 200
             rec_data = json.loads(rec_resp.read().decode("utf-8"))
             assert rec_data["reconciled"] is True
             assert rec_data["disposition"] == "RESOLVED_REFUTED"
 
         # 9. Offline verification of all ledger receipts
         with urlopen(f"{base_url}/v1/ledger/receipts", timeout=1.5) as r_resp:
-            assert r_resp.status == 200
+            assert int(r_resp.status) == 200
             all_receipts = json.loads(r_resp.read().decode("utf-8"))["receipts"]
             assert len(all_receipts) >= 3
 

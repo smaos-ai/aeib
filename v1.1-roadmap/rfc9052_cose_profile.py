@@ -50,6 +50,102 @@ VDP_INCLUSION_PATH = -3     # RFC 9942 VDP key: inclusion-path ([+ bstr])
 COSE_ALG_EDDSA = -8  # Ed25519 per RFC 9053 Section 2.2 / RFC 8152 Table 5
 COSE_TAG_SIGN1 = 18  # Tag 18 identifies COSE_Sign1 per RFC 9052 Section 4.2
 
+# Private-use COSE header label (RFC 9052 Section 16.1: labels < -65536 are
+# private use). AEIB places {VDP_TREE_SIZE: n, VDP_LEAF_INDEX: i} here, inside
+# the PROTECTED header of a binary receipt, so the Merkle position reported by
+# a verifier is covered by the Transparency Service signature. RFC 9942 keeps
+# the VDP (396) itself unprotected; a root hash alone does not bind tree_size.
+COSE_HEADER_AEIB_SIGNED_VDP_POSITION = -65537
+
+# Maximum CBOR container/tag nesting accepted by the decoder (fail closed with a
+# coded ValueError instead of exhausting the interpreter stack).
+MAX_CBOR_NESTING_DEPTH = 64
+
+
+# ============================================================================
+# Ed25519 public-key admission (pure Python, RFC 8032 Section 5.1.3)
+# ============================================================================
+# pyca/OpenSSL accept small-order public keys; with such a key a signature can
+# be forged for any message. Every key used for verification is admitted here
+# first: the 32-byte encoding must be canonical (y < p, no x == 0 with the sign
+# bit set) and the point must not lie in the order-8 torsion subgroup.
+
+_ED_P = 2**255 - 19
+_ED_D = (-121665 * pow(121666, _ED_P - 2, _ED_P)) % _ED_P
+_ED_SQRT_M1 = pow(2, (_ED_P - 1) // 4, _ED_P)
+_ED_IDENTITY = (0, 1, 1, 0)
+
+
+def _ed_recover_x(y: int, sign: int) -> Optional[int]:
+    u = (y * y - 1) % _ED_P
+    v = (_ED_D * y * y + 1) % _ED_P
+    cand = (u * pow(v, 3, _ED_P) * pow(u * pow(v, 7, _ED_P), (_ED_P - 5) // 8, _ED_P)) % _ED_P
+    v_cand_sq = (v * cand * cand) % _ED_P
+    if v_cand_sq == u:
+        x = cand
+    elif v_cand_sq == (-u) % _ED_P:
+        x = (cand * _ED_SQRT_M1) % _ED_P
+    else:
+        return None
+    if (x % 2) != sign:
+        x = (_ED_P - x) % _ED_P
+    return x
+
+
+def _ed_point_add(p1: Tuple[int, int, int, int], p2: Tuple[int, int, int, int]) -> Tuple[int, int, int, int]:
+    x1, y1, z1, t1 = p1
+    x2, y2, z2, t2 = p2
+    a = ((y1 - x1) * (y2 - x2)) % _ED_P
+    b = ((y1 + x1) * (y2 + x2)) % _ED_P
+    c = (2 * t1 * t2 * _ED_D) % _ED_P
+    d = (2 * z1 * z2) % _ED_P
+    e, f, g, h = (b - a) % _ED_P, (d - c) % _ED_P, (d + c) % _ED_P, (b + a) % _ED_P
+    return ((e * f) % _ED_P, (g * h) % _ED_P, (f * g) % _ED_P, (e * h) % _ED_P)
+
+
+def ed25519_public_key_rejection(raw_key: bytes) -> Optional[str]:
+    """
+    Returns None if raw_key is an admissible Ed25519 public key, otherwise a
+    stable error code: ERR_ED25519_KEY_LENGTH, ERR_ED25519_KEY_NONCANONICAL,
+    ERR_ED25519_KEY_NOT_ON_CURVE or ERR_ED25519_KEY_SMALL_ORDER.
+    """
+    if not isinstance(raw_key, (bytes, bytearray)) or len(raw_key) != 32:
+        return "ERR_ED25519_KEY_LENGTH"
+    raw_key = bytes(raw_key)
+    y = int.from_bytes(raw_key[:31] + bytes([raw_key[31] & 0x7F]), "little")
+    sign = raw_key[31] >> 7
+    if y >= _ED_P:
+        return "ERR_ED25519_KEY_NONCANONICAL"
+    x = _ed_recover_x(y, sign)
+    if x is None:
+        return "ERR_ED25519_KEY_NOT_ON_CURVE"
+    if x == 0 and sign == 1:
+        return "ERR_ED25519_KEY_NONCANONICAL"
+    point = (x, y, 1, (x * y) % _ED_P)
+    for _ in range(3):  # 8 * P via three doublings
+        point = _ed_point_add(point, point)
+    px, py, pz, _ = point
+    if px % _ED_P == 0 and (py - pz) % _ED_P == 0:
+        return "ERR_ED25519_KEY_SMALL_ORDER"
+    return None
+
+
+def ed25519_public_key_raw(public_key: Ed25519PublicKey) -> bytes:
+    """Raw 32-byte encoding of a pyca Ed25519 public key object."""
+    from cryptography.hazmat.primitives import serialization
+
+    return public_key.public_bytes(
+        encoding=serialization.Encoding.Raw,
+        format=serialization.PublicFormat.Raw,
+    )
+
+
+def admit_ed25519_public_key(public_key: Any) -> Optional[str]:
+    """Admission check for a key object: None if acceptable, else an error code."""
+    if not isinstance(public_key, Ed25519PublicKey):
+        return "ERR_ED25519_KEY_TYPE"
+    return ed25519_public_key_rejection(ed25519_public_key_raw(public_key))
+
 
 # ============================================================================
 # RFC 8949 CBOR Data Types & Structures
@@ -159,12 +255,17 @@ class RFC8949CBOR:
 
     @classmethod
     def decode_from(
-        cls, data: bytes, offset: int = 0, deterministic: bool = True
+        cls, data: bytes, offset: int = 0, deterministic: bool = True, _depth: int = 0
     ) -> Tuple[Any, int]:
         """
         Decodes a single CBOR item from data starting at offset.
         Returns a tuple of (decoded_value, next_offset).
+        Containers and tags nested deeper than MAX_CBOR_NESTING_DEPTH fail closed.
         """
+        if _depth > MAX_CBOR_NESTING_DEPTH:
+            raise ValueError(
+                f"ERR_CBOR_NESTING_TOO_DEEP: nesting exceeds {MAX_CBOR_NESTING_DEPTH} levels"
+            )
         if offset >= len(data):
             raise ValueError(f"Unexpected end of CBOR buffer at offset {offset}")
 
@@ -291,7 +392,9 @@ class RFC8949CBOR:
         elif major == 4:
             items: List[Any] = []
             for _ in range(val):
-                item, offset = cls.decode_from(data, offset, deterministic=deterministic)
+                item, offset = cls.decode_from(
+                    data, offset, deterministic=deterministic, _depth=_depth + 1
+                )
                 items.append(item)
             return items, offset
         elif major == 5:
@@ -299,7 +402,9 @@ class RFC8949CBOR:
             prev_key_sort: Optional[Tuple[int, bytes]] = None
             for _ in range(val):
                 key_start = offset
-                k, offset = cls.decode_from(data, offset, deterministic=deterministic)
+                k, offset = cls.decode_from(
+                    data, offset, deterministic=deterministic, _depth=_depth + 1
+                )
                 k_bytes = data[key_start:offset]
                 k_sort = (len(k_bytes), k_bytes)
                 if k in mapping:
@@ -310,14 +415,15 @@ class RFC8949CBOR:
                             f"Non-canonical map key sorting in CBOR map at offset {key_start}"
                         )
                 prev_key_sort = k_sort
-                v, offset = cls.decode_from(data, offset, deterministic=deterministic)
+                v, offset = cls.decode_from(
+                    data, offset, deterministic=deterministic, _depth=_depth + 1
+                )
                 mapping[k] = v
             return mapping, offset
-        elif major == 6:
-            tagged_val, offset = cls.decode_from(data, offset, deterministic=deterministic)
-            return CBORTag(tag=val, value=tagged_val), offset
-
-        raise ValueError(f"Unhandled major type {major}")
+        tagged_val, offset = cls.decode_from(
+            data, offset, deterministic=deterministic, _depth=_depth + 1
+        )
+        return CBORTag(tag=val, value=tagged_val), offset
 
     @classmethod
     def decode(cls, data: bytes, deterministic: bool = True) -> Any:
@@ -558,9 +664,21 @@ class RFC9052CoseVerifier:
                 error="Algorithm parameter (alg) MUST NOT appear in both protected and unprotected headers",
             )
 
+        if COSE_HEADER_ALG in unprotected_headers:
+            # alg is only meaningful when covered by the signature (RFC 9052
+            # Section 3.1 recommends the protected bucket); an unprotected alg is
+            # attacker-controlled, so this profile rejects it outright.
+            return CoseVerificationResult(
+                valid=False,
+                payload=payload_bytes,
+                kid=None,
+                alg=0,
+                protected_headers=protected_headers,
+                unprotected_headers=unprotected_headers,
+                error="ERR_ALG_NOT_PROTECTED: algorithm parameter (alg) must be in the protected header only",
+            )
+
         alg = protected_headers.get(COSE_HEADER_ALG)
-        if alg is None:
-            alg = unprotected_headers.get(COSE_HEADER_ALG)
 
         if alg is None:
             return CoseVerificationResult(
@@ -650,9 +768,11 @@ class RFC9052CoseVerifier:
                     )
 
         # Extract Key ID (kid)
-        raw_kid = unprotected_headers.get(COSE_HEADER_KID)
+        # Prefer the signed (protected) kid; an unprotected kid can be rewritten
+        # without invalidating the signature.
+        raw_kid = protected_headers.get(COSE_HEADER_KID)
         if raw_kid is None:
-            raw_kid = protected_headers.get(COSE_HEADER_KID)
+            raw_kid = unprotected_headers.get(COSE_HEADER_KID)
 
         kid_str: Optional[str] = None
         if isinstance(raw_kid, (bytes, bytearray)):
@@ -692,6 +812,19 @@ class RFC9052CoseVerifier:
                 protected_headers=protected_headers,
                 unprotected_headers=unprotected_headers,
                 error=f"Failed to encode Sig_structure: {e}",
+            )
+
+        # Key admission: reject small-order / non-canonical / non-Ed25519 keys
+        key_rejection = admit_ed25519_public_key(public_key)
+        if key_rejection is not None:
+            return CoseVerificationResult(
+                valid=False,
+                payload=payload_bytes,
+                kid=kid_str,
+                alg=alg,
+                protected_headers=protected_headers,
+                unprotected_headers=unprotected_headers,
+                error=f"{key_rejection}: verification key rejected",
             )
 
         # Cryptographic verification using public key

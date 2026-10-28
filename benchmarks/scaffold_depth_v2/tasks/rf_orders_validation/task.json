@@ -1,0 +1,11 @@
+{
+  "id": "rf_orders_validation",
+  "type": "refactor",
+  "instruction": "Refactor: the field validation is duplicated in orders/service.py (create_order and update_order). Move it into a single function validate_order(data: dict) -> None in orders/validation.py that raises the same orders.models.ValidationError (same field, same message, same order of checks), and make both create_order and update_order call it. service.py must no longer contain its own copies of the checks. Observable behaviour must not change. You may run the tests in tests/.",
+  "editable": [
+    "orders/service.py",
+    "orders/validation.py",
+    "orders/models.py",
+    "orders/repository.py"
+  ]
+}

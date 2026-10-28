@@ -400,16 +400,18 @@ def plan_digest(plan: PartitionPlan) -> str:
 
 
 def load_repo_files(root: Path, dirs: Sequence[str] = SCAN_DIRS) -> Dict[str, str]:
-    """Read repository Python files (skips __pycache__)."""
+    """Read repository Python files (skips __pycache__ and broken symlinks)."""
     files: Dict[str, str] = {}
     for p in sorted(root.glob("*.py")):
+        if p.is_symlink() and not p.exists():
+            continue
         files[p.name] = p.read_text(encoding="utf-8", errors="replace")
     for d in dirs:
         base = root / d
         if not base.is_dir():
             continue
         for p in sorted(base.rglob("*.py")):
-            if "__pycache__" in p.parts:
+            if "__pycache__" in p.parts or (p.is_symlink() and not p.exists()):
                 continue
             files[p.relative_to(root).as_posix()] = p.read_text(encoding="utf-8", errors="replace")
     return files

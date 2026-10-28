@@ -1,0 +1,8 @@
+{
+  "id": "uf_ledger_split",
+  "type": "underspecified_feature",
+  "instruction": "Implement ledger.split.split_bill(ledger, payer, participants, total_cents). It splits a bill that `payer` already paid among `participants` (the payer may be one of them) as evenly as possible, posts one transfer from every participant other than the payer to the payer for their share (use ledger.transfer.post_transfer), and returns a dict {participant: share_cents}. You may run the tests in tests/.",
+  "editable": [
+    "ledger/split.py"
+  ]
+}

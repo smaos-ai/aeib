@@ -24,12 +24,15 @@ from benchmarks.undobench_100_trial_effect_key import (
     build_registry,
     build_schedule,
     dispatch_effect_keyed,
+    load_trials_from_jsonl,
+    main,
     run_benchmark,
     wilson_interval_bps,
 )
 from src.eo1_effect_key import UnknownToolSchemaError, compute_effect_caid
 from src.eo1_write_before_execute import PreDispatchIntentInterlock, compute_caid
 from src.jcs_canonicalizer import encode_jcs
+from src.strict_json_ingress import loads_strict
 
 SMALL_F8 = 6
 SMALL_DISTINCT = 6
@@ -144,3 +147,78 @@ def test_wilson_rejects_invalid_counts() -> None:
     for k, n in [(1, 0), (-1, 5), (6, 5)]:
         with pytest.raises(ValueError):
             wilson_interval_bps(k, n)
+
+
+def test_jsonl_roundtrip_and_cli_execution(tmp_path: Path, small_summary: dict, capsys: pytest.CaptureFixture[str]) -> None:
+    trials = build_schedule(seed=42, n_f8=SMALL_F8, n_distinct=SMALL_DISTINCT)
+    jsonl_path = tmp_path / "schedule.jsonl"
+    lines = [
+        encode_jcs({
+            "family": t.family,
+            "first": t.first,
+            "first_fault": t.first_fault,
+            "second": t.second,
+        }).decode("utf-8")
+        for t in trials
+    ]
+    jsonl_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+    loaded = load_trials_from_jsonl(jsonl_path)
+    assert len(loaded) == SMALL_F8 + SMALL_DISTINCT
+    rerun = run_benchmark(seed=42, trials=loaded, workdir=tmp_path / "from_jsonl")
+    assert rerun["schedule_digest_sha256"] == small_summary["schedule_digest_sha256"]
+    assert rerun["run_digest_sha256"] == small_summary["run_digest_sha256"]
+    assert rerun["arms"][ARM_EFFECT_KEY]["f8_duplicate_effects"] == 0
+    assert rerun["arms"][ARM_EFFECT_KEY]["false_merges"] == 0
+    assert rerun["arms"][ARM_FULL_PAYLOAD]["f8_duplicate_effects"] > 0
+
+    rc = main(["--jsonl-in", str(jsonl_path), "--json"])
+    assert rc == 0
+    out = capsys.readouterr().out.strip()
+    parsed = loads_strict(out, integers_only=True)
+    assert encode_jcs(parsed).decode("utf-8") == out
+    assert parsed["schedule_digest_sha256"] == small_summary["schedule_digest_sha256"]
+
+
+def test_malformed_jsonl_rejected(tmp_path: Path) -> None:
+    valid_trial = build_schedule(seed=42, n_f8=1, n_distinct=0)[0]
+    valid_row = {
+        "family": valid_trial.family,
+        "first": dict(valid_trial.first),
+        "first_fault": valid_trial.first_fault,
+        "second": dict(valid_trial.second),
+    }
+
+    # 1. Empty file
+    empty_path = tmp_path / "empty.jsonl"
+    empty_path.write_text("   \n\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="ERR_INVALID_UNDOBENCH_JSONL_ROW"):
+        load_trials_from_jsonl(empty_path)
+
+    # 2. Bad family
+    bad_fam_path = tmp_path / "bad_fam.jsonl"
+    row_bad_fam = dict(valid_row, family="UNKNOWN_FAMILY")
+    bad_fam_path.write_text(encode_jcs(row_bad_fam).decode("utf-8") + "\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="ERR_INVALID_UNDOBENCH_JSONL_ROW"):
+        load_trials_from_jsonl(bad_fam_path)
+
+    # 3. Bool amount_minor
+    bool_amt_path = tmp_path / "bool_amt.jsonl"
+    bad_first = dict(valid_trial.first, amount_minor=True)
+    row_bool_amt = dict(valid_row, first=bad_first)
+    bool_amt_path.write_text(encode_jcs(row_bool_amt).decode("utf-8") + "\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="ERR_INVALID_UNDOBENCH_JSONL_ROW"):
+        load_trials_from_jsonl(bool_amt_path)
+
+    # 4. Duplicate JSON key
+    dup_key_path = tmp_path / "dup_key.jsonl"
+    valid_json = encode_jcs(valid_row).decode("utf-8")
+    dup_json = '{"family":"F8_reworded_retry",' + valid_json[1:]
+    dup_key_path.write_text(dup_json + "\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="ERR_INVALID_UNDOBENCH_JSONL_ROW"):
+        load_trials_from_jsonl(dup_key_path)
+
+
+def test_default_seed_42_run_digest_unchanged(tmp_path: Path) -> None:
+    summary = run_benchmark(seed=42, n_f8=50, n_distinct=50, workdir=tmp_path / "full100")
+    assert summary["run_digest_sha256"] == "14ad3b7f14b62bf2a8a6096203e67c747882dd2e31384e5af74ecf6352255adb"

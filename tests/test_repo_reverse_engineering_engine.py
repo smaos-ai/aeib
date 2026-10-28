@@ -668,10 +668,10 @@ def test_16_vulnerability_record_is_frozen() -> None:
 
 # ---------------------------------------------------------------------------
 # Descendant escape via fork + setsid (red-team follow-up to a6). With Seatbelt
-# the oracle child runs under `(deny process-fork)`, so a candidate cannot start
-# a grandchild that leaves the process group and the RSS accounting. Real
-# sandbox-exec, real fork, real 96 MiB allocation; no mocks. Without Seatbelt the
-# gap remains and is pinned by the control assertion below.
+# the oracle child runs under `(deny process-fork)` (PermissionError); without
+# Seatbelt the child lowers RLIMIT_NPROC to (0, 0) before compiling candidate
+# code so fork fails closed with BlockingIOError (EAGAIN). Real sandbox-exec,
+# real fork, real 96 MiB allocation; no mocks.
 # ---------------------------------------------------------------------------
 _SETSID_GRANDCHILD_96MIB = (
     "import os, time\n"
@@ -710,12 +710,34 @@ def test_17_setsid_grandchild_refused_under_oracle_default() -> None:
     }
 
 
-def test_18_setsid_grandchild_gap_without_seatbelt_is_documented() -> None:
+def test_18_setsid_grandchild_blocked_without_seatbelt_via_rlimit_nproc() -> None:
     from src.repo_reverse_engineering_engine import _run_probes_in_child_process
 
-    # Known gap: without Seatbelt forking is not blocked, and the 96 MiB setsid
-    # grandchild is outside the process group and the 64 MiB RSS accounting.
+    # Without Seatbelt, RLIMIT_NPROC=(0, 0) blocks fork with BlockingIOError (EAGAIN).
     res = _run_probes_in_child_process(
         _SETSID_GRANDCHILD_96MIB, "f", DEFAULT_CORRUPT_PROBES[:1], max_rss_mib=64, sandbox="process_isolation_only"
     )
-    assert res == {"status": "ok", "results": ["accepted"]}, res
+    assert res["status"] == "load_error", res
+    assert "BlockingIOError" in res["detail"], res
+
+    # Unprivileged candidate cannot raise RLIMIT_NPROC hard limit back up from 0.
+    raise_rlimit_code = (
+        "import resource\n"
+        "resource.setrlimit(resource.RLIMIT_NPROC, (100, 100))\n"
+        "def f(p):\n"
+        "    return True\n"
+    )
+    raise_res = _run_probes_in_child_process(
+        raise_rlimit_code, "f", DEFAULT_CORRUPT_PROBES[:1], sandbox="process_isolation_only"
+    )
+    assert raise_res["status"] == "load_error", raise_res
+    assert "ValueError" in raise_res["detail"], raise_res
+
+    # Bounded pure-computation candidate still passes under process_isolation_only.
+    assert _run_probes_in_child_process(
+        _BOUNDED, "f", DEFAULT_CORRUPT_PROBES[:1], sandbox="process_isolation_only"
+    ) == {
+        "status": "ok",
+        "results": ["accepted"],
+    }
+

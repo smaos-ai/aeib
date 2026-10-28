@@ -25,12 +25,16 @@ catching implementation bugs via the MAGS Gate.
 
 from __future__ import annotations
 
+import dataclasses
 import re
 from pathlib import Path
 
 import pytest
 
 from src.epistemic_intent_compiler import (
+    DEFAULT_DOMAIN_ADEQUACY_POLICY,
+    DomainAdequacyPolicy,
+    DomainAdequacyViolation,
     EpistemicIntentCompiler,
     HaltEpistemicCompilationFailed,
     IntentDraft,
@@ -44,9 +48,9 @@ def test_1_valid_escrow_intent_compiles_and_proves_sound_code() -> None:
         spec_id="epistemic_escrow_v1",
         target_function_name="settle_escrow",
         state_domains={
-            "sender": (-10, 0, 100, 500),
-            "receiver": (0, 50, 100),
-            "amount": (0, 10, 50, 100),
+            "sender": (-10, -1, 0, 1, 2, 100, 500),
+            "receiver": (-1, 0, 1, 2, 50, 100),
+            "amount": (-1, 0, 1, 2, 10, 50, 100),
         },
         mutated_vars=["sender", "receiver"],
         preconditions=["amount > 0", "sender >= amount"],
@@ -58,6 +62,7 @@ def test_1_valid_escrow_intent_compiles_and_proves_sound_code() -> None:
     )
     spec = EpistemicIntentCompiler.compile(draft)
     assert spec.spec_id == "epistemic_escrow_v1"
+    assert spec.domain_floor_enforced is True
 
     gate = FormalMAGSGate()
     sound_code = """
@@ -75,13 +80,17 @@ def settle_escrow(state: dict) -> dict:
     receipt = gate.prove_candidate(sound_code, spec)
     assert receipt.proved is True
     assert receipt.halt_code == "OK_FORMAL_PROOF_VERIFIED"
+    assert receipt.domain_floor_enforced is True
 
 
 def test_2_compiler_blocks_undefined_variable_hallucination() -> None:
     draft = IntentDraft(
         spec_id="hallucinated_admin_bypass",
         target_function_name="process",
-        state_domains={"balance": (0, 100), "amount": (0, 50)},
+        state_domains={
+            "balance": (-1, 0, 1, 2, 100),
+            "amount": (-1, 0, 1, 2, 50),
+        },
         mutated_vars=["balance"],
         preconditions=["amount > 0", "is_admin == 1"],  # 'is_admin' is not in state_domains!
         postconditions=["balance_post == balance_pre - amount_pre"],
@@ -154,7 +163,7 @@ def test_7_compiler_ast_nodes_and_operators() -> None:
     draft_empty = IntentDraft(
         spec_id="empty_draft",
         target_function_name="noop",
-        state_domains={"a": (1, 2)},
+        state_domains={"a": (-1, 0, 1, 2)},
         mutated_vars=[],
         preconditions=[],
         postconditions=[],
@@ -189,7 +198,7 @@ def test_7_compiler_ast_nodes_and_operators() -> None:
     draft_multi = IntentDraft(
         spec_id="multi_draft",
         target_function_name="act",
-        state_domains={"a": (1, 2)},
+        state_domains={"a": (-1, 0, 1, 2)},
         mutated_vars=["a"],
         preconditions=[],
         postconditions=["a_post == a_pre + 1", "a_post > 10"],
@@ -199,14 +208,123 @@ def test_7_compiler_ast_nodes_and_operators() -> None:
     assert spec_multi.postcondition_fn({"a": 1}, {"a": 2}) is False
 
 
+def test_compile_enforces_domain_floor_by_default() -> None:
+    draft_with_narrow_domain = IntentDraft(
+        spec_id="narrow_domain_draft",
+        target_function_name="act",
+        state_domains={"x": (0,)},
+        mutated_vars=["x"],
+        preconditions=[],
+        postconditions=["x_post == x_pre"],
+        conservation_laws=[],
+    )
+    # Default compilation must reject narrow domain (fail-closed)
+    with pytest.raises(DomainAdequacyViolation, match="DOMAIN_TOO_NARROW") as exc_info:
+        EpistemicIntentCompiler.compile(draft_with_narrow_domain)
+    assert exc_info.value.code == "DOMAIN_TOO_NARROW"
+    assert exc_info.value.variable == "x"
+
+    # Passing policy=None without allow_unfloored_domain=True must fail closed
+    with pytest.raises(DomainAdequacyViolation, match="DOMAIN_FLOOR_REQUIRED") as req_exc:
+        EpistemicIntentCompiler.compile(draft_with_narrow_domain, policy=None)
+    assert req_exc.value.code == "DOMAIN_FLOOR_REQUIRED"
+    assert req_exc.value.variable == "*"
+
+    # Non-bool allow_unfloored_domain must raise ValueError
+    with pytest.raises(ValueError, match="allow_unfloored_domain must be a bool"):
+        EpistemicIntentCompiler.compile(draft_with_narrow_domain, allow_unfloored_domain="yes")  # type: ignore[arg-type]
+
+    # Explicit allow_unfloored_domain=True allows unfloored compilation with domain_floor_enforced=False
+    spec_unfloored = EpistemicIntentCompiler.compile(
+        draft_with_narrow_domain, allow_unfloored_domain=True
+    )
+    assert spec_unfloored.domain_floor_enforced is False
+
+    # Missing boundary value (4 distinct values, but missing 1 or -1)
+    draft_missing_boundary = IntentDraft(
+        spec_id="missing_boundary",
+        target_function_name="act",
+        state_domains={"x": (0, -1, 2, 3)},
+        mutated_vars=["x"],
+        preconditions=[],
+        postconditions=["x_post == x_pre"],
+        conservation_laws=[],
+    )
+    with pytest.raises(DomainAdequacyViolation, match="DOMAIN_MISSING_BOUNDARY_VALUES"):
+        EpistemicIntentCompiler.compile(draft_missing_boundary)
+
+    # Non-integer value in domain (e.g. bool is rejected by type(v) is not int)
+    draft_non_int = IntentDraft(
+        spec_id="non_int_domain",
+        target_function_name="act",
+        state_domains={"x": (True, 0, -1, 2)},
+        mutated_vars=["x"],
+        preconditions=[],
+        postconditions=["x_post == x_pre"],
+        conservation_laws=[],
+    )
+    with pytest.raises(DomainAdequacyViolation, match="DOMAIN_NON_INTEGER_VALUE"):
+        EpistemicIntentCompiler.compile(draft_non_int)
+
+    # Undeclared mutated variable
+    draft_undeclared_mut = IntentDraft(
+        spec_id="undeclared_mut",
+        target_function_name="act",
+        state_domains={"x": (-1, 0, 1, 2)},
+        mutated_vars=["x", "ghost"],
+        preconditions=[],
+        postconditions=["x_post == x_pre"],
+        conservation_laws=[],
+    )
+    with pytest.raises(HaltEpistemicCompilationFailed, match="UNDECLARED_MUTATED_VARS"):
+        EpistemicIntentCompiler.compile(draft_undeclared_mut)
+
+    # signed_floor validation: undeclared variable, missing floor value, and valid signed_floor with policy=None
+    valid_draft = IntentDraft(
+        spec_id="valid_draft",
+        target_function_name="act",
+        state_domains={"x": (-1, 0, 1, 2)},
+        mutated_vars=["x"],
+        preconditions=[],
+        postconditions=["x_post == x_pre"],
+        conservation_laws=[],
+    )
+    with pytest.raises(DomainAdequacyViolation, match="DOMAIN_FLOOR_VARIABLE_UNDECLARED"):
+        EpistemicIntentCompiler.compile(valid_draft, signed_floor={"undeclared_var": (0,)})
+
+    with pytest.raises(DomainAdequacyViolation, match="DOMAIN_MISSING_FLOOR_VALUES"):
+        EpistemicIntentCompiler.compile(valid_draft, signed_floor={"x": (-1, 0, 99)})
+
+    spec_signed_only = EpistemicIntentCompiler.compile(
+        valid_draft, policy=None, signed_floor={"x": (-1, 0, 1, 2)}
+    )
+    assert spec_signed_only.domain_floor_enforced is True
+
+    # DomainAdequacyPolicy validation and immutability
+    assert DEFAULT_DOMAIN_ADEQUACY_POLICY.min_cardinality == 4
+    assert DEFAULT_DOMAIN_ADEQUACY_POLICY.required_values == frozenset({0, 1, -1, 2})
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        DEFAULT_DOMAIN_ADEQUACY_POLICY.min_cardinality = 1  # type: ignore[misc]
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        valid_draft.spec_id = "mutated"  # type: ignore[misc]
+
+    assert DomainAdequacyPolicy(min_cardinality=1, required_values=frozenset({0})).min_cardinality == 1
+    with pytest.raises(ValueError, match="min_cardinality must be a positive int"):
+        DomainAdequacyPolicy(min_cardinality=0)
+    with pytest.raises(ValueError, match="min_cardinality must be a positive int"):
+        DomainAdequacyPolicy(min_cardinality=True)  # type: ignore[arg-type]
+    with pytest.raises(ValueError, match="required_values must contain ints only"):
+        DomainAdequacyPolicy(required_values=frozenset({0, True}))  # type: ignore[arg-type]
+
+
 def test_5_compiled_spec_catches_subtle_conservation_bug() -> None:
     draft = IntentDraft(
         spec_id="epistemic_conservation_check",
         target_function_name="transfer",
         state_domains={
-            "alice": (0, 100, 500),
-            "bob": (0, 100, 500),
-            "fee": (0, 5, 10),
+            "alice": (-1, 0, 1, 2, 100, 500),
+            "bob": (-1, 0, 1, 2, 100, 500),
+            "fee": (-1, 0, 1, 2, 5, 10),
         },
         mutated_vars=["alice", "bob", "fee"],
         preconditions=["alice >= 10"],

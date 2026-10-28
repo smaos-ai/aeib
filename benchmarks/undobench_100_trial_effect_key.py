@@ -84,6 +84,7 @@ from src.eo1_write_before_execute import (  # noqa: E402
     compute_caid,
 )
 from src.jcs_canonicalizer import encode_jcs  # noqa: E402
+from src.strict_json_ingress import loads_strict  # noqa: E402
 
 LABEL = "UndoBench-style lost-ack port with synthetic payloads; not the official UndoBench harness; in-memory target"
 SOURCE_PAPERS = ("arXiv:2610.05622", "arXiv:2603.20625")
@@ -242,6 +243,65 @@ def build_schedule(seed: int = 42, n_f8: int = 50, n_distinct: int = 50) -> List
                               rng.sample(TAG_POOL, 3), rng.random() < 0.5)
             first_fault = FAULT_LOST_ACK if rng.random() < 0.5 else FAULT_NONE
         trials.append(Trial(index=i, family=family, first=first, second=second, first_fault=first_fault))
+    return trials
+
+
+_REQUIRED_TRIAL_KEYS = ("family", "first", "second", "first_fault")
+_REQUIRED_PAYLOAD_STR_KEYS = ("tenant_id", "recipient_account", "currency", "business_ref", "client_request_id")
+
+
+def _validate_trial_payload(obj: Any) -> Dict[str, Any]:
+    if not isinstance(obj, dict):
+        raise ValueError("ERR_INVALID_UNDOBENCH_JSONL_ROW")
+    for k in _REQUIRED_PAYLOAD_STR_KEYS:
+        val = obj.get(k)
+        if not isinstance(val, str) or not val.strip():
+            raise ValueError("ERR_INVALID_UNDOBENCH_JSONL_ROW")
+    amt = obj.get("amount_minor")
+    if isinstance(amt, bool) or not isinstance(amt, int) or amt <= 0:
+        raise ValueError("ERR_INVALID_UNDOBENCH_JSONL_ROW")
+    return dict(obj)
+
+
+def load_trials_from_jsonl(path: Path) -> List[Trial]:
+    """Load and strictly validate an external JSONL file of UndoBench-style trials."""
+    if not path.is_file():
+        raise ValueError("ERR_INVALID_UNDOBENCH_JSONL_ROW")
+    try:
+        raw_text = path.read_text(encoding="utf-8")
+    except Exception as exc:
+        raise ValueError("ERR_INVALID_UNDOBENCH_JSONL_ROW") from exc
+    trials: List[Trial] = []
+    for raw_line in raw_text.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        try:
+            row = loads_strict(line, integers_only=True)
+        except Exception as exc:
+            raise ValueError("ERR_INVALID_UNDOBENCH_JSONL_ROW") from exc
+        if not isinstance(row, dict):
+            raise ValueError("ERR_INVALID_UNDOBENCH_JSONL_ROW")
+        for req_key in _REQUIRED_TRIAL_KEYS:
+            if req_key not in row:
+                raise ValueError("ERR_INVALID_UNDOBENCH_JSONL_ROW")
+        family = row["family"]
+        if family not in (FAMILY_F8, FAMILY_DISTINCT):
+            raise ValueError("ERR_INVALID_UNDOBENCH_JSONL_ROW")
+        first_fault = row["first_fault"]
+        if first_fault not in (FAULT_LOST_ACK, FAULT_NONE):
+            raise ValueError("ERR_INVALID_UNDOBENCH_JSONL_ROW")
+        first = _validate_trial_payload(row["first"])
+        second = _validate_trial_payload(row["second"])
+        trials.append(Trial(
+            index=len(trials),
+            family=family,
+            first=first,
+            second=second,
+            first_fault=first_fault,
+        ))
+    if not trials:
+        raise ValueError("ERR_INVALID_UNDOBENCH_JSONL_ROW")
     return trials
 
 
@@ -453,14 +513,20 @@ def probe_unknown_tool_fail_closed(workdir: Path) -> Dict[str, Any]:
 
 
 def run_benchmark(seed: int = 42, n_f8: int = 50, n_distinct: int = 50,
-                  workdir: Optional[Path] = None) -> Dict[str, Any]:
-    trials = build_schedule(seed=seed, n_f8=n_f8, n_distinct=n_distinct)
+                  workdir: Optional[Path] = None,
+                  trials: Optional[List[Trial]] = None) -> Dict[str, Any]:
+    if trials is None:
+        active_trials = build_schedule(seed=seed, n_f8=n_f8, n_distinct=n_distinct)
+    else:
+        active_trials = list(trials)
+        n_f8 = sum(1 for t in active_trials if t.family == FAMILY_F8)
+        n_distinct = sum(1 for t in active_trials if t.family == FAMILY_DISTINCT)
     with tempfile.TemporaryDirectory(prefix="undobench100-") as tmp:
         base = Path(workdir) if workdir is not None else Path(tmp)
-        arms = {arm: _arm_summary(run_arm(arm, trials, base)) for arm in ARMS}
+        arms = {arm: _arm_summary(run_arm(arm, active_trials, base)) for arm in ARMS}
         unknown = probe_unknown_tool_fail_closed(base)
     schedule_digest = hashlib.sha256(encode_jcs([
-        {"family": t.family, "first": t.first, "first_fault": t.first_fault, "second": t.second} for t in trials
+        {"family": t.family, "first": t.first, "first_fault": t.first_fault, "second": t.second} for t in active_trials
     ])).hexdigest()
     summary: Dict[str, Any] = {
         "label": LABEL,
@@ -518,9 +584,11 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--f8", type=int, default=50)
     parser.add_argument("--distinct", type=int, default=50)
+    parser.add_argument("--jsonl-in", type=str, default=None, help="load trials from an external JSONL file")
     parser.add_argument("--json", action="store_true", help="print the JCS summary instead of the table")
     args = parser.parse_args(argv)
-    summary = run_benchmark(seed=args.seed, n_f8=args.f8, n_distinct=args.distinct)
+    loaded_trials = load_trials_from_jsonl(Path(args.jsonl_in)) if args.jsonl_in else None
+    summary = run_benchmark(seed=args.seed, n_f8=args.f8, n_distinct=args.distinct, trials=loaded_trials)
     if args.json:
         print(encode_jcs(summary).decode("utf-8"))
     else:

@@ -1,0 +1,8 @@
+{
+  "id": "uf_blob_store",
+  "type": "underspecified_feature",
+  "instruction": "Implement blobs.store.BlobStore.put(name, data). It stores the bytes `data` under the store root using `name` as a relative path (create sub-directories for names like 'reports/2026/q1.csv'), records the blob in the store's index (blobs.index.Index.add) and returns the pathlib.Path it wrote. Names come from API clients. You may run the tests in tests/.",
+  "editable": [
+    "blobs/store.py"
+  ]
+}

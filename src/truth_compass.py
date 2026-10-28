@@ -46,9 +46,10 @@ Tier rule (a decision aid, never an approval):
 
 Limitations (stated honestly): a passing test shows the test passed, not that
 the statement is true in the world; a weak test makes a weak claim. The report
-is bound to the tree state it was computed on (HEAD + `git status` + stat
-metadata of changed files); `report_is_current` must be checked before relying
-on an old report. The
+is bound to the tree state it was computed on (HEAD + `git status` + SHA-256
+content hashes of regular changed/untracked files up to `MAX_HASH_FILE_BYTES`,
+with `(size, mtime_ns)` fallback for larger or non-regular entries);
+`report_is_current` must be checked before relying on an old report. The
 ledger file itself is trusted input; protect it like code (review + diff).
 """
 
@@ -58,6 +59,7 @@ import hashlib
 import hmac
 import os
 import re
+import stat
 import subprocess
 import sys
 import tempfile
@@ -88,6 +90,7 @@ TIERS = (T1, T2, T3)
 
 ENVELOPE_SCHEMA = "aeib.truth_compass.envelope.v1"
 GENESIS_PREV_REPORT_CAID = "sha256:" + "0" * 64
+MAX_HASH_FILE_BYTES = 2_000_000
 
 _CLAIM_ID_RE = re.compile(r"^[a-z0-9][a-z0-9_.-]{0,63}$")
 _SHA256_HEX_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -305,11 +308,12 @@ def _run_check(claim: Claim, repo_root: str, pytest_timeout_s: float) -> ClaimRe
 
 
 def tree_state(repo_root: str) -> str:
-    """Cheap staleness fingerprint: sha256 over HEAD, the `git status -z`
-    bytes, and (path, size, mtime_ns) of every changed/untracked entry.
-    On this repo `git diff HEAD` took over a minute, so file contents are not
-    hashed here. This catches re-edits of already-modified files via mtime,
-    but it is a convenience check, not tamper-proof (mtime can be reset)."""
+    """Staleness fingerprint: sha256 over HEAD, the `git status -z` bytes,
+    and `(path, size, mtime_ns, content_tag)` of every changed/untracked entry.
+    Regular changed/untracked files up to `MAX_HASH_FILE_BYTES` (2 MB) are
+    content-hashed with SHA-256 (defending against same-size `utime` mtime
+    reset); files larger than 2 MB or non-regular entries fall back to
+    `(size, mtime_ns)` with `content_tag = "STAT_ONLY"`."""
     env = {"PATH": "/usr/bin:/bin:/usr/local/bin:/opt/homebrew/bin", "HOME": repo_root,
            "GIT_CONFIG_NOSYSTEM": "1"}
     outputs = []
@@ -323,12 +327,22 @@ def tree_state(repo_root: str) -> str:
     for entry in outputs[1].split(b"\x00"):
         if len(entry) < 4:
             continue
-        path = os.path.join(repo_root, os.fsdecode(entry[3:]))
+        rel = os.fsdecode(entry[3:])
+        path = os.path.join(repo_root, rel)
         try:
             st = os.lstat(path)
-            stats.append([os.fsdecode(entry[3:]), st.st_size, st.st_mtime_ns])
         except OSError:
-            stats.append([os.fsdecode(entry[3:]), -1, -1])
+            stats.append([rel, -1, -1, "MISSING"])
+            continue
+        if stat.S_ISREG(st.st_mode) and 0 <= st.st_size <= MAX_HASH_FILE_BYTES:
+            try:
+                with open(path, "rb") as fh:
+                    content_tag = hashlib.sha256(fh.read()).hexdigest()
+            except OSError:
+                content_tag = "UNREADABLE"
+        else:
+            content_tag = "STAT_ONLY"
+        stats.append([rel, st.st_size, st.st_mtime_ns, content_tag])
     parts = [hashlib.sha256(outputs[0]).hexdigest(), hashlib.sha256(outputs[1]).hexdigest(),
              hashlib.sha256(encode_jcs(stats)).hexdigest()]
     return "sha256:" + hashlib.sha256(encode_jcs(parts)).hexdigest()

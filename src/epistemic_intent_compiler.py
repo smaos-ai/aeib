@@ -21,9 +21,11 @@ Evaluated under the stated model:
 Translates structured neurosymbolic LLM extractions (`IntentDraft`) into `FormalIntentSpec`
 objects for the FormalMAGSGate bounded model checker, without dynamic `eval()` or `exec()`.
 What the gate then checks is an exhaustive evaluation over a bounded, finite state domain
-that is either caller-supplied (`policy=None`, recorded as `domain_floor_enforced: false`)
-or checked against a `DomainAdequacyPolicy` / operator floor. Correctness is relative to
-that spec and that domain only; nothing outside the domain is evaluated.
+that is checked against `DEFAULT_DOMAIN_ADEQUACY_POLICY` (or a caller-supplied
+`DomainAdequacyPolicy` / `signed_floor`, recorded as `domain_floor_enforced=True`) by default;
+unfloored compilation requires explicit `allow_unfloored_domain=True` (recorded as
+`domain_floor_enforced=False`). Correctness is relative to that spec and that domain only;
+nothing outside the domain is evaluated.
 Enforces:
 1. Zero-Dunder & Zero-Call AST Lockdown (allow-list):
    Rejects function calls, attribute access, dynamic imports, dunder references and every
@@ -79,6 +81,9 @@ class DomainAdequacyPolicy:
             raise ValueError("min_cardinality must be a positive int")
         if any(type(v) is not int for v in self.required_values):
             raise ValueError("required_values must contain ints only")
+
+
+DEFAULT_DOMAIN_ADEQUACY_POLICY = DomainAdequacyPolicy()
 
 
 class SafeExpressionCompiler:
@@ -240,23 +245,41 @@ def _check_domain_adequacy(
 class EpistemicIntentCompiler:
     """
     Compiles IntentDraft into a FormalIntentSpec for exhaustive checking over a bounded,
-    caller-supplied (or floor-checked) finite domain; correctness is relative to that
-    spec and domain.
+    floor-checked (by default via DEFAULT_DOMAIN_ADEQUACY_POLICY) finite domain;
+    correctness is relative to that spec and domain.
     """
 
     @staticmethod
     def compile(
         draft: IntentDraft,
-        policy: Optional[DomainAdequacyPolicy] = None,
+        policy: Optional[DomainAdequacyPolicy] = DEFAULT_DOMAIN_ADEQUACY_POLICY,
         signed_floor: Optional[Mapping[str, Iterable[int]]] = None,
+        *,
+        allow_unfloored_domain: bool = False,
     ) -> FormalIntentSpec:
         """
         policy / signed_floor are caller-owned inputs (never taken from the LLM draft).
         `signed_floor` maps a variable to integer values its domain must contain; verifying
         any signature over that floor is the caller's responsibility before passing it in.
-        With neither supplied, the draft's domains are used verbatim and the spec (and every
-        receipt sealed for it) records domain_floor_enforced=False.
+        By default, `DEFAULT_DOMAIN_ADEQUACY_POLICY` is enforced (`domain_floor_enforced=True`).
+        Unfloored compilation requires explicit `allow_unfloored_domain=True`
+        (`domain_floor_enforced=False`).
         """
+        if type(allow_unfloored_domain) is not bool:
+            raise ValueError("allow_unfloored_domain must be a bool")
+
+        effective_policy = (
+            None
+            if (allow_unfloored_domain and policy is DEFAULT_DOMAIN_ADEQUACY_POLICY)
+            else policy
+        )
+        if not allow_unfloored_domain and effective_policy is None and signed_floor is None:
+            raise DomainAdequacyViolation(
+                "DOMAIN_FLOOR_REQUIRED",
+                "*",
+                "policy or signed_floor required unless allow_unfloored_domain=True",
+            )
+
         domains: Dict[str, Tuple[Any, ...]] = {k: tuple(v) for k, v in draft.state_domains.items()}
         allowed_vars = set(domains.keys())
 
@@ -264,8 +287,8 @@ class EpistemicIntentCompiler:
         if undeclared:
             raise HaltEpistemicCompilationFailed(f"UNDECLARED_MUTATED_VARS: {undeclared}")
 
-        floor_enforced = policy is not None or signed_floor is not None
-        _check_domain_adequacy(domains, policy, signed_floor)
+        floor_enforced = effective_policy is not None or signed_floor is not None
+        _check_domain_adequacy(domains, effective_policy, signed_floor)
 
         # 1. Compile Preconditions
         pre_fns = [SafeExpressionCompiler.compile_expr(p, allowed_vars) for p in draft.preconditions]

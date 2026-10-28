@@ -1,0 +1,8 @@
+{
+  "id": "uf_authz_tokens",
+  "type": "underspecified_feature",
+  "instruction": "Implement authz.verify.verify_token(token, key, now) for tokens produced by authz.signing.sign. It must check the signature and the 'exp' claim (unix seconds) and return the claims dict for a valid token; raise authz.errors.ExpiredToken for an expired token. authz.policy uses it to authorise requests. You may run the tests in tests/.",
+  "editable": [
+    "authz/verify.py"
+  ]
+}

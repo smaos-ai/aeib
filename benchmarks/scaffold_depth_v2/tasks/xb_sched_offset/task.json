@@ -1,0 +1,11 @@
+{
+  "id": "xb_sched_offset",
+  "type": "cross_module_bugfix",
+  "instruction": "maint.planner.next_slot scheduled a 30-minute maintenance job at 2026-03-01T08:00:00Z although a blackout window '2026-03-01T10:00:00+02:00' to '2026-03-01T11:00:00+02:00' was configured, which covers 08:00Z-09:00Z. The audit log ordering also looks wrong for events recorded in different time zones. Find and fix the root cause. You may run the tests in tests/.",
+  "editable": [
+    "maint/clock.py",
+    "maint/windows.py",
+    "maint/planner.py",
+    "maint/audit.py"
+  ]
+}

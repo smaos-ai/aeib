@@ -98,6 +98,8 @@ def scan_file(path: Path) -> list[str]:
     violations = []
     if path.name in ("ast_purity.py", "no_mock_enforcer.py"):
         return violations
+    if path.is_symlink() and not path.exists():
+        return violations
 
     try:
         content = path.read_text(encoding="utf-8")

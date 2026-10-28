@@ -1,0 +1,11 @@
+{
+  "id": "xb_jobs_defaults",
+  "type": "cross_module_bugfix",
+  "instruction": "After jobs.registry.Registry registers a job with custom retry settings, jobs registered later (with no overrides) also run with those custom settings: e.g. registering 'sync' with {'retry': {'max_attempts': 5}} and then 'report' with no overrides makes jobs.runner.run retry 'report' 5 times instead of the default 3. Find and fix the root cause. You may run the tests in tests/.",
+  "editable": [
+    "jobs/config.py",
+    "jobs/backoff.py",
+    "jobs/runner.py",
+    "jobs/registry.py"
+  ]
+}

@@ -17,7 +17,7 @@ import pytest
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from src.truth_compass import (
-    ASSUMED, DISPUTED, GENESIS_PREV_REPORT_CAID, HYPOTHESIS, REFUTED, T1, T2, T3, UNKNOWN, VERIFIED,
+    ASSUMED, DISPUTED, GENESIS_PREV_REPORT_CAID, HYPOTHESIS, MAX_HASH_FILE_BYTES, REFUTED, T1, T2, T3, UNKNOWN, VERIFIED,
     Claim, ClaimResult, Evidence, check_claim, decide, load_ledger, parse_claim,
     propagate_contagion, render_card, report_is_current, sign_report_envelope,
     tree_state, validate_dependency_dag, verify_report_chain, where_we_stand,
@@ -258,6 +258,39 @@ def test_tree_state_tracks_untracked_files_and_non_git(repo: Path, tmp_path: Pat
     assert tree_state(str(plain)) == "UNKNOWN_NOT_A_GIT_TREE"
     r = where_we_stand((Claim("u", "s", "f", False, None, UNKNOWN),), str(plain), T1)
     assert r.tree_state == "UNKNOWN_NOT_A_GIT_TREE" and report_is_current(r, str(plain)) is False
+
+
+def test_tree_state_detects_same_size_edit_with_forged_mtime(repo: Path) -> None:
+    p = repo / "data.txt"
+    p.write_text("alpha1\n")
+    st = os.lstat(p)
+    s1 = tree_state(str(repo))
+    p.write_text("alpha2\n")
+    os.utime(p, ns=(st.st_atime_ns, st.st_mtime_ns))
+    assert os.lstat(p).st_size == st.st_size
+    assert os.lstat(p).st_mtime_ns == st.st_mtime_ns
+    assert tree_state(str(repo)) != s1
+    # Boundary at MAX_HASH_FILE_BYTES: <= is content-hashed; > falls back to STAT_ONLY
+    big = repo / "big.bin"
+    big.write_bytes(b"a" * MAX_HASH_FILE_BYTES)
+    st_eq = os.lstat(big)
+    s_eq1 = tree_state(str(repo))
+    big.write_bytes(b"b" * MAX_HASH_FILE_BYTES)
+    os.utime(big, ns=(st_eq.st_atime_ns, st_eq.st_mtime_ns))
+    assert tree_state(str(repo)) != s_eq1
+    big.write_bytes(b"a" * (MAX_HASH_FILE_BYTES + 1))
+    st_over = os.lstat(big)
+    s_over1 = tree_state(str(repo))
+    big.write_bytes(b"b" * (MAX_HASH_FILE_BYTES + 1))
+    os.utime(big, ns=(st_over.st_atime_ns, st_over.st_mtime_ns))
+    assert tree_state(str(repo)) == s_over1
+    # Symlink and deleted tracked file (MISSING)
+    (repo / "sym").symlink_to("data.txt")
+    s_sym = tree_state(str(repo))
+    assert s_sym != s_over1
+    p.unlink()
+    assert tree_state(str(repo)) != s_sym
+
 
 
 # ----------------------------------------------------------------------- CLI

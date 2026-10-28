@@ -1,0 +1,11 @@
+{
+  "id": "rf_shipping_registry",
+  "type": "refactor",
+  "instruction": "Refactor shipping.rates.quote(carrier, weight_g, zone) to dispatch through a registry: shipping.carriers.CARRIERS, a dict mapping carrier name -> function(weight_g, zone) -> cents. Move each carrier's formula out of rates.py into carriers.py and register it, so that adding a carrier only needs a new CARRIERS entry; rates.py must not name individual carriers. All quotes and all errors (types and messages, including which error wins when several inputs are bad) must stay identical. You may run the tests in tests/.",
+  "editable": [
+    "shipping/rates.py",
+    "shipping/carriers.py",
+    "shipping/zones.py",
+    "shipping/errors.py"
+  ]
+}

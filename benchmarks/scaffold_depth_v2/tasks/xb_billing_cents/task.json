@@ -1,0 +1,12 @@
+{
+  "id": "xb_billing_cents",
+  "type": "cross_module_bugfix",
+  "instruction": "Customers report wrong invoice totals. Example: an invoice with 3 x 'widget' at unit price '0.29' renders 'TOTAL 0.84' in billing.report.render_invoice, but the correct total is 0.87. Find and fix the root cause. Amounts are integer cents throughout the package. You may run the tests in tests/.",
+  "editable": [
+    "billing/money.py",
+    "billing/invoice.py",
+    "billing/tax.py",
+    "billing/refunds.py",
+    "billing/report.py"
+  ]
+}

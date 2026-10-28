@@ -47,7 +47,7 @@ def _python_files() -> List[Path]:
             dn[:] = [x for x in dn if x not in SKIP_DIRS]
             files += [Path(dp) / f for f in fn if f.endswith(".py")]
     files += list(REPO.glob("*.py"))
-    return files
+    return [p for p in files if not (p.is_symlink() and not p.exists())]
 
 
 def _sorted_dumps(fn: ast.AST) -> bool:
@@ -61,6 +61,8 @@ def _sorted_dumps(fn: ast.AST) -> bool:
 def discover_local_canonicalizers() -> List[Tuple[str, str]]:
     found: List[Tuple[str, str]] = []
     for path in _python_files():
+        if path.is_symlink() and not path.exists():
+            continue
         try:
             tree = ast.parse(path.read_text(encoding="utf-8"))
         except (SyntaxError, UnicodeDecodeError):
@@ -93,5 +95,15 @@ def test_discovery_finds_a_planted_copy(tmp_path: Path) -> None:
     )
     tree = ast.parse(planted.read_text())
     hits = sorted(n.name for n in ast.walk(tree)
-                  if isinstance(n, ast.FunctionDef) and NAME_RE.search(n.name) and _sorted_dumps(n))
+                  if isinstance(n.func if isinstance(n, ast.Call) else n, ast.FunctionDef) and NAME_RE.search(n.name) and _sorted_dumps(n))
     assert hits == ["_jcs", "my_canonical_bytes"]
+
+
+def test_discovery_skips_broken_symlink(tmp_path: Path, monkeypatch) -> None:
+    import sys
+
+    dangling = tmp_path / "dangling_link.py"
+    dangling.symlink_to(tmp_path / "nonexistent_target.py")
+    assert dangling.is_symlink() and not dangling.exists()
+    monkeypatch.setattr(sys.modules[__name__], "_python_files", lambda: [dangling])
+    assert discover_local_canonicalizers() == []

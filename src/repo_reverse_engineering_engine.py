@@ -4,11 +4,12 @@ Repository Reverse-Engineering & Architectural Synthesis Engine (prototype v1.0.
 Static part (RepoASTTopologyExtractor, AntiCargoCultScanner) only parses source with
 `ast` and never executes it. The DisprovingReverseEngineerOracle DOES execute candidate
 code, in a separate `python -I` child process with an empty environment, a temporary
-cwd and a timeout. On macOS with /usr/bin/sandbox-exec present (sandbox="auto", the
+cwd and a timeout. on macOS with /usr/bin/sandbox-exec present (sandbox="auto", the
 default) the child is also wrapped in a Seatbelt profile (src/seatbelt_sandbox.py) that
 denies network, writes outside its temp cwd and process creation (fork/posix_spawn);
-without it, this is process isolation
-only, not a sandbox (and forking is not blocked). sandbox-exec is deprecated by Apple.
+without it, the child lowers RLIMIT_NPROC to (0, 0) before compiling candidate code so
+forking fails closed with BlockingIOError (EAGAIN), though it remains process isolation
+only, not a sandbox. sandbox-exec is deprecated by Apple.
 macOS does not enforce RLIMIT_AS, so memory is bounded by a
 parent-side RSS watchdog (best-effort polling plus the kernel's peak-RSS figure from
 wait4); see `_run_probes_in_child_process` for its limits.
@@ -383,6 +384,9 @@ _tok = req.pop("token")
 def _emit(obj):
     sys.stdout.write(_tok + json.dumps(obj) + "\n")
     sys.stdout.flush()
+if not req.get("seatbelt"):
+    import resource as _res
+    _res.setrlimit(_res.RLIMIT_NPROC, (0, 0))
 scope = {}
 try:
     compiled = compile(req["code"], "<candidate>", "exec")
@@ -554,7 +558,9 @@ def _run_probes_in_child_process(
     os.fork, subprocess.run and os.posix_spawn were observed to fail with EPERM, so
     such a descendant cannot be started (a fork at load time yields `load_error`).
     Without Seatbelt (sandbox="process_isolation_only", "auto" on a host without
-    sandbox-exec, or non-macOS) forking is not blocked and the gap remains. This is
+    sandbox-exec, or non-macOS), the child lowers RLIMIT_NPROC to (0, 0) before
+    compiling candidate code so os.fork() / posix_spawn fail closed with
+    BlockingIOError (EAGAIN) and cannot raise the hard limit back up. This is
     process isolation, not a sandbox.
 
     `sandbox` selects the containment layer:
@@ -606,7 +612,15 @@ def _run_probes_in_child_process(
         return {"status": "harness_error", "detail": "SEATBELT_UNAVAILABLE"}
 
     token = "AEIBRV-" + secrets.token_hex(16) + ":"
-    payload = json.dumps({"code": candidate_code, "fn": fn_name, "probes": list(probes), "token": token})
+    payload = json.dumps(
+        {
+            "code": candidate_code,
+            "fn": fn_name,
+            "probes": list(probes),
+            "token": token,
+            "seatbelt": use_seatbelt,
+        }
+    )
     # The child's stdin/stdout/stderr are files in a second temp dir that is NOT the
     # child's cwd (and not a Seatbelt-writable root), so the parent can poll RSS
     # without pipe-drain threads and the child cannot reopen them by relative path.

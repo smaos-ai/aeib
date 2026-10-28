@@ -1,0 +1,11 @@
+{
+  "id": "xb_catalog_cachekey",
+  "type": "cross_module_bugfix",
+  "instruction": "catalog.service.CatalogService.get_price sometimes returns the price of a different SKU. Support saw it for SKU 'kit:pro' in region 'eu' after someone had looked up SKU 'kit' in region 'pro:eu'. Find and fix the root cause so that no lookup can return another entry's data. You may run the tests in tests/.",
+  "editable": [
+    "catalog/keys.py",
+    "catalog/cache.py",
+    "catalog/store.py",
+    "catalog/service.py"
+  ]
+}

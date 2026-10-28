@@ -41,6 +41,8 @@ def check_file_for_mocks_and_stubs(path: Path) -> List[str]:
     violations = []
     if path.name in ("no_mock_enforcer.py", "ast_purity.py"):
         return violations
+    if path.is_symlink() and not path.exists():
+        return violations
 
     try:
         content = path.read_text(encoding="utf-8")

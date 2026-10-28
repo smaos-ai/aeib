@@ -97,6 +97,7 @@ Then: one fix lane per broken component (disjoint ownership, regression test fai
 3. ≤3 writers at once; read-only research lanes may run alongside.
 4. On each receipt: re-run that lane's tests + mutation gate yourself if the number will be reported.
 5. Integration: full suite → §4 harness → red-team scripts → update the go/no-go artifact (FIXED / OPEN / NEEDS-USER-DECISION).
+6. Commit protocol: (a) `git diff --cached --quiet` first; if something is staged that you did not stage, stop and report it. (b) Drop entries ending in `/` whose directory has its own `.git` (nested repos become content-less gitlinks). (c) Stage, then build the candidate with `T=$(git write-tree); C=$(git commit-tree $T -p HEAD -m candidate)`, check it out with `git worktree add --detach /tmp/cand $C`, run `pytest tests/` there, and commit only if `git write-tree` still equals `$C^{tree}`; report clean-checkout failures by cause. Never bypass the pre-commit hook.
 
 ---
 

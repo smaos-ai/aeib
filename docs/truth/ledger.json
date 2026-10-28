@@ -24,7 +24,7 @@
         "targets": [
           "AGENTS.md"
         ],
-        "expected_sha256": "e076002cbe44d290f1c0fc179fee17af274df5eea8591f9144a0a2796b3c77f3"
+        "expected_sha256": "ca597c31ef4dad32ad88857b8e037616d3eb853ce53466f63411c417feb13f24"
       },
       "entailment": "a byte-identical file cannot contain an unreviewed edit"
     },

@@ -122,6 +122,18 @@
 
 ---
 
+## 8. CISO outreach pack (added 2026-10-28)
+
+| File:line | Exact claim (trimmed) | Class | Evidence required |
+|---|---|---|---|
+| `docs/CISO_OUTREACH_PACK.md:36` | "evaluating agent cognitive chains scales as O(2^N)—coverage drops to ~0%. SovereignNexus collapses this to O(1)" | UNBACKED. The measured pre-flight gate scales linearly with input size (`tools/wire_healthcheck.py`, 2026-10-28: 0.28 ms at 280 B to 28.4 ms at 31,780 B) | A defined metric, plus a scaling measurement across input sizes |
+| `docs/CISO_OUTREACH_PACK.md:50-51` | "O(K^H · 2^(D·H)) > 10^14"; "Internal testing covers < 0.0000000002% of operational space" | UNBACKED: no derivation or parameters in the repo | A derivation with stated K, H, D and the test-count source |
+| `docs/CISO_OUTREACH_PACK.md:76,83` | "0.00% structural drift (2,522 modules verified)"; "Proves 100% AST Merkle match" | UNBACKED: no recorded run of `scripts/star_legacy_verify.py` | Command output with the module count and date |
+| `docs/CISO_OUTREACH_PACK.md:97` | "the 75% overclaim baseline under HTTP 504 timeouts" | UNBACKED. Measured instead: naive retry 83.3% duplicate effects (`docs/benchmarks/EO1_REAL_DUPLICATE_BENCHMARK.md`, N=300), which is a different metric | Benchmark output that defines "overclaim" |
+| `docs/CISO_OUTREACH_PACK.md:151` | "93.5% evidence validation failure rate when financial entities submit conversational agent logs" | UNBACKED: no source cited | A citable supervisory source |
+
+---
+
 ## How to clear a row
 
 1. Put the evidence artefact in the repo (or in a referenced data room with its SHA-256 recorded in `EVIDENCE_MANIFEST.md`).

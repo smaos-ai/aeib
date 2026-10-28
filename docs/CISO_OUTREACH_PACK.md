@@ -1,4 +1,15 @@
 # Enterprise CISO & CRO Outreach Pack
+
+> [!CAUTION]
+> **DO NOT SEND as written (2026-10-28).** This pack contains figures that no command or file in this repository produces:
+> - line 36: "O(2^N)… coverage drops to ~0%… collapses this to O(1)";
+> - lines 50–51: "> 10^14" and "< 0.0000000002% of operational space";
+> - lines 76, 83: "0.00% structural drift (2,522 modules verified)";
+> - line 97: "75% overclaim baseline";
+> - line 151: "93.5% evidence validation failure rate".
+>
+> Each is listed in `docs/UNVERIFIED_CLAIMS_REGISTER.md` §8. Measured figures that can be cited instead, with their commands, are in `docs/EVIDENCE_ONE_PAGER.md`.
+
 ## High-Impact Communications for Tier-1 Banks & Scale-Up FinTechs (September 2026)
 
 **Target Profile:** Chief Information Security Officers (CISOs), Chief Risk Officers (CROs), Heads of AI Governance, and DORA Compliance Directors at Tier-1 Banks (UniCredit, Intesa, Deutsche Bank) and FinTechs (Twisto, Revolut, Klarna).

@@ -1,0 +1,95 @@
+{
+  "pack_version": "v1.1.0",
+  "target_notebook_url": "https://notebook.google.com/notebook/e1b91409-02f9-4300-8bf7-5dfd4426dd16",
+  "target_notebook_id": "e1b91409-02f9-4300-8bf7-5dfd4426dd16",
+  "sources_count": 12,
+  "total_word_count": 99795,
+  "max_words_per_source_limit": 500000,
+  "notebook_source_slots_used": "12 / 50 (38 slots free)",
+  "sources": [
+    {
+      "file_name": "00_EXECUTIVE_BRIEFING_FOR_CONSIDERATION.md",
+      "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/00_EXECUTIVE_BRIEFING_FOR_CONSIDERATION.md",
+      "words": 601,
+      "bytes": 4747,
+      "sha256": "sha256:f9e30762abc60cf7aec14e1ac28398380c06b5f8a8ef8508feb6eecedb27102a"
+    },
+    {
+      "file_name": "01_SOVEREIGN_NEXUS_MASTER_ARCHITECTURE_AND_12_MOATS.md",
+      "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/01_SOVEREIGN_NEXUS_MASTER_ARCHITECTURE_AND_12_MOATS.md",
+      "words": 5392,
+      "bytes": 45004,
+      "sha256": "sha256:c5251bc0154c6e40d0de5a6e7d5940cc563f69eb962c2415e197bf6b97386a8e"
+    },
+    {
+      "file_name": "02_EVIDENCE_MANIFEST_AND_CRYPTOGRAPHIC_RECEIPTS_SECTIONS_1_TO_38.md",
+      "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/02_EVIDENCE_MANIFEST_AND_CRYPTOGRAPHIC_RECEIPTS_SECTIONS_1_TO_38.md",
+      "words": 21712,
+      "bytes": 209139,
+      "sha256": "sha256:309be8f10b666aa502d79103298eca92577d0c2ed3d11527fb8c18a7d15faee3"
+    },
+    {
+      "file_name": "03_PATENT_DISCLOSURES_INVARIANTS_AND_PROVISIONAL_CLAIMS.md",
+      "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/03_PATENT_DISCLOSURES_INVARIANTS_AND_PROVISIONAL_CLAIMS.md",
+      "words": 8299,
+      "bytes": 62888,
+      "sha256": "sha256:146204fb9fd7979293f8f53c75dd18519189a1125476b9bfba480b2929ab7809"
+    },
+    {
+      "file_name": "04_INDUSTRIAL_PROTECTION_MATRIX_AND_CIRCUIT_BREAKERS.md",
+      "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/04_INDUSTRIAL_PROTECTION_MATRIX_AND_CIRCUIT_BREAKERS.md",
+      "words": 4790,
+      "bytes": 40028,
+      "sha256": "sha256:21b8f996aca82b661f4e7163198e91adb8fc94ee16660ac43bb9a5a09058ad15"
+    },
+    {
+      "file_name": "05_BIO_DIGITAL_EVIDENCE_GATE_PBAG_FOR_GENOMICS.md",
+      "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/05_BIO_DIGITAL_EVIDENCE_GATE_PBAG_FOR_GENOMICS.md",
+      "words": 5819,
+      "bytes": 68995,
+      "sha256": "sha256:0a9330858b2f12880f83e6da6df75a11e823c6fd488bdfdb7737e33fcfe57d63"
+    },
+    {
+      "file_name": "06_TRI_TRACK_PRIZE_COMPETITION_AND_MONETIZATION_PORTFOLIO.md",
+      "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/06_TRI_TRACK_PRIZE_COMPETITION_AND_MONETIZATION_PORTFOLIO.md",
+      "words": 4960,
+      "bytes": 42144,
+      "sha256": "sha256:b8dab97ed76548af147bbf277c5193605d02702122eec35a3fb28bb51a43eb9b"
+    },
+    {
+      "file_name": "07_VISUAL_ARCHITECTURE_MERMAID_SCHEMATICS_AND_UI_BLUEPRINTS.md",
+      "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/07_VISUAL_ARCHITECTURE_MERMAID_SCHEMATICS_AND_UI_BLUEPRINTS.md",
+      "words": 327,
+      "bytes": 2910,
+      "sha256": "sha256:d1ef9b196e7ff5f8f2bafb6651ca99bd0faa4efd8a24d742f6342dd314d05f90"
+    },
+    {
+      "file_name": "08_ANTIGRAVITY_SESSION_HISTORY_TELEMETRY_AND_COGNITIVE_RECORDER.md",
+      "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/08_ANTIGRAVITY_SESSION_HISTORY_TELEMETRY_AND_COGNITIVE_RECORDER.md",
+      "words": 2864,
+      "bytes": 21995,
+      "sha256": "sha256:8e994fa1fb619dabcbec5e832b478e8b8d3fae316e1c3d92511cf8decc3873ed"
+    },
+    {
+      "file_name": "09_AUTOPOIETIC_MESH_REVERSE_ENGINEERING_AND_SOVEREIGN_MOATS.md",
+      "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/09_AUTOPOIETIC_MESH_REVERSE_ENGINEERING_AND_SOVEREIGN_MOATS.md",
+      "words": 17049,
+      "bytes": 168081,
+      "sha256": "sha256:35cde5f0afdd15ab3a8e8e66a2606a00a1372fe2802184341aaee081fc2170ed"
+    },
+    {
+      "file_name": "10_OCTOBER_30_SOTA_FRONTIER_SWAT_AIRLOCK_AND_REGENERATABLE_UI.md",
+      "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/10_OCTOBER_30_SOTA_FRONTIER_SWAT_AIRLOCK_AND_REGENERATABLE_UI.md",
+      "words": 26864,
+      "bytes": 340851,
+      "sha256": "sha256:7351563e395683f3b4fb7c96addc4eb6df1338f27f8a95459d82951b1d14f990"
+    },
+    {
+      "file_name": "11_AGENT_SUBSTRATE_TENCENT_CUBE_KIRO_AND_A2A_INTERLOCK.md",
+      "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/11_AGENT_SUBSTRATE_TENCENT_CUBE_KIRO_AND_A2A_INTERLOCK.md",
+      "words": 1118,
+      "bytes": 9812,
+      "sha256": "sha256:7f845f19cd49daf5114a85ed7167fb2569f0892065731f702fadacf138986775"
+    }
+  ]
+}

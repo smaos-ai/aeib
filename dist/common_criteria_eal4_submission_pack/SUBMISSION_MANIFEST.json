@@ -1,0 +1,49 @@
+{
+  "created_epoch_ms": 1793413147627,
+  "documents": {
+    "00_SECURITY_TARGET_EAL4_PLUS.md": {
+      "component": "ASE (Security Target)",
+      "sha256": "sha256:6a8435205a3101a7c530b96d43771c1e2bd02bb629487dfd4f56df9fac471121",
+      "title": "Common Criteria Security Target EAL4+",
+      "words": 1027
+    },
+    "01_FUNCTIONAL_SPEC_ADV_FSP_4.md": {
+      "component": "ADV_FSP.4 (Functional Specification)",
+      "sha256": "sha256:dbfdd768d46e35f8a2981114e8ca55430c9fc2322332921719372442871cf20e",
+      "title": "Functional Specification & TSFI Catalog",
+      "words": 988
+    },
+    "02_TOE_DESIGN_ADV_TDS_3.md": {
+      "component": "ADV_TDS.3 (TOE Design)",
+      "sha256": "sha256:12d96a6f2ca2fe3e6c75cacc8d392b1d9759bc04dc0cac32c2cb3a2288b884c8",
+      "title": "TOE Design & Physical Zone Separation",
+      "words": 463
+    },
+    "03_VULNERABILITY_ANALYSIS_AVA_VAN_4.md": {
+      "component": "AVA_VAN.4 (Vulnerability Analysis)",
+      "sha256": "sha256:45d89798e0f8886e51fc0fa43e210b81c19cf4ad13dc888c664dc18b51f13e84",
+      "title": "Methodical Vulnerability Analysis",
+      "words": 421
+    },
+    "04_FLAW_REMEDIATION_ALC_FLR_2.md": {
+      "component": "ALC_FLR.2 (Flaw Remediation)",
+      "sha256": "sha256:701da3d7ba4e7f2e630bdac521be8c12a805d3af98c9cfb9b8b96395402b4c11",
+      "title": "Flaw Remediation & Mutation Kill Records",
+      "words": 382
+    },
+    "05_INDEPENDENT_TEST_RUNNER_ATE_IND_2.py": {
+      "component": "ATE_IND.2 (Independent Testing)",
+      "sha256": "sha256:a84c7af7e64fd9f072262da9c0406dfb954c7a93dc2386a97e5183e3366186e9",
+      "title": "Standalone Independent Test Runner",
+      "words": 691
+    }
+  },
+  "documents_count": 6,
+  "evaluation_assurance_level": "EAL4+ (ALC_FLR.2 + AVA_VAN.4)",
+  "manifest_version": "1.0.0",
+  "status": "INTERNAL PREVIEW COMMISSIONED",
+  "submission_merkle_root": "sha256:5ca894b42d0275a2c01867f175ab1c0a1ce3395cd11582181cb2d0251786b87a",
+  "toe_reference": "SovereignNexus AEIB v1.1",
+  "total_words": 3972,
+  "manifest_caid": "sha256:57467daf9d4e7b760285a16a88171b1678385ec69a7ec1b3b066eb0f45a1e5e0"
+}

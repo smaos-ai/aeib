@@ -135,3 +135,23 @@ def test_3_epistemic_purity_and_zero_mocks() -> None:
     mock_tokens = ["mock.", "unittest.mock", "magicmock", "monkeypatch"]
     for token in mock_tokens:
         assert token not in text, f"Forbidden mock token '{token}' in demonstrator source"
+
+
+def test_4_custom_drift_threshold_and_cli_output() -> None:
+    demonstrator = SovereignFactoryDemonstrator(db_path=":memory:", max_drift_threshold_bps=5000)
+    assert demonstrator.max_drift_threshold_bps == 5000
+    passport, telemetry = demonstrator.run_demonstration("Testing custom drift configuration.")
+    assert passport.all_layers_verified is True
+    assert "layer1" in telemetry
+    assert "layer2" in telemetry
+    assert "layer3" in telemetry
+    assert "layer4" in telemetry
+    assert "layer5" in telemetry
+    assert "layer6" in telemetry
+    assert "layer7" in telemetry
+
+    # Verify that strict threshold (< 2223 bps) halts trajectory drift
+    strict_demonstrator = SovereignFactoryDemonstrator(db_path=":memory:", max_drift_threshold_bps=1000)
+    with pytest.raises(AssertionError):
+        strict_demonstrator.run_demonstration("Testing strict drift cutoff.")
+

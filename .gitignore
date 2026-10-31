@@ -101,3 +101,9 @@ formal/bin/*.jar
 # Public verification keys for the phase-3 evidence fixtures (public keys only; checked by
 # tests/test_integration_gates_g1_g7.py). Private keys stay ignored by *.pem above.
 !artifacts/phase3/*_pubkey.pem
+
+# Swift package manager & iOS build directories
+.build/
+.swiftpm/
+.build_edge_ios/
+

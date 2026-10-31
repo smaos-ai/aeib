@@ -21,7 +21,7 @@ The SovereignNexus agent infrastructure stack integrates ten deterministic opera
 |:---:|:---|:---|:---|
 
 
-| **Layer 0** | Hardware Root of Trust | Secure Enclave NIST P-256 / Ed25519 signing, USB-attached physical cold storage, offline warrants | `src/cold_storage_hardware_ledger.py`, `src/iphone_enclave_notary_bridge.py`, `src/iphone_rpc_client.py` |
+| **Layer 0** | Hardware Root of Trust | Secure Enclave NIST P-256 / Ed25519 signing, Multi-Cloud HSM Remote Quorum, USB cold storage | `src/cloud_hsm_remote_quorum.py`, `src/cold_storage_hardware_ledger.py`, `src/iphone_enclave_notary_bridge.py`, `src/iphone_rpc_client.py` |
 
 
 | **Layer 1** | OS Kernel & eBPF LSM Interception | In-kernel socket and filesystem mediation, Tetragon eBPF telemetry, strict cgroup sandbox | `src/bpf_lsm_profile_compiler.py`, `src/ebpf_agent_guard_controller.py`, `src/tetragon_ebpf_stream_parser.py` |
@@ -45,7 +45,7 @@ The SovereignNexus agent infrastructure stack integrates ten deterministic opera
 | **Layer 7** | SCITT Bitemporal Merkle Tree & Multi-Cloud | RFC 9162 / RFC 9943 Merkle trees, federated super-root aggregation, anti-split-brain failover | `src/scitt_proof_aggregation_reconciler.py`, `src/multi_cloud_failover_orchestrator.py` |
 
 
-| **Layer 8** | Common Criteria EAL4+ Audit & CEM Evaluator | ISO/IEC 15408-3 EAL4+ formal model runner, 8 SFRs mapped, automated ISO/IEC 18045 CEM auditor | `tools/common_criteria_eal4_runner.py`, `tools/itsef_cem_evaluation_runner.py` |
+| **Layer 8** | Common Criteria EAL4+ Audit & CEM Evaluator | ISO/IEC 15408-3 EAL4+ formal model runner, 8 SFRs mapped, automated ISO/IEC 18045 CEM auditor | `tools/common_criteria_eal4_runner.py`, `tools/itsef_cem_evaluation_runner.py`, `tools/itsef_mock_lab_audit_simulator.py` |
 
 
 | **Layer 9** | Epistemic Dashboard & Command Cockpit | Live on-disk receipts API, remote emergency Andon stop, asynchronous AP2 mandate queue, commissioning pipeline | `src/sovereign_dashboard_api.py`, `src/mobile_command_cockpit_engine.py`, `src/ap2_mobile_mandate_engine.py`, `src/commissioning_pipeline.py` |
@@ -90,6 +90,9 @@ All commissioned modules have achieved $\ge 90.00\%$ mutation adequacy kill rati
 | `src/ap2_mobile_mandate_engine.py` | `tests/test_ap2_mobile_mandate_engine.py` | 30 | 30 | **100.00%** | `[8864..10000 bps]` |
 
 
+| `src/cloud_hsm_remote_quorum.py` | `tests/test_cloud_hsm_remote_quorum.py` | 30 | 29 | **96.67%** | `[8333..9941 bps]` |
+
+
 | `src/edge_ai_prescreener.py` | `tests/test_edge_ai_prescreener.py` | 30 | 29 | **96.67%** | `[8332..9941 bps]` |
 
 
@@ -103,6 +106,9 @@ All commissioned modules have achieved $\ge 90.00\%$ mutation adequacy kill rati
 
 
 | `src/live_biometric_latch_bridge.py` | `tests/test_live_biometric_latch_bridge.py` | 30 | 29 | **96.67%** | `[8332..9941 bps]` |
+
+
+| `tools/itsef_mock_lab_audit_simulator.py` | `tests/test_itsef_mock_lab_audit_simulator.py` | 30 | 28 | **93.33%** | `[7868..9815 bps]` |
 
 
 | `src/scitt_proof_aggregation_reconciler.py` | `tests/test_scitt_proof_aggregation_reconciler.py` | 30 | 28 | **93.33%** | `[7867..9816 bps]` |
@@ -137,7 +143,10 @@ The few surviving mutants across the commissioned suite are strictly constrained
 2. Non-essential default timeout integers: e.g. `timeout_sec=60` in RPC client, where external callers pass explicit timeouts.
 
 
-3. Multi-branch RFC 9162 index shift: non-critical loop boundary paths in Merkle consistency proof verification where equivalent mathematical reductions occur.
+3. Millisecond timestamp defaults: e.g. `int(time.time() * 1000)` perturbed to 1001 in `src/cloud_hsm_remote_quorum.py` and `tools/itsef_mock_lab_audit_simulator.py`.
+
+
+4. Multi-branch RFC 9162 index shift: non-critical loop boundary paths in Merkle consistency proof verification where equivalent mathematical reductions occur.
 
 ---
 

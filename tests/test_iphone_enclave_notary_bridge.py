@@ -67,6 +67,17 @@ def test_1_valid_p256_enclave_warrant_releases_t3_latch() -> None:
     assert verdict.warrant_receipt_caid.startswith("sha256:")
     assert verdict.verified_proposal_caid == sha256_jcs_caid(canonical_bytes)
 
+    expected_receipt_caid = sha256_jcs_caid(
+        {
+            "expected_caid": verdict.verified_proposal_caid,
+            "latch_released": True,
+            "public_key_x963_hex": pub_hex.lower(),
+            "reason_code": "OK_FACEID_ENCLAVE_WARRANT_VERIFIED",
+            "signature_der_hex": sig_hex.lower(),
+        }
+    )
+    assert verdict.warrant_receipt_caid == expected_receipt_caid
+
 
 def test_2_wysiwys_bait_and_switch_is_blocked() -> None:
     # Human saw and authorized a 50.00 EUR transaction on the iPhone
@@ -314,3 +325,21 @@ def test_9_sha256_jcs_caid_type_variants() -> None:
     assert sha256_jcs_caid("hello").startswith("sha256:")
     assert sha256_jcs_caid({"a": 1}).startswith("sha256:")
     assert sha256_jcs_caid(b"hello") == sha256_jcs_caid("hello")
+
+
+def test_10_frozen_proposal_immutability() -> None:
+    """Verifies that T3ActionProposal is frozen and immutable."""
+    import dataclasses
+
+    proposal = T3ActionProposal(
+        operation_id="op_frozen_test",
+        intent_caid="sha256:4444",
+        action_type="TEST_ACTION",
+        target_resource="res://test",
+        amount_minor=100,
+        attempt_fence=1,
+        expires_at_epoch_sec=1_800_000_000,
+    )
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        proposal.operation_id = "tampered"
+

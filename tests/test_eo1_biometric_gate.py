@@ -71,6 +71,7 @@ class MockEnclaveHTTPHandler(BaseHTTPRequestHandler):
     veto_mode: bool = False
     tamper_mode: bool = False
     timeout_mode: bool = False
+    last_received_payload: Any = None
 
     def do_GET(self):
         if self.path == "/pubkey":
@@ -101,6 +102,7 @@ class MockEnclaveHTTPHandler(BaseHTTPRequestHandler):
 
             length = int(self.headers.get("Content-Length", 0))
             canonical_bytes = self.rfile.read(length)
+            MockEnclaveHTTPHandler.last_received_payload = json.loads(canonical_bytes.decode("utf-8"))
 
             digest_caid = sha256_jcs_caid(canonical_bytes)
             sig_bytes = self.priv_key.sign(canonical_bytes, ec.ECDSA(hashes.SHA256()))
@@ -195,15 +197,21 @@ def test_1_nominal_biometric_approval_releases_eo1_intent_and_dispatches(tmp_pat
         dispatched = True
         return {"status": "SETTLED_OK"}
 
+    import time
+
+    test_now = int(time.time()) + 10
     result = adapter.dispatch_guarded(
         target_uri="https://api.internal/v1/settle",
         tool_name="T3_settlement_escrow",
         payload=payload,
         dispatch_fn=_dispatch,
+        now_epoch_sec=test_now,
     )
 
     assert dispatched is True
     assert result.response == {"status": "SETTLED_OK"}
+    assert handler_cls.last_received_payload["attempt_fence"] == 1
+    assert handler_cls.last_received_payload["expires_at_epoch_sec"] == test_now + 5
 
     # Assert ledger has both DISPATCH_INTENT and CONTINUITY_RECEIPT
     raw_ledger = ledger_path.read_bytes()
@@ -491,4 +499,14 @@ def test_8_biometric_timeout_raises_timeout_error(tmp_path: Path):
         )
 
     assert "Biometric authorization timed out after 10s" in str(exc_info.value)
+
+
+def test_frozen_policy_immutability():
+    """Verifies that BiometricGatePolicy is frozen and immutable."""
+    import dataclasses
+
+    policy = BiometricGatePolicy()
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        policy.timeout_sec = 10  # type: ignore
+
 

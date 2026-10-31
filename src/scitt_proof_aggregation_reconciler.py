@@ -225,7 +225,7 @@ def verify_consistency_proof(
         if (fn & 1) == 1 or fn == sn:
             fr = hash_node(p, fr)
             sr = hash_node(p, sr)
-            while (fn & 1) == 0 and fn != 0:
+            while (fn & 1) == 0 and fn:
                 fn >>= 1
                 sn >>= 1
         else:

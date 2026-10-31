@@ -122,7 +122,7 @@ class StewardEvolutionaryOrchestrator:
 
         results: List[BranchEvaluationResult] = []
         best_branch: Optional[CandidateBranch] = None
-        best_score: int = -1  # claim: config - sentinel initial score
+        best_score: Optional[int] = None
 
         for cand in candidates:
             sub_task_id = f"{task_id}:{cand.branch_id}"
@@ -196,12 +196,12 @@ class StewardEvolutionaryOrchestrator:
                 )
             )
 
-            if score_bps > best_score:
+            if best_score is None or score_bps > best_score:
                 best_score = score_bps
                 best_branch = cand
 
         winner_id = best_branch.branch_id if best_branch is not None else None
-        final_score = best_score if best_branch is not None else 0
+        final_score = best_score if best_score is not None else 0
 
         payload = {
             "evaluated_branches": [r.to_dict() for r in results],

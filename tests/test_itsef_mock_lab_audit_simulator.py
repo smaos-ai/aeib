@@ -345,9 +345,34 @@ def test_09_submission_pack_verification_failures(tmp_path: Path) -> None:
 
 def test_10_simulation_nested_output_directory(tmp_path: Path) -> None:
     """Verifies run_simulation automatically creates deeply nested output directories."""
+    import time
     nested_output = tmp_path / "deep" / "nested" / "dir" / "itsef_verdict.json"
     sim = ItsefMockLabAuditSimulator(pack_dir=DEFAULT_PACK_DIR, output_file=nested_output)
+    expected_ms = int(time.time() * 1000)
     verdict, dossier = sim.run_simulation()
     assert nested_output.exists()
-    assert verdict.created_epoch_ms > 0
+    assert abs(verdict.created_epoch_ms - expected_ms) <= 2000
+
+
+def test_11_evaluate_cem_work_units_incomplete_raises(tmp_path: Path) -> None:
+    """Verifies that CEM compliance score < 10000 bps raises ValueError."""
+    pack_dir = tmp_path / "incomplete_pack"
+    pack_dir.mkdir(parents=True)
+    (pack_dir / "SUBMISSION_MANIFEST.json").write_text(json.dumps({"manifest_caid": "sha256:00"}), "utf-8")
+    sim = ItsefMockLabAuditSimulator(pack_dir=pack_dir)
+    with pytest.raises(ValueError, match="ERR_CEM_COMPLIANCE_INCOMPLETE"):
+        sim.evaluate_cem_work_units()
+
+
+def test_12_sys_path_bootstrap(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verifies sys.path.insert(0) places repo root at index 0."""
+    import importlib
+    import tools.itsef_mock_lab_audit_simulator as mod
+
+    repo_str = str(Path(__file__).resolve().parent.parent)
+    marker = ["/dummy_marker_itsef"]
+    monkeypatch.setattr(sys, "path", marker + [p for p in sys.path if p != repo_str])
+    importlib.reload(mod)
+    assert sys.path[0] == repo_str
+
 

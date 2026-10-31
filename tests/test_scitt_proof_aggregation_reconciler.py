@@ -211,6 +211,22 @@ def test_merkle_tree_consistency_proof() -> None:
     assert verify_consistency_proof(0, 5, root_3, root_5, proof_3_to_5) is False
     assert verify_consistency_proof(6, 5, root_3, root_5, proof_3_to_5) is False
 
+    # 4. Add entries up to size 7
+    reconciler.append_raw_entry(b"state-5")
+    root_6 = reconciler.current_merkle_root()
+    reconciler.append_raw_entry(b"state-6")
+    root_7 = reconciler.current_merkle_root()
+
+    # Verify consistency from (3, 7) - kills sn = second_size + 1 mutant
+    proof_3_to_7_hex = reconciler.generate_consistency_proof(3)
+    proof_3_to_7 = [bytes.fromhex(h) for h in proof_3_to_7_hex]
+    assert verify_consistency_proof(3, 7, root_3, root_7, proof_3_to_7) is True
+
+    # Verify consistency from (5, 6) - exercises inner loop boundary
+    dummy_leaves_6 = [hash_leaf(f"state-{i}".encode("utf-8")) for i in range(6)]
+    proof_5_to_6 = build_consistency_proof(5, 6, dummy_leaves_6)
+    assert verify_consistency_proof(5, 6, compute_sub_root(dummy_leaves_6[:5]), root_6, proof_5_to_6) is True
+
     reconciler.close()
 
 

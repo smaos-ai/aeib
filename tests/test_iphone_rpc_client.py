@@ -374,3 +374,20 @@ def test_9_url_error_string_timed_out_is_caught(monkeypatch) -> None:
     verdict = client.request_faceid_warrant(proposal, current_epoch_sec=1_800_000_010)
     assert verdict.latch_released is False
     assert verdict.reason_code == "HALT_IPHONE_FACEID_TIMEOUT"
+
+
+def test_10_default_configuration_constants_and_timeouts() -> None:
+    """Verifies default notary port constant and method signature timeout defaults."""
+    import inspect
+
+    assert DEFAULT_NOTARY_PORT == 8080
+    client = IPhoneNotaryRPCClient("127.0.0.1")
+    assert client.port == 8080
+    assert client.base_url == "http://127.0.0.1:8080"
+
+    sig_fetch = inspect.signature(IPhoneNotaryRPCClient.fetch_enclave_pubkey_hex)
+    assert sig_fetch.parameters["timeout_sec"].default == 5
+
+    sig_req = inspect.signature(IPhoneNotaryRPCClient.request_faceid_warrant)
+    assert sig_req.parameters["timeout_sec"].default == 60
+

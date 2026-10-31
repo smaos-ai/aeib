@@ -269,3 +269,16 @@ def test_common_criteria_cli_main_verify_failure(tmp_path: Path, monkeypatch, ca
     assert "[✗] Dossier Verification Failed" in captured.err
     assert exit_codes == [1]
 
+
+def test_sys_path_bootstrap_eal4_runner(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verifies sys.path.insert(0) places repo root at index 0 and NotIn check works."""
+    import importlib
+    import tools.common_criteria_eal4_runner as mod
+
+    repo_str = str(Path(__file__).resolve().parent.parent)
+    marker = ["/dummy_marker_eal4"]
+    monkeypatch.setattr(sys, "path", marker + [p for p in sys.path if p != repo_str])
+    importlib.reload(mod)
+    assert sys.path[0] == repo_str
+
+

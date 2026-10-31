@@ -435,3 +435,33 @@ def test_3_lehami_physical_typestate_enforcer() -> None:
     # Validation error on empty envelopes
     with pytest.raises(ValueError, match="ERR_EMPTY_PHYSICAL_ENVELOPES"):
         PhysicalTypeStateEnforcer({})
+
+
+def test_sys_path_bootstrap_evolutionary_orchestrator(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verifies sys.path.insert(0) places repo root at index 0."""
+    import importlib
+    import sys
+    import src.evolutionary_orchestrator as mod
+
+    repo_str = str(Path(__file__).resolve().parent.parent)
+    marker = ["/dummy_marker_evo"]
+    monkeypatch.setattr(sys, "path", marker + [p for p in sys.path if p != repo_str])
+    importlib.reload(mod)
+    assert sys.path[0] == repo_str
+
+
+def test_candidate_branch_boundary_validations() -> None:
+    """Verifies exact boundaries for CandidateBranch, specifically mutation_kill_bps == 0 and 10000."""
+    b_min = CandidateBranch("b_min", "f.py", "code", True, 0, 0)
+    assert b_min.mutation_kill_bps == 0
+
+    b_max = CandidateBranch("b_max", "f.py", "code", True, 10000, 0)
+    assert b_max.mutation_kill_bps == 10000
+
+    with pytest.raises(ValueError, match="mutation_kill_bps"):
+        CandidateBranch("b_neg", "f.py", "code", True, -1, 0)
+
+    with pytest.raises(ValueError, match="mutation_kill_bps"):
+        CandidateBranch("b_over", "f.py", "code", True, 10001, 0)
+
+

@@ -265,7 +265,18 @@ def _prepare_shadow_root(repo_root: Path, dest: Path, test_files: Sequence[str])
     ):
         if (repo_root / sub).is_dir():
             shutil.copytree(repo_root / sub, dest / sub, ignore=ignore)
-    for sym_sub in (".agents", "docs", "schemas", "contracts", "conformance", "evidence", "formal"):
+    for sym_sub in (
+        ".agents",
+        "docs",
+        "schemas",
+        "contracts",
+        "conformance",
+        "evidence",
+        "formal",
+        "epistemic-dashboard",
+        "output",
+        "execution-integrity-benchmark",
+    ):
         if (repo_root / sym_sub).is_dir() and not (dest / sym_sub).exists():
             os.symlink(repo_root / sym_sub, dest / sym_sub)
     if (repo_root / ".git").exists() and not (dest / ".git").exists():

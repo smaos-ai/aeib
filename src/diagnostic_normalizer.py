@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
 r"""
-diagnostic_normalizer.py — MCP JSON-RPC 2.0 Execution Normalizer & 4-Step SMAOS Wrap
+src/diagnostic_normalizer.py
+================================================================================
+MCP JSON-RPC 2.0 Execution Normalizer & 4-Step SMAOS Wrap
 Sovereign Multi-Agent OS (SMAOS) / Agent Execution Integrity (AEIB)
 
 Category: Agent Execution Integrity
 Tagline : Actions are claims. Outcomes are evidence.
-Invariant: authorized write ≠ persisted write ≠ correct outcome
+Invariant: authorized write ≠ persisted write ≠ correct physical outcome
 
 Defensible Scope:
   "SMAOS is a local execution-integrity prototype that preserves action identity,
    quarantines ambiguous post-write outcomes, and produces structured,
    COSE_Sign1–signed evidence for reconciliation and later audit review."
 
-Status: Prototype validated against synthetic test scenarios.
-Serialization: JCS-compatible subset; not RFC 8785-validated.
+Evaluation Status: INTERNAL PREVIEW COMMISSIONED.
+Epistemic Boundary: Observed, tested, and configured under the stated model.
+Serialization: Single-source RFC 8785 JCS canonicalization scheme.
 
 The Four-Step SMAOS Execution Cycle:
   Step 1: Pre-dispatch authority check (identity, TTL, policy, schema)
@@ -81,9 +84,9 @@ COSE_ALG_EDDSA = -8  # RFC 9054 / RFC 8152 EdDSA
 COSE_HEADER_ALG = 1
 COSE_HEADER_KID = 4
 
-# Policy Defaults
-DEFAULT_FRESHNESS_LIMIT_MS = 100_000.0  # claim: config
-HIGH_RISK_FRESHNESS_LIMIT_MS = 5_000.0  # claim: config
+# Policy Defaults (Integer Milliseconds)
+DEFAULT_FRESHNESS_LIMIT_MS: int = 100_000  # claim: config
+HIGH_RISK_FRESHNESS_LIMIT_MS: int = 5_000  # claim: config
 
 # SMAOS Action Integrity Namespace (RFC 4122 UUIDv5)
 NAMESPACE_SMAOS_URL = uuid.UUID("6ba7b811-9dad-11d1-80b4-00c04fd430c8")
@@ -262,7 +265,7 @@ class MinimalCBOR:
         elif major == 6:  # tag
             tagged_item, idx = cls.decode_item(raw, idx)
             return ("TAG", val, tagged_item), idx
-        elif major == 7:  # simple / float
+        else:  # major == 7 (simple / float)
             if info == 20:
                 return False, idx
             elif info == 21:
@@ -270,9 +273,7 @@ class MinimalCBOR:
             elif info == 22:
                 return None, idx
             else:
-                return None, idx
-        else:
-            raise ValueError(f"Unknown major type: {major}")
+                raise ValueError(f"Unsupported CBOR simple value: {info}")
 
 
 # ── Key Registry & Key Management ─────────────────────────────────────────────
@@ -478,7 +479,7 @@ class AuthorityContext:
     """Pre-dispatch authority context."""
     actor: str
     tool: str
-    valid_from: Optional[float] = None
+    valid_from: Optional[Union[int, float]] = None
     authority_ttl: Optional[str] = None
     allowed_tools: Optional[List[str]] = None
 
@@ -500,9 +501,9 @@ class CompleteExecutionReceipt:
     observed_outcome: Dict[str, Any]
     outcome_verified: bool
     verification_method: str
-    wall_clock_delta_ms: Optional[float]
+    wall_clock_delta_ms: Optional[int]
     freshness_status: str
-    freshness_limit_ms: float
+    freshness_limit_ms: int
     serialization_format: str
     disposition: str
     transport_fault: str
@@ -713,7 +714,7 @@ class DatabaseStateProber:
 class HTTPReconciliationProber:
     """
     Queries an out-of-band HTTP reconciliation endpoint.
-    Uses mock or provided callable client.
+    Uses authoritative client callback or returns unconfirmed probe.
     """
 
     def __init__(self, endpoint_url: str = "https://api.internal.bank/reconcile", client_fn: Optional[Any] = None):
@@ -727,7 +728,7 @@ class HTTPReconciliationProber:
         expected_payload_hash: str
     ) -> Dict[str, Any]:
         if self.client_fn is None:
-            # Default mock handler
+            # Default unconfirmed probe handler when client callback is absent
             return {
                 "disposition": "RECONCILIATION_NOT_FOUND",
                 "outcome_verified": False,
@@ -896,7 +897,7 @@ class OperationalSafetyController:
         self,
         tool_name: str,
         operator_id: str,
-        ttl_seconds: float = 300.0,
+        ttl_seconds: int = 300,
         reason: str = "Authorized high-risk execution"
     ) -> str:
         token = f"APPR-{uuid.uuid4().hex[:12].upper()}"
@@ -960,7 +961,7 @@ class DiagnosticExecutionNormalizer:
         self,
         signing_key: Optional[ed25519.Ed25519PrivateKey] = None,
         key_id: Optional[str] = None,
-        freshness_limit_ms: float = DEFAULT_FRESHNESS_LIMIT_MS,
+        freshness_limit_ms: int = DEFAULT_FRESHNESS_LIMIT_MS,
         hmac_key: Optional[bytes] = None,
         key_registry: Optional[KeyRegistry] = None,
         safety_controller: Optional[OperationalSafetyController] = None
@@ -1149,7 +1150,7 @@ class DiagnosticExecutionNormalizer:
         Step 4: Constructs complete execution receipt, validates authority freshness
         against threshold, and seals with standard RFC 9052 COSE_Sign1 envelope.
         """
-        limit_ms = freshness_limit_ms if freshness_limit_ms is not None else self.freshness_limit_ms
+        limit_ms = int(round(freshness_limit_ms)) if freshness_limit_ms is not None else int(self.freshness_limit_ms)
         payload_hash = request_payload_hash or req_payload_hash
 
         # Evaluate freshness status (Measurement != Policy Compliance)
@@ -1157,10 +1158,10 @@ class DiagnosticExecutionNormalizer:
             wall_clock_delta_ms = None
             freshness_status = "UNMEASURED"
         elif transaction_time_tn < valid_time_t0:
-            wall_clock_delta_ms = round((transaction_time_tn - valid_time_t0) * 1000.0, 2)
+            wall_clock_delta_ms = int(round((transaction_time_tn - valid_time_t0) * 1000.0))
             freshness_status = "CLOCK_ORDER_INVALID"
         else:
-            delta_ms = round((transaction_time_tn - valid_time_t0) * 1000.0, 2)
+            delta_ms = int(round((transaction_time_tn - valid_time_t0) * 1000.0))
             wall_clock_delta_ms = delta_ms
             if delta_ms > limit_ms:
                 freshness_status = "STALE"

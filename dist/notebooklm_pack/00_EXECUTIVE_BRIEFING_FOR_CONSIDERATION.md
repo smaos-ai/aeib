@@ -95,3 +95,11 @@ However, **linguistic filters are structurally blind to distributed systems fail
 - Use **Source 11** for Agent Substrate, Tencent Cube Auto-Pause, Kiro Blast Radius AST Governor, and A2A Trajectory Interlock.
 
 - Use **Source 12** for the Common Criteria (ISO/IEC 15408) EAL4+ Security Target, SFR/SAR Physical Implementation Mappings, TLC 34,047-State Model Checker Verification, and the Multi-Region Edge Latch Mesh Benchmark (9,948 bps latency reduction).
+
+- Use **Source 13** for Tetragon eBPF LSM Profiles, Kagent Helm Charts, and the Distributed Reconciler.
+
+- Use **Source 14** for the Common Criteria Submission Pack and Multi-Region Rollout Gate.
+
+- Use **Source 15** for the Ten-Layer Sovereign Factory Architecture and 45 Commissioned Prototype Module Specifications.
+
+- Use **Source 16** for October 31, 2026 Phase V Deliverables & Pre-Market Reality Audit: Unified 5-Station Sovereign Execution Kernel (`src/sovereign_phase_v_kernel.py`), 14-Item Temporal Authority & Async Execution Guard (`src/temporal_authority_guard.py`), Monotonic A2A Cryptographic Delegation DAG (`src/crypto_delegation_graph.py`), SQLite FTS5 Bitemporal Provenance & Truth Decay Engine (`src/temporal_graph_router.py`), 4-Tier Sovereign Token Decree Governor (`src/sovereign_token_decree.py` & `src/token_decree_dispatch_interlock.py`), Autonomous PR Webhook Dispatcher (`src/autonomous_pr_webhook_dispatcher.py`), and Client-Side Pre-Push Integrity Latch (`tools/pre_push_integrity_gate.py`).

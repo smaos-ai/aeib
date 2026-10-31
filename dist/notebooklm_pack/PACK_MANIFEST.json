@@ -2,17 +2,17 @@
   "pack_version": "v1.0.0",
   "target_notebook_url": "https://notebook.google.com/notebook/e1b91409-02f9-4300-8bf7-5dfd4426dd16",
   "target_notebook_id": "e1b91409-02f9-4300-8bf7-5dfd4426dd16",
-  "sources_count": 16,
-  "total_word_count": 111514,
+  "sources_count": 17,
+  "total_word_count": 126299,
   "max_words_per_source_limit": 500000,
-  "notebook_source_slots_used": "16 / 50 (34 slots free)",
+  "notebook_source_slots_used": "17 / 50 (33 slots free)",
   "sources": [
     {
       "file_name": "00_EXECUTIVE_BRIEFING_FOR_CONSIDERATION.md",
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/00_EXECUTIVE_BRIEFING_FOR_CONSIDERATION.md",
-      "words": 676,
-      "bytes": 5125,
-      "sha256": "sha256:d320f4c4c5b522db991246ae7ae18f1ab91f6f7c28fb69efb091ad6e106a96e7"
+      "words": 801,
+      "bytes": 6148,
+      "sha256": "sha256:3ed05d9bdab145d6306e44431a7b46c39911ca9c4bb14444ffc97afd82ae032c"
     },
     {
       "file_name": "01_SOVEREIGN_NEXUS_MASTER_ARCHITECTURE_AND_12_MOATS.md",
@@ -66,9 +66,9 @@
     {
       "file_name": "08_ANTIGRAVITY_SESSION_HISTORY_TELEMETRY_AND_COGNITIVE_RECORDER.md",
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/08_ANTIGRAVITY_SESSION_HISTORY_TELEMETRY_AND_COGNITIVE_RECORDER.md",
-      "words": 2931,
-      "bytes": 21995,
-      "sha256": "sha256:8e994fa1fb619dabcbec5e832b478e8b8d3fae316e1c3d92511cf8decc3873ed"
+      "words": 3133,
+      "bytes": 23508,
+      "sha256": "sha256:c2fa11f81f0869aa4d2a8a168fd43e1832dad8b1179d0727fe3e61ab5314fd89"
     },
     {
       "file_name": "09_AUTOPOIETIC_MESH_REVERSE_ENGINEERING_AND_SOVEREIGN_MOATS.md",
@@ -115,9 +115,16 @@
     {
       "file_name": "15_TEN_LAYER_SOVEREIGN_FACTORY_AND_COMMISSIONED_PROTOTYPE_SPECS.md",
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/15_TEN_LAYER_SOVEREIGN_FACTORY_AND_COMMISSIONED_PROTOTYPE_SPECS.md",
-      "words": 1368,
-      "bytes": 12783,
-      "sha256": "sha256:d5f63bea4282c64d87ec5757a51337713d5b409bd61281f97eb366c20ddb3e79"
+      "words": 1422,
+      "bytes": 13337,
+      "sha256": "sha256:1c0babf9e186bf5a09ac5f3555ec2d555de8c43abe9332b25fd470cc3dd07c18"
+    },
+    {
+      "file_name": "16_OCTOBER_31_PHASE_V_5_STATION_KERNEL_TEMPORAL_AUTHORITY_AND_PREMARKET_AUDIT.md",
+      "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/16_OCTOBER_31_PHASE_V_5_STATION_KERNEL_TEMPORAL_AUTHORITY_AND_PREMARKET_AUDIT.md",
+      "words": 14404,
+      "bytes": 135352,
+      "sha256": "sha256:5a3b8249d323abe4d2456b8664132f91fce7fdfb70c6f57df604af7e0d31662e"
     }
   ]
 }

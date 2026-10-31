@@ -872,7 +872,7 @@ def build_source_15() -> Tuple[str, str]:
         "| **Layer 2** | Typestate Physics & Static AST Filter | Dimensional conservation ($0 token cost), hardware boundary ceilings, AST purity & anti-mocking, Exhaustive Finite-State Model Checker, Sovereign Token Decree Governor | `src/physical_typestate_enforcer.py`, `compliance/ast_purity.py`, `compliance/claim_integrity_gate.py`, `src/eo1_protocol_model_checker.py`, `src/sovereign_token_decree.py`, `src/token_decree_dispatch_interlock.py` |\n",
         "| **Layer 3** | Edge Ingress, Triage & Prescreening | Sub-20ms edge triage, integer basis points risk, BGP Anycast routing interlock, FaceID biometric gate, Cross-Cloud WireGuard Overlay Mesh, Hardened x402 Commerce Gateway | `src/edge_triage_router.py`, `src/edge_ai_prescreener.py`, `src/bgp_anycast_routing_interlock.py`, `src/multi_region_canary_ingress.py`, `src/eo1_biometric_gate.py`, `src/live_biometric_latch_bridge.py`, `src/wireguard_overlay_interlock.py`, `src/coinbase_x402_agent_gateway.py` |\n",
         "| **Layer 4** | Transactional ACID State Coordinator | Row-level semantic locks, 2PC prepare/commit, Autonomic State Reconciler, Quorum Jitter Fuzzer, Byzantine Timewarp Harness, Byzantine Homomorphic Gossip Sync, Pre-Socket Escrow Latch | `src/semantic_two_phase_commit.py`, `src/autonomic_state_reconciler.py`, `src/quorum_jitter_fuzzer.py`, `src/byzantine_consensus_timewarp.py`, `src/sqlite_acid_tcc_boundary.py`, `src/multi_region_edge_latch_mesh.py`, `src/homomorphic_gossip_sync.py`, `src/coinbase_x402_agent_gateway.py` |\n",
-        "| **Layer 5** | Execution Integrity & Deception Reconciler | 4-arm benchmark matrix, counter-factual audit, Circuit-Breaker Failsafe Mesh, MCP Action-vs-Outcome Normalizer | `src/counterfeit_execution_tracker.py`, `src/agent_decept_reconciler.py`, `src/autonomic_circuit_breaker_mesh.py`, `src/mcp_outcome_normalizer.py`, `execution-integrity-benchmark` |\n",
+        "| **Layer 5** | Execution Integrity & Deception Reconciler | 4-arm benchmark matrix, counter-factual audit, Circuit-Breaker Failsafe Mesh, MCP Action-vs-Outcome Normalizer, Diagnostic Normalizer | `src/counterfeit_execution_tracker.py`, `src/agent_decept_reconciler.py`, `src/autonomic_circuit_breaker_mesh.py`, `src/mcp_outcome_normalizer.py`, `src/diagnostic_normalizer.py`, `execution-integrity-benchmark` |\n",
         "| **Layer 6** | Autonomous Evolution & Trajectory Airlock | Multi-candidate evolutionary selection, SEMA-Auto trajectory tracking, zero-regression airlock | `src/evolutionary_orchestrator.py`, `src/a2a_trajectory_interlock.py`, `src/oct2026_frontier_signals_and_agent_s4_airlock.py` |\n",
         "| **Layer 7** | SCITT Bitemporal Merkle Tree & Multi-Cloud | RFC 9162 / RFC 9943 Merkle trees, ZK proof rollup, PQC Post-Quantum Notary, Cross-Enterprise Federation Bridge, ZK MMR Accumulator | `src/zk_scitt_proof_rollup.py`, `src/pqc_post_quantum_notary.py`, `src/cross_enterprise_federation_bridge.py`, `src/scitt_proof_aggregation_reconciler.py`, `src/multi_cloud_failover_orchestrator.py`, `src/zk_mmr_accumulator.py` |\n",
         "| **Layer 8** | Common Criteria EAL4+ Audit & CEM Evaluator | ISO/IEC 15408-3 EAL4+ formal model runner, 8 SFRs mapped, automated ISO/IEC 18045 CEM auditor | `tools/common_criteria_eal4_runner.py`, `tools/itsef_cem_evaluation_runner.py`, `tools/itsef_mock_lab_audit_simulator.py` |\n",
@@ -913,6 +913,7 @@ def build_source_15() -> Tuple[str, str]:
         "| `src/coinbase_x402_agent_gateway.py` | `tests/test_coinbase_x402_agent_gateway.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n",
         "| `src/eo1_protocol_model_checker.py` | `tests/test_eo1_protocol_model_checker.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n",
         "| `src/mcp_outcome_normalizer.py` | `tests/test_mcp_outcome_normalizer.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n",
+        "| `src/diagnostic_normalizer.py` | `tests/test_diagnostic_normalizer.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n",
         "| `src/cloud_hsm_remote_quorum.py` | `tests/test_cloud_hsm_remote_quorum.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n",
         "| `src/edge_ai_prescreener.py` | `tests/test_edge_ai_prescreener.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n",
         "| `src/semantic_two_phase_commit.py` | `tests/test_semantic_two_phase_commit.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n",
@@ -925,9 +926,11 @@ def build_source_15() -> Tuple[str, str]:
         "| `src/iphone_enclave_notary_bridge.py` | `tests/test_iphone_enclave_notary_bridge.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n",
         "| `tools/common_criteria_eal4_runner.py` | `tests/test_common_criteria_eal4_runner.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n",
         "| `src/eo1_biometric_gate.py` | `tests/test_eo1_biometric_gate.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n",
-        "| `src/iphone_rpc_client.py` | `tests/test_iphone_rpc_client.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n\n---",
+        "| `src/iphone_rpc_client.py` | `tests/test_iphone_rpc_client.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n",
+        "| `src/sovereign_token_decree.py` | `tests/test_sovereign_token_decree.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n",
+        "| `src/token_decree_dispatch_interlock.py` | `tests/test_token_decree_dispatch_interlock.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n\n---",
         "## 3. Disclosed Surviving Mutants & Cryptographic Isolation\n\n",
-        "All 45 commissioned prototype modules have achieved 100.00% mutation adequacy (30/30 or 22/22 mutants killed each) under the AST shadow runner with zero surviving mutants across their sampled sets:\n",
+        "All 47 commissioned prototype modules have achieved 100.00% mutation adequacy (30/30 or 22/22 mutants killed each) under the AST shadow runner with zero surviving mutants across their sampled sets:\n",
         "1. All runtime path bootstrap setups (`sys.path.insert(0, str(_REPO_ROOT))`) verified with active sentinel poisoning reload checks.\n",
         "2. All configuration defaults, timeouts, and port constants verified via explicit parameter inspection and boundary checks.\n",
         "3. All millisecond timestamp defaults verified within bounded delta assertions.\n",
@@ -963,6 +966,17 @@ def build_source_16() -> Tuple[str, str]:
         "\n\n---",
         "## 4. Push-by-Design Forensic Investigation & Pre-Push Integrity Latch\n\n",
         safe_read(BRAIN_DIR / "DECIDE_REMOTE_PUSH_FAILURE_INVESTIGATION_AND_PREVENTION.md"),
+        "\n\n---",
+        "## 5. Phase VII: Pauli Imperative, Adversarial Mutation Verifier & Track 6 Evidence Sufficiency\n\n",
+        safe_read(BRAIN_DIR / "DECIDE_PHASE_VII_PAULI_EVIDENCE_SUFFICIENCY_AND_MUTATION_VERIFIER_DELIVERY.md"),
+        "\n\n### Phase VII Source: `src/adversarial_mutation_verifier.py`\n\n```python\n"
+        + safe_read(REPO_ROOT / "src" / "adversarial_mutation_verifier.py")
+        + "\n```\n\n### Phase VII Source: `src/evidence_sufficiency_and_lean_gate.py`\n\n```python\n"
+        + safe_read(REPO_ROOT / "src" / "evidence_sufficiency_and_lean_gate.py")
+        + "\n```",
+        "\n\n---",
+        "## 6. Live Money Challenges, Bug Bounties & Grants Execution Portfolio (2026)\n\n",
+        safe_read(BRAIN_DIR / "DECIDE_LIVE_MONEY_CHALLENGES_BENCHMARK_AND_FALSIFICATION_2026.md"),
     ]
     content = "\n\n".join(parts)
     return title, content

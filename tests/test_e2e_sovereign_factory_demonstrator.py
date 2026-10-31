@@ -76,6 +76,22 @@ def test_1_e2e_demonstrator_full_execution_flow() -> None:
     assert telemetry["layer7"]["ui_constraint_passed"] is True
     assert telemetry["layer7"]["visual_status_code"] == "OK_VISUAL_REGRESSION_SATISFIED"
 
+    # Layer 8 Tetragon eBPF Kernel Ingestion
+    assert passport.layer8_tetragon_receipt_caid.startswith("sha256:")
+    assert passport.layer8_integrity_score_bps == 10000
+    assert telemetry["layer8"]["status"] == "TETRAGON_EBPF_KERNEL_PEP_VERIFIED"
+
+    # Layer 9 Declarative Helm & Kustomize Manifest Synthesis
+    assert passport.layer9_helm_bundle_caid.startswith("sha256:")
+    assert passport.layer9_manifests_count == 8
+    assert telemetry["layer9"]["status"] == "KAGENT_HELM_AND_KUSTOMIZE_SYNTHESIS_VERIFIED"
+
+    # Layer 10 Multi-Region WAN Latency Hedging & Reconciler
+    assert passport.layer10_reconciliation_receipt_caid.startswith("sha256:")
+    assert passport.layer10_reconciliation_state == "COMMITTED"
+    assert passport.layer10_latency_p99_jitter_bps <= 5000
+    assert telemetry["layer10"]["status"] == "MULTI_REGION_DISTRIBUTED_RECONCILER_COMMITTED"
+
     # Performance boundary
     assert passport.execution_duration_ms >= 0
     assert passport.execution_duration_ms < 5000
@@ -93,7 +109,7 @@ def test_2_demonstrator_cli_invocation_and_disk_passport() -> None:
             str(out_path),
         ]
         res = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        assert "SOVEREIGNNEXUS SEVEN-LAYER FACTORY DEMONSTRATOR" in res.stdout
+        assert "SOVEREIGNNEXUS TEN-LAYER FACTORY DEMONSTRATOR" in res.stdout
         assert "SEALED PASSPORT WRITTEN TO" in res.stdout
         assert out_path.exists()
 
@@ -149,6 +165,9 @@ def test_4_custom_drift_threshold_and_cli_output() -> None:
     assert "layer5" in telemetry
     assert "layer6" in telemetry
     assert "layer7" in telemetry
+    assert "layer8" in telemetry
+    assert "layer9" in telemetry
+    assert "layer10" in telemetry
 
     # Verify that strict threshold (< 2223 bps) halts trajectory drift
     strict_demonstrator = SovereignFactoryDemonstrator(db_path=":memory:", max_drift_threshold_bps=1000)

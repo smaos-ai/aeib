@@ -18,11 +18,13 @@ src/eo1_protocol_model_checker.py
 Exhaustive finite-state BFS model checker (stdlib only) for the Station 1 & 2 budget /
 escrow / EO1 settle-before-retry protocol described in formal/tlaplus/AEIBStation1And2.tla.
 
-Status: prototype. ``tla2tools.jar`` is not installed on the evaluation host and network
-downloads are not permitted, so TLC was NOT run. This module re-implements the TLA+ actions
-as a Python successor function and explores every reachable state by breadth-first search
-over immutable tuples, under the declared finite constants. Results hold for the stated
-model and bounds only; they are not a proof about the Python/Rust implementation.
+Status: INTERNAL PREVIEW COMMISSIONED.
+Epistemic Boundary: Evaluated under the stated model. ``tla2tools.jar`` is not installed
+on the evaluation host and network downloads are not permitted, so TLC was NOT run.
+This module re-implements the TLA+ actions as a Python successor function and explores
+every reachable state by breadth-first search over immutable tuples, under the declared
+finite constants. Results hold for the stated model and bounds only; they are not a
+proof about the Python/Rust implementation.
 
 Model (per operation ``op``; constants from ``ModelConstants``):
   opState         IDLE | DISPATCHED | INDETERMINATE | CONFIRMED | REFUTED | REJECTED

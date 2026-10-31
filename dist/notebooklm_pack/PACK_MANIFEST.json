@@ -3,7 +3,7 @@
   "target_notebook_url": "https://notebook.google.com/notebook/e1b91409-02f9-4300-8bf7-5dfd4426dd16",
   "target_notebook_id": "e1b91409-02f9-4300-8bf7-5dfd4426dd16",
   "sources_count": 16,
-  "total_word_count": 111508,
+  "total_word_count": 111529,
   "max_words_per_source_limit": 500000,
   "notebook_source_slots_used": "16 / 50 (34 slots free)",
   "sources": [
@@ -115,9 +115,9 @@
     {
       "file_name": "15_TEN_LAYER_SOVEREIGN_FACTORY_AND_COMMISSIONED_PROTOTYPE_SPECS.md",
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/15_TEN_LAYER_SOVEREIGN_FACTORY_AND_COMMISSIONED_PROTOTYPE_SPECS.md",
-      "words": 1362,
-      "bytes": 12704,
-      "sha256": "sha256:61e0530535d5b28f2264a928de3f89045fb5cd763de4309809286ed6e7a289be"
+      "words": 1383,
+      "bytes": 12913,
+      "sha256": "sha256:9f980377a7552a08e4357286fa69e5b2a56574a7eef61678a13429e7214d4809"
     }
   ]
 }

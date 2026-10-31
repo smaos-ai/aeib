@@ -110,3 +110,16 @@ formal/bin/*.jar
 .swiftpm/
 .build_edge_ios/
 
+# Distribution tarballs, bundles, and large binary archives
+dist/*.tar.gz
+dist/*.bundle
+dist/*.dmg
+dist/*.zip
+!dist/aeib-v0.4.0-cleanroom.tar.gz
+!dist/aeib-v1.0-review.tar.gz
+!dist/aeib-pilot-evidence-pack-v1.1.0-rc.1.tar.gz
+!dist/aeib-v0.4.0-review-candidate.tar.gz
+!dist/dora_register_package_v1.zip
+!dist/aeib-0.2-synthetic-prototype-conformance-run.zip
+
+

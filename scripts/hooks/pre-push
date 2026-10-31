@@ -65,7 +65,22 @@ fallback_base() {
 
 RANGES=()  # entries "base tip"
 STDIN_SEEN=0
+INPUT_DATA=""
 if [ ! -t 0 ]; then
+    INPUT_DATA="$(cat)"
+fi
+
+# 0. Fast Pre-Push Defense-in-Depth Integrity Gate
+if [ -f "tools/pre_push_integrity_gate.py" ]; then
+    echo "🔒 [PRE-PUSH] Running Pre-Push Defense-in-Depth Integrity Gate (tools/pre_push_integrity_gate.py)..."
+    if [ -n "$INPUT_DATA" ]; then
+        printf '%s\n' "$INPUT_DATA" | "$PY" tools/pre_push_integrity_gate.py
+    else
+        "$PY" tools/pre_push_integrity_gate.py
+    fi
+fi
+
+if [ -n "$INPUT_DATA" ]; then
     while read -r local_ref local_sha remote_ref remote_sha; do
         [ -z "${local_ref:-}" ] && continue
         STDIN_SEEN=1
@@ -80,7 +95,7 @@ if [ ! -t 0 ]; then
             base="$remote_sha"
         fi
         RANGES+=("$base $local_sha")
-    done
+    done <<< "$INPUT_DATA"
 fi
 if [ "$STDIN_SEEN" -eq 0 ]; then
     tip="$(git rev-parse HEAD)"

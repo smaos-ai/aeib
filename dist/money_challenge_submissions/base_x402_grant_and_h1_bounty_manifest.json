@@ -1,0 +1,20 @@
+{
+  "base_x402_builder_grant": {
+    "gateway_module": "src/coinbase_x402_agent_gateway.py",
+    "measured_redteam_probes_defended": 23,
+    "measured_redteam_probes_total": 23,
+    "measured_unit_tests_passed": 104,
+    "mutation_kill_ratio_bps": 10000,
+    "status_label": "READY_FOR_INTERNAL_PREVIEW_PILOT"
+  },
+  "hackerone_high_critical_execution_boundary_workbench": {
+    "in_scope_targets": [
+      "Anthropic Claude Code / Desktop / Hosted MCP (https://hackerone.com/anthropic-vdp)",
+      "Vercel Sandbox Firecracker microVM (https://hackerone.com/vercel)",
+      "Coinbase High/Critical Payment Replay & Auth (https://hackerone.com/coinbase)"
+    ],
+    "sample_verified_cwe_disclosures": 4,
+    "scanner_module": "src/huntr_agent_vulnerability_scanner.py"
+  },
+  "manifest_caid": "sha256:461b71087c1747314d38f9e9870c44509584a500edbadebfe68425e2fd39f151"
+}

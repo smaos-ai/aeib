@@ -142,6 +142,10 @@ def build_source_00() -> Tuple[str, str]:
         "- Use **Source 10** for October 30, 2026 SOTA Breakthroughs: MIT CSAIL SwaT Heterogeneous Airlock, HeteroFold Procrustes Alignment, Griffiths Merkle History, DeepSeek 5-Step Idempotency Reconciler, HyperSU Raw-History Pointer Cache, Daniel Curtis InfoQ Regeneratable UI Constraint Compiler, and Visual Regression Gate.",
         "- Use **Source 11** for Agent Substrate, Tencent Cube Auto-Pause, Kiro Blast Radius AST Governor, and A2A Trajectory Interlock.",
         "- Use **Source 12** for the Common Criteria (ISO/IEC 15408) EAL4+ Security Target, SFR/SAR Physical Implementation Mappings, TLC 34,047-State Model Checker Verification, and the Multi-Region Edge Latch Mesh Benchmark (9,948 bps latency reduction).",
+        "- Use **Source 13** for Tetragon eBPF LSM Profiles, Kagent Helm Charts, and the Distributed Reconciler.",
+        "- Use **Source 14** for the Common Criteria Submission Pack and Multi-Region Rollout Gate.",
+        "- Use **Source 15** for the Ten-Layer Sovereign Factory Architecture and 45 Commissioned Prototype Module Specifications.",
+        "- Use **Source 16** for October 31, 2026 Phase V Deliverables & Pre-Market Reality Audit: Unified 5-Station Sovereign Execution Kernel (`src/sovereign_phase_v_kernel.py`), 14-Item Temporal Authority & Async Execution Guard (`src/temporal_authority_guard.py`), Monotonic A2A Cryptographic Delegation DAG (`src/crypto_delegation_graph.py`), SQLite FTS5 Bitemporal Provenance & Truth Decay Engine (`src/temporal_graph_router.py`), 4-Tier Sovereign Token Decree Governor (`src/sovereign_token_decree.py` & `src/token_decree_dispatch_interlock.py`), Autonomous PR Webhook Dispatcher (`src/autonomous_pr_webhook_dispatcher.py`), and Client-Side Pre-Push Integrity Latch (`tools/pre_push_integrity_gate.py`).",
     ]
     return title, "\n\n".join(parts)
 
@@ -865,7 +869,7 @@ def build_source_15() -> Tuple[str, str]:
         "|:---:|:---|:---|:---|\n",
         "| **Layer 0** | Hardware Root of Trust | Secure Enclave NIST P-256 / Ed25519 signing, Multi-Cloud HSM Remote Quorum, Cold Storage Airgap Gateway, Enclave Proximity Attestation, TPM 2.0 PCR-11 Aggregator, Heterogeneous CVM Interlock, Confidential Container Attestation Proxy, Verifiable ORAM Shuffler | `src/cloud_hsm_remote_quorum.py`, `src/cold_storage_airgap_gateway.py`, `src/enclave_proximity_attestation.py`, `src/zk_tpm_pcr_aggregator.py`, `src/confidential_vm_migration_interlock.py`, `src/coco_attestation_proxy.py`, `tools/airgap_qr_terminal.py`, `src/cold_storage_hardware_ledger.py`, `src/iphone_enclave_notary_bridge.py`, `src/iphone_rpc_client.py`, `src/oram_memory_shuffler.py` |\n",
         "| **Layer 1** | OS Kernel & eBPF LSM Interception | In-kernel socket and filesystem mediation, Tetragon eBPF telemetry, strict cgroup sandbox, dynamic eBPF tail-call hot-patching, XDP line-rate ingress rate-limiter, WireGuard overlay interlock, Enclave eBPF Policy Loader | `src/bpf_lsm_profile_compiler.py`, `src/ebpf_agent_guard_controller.py`, `src/tetragon_ebpf_stream_parser.py`, `src/ebpf_tail_call_hotpatch.py`, `src/xdp_ingress_ratelimiter.py`, `src/wireguard_overlay_interlock.py`, `src/enclave_bpf_policy_loader.py` |\n",
-        "| **Layer 2** | Typestate Physics & Static AST Filter | Dimensional conservation ($0 token cost), hardware boundary ceilings, AST purity & anti-mocking, Exhaustive Finite-State Model Checker | `src/physical_typestate_enforcer.py`, `compliance/ast_purity.py`, `compliance/claim_integrity_gate.py`, `src/eo1_protocol_model_checker.py` |\n",
+        "| **Layer 2** | Typestate Physics & Static AST Filter | Dimensional conservation ($0 token cost), hardware boundary ceilings, AST purity & anti-mocking, Exhaustive Finite-State Model Checker, Sovereign Token Decree Governor | `src/physical_typestate_enforcer.py`, `compliance/ast_purity.py`, `compliance/claim_integrity_gate.py`, `src/eo1_protocol_model_checker.py`, `src/sovereign_token_decree.py`, `src/token_decree_dispatch_interlock.py` |\n",
         "| **Layer 3** | Edge Ingress, Triage & Prescreening | Sub-20ms edge triage, integer basis points risk, BGP Anycast routing interlock, FaceID biometric gate, Cross-Cloud WireGuard Overlay Mesh, Hardened x402 Commerce Gateway | `src/edge_triage_router.py`, `src/edge_ai_prescreener.py`, `src/bgp_anycast_routing_interlock.py`, `src/multi_region_canary_ingress.py`, `src/eo1_biometric_gate.py`, `src/live_biometric_latch_bridge.py`, `src/wireguard_overlay_interlock.py`, `src/coinbase_x402_agent_gateway.py` |\n",
         "| **Layer 4** | Transactional ACID State Coordinator | Row-level semantic locks, 2PC prepare/commit, Autonomic State Reconciler, Quorum Jitter Fuzzer, Byzantine Timewarp Harness, Byzantine Homomorphic Gossip Sync, Pre-Socket Escrow Latch | `src/semantic_two_phase_commit.py`, `src/autonomic_state_reconciler.py`, `src/quorum_jitter_fuzzer.py`, `src/byzantine_consensus_timewarp.py`, `src/sqlite_acid_tcc_boundary.py`, `src/multi_region_edge_latch_mesh.py`, `src/homomorphic_gossip_sync.py`, `src/coinbase_x402_agent_gateway.py` |\n",
         "| **Layer 5** | Execution Integrity & Deception Reconciler | 4-arm benchmark matrix, counter-factual audit, Circuit-Breaker Failsafe Mesh, MCP Action-vs-Outcome Normalizer | `src/counterfeit_execution_tracker.py`, `src/agent_decept_reconciler.py`, `src/autonomic_circuit_breaker_mesh.py`, `src/mcp_outcome_normalizer.py`, `execution-integrity-benchmark` |\n",
@@ -940,6 +944,30 @@ def build_source_15() -> Tuple[str, str]:
     return title, content
 
 
+def build_source_16() -> Tuple[str, str]:
+    title = "16_OCTOBER_31_PHASE_V_5_STATION_KERNEL_TEMPORAL_AUTHORITY_AND_PREMARKET_AUDIT.md"
+    parts = [
+        "# Source 16: October 31, 2026 Phase V 5-Station Kernel, Temporal Authority, Monotonic Delegation & Pre-Market Audit",
+        "**Document ID:** `SN-PACK-SRC-016`  \n"
+        "**Status:** INTERNAL PREVIEW COMMISSIONED  \n"
+        "**Target Notebook:** `https://notebook.google.com/notebook/e1b91409-02f9-4300-8bf7-5dfd4426dd16`  \n"
+        "**Epistemic Boundary:** Evaluated under the stated model; prototype; observed across local verification runs; zero mocks, zero floats in RFC 8785 JCS payloads, integer basis points (`0..10000 bps`).\n\n---",
+        "## 1. Phase V Master Blueprint & 5-Station Control Plane Delivery\n\n",
+        safe_read(BRAIN_DIR / "DECIDE_MASTER_BLUEPRINT_5_STATION_KERNEL_AND_BENCHMARK_DELIVERY.md"),
+        "\n\n---",
+        "## 2. Parallel Recommendations, Temporal Authority & Monotonic Delegation Delivery\n\n",
+        safe_read(BRAIN_DIR / "DECIDE_FULL_PARALLEL_RECOMMENDATIONS_AND_NEXT_EXECUTION_DELIVERY.md"),
+        "\n\n---",
+        "## 3. Token Economy Governance & Autonomous PR Webhook Dispatcher\n\n",
+        safe_read(BRAIN_DIR / "DECIDE_PARALLEL_RESEARCH_CUTTING_EDGE_SOTA_MOAT_DELIVERY.md"),
+        "\n\n---",
+        "## 4. Push-by-Design Forensic Investigation & Pre-Push Integrity Latch\n\n",
+        safe_read(BRAIN_DIR / "DECIDE_REMOTE_PUSH_FAILURE_INVESTIGATION_AND_PREVENTION.md"),
+    ]
+    content = "\n\n".join(parts)
+    return title, content
+
+
 def compile_all_sources() -> Dict[str, Any]:
     DIST_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -960,6 +988,7 @@ def compile_all_sources() -> Dict[str, Any]:
         build_source_13,
         build_source_14,
         build_source_15,
+        build_source_16,
     ]
 
     manifest_entries = []

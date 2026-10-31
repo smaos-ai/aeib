@@ -1,0 +1,3 @@
+[submodule "aeib-receipt-fuzzer"]
+	path = aeib-receipt-fuzzer
+	url = https://github.com/smaos-ai/aeib-receipt-fuzzer.git

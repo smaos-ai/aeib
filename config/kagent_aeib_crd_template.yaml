@@ -1,0 +1,65 @@
+# Copyright 2026 SovereignNexus Project
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+---
+apiVersion: kagent.dev/v1alpha1
+kind: Harness
+metadata:
+  name: sovereign-production-harness
+  namespace: sovereign-system
+spec:
+  runtime:
+    # Agent Substrate: gVisor or Cloud Hypervisor MicroVM isolation
+    sandboxClass: gvisor
+    workerPoolRef:
+      name: prewarmed-gvisor-workers
+      targetResumptionLatencyMs: 250
+
+  security:
+    # Mandatory SPIFFE X.509-SVID identity
+    spiffeId: spiffe://sovereign.nexus/ns/prod/actor/harness-lead-01
+    ebpfEnforcement:
+      engine: tetragon
+      profileDigest: sha256:117c15931c87bae1e291d0042456424564245642456424564245642456424564
+
+  network:
+    # agentgateway default-deny egress proxy
+    egressMode: default-deny
+    agentgatewayRef: agentgateway-egress.sovereign-system.svc.cluster.local:443
+    allowedHosts:
+      - api.stripe.com
+      - api.github.com
+      - us-east1-aiplatform.googleapis.com
+
+  env:
+    # Credential Blindness: raw secrets strictly prohibited in Actor container
+    - name: STRIPE_API_KEY
+      value: "{{VAULT:STRIPE_LIVE_KEY}}"
+    - name: GITHUB_TOKEN
+      value: "{{VAULT:GITHUB_APP_TOKEN}}"
+
+  lifecycle:
+    # EO1 Write-Before-Execute & Durable SQLite-WAL AutoPause hook
+    eo1IntentLatch: true
+    autopausePersistence: sqlite-wal
+    indeterminateActionPolicy: HALT_AWAITING_RECONCILIATION_PROBE
+
+  governance:
+    # SEMA-Auto Trajectory Drift Cap (integer basis points, 0..10000 bps)
+    maxDriftThresholdBps: 3500
+    # AST Transitive Blast Radius Cap
+    maxBlastRadiusBps: 3000
+    # Kiro Autonomous PR Single-Change Limits
+    singlePrMaxLines: 50
+    singlePrMaxFiles: 3
+    cumulativeEpochMaxLines: 1200

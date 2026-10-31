@@ -196,6 +196,17 @@ def test_04_nominal_fuzz_simulation(fuzzer: QuorumJitterFuzzer) -> None:
     assert r.packets_dropped == 0
     assert r.receipt_caid.startswith("sha256:")
 
+    # Default now_ms omitted (testing exact 1000 scaling)
+    t_start = int(time.time() * 1000)
+    r_def = fuzzer.run_fuzz_simulation(
+        epoch_id="epoch-100",
+        fuzz_seed=42,
+        nodes_count=5,
+        quorum_threshold=3,
+    )
+    t_end = int(time.time() * 1000)
+    assert t_start <= r_def.timestamp_ms <= t_end + 100
+
 
 def test_05_high_jitter_degraded_quorum(fuzzer: QuorumJitterFuzzer) -> None:
     # Jitter = 6000 bps > 4800 bps threshold
@@ -254,12 +265,23 @@ def test_08_input_validations(fuzzer: QuorumJitterFuzzer) -> None:
 
 def test_09_sqlite_persistence_and_queries(temp_db: str) -> None:
     f = QuorumJitterFuzzer(fuzzer_id="fuzzer-sql", db_path=temp_db)
-    r = f.run_fuzz_simulation("ep-sql", fuzz_seed=99, drop_rate_bps=0, now_ms=1700000000000)
+    r1 = f.run_fuzz_simulation("ep-sql", fuzz_seed=99, drop_rate_bps=0, now_ms=1700000000000)
+    # Run with 100% drop rate so quorum_reached is False
+    r2 = f.run_fuzz_simulation("ep-sql-fail", fuzz_seed=99, drop_rate_bps=10000, now_ms=1700000000100)
 
     records = f.get_ledger_records(limit=10)
-    assert len(records) == 1
-    assert records[0]["fuzz_run_id"] == r.fuzz_run_id
-    assert records[0]["status"] == STATUS_QUORUM_CONVERGED
+    assert len(records) == 2
+    # Ordered DESC by timestamp_ms: records[0] is r2 (failed), records[1] is r1 (converged)
+    assert records[0]["fuzz_run_id"] == r2.fuzz_run_id
+    assert records[0]["quorum_reached"] is False
+    assert records[0]["status"] == STATUS_QUORUM_FAILED_PARTITION
+    assert records[0]["packets_dropped"] == 5
+    assert records[0]["packets_sent"] == 5
+    assert records[0]["receipt_caid"].startswith("sha256:")
+
+    assert records[1]["fuzz_run_id"] == r1.fuzz_run_id
+    assert records[1]["quorum_reached"] is True
+    assert records[1]["status"] == STATUS_QUORUM_CONVERGED
     f.close()
 
     conn = sqlite3.connect(temp_db)
@@ -288,6 +310,12 @@ def test_10_exact_mutation_boundaries(temp_db: str) -> None:
     assert len(r_def.fuzz_run_id) == 17
 
     # Test drop_rate_bps=10000 exact boundary drops all packets
+    # Seed 722 specifically generates 10000 under randint(0, 10000) but 2483 under randint(0, 9999)
+    r_722 = f.run_fuzz_simulation("ep-seed722", fuzz_seed=722, drop_rate_bps=10000, nodes_count=1, quorum_threshold=1)
+    assert r_722.packets_dropped == 1
+    assert r_722.packets_sent == 1
+    assert r_722.quorum_reached is False
+
     r_all_drop = f.run_fuzz_simulation("ep-drop-all", drop_rate_bps=10000, nodes_count=4, quorum_threshold=2)
     assert r_all_drop.packets_dropped == 4
     assert r_all_drop.packets_sent == 4

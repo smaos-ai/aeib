@@ -229,7 +229,7 @@ def test_08_fail_closed_evaluation_and_commitment_mismatch() -> None:
     proof = aggregator.aggregate_quotes([q1, q2], epoch=100)
 
     # Test count mismatch in verify_proof (line 407)
-    with pytest.raises(ZkPcrVerificationError) as exc_count:
+    with pytest.raises(ZkPcrVerificationError, match="Quote count 1 does not match proof node count 2") as exc_count:
         aggregator.verify_proof(proof, [q1])
     assert exc_count.value.code == HALT_ZK_PCR_COMMITMENT_MISMATCH
 
@@ -330,6 +330,10 @@ def test_09_sqlite_persistence_and_queries() -> None:
 
 
 def test_10_exact_mutation_boundaries() -> None:
+    # Test BN254 scalar field prime constant
+    from src.zk_tpm_pcr_aggregator import BN254_SCALAR_FIELD_PRIME
+    assert BN254_SCALAR_FIELD_PRIME == 21888242871839275222246405745257275088548364400416034343698204186575808495617
+
     # Test single-node Horner evaluation boundary
     assert evaluate_polynomial_horner([42], 999) == 42
 

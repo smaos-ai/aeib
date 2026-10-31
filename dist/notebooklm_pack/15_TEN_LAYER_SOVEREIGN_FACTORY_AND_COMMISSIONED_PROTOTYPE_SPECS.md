@@ -21,7 +21,7 @@ The SovereignNexus agent infrastructure stack integrates ten deterministic opera
 |:---:|:---|:---|:---|
 
 
-| **Layer 0** | Hardware Root of Trust | Secure Enclave NIST P-256 / Ed25519 signing, Multi-Cloud HSM Remote Quorum, Cold Storage Airgap Gateway, Enclave Proximity Attestation, USB storage | `src/cloud_hsm_remote_quorum.py`, `src/cold_storage_airgap_gateway.py`, `src/enclave_proximity_attestation.py`, `tools/airgap_qr_terminal.py`, `src/cold_storage_hardware_ledger.py`, `src/iphone_enclave_notary_bridge.py`, `src/iphone_rpc_client.py` |
+| **Layer 0** | Hardware Root of Trust | Secure Enclave NIST P-256 / Ed25519 signing, Multi-Cloud HSM Remote Quorum, Cold Storage Airgap Gateway, Enclave Proximity Attestation, TPM 2.0 PCR-11 Aggregator | `src/cloud_hsm_remote_quorum.py`, `src/cold_storage_airgap_gateway.py`, `src/enclave_proximity_attestation.py`, `src/zk_tpm_pcr_aggregator.py`, `tools/airgap_qr_terminal.py`, `src/cold_storage_hardware_ledger.py`, `src/iphone_enclave_notary_bridge.py`, `src/iphone_rpc_client.py` |
 
 
 | **Layer 1** | OS Kernel & eBPF LSM Interception | In-kernel socket and filesystem mediation, Tetragon eBPF telemetry, strict cgroup sandbox | `src/bpf_lsm_profile_compiler.py`, `src/ebpf_agent_guard_controller.py`, `src/tetragon_ebpf_stream_parser.py` |
@@ -33,7 +33,7 @@ The SovereignNexus agent infrastructure stack integrates ten deterministic opera
 | **Layer 3** | Edge Ingress, Triage & Prescreening | Sub-20ms edge triage, integer basis points risk, BGP Anycast routing interlock, FaceID biometric gate | `src/edge_triage_router.py`, `src/edge_ai_prescreener.py`, `src/bgp_anycast_routing_interlock.py`, `src/multi_region_canary_ingress.py`, `src/eo1_biometric_gate.py`, `src/live_biometric_latch_bridge.py` |
 
 
-| **Layer 4** | Transactional ACID State Coordinator | Row-level semantic locks, 2PC prepare/commit, Autonomic State Reconciler, automatic rollback on transport drop | `src/semantic_two_phase_commit.py`, `src/autonomic_state_reconciler.py`, `src/sqlite_acid_tcc_boundary.py`, `src/multi_region_edge_latch_mesh.py` |
+| **Layer 4** | Transactional ACID State Coordinator | Row-level semantic locks, 2PC prepare/commit, Autonomic State Reconciler, Quorum Jitter Fuzzer | `src/semantic_two_phase_commit.py`, `src/autonomic_state_reconciler.py`, `src/quorum_jitter_fuzzer.py`, `src/sqlite_acid_tcc_boundary.py`, `src/multi_region_edge_latch_mesh.py` |
 
 
 | **Layer 5** | Execution Integrity & Deception Reconciler | 4-arm benchmark matrix, counter-factual audit, Circuit-Breaker Failsafe Mesh | `src/counterfeit_execution_tracker.py`, `src/agent_decept_reconciler.py`, `src/autonomic_circuit_breaker_mesh.py`, `execution-integrity-benchmark` |
@@ -115,6 +115,12 @@ All commissioned modules have achieved $\ge 80.00\%$ mutation adequacy kill rati
 
 
 | `src/autonomic_circuit_breaker_mesh.py` | `tests/test_autonomic_circuit_breaker_mesh.py` | 30 | 30 | **100.00%** | `[8864..10000 bps]` |
+
+
+| `src/quorum_jitter_fuzzer.py` | `tests/test_quorum_jitter_fuzzer.py` | 30 | 30 | **100.00%** | `[8864..10000 bps]` |
+
+
+| `src/zk_tpm_pcr_aggregator.py` | `tests/test_zk_tpm_pcr_aggregator.py` | 30 | 30 | **100.00%** | `[8864..10000 bps]` |
 
 
 | `src/cloud_hsm_remote_quorum.py` | `tests/test_cloud_hsm_remote_quorum.py` | 30 | 29 | **96.67%** | `[8333..9941 bps]` |

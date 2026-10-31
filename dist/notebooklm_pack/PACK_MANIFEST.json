@@ -2,10 +2,10 @@
   "pack_version": "v1.0.0",
   "target_notebook_url": "https://notebook.google.com/notebook/e1b91409-02f9-4300-8bf7-5dfd4426dd16",
   "target_notebook_id": "e1b91409-02f9-4300-8bf7-5dfd4426dd16",
-  "sources_count": 13,
-  "total_word_count": 108400,
+  "sources_count": 14,
+  "total_word_count": 109077,
   "max_words_per_source_limit": 500000,
-  "notebook_source_slots_used": "13 / 50 (37 slots free)",
+  "notebook_source_slots_used": "14 / 50 (36 slots free)",
   "sources": [
     {
       "file_name": "00_EXECUTIVE_BRIEFING_FOR_CONSIDERATION.md",
@@ -87,9 +87,9 @@
     {
       "file_name": "11_AGENT_SUBSTRATE_TENCENT_CUBE_KIRO_AND_A2A_INTERLOCK.md",
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/11_AGENT_SUBSTRATE_TENCENT_CUBE_KIRO_AND_A2A_INTERLOCK.md",
-      "words": 1139,
-      "bytes": 10378,
-      "sha256": "sha256:424fa828dcce39d12814705a5aa40b1518f303fe58844b32acccad32926d6dfb"
+      "words": 1157,
+      "bytes": 10610,
+      "sha256": "sha256:8ce6d2b19079634cb8c1a0feddf7688e9e44447406bb4d83ec5ab6c95510d602"
     },
     {
       "file_name": "12_COMMON_CRITERIA_EAL4_AND_MULTI_REGION_EDGE_LATCH.md",
@@ -97,6 +97,13 @@
       "words": 1154,
       "bytes": 9840,
       "sha256": "sha256:676671736b594494a121514fbbf0ad2591727cf5e1d6cf6eb32caf75e38f6695"
+    },
+    {
+      "file_name": "13_TETRAGON_EBPF_KAGENT_HELM_AND_DISTRIBUTED_RECONCILER.md",
+      "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/13_TETRAGON_EBPF_KAGENT_HELM_AND_DISTRIBUTED_RECONCILER.md",
+      "words": 659,
+      "bytes": 5408,
+      "sha256": "sha256:dd68d22a3fef58167c2f3177764934e7a9b36ea015f827e04c5fe4b6629e8980"
     }
   ]
 }

@@ -125,6 +125,8 @@ All modules reside within the SovereignNexus repository and are cryptographicall
 - SEMA-Auto Swarm Simulator: `src/sema_auto_swarm_simulator.py`
 - Durable WAL & Simulator: `src/kiro_1000pr_and_cube_wal_simulator.py`
 - kagent CRD Policy Validator: `src/kagent_crd_adapter.py`
+- kagent Helm Generator: `src/kagent_helm_generator.py`
+- Distributed agentgateway Reconciler: `src/distributed_agentgateway_reconciler.py`
 - Multi-Region Edge Latch Mesh: `src/multi_region_edge_latch_mesh.py`
 - Tetragon eBPF Stream Parser: `src/tetragon_ebpf_stream_parser.py`
-- Unified Verification Suites: `tests/test_substrate_cube_and_blast_radius.py`, `tests/test_kiro_1000pr_and_cube_wal.py`, `tests/test_a2a_trajectory_interlock.py`, `tests/test_sema_auto_swarm_simulator.py`, `tests/test_external_idempotency_probes.py`, `tests/test_kagent_crd_adapter.py`, `tests/test_multi_region_edge_latch_mesh.py`, `tests/test_tetragon_ebpf_stream_parser.py`
+- Unified Verification Suites: `tests/test_substrate_cube_and_blast_radius.py`, `tests/test_kiro_1000pr_and_cube_wal.py`, `tests/test_a2a_trajectory_interlock.py`, `tests/test_sema_auto_swarm_simulator.py`, `tests/test_external_idempotency_probes.py`, `tests/test_kagent_crd_adapter.py`, `tests/test_kagent_helm_generator.py`, `tests/test_distributed_agentgateway_reconciler.py`, `tests/test_multi_region_edge_latch_mesh.py`, `tests/test_tetragon_ebpf_stream_parser.py`

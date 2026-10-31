@@ -244,6 +244,22 @@ def test_input_validation(dummy_enclave_keypair):
             expires_at_epoch_sec=-1,
         )
 
+    # Exact boundary check at 1 for spending_cap_minor and expires_at_epoch_sec
+    m_boundary = AP2IntentMandate(
+        mandate_id="m_boundary",
+        task_id="t_boundary",
+        intent_caid="sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        spending_cap_minor=1,
+        allowed_rails=(),
+        attempt_fence=1,
+        expires_at_epoch_sec=1,
+    )
+    can_dict = m_boundary.to_canonical_dict()
+    assert can_dict is not None
+    assert int(can_dict["spending_cap_minor"]) == 1
+    assert int(can_dict["expires_at_epoch_sec"]) == 1
+    assert can_dict["mandate_id"] == "m_boundary"
+
 
 def test_rejections_and_tamper_branches(dummy_enclave_keypair):
     priv, x963_hex = dummy_enclave_keypair

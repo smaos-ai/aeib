@@ -42,7 +42,7 @@ The SovereignNexus agent infrastructure stack integrates ten deterministic opera
 | **Layer 6** | Autonomous Evolution & Trajectory Airlock | Multi-candidate evolutionary selection, SEMA-Auto trajectory tracking, zero-regression airlock | `src/evolutionary_orchestrator.py`, `src/a2a_trajectory_interlock.py`, `src/oct2026_frontier_signals_and_agent_s4_airlock.py` |
 
 
-| **Layer 7** | SCITT Bitemporal Merkle Tree & Multi-Cloud | RFC 9162 / RFC 9943 Merkle trees, ZK proof rollup, PQC Post-Quantum Notary, Cross-Enterprise Federation Bridge | `src/zk_scitt_proof_rollup.py`, `src/pqc_post_quantum_notary.py`, `src/cross_enterprise_federation_bridge.py`, `src/scitt_proof_aggregation_reconciler.py`, `src/multi_cloud_failover_orchestrator.py` |
+| **Layer 7** | SCITT Bitemporal Merkle Tree & Multi-Cloud | RFC 9162 / RFC 9943 Merkle trees, ZK proof rollup, PQC Post-Quantum Notary, Cross-Enterprise Federation Bridge, ZK MMR Accumulator | `src/zk_scitt_proof_rollup.py`, `src/pqc_post_quantum_notary.py`, `src/cross_enterprise_federation_bridge.py`, `src/scitt_proof_aggregation_reconciler.py`, `src/multi_cloud_failover_orchestrator.py`, `src/zk_mmr_accumulator.py` |
 
 
 | **Layer 8** | Common Criteria EAL4+ Audit & CEM Evaluator | ISO/IEC 15408-3 EAL4+ formal model runner, 8 SFRs mapped, automated ISO/IEC 18045 CEM auditor | `tools/common_criteria_eal4_runner.py`, `tools/itsef_cem_evaluation_runner.py`, `tools/itsef_mock_lab_audit_simulator.py` |
@@ -136,6 +136,9 @@ All commissioned modules have achieved $\ge 80.00\%$ mutation adequacy kill rati
 
 
 | `src/xdp_ingress_ratelimiter.py` | `tests/test_xdp_ingress_ratelimiter.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
+
+| `src/zk_mmr_accumulator.py` | `tests/test_zk_mmr_accumulator.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
 
 
 | `src/cloud_hsm_remote_quorum.py` | `tests/test_cloud_hsm_remote_quorum.py` | 30 | 29 | **96.67%** | `[8333..9941 bps]` |

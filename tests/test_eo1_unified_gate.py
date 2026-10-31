@@ -210,6 +210,11 @@ def test_legal_blocker_escalation_freezes_task(git_workspace: Path) -> None:
     assert ticket.ticket_caid.startswith("sha256:")
     assert gate.is_write_revoked("task_stuck") is True
 
+    # BlockerTicket immutability verification (kills line 128 constant True perturbation)
+    from dataclasses import FrozenInstanceError
+    with pytest.raises(FrozenInstanceError):
+        ticket.task_id = "tampered_task"
+
     # Test ticket dictionary serialization
     td = ticket.to_dict()
     assert td["task_id"] == "task_stuck"

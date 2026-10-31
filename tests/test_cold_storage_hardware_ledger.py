@@ -198,3 +198,19 @@ def test_ledger_block_immutability(ledger_setup):
     with pytest.raises(Exception):
         block.block_index = 999
 
+
+def test_sys_path_bootstrap_exact_boundary():
+    """Verifies sys.path.insert(0) boundary in cold_storage_hardware_ledger."""
+    import importlib
+    import sys
+    from pathlib import Path
+    import src.cold_storage_hardware_ledger as mod
+    repo_str = str(Path(mod.__file__).resolve().parent.parent)
+    orig_path = list(sys.path)
+    try:
+        sys.path = ["/dummy_marker"] + [p for p in sys.path if p != repo_str]
+        importlib.reload(mod)
+        assert sys.path[0] == repo_str
+    finally:
+        sys.path = orig_path
+

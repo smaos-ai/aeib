@@ -327,3 +327,19 @@ def test_6_helper_methods_and_input_validations() -> None:
     assert mandate is not None
     assert mandate.spending_cap_minor == 1  # defaulted to 1
     assert mandate.expires_at_epoch_sec == now_epoch + 60  # defaulted to min 60s TTL
+
+
+def test_7_sys_path_bootstrap_exact_boundary() -> None:
+    """Verifies sys.path.insert(0) boundary in live_biometric_latch_bridge."""
+    import importlib
+    import sys
+    from pathlib import Path
+    import src.live_biometric_latch_bridge as mod
+    repo_str = str(Path(mod.__file__).resolve().parent.parent)
+    orig_path = list(sys.path)
+    try:
+        sys.path = ["/dummy_marker"] + [p for p in sys.path if p != repo_str]
+        importlib.reload(mod)
+        assert sys.path[0] == repo_str
+    finally:
+        sys.path = orig_path

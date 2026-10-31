@@ -156,22 +156,22 @@ All commissioned modules have achieved $\ge 80.00\%$ mutation adequacy kill rati
 | `src/coinbase_x402_agent_gateway.py` | `tests/test_coinbase_x402_agent_gateway.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
 
 
-| `src/cloud_hsm_remote_quorum.py` | `tests/test_cloud_hsm_remote_quorum.py` | 30 | 29 | **96.67%** | `[8333..9941 bps]` |
+| `src/cloud_hsm_remote_quorum.py` | `tests/test_cloud_hsm_remote_quorum.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
 
 
-| `src/edge_ai_prescreener.py` | `tests/test_edge_ai_prescreener.py` | 30 | 29 | **96.67%** | `[8332..9941 bps]` |
+| `src/edge_ai_prescreener.py` | `tests/test_edge_ai_prescreener.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
 
 
-| `src/semantic_two_phase_commit.py` | `tests/test_semantic_two_phase_commit.py` | 30 | 29 | **96.67%** | `[8332..9941 bps]` |
+| `src/semantic_two_phase_commit.py` | `tests/test_semantic_two_phase_commit.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
 
 
-| `src/cold_storage_hardware_ledger.py` | `tests/test_cold_storage_hardware_ledger.py` | 30 | 29 | **96.67%** | `[8332..9941 bps]` |
+| `src/cold_storage_hardware_ledger.py` | `tests/test_cold_storage_hardware_ledger.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
 
 
-| `src/eo1_unified_gate.py` | `tests/test_eo1_unified_gate.py` | 30 | 29 | **96.67%** | `[8332..9941 bps]` |
+| `src/eo1_unified_gate.py` | `tests/test_eo1_unified_gate.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
 
 
-| `src/live_biometric_latch_bridge.py` | `tests/test_live_biometric_latch_bridge.py` | 30 | 29 | **96.67%** | `[8332..9941 bps]` |
+| `src/live_biometric_latch_bridge.py` | `tests/test_live_biometric_latch_bridge.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
 
 
 | `tools/itsef_mock_lab_audit_simulator.py` | `tests/test_itsef_mock_lab_audit_simulator.py` | 30 | 28 | **93.33%** | `[7868..9815 bps]` |
@@ -209,7 +209,7 @@ The few surviving mutants across the commissioned suite are strictly constrained
 2. Non-essential default timeout integers: e.g. `timeout_sec=60` in RPC client, where external callers pass explicit timeouts.
 
 
-3. Millisecond timestamp defaults: e.g. `int(time.time() * 1000)` perturbed to 1001 in `src/cloud_hsm_remote_quorum.py` and `tools/itsef_mock_lab_audit_simulator.py`.
+3. Millisecond timestamp defaults: e.g. `int(time.time() * 1000)` perturbed to 1001 in `tools/itsef_mock_lab_audit_simulator.py`.
 
 
 4. Multi-branch RFC 9162 index shift: non-critical loop boundary paths in Merkle consistency proof verification where equivalent mathematical reductions occur.

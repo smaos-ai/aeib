@@ -660,5 +660,24 @@ def test_17_coordinator_and_node_edge_branches() -> None:
     bad_status_cert = dict(cert_base, receipt=bad_status_receipt, certificate_caid=bad_status_caid)
     assert coord.verify_quorum_certificate(bad_status_cert) is False
 
+    # 7. evaluate_quorum with default evaluation_time_ms=None (kills line 482 constant 1000 perturbation)
+    node_b = CloudHsmEnclaveNode("node-edge-b", "AWS_KMS", "ED25519")
+    coord.register_node_record(node_b.to_record())
+    share_b = node_b.sign_share("ACTION", compute_sha256_caid({"msg": "test_eval_time"}).split("sha256:")[1], 1, nonce="edge-nonce-b")
+    share_a = node.sign_share("ACTION", compute_sha256_caid({"msg": "test_eval_time"}).split("sha256:")[1], 1, nonce="edge-nonce-a")
+    t_eval_before = int(time.time() * 1000)
+    receipt_default_eval = coord.evaluate_quorum(
+        action_type="ACTION",
+        payload={"msg": "test_eval_time"},
+        shares=[share_a, share_b],
+        cluster_epoch_id=1,
+        evaluation_time_ms=None,
+    )
+    t_eval_after = int(time.time() * 1000)
+    assert t_eval_before <= receipt_default_eval.sealed_at_epoch_ms <= t_eval_after + 500
+    assert abs(receipt_default_eval.sealed_at_epoch_ms - t_eval_before) <= 500
+    cert_default_eval = coord.export_quorum_certificate(receipt_default_eval)
+    assert coord.verify_quorum_certificate(cert_default_eval) is True
+
 
 

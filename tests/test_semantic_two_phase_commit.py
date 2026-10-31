@@ -182,3 +182,19 @@ def test_9_finalize_nominal_commit() -> None:
     assert coord.read_committed("untouched") == "keep"
     assert coord.is_key_locked("counter") is False
     assert coord.current_state_caid() == receipt.post_state_caid
+
+
+def test_10_sys_path_bootstrap_exact_boundary() -> None:
+    """Verifies sys.path.insert(0) boundary in semantic_two_phase_commit."""
+    import importlib
+    import sys
+    from pathlib import Path
+    import src.semantic_two_phase_commit as mod
+    repo_str = str(Path(mod.__file__).resolve().parent.parent)
+    orig_path = list(sys.path)
+    try:
+        sys.path = ["/dummy_marker"] + [p for p in sys.path if p != repo_str]
+        importlib.reload(mod)
+        assert sys.path[0] == repo_str
+    finally:
+        sys.path = orig_path

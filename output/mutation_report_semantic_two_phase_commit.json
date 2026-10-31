@@ -1,0 +1,350 @@
+{
+  "baseline_suite_passed": true,
+  "elapsed_total_s": 14.019,
+  "invalid": 0,
+  "kill_ratio": 1.0,
+  "killed": 30,
+  "mutants_sampled": 30,
+  "outcomes": [
+    {
+      "elapsed_s": 0.362,
+      "mutant_sha256": "f49139cf0cc7e4f0a040215e74dc3e39aab479f5a2b8d2fcdd6c867773c430c7",
+      "site": {
+        "description": "constant 0 perturbed",
+        "lineno": 34,
+        "node_index": 53,
+        "operator": "CONST_PERTURB"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.291,
+      "mutant_sha256": "ae551bd6b4f3fc221e6f76ab347292cc4541061813219cd06b51296058fc64a7",
+      "site": {
+        "description": "return value replaced with None",
+        "lineno": 52,
+        "node_index": 69,
+        "operator": "RETURN_NONE"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.423,
+      "mutant_sha256": "9e8980975e68245ebcdf0d46166670db56f131bead3c50bedc7dac6ee1139420",
+      "site": {
+        "description": "return value replaced with None",
+        "lineno": 77,
+        "node_index": 83,
+        "operator": "RETURN_NONE"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.307,
+      "mutant_sha256": "d8d262247f0478421e6f2e29eda583f14855058c24a8c7960b1ccab862fa7689",
+      "site": {
+        "description": "return value replaced with None",
+        "lineno": 82,
+        "node_index": 88,
+        "operator": "RETURN_NONE"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.331,
+      "mutant_sha256": "10de98079a798f7841572bd9387cf6483d7088473cbc7c7fabafe023136fd791",
+      "site": {
+        "description": "return value replaced with None",
+        "lineno": 85,
+        "node_index": 91,
+        "operator": "RETURN_NONE"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.315,
+      "mutant_sha256": "ef0e993ea468c84a793f3ab8186d2bac256078fdc9395f1c8e9297e656c9b147",
+      "site": {
+        "description": "constant True perturbed",
+        "lineno": 40,
+        "node_index": 148,
+        "operator": "CONST_PERTURB"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.294,
+      "mutant_sha256": "5d1e69f09596fae5468e358e29b14c507f664056d36ec8da3baf765fb87e7e18",
+      "site": {
+        "description": "In flipped",
+        "lineno": 85,
+        "node_index": 180,
+        "operator": "CMP_FLIP"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.306,
+      "mutant_sha256": "c1eab312286270cd35f4fdbb1c0b7494a7a37a6ee600d2e7d2546552394c67cf",
+      "site": {
+        "description": "`not` removed",
+        "lineno": 95,
+        "node_index": 187,
+        "operator": "NOT_DROP"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.318,
+      "mutant_sha256": "9341205ffecb69d70f5e00821912b93f6b8078e447e0a6df154598bea6f655e5",
+      "site": {
+        "description": "raise replaced with pass",
+        "lineno": 96,
+        "node_index": 188,
+        "operator": "RAISE_DROP"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.273,
+      "mutant_sha256": "fa1d1c54de1fd7886c9fa40fca0a2909fc861aa3b404a251398a1b742a35cea2",
+      "site": {
+        "description": "`not` removed",
+        "lineno": 97,
+        "node_index": 189,
+        "operator": "NOT_DROP"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.321,
+      "mutant_sha256": "a0287070a4dc369b189c94da4836fa448398959cb857c9f423378b798145b4cd",
+      "site": {
+        "description": "`not` removed",
+        "lineno": 99,
+        "node_index": 191,
+        "operator": "NOT_DROP"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.36,
+      "mutant_sha256": "441a919dfe2f7e5d92b84db05b0497b32e402fbbf1d222ea492e7c078af6447c",
+      "site": {
+        "description": "raise replaced with pass",
+        "lineno": 100,
+        "node_index": 192,
+        "operator": "RAISE_DROP"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.338,
+      "mutant_sha256": "6a4e4ff9359935a2fe1a63ea928eb7d4be8de014c81dc1b7d5cb7e2361b30a78",
+      "site": {
+        "description": "NotIn flipped",
+        "lineno": 126,
+        "node_index": 215,
+        "operator": "CMP_FLIP"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.371,
+      "mutant_sha256": "f43d04d68422a2f8fa1bf3c380ea311b22078aeb003dc9f5f33f6679a3849bf2",
+      "site": {
+        "description": "raise replaced with pass",
+        "lineno": 127,
+        "node_index": 216,
+        "operator": "RAISE_DROP"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.499,
+      "mutant_sha256": "06ffd1dcc9128b7d52c4d24edf8e8c039b69d7af61b8670745592cc22813e13c",
+      "site": {
+        "description": "NotEq flipped",
+        "lineno": 128,
+        "node_index": 217,
+        "operator": "CMP_FLIP"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.588,
+      "mutant_sha256": "e0e0d6f6c6139a5279fd1601dcd54cb7cbaead00502dcb33e92a82c883de459e",
+      "site": {
+        "description": "raise replaced with pass",
+        "lineno": 129,
+        "node_index": 218,
+        "operator": "RAISE_DROP"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.345,
+      "mutant_sha256": "e347e2ebb7133170afe1e11cdfde6be9d290dc19088e129358d7ea657ee16a61",
+      "site": {
+        "description": "NotIn flipped",
+        "lineno": 144,
+        "node_index": 226,
+        "operator": "CMP_FLIP"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.396,
+      "mutant_sha256": "09e7d5bc159505882d8a7d4c26c3d64d351669c0f00748d8e3877bb948b2e1df",
+      "site": {
+        "description": "raise replaced with pass",
+        "lineno": 145,
+        "node_index": 227,
+        "operator": "RAISE_DROP"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.252,
+      "mutant_sha256": "6881c29c138348d9d623df059d56e87f542ce650071715823746a4419628eac6",
+      "site": {
+        "description": "return value replaced with None",
+        "lineno": 167,
+        "node_index": 237,
+        "operator": "RETURN_NONE"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.246,
+      "mutant_sha256": "bbdd970d69aa671426c19b88e2e3999505648b0c450c74e514eeef7902e9577a",
+      "site": {
+        "description": "Or swapped",
+        "lineno": 69,
+        "node_index": 282,
+        "operator": "BOOL_SWAP"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.239,
+      "mutant_sha256": "f1dec96ab59c97aaebf29d16191be2e132143200eceeff1a32cf0ec93a4e192d",
+      "site": {
+        "description": "IsNot flipped",
+        "lineno": 82,
+        "node_index": 309,
+        "operator": "CMP_FLIP"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.311,
+      "mutant_sha256": "9b6607cf5ec7895c1cf4adccee31aa614030b7a0d270035e18396a8b9fff2999",
+      "site": {
+        "description": "And swapped",
+        "lineno": 105,
+        "node_index": 333,
+        "operator": "BOOL_SWAP"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.262,
+      "mutant_sha256": "ca5e03ebb91506598c4d3fd931c50dd7cb370e86cd83034c37cefdc76540e49b",
+      "site": {
+        "description": "return value replaced with None",
+        "lineno": 107,
+        "node_index": 335,
+        "operator": "RETURN_NONE"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.243,
+      "mutant_sha256": "f170fd775b4d74c48f5ae3d7df58c71025607c1c277ffbb725a8dcd2e9afdf43",
+      "site": {
+        "description": "Or swapped",
+        "lineno": 152,
+        "node_index": 388,
+        "operator": "BOOL_SWAP"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.239,
+      "mutant_sha256": "af0fe52c51a26bfaa4dac24b38ab15076aacb8c5ffaa2220e9018fb9fde5a0da",
+      "site": {
+        "description": "return value replaced with None",
+        "lineno": 161,
+        "node_index": 392,
+        "operator": "RETURN_NONE"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.25,
+      "mutant_sha256": "6bf2ee032c7910f1203f2f72e169188a2229a9f1a151738c31c44d27d6ed9a55",
+      "site": {
+        "description": "NotEq flipped",
+        "lineno": 105,
+        "node_index": 517,
+        "operator": "CMP_FLIP"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.25,
+      "mutant_sha256": "7b33c87f6cb78fc33e4adb5b8f628f7916a42b3a65d7cc75989f31efce22b717",
+      "site": {
+        "description": "`not` removed",
+        "lineno": 152,
+        "node_index": 575,
+        "operator": "NOT_DROP"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.253,
+      "mutant_sha256": "3e4737460ad81f4575b1da3176aec9f5dbbf933b2f36176c22a39927d3c7d6ed",
+      "site": {
+        "description": "`not` removed",
+        "lineno": 152,
+        "node_index": 576,
+        "operator": "NOT_DROP"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.288,
+      "mutant_sha256": "0ec64ad47e37fd2d11076456e1b6a5ee6b661329834a06eda35a17163ebaa33d",
+      "site": {
+        "description": "`not` removed",
+        "lineno": 158,
+        "node_index": 731,
+        "operator": "NOT_DROP"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.346,
+      "mutant_sha256": "90e5cbfa8199678572a4e6bf10cf164d1b8ec6128556bffa0fafa679aedeb0bf",
+      "site": {
+        "description": "Eq flipped",
+        "lineno": 171,
+        "node_index": 760,
+        "operator": "CMP_FLIP"
+      },
+      "status": "KILLED"
+    }
+  ],
+  "seed": 42,
+  "sites_enumerated": 33,
+  "survived": 0,
+  "survivor_lines": [],
+  "target_file": "src/semantic_two_phase_commit.py",
+  "target_sha256": "fe31cb1eaf5cb00ec3d00793f85d1c7dcab9d2a72a7a375d7c1e4b74f7137daf",
+  "test_files": [
+    "tests/test_semantic_two_phase_commit.py"
+  ],
+  "timed_out": 0
+}

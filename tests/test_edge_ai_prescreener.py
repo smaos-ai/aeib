@@ -329,3 +329,17 @@ def test_edge_ai_prescreener_exact_boundaries(critic: EdgeAIPrescreener):
             signature_hex=raw_dict["signature_hex"],
             public_key_hex=raw_dict["public_key_hex"],
         )
+
+    # sys.path bootstrap index boundary (kills line 52 constant 0 perturbation)
+    import importlib
+    import sys
+    from pathlib import Path
+    import src.edge_ai_prescreener as prescreener_mod
+    repo_str = str(Path(prescreener_mod.__file__).resolve().parent.parent)
+    orig_path = list(sys.path)
+    try:
+        sys.path = ["/dummy_marker"] + [p for p in sys.path if p != repo_str]
+        importlib.reload(prescreener_mod)
+        assert sys.path[0] == repo_str
+    finally:
+        sys.path = orig_path

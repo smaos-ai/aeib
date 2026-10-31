@@ -508,7 +508,7 @@ A system and method for deterministic, resumable execution of autonomous agents 
 2. **Resumption Semantics:**
    - Pause-point capture: system captures full computational state (LLM cache, decision context, pending operations)
    - Human intervention checkpoint: before resume, human must cryptographically approve continuation
-   - Rollback enforce: if human rejects resume, system reverts to pre-pause state (no side effects)
+   - Rollback invariant: if human rejects resume, system reverts to pre-pause state (no side effects)
    - Audit trail: every pause/resume logged with human actor ID + signature + timestamp
 
 3. **Fail-Closed Safety Gate:**
@@ -570,7 +570,7 @@ A system and method for autonomous, iterative refinement of language model behav
    - **LoRA Refinement Phase:** System uses preference signal to fine-tune model weights (low-rank adaptation)
    - **Verification Gate:** Refined model is tested against **frozen test suite**; if pass-rate drops, refinement is rejected
 
-2. **Cryptographic Convergence enforce:**
+2. **Cryptographic Convergence Invariant:**
    - Critic LLM output is deterministic (temperature=0, fixed seed)
    - LoRA weights are stored with SHA-256 hash + timestamp
    - Each iteration produces cryptographically-reproducible artifact (weights, test results, preference signals)
@@ -683,7 +683,7 @@ A system and method for deterministic, resumable execution of autonomous agents 
    - Pause-point capture: system captures full computational state (LLM cache, decision context, pending operations)
    - Human intervention checkpoint: before resume, human must cryptographically approve continuation
    - **Fail-Closed Enforcement:** If human approval signature invalid or missing, execution **BLOCKS** (never auto-escalates or times out)
-   - Rollback enforce: if human rejects resume, system reverts to pre-pause state (no side effects)
+   - Rollback invariant: if human rejects resume, system reverts to pre-pause state (no side effects)
    - Audit trail: every pause/resume logged with human actor ID + signature + timestamp
 
 3. **Fail-Closed Safety Gate:**
@@ -754,7 +754,7 @@ A system and method for autonomous, iterative refinement of language model behav
    - **LoRA Refinement Phase:** System uses preference signal to fine-tune model weights (low-rank adaptation)
    - **Verification Gate:** Refined model is tested against **frozen test suite**; if pass-rate drops, refinement is rejected
 
-2. **Cryptographic Convergence enforce:**
+2. **Cryptographic Convergence Invariant:**
    - Critic LLM output is deterministic (temperature=0, fixed seed)
    - LoRA weights are stored with SHA-256 hash + timestamp
    - Each iteration produces cryptographically-reproducible artifact (weights, test results, preference signals)
@@ -934,7 +934,7 @@ A system and method for cryptographically-governed execution of autonomous agent
 4. **Byzantine-Tolerant Consensus (Defense Against Malicious Nodes):**
    - If validator node submits contradictory votes (approval then rejection): node is marked as faulty
    - Faulty node is temporarily removed from validator set; alternative validator is recruited
-   - Consensus algorithm remains safe as long as <N/3 nodes are faulty (Byzantine Fault Tolerance enforce)
+   - Consensus algorithm remains safe as long as <N/3 nodes are faulty (Byzantine Fault Tolerance invariant)
    - Faulty node accusation is logged with cryptographic proof; enables offline forensics
 
 ---
@@ -1057,7 +1057,7 @@ A system and method for cryptographically-governed execution of autonomous agent
 
 **The method of Claim 2-4, wherein N-1 approval ensures that loss of any single validator node does not block execution, comprising:**
 
-1. **Fault Tolerance enforce:**
+1. **Fault Tolerance Invariant:**
    - N = total validator nodes in quorum
    - Approval threshold = N-1 (requires all but one)
    - If any one node fails (network partition, crash, Byzantine vote), N-1 >= approval count

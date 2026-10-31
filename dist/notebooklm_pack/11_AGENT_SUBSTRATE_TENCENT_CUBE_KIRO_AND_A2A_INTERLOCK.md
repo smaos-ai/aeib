@@ -12,7 +12,7 @@
 
 The software engineering agent industry in late 2026 has hit three fundamental structural crises:
 
-1. **The Idle Agent Compute Tax:** The conventional "one pod per stateful agent" model causes catastrophic infrastructure waste, where agents spend 95% of wall-clock time waiting on LLM inference, human approvals, or external APIs.
+1. **The Idle Agent Compute Tax:** The conventional 'one pod per stateful agent' model causes catastrophic infrastructure waste, where agents spend 95% of wall-clock time waiting on LLM inference, human approvals, or external APIs.
 2. **The 1,000 PR/Week Human Bottleneck:** Industrial agentic factories (exemplified by Kiro Crew with 3 engineers merging 1,000 PRs weekly) cannot rely on human code diff inspection. Without deterministic topological gating, over-eager agents expand localized 10-line bug fixes into uncontrolled 100-line subsystem rewrites.
 3. **The Multi-Turn Delegation Drift & Zombie Duplicate Execution Crisis:** When agents are suspended mid-flight across serverless worker pods or delegate authority across multi-agent hierarchies, in-flight mutations lose execution acknowledgment. Blind retries upon resume cause double-spends and duplicate API mutations, while multi-turn semantic drift (SEMA-Auto) allows sub-agents to wander away from root intent.
 
@@ -82,8 +82,6 @@ Across multi-agent delegation chains:
 
 ## 3. Physical Verification & 1,000-PR Simulation Results
 
-The integrated suite was evaluated on macOS Darwin Apple Silicon with zero mocks and pure integer rational basis points:
-
 ```
 ========================================================================================
                  1,000-PR AUTONOMOUS SOFTWARE FACTORY STRESS TEST
@@ -100,8 +98,6 @@ Simulation CAID:                   sha256:d818274712574e44458f2eb23b0922e3...
 
 ### Mutation Adequacy Across Core Modules
 
-Every newly constructed module was subjected to automated AST mutant injection (constant perturbations, operator flips, return deletions, raise drops) with a strict $\ge 85\%$ kill ratio pass bar:
-
 | Module | Mutants Sampled | Mutants Killed | Kill Ratio | Wilson 95% Confidence Interval |
 | :--- | :--- | :--- | :--- | :--- |
 | `src/a2a_trajectory_interlock.py` | 30 | 30 | **100.00%** | `[8864..10000 bps]` |
@@ -117,6 +113,7 @@ All surviving mutants were verified to correspond to dead branches or unobservab
 ## 4. Source Index & Cryptographic Digests
 
 All modules reside within the SovereignNexus repository and are cryptographically verifiable via RFC 8785 single-source JCS:
+
 - Governor: `src/hypergraph_blast_radius.py`
 - Substrate / Cube PEP: `src/substrate_cube_interlock.py`
 - Trajectory Interlock: `src/a2a_trajectory_interlock.py`

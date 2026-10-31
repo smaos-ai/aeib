@@ -129,7 +129,7 @@ else:
 The scorer enforces an automated safety gate that halts execution if statements or verdicts contain promotional or uncalibrated terms:
 * `"definitely pathogenic"`
 * `"clinically validated"`
-* `"strictly verified"`
+* `"100% safe"`
 * `"approved therapy"`
 * `"confirmed diagnosis"`
 

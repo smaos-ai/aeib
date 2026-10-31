@@ -237,7 +237,7 @@ stateDiagram-v2
 ### Invariant 2: Deterministic Cached Replay (`COMMITTED` $\rightarrow$ `HTTP 200 OK`)
 - If a request arrives bearing an `Idempotency-Key` that has already transitioned to `COMMITTED`:
 - The server returns the cached status code and cached response body directly.
-- The downstream business logic is bypassed entirely, guaranteeing zero duplicate ledger writes or fund transfers.
+- The downstream business logic is bypassed entirely, enforcing zero duplicate ledger writes or fund transfers.
 - Response header `X-Cache-Lookup: HIT` indicates cached replay.
 
 ### Invariant 3: Payload Drift & Tamper Rejection (`HTTP 422 Unprocessable Entity`)
@@ -324,7 +324,7 @@ def handle_incoming_rpc(request_headers, request_body):
 ## 6. Audit & Regulatory Defensibility
 
 Under **DORA RTS 2025/301 Annex II** and **EBA Guidelines on ICT and Security Risk Management**:
-1. **Zero Double-Execution**: Concurrency locks enforce that network retries during gateway dropouts cannot cause duplicate debit/credit operations.
+1. **Zero Double-Execution**: Concurrency locks invariant that network retries during gateway dropouts cannot cause duplicate debit/credit operations.
 2. **Deterministic Forensic Tracing**: The tuple `(idempotency_key, action_id, payload_hash)` permanently links the agent's signed RFC 9052 `COSE_Sign1` receipt to the backend database record.
 3. **Fail-Closed Quarantining**: Wire failures never trigger speculative retries; execution resumes only after out-of-band probe verification.
 
@@ -417,7 +417,7 @@ The bundler links related events into atomic `ActionBundle` contexts based on:
 2. Matching `idempotency_key` (cross-action deduplication correlation).
 3. Temporal proximity ($\pm 5.0$ seconds cascade window).
 
-**Token Compaction Guard:** Each `ActionBundle` is capped to a bounded evaluation context (maximum 2,000 tokens), guaranteeing that sub-agents never suffer from the Context Compaction Cliff.
+**Token Compaction Guard:** Each `ActionBundle` is capped to a bounded evaluation context (maximum 2,000 tokens), enforcing that sub-agents never suffer from the Context Compaction Cliff.
 
 ---
 
@@ -533,7 +533,7 @@ O(1) operations encode constitutional decisions about what the system is *allowe
 - `CovenantBitmap` (1%/99% enforcement)
 - Andon threshold checks
 
-**enforce:** If Tier 0 executes, the system's foundational invariants are satisfied.
+**Invariant:** If Tier 0 executes, the system's foundational invariants are satisfied.
 
 ---
 
@@ -553,7 +553,7 @@ O(1) operations encode constitutional decisions about what the system is *allowe
 - Short-lived caches (sub-minute)
 - Fallback decision trees
 
-**enforce:** Tier 1 decisions never violate Tier 0 invariants. They operate within pre-approved Tier 0 constraints.
+**Invariant:** Tier 1 decisions never violate Tier 0 invariants. They operate within pre-approved Tier 0 constraints.
 
 ---
 
@@ -574,7 +574,7 @@ O(1) operations encode constitutional decisions about what the system is *allowe
 - Market signal aggregation
 - Human Gate (ratification checkpoint)
 
-**enforce:** Tier 2 can never corrupt Tier 0/1. It can only propose. It cannot force.
+**Invariant:** Tier 2 can never corrupt Tier 0/1. It can only propose. It cannot force.
 
 ---
 

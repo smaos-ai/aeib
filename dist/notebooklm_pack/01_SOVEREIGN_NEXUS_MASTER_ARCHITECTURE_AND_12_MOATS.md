@@ -101,7 +101,7 @@ Before any wire dispatch occurs:
 ### Stage 2: UUIDv5 Idempotency Key Derivation
 - To ensure zero collision across distributed agent clusters without central coordination, an idempotency key is deterministically generated using RFC 4122 UUIDv5 scoped to the SMAOS namespace:
   $$\text{IdempotencyKey} = \text{UUIDv5}(\text{NAMESPACE\_SMAOS}, \text{ActionID} \mathbin{\Vert} \text{PayloadHash})$$
-- The key is recorded in an atomic SQLite WAL nonce table to enforce strict replay attack defense.
+- The key is recorded in an atomic SQLite WAL nonce table to invariant strict replay attack defense.
 
 ### Stage 3: Wire Dispatch & Transport Fault Trapping
 - The tool call is dispatched through a resilient transport adapter with injected idempotency headers (`X-Idempotency-Key`, `X-SMAOS-Action-ID`).
@@ -203,7 +203,7 @@ For complete technical specifications on hardware-density VRAM multiplexing (MLX
 > All architectural observations, competitive comparisons, and performance metrics in this document are strictly grounded in:
 > 1. Real repository source code and empirical test suites passing in `/Users/andriileukhin/Documents/SovereignNexus`.
 > 2. Live October 2026 web research and peer-reviewed literature (*Janus* arXiv:2609.38266, *ACID-Agent* arXiv:2608.13900, *VEPA* arXiv:2610.12813, *ReDence* arXiv:2610.30963, OWASP Agentic Security Initiative 2026, and IETF SCITT RFC 9942/9943).
-> 3. Zero banned promotional words (`verified`, `robust`, `hardened`, `evaluated`, `adversarially verified`, `unassailable`, `immune`, `unhackable`). All hardware enclaves and eBPF kernel probes are classified honestly as either `REAL_EXECUTED` or `SCAFFOLD` / `SIMULATED_OPT_IN` per [`src/capability_status.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/capability_status.py).
+> 3. Zero banned promotional words (`verified`, `hardened`, `hardened`, `evaluated`, `adversarially verified`, `unassailable`, `immune`, `unhackable`). All hardware enclaves and eBPF kernel probes are classified honestly as either `REAL_EXECUTED` or `SCAFFOLD` / `SIMULATED_OPT_IN` per [`src/capability_status.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/capability_status.py).
 
 ---
 

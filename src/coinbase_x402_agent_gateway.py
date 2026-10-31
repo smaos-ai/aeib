@@ -8,7 +8,8 @@ Pre-dispatch idempotency interlock, pre-socket escrow reservation, SIWx target U
 binding, transport ambiguity latching (HTTP 504 EFFECT_INDETERMINATE), multi-agent
 velocity smurfing guards, and RFC 8785 canonical Ed25519 SCITT receipts.
 
-Evaluation status: prototype evaluated under the stated model.
+Evaluation status: INTERNAL PREVIEW COMMISSIONED.
+Epistemic Boundary: Observed, tested, and configured under the stated model.
 """
 
 from __future__ import annotations
@@ -1303,13 +1304,13 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.self_test:
-        test_dir = Path("/tmp/aeib_coinbase_test")
+        test_dir = Path("/tmp/aeib_coinbase_isolated/self_test")
         test_dir.mkdir(parents=True, exist_ok=True)
         code = run_self_test(test_dir)
         sys.exit(code)
 
     if args.simulate_504_timeout:
-        test_dir = Path("/tmp/aeib_coinbase_test")
+        test_dir = Path("/tmp/aeib_coinbase_isolated/sim_504")
         test_dir.mkdir(parents=True, exist_ok=True)
         code = run_simulate_504_timeout(test_dir)
         sys.exit(code)

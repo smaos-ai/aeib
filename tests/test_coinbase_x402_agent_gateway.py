@@ -765,18 +765,31 @@ def test_cli_runners(tmp_path: Path):
 
 def test_main_cli_arguments(monkeypatch, tmp_path: Path):
     """Evaluates main() CLI dispatch with mock arguments."""
-    sim_dir = Path("/tmp/aeib_coinbase_test")
-    sim_dir.mkdir(parents=True, exist_ok=True)
+    import shutil
+    isolated_dir = Path("/tmp/aeib_coinbase_isolated")
+    if isolated_dir.exists():
+        shutil.rmtree(isolated_dir, ignore_errors=True)
+    assert not isolated_dir.exists()
 
+    # First run creates parent and child (kills parents=False mutant)
     monkeypatch.setattr(sys, "argv", ["gateway", "--self-test"])
     with pytest.raises(SystemExit) as exc_self:
         main()
     assert exc_self.value.code == 0
 
+    # Second run with existing directory (kills exist_ok=False mutant)
+    with pytest.raises(SystemExit) as exc_self2:
+        main()
+    assert exc_self2.value.code == 0
+
     monkeypatch.setattr(sys, "argv", ["gateway", "--simulate-504-timeout"])
     with pytest.raises(SystemExit) as exc_sim:
         main()
     assert exc_sim.value.code == 0
+
+    # Clean up
+    if isolated_dir.exists():
+        shutil.rmtree(isolated_dir, ignore_errors=True)
 
 
 def test_epistemic_boundary_zero_forbidden_words():

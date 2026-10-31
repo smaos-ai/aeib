@@ -30,10 +30,10 @@ The SovereignNexus agent infrastructure stack integrates ten deterministic opera
 | **Layer 2** | Typestate Physics & Static AST Filter | Dimensional conservation ($0 token cost), hardware boundary ceilings, AST purity & anti-mocking | `src/physical_typestate_enforcer.py`, `compliance/ast_purity.py`, `compliance/claim_integrity_gate.py` |
 
 
-| **Layer 3** | Edge Ingress, Triage & Prescreening | Sub-20ms edge triage, integer basis points risk, BGP Anycast routing interlock, FaceID biometric gate, Cross-Cloud WireGuard Overlay Mesh | `src/edge_triage_router.py`, `src/edge_ai_prescreener.py`, `src/bgp_anycast_routing_interlock.py`, `src/multi_region_canary_ingress.py`, `src/eo1_biometric_gate.py`, `src/live_biometric_latch_bridge.py`, `src/wireguard_overlay_interlock.py` |
+| **Layer 3** | Edge Ingress, Triage & Prescreening | Sub-20ms edge triage, integer basis points risk, BGP Anycast routing interlock, FaceID biometric gate, Cross-Cloud WireGuard Overlay Mesh, Hardened x402 Commerce Gateway | `src/edge_triage_router.py`, `src/edge_ai_prescreener.py`, `src/bgp_anycast_routing_interlock.py`, `src/multi_region_canary_ingress.py`, `src/eo1_biometric_gate.py`, `src/live_biometric_latch_bridge.py`, `src/wireguard_overlay_interlock.py`, `src/coinbase_x402_agent_gateway.py` |
 
 
-| **Layer 4** | Transactional ACID State Coordinator | Row-level semantic locks, 2PC prepare/commit, Autonomic State Reconciler, Quorum Jitter Fuzzer, Byzantine Timewarp Harness, Byzantine Homomorphic Gossip Sync | `src/semantic_two_phase_commit.py`, `src/autonomic_state_reconciler.py`, `src/quorum_jitter_fuzzer.py`, `src/byzantine_consensus_timewarp.py`, `src/sqlite_acid_tcc_boundary.py`, `src/multi_region_edge_latch_mesh.py`, `src/homomorphic_gossip_sync.py` |
+| **Layer 4** | Transactional ACID State Coordinator | Row-level semantic locks, 2PC prepare/commit, Autonomic State Reconciler, Quorum Jitter Fuzzer, Byzantine Timewarp Harness, Byzantine Homomorphic Gossip Sync, Pre-Socket Escrow Latch | `src/semantic_two_phase_commit.py`, `src/autonomic_state_reconciler.py`, `src/quorum_jitter_fuzzer.py`, `src/byzantine_consensus_timewarp.py`, `src/sqlite_acid_tcc_boundary.py`, `src/multi_region_edge_latch_mesh.py`, `src/homomorphic_gossip_sync.py`, `src/coinbase_x402_agent_gateway.py` |
 
 
 | **Layer 5** | Execution Integrity & Deception Reconciler | 4-arm benchmark matrix, counter-factual audit, Circuit-Breaker Failsafe Mesh | `src/counterfeit_execution_tracker.py`, `src/agent_decept_reconciler.py`, `src/autonomic_circuit_breaker_mesh.py`, `execution-integrity-benchmark` |
@@ -151,6 +151,9 @@ All commissioned modules have achieved $\ge 80.00\%$ mutation adequacy kill rati
 
 
 | `src/oram_memory_shuffler.py` | `tests/test_oram_memory_shuffler.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
+
+| `src/coinbase_x402_agent_gateway.py` | `tests/test_coinbase_x402_agent_gateway.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
 
 
 | `src/cloud_hsm_remote_quorum.py` | `tests/test_cloud_hsm_remote_quorum.py` | 30 | 29 | **96.67%** | `[8333..9941 bps]` |

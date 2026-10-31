@@ -26,7 +26,7 @@ from tools.notebooklm_bridge import (
 def test_1_pack_compilation_and_constraints() -> None:
     manifest = compile_all_sources()
 
-    assert manifest["sources_count"] == 12
+    assert manifest["sources_count"] == 15
     assert manifest["target_notebook_id"] == DEFAULT_NOTEBOOK_ID
     assert DEFAULT_NOTEBOOK_ID in manifest["target_notebook_url"]
     assert manifest["total_word_count"] > 10_000
@@ -53,11 +53,11 @@ def test_3_drive_export() -> None:
     try:
         export_to_drive_folder(str(tmp_dir))
         copied_md = list(tmp_dir.glob("*.md"))
-        assert len(copied_md) == 12
+        assert len(copied_md) == 15
         manifest_copy = tmp_dir / "PACK_MANIFEST.json"
         assert manifest_copy.exists()
         data = json.loads(manifest_copy.read_text(encoding="utf-8"))
-        assert data["sources_count"] == 12
+        assert data["sources_count"] == 15
     finally:
         shutil.rmtree(tmp_dir, ignore_errors=True)
 

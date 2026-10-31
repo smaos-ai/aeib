@@ -83,7 +83,7 @@ Implemented in `src/kagent_helm_generator.py` and verified in `tests/test_kagent
 Implemented in `src/distributed_agentgateway_reconciler.py` and verified in `tests/test_distributed_agentgateway_reconciler.py`:
 
 
-- **Multi-Region Idempotency Federation:** Enforces single-mutation enforces across distributed gateway clusters (`us-east-1`, `us-west-2`, `eu-west-1`, `eu-central-1`, `ap-northeast-1`).
+- **Multi-Region Idempotency Federation:** Enforces single-mutation invariants across distributed gateway clusters (`us-east-1`, `us-west-2`, `eu-west-1`, `eu-central-1`, `ap-northeast-1`).
 
 
 - **Integer Basis-Point WAN Jitter Calculation:** Evaluates target region round-trip times against the local baseline without float math:

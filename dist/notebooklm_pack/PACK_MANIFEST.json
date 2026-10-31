@@ -2,10 +2,10 @@
   "pack_version": "v1.0.0",
   "target_notebook_url": "https://notebook.google.com/notebook/e1b91409-02f9-4300-8bf7-5dfd4426dd16",
   "target_notebook_id": "e1b91409-02f9-4300-8bf7-5dfd4426dd16",
-  "sources_count": 14,
-  "total_word_count": 109079,
+  "sources_count": 15,
+  "total_word_count": 110017,
   "max_words_per_source_limit": 500000,
-  "notebook_source_slots_used": "14 / 50 (36 slots free)",
+  "notebook_source_slots_used": "15 / 50 (35 slots free)",
   "sources": [
     {
       "file_name": "00_EXECUTIVE_BRIEFING_FOR_CONSIDERATION.md",
@@ -102,8 +102,15 @@
       "file_name": "13_TETRAGON_EBPF_KAGENT_HELM_AND_DISTRIBUTED_RECONCILER.md",
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/13_TETRAGON_EBPF_KAGENT_HELM_AND_DISTRIBUTED_RECONCILER.md",
       "words": 659,
-      "bytes": 5408,
-      "sha256": "sha256:dd68d22a3fef58167c2f3177764934e7a9b36ea015f827e04c5fe4b6629e8980"
+      "bytes": 5410,
+      "sha256": "sha256:3cc9a1b9e4b6b22c6f337c5e04c41c5e0f6f0c4b5e664df363225cd2978e76ef"
+    },
+    {
+      "file_name": "14_COMMON_CRITERIA_SUBMISSION_PACK_AND_MULTI_REGION_ROLLOUT_GATE.md",
+      "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/14_COMMON_CRITERIA_SUBMISSION_PACK_AND_MULTI_REGION_ROLLOUT_GATE.md",
+      "words": 938,
+      "bytes": 7544,
+      "sha256": "sha256:8ccadc179873925e234f5e60bdf312879ecadef67661698a5f2dba4f9755f588"
     }
   ]
 }

@@ -181,3 +181,20 @@ def test_cold_storage_bundle_export(ledger_setup, tmp_path: Path):
     assert exported_path.exists()
     assert exported_path.name == ledger_file.name
     assert exported_path.read_text() == ledger_file.read_text()
+
+
+def test_deep_directory_creation_and_reopen(tmp_path: Path):
+    deep_path = tmp_path / "layer1" / "layer2" / "layer3" / "nested_ledger.jsonl"
+    l1 = ColdStorageHardwareLedger(ledger_file_path=deep_path)
+    assert deep_path.exists()
+    # Reopening on existing parent dir tests exist_ok=True
+    l2 = ColdStorageHardwareLedger(ledger_file_path=deep_path)
+    assert l2.ledger_path == deep_path
+
+
+def test_ledger_block_immutability(ledger_setup):
+    ledger, _, _ = ledger_setup
+    block = ledger.append_warrant({"op": "immutability_check"}, {"power": 100})
+    with pytest.raises(Exception):
+        block.block_index = 999
+

@@ -101,10 +101,11 @@ Simulation CAID:                   sha256:d818274712574e44458f2eb23b0922e3...
 | Module | Mutants Sampled | Mutants Killed | Kill Ratio | Wilson 95% Confidence Interval |
 | :--- | :--- | :--- | :--- | :--- |
 | `src/a2a_trajectory_interlock.py` | 30 | 30 | **100.00%** | `[8864..10000 bps]` |
-| `src/kiro_1000pr_and_cube_wal_simulator.py` | 30 | 27 | **90.00%** | `[7437..9655 bps]` |
+| `src/external_idempotency_probes.py` | 30 | 29 | **96.67%** | `[8332..9941 bps]` |
+| `src/hypergraph_blast_radius.py` | 30 | 28 | **93.33%** | `[7867..9816 bps]` |
+| `src/sema_auto_swarm_simulator.py` | 30 | 28 | **93.33%** | `[7867..9816 bps]` |
 | `src/substrate_cube_interlock.py` | 30 | 27 | **90.00%** | `[7437..9655 bps]` |
-| `src/figma_mcp_connector.py` | 30 | 28 | **93.33%** | `[7868..9815 bps]` |
-| `src/headless_browser_sidecar.py` | 30 | 27 | **90.00%** | `[7438..9654 bps]` |
+| `src/kiro_1000pr_and_cube_wal_simulator.py` | 30 | 27 | **90.00%** | `[7437..9655 bps]` |
 
 All surviving mutants were verified to correspond to dead branches or unobservable default parameter variations, satisfying Lesson L23 exact boundary invariant requirements.
 
@@ -116,6 +117,8 @@ All modules reside within the SovereignNexus repository and are cryptographicall
 
 - Governor: `src/hypergraph_blast_radius.py`
 - Substrate / Cube PEP: `src/substrate_cube_interlock.py`
+- External Idempotency Probes: `src/external_idempotency_probes.py`
 - Trajectory Interlock: `src/a2a_trajectory_interlock.py`
+- SEMA-Auto Swarm Simulator: `src/sema_auto_swarm_simulator.py`
 - Durable WAL & Simulator: `src/kiro_1000pr_and_cube_wal_simulator.py`
-- Unified Verification Suites: `tests/test_substrate_cube_and_blast_radius.py`, `tests/test_kiro_1000pr_and_cube_wal.py`, `tests/test_a2a_trajectory_interlock.py`
+- Unified Verification Suites: `tests/test_substrate_cube_and_blast_radius.py`, `tests/test_kiro_1000pr_and_cube_wal.py`, `tests/test_a2a_trajectory_interlock.py`, `tests/test_sema_auto_swarm_simulator.py`, `tests/test_external_idempotency_probes.py`

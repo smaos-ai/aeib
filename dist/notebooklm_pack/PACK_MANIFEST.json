@@ -3,7 +3,7 @@
   "target_notebook_url": "https://notebook.google.com/notebook/e1b91409-02f9-4300-8bf7-5dfd4426dd16",
   "target_notebook_id": "e1b91409-02f9-4300-8bf7-5dfd4426dd16",
   "sources_count": 12,
-  "total_word_count": 107099,
+  "total_word_count": 107128,
   "max_words_per_source_limit": 500000,
   "notebook_source_slots_used": "12 / 50 (42 slots free)",
   "sources": [
@@ -87,9 +87,9 @@
     {
       "file_name": "11_AGENT_SUBSTRATE_TENCENT_CUBE_KIRO_AND_A2A_INTERLOCK.md",
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/11_AGENT_SUBSTRATE_TENCENT_CUBE_KIRO_AND_A2A_INTERLOCK.md",
-      "words": 1049,
-      "bytes": 9493,
-      "sha256": "sha256:7c9d622e75722b3afa62b54fc6a810feb8f190272a42e3d8f971a39783be921a"
+      "words": 1078,
+      "bytes": 9803,
+      "sha256": "sha256:cff7495f125439b70e0286cd3107edaf87f35b0a07615cc99638b24f11cfc828"
     }
   ]
 }

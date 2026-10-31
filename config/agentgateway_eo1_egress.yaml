@@ -1,0 +1,88 @@
+apiVersion: gateway.solo.io/v1
+kind: AgentGatewayEgressPolicy
+metadata:
+  name: eo1-atenet-egress-interlock
+  namespace: sovereign-nexus
+  labels:
+    app.kubernetes.io/name: agentgateway
+    app.kubernetes.io/part-of: aeib-jidoka
+    status: internal-preview-commissioned
+spec:
+  # Default Posture: Strict Default-Deny
+  defaultAction: DENY
+
+  # Workload Identity: SPIFFE/SPIRE X.509 SVID Validation
+  workloadIdentity:
+    trustDomain: sovereign.nexus
+    allowedSubjectPrefix: "spiffe://sovereign.nexus/agent/"
+    requireClientCertificate: true
+    minTlsVersion: "1.3"
+
+  # EO1 Semantic Write-Before-Execute Interlock
+  eo1LatchEnforcement:
+    enabled: true
+    requiredHeader: "X-EO1-Intent-CAID"
+    failClosedIfMissing: true
+    enforcedMethods:
+      - POST
+      - PUT
+      - DELETE
+      - PATCH
+
+  # OpenSandbox Blind Credential Vault Injection
+  credentialVault:
+    enabled: true
+    placeholderPattern: "{{VAULT:([A-Z0-9_-]+)}}"
+    vaultProvider: "OpenSandboxVault/LocalIPC"
+    stripTokensInTelemetryLogs: true
+
+  # Whitelisted Destination Outlets
+  egressRules:
+    - name: approved-llm-vertex-ai
+      hosts:
+        - "aiplatform.googleapis.com"
+      ports:
+        - 443
+      protocol: HTTPS
+      allowedMethods:
+        - POST
+      allowedAgents:
+        - "spiffe://sovereign.nexus/agent/*"
+
+    - name: approved-llm-anthropic
+      hosts:
+        - "api.anthropic.com"
+      ports:
+        - 443
+      protocol: HTTPS
+      allowedMethods:
+        - POST
+      allowedAgents:
+        - "spiffe://sovereign.nexus/agent/*"
+
+    - name: approved-vcs-github
+      hosts:
+        - "api.github.com"
+      ports:
+        - 443
+      protocol: HTTPS
+      allowedMethods:
+        - GET
+        - POST
+        - PATCH
+      allowedAgents:
+        - "spiffe://sovereign.nexus/agent/agent_kiro_*"
+
+    - name: local-mcp-sidecars
+      hosts:
+        - "127.0.0.1"
+        - "localhost"
+      ports:
+        - 9001
+        - 9002
+      protocol: HTTP
+      allowedMethods:
+        - GET
+        - POST
+      allowedAgents:
+        - "spiffe://sovereign.nexus/agent/*"

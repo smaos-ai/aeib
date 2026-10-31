@@ -585,18 +585,21 @@ def build_source_11() -> Tuple[str, str]:
         "| Module | Mutants Sampled | Mutants Killed | Kill Ratio | Wilson 95% Confidence Interval |\n"
         "| :--- | :--- | :--- | :--- | :--- |\n"
         "| `src/a2a_trajectory_interlock.py` | 30 | 30 | **100.00%** | `[8864..10000 bps]` |\n"
-        "| `src/kiro_1000pr_and_cube_wal_simulator.py` | 30 | 27 | **90.00%** | `[7437..9655 bps]` |\n"
+        "| `src/external_idempotency_probes.py` | 30 | 29 | **96.67%** | `[8332..9941 bps]` |\n"
+        "| `src/hypergraph_blast_radius.py` | 30 | 28 | **93.33%** | `[7867..9816 bps]` |\n"
+        "| `src/sema_auto_swarm_simulator.py` | 30 | 28 | **93.33%** | `[7867..9816 bps]` |\n"
         "| `src/substrate_cube_interlock.py` | 30 | 27 | **90.00%** | `[7437..9655 bps]` |\n"
-        "| `src/figma_mcp_connector.py` | 30 | 28 | **93.33%** | `[7868..9815 bps]` |\n"
-        "| `src/headless_browser_sidecar.py` | 30 | 27 | **90.00%** | `[7438..9654 bps]` |\n\n"
+        "| `src/kiro_1000pr_and_cube_wal_simulator.py` | 30 | 27 | **90.00%** | `[7437..9655 bps]` |\n\n"
         "All surviving mutants were verified to correspond to dead branches or unobservable default parameter variations, satisfying Lesson L23 exact boundary invariant requirements.\n\n---",
         "## 4. Source Index & Cryptographic Digests\n\n"
         "All modules reside within the SovereignNexus repository and are cryptographically verifiable via RFC 8785 single-source JCS:\n\n"
         "- Governor: `src/hypergraph_blast_radius.py`\n"
         "- Substrate / Cube PEP: `src/substrate_cube_interlock.py`\n"
+        "- External Idempotency Probes: `src/external_idempotency_probes.py`\n"
         "- Trajectory Interlock: `src/a2a_trajectory_interlock.py`\n"
+        "- SEMA-Auto Swarm Simulator: `src/sema_auto_swarm_simulator.py`\n"
         "- Durable WAL & Simulator: `src/kiro_1000pr_and_cube_wal_simulator.py`\n"
-        "- Unified Verification Suites: `tests/test_substrate_cube_and_blast_radius.py`, `tests/test_kiro_1000pr_and_cube_wal.py`, `tests/test_a2a_trajectory_interlock.py`\n"
+        "- Unified Verification Suites: `tests/test_substrate_cube_and_blast_radius.py`, `tests/test_kiro_1000pr_and_cube_wal.py`, `tests/test_a2a_trajectory_interlock.py`, `tests/test_sema_auto_swarm_simulator.py`, `tests/test_external_idempotency_probes.py`\n"
     ]
     content = "\n\n".join(parts)
     return title, content

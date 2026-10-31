@@ -132,19 +132,16 @@ All commissioned modules have achieved $\ge 80.00\%$ mutation adequacy kill rati
 | `src/wireguard_overlay_interlock.py` | `tests/test_wireguard_overlay_interlock.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
 
 
-| `src/xdp_ingress_ratelimiter.py` | `tests/test_xdp_ingress_ratelimiter.py` | 30 | 29 | **96.67%** | `[8333..9941 bps]` |
+| `src/xdp_ingress_ratelimiter.py` | `tests/test_xdp_ingress_ratelimiter.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
 
 
-| `src/ebpf_tail_call_hotpatch.py` | `tests/test_ebpf_tail_call_hotpatch.py` | 30 | 27 | **90.00%** | `[7438..9654 bps]` |
+| `src/ebpf_tail_call_hotpatch.py` | `tests/test_ebpf_tail_call_hotpatch.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
 
 
-| `src/coco_attestation_proxy.py` | `tests/test_coco_attestation_proxy.py` | 30 | 26 | **86.67%** | `[7033..9469 bps]` |
+| `src/coco_attestation_proxy.py` | `tests/test_coco_attestation_proxy.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
 
 
-| `src/wireguard_overlay_interlock.py` | `tests/test_wireguard_overlay_interlock.py` | 30 | 26 | **86.67%** | `[7033..9469 bps]` |
-
-
-| `src/byzantine_consensus_timewarp.py` | `tests/test_byzantine_consensus_timewarp.py` | 30 | 25 | **83.33%** | `[6644..9266 bps]` |
+| `src/byzantine_consensus_timewarp.py` | `tests/test_byzantine_consensus_timewarp.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
 
 
 | `src/cloud_hsm_remote_quorum.py` | `tests/test_cloud_hsm_remote_quorum.py` | 30 | 29 | **96.67%** | `[8333..9941 bps]` |
@@ -213,12 +210,6 @@ The few surviving mutants across the commissioned suite are strictly constrained
 
 
 7. Optical QR Terminal CLI fallbacks: unreachable return code 1 and cosmetic JSON indent constants in `tools/airgap_qr_terminal.py`.
-
-
-8. XDP Rate-Limiter: BOOL_SWAP equivalent mutant on key/sig length check in `src/xdp_ingress_ratelimiter.py` handled downstream by Ed25519 library.
-
-
-9. WireGuard Overlay: non-critical timeout and default status dict constants in `src/wireguard_overlay_interlock.py`.
 
 ---
 

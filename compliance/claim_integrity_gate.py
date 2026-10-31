@@ -23,6 +23,10 @@ or an invocation under the stated model. Rules:
                literal that also appears in the imported src module (echo test).
   CI008 ERROR  dynamic import (importlib.import_module / __import__) of a Zone 2
                module prefix, which the static zone-boundary gate does not see.
+  CI009 ERROR  ungrounded certification label emitted as status or verdict string
+               (DELIVERED & COMMISSIONED, CERTIFIED REGULATORY COMPLIANT, etc.).
+  CI010 WARN   mutation truncation masking in tests (composite integer division without N=1 boundary).
+  CI011 WARN   missing Wilson BPS interval on discrete zero false-permit/denial claim.
 
 Ratchet: existing findings are recorded in compliance/claim_integrity_baseline.json
 keyed by (rule, file, normalized-snippet hash) with a multiplicity count. The gate
@@ -71,17 +75,22 @@ EXCLUDED_PARTS = {
 SEVERITY = {
     "CI001": "ERROR", "CI002": "ERROR", "CI003": "ERROR", "CI004": "ERROR",
     "CI005": "ERROR", "CI006": "ERROR", "CI007": "WARN", "CI008": "ERROR",
+    "CI009": "ERROR", "CI010": "WARN", "CI011": "WARN",
 }
-PROD_RULES = frozenset({"CI002", "CI003", "CI004", "CI005", "CI006", "CI008"})
+PROD_RULES = frozenset({"CI002", "CI003", "CI004", "CI005", "CI006", "CI008", "CI009"})
 PROFILES = {
-    "metric": PROD_RULES | {"CI001"},
+    "metric": PROD_RULES | {"CI001", "CI011"},
     "prod": PROD_RULES,
-    "test": frozenset({"CI007", "CI008"}),
+    "test": frozenset({"CI007", "CI008", "CI010"}),
 }
 
 # ---------------------------------------------------------------------------
 # Patterns
 # ---------------------------------------------------------------------------
+UNGROUNDED_CERT_RE = re.compile(
+    r"\b(?:DELIVERED\s*(?:&|AND)\s*COMMISSIONED|CERTIFIED\s*(?:REGULATORY\s*)?COMPLIANT|production-[s]afe\s*RELEASED|enterprise-[g]rade\s*CERTIFIED|bullet[p]roof\s*CERTIFIED|100%\s*[s]ecure)\b",
+    re.IGNORECASE,
+)
 METRIC_NAME_RE = re.compile(
     r"(?:^|_)(?:bps|pct)$|_(?:rate|usd|ms|micros)$|(?:^|_)(?:accuracy|reduction|savings|score)$",
     re.IGNORECASE,
@@ -756,6 +765,67 @@ class ModuleAnalyzer:
                     "CI008", node, f"{name}({mod!r})",
                     f"dynamic import of Zone 2 module '{mod}' bypasses the static zone-boundary gate",
                 )
+
+    # -- CI009 -------------------------------------------------------------
+    def rule_ci009(self) -> None:
+        """Reject ungrounded certification labels (Lesson L22)."""
+        for node in ast.walk(self.tree):
+            if not isinstance(node, ast.Constant) or not isinstance(node.value, str):
+                continue
+            text = node.value
+            match = UNGROUNDED_CERT_RE.search(text)
+            if not match:
+                continue
+
+            # Exemption: if node is part of a blocklist/denylist definition or L22 specification
+            stmt = self._statement_of(node)
+            stmt_str = _unparse(stmt).lower()
+            if any(term in stmt_str for term in ("blocklist", "denylist", "banned", "l22_text", "lesson l22")):
+                continue
+            # Exemption: annotated with # claim: config / assumption
+            if CLAIM_ANNOTATION_RE.search(self.comments.get(getattr(node, "lineno", 0), "")):
+                continue
+
+            self.report(
+                "CI009", node, _unparse(stmt),
+                f"ungrounded certification label '{match.group(0)}' violates Lesson L22 epistemic status grounding",
+            )
+
+    # -- CI010 -------------------------------------------------------------
+    def rule_ci010(self) -> None:
+        """Warn on integer division in tests that may mask arithmetic mutants without N=1 boundary (Lesson L23)."""
+        for node in ast.walk(self.tree):
+            if not isinstance(node, ast.BinOp) or not isinstance(node.op, ast.FloorDiv):
+                continue
+            if isinstance(node.right, ast.Constant) and isinstance(node.right.value, int) and node.right.value in {4, 6, 8, 10, 100}:
+                stmt = self._statement_of(node)
+                if isinstance(stmt, ast.Assert):
+                    self.report(
+                        "CI010", node, _unparse(stmt),
+                        f"composite integer floor division (// {node.right.value}) in test assertion may mask arithmetic mutants (Lesson L23)",
+                    )
+
+    # -- CI011 -------------------------------------------------------------
+    def rule_ci011(self) -> None:
+        """Warn when discrete 0 false permit/denial claim lacks Wilson BPS interval (Lesson L24)."""
+        for node in ast.walk(self.tree):
+            if not isinstance(node, ast.Dict):
+                continue
+            keys = [k.value for k in node.keys if isinstance(k, ast.Constant) and isinstance(k.value, str)]
+            has_discrete_zero = False
+            for k, v in zip(node.keys, node.values):
+                if isinstance(k, ast.Constant) and isinstance(k.value, str):
+                    if k.value in {"false_permits", "false_permit_rate_bps"} and isinstance(v, ast.Constant) and v.value == 0:
+                        has_discrete_zero = True
+                        break
+            if has_discrete_zero:
+                has_wilson = any("wilson" in k.lower() or "ci" in k.lower() for k in keys)
+                if not has_wilson:
+                    stmt = self._statement_of(node)
+                    self.report(
+                        "CI011", node, _unparse(stmt),
+                        "discrete zero false-permit/denial claim lacks Wilson 95% BPS interval (Lesson L24)",
+                    )
 
 
 def _is_trivial_number(num: float) -> bool:

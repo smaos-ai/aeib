@@ -2,7 +2,7 @@
   "standard": "ISO/IEC 42001:2023",
   "qms_alignment": "CEN-CENELEC prEN 18286 / EU AI Act Art. 17 QMS",
   "annex": "ISO/IEC 42001:2023 Annex A (38 Controls) & Category H Runtime Controls (14 Controls)",
-  "timestamp_utc": "2026-10-28T13:51:12Z",
+  "timestamp_utc": "2026-10-31T02:34:27Z",
   "total_controls": 14,
   "implemented_controls": 14,
   "observed_and_tested_controls": 12,
@@ -22,7 +22,7 @@
         "README.md"
       ],
       "verified_files_sha256": {
-        "docs/architecture/SOVEREIGN_AGENT_APPLICATION_SERVER.md": "0b8bd18edfb63529393fb7155cca927614897c62734c55f5f5de19463c9eebce",
+        "docs/architecture/SOVEREIGN_AGENT_APPLICATION_SERVER.md": "676691ff955ef4f8db464f75b58a3634d2ba3c544c49ae7bbceb5128440ee4b1",
         "README.md": "e9b7f30764bc14ce0fd87a284bbbaf9ffad5344ade2b86988bb1ec63bea72512"
       },
       "missing_files": [],
@@ -153,8 +153,8 @@
         "compliance/no_mock_enforcer.py"
       ],
       "verified_files_sha256": {
-        "compliance/ast_purity.py": "2d9e11ccf153ec34f3d61e0b3d6602ec6b3cdcbaae82d33724b61e77309cf587",
-        "compliance/no_mock_enforcer.py": "1b38c778310e6835485f9dc2e9f2f69bc6d0e8afccd0d2462bfd6950e98b227f"
+        "compliance/ast_purity.py": "73d5eaa69dbd0c20498250120c1f4a1ba5426bc463f76fb866c39b364844852e",
+        "compliance/no_mock_enforcer.py": "97e3dbf21a3816c01d37427cd7e93bd035d9ab49b62e08a57967e794ed5f9dc9"
       },
       "missing_files": [],
       "description": "Automated AST scanners enforcing zero mocks, zero stubs, and fail-closed exits."
@@ -314,7 +314,7 @@
         "docs/architecture/AEIB_SPECIFICATION.md"
       ],
       "verified_files_sha256": {
-        "AGENTS.md": "af3177291686fb3a8b300aacf4cefdfefdf82397dea8bfd53f36eae3fb216e73",
+        "AGENTS.md": "93d8de54abda19f753c0fb9e6ed8fc43c6adc5c94f1f6891ea4a6f07203ac9ef",
         "docs/architecture/AEIB_SPECIFICATION.md": "4b707dd4dd6a0eaaaa7baed6458a55a7007bd5760ac611ed50715fc1b5a40fcd"
       },
       "missing_files": []
@@ -520,8 +520,8 @@
       ],
       "verified_files_sha256": {
         "aeib_mcp_proxy.py": "1fa09aa9fadedcff2ef3b82a00daed822ae4a32895880c806d30d6ae3a7d8a7e",
-        "compliance/ast_purity.py": "2d9e11ccf153ec34f3d61e0b3d6602ec6b3cdcbaae82d33724b61e77309cf587",
-        "compliance/no_mock_enforcer.py": "1b38c778310e6835485f9dc2e9f2f69bc6d0e8afccd0d2462bfd6950e98b227f"
+        "compliance/ast_purity.py": "73d5eaa69dbd0c20498250120c1f4a1ba5426bc463f76fb866c39b364844852e",
+        "compliance/no_mock_enforcer.py": "97e3dbf21a3816c01d37427cd7e93bd035d9ab49b62e08a57967e794ed5f9dc9"
       },
       "missing_files": []
     },
@@ -755,8 +755,8 @@
       ],
       "verified_files_sha256": {
         "compliance/check_zone_boundary.py": "c62955ffef950708c24dec1ab84846cdac5699a9f6fb123e9b1ed0a7471de68d",
-        "compliance/ast_purity.py": "2d9e11ccf153ec34f3d61e0b3d6602ec6b3cdcbaae82d33724b61e77309cf587",
-        "compliance/no_mock_enforcer.py": "1b38c778310e6835485f9dc2e9f2f69bc6d0e8afccd0d2462bfd6950e98b227f"
+        "compliance/ast_purity.py": "73d5eaa69dbd0c20498250120c1f4a1ba5426bc463f76fb866c39b364844852e",
+        "compliance/no_mock_enforcer.py": "97e3dbf21a3816c01d37427cd7e93bd035d9ab49b62e08a57967e794ed5f9dc9"
       },
       "missing_files": []
     },
@@ -814,7 +814,7 @@
       ],
       "verified_files_sha256": {
         "docs/architecture/SMAOS-three-plane-architecture.md": "a747490461c9e241f6983c4bffe4de44dff530855ce5aeb725fc3568efc5c62b",
-        "src/eo1_write_before_execute.py": "5806fec2b33f3453197dbedec0805711962591442ca8efad24d49d03a5088c0b"
+        "src/eo1_write_before_execute.py": "b4d25961a519f61246c34687ebb74921f3cea0b1bc4322d2a784f868e90e491b"
       },
       "missing_files": []
     },
@@ -960,7 +960,7 @@
         "tools/export_ai_act_art12_14_evidence.py"
       ],
       "verified_files_sha256": {
-        "src/eo1_write_before_execute.py": "5806fec2b33f3453197dbedec0805711962591442ca8efad24d49d03a5088c0b",
+        "src/eo1_write_before_execute.py": "b4d25961a519f61246c34687ebb74921f3cea0b1bc4322d2a784f868e90e491b",
         "tools/export_ai_act_art12_14_evidence.py": "919d33763dbbc949f5c4f8fb03d3eee57f9610eb48cc69e8cfd63f261010848e"
       },
       "missing_files": []
@@ -1401,7 +1401,7 @@
       "missing_files": []
     }
   ],
-  "soa_digest": "5afb1d654d3db2923b86fed8fb1d934096f65fe6e8f502609037f3d414389b02",
-  "soa_signature_b64": "aSzDreB/z6pnf0cd7NTLyPDRVBfulQVH5Xm+YB693l2y56IhtICDfCkwe9LcTsJlxGIto5GdDMsLw9iAtAXFDw==",
-  "signer_public_key_pem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAMoYOnyqDWaOO2G4VFwpAHMLqNbJcSJu364suDeY0J6k=\n-----END PUBLIC KEY-----\n"
+  "soa_digest": "148caa71784f890107b02d7044c4413285616fdcd72e83e8b4d87c2595f9589a",
+  "soa_signature_b64": "Ce6mrAuhX1f5aGIvvPfS2UsuhnMoBPPiNGlOm/h84zSx1EdQY+hHXPwUHTZsbqVWsi8Qmrpb0qWo2IXL5hS0Dw==",
+  "signer_public_key_pem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAm4MT03LsNXxJXav5fL39h5sEPatMs0o7K5UD/b78zrY=\n-----END PUBLIC KEY-----\n"
 }

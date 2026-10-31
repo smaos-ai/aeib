@@ -48,6 +48,7 @@ class EgressInterlockReceipt:
     effect_key_caid: str
     resolved_headers_redacted: Dict[str, str]
     receipt_caid: str
+    bpf_lsm_profile_digest: str = ""
 
 
 class SubstrateCubeInterlock:
@@ -65,11 +66,13 @@ class SubstrateCubeInterlock:
         trusted_spiffe_prefix: str,
         allowed_egress_hosts: FrozenSet[str],
         credential_vault: Mapping[str, str],
+        bpf_lsm_profile_digest: str = "",
     ) -> None:
         if not trusted_spiffe_prefix.startswith("spiffe://"):
             raise ValueError("ERR_INVALID_SPIFFE_TRUST_DOMAIN")
         self.trusted_spiffe_prefix = trusted_spiffe_prefix
         self.allowed_egress_hosts = allowed_egress_hosts
+        self.bpf_lsm_profile_digest = bpf_lsm_profile_digest
         self._credential_vault: Dict[str, str] = dict(credential_vault)
 
         # Effect-key state machine: effect_key_caid -> state
@@ -286,17 +289,18 @@ class SubstrateCubeInterlock:
             del self._effect_ledger[effect_key_caid]
             return "RECONCILED_SAFE_TO_RETRY"
 
-    @staticmethod
     def _mint_egress(
+        self,
         allowed: bool,
         effect_state: str,
         actor_spiffe_id: str,
         effect_key_caid: str,
         redacted_headers: Dict[str, str],
     ) -> EgressInterlockReceipt:
-        payload = {
+        payload: Dict[str, Any] = {
             "actor_spiffe_id": actor_spiffe_id,
             "allowed": allowed,
+            "bpf_lsm_profile_digest": self.bpf_lsm_profile_digest,
             "effect_key_caid": effect_key_caid,
             "effect_state": effect_state,
             "resolved_headers_redacted": redacted_headers,
@@ -308,6 +312,7 @@ class SubstrateCubeInterlock:
             effect_key_caid=effect_key_caid,
             resolved_headers_redacted=redacted_headers,
             receipt_caid=sha256_jcs_caid(payload),
+            bpf_lsm_profile_digest=self.bpf_lsm_profile_digest,
         )
 
 

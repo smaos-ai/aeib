@@ -902,3 +902,34 @@ def test_9_mutation_killer_suite(tmp_path: Path) -> None:
     gov_sub = HypergraphBlastRadiusGovernor(repo_sources=repo)
     blast_sub = gov_sub.calculate_blast_radius(("pkg/submodule.py",))
     assert "user.py" in blast_sub.transitive_dependents
+
+
+def test_10_tetragon_bpf_lsm_profile_binding() -> None:
+    from pathlib import Path
+    from src.bpf_lsm_profile_compiler import BPFLSMProfileCompiler
+
+    policy_path = Path("compliance/tetragon_aeib_enforcer.yaml")
+    assert policy_path.exists()
+
+    profile = BPFLSMProfileCompiler().compile(policy_path)
+    digest = f"sha256:{profile['canonical_digest_sha256']}"
+    assert digest.startswith("sha256:")
+
+    interlock = SubstrateCubeInterlock(
+        trusted_spiffe_prefix="spiffe://sovereign.nexus/ns/prod/",
+        allowed_egress_hosts=frozenset({"api.stripe.com"}),
+        credential_vault={"STRIPE_KEY": "sk_live_123"},
+        bpf_lsm_profile_digest=digest,
+    )
+
+    r = interlock.intercept_outbound_egress(
+        actor_spiffe_id="spiffe://sovereign.nexus/ns/prod/actor/worker_01",
+        target_host="api.stripe.com",
+        http_method="POST",
+        business_effect_payload={"amount": 100},
+        header_templates={"Authorization": "Bearer {{VAULT:STRIPE_KEY}}"},
+    )
+    assert r.allowed is True
+    assert r.bpf_lsm_profile_digest == digest
+    assert r.receipt_caid.startswith("sha256:")
+

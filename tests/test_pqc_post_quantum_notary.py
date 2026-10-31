@@ -137,6 +137,10 @@ def test_01_receipt_dataclass_validations() -> None:
     with pytest.raises(ValueError, match="timestamp_ms must be a positive integer"):
         HybridPqcNotaryReceipt(**bad_ts)
 
+    # Exact boundary check timestamp_ms = 1
+    good_ts1 = HybridPqcNotaryReceipt(**dict(valid_args, timestamp_ms=1))
+    assert good_ts1.timestamp_ms == 1
+
 
 def test_02_caid_generation() -> None:
     c1 = compute_sha256_caid("test_statement")
@@ -168,7 +172,10 @@ def test_04_nominal_hybrid_notarization(notary: PqcPostQuantumNotary) -> None:
         "epoch_id": "epoch-001",
         "root_hash": "sha256:00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff",
     }
+    t_start = int(time.time() * 1000)
     receipt = notary.notarize_statement(statement, epoch_id="epoch-001")
+    t_end = int(time.time() * 1000)
+    assert t_start <= receipt.timestamp_ms <= t_end + 100
     assert receipt.status == STATUS_DUAL_VERIFIED
     assert receipt.classical_algorithm == ALGORITHM_CLASSICAL
     assert receipt.pqc_algorithm == ALGORITHM_PQC_DEFAULT

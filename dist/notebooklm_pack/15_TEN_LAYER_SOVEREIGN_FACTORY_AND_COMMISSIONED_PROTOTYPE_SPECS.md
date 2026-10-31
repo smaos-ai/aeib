@@ -21,7 +21,7 @@ The SovereignNexus agent infrastructure stack integrates ten deterministic opera
 |:---:|:---|:---|:---|
 
 
-| **Layer 0** | Hardware Root of Trust | Secure Enclave NIST P-256 / Ed25519 signing, Multi-Cloud HSM Remote Quorum, Cold Storage Airgap Gateway, Optical QR Terminal, USB storage | `src/cloud_hsm_remote_quorum.py`, `src/cold_storage_airgap_gateway.py`, `tools/airgap_qr_terminal.py`, `src/cold_storage_hardware_ledger.py`, `src/iphone_enclave_notary_bridge.py`, `src/iphone_rpc_client.py` |
+| **Layer 0** | Hardware Root of Trust | Secure Enclave NIST P-256 / Ed25519 signing, Multi-Cloud HSM Remote Quorum, Cold Storage Airgap Gateway, Enclave Proximity Attestation, USB storage | `src/cloud_hsm_remote_quorum.py`, `src/cold_storage_airgap_gateway.py`, `src/enclave_proximity_attestation.py`, `tools/airgap_qr_terminal.py`, `src/cold_storage_hardware_ledger.py`, `src/iphone_enclave_notary_bridge.py`, `src/iphone_rpc_client.py` |
 
 
 | **Layer 1** | OS Kernel & eBPF LSM Interception | In-kernel socket and filesystem mediation, Tetragon eBPF telemetry, strict cgroup sandbox | `src/bpf_lsm_profile_compiler.py`, `src/ebpf_agent_guard_controller.py`, `src/tetragon_ebpf_stream_parser.py` |
@@ -36,13 +36,13 @@ The SovereignNexus agent infrastructure stack integrates ten deterministic opera
 | **Layer 4** | Transactional ACID State Coordinator | Row-level semantic locks, 2PC prepare/commit, Autonomic State Reconciler, automatic rollback on transport drop | `src/semantic_two_phase_commit.py`, `src/autonomic_state_reconciler.py`, `src/sqlite_acid_tcc_boundary.py`, `src/multi_region_edge_latch_mesh.py` |
 
 
-| **Layer 5** | Execution Integrity & Deception Reconciler | 4-arm benchmark matrix, counter-factual audit, reconciling natural language claims against ledger | `src/counterfeit_execution_tracker.py`, `src/agent_decept_reconciler.py`, `execution-integrity-benchmark` |
+| **Layer 5** | Execution Integrity & Deception Reconciler | 4-arm benchmark matrix, counter-factual audit, Circuit-Breaker Failsafe Mesh | `src/counterfeit_execution_tracker.py`, `src/agent_decept_reconciler.py`, `src/autonomic_circuit_breaker_mesh.py`, `execution-integrity-benchmark` |
 
 
 | **Layer 6** | Autonomous Evolution & Trajectory Airlock | Multi-candidate evolutionary selection, SEMA-Auto trajectory tracking, zero-regression airlock | `src/evolutionary_orchestrator.py`, `src/a2a_trajectory_interlock.py`, `src/oct2026_frontier_signals_and_agent_s4_airlock.py` |
 
 
-| **Layer 7** | SCITT Bitemporal Merkle Tree & Multi-Cloud | RFC 9162 / RFC 9943 Merkle trees, ZK proof rollup, Cross-Enterprise Federation Bridge, multi-cloud failover | `src/zk_scitt_proof_rollup.py`, `src/cross_enterprise_federation_bridge.py`, `src/scitt_proof_aggregation_reconciler.py`, `src/multi_cloud_failover_orchestrator.py` |
+| **Layer 7** | SCITT Bitemporal Merkle Tree & Multi-Cloud | RFC 9162 / RFC 9943 Merkle trees, ZK proof rollup, PQC Post-Quantum Notary, Cross-Enterprise Federation Bridge | `src/zk_scitt_proof_rollup.py`, `src/pqc_post_quantum_notary.py`, `src/cross_enterprise_federation_bridge.py`, `src/scitt_proof_aggregation_reconciler.py`, `src/multi_cloud_failover_orchestrator.py` |
 
 
 | **Layer 8** | Common Criteria EAL4+ Audit & CEM Evaluator | ISO/IEC 15408-3 EAL4+ formal model runner, 8 SFRs mapped, automated ISO/IEC 18045 CEM auditor | `tools/common_criteria_eal4_runner.py`, `tools/itsef_cem_evaluation_runner.py`, `tools/itsef_mock_lab_audit_simulator.py` |
@@ -90,24 +90,6 @@ All commissioned modules have achieved $\ge 80.00\%$ mutation adequacy kill rati
 | `src/ap2_mobile_mandate_engine.py` | `tests/test_ap2_mobile_mandate_engine.py` | 30 | 30 | **100.00%** | `[8864..10000 bps]` |
 
 
-| `src/cloud_hsm_remote_quorum.py` | `tests/test_cloud_hsm_remote_quorum.py` | 30 | 29 | **96.67%** | `[8333..9941 bps]` |
-
-
-| `src/edge_ai_prescreener.py` | `tests/test_edge_ai_prescreener.py` | 30 | 29 | **96.67%** | `[8332..9941 bps]` |
-
-
-| `src/semantic_two_phase_commit.py` | `tests/test_semantic_two_phase_commit.py` | 30 | 29 | **96.67%** | `[8332..9941 bps]` |
-
-
-| `src/cold_storage_hardware_ledger.py` | `tests/test_cold_storage_hardware_ledger.py` | 30 | 29 | **96.67%** | `[8332..9941 bps]` |
-
-
-| `src/eo1_unified_gate.py` | `tests/test_eo1_unified_gate.py` | 30 | 29 | **96.67%** | `[8332..9941 bps]` |
-
-
-| `src/live_biometric_latch_bridge.py` | `tests/test_live_biometric_latch_bridge.py` | 30 | 29 | **96.67%** | `[8332..9941 bps]` |
-
-
 | `src/cross_enterprise_federation_bridge.py` | `tests/test_cross_enterprise_federation_bridge.py` | 30 | 30 | **100.00%** | `[8864..10000 bps]` |
 
 
@@ -124,6 +106,33 @@ All commissioned modules have achieved $\ge 80.00\%$ mutation adequacy kill rati
 
 
 | `tools/airgap_qr_terminal.py` | `tests/test_airgap_qr_terminal.py` | 30 | 30 | **100.00%** | `[8864..10000 bps]` |
+
+
+| `src/enclave_proximity_attestation.py` | `tests/test_enclave_proximity_attestation.py` | 30 | 30 | **100.00%** | `[8864..10000 bps]` |
+
+
+| `src/pqc_post_quantum_notary.py` | `tests/test_pqc_post_quantum_notary.py` | 30 | 30 | **100.00%** | `[8864..10000 bps]` |
+
+
+| `src/autonomic_circuit_breaker_mesh.py` | `tests/test_autonomic_circuit_breaker_mesh.py` | 30 | 30 | **100.00%** | `[8864..10000 bps]` |
+
+
+| `src/cloud_hsm_remote_quorum.py` | `tests/test_cloud_hsm_remote_quorum.py` | 30 | 29 | **96.67%** | `[8333..9941 bps]` |
+
+
+| `src/edge_ai_prescreener.py` | `tests/test_edge_ai_prescreener.py` | 30 | 29 | **96.67%** | `[8332..9941 bps]` |
+
+
+| `src/semantic_two_phase_commit.py` | `tests/test_semantic_two_phase_commit.py` | 30 | 29 | **96.67%** | `[8332..9941 bps]` |
+
+
+| `src/cold_storage_hardware_ledger.py` | `tests/test_cold_storage_hardware_ledger.py` | 30 | 29 | **96.67%** | `[8332..9941 bps]` |
+
+
+| `src/eo1_unified_gate.py` | `tests/test_eo1_unified_gate.py` | 30 | 29 | **96.67%** | `[8332..9941 bps]` |
+
+
+| `src/live_biometric_latch_bridge.py` | `tests/test_live_biometric_latch_bridge.py` | 30 | 29 | **96.67%** | `[8332..9941 bps]` |
 
 
 | `tools/itsef_mock_lab_audit_simulator.py` | `tests/test_itsef_mock_lab_audit_simulator.py` | 30 | 28 | **93.33%** | `[7868..9815 bps]` |

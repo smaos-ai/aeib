@@ -380,13 +380,23 @@ def test_11_sqlite_persistence_and_receipt_retrieval(temp_db: str) -> None:
     assert receipt.timestamp_ms <= int(time.time() * 1000) + 5000
     assert receipt.timestamp_ms > 1_000_000_000_000
 
-    # Retrieve ledger receipts
+    # Retrieve ledger receipts with all fields verified
     items = rec.get_ledger_receipts(limit=10)
     assert len(items) == 1
     assert items[0]["cycle_id"] == receipt.cycle_id
-    assert items[0]["component_id"] == "ebpf_socket"
-    assert items[0]["status"] == STATUS_CONVERGED
+    assert items[0]["epoch_id"] == receipt.epoch_id
+    assert items[0]["component_id"] == receipt.component_id
+    assert items[0]["status"] == receipt.status
+    assert items[0]["action_taken"] == receipt.action_taken
+    assert items[0]["budget_remaining"] == receipt.budget_remaining
     assert items[0]["receipt_caid"] == receipt.receipt_caid
+    assert items[0]["timestamp_ms"] == receipt.timestamp_ms
+
+    # Test default limit=100 bound
+    for i in range(104):
+        rec.reconcile_component(spec, obs, now_ms=t_now + i + 1)
+    default_items = rec.get_ledger_receipts()
+    assert len(default_items) == 100
 
     rec.close()
 

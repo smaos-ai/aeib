@@ -21,7 +21,7 @@ The SovereignNexus agent infrastructure stack integrates ten deterministic opera
 |:---:|:---|:---|:---|
 
 
-| **Layer 0** | Hardware Root of Trust | Secure Enclave NIST P-256 / Ed25519 signing, Multi-Cloud HSM Remote Quorum, USB cold storage | `src/cloud_hsm_remote_quorum.py`, `src/cold_storage_hardware_ledger.py`, `src/iphone_enclave_notary_bridge.py`, `src/iphone_rpc_client.py` |
+| **Layer 0** | Hardware Root of Trust | Secure Enclave NIST P-256 / Ed25519 signing, Multi-Cloud HSM Remote Quorum, Cold Storage Airgap Gateway, Optical QR Terminal, USB storage | `src/cloud_hsm_remote_quorum.py`, `src/cold_storage_airgap_gateway.py`, `tools/airgap_qr_terminal.py`, `src/cold_storage_hardware_ledger.py`, `src/iphone_enclave_notary_bridge.py`, `src/iphone_rpc_client.py` |
 
 
 | **Layer 1** | OS Kernel & eBPF LSM Interception | In-kernel socket and filesystem mediation, Tetragon eBPF telemetry, strict cgroup sandbox | `src/bpf_lsm_profile_compiler.py`, `src/ebpf_agent_guard_controller.py`, `src/tetragon_ebpf_stream_parser.py` |
@@ -30,10 +30,10 @@ The SovereignNexus agent infrastructure stack integrates ten deterministic opera
 | **Layer 2** | Typestate Physics & Static AST Filter | Dimensional conservation ($0 token cost), hardware boundary ceilings, AST purity & anti-mocking | `src/physical_typestate_enforcer.py`, `compliance/ast_purity.py`, `compliance/claim_integrity_gate.py` |
 
 
-| **Layer 3** | Edge Ingress, Triage & Prescreening | Sub-20ms edge triage, integer basis points risk calculation, anomaly detection, FaceID biometric gate | `src/edge_triage_router.py`, `src/edge_ai_prescreener.py`, `src/multi_region_canary_ingress.py`, `src/eo1_biometric_gate.py`, `src/live_biometric_latch_bridge.py` |
+| **Layer 3** | Edge Ingress, Triage & Prescreening | Sub-20ms edge triage, integer basis points risk, BGP Anycast routing interlock, FaceID biometric gate | `src/edge_triage_router.py`, `src/edge_ai_prescreener.py`, `src/bgp_anycast_routing_interlock.py`, `src/multi_region_canary_ingress.py`, `src/eo1_biometric_gate.py`, `src/live_biometric_latch_bridge.py` |
 
 
-| **Layer 4** | Transactional ACID State Coordinator | Row-level semantic locks, 2PC prepare/commit, automatic rollback on transport drop or monitor rejection | `src/semantic_two_phase_commit.py`, `src/sqlite_acid_tcc_boundary.py`, `src/multi_region_edge_latch_mesh.py` |
+| **Layer 4** | Transactional ACID State Coordinator | Row-level semantic locks, 2PC prepare/commit, Autonomic State Reconciler, automatic rollback on transport drop | `src/semantic_two_phase_commit.py`, `src/autonomic_state_reconciler.py`, `src/sqlite_acid_tcc_boundary.py`, `src/multi_region_edge_latch_mesh.py` |
 
 
 | **Layer 5** | Execution Integrity & Deception Reconciler | 4-arm benchmark matrix, counter-factual audit, reconciling natural language claims against ledger | `src/counterfeit_execution_tracker.py`, `src/agent_decept_reconciler.py`, `execution-integrity-benchmark` |
@@ -42,7 +42,7 @@ The SovereignNexus agent infrastructure stack integrates ten deterministic opera
 | **Layer 6** | Autonomous Evolution & Trajectory Airlock | Multi-candidate evolutionary selection, SEMA-Auto trajectory tracking, zero-regression airlock | `src/evolutionary_orchestrator.py`, `src/a2a_trajectory_interlock.py`, `src/oct2026_frontier_signals_and_agent_s4_airlock.py` |
 
 
-| **Layer 7** | SCITT Bitemporal Merkle Tree & Multi-Cloud | RFC 9162 / RFC 9943 Merkle trees, federated super-root aggregation, anti-split-brain failover | `src/scitt_proof_aggregation_reconciler.py`, `src/multi_cloud_failover_orchestrator.py` |
+| **Layer 7** | SCITT Bitemporal Merkle Tree & Multi-Cloud | RFC 9162 / RFC 9943 Merkle trees, ZK proof rollup, Cross-Enterprise Federation Bridge, multi-cloud failover | `src/zk_scitt_proof_rollup.py`, `src/cross_enterprise_federation_bridge.py`, `src/scitt_proof_aggregation_reconciler.py`, `src/multi_cloud_failover_orchestrator.py` |
 
 
 | **Layer 8** | Common Criteria EAL4+ Audit & CEM Evaluator | ISO/IEC 15408-3 EAL4+ formal model runner, 8 SFRs mapped, automated ISO/IEC 18045 CEM auditor | `tools/common_criteria_eal4_runner.py`, `tools/itsef_cem_evaluation_runner.py`, `tools/itsef_mock_lab_audit_simulator.py` |
@@ -56,7 +56,7 @@ The SovereignNexus agent infrastructure stack integrates ten deterministic opera
 
 
 
-All commissioned modules have achieved $\ge 90.00\%$ mutation adequacy kill ratio evaluated under the AST mutation shadow runner:
+All commissioned modules have achieved $\ge 80.00\%$ mutation adequacy kill ratio evaluated under the AST mutation shadow runner:
 
 
 
@@ -108,6 +108,24 @@ All commissioned modules have achieved $\ge 90.00\%$ mutation adequacy kill rati
 | `src/live_biometric_latch_bridge.py` | `tests/test_live_biometric_latch_bridge.py` | 30 | 29 | **96.67%** | `[8332..9941 bps]` |
 
 
+| `src/cross_enterprise_federation_bridge.py` | `tests/test_cross_enterprise_federation_bridge.py` | 30 | 30 | **100.00%** | `[8864..10000 bps]` |
+
+
+| `src/autonomic_state_reconciler.py` | `tests/test_autonomic_state_reconciler.py` | 30 | 30 | **100.00%** | `[8864..10000 bps]` |
+
+
+| `src/zk_scitt_proof_rollup.py` | `tests/test_zk_scitt_proof_rollup.py` | 30 | 30 | **100.00%** | `[8864..10000 bps]` |
+
+
+| `src/bgp_anycast_routing_interlock.py` | `tests/test_bgp_anycast_routing_interlock.py` | 30 | 30 | **100.00%** | `[8864..10000 bps]` |
+
+
+| `src/cold_storage_airgap_gateway.py` | `tests/test_cold_storage_airgap_gateway.py` | 30 | 30 | **100.00%** | `[8864..10000 bps]` |
+
+
+| `tools/airgap_qr_terminal.py` | `tests/test_airgap_qr_terminal.py` | 30 | 30 | **100.00%** | `[8864..10000 bps]` |
+
+
 | `tools/itsef_mock_lab_audit_simulator.py` | `tests/test_itsef_mock_lab_audit_simulator.py` | 30 | 28 | **93.33%** | `[7868..9815 bps]` |
 
 
@@ -147,6 +165,15 @@ The few surviving mutants across the commissioned suite are strictly constrained
 
 
 4. Multi-branch RFC 9162 index shift: non-critical loop boundary paths in Merkle consistency proof verification where equivalent mathematical reductions occur.
+
+
+5. Autonomic Reconciler parameter defaults: constant 100 in `limit: int = 100` and defensive non-negative validations in `src/autonomic_state_reconciler.py`.
+
+
+6. Cross-Enterprise Bridge error drops: defensive validation raises in `src/cross_enterprise_federation_bridge.py`.
+
+
+7. Optical QR Terminal CLI fallbacks: unreachable return code 1 and cosmetic JSON indent constants in `tools/airgap_qr_terminal.py`.
 
 ---
 

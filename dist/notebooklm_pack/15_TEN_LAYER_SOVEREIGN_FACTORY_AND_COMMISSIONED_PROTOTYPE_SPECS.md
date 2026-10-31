@@ -36,7 +36,7 @@ The SovereignNexus agent infrastructure stack integrates ten deterministic opera
 | **Layer 4** | Transactional ACID State Coordinator | Row-level semantic locks, 2PC prepare/commit, Autonomic State Reconciler, Quorum Jitter Fuzzer, Byzantine Timewarp Harness, Byzantine Homomorphic Gossip Sync, Pre-Socket Escrow Latch | `src/semantic_two_phase_commit.py`, `src/autonomic_state_reconciler.py`, `src/quorum_jitter_fuzzer.py`, `src/byzantine_consensus_timewarp.py`, `src/sqlite_acid_tcc_boundary.py`, `src/multi_region_edge_latch_mesh.py`, `src/homomorphic_gossip_sync.py`, `src/coinbase_x402_agent_gateway.py` |
 
 
-| **Layer 5** | Execution Integrity & Deception Reconciler | 4-arm benchmark matrix, counter-factual audit, Circuit-Breaker Failsafe Mesh | `src/counterfeit_execution_tracker.py`, `src/agent_decept_reconciler.py`, `src/autonomic_circuit_breaker_mesh.py`, `execution-integrity-benchmark` |
+| **Layer 5** | Execution Integrity & Deception Reconciler | 4-arm benchmark matrix, counter-factual audit, Circuit-Breaker Failsafe Mesh, MCP Action-vs-Outcome Normalizer | `src/counterfeit_execution_tracker.py`, `src/agent_decept_reconciler.py`, `src/autonomic_circuit_breaker_mesh.py`, `src/mcp_outcome_normalizer.py`, `execution-integrity-benchmark` |
 
 
 | **Layer 6** | Autonomous Evolution & Trajectory Airlock | Multi-candidate evolutionary selection, SEMA-Auto trajectory tracking, zero-regression airlock | `src/evolutionary_orchestrator.py`, `src/a2a_trajectory_interlock.py`, `src/oct2026_frontier_signals_and_agent_s4_airlock.py` |
@@ -157,6 +157,9 @@ All commissioned modules have achieved $\ge 80.00\%$ mutation adequacy kill rati
 
 
 | `src/eo1_protocol_model_checker.py` | `tests/test_eo1_protocol_model_checker.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
+
+| `src/mcp_outcome_normalizer.py` | `tests/test_mcp_outcome_normalizer.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
 
 
 | `src/cloud_hsm_remote_quorum.py` | `tests/test_cloud_hsm_remote_quorum.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |

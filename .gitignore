@@ -51,6 +51,9 @@ vendor-research/
 *.private.md
 *.internal.md
 *CONFIDENTIAL*
+!src/confidential_vm_migration_interlock.py
+!tests/test_confidential_vm_migration_interlock.py
+!output/mutation_report_confidential_vm_migration_interlock.json
 *_NDA_*
 *NDA.*
 *NDA-*

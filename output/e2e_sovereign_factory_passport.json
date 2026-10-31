@@ -5,9 +5,9 @@
   "root_intent_caid": "sha256:b4023ab5442bd72b8e4a365458b57006f5b06935a19d42cff8261ffda94727fc",
   "layer1_intent_status": "LATCHED_CANONICAL_JCS",
   "layer2_spiffe_id": "spiffe://sovereign.nexus/agent/payment_agent_01",
-  "layer2_bpf_lsm_digest": "sha256:7fbd7079cc1ff23b757f1cc58c3c2293264986616f8651eabc1f9834f7cb751c",
-  "layer3_egress_receipt_caid": "sha256:cfcd1a52857f18d6dad5529f0080667c482fc7c63dbf44a84f43db54c0cc554e",
-  "layer4_wal_reconciled_caid": "sha256:cfcd1a52857f18d6dad5529f0080667c482fc7c63dbf44a84f43db54c0cc554e",
+  "layer2_bpf_lsm_digest": "sha256:9bd0380588bdf0c047d7026dc697c22f2d018530aeaf6c73d34465279aac2932",
+  "layer3_egress_receipt_caid": "sha256:6e7bb510e79db9482a87fee6b89b6f7d4c0f2b6804784889466c1c2468a3fec7",
+  "layer4_wal_reconciled_caid": "sha256:6e7bb510e79db9482a87fee6b89b6f7d4c0f2b6804784889466c1c2468a3fec7",
   "layer5_simulation_caid": "sha256:8b9e3fc1d402fbefab0944b56bbe62e0fb9222954c1d11974a1d7292599a6e7a",
   "layer5_auto_merged": 755,
   "layer5_human_escalated": 100,
@@ -19,7 +19,7 @@
   "layer7_ui_constraint_caid": "sha256:e9912272e0dadb8f31705b92713e81ea34869f96ffcbc4dda73a3ce2e3f1ab8e",
   "layer7_visual_divergence_bps": 0,
   "all_layers_verified": true,
-  "execution_duration_ms": 21,
+  "execution_duration_ms": 29,
   "telemetry": {
     "layer1": {
       "root_intent_caid": "sha256:b4023ab5442bd72b8e4a365458b57006f5b06935a19d42cff8261ffda94727fc",
@@ -27,15 +27,15 @@
     },
     "layer2": {
       "actor_spiffe_id": "spiffe://sovereign.nexus/agent/payment_agent_01",
-      "bpf_lsm_digest": "sha256:7fbd7079cc1ff23b757f1cc58c3c2293264986616f8651eabc1f9834f7cb751c",
+      "bpf_lsm_digest": "sha256:9bd0380588bdf0c047d7026dc697c22f2d018530aeaf6c73d34465279aac2932",
       "status": "MICRO_VM_ENCLAVE_COMMISSIONED"
     },
     "layer3": {
-      "egress_receipt_caid": "sha256:cfcd1a52857f18d6dad5529f0080667c482fc7c63dbf44a84f43db54c0cc554e",
+      "egress_receipt_caid": "sha256:6e7bb510e79db9482a87fee6b89b6f7d4c0f2b6804784889466c1c2468a3fec7",
       "status": "BLIND_CREDENTIAL_SUBSTITUTED_ON_WIRE"
     },
     "layer4": {
-      "wal_reconciled_caid": "sha256:cfcd1a52857f18d6dad5529f0080667c482fc7c63dbf44a84f43db54c0cc554e",
+      "wal_reconciled_caid": "sha256:6e7bb510e79db9482a87fee6b89b6f7d4c0f2b6804784889466c1c2468a3fec7",
       "reconciled_disposition": "COMMITTED",
       "duplicate_retry_blocked": true,
       "status": "ZOMBIE_DOUBLE_SPEND_CONTAINED"

@@ -10,7 +10,7 @@ Acts as a "Second AI Brain" interface:
 2. Supports querying / asking grounded questions to NotebookLM with citations.
 3. Automatically adapts between:
    - Live API Mode (via `notebooklm-py` when installed and authenticated).
-   - Staged Mode (deterministic local 8-source pack ready for web upload or Drive sync).
+   - Staged Mode (deterministic local 12-source pack ready for web upload or Drive sync).
 """
 
 from __future__ import annotations
@@ -57,7 +57,7 @@ def check_auth_status() -> Dict[str, Any]:
 
 
 def compile_pack() -> Dict[str, Any]:
-    """Invokes the compiler to refresh the 8-source knowledge pack."""
+    """Invokes the compiler to refresh the 12-source knowledge pack."""
     compiler_script = REPO_ROOT / "tools" / "compile_notebooklm_moats_pack.py"
     subprocess.run([sys.executable, str(compiler_script)], check=True)
     manifest_path = DIST_DIR / "PACK_MANIFEST.json"
@@ -113,14 +113,14 @@ async def query_notebooklm_async(
 async def upload_pack_to_notebooklm_async(
     notebook_id: str = DEFAULT_NOTEBOOK_ID,
 ) -> Dict[str, Any]:
-    """Uploads the compiled 8-source pack into the target notebook via notebooklm-py."""
+    """Uploads the compiled 12-source pack into the target notebook via notebooklm-py."""
     try:
         from notebooklm import NotebookLMClient  # type: ignore
     except ImportError:
         return {
             "status": "ERROR_LIBRARY_NOT_INSTALLED",
             "message": (
-                "`notebooklm-py` is not installed. You can upload the 8 files in `dist/notebooklm_pack/` "
+                "`notebooklm-py` is not installed. You can upload the 12 files in `dist/notebooklm_pack/` "
                 f"directly by dragging them into https://notebook.google.com/notebook/{notebook_id} in your browser."
             ),
         }
@@ -147,16 +147,17 @@ async def upload_pack_to_notebooklm_async(
 
 
 def export_to_drive_folder(target_folder: str) -> None:
-    """Copies the 8 compiled files into a specified local Google Drive sync folder."""
+    """Copies the 12 compiled files into a specified local Google Drive sync folder."""
     dest = Path(target_folder).expanduser().resolve()
     dest.mkdir(parents=True, exist_ok=True)
     if not DIST_DIR.exists():
         compile_pack()
 
-    for item in DIST_DIR.glob("*.md"):
+    md_files = list(DIST_DIR.glob("*.md"))
+    for item in md_files:
         shutil.copy2(item, dest / item.name)
     shutil.copy2(DIST_DIR / "PACK_MANIFEST.json", dest / "PACK_MANIFEST.json")
-    print(f"✓ Exported 8 sources + manifest to: {dest}")
+    print(f"✓ Exported {len(md_files)} sources + manifest to: {dest}")
 
 
 def main() -> None:
@@ -167,7 +168,7 @@ def main() -> None:
     subparsers.add_parser("status", help="Check NotebookLM auth and pack status")
 
     # Command: compile
-    subparsers.add_parser("compile", help="Compile and refresh the 8-source knowledge pack")
+    subparsers.add_parser("compile", help="Compile and refresh the 12-source knowledge pack")
 
     # Command: ask
     ask_parser = subparsers.add_parser("ask", help="Ask a question to NotebookLM")

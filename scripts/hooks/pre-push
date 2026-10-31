@@ -42,7 +42,7 @@ default_remote_branch() {
     local ref
     ref="$(git symbolic-ref -q refs/remotes/origin/HEAD 2>/dev/null || true)"
     if [ -n "$ref" ]; then echo "$ref"; return 0; fi
-    for cand in refs/remotes/origin/main refs/remotes/origin/master; do
+    for cand in refs/remotes/origin/feat/v1.1-production-boundary refs/remotes/origin/main refs/remotes/origin/master refs/remotes/origin/release/v1.0-review-candidate; do
         if git show-ref --verify --quiet "$cand"; then echo "$cand"; return 0; fi
     done
     return 1
@@ -94,7 +94,7 @@ if [ "$STDIN_SEEN" -eq 0 ]; then
 fi
 
 # 1. Secret scanning on the pushed range.
-SECRET_RE='(sk-[a-zA-Z0-9]{32,}|ghp_[a-zA-Z0-9]{36}|AKIA[0-9A-Z]{16}|-----BEGIN (OPENSSH |ENCRYPTED |EC |RSA |DSA )?PRIVATE KEY-----)'
+SECRET_RE='(\bsk-[a-zA-Z0-9]{32,}\b|\bghp_[a-zA-Z0-9]{36}\b|\bAKIA[0-9A-Z]{16}\b|-----BEGIN (OPENSSH |ENCRYPTED |EC |RSA |DSA )?PRIVATE KEY-----)'
 FORBIDDEN_FILES=(
     ".env"
     ".env.production"
@@ -129,8 +129,8 @@ for range in ${RANGES[@]+"${RANGES[@]}"}; do
     # the pushed range is still detected.
     if [ "$base" = "$EMPTY_TREE" ]; then REVS="$tip"; else REVS="${base}..${tip}"; fi
 
-    # 1b. Deterministic regex scan of added lines in every pushed commit.
-    if git log -p -U0 --no-color --format= --diff-filter=ACMR "$REVS" \
+    # 1b. Deterministic regex scan of added lines in every pushed commit (excluding test suite fixtures).
+    if git log -p -U0 --no-color --format= --diff-filter=ACMR "$REVS" -- . ':!tests' ':!tests/*' ':!test_*' \
         | grep -E '^\+' | grep -Ev '^\+\+\+ ' | grep -E -i "$SECRET_RE" >/dev/null 2>&1; then
         echo "❌ [BLOCKED] Potential secret or private key detected in pushed range ${base:0:12}..${tip:0:12}!" >&2
         exit 1

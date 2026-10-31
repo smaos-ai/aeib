@@ -1,0 +1,69 @@
+{
+  "passport_version": "1.0.0",
+  "status": "INTERNAL PREVIEW COMMISSIONED",
+  "target_notebook_url": "https://notebook.google.com/notebook/e1b91409-02f9-4300-8bf7-5dfd4426dd16",
+  "root_intent_caid": "sha256:b4023ab5442bd72b8e4a365458b57006f5b06935a19d42cff8261ffda94727fc",
+  "layer1_intent_status": "LATCHED_CANONICAL_JCS",
+  "layer2_spiffe_id": "spiffe://sovereign.nexus/agent/payment_agent_01",
+  "layer2_bpf_lsm_digest": "sha256:7fbd7079cc1ff23b757f1cc58c3c2293264986616f8651eabc1f9834f7cb751c",
+  "layer3_egress_receipt_caid": "sha256:cfcd1a52857f18d6dad5529f0080667c482fc7c63dbf44a84f43db54c0cc554e",
+  "layer4_wal_reconciled_caid": "sha256:cfcd1a52857f18d6dad5529f0080667c482fc7c63dbf44a84f43db54c0cc554e",
+  "layer5_simulation_caid": "sha256:8b9e3fc1d402fbefab0944b56bbe62e0fb9222954c1d11974a1d7292599a6e7a",
+  "layer5_auto_merged": 755,
+  "layer5_human_escalated": 100,
+  "layer5_single_scope_halted": 100,
+  "layer5_smurfing_halted": 45,
+  "layer5_uncontained_merges": 0,
+  "layer6_child_warrant_caid": "sha256:6c360760cfbcd4493b52dec73d07cc7c834966de918d76056325254112ca3ef4",
+  "layer6_trajectory_drift_bps": 2223,
+  "layer7_ui_constraint_caid": "sha256:e9912272e0dadb8f31705b92713e81ea34869f96ffcbc4dda73a3ce2e3f1ab8e",
+  "layer7_visual_divergence_bps": 0,
+  "all_layers_verified": true,
+  "execution_duration_ms": 21,
+  "telemetry": {
+    "layer1": {
+      "root_intent_caid": "sha256:b4023ab5442bd72b8e4a365458b57006f5b06935a19d42cff8261ffda94727fc",
+      "status": "LATCHED_CANONICAL_JCS"
+    },
+    "layer2": {
+      "actor_spiffe_id": "spiffe://sovereign.nexus/agent/payment_agent_01",
+      "bpf_lsm_digest": "sha256:7fbd7079cc1ff23b757f1cc58c3c2293264986616f8651eabc1f9834f7cb751c",
+      "status": "MICRO_VM_ENCLAVE_COMMISSIONED"
+    },
+    "layer3": {
+      "egress_receipt_caid": "sha256:cfcd1a52857f18d6dad5529f0080667c482fc7c63dbf44a84f43db54c0cc554e",
+      "status": "BLIND_CREDENTIAL_SUBSTITUTED_ON_WIRE"
+    },
+    "layer4": {
+      "wal_reconciled_caid": "sha256:cfcd1a52857f18d6dad5529f0080667c482fc7c63dbf44a84f43db54c0cc554e",
+      "reconciled_disposition": "COMMITTED",
+      "duplicate_retry_blocked": true,
+      "status": "ZOMBIE_DOUBLE_SPEND_CONTAINED"
+    },
+    "layer5": {
+      "simulation_caid": "sha256:8b9e3fc1d402fbefab0944b56bbe62e0fb9222954c1d11974a1d7292599a6e7a",
+      "total_prs_evaluated": 1000,
+      "auto_merged_count": 755,
+      "human_escalated_count": 100,
+      "halted_single_scope_creep_count": 100,
+      "halted_cumulative_smurfing_count": 45,
+      "uncontained_high_risk_merges": 0,
+      "status": "KIRO_FACTORY_CONTAINMENT_EVALUATED"
+    },
+    "layer6": {
+      "delegation_token_caid": "sha256:6c360760cfbcd4493b52dec73d07cc7c834966de918d76056325254112ca3ef4",
+      "assigned_taint_level": 1,
+      "trajectory_drift_bps": 2223,
+      "drift_verdict": "OK_TRAJECTORY_ALIGNED",
+      "status": "A2A_MONOTONIC_TAINT_AND_SCOPE_CONFINED"
+    },
+    "layer7": {
+      "ui_constraint_caid": "sha256:e9912272e0dadb8f31705b92713e81ea34869f96ffcbc4dda73a3ce2e3f1ab8e",
+      "ui_constraint_passed": true,
+      "visual_regression_caid": "sha256:9d192edadcaf34713614728c25a86caf4fff155bf3a4ad55acf23d9cc8ec53b0",
+      "visual_divergence_bps": 0,
+      "visual_status_code": "OK_VISUAL_REGRESSION_SATISFIED",
+      "status": "JIDOKA_AST_AND_VISUAL_REGRESSION_VERIFIED"
+    }
+  }
+}

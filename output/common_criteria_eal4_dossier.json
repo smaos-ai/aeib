@@ -1,0 +1,12 @@
+{
+  "assurance_level": "EAL4+ (ALC_FLR.2 + AVA_VAN.4)",
+  "created_epoch_ms": 1793413147582,
+  "dossier_caid": "sha256:581909764fe0a656852f1a9baf5b6a642d1f211f0dc3de5aac1dde6a4c3db581",
+  "dossier_version": "1.0.0",
+  "evaluation_target": "SovereignNexus AEIB v1.1",
+  "formal_states_checked": 34047,
+  "sfrs_mapped_count": 8,
+  "status": "INTERNAL PREVIEW COMMISSIONED",
+  "test_suites_verified_count": 375,
+  "vulnerability_vectors_contained": 5
+}

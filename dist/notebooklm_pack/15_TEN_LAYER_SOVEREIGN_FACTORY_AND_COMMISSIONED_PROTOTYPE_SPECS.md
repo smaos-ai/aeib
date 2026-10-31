@@ -21,10 +21,10 @@ The SovereignNexus agent infrastructure stack integrates ten deterministic opera
 |:---:|:---|:---|:---|
 
 
-| **Layer 0** | Hardware Root of Trust | Secure Enclave NIST P-256 / Ed25519 signing, Multi-Cloud HSM Remote Quorum, Cold Storage Airgap Gateway, Enclave Proximity Attestation, TPM 2.0 PCR-11 Aggregator, Heterogeneous CVM Interlock | `src/cloud_hsm_remote_quorum.py`, `src/cold_storage_airgap_gateway.py`, `src/enclave_proximity_attestation.py`, `src/zk_tpm_pcr_aggregator.py`, `src/confidential_vm_migration_interlock.py`, `tools/airgap_qr_terminal.py`, `src/cold_storage_hardware_ledger.py`, `src/iphone_enclave_notary_bridge.py`, `src/iphone_rpc_client.py` |
+| **Layer 0** | Hardware Root of Trust | Secure Enclave NIST P-256 / Ed25519 signing, Multi-Cloud HSM Remote Quorum, Cold Storage Airgap Gateway, Enclave Proximity Attestation, TPM 2.0 PCR-11 Aggregator, Heterogeneous CVM Interlock, Confidential Container Attestation Proxy | `src/cloud_hsm_remote_quorum.py`, `src/cold_storage_airgap_gateway.py`, `src/enclave_proximity_attestation.py`, `src/zk_tpm_pcr_aggregator.py`, `src/confidential_vm_migration_interlock.py`, `src/coco_attestation_proxy.py`, `tools/airgap_qr_terminal.py`, `src/cold_storage_hardware_ledger.py`, `src/iphone_enclave_notary_bridge.py`, `src/iphone_rpc_client.py` |
 
 
-| **Layer 1** | OS Kernel & eBPF LSM Interception | In-kernel socket and filesystem mediation, Tetragon eBPF telemetry, strict cgroup sandbox | `src/bpf_lsm_profile_compiler.py`, `src/ebpf_agent_guard_controller.py`, `src/tetragon_ebpf_stream_parser.py` |
+| **Layer 1** | OS Kernel & eBPF LSM Interception | In-kernel socket and filesystem mediation, Tetragon eBPF telemetry, strict cgroup sandbox, dynamic eBPF tail-call hot-patching, XDP line-rate ingress rate-limiter | `src/bpf_lsm_profile_compiler.py`, `src/ebpf_agent_guard_controller.py`, `src/tetragon_ebpf_stream_parser.py`, `src/ebpf_tail_call_hotpatch.py`, `src/xdp_ingress_ratelimiter.py` |
 
 
 | **Layer 2** | Typestate Physics & Static AST Filter | Dimensional conservation ($0 token cost), hardware boundary ceilings, AST purity & anti-mocking | `src/physical_typestate_enforcer.py`, `compliance/ast_purity.py`, `compliance/claim_integrity_gate.py` |
@@ -127,6 +127,15 @@ All commissioned modules have achieved $\ge 80.00\%$ mutation adequacy kill rati
 
 
 | `src/byzantine_consensus_timewarp.py` | `tests/test_byzantine_consensus_timewarp.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
+
+| `src/ebpf_tail_call_hotpatch.py` | `tests/test_ebpf_tail_call_hotpatch.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
+
+| `src/coco_attestation_proxy.py` | `tests/test_coco_attestation_proxy.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
+
+| `src/xdp_ingress_ratelimiter.py` | `tests/test_xdp_ingress_ratelimiter.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
 
 
 | `src/cloud_hsm_remote_quorum.py` | `tests/test_cloud_hsm_remote_quorum.py` | 30 | 29 | **96.67%** | `[8333..9941 bps]` |

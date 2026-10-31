@@ -301,6 +301,11 @@ def _prepare_shadow_root(repo_root: Path, dest: Path, test_files: Sequence[str])
         src_dir = repo_root / "tests" / data_sub
         if src_dir.is_dir() and not (dest / "tests" / data_sub).exists():
             shutil.copytree(src_dir, dest / "tests" / data_sub, ignore=ignore)
+    # Submission packs and distribution artifacts evaluated by audit runners
+    dist_pack = repo_root / "dist" / "common_criteria_eal4_submission_pack"
+    if dist_pack.is_dir() and not (dest / "dist" / "common_criteria_eal4_submission_pack").exists():
+        (dest / "dist").mkdir(parents=True, exist_ok=True)
+        shutil.copytree(dist_pack, dest / "dist" / "common_criteria_eal4_submission_pack", ignore=ignore)
     # Benchmark packages (subdirectories with Python modules) imported by tests.
     if (repo_root / "benchmarks").is_dir():
         for sub in (repo_root / "benchmarks").iterdir():

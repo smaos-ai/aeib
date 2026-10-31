@@ -2053,3 +2053,65 @@ class PreDispatchIntentInterlock:
             self._chain_tip = hashlib.sha256(jcs_bytes).hexdigest()
 
             return receipt
+
+
+class LatchState:
+    COMMITTED = "COMMITTED"
+    RECONCILED_COMMITTED = "RECONCILED_COMMITTED"
+    LATCHED = "LATCHED"
+    REJECTED = "REJECTED"
+
+
+@dataclass(frozen=True)
+class LatchOutcome:
+    dispatched: bool
+    state: str
+    reason_code: str
+
+
+class EO1WriteBeforeExecuteLatch:
+    """Convenience adapter over PreDispatchIntentInterlock for atomic dispatch commits."""
+
+    def __init__(self, root_dir: Path) -> None:
+        self.root_dir = Path(root_dir)
+        ledger_path = self.root_dir / "eo1_ledger.jsonl"
+        state_dir = self.root_dir / "eo1_state"
+        self.interlock = PreDispatchIntentInterlock(
+            ledger_path=ledger_path,
+            output_state_dir=state_dir,
+        )
+
+    def execute(
+        self,
+        tool_name: str,
+        canonical_payload: Any,
+        dispatch_fn: Callable[[], Any],
+        intent_id: Optional[str] = None,
+        target_uri: str = "local://jidoka_ui_factory",
+    ) -> LatchOutcome:
+        try:
+            res = self.interlock.dispatch(
+                target_uri=target_uri,
+                tool_name=tool_name,
+                payload=canonical_payload,
+                dispatch_fn=dispatch_fn,
+                intent_id=intent_id,
+            )
+            return LatchOutcome(
+                dispatched=True,
+                state=LatchState.COMMITTED,
+                reason_code="OK_COMMITTED",
+            )
+        except CaidAlreadyCommittedError:
+            return LatchOutcome(
+                dispatched=False,
+                state=LatchState.COMMITTED,
+                reason_code=DENY_ALREADY_COMMITTED_NO_RESEND,
+            )
+        except Exception as exc:
+            return LatchOutcome(
+                dispatched=False,
+                state=LatchState.LATCHED,
+                reason_code=str(exc),
+            )
+

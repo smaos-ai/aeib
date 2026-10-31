@@ -515,11 +515,14 @@ def _watch_child(proc: Any, timeout_s: float, max_rss_kib: int, ps_path: str = P
             time.sleep(RSS_POLL_INTERVAL_S)
     try:
         os.killpg(proc.pid, signal.SIGKILL)
-    except ProcessLookupError:
+    except (ProcessLookupError, PermissionError):
         pass
-    _, wstatus, usage = os.wait4(proc.pid, 0)
-    proc.returncode = os.waitstatus_to_exitcode(wstatus)
-    return halt, max(peak_kib, _rusage_maxrss_kib(usage.ru_maxrss))
+    try:
+        _, wstatus, usage = os.wait4(proc.pid, 0)
+        proc.returncode = os.waitstatus_to_exitcode(wstatus)
+        return halt, max(peak_kib, _rusage_maxrss_kib(usage.ru_maxrss))
+    except ChildProcessError:
+        return halt, peak_kib
 
 
 def _run_probes_in_child_process(

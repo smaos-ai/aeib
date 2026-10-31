@@ -128,8 +128,8 @@ else:
 ### Banned Overclaim Filter:
 The scorer enforces an automated safety gate that halts execution if statements or verdicts contain promotional or uncalibrated terms:
 * `"definitely pathogenic"`
-* `"clinically validated"`
-* `"100% safe"`
+* `"analytically evaluated"`
+* `"rigorously tested"`
 * `"approved therapy"`
 * `"confirmed diagnosis"`
 

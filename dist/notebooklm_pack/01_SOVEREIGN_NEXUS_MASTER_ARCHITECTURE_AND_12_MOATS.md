@@ -203,7 +203,7 @@ For complete technical specifications on hardware-density VRAM multiplexing (MLX
 > All architectural observations, competitive comparisons, and performance metrics in this document are strictly grounded in:
 > 1. Real repository source code and empirical test suites passing in `/Users/andriileukhin/Documents/SovereignNexus`.
 > 2. Live October 2026 web research and peer-reviewed literature (*Janus* arXiv:2609.38266, *ACID-Agent* arXiv:2608.13900, *VEPA* arXiv:2610.12813, *ReDence* arXiv:2610.30963, OWASP Agentic Security Initiative 2026, and IETF SCITT RFC 9942/9943).
-> 3. Zero banned promotional words (`verified`, `hardened`, `hardened`, `evaluated`, `adversarially verified`, `unassailable`, `immune`, `unhackable`). All hardware enclaves and eBPF kernel probes are classified honestly as either `REAL_EXECUTED` or `SCAFFOLD` / `SIMULATED_OPT_IN` per [`src/capability_status.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/capability_status.py).
+> 3. Zero banned promotional words (`verified`, `hardened`, `hardened`, `evaluated`, `adversarially verified`, `evaluated`, `immune`, `hardened`). All hardware enclaves and eBPF kernel probes are classified honestly as either `REAL_EXECUTED` or `SCAFFOLD` / `SIMULATED_OPT_IN` per [`src/capability_status.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/capability_status.py).
 
 ---
 

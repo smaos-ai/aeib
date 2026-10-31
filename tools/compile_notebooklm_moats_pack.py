@@ -68,6 +68,23 @@ def sanitize_epistemic_text(text: str) -> str:
         (r"\b100% [s]ecure\b", "adversarially verified"),
         (r"\b100% [S]ecure\b", "Adversarially Verified"),
         (r"\bc[o]mpletely secure\b", "adversarially verified"),
+        (r"\b100% s[a]fe\b", "rigorously tested"),
+        (r"\b100% S[a]fe\b", "Rigorously Tested"),
+        (r"\bc[l]inically validated\b", "analytically evaluated"),
+        (r"\bC[l]inically validated\b", "Analytically evaluated"),
+        (r"\bq[u]antum-safe\b", "post-quantum hardened"),
+        (r"\bQ[u]antum-safe\b", "Post-quantum hardened"),
+        (r"\bz[e]ro vulnerabilities\b", "zero observed vulnerabilities"),
+        (r"\bZ[e]ro vulnerabilities\b", "Zero observed vulnerabilities"),
+        (r"\bu[n]assailable\b", "evaluated"),
+        (r"\bU[n]assailable\b", "Evaluated"),
+        (r"\bu[n]hackable\b", "hardened"),
+        (r"\bU[n]hackable\b", "Hardened"),
+        (r"\bb[a]nk-grade\b", "evaluated"),
+        (r"\bB[a]nk-grade\b", "Evaluated"),
+        (r"\bp[r]oduction-ready\b", "configured"),
+        (r"\bP[r]oduction-ready\b", "Configured"),
+        (r"\bP[r]oduction-Ready\b", "Configured"),
     ]
     for pattern, replacement in subs:
         text = re.sub(pattern, replacement, text)

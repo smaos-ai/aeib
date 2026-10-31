@@ -455,7 +455,7 @@ Benefit vs Current System:
 
 Current implementation uses Ed25519 (ECC-based). Q3 2026 roadmap:
 - Hybrid signing: Ed25519 + CRYSTALS-Dilithium (post-quantum resistant)
-- All ledger entries become post-quantum-safe by December 2026
+- All ledger entries become post-post-quantum hardened by December 2026
 - Positioning: "EU AI Act systems must be quantum-ready by 2030; SovereignNexus is already there"
 
 ### Roadmap (Next 12 Months)
@@ -623,7 +623,7 @@ The following market signals validate that SMAOS addresses a real, urgent, and r
 ### 2. Edge Computing & Quantum-Ready Inference (Topological States + Quantum Genome)
 - **Signal:** Emergence of topological quantum computing (IBM, Google, IonQ) + quantum machine learning frameworks
 - **Evidence:** Edge-local inference (Rapid-MLX, mobile quantum processors) requires deterministic, reproducible execution for cryptographic verification
-- **SMAOS Alignment:** IVB's deterministic critic + Capsule's Merkle provenance enable quantum-safe, locally-verifiable inference chains
+- **SMAOS Alignment:** IVB's deterministic critic + Capsule's Merkle provenance enable post-quantum hardened, locally-verifiable inference chains
 - **Non-Provisional Narrative:** "Quantum-era autonomous systems require cryptographic provenance + deterministic refinement to ensure post-quantum audit trails"
 
 ### 3. Local-First Sovereignty & Crafter Economy

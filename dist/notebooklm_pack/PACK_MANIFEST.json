@@ -3,7 +3,7 @@
   "target_notebook_url": "https://notebook.google.com/notebook/e1b91409-02f9-4300-8bf7-5dfd4426dd16",
   "target_notebook_id": "e1b91409-02f9-4300-8bf7-5dfd4426dd16",
   "sources_count": 14,
-  "total_word_count": 109077,
+  "total_word_count": 109079,
   "max_words_per_source_limit": 500000,
   "notebook_source_slots_used": "14 / 50 (36 slots free)",
   "sources": [
@@ -18,8 +18,8 @@
       "file_name": "01_SOVEREIGN_NEXUS_MASTER_ARCHITECTURE_AND_12_MOATS.md",
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/01_SOVEREIGN_NEXUS_MASTER_ARCHITECTURE_AND_12_MOATS.md",
       "words": 5408,
-      "bytes": 45008,
-      "sha256": "sha256:369c04d2ce26710c0f7f81c34242609d01c27468f45f3207dc165932e5779e4b"
+      "bytes": 45003,
+      "sha256": "sha256:bf0ac471a42f7f8c398c052fdab19a3d98f4408558636d8ce0df60de110efcd9"
     },
     {
       "file_name": "02_EVIDENCE_MANIFEST_AND_CRYPTOGRAPHIC_RECEIPTS_SECTIONS_1_TO_38.md",
@@ -31,9 +31,9 @@
     {
       "file_name": "03_PATENT_DISCLOSURES_INVARIANTS_AND_PROVISIONAL_CLAIMS.md",
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/03_PATENT_DISCLOSURES_INVARIANTS_AND_PROVISIONAL_CLAIMS.md",
-      "words": 7880,
-      "bytes": 62900,
-      "sha256": "sha256:2176ed87e88b5e68f0d3137a934f004d14deaa9ad2df95058a10eadc4d430c75"
+      "words": 7882,
+      "bytes": 62918,
+      "sha256": "sha256:a157b3eede840be78b3795cd0f7bf788b0528df0fc49553950d8cd7b19969a34"
     },
     {
       "file_name": "04_INDUSTRIAL_PROTECTION_MATRIX_AND_CIRCUIT_BREAKERS.md",
@@ -46,8 +46,8 @@
       "file_name": "05_BIO_DIGITAL_EVIDENCE_GATE_PBAG_FOR_GENOMICS.md",
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/05_BIO_DIGITAL_EVIDENCE_GATE_PBAG_FOR_GENOMICS.md",
       "words": 6094,
-      "bytes": 68987,
-      "sha256": "sha256:36da411b4cc77139f7b6f96b313a998e052528419343f27fc9b3627fa472e4e8"
+      "bytes": 68997,
+      "sha256": "sha256:e5529f63872fbf515f5c53307d029d13dd4e50179cf183d1e49f114a52741e97"
     },
     {
       "file_name": "06_TRI_TRACK_PRIZE_COMPETITION_AND_MONETIZATION_PORTFOLIO.md",

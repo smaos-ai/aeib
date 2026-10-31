@@ -5,9 +5,9 @@
   "root_intent_caid": "sha256:b4023ab5442bd72b8e4a365458b57006f5b06935a19d42cff8261ffda94727fc",
   "layer1_intent_status": "LATCHED_CANONICAL_JCS",
   "layer2_spiffe_id": "spiffe://sovereign.nexus/agent/payment_agent_01",
-  "layer2_bpf_lsm_digest": "sha256:c6bc204189f843c5d9ba448fd2f990672c039e4a596515b1aa2371b83633555e",
-  "layer3_egress_receipt_caid": "sha256:75b6e0dd339a453b069034cc382317dd5155ea40dc0696ea6fb63e417a6d30b8",
-  "layer4_wal_reconciled_caid": "sha256:75b6e0dd339a453b069034cc382317dd5155ea40dc0696ea6fb63e417a6d30b8",
+  "layer2_bpf_lsm_digest": "sha256:c15548a0e51c2e0ec0322f8f0e8fe163f3d94155d09f3dd84232277e03d5e272",
+  "layer3_egress_receipt_caid": "sha256:6cd6896502f1ef8363aec4ea4948fc01721290c347b3576541bcfccb97ac9305",
+  "layer4_wal_reconciled_caid": "sha256:6cd6896502f1ef8363aec4ea4948fc01721290c347b3576541bcfccb97ac9305",
   "layer5_simulation_caid": "sha256:8b9e3fc1d402fbefab0944b56bbe62e0fb9222954c1d11974a1d7292599a6e7a",
   "layer5_auto_merged": 755,
   "layer5_human_escalated": 100,
@@ -18,15 +18,15 @@
   "layer6_trajectory_drift_bps": 2223,
   "layer7_ui_constraint_caid": "sha256:e9912272e0dadb8f31705b92713e81ea34869f96ffcbc4dda73a3ce2e3f1ab8e",
   "layer7_visual_divergence_bps": 0,
-  "layer8_tetragon_receipt_caid": "sha256:d24c4775d75d62d63c777e1d050420deab7b9539c23069d16e3112b8d0eccc45",
+  "layer8_tetragon_receipt_caid": "sha256:e834498bbfbe3bc450cc910c0adecba016361dc1baaff96f024e105db976df39",
   "layer8_integrity_score_bps": 10000,
-  "layer9_helm_bundle_caid": "sha256:77dbaa075d077cb948344b035e9209712798fc64982907c6065b8771c78888b9",
+  "layer9_helm_bundle_caid": "sha256:aa38487e98a9bc27ab21aeb9c6852c43859f2eb6ae5fe655fb7d4db02ff0e6a8",
   "layer9_manifests_count": 8,
-  "layer10_reconciliation_receipt_caid": "sha256:818ca1fd40921b0e9f8c6755a216e1598490c811f431c14fb2fded6479c356de",
+  "layer10_reconciliation_receipt_caid": "sha256:8261fad0a5f6dc860294f18e45ecb570808cc527e0befc26a79f176d9d9b30b4",
   "layer10_reconciliation_state": "COMMITTED",
   "layer10_latency_p99_jitter_bps": 2500,
   "all_layers_verified": true,
-  "execution_duration_ms": 29,
+  "execution_duration_ms": 27,
   "telemetry": {
     "layer1": {
       "root_intent_caid": "sha256:b4023ab5442bd72b8e4a365458b57006f5b06935a19d42cff8261ffda94727fc",
@@ -34,15 +34,15 @@
     },
     "layer2": {
       "actor_spiffe_id": "spiffe://sovereign.nexus/agent/payment_agent_01",
-      "bpf_lsm_digest": "sha256:c6bc204189f843c5d9ba448fd2f990672c039e4a596515b1aa2371b83633555e",
+      "bpf_lsm_digest": "sha256:c15548a0e51c2e0ec0322f8f0e8fe163f3d94155d09f3dd84232277e03d5e272",
       "status": "MICRO_VM_ENCLAVE_COMMISSIONED"
     },
     "layer3": {
-      "egress_receipt_caid": "sha256:75b6e0dd339a453b069034cc382317dd5155ea40dc0696ea6fb63e417a6d30b8",
+      "egress_receipt_caid": "sha256:6cd6896502f1ef8363aec4ea4948fc01721290c347b3576541bcfccb97ac9305",
       "status": "BLIND_CREDENTIAL_SUBSTITUTED_ON_WIRE"
     },
     "layer4": {
-      "wal_reconciled_caid": "sha256:75b6e0dd339a453b069034cc382317dd5155ea40dc0696ea6fb63e417a6d30b8",
+      "wal_reconciled_caid": "sha256:6cd6896502f1ef8363aec4ea4948fc01721290c347b3576541bcfccb97ac9305",
       "reconciled_disposition": "COMMITTED",
       "duplicate_retry_blocked": true,
       "status": "ZOMBIE_DOUBLE_SPEND_CONTAINED"
@@ -73,7 +73,7 @@
       "status": "JIDOKA_AST_AND_VISUAL_REGRESSION_VERIFIED"
     },
     "layer8": {
-      "tetragon_receipt_caid": "sha256:d24c4775d75d62d63c777e1d050420deab7b9539c23069d16e3112b8d0eccc45",
+      "tetragon_receipt_caid": "sha256:e834498bbfbe3bc450cc910c0adecba016361dc1baaff96f024e105db976df39",
       "total_events_evaluated": 3,
       "allowed_events_count": 3,
       "blocked_events_count": 0,
@@ -81,14 +81,14 @@
       "status": "TETRAGON_EBPF_KERNEL_PEP_VERIFIED"
     },
     "layer9": {
-      "helm_bundle_caid": "sha256:77dbaa075d077cb948344b035e9209712798fc64982907c6065b8771c78888b9",
+      "helm_bundle_caid": "sha256:aa38487e98a9bc27ab21aeb9c6852c43859f2eb6ae5fe655fb7d4db02ff0e6a8",
       "manifest_files_count": 8,
       "chart_name": "sovereign-factory-mesh",
       "chart_version": "1.1.0",
       "status": "KAGENT_HELM_AND_KUSTOMIZE_SYNTHESIS_VERIFIED"
     },
     "layer10": {
-      "reconciliation_receipt_caid": "sha256:818ca1fd40921b0e9f8c6755a216e1598490c811f431c14fb2fded6479c356de",
+      "reconciliation_receipt_caid": "sha256:8261fad0a5f6dc860294f18e45ecb570808cc527e0befc26a79f176d9d9b30b4",
       "reconciliation_state": "COMMITTED",
       "origin_region": "us-east-1",
       "target_region": "eu-west-1",

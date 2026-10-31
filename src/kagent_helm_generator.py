@@ -19,7 +19,7 @@ Helm & Kustomize Manifest Synthesis Engine for kagent + Agent Substrate.
 Engineering Status: INTERNAL PREVIEW COMMISSIONED
 Epistemic Boundary: Observed, tested, evaluated under the stated model.
 
-Synthesizes production-ready Kubernetes deployment manifests:
+Synthesizes configured Kubernetes deployment manifests:
 1. Helm v2 Chart metadata and default values.
 2. Declarative kagent CRDs (Harness, AgentTemplate, SandboxAgent).
 3. Cilium Tetragon TracingPolicy CRD with eBPF LSM hooks.

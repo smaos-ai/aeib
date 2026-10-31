@@ -33,7 +33,7 @@ The SovereignNexus agent infrastructure stack integrates ten deterministic opera
 | **Layer 3** | Edge Ingress, Triage & Prescreening | Sub-20ms edge triage, integer basis points risk, BGP Anycast routing interlock, FaceID biometric gate | `src/edge_triage_router.py`, `src/edge_ai_prescreener.py`, `src/bgp_anycast_routing_interlock.py`, `src/multi_region_canary_ingress.py`, `src/eo1_biometric_gate.py`, `src/live_biometric_latch_bridge.py` |
 
 
-| **Layer 4** | Transactional ACID State Coordinator | Row-level semantic locks, 2PC prepare/commit, Autonomic State Reconciler, Quorum Jitter Fuzzer | `src/semantic_two_phase_commit.py`, `src/autonomic_state_reconciler.py`, `src/quorum_jitter_fuzzer.py`, `src/sqlite_acid_tcc_boundary.py`, `src/multi_region_edge_latch_mesh.py` |
+| **Layer 4** | Transactional ACID State Coordinator | Row-level semantic locks, 2PC prepare/commit, Autonomic State Reconciler, Quorum Jitter Fuzzer, Byzantine Timewarp Harness | `src/semantic_two_phase_commit.py`, `src/autonomic_state_reconciler.py`, `src/quorum_jitter_fuzzer.py`, `src/byzantine_consensus_timewarp.py`, `src/sqlite_acid_tcc_boundary.py`, `src/multi_region_edge_latch_mesh.py` |
 
 
 | **Layer 5** | Execution Integrity & Deception Reconciler | 4-arm benchmark matrix, counter-factual audit, Circuit-Breaker Failsafe Mesh | `src/counterfeit_execution_tracker.py`, `src/agent_decept_reconciler.py`, `src/autonomic_circuit_breaker_mesh.py`, `execution-integrity-benchmark` |
@@ -114,16 +114,19 @@ All commissioned modules have achieved $\ge 80.00\%$ mutation adequacy kill rati
 | `src/pqc_post_quantum_notary.py` | `tests/test_pqc_post_quantum_notary.py` | 30 | 30 | **100.00%** | `[8864..10000 bps]` |
 
 
+| `src/zk_tpm_pcr_aggregator.py` | `tests/test_zk_tpm_pcr_aggregator.py` | 30 | 30 | **100.00%** | `[8864..10000 bps]` |
+
+
+| `src/confidential_vm_migration_interlock.py` | `tests/test_confidential_vm_migration_interlock.py` | 30 | 30 | **100.00%** | `[8864..10000 bps]` |
+
+
 | `src/autonomic_circuit_breaker_mesh.py` | `tests/test_autonomic_circuit_breaker_mesh.py` | 30 | 30 | **100.00%** | `[8864..10000 bps]` |
 
 
 | `src/quorum_jitter_fuzzer.py` | `tests/test_quorum_jitter_fuzzer.py` | 30 | 30 | **100.00%** | `[8864..10000 bps]` |
 
 
-| `src/zk_tpm_pcr_aggregator.py` | `tests/test_zk_tpm_pcr_aggregator.py` | 30 | 30 | **100.00%** | `[8864..10000 bps]` |
-
-
-| `src/confidential_vm_migration_interlock.py` | `tests/test_confidential_vm_migration_interlock.py` | 30 | 30 | **100.00%** | `[8864..10000 bps]` |
+| `src/byzantine_consensus_timewarp.py` | `tests/test_byzantine_consensus_timewarp.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
 
 
 | `src/cloud_hsm_remote_quorum.py` | `tests/test_cloud_hsm_remote_quorum.py` | 30 | 29 | **96.67%** | `[8333..9941 bps]` |

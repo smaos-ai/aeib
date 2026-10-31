@@ -2,17 +2,17 @@
   "pack_version": "v1.0.0",
   "target_notebook_url": "https://notebook.google.com/notebook/e1b91409-02f9-4300-8bf7-5dfd4426dd16",
   "target_notebook_id": "e1b91409-02f9-4300-8bf7-5dfd4426dd16",
-  "sources_count": 12,
-  "total_word_count": 107128,
+  "sources_count": 13,
+  "total_word_count": 108400,
   "max_words_per_source_limit": 500000,
-  "notebook_source_slots_used": "12 / 50 (42 slots free)",
+  "notebook_source_slots_used": "13 / 50 (37 slots free)",
   "sources": [
     {
       "file_name": "00_EXECUTIVE_BRIEFING_FOR_CONSIDERATION.md",
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/00_EXECUTIVE_BRIEFING_FOR_CONSIDERATION.md",
-      "words": 619,
-      "bytes": 4747,
-      "sha256": "sha256:f9e30762abc60cf7aec14e1ac28398380c06b5f8a8ef8508feb6eecedb27102a"
+      "words": 676,
+      "bytes": 5125,
+      "sha256": "sha256:d320f4c4c5b522db991246ae7ae18f1ab91f6f7c28fb69efb091ad6e106a96e7"
     },
     {
       "file_name": "01_SOVEREIGN_NEXUS_MASTER_ARCHITECTURE_AND_12_MOATS.md",
@@ -87,9 +87,16 @@
     {
       "file_name": "11_AGENT_SUBSTRATE_TENCENT_CUBE_KIRO_AND_A2A_INTERLOCK.md",
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/11_AGENT_SUBSTRATE_TENCENT_CUBE_KIRO_AND_A2A_INTERLOCK.md",
-      "words": 1078,
-      "bytes": 9803,
-      "sha256": "sha256:cff7495f125439b70e0286cd3107edaf87f35b0a07615cc99638b24f11cfc828"
+      "words": 1139,
+      "bytes": 10378,
+      "sha256": "sha256:424fa828dcce39d12814705a5aa40b1518f303fe58844b32acccad32926d6dfb"
+    },
+    {
+      "file_name": "12_COMMON_CRITERIA_EAL4_AND_MULTI_REGION_EDGE_LATCH.md",
+      "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/12_COMMON_CRITERIA_EAL4_AND_MULTI_REGION_EDGE_LATCH.md",
+      "words": 1154,
+      "bytes": 9840,
+      "sha256": "sha256:676671736b594494a121514fbbf0ad2591727cf5e1d6cf6eb32caf75e38f6695"
     }
   ]
 }

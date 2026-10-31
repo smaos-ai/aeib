@@ -268,6 +268,8 @@ def _prepare_shadow_root(repo_root: Path, dest: Path, test_files: Sequence[str])
     for sym_sub in (".agents", "docs", "schemas", "contracts", "conformance", "evidence", "formal"):
         if (repo_root / sym_sub).is_dir() and not (dest / sym_sub).exists():
             os.symlink(repo_root / sym_sub, dest / sym_sub)
+    if (repo_root / ".git").exists() and not (dest / ".git").exists():
+        (dest / ".git").mkdir(parents=True, exist_ok=True)
     if (repo_root / "benchmarks").is_dir():
         (dest / "benchmarks").mkdir(parents=True, exist_ok=True)
         for pyf in (repo_root / "benchmarks").glob("*.py"):
@@ -285,7 +287,7 @@ def _prepare_shadow_root(repo_root: Path, dest: Path, test_files: Sequence[str])
         target = dest / rel
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(repo_root / rel, target)
-    for cfg in ("pytest.ini", "conftest.py"):
+    for cfg in ("pytest.ini", "conftest.py", "AGENTS.md"):
         if (repo_root / cfg).is_file():
             shutil.copy2(repo_root / cfg, dest / cfg)
     # Root-level Python modules (e.g. aeib_mcp_proxy.py) are importable from the repo root

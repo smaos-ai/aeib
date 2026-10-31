@@ -73,7 +73,7 @@ def test_1_valid_kagent_crd_manifest_passes() -> None:
     assert result.egress_enforced is True
     assert result.vault_blinded is True
     assert result.eo1_latch_enabled is True
-    assert result.max_drift_bps == 3000
+    assert result.max_drift_bps == 3000  # claim: config
 
     d = result.to_dict()
     assert d["is_valid"] is True
@@ -217,7 +217,7 @@ def test_10_drift_threshold_boundaries_and_types() -> None:
     m4000["spec"]["governance"]["maxDriftThresholdBps"] = 4000
     res4000 = validator.validate_manifest(m4000)
     assert res4000.is_valid is True
-    assert res4000.max_drift_bps == 4000
+    assert res4000.max_drift_bps == 4000  # claim: config
 
     # 4001 is rejected
     m4001 = _build_valid_manifest()

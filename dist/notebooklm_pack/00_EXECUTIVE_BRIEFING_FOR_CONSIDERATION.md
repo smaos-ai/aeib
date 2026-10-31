@@ -91,3 +91,7 @@ However, **linguistic filters are structurally blind to distributed systems fail
 - Use **Source 09** for Sections 39–44: the Autopoietic Epistemic Mesh, Frontier Reverse Engineering, Pre-Market Reality Audit, Sovereign Moat Upgrades, Anti-Gravity ContextCart, and Parallel Tracks A–E (Osprey PreToolUse, Hawkes Context RAM, and Bit-Identical Tar Evidence Bundles).
 
 - Use **Source 10** for October 30, 2026 SOTA Breakthroughs: MIT CSAIL SwaT Heterogeneous Airlock, HeteroFold Procrustes Alignment, Griffiths Merkle History, DeepSeek 5-Step Idempotency Reconciler, HyperSU Raw-History Pointer Cache, Daniel Curtis InfoQ Regeneratable UI Constraint Compiler, and Visual Regression Gate.
+
+- Use **Source 11** for Agent Substrate, Tencent Cube Auto-Pause, Kiro Blast Radius AST Governor, and A2A Trajectory Interlock.
+
+- Use **Source 12** for the Common Criteria (ISO/IEC 15408) EAL4+ Security Target, SFR/SAR Physical Implementation Mappings, TLC 34,047-State Model Checker Verification, and the Multi-Region Edge Latch Mesh Benchmark (9,948 bps latency reduction).

@@ -27,7 +27,7 @@ The SovereignNexus agent infrastructure stack integrates ten deterministic opera
 | **Layer 1** | OS Kernel & eBPF LSM Interception | In-kernel socket and filesystem mediation, Tetragon eBPF telemetry, strict cgroup sandbox, dynamic eBPF tail-call hot-patching, XDP line-rate ingress rate-limiter, WireGuard overlay interlock, Enclave eBPF Policy Loader | `src/bpf_lsm_profile_compiler.py`, `src/ebpf_agent_guard_controller.py`, `src/tetragon_ebpf_stream_parser.py`, `src/ebpf_tail_call_hotpatch.py`, `src/xdp_ingress_ratelimiter.py`, `src/wireguard_overlay_interlock.py`, `src/enclave_bpf_policy_loader.py` |
 
 
-| **Layer 2** | Typestate Physics & Static AST Filter | Dimensional conservation ($0 token cost), hardware boundary ceilings, AST purity & anti-mocking, Exhaustive Finite-State Model Checker, Sovereign Token Decree Governor | `src/physical_typestate_enforcer.py`, `compliance/ast_purity.py`, `compliance/claim_integrity_gate.py`, `src/eo1_protocol_model_checker.py`, `src/sovereign_token_decree.py`, `src/token_decree_dispatch_interlock.py` |
+| **Layer 2** | Typestate Physics & Static AST Filter | Dimensional conservation ($0 token cost), hardware boundary ceilings, AST purity & anti-mocking, Exhaustive Finite-State Model Checker, Sovereign Token Decree Governor, Adversarial AST Mutation Verifier | `src/physical_typestate_enforcer.py`, `compliance/ast_purity.py`, `compliance/claim_integrity_gate.py`, `src/eo1_protocol_model_checker.py`, `src/sovereign_token_decree.py`, `src/token_decree_dispatch_interlock.py`, `src/adversarial_mutation_verifier.py` |
 
 
 | **Layer 3** | Edge Ingress, Triage & Prescreening | Sub-20ms edge triage, integer basis points risk, BGP Anycast routing interlock, FaceID biometric gate, Cross-Cloud WireGuard Overlay Mesh, Hardened x402 Commerce Gateway | `src/edge_triage_router.py`, `src/edge_ai_prescreener.py`, `src/bgp_anycast_routing_interlock.py`, `src/multi_region_canary_ingress.py`, `src/eo1_biometric_gate.py`, `src/live_biometric_latch_bridge.py`, `src/wireguard_overlay_interlock.py`, `src/coinbase_x402_agent_gateway.py` |
@@ -36,7 +36,7 @@ The SovereignNexus agent infrastructure stack integrates ten deterministic opera
 | **Layer 4** | Transactional ACID State Coordinator | Row-level semantic locks, 2PC prepare/commit, Autonomic State Reconciler, Quorum Jitter Fuzzer, Byzantine Timewarp Harness, Byzantine Homomorphic Gossip Sync, Pre-Socket Escrow Latch | `src/semantic_two_phase_commit.py`, `src/autonomic_state_reconciler.py`, `src/quorum_jitter_fuzzer.py`, `src/byzantine_consensus_timewarp.py`, `src/sqlite_acid_tcc_boundary.py`, `src/multi_region_edge_latch_mesh.py`, `src/homomorphic_gossip_sync.py`, `src/coinbase_x402_agent_gateway.py` |
 
 
-| **Layer 5** | Execution Integrity & Deception Reconciler | 4-arm benchmark matrix, counter-factual audit, Circuit-Breaker Failsafe Mesh, MCP Action-vs-Outcome Normalizer, Diagnostic Normalizer | `src/counterfeit_execution_tracker.py`, `src/agent_decept_reconciler.py`, `src/autonomic_circuit_breaker_mesh.py`, `src/mcp_outcome_normalizer.py`, `src/diagnostic_normalizer.py`, `execution-integrity-benchmark` |
+| **Layer 5** | Execution Integrity & Deception Reconciler | 4-arm benchmark matrix, counter-factual audit, Circuit-Breaker Failsafe Mesh, MCP Action-vs-Outcome Normalizer, Diagnostic Normalizer, Evidence Sufficiency & Narrow Lean 4 Gate | `src/counterfeit_execution_tracker.py`, `src/agent_decept_reconciler.py`, `src/autonomic_circuit_breaker_mesh.py`, `src/mcp_outcome_normalizer.py`, `src/diagnostic_normalizer.py`, `src/evidence_sufficiency_and_lean_gate.py`, `execution-integrity-benchmark` |
 
 
 | **Layer 6** | Autonomous Evolution & Trajectory Airlock | Multi-candidate evolutionary selection, SEMA-Auto trajectory tracking, zero-regression airlock | `src/evolutionary_orchestrator.py`, `src/a2a_trajectory_interlock.py`, `src/oct2026_frontier_signals_and_agent_s4_airlock.py` |
@@ -209,13 +209,19 @@ All commissioned modules have achieved $\ge 80.00\%$ mutation adequacy kill rati
 
 | `src/token_decree_dispatch_interlock.py` | `tests/test_token_decree_dispatch_interlock.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
 
+
+| `src/adversarial_mutation_verifier.py` | `tests/test_adversarial_mutation_verifier.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
+
+| `src/evidence_sufficiency_and_lean_gate.py` | `tests/test_evidence_sufficiency_and_lean_gate.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
 ---
 
 ## 3. Disclosed Surviving Mutants & Cryptographic Isolation
 
 
 
-All 47 commissioned prototype modules have achieved 100.00% mutation adequacy (30/30 or 22/22 mutants killed each) under the AST shadow runner with zero surviving mutants across their sampled sets:
+All 49 commissioned prototype modules have achieved 100.00% mutation adequacy (30/30 or 22/22 mutants killed each) under the AST shadow runner with zero surviving mutants across their sampled sets:
 
 
 1. All runtime path bootstrap setups (`sys.path.insert(0, str(_REPO_ROOT))`) verified with active sentinel poisoning reload checks.

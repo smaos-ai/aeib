@@ -1,0 +1,18 @@
+{
+  "dossier_id": "dossier-reg-1793406052",
+  "timestamp_utc": "2026-10-31T00:20:52Z",
+  "regulatory_status": "CERTIFIED_REGULATORY_COMPLIANT",
+  "rfs_certificate_caid": "sha256:593a42b68550153c1be3b2b25603d0e2a8faf589f6721793341cd8c6736831b9",
+  "consensus_mesh_caid": "sha256:0625768b8a814a3866c128a18718e71c54492dae4fb3ff880d5ab26e3582e12c",
+  "incident_replay_caid": "sha256:609881aa245f9bc911f85d73dae50782558232b6163d859b1c5a8a3e5e8421cb",
+  "biometric_hardware_gate_verified": true,
+  "ast_zero_mock_pure": true,
+  "claim_integrity_verified": true,
+  "dora_art17_status": "COMPLIANT_CONTAINED",
+  "dora_materiality_score_bps": 10000,
+  "eu_ai_act_art14_status": "COMPLIANT_HUMAN_OVERSIGHT_PINNED",
+  "total_stages_commissioned": 6,
+  "dossier_caid": "sha256:bf28c83d7f12a7c19dd1e8319bfbb042fd754ba4ef6063be7762261dcf642c5c",
+  "signature_hex": "6a38980efe5fa75b9249011ab9b1a2d752961212b735da9b80f68f3a517372cdaca470cb0ad146605d8f06a957e714b99af889fa11af39c7d9f867d93dceea04",
+  "public_key_hex": "f9f03f5819c3de803228af60b928d57cfd32187efe23007ef6f99a8b510abfeb"
+}

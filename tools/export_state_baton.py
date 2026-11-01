@@ -70,6 +70,10 @@ def build_state_baton(
         "src/cognitive_friction_gate.py",
         "src/live_killchain_attestor.py",
         "src/temporal_model_bound_token.py",
+        "src/accuracy_cascade_router.py",
+        "src/anti_gravity_context_cart.py",
+        "src/anti_scaffold_falsifier.py",
+        "src/apoptosis_sentinel.py",
     ]
     present_modules = [m for m in core_modules if (repo_root / m).is_file()]
 

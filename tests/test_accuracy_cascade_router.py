@@ -308,11 +308,15 @@ def test_falsify_escalation_bounds():
 
 
 def test_out_of_process_check(tmp_path):
-    assert run_check_out_of_process([sys.executable, "-c", "pass"], str(tmp_path))
-    assert not run_check_out_of_process([sys.executable, "-c", "raise SystemExit(1)"], str(tmp_path))
-    assert not run_check_out_of_process(
-        [sys.executable, "-c", "import time; time.sleep(5)"], str(tmp_path), timeout_s=1
+    assert run_check_out_of_process([sys.executable, "-c", "pass"], str(tmp_path)) is True
+    assert run_check_out_of_process([sys.executable, "-c", "raise SystemExit(1)"], str(tmp_path)) is False
+    assert (
+        run_check_out_of_process(
+            [sys.executable, "-c", "import time; time.sleep(5)"], str(tmp_path), timeout_s=1
+        )
+        is False
     )
+    assert run_check_out_of_process(["nonexistent_binary_xyz_404"], str(tmp_path)) is False
 
 
 def test_wilson_upper_bound_and_exploration_stops_when_implausible():

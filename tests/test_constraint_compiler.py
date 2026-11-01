@@ -173,8 +173,42 @@ def test_5_spec_validation() -> None:
     with pytest.raises(ValueError, match="ERR_INVALID_SPEC_IDENTIFIERS"):
         ComponentConstraintSpec("spec_1", "", (), (), ())
 
+    # Explicit boundary test: max_cyclomatic_complexity=1 is allowed
+    spec_min = ComponentConstraintSpec("spec_1", "Button", (), (), (), max_cyclomatic_complexity=1)
+    assert spec_min.max_cyclomatic_complexity == 1
+
     with pytest.raises(ValueError, match="ERR_INVALID_MAX_CYCLOMATIC_COMPLEXITY"):
         ComponentConstraintSpec("spec_1", "Button", (), (), (), max_cyclomatic_complexity=0)
 
     with pytest.raises(ValueError, match="ERR_INVALID_MAX_CYCLOMATIC_COMPLEXITY"):
         ComponentConstraintSpec("spec_1", "Button", (), (), (), max_cyclomatic_complexity=-1)
+
+
+def test_6_stealth_string_concatenation_detected(button_spec: ComponentConstraintSpec) -> None:
+    compiler = ConstraintCompiler(button_spec)
+    stealth_code = (
+        "def DesignSystemButton(props):\n"
+        "    color = '#ff' + '0000'\n"
+        "    return create_element('button', {\n"
+        "        'background': 'token.color.primary',\n"
+        "        'padding': 'token.spacing.md',\n"
+        "        'aria-label': 'btn',\n"
+        "        'role': 'button'\n"
+        "    })\n"
+    )
+    receipt = compiler.verify_component_code(stealth_code)
+    assert receipt.passed is False
+    assert any("VIOLATION_FORBIDDEN_LITERAL:#ff0000" in v for v in receipt.violations)
+
+    clean_concat_code = (
+        "def DesignSystemButton(props):\n"
+        "    label = 'token.' + 'color.primary'\n"
+        "    return create_element('button', {\n"
+        "        'background': 'token.color.primary',\n"
+        "        'padding': 'token.spacing.md',\n"
+        "        'aria-label': 'btn',\n"
+        "        'role': 'button'\n"
+        "    })\n"
+    )
+    clean_rcp = compiler.verify_component_code(clean_concat_code)
+    assert clean_rcp.passed is True

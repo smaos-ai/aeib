@@ -83,3 +83,56 @@ class TestProcessTraceGuard:
             self.guard.verify_or_halt(trace)
 
         assert "Forbidden network socket connection" in str(exc_info.value)
+
+    def test_unauthorized_primary_binary_fails_closed(self):
+        trace = ProcessTrace(
+            process_id=2048,
+            executable_path="/usr/bin/bash",
+            command_line="bash script.sh",
+            events=[],
+        )
+        with pytest.raises(FunctionalCounterfeitError) as exc_info:
+            self.guard.verify_or_halt(trace)
+        assert "Unauthorized executable binary" in str(exc_info.value)
+
+    def test_unauthorized_secondary_execve_fails_closed(self):
+        trace = ProcessTrace(
+            process_id=1024,
+            executable_path="/usr/bin/python3",
+            command_line="python3 script.py",
+            events=[
+                ProcessExecutionEvent(event_type="execve", target="/bin/sh"),
+            ],
+        )
+        with pytest.raises(FunctionalCounterfeitError) as exc_info:
+            self.guard.verify_or_halt(trace)
+        assert "Forbidden secondary subprocess fork: /bin/sh" in str(exc_info.value)
+
+    def test_defaults_and_event_serialization(self):
+        # 1. ProcessTraceGuard defaults
+        default_guard = ProcessTraceGuard()
+        assert "/usr/bin/python3" in default_guard.allowed_executables
+        assert "/usr/local/bin/smaos" in default_guard.allowed_executables
+        assert "api.internal.bank.cz:443" in default_guard.allowed_socket_targets
+
+        # 2. ProcessExecutionEvent defaults and to_dict
+        ev_default = ProcessExecutionEvent("fork", "/usr/bin/python3")
+        assert ev_default.timestamp_ns == 0
+        assert ev_default.to_dict() == {
+            "event_type": "fork",
+            "target": "/usr/bin/python3",
+            "timestamp_ns": 0,
+        }
+
+        # 3. Custom FunctionalCounterfeitError code and detail
+        err = FunctionalCounterfeitError("custom detail", violation_type="CUSTOM_VIOLATION")
+        assert err.code == "CUSTOM_VIOLATION"
+        assert err.detail == "custom detail"
+
+    def test_to_canonical_dict_sorting_invariance(self):
+        ev1 = ProcessExecutionEvent(event_type="fork", target="/usr/bin/python3")
+        ev2 = ProcessExecutionEvent(event_type="connect", target="api.internal.bank.cz:443")
+        trace_unsorted = ProcessTrace(1, "/usr/bin/python3", "cmd", events=[ev1, ev2])
+        d = trace_unsorted.to_canonical_dict()
+        assert d["events"][0]["event_type"] == "connect"
+        assert d["events"][1]["event_type"] == "fork"

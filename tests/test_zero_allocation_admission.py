@@ -17,9 +17,17 @@ tests/test_zero_allocation_admission.py
 ================================================================================
 Test suite for Zero-Allocation Admission Hook (Gap 5: Admissible Computation).
 Evaluated under the stated model. Preserves strict epistemic lock.
+Zero mock frameworks, 100.00% mutation adequacy target.
 """
 
-from src.zero_allocation_admission import ZeroAllocationAdmissionHook
+import dataclasses
+import pytest
+
+from src.zero_allocation_admission import (
+    DEFAULT_BENCHMARK_ITERATIONS,
+    DEFAULT_UNAUTHORIZED_HEADER,
+    ZeroAllocationAdmissionHook,
+)
 
 
 def _build_hook() -> ZeroAllocationAdmissionHook:
@@ -45,6 +53,16 @@ def test_positive_admission():
     assert verdict.admitted is True
     assert verdict.rejection_code is None
     assert verdict.eval_epoch == 3
+    assert 0 <= verdict.latency_ns < 100_000_000
+
+    d = verdict.to_dict()
+    assert d["admitted"] is True
+    assert d["eval_epoch"] == 3
+    assert d["rejection_code"] is None
+    assert d["latency_ns"] == verdict.latency_ns
+
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        verdict.admitted = False  # type: ignore[misc]
 
 
 def test_reject_unregistered_agent():
@@ -59,6 +77,7 @@ def test_reject_unregistered_agent():
     verdict = hook.evaluate_admissibility(headers)
     assert verdict.admitted is False
     assert verdict.rejection_code == "UNREGISTERED_AGENT"
+    assert 0 <= verdict.latency_ns < 100_000_000
 
 
 def test_reject_unallowlisted_tool():
@@ -73,6 +92,7 @@ def test_reject_unallowlisted_tool():
     verdict = hook.evaluate_admissibility(headers)
     assert verdict.admitted is False
     assert verdict.rejection_code == "UNALLOWLISTED_TOOL"
+    assert 0 <= verdict.latency_ns < 100_000_000
 
 
 def test_reject_host_audience_mismatch():
@@ -87,6 +107,7 @@ def test_reject_host_audience_mismatch():
     verdict = hook.evaluate_admissibility(headers)
     assert verdict.admitted is False
     assert verdict.rejection_code == "HOST_AUDIENCE_MISMATCH"
+    assert 0 <= verdict.latency_ns < 100_000_000
 
 
 def test_reject_stale_or_spoofed_epoch():
@@ -101,6 +122,7 @@ def test_reject_stale_or_spoofed_epoch():
     verdict = hook.evaluate_admissibility(headers)
     assert verdict.admitted is False
     assert verdict.rejection_code == "STALE_OR_SPOOFED_EPOCH"
+    assert 0 <= verdict.latency_ns < 100_000_000
 
 
 def test_reject_revoked_authority():
@@ -115,12 +137,20 @@ def test_reject_revoked_authority():
     verdict = hook.evaluate_admissibility(headers)
     assert verdict.admitted is False
     assert verdict.rejection_code == "AUTHORITY_REVOKED"
+    assert 0 <= verdict.latency_ns < 100_000_000
 
 
 def test_benchmark_rejection_throughput():
     hook = _build_hook()
+    assert DEFAULT_BENCHMARK_ITERATIONS == 10000
+    assert DEFAULT_UNAUTHORIZED_HEADER["policy_epoch"] == 999
+    assert DEFAULT_UNAUTHORIZED_HEADER["agent_id"] == "malicious-bot-flood"
+
+    stats_default = hook.benchmark_rejection_throughput()
+    assert stats_default["iterations"] == 10000.0
+    assert stats_default["ops_per_second"] > 50_000.0
+
     stats = hook.benchmark_rejection_throughput(iterations=5000)
     assert stats["iterations"] == 5000.0
-    # Mean rejection latency must be under 15 microseconds
     assert stats["mean_latency_us"] < 15.0, f"Rejection too slow: {stats['mean_latency_us']} us"
     assert stats["ops_per_second"] > 50_000.0

@@ -156,7 +156,7 @@ class TestSQLiteOutcomeProbeAdapter(unittest.TestCase):
         payload = {
             "source_account": "CZ-99120",
             "destination_account": "DE-44102",
-            "amount": 250000.0,
+            "amount": 250000,
             "currency": "EUR",
             "reference": "INTER-BANK-SETTLEMENT-Q3",
         }
@@ -180,10 +180,43 @@ class TestSQLiteOutcomeProbeAdapter(unittest.TestCase):
 
         # 2. Probing with semantically mutated payload (e.g. double-spend retry) fails
         mutated_payload = dict(payload)
-        mutated_payload["amount"] = 250001.0
+        mutated_payload["amount"] = 250001
         mutated_hash = f"sha256:{generate_jcs_payload_hash(mutated_payload)}"
         tamper_res = self.adapter.probe(idem_key, expected_payload_hash=mutated_hash)
         self.assertEqual(tamper_res, "RECONCILIATION_FAILED")
+
+    def test_response_code_boundary_and_defaults(self):
+        # 1. Default record parameters
+        self.adapter.record_transaction("idem-defaults", "act-def", "sha256:def")
+        rec = self.adapter.probe_detailed("idem-defaults")["record"]
+        self.assertEqual(rec["status"], "COMMITTED")
+        self.assertEqual(rec["response_code"], 200)
+        self.assertEqual(self.adapter.probe("idem-defaults"), "OUTCOME_VERIFIED")
+
+        # 2. Response code None with COMMITTED status
+        self.adapter.record_transaction("idem-none", "act-none", "sha256:none", status="COMMITTED", response_code=None)
+        self.assertEqual(self.adapter.probe("idem-none"), "OUTCOME_VERIFIED")
+
+        # 3. Response code 399 with COMMITTED status -> OUTCOME_VERIFIED
+        self.adapter.record_transaction("idem-399", "act-399", "sha256:399", status="COMMITTED", response_code=399)
+        self.assertEqual(self.adapter.probe("idem-399"), "OUTCOME_VERIFIED")
+
+        # 4. Response code 400 with COMMITTED status -> RECONCILIATION_FAILED
+        self.adapter.record_transaction("idem-400", "act-400", "sha256:400", status="COMMITTED", response_code=400)
+        self.assertEqual(self.adapter.probe("idem-400"), "RECONCILIATION_FAILED")
+
+    def test_cross_thread_access_allowed(self):
+        """Verifies check_same_thread=False permits concurrent queries from other threads."""
+        import concurrent.futures
+
+        idem_key = "idem-thread-test"
+        self.adapter.record_transaction(idem_key, "action-thread", "sha256:thread", status="COMMITTED", response_code=200)
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+            future = executor.submit(self.adapter.probe, idem_key)
+            result = future.result(timeout=5.0)
+
+        self.assertEqual(result, "OUTCOME_VERIFIED")
 
 
 if __name__ == "__main__":

@@ -25,7 +25,7 @@ Evaluated under the stated model:
 
 Core Architectural Invariants:
   1. Hash-Chained Immutability:
-     Every block binds previous_block_caid to form an unbreakable hash chain.
+     Every block binds previous_block_caid to form a tamper-evident hash chain.
      Modifying, inserting, or deleting any block invalidates all subsequent CAIDs.
   2. Hardware Warrant Binding:
      Each block binds the iPhone Secure Enclave P-256 warrant along with device

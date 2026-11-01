@@ -39,10 +39,7 @@ import hashlib
 from typing import Dict, Any, List, Set, Tuple, Optional
 from dataclasses import dataclass, field
 
-try:
-    from src.jcs_canonicalizer import encode_jcs
-except ImportError:
-    from jcs_canonicalizer import encode_jcs
+from src.jcs_canonicalizer import encode_jcs
 
 
 class FunctionalCounterfeitError(RuntimeError):

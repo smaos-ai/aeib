@@ -28,7 +28,7 @@ Evaluated under the stated model:
 from __future__ import annotations
 
 import sys
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, List, Optional, Sequence, Tuple
 
 from src.constraint_compiler import (
     ComponentConstraintSpec,

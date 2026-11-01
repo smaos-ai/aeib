@@ -155,4 +155,64 @@ def test_ceiling_breach_fails_closed(baseline_projection, target_uri):
     )
     res = CommitTimeStateGuard.evaluate_commit(over_ceiling_act, baseline_projection)
     assert res.permitted is False
+    assert res.drift_detected is False
     assert "CEILING_BREACH" in res.reason
+
+
+def test_tenant_mismatch_fails_closed(sample_candidate_act, baseline_projection, target_uri):
+    # 1. Candidate tenant differs from live state
+    mismatched_candidate = CandidateAct(
+        caid=sample_candidate_act.caid,
+        tenant_id="attacker-tenant",
+        action_type=sample_candidate_act.action_type,
+        amount_minor=sample_candidate_act.amount_minor,
+        target_uri=target_uri,
+        proposal_projection=baseline_projection,
+    )
+    res1 = CommitTimeStateGuard.evaluate_commit(mismatched_candidate, baseline_projection)
+    assert res1.permitted is False
+    assert res1.drift_detected is True
+    assert "TENANT_MISMATCH" in res1.reason
+
+    # 2. Proposal tenant differs from live state (while candidate matches live)
+    foreign_proposal = AuthorizationStateProjection(
+        tenant_id="foreign-tenant",
+        policy_epoch=baseline_projection.policy_epoch,
+        available_balance_minor=baseline_projection.available_balance_minor,
+        max_single_spend_minor=baseline_projection.max_single_spend_minor,
+        context_taint_tier=baseline_projection.context_taint_tier,
+        target_uri_digest=baseline_projection.target_uri_digest,
+        timestamp_ns=baseline_projection.timestamp_ns,
+    )
+    mismatched_proposal = CandidateAct(
+        caid=sample_candidate_act.caid,
+        tenant_id=baseline_projection.tenant_id,
+        action_type=sample_candidate_act.action_type,
+        amount_minor=sample_candidate_act.amount_minor,
+        target_uri=target_uri,
+        proposal_projection=foreign_proposal,
+    )
+    res2 = CommitTimeStateGuard.evaluate_commit(mismatched_proposal, baseline_projection)
+    assert res2.permitted is False
+    assert res2.drift_detected is True
+    assert "TENANT_MISMATCH" in res2.reason
+
+
+def test_frozen_immutability_and_digest_computation(baseline_projection, sample_candidate_act):
+    import dataclasses
+
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        baseline_projection.policy_epoch = 99  # type: ignore[misc]
+
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        sample_candidate_act.amount_minor = 0  # type: ignore[misc]
+
+    res = CommitTimeStateGuard.evaluate_commit(sample_candidate_act, baseline_projection)
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        res.permitted = False  # type: ignore[misc]
+
+    # Test compute_digest directly
+    digest = baseline_projection.compute_digest()
+    assert isinstance(digest, str)
+    assert len(digest) == 64
+    assert all(c in "0123456789abcdef" for c in digest)

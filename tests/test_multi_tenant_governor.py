@@ -17,7 +17,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
-from src.multi_tenant_governor import MultiTenantGovernor
+from src.multi_tenant_governor import MultiTenantGovernor, TenantProfile
 
 
 def test_tenant_rate_limiting_and_refill():
@@ -94,3 +94,64 @@ def test_zero_mock_ast_purity():
     }
     banned = {"mock", "unittest.mock"}
     assert not (imported & banned)
+
+
+def test_defaults_and_release_boundaries():
+    # 1. TenantProfile defaults
+    prof = TenantProfile("t_def", "org_def")
+    assert prof.rate_limit_rpm == 600
+    assert prof.burst_capacity == 50
+    assert prof.tokens == 50.0
+    assert prof.active_in_flight == 0
+    assert prof.max_concurrent == 20
+
+    # 2. Default DDL generation table name
+    default_ddl = MultiTenantGovernor.generate_postgres_rls_ddl()
+    assert "ALTER TABLE settlement_ledger ENABLE ROW LEVEL SECURITY;" in default_ddl
+
+    # 3. Auto-registration on unknown tenant
+    gov = MultiTenantGovernor()
+    ok, err = gov.acquire_execution_permit("unknown_t")
+    assert ok is True
+    assert err is None
+    assert "unknown_t" in gov._tenants
+    registered_prof = gov._tenants["unknown_t"]
+    assert registered_prof.org_id == "default_org"
+    assert registered_prof.max_concurrent == 20
+    assert registered_prof.rate_limit_rpm == 600
+    assert registered_prof.active_in_flight == 1
+
+    # Release permit
+    gov.release_execution_permit("unknown_t")
+    assert registered_prof.active_in_flight == 0
+
+    # Release again at 0 remains 0
+    gov.release_execution_permit("unknown_t")
+    assert registered_prof.active_in_flight == 0
+
+    # Release on non-existent tenant does not raise error
+    gov.release_execution_permit("completely_unregistered_tenant")
+
+    # 4. register_tenant return value and burst_capacity default
+    reg_ret = gov.register_tenant("t_ret", "org_ret")
+    assert isinstance(reg_ret, TenantProfile)
+    assert reg_ret.tenant_id == "t_ret"
+    assert reg_ret.burst_capacity == 50
+
+    # 5. Exact decrementation from 2 to 1 in-flight
+    gov.register_tenant("t_decr", "org", burst_capacity=10, max_concurrent=5)
+    gov.acquire_execution_permit("t_decr")
+    gov.acquire_execution_permit("t_decr")
+    assert gov._tenants["t_decr"].active_in_flight == 2
+    gov.release_execution_permit("t_decr")
+    assert gov._tenants["t_decr"].active_in_flight == 1  # Exactly 1, not 0!
+
+    # 6. Token replenishment multiplication test
+    import time
+    gov.register_tenant("t_refill", "org", rate_limit_rpm=120, burst_capacity=50)  # refill_rate = 2.0/s
+    gov._tenants["t_refill"].tokens = 0.0
+    gov._tenants["t_refill"].last_leak_timestamp = time.time() - 10.0  # 10s elapsed
+    ok_refill, _ = gov.acquire_execution_permit("t_refill")
+    assert ok_refill is True
+    # 10.0 * 2.0 = 20.0 tokens refilled, minus 1.0 acquired = ~19.0 remaining
+    assert 18.0 <= gov._tenants["t_refill"].tokens <= 20.0

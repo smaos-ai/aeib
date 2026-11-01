@@ -82,6 +82,10 @@ def build_state_baton(
         "src/slop_filter.py",
         "src/scaffold_detector.py",
         "src/truth_compass.py",
+        "src/eo1_effect_key.py",
+        "src/border_policy.py",
+        "src/commit_time_state_guard.py",
+        "src/constraint_compiler.py",
     ]
     present_modules = [m for m in core_modules if (repo_root / m).is_file()]
 

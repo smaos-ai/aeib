@@ -160,3 +160,13 @@ def test_receipt_caid_changes_when_fields_change() -> None:
         }
     )
     assert r1.receipt_caid == expected
+
+
+def test_bisection_result_frozen_immutability() -> None:
+    import dataclasses
+    import pytest
+
+    bisector = EpistemicBisector()
+    res = bisector.bisect_failure(["a", "b"], lambda s: s == "a")
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        res.status = "MUTATED"  # type: ignore[misc]

@@ -36,7 +36,7 @@ class MultiTenantGovernor:
     """
 
     def __init__(self):
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()
         self._tenants: Dict[str, TenantProfile] = {}
 
     def register_tenant(self, tenant_id: str, org_id: str, rate_limit_rpm: int = 600, burst_capacity: int = 50, max_concurrent: int = 20) -> TenantProfile:
@@ -97,8 +97,8 @@ class MultiTenantGovernor:
     @staticmethod
     def generate_postgres_rls_ddl(table_name: str = "settlement_ledger") -> str:
         """
-        Generates production-grade PostgreSQL Row-Level Security (RLS) DDL
-        guaranteeing kernel-enforced data isolation between enterprise tenants.
+        Generates PostgreSQL Row-Level Security (RLS) DDL
+        evaluating kernel-enforced data isolation between enterprise tenants.
         """
         return f"""-- ─────────────────────────────────────────────────────────────────────────────
 -- SMAOS PostgreSQL Multi-Tenant Row-Level Security (RLS) Policy

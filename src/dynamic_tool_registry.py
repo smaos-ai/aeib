@@ -109,7 +109,7 @@ class DynamicToolRegistry:
         """
         Deterministically classifies the primary capability domain from user prompt tokens.
         """
-        if not prompt or not prompt.strip():
+        if not prompt.strip():
             return "general"
 
         tokens = set(re.findall(r"[a-zA-Z0-9_]+", prompt.lower()))

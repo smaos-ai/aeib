@@ -212,34 +212,56 @@ def test_5_admissibility_pure_decision(
     w_bad_caid = issue_human_warrant(
         "w-bad-caid", "n-2", sample_policy.tenant_id, "execute_payment", "sha256:0000", now_ns + 1000, priv
     )
-    assert evaluate_action_admissibility("execute_payment", pay_args, sample_policy, now_ns, warrant=w_bad_caid, human_pub_key=pub).reason_code == "HALT_WARRANT_BINDING_OR_EXPIRY_INVALID"
+    v_bad_caid = evaluate_action_admissibility("execute_payment", pay_args, sample_policy, now_ns, warrant=w_bad_caid, human_pub_key=pub)
+    assert v_bad_caid.allowed is False
+    assert v_bad_caid.reason_code == "HALT_WARRANT_BINDING_OR_EXPIRY_INVALID"
 
     w_bad_act = issue_human_warrant(
         "w-bad-act", "n-3", sample_policy.tenant_id, "delete_record", caid, now_ns + 1000, priv
     )
-    assert evaluate_action_admissibility("execute_payment", pay_args, sample_policy, now_ns, warrant=w_bad_act, human_pub_key=pub).reason_code == "HALT_WARRANT_BINDING_OR_EXPIRY_INVALID"
+    v_bad_act = evaluate_action_admissibility("execute_payment", pay_args, sample_policy, now_ns, warrant=w_bad_act, human_pub_key=pub)
+    assert v_bad_act.allowed is False
+    assert v_bad_act.reason_code == "HALT_WARRANT_BINDING_OR_EXPIRY_INVALID"
 
     w_bad_tenant = issue_human_warrant(
         "w-bad-t", "n-4", "tenant-other", "execute_payment", caid, now_ns + 1000, priv
     )
-    assert evaluate_action_admissibility("execute_payment", pay_args, sample_policy, now_ns, warrant=w_bad_tenant, human_pub_key=pub).reason_code == "HALT_WARRANT_BINDING_OR_EXPIRY_INVALID"
+    v_bad_tenant = evaluate_action_admissibility("execute_payment", pay_args, sample_policy, now_ns, warrant=w_bad_tenant, human_pub_key=pub)
+    assert v_bad_tenant.allowed is False
+    assert v_bad_tenant.reason_code == "HALT_WARRANT_BINDING_OR_EXPIRY_INVALID"
 
     # 9. Warrant with missing or corrupted signature or missing public key
-    assert evaluate_action_admissibility("execute_payment", pay_args, sample_policy, now_ns, warrant=warrant, human_pub_key=None).reason_code == "HALT_WARRANT_SIGNATURE_INVALID"
+    v_no_pk = evaluate_action_admissibility("execute_payment", pay_args, sample_policy, now_ns, warrant=warrant, human_pub_key=None)
+    assert v_no_pk.allowed is False
+    assert v_no_pk.reason_code == "HALT_WARRANT_SIGNATURE_INVALID"
 
     w_bad_sig = SignedHumanActionWarrant(
         warrant_id="w-bad", nonce="n-5", tenant_id=sample_policy.tenant_id, action_name="execute_payment",
         action_caid=caid, expires_at_ns=now_ns + 1000, signature_b64="bm90X2Ffc2lnbmF0dXJl"
     )
-    assert evaluate_action_admissibility("execute_payment", pay_args, sample_policy, now_ns, warrant=w_bad_sig, human_pub_key=pub).reason_code == "HALT_WARRANT_SIGNATURE_INVALID"
+    v_bad_sig = evaluate_action_admissibility("execute_payment", pay_args, sample_policy, now_ns, warrant=w_bad_sig, human_pub_key=pub)
+    assert v_bad_sig.allowed is False
+    assert v_bad_sig.reason_code == "HALT_WARRANT_SIGNATURE_INVALID"
 
     w_empty_sig = SignedHumanActionWarrant(
         warrant_id="w-bad", nonce="n-6", tenant_id=sample_policy.tenant_id, action_name="execute_payment",
         action_caid=caid, expires_at_ns=now_ns + 1000, signature_b64=""
     )
-    assert evaluate_action_admissibility("execute_payment", pay_args, sample_policy, now_ns, warrant=w_empty_sig, human_pub_key=pub).reason_code == "HALT_WARRANT_SIGNATURE_INVALID"
+    v_empty_sig = evaluate_action_admissibility("execute_payment", pay_args, sample_policy, now_ns, warrant=w_empty_sig, human_pub_key=pub)
+    assert v_empty_sig.allowed is False
+    assert v_empty_sig.reason_code == "HALT_WARRANT_SIGNATURE_INVALID"
     assert w_empty_sig.verify(pub) is False
     assert w_bad_sig.verify(pub) is False
+
+    # 10. Taint and Payment limits through evaluate_action_admissibility
+    v_taint_halt = evaluate_action_admissibility("draft_payment", pay_args, sample_policy, now_ns, taint_tier=TaintTier.TIER_2_UNTRUSTED_EXTERNAL)
+    assert v_taint_halt.allowed is False
+    assert v_taint_halt.reason_code == "HALT_UNTRUSTED_CONTEXT_CANNOT_AUTHORIZE_MUTATION"
+
+    bad_pay_args = {"amount_minor": -10, "currency": "PLN", "recipient_id": "vendor_77"}
+    v_limit_halt = evaluate_action_admissibility("draft_payment", bad_pay_args, sample_policy, now_ns)
+    assert v_limit_halt.allowed is False
+    assert v_limit_halt.reason_code == "HALT_PAYMENT_AMOUNT_OUT_OF_BOUNDS"
 
 
 def test_8_canonical_json_unicode_and_float_guards() -> None:
@@ -321,3 +343,44 @@ def test_7_t0_latency_benchmark(sample_policy: PolicyManifest) -> None:
     p99_ms = timings_ns[int(len(timings_ns) * 0.99)] / 1_000_000.0
     # Dynamic timing assertion: must complete well under 10 ms
     assert p99_ms < 10.0, f"Observed p99 latency {p99_ms}ms exceeded 10ms limit"
+
+
+def test_compute_action_caid_exact() -> None:
+    caid = compute_action_caid("test_action", {"k": "v"}, "tenant_1", "agent_1")
+    assert isinstance(caid, str)
+    assert caid.startswith("sha256:")
+    assert len(caid) == 71
+    # Canonical payload: {"action_name":"test_action","agent_id":"agent_1","args":{"k":"v"},"tenant_id":"tenant_1"}
+    import hashlib
+    expected_hash = hashlib.sha256(b'{"action_name":"test_action","agent_id":"agent_1","args":{"k":"v"},"tenant_id":"tenant_1"}').hexdigest()
+    assert caid == f"sha256:{expected_hash}"
+
+
+def test_border_policy_frozen_immutability(sample_policy: PolicyManifest) -> None:
+    import dataclasses
+
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        sample_policy.max_amount_minor_units = 999  # type: ignore[misc]
+
+    v = BorderVerdict(
+        allowed=True,
+        reason_code="OK_ADMISSIBLE",
+        action_caid="sha256:0000",
+        escort_state=TaskEscortState.READY,
+        cancelled_at_state=CancelledAtState.NONE,
+    )
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        v.allowed = False  # type: ignore[misc]
+
+    w = SignedHumanActionWarrant(
+        warrant_id="w-01",
+        nonce="nonce-001",
+        tenant_id="tenant-1",
+        action_name="test_action",
+        action_caid="sha256:0000",
+        expires_at_ns=1000,
+        signature_b64="c2ln",
+    )
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        w.nonce = "nonce-002"  # type: ignore[misc]
+

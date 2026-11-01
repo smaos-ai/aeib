@@ -10,8 +10,9 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
 from src.bbs_plus_redactable import (
-    SovereignAuditReceipt,
+    AuditField,
     BbsPlusRedactor,
+    SovereignAuditReceipt,
     VerificationFailedError,
 )
 
@@ -61,3 +62,31 @@ def test_bbs_tamper_detection_in_blinded_commitments():
 
     with pytest.raises(VerificationFailedError):
         BbsPlusRedactor.verify_selective_proof(proof)
+
+
+def test_bbs_defaults_and_unredacted_flow():
+    # 1. AuditField default is_pii is False
+    f1 = AuditField("note", "public")
+    assert f1.is_pii is False
+
+    # 2. add_field default is_pii is False
+    receipt = SovereignAuditReceipt("EVT-400", "act_004", "tenant-delta", "audit_ping")
+    receipt.add_field("default_field", "default_val")
+    assert receipt.fields[0].is_pii is False
+
+    # Add a PII field
+    receipt.add_field("secret_pii", "secret_val", is_pii=True)
+
+    # 3. create_selective_proof default redact_pii is True and default nonce is used
+    proof_default = BbsPlusRedactor.create_selective_proof(receipt)
+    assert proof_default.proof_nonce == "default_proof_nonce"
+    assert "secret_pii" not in proof_default.revealed_fields
+    assert len(proof_default.blinded_commitments) == 1
+    assert BbsPlusRedactor.verify_selective_proof(proof_default) is True
+
+    # 4. create_selective_proof with redact_pii=False reveals everything
+    proof_full = BbsPlusRedactor.create_selective_proof(receipt, redact_pii=False)
+    assert "secret_pii" in proof_full.revealed_fields
+    assert proof_full.revealed_fields["secret_pii"] == "secret_val"
+    assert len(proof_full.blinded_commitments) == 0
+    assert BbsPlusRedactor.verify_selective_proof(proof_full) is True

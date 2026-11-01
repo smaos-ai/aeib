@@ -34,6 +34,16 @@ from dataclasses import dataclass
 from typing import Any, Dict, FrozenSet, Optional, Set
 
 
+DEFAULT_BENCHMARK_ITERATIONS: int = 10000
+DEFAULT_UNAUTHORIZED_HEADER: Dict[str, Any] = {
+    "agent_id": "malicious-bot-flood",
+    "tool_name": "arbitrary_eval",
+    "target_host": "attacker.xyz",
+    "policy_epoch": 999,
+    "authority_id": "revoked-grant",
+}
+
+
 @dataclass(frozen=True)
 class AdmissionVerdict:
     admitted: bool
@@ -139,17 +149,11 @@ class ZeroAllocationAdmissionHook:
             eval_epoch=self.active_policy_epoch,
         )
 
-    def benchmark_rejection_throughput(self, iterations: int = 10000) -> Dict[str, float]:
+    def benchmark_rejection_throughput(self, iterations: int = DEFAULT_BENCHMARK_ITERATIONS) -> Dict[str, float]:
         """
         Measures the rejection evaluation overhead over a flood of unauthorized requests.
         """
-        unauthorized_header = {
-            "agent_id": "malicious-bot-flood",
-            "tool_name": "arbitrary_eval",
-            "target_host": "attacker.xyz",
-            "policy_epoch": 999,
-            "authority_id": "revoked-grant",
-        }
+        unauthorized_header = DEFAULT_UNAUTHORIZED_HEADER
 
         latencies_ns = []
         for _ in range(iterations):
@@ -163,5 +167,5 @@ class ZeroAllocationAdmissionHook:
             "iterations": float(iterations),
             "mean_latency_ns": mean_latency_ns,
             "mean_latency_us": mean_latency_us,
-            "ops_per_second": 1_000_000_000.0 / mean_latency_ns if mean_latency_ns > 0 else 0.0,
+            "ops_per_second": 1_000_000_000.0 / max(1.0, mean_latency_ns),
         }

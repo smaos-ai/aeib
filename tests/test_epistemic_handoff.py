@@ -146,3 +146,90 @@ def test_valid_epistemic_handoff_passes() -> None:
     CrossModelTaintGate.validate_handoff(child, parent_artifact=parent)
     assert child.artifact_hash.startswith("sha256:")
     assert parent.artifact_hash.startswith("sha256:")
+
+
+def test_handoff_artifact_frozen_immutability() -> None:
+    import dataclasses
+
+    art = HandoffArtifact(
+        source_tier=ModelTier.FLASH_REFLEX,
+        target_tier=ModelTier.ARGON_LIBRARIAN,
+        task_id="task-006",
+        taint_level=TaintLevel.CLEAN_INTERNAL,
+        ast_diffs=(),
+        structured_findings={},
+        known_unknowns=(),
+    )
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        art.task_id = "mutated"  # type: ignore[misc]
+
+
+def test_raw_string_len_exact_boundary() -> None:
+    # Exactly 200 characters is allowed
+    boundary_ok = HandoffArtifact(
+        source_tier=ModelTier.FLASH_REFLEX,
+        target_tier=ModelTier.ARGON_LIBRARIAN,
+        task_id="task-007",
+        taint_level=TaintLevel.CLEAN_INTERNAL,
+        ast_diffs=(),
+        structured_findings={"text": "a" * 200},
+        known_unknowns=(),
+    )
+    CrossModelTaintGate.validate_handoff(boundary_ok)
+
+    # 201 characters triggers violation
+    boundary_fail = HandoffArtifact(
+        source_tier=ModelTier.FLASH_REFLEX,
+        target_tier=ModelTier.ARGON_LIBRARIAN,
+        task_id="task-007",
+        taint_level=TaintLevel.CLEAN_INTERNAL,
+        ast_diffs=(),
+        structured_findings={"text": "a" * 201},
+        known_unknowns=(),
+    )
+    with pytest.raises(HaltHandoffViolationError, match="HALT_NEUROSYMBOLIC_VIOLATION"):
+        CrossModelTaintGate.validate_handoff(boundary_fail)
+
+
+def test_nested_collection_scanning_and_executable_taint() -> None:
+    # Nested in list of dicts with tuple
+    deep_violation = HandoffArtifact(
+        source_tier=ModelTier.FLASH_REFLEX,
+        target_tier=ModelTier.ARGON_LIBRARIAN,
+        task_id="task-008",
+        taint_level=TaintLevel.CLEAN_INTERNAL,
+        ast_diffs=(),
+        structured_findings={"nested": [("tuple_item", {"list_item": ["b" * 201]})]},
+        known_unknowns=(),
+    )
+    with pytest.raises(HaltHandoffViolationError, match="HALT_NEUROSYMBOLIC_VIOLATION"):
+        CrossModelTaintGate.validate_handoff(deep_violation)
+
+    # Taint level: TAINTED_EXECUTABLE cannot downgrade to TAINTED_EXTERNAL_READ
+    exec_parent = HandoffArtifact(
+        source_tier=ModelTier.FLASH_REFLEX,
+        target_tier=ModelTier.ARGON_LIBRARIAN,
+        task_id="task-009",
+        taint_level=TaintLevel.TAINTED_EXECUTABLE,
+        ast_diffs=(),
+        structured_findings={"exec": True},
+        known_unknowns=("eval_risk",),
+    )
+    downgraded_child = HandoffArtifact(
+        source_tier=ModelTier.ARGON_LIBRARIAN,
+        target_tier=ModelTier.OPUS_SURGEON,
+        task_id="task-009",
+        taint_level=TaintLevel.TAINTED_EXTERNAL_READ,
+        ast_diffs=(),
+        structured_findings={"exec": False},
+        known_unknowns=("eval_risk",),
+        parent_artifact_hash=exec_parent.artifact_hash,
+    )
+    with pytest.raises(HaltHandoffViolationError, match="HALT_TAINT_MONOTONICITY_VIOLATION"):
+        CrossModelTaintGate.validate_handoff(downgraded_child, parent_artifact=exec_parent)
+
+
+def test_taint_order_ranks() -> None:
+    assert CrossModelTaintGate.TAINT_ORDER[TaintLevel.CLEAN_INTERNAL] == 0
+    assert CrossModelTaintGate.TAINT_ORDER[TaintLevel.TAINTED_EXTERNAL_READ] == 1
+    assert CrossModelTaintGate.TAINT_ORDER[TaintLevel.TAINTED_EXECUTABLE] == 2

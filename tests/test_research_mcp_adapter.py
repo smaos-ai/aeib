@@ -30,6 +30,7 @@ def test_mcp_timeout_lockout_and_suppression():
     # Simulate HTTP 504 Gateway Timeout during dispatch
     rec = interceptor.record_transport_drop(caid, "HTTP_504", "Gateway Timeout after 30s")
     assert rec["state"] == "DISPATCHED_UNCONFIRMED"
+    assert rec["lockout_tripped"] is True
     assert interceptor.should_suppress_retry(caid)
 
 def test_mcp_probe_reconciliation_paths():
@@ -59,3 +60,27 @@ def test_mcp_probe_reconciliation_paths():
     disp3, ev3 = interceptor.reconcile_authoritative_probe(caid3, None)
     assert disp3 == "EFFECT_UNKNOWN"
     assert "Escalate" in ev3["human_action_required"]
+
+
+def test_prepare_mcp_action_single_token():
+    interceptor = ResearchMCPInterceptor()
+    action = interceptor.prepare_mcp_action("deposit", {"key": "val"})
+    assert action["noun"] == "DEPOSIT"
+    assert action["verb"] == "EXECUTE"
+
+
+def test_reconcile_unlocked_and_mismatched_caid():
+    interceptor = ResearchMCPInterceptor()
+    # 1. Probe when not under lockout
+    disp1, ev1 = interceptor.reconcile_authoritative_probe("unlocked_caid", {"exists": True})
+    assert disp1 == "NO_QUARANTINE"
+    assert ev1["error"] == "CAID is not under lockout"
+
+    # 2. Probe with mismatched caid
+    action = interceptor.prepare_mcp_action("deposit_item", {"id": "1"})
+    caid = action["caid"]
+    interceptor.record_transport_drop(caid, "HTTP_504", "Timeout")
+
+    disp2, ev2 = interceptor.reconcile_authoritative_probe(caid, {"exists": True, "caid": "wrong_caid"})
+    assert disp2 == "EFFECT_UNKNOWN"
+    assert ev2["human_action_required"] == "Escalate for manual inspection"

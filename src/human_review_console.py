@@ -19,7 +19,6 @@ class HumanReviewConsole:
         """Translates technical execution state into Simplified Technical English (ASD-STE100)."""
         caid = evidence.get("caid", "UNKNOWN")
         disposition = evidence.get("disposition", "UNKNOWN")
-        obs = evidence.get("probe_observation") or {}
         
         lines = [
             "===========================================================",

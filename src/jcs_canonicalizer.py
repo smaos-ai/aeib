@@ -112,7 +112,7 @@ def _format_jcs_number(obj: float) -> str:
     else:
         leading_zeros = len(frac_part) - len(frac_part.lstrip("0"))
         digits = frac_part.lstrip("0")
-        n = -leading_zeros + exp
+        n = -leading_zeros
 
     if not digits:
         return "0"
@@ -129,12 +129,13 @@ def _format_jcs_number(obj: float) -> str:
     elif -6 < n <= 0:
         return "0." + "0" * (-n) + digits
     # If k == 1, return digit + 'e' + [sign] + (n - 1) per ECMA-262 7.1.12.1
-    exp_sign = "+" if (n - 1) > 0 else ""
+    exp = n - 1
+    exp_sign = "+" if n > 21 else ""
     if k == 1:
-        return f"{digits}e{exp_sign}{n - 1}"
+        return f"{digits}e{exp_sign}{exp}"
     # Otherwise return digits[0] + '.' + digits[1:] + 'e' + [sign] + (n - 1)
     else:
-        return f"{digits[0]}.{digits[1:]}e{exp_sign}{n - 1}"
+        return f"{digits[0]}.{digits[1:]}e{exp_sign}{exp}"
 
 
 

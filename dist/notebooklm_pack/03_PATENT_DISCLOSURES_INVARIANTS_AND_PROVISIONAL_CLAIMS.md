@@ -233,7 +233,7 @@ Each decision has a risk score (0-100):
 - Auditor verifies: is_valid = Ed25519_verify(decision_hash, signature, public_key)
 
 **Properties:**
-- Signature proves signer had private key (tamper-evident; signer can't deny signing)
+- Signature proves signer had private key (non-repudiable; signer can't deny signing)
 - Signature is unique (different decision_hash → different signature)
 - Signature is tamper-evident (modifying decision or signature makes verification fail)
 
@@ -474,7 +474,7 @@ SovereignNexus solves a critical gap in autonomous AI governance: **providing cr
 3. **Creator Economy:** Trustless settlement proofs
 4. **Enterprise:** Post-hoc monitoring → pre-execution governance (cost reduction + liability elimination)
 
-Ledger is immutable, signatures are tamper-evident, consensus is verifiable, and auditability is permanent.
+Ledger is immutable, signatures are non-repudiable, consensus is verifiable, and auditability is permanent.
 
 ---
 
@@ -532,7 +532,7 @@ A system and method for deterministic, resumable execution of autonomous agents 
 A data structure for cryptographically binding autonomous agent execution to immutable, auditable provenance records, comprising:
 
 1. **Capsule Definition:**
-   - **Agent Identity:** Ed25519 public key (tamper-evident)
+   - **Agent Identity:** Ed25519 public key (non-repudiable)
    - **Execution Manifest:** JSON schema listing declared inputs, outputs, decision rules, success criteria
    - **Merkle DAG:** Directed acyclic graph of execution steps, each hashed with SHA-256
    - **Cryptographic Proof:** Ed25519 signature binding manifest to Merkle root
@@ -712,7 +712,7 @@ A system and method for deterministic, resumable execution of autonomous agents 
 A data structure for cryptographically binding autonomous agent execution to immutable, auditable provenance records with economic intent encoding, comprising:
 
 1. **Capsule Definition:**
-   - **Agent Identity:** Ed25519 public key (tamper-evident)
+   - **Agent Identity:** Ed25519 public key (non-repudiable)
    - **Execution Manifest:** JSON schema listing declared inputs, outputs, decision rules, success criteria
    - **Merkle DAG:** Directed acyclic graph of execution steps, each hashed with SHA-256
    - **Cryptographic Proof:** Ed25519 signature binding manifest to Merkle root

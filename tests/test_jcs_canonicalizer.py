@@ -158,6 +158,13 @@ class TestJCSCanonicalizer(unittest.TestCase):
         with self.assertRaises(TypeError):
             encode_jcs({None: "none_key"})
 
+    def test_rejection_of_unsupported_value_types(self):
+        """Unsupported value types like set or object must raise TypeError."""
+        with self.assertRaises(TypeError):
+            encode_jcs({"unsupported": {1, 2, 3}})
+        with self.assertRaises(TypeError):
+            encode_jcs(object())
+
 
 class TestRFC8785AppendixBVectors(unittest.TestCase):
     """

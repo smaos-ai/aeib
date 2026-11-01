@@ -125,7 +125,7 @@ class VisualRegressionGate:
 
         max_possible_diff = expected_len * 255
         diff_fraction = Fraction(total_abs_diff, max_possible_diff)
-        divergence_bps = min(10000, int(diff_fraction * 10000))
+        divergence_bps = int(diff_fraction * 10000)
 
         passed = divergence_bps <= self.spec.max_divergence_bps
         if passed:

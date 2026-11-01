@@ -567,7 +567,8 @@ class BPFLSMStaticLinter:
 
             # Check 3: Selectors and Permissive Bypass Detection
             selectors = hook.get("selectors")
-            if not isinstance(selectors, list) or len(selectors) == 0:
+            requires_sel = hook_def.get("requires_non_empty_selectors", False)
+            if requires_sel and (not isinstance(selectors, list) or len(selectors) == 0):
                 raise BPFLSMValidationError(
                     HALT_ARGUMENT_TYPE_MISMATCH,
                     f"Hook '{call_name}' missing required 'selectors' configuration",
@@ -814,13 +815,14 @@ spec:
         - matchActions:
             - action: Override
 """
+    falsif1_passed = False
     try:
         parsed_bad = parse_yaml_tracing_policy(bad_hook_yaml)
         BPFLSMStaticLinter(parsed_bad).validate()
-        return False  # Must fail closed!
     except BPFLSMValidationError as exc:
-        if exc.halt_code != HALT_INVALID_LSM_HOOK:
-            return False
+        falsif1_passed = (exc.halt_code == HALT_INVALID_LSM_HOOK)
+    if not falsif1_passed:
+        return False
 
     # 3. Falsification 2: Permissive Wildcard Bypass
     permissive_yaml = """
@@ -848,13 +850,14 @@ spec:
           matchActions:
             - action: Override
 """
+    falsif2_passed = False
     try:
         parsed_perm = parse_yaml_tracing_policy(permissive_yaml)
         BPFLSMStaticLinter(parsed_perm).validate()
-        return False  # Must fail closed!
     except BPFLSMValidationError as exc:
-        if exc.halt_code != HALT_PERMISSIVE_BYPASS_DETECTED:
-            return False
+        falsif2_passed = (exc.halt_code == HALT_PERMISSIVE_BYPASS_DETECTED)
+    if not falsif2_passed:
+        return False
 
     # 4. Falsification 3: Argument Type Mismatch
     mismatch_yaml = """
@@ -872,13 +875,14 @@ spec:
         - matchActions:
             - action: Override
 """
+    falsif3_passed = False
     try:
         parsed_mismatch = parse_yaml_tracing_policy(mismatch_yaml)
         BPFLSMStaticLinter(parsed_mismatch).validate()
-        return False  # Must fail closed!
     except BPFLSMValidationError as exc:
-        if exc.halt_code != HALT_ARGUMENT_TYPE_MISMATCH:
-            return False
+        falsif3_passed = (exc.halt_code == HALT_ARGUMENT_TYPE_MISMATCH)
+    if not falsif3_passed:
+        return False
 
     return True
 

@@ -24,10 +24,10 @@ The SovereignNexus agent infrastructure stack integrates ten deterministic opera
 | **Layer 0** | Hardware Root of Trust | Secure Enclave NIST P-256 / Ed25519 signing, Multi-Cloud HSM Remote Quorum, Cold Storage Airgap Gateway, Enclave Proximity Attestation, TPM 2.0 PCR-11 Aggregator, Heterogeneous CVM Interlock, Confidential Container Attestation Proxy, Verifiable ORAM Shuffler | `src/cloud_hsm_remote_quorum.py`, `src/cold_storage_airgap_gateway.py`, `src/enclave_proximity_attestation.py`, `src/zk_tpm_pcr_aggregator.py`, `src/confidential_vm_migration_interlock.py`, `src/coco_attestation_proxy.py`, `tools/airgap_qr_terminal.py`, `src/cold_storage_hardware_ledger.py`, `src/iphone_enclave_notary_bridge.py`, `src/iphone_rpc_client.py`, `src/oram_memory_shuffler.py` |
 
 
-| **Layer 1** | OS Kernel & eBPF LSM Interception | In-kernel socket and filesystem mediation, Tetragon eBPF telemetry, strict cgroup sandbox, dynamic eBPF tail-call hot-patching, XDP line-rate ingress rate-limiter, WireGuard overlay interlock, Enclave eBPF Policy Loader, Declarative K8s CRD Adapter, Idempotent Action Firewall | `src/bpf_lsm_profile_compiler.py`, `src/ebpf_agent_guard_controller.py`, `src/tetragon_ebpf_stream_parser.py`, `src/ebpf_tail_call_hotpatch.py`, `src/xdp_ingress_ratelimiter.py`, `src/wireguard_overlay_interlock.py`, `src/enclave_bpf_policy_loader.py`, `src/kagent_crd_adapter.py`, `src/mcp_action_firewall.py` |
+| **Layer 1** | OS Kernel & eBPF LSM Interception | In-kernel socket and filesystem mediation, Tetragon eBPF telemetry, strict cgroup sandbox, dynamic eBPF tail-call hot-patching, XDP line-rate ingress rate-limiter, WireGuard overlay interlock, Enclave eBPF Policy Loader, Declarative K8s CRD Adapter, Idempotent Action Firewall, macOS Seatbelt Sandbox | `src/bpf_lsm_profile_compiler.py`, `src/ebpf_agent_guard_controller.py`, `src/tetragon_ebpf_stream_parser.py`, `src/ebpf_tail_call_hotpatch.py`, `src/xdp_ingress_ratelimiter.py`, `src/wireguard_overlay_interlock.py`, `src/enclave_bpf_policy_loader.py`, `src/kagent_crd_adapter.py`, `src/mcp_action_firewall.py`, `src/seatbelt_sandbox.py` |
 
 
-| **Layer 2** | Typestate Physics & Static AST Filter | Dimensional conservation ($0 token cost), hardware boundary ceilings, AST purity & anti-mocking, Exhaustive Finite-State Model Checker, Sovereign Token Decree Governor, Adversarial AST Mutation Verifier, Specification Invariant Compiler, 4-Pillar Anti-Hardcode Holdout Gate, Temporal Model-Bound Tokens, Polarity-Preserving Context Cart, Anti-Scaffold Dynamic Falsifier | `src/physical_typestate_enforcer.py`, `compliance/ast_purity.py`, `compliance/claim_integrity_gate.py`, `src/eo1_protocol_model_checker.py`, `src/sovereign_token_decree.py`, `src/token_decree_dispatch_interlock.py`, `src/adversarial_mutation_verifier.py`, `src/specification_invariant_compiler.py`, `src/anti_hardcode_spec_gate.py`, `src/temporal_model_bound_token.py`, `src/anti_gravity_context_cart.py`, `src/anti_scaffold_falsifier.py` |
+| **Layer 2** | Typestate Physics & Static AST Filter | Dimensional conservation ($0 token cost), hardware boundary ceilings, AST purity & anti-mocking, Exhaustive Finite-State Model Checker, Sovereign Token Decree Governor, Adversarial AST Mutation Verifier, Specification Invariant Compiler, 4-Pillar Anti-Hardcode Holdout Gate, Temporal Model-Bound Tokens, Polarity-Preserving Context Cart, Anti-Scaffold Dynamic Falsifier, RFC 8785 Canonical JCS | `src/physical_typestate_enforcer.py`, `compliance/ast_purity.py`, `compliance/claim_integrity_gate.py`, `src/eo1_protocol_model_checker.py`, `src/sovereign_token_decree.py`, `src/token_decree_dispatch_interlock.py`, `src/adversarial_mutation_verifier.py`, `src/specification_invariant_compiler.py`, `src/anti_hardcode_spec_gate.py`, `src/temporal_model_bound_token.py`, `src/anti_gravity_context_cart.py`, `src/anti_scaffold_falsifier.py`, `src/jcs_canonicalizer.py` |
 
 
 | **Layer 3** | Edge Ingress, Triage & Prescreening | Sub-20ms edge triage, integer basis points risk, BGP Anycast routing interlock, FaceID biometric gate, Cross-Cloud WireGuard Overlay Mesh, Hardened x402 Commerce Gateway, Calibrated Accuracy Cascade Router | `src/edge_triage_router.py`, `src/edge_ai_prescreener.py`, `src/bgp_anycast_routing_interlock.py`, `src/multi_region_canary_ingress.py`, `src/eo1_biometric_gate.py`, `src/live_biometric_latch_bridge.py`, `src/wireguard_overlay_interlock.py`, `src/coinbase_x402_agent_gateway.py`, `src/accuracy_cascade_router.py` |
@@ -48,7 +48,7 @@ The SovereignNexus agent infrastructure stack integrates ten deterministic opera
 | **Layer 8** | Common Criteria EAL4+ Audit & CEM Evaluator | ISO/IEC 15408-3 EAL4+ formal model runner, 8 SFRs mapped, automated ISO/IEC 18045 CEM auditor | `tools/common_criteria_eal4_runner.py`, `tools/itsef_cem_evaluation_runner.py`, `tools/itsef_mock_lab_audit_simulator.py` |
 
 
-| **Layer 9** | Epistemic Dashboard & Command Cockpit | Live on-disk receipts API, remote emergency Andon stop, asynchronous AP2 mandate queue, commissioning pipeline, Figma MCP Connector, Headless Browser DOM Rasterizer | `src/sovereign_dashboard_api.py`, `src/mobile_command_cockpit_engine.py`, `src/ap2_mobile_mandate_engine.py`, `src/commissioning_pipeline.py`, `src/figma_mcp_connector.py`, `src/headless_browser_sidecar.py` |
+| **Layer 9** | Epistemic Dashboard & Command Cockpit | Live on-disk receipts API, remote emergency Andon stop, asynchronous AP2 mandate queue, commissioning pipeline, Figma MCP Connector, Headless Browser DOM Rasterizer, Visual Regression Gate | `src/sovereign_dashboard_api.py`, `src/mobile_command_cockpit_engine.py`, `src/ap2_mobile_mandate_engine.py`, `src/commissioning_pipeline.py`, `src/figma_mcp_connector.py`, `src/headless_browser_sidecar.py`, `src/visual_regression_gate.py` |
 
 ---
 
@@ -281,13 +281,25 @@ All commissioned modules have achieved $\ge 80.00\%$ mutation adequacy kill rati
 
 | `src/apoptosis_sentinel.py` | `tests/test_apoptosis_sentinel.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
 
+
+| `src/bpf_lsm_profile_compiler.py` | `tests/test_bpf_lsm_profile_compiler.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
+
+| `src/jcs_canonicalizer.py` | `tests/test_jcs_canonicalizer.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
+
+| `src/visual_regression_gate.py` | `tests/test_visual_regression_gate.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
+
+| `src/seatbelt_sandbox.py` | `tests/test_seatbelt_sandbox.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
 ---
 
 ## 3. Disclosed Surviving Mutants & Cryptographic Isolation
 
 
 
-All 71 commissioned prototype modules have achieved 100.00% mutation adequacy (30/30 or 22/22 mutants killed each) under the AST shadow runner with zero surviving mutants across their sampled sets:
+All 76 commissioned prototype modules have achieved 100.00% mutation adequacy (30/30 or 22/22 mutants killed each) under the AST shadow runner with zero surviving mutants across their sampled sets:
 
 
 1. All runtime path bootstrap setups (`sys.path.insert(0, str(_REPO_ROOT))`) verified with active sentinel poisoning reload checks.

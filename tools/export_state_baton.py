@@ -74,6 +74,10 @@ def build_state_baton(
         "src/anti_gravity_context_cart.py",
         "src/anti_scaffold_falsifier.py",
         "src/apoptosis_sentinel.py",
+        "src/bpf_lsm_profile_compiler.py",
+        "src/jcs_canonicalizer.py",
+        "src/visual_regression_gate.py",
+        "src/seatbelt_sandbox.py",
     ]
     present_modules = [m for m in core_modules if (repo_root / m).is_file()]
 

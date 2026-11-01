@@ -3,7 +3,7 @@
   "target_notebook_url": "https://notebook.google.com/notebook/e1b91409-02f9-4300-8bf7-5dfd4426dd16",
   "target_notebook_id": "e1b91409-02f9-4300-8bf7-5dfd4426dd16",
   "sources_count": 18,
-  "total_word_count": 146153,
+  "total_word_count": 146222,
   "max_words_per_source_limit": 500000,
   "notebook_source_slots_used": "18 / 50 (32 slots free)",
   "sources": [
@@ -12,7 +12,7 @@
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/00_EXECUTIVE_BRIEFING_FOR_CONSIDERATION.md",
       "words": 894,
       "bytes": 6972,
-      "sha256": "sha256:73d2d68a0a83c2ddf975ace0f44be2aa151b57fd1fa00dfba5ef40a591277357"
+      "sha256": "sha256:7e647a86c43bfcabe2abae1e379e24095b9b96e19027c69d68d18b1ef28c01b2"
     },
     {
       "file_name": "01_SOVEREIGN_NEXUS_MASTER_ARCHITECTURE_AND_12_MOATS.md",
@@ -33,7 +33,7 @@
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/03_PATENT_DISCLOSURES_INVARIANTS_AND_PROVISIONAL_CLAIMS.md",
       "words": 7882,
       "bytes": 62918,
-      "sha256": "sha256:a157b3eede840be78b3795cd0f7bf788b0528df0fc49553950d8cd7b19969a34"
+      "sha256": "sha256:f15c98324b212714889378ea3f7740ecaef4b380f2127ed79de46cd874dda25b"
     },
     {
       "file_name": "04_INDUSTRIAL_PROTECTION_MATRIX_AND_CIRCUIT_BREAKERS.md",
@@ -80,9 +80,9 @@
     {
       "file_name": "10_OCTOBER_30_SOTA_FRONTIER_SWAT_AIRLOCK_AND_REGENERATABLE_UI.md",
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/10_OCTOBER_30_SOTA_FRONTIER_SWAT_AIRLOCK_AND_REGENERATABLE_UI.md",
-      "words": 32654,
-      "bytes": 363419,
-      "sha256": "sha256:37d8f3021b3e1e25c99a10b3df04a28a93f8cd3f2f4a65d8f646a5ee19e23d38"
+      "words": 32652,
+      "bytes": 363407,
+      "sha256": "sha256:76202a31162d1b765e2f28a3dfd63b0c2774f7c669a4d0a989ad100934d461ea"
     },
     {
       "file_name": "11_AGENT_SUBSTRATE_TENCENT_CUBE_KIRO_AND_A2A_INTERLOCK.md",
@@ -115,9 +115,9 @@
     {
       "file_name": "15_TEN_LAYER_SOVEREIGN_FACTORY_AND_COMMISSIONED_PROTOTYPE_SPECS.md",
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/15_TEN_LAYER_SOVEREIGN_FACTORY_AND_COMMISSIONED_PROTOTYPE_SPECS.md",
-      "words": 1858,
-      "bytes": 17647,
-      "sha256": "sha256:23b28fb1f68458d6f01947cb7a79070b807711c351a5fe1c4f5bac57dfba40be"
+      "words": 1929,
+      "bytes": 18289,
+      "sha256": "sha256:7f7fe49f4d745c915bc0efb606bd5c77dc3519b93ce8d6fbf0c8b9719944de71"
     },
     {
       "file_name": "16_OCTOBER_31_PHASE_V_5_STATION_KERNEL_TEMPORAL_AUTHORITY_AND_PREMARKET_AUDIT.md",

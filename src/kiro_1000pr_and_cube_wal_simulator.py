@@ -152,6 +152,7 @@ class Kiro1000PRSimulationSummary:
     halted_single_scope_creep_count: int
     halted_cumulative_smurfing_count: int
     uncontained_high_risk_merges: int
+    total_lines_evaluated: int
     simulation_caid: str
 
 
@@ -199,6 +200,7 @@ class Kiro1000PRSimulator:
         halted_single_creep = 0
         halted_smurfing = 0
         uncontained_high_risk = 0
+        total_lines = 0
 
         # 1. 750 Legitimate Leaf-Node Micro-PRs (<= 50 lines, 0 bps blast radius)
         for i in range(1, 751):
@@ -209,11 +211,10 @@ class Kiro1000PRSimulator:
                 lines_added=10,
                 lines_deleted=2,
             )
+            total_lines += pr.lines_added + pr.lines_deleted
             action, radius_bps = self.evaluate_pr_with_epoch_guard(f"epoch_leaf_{i}", pr)
             if action == "AUTO_MERGE":
                 auto_merged += 1
-            elif radius_bps > 3000:
-                uncontained_high_risk += 1
 
         # 2. 100 High-Fan-In Core Architecture PRs (`src/core_auth.py` -> 6000 bps blast radius)
         for i in range(1, 101):
@@ -224,21 +225,23 @@ class Kiro1000PRSimulator:
                 lines_added=4,
                 lines_deleted=2,
             )
+            total_lines += pr.lines_added + pr.lines_deleted
             action, radius_bps = self.evaluate_pr_with_epoch_guard(f"epoch_core_{i}", pr)
             if action == "HUMAN_ESCALATE":
                 human_escalated += 1
-            elif action == "AUTO_MERGE" and radius_bps > 3000:
+            elif action == "AUTO_MERGE":
                 uncontained_high_risk += 1
 
-        # 3. 100 Over-Eager Single-PR Subsystem Rewrites (90 lines > 50-line cap)
+        # 3. 100 Over-Eager Single-PR Subsystem Rewrites (51 lines > 50-line cap)
         for i in range(1, 101):
             pr = PRDiffSpec(
                 pr_id=f"pr_creep_{i:04d}",
                 intent_caid=f"sha256:creep_{i:04d}",
                 changed_files=("src/leaf_formatter.py",),
-                lines_added=70,
-                lines_deleted=20,
+                lines_added=30,
+                lines_deleted=21,
             )
+            total_lines += pr.lines_added + pr.lines_deleted
             action, _ = self.evaluate_pr_with_epoch_guard(f"epoch_creep_{i}", pr)
             if action == "HALT_SCOPE_CREEP":
                 halted_single_creep += 1
@@ -254,6 +257,7 @@ class Kiro1000PRSimulator:
                 lines_added=8,
                 lines_deleted=2,  # 10 lines per micro-PR
             )
+            total_lines += pr.lines_added + pr.lines_deleted
             action, _ = self.evaluate_pr_with_epoch_guard("epoch_smurf_attack", pr)
             if action == "AUTO_MERGE":
                 auto_merged += 1
@@ -266,6 +270,7 @@ class Kiro1000PRSimulator:
             "halted_cumulative_smurfing_count": halted_smurfing,
             "halted_single_scope_creep_count": halted_single_creep,
             "human_escalated_count": human_escalated,
+            "total_lines_evaluated": total_lines,
             "total_prs_evaluated": total,
             "uncontained_high_risk_merges": uncontained_high_risk,
         }
@@ -277,5 +282,6 @@ class Kiro1000PRSimulator:
             halted_single_scope_creep_count=halted_single_creep,
             halted_cumulative_smurfing_count=halted_smurfing,
             uncontained_high_risk_merges=uncontained_high_risk,
+            total_lines_evaluated=total_lines,
             simulation_caid=sha256_jcs_caid(payload),
         )

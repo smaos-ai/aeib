@@ -9,6 +9,7 @@ Falsifies and evaluates:
 
 from __future__ import annotations
 
+import sqlite3
 import pytest
 
 from src.hypergraph_blast_radius import (
@@ -187,6 +188,17 @@ def test_2_substrate_spiffe_cube_vault_and_autopause_indeterminate_latch() -> No
     resumed_bad, reason_bad = interlock.auto_resume_actor(tampered_snap)
     assert resumed_bad is False
     assert reason_bad == "HALT_SNAPSHOT_HASH_TAMPER_DETECTED"
+
+    # 2F-2: Tainted snapshot is rejected on AutoResume
+    tainted_snap = interlock.auto_pause_actor(
+        actor_spiffe_id="spiffe://sovereign.nexus/agent/tainted_actor",
+        sandbox_backend="cube_kvm",
+        memory_zstd_bytes=b"ZSTD_TAINTED_VM_MEM",
+        pre_suspend_taint_clean=False,
+    )
+    resumed_tainted, reason_tainted = interlock.auto_resume_actor(tainted_snap)
+    assert resumed_tainted is False
+    assert reason_tainted == "HALT_RESUME_TAINTED_SNAPSHOT_FORBIDDEN"
 
     # 2G: Valid snapshot resumes, but blind retry of the indeterminate mutation is BLOCKED
     resumed_ok, _ = interlock.auto_resume_actor(snap)
@@ -487,6 +499,12 @@ def test_6_substrate_cube_interlock_manager_lifecycle() -> None:
         idempotency_token="idem_002",
     )
     assert status_next == "REQUEST_DISPATCHED_IN_FLIGHT"
+    mgr.close()
+    with pytest.raises(sqlite3.ProgrammingError):
+        mgr.conn.execute("SELECT 1")
+    mgr.conn = None
+    mgr.close()
+    delattr(mgr, "conn")
     mgr.close()
 
 

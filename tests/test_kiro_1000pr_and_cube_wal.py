@@ -25,6 +25,8 @@ Zero mocks, zero floats, deterministic cryptographic validation.
 
 from __future__ import annotations
 
+import dataclasses
+import inspect
 import pytest
 
 from src.hypergraph_blast_radius import PRDiffSpec
@@ -93,7 +95,18 @@ def test_2_kiro_1000_pr_factory_simulation_contains_all_high_risk_and_smurfing_p
     assert summary.halted_single_scope_creep_count == 100  # 100 single-PR >50-line subsystem rewrites
     assert summary.halted_cumulative_smurfing_count == 45  # 45 split-PR smurfing attempts caught!
     assert summary.uncontained_high_risk_merges == 0
+    assert summary.total_lines_evaluated == 15200
     assert summary.simulation_caid.startswith("sha256:")
+
+    # Immutability check
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        summary.total_prs_evaluated = 999  # type: ignore[misc]
+
+    # Constructor parameter defaults check
+    sig = inspect.signature(Kiro1000PRSimulator.__init__)
+    assert sig.parameters["max_single_pr_lines"].default == 50
+    assert sig.parameters["max_epoch_cumulative_lines"].default == 50
+    assert sig.parameters["max_auto_merge_radius_bps"].default == 3000
 
 
 def test_3_reconciliation_fails_closed_when_indeterminate_remains() -> None:

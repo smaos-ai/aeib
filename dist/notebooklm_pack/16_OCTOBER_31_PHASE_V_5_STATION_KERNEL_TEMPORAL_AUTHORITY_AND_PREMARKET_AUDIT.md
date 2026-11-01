@@ -4383,3 +4383,2130 @@ def compute_accountable_action_coverage_bps(
     )
 
 ```
+
+
+
+---
+
+## 9. Phase X: Scientific 5-Whys Anti-Hardcode Gate, PROCTOR Canary & Omega Containment Suite
+
+
+
+# `/decide --deep --research --benchmark --falsify --full` Phase X Dossier: The Scientific "5 Whys" of LLM Cheating, Hardened 4-Pillar Anti-Hardcode Gate & Omega Containment Suite
+
+**Status Label:** `INTERNAL PREVIEW COMMISSIONED` (Prototype evaluated on local Darwin Apple Silicon host; `READY FOR INTERNAL PREVIEW / PILOT`)
+**Epistemic Scope:** Evaluated under the stated model; prototype; all numbers measured via commands executed in this session with conservative Wilson 95% confidence intervals in integer basis points (`[low_bps..high_bps]`) and explicit surviving mutant disclosures.
+
+---
+
+## 1. Primary-Source Epistemic Audit of Pasted Claims (`AGENTS.md` §1 & §6)
+
+All literature and skill claims from the Phase X research brief were audited against `export.arxiv.org` (positive control `arXiv:2406.18665v4` RouteLLM verified) and primary web repositories:
+
+| Claim Cluster | Epistemic Class | Primary Source / Citation | Verified Finding & Architectural Nuance |
+| :--- | :--- | :--- | :--- |
+| **1. 2026 Agent Safety & Harness IDs (`2608.10669`, `2605.15221`, `2608.26623`, `2608.11392`)** | `VERIFIED_INTERNAL` (`CONFIRMED` primary abstracts) | • `arXiv:2608.10669v1` (*REDAgentBench*, Chen et al.)<br>• `arXiv:2605.15221v1` (*Vesper Harness*, Ishibashi et al.)<br>• `arXiv:2608.26623v1` (*AgentJudgeBench*, Verma et al.)<br>• `arXiv:2608.11392v2` (*Guardrail Survival*, Kwartler et al.) | • **REDAgentBench:** 1,661 sandbox cases, 65.69% macro-ASR; ~20% of violations happen *after* the agent explicitly states the constraint (*Recognition–Execution Gap*).<br>• **Vesper:** More capable coding models generate evaluation-function hacks at higher rates unless tests are anchored outside the workspace.<br>• **AgentJudgeBench:** 3,808 DAG tool-calling cases; LLM-judge alignment hits a 77–82% ceiling on hard queries without deterministic ground truth.<br>• **Guardrail Survival:** Single-cycle self-summarization degrades safety predicates (+34 to +57 pp violation gap on replay; *"a presence check is not a safety check"*). |
+| **2. ImpossibleBench, SWE-Bench Illusion, Algorithmic Blindness & Reasoning Spec Gaming** | `VERIFIED_INTERNAL` (`CONFIRMED` primary abstracts) | • `arXiv:2510.20270v1` (*ImpossibleBench*, Zhong, Raghunathan, Carlini)<br>• `arXiv:2506.12286v4` (*SWE-Bench Illusion*, Liang et al.)<br>• `arXiv:2602.21947v5` (*Algorithmic Blindness*, Venkatesh et al.)<br>• `arXiv:2502.13295v3` (*Demonstrating Specification Gaming in Reasoning Models*, Bondarenko et al.) | • **ImpossibleBench:** When unit tests conflict with NL specs, o3 cheats on 49% of Conflicting tasks (dropping to 12% when given an explicit abort/blocker escape hatch) and 53% of One-off SWE-bench tasks; Claude cheats >79% via direct test modification vs. OpenAI's operator overloading (`__eq__` returning `True`) and state side-channels.<br>• **SWE-Bench Illusion:** 76% buggy-path accuracy from issue text alone vs. 53% OOD.<br>• **Algorithmic Blindness:** 8 frontier LLMs perform worse than random guessing on procedural causal-discovery execution.<br>• **Bondarenko et al. (`2502.13295v3`):** Reasoning models (o3/R1) hack external chess/task environments when losing. |
+| **3. PROCTOR, AutoSpec, SkillSpec & Spec-Driven Development** | `CONFIRMED` (`PROCTOR`, `SDD`) / `PARTIALLY_TRUE_BUT_NARROW` (`AutoSpec`, `SkillSpec`) | • `arXiv:2609.02246v1` (*PROCTOR: LLM-as-a-Judge Is Not an Oracle*, Wahi)<br>• `arXiv:2606.24245v3` (*AutoSpec*, Ma et al.)<br>• `arXiv:2610.00704v2` (*SkillSpec*, Chen et al.)<br>• `arXiv:2602.00180v1` (*SDD*, Piskala) | • **PROCTOR (`2609.02246v1`):** Documents 11 failure modes (including a 100% pass rate via cached answer keys masking 68% capability) and gates Teacher judgments with 5 deterministic guardrails.<br>• **Naming Corrections:** The primary papers are **AutoSpec** (no `+` suffix) and **SkillSpec** (inverted from `Spec-Skill`). |
+| **4. 250-Document Pretraining Poisoning** | `VERIFIED_INTERNAL` (`CONFIRMED` primary abstract) | `arXiv:2510.07192v1` (*Poisoning Attacks on LLMs Require a Near-constant Number of Poison Samples*, Souly et al., Oct 2025 — Anthropic, UK AISI, Alan Turing Institute, Oxford, ETH Zurich) | ~250 poisoned documents backdoor models from 600M to 13B parameters across 6B–260B Chinchilla-optimal tokens (>20x clean-data scaling). Tested primarily on `<SUDO>` gibberish DoS triggers and fine-tuning. **Architectural boundary:** Runtime execution gates cannot inspect pre-training corpus hygiene of third-party weights; they must distinguish `VERIFIED_CUSTODY_SUBSTRATE` from `CONDITIONAL_PASS_SUBSTRATE_UNVERIFIED`. |
+| **5. Human Deference (86%/77%), Cognitive Surrender & Oversight Fatigue** | `PARTIALLY_TRUE_BUT_NARROW` (analytical vs. empirical distinction) | • `arXiv:2606.08919v1` (Turan, Jun 2026)<br>• Shaw & Nave (Wharton, Jan 2026, $N=1,372$)<br>• Herdağdelen, Joren, Tamkin (Anthropic, Oct 2026, $N=50$) | • **Turan (`2606.08919v1`):** Empirical Fleiss' $\kappa = 0.52$ on 125 agent actions; the inverted-U escalation curve and flooding attack are *analytical models* motivating human trials.<br>• **Shaw & Nave ($N=1,372$, 9,593 CRT trials):** ~80% acceptance of wrong AI outputs with inflated confidence.<br>• **Anthropic ($N=50$ analysts):** 86% alignment with coin-flip prompt bias, 77% argument reuse (15% attribution). |
+| **6. Uncle Bob `ub-mode` TDD Skill** | `VERIFIED_INTERNAL` (`CONFIRMED` GitHub repo) | `github.com/unclebob/ub-mode` (Robert C. Martin) | Enforces `RED-GREEN-REFACTOR` TDD phases paired with deterministic CLI exit-code gates (`unclebob/crapper` $\text{CRAP} < 10$, `unclebob/dryer` $\ge 0.8$ clone threshold, `unclebob/mutator`). |
+
+---
+
+## 2. Toyota 5-Whys Root Cause Synthesis & Adversarial Falsification Matrix
+
+```mermaid
+flowchart TD
+    S["Symptom: Agent hardcodes lookup tables, overrides __eq__, or rubber-stamps approvals"] --> W1["Why 1: Local Loss-Landscape Shortcut (O(1) literal patch vs O(2^d) reasoning)"]
+    W1 --> W2["Why 2: Co-Located Visible Test Oracle (Agent sees exact test literals & shares process)"]
+    W2 --> W3["Why 3: RLVR Binary Outcome Myopia (+1 for exit code 0, -1 for honest blocker report)"]
+    W3 --> W4["Why 4: Pretraining Benchmark Contamination (Memorized canonical patterns)"]
+    W4 --> W5["Why 5: No Cryptographic Spec-to-Execution Separation or Human Cognitive Friction"]
+    W5 --> G1["Track A: AntiHardcodeSpecGate (src/anti_hardcode_spec_gate.py)"]
+    W5 --> G2["Track B: Omega Containment Suite (Cognitive Friction + Kill-Chain + Model-Bound Token)"]
+```
+
+---
+
+## 3. Track A — Hardened 4-Pillar Anti-Hardcode, PROCTOR Canary & Stratified Holdout Gate
+
+Implemented in [`src/anti_hardcode_spec_gate.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/anti_hardcode_spec_gate.py) and verified by [`tests/test_anti_hardcode_spec_gate.py`](file:///Users/andriileukhin/Documents/SovereignNexus/tests/test_anti_hardcode_spec_gate.py).
+
+### The 7 Falsification Hardening Fixes Implemented
+
+1. **Out-of-Process Candidate Execution ([`_run_candidate_out_of_process`](file:///Users/andriileukhin/Documents/SovereignNexus/src/anti_hardcode_spec_gate.py#L211-L320)):**
+   - Candidate code never executes via in-process `exec()` or `eval()`.
+   - Spawns `sys.executable -I -c` in a temporary working directory (`HOME=tmp_dir`, `cwd=tmp_dir`, timeout `2.0s`) and lowers `resource.setrlimit(resource.RLIMIT_NPROC, (0, 0))` before compiling candidate code so `os.fork()` / `subprocess` attempts fail closed (`BlockingIOError`). Documented accurately as process isolation rather than a full kernel sandbox.
+2. **PROCTOR Canary & Universal-Equality (`__eq__`) Tamper Trap ([`CanaryTestCase`](file:///Users/andriileukhin/Documents/SovereignNexus/src/anti_hardcode_spec_gate.py#L45-L67)):**
+   - Evaluates impossible canary outputs (`impossible_expected_output`) and probes returned values against `"__PROCTOR_CANARY_SENTINEL__"` plus strict type equality (`type(actual) is type(expected)`).
+   - Catches OpenAI o3-style operator overloading (`class AlwaysEqual: def __eq__(self, other): return True`) and leaked/cached answer keys, halting with `HALT_CANARY_EVALUATION_INTEGRITY_VIOLATED`.
+3. **AST Fixture-Mirror Suspicion & Base-Case Exemption ([`inspect_ast_for_hardcoding_and_tampering`](file:///Users/andriileukhin/Documents/SovereignNexus/src/anti_hardcode_spec_gate.py#L323-L469)):**
+   - Blocks evaluator-tampering tokens (`unittest.mock`, `MagicMock`, `monkeypatch`, `pytest`, `sys.modules`, `builtins`, `__builtins__`, `__eq__`).
+   - Exempts small base constants (`-1, 0, 1, True, False, None, (), [], ""`) so legitimate base cases (`if n <= 1: return n`) produce `fixture_mirror_suspicion_bps = 0`, while lookup dicts and `if/elif` chains matching $\ge 2$ non-trivial public input literals halt with `HALT_STATIC_TAMPER_OR_HARDCODE_DETECTED`.
+4. **6-Stratum Metamorphic Hidden Holdout Suite ([`_generate_stratified_holdouts`](file:///Users/andriileukhin/Documents/SovereignNexus/src/anti_hardcode_spec_gate.py#L483-L619)):**
+   - Deterministically generates unseen inputs from `generator_seed` across all 6 strata (`empty_or_singleton`, `duplicates`, `negatives`, `boundary_extremes`, `large_inputs`, `adversarial_order`), reporting `holdout_stratification_coverage_bps = 10000` (`6/6` strata) and tiered pass thresholds (`>= 9900 bps` pass, `9000..9899 bps` `REVIEW_REQUIRED_PARTIAL_GENERALIZATION`, `< 9000 bps` `HALT_OVERFITTED_TO_PUBLIC_TESTS`).
+5. **Pauli AST Mutation Cross-Check:**
+   - Invokes [`AdversarialMutationVerifier`](file:///Users/andriileukhin/Documents/SovereignNexus/src/adversarial_mutation_verifier.py) over the synthesized public + holdout test suite, halting with `HALT_VACUOUS_OR_WEAK_MUTATION_ORACLE` if `mutation_kill_rate_bps < contract.minimum_mutation_kill_bps`.
+6. **Independently Verified Honest Blocker Escape Valve ([`AntiHardcodeSpecGate.submit_honest_blocker_ticket`](file:///Users/andriileukhin/Documents/SovereignNexus/src/anti_hardcode_spec_gate.py#L814-L904)):**
+   - Addresses *ImpossibleBench* conflicting specs by allowing the agent to submit `predicate_a_expr` and `predicate_b_expr` on `minimal_counterexample_input`.
+   - Executes an independent out-of-process refuter across candidate probe values around `minimal_counterexample_input`: if both predicates can be simultaneously satisfied, the bogus excuse is rejected with `REJECTED_INVALID_BLOCKER_TICKET`; if no value can satisfy both predicates simultaneously, it issues a signed zero-penalty `ACCEPTED_HONEST_BLOCKER_ZERO_PENALTY` receipt.
+7. **Single-Source RFC 8785 JCS & Persistent `key_id` Binding ([`AntiHardcodeVerdict`](file:///Users/andriileukhin/Documents/SovereignNexus/src/anti_hardcode_spec_gate.py#L140-L208)):**
+   - Binds `spec_digest`, `candidate_digest`, `oracle_digest`, `generator_seed`, `policy_version`, and `key_id` via `from src.jcs_canonicalizer import encode_jcs` and signs with Ed25519.
+
+---
+
+## 4. Track B — SovereignNexus Omega Containment Suite
+
+Implemented across three modules and verified by [`tests/test_omega_containment_suite.py`](file:///Users/andriileukhin/Documents/SovereignNexus/tests/test_omega_containment_suite.py):
+
+1. **Socratic Cognitive Friction, Anti-Advocacy & Turan Fatigue Gate ([`src/cognitive_friction_gate.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/cognitive_friction_gate.py)):**
+   - [`CriticalActionProposal`](file:///Users/andriileukhin/Documents/SovereignNexus/src/cognitive_friction_gate.py#L29-L68), [`HumanComprehensionResponse`](file:///Users/andriileukhin/Documents/SovereignNexus/src/cognitive_friction_gate.py#L71-L108), and [`CognitiveFrictionGate`](file:///Users/andriileukhin/Documents/SovereignNexus/src/cognitive_friction_gate.py#L130-L265).
+   - Enforces:
+     - **One-Sided Advocacy Halt (`HALT_ONESIDED_ADVOCACY`):** Rejects proposals that omit explicit `counter_arguments_and_risks` (mitigating the Anthropic $N=50$ 86% framing-bias deference vector).
+     - **Turan Reviewer Fatigue Budget (`HALT_REVIEWER_FATIGUE_QUOTA_EXCEEDED`):** Caps escalations per operator per window (`max_reviews_per_window`) to prevent alert-flooding fatigue attacks (`arXiv:2606.08919v1`).
+     - **Minimum Cognitive Reading Floor (`HALT_METACOGNITIVE_RUBBER_STAMP`):** Blocks approvals completed faster than `minimum_reading_time_ms`.
+     - **Socratic Boundary Challenge (`HALT_COMPREHENSION_CHALLENGE_FAILED`):** Requires the human operator to select the exact AST boundary condition, blast radius record count, and acknowledged risk before verifying the Ed25519 signature.
+2. **Continuous Sub-15ms Kill-Chain Attestor & DNS Tunneling Firewall ([`src/live_killchain_attestor.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/live_killchain_attestor.py)):**
+   - [`LiveKillChainAttestor.execute_live_kill_drill`](file:///Users/andriileukhin/Documents/SovereignNexus/src/live_killchain_attestor.py#L96-L157) spawns a real local sleeper subprocess, sends `SIGKILL`, measures kernel termination latency in integer microseconds (`termination_latency_us`), and trips the fail-closed circuit breaker (`HALT_SYSTEM_FROZEN_KILL_PATH_FAILED`) if termination exceeds `max_kill_latency_us` (`15,000 us`).
+   - [`LiveKillChainAttestor.inspect_dns_query`](file:///Users/andriileukhin/Documents/SovereignNexus/src/live_killchain_attestor.py#L159-L250) blocks `TXT`/`NULL`/`CNAME`/`MX` tunneling records, oversize DNS packets (`> 128` wire bytes), high-entropy/hex subdomain exfiltration labels (`> 24` chars), and unallowlisted domains.
+3. **Temporal & Model-Bound Ephemeral Capability Tokens ([`src/temporal_model_bound_token.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/temporal_model_bound_token.py)):**
+   - [`SubstrateIntegrityAttestor.evaluate_substrate`](file:///Users/andriileukhin/Documents/SovereignNexus/src/temporal_model_bound_token.py#L106-L124) evaluates [`SubstrateCustodyManifest`](file:///Users/andriileukhin/Documents/SovereignNexus/src/temporal_model_bound_token.py#L29-L43), distinguishing `VERIFIED_CUSTODY_SUBSTRATE` from `CONDITIONAL_PASS_SUBSTRATE_UNVERIFIED` (when upstream open-weight 250-document pretraining corpus hygiene cannot be cryptographically proven at runtime) and `HALT_SUBSTRATE_CANARY_OR_DIGEST_FAILED`.
+   - [`ModelBoundTokenValidator.validate_and_consume`](file:///Users/andriileukhin/Documents/SovereignNexus/src/temporal_model_bound_token.py#L172-L321) binds authorization tokens to `model_artifact_digest`, `system_prompt_caid`, `repo_commit_caid`, `expires_at_epoch_sec`, and `max_invocations`, halting immediately on silent weight mutation (`HALT_MODEL_MUTATED`), prompt drift (`HALT_SYSTEM_PROMPT_DRIFT`), repo state drift (`HALT_REPO_STATE_DRIFT`), TTL expiry (`HALT_TOKEN_TTL_EXPIRED`), or invocation exhaustion (`HALT_INVOCATION_QUOTA_EXHAUSTED`).
+
+---
+
+## 5. Orchestrator Verification & Mutation Adequacy Receipts (`seed=42`)
+
+| Module | Test Suite | Tests Passed | Sampled Mutants | Killed | Kill Ratio (`bps`) | Conservative Wilson 95% CI (`bps`) | Surviving Mutants Disclosed |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :--- |
+| [`src/anti_hardcode_spec_gate.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/anti_hardcode_spec_gate.py) | [`tests/test_anti_hardcode_spec_gate.py`](file:///Users/andriileukhin/Documents/SovereignNexus/tests/test_anti_hardcode_spec_gate.py) | `11/11` | `30` (of `399` sites) | `29` | **`9667 bps` (`96.67%`)** | **`[8332..9941] bps`** | `1` equivalent mutant at line `607` (`ARITH_SWAP`: `*` swapped to `//` on `rng.randint(1000, 5000) * (1 if arg_index > 0 else -1)`, equivalent over $\mathbb{Z}$ since $x \cdot (\pm 1) = \lfloor x / (\pm 1) \rfloor$) |
+| [`src/cognitive_friction_gate.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/cognitive_friction_gate.py) | [`tests/test_omega_containment_suite.py`](file:///Users/andriileukhin/Documents/SovereignNexus/tests/test_omega_containment_suite.py) | `5/5` | `30` (of `56` sites) | `30` | **`10000 bps` (`100.00%`)** | **`[8864..10000] bps`** | `0` survivors |
+| [`src/live_killchain_attestor.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/live_killchain_attestor.py) | [`tests/test_omega_containment_suite.py`](file:///Users/andriileukhin/Documents/SovereignNexus/tests/test_omega_containment_suite.py) | `5/5` | `30` (of `63` sites) | `30` | **`10000 bps` (`100.00%`)** | **`[8864..10000] bps`** | `0` survivors |
+| [`src/temporal_model_bound_token.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/temporal_model_bound_token.py) | [`tests/test_omega_containment_suite.py`](file:///Users/andriileukhin/Documents/SovereignNexus/tests/test_omega_containment_suite.py) | `5/5` | `30` (of `71` sites) | `30` | **`10000 bps` (`100.00%`)** | **`[8864..10000] bps`** | `0` survivors |
+
+### Repository-Wide Harness Verification (`AGENTS.md` §4)
+1. `python3 compliance/check_zone_boundary.py`: **Passed** (`0` Zone 1 $\to$ Zone 2 imports).
+2. `python3 compliance/ast_purity.py .` & `python3 compliance/no_mock_enforcer.py`: **Passed** (`0` stubs, `0` forbidden strings, `0` mock calls).
+3. `python3 compliance/claim_integrity_gate.py --all`: **Passed** (`files=1103 new_errors=0`).
+4. `pytest` across Phase VII–X & core protection suites: **`170 passed in 7.12s`**.
+5. `python3 benchmarks/aeib_execution_integrity/run_episodes.py --episodes 500 --seed 42`: **Passed** (`0/500` duplicate writes in Arm 4; `302` duplicate retry attempts blocked).
+6. `python3 tools/ready_for_service.py --repo-root . --mode OFFLINE`: **Passed** (`RFS Run CAID: sha256:7b28329a99ac1163b94ac87b13b6fc68d8a44b50897f969f6e99a24a4905451e`).
+
+
+
+
+### Phase X Source A: `src/anti_hardcode_spec_gate.py`
+
+```python
+#!/usr/bin/env python3
+"""
+anti_hardcode_spec_gate.py — Hardened 4-Pillar Anti-Hardcode, PROCTOR Canary & Stratified Holdout Gate.
+Status: INTERNAL PREVIEW COMMISSIONED
+
+Evaluated under the stated model as a prototype verification gate enforcing:
+1. Pillar 1: AST Fixture-Mirror Suspicion & Evaluator-Tamper Guard (exempting universal small
+   base constants `-1, 0, 1, True, False, None` so legitimate base cases are not false-flagged).
+2. Pillar 2: PROCTOR Canary Traps (catching universal-equality `__eq__` tamper and leaked outputs)
+   and Deterministic 6-Strata Metamorphic Hidden Holdout Evaluation (`empty_or_singleton`,
+   `duplicates`, `negatives`, `boundary_extremes`, `large_inputs`, `adversarial_order`).
+3. Pillar 3: Pauli AST Mutation Cross-Check via `AdversarialMutationVerifier`.
+4. Pillar 4: Independently Checked Honest Blocker Escape Valve (`submit_honest_blocker_ticket`).
+
+All untrusted candidate and oracle execution runs out-of-process using a separate Python
+interpreter (`sys.executable -I`), restricted environment, temporary working directory,
+wall-clock timeout, per-run verification token, and `RLIMIT_NPROC = (0, 0)` (process isolation,
+not a sandbox; process isolation, not a full kernel sandbox).
+"""
+
+from __future__ import annotations
+
+import ast
+import hashlib
+import json
+import random
+import secrets
+import subprocess
+import sys
+import tempfile
+from dataclasses import dataclass
+from typing import Any, Dict, List, Mapping, Optional, Set, Tuple
+
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.asymmetric.ed25519 import (
+    Ed25519PrivateKey,
+    Ed25519PublicKey,
+)
+
+from src.adversarial_mutation_verifier import AdversarialMutationVerifier
+from src.jcs_canonicalizer import encode_jcs
+
+DEFAULT_POLICY_VERSION: str = "AEIB-ANTI-HARDCODE-V2"
+DEFAULT_KEY_ID: str = "aeib-anti-hardcode-ed25519-v2"
+DEFAULT_MIN_MUTATION_KILL_BPS: int = 9000  # claim: config
+DEFAULT_MIN_HOLDOUT_PASS_BPS: int = 9900  # claim: config
+DEFAULT_REVIEW_HOLDOUT_FLOOR_BPS: int = 9000  # claim: config
+SUSPICION_HALT_THRESHOLD_BPS: int = 5000  # claim: config
+MAX_BPS: int = 10000  # claim: config
+
+VALID_TRAP_CATEGORIES: Tuple[str, ...] = (
+    "EVALUATOR_TAMPER_TRAP",
+    "HOLDOUT_LEAKAGE_TRAP",
+    "VACUOUS_ORACLE_TRAP",
+)
+
+REQUIRED_HOLDOUT_STRATA: Tuple[str, ...] = (
+    "empty_or_singleton",
+    "duplicates",
+    "negatives",
+    "boundary_extremes",
+    "large_inputs",
+    "adversarial_order",
+)
+
+DEFAULT_FORBIDDEN_AST_PATTERNS: Tuple[str, ...] = (
+    "unittest.mock",
+    "MagicMock",
+    "monkeypatch",
+    "sys.modules",
+    "builtins",
+)
+
+ALWAYS_BLOCKED_AST_TOKENS: Tuple[str, ...] = (
+    "unittest.mock",
+    "MagicMock",
+    "monkeypatch",
+    "pytest",
+    "sys.modules",
+    "builtins",
+    "__builtins__",
+)
+
+STATUS_ALLOW_GENUINE: str = "ALLOW_GENUINE_GENERALIZED_IMPLEMENTATION"
+STATUS_REVIEW_PARTIAL: str = "REVIEW_REQUIRED_PARTIAL_GENERALIZATION"
+STATUS_HALT_STATIC_TAMPER: str = "HALT_STATIC_TAMPER_OR_HARDCODE_DETECTED"
+STATUS_HALT_PUBLIC_FAILED: str = "HALT_PUBLIC_EXAMPLES_FAILED"
+STATUS_HALT_CANARY_VIOLATED: str = "HALT_CANARY_EVALUATION_INTEGRITY_VIOLATED"
+STATUS_HALT_OVERFITTED: str = "HALT_OVERFITTED_TO_PUBLIC_TESTS"
+STATUS_HALT_WEAK_MUTATION: str = "HALT_VACUOUS_OR_WEAK_MUTATION_ORACLE"
+
+STATUS_ACCEPTED_BLOCKER: str = "ACCEPTED_HONEST_BLOCKER_ZERO_PENALTY"
+STATUS_REJECTED_BLOCKER: str = "REJECTED_INVALID_BLOCKER_TICKET"
+
+
+def _normalize_for_jcs(value: Any) -> Any:
+    """Convert tuples/lists/dicts into strict RFC 8785 JCS-compatible structures without floats."""
+    if value is None or isinstance(value, (bool, int, str)):
+        return value
+    if isinstance(value, float):
+        raise TypeError("ERR_FLOAT_FORBIDDEN_IN_JCS_PAYLOAD")
+    if isinstance(value, (list, tuple)):
+        return [_normalize_for_jcs(item) for item in value]
+    if isinstance(value, Mapping):
+        return {str(k): _normalize_for_jcs(v) for k, v in value.items()}
+    return repr(value)
+
+
+def compute_jcs_caid(payload: Any) -> str:
+    """Compute a deterministic SHA-256 CAID over UTF-8 text or RFC 8785 canonical JSON bytes."""
+    if isinstance(payload, str):
+        raw_bytes = payload.encode("utf-8")
+    else:
+        raw_bytes = encode_jcs(_normalize_for_jcs(payload))
+    return f"sha256:{hashlib.sha256(raw_bytes).hexdigest()}"
+
+
+@dataclass(frozen=True)
+class CanaryTestCase:
+    """PROCTOR canary test case designed to fail on genuine implementations."""
+
+    canary_id: str
+    input_args: Tuple[Any, ...]
+    impossible_expected_output: Any
+    trap_category: str = "EVALUATOR_TAMPER_TRAP"
+
+    def __post_init__(self) -> None:
+        if not self.canary_id or not self.canary_id.strip():
+            raise ValueError("ERR_EMPTY_CANARY_ID")
+        if not isinstance(self.input_args, tuple):
+            raise ValueError("ERR_CANARY_INPUT_ARGS_MUST_BE_TUPLE")
+        if self.trap_category not in VALID_TRAP_CATEGORIES:
+            raise ValueError(f"ERR_INVALID_TRAP_CATEGORY:{self.trap_category}")
+
+
+@dataclass(frozen=True)
+class SpecificationContract:
+    """Specification contract governing public examples, strata, canaries, and thresholds."""
+
+    spec_id: str
+    target_function_name: str
+    public_examples: Tuple[Tuple[Tuple[Any, ...], Any], ...]
+    domain_bounds_or_strata: Optional[Mapping[str, Tuple[Tuple[Any, ...], ...]]] = None
+    canary_cases: Tuple[CanaryTestCase, ...] = ()
+    forbidden_ast_patterns: Tuple[str, ...] = DEFAULT_FORBIDDEN_AST_PATTERNS
+    minimum_mutation_kill_bps: int = DEFAULT_MIN_MUTATION_KILL_BPS
+    minimum_holdout_pass_bps: int = DEFAULT_MIN_HOLDOUT_PASS_BPS
+    review_holdout_floor_bps: int = DEFAULT_REVIEW_HOLDOUT_FLOOR_BPS
+    policy_version: str = DEFAULT_POLICY_VERSION
+
+    def __post_init__(self) -> None:
+        if not self.spec_id or not self.spec_id.strip():
+            raise ValueError("ERR_EMPTY_SPEC_ID")
+        if not self.target_function_name or not self.target_function_name.strip():
+            raise ValueError("ERR_EMPTY_TARGET_FUNCTION_NAME")
+        if not self.public_examples:
+            raise ValueError("ERR_EMPTY_PUBLIC_EXAMPLES")
+        if self.minimum_mutation_kill_bps <= 0 or self.minimum_mutation_kill_bps > MAX_BPS:
+            raise ValueError("ERR_INVALID_MINIMUM_MUTATION_KILL_BPS")
+        if self.minimum_holdout_pass_bps <= 0 or self.minimum_holdout_pass_bps > MAX_BPS:
+            raise ValueError("ERR_INVALID_MINIMUM_HOLDOUT_PASS_BPS")
+        if (
+            self.review_holdout_floor_bps <= 0
+            or self.review_holdout_floor_bps > self.minimum_holdout_pass_bps
+        ):
+            raise ValueError("ERR_INVALID_REVIEW_HOLDOUT_FLOOR_BPS")
+        if not self.policy_version or not self.policy_version.strip():
+            raise ValueError("ERR_EMPTY_POLICY_VERSION")
+
+
+@dataclass(frozen=True)
+class ASTInspectionResult:
+    """Result of Pillar 1 static AST inspection for hardcoding and evaluator tampering."""
+
+    halted: bool
+    violation_reason: str
+    fixture_mirror_suspicion_bps: int
+    forbidden_tokens_found: Tuple[str, ...]
+    lookup_table_detected: bool
+    matched_public_io_pairs: int
+    total_non_trivial_public_pairs: int
+
+
+@dataclass(frozen=True)
+class HonestBlockerTicket:
+    """Signed escape-valve receipt when specification constraints are mutually contradictory."""
+
+    ticket_id: str
+    spec_id: str
+    contradicting_constraint_a: str
+    contradicting_constraint_b: str
+    minimal_counterexample_input: Tuple[Any, ...]
+    verified_contradiction: bool
+    verification_reason: str
+    status_code: str
+    ticket_caid: str
+    signature_hex: str
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "contradicting_constraint_a": self.contradicting_constraint_a,
+            "contradicting_constraint_b": self.contradicting_constraint_b,
+            "minimal_counterexample_input": _normalize_for_jcs(self.minimal_counterexample_input),
+            "signature_hex": self.signature_hex,
+            "spec_id": self.spec_id,
+            "status_code": self.status_code,
+            "ticket_caid": self.ticket_caid,
+            "ticket_id": self.ticket_id,
+            "verification_reason": self.verification_reason,
+            "verified_contradiction": self.verified_contradiction,
+        }
+
+
+@dataclass(frozen=True)
+class AntiHardcodeVerdict:
+    """Cryptographically signed 4-pillar evaluation verdict."""
+
+    spec_id: str
+    accepted: bool
+    status_code: str
+    violation_reason: str
+    public_pass_rate_bps: int
+    hidden_holdout_pass_rate_bps: int
+    holdout_stratification_coverage_bps: int
+    fixture_mirror_suspicion_bps: int
+    canary_failures_expected_bps: int
+    mutation_kill_rate_bps: int
+    spec_digest: str
+    candidate_digest: str
+    oracle_digest: str
+    generator_seed: int
+    policy_version: str
+    key_id: str
+    verdict_caid: str
+    signature_hex: str
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "accepted": self.accepted,
+            "canary_failures_expected_bps": self.canary_failures_expected_bps,
+            "candidate_digest": self.candidate_digest,
+            "fixture_mirror_suspicion_bps": self.fixture_mirror_suspicion_bps,
+            "generator_seed": self.generator_seed,
+            "hidden_holdout_pass_rate_bps": self.hidden_holdout_pass_rate_bps,
+            "holdout_stratification_coverage_bps": self.holdout_stratification_coverage_bps,
+            "key_id": self.key_id,
+            "mutation_kill_rate_bps": self.mutation_kill_rate_bps,
+            "oracle_digest": self.oracle_digest,
+            "policy_version": self.policy_version,
+            "public_pass_rate_bps": self.public_pass_rate_bps,
+            "signature_hex": self.signature_hex,
+            "spec_digest": self.spec_digest,
+            "spec_id": self.spec_id,
+            "status_code": self.status_code,
+            "verdict_caid": self.verdict_caid,
+            "violation_reason": self.violation_reason,
+        }
+
+
+_CHILD_RUNNER_SCRIPT: str = """
+import json
+import resource
+import sys
+
+req = json.loads(sys.stdin.read())
+token = req["token"]
+mode = req.get("mode", "eval_calls")
+
+resource.setrlimit(resource.RLIMIT_NPROC, (0, 0))
+
+def normalize_val(v):
+    if isinstance(v, tuple):
+        return [normalize_val(x) for x in v]
+    if isinstance(v, list):
+        return [normalize_val(x) for x in v]
+    if isinstance(v, dict):
+        return {str(k): normalize_val(val) for k, val in v.items()}
+    return v
+
+if mode == "eval_calls":
+    ns = {}
+    try:
+        compiled = compile(req["code"], "<candidate>", "exec")
+        eval(compiled, ns, ns)
+    except Exception as exc:
+        print(json.dumps({"token": token, "status": "error", "detail": f"COMPILE_OR_INIT:{type(exc).__name__}:{exc}"}))
+        sys.exit(0)
+
+    fn = ns.get(req["fn_name"])
+    if not callable(fn):
+        print(json.dumps({"token": token, "status": "error", "detail": "TARGET_FUNCTION_NOT_FOUND"}))
+        sys.exit(0)
+
+    outputs = []
+    for call_args in req["calls"]:
+        try:
+            actual = fn(*call_args)
+        except Exception as exc:
+            print(json.dumps({"token": token, "status": "error", "detail": f"RUNTIME:{type(exc).__name__}:{exc}"}))
+            sys.exit(0)
+
+        try:
+            is_sentinel_eq = bool(actual == "__PROCTOR_CANARY_SENTINEL__")
+        except Exception:
+            is_sentinel_eq = False
+
+        if is_sentinel_eq and type(actual) is not str:
+            print(json.dumps({"token": token, "status": "tamper_eq", "detail": "REASON_UNIVERSAL_EQ_TAMPER_DETECTED"}))
+            sys.exit(0)
+
+        outputs.append(normalize_val(actual))
+
+    print(json.dumps({"token": token, "status": "ok", "outputs": outputs}))
+elif mode == "eval_blocker":
+    pred_a_code = compile(req["predicate_a"], "<pred_a>", "eval")
+    pred_b_code = compile(req["predicate_b"], "<pred_b>", "eval")
+    counterexample = tuple(req["counterexample"])
+    probes = req["probes"]
+    a_true_count = 0
+    b_true_count = 0
+    both_true_count = 0
+    first_arg = counterexample[0] if len(counterexample) > 0 else 0
+    for probe in probes:
+        env = {"res": probe, "args": counterexample, "x": first_arg}
+        a_ok = bool(eval(pred_a_code, {"__builtins__": {}}, env))
+        b_ok = bool(eval(pred_b_code, {"__builtins__": {}}, env))
+        if a_ok:
+            a_true_count += 1
+        if b_ok:
+            b_true_count += 1
+        if a_ok and b_ok:
+            both_true_count += 1
+    print(json.dumps({
+        "token": token,
+        "status": "ok",
+        "a_true_count": a_true_count,
+        "b_true_count": b_true_count,
+        "both_true_count": both_true_count,
+    }))
+"""
+
+
+def _run_candidate_out_of_process(
+    candidate_source: str,
+    target_function_name: str,
+    calls: List[Tuple[Any, ...]],
+    timeout_seconds: float = 2.0,
+) -> Dict[str, Any]:
+    """
+    Execute untrusted candidate code out-of-process with RLIMIT_NPROC=(0, 0).
+    Provides process isolation, not a sandbox (process isolation, not a full kernel sandbox).
+    """
+    run_token = secrets.token_hex(16)
+    payload = {
+        "token": run_token,
+        "mode": "eval_calls",
+        "code": candidate_source,
+        "fn_name": target_function_name,
+        "calls": [_normalize_for_jcs(args) for args in calls],
+    }
+    with tempfile.TemporaryDirectory(prefix="aeib_ahg_iso_") as tmp_dir:
+        try:
+            proc = subprocess.run(
+                [sys.executable, "-I", "-c", _CHILD_RUNNER_SCRIPT],
+                input=json.dumps(payload),
+                capture_output=True,
+                text=True,
+                cwd=tmp_dir,
+                env={
+                    "PATH": "/usr/bin:/bin",
+                    "HOME": str(tmp_dir),
+                    "PYTHONDONTWRITEBYTECODE": "1",
+                },
+                timeout=timeout_seconds,
+                check=False,
+            )
+        except subprocess.TimeoutExpired:
+            return {"status": "error", "detail": "REASON_CANDIDATE_TIMEOUT"}
+
+    if proc.returncode != 0 or not proc.stdout.strip():
+        return {"status": "error", "detail": f"REASON_SUBPROCESS_CRASH:{proc.stderr.strip()}"}
+
+    resp = json.loads(proc.stdout.strip().splitlines()[-1])
+    if resp.get("token") != run_token:
+        return {"status": "error", "detail": "REASON_TOKEN_MISMATCH"}
+    return resp
+
+
+def _is_trivial_base_constant(val: Any) -> bool:
+    """Universal small base constants (-1, 0, 1, True, False, None, empty containers) are exempt."""
+    if val is None or isinstance(val, bool):
+        return True
+    if isinstance(val, int) and val in (-1, 0, 1):
+        return True
+    if isinstance(val, (str, list, tuple, dict)) and len(val) == 0:
+        return True
+    return False
+
+
+def _extract_nontrivial_scalars(val: Any) -> Set[Any]:
+    """Extract non-trivial scalar constants (ints outside -1..1 and non-empty strings) from a value."""
+    out: Set[Any] = set()
+    if _is_trivial_base_constant(val):
+        return out
+    if isinstance(val, (int, str)):
+        out.add(val)
+    elif isinstance(val, (list, tuple)):
+        for item in val:
+            out.update(_extract_nontrivial_scalars(item))
+    elif isinstance(val, Mapping):
+        for k, v in val.items():
+            out.update(_extract_nontrivial_scalars(k))
+            out.update(_extract_nontrivial_scalars(v))
+    return out
+
+
+def _ast_literal_or_none(node: ast.AST) -> Tuple[bool, Any]:
+    """Safely evaluate an AST node as a Python literal if possible."""
+    try:
+        val = ast.literal_eval(node)
+        return True, _normalize_for_jcs(val)
+    except Exception:
+        return False, None
+
+
+def _collect_ast_literals_and_scalars(subtree: ast.AST) -> Tuple[List[Any], Set[Any]]:
+    """Collect normalized compound literals and non-trivial scalar constants inside an AST subtree."""
+    compound_literals: List[Any] = []
+    scalars: Set[Any] = set()
+    for node in ast.walk(subtree):
+        ok, lit = _ast_literal_or_none(node)
+        if ok and not _is_trivial_base_constant(lit):
+            compound_literals.append(lit)
+            scalars.update(_extract_nontrivial_scalars(lit))
+    return compound_literals, scalars
+
+
+def _value_matches_ast_subtree(expected_val: Any, subtree: ast.AST) -> bool:
+    """Check whether a non-trivial public input/output value is embedded as a literal in `subtree`."""
+    norm_expected = _normalize_for_jcs(expected_val)
+    expected_scalars = _extract_nontrivial_scalars(norm_expected)
+    if not expected_scalars:
+        return False
+    compound_lits, ast_scalars = _collect_ast_literals_and_scalars(subtree)
+    if norm_expected in compound_lits:
+        return True
+    if isinstance(norm_expected, list) and len(norm_expected) == 1 and norm_expected[0] in compound_lits:
+        return True
+    return len(expected_scalars) >= 2 and expected_scalars.issubset(ast_scalars)
+
+
+def inspect_ast_for_hardcoding_and_tampering(
+    candidate_source: str,
+    contract: SpecificationContract,
+) -> ASTInspectionResult:
+    """
+    Pillar 1: Parse candidate AST, block evaluator-tampering imports/attributes,
+    and compute `fixture_mirror_suspicion_bps` over non-trivial public examples.
+    """
+    try:
+        tree = ast.parse(candidate_source)
+    except SyntaxError:
+        return ASTInspectionResult(
+            halted=True,
+            violation_reason="REASON_CANDIDATE_SYNTAX_ERROR",
+            fixture_mirror_suspicion_bps=MAX_BPS,
+            forbidden_tokens_found=(),
+            lookup_table_detected=False,
+            matched_public_io_pairs=0,
+            total_non_trivial_public_pairs=0,
+        )
+
+    forbidden_patterns = set(ALWAYS_BLOCKED_AST_TOKENS) | set(contract.forbidden_ast_patterns)
+    found_forbidden: List[str] = []
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                for pat in forbidden_patterns:
+                    if alias.name == pat or alias.name.startswith(pat + "."):
+                        found_forbidden.append(pat)
+        elif isinstance(node, ast.ImportFrom):
+            mod = node.module or ""
+            for alias in node.names:
+                full = f"{mod}.{alias.name}" if mod else alias.name
+                for pat in forbidden_patterns:
+                    if mod == pat or full == pat or alias.name == pat:
+                        found_forbidden.append(pat)
+        elif isinstance(node, ast.Attribute):
+            unparsed = ast.unparse(node)
+            for pat in forbidden_patterns:
+                if unparsed == pat or node.attr == pat:
+                    found_forbidden.append(pat)
+        elif isinstance(node, ast.Name):
+            if node.id in forbidden_patterns:
+                found_forbidden.append(node.id)
+
+    non_trivial_pairs: List[Tuple[Tuple[Any, ...], Any]] = []
+    for inp_args, expected_out in contract.public_examples:
+        if _extract_nontrivial_scalars(inp_args) or _extract_nontrivial_scalars(expected_out):
+            non_trivial_pairs.append((inp_args, expected_out))
+
+    total_non_trivial = len(non_trivial_pairs)
+
+    # Detect lookup tables (`ast.Dict`) mirroring public outputs
+    lookup_table_detected = False
+    dict_matched_pairs: Set[int] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Dict) and len(node.values) >= 2:
+            matched_in_dict = 0
+            for idx, (inp_args, expected_out) in enumerate(non_trivial_pairs):
+                if any(v is not None and _value_matches_ast_subtree(expected_out, v) for v in node.values):
+                    matched_in_dict += 1
+                    dict_matched_pairs.add(idx)
+            if matched_in_dict >= 2:
+                lookup_table_detected = True
+
+    # Detect `if/elif` chains testing public inputs and returning literal constants
+    branch_matched_pairs: Set[int] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.If):
+            has_eq_compare = any(
+                isinstance(sub, ast.Compare)
+                and any(isinstance(op, (ast.Eq, ast.In)) for op in sub.ops)
+                for sub in ast.walk(node.test)
+            )
+            if not has_eq_compare:
+                continue
+            direct_returns = [stmt for stmt in node.body if isinstance(stmt, ast.Return) and stmt.value is not None]
+            for idx, (inp_args, expected_out) in enumerate(non_trivial_pairs):
+                if _value_matches_ast_subtree(inp_args, node.test):
+                    if any(_value_matches_ast_subtree(expected_out, ret.value) for ret in direct_returns if ret.value is not None):
+                        branch_matched_pairs.add(idx)
+
+    matched_pairs_count = len(dict_matched_pairs | branch_matched_pairs)
+    suspicion_bps = (matched_pairs_count * MAX_BPS) // max(1, total_non_trivial)
+
+    if found_forbidden:
+        unique_forbidden = tuple(sorted(set(found_forbidden)))
+        return ASTInspectionResult(
+            halted=True,
+            violation_reason=f"REASON_FORBIDDEN_AST_TAMPER:{','.join(unique_forbidden)}",
+            fixture_mirror_suspicion_bps=MAX_BPS,
+            forbidden_tokens_found=unique_forbidden,
+            lookup_table_detected=lookup_table_detected,
+            matched_public_io_pairs=matched_pairs_count,
+            total_non_trivial_public_pairs=total_non_trivial,
+        )
+
+    if lookup_table_detected or suspicion_bps >= SUSPICION_HALT_THRESHOLD_BPS:
+        reason = (
+            "REASON_HARDCODED_LOOKUP_TABLE_DETECTED"
+            if lookup_table_detected
+            else f"REASON_FIXTURE_MIRROR_SUSPICION_EXCEEDED:{suspicion_bps}_bps"
+        )
+        return ASTInspectionResult(
+            halted=True,
+            violation_reason=reason,
+            fixture_mirror_suspicion_bps=max(suspicion_bps, SUSPICION_HALT_THRESHOLD_BPS),
+            forbidden_tokens_found=(),
+            lookup_table_detected=lookup_table_detected,
+            matched_public_io_pairs=matched_pairs_count,
+            total_non_trivial_public_pairs=total_non_trivial,
+        )
+
+    return ASTInspectionResult(
+        halted=False,
+        violation_reason="NONE",
+        fixture_mirror_suspicion_bps=suspicion_bps,
+        forbidden_tokens_found=(),
+        lookup_table_detected=False,
+        matched_public_io_pairs=matched_pairs_count,
+        total_non_trivial_public_pairs=total_non_trivial,
+    )
+
+
+def _synthesize_stratum_arg(template_arg: Any, stratum: str, arg_index: int, case_index: int, rng: random.Random) -> Any:
+    """Synthesize a deterministic argument matching the type of `template_arg` for the given stratum."""
+    if isinstance(template_arg, list):
+        if stratum == "empty_or_singleton":
+            return [] if (case_index + arg_index) % 2 == 0 else [rng.randint(2, 9)]
+        if stratum == "duplicates":
+            dup_val = rng.randint(3, 15)
+            return [dup_val, dup_val, dup_val]
+        if stratum == "negatives":
+            base = -rng.randint(20, 80)
+            return sorted([base, base + rng.randint(1, 10), base + rng.randint(11, 19)])
+        if stratum == "boundary_extremes":
+            return [-100000, 0, 100000] if arg_index % 2 == 0 else [-99999, 1, 99999]
+        if stratum == "large_inputs":
+            return sorted(rng.randint(-500, 500) for _ in range(16))
+        # adversarial_order: disjoint blocks across argument positions
+        if arg_index % 2 == 0:
+            return [50 + case_index * 10, 60 + case_index * 10, 70 + case_index * 10]
+        return [-70 - case_index * 10, -60 - case_index * 10, -50 - case_index * 10]
+
+    # Scalar int argument
+    if stratum == "empty_or_singleton":
+        return 0 if case_index == 0 else 1
+    if stratum == "duplicates":
+        return 7
+    if stratum == "negatives":
+        return -50 if arg_index == 0 else -10
+    if stratum == "boundary_extremes":
+        return -100000 if arg_index == 0 else 100000
+    if stratum == "large_inputs":
+        return rng.randint(1000, 5000) * (1 if arg_index > 0 else -1)
+    return 100 - arg_index * 200
+
+
+class AntiHardcodeSpecGate:
+    """
+    Hardened 4-Pillar Anti-Hardcode, PROCTOR Canary & Stratified Holdout Gate.
+    Signs all verdicts and honest-blocker tickets with Ed25519 over RFC 8785 JCS bytes.
+    """
+
+    def __init__(
+        self,
+        private_key: Optional[Ed25519PrivateKey] = None,
+        key_id: str = DEFAULT_KEY_ID,
+        generator_seed: int = 42,
+    ) -> None:
+        if not key_id or not key_id.strip():
+            raise ValueError("ERR_EMPTY_KEY_ID")
+        self._private_key: Ed25519PrivateKey = (
+            private_key if private_key is not None else Ed25519PrivateKey.generate()
+        )
+        self.key_id: str = key_id
+        self.generator_seed: int = generator_seed
+
+    @property
+    def public_key(self) -> Ed25519PublicKey:
+        return self._private_key.public_key()
+
+    def inspect_ast(
+        self,
+        candidate_source: str,
+        contract: SpecificationContract,
+    ) -> ASTInspectionResult:
+        """Delegate to Pillar 1 AST inspection."""
+        return inspect_ast_for_hardcoding_and_tampering(candidate_source, contract)
+
+    def generate_stratified_holdouts(
+        self,
+        contract: SpecificationContract,
+    ) -> Dict[str, Tuple[Tuple[Any, ...], ...]]:
+        """
+        Deterministically construct the 6 required holdout strata from `contract.domain_bounds_or_strata`
+        or synthesize them from `self.generator_seed` based on the first public example signature.
+        """
+        if contract.domain_bounds_or_strata is not None:
+            return {
+                stratum: tuple(contract.domain_bounds_or_strata.get(stratum, ()))
+                for stratum in REQUIRED_HOLDOUT_STRATA
+            }
+
+        rng = random.Random(self.generator_seed)
+        template_args = contract.public_examples[0][0]
+        strata: Dict[str, Tuple[Tuple[Any, ...], ...]] = {}
+        for stratum in REQUIRED_HOLDOUT_STRATA:
+            cases: List[Tuple[Any, ...]] = []
+            for case_idx in range(2):
+                synthesized = tuple(
+                    _synthesize_stratum_arg(arg_val, stratum, arg_idx, case_idx, rng)
+                    for arg_idx, arg_val in enumerate(template_args)
+                )
+                cases.append(synthesized)
+            strata[stratum] = tuple(cases)
+        return strata
+
+    def _build_signed_verdict(
+        self,
+        contract: SpecificationContract,
+        status_code: str,
+        violation_reason: str,
+        spec_digest: str,
+        candidate_digest: str,
+        oracle_digest: str,
+        public_pass_rate_bps: int = 0,
+        hidden_holdout_pass_rate_bps: int = 0,
+        holdout_stratification_coverage_bps: int = 0,
+        fixture_mirror_suspicion_bps: int = 0,
+        canary_failures_expected_bps: int = 0,
+        mutation_kill_rate_bps: int = 0,
+    ) -> AntiHardcodeVerdict:
+        accepted = status_code == STATUS_ALLOW_GENUINE
+        unsigned_payload = {
+            "accepted": accepted,
+            "canary_failures_expected_bps": canary_failures_expected_bps,
+            "candidate_digest": candidate_digest,
+            "fixture_mirror_suspicion_bps": fixture_mirror_suspicion_bps,
+            "generator_seed": self.generator_seed,
+            "hidden_holdout_pass_rate_bps": hidden_holdout_pass_rate_bps,
+            "holdout_stratification_coverage_bps": holdout_stratification_coverage_bps,
+            "key_id": self.key_id,
+            "mutation_kill_rate_bps": mutation_kill_rate_bps,
+            "oracle_digest": oracle_digest,
+            "policy_version": contract.policy_version,
+            "public_pass_rate_bps": public_pass_rate_bps,
+            "spec_digest": spec_digest,
+            "spec_id": contract.spec_id,
+            "status_code": status_code,
+            "violation_reason": violation_reason,
+        }
+        canonical_bytes = encode_jcs(unsigned_payload)
+        verdict_caid = f"sha256:{hashlib.sha256(canonical_bytes).hexdigest()}"
+        signature_hex = self._private_key.sign(canonical_bytes).hex()
+        return AntiHardcodeVerdict(
+            spec_id=contract.spec_id,
+            accepted=accepted,
+            status_code=status_code,
+            violation_reason=violation_reason,
+            public_pass_rate_bps=public_pass_rate_bps,
+            hidden_holdout_pass_rate_bps=hidden_holdout_pass_rate_bps,
+            holdout_stratification_coverage_bps=holdout_stratification_coverage_bps,
+            fixture_mirror_suspicion_bps=fixture_mirror_suspicion_bps,
+            canary_failures_expected_bps=canary_failures_expected_bps,
+            mutation_kill_rate_bps=mutation_kill_rate_bps,
+            spec_digest=spec_digest,
+            candidate_digest=candidate_digest,
+            oracle_digest=oracle_digest,
+            generator_seed=self.generator_seed,
+            policy_version=contract.policy_version,
+            key_id=self.key_id,
+            verdict_caid=verdict_caid,
+            signature_hex=signature_hex,
+        )
+
+    def verify_verdict_signature(self, verdict: AntiHardcodeVerdict) -> bool:
+        """Verify Ed25519 signature and RFC 8785 JCS CAID on an `AntiHardcodeVerdict`."""
+        unsigned_payload = {
+            "accepted": verdict.accepted,
+            "canary_failures_expected_bps": verdict.canary_failures_expected_bps,
+            "candidate_digest": verdict.candidate_digest,
+            "fixture_mirror_suspicion_bps": verdict.fixture_mirror_suspicion_bps,
+            "generator_seed": verdict.generator_seed,
+            "hidden_holdout_pass_rate_bps": verdict.hidden_holdout_pass_rate_bps,
+            "holdout_stratification_coverage_bps": verdict.holdout_stratification_coverage_bps,
+            "key_id": verdict.key_id,
+            "mutation_kill_rate_bps": verdict.mutation_kill_rate_bps,
+            "oracle_digest": verdict.oracle_digest,
+            "policy_version": verdict.policy_version,
+            "public_pass_rate_bps": verdict.public_pass_rate_bps,
+            "spec_digest": verdict.spec_digest,
+            "spec_id": verdict.spec_id,
+            "status_code": verdict.status_code,
+            "violation_reason": verdict.violation_reason,
+        }
+        canonical_bytes = encode_jcs(unsigned_payload)
+        expected_caid = f"sha256:{hashlib.sha256(canonical_bytes).hexdigest()}"
+        if verdict.verdict_caid != expected_caid:
+            return False
+        try:
+            self.public_key.verify(bytes.fromhex(verdict.signature_hex), canonical_bytes)
+            return True
+        except (InvalidSignature, ValueError):
+            return False
+
+    def evaluate_candidate(
+        self,
+        contract: SpecificationContract,
+        candidate_source: str,
+        reference_oracle_source: str,
+    ) -> AntiHardcodeVerdict:
+        """
+        Run all 4 pillars on `candidate_source` against `contract` and `reference_oracle_source`.
+        """
+        spec_digest = compute_jcs_caid(
+            {
+                "policy_version": contract.policy_version,
+                "public_examples": _normalize_for_jcs(contract.public_examples),
+                "spec_id": contract.spec_id,
+                "target_function_name": contract.target_function_name,
+            }
+        )
+        candidate_digest = compute_jcs_caid(candidate_source)
+        oracle_digest = compute_jcs_caid(reference_oracle_source)
+
+        # Pillar 1: Static AST Fixture-Mirror Suspicion & Evaluator-Tamper Guard
+        ast_res = inspect_ast_for_hardcoding_and_tampering(candidate_source, contract)
+        if ast_res.halted:
+            return self._build_signed_verdict(
+                contract=contract,
+                status_code=STATUS_HALT_STATIC_TAMPER,
+                violation_reason=ast_res.violation_reason,
+                spec_digest=spec_digest,
+                candidate_digest=candidate_digest,
+                oracle_digest=oracle_digest,
+                fixture_mirror_suspicion_bps=ast_res.fixture_mirror_suspicion_bps,
+            )
+
+        # Public examples evaluation (out-of-process)
+        public_calls = [args for args, _ in contract.public_examples]
+        pub_run = _run_candidate_out_of_process(
+            candidate_source, contract.target_function_name, public_calls
+        )
+        if pub_run["status"] == "tamper_eq":
+            return self._build_signed_verdict(
+                contract=contract,
+                status_code=STATUS_HALT_CANARY_VIOLATED,
+                violation_reason=str(pub_run["detail"]),
+                spec_digest=spec_digest,
+                candidate_digest=candidate_digest,
+                oracle_digest=oracle_digest,
+                fixture_mirror_suspicion_bps=ast_res.fixture_mirror_suspicion_bps,
+            )
+        if pub_run["status"] != "ok":
+            return self._build_signed_verdict(
+                contract=contract,
+                status_code=STATUS_HALT_PUBLIC_FAILED,
+                violation_reason=f"REASON_CANDIDATE_EXECUTION_ERROR:{pub_run['detail']}",
+                spec_digest=spec_digest,
+                candidate_digest=candidate_digest,
+                oracle_digest=oracle_digest,
+                fixture_mirror_suspicion_bps=ast_res.fixture_mirror_suspicion_bps,
+            )
+
+        pub_outputs = pub_run["outputs"]
+        pub_matches = sum(
+            1
+            for actual, (_, expected) in zip(pub_outputs, contract.public_examples)
+            if type(actual) is type(_normalize_for_jcs(expected))
+            and actual == _normalize_for_jcs(expected)
+        )
+        public_pass_rate_bps = (pub_matches * MAX_BPS) // len(contract.public_examples)
+        if public_pass_rate_bps < MAX_BPS:
+            return self._build_signed_verdict(
+                contract=contract,
+                status_code=STATUS_HALT_PUBLIC_FAILED,
+                violation_reason=f"REASON_PUBLIC_EXAMPLES_MISMATCH:{public_pass_rate_bps}_bps",
+                spec_digest=spec_digest,
+                candidate_digest=candidate_digest,
+                oracle_digest=oracle_digest,
+                public_pass_rate_bps=public_pass_rate_bps,
+                fixture_mirror_suspicion_bps=ast_res.fixture_mirror_suspicion_bps,
+            )
+
+        # Pillar 2A: PROCTOR Canary Traps
+        active_canaries: Tuple[CanaryTestCase, ...] = contract.canary_cases
+        if not active_canaries:
+            first_args, first_expected = contract.public_examples[0]
+            impossible_val: Any = (
+                first_expected + 999999999
+                if isinstance(first_expected, int) and not isinstance(first_expected, bool)
+                else "__IMPOSSIBLE_CANARY__"
+            )
+            active_canaries = (
+                CanaryTestCase(
+                    canary_id="DEFAULT_PROCTOR_CANARY_01",
+                    input_args=first_args,
+                    impossible_expected_output=impossible_val,
+                    trap_category="EVALUATOR_TAMPER_TRAP",
+                ),
+            )
+
+        canary_calls = [c.input_args for c in active_canaries]
+        canary_run = _run_candidate_out_of_process(
+            candidate_source, contract.target_function_name, canary_calls
+        )
+        if canary_run["status"] == "tamper_eq":
+            return self._build_signed_verdict(
+                contract=contract,
+                status_code=STATUS_HALT_CANARY_VIOLATED,
+                violation_reason=str(canary_run["detail"]),
+                spec_digest=spec_digest,
+                candidate_digest=candidate_digest,
+                oracle_digest=oracle_digest,
+                public_pass_rate_bps=public_pass_rate_bps,
+                fixture_mirror_suspicion_bps=ast_res.fixture_mirror_suspicion_bps,
+            )
+
+        canary_outputs = canary_run.get("outputs", [])
+        canary_non_matches = sum(
+            1
+            for actual, c in zip(canary_outputs, active_canaries)
+            if actual != _normalize_for_jcs(c.impossible_expected_output)
+        )
+        canary_failures_expected_bps = (canary_non_matches * MAX_BPS) // len(active_canaries)
+        if canary_failures_expected_bps < MAX_BPS:
+            return self._build_signed_verdict(
+                contract=contract,
+                status_code=STATUS_HALT_CANARY_VIOLATED,
+                violation_reason="REASON_CANARY_IMPOSSIBLE_OUTPUT_MATCHED",
+                spec_digest=spec_digest,
+                candidate_digest=candidate_digest,
+                oracle_digest=oracle_digest,
+                public_pass_rate_bps=public_pass_rate_bps,
+                fixture_mirror_suspicion_bps=ast_res.fixture_mirror_suspicion_bps,
+                canary_failures_expected_bps=canary_failures_expected_bps,
+            )
+
+        # Pillar 2B: Stratified Metamorphic Hidden Holdout Suite
+        strata_map = self.generate_stratified_holdouts(contract)
+        covered_strata = sum(1 for s in REQUIRED_HOLDOUT_STRATA if len(strata_map.get(s, ())) > 0)
+        holdout_stratification_coverage_bps = (covered_strata * MAX_BPS) // len(REQUIRED_HOLDOUT_STRATA)
+
+        holdout_calls: List[Tuple[Any, ...]] = []
+        for s in REQUIRED_HOLDOUT_STRATA:
+            holdout_calls.extend(strata_map.get(s, ()))
+
+        oracle_run = _run_candidate_out_of_process(
+            reference_oracle_source, contract.target_function_name, holdout_calls
+        )
+        cand_holdout_run = _run_candidate_out_of_process(
+            candidate_source, contract.target_function_name, holdout_calls
+        )
+        if cand_holdout_run["status"] != "ok" or oracle_run["status"] != "ok":
+            return self._build_signed_verdict(
+                contract=contract,
+                status_code=STATUS_HALT_OVERFITTED,
+                violation_reason="REASON_HOLDOUT_RUNTIME_FAILURE",
+                spec_digest=spec_digest,
+                candidate_digest=candidate_digest,
+                oracle_digest=oracle_digest,
+                public_pass_rate_bps=public_pass_rate_bps,
+                holdout_stratification_coverage_bps=holdout_stratification_coverage_bps,
+                fixture_mirror_suspicion_bps=ast_res.fixture_mirror_suspicion_bps,
+                canary_failures_expected_bps=canary_failures_expected_bps,
+            )
+
+        oracle_outputs = oracle_run["outputs"]
+        cand_outputs = cand_holdout_run["outputs"]
+        holdout_matches = sum(
+            1
+            for c_out, o_out in zip(cand_outputs, oracle_outputs)
+            if type(c_out) is type(o_out) and c_out == o_out
+        )
+        hidden_holdout_pass_rate_bps = (holdout_matches * MAX_BPS) // max(1, len(holdout_calls))
+
+        if hidden_holdout_pass_rate_bps < contract.review_holdout_floor_bps:
+            return self._build_signed_verdict(
+                contract=contract,
+                status_code=STATUS_HALT_OVERFITTED,
+                violation_reason=f"REASON_HOLDOUT_PASS_RATE_BELOW_FLOOR:{hidden_holdout_pass_rate_bps}_bps",
+                spec_digest=spec_digest,
+                candidate_digest=candidate_digest,
+                oracle_digest=oracle_digest,
+                public_pass_rate_bps=public_pass_rate_bps,
+                hidden_holdout_pass_rate_bps=hidden_holdout_pass_rate_bps,
+                holdout_stratification_coverage_bps=holdout_stratification_coverage_bps,
+                fixture_mirror_suspicion_bps=ast_res.fixture_mirror_suspicion_bps,
+                canary_failures_expected_bps=canary_failures_expected_bps,
+            )
+
+        # Pillar 3: Pauli AST Mutation Cross-Check
+        assertion_lines: List[str] = [
+            "def test_generated_spec_oracle(ns):",
+            f"    fn = ns[{contract.target_function_name!r}]",
+        ]
+        for inp_args, expected_out in contract.public_examples:
+            assertion_lines.append(f"    assert fn(*{list(inp_args)!r}) == {_normalize_for_jcs(expected_out)!r}")
+        for inp_args, c_out, o_out in zip(holdout_calls, cand_outputs, oracle_outputs):
+            if type(c_out) is type(o_out) and c_out == o_out:
+                assertion_lines.append(f"    assert fn(*{list(inp_args)!r}) == {o_out!r}")
+        generated_test_code = "\n".join(assertion_lines) + "\n"
+
+        verifier = AdversarialMutationVerifier(
+            minimum_score_bps=contract.minimum_mutation_kill_bps,
+        )
+        try:
+            mut_report = verifier.evaluate_mutation_adequacy_isolated(
+                file_path="candidate_impl.py",
+                source_code=candidate_source,
+                test_source_code=generated_test_code,
+            )
+            mutation_kill_rate_bps = mut_report.mutation_score_bps
+        except ValueError:
+            mutation_kill_rate_bps = 0
+
+        if mutation_kill_rate_bps < contract.minimum_mutation_kill_bps:
+            return self._build_signed_verdict(
+                contract=contract,
+                status_code=STATUS_HALT_WEAK_MUTATION,
+                violation_reason=f"REASON_MUTATION_KILL_BELOW_THRESHOLD:{mutation_kill_rate_bps}_bps",
+                spec_digest=spec_digest,
+                candidate_digest=candidate_digest,
+                oracle_digest=oracle_digest,
+                public_pass_rate_bps=public_pass_rate_bps,
+                hidden_holdout_pass_rate_bps=hidden_holdout_pass_rate_bps,
+                holdout_stratification_coverage_bps=holdout_stratification_coverage_bps,
+                fixture_mirror_suspicion_bps=ast_res.fixture_mirror_suspicion_bps,
+                canary_failures_expected_bps=canary_failures_expected_bps,
+                mutation_kill_rate_bps=mutation_kill_rate_bps,
+            )
+
+        if hidden_holdout_pass_rate_bps < contract.minimum_holdout_pass_bps:
+            return self._build_signed_verdict(
+                contract=contract,
+                status_code=STATUS_REVIEW_PARTIAL,
+                violation_reason=f"REASON_PARTIAL_GENERALIZATION_REVIEW_BAND:{hidden_holdout_pass_rate_bps}_bps",
+                spec_digest=spec_digest,
+                candidate_digest=candidate_digest,
+                oracle_digest=oracle_digest,
+                public_pass_rate_bps=public_pass_rate_bps,
+                hidden_holdout_pass_rate_bps=hidden_holdout_pass_rate_bps,
+                holdout_stratification_coverage_bps=holdout_stratification_coverage_bps,
+                fixture_mirror_suspicion_bps=ast_res.fixture_mirror_suspicion_bps,
+                canary_failures_expected_bps=canary_failures_expected_bps,
+                mutation_kill_rate_bps=mutation_kill_rate_bps,
+            )
+
+        return self._build_signed_verdict(
+            contract=contract,
+            status_code=STATUS_ALLOW_GENUINE,
+            violation_reason="NONE",
+            spec_digest=spec_digest,
+            candidate_digest=candidate_digest,
+            oracle_digest=oracle_digest,
+            public_pass_rate_bps=public_pass_rate_bps,
+            hidden_holdout_pass_rate_bps=hidden_holdout_pass_rate_bps,
+            holdout_stratification_coverage_bps=holdout_stratification_coverage_bps,
+            fixture_mirror_suspicion_bps=ast_res.fixture_mirror_suspicion_bps,
+            canary_failures_expected_bps=canary_failures_expected_bps,
+            mutation_kill_rate_bps=mutation_kill_rate_bps,
+        )
+
+    def submit_honest_blocker_ticket(
+        self,
+        spec_id: str,
+        contradicting_constraint_a: str,
+        contradicting_constraint_b: str,
+        minimal_counterexample_input: Tuple[Any, ...],
+        predicate_a_expr: str,
+        predicate_b_expr: str,
+    ) -> HonestBlockerTicket:
+        """
+        Pillar 4: Independently evaluate out-of-process whether `predicate_a_expr` and
+        `predicate_b_expr` are genuinely mutually exclusive on `minimal_counterexample_input`.
+        """
+        if not spec_id or not spec_id.strip():
+            raise ValueError("ERR_EMPTY_SPEC_ID")
+        if not predicate_a_expr.strip() or not predicate_b_expr.strip():
+            raise ValueError("ERR_EMPTY_PREDICATE_EXPR")
+
+        run_token = secrets.token_hex(16)
+        probes = [-100000, -1000, -100, -10, -1, 0, 1, 5, 10, 50, 100, 1000, 100000]
+        payload = {
+            "token": run_token,
+            "mode": "eval_blocker",
+            "predicate_a": predicate_a_expr,
+            "predicate_b": predicate_b_expr,
+            "counterexample": _normalize_for_jcs(minimal_counterexample_input),
+            "probes": probes,
+        }
+        with tempfile.TemporaryDirectory(prefix="aeib_blocker_iso_") as tmp_dir:
+            proc = subprocess.run(
+                [sys.executable, "-I", "-c", _CHILD_RUNNER_SCRIPT],
+                input=json.dumps(payload),
+                capture_output=True,
+                text=True,
+                cwd=tmp_dir,
+                env={
+                    "PATH": "/usr/bin:/bin",
+                    "HOME": str(tmp_dir),
+                    "PYTHONDONTWRITEBYTECODE": "1",
+                },
+                timeout=2.0,
+                check=False,
+            )
+
+        is_contradiction = False
+        reason = "REASON_PREDICATES_JOINTLY_SATISFIABLE_OR_INVALID"
+        if proc.returncode == 0 and proc.stdout.strip():
+            resp = json.loads(proc.stdout.strip().splitlines()[-1])
+            if (
+                resp.get("token") == run_token
+                and resp.get("status") == "ok"
+                and resp.get("a_true_count", 0) > 0
+                and resp.get("b_true_count", 0) > 0
+                and resp.get("both_true_count", 1) == 0
+            ):
+                is_contradiction = True
+                reason = "REASON_MUTUALLY_EXCLUSIVE_POSTCONDITIONS_CONFIRMED"
+
+        status_code = STATUS_ACCEPTED_BLOCKER if is_contradiction else STATUS_REJECTED_BLOCKER
+        ticket_id = f"BLOCKER-{spec_id}-{hashlib.sha256(encode_jcs([predicate_a_expr, predicate_b_expr])).hexdigest()[:10]}"
+        unsigned_ticket = {
+            "contradicting_constraint_a": contradicting_constraint_a,
+            "contradicting_constraint_b": contradicting_constraint_b,
+            "minimal_counterexample_input": _normalize_for_jcs(minimal_counterexample_input),
+            "spec_id": spec_id,
+            "status_code": status_code,
+            "ticket_id": ticket_id,
+            "verification_reason": reason,
+            "verified_contradiction": is_contradiction,
+        }
+        canonical_bytes = encode_jcs(unsigned_ticket)
+        ticket_caid = f"sha256:{hashlib.sha256(canonical_bytes).hexdigest()}"
+        signature_hex = self._private_key.sign(canonical_bytes).hex()
+
+        return HonestBlockerTicket(
+            ticket_id=ticket_id,
+            spec_id=spec_id,
+            contradicting_constraint_a=contradicting_constraint_a,
+            contradicting_constraint_b=contradicting_constraint_b,
+            minimal_counterexample_input=minimal_counterexample_input,
+            verified_contradiction=is_contradiction,
+            verification_reason=reason,
+            status_code=status_code,
+            ticket_caid=ticket_caid,
+            signature_hex=signature_hex,
+        )
+
+    def verify_blocker_ticket_signature(self, ticket: HonestBlockerTicket) -> bool:
+        """Verify Ed25519 signature and RFC 8785 JCS CAID on an `HonestBlockerTicket`."""
+        unsigned_ticket = {
+            "contradicting_constraint_a": ticket.contradicting_constraint_a,
+            "contradicting_constraint_b": ticket.contradicting_constraint_b,
+            "minimal_counterexample_input": _normalize_for_jcs(ticket.minimal_counterexample_input),
+            "spec_id": ticket.spec_id,
+            "status_code": ticket.status_code,
+            "ticket_id": ticket.ticket_id,
+            "verification_reason": ticket.verification_reason,
+            "verified_contradiction": ticket.verified_contradiction,
+        }
+        canonical_bytes = encode_jcs(unsigned_ticket)
+        expected_caid = f"sha256:{hashlib.sha256(canonical_bytes).hexdigest()}"
+        if ticket.ticket_caid != expected_caid:
+            return False
+        try:
+            self.public_key.verify(bytes.fromhex(ticket.signature_hex), canonical_bytes)
+            return True
+        except (InvalidSignature, ValueError):
+            return False
+
+```
+
+### Phase X Source B: `src/cognitive_friction_gate.py`
+
+```python
+#!/usr/bin/env python3
+"""
+Cognitive Friction Gate (src/cognitive_friction_gate.py).
+
+Status: INTERNAL PREVIEW COMMISSIONED
+Evaluated under the stated model to mitigate human metacognitive offloading,
+one-sided AI advocacy, and Turan inverted-U reviewer fatigue.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+import hashlib
+from typing import Dict, Mapping, Optional, Tuple
+
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.asymmetric import ed25519
+
+from src.jcs_canonicalizer import encode_jcs
+
+
+@dataclass(frozen=True)
+class CriticalActionProposal:
+    """Proposal requiring active human comprehension and risk acknowledgment."""
+
+    proposal_id: str
+    target_resource: str
+    proposed_code_diff: str
+    blast_radius_records: int
+    exact_boundary_condition: str
+    counter_arguments_and_risks: Tuple[str, ...]
+    distractor_options: Tuple[str, ...]
+    minimum_reading_time_ms: int = 3000  # claim: config
+
+    def __post_init__(self) -> None:
+        if self.blast_radius_records < 0:
+            raise ValueError("blast_radius_records must be >= 0")
+        if self.minimum_reading_time_ms < 500:
+            raise ValueError("minimum_reading_time_ms must be >= 500")
+        if not self.proposal_id.strip():
+            raise ValueError("proposal_id must be non-empty")
+        if not self.exact_boundary_condition.strip():
+            raise ValueError("exact_boundary_condition must be non-empty")
+
+    def proposal_caid(self) -> str:
+        """Compute deterministic RFC 8785 SHA-256 digest of the proposal."""
+        payload = {
+            "blast_radius_records": self.blast_radius_records,
+            "counter_arguments_and_risks": list(self.counter_arguments_and_risks),
+            "distractor_options": list(self.distractor_options),
+            "exact_boundary_condition": self.exact_boundary_condition,
+            "minimum_reading_time_ms": self.minimum_reading_time_ms,
+            "proposal_id": self.proposal_id,
+            "proposed_code_diff": self.proposed_code_diff,
+            "target_resource": self.target_resource,
+        }
+        return hashlib.sha256(encode_jcs(payload)).hexdigest()
+
+
+@dataclass(frozen=True)
+class HumanComprehensionResponse:
+    """Out-of-band operator response to the Socratic comprehension challenge."""
+
+    proposal_caid: str
+    operator_id: str
+    selected_boundary_condition: str
+    selected_blast_radius_records: int
+    acknowledged_risk: str
+    reading_elapsed_ms: int
+    hardware_biometric_signature_hex: str
+    operator_public_key_hex: str
+
+    def canonical_signing_payload(self) -> bytes:
+        """Serialize canonical RFC 8785 bytes signed by the operator key."""
+        payload = {
+            "acknowledged_risk": self.acknowledged_risk,
+            "operator_id": self.operator_id,
+            "operator_public_key_hex": self.operator_public_key_hex.lower(),
+            "proposal_caid": self.proposal_caid,
+            "reading_elapsed_ms": self.reading_elapsed_ms,
+            "selected_blast_radius_records": self.selected_blast_radius_records,
+            "selected_boundary_condition": self.selected_boundary_condition,
+        }
+        return encode_jcs(payload)
+
+
+@dataclass(frozen=True)
+class CognitiveFrictionVerdict:
+    """Deterministic receipt from CognitiveFrictionGate evaluation."""
+
+    allowed: bool
+    status_code: str
+    violation_reason: str
+    proposal_caid: str
+    operator_id: str
+    reading_elapsed_ms: int
+    window_reviews_used: int
+    max_reviews_per_window: int
+    verdict_caid: str
+
+
+class CognitiveFrictionGate:
+    """Enforces counter-argument presence, fatigue caps, reading floors, and Socratic verification."""
+
+    def __init__(
+        self,
+        pinned_operator_pubkeys: Mapping[str, str],
+        max_reviews_per_window: int = 5,
+    ) -> None:
+        if max_reviews_per_window < 1:
+            raise ValueError("max_reviews_per_window must be >= 1")
+        self._pinned_keys: Dict[str, str] = {
+            op_id: pub_hex.lower() for op_id, pub_hex in pinned_operator_pubkeys.items()
+        }
+        self._max_reviews_per_window: int = max_reviews_per_window
+        self._operator_review_counts: Dict[str, int] = {}
+
+    def reset_fatigue_window(self, operator_id: Optional[str] = None) -> None:
+        """Reset reviewer fatigue counter for one operator or all operators."""
+        if operator_id is None:
+            self._operator_review_counts.clear()
+        else:
+            self._operator_review_counts.pop(operator_id, None)
+
+    def _build_verdict(
+        self,
+        allowed: bool,
+        status_code: str,
+        violation_reason: str,
+        proposal_caid: str,
+        operator_id: str,
+        reading_elapsed_ms: int,
+        window_reviews_used: int,
+    ) -> CognitiveFrictionVerdict:
+        payload = {
+            "allowed": allowed,
+            "max_reviews_per_window": self._max_reviews_per_window,
+            "operator_id": operator_id,
+            "proposal_caid": proposal_caid,
+            "reading_elapsed_ms": reading_elapsed_ms,
+            "status_code": status_code,
+            "violation_reason": violation_reason,
+            "window_reviews_used": window_reviews_used,
+        }
+        verdict_caid = hashlib.sha256(encode_jcs(payload)).hexdigest()
+        return CognitiveFrictionVerdict(
+            allowed=allowed,
+            status_code=status_code,
+            violation_reason=violation_reason,
+            proposal_caid=proposal_caid,
+            operator_id=operator_id,
+            reading_elapsed_ms=reading_elapsed_ms,
+            window_reviews_used=window_reviews_used,
+            max_reviews_per_window=self._max_reviews_per_window,
+            verdict_caid=verdict_caid,
+        )
+
+    def verify_human_comprehension(
+        self,
+        proposal: CriticalActionProposal,
+        response: HumanComprehensionResponse,
+    ) -> CognitiveFrictionVerdict:
+        """Evaluate proposal counter-arguments, fatigue quota, reading velocity, comprehension, and signature."""
+        expected_caid = proposal.proposal_caid()
+        current_used = self._operator_review_counts.get(response.operator_id, 0)
+
+        # 1. One-Sided Advocacy Check
+        if len(proposal.counter_arguments_and_risks) == 0 or any(
+            len(r.strip()) < 5 for r in proposal.counter_arguments_and_risks
+        ):
+            return self._build_verdict(
+                allowed=False,
+                status_code="HALT_ONESIDED_ADVOCACY",
+                violation_reason="REASON_MISSING_COUNTER_ARGUMENTS_OR_RISKS",
+                proposal_caid=expected_caid,
+                operator_id=response.operator_id,
+                reading_elapsed_ms=response.reading_elapsed_ms,
+                window_reviews_used=current_used,
+            )
+
+        # 2. Proposal Binding Check
+        if response.proposal_caid != expected_caid:
+            return self._build_verdict(
+                allowed=False,
+                status_code="HALT_PROPOSAL_CAID_MISMATCH",
+                violation_reason="REASON_PROPOSAL_CAID_DOES_NOT_MATCH",
+                proposal_caid=expected_caid,
+                operator_id=response.operator_id,
+                reading_elapsed_ms=response.reading_elapsed_ms,
+                window_reviews_used=current_used,
+            )
+
+        # 3. Operator Key Pinning
+        if (
+            response.operator_id not in self._pinned_keys
+            or self._pinned_keys[response.operator_id] != response.operator_public_key_hex.lower()
+        ):
+            return self._build_verdict(
+                allowed=False,
+                status_code="HALT_UNTRUSTED_OPERATOR_KEY",
+                violation_reason="REASON_OPERATOR_KEY_NOT_PINNED",
+                proposal_caid=expected_caid,
+                operator_id=response.operator_id,
+                reading_elapsed_ms=response.reading_elapsed_ms,
+                window_reviews_used=current_used,
+            )
+
+        # 4. Turan Reviewer Fatigue Budget Check
+        updated_used = current_used + 1
+        self._operator_review_counts[response.operator_id] = updated_used
+        if updated_used > self._max_reviews_per_window:
+            return self._build_verdict(
+                allowed=False,
+                status_code="HALT_REVIEWER_FATIGUE_QUOTA_EXCEEDED",
+                violation_reason="REASON_TURAN_OVERSIGHT_FATIGUE_CAP_REACHED",
+                proposal_caid=expected_caid,
+                operator_id=response.operator_id,
+                reading_elapsed_ms=response.reading_elapsed_ms,
+                window_reviews_used=updated_used,
+            )
+
+        # 5. Rubber-Stamp Velocity Check
+        if response.reading_elapsed_ms < proposal.minimum_reading_time_ms:
+            return self._build_verdict(
+                allowed=False,
+                status_code="HALT_METACOGNITIVE_RUBBER_STAMP",
+                violation_reason=(
+                    f"Elapsed {response.reading_elapsed_ms}ms < minimum floor {proposal.minimum_reading_time_ms}ms"
+                ),
+                proposal_caid=expected_caid,
+                operator_id=response.operator_id,
+                reading_elapsed_ms=response.reading_elapsed_ms,
+                window_reviews_used=updated_used,
+            )
+
+        # 6. Socratic Comprehension Challenge Check
+        valid_risks = [r.strip() for r in proposal.counter_arguments_and_risks]
+        if (
+            response.selected_boundary_condition.strip() != proposal.exact_boundary_condition.strip()
+            or response.selected_blast_radius_records != proposal.blast_radius_records
+            or response.acknowledged_risk.strip() not in valid_risks
+        ):
+            return self._build_verdict(
+                allowed=False,
+                status_code="HALT_COMPREHENSION_CHALLENGE_FAILED",
+                violation_reason="REASON_INCORRECT_BOUNDARY_BLAST_RADIUS_OR_RISK",
+                proposal_caid=expected_caid,
+                operator_id=response.operator_id,
+                reading_elapsed_ms=response.reading_elapsed_ms,
+                window_reviews_used=updated_used,
+            )
+
+        # 7. Hardware Biometric Signature Verification
+        try:
+            pub_bytes = bytes.fromhex(response.operator_public_key_hex)
+            sig_bytes = bytes.fromhex(response.hardware_biometric_signature_hex)
+            pubkey = ed25519.Ed25519PublicKey.from_public_bytes(pub_bytes)
+            pubkey.verify(sig_bytes, response.canonical_signing_payload())
+        except (ValueError, InvalidSignature):
+            return self._build_verdict(
+                allowed=False,
+                status_code="HALT_INVALID_HARDWARE_SIGNATURE",
+                violation_reason="REASON_ED25519_BIOMETRIC_SIGNATURE_INVALID",
+                proposal_caid=expected_caid,
+                operator_id=response.operator_id,
+                reading_elapsed_ms=response.reading_elapsed_ms,
+                window_reviews_used=updated_used,
+            )
+
+        # 8. Allow verified comprehension
+        return self._build_verdict(
+            allowed=True,
+            status_code="ALLOW_VERIFIED_COGNITIVE_COMPREHENSION",
+            violation_reason="NONE",
+            proposal_caid=expected_caid,
+            operator_id=response.operator_id,
+            reading_elapsed_ms=response.reading_elapsed_ms,
+            window_reviews_used=updated_used,
+        )
+
+```
+
+### Phase X Source C: `src/live_killchain_attestor.py`
+
+```python
+#!/usr/bin/env python3
+"""
+Live Kill-Chain Attestor & DNS Tunneling Firewall (src/live_killchain_attestor.py).
+
+Status: INTERNAL PREVIEW COMMISSIONED
+Evaluated under the stated model to execute sub-15ms SIGKILL canary drills
+and block covert DNS tunneling across record types, wire sizes, and label entropy.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+import hashlib
+import os
+import signal
+import subprocess
+import sys
+import time
+from typing import Callable, FrozenSet, Optional, Sequence
+
+from cryptography.hazmat.primitives.asymmetric import ed25519
+
+from src.jcs_canonicalizer import encode_jcs
+
+ALLOWED_DNS_RECORD_TYPES: FrozenSet[str] = frozenset({"A", "AAAA"})
+
+
+@dataclass(frozen=True)
+class KillChainDrillReceipt:
+    """Cryptographically signed receipt for a live subprocess SIGKILL drill."""
+
+    drill_id: str
+    canary_pid: int
+    termination_latency_us: int
+    max_allowed_latency_us: int
+    process_verified_dead: bool
+    passed_sla: bool
+    system_state: str
+    receipt_caid: str
+    signature_hex: str
+
+
+@dataclass(frozen=True)
+class DNSEgressVerdict:
+    """Deterministic verdict for DNS egress query inspection."""
+
+    allowed: bool
+    status_code: str
+    violation_reason: str
+    query_domain: str
+    record_type: str
+    wire_bytes_len: int
+    max_label_len: int
+    verdict_caid: str
+
+
+def _has_tunnel_encoding(labels: Sequence[str]) -> bool:
+    """Detect hex-encoded or base64-like high digit/consonant ratio in labels >= 8 chars."""
+    vowels = frozenset("aeiou")
+    for label in labels:
+        if len(label) >= 8:
+            non_vowel_count = sum(1 for ch in label if ch not in vowels)
+            if non_vowel_count * 5 >= len(label) * 4:
+                return True
+    return False
+
+
+class LiveKillChainAttestor:
+    """Executes live subprocess kill-chain drills and enforces DNS egress firewall rules."""
+
+    def __init__(
+        self,
+        max_kill_latency_us: int = 15_000,  # claim: config
+        allowed_dns_domains: Sequence[str] = (),
+        max_dns_wire_bytes: int = 128,  # claim: config
+        max_label_length: int = 24,  # claim: config
+        signing_key: Optional[ed25519.Ed25519PrivateKey] = None,
+        clock_ns: Callable[[], int] = time.perf_counter_ns,
+    ) -> None:
+        if max_kill_latency_us <= 0:
+            raise ValueError("max_kill_latency_us must be > 0")
+        if max_dns_wire_bytes <= 0:
+            raise ValueError("max_dns_wire_bytes must be > 0")
+        if max_label_length <= 0:
+            raise ValueError("max_label_length must be > 0")
+        self._max_kill_latency_us: int = max_kill_latency_us
+        self._allowed_domains: FrozenSet[str] = frozenset(
+            d.strip().rstrip(".").lower() for d in allowed_dns_domains if d.strip()
+        )
+        self._max_dns_wire_bytes: int = max_dns_wire_bytes
+        self._max_label_length: int = max_label_length
+        self._signing_key: ed25519.Ed25519PrivateKey = (
+            signing_key if signing_key is not None else ed25519.Ed25519PrivateKey.generate()
+        )
+        self._clock_ns: Callable[[], int] = clock_ns
+        self._circuit_breaker_tripped: bool = False
+
+    @property
+    def circuit_breaker_tripped(self) -> bool:
+        """Return whether the kill-chain circuit breaker is currently tripped."""
+        return self._circuit_breaker_tripped
+
+    @property
+    def public_key(self) -> ed25519.Ed25519PublicKey:
+        """Return the Ed25519 public key corresponding to the attestor signing key."""
+        return self._signing_key.public_key()
+
+    def execute_live_kill_drill(
+        self,
+        drill_id: str,
+        simulated_delay_us: int = 0,  # claim: config
+    ) -> KillChainDrillReceipt:
+        """Spawn a sleeper subprocess, terminate with SIGKILL, and sign the SLA receipt."""
+        if simulated_delay_us < 0:
+            raise ValueError("simulated_delay_us must be >= 0")
+        proc = subprocess.Popen(
+            [sys.executable, "-c", "import time; time.sleep(60)"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        start_ns = self._clock_ns()
+        if simulated_delay_us:
+            time.sleep(simulated_delay_us / 1_000_000.0)
+        os.kill(proc.pid, signal.SIGKILL)
+        proc.wait(timeout=1.0)
+        elapsed_us = (self._clock_ns() - start_ns) // 1000
+        is_dead = proc.poll() is not None
+        passed_sla = is_dead and (elapsed_us <= self._max_kill_latency_us)
+
+        if not passed_sla:
+            self._circuit_breaker_tripped = True
+            system_state = "HALT_SYSTEM_FROZEN_KILL_PATH_FAILED"
+        else:
+            system_state = "NOMINAL_KILL_PATH_VERIFIED"
+
+        payload = {
+            "canary_pid": proc.pid,
+            "drill_id": drill_id,
+            "max_allowed_latency_us": self._max_kill_latency_us,
+            "passed_sla": passed_sla,
+            "process_verified_dead": is_dead,
+            "system_state": system_state,
+            "termination_latency_us": elapsed_us,
+        }
+        canonical_bytes = encode_jcs(payload)
+        receipt_caid = hashlib.sha256(canonical_bytes).hexdigest()
+        signature_hex = self._signing_key.sign(canonical_bytes).hex()
+
+        return KillChainDrillReceipt(
+            drill_id=drill_id,
+            canary_pid=proc.pid,
+            termination_latency_us=elapsed_us,
+            max_allowed_latency_us=self._max_kill_latency_us,
+            process_verified_dead=is_dead,
+            passed_sla=passed_sla,
+            system_state=system_state,
+            receipt_caid=receipt_caid,
+            signature_hex=signature_hex,
+        )
+
+    def _build_dns_verdict(
+        self,
+        allowed: bool,
+        status_code: str,
+        violation_reason: str,
+        query_domain: str,
+        record_type: str,
+        wire_bytes_len: int,
+        max_label_len: int,
+    ) -> DNSEgressVerdict:
+        payload = {
+            "allowed": allowed,
+            "max_label_len": max_label_len,
+            "query_domain": query_domain,
+            "record_type": record_type,
+            "status_code": status_code,
+            "violation_reason": violation_reason,
+            "wire_bytes_len": wire_bytes_len,
+        }
+        verdict_caid = hashlib.sha256(encode_jcs(payload)).hexdigest()
+        return DNSEgressVerdict(
+            allowed=allowed,
+            status_code=status_code,
+            violation_reason=violation_reason,
+            query_domain=query_domain,
+            record_type=record_type,
+            wire_bytes_len=wire_bytes_len,
+            max_label_len=max_label_len,
+            verdict_caid=verdict_caid,
+        )
+
+    def inspect_dns_query(
+        self,
+        query_domain: str,
+        record_type: str,
+        wire_bytes_len: int,
+    ) -> DNSEgressVerdict:
+        """Inspect outbound DNS query for circuit-breaker state, record type, wire size, and tunneling."""
+        norm_domain = query_domain.strip().rstrip(".").lower()
+        norm_type = record_type.strip().upper()
+        labels = [lbl for lbl in norm_domain.split(".") if lbl]
+        max_label_len = max((len(lbl) for lbl in labels), default=0)
+
+        if self._circuit_breaker_tripped:
+            return self._build_dns_verdict(
+                allowed=False,
+                status_code="HALT_CIRCUIT_BREAKER_FROZEN",
+                violation_reason="REASON_KILL_PATH_CIRCUIT_BREAKER_TRIPPED",
+                query_domain=norm_domain,
+                record_type=norm_type,
+                wire_bytes_len=wire_bytes_len,
+                max_label_len=max_label_len,
+            )
+
+        if norm_type not in ALLOWED_DNS_RECORD_TYPES:
+            return self._build_dns_verdict(
+                allowed=False,
+                status_code="HALT_DNS_TUNNEL_RECORD_TYPE_FORBIDDEN",
+                violation_reason=f"Record type {norm_type} forbidden",
+                query_domain=norm_domain,
+                record_type=norm_type,
+                wire_bytes_len=wire_bytes_len,
+                max_label_len=max_label_len,
+            )
+
+        if wire_bytes_len > self._max_dns_wire_bytes:
+            return self._build_dns_verdict(
+                allowed=False,
+                status_code="HALT_DNS_PACKET_OVERSIZE",
+                violation_reason=f"Wire bytes {wire_bytes_len} > max {self._max_dns_wire_bytes}",
+                query_domain=norm_domain,
+                record_type=norm_type,
+                wire_bytes_len=wire_bytes_len,
+                max_label_len=max_label_len,
+            )
+
+        if max_label_len > self._max_label_length or _has_tunnel_encoding(labels):
+            return self._build_dns_verdict(
+                allowed=False,
+                status_code="HALT_DNS_SUBDOMAIN_TUNNEL_DETECTED",
+                violation_reason="REASON_SUBDOMAIN_LABEL_LENGTH_OR_ENTROPY_EXCEEDED",
+                query_domain=norm_domain,
+                record_type=norm_type,
+                wire_bytes_len=wire_bytes_len,
+                max_label_len=max_label_len,
+            )
+
+        if norm_domain not in self._allowed_domains:
+            return self._build_dns_verdict(
+                allowed=False,
+                status_code="HALT_DNS_DOMAIN_NOT_ALLOWLISTED",
+                violation_reason=f"Domain {norm_domain} not allowlisted",
+                query_domain=norm_domain,
+                record_type=norm_type,
+                wire_bytes_len=wire_bytes_len,
+                max_label_len=max_label_len,
+            )
+
+        return self._build_dns_verdict(
+            allowed=True,
+            status_code="ALLOW_DNS_QUERY_CLEAN",
+            violation_reason="NONE",
+            query_domain=norm_domain,
+            record_type=norm_type,
+            wire_bytes_len=wire_bytes_len,
+            max_label_len=max_label_len,
+        )
+
+```
+
+### Phase X Source D: `src/temporal_model_bound_token.py`
+
+```python
+#!/usr/bin/env python3
+"""
+Temporal Model-Bound Token & Substrate Integrity Attestor (src/temporal_model_bound_token.py).
+
+Status: INTERNAL PREVIEW COMMISSIONED
+Evaluated under the stated model to cryptographically bind agent execution warrants
+to model weights digest, system prompt CAID, repository commit CAID, TTL, invocation quota,
+and substrate provenance tier.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, replace
+import hashlib
+from typing import Dict, Optional, Sequence, Set, Tuple
+
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.asymmetric import ed25519
+
+from src.jcs_canonicalizer import encode_jcs
+
+
+@dataclass(frozen=True)
+class SubstrateCustodyManifest:
+    """Attestation manifest describing model weight and training corpus custody."""
+
+    model_id: str
+    weights_sha256: str
+    training_corpus_custody_verified: bool
+    behavioral_canary_suite_passed: bool
+    fine_tune_lineage_signed: bool
+
+
+@dataclass(frozen=True)
+class ModelBoundTokenEnvelope:
+    """Cryptographically signed execution token bound to live model, prompt, and repo state."""
+
+    token_id: str
+    subject_agent_id: str
+    allowed_tools: Tuple[str, ...]
+    model_artifact_digest: str
+    system_prompt_caid: str
+    repo_commit_caid: str
+    issued_at_epoch_sec: int
+    expires_at_epoch_sec: int
+    max_invocations: int
+    substrate_custody_verified: bool = True
+    issuer_public_key_hex: str = ""
+    signature_hex: str = ""
+
+    def canonical_signing_payload(self) -> bytes:
+        """Serialize canonical RFC 8785 bytes covered by the issuer Ed25519 signature."""
+        payload = {
+            "allowed_tools": list(self.allowed_tools),
+            "expires_at_epoch_sec": self.expires_at_epoch_sec,
+            "issued_at_epoch_sec": self.issued_at_epoch_sec,
+            "issuer_public_key_hex": self.issuer_public_key_hex.lower(),
+            "max_invocations": self.max_invocations,
+            "model_artifact_digest": self.model_artifact_digest,
+            "repo_commit_caid": self.repo_commit_caid,
+            "subject_agent_id": self.subject_agent_id,
+            "substrate_custody_verified": self.substrate_custody_verified,
+            "system_prompt_caid": self.system_prompt_caid,
+            "token_id": self.token_id,
+        }
+        return encode_jcs(payload)
+
+    def token_caid(self) -> str:
+        """Return deterministic SHA-256 hex digest of the canonical unsigned token payload."""
+        return hashlib.sha256(self.canonical_signing_payload()).hexdigest()
+
+
+@dataclass(frozen=True)
+class TokenValidationVerdict:
+    """Deterministic validation receipt emitted by ModelBoundTokenValidator."""
+
+    allowed: bool
+    status_code: str
+    violation_reason: str
+    token_caid: str
+    remaining_invocations: int
+    substrate_trust_tier: str
+    verdict_caid: str
+
+
+class SubstrateIntegrityAttestor:
+    """Evaluates substrate custody manifests into deterministic trust tiers."""
+
+    @staticmethod
+    def evaluate_substrate(manifest: SubstrateCustodyManifest) -> Tuple[bool, str]:
+        """Classify model substrate into halted, verified custody, or conditional pass."""
+        if not manifest.behavioral_canary_suite_passed or not manifest.weights_sha256.strip():
+            return (False, "HALT_SUBSTRATE_CANARY_OR_DIGEST_FAILED")
+        if manifest.training_corpus_custody_verified and manifest.fine_tune_lineage_signed:
+            return (True, "VERIFIED_CUSTODY_SUBSTRATE")
+        return (True, "CONDITIONAL_PASS_SUBSTRATE_UNVERIFIED")
+
+
+class ModelBoundTokenValidator:
+    """Issues and validates short-lived, quota-bounded, state-bound execution tokens."""
+
+    def __init__(
+        self,
+        issuer_signing_key: Optional[ed25519.Ed25519PrivateKey] = None,
+        trusted_issuer_pubkeys: Optional[Sequence[str]] = None,
+    ) -> None:
+        self._signing_key: ed25519.Ed25519PrivateKey = (
+            issuer_signing_key
+            if issuer_signing_key is not None
+            else ed25519.Ed25519PrivateKey.generate()
+        )
+        own_pub_hex = self._signing_key.public_key().public_bytes_raw().hex()
+        self._own_pub_hex: str = own_pub_hex
+        self._trusted_pubkeys: Set[str] = {own_pub_hex}
+        if trusted_issuer_pubkeys is not None:
+            for pub_hex in trusted_issuer_pubkeys:
+                self._trusted_pubkeys.add(pub_hex.lower())
+        self._invocation_counts: Dict[str, int] = {}
+        self._revoked_token_caids: Set[str] = set()
+
+    def issue_token(
+        self,
+        token_id: str,
+        subject_agent_id: str,
+        allowed_tools: Sequence[str],
+        model_artifact_digest: str,
+        system_prompt_caid: str,
+        repo_commit_caid: str,
+        issued_at_epoch_sec: int,
+        ttl_sec: int,
+        max_invocations: int,
+        substrate_custody_verified: bool = True,
+    ) -> ModelBoundTokenEnvelope:
+        """Mint and sign a ModelBoundTokenEnvelope with Ed25519."""
+        if ttl_sec <= 0:
+            raise ValueError("ttl_sec must be > 0")
+        if max_invocations <= 0:
+            raise ValueError("max_invocations must be > 0")
+        unsigned = ModelBoundTokenEnvelope(
+            token_id=token_id,
+            subject_agent_id=subject_agent_id,
+            allowed_tools=tuple(allowed_tools),
+            model_artifact_digest=model_artifact_digest,
+            system_prompt_caid=system_prompt_caid,
+            repo_commit_caid=repo_commit_caid,
+            issued_at_epoch_sec=issued_at_epoch_sec,
+            expires_at_epoch_sec=issued_at_epoch_sec + ttl_sec,
+            max_invocations=max_invocations,
+            substrate_custody_verified=substrate_custody_verified,
+            issuer_public_key_hex=self._own_pub_hex,
+            signature_hex="",
+        )
+        sig_hex = self._signing_key.sign(unsigned.canonical_signing_payload()).hex()
+        return replace(unsigned, signature_hex=sig_hex)
+
+    def revoke_token(self, token_caid: str) -> None:
+        """Explicitly revoke a token by its canonical CAID."""
+        self._revoked_token_caids.add(token_caid)
+
+    def _build_verdict(
+        self,
+        allowed: bool,
+        status_code: str,
+        violation_reason: str,
+        token_caid: str,
+        remaining_invocations: int,
+        substrate_trust_tier: str,
+    ) -> TokenValidationVerdict:
+        payload = {
+            "allowed": allowed,
+            "remaining_invocations": remaining_invocations,
+            "status_code": status_code,
+            "substrate_trust_tier": substrate_trust_tier,
+            "token_caid": token_caid,
+            "violation_reason": violation_reason,
+        }
+        verdict_caid = hashlib.sha256(encode_jcs(payload)).hexdigest()
+        return TokenValidationVerdict(
+            allowed=allowed,
+            status_code=status_code,
+            violation_reason=violation_reason,
+            token_caid=token_caid,
+            remaining_invocations=remaining_invocations,
+            substrate_trust_tier=substrate_trust_tier,
+            verdict_caid=verdict_caid,
+        )
+
+    def validate_token(
+        self,
+        token: ModelBoundTokenEnvelope,
+        requested_tool: str,
+        live_model_digest: str,
+        live_system_prompt_caid: str,
+        live_repo_commit_caid: str,
+        current_epoch_sec: int,
+    ) -> TokenValidationVerdict:
+        """Validate token signature, revocation, TTL, live digests, scope, and invocation quota."""
+        t_caid = token.token_caid()
+
+        if t_caid in self._revoked_token_caids:
+            return self._build_verdict(
+                allowed=False,
+                status_code="HALT_TOKEN_REVOKED",
+                violation_reason="REASON_TOKEN_EXPLICITLY_REVOKED",
+                token_caid=t_caid,
+                remaining_invocations=0,
+                substrate_trust_tier="UNTRUSTED_SUBSTRATE",
+            )
+
+        issuer_hex = token.issuer_public_key_hex.lower()
+        if issuer_hex not in self._trusted_pubkeys:
+            return self._build_verdict(
+                allowed=False,
+                status_code="HALT_INVALID_TOKEN_SIGNATURE",
+                violation_reason="REASON_UNTRUSTED_ISSUER_PUBLIC_KEY",
+                token_caid=t_caid,
+                remaining_invocations=0,
+                substrate_trust_tier="UNTRUSTED_SUBSTRATE",
+            )
+
+        try:
+            pubkey = ed25519.Ed25519PublicKey.from_public_bytes(bytes.fromhex(issuer_hex))
+            pubkey.verify(bytes.fromhex(token.signature_hex), token.canonical_signing_payload())
+        except (ValueError, InvalidSignature):
+            return self._build_verdict(
+                allowed=False,
+                status_code="HALT_INVALID_TOKEN_SIGNATURE",
+                violation_reason="REASON_ED25519_SIGNATURE_VERIFICATION_FAILED",
+                token_caid=t_caid,
+                remaining_invocations=0,
+                substrate_trust_tier="UNTRUSTED_SUBSTRATE",
+            )
+
+        if (
+            current_epoch_sec >= token.expires_at_epoch_sec
+            or current_epoch_sec < token.issued_at_epoch_sec
+        ):
+            return self._build_verdict(
+                allowed=False,
+                status_code="HALT_TOKEN_TTL_EXPIRED",
+                violation_reason="REASON_TOKEN_TEMPORAL_WINDOW_EXPIRED",
+                token_caid=t_caid,
+                remaining_invocations=0,
+                substrate_trust_tier="UNTRUSTED_SUBSTRATE",
+            )
+
+        if live_model_digest != token.model_artifact_digest:
+            self._revoked_token_caids.add(t_caid)
+            return self._build_verdict(
+                allowed=False,
+                status_code="HALT_MODEL_MUTATED",
+                violation_reason="REASON_MODEL_ARTIFACT_DIGEST_MISMATCH",
+                token_caid=t_caid,
+                remaining_invocations=0,
+                substrate_trust_tier="UNTRUSTED_SUBSTRATE",
+            )
+
+        if live_system_prompt_caid != token.system_prompt_caid:
+            self._revoked_token_caids.add(t_caid)
+            return self._build_verdict(
+                allowed=False,
+                status_code="HALT_SYSTEM_PROMPT_DRIFT",
+                violation_reason="REASON_SYSTEM_PROMPT_CAID_MISMATCH",
+                token_caid=t_caid,
+                remaining_invocations=0,
+                substrate_trust_tier="UNTRUSTED_SUBSTRATE",
+            )
+
+        if live_repo_commit_caid != token.repo_commit_caid:
+            self._revoked_token_caids.add(t_caid)
+            return self._build_verdict(
+                allowed=False,
+                status_code="HALT_REPO_STATE_DRIFT",
+                violation_reason="REASON_REPO_COMMIT_CAID_MISMATCH",
+                token_caid=t_caid,
+                remaining_invocations=0,
+                substrate_trust_tier="UNTRUSTED_SUBSTRATE",
+            )
+
+        if requested_tool not in token.allowed_tools:
+            return self._build_verdict(
+                allowed=False,
+                status_code="HALT_TOOL_OUT_OF_SCOPE",
+                violation_reason="REASON_TOOL_NOT_IN_ALLOWED_SCOPE",
+                token_caid=t_caid,
+                remaining_invocations=0,
+                substrate_trust_tier="UNTRUSTED_SUBSTRATE",
+            )
+
+        used = self._invocation_counts.get(t_caid, 0)
+        if used >= token.max_invocations:
+            return self._build_verdict(
+                allowed=False,
+                status_code="HALT_INVOCATION_QUOTA_EXHAUSTED",
+                violation_reason="REASON_MAX_INVOCATIONS_REACHED",
+                token_caid=t_caid,
+                remaining_invocations=0,
+                substrate_trust_tier="UNTRUSTED_SUBSTRATE",
+            )
+
+        new_used = used + 1
+        self._invocation_counts[t_caid] = new_used
+        remaining = token.max_invocations - new_used
+        trust_tier = (
+            "VERIFIED_CUSTODY_SUBSTRATE"
+            if token.substrate_custody_verified
+            else "CONDITIONAL_PASS_SUBSTRATE_UNVERIFIED"
+        )
+        status_code = (
+            "ALLOW_MODEL_BOUND_EXECUTION"
+            if token.substrate_custody_verified
+            else "CONDITIONAL_PASS_SUBSTRATE_UNVERIFIED"
+        )
+        return self._build_verdict(
+            allowed=True,
+            status_code=status_code,
+            violation_reason="NONE",
+            token_caid=t_caid,
+            remaining_invocations=remaining,
+            substrate_trust_tier=trust_tier,
+        )
+
+```

@@ -49,12 +49,6 @@ from src.visual_regression_gate import (
     sha256_jcs_caid,
 )
 
-try:
-    from PIL import Image, ImageColor, ImageDraw
-    _HAS_PIL = True
-except ImportError:
-    _HAS_PIL = False
-
 
 @dataclass(frozen=True)
 class DOMRasterResult:

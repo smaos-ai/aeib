@@ -22,6 +22,9 @@ Tests Figma variable normalization, forbidden literal derivation, and constraint
 from __future__ import annotations
 
 import dataclasses
+import importlib
+from pathlib import Path
+import sys
 import pytest
 
 from src.figma_mcp_connector import FigmaMCPConnector, FigmaVariableToken
@@ -174,3 +177,15 @@ def test_compile_to_constraint_spec() -> None:
 
     with pytest.raises(ValueError, match="ERR_EMPTY_COMPONENT_NAME"):
         FigmaMCPConnector.compile_to_constraint_spec("", var_payload)
+
+
+def test_sys_path_bootstrap(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verifies sys.path.insert(0) places repo root at index 0."""
+    import src.figma_mcp_connector as mod
+
+    repo_str = str(Path(__file__).resolve().parent.parent)
+    marker = ["/dummy_marker_figma"]
+    monkeypatch.setattr(sys, "path", marker + [p for p in sys.path if p != repo_str])
+    importlib.reload(mod)
+    assert sys.path[0] == repo_str
+

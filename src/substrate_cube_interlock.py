@@ -20,6 +20,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, FrozenSet, Mapping, Set, Tuple
 
 from src.hypergraph_blast_radius import sha256_jcs_caid
+from src.jcs_canonicalizer import encode_jcs
 
 VAULT_PLACEHOLDER_RE = re.compile(r"\{\{VAULT:([A-Z0-9_]+)\}\}")
 
@@ -385,7 +386,7 @@ class SpiffeSpireAuthority:
             "public_key_pem": agent_pub_pem,
             "spiffe_id": spiffe_id,
         }
-        canonical_bytes = _encode_jcs(payload) if "_encode_jcs" in globals() else json.dumps(payload, sort_keys=True).encode("utf-8")
+        canonical_bytes = encode_jcs(payload)
         sig = self._private_key.sign(canonical_bytes, ec.ECDSA(hashes.SHA256()))
 
         return SpiffeSvid(
@@ -405,7 +406,7 @@ class SpiffeSpireAuthority:
         if now > svid.expires_at_epoch_s:
             return False, "ERR_SVID_EXPIRED"
 
-        canonical_bytes = _encode_jcs(svid.to_canonical_dict()) if "_encode_jcs" in globals() else json.dumps(svid.to_canonical_dict(), sort_keys=True).encode("utf-8")
+        canonical_bytes = encode_jcs(svid.to_canonical_dict())
         sig_bytes = base64.b64decode(svid.signature_b64.encode("utf-8"))
 
         try:
@@ -605,7 +606,7 @@ class SubstrateCubeInterlockManager:
             "snapshot_hash": snapshot_hash,
             "timestamp_epoch_s": now,
         }
-        canonical_bytes = _encode_jcs(receipt) if "_encode_jcs" in globals() else json.dumps(receipt, sort_keys=True).encode("utf-8")
+        canonical_bytes = encode_jcs(receipt)
         receipt["caid"] = hashlib.sha256(canonical_bytes).hexdigest()
         return receipt
 
@@ -639,7 +640,7 @@ class SubstrateCubeInterlockManager:
             "pending_indeterminate_count": len(indeterminate),
             "timestamp_epoch_s": now,
         }
-        canonical_bytes = _encode_jcs(receipt) if "_encode_jcs" in globals() else json.dumps(receipt, sort_keys=True).encode("utf-8")
+        canonical_bytes = encode_jcs(receipt)
         receipt["caid"] = hashlib.sha256(canonical_bytes).hexdigest()
         return receipt
 
@@ -689,7 +690,7 @@ class SubstrateCubeInterlockManager:
             "resolved_status": target_status,
             "timestamp_epoch_s": now,
         }
-        canonical_bytes = _encode_jcs(receipt) if "_encode_jcs" in globals() else json.dumps(receipt, sort_keys=True).encode("utf-8")
+        canonical_bytes = encode_jcs(receipt)
         receipt["caid"] = hashlib.sha256(canonical_bytes).hexdigest()
         return receipt
 

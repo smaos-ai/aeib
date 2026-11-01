@@ -144,7 +144,7 @@ def build_source_00() -> Tuple[str, str]:
         "- Use **Source 12** for the Common Criteria (ISO/IEC 15408) EAL4+ Security Target, SFR/SAR Physical Implementation Mappings, TLC 34,047-State Model Checker Verification, and the Multi-Region Edge Latch Mesh Benchmark (9,948 bps latency reduction).",
         "- Use **Source 13** for Tetragon eBPF LSM Profiles, Kagent Helm Charts, and the Distributed Reconciler.",
         "- Use **Source 14** for the Common Criteria Submission Pack and Multi-Region Rollout Gate.",
-        "- Use **Source 15** for the Ten-Layer Sovereign Factory Architecture and 49 Commissioned Prototype Module Specifications.",
+        "- Use **Source 15** for the Ten-Layer Sovereign Factory Architecture and 60 Commissioned Prototype Module Specifications.",
         "- Use **Source 16** for October 31, 2026 Phase V Deliverables & Pre-Market Reality Audit: Unified 5-Station Sovereign Execution Kernel (`src/sovereign_phase_v_kernel.py`), 14-Item Temporal Authority & Async Execution Guard (`src/temporal_authority_guard.py`), Monotonic A2A Cryptographic Delegation DAG (`src/crypto_delegation_graph.py`), SQLite FTS5 Bitemporal Provenance & Truth Decay Engine (`src/temporal_graph_router.py`), 4-Tier Sovereign Token Decree Governor (`src/sovereign_token_decree.py` & `src/token_decree_dispatch_interlock.py`), Autonomous PR Webhook Dispatcher (`src/autonomous_pr_webhook_dispatcher.py`), and Client-Side Pre-Push Integrity Latch (`tools/pre_push_integrity_gate.py`).",
     ]
     return title, "\n\n".join(parts)
@@ -868,15 +868,15 @@ def build_source_15() -> Tuple[str, str]:
         "| Layer | Subsystem Name | Key Physical Responsibilities | Core Implementing Modules |\n",
         "|:---:|:---|:---|:---|\n",
         "| **Layer 0** | Hardware Root of Trust | Secure Enclave NIST P-256 / Ed25519 signing, Multi-Cloud HSM Remote Quorum, Cold Storage Airgap Gateway, Enclave Proximity Attestation, TPM 2.0 PCR-11 Aggregator, Heterogeneous CVM Interlock, Confidential Container Attestation Proxy, Verifiable ORAM Shuffler | `src/cloud_hsm_remote_quorum.py`, `src/cold_storage_airgap_gateway.py`, `src/enclave_proximity_attestation.py`, `src/zk_tpm_pcr_aggregator.py`, `src/confidential_vm_migration_interlock.py`, `src/coco_attestation_proxy.py`, `tools/airgap_qr_terminal.py`, `src/cold_storage_hardware_ledger.py`, `src/iphone_enclave_notary_bridge.py`, `src/iphone_rpc_client.py`, `src/oram_memory_shuffler.py` |\n",
-        "| **Layer 1** | OS Kernel & eBPF LSM Interception | In-kernel socket and filesystem mediation, Tetragon eBPF telemetry, strict cgroup sandbox, dynamic eBPF tail-call hot-patching, XDP line-rate ingress rate-limiter, WireGuard overlay interlock, Enclave eBPF Policy Loader | `src/bpf_lsm_profile_compiler.py`, `src/ebpf_agent_guard_controller.py`, `src/tetragon_ebpf_stream_parser.py`, `src/ebpf_tail_call_hotpatch.py`, `src/xdp_ingress_ratelimiter.py`, `src/wireguard_overlay_interlock.py`, `src/enclave_bpf_policy_loader.py` |\n",
+        "| **Layer 1** | OS Kernel & eBPF LSM Interception | In-kernel socket and filesystem mediation, Tetragon eBPF telemetry, strict cgroup sandbox, dynamic eBPF tail-call hot-patching, XDP line-rate ingress rate-limiter, WireGuard overlay interlock, Enclave eBPF Policy Loader, Declarative K8s CRD Adapter | `src/bpf_lsm_profile_compiler.py`, `src/ebpf_agent_guard_controller.py`, `src/tetragon_ebpf_stream_parser.py`, `src/ebpf_tail_call_hotpatch.py`, `src/xdp_ingress_ratelimiter.py`, `src/wireguard_overlay_interlock.py`, `src/enclave_bpf_policy_loader.py`, `src/kagent_crd_adapter.py` |\n",
         "| **Layer 2** | Typestate Physics & Static AST Filter | Dimensional conservation ($0 token cost), hardware boundary ceilings, AST purity & anti-mocking, Exhaustive Finite-State Model Checker, Sovereign Token Decree Governor, Adversarial AST Mutation Verifier | `src/physical_typestate_enforcer.py`, `compliance/ast_purity.py`, `compliance/claim_integrity_gate.py`, `src/eo1_protocol_model_checker.py`, `src/sovereign_token_decree.py`, `src/token_decree_dispatch_interlock.py`, `src/adversarial_mutation_verifier.py` |\n",
         "| **Layer 3** | Edge Ingress, Triage & Prescreening | Sub-20ms edge triage, integer basis points risk, BGP Anycast routing interlock, FaceID biometric gate, Cross-Cloud WireGuard Overlay Mesh, Hardened x402 Commerce Gateway | `src/edge_triage_router.py`, `src/edge_ai_prescreener.py`, `src/bgp_anycast_routing_interlock.py`, `src/multi_region_canary_ingress.py`, `src/eo1_biometric_gate.py`, `src/live_biometric_latch_bridge.py`, `src/wireguard_overlay_interlock.py`, `src/coinbase_x402_agent_gateway.py` |\n",
-        "| **Layer 4** | Transactional ACID State Coordinator | Row-level semantic locks, 2PC prepare/commit, Autonomic State Reconciler, Quorum Jitter Fuzzer, Byzantine Timewarp Harness, Byzantine Homomorphic Gossip Sync, Pre-Socket Escrow Latch | `src/semantic_two_phase_commit.py`, `src/autonomic_state_reconciler.py`, `src/quorum_jitter_fuzzer.py`, `src/byzantine_consensus_timewarp.py`, `src/sqlite_acid_tcc_boundary.py`, `src/multi_region_edge_latch_mesh.py`, `src/homomorphic_gossip_sync.py`, `src/coinbase_x402_agent_gateway.py` |\n",
-        "| **Layer 5** | Execution Integrity & Deception Reconciler | 4-arm benchmark matrix, counter-factual audit, Circuit-Breaker Failsafe Mesh, MCP Action-vs-Outcome Normalizer, Diagnostic Normalizer, Evidence Sufficiency & Narrow Lean 4 Gate | `src/counterfeit_execution_tracker.py`, `src/agent_decept_reconciler.py`, `src/autonomic_circuit_breaker_mesh.py`, `src/mcp_outcome_normalizer.py`, `src/diagnostic_normalizer.py`, `src/evidence_sufficiency_and_lean_gate.py`, `execution-integrity-benchmark` |\n",
+        "| **Layer 4** | Transactional ACID State Coordinator | Row-level semantic locks, 2PC prepare/commit, Autonomic State Reconciler, Quorum Jitter Fuzzer, Byzantine Timewarp Harness, Byzantine Homomorphic Gossip Sync, Pre-Socket Escrow Latch, Substrate Sandbox Egress Interlock | `src/semantic_two_phase_commit.py`, `src/autonomic_state_reconciler.py`, `src/quorum_jitter_fuzzer.py`, `src/byzantine_consensus_timewarp.py`, `src/sqlite_acid_tcc_boundary.py`, `src/multi_region_edge_latch_mesh.py`, `src/homomorphic_gossip_sync.py`, `src/coinbase_x402_agent_gateway.py`, `src/substrate_cube_interlock.py` |\n",
+        "| **Layer 5** | Execution Integrity & Deception Reconciler | 4-arm benchmark matrix, counter-factual audit, Circuit-Breaker Failsafe Mesh, MCP Action-vs-Outcome Normalizer, Diagnostic Normalizer, Evidence Sufficiency & Narrow Lean 4 Gate, 1000-PR Blast Radius Governor | `src/counterfeit_execution_tracker.py`, `src/agent_decept_reconciler.py`, `src/autonomic_circuit_breaker_mesh.py`, `src/mcp_outcome_normalizer.py`, `src/diagnostic_normalizer.py`, `src/evidence_sufficiency_and_lean_gate.py`, `src/kiro_1000pr_and_cube_wal_simulator.py`, `execution-integrity-benchmark` |\n",
         "| **Layer 6** | Autonomous Evolution & Trajectory Airlock | Multi-candidate evolutionary selection, SEMA-Auto trajectory tracking, zero-regression airlock | `src/evolutionary_orchestrator.py`, `src/a2a_trajectory_interlock.py`, `src/oct2026_frontier_signals_and_agent_s4_airlock.py` |\n",
         "| **Layer 7** | SCITT Bitemporal Merkle Tree & Multi-Cloud | RFC 9162 / RFC 9943 Merkle trees, ZK proof rollup, PQC Post-Quantum Notary, Cross-Enterprise Federation Bridge, ZK MMR Accumulator | `src/zk_scitt_proof_rollup.py`, `src/pqc_post_quantum_notary.py`, `src/cross_enterprise_federation_bridge.py`, `src/scitt_proof_aggregation_reconciler.py`, `src/multi_cloud_failover_orchestrator.py`, `src/zk_mmr_accumulator.py` |\n",
         "| **Layer 8** | Common Criteria EAL4+ Audit & CEM Evaluator | ISO/IEC 15408-3 EAL4+ formal model runner, 8 SFRs mapped, automated ISO/IEC 18045 CEM auditor | `tools/common_criteria_eal4_runner.py`, `tools/itsef_cem_evaluation_runner.py`, `tools/itsef_mock_lab_audit_simulator.py` |\n",
-        "| **Layer 9** | Epistemic Dashboard & Command Cockpit | Live on-disk receipts API, remote emergency Andon stop, asynchronous AP2 mandate queue, commissioning pipeline | `src/sovereign_dashboard_api.py`, `src/mobile_command_cockpit_engine.py`, `src/ap2_mobile_mandate_engine.py`, `src/commissioning_pipeline.py` |\n\n---",
+        "| **Layer 9** | Epistemic Dashboard & Command Cockpit | Live on-disk receipts API, remote emergency Andon stop, asynchronous AP2 mandate queue, commissioning pipeline, Figma MCP Connector, Headless Browser DOM Rasterizer | `src/sovereign_dashboard_api.py`, `src/mobile_command_cockpit_engine.py`, `src/ap2_mobile_mandate_engine.py`, `src/commissioning_pipeline.py`, `src/figma_mcp_connector.py`, `src/headless_browser_sidecar.py` |\n\n---",
         "## 2. Commissioned Prototype Modules Verification & Mutation Adequacy Matrix\n\n",
         "All commissioned modules have achieved $\\ge 80.00\\%$ mutation adequacy kill ratio evaluated under the AST mutation shadow runner:\n\n",
         "| Module Path | Primary Verification Suite | Sampled Mutants | Killed | Kill Ratio | Wilson 95% Confidence Interval |\n",
@@ -935,9 +935,15 @@ def build_source_15() -> Tuple[str, str]:
         "| `src/temporal_graph_router.py` | `tests/test_temporal_graph_router.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n",
         "| `src/temporal_authority_guard.py` | `tests/test_temporal_authority_guard.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n",
         "| `src/sovereign_phase_v_kernel.py` | `tests/test_sovereign_phase_v_kernel.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n",
-        "| `src/autonomous_pr_webhook_dispatcher.py` | `tests/test_autonomous_pr_webhook_dispatcher.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n\n---",
+        "| `src/autonomous_pr_webhook_dispatcher.py` | `tests/test_autonomous_pr_webhook_dispatcher.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n",
+        "| `src/a2a_trajectory_interlock.py` | `tests/test_a2a_trajectory_interlock.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n",
+        "| `src/kagent_crd_adapter.py` | `tests/test_kagent_crd_adapter.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n",
+        "| `src/figma_mcp_connector.py` | `tests/test_figma_mcp_connector.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n",
+        "| `src/headless_browser_sidecar.py` | `tests/test_headless_browser_sidecar.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n",
+        "| `src/substrate_cube_interlock.py` | `tests/test_substrate_cube_and_blast_radius.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n",
+        "| `src/kiro_1000pr_and_cube_wal_simulator.py` | `tests/test_kiro_1000pr_and_cube_wal.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n\n---",
         "## 3. Disclosed Surviving Mutants & Cryptographic Isolation\n\n",
-        "All 54 commissioned prototype modules have achieved 100.00% mutation adequacy (30/30 or 22/22 mutants killed each) under the AST shadow runner with zero surviving mutants across their sampled sets:\n",
+        "All 60 commissioned prototype modules have achieved 100.00% mutation adequacy (30/30 or 22/22 mutants killed each) under the AST shadow runner with zero surviving mutants across their sampled sets:\n",
         "1. All runtime path bootstrap setups (`sys.path.insert(0, str(_REPO_ROOT))`) verified with active sentinel poisoning reload checks.\n",
         "2. All configuration defaults, timeouts, and port constants verified via explicit parameter inspection and boundary checks.\n",
         "3. All millisecond timestamp defaults verified within bounded delta assertions.\n",
@@ -997,6 +1003,18 @@ def build_source_16() -> Tuple[str, str]:
         + safe_read(REPO_ROOT / "src" / "specification_invariant_compiler.py")
         + "\n```\n\n### Phase IX Source B: `src/mcp_action_firewall.py`\n\n```python\n"
         + safe_read(REPO_ROOT / "src" / "mcp_action_firewall.py")
+        + "\n```",
+        "\n\n---",
+        "## 9. Phase X: Scientific 5-Whys Anti-Hardcode Gate, PROCTOR Canary & Omega Containment Suite\n\n",
+        safe_read(BRAIN_DIR / "DECIDE_PHASE_X_5_WHYS_ANTI_HARDCODE_SPEC_GATE_AND_OMEGA_CONTAINMENT.md"),
+        "\n\n### Phase X Source A: `src/anti_hardcode_spec_gate.py`\n\n```python\n"
+        + safe_read(REPO_ROOT / "src" / "anti_hardcode_spec_gate.py")
+        + "\n```\n\n### Phase X Source B: `src/cognitive_friction_gate.py`\n\n```python\n"
+        + safe_read(REPO_ROOT / "src" / "cognitive_friction_gate.py")
+        + "\n```\n\n### Phase X Source C: `src/live_killchain_attestor.py`\n\n```python\n"
+        + safe_read(REPO_ROOT / "src" / "live_killchain_attestor.py")
+        + "\n```\n\n### Phase X Source D: `src/temporal_model_bound_token.py`\n\n```python\n"
+        + safe_read(REPO_ROOT / "src" / "temporal_model_bound_token.py")
         + "\n```",
     ]
     content = "\n\n".join(parts)

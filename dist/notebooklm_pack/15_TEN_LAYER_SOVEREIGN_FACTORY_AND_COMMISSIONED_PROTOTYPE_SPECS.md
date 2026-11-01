@@ -24,7 +24,7 @@ The SovereignNexus agent infrastructure stack integrates ten deterministic opera
 | **Layer 0** | Hardware Root of Trust | Secure Enclave NIST P-256 / Ed25519 signing, Multi-Cloud HSM Remote Quorum, Cold Storage Airgap Gateway, Enclave Proximity Attestation, TPM 2.0 PCR-11 Aggregator, Heterogeneous CVM Interlock, Confidential Container Attestation Proxy, Verifiable ORAM Shuffler | `src/cloud_hsm_remote_quorum.py`, `src/cold_storage_airgap_gateway.py`, `src/enclave_proximity_attestation.py`, `src/zk_tpm_pcr_aggregator.py`, `src/confidential_vm_migration_interlock.py`, `src/coco_attestation_proxy.py`, `tools/airgap_qr_terminal.py`, `src/cold_storage_hardware_ledger.py`, `src/iphone_enclave_notary_bridge.py`, `src/iphone_rpc_client.py`, `src/oram_memory_shuffler.py` |
 
 
-| **Layer 1** | OS Kernel & eBPF LSM Interception | In-kernel socket and filesystem mediation, Tetragon eBPF telemetry, strict cgroup sandbox, dynamic eBPF tail-call hot-patching, XDP line-rate ingress rate-limiter, WireGuard overlay interlock, Enclave eBPF Policy Loader | `src/bpf_lsm_profile_compiler.py`, `src/ebpf_agent_guard_controller.py`, `src/tetragon_ebpf_stream_parser.py`, `src/ebpf_tail_call_hotpatch.py`, `src/xdp_ingress_ratelimiter.py`, `src/wireguard_overlay_interlock.py`, `src/enclave_bpf_policy_loader.py` |
+| **Layer 1** | OS Kernel & eBPF LSM Interception | In-kernel socket and filesystem mediation, Tetragon eBPF telemetry, strict cgroup sandbox, dynamic eBPF tail-call hot-patching, XDP line-rate ingress rate-limiter, WireGuard overlay interlock, Enclave eBPF Policy Loader, Declarative K8s CRD Adapter | `src/bpf_lsm_profile_compiler.py`, `src/ebpf_agent_guard_controller.py`, `src/tetragon_ebpf_stream_parser.py`, `src/ebpf_tail_call_hotpatch.py`, `src/xdp_ingress_ratelimiter.py`, `src/wireguard_overlay_interlock.py`, `src/enclave_bpf_policy_loader.py`, `src/kagent_crd_adapter.py` |
 
 
 | **Layer 2** | Typestate Physics & Static AST Filter | Dimensional conservation ($0 token cost), hardware boundary ceilings, AST purity & anti-mocking, Exhaustive Finite-State Model Checker, Sovereign Token Decree Governor, Adversarial AST Mutation Verifier | `src/physical_typestate_enforcer.py`, `compliance/ast_purity.py`, `compliance/claim_integrity_gate.py`, `src/eo1_protocol_model_checker.py`, `src/sovereign_token_decree.py`, `src/token_decree_dispatch_interlock.py`, `src/adversarial_mutation_verifier.py` |
@@ -33,10 +33,10 @@ The SovereignNexus agent infrastructure stack integrates ten deterministic opera
 | **Layer 3** | Edge Ingress, Triage & Prescreening | Sub-20ms edge triage, integer basis points risk, BGP Anycast routing interlock, FaceID biometric gate, Cross-Cloud WireGuard Overlay Mesh, Hardened x402 Commerce Gateway | `src/edge_triage_router.py`, `src/edge_ai_prescreener.py`, `src/bgp_anycast_routing_interlock.py`, `src/multi_region_canary_ingress.py`, `src/eo1_biometric_gate.py`, `src/live_biometric_latch_bridge.py`, `src/wireguard_overlay_interlock.py`, `src/coinbase_x402_agent_gateway.py` |
 
 
-| **Layer 4** | Transactional ACID State Coordinator | Row-level semantic locks, 2PC prepare/commit, Autonomic State Reconciler, Quorum Jitter Fuzzer, Byzantine Timewarp Harness, Byzantine Homomorphic Gossip Sync, Pre-Socket Escrow Latch | `src/semantic_two_phase_commit.py`, `src/autonomic_state_reconciler.py`, `src/quorum_jitter_fuzzer.py`, `src/byzantine_consensus_timewarp.py`, `src/sqlite_acid_tcc_boundary.py`, `src/multi_region_edge_latch_mesh.py`, `src/homomorphic_gossip_sync.py`, `src/coinbase_x402_agent_gateway.py` |
+| **Layer 4** | Transactional ACID State Coordinator | Row-level semantic locks, 2PC prepare/commit, Autonomic State Reconciler, Quorum Jitter Fuzzer, Byzantine Timewarp Harness, Byzantine Homomorphic Gossip Sync, Pre-Socket Escrow Latch, Substrate Sandbox Egress Interlock | `src/semantic_two_phase_commit.py`, `src/autonomic_state_reconciler.py`, `src/quorum_jitter_fuzzer.py`, `src/byzantine_consensus_timewarp.py`, `src/sqlite_acid_tcc_boundary.py`, `src/multi_region_edge_latch_mesh.py`, `src/homomorphic_gossip_sync.py`, `src/coinbase_x402_agent_gateway.py`, `src/substrate_cube_interlock.py` |
 
 
-| **Layer 5** | Execution Integrity & Deception Reconciler | 4-arm benchmark matrix, counter-factual audit, Circuit-Breaker Failsafe Mesh, MCP Action-vs-Outcome Normalizer, Diagnostic Normalizer, Evidence Sufficiency & Narrow Lean 4 Gate | `src/counterfeit_execution_tracker.py`, `src/agent_decept_reconciler.py`, `src/autonomic_circuit_breaker_mesh.py`, `src/mcp_outcome_normalizer.py`, `src/diagnostic_normalizer.py`, `src/evidence_sufficiency_and_lean_gate.py`, `execution-integrity-benchmark` |
+| **Layer 5** | Execution Integrity & Deception Reconciler | 4-arm benchmark matrix, counter-factual audit, Circuit-Breaker Failsafe Mesh, MCP Action-vs-Outcome Normalizer, Diagnostic Normalizer, Evidence Sufficiency & Narrow Lean 4 Gate, 1000-PR Blast Radius Governor | `src/counterfeit_execution_tracker.py`, `src/agent_decept_reconciler.py`, `src/autonomic_circuit_breaker_mesh.py`, `src/mcp_outcome_normalizer.py`, `src/diagnostic_normalizer.py`, `src/evidence_sufficiency_and_lean_gate.py`, `src/kiro_1000pr_and_cube_wal_simulator.py`, `execution-integrity-benchmark` |
 
 
 | **Layer 6** | Autonomous Evolution & Trajectory Airlock | Multi-candidate evolutionary selection, SEMA-Auto trajectory tracking, zero-regression airlock | `src/evolutionary_orchestrator.py`, `src/a2a_trajectory_interlock.py`, `src/oct2026_frontier_signals_and_agent_s4_airlock.py` |
@@ -48,7 +48,7 @@ The SovereignNexus agent infrastructure stack integrates ten deterministic opera
 | **Layer 8** | Common Criteria EAL4+ Audit & CEM Evaluator | ISO/IEC 15408-3 EAL4+ formal model runner, 8 SFRs mapped, automated ISO/IEC 18045 CEM auditor | `tools/common_criteria_eal4_runner.py`, `tools/itsef_cem_evaluation_runner.py`, `tools/itsef_mock_lab_audit_simulator.py` |
 
 
-| **Layer 9** | Epistemic Dashboard & Command Cockpit | Live on-disk receipts API, remote emergency Andon stop, asynchronous AP2 mandate queue, commissioning pipeline | `src/sovereign_dashboard_api.py`, `src/mobile_command_cockpit_engine.py`, `src/ap2_mobile_mandate_engine.py`, `src/commissioning_pipeline.py` |
+| **Layer 9** | Epistemic Dashboard & Command Cockpit | Live on-disk receipts API, remote emergency Andon stop, asynchronous AP2 mandate queue, commissioning pipeline, Figma MCP Connector, Headless Browser DOM Rasterizer | `src/sovereign_dashboard_api.py`, `src/mobile_command_cockpit_engine.py`, `src/ap2_mobile_mandate_engine.py`, `src/commissioning_pipeline.py`, `src/figma_mcp_connector.py`, `src/headless_browser_sidecar.py` |
 
 ---
 
@@ -230,13 +230,31 @@ All commissioned modules have achieved $\ge 80.00\%$ mutation adequacy kill rati
 
 | `src/autonomous_pr_webhook_dispatcher.py` | `tests/test_autonomous_pr_webhook_dispatcher.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
 
+
+| `src/a2a_trajectory_interlock.py` | `tests/test_a2a_trajectory_interlock.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
+
+| `src/kagent_crd_adapter.py` | `tests/test_kagent_crd_adapter.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
+
+| `src/figma_mcp_connector.py` | `tests/test_figma_mcp_connector.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
+
+| `src/headless_browser_sidecar.py` | `tests/test_headless_browser_sidecar.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
+
+| `src/substrate_cube_interlock.py` | `tests/test_substrate_cube_and_blast_radius.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
+
+| `src/kiro_1000pr_and_cube_wal_simulator.py` | `tests/test_kiro_1000pr_and_cube_wal.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
 ---
 
 ## 3. Disclosed Surviving Mutants & Cryptographic Isolation
 
 
 
-All 54 commissioned prototype modules have achieved 100.00% mutation adequacy (30/30 or 22/22 mutants killed each) under the AST shadow runner with zero surviving mutants across their sampled sets:
+All 60 commissioned prototype modules have achieved 100.00% mutation adequacy (30/30 or 22/22 mutants killed each) under the AST shadow runner with zero surviving mutants across their sampled sets:
 
 
 1. All runtime path bootstrap setups (`sys.path.insert(0, str(_REPO_ROOT))`) verified with active sentinel poisoning reload checks.

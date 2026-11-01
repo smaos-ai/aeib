@@ -126,7 +126,7 @@ class PrePushIntegrityGate:
 
         try:
             cmd = ["git", "-C", str(self.repo_root), "ls-files", "-s", "--stage"]
-            res = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            res = subprocess.run(cmd, capture_output=True, text=True, errors="replace", check=True)
         except (subprocess.SubprocessError, FileNotFoundError):
             return violations
 
@@ -176,7 +176,7 @@ class PrePushIntegrityGate:
                 "--diff-filter=ACMR",
                 rev_range,
             ]
-            res = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            res = subprocess.run(cmd, capture_output=True, text=True, errors="replace", check=True)
             files = [f.strip() for f in res.stdout.splitlines() if f.strip()]
         except subprocess.SubprocessError:
             return violations
@@ -221,7 +221,7 @@ class PrePushIntegrityGate:
                 "--diff-filter=ACMR",
                 rev_range,
             ]
-            res = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            res = subprocess.run(cmd, capture_output=True, text=True, errors="replace", check=True)
             changed_files = {f.strip() for f in res.stdout.splitlines() if f.strip()}
         except subprocess.SubprocessError:
             return violations
@@ -263,7 +263,7 @@ class PrePushIntegrityGate:
                 "--diff-filter=ACMR",
                 rev_range,
             ]
-            res = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            res = subprocess.run(cmd, capture_output=True, text=True, errors="replace", check=True)
         except subprocess.SubprocessError:
             return violations
 
@@ -305,7 +305,7 @@ class PrePushIntegrityGate:
                 "config",
                 f"branch.{branch_name}.remote",
             ]
-            res = subprocess.run(cmd, capture_output=True, text=True, check=False)
+            res = subprocess.run(cmd, capture_output=True, text=True, errors="replace", check=False)
             has_remote = bool(res.stdout.strip())
             return has_remote, res.stdout.strip() if has_remote else None
         except (subprocess.SubprocessError, FileNotFoundError):
@@ -415,6 +415,7 @@ def main() -> None:
             cwd=str(gate.repo_root),
             capture_output=True,
             text=True,
+            errors="replace",
             check=False,
         )
         current_branch = branch_res.stdout.strip() if branch_res.returncode == 0 else "HEAD"
@@ -423,6 +424,7 @@ def main() -> None:
             cwd=str(gate.repo_root),
             capture_output=True,
             text=True,
+            errors="replace",
             check=False,
         ).stdout.strip()
         local_ref = f"refs/heads/{current_branch}"

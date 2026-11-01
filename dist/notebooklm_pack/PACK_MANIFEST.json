@@ -2,17 +2,17 @@
   "pack_version": "v1.0.0",
   "target_notebook_url": "https://notebook.google.com/notebook/e1b91409-02f9-4300-8bf7-5dfd4426dd16",
   "target_notebook_id": "e1b91409-02f9-4300-8bf7-5dfd4426dd16",
-  "sources_count": 17,
-  "total_word_count": 145166,
+  "sources_count": 18,
+  "total_word_count": 145327,
   "max_words_per_source_limit": 500000,
-  "notebook_source_slots_used": "17 / 50 (33 slots free)",
+  "notebook_source_slots_used": "18 / 50 (32 slots free)",
   "sources": [
     {
       "file_name": "00_EXECUTIVE_BRIEFING_FOR_CONSIDERATION.md",
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/00_EXECUTIVE_BRIEFING_FOR_CONSIDERATION.md",
-      "words": 801,
-      "bytes": 6148,
-      "sha256": "sha256:dc3421bf57c66b591a366c29e088f3410ac217f655ae71596e4231c964356c59"
+      "words": 894,
+      "bytes": 6972,
+      "sha256": "sha256:ad1639f8babf5d7a72e16f40cb954dc30b00354e77d831186bafb2322ba1e8df"
     },
     {
       "file_name": "01_SOVEREIGN_NEXUS_MASTER_ARCHITECTURE_AND_12_MOATS.md",
@@ -122,9 +122,16 @@
     {
       "file_name": "16_OCTOBER_31_PHASE_V_5_STATION_KERNEL_TEMPORAL_AUTHORITY_AND_PREMARKET_AUDIT.md",
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/16_OCTOBER_31_PHASE_V_5_STATION_KERNEL_TEMPORAL_AUTHORITY_AND_PREMARKET_AUDIT.md",
-      "words": 32837,
-      "bytes": 359283,
-      "sha256": "sha256:2b0319cdfdb791202d4c6f51db46daa52bfecd2984438f9b7bc133cdc742b20b"
+      "words": 7224,
+      "bytes": 60148,
+      "sha256": "sha256:63eaba3a36773707efbc59208bca337cd30ff98fa314ab1482382d8c6fc6b623"
+    },
+    {
+      "file_name": "17_NOVEMBER_01_PHASES_VII_TO_X_SPECIFICATION_ANTI_HARDCODE_AND_OMEGA_CONTAINMENT.md",
+      "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/17_NOVEMBER_01_PHASES_VII_TO_X_SPECIFICATION_ANTI_HARDCODE_AND_OMEGA_CONTAINMENT.md",
+      "words": 25681,
+      "bytes": 299641,
+      "sha256": "sha256:847206868f387d3f37b2dc306005a44f29252b86d70d5a675a464abbc87e3c97"
     }
   ]
 }

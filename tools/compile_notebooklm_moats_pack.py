@@ -145,7 +145,8 @@ def build_source_00() -> Tuple[str, str]:
         "- Use **Source 13** for Tetragon eBPF LSM Profiles, Kagent Helm Charts, and the Distributed Reconciler.",
         "- Use **Source 14** for the Common Criteria Submission Pack and Multi-Region Rollout Gate.",
         "- Use **Source 15** for the Ten-Layer Sovereign Factory Architecture and 60 Commissioned Prototype Module Specifications.",
-        "- Use **Source 16** for October 31, 2026 Phase V Deliverables & Pre-Market Reality Audit: Unified 5-Station Sovereign Execution Kernel (`src/sovereign_phase_v_kernel.py`), 14-Item Temporal Authority & Async Execution Guard (`src/temporal_authority_guard.py`), Monotonic A2A Cryptographic Delegation DAG (`src/crypto_delegation_graph.py`), SQLite FTS5 Bitemporal Provenance & Truth Decay Engine (`src/temporal_graph_router.py`), 4-Tier Sovereign Token Decree Governor (`src/sovereign_token_decree.py` & `src/token_decree_dispatch_interlock.py`), Autonomous PR Webhook Dispatcher (`src/autonomous_pr_webhook_dispatcher.py`), and Client-Side Pre-Push Integrity Latch (`tools/pre_push_integrity_gate.py`).",
+        "- Use **Source 16** for October 31, 2026 Phase V & VI Deliverables: Unified 5-Station Sovereign Execution Kernel (`src/sovereign_phase_v_kernel.py`), 14-Item Temporal Authority & Async Execution Guard (`src/temporal_authority_guard.py`), Monotonic A2A Cryptographic Delegation DAG (`src/crypto_delegation_graph.py`), SQLite FTS5 Bitemporal Provenance & Truth Decay Engine (`src/temporal_graph_router.py`), 4-Tier Sovereign Token Decree Governor (`src/sovereign_token_decree.py` & `src/token_decree_dispatch_interlock.py`), Autonomous PR Webhook Dispatcher (`src/autonomous_pr_webhook_dispatcher.py`), and Client-Side Pre-Push Integrity Latch (`tools/pre_push_integrity_gate.py`).",
+        "- Use **Source 17** for November 01, 2026 Phases VII–X Deliverables: Pauli Imperative & Adversarial Mutation Verifier (`src/adversarial_mutation_verifier.py`), Track 6 Evidence Sufficiency & Lean Gate (`src/evidence_sufficiency_and_lean_gate.py`), 5-Step Division-of-Labor Cognitive Router (`src/cognitive_step_router.py`), Pre-Execution Specification Invariants & Dual-Root SCITT Custodian (`src/specification_invariant_compiler.py`), Unified MCP Action Firewall (`src/mcp_action_firewall.py`), 4-Pillar Anti-Hardcode & PROCTOR Canary Gate (`src/anti_hardcode_spec_gate.py`), and Omega Containment Suite: Socratic Cognitive Friction Gate (`src/cognitive_friction_gate.py`), Continuous Sub-15ms Kill-Chain Attestor (`src/live_killchain_attestor.py`), and Temporal Model-Bound Ephemeral Capability Tokens (`src/temporal_model_bound_token.py`).",
     ]
     return title, "\n\n".join(parts)
 
@@ -979,8 +980,20 @@ def build_source_16() -> Tuple[str, str]:
         "\n\n---",
         "## 4. Push-by-Design Forensic Investigation & Pre-Push Integrity Latch\n\n",
         safe_read(BRAIN_DIR / "DECIDE_REMOTE_PUSH_FAILURE_INVESTIGATION_AND_PREVENTION.md"),
-        "\n\n---",
-        "## 5. Phase VII: Pauli Imperative, Adversarial Mutation Verifier & Track 6 Evidence Sufficiency\n\n",
+    ]
+    content = "\n\n".join(parts)
+    return title, content
+
+
+def build_source_17() -> Tuple[str, str]:
+    title = "17_NOVEMBER_01_PHASES_VII_TO_X_SPECIFICATION_ANTI_HARDCODE_AND_OMEGA_CONTAINMENT.md"
+    parts = [
+        "# Source 17: November 01, 2026 Phases VII–X Specification, Anti-Hardcode & Omega Containment",
+        "**Document ID:** `SN-PACK-SRC-017`  \n"
+        "**Status:** INTERNAL PREVIEW COMMISSIONED  \n"
+        "**Target Notebook:** `https://notebook.google.com/notebook/e1b91409-02f9-4300-8bf7-5dfd4426dd16`  \n"
+        "**Epistemic Boundary:** Evaluated under the stated model; prototype; all numbers measured via commands executed on local host; zero mocks, zero floats in RFC 8785 JCS payloads, integer basis points (`0..10000 bps`).\n\n---",
+        "## 1. Phase VII: Pauli Imperative, Adversarial Mutation Verifier & Track 6 Evidence Sufficiency\n\n",
         safe_read(BRAIN_DIR / "DECIDE_PHASE_VII_PAULI_EVIDENCE_SUFFICIENCY_AND_MUTATION_VERIFIER_DELIVERY.md"),
         "\n\n### Phase VII Source: `src/adversarial_mutation_verifier.py`\n\n```python\n"
         + safe_read(REPO_ROOT / "src" / "adversarial_mutation_verifier.py")
@@ -988,16 +1001,16 @@ def build_source_16() -> Tuple[str, str]:
         + safe_read(REPO_ROOT / "src" / "evidence_sufficiency_and_lean_gate.py")
         + "\n```",
         "\n\n---",
-        "## 6. Live Money Challenges, Bug Bounties & Grants Execution Portfolio (2026)\n\n",
+        "## 2. Live Money Challenges, Bug Bounties & Grants Execution Portfolio (2026)\n\n",
         safe_read(BRAIN_DIR / "DECIDE_LIVE_MONEY_CHALLENGES_BENCHMARK_AND_FALSIFICATION_2026.md"),
         "\n\n---",
-        "## 7. Phase VIII: 5-Step Cognitive Division-of-Labor & Monotonic Speculative Router\n\n",
+        "## 3. Phase VIII: 5-Step Cognitive Division-of-Labor & Monotonic Speculative Router\n\n",
         safe_read(BRAIN_DIR / "DECIDE_PHASE_VIII_5_STEP_COGNITIVE_ROUTER_AND_MONOTONIC_SPECULATIVE_DELIVERY.md"),
         "\n\n### Phase VIII Source: `src/cognitive_step_router.py`\n\n```python\n"
         + safe_read(REPO_ROOT / "src" / "cognitive_step_router.py")
         + "\n```",
         "\n\n---",
-        "## 8. Phase IX: Pre-Execution Specification Invariants, Dual-Root SCITT Custodian & Unified MCP Action Firewall\n\n",
+        "## 4. Phase IX: Pre-Execution Specification Invariants, Dual-Root SCITT Custodian & Unified MCP Action Firewall\n\n",
         safe_read(BRAIN_DIR / "DECIDE_PHASE_IX_SPECIFICATION_INVARIANTS_MCP_FIREWALL_AND_BACKLOG_DOMINATION.md"),
         "\n\n### Phase IX Source A: `src/specification_invariant_compiler.py`\n\n```python\n"
         + safe_read(REPO_ROOT / "src" / "specification_invariant_compiler.py")
@@ -1005,7 +1018,7 @@ def build_source_16() -> Tuple[str, str]:
         + safe_read(REPO_ROOT / "src" / "mcp_action_firewall.py")
         + "\n```",
         "\n\n---",
-        "## 9. Phase X: Scientific 5-Whys Anti-Hardcode Gate, PROCTOR Canary & Omega Containment Suite\n\n",
+        "## 5. Phase X: Scientific 5-Whys Anti-Hardcode Gate, PROCTOR Canary & Omega Containment Suite\n\n",
         safe_read(BRAIN_DIR / "DECIDE_PHASE_X_5_WHYS_ANTI_HARDCODE_SPEC_GATE_AND_OMEGA_CONTAINMENT.md"),
         "\n\n### Phase X Source A: `src/anti_hardcode_spec_gate.py`\n\n```python\n"
         + safe_read(REPO_ROOT / "src" / "anti_hardcode_spec_gate.py")
@@ -1042,6 +1055,7 @@ def compile_all_sources() -> Dict[str, Any]:
         build_source_14,
         build_source_15,
         build_source_16,
+        build_source_17,
     ]
 
     manifest_entries = []

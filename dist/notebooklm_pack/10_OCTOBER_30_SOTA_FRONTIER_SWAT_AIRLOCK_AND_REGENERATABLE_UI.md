@@ -2082,7 +2082,7 @@ Evaluated under the stated model:
 from __future__ import annotations
 
 import sys
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, List, Optional, Sequence, Tuple
 
 from src.constraint_compiler import (
     ComponentConstraintSpec,
@@ -3911,6 +3911,51 @@ def test_pipeline_visual_regression_gate_integration(
         assert pipeline.last_visual_receipt is not None
         assert pipeline.last_visual_receipt.passed is True
         assert pipeline.last_visual_receipt.divergence_bps == 0
+
+
+def test_partial_visual_gate_without_renderer_is_noop(card_spec: ComponentConstraintSpec) -> None:
+    compiler = ConstraintCompiler(card_spec)
+    vis_spec = VisualRegressionSpec(
+        component_name="EnterpriseCard",
+        golden_screenshot_caid="sha256:golden",
+        golden_pixels=tuple([100] * 16),
+        width=4,
+        height=4,
+        max_divergence_bps=100,
+    )
+    vis_gate = VisualRegressionGate(vis_spec)
+    compliant_code = (
+        "def EnterpriseCard(props):\n"
+        "    return create_element('div', {\n"
+        "        'background': 'token.bg.surface',\n"
+        "        'text-color': 'token.text.primary',\n"
+        "        'role': 'card',\n"
+        "        'aria-labelledby': props.titleId\n"
+        "    })\n"
+    )
+    with tempfile.TemporaryDirectory() as tmp:
+        latch = EO1WriteBeforeExecuteLatch(Path(tmp))
+        pipeline = JidokaUIPipeline(
+            compiler=compiler,
+            builder_llm_fn=lambda p, f: compliant_code,
+            eo1_latch=latch,
+            visual_gate=vis_gate,
+            renderer_fn=None,
+        )
+        success, final_code, receipt = pipeline.execute_regeneration("Build Card")
+        assert success is True
+        assert pipeline.last_visual_receipt is None
+
+        pipeline_no_gate = JidokaUIPipeline(
+            compiler=compiler,
+            builder_llm_fn=lambda p, f: compliant_code,
+            eo1_latch=latch,
+            visual_gate=None,
+            renderer_fn=lambda code: [100] * 16,
+        )
+        success2, _, _ = pipeline_no_gate.execute_regeneration("Build Card")
+        assert success2 is True
+        assert pipeline_no_gate.last_visual_receipt is None
 
 
 

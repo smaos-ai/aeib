@@ -7,6 +7,7 @@ informative comparison is the pasted substring matcher on the same corpus (predi
 running: substring FP > 0 on the negatives and FN > 0 on `def f(x): ...`)."""
 from __future__ import annotations
 
+import ast
 import json
 from pathlib import Path
 
@@ -17,6 +18,8 @@ from src.scaffold_detector import (
     WARN_CATEGORIES,
     DetectionResult,
     Finding,
+    _is_not_implemented,
+    _real_params,
     detect_scaffolds,
 )
 
@@ -78,6 +81,7 @@ def test_non_str_after_rejected_and_bad_before_tolerated() -> None:
 def test_syntax_error_line_and_symbol() -> None:
     r = detect_scaffolds(None, "x = 1\ndef f(:\n    pass\n")
     assert r.findings == (Finding("SYNTAX_ERROR", 2, "<module>"),) and r.scaffold_count == 1
+    assert r.warn_count == 0
 
 
 def test_qualified_names_lines_and_ordering() -> None:
@@ -157,3 +161,21 @@ def test_bare_except_finding_shape() -> None:
     src = "def f(x):\n    try:\n        return int(x)\n    except:\n        pass\n"
     r = detect_scaffolds(None, src)
     assert r.findings == (Finding("WARN_BARE_EXCEPT_PASS", 0, "<except>"),)
+
+
+def test_is_not_implemented_boundaries() -> None:
+    assert _is_not_implemented(ast.Pass()) is False
+    assert _is_not_implemented(ast.Raise(exc=None)) is False
+    assert _is_not_implemented(ast.Raise(exc=ast.Name(id="ValueError"))) is False
+    assert _is_not_implemented(ast.Raise(exc=ast.Name(id="NotImplementedError"))) is True
+    assert _is_not_implemented(ast.Raise(exc=ast.Call(func=ast.Name(id="NotImplementedError"), args=[], keywords=[]))) is True
+
+
+def test_real_params_vararg_and_kwarg() -> None:
+    tree1 = ast.parse("def f(self, *args): pass").body[0]
+    assert _real_params(tree1) == 1
+    tree2 = ast.parse("def f(cls, **kwargs): pass").body[0]
+    assert _real_params(tree2) == 1
+    tree3 = ast.parse("def f(self, x, *args, **kwargs): pass").body[0]
+    assert _real_params(tree3) == 3
+

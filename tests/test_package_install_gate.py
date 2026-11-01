@@ -179,6 +179,8 @@ def test_not_applicable(gate, argv):
     (["pip", "install", "-bad-"], g.ERR_UNSUPPORTED_OPTION),
     (["pip", "install", "bad-==1.0"], g.ERR_INVALID_PACKAGE_NAME),
     (["pip", "install", "[x]==1.0"], g.ERR_INVALID_PACKAGE_NAME),
+    (["pip", "install", "requests@2.31.0"], g.ERR_INVALID_PACKAGE_NAME),
+    (["poetry", "add", "requests^2.31.0"], g.ERR_INVALID_PACKAGE_NAME),
     (["npm", "i", "UPPER@1.0.0"], g.ERR_INVALID_PACKAGE_NAME),
     (["cargo", "add", "1serde@=1.0.0"], g.ERR_INVALID_PACKAGE_NAME),
     (["uv", "add", "--group"], g.ERR_PARSE_ERROR),

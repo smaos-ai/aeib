@@ -153,7 +153,7 @@ def _parse_requirements(text: str) -> List[Tuple[str, str]]:
     pins: List[Tuple[str, str]] = []
     for raw in text.splitlines():
         line = raw.split("#", 1)[0].strip().rstrip("\\").strip()
-        if not line or line.startswith("-"):
+        if not line:
             continue
         spec = line.split(";", 1)[0].strip()
         m = re.match(r"^([A-Za-z0-9][A-Za-z0-9._-]*)(?:\[[^\]]*\])?\s*==\s*([^\s,]+)$", spec)

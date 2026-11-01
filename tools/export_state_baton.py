@@ -78,6 +78,10 @@ def build_state_baton(
         "src/jcs_canonicalizer.py",
         "src/visual_regression_gate.py",
         "src/seatbelt_sandbox.py",
+        "src/package_install_gate.py",
+        "src/slop_filter.py",
+        "src/scaffold_detector.py",
+        "src/truth_compass.py",
     ]
     present_modules = [m for m in core_modules if (repo_root / m).is_file()]
 

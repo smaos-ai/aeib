@@ -18,7 +18,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from src.truth_compass import (
     ASSUMED, DISPUTED, GENESIS_PREV_REPORT_CAID, HYPOTHESIS, MAX_HASH_FILE_BYTES, REFUTED, T1, T2, T3, UNKNOWN, VERIFIED,
-    Claim, ClaimResult, Evidence, check_claim, decide, load_ledger, parse_claim,
+    Claim, ClaimResult, Evidence, _claim_json, check_claim, decide, load_ledger, parse_claim,
     propagate_contagion, render_card, report_is_current, sign_report_envelope,
     tree_state, validate_dependency_dag, verify_report_chain, where_we_stand,
 )
@@ -421,3 +421,19 @@ def test_signed_hash_chained_report_envelopes(repo: Path) -> None:
                            r1.tree_state, r1.results, "bad-caid")
     with pytest.raises(ValueError, match="ERR_INVALID_REPORT_CAID"):
         sign_report_envelope(bad_rep, key)
+
+
+def test_claim_result_frozen_immutability() -> None:
+    res = ClaimResult("C1", "VERIFIED", "detail")
+    with pytest.raises(FrozenInstanceError):
+        res.status = "MUTATED"  # type: ignore[misc]
+
+
+def test_claim_json_serialization_exact() -> None:
+    c = Claim("C1", "statement", "falsifier", False, open_defeaters=("D1",), depends_on=("C0",))
+    d = _claim_json(c)
+    assert isinstance(d, dict)
+    assert d["claim_id"] == "C1"
+    assert d["open_defeaters"] == ["D1"]
+    assert d["depends_on"] == ["C0"]
+

@@ -181,7 +181,7 @@ def detect_scaffolds(
     try:
         after_tree = ast.parse(after_source)
     except SyntaxError as exc:
-        finding = Finding("SYNTAX_ERROR", int(exc.lineno or 0), "<module>")
+        finding = Finding("SYNTAX_ERROR", int(exc.lineno), "<module>")
         return DetectionResult((finding,), 1, 0)
     before_tree: Optional[ast.Module] = None
     if before_source is not None:
@@ -229,7 +229,7 @@ def detect_scaffolds(
     todo_lines = _todo_lines(after_source)
     for text, count in sorted(added_todos.items()):
         for _ in range(count):
-            findings.append(Finding("SCAFFOLD_TODO_ADDED", todo_lines.get(text, 0), text))
+            findings.append(Finding("SCAFFOLD_TODO_ADDED", todo_lines[text], text))
 
     extra_bare = _bare_except_pass_count(after_tree) - _bare_except_pass_count(before_tree)
     for _ in range(max(0, extra_bare)):

@@ -63,6 +63,8 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 from cryptography.exceptions import InvalidTag
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
+from src.jcs_canonicalizer import encode_jcs
+
 # ---------------------------------------------------------------------------
 # Fail-Closed Verification Codes
 # ---------------------------------------------------------------------------
@@ -79,7 +81,7 @@ HEADER_SIZE: int = struct.calcsize(HEADER_FORMAT)  # 16 bytes
 
 def _canonical_json(data: Any) -> bytes:
     """Canonical RFC 8785 JSON representation with zero floats."""
-    return json.dumps(data, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
+    return encode_jcs(data)
 
 
 @dataclass(frozen=True)

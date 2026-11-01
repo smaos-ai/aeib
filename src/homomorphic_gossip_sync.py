@@ -63,6 +63,8 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
 
+from src.jcs_canonicalizer import encode_jcs
+
 # BN254 / alt_bn128 scalar field order r
 BN254_R: int = 21888242871839275222246405745257275088548364400416034343698204186575808495617
 
@@ -81,7 +83,7 @@ HALT_GOSSIP_DUPLICATE_REGION = "HALT_GOSSIP_DUPLICATE_REGION"
 
 def _canonical_json(data: Any) -> bytes:
     """Canonical RFC 8785 JSON representation with zero floats."""
-    return json.dumps(data, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
+    return encode_jcs(data)
 
 
 def derive_generator_scalar(domain_label: str) -> int:

@@ -4989,9 +4989,9 @@ class AntiHardcodeSpecGate:
             if (
                 resp.get("token") == run_token
                 and resp.get("status") == "ok"
-                and resp.get("a_true_count", 0) > 0
-                and resp.get("b_true_count", 0) > 0
-                and resp.get("both_true_count", 1) == 0
+                and resp["a_true_count"] > 0
+                and resp["b_true_count"] > 0
+                and resp["both_true_count"] == 0
             ):
                 is_contradiction = True
                 reason = "REASON_MUTUALLY_EXCLUSIVE_POSTCONDITIONS_CONFIRMED"

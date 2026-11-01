@@ -3,7 +3,7 @@
   "target_notebook_url": "https://notebook.google.com/notebook/e1b91409-02f9-4300-8bf7-5dfd4426dd16",
   "target_notebook_id": "e1b91409-02f9-4300-8bf7-5dfd4426dd16",
   "sources_count": 18,
-  "total_word_count": 145327,
+  "total_word_count": 146074,
   "max_words_per_source_limit": 500000,
   "notebook_source_slots_used": "18 / 50 (32 slots free)",
   "sources": [
@@ -12,7 +12,7 @@
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/00_EXECUTIVE_BRIEFING_FOR_CONSIDERATION.md",
       "words": 894,
       "bytes": 6972,
-      "sha256": "sha256:ad1639f8babf5d7a72e16f40cb954dc30b00354e77d831186bafb2322ba1e8df"
+      "sha256": "sha256:750d848397b4575ac596463d2b83a1ba73418402035fbd663642971442e72d52"
     },
     {
       "file_name": "01_SOVEREIGN_NEXUS_MASTER_ARCHITECTURE_AND_12_MOATS.md",
@@ -66,9 +66,9 @@
     {
       "file_name": "08_ANTIGRAVITY_SESSION_HISTORY_TELEMETRY_AND_COGNITIVE_RECORDER.md",
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/08_ANTIGRAVITY_SESSION_HISTORY_TELEMETRY_AND_COGNITIVE_RECORDER.md",
-      "words": 3133,
-      "bytes": 23508,
-      "sha256": "sha256:c2fa11f81f0869aa4d2a8a168fd43e1832dad8b1179d0727fe3e61ab5314fd89"
+      "words": 3749,
+      "bytes": 29132,
+      "sha256": "sha256:d4a923b24c03d1155e503e3250227c361c0d0b49548022ad07b1d0e8b3c765e4"
     },
     {
       "file_name": "09_AUTOPOIETIC_MESH_REVERSE_ENGINEERING_AND_SOVEREIGN_MOATS.md",
@@ -115,9 +115,9 @@
     {
       "file_name": "15_TEN_LAYER_SOVEREIGN_FACTORY_AND_COMMISSIONED_PROTOTYPE_SPECS.md",
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/15_TEN_LAYER_SOVEREIGN_FACTORY_AND_COMMISSIONED_PROTOTYPE_SPECS.md",
-      "words": 1642,
-      "bytes": 15534,
-      "sha256": "sha256:feb331530822b4547a2c3603f9e4bc9ae5ca834a5814659e26524175ae360a46"
+      "words": 1779,
+      "bytes": 16877,
+      "sha256": "sha256:83716d7697156da5ea73b61f51789f6c8dffb81fbc082801325dc8027f07fa25"
     },
     {
       "file_name": "16_OCTOBER_31_PHASE_V_5_STATION_KERNEL_TEMPORAL_AUTHORITY_AND_PREMARKET_AUDIT.md",
@@ -129,9 +129,9 @@
     {
       "file_name": "17_NOVEMBER_01_PHASES_VII_TO_X_SPECIFICATION_ANTI_HARDCODE_AND_OMEGA_CONTAINMENT.md",
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/17_NOVEMBER_01_PHASES_VII_TO_X_SPECIFICATION_ANTI_HARDCODE_AND_OMEGA_CONTAINMENT.md",
-      "words": 25681,
-      "bytes": 299641,
-      "sha256": "sha256:847206868f387d3f37b2dc306005a44f29252b86d70d5a675a464abbc87e3c97"
+      "words": 25675,
+      "bytes": 299620,
+      "sha256": "sha256:88148e3f7906214a94afc9e366c5aebcef4dd0eaba3bf10faa9b8aff120db155"
     }
   ]
 }

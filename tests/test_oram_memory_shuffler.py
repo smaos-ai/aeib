@@ -356,7 +356,7 @@ def test_10_exact_mutation_boundaries(tmp_path):
     # Canonical JSON sorting and boolean checks (kills line 82 True perturbations)
     from src.oram_memory_shuffler import _canonical_json
     assert _canonical_json({"z": 1, "a": 2}) == b'{"a":2,"z":1}'
-    assert _canonical_json({"k": "\u2713"}) == b'{"k":"\\u2713"}'
+    assert _canonical_json({"k": "\u2713"}) == b'{"k":"\xe2\x9c\x93"}'
 
     # Test block_id == 0 exact boundary (kills line 463 constant 0 perturbation)
     db_zero = str(tmp_path / "oram_zero.db")

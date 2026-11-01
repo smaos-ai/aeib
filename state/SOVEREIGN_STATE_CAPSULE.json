@@ -1,6 +1,6 @@
 {
   "all_moats_bitmask": 4095,
-  "capsule_sha256": "a0643b90890916dede92344aa529882d6fe06c5fd23b2a77c3e7d670439420fb",
+  "capsule_sha256": "08c1897877f553abaeb3d9eefbc59cd3b587e0254b73f0fa99b2b5cabff56f68",
   "capsule_version": "5.2.0",
   "chain_presets": {
     "CHAIN-A_FINOPS_SPEED": {
@@ -59,7 +59,7 @@
       "title": "Full 12-Moat SovereignNexus Synthesis Chain"
     }
   },
-  "constant_time_state_string": "[SOVEREIGN_STATE_O1 v5.2 | Sections=41 | Modules=260 | TestSuites=317 | MoatMask=0xfff (0:EO1_LATCH|1:CONTEXTCART_AST|2:TOKEN_ECONOMIZER|3:RULETREK_DAG|4:TOYOTA_5WHY_RRF|5:BUILDER_BREAKER_T4PLUS|6:CREDENTIAL_STARVATION|7:UDS_PEERCRED|8:HYBRID_PQC_SCITT|9:ZK_TLS_BUDGET|10:BPF_SEATBELT_SUBSTRATE|11:ALPHAEVOLVE_MATH_SOLVER) | TokenCut=78.34% (Argon4:$4.43->$0.93, Cascade:$0.38, Flash3.8:$0.73->$0.15) | Gates=ZoneBoundary+ASTPurity+NoMock+500EpChaos]",
+  "constant_time_state_string": "[SOVEREIGN_STATE_O1 v5.2 | Sections=41 | Modules=363 | TestSuites=424 | MoatMask=0xfff (0:EO1_LATCH|1:CONTEXTCART_AST|2:TOKEN_ECONOMIZER|3:RULETREK_DAG|4:TOYOTA_5WHY_RRF|5:BUILDER_BREAKER_T4PLUS|6:CREDENTIAL_STARVATION|7:UDS_PEERCRED|8:HYBRID_PQC_SCITT|9:ZK_TLS_BUDGET|10:BPF_SEATBELT_SUBSTRATE|11:ALPHAEVOLVE_MATH_SOLVER) | TokenCut=78.34% (Argon4:$4.43->$0.93, Cascade:$0.38, Flash3.8:$0.73->$0.15) | Gates=ZoneBoundary+ASTPurity+NoMock+500EpChaos]",
   "external_ssd_state_dir": "/Volumes/EXTssd/SovereignNexus_Backup/sovereign-independent-state",
   "generated_at_epoch": 1761206400,
   "manifest_sections_count": 41,
@@ -161,8 +161,8 @@
       "name": "AlphaEvolve/FunSearch Priority Evolution & Erdos Combinatorial Prover"
     }
   ],
-  "src_modules_count": 179,
-  "test_suites_count": 317,
+  "src_modules_count": 264,
+  "test_suites_count": 424,
   "token_analytics": {
     "argon4_governed_usd": 0.93,
     "argon4_naive_usd": 4.43,
@@ -174,7 +174,7 @@
     "super_prompt_6vector_prefix_save_bps": 8333,
     "token_reduction_bps": 7834
   },
-  "tools_modules_count": 81,
+  "tools_modules_count": 99,
   "total_moats_count": 12,
   "workspace_root": "/Users/andriileukhin/Documents/SovereignNexus"
 }

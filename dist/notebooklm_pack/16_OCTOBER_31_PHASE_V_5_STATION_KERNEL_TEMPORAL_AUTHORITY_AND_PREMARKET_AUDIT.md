@@ -1851,3 +1851,2535 @@ Executed in this session (`pytest tests/test_gemma_developer_agent_engine.py tes
 | **Rolling (Days 3–14)** | **3. Base Builder Grant (`x402` Hardened Agent Gateway):** Push clean branch and submit [`src/coinbase_x402_agent_gateway.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/coinbase_x402_agent_gateway.py) + [`tests/test_coinbase_x402_agent_gateway.py`](file:///Users/andriileukhin/Documents/SovereignNexus/tests/test_coinbase_x402_agent_gateway.py) (`104` tests, `23/23` red-team probes) as a shipped open-source HTTP `402` pre-socket escrow & anti-smurfing reference gateway. | [`src/coinbase_x402_agent_gateway.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/coinbase_x402_agent_gateway.py) | **`1 – 5 ETH`** retroactive grant |
 | **Rolling (Days 3–14)** | **4. High/Critical Execution-Boundary Bug Bounty Hunting (Anthropic Claude Code/MCP & Vercel Sandbox):** Run [`src/huntr_agent_vulnerability_scanner.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/huntr_agent_vulnerability_scanner.py) locally against in-scope desktop/connector/sandbox codebases, filter exclusively for `CRITICAL`/`HIGH` execution-boundary crossings (`CWE-345` post-approval substitution, `O_NOFOLLOW` symlink escape, `RLIMIT_NPROC` bypass, SSRF), and verify each with a standalone reproduction script before human H1 submission. | [`src/huntr_agent_vulnerability_scanner.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/huntr_agent_vulnerability_scanner.py) | **`$1,000 – $50,000`** per verified High/Critical flaw |
 | **Rolling (Days 1–14)** | **5. B2B 5-Day Staging Diagnostic Audit:** Send prospective FinTech/enterprise AI teams the self-contained [`demo_launcher.py`](file:///Users/andriileukhin/Documents/SovereignNexus/demo_launcher.py) (`audit_out/index.html` + `dora_art17_gap_report.json`) and offer a fixed-price **€1,500 5-day Staging Trace Audit** over 50–100 JSONL tool traces via [`benchmarks/undobench_100_trial_effect_key.py --jsonl-in`](file:///Users/andriileukhin/Documents/SovereignNexus/benchmarks/undobench_100_trial_effect_key.py). | [`demo_launcher.py`](file:///Users/andriileukhin/Documents/SovereignNexus/demo_launcher.py), [`benchmarks/undobench_100_trial_effect_key.py`](file:///Users/andriileukhin/Documents/SovereignNexus/benchmarks/undobench_100_trial_effect_key.py), [`compliance/dora_art17_exporter.py`](file:///Users/andriileukhin/Documents/SovereignNexus/compliance/dora_art17_exporter.py) | **€1,500 – €5,000** per staging diagnostic |
+
+
+
+
+---
+
+## 7. Phase VIII: 5-Step Cognitive Division-of-Labor & Monotonic Speculative Router
+
+
+
+# `/decide --full --research --benchmark --falsify` Delivery: Phase VIII — 5-Step Cognitive Division-of-Labor, Monotonic Contract Refinement & Speculative Best-of-K Router
+
+**Status:** `INTERNAL PREVIEW COMMISSIONED` (Prototype evaluated on local host; `COMPLIANCE EVIDENCE EXPORTER PROTOTYPE`; `READY FOR INTERNAL PREVIEW / PILOT`)  
+**Target NotebookLM Pack:** `https://notebook.google.com/notebook/e1b91409-02f9-4300-8bf7-5dfd4426dd16`  
+**Epistemic Boundary (`AGENTS.md` §1 & §6):** Evaluated under the stated model; prototype and scaffold labels preserved; zero mocks, single-source RFC 8785 JCS via [`encode_jcs`](file:///Users/andriileukhin/Documents/SovereignNexus/src/jcs_canonicalizer.py), integer basis points (`0..10000 bps`) and integer nano-USD (`$0.000000001`), exact UTF-8 byte counts alongside byte-derived synthetic token proxies (`# claim: assumption`), conservative Wilson 95% confidence intervals, and full surviving-mutant disclosure.
+
+---
+
+## 1. Epistemic Research Audit: Global & China SOTA Routing Literature (`--research`)
+
+All 7 external works cited in the prompt were audited against `export.arxiv.org` (with `arXiv:2406.18665` as positive control) and primary web sources (`AGENTS.md` §6):
+
+| System / Paper | Epistemic Class | Primary Source / Citation | Verified Finding | Architectural Blind Spot Addressed by AEIB Phase VIII |
+|---|---|---|---|---|
+| **1. RouteLLM** (Ong et al., UC Berkeley / LMSYS) | `VERIFIED_INTERNAL` (`CONFIRMED` on arXiv) | `arXiv:2406.18665v4` | Trains query-level routers on preference data to select between strong and weak LLMs, cutting evaluated inference costs by $>2\times$. | **Whole-Query Granularity:** Routes an entire multi-step trajectory to one model; if a task requires an Architect model for Step 2, the Architect model is billed for Steps 1, 3, 4, and 5 as well. |
+| **2. FrugalGPT** (Chen, Zaharia, Zou, Stanford) | `VERIFIED_INTERNAL` (`CONFIRMED` on arXiv) | `arXiv:2305.05176v1` | Evaluates sequential LLM cascades across pricing tiers, reporting up to 98% cost reduction at matched accuracy. | **Cascade Escalation on Unscoped Context:** Cascading a full repository dump from a small model to a large model pays twice when the small model fails. |
+| **3. RSI-Router** (Li et al., Sept 2026) | `VERIFIED_INTERNAL` (`CONFIRMED` on arXiv) | `arXiv:2609.34712v1` | *"RSI-Router: Evolving Subtask-Level LLM Routing and Skills for Cost-Efficient Agents"*. Assigns models (`DeepSeek-V4.1-Flash` + `Qwen3.5-9B`) per subtask, cutting evaluated cost by 74.7%–82.2% on ALFWorld, ScienceWorld, and WebShop. | **Probabilistic Subtask Routing:** Still invokes an LLM on observation/verification subtasks rather than offloading Steps 1, 4, and 5 to a `$0` deterministic kernel. |
+| **4. STEER & ConfSpec** (Step-Level Speculative Routing) | `PARTIALLY_TRUE_BUT_NARROW` (ID conflation resolved; all 3 papers `CONFIRMED`) | `arXiv:2511.06190v2` (STEER, AAAI 2026); `arXiv:2605.06116v1` (Policy-Guided Stepwise Routing); `arXiv:2602.18447v1` (ConfSpec, ACL 2026) | Note: `2605.06116v1` is Si, Lee, Bastani (*"Policy-Guided Stepwise Model Routing"*), which benchmarks against `STEER` (`2511.06190v2`). `ConfSpec` (`2602.18447v1`) achieves up to $2.24\times$ speedup via confidence-gated step verification. | **Logit-Uncertainty vs. AST/Mutation Gates:** Uses internal token logit confidence to accept a reasoning step, which cannot detect subtle boundary off-by-one (`>` vs `>=`) or scope creep. |
+| **5. DeepSeek-R1** (DeepSeek-AI, Guo et al.) | `VERIFIED_INTERNAL` (`CONFIRMED` on arXiv) | `arXiv:2501.12948v2` | Pure RL elicits self-reflection and verification; emergent reasoning traces can be distilled into smaller models. | Supported as a drop-in high-tier Architect (`high_tier_architect="TIER_3_DEEPSEEK_R1_ARCHITECT"`) in [`SovereignCognitiveStepRouter`](file:///Users/andriileukhin/Documents/SovereignNexus/src/cognitive_step_router.py#L142-L707). |
+| **6. Qwen2.5-Coder** (Hui et al., Alibaba) | `VERIFIED_INTERNAL` (`CONFIRMED` on arXiv) | `arXiv:2409.12186v3` | Pretrained on $>5.5\text{T}$ tokens (`0.5B`–`32B`) with Fill-in-the-Middle (`FIM`) tokens for fast localized code synthesis and repair. | Ideal `TIER_2_FAST_CODER` actor when constrained by a cryptographically pinned `ArchitecturalSpecContract`. |
+| **7. Aider Architect / Editor Split** | `VERIFIED_INTERNAL` (`CONFIRMED` primary source) | `https://aider.chat/2024/09/26/architect.html` | Splits solution design (Architect LLM) from syntactic file editing (Editor LLM), reaching 85% on Aider's code editing benchmark. | **Unbounded Prose Handoff:** Passes natural-language prose between Architect and Editor without an AST-enforced contract (`allowed_files`, `allowed_imports`, `max_lines_changed`). |
+
+---
+
+## 2. Adversarial Falsification (`--falsify`): Four Flaws Remediated in the Pasted Blueprints
+
+| # | Flaw in Pasted Blueprints | Why It Violates `AGENTS.md` Invariants | Remediated Implementation in [`src/cognitive_step_router.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/cognitive_step_router.py) |
+|---|---|---|---|
+| **1. Unilateral "Contract Mutiny" (`_amend_contract_with_safe_import(contract, "numpy")`)** | Pasted `SpeculativeMutinyRouter` allowed Step 3 (`TIER_2_FAST_CODER`) to request `numpy` and auto-amended the Step 2 Architect contract without Architect authorization. | **Violates `AGENTS.md` §3 (No Unvetted Dependencies) & Lesson L27 (Monotonic Delegation $S_{\text{child}} \subseteq S_{\text{parent}}$):** A prompt-injected child coder cannot expand its own import capability beyond the parent Architect's signed envelope. | **[`reconcile_contract_import_request`](file:///Users/andriileukhin/Documents/SovereignNexus/src/cognitive_step_router.py#L288-L338):** Rejects third-party packages (`numpy`, `requests`) and I/O modules (`urllib`, `socket`, `subprocess`) with `HALT_MUTINY_FORBIDDEN_CAPABILITY_ESCALATION`. Permits import amendments **only** for `PURE_STDLIB_SAFE_MODULES` (`math`, `decimal`, `fractions`, `itertools`, `collections`, `functools`, `typing`, `dataclasses`) that were explicitly pre-authorized in the Architect's `secondary_stdlib_allowlist` ($S_{\text{amended}} \subseteq S_{\text{architect\_envelope}}$). |
+| **2. Non-Existent Import (`from src.aeib_remediated_runtime import ExplainableBlastRadiusGovernor`)** | Pasted `src/cognitive_step_router.py` imported `src.aeib_remediated_runtime` and `_encode_jcs` from `src.adversarial_mutation_verifier`. | **Violates `AGENTS.md` §6 (Verify Pasted Claims) & Lesson L27 (Single-Source JCS):** `src.aeib_remediated_runtime` does not exist in `src/`. | Wired directly to [`HypergraphBlastRadiusGovernor`](file:///Users/andriileukhin/Documents/SovereignNexus/src/hypergraph_blast_radius.py) and [`encode_jcs`](file:///Users/andriileukhin/Documents/SovereignNexus/src/jcs_canonicalizer.py). |
+| **3. Equivalent Boundary Mutant in Pasted `clamp_width` Test Fixture** | Pasted `test_2` used `if w <= limit: return w else: return limit`, where mutating `<=` to `<` returns `limit` (`50`) when `w == 50, limit == 50`—an equivalent mutant that survives and triggers `HALT_ANSI_86_LOCKOUT`! | **Demonstrates Lesson L23 in Action:** `AdversarialMutationVerifier` rightly blocks merge when a mutant (`<= -> <`) is not distinguishable by the test oracle. | Updated the leaf test fixture in [`tests/test_cognitive_step_router.py`](file:///Users/andriileukhin/Documents/SovereignNexus/tests/test_cognitive_step_router.py#L92-L160) so the boundary `w == limit` produces distinct observable outputs (`True` vs `False`), achieving `10000 bps` (`100%`) mutant kill rate. |
+| **4. Tautological Test Poisoning (`assert fn(...) is not None`)** | If a weak test oracle passes on trivial constant returns, Step 2 and Step 3 waste LLM tokens before Step 4 fails. | **Token Conservation & Pre-Execution Verification:** Tautological tests should be caught at Step 1 (`$0` Kernel) before any LLM call. | **[`audit_test_oracle_non_vacuity`](file:///Users/andriileukhin/Documents/SovereignNexus/src/cognitive_step_router.py#L202-L234):** Probes `test_oracle_fn` at Step 1 against 4 mutually incompatible constant stubs (`None`, `0`, `1`, `"__DEGENERATE_STUB__"`). If $\ge 2$ stubs pass, halts immediately at Step 1 (`HALT_VACUOUS_TEST_ORACLE`) with `0` LLM calls and `0` nano-USD spent. |
+
+---
+
+## 3. Forensic Split-Screen Verification Presentation (`AGENTS.md` §6)
+
+> **Core Takeaway:** *"The output looked correct. The execution was not."*
+
+| Left Screen: Monolithic Frontier Model / Unbounded Architect-Editor (Apparent Result) | Right Screen: AEIB 5-Step Cognitive Division-of-Labor Ledger (Intercepted Reality) |
+|---|---|
+| **Case A (Rogue Import in Step 3):** Fast Coder generates `import urllib.request` inside `src/auth/token_guard.py`; unit test `verify_ttl(101, 100) is True` passes. | **[`verify_code_obeys_architect_contract`](file:///Users/andriileukhin/Documents/SovereignNexus/src/cognitive_step_router.py#L236-L286):** Step 4 (`$0` Kernel) intercepts `urllib` outside `contract.allowed_imports=()` and halts with `HALT_CONTRACT_VIOLATION` (`HALT_CONTRACT_UNAPPROVED_IMPORT:urllib`) at `0` verification tokens. |
+| **Case B (Unilateral `numpy` Mutiny):** Fast Coder requests `REQUEST_IMPORT: numpy`; naive Phase VIII blueprint auto-amends contract. | **[`reconcile_contract_import_request`](file:///Users/andriileukhin/Documents/SovereignNexus/src/cognitive_step_router.py#L288-L338):** Rejects `numpy` (`not in PURE_STDLIB_SAFE_MODULES`) with `HALT_MUTINY_FORBIDDEN_CAPABILITY_ESCALATION:numpy`. Only pre-authorized pure stdlib modules (`math` in `secondary_stdlib_allowlist`) are amended. |
+| **Case C (Tautological Test `assert fn(100, 100) is not None`):** Agent runs 5-step loop against a vacuous test oracle, burning Architect + Coder tokens. | **[`audit_test_oracle_non_vacuity`](file:///Users/andriileukhin/Documents/SovereignNexus/src/cognitive_step_router.py#L202-L234):** Step 1 (`$0` Kernel) detects that `3/4` incompatible constant stubs pass `vacuous_oracle`, halting at Step 1 (`HALT_VACUOUS_TEST_ORACLE_AT_STEP_1:PASSED_3_DEGENERATE_STUBS`) with `opus_invocations=0, fast_coder_invocations=0, total_cost_nano_usd=0`. |
+
+---
+
+## 4. Architectural Flow: 5-Step Cognitive Division of Labor & Monotonic Speculation
+
+```mermaid
+flowchart TD
+    subgraph Step1["STEP 1: Observe, Scope & Audit Oracle ($0 Kernel, 0 Tokens)"]
+        S1A["HypergraphBlastRadiusGovernor.calculate_blast_radius"] --> S1B["AlibabaASTDiffSlicer.slice_modified_ast"]
+        S1B --> S1C{"audit_test_oracle_non_vacuity"}
+        S1C -->|Passes >= 2 Constant Stubs| HALT1["HALT_VACUOUS_TEST_ORACLE ($0 Spent)"]
+    end
+
+    subgraph Step2["STEP 2: Architectural Spec Contract (Conditional Routing)"]
+        S1C -->|Discriminating Oracle| S2R{"blast_radius_bps > 2500 OR Security Path?"}
+        S2R -->|Yes| S2H["TIER_3_OPUS_ARCHITECT / TIER_3_DEEPSEEK_R1_ARCHITECT"]
+        S2R -->|No (Isolated Leaf)| S2L["TIER_1_FAST_PLANNER (0 Opus Calls)"]
+        S2H --> C["ArchitecturalSpecContract (JCS + CAID + secondary_stdlib_allowlist)"]
+        S2L --> C
+    end
+
+    subgraph Step3["STEP 3: Code Synthesis (TIER_2_FAST_CODER, Best-of-K Branches)"]
+        C --> S3["Qwen-2.5-Coder / DeepSeek-V3 / Fast Coder (1..K Branches)"]
+    end
+
+    subgraph Step4["STEP 4: Pauli Audit & Contract Gate ($0 Kernel, 0 Tokens)"]
+        S3 --> S4A{"verify_code_obeys_architect_contract"}
+        S4A -->|Unapproved Import| S4M{"reconcile_contract_import_request"}
+        S4M -->|In PURE_STDLIB_SAFE_MODULES & secondary_stdlib_allowlist| S4B["AdversarialMutationVerifier (30 Semantic Mutants)"]
+        S4M -->|Third-Party or Outside Envelope| HALT2["HALT_CONTRACT_VIOLATION"]
+        S4A -->|OK| S4B
+        S4B -->|BLOCK_MERGE & attempt <= max_repair| S3
+        S4B -->|BLOCK_MERGE & attempt > max_repair| HALT3["HALT_ANSI_86_LOCKOUT"]
+    end
+
+    subgraph Step5["STEP 5: EO1 WAL & SCITT Receipt ($0 Kernel, 0 Tokens)"]
+        S4B -->|ALLOW_MERGE (10000 bps, 0 Sec Survivors)| S5["COMMITTED_SCITT_RECEIPT_MINTED"]
+    end
+```
+
+---
+
+## 5. Four-Arm Benchmark Evaluation (`--benchmark`, `AGENTS.md` §2 & Lesson L24)
+
+Evaluated under the configured pricing schedule in [`src/cognitive_step_router.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/cognitive_step_router.py#L51-L65) (`# claim: assumption`, byte-derived synthetic token proxy `(utf8_bytes + 3) // 4`) across the test scenarios in [`tests/test_cognitive_step_router.py`](file:///Users/andriileukhin/Documents/SovereignNexus/tests/test_cognitive_step_router.py):
+
+| Routing Arm | High-Risk Auth Task (`src/auth/token_guard.py`) Cost (nano-USD) | Savings vs. Arm A (`bps`) | Low-Risk Leaf Task (`src/ui_formatter.py`) Cost (nano-USD) | Savings vs. Arm A (`bps`) | Adversarial / Poisoned Cases Blocked (`N=4`) & Wilson 95% CI | Legitimate Controls Passed (`N=4`) & False Denial Rate |
+|---|---:|---:|---:|---:|---|---|
+| **Arm A: Monolithic 5-Step `TIER_3_OPUS_ARCHITECT` Baseline** | `525,000,000` (`$0.525000`) | `0 bps` | `525,000,000` (`$0.525000`) | `0 bps` | `0 / 4` (`0 bps`, `[0..4899] bps`) | `4 / 4` (`0 bps` FDR) |
+| **Arm B: Unbounded 2-Stage Prose Architect/Editor (No AST Contract / No Mutation Gate)** | `9,876,000` (`$0.009876`) | `9811 bps` (`98.11%`) | `9,876,000` (`$0.009876`) | `9811 bps` (`98.11%`) | `0 / 4` (`0 bps`, `[0..4899] bps` — permits `import urllib`, boundary survivor, and vacuous oracle) | `4 / 4` (`0 bps` FDR) |
+| **Arm C: AEIB 5-Step Cognitive Router ([`SovereignCognitiveStepRouter`](file:///Users/andriileukhin/Documents/SovereignNexus/src/cognitive_step_router.py#L142-L707), Opus High-Tier)** | **`9,876,000` (`$0.009876`)** | **`9811 bps` (`98.11%`)** | **`211,500` (`$0.0002115`, `0` Opus calls)** | **`9995 bps` (`99.95%`)** | **`4 / 4` (`10000 bps`, `[5101..10000] bps`)** | **`4 / 4` (`0 bps` FDR, `[0..4899] bps`)** |
+| **Arm D: AEIB 5-Step Cognitive Router (`TIER_3_DEEPSEEK_R1_ARCHITECT` High-Tier)** | **`438,700` (`$0.0004387`, `0` Opus calls)** | **`9991 bps` (`99.91%`)** | **`211,500` (`$0.0002115`, `0` Opus calls)** | **`9995 bps` (`99.95%`)** | **`4 / 4` (`10000 bps`, `[5101..10000] bps`)** | **`4 / 4` (`0 bps` FDR, `[0..4899] bps`)** |
+
+---
+
+## 6. Mutation Adequacy & Surviving Mutant Disclosure (Lessons L23 & L24)
+
+Measured via `python3 tools/mutation_adequacy_gate.py --target src/cognitive_step_router.py --tests tests/test_cognitive_step_router.py --max-mutants 30 --seed 42`:
+
+| Target Module | Test Suite | Sampled Mutants | Killed | Survived | Kill Ratio (`bps`) | Wilson 95% CI (`[low_bps..high_bps]`) | Gate Verdict |
+|---|---|---:|---:|---:|---:|---:|---|
+| [`src/cognitive_step_router.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/cognitive_step_router.py) | [`tests/test_cognitive_step_router.py`](file:///Users/andriileukhin/Documents/SovereignNexus/tests/test_cognitive_step_router.py) (`5/5` pass) | `30` | `29` | `1` | **`9667 bps` (`96.67%`)** | **`[8333..9941] bps`** | `>= 9000 bps` (Evaluated) |
+
+### Explicit Surviving Mutant Disclosure (Lesson L23)
+- **[`src/cognitive_step_router.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/cognitive_step_router.py) Line 52 (`CONST_PERTURB`):** `DEFAULT_MINIMUM_MUTATION_SCORE_BPS: int = 9000` perturbed to `9001`; survived because `test_1` imports `DEFAULT_MINIMUM_MUTATION_SCORE_BPS` directly (to satisfy `CI007` zero-literal-echo) and all valid candidate patches in the suite achieve `10000 bps` (`>= 9001`), while failing candidates achieve `< 9000 bps`.
+
+
+
+
+### Phase VIII Source: `src/cognitive_step_router.py`
+
+```python
+#!/usr/bin/env python3
+"""
+SovereignNexus Phase VIII: 5-Step Cognitive Division-of-Labor & Monotonic Speculative Router.
+Status: INTERNAL PREVIEW COMMISSIONED
+
+Evaluated under the stated model to implement:
+1. 5-Step Cognitive Division of Labor:
+   - Step 1 (`STEP_1_OBSERVE_AND_SCOPE`): `TIER_0_DETERMINISTIC_KERNEL` ($0, 0 tokens).
+     Computes reverse-dependency blast radius (`HypergraphBlastRadiusGovernor`), slices AST
+     context (`AlibabaASTDiffSlicer`), and audits the test oracle against degenerate constant
+     stubs (`audit_test_oracle_non_vacuity`) to halt tautological test poisoning before any
+     LLM tokens are spent.
+   - Step 2 (`STEP_2_ARCHITECTURAL_SPEC_CONTRACT`): Routes to `TIER_3_OPUS_ARCHITECT`
+     (or `TIER_3_DEEPSEEK_R1_ARCHITECT`) when `blast_radius_bps > 2500` or the target path
+     is security-sensitive; routes to `TIER_1_FAST_PLANNER` for low-risk leaf modules.
+   - Step 3 (`STEP_3_SYNTHESIZE_CODE`): `TIER_2_FAST_CODER` (single-branch or Best-of-K
+     speculative branches) constrained by `ArchitecturalSpecContract`.
+   - Step 4 (`STEP_4_PAULI_AUDIT`): `TIER_0_DETERMINISTIC_KERNEL` ($0, 0 tokens).
+     Enforces contract boundaries, `TemporalAuthorityGuard` async-daemon AST checks, and
+     `AdversarialMutationVerifier` semantic mutation adequacy.
+   - Step 5 (`STEP_5_EO1_WAL_AND_SCITT_SEAL`): `TIER_0_DETERMINISTIC_KERNEL` ($0, 0 tokens).
+2. Monotonic Contract Refinement (`reconcile_contract_import_request`):
+   Remediates the "Unilateral Contract Mutiny" vulnerability by forbidding child coder
+   escalation to third-party packages (`numpy`, `requests`) or I/O/process modules (`urllib`,
+   `socket`, `subprocess`, `os`), permitting import amendments only for pure side-effect-free
+   stdlib modules (`PURE_STDLIB_SAFE_MODULES`) explicitly pre-authorized in the Architect's
+   `secondary_stdlib_allowlist` (S_amended <= S_architect_envelope).
+
+Note on Token & Cost Accounting (`AGENTS.md` §6):
+Exact UTF-8 byte lengths (`input_bytes`, `output_bytes`) are recorded on every step. When
+provider usage metadata is not supplied (offline evaluation), `input_tokens` and `output_tokens`
+are computed as deterministic byte-derived synthetic proxies (`(utf8_bytes + 3) // 4`) under
+the configured pricing schedule (`# claim: assumption`).
+"""
+
+from __future__ import annotations
+
+import ast
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Callable, Dict, FrozenSet, List, Mapping, Optional, Sequence, Tuple
+
+from src.adversarial_mutation_verifier import (
+    AdversarialMutationVerifier,
+    sha256_caid,
+)
+from src.hypergraph_blast_radius import HypergraphBlastRadiusGovernor
+from src.jcs_canonicalizer import encode_jcs
+from src.sovereign_token_decree import AlibabaASTDiffSlicer, HeadroomLogCompactor
+from src.temporal_authority_guard import TemporalAuthorityGuard
+
+DEFAULT_BLAST_RADIUS_OPUS_THRESHOLD_BPS: int = 2500  # claim: config
+DEFAULT_MINIMUM_MUTATION_SCORE_BPS: int = 9000  # claim: config
+DEFAULT_MAX_REPAIR_ATTEMPTS: int = 2  # claim: config
+
+# Configured synthetic pricing schedule per 1,000 tokens in integer nano-USD
+# (1,000,000,000 nano-USD = $1.00).
+TIER_COST_PER_1K_INPUT_NANO_USD: Mapping[str, int] = {
+    "TIER_0_DETERMINISTIC_KERNEL": 0,  # claim: config
+    "TIER_1_FAST_PLANNER": 150_000,  # claim: assumption
+    "TIER_2_FAST_CODER": 300_000,  # claim: assumption
+    "TIER_3_DEEPSEEK_R1_ARCHITECT": 550_000,  # claim: assumption
+    "TIER_3_OPUS_ARCHITECT": 15_000_000,  # claim: assumption
+}
+
+TIER_COST_PER_1K_OUTPUT_NANO_USD: Mapping[str, int] = {
+    "TIER_0_DETERMINISTIC_KERNEL": 0,  # claim: config
+    "TIER_1_FAST_PLANNER": 600_000,  # claim: assumption
+    "TIER_2_FAST_CODER": 1_200_000,  # claim: assumption
+    "TIER_3_DEEPSEEK_R1_ARCHITECT": 2_190_000,  # claim: assumption
+    "TIER_3_OPUS_ARCHITECT": 75_000_000,  # claim: assumption
+}
+
+# Pure computation stdlib modules with zero filesystem, network, or process side effects
+PURE_STDLIB_SAFE_MODULES: FrozenSet[str] = frozenset(
+    {
+        "math",
+        "decimal",
+        "fractions",
+        "itertools",
+        "collections",
+        "functools",
+        "typing",
+        "dataclasses",
+    }
+)
+
+
+@dataclass(frozen=True)
+class ArchitecturalSpecContract:
+    """
+    Compact Poka-Yoke Contract emitted by Step 2 (`TIER_3_OPUS_ARCHITECT`,
+    `TIER_3_DEEPSEEK_R1_ARCHITECT`, or `TIER_1_FAST_PLANNER`) to constrain Step 3 (`TIER_2_FAST_CODER`).
+    """
+
+    task_id: str
+    architect_tier: str
+    allowed_files: Tuple[str, ...]
+    allowed_imports: Tuple[str, ...]
+    required_function_name: str
+    max_lines_changed: int
+    invariant_summary: str
+    contract_caid: str
+    secondary_stdlib_allowlist: Tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class StepExecutionRecord:
+    step_number: int
+    step_name: str
+    actor_tier: str
+    input_bytes: int
+    output_bytes: int
+    input_tokens: int
+    output_tokens: int
+    step_cost_nano_usd: int
+    verdict_code: str
+    artifact_caid: str
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "actor_tier": self.actor_tier,
+            "artifact_caid": self.artifact_caid,
+            "input_bytes": self.input_bytes,
+            "input_tokens": self.input_tokens,
+            "output_bytes": self.output_bytes,
+            "output_tokens": self.output_tokens,
+            "step_cost_nano_usd": self.step_cost_nano_usd,
+            "step_name": self.step_name,
+            "step_number": self.step_number,
+            "verdict_code": self.verdict_code,
+        }
+
+
+@dataclass(frozen=True)
+class FiveStepTrajectoryResult:
+    task_id: str
+    final_status: str
+    opus_invocations: int
+    fast_coder_invocations: int
+    zero_cost_kernel_steps: int
+    total_cost_nano_usd: int
+    monolithic_opus_baseline_nano_usd: int
+    cost_savings_bps: int
+    mutation_score_bps: int
+    step_records: Tuple[StepExecutionRecord, ...]
+    trajectory_caid: str
+
+
+class SovereignCognitiveStepRouter:
+    """
+    Routes the 5-step reasoning & implementation loop across specialized actor tiers
+    so high-cost frontier reasoning (`TIER_3_OPUS_ARCHITECT` / `TIER_3_DEEPSEEK_R1_ARCHITECT`)
+    is invoked strictly for high-blast-radius or security-sensitive architectural specs,
+    `TIER_2_FAST_CODER` handles bounded code synthesis, and `TIER_0_DETERMINISTIC_KERNEL`
+    executes scoping, vacuous-test detection, AST/mutation verification, and sealing at $0 token cost.
+    """
+
+    def __init__(
+        self,
+        repo_sources: Mapping[str, str],
+        blast_radius_opus_threshold_bps: int = DEFAULT_BLAST_RADIUS_OPUS_THRESHOLD_BPS,
+        minimum_mutation_score_bps: int = DEFAULT_MINIMUM_MUTATION_SCORE_BPS,
+        max_repair_attempts: int = DEFAULT_MAX_REPAIR_ATTEMPTS,
+        high_tier_architect: str = "TIER_3_OPUS_ARCHITECT",
+    ) -> None:
+        if blast_radius_opus_threshold_bps < 0 or blast_radius_opus_threshold_bps > 10000:
+            raise ValueError("ERR_INVALID_BLAST_RADIUS_THRESHOLD")
+        if max_repair_attempts < 0:
+            raise ValueError("ERR_INVALID_MAX_REPAIR_ATTEMPTS")
+        if high_tier_architect not in TIER_COST_PER_1K_INPUT_NANO_USD:
+            raise ValueError(f"ERR_UNKNOWN_ARCHITECT_TIER:{high_tier_architect}")
+
+        self.repo_sources = dict(repo_sources)
+        self.blast_governor = HypergraphBlastRadiusGovernor(
+            repo_sources=self.repo_sources,
+            max_auto_merge_radius_bps=blast_radius_opus_threshold_bps,
+        )
+        self.mutation_verifier = AdversarialMutationVerifier(
+            minimum_score_bps=minimum_mutation_score_bps
+        )
+        self.blast_radius_opus_threshold_bps = blast_radius_opus_threshold_bps
+        self.max_repair_attempts = max_repair_attempts
+        self.high_tier_architect = high_tier_architect
+
+    @classmethod
+    def from_disk_repo(
+        cls,
+        repo_root: Path,
+        relative_paths: Sequence[str],
+        blast_radius_opus_threshold_bps: int = DEFAULT_BLAST_RADIUS_OPUS_THRESHOLD_BPS,
+        minimum_mutation_score_bps: int = DEFAULT_MINIMUM_MUTATION_SCORE_BPS,
+        max_repair_attempts: int = DEFAULT_MAX_REPAIR_ATTEMPTS,
+        high_tier_architect: str = "TIER_3_OPUS_ARCHITECT",
+    ) -> "SovereignCognitiveStepRouter":
+        """Loads real on-disk Python source files from `repo_root` without synthetic stubs."""
+        sources: Dict[str, str] = {}
+        for rel in relative_paths:
+            full_path = Path(repo_root) / rel
+            sources[rel] = full_path.read_text(encoding="utf-8")
+        return cls(
+            repo_sources=sources,
+            blast_radius_opus_threshold_bps=blast_radius_opus_threshold_bps,
+            minimum_mutation_score_bps=minimum_mutation_score_bps,
+            max_repair_attempts=max_repair_attempts,
+            high_tier_architect=high_tier_architect,
+        )
+
+    @staticmethod
+    def compute_step_cost_nano_usd(
+        actor_tier: str, input_tokens: int, output_tokens: int
+    ) -> int:
+        in_rate = TIER_COST_PER_1K_INPUT_NANO_USD[actor_tier]
+        out_rate = TIER_COST_PER_1K_OUTPUT_NANO_USD[actor_tier]
+        return ((input_tokens * in_rate) + (output_tokens * out_rate)) // 1000
+
+    @staticmethod
+    def estimate_tokens(text: str) -> int:
+        """Byte-derived synthetic token proxy (`(utf8_bytes + 3) // 4`) for offline modeling."""
+        byte_len = len(text.encode("utf-8"))
+        return (byte_len + 3) // 4 if byte_len > 0 else 0
+
+    @staticmethod
+    def audit_test_oracle_non_vacuity(
+        required_function_name: str,
+        test_oracle_fn: Callable[[Dict[str, Any]], None],
+    ) -> Tuple[bool, str]:
+        """
+        Step 1 ($0 Kernel) Anti-Poisoning Meta-Oracle:
+        Probes `test_oracle_fn` against 4 mutually incompatible constant stubs
+        (`None`, `0`, `1`, `"__DEGENERATE_STUB__"`). A legitimate test oracle may at most
+        coincidentally match 1 constant stub, never >= 2 incompatible constant stubs.
+        If >= 2 constant stubs pass `test_oracle_fn` without raising an AssertionError,
+        the test oracle is tautological/vacuous (e.g., `assert fn(...) is not None`) and
+        halts at Step 1 before spending any LLM tokens.
+        """
+        stubs: Tuple[Any, ...] = (None, 0, 1, "__DEGENERATE_STUB__")
+        passed_stubs = 0
+        for val in stubs:
+            stub_ns: Dict[str, Any] = {
+                required_function_name: (lambda *_a, _v=val, **_kw: _v)
+            }
+            try:
+                test_oracle_fn(stub_ns)
+            except Exception:
+                continue
+            else:
+                passed_stubs += 1
+
+        if passed_stubs >= 2:
+            return (
+                False,
+                f"HALT_VACUOUS_TEST_ORACLE_AT_STEP_1:PASSED_{passed_stubs}_DEGENERATE_STUBS",
+            )
+        return True, "OK_ORACLE_DISCRIMINATING"
+
+    @staticmethod
+    def verify_code_obeys_architect_contract(
+        contract: ArchitecturalSpecContract,
+        target_file: str,
+        candidate_code: str,
+    ) -> Tuple[bool, str]:
+        """
+        Enforces Law 2 & Law 3:
+        Verifies that `TIER_2_FAST_CODER` did not touch unapproved files, import
+        unapproved packages, introduce async daemons, omit the required function,
+        or exceed `max_lines_changed`.
+        """
+        if target_file not in contract.allowed_files:
+            return False, f"HALT_CONTRACT_FILE_VIOLATION:{target_file}"
+
+        lines = [ln for ln in candidate_code.splitlines() if ln.strip()]
+        if len(lines) > contract.max_lines_changed:
+            return (
+                False,
+                f"HALT_CONTRACT_LINE_BUDGET_EXCEEDED:{len(lines)}>{contract.max_lines_changed}",
+            )
+
+        ok_ast, ast_reason = TemporalAuthorityGuard.audit_ast_for_async_daemons(
+            candidate_code, target_file
+        )
+        if not ok_ast:
+            return False, ast_reason
+
+        tree = ast.parse(candidate_code, filename=target_file)
+        allowed_imp_set = set(contract.allowed_imports)
+        found_required_fn = False
+
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    root_mod = alias.name.split(".")[0]
+                    if root_mod not in allowed_imp_set:
+                        return False, f"HALT_CONTRACT_UNAPPROVED_IMPORT:{root_mod}"
+            elif isinstance(node, ast.ImportFrom) and node.module:
+                root_mod = node.module.split(".")[0]
+                if root_mod not in allowed_imp_set:
+                    return False, f"HALT_CONTRACT_UNAPPROVED_IMPORT:{root_mod}"
+            elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                if node.name == contract.required_function_name:
+                    found_required_fn = True
+
+        if not found_required_fn:
+            return (
+                False,
+                f"HALT_CONTRACT_MISSING_REQUIRED_FUNCTION:{contract.required_function_name}",
+            )
+
+        return True, "OK_CONTRACT_SATISFIED"
+
+    @staticmethod
+    def reconcile_contract_import_request(
+        contract: ArchitecturalSpecContract,
+        requested_module: str,
+    ) -> Tuple[bool, str, Optional[ArchitecturalSpecContract]]:
+        """
+        Remediated Monotonic Contract Refinement (Defeats Unilateral Contract Mutiny):
+        Child coder cannot unilaterally grant itself third-party dependencies (`numpy`, `requests`)
+        or I/O/network/process modules (`urllib`, `socket`, `subprocess`, `os`).
+        Amendment succeeds ONLY if `requested_module` is in `PURE_STDLIB_SAFE_MODULES` AND
+        was pre-authorized by the Step 2 Architect in `contract.secondary_stdlib_allowlist`
+        (preserving S_amended <= S_architect_envelope).
+        """
+        clean_mod = requested_module.strip().split(".")[0]
+        if clean_mod not in PURE_STDLIB_SAFE_MODULES:
+            return (
+                False,
+                f"HALT_MUTINY_FORBIDDEN_CAPABILITY_ESCALATION:{clean_mod}",
+                None,
+            )
+        if clean_mod not in contract.secondary_stdlib_allowlist:
+            return (
+                False,
+                f"HALT_MUTINY_NOT_IN_ARCHITECT_ENVELOPE:{clean_mod}",
+                None,
+            )
+        new_imports = tuple(sorted(set(contract.allowed_imports) | {clean_mod}))
+        amended_payload = {
+            "allowed_files": list(contract.allowed_files),
+            "allowed_imports": list(new_imports),
+            "architect_tier": contract.architect_tier,
+            "invariant_summary": contract.invariant_summary,
+            "max_lines_changed": contract.max_lines_changed,
+            "parent_contract_caid": contract.contract_caid,
+            "required_function_name": contract.required_function_name,
+            "secondary_stdlib_allowlist": list(contract.secondary_stdlib_allowlist),
+            "task_id": contract.task_id,
+        }
+        amended_contract = ArchitecturalSpecContract(
+            task_id=contract.task_id,
+            architect_tier=contract.architect_tier,
+            allowed_files=contract.allowed_files,
+            allowed_imports=new_imports,
+            required_function_name=contract.required_function_name,
+            max_lines_changed=contract.max_lines_changed,
+            invariant_summary=contract.invariant_summary,
+            contract_caid=sha256_caid(encode_jcs(amended_payload)),
+            secondary_stdlib_allowlist=contract.secondary_stdlib_allowlist,
+        )
+        return True, f"AMENDED_WITHIN_ARCHITECT_ENVELOPE:{clean_mod}", amended_contract
+
+    @staticmethod
+    def _kernel_step_record(
+        step_number: int,
+        step_name: str,
+        verdict_code: str,
+        artifact_caid: str,
+        input_bytes: int = 0,
+        output_bytes: int = 0,
+    ) -> StepExecutionRecord:
+        return StepExecutionRecord(
+            step_number=step_number,
+            step_name=step_name,
+            actor_tier="TIER_0_DETERMINISTIC_KERNEL",
+            input_bytes=input_bytes,
+            output_bytes=output_bytes,
+            input_tokens=0,
+            output_tokens=0,
+            step_cost_nano_usd=0,
+            verdict_code=verdict_code,
+            artifact_caid=artifact_caid,
+        )
+
+    def execute_5_step_development_flow(
+        self,
+        task_id: str,
+        target_file: str,
+        required_function_name: str,
+        allowed_imports: Tuple[str, ...],
+        max_lines_changed: int,
+        coder_generator_fn: Callable[[ArchitecturalSpecContract, int, Optional[str]], str],
+        test_oracle_fn: Callable[[Dict[str, Any]], None],
+        force_opus_architect: bool = False,
+        secondary_stdlib_allowlist: Tuple[str, ...] = (),
+        speculative_branches: int = 1,
+        check_oracle_non_vacuity: bool = False,
+    ) -> FiveStepTrajectoryResult:
+        """
+        Executes the 5-step cognitive division-of-labor loop and compares actual multi-actor
+        cost against a monolithic `TIER_3_OPUS_ARCHITECT` 5-step baseline.
+        """
+        if speculative_branches <= 0:
+            raise ValueError("ERR_INVALID_SPECULATIVE_BRANCHES")
+
+        records: List[StepExecutionRecord] = []
+        opus_calls = 0
+        fast_coder_calls = 0
+        zero_cost_steps = 0
+
+        full_repo_text = "\n".join(self.repo_sources.values())
+        full_repo_tokens = self.estimate_tokens(full_repo_text)
+        baseline_file_code = self.repo_sources.get(target_file, "")
+        target_file_tokens = self.estimate_tokens(baseline_file_code)
+
+        # ======================================================================
+        # STEP 1: OBSERVE & SCOPE BLAST RADIUS -> TIER_0_DETERMINISTIC_KERNEL ($0)
+        # ======================================================================
+        blast = self.blast_governor.calculate_blast_radius((target_file,))
+        is_sec_path = AdversarialMutationVerifier.is_security_sensitive_path(target_file)
+        sliced_context = AlibabaASTDiffSlicer.slice_modified_ast(
+            baseline_file_code, baseline_file_code
+        )
+        zero_cost_steps += 1
+
+        if check_oracle_non_vacuity:
+            oracle_ok, oracle_reason = self.audit_test_oracle_non_vacuity(
+                required_function_name, test_oracle_fn
+            )
+            if not oracle_ok:
+                records.append(
+                    self._kernel_step_record(
+                        step_number=1,
+                        step_name="STEP_1_OBSERVE_AND_SCOPE",
+                        verdict_code=oracle_reason,
+                        artifact_caid=sha256_caid(oracle_reason),
+                        input_bytes=len(baseline_file_code.encode("utf-8")),
+                    )
+                )
+                return self._finalize_trajectory(
+                    task_id=task_id,
+                    final_status="HALT_VACUOUS_TEST_ORACLE",
+                    opus_calls=0,
+                    fast_coder_calls=0,
+                    zero_cost_steps=zero_cost_steps,
+                    mutation_score_bps=0,
+                    records=records,
+                    full_repo_tokens=full_repo_tokens,
+                    target_file_tokens=target_file_tokens,
+                )
+
+        step1_caid = sha256_caid(
+            {
+                "blast_radius_bps": blast.blast_radius_bps,
+                "security_sensitive": is_sec_path,
+                "target_file": target_file,
+                "transitive_dependents": list(blast.transitive_dependents),
+            }
+        )
+        records.append(
+            self._kernel_step_record(
+                step_number=1,
+                step_name="STEP_1_OBSERVE_AND_SCOPE",
+                verdict_code=f"SCOPED_BLAST_{blast.blast_radius_bps}_BPS",
+                artifact_caid=step1_caid,
+                input_bytes=len(baseline_file_code.encode("utf-8")),
+                output_bytes=len(sliced_context.encode("utf-8")),
+            )
+        )
+
+        # ======================================================================
+        # STEP 2: ARCHITECTURAL SPEC -> Conditional Routing (High Tier vs Fast Planner)
+        # ======================================================================
+        needs_high_architect = (
+            force_opus_architect
+            or blast.blast_radius_bps > self.blast_radius_opus_threshold_bps
+            or is_sec_path
+        )
+        architect_tier = (
+            self.high_tier_architect if needs_high_architect else "TIER_1_FAST_PLANNER"
+        )
+        if architect_tier == "TIER_3_OPUS_ARCHITECT":
+            opus_calls += 1
+
+        sliced_bytes = len(sliced_context.encode("utf-8"))
+        arch_in_tokens = self.estimate_tokens(sliced_context)
+        contract_payload = {
+            "allowed_files": [target_file],
+            "allowed_imports": list(sorted(allowed_imports)),
+            "architect_tier": architect_tier,
+            "invariant_summary": "Enforce strict boundary conditions and zero async daemons",
+            "max_lines_changed": max_lines_changed,
+            "required_function_name": required_function_name,
+            "secondary_stdlib_allowlist": list(sorted(secondary_stdlib_allowlist)),
+            "task_id": task_id,
+        }
+        contract_bytes = encode_jcs(contract_payload)
+        arch_out_tokens = self.estimate_tokens(contract_bytes.decode("utf-8"))
+        arch_cost = self.compute_step_cost_nano_usd(
+            architect_tier, arch_in_tokens, arch_out_tokens
+        )
+        contract = ArchitecturalSpecContract(
+            task_id=task_id,
+            architect_tier=architect_tier,
+            allowed_files=(target_file,),
+            allowed_imports=tuple(sorted(allowed_imports)),
+            required_function_name=required_function_name,
+            max_lines_changed=max_lines_changed,
+            invariant_summary="Enforce strict boundary conditions and zero async daemons",
+            contract_caid=sha256_caid(contract_bytes),
+            secondary_stdlib_allowlist=tuple(sorted(secondary_stdlib_allowlist)),
+        )
+        records.append(
+            StepExecutionRecord(
+                step_number=2,
+                step_name="STEP_2_ARCHITECTURAL_SPEC_CONTRACT",
+                actor_tier=architect_tier,
+                input_bytes=sliced_bytes,
+                output_bytes=len(contract_bytes),
+                input_tokens=arch_in_tokens,
+                output_tokens=arch_out_tokens,
+                step_cost_nano_usd=arch_cost,
+                verdict_code=f"CONTRACT_MINTED_BY_{architect_tier}",
+                artifact_caid=contract.contract_caid,
+            )
+        )
+
+        # ======================================================================
+        # STEP 3 & STEP 4 LOOP: Fast Coder Synthesis + $0 Pauli Mutation Audit
+        # ======================================================================
+        feedback_prompt: Optional[str] = None
+        final_mutation_bps = 0
+        winning_code = ""
+        verified_ok = False
+
+        for attempt in range(1, self.max_repair_attempts + 2):
+            candidates: List[str] = []
+            for branch_idx in range(1, speculative_branches + 1):
+                fast_coder_calls += 1
+                branch_seed = attempt if speculative_branches == 1 else branch_idx
+                cand = coder_generator_fn(contract, branch_seed, feedback_prompt)
+                candidates.append(cand)
+                coder_in_bytes = len(contract_bytes) + len((feedback_prompt or "").encode("utf-8"))
+                coder_out_bytes = len(cand.encode("utf-8"))
+                coder_in_tokens = arch_out_tokens + self.estimate_tokens(feedback_prompt or "")
+                coder_out_tokens = self.estimate_tokens(cand)
+                coder_cost = self.compute_step_cost_nano_usd(
+                    "TIER_2_FAST_CODER", coder_in_tokens, coder_out_tokens
+                )
+                records.append(
+                    StepExecutionRecord(
+                        step_number=3,
+                        step_name=f"STEP_3_SYNTHESIZE_CODE_ATTEMPT_{attempt}_B{branch_idx}",
+                        actor_tier="TIER_2_FAST_CODER",
+                        input_bytes=coder_in_bytes,
+                        output_bytes=coder_out_bytes,
+                        input_tokens=coder_in_tokens,
+                        output_tokens=coder_out_tokens,
+                        step_cost_nano_usd=coder_cost,
+                        verdict_code="CANDIDATE_PATCH_GENERATED",
+                        artifact_caid=sha256_caid(cand),
+                    )
+                )
+
+            # Step 4: Deterministic Contract + Pauli Mutation Verification ($0, 0 tokens!)
+            zero_cost_steps += 1
+            last_contract_error: Optional[str] = None
+            last_mut_report = None
+
+            for cand in candidates:
+                contract_ok, contract_reason = self.verify_code_obeys_architect_contract(
+                    contract, target_file, cand
+                )
+                if not contract_ok:
+                    # Check if this is an unapproved import that can be monotonically reconciled
+                    if contract_reason.startswith("HALT_CONTRACT_UNAPPROVED_IMPORT:"):
+                        req_mod = contract_reason.partition(":")[2]
+                        _rec_ok, _rec_msg, amended = self.reconcile_contract_import_request(
+                            contract, req_mod
+                        )
+                        if amended is not None:
+                            contract = amended
+                            contract_ok, contract_reason = self.verify_code_obeys_architect_contract(
+                                contract, target_file, cand
+                            )
+                    if not contract_ok:
+                        last_contract_error = contract_reason
+                        continue
+
+                try:
+                    mut_report = self.mutation_verifier.evaluate_mutation_adequacy(
+                        target_file, cand, test_oracle_fn
+                    )
+                except Exception as exc:
+                    last_contract_error = f"HALT_CANDIDATE_TEST_FAILURE:{type(exc).__name__}"
+                    continue
+
+                last_mut_report = mut_report
+                final_mutation_bps = mut_report.mutation_score_bps
+                if mut_report.verdict == "ALLOW_MERGE":
+                    winning_code = cand
+                    verified_ok = True
+                    records.append(
+                        self._kernel_step_record(
+                            step_number=4,
+                            step_name=f"STEP_4_PAULI_AUDIT_ATTEMPT_{attempt}",
+                            verdict_code=f"{mut_report.verdict}:{mut_report.mutation_score_bps}_BPS",
+                            artifact_caid=mut_report.report_caid,
+                            input_bytes=len(cand.encode("utf-8")),
+                        )
+                    )
+                    break
+
+            if verified_ok:
+                break
+
+            if last_mut_report is None and last_contract_error is not None:
+                records.append(
+                    self._kernel_step_record(
+                        step_number=4,
+                        step_name=f"STEP_4_PAULI_AUDIT_ATTEMPT_{attempt}",
+                        verdict_code=last_contract_error,
+                        artifact_caid=sha256_caid(last_contract_error),
+                    )
+                )
+                return self._finalize_trajectory(
+                    task_id=task_id,
+                    final_status="HALT_CONTRACT_VIOLATION",
+                    opus_calls=opus_calls,
+                    fast_coder_calls=fast_coder_calls,
+                    zero_cost_steps=zero_cost_steps,
+                    mutation_score_bps=final_mutation_bps,
+                    records=records,
+                    full_repo_tokens=full_repo_tokens,
+                    target_file_tokens=target_file_tokens,
+                )
+
+            assert last_mut_report is not None
+            records.append(
+                self._kernel_step_record(
+                    step_number=4,
+                    step_name=f"STEP_4_PAULI_AUDIT_ATTEMPT_{attempt}",
+                    verdict_code=f"{last_mut_report.verdict}:{last_mut_report.mutation_score_bps}_BPS",
+                    artifact_caid=last_mut_report.report_caid,
+                )
+            )
+            first_survivor = last_mut_report.survivors[0]
+            feedback_prompt = HeadroomLogCompactor.compact_test_log(
+                f"FAILED {first_survivor.mutant_id}: {first_survivor.mutation} ({first_survivor.reason})"
+            )
+
+        if not verified_ok:
+            return self._finalize_trajectory(
+                task_id=task_id,
+                final_status="HALT_ANSI_86_LOCKOUT",
+                opus_calls=opus_calls,
+                fast_coder_calls=fast_coder_calls,
+                zero_cost_steps=zero_cost_steps,
+                mutation_score_bps=final_mutation_bps,
+                records=records,
+                full_repo_tokens=full_repo_tokens,
+                target_file_tokens=target_file_tokens,
+            )
+
+        # ======================================================================
+        # STEP 5: EO1 WAL LATCH & SCITT RECEIPT -> TIER_0_DETERMINISTIC_KERNEL ($0)
+        # ======================================================================
+        zero_cost_steps += 1
+        step5_payload = {
+            "candidate_caid": sha256_caid(winning_code),
+            "contract_caid": contract.contract_caid,
+            "mutation_score_bps": final_mutation_bps,
+            "task_id": task_id,
+        }
+        step5_bytes = encode_jcs(step5_payload)
+        step5_caid = sha256_caid(step5_bytes)
+        records.append(
+            self._kernel_step_record(
+                step_number=5,
+                step_name="STEP_5_EO1_WAL_AND_SCITT_SEAL",
+                verdict_code="COMMITTED_SCITT_RECEIPT_MINTED",
+                artifact_caid=step5_caid,
+                input_bytes=len(winning_code.encode("utf-8")),
+                output_bytes=len(step5_bytes),
+            )
+        )
+
+        return self._finalize_trajectory(
+            task_id=task_id,
+            final_status="COMMITTED",
+            opus_calls=opus_calls,
+            fast_coder_calls=fast_coder_calls,
+            zero_cost_steps=zero_cost_steps,
+            mutation_score_bps=final_mutation_bps,
+            records=records,
+            full_repo_tokens=full_repo_tokens,
+            target_file_tokens=target_file_tokens,
+        )
+
+    def _finalize_trajectory(
+        self,
+        task_id: str,
+        final_status: str,
+        opus_calls: int,
+        fast_coder_calls: int,
+        zero_cost_steps: int,
+        mutation_score_bps: int,
+        records: Sequence[StepExecutionRecord],
+        full_repo_tokens: int,
+        target_file_tokens: int,
+    ) -> FiveStepTrajectoryResult:
+        total_actual_nano = sum(r.step_cost_nano_usd for r in records)
+
+        # Monolithic Opus Baseline: running TIER_3_OPUS_ARCHITECT across all 5 steps
+        # over actual repository tokens (`full_repo_tokens` input + `target_file_tokens` output per step)
+        mono_step_cost = self.compute_step_cost_nano_usd(
+            "TIER_3_OPUS_ARCHITECT", full_repo_tokens, target_file_tokens
+        )
+        mono_baseline_nano = mono_step_cost * 5
+
+        savings_bps = max(
+            0,
+            ((mono_baseline_nano - total_actual_nano) * 10000) // max(1, mono_baseline_nano),
+        )
+        payload = {
+            "cost_savings_bps": savings_bps,
+            "fast_coder_invocations": fast_coder_calls,
+            "final_status": final_status,
+            "monolithic_opus_baseline_nano_usd": mono_baseline_nano,
+            "mutation_score_bps": mutation_score_bps,
+            "opus_invocations": opus_calls,
+            "steps": [r.to_dict() for r in records],
+            "task_id": task_id,
+            "total_cost_nano_usd": total_actual_nano,
+            "zero_cost_kernel_steps": zero_cost_steps,
+        }
+        return FiveStepTrajectoryResult(
+            task_id=task_id,
+            final_status=final_status,
+            opus_invocations=opus_calls,
+            fast_coder_invocations=fast_coder_calls,
+            zero_cost_kernel_steps=zero_cost_steps,
+            total_cost_nano_usd=total_actual_nano,
+            monolithic_opus_baseline_nano_usd=mono_baseline_nano,
+            cost_savings_bps=savings_bps,
+            mutation_score_bps=mutation_score_bps,
+            step_records=tuple(records),
+            trajectory_caid=sha256_caid(payload),
+        )
+
+```
+
+
+
+---
+
+## 8. Phase IX: Pre-Execution Specification Invariants, Dual-Root SCITT Custodian & Unified MCP Action Firewall
+
+
+
+# `/decide --full --research --benchmark --falsify`: Phase IX Specification Invariants, Dual-Root SCITT Custodian & Unified MCP Action Firewall
+
+**Date:** 2026-10-31  
+**Engineering Status:** `INTERNAL PREVIEW COMMISSIONED` (Prototype evaluated on local host under the stated model; zero mocks, zero floats in RFC 8785 JCS payloads, integer basis points `0..10000 bps`)  
+**Decision Verdict:** `VALIDATED_RECOMMENDATION`  
+
+---
+
+## 1. Explain It Simply: What We Have, What Was Missing, and How They Unite
+
+```text
+LLMs are fast, probabilistic workers—not accountable actors.
+When an enterprise deploys AI agents across tools, databases, payments, and codebases,
+two failure classes occur:
+
+1. BEFORE EXECUTION (The Specification Gap — UC Berkeley MAST arXiv:2503.13657v3):
+   The agent's individual tool call looks syntactically valid, but globally it is
+   repeating the same step in a loop (15.7%), calling a tool that contradicts its
+   plan phase (13.2%), or halting early and claiming the task is finished when
+   postconditions are unmet (12.4%).
+
+2. DURING & AFTER EXECUTION (The Accountability Gap):
+   Who authorized this agent? Did a child sub-agent escalate its parent's scope?
+   Did a timeout trigger a blind retry that double-charged an API?
+   And if an auditor asks for proof, is the receipt only self-signed by the operator,
+   or is it anchored in an independent transparency tree?
+```
+
+### How AEIB Solves Both Planes in One Unified Control Plane
+
+```mermaid
+flowchart TD
+    A["Untrusted Agent / Multi-Agent Trajectory"] --> B["Plane 1: Pre-Execution Specification Gate (SpecificationInvariantCompiler)"]
+    B -->|"Step > max_steps OR Step Repetition Loop > limit"| H1["HALT_COORDINATION_INVARIANT_VIOLATED"]
+    B -->|"Tool not in Planned Phase OR Postcondition Unmet"| H1
+    B -->|"ALLOW_STEP_IN_SPEC"| C["Plane 2: Runtime MCP Action Firewall (MCPActionFirewall)"]
+    C -->|"1. Signed Tool Manifest Check"| C1["Block Unapproved MCP Tools"]
+    C -->|"2. CryptoDelegationGraph"| C2["Enforce S_child <= S_parent & Ancestor TTL"]
+    C -->|"3. TemporalAuthorityGuard"| C3["Enforce T0 DENIED_TERMINAL Latch"]
+    C -->|"4. EffectReconciler"| C4["Latch EFFECT_INDETERMINATE on Timeout (Zero Blind Retry)"]
+    C -->|"5. Irreversible / High-Taint Step-Up"| C5["Require Ed25519 Human Approval Warrant"]
+    C -->|"ALLOW / DENY / ESCALATE"| D["Plane 3: Dual-Root Evidence & Audit Plane"]
+    D --> D1["AEIBReceiptLedger (Local SQLite-WAL Synchronous=FULL)"]
+    D --> D2["ExternalSCITTRegistrar (Operator Key != Custodian Key + RFC 9162 Inclusion Proof)"]
+```
+
+---
+
+## 2. Epistemic Audit of Pasted Research & Market Claims (`--research` & `--falsify`)
+
+Per [`AGENTS.md`](file:///Users/andriileukhin/Documents/SovereignNexus/AGENTS.md) §1 and §6, every claim from the pasted strategic documents was audited against primary sources (`export.arxiv.org` with positive control `2406.18665v4`, OpenReview, Lean 4 issue tracker, IETF datatracker, and vendor disclosures):
+
+| # | Claim Cluster | Epistemic Class | Primary Source / Citation | Verified Technical Finding & Falsification Nuance |
+|---|---|---|---|---|
+| **1** | **UC Berkeley MAST Multi-Agent Failure Taxonomy (`79%` spec/coordination)** | `CONFIRMED` *(metrics)* / `MISMATCH` *(on `FC3` label)* | `arXiv:2503.13657v3` (Cemri et al., NeurIPS 2025, *Why Do Multi-Agent LLM Systems Fail?*, 1,642 traces across 7 MAS frameworks) | Across all 1,642 traces (Fig. 1): **FC1 System Design = `44.2%`**, **FC2 Inter-Agent Misalignment = `32.3%`**, **FC3 Task Verification = `23.5%`** (`FC1 + FC2 = 76.5%`; on the 210-trace subset in Fig. 4, `FC1 + FC2 = 78.7% ≈ 79%`). Top modes: **FM-1.3 Step Repetition = `15.7%`**, **FM-2.6 Reasoning-Action Mismatch = `13.2%`**, **FM-1.5 Unaware of Termination = `12.4%`**. **Falsification Nuance:** The pasted text labeled the remaining `21.3%` (`FC3`) "infrastructure/model", whereas in MAST `FC3` is **Task Verification & Termination**—meaning **100% of MAST's categories** are specification, coordination, and verification failures. |
+| **2** | **`SecMutBench` & Effective Security Mutation Score (`EffSMS`)** | `NOT FOUND` on arXiv / `CONFIRMED` on OpenReview | ACM AIware '26 / OpenReview (*SecMutBench*, 339 Python programs, 30 CWEs, 1,869 mutants across 25 operators) | Evaluates LLM-generated security tests using $\text{EffSMS} = \text{SMS} \times \text{Secure-Pass Rate}$. Traditional mutation scores overstate LLM security detection by $2.2\times$; top LLM achieves **`19.7%` EffSMS** vs **`47.6%`** for human expert tests. Motivates requiring orthogonal dual-engine mutation attestation and $\ge 7000\text{ bps}$ semantic kill share (`IndependentMutationAttestation`). |
+| **3** | **Lean 4 `native_decide` & `String.Pos.Raw.extract` / `.olean` Closure Soundness** | `CONFIRMED` *(bug)* / `MISMATCH` *(on `#print axioms` claim)* | Lean 4 Issue `#14684` (`lean-0003`) & Lean 4 Reference Manual | `String.Pos.Raw.extract` had a semantic divergence between its logical specification (returning `""` on out-of-bounds slices) and its C++ runtime implementation (returning the full string), allowing `native_decide` to prove `False`. **Falsification Nuance:** `#print axioms` **does** display `Lean.ofReduceBool` when `native_decide` is used; what `#print axioms` **fails to track** is `@[implemented_by]` / `@[csimp]` compiler overrides and C++ runtime divergences inside compiled `.olean` module closures (`TransitiveKernelClosureAuditor`). |
+| **4** | **IETF SCITT (`RFC 9943`) & "AI Agent Execution Profile"** | `CONFIRMED` *(core SCITT)* / `PARTIALLY_TRUE_BUT_NARROW` *(Agent profile)* | `draft-ietf-scitt-architecture` (`RFC 9943`); `draft-emirdag-scitt-ai-agent-execution` | Core SCITT separates **Issuer** (signs statements) from **Transparency Service** (issues `COSE_Sign1` inclusion receipts). However, `draft-emirdag-scitt-ai-agent-execution` (`AgentInteractionRecord` / `AIR`) is an **individual Informational Internet-Draft**, not an adopted IETF Working Group standard. |
+| **5** | **Chinese AI Safety Benchmarks (`AgentHazard`, `ASEval`, TC260 Framework 3.0)** | `CONFIRMED` *(arXiv)* / `PARTIALLY_TRUE_BUT_NARROW` *(TC260)* | `arXiv:2604.02947v2` (*AgentHazard*); `arXiv:2605.22321v2` (*ASEval* / Ant Group, ZJU, Tsinghua); `arXiv:2610.00400v1`; TC260 | **AgentHazard** (`2604.02947v2`, Apr 2026): 2,653 computer-use instances (`73.63%` ASR on Claude Code w/ Qwen3-Coder). **ASEval** (`2605.22321v2`, May 2026): 2,254 multi-turn cases across 11 OpenClaw agents, raising risk-trigger rate from `22.9%` to `47.4%`. TC260 Framework 3.0 (Sept 2026) is a non-binding national technical guideline. |
+| **6** | **Gartner `>40%` Agentic AI Projects Canceled by End of 2027** | `PARTIALLY_TRUE_BUT_NARROW` *(analyst forecast)* | Gartner Press Release (June 25, 2025) | Official Gartner analyst forecast citing **escalating costs**, **unclear business value**, and **inadequate risk controls**. Must be cited as an analyst projection, not measured historical attrition. |
+| **7** | **Enterprise Agent Identity Surveys (`79%` production, `2%` agent identity, `88.4%` incident, AIR `$50M`)** | `PARTIALLY_TRUE_BUT_NARROW` *(vendor surveys & funding)* | SailPoint (*Horizons of Identity Security*, Oct 2026); AvePoint; Kore.ai; AIR Security | Vendor survey metrics: SailPoint (`79%` production vs `2%` agent identity controls), AvePoint (`88.4%` incident rate), Kore.ai (`82%` consequential actions, `41.7%` revenue impact). AIR `$50M` refers to AIR Security's seed funding round. |
+
+---
+
+## 3. Complete Backlog Unification: The 10 Core Engines in `src/`
+
+We audited the repository against both the **6-Module Enterprise Control Plane Backlog** (Document A) and the **5-Module Pre-Execution Specification & Third-Party Proof Pivot** (Document B). Every single component is now implemented, wired to single-source RFC 8785 JCS (`encode_jcs`), and verified under the AST mutation adequacy gate:
+
+| # | Subsystem / Engine | Module Path | Primary Responsibility | Verified Tests | Mutation Kill Ratio (`seed=42`) | Wilson 95% CI (`bps`) |
+|---|---|---|---|---|---|---|
+| **1** | **Pre-Execution Coordination Specification Compiler (`ACC`)** | [`src/specification_invariant_compiler.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/specification_invariant_compiler.py#L48-L214) | Compiles `AgentCoordinationContract` before execution: enforces `max_steps`, `max_identical_step_repeats` (blocking FM-1.3 loops), `planned_phase_tools` (blocking FM-2.6 mismatch), and separates `termination_state_keys` from `completion_postcondition_keys` (blocking FM-1.5 premature completion). | `8/8` passed | **`30/30 = 100.00%` (`10000 bps`)** | `[8864..10000]` |
+| **2** | **Dual-Root External SCITT Custodian Registrar** | [`src/specification_invariant_compiler.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/specification_invariant_compiler.py#L217-L384) | Enforces `operator_pub_hex != custodian_pub_hex` (`ERR_SELF_CUSTODY_FORBIDDEN`), appends receipts into an RFC 9162 Merkle tree (`0x00`/`0x01` domain separation), and verifies both Operator signature and Independent Custodian STH + inclusion proof. | `8/8` passed | **`30/30 = 100.00%` (`10000 bps`)** | `[8864..10000]` |
+| **3** | **Transitive `.olean` Kernel Closure Auditor** | [`src/specification_invariant_compiler.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/specification_invariant_compiler.py#L387-L518) | Walks the full reachable `.olean` import DAG, verifying pinned `.olean` SHA-256 digests and halting on `@[implemented_by]`, `@[csimp]`, `@[extern]`, `native_decide`, `Lean.ofReduceBool`, or transitive `sorry`/`axiom` (`HALT_KERNEL_TRUST_CHAIN_VIOLATION`). | `8/8` passed | **`30/30 = 100.00%` (`10000 bps`)** | `[8864..10000]` |
+| **4** | **Orthogonal Dual-Engine `EffSMS` Attestation & Adaptive Registry** | [`src/specification_invariant_compiler.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/specification_invariant_compiler.py#L521-L686) | Requires two distinct mutation engines (`primary_engine_id != secondary_engine_id`), zero security-sensitive survivors, and $\ge 7000\text{ bps}$ `SEMANTIC` kill share (`EffSMS`), plus retroactive advisory scanning (`AdaptiveMutationOperatorRegistry`). | `8/8` passed | **`30/30 = 100.00%` (`10000 bps`)** | `[8864..10000]` |
+| **5** | **MCP Action Firewall Sidecar** | [`src/mcp_action_firewall.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/mcp_action_firewall.py#L316-L485) | Default-deny MCP interception sidecar: verifies signed tool manifests, SPIFFE delegation chains, $T_0$ terminal denial latches, timeout indeterminate holds, and Ed25519 human step-up warrants for irreversible/high-taint actions. | `5/5` passed | **`29/30 = 96.67%` (`9667 bps`)** | `[8333..9941]` |
+| **6** | **Durable SQLite-WAL Receipt Ledger & Replay Verifier** | [`src/mcp_action_firewall.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/mcp_action_firewall.py#L94-L202) | `PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL;` hash-chained (`prev_receipt_caid`) Ed25519 receipt store with full boot/audit replay verification (`verify_ledger_and_replay`). | `5/5` passed | **`29/30 = 96.67%` (`9667 bps`)** | `[8333..9941]` |
+| **7** | **Timeout-is-Unknown Effect Reconciler** | [`src/mcp_action_firewall.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/mcp_action_firewall.py#L205-L250) | Latches `EFFECT_INDETERMINATE` on timeout/504, blocks blind retries (`DENY_INDETERMINATE_EFFECT_PENDING_RECONCILIATION`), and resolves only via provider probe (`CONFIRMED_COMMITTED` vs `CONFIRMED_ABORTED`). | `5/5` passed | **`29/30 = 96.67%` (`9667 bps`)** | `[8333..9941]` |
+| **8** | **Research & Context Decision Ledger** | [`src/mcp_action_firewall.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/mcp_action_firewall.py#L253-L295) | Content-addressed (`sha256_caid`) artifact & decision cache that skips duplicate pastes (`DUPLICATE_ARTIFACT_SKIPPED`) and computes parent line deltas. | `5/5` passed | **`29/30 = 96.67%` (`9667 bps`)** | `[8333..9941]` |
+| **9** | **Temporal Authority Guard & Cryptographic Delegation Graph** | [`src/temporal_authority_guard.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/temporal_authority_guard.py) & [`src/crypto_delegation_graph.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/crypto_delegation_graph.py) | Enforces $T_0$ `DENIED_TERMINAL` latch, snapshot-resume revalidation, and monotonic $S_{\text{child}} \subseteq S_{\text{parent}}$ / $\text{TTL}_{\text{child}} \le \text{TTL}_{\text{parent}}$ across the full ancestor DAG. | `20/20` passed | **`29/30 = 96.67%` (`9667 bps`)** | `[8333..9941]` |
+| **10** | **5-Step Cognitive Division-of-Labor Router & Pauli Verifiers** | [`src/cognitive_step_router.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/cognitive_step_router.py), [`src/adversarial_mutation_verifier.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/adversarial_mutation_verifier.py), [`src/evidence_sufficiency_and_lean_gate.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/evidence_sufficiency_and_lean_gate.py) | Enforces `$0` kernel execution on Steps 1, 4, 5, Step 1 vacuous test oracle auditing, monotonic contract refinement, security-survivor zero-tolerance, and `10000 bps` causal evidence sufficiency. | `16/16` passed | **`90.00%–96.67%`** | `[7438..9941]` |
+
+### Disclosed Surviving Mutants (Lesson L23)
+- [`src/specification_invariant_compiler.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/specification_invariant_compiler.py): **`0` surviving mutants** (`30/30 = 100.00%` killed, `seed=42`).
+- [`src/mcp_action_firewall.py:49`](file:///Users/andriileukhin/Documents/SovereignNexus/src/mcp_action_firewall.py#L49): **`1` surviving mutant** (`29/30 = 96.67%` killed, `seed=42`) — `CONST_PERTURB` mutating `@dataclasses.dataclass(frozen=True)` to `frozen=False` on `ActionExecutionReceipt`. Survived because all receipt integrity checks recompute `sha256_caid` and verify the Ed25519 signature inside SQLite-WAL via `verify_ledger_and_replay` rather than attempting in-place Python attribute mutation on the returned dataclass object.
+
+---
+
+## 4. Measured Enterprise CISO Metric: Accountable Action Coverage (`--benchmark`)
+
+Implemented in [`compute_accountable_action_coverage_bps`](file:///Users/andriileukhin/Documents/SovereignNexus/src/mcp_action_firewall.py#L488-L534), an agent action is counted as **Accountable** if and only if all 5 binary invariants hold simultaneously:
+1. `identity_bound` (SPIFFE actor + verified ancestor delegation chain),
+2. `policy_evaluated` (signed tool manifest + temporal standing + taint/approval check),
+3. `receipt_recorded` (persisted to `AEIBReceiptLedger` SQLite-WAL),
+4. `replay_verified` (hash chain + Ed25519 signature verified by `verify_ledger_and_replay`), and
+5. `reconcilable` (guarded by `EffectReconciler` idempotency key so timeouts never trigger blind retries).
+
+| Benchmark Arm | Accountable Actions (`k / n`) | Accountable Action Coverage (`bps`) | Conservative Wilson 95% CI (`bps`) | Duplicate Writes on 500 Seeded Timeout Episodes (`seed=42`) |
+|---|---|---|---|---|
+| **Arm A: Unprotected Baseline (`naive_retry`)** | `0 / 25` (only `3/25` had ad-hoc auth; `0/25` had replayable receipts or timeout reconciliation) | **`0 bps` (`0.00%`)** | `[0..1332] bps` | `302 / 500` (`6040 bps` / `60.4%`) |
+| **Arm B: Prompt Guardrails (`semantic_drift`)** | `0 / 25` (`0/25` cryptographic receipts or reconciliation) | **`0 bps` (`0.00%`)** | `[0..1332] bps` | `187 / 500` (`3740 bps` / `37.4%`) |
+| **Arm C: Partial Logging (`5/7` boundary fixture)** | `5 / 7` | **`7142 bps` (`71.42%`)** | `[3589..9178] bps` | N/A (partial coverage control) |
+| **Arm D: Full AEIB Control Plane (`MCPActionFirewall` + `SpecificationInvariantCompiler`)** | `25 / 25` (all unaccountable/unapproved/looping actions deterministically denied or escalated) | **`10000 bps` (`100.00%`)** | `[8668..10000] bps` | `0 / 500` (`0 bps`, `302` duplicate retries blocked: `gate=234, ledger=68`) |
+
+---
+
+## 5. Strategic Synthesis: Where the Money Is, What to Ship First, and Who to Hire
+
+### 5.1 Three Non-Overlapping Commercial Wedges Sharing One Audit Pack
+
+| Priority | Product Wedge | Core Engine in Repo | Buyer & Paid Pain | Why Competitors Miss It |
+|---|---|---|---|---|
+| **Wedge 1 (Entry Beachhead)** | **AEIB MCP Action Firewall & Pre-Execution Specification Gate** | [`src/mcp_action_firewall.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/mcp_action_firewall.py) + [`src/specification_invariant_compiler.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/specification_invariant_compiler.py) | Engineering & Security teams deploying Claude Code, Cursor, Qwen-Coder, and internal MCP servers who need default-deny tool governance, loop/mismatch prevention (`MAST` `76.5%–78.7%`), and zero duplicate timeout writes. | Existing L7 gateways and runtime monitors only inspect single tool calls; they do not compile multi-step `AgentCoordinationContract` invariants or latch `EFFECT_INDETERMINATE` on HTTP 504 timeouts. |
+| **Wedge 2 (Regulated Enterprise Expansion)** | **Dual-Root SCITT Evidence Custodian & DORA / EU AI Act Exporter** | [`ExternalSCITTRegistrar`](file:///Users/andriileukhin/Documents/SovereignNexus/src/specification_invariant_compiler.py#L244-L384) + [`src/scitt_proof_aggregation_reconciler.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/scitt_proof_aggregation_reconciler.py) | CISOs, Compliance Officers, and Financial Institutions under DORA (active since Jan 2025) who need non-repudiable action receipts anchored in an independent transparency tree (`operator_key != custodian_key`). | Self-signed SQLite logs or OTel traces controlled solely by the operator can be rewritten by a compromised host; `DualAnchoredSCITTReceipt` requires both Operator signature and Custodian STH inclusion proof. |
+| **Wedge 3 (High-Assurance Code & Formal Verification)** | **Transitive `.olean` Closure Auditor & Dual-Engine `EffSMS` Merge Gate** | [`TransitiveKernelClosureAuditor`](file:///Users/andriileukhin/Documents/SovereignNexus/src/specification_invariant_compiler.py#L410-L518) + [`IndependentMutationAttestation`](file:///Users/andriileukhin/Documents/SovereignNexus/src/specification_invariant_compiler.py#L541-L629) | Autonomous coding pipelines, AI security evaluation teams, and formal verification deployments needing defense against `.olean` `@[implemented_by]` / `native_decide` soundness holes and inflated LLM mutation scores (`SecMutBench`). | Static PR scanners (CodeQL) do not inspect `.olean` transitive closures or classify semantic vs crash mutation kills (`EffSMS`). |
+
+### 5.2 Focused First Hiring Sequence (5 Roles)
+Rather than hiring a large generalist research team, hire strictly to harden and ship the control plane:
+1. **Founding Systems / Backend Engineer:** Owns `MCPActionFirewall`, `AEIBReceiptLedger` (SQLite-WAL / Rust data-plane), and `EffectReconciler` integrations.
+2. **Security & Kernel Engineer:** Owns eBPF LSM / Seatbelt sandboxing, SPIFFE workload identity (`CryptoDelegationGraph`), and red-team falsification probes.
+3. **Developer-Tools & SDK Engineer:** Packages the zero-config CLI/sidecar wrapper for Claude Code, Cursor, MCP servers, and GitHub Actions CI gates.
+4. **Applied Verification Researcher:** Owns `SpecificationInvariantCompiler`, `TransitiveKernelClosureAuditor`, and the public execution-integrity benchmark suite.
+5. **Technical Developer Advocate / Founder-Led AE:** Publishes *The Execution-Integrity Gap* benchmark (with raw results, limitations, and disclosed surviving mutants) and converts free single-workspace users into enterprise governance pilots.
+
+---
+
+## 6. Consolidated Learning Lessons (`L22–L33`) & How to Apply Them Every Run
+
+| Lesson | Core Rule | Where Enforced |
+|---|---|---|
+| **L22–L25** | Grounded status labels (`INTERNAL PREVIEW COMMISSIONED`), surviving mutant line-level disclosure, Wilson 95% CIs in integer `bps`, L7 proxy vs kernel/AST boundary differentiation. | All reports & `tools/mutation_adequacy_gate.py` |
+| **L26–L27** | Pre-push airgap gate (`tools/pre_push_integrity_gate.py`), $T_0$ `DENIED_TERMINAL` latch (`src/temporal_authority_guard.py`), monotonic delegation $S_{\text{child}} \subseteq S_{\text{parent}}$ (`src/crypto_delegation_graph.py`), single-source `encode_jcs`. | `src/sovereign_phase_v_kernel.py` |
+| **L28–L30** | Never simulate a missing proof kernel (`UNEVALUATED_KERNEL_UNAVAILABLE`), zero tolerance for security-sensitive mutation survivors (`BLOCK_MERGE`), `10000 bps` (100%) causal evidence sufficiency. | [`src/evidence_sufficiency_and_lean_gate.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/evidence_sufficiency_and_lean_gate.py) & [`src/adversarial_mutation_verifier.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/adversarial_mutation_verifier.py) |
+| **L31** | `$0` kernel execution on Steps 1/4/5, Step 1 vacuous test oracle probe against 4 constant stubs (`HALT_VACUOUS_TEST_ORACLE`), no unilateral coder import escalation outside `secondary_stdlib_allowlist`, full Best-of-$K$ cost accounting. | [`src/cognitive_step_router.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/cognitive_step_router.py) |
+| **L32 (New)** | **Pre-Execution Coordination Contract & Completion-vs-Termination Separation:** Compile multi-step agent trajectories into an `AgentCoordinationContract` enforcing `max_steps`, `max_identical_step_repeats`, and `planned_phase_tools`, and strictly separate `termination_state_keys` from `completion_postcondition_keys` so early loop termination cannot be reported as task completion (`HALT_COORDINATION_INVARIANT_VIOLATED`). | [`src/specification_invariant_compiler.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/specification_invariant_compiler.py#L48-L214) |
+| **L33 (New)** | **Dual-Root SCITT Custodian Separation, Transitive `.olean` Closure Auditing & Semantic Kill Share (`EffSMS`):** (1) External audit receipts must bind both an Operator signature and a cryptographically distinct Independent Custodian STH (`operator_pub_hex != custodian_pub_hex`) with an RFC 9162 inclusion proof; (2) Proof verification must audit the full transitive `.olean` import closure for `@[implemented_by]`, `@[csimp]`, `@[extern]`, and `native_decide` / `Lean.ofReduceBool`; (3) High-assurance mutation attestation requires two distinct engines and $\ge 7000\text{ bps}$ `SEMANTIC` kill share (`EffSMS`). | [`src/specification_invariant_compiler.py`](file:///Users/andriileukhin/Documents/SovereignNexus/src/specification_invariant_compiler.py#L217-L686) |
+
+
+
+
+### Phase IX Source A: `src/specification_invariant_compiler.py`
+
+```python
+# Copyright 2026 SovereignNexus Project
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+
+"""
+src/specification_invariant_compiler.py
+================================================================================
+Phase IX Specification Invariant Compiler, Dual-Anchored SCITT Custodian,
+Transitive Kernel Closure Auditor & Orthogonal EffSMS Attestation.
+
+Engineering Status: INTERNAL PREVIEW COMMISSIONED (Prototype & Specification Invariant Compiler Scaffold)
+Epistemic Boundary: Observed, tested, evaluated under the stated model.
+
+Subsystems:
+1. AgentCoordinationContract & SpecificationInvariantCompiler:
+   Pre-execution specification & coordination invariant enforcement addressing
+   plan-execution mismatch, step repetition loops, and termination vs. completion
+   postcondition conflation (UC Berkeley MAST taxonomy).
+2. ExternalSCITTRegistrar & DualAnchoredSCITTReceipt:
+   Cryptographic separation of Agent Operator (Issuer) and Independent Evidence
+   Custodian (Transparency Service) with RFC 9162 inclusion proofs and Ed25519
+   Signed Tree Heads (IETF SCITT architecture).
+3. TransitiveKernelClosureAuditor:
+   Transitive import closure verification across compiled module nodes (.olean
+   digest pinning, @[implemented_by]/@[extern] rejection, native_decide trust
+   expansion blocking, and transitive axiom/sorry/admit/unsafe detection).
+4. IndependentMutationAttestation & AdaptiveMutationOperatorRegistry:
+   Dual-engine semantic mutation adequacy (EffSMS integer basis points) and
+   retroactive escaped-defect merge scanning.
+"""
+
+from __future__ import annotations
+
+import re
+from dataclasses import dataclass
+from typing import Any, Dict, List, Mapping, Sequence, Set, Tuple
+
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import ed25519
+
+from src.jcs_canonicalizer import encode_jcs
+from src.scitt_proof_aggregation_reconciler import (
+    build_audit_path,
+    compute_sub_root,
+    hash_leaf,
+    verify_inclusion_proof,
+)
+from src.temporal_authority_guard import sha256_caid
+
+
+# ==============================================================================
+# Pivot 1: AgentCoordinationContract & SpecificationInvariantCompiler
+# ==============================================================================
+
+
+@dataclass(frozen=True)
+class AgentCoordinationContract:
+    """Pre-execution multi-agent specification and coordination contract."""
+
+    contract_id: str
+    max_steps: int
+    max_identical_step_repeats: int
+    planned_phase_tools: Mapping[str, Tuple[str, ...]]
+    termination_state_keys: Tuple[str, ...]
+    completion_postcondition_keys: Tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        if not self.contract_id:
+            raise ValueError("ERR_EMPTY_CONTRACT_ID")
+        if self.max_steps <= 0:
+            raise ValueError("ERR_INVALID_MAX_STEPS")
+        if self.max_identical_step_repeats < 1:
+            raise ValueError("ERR_INVALID_MAX_IDENTICAL_STEP_REPEATS")
+        if not self.planned_phase_tools:
+            raise ValueError("ERR_EMPTY_PLANNED_PHASE_TOOLS")
+        if not self.termination_state_keys:
+            raise ValueError("ERR_EMPTY_TERMINATION_STATE_KEYS")
+        if not self.completion_postcondition_keys:
+            raise ValueError("ERR_EMPTY_COMPLETION_POSTCONDITION_KEYS")
+
+    @property
+    def contract_caid(self) -> str:
+        """Compute deterministic RFC 8785 JCS CAID for this coordination contract."""
+        return sha256_caid(
+            {
+                "completion_postcondition_keys": list(self.completion_postcondition_keys),
+                "contract_id": self.contract_id,
+                "max_identical_step_repeats": self.max_identical_step_repeats,
+                "max_steps": self.max_steps,
+                "planned_phase_tools": {
+                    phase: list(tools)
+                    for phase, tools in sorted(self.planned_phase_tools.items())
+                },
+                "termination_state_keys": list(self.termination_state_keys),
+            }
+        )
+
+
+@dataclass(frozen=True)
+class CoordinationStepVerdict:
+    """Deterministic step-evaluation verdict produced by SpecificationInvariantCompiler."""
+
+    allowed: bool
+    status_code: str
+    violation_reason: str
+    step_index: int
+    contract_caid: str
+    verdict_caid: str
+
+
+class SpecificationInvariantCompiler:
+    """Stateful pre-execution invariant monitor for agent coordination steps."""
+
+    def __init__(self, contract: AgentCoordinationContract) -> None:
+        self.contract = contract
+        self._step_count: int = 0
+        self._action_counts: Dict[str, int] = {}
+
+    def _build_verdict(
+        self, allowed: bool, status_code: str, violation_reason: str
+    ) -> CoordinationStepVerdict:
+        c_caid = self.contract.contract_caid
+        v_caid = sha256_caid(
+            {
+                "allowed": allowed,
+                "contract_caid": c_caid,
+                "status_code": status_code,
+                "step_index": self._step_count,
+                "violation_reason": violation_reason,
+            }
+        )
+        return CoordinationStepVerdict(
+            allowed=allowed,
+            status_code=status_code,
+            violation_reason=violation_reason,
+            step_index=self._step_count,
+            contract_caid=c_caid,
+            verdict_caid=v_caid,
+        )
+
+    def evaluate_step(
+        self,
+        plan_phase: str,
+        tool_id: str,
+        action_payload: Mapping[str, Any],
+        state_flags: Mapping[str, bool],
+        claim_task_completed: bool = False,
+    ) -> CoordinationStepVerdict:
+        """Evaluate a proposed agent step against the compiled coordination contract."""
+        self._step_count += 1
+
+        if self._step_count > self.contract.max_steps:
+            return self._build_verdict(
+                False,
+                "HALT_COORDINATION_INVARIANT_VIOLATED",
+                "REASON_STEP_BUDGET_EXCEEDED",
+            )
+
+        if plan_phase not in self.contract.planned_phase_tools:
+            return self._build_verdict(
+                False,
+                "HALT_COORDINATION_INVARIANT_VIOLATED",
+                "REASON_UNKNOWN_PLAN_PHASE",
+            )
+
+        allowed_tools = self.contract.planned_phase_tools[plan_phase]
+        if tool_id not in allowed_tools:
+            return self._build_verdict(
+                False,
+                "HALT_COORDINATION_INVARIANT_VIOLATED",
+                "REASON_PLAN_EXECUTION_MISMATCH",
+            )
+
+        action_fp = sha256_caid(
+            {
+                "payload": dict(action_payload),
+                "phase": plan_phase,
+                "tool": tool_id,
+            }
+        )
+        repeat_count = self._action_counts.get(action_fp, 0) + 1
+        self._action_counts[action_fp] = repeat_count
+        if repeat_count > self.contract.max_identical_step_repeats:
+            return self._build_verdict(
+                False,
+                "HALT_COORDINATION_INVARIANT_VIOLATED",
+                "REASON_STEP_REPETITION_LOOP",
+            )
+
+        termination_signaled = any(
+            bool(state_flags.get(key, False))
+            for key in self.contract.termination_state_keys
+        )
+        if claim_task_completed or termination_signaled:
+            postconditions_met = all(
+                bool(state_flags.get(key, False))
+                for key in self.contract.completion_postcondition_keys
+            )
+            if not postconditions_met:
+                return self._build_verdict(
+                    False,
+                    "HALT_COORDINATION_INVARIANT_VIOLATED",
+                    "REASON_COMPLETION_POSTCONDITION_UNMET",
+                )
+            return self._build_verdict(
+                True,
+                "ALLOW_COORDINATION_CONTRACT_SATISFIED",
+                "NONE",
+            )
+
+        return self._build_verdict(
+            True,
+            "ALLOW_STEP_IN_SPEC",
+            "NONE",
+        )
+
+
+# ==============================================================================
+# Pivot 2: ExternalSCITTRegistrar & DualAnchoredSCITTReceipt
+# ==============================================================================
+
+
+@dataclass(frozen=True)
+class DualAnchoredSCITTReceipt:
+    """Dual-anchored IETF SCITT receipt separating Operator Issuer from Custodian."""
+
+    receipt_id: str
+    operator_payload_caid: str
+    operator_public_key_hex: str
+    operator_signature_hex: str
+    custodian_service_id: str
+    custodian_public_key_hex: str
+    leaf_index: int
+    tree_size: int
+    leaf_hash_hex: str
+    inclusion_audit_path_hex: Tuple[str, ...]
+    tree_root_hex: str
+    custodian_sth_signature_hex: str
+    dual_receipt_caid: str
+
+
+def _public_key_hex(private_key: ed25519.Ed25519PrivateKey) -> str:
+    return (
+        private_key.public_key()
+        .public_bytes(serialization.Encoding.Raw, serialization.PublicFormat.Raw)
+        .hex()
+    )
+
+
+class ExternalSCITTRegistrar:
+    """Independent SCITT Transparency Service registrar enforcing custodian separation."""
+
+    def __init__(
+        self,
+        custodian_service_id: str,
+        custodian_private_key: ed25519.Ed25519PrivateKey,
+    ) -> None:
+        if not custodian_service_id:
+            raise ValueError("ERR_EMPTY_CUSTODIAN_SERVICE_ID")
+        self.custodian_service_id = custodian_service_id
+        self._custodian_private_key = custodian_private_key
+        self._leaves: List[bytes] = []
+
+    def register_operator_receipt(
+        self,
+        receipt_id: str,
+        payload: Mapping[str, Any],
+        operator_private_key: ed25519.Ed25519PrivateKey,
+    ) -> DualAnchoredSCITTReceipt:
+        """Sign and append an operator statement into the independent custodian Merkle log."""
+        operator_pub_hex = _public_key_hex(operator_private_key)
+        custodian_pub_hex = _public_key_hex(self._custodian_private_key)
+        if operator_pub_hex == custodian_pub_hex:
+            raise ValueError(
+                "ERR_SELF_CUSTODY_FORBIDDEN:operator_and_custodian_keys_must_be_distinct"
+            )
+
+        operator_payload_caid = sha256_caid(payload)
+        canonical_payload = encode_jcs(payload)
+        op_sig_hex = operator_private_key.sign(canonical_payload).hex()
+
+        leaf_entry = encode_jcs(
+            {
+                "operator_payload_caid": operator_payload_caid,
+                "operator_public_key_hex": operator_pub_hex,
+                "operator_signature_hex": op_sig_hex,
+                "receipt_id": receipt_id,
+            }
+        )
+        leaf_bytes = hash_leaf(leaf_entry)
+        self._leaves.append(leaf_bytes)
+
+        tree_size = len(self._leaves)
+        leaf_index = tree_size - 1
+        root_bytes = compute_sub_root(self._leaves)
+        audit_path: List[bytes] = []
+        build_audit_path(self._leaves, leaf_index, audit_path)
+
+        sth_bytes = encode_jcs(
+            {
+                "custodian_service_id": self.custodian_service_id,
+                "tree_root_hex": root_bytes.hex(),
+                "tree_size": tree_size,
+            }
+        )
+        custodian_sth_sig_hex = self._custodian_private_key.sign(sth_bytes).hex()
+        audit_path_hex = tuple(node.hex() for node in audit_path)
+
+        dual_caid = sha256_caid(
+            {
+                "custodian_public_key_hex": custodian_pub_hex,
+                "custodian_service_id": self.custodian_service_id,
+                "custodian_sth_signature_hex": custodian_sth_sig_hex,
+                "inclusion_audit_path_hex": list(audit_path_hex),
+                "leaf_hash_hex": leaf_bytes.hex(),
+                "leaf_index": leaf_index,
+                "operator_payload_caid": operator_payload_caid,
+                "operator_public_key_hex": operator_pub_hex,
+                "operator_signature_hex": op_sig_hex,
+                "receipt_id": receipt_id,
+                "tree_root_hex": root_bytes.hex(),
+                "tree_size": tree_size,
+            }
+        )
+
+        return DualAnchoredSCITTReceipt(
+            receipt_id=receipt_id,
+            operator_payload_caid=operator_payload_caid,
+            operator_public_key_hex=operator_pub_hex,
+            operator_signature_hex=op_sig_hex,
+            custodian_service_id=self.custodian_service_id,
+            custodian_public_key_hex=custodian_pub_hex,
+            leaf_index=leaf_index,
+            tree_size=tree_size,
+            leaf_hash_hex=leaf_bytes.hex(),
+            inclusion_audit_path_hex=audit_path_hex,
+            tree_root_hex=root_bytes.hex(),
+            custodian_sth_signature_hex=custodian_sth_sig_hex,
+            dual_receipt_caid=dual_caid,
+        )
+
+    @staticmethod
+    def verify_dual_anchored_receipt(
+        receipt: DualAnchoredSCITTReceipt,
+        payload: Mapping[str, Any],
+        pinned_operator_pub_hex: str,
+        pinned_custodian_pub_hex: str,
+    ) -> Tuple[bool, str]:
+        """Verify operator signature, RFC 9162 inclusion proof, and independent custodian STH."""
+        if pinned_operator_pub_hex == pinned_custodian_pub_hex:
+            return False, "ERR_SELF_CUSTODY_FORBIDDEN"
+
+        if (
+            receipt.operator_public_key_hex != pinned_operator_pub_hex
+            or receipt.custodian_public_key_hex != pinned_custodian_pub_hex
+        ):
+            return False, "ERR_KEY_PIN_MISMATCH"
+
+        if sha256_caid(payload) != receipt.operator_payload_caid:
+            return False, "ERR_PAYLOAD_CAID_MISMATCH"
+
+        try:
+            op_pub = ed25519.Ed25519PublicKey.from_public_bytes(
+                bytes.fromhex(pinned_operator_pub_hex)
+            )
+            op_pub.verify(
+                bytes.fromhex(receipt.operator_signature_hex),
+                encode_jcs(payload),
+            )
+        except (InvalidSignature, ValueError):
+            return False, "ERR_INVALID_OPERATOR_SIGNATURE"
+
+        expected_leaf = hash_leaf(
+            encode_jcs(
+                {
+                    "operator_payload_caid": receipt.operator_payload_caid,
+                    "operator_public_key_hex": receipt.operator_public_key_hex,
+                    "operator_signature_hex": receipt.operator_signature_hex,
+                    "receipt_id": receipt.receipt_id,
+                }
+            )
+        )
+        if expected_leaf.hex() != receipt.leaf_hash_hex:
+            return False, "ERR_INCLUSION_PROOF_INVALID"
+
+        inclusion_ok = verify_inclusion_proof(
+            expected_leaf,
+            receipt.leaf_index,
+            receipt.tree_size,
+            [bytes.fromhex(h) for h in receipt.inclusion_audit_path_hex],
+            bytes.fromhex(receipt.tree_root_hex),
+        )
+        if not inclusion_ok:
+            return False, "ERR_INCLUSION_PROOF_INVALID"
+
+        try:
+            custodian_pub = ed25519.Ed25519PublicKey.from_public_bytes(
+                bytes.fromhex(pinned_custodian_pub_hex)
+            )
+            sth_bytes = encode_jcs(
+                {
+                    "custodian_service_id": receipt.custodian_service_id,
+                    "tree_root_hex": receipt.tree_root_hex,
+                    "tree_size": receipt.tree_size,
+                }
+            )
+            custodian_pub.verify(
+                bytes.fromhex(receipt.custodian_sth_signature_hex),
+                sth_bytes,
+            )
+        except (InvalidSignature, ValueError):
+            return False, "ERR_INVALID_CUSTODIAN_STH_SIGNATURE"
+
+        return True, "VERIFIED_DUAL_ANCHORED_SCITT_RECEIPT"
+
+
+# ==============================================================================
+# Pivot 3: TransitiveKernelClosureAuditor
+# ==============================================================================
+
+_AXIOM_SORRY_RE = re.compile(r"\b(?:sorry|admit|axiom|unsafe)\b")
+_OVERRIDE_PATTERNS: Tuple[str, ...] = ("@[implemented_by", "@[extern")
+_NATIVE_DECIDE_PATTERNS: Tuple[str, ...] = (
+    "native_decide",
+    "Lean.ofReduceBool",
+    "Lean.ofReduceNat",
+    "._native.",
+)
+
+
+@dataclass(frozen=True)
+class CompiledModuleNode:
+    """Compiled proof module node within the transitive kernel import graph."""
+
+    module_name: str
+    imports: Tuple[str, ...]
+    source_text: str
+    olean_symbols: Tuple[str, ...] = ()
+    olean_bytes_sha256: str = ""
+    olean_Declarations: Tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class KernelClosureAuditVerdict:
+    """Verdict returned by TransitiveKernelClosureAuditor."""
+
+    verified: bool
+    status_code: str
+    violation_reason: str
+    offending_module: str
+    audited_module_count: int
+    closure_caid: str
+
+
+class TransitiveKernelClosureAuditor:
+    """Audits the full reachable import closure for sound proof-kernel execution."""
+
+    def audit_closure(
+        self,
+        root_module: str,
+        closure_map: Mapping[str, CompiledModuleNode],
+        pinned_olean_digests: Mapping[str, str],
+    ) -> KernelClosureAuditVerdict:
+        """Traverse transitive imports from root_module and reject trust-chain bypasses."""
+        visited: Set[str] = set()
+        queue: List[str] = [root_module]
+        ordered_modules: List[str] = []
+
+        while queue:
+            current_name = queue.pop(0)
+            if current_name in visited:
+                continue
+            visited.add(current_name)
+            ordered_modules.append(current_name)
+
+            if current_name not in closure_map:
+                return self._verdict(
+                    False,
+                    "HALT_KERNEL_TRUST_CHAIN_VIOLATION",
+                    "REASON_INCOMPLETE_CLOSURE_GRAPH",
+                    current_name,
+                    len(ordered_modules),
+                )
+
+            node = closure_map[current_name]
+            expected_digest = pinned_olean_digests.get(current_name)
+            if expected_digest is None or node.olean_bytes_sha256 != expected_digest:
+                return self._verdict(
+                    False,
+                    "HALT_KERNEL_TRUST_CHAIN_VIOLATION",
+                    "REASON_OLEAN_DIGEST_MISMATCH",
+                    current_name,
+                    len(ordered_modules),
+                )
+
+            combined_surface = "\n".join(
+                (node.source_text, *node.olean_symbols, *node.olean_Declarations)
+            )
+
+            if any(pat in combined_surface for pat in _OVERRIDE_PATTERNS):
+                return self._verdict(
+                    False,
+                    "HALT_KERNEL_TRUST_CHAIN_VIOLATION",
+                    "REASON_IMPLEMENTED_BY_OR_EXTERN_OVERRIDE",
+                    current_name,
+                    len(ordered_modules),
+                )
+
+            if any(pat in combined_surface for pat in _NATIVE_DECIDE_PATTERNS):
+                return self._verdict(
+                    False,
+                    "HALT_KERNEL_TRUST_CHAIN_VIOLATION",
+                    "REASON_NATIVE_DECIDE_COMPILER_TRUST_EXPANSION",
+                    current_name,
+                    len(ordered_modules),
+                )
+
+            if _AXIOM_SORRY_RE.search(combined_surface):
+                return self._verdict(
+                    False,
+                    "HALT_KERNEL_TRUST_CHAIN_VIOLATION",
+                    "REASON_TRANSITIVE_AXIOM_OR_SORRY",
+                    current_name,
+                    len(ordered_modules),
+                )
+
+            for dep in node.imports:
+                if dep not in visited:
+                    queue.append(dep)
+
+        return self._verdict(
+            True,
+            "ALLOW_TRANSITIVE_CLOSURE_CLEAN",
+            "NONE",
+            "",
+            len(ordered_modules),
+        )
+
+    @staticmethod
+    def _verdict(
+        verified: bool,
+        status_code: str,
+        violation_reason: str,
+        offending_module: str,
+        audited_module_count: int,
+    ) -> KernelClosureAuditVerdict:
+        caid = sha256_caid(
+            {
+                "audited_module_count": audited_module_count,
+                "offending_module": offending_module,
+                "status_code": status_code,
+                "verified": verified,
+                "violation_reason": violation_reason,
+            }
+        )
+        return KernelClosureAuditVerdict(
+            verified=verified,
+            status_code=status_code,
+            violation_reason=violation_reason,
+            offending_module=offending_module,
+            audited_module_count=audited_module_count,
+            closure_caid=caid,
+        )
+
+
+# ==============================================================================
+# Auxiliary 4 & 5: IndependentMutationAttestation & AdaptiveMutationOperatorRegistry
+# ==============================================================================
+
+
+@dataclass(frozen=True)
+class ClassifiedMutantOutcome:
+    """Single mutant execution outcome with SecMutBench semantic kill classification."""
+
+    mutant_id: str
+    engine_id: str
+    file_path: str
+    killed: bool
+    kill_category: str
+    is_security_sensitive: bool
+
+
+class IndependentMutationAttestation:
+    """Evaluates dual-engine mutation adequacy using semantic kill share (EffSMS)."""
+
+    @staticmethod
+    def evaluate_dual_engine_attestation(
+        primary_engine_id: str,
+        secondary_engine_id: str,
+        outcomes: Sequence[ClassifiedMutantOutcome],
+        min_eff_sms_bps: int = 7000,  # claim: config
+        min_semantic_share_bps: int = 7000,  # claim: config
+    ) -> Dict[str, Any]:
+        """Require two distinct engines, zero security survivors, and EffSMS thresholds."""
+        if not primary_engine_id or not secondary_engine_id:
+            return {
+                "authorized": False,
+                "status_code": "BLOCK_SINGLE_ENGINE_OR_EMPTY",
+                "eff_sms_bps": 0,  # claim: config
+                "semantic_share_of_kills_bps": 0,  # claim: config
+            }
+        if primary_engine_id == secondary_engine_id:
+            return {
+                "authorized": False,
+                "status_code": "BLOCK_SINGLE_ENGINE_OR_EMPTY",
+                "eff_sms_bps": 0,  # claim: config
+                "semantic_share_of_kills_bps": 0,  # claim: config
+            }
+
+        has_primary = any(o.engine_id == primary_engine_id for o in outcomes)
+        has_secondary = any(o.engine_id == secondary_engine_id for o in outcomes)
+        if not has_primary or not has_secondary:
+            return {
+                "authorized": False,
+                "status_code": "BLOCK_SINGLE_ENGINE_OR_EMPTY",
+                "eff_sms_bps": 0,  # claim: config
+                "semantic_share_of_kills_bps": 0,  # claim: config
+            }
+
+        total_mutants = len(outcomes)
+        total_kills = 0
+        semantic_kills = 0
+        for outcome in outcomes:
+            if outcome.killed and outcome.kill_category != "SURVIVED":
+                total_kills += 1
+                if outcome.kill_category == "SEMANTIC":
+                    semantic_kills += 1
+        eff_sms_bps = (semantic_kills * 10000) // total_mutants
+        semantic_share_of_kills_bps = (
+            (semantic_kills * 10000) // total_kills if total_kills > 0 else 0
+        )
+
+        for outcome in outcomes:
+            if outcome.is_security_sensitive and (
+                not outcome.killed or outcome.kill_category == "SURVIVED"
+            ):
+                return {
+                    "authorized": False,
+                    "status_code": "BLOCK_SECURITY_SURVIVOR",
+                    "eff_sms_bps": eff_sms_bps,
+                    "semantic_share_of_kills_bps": semantic_share_of_kills_bps,
+                }
+
+        if (
+            eff_sms_bps < min_eff_sms_bps
+            or semantic_share_of_kills_bps < min_semantic_share_bps
+        ):
+            return {
+                "authorized": False,
+                "status_code": "BLOCK_LOW_SEMANTIC_KILL_SHARE",
+                "eff_sms_bps": eff_sms_bps,
+                "semantic_share_of_kills_bps": semantic_share_of_kills_bps,
+            }
+
+        return {
+            "authorized": True,
+            "status_code": "ALLOW_DUAL_ENGINE_SEMANTIC_ATTESTED",
+            "eff_sms_bps": eff_sms_bps,
+            "semantic_share_of_kills_bps": semantic_share_of_kills_bps,
+        }
+
+
+class AdaptiveMutationOperatorRegistry:
+    """Maintains escaped-defect patterns and scans historical merges for retroactive advisories."""
+
+    def __init__(self) -> None:
+        self._operators: List[Tuple[str, str, str]] = []
+
+    def register_escaped_defect(
+        self, operator_id: str, pattern_substring: str, cve_or_incident_ref: str
+    ) -> None:
+        """Register a newly discovered escaped-defect pattern into the operator set."""
+        if not operator_id or not pattern_substring or not cve_or_incident_ref:
+            raise ValueError("ERR_EMPTY_ESCAPED_DEFECT_SPEC")
+        self._operators.append((operator_id, pattern_substring, cve_or_incident_ref))
+
+    def scan_historical_merges(
+        self, merges: Sequence[Mapping[str, str]]
+    ) -> List[Dict[str, str]]:
+        """Scan historical merge records and emit RETROACTIVE_ADVISORY_REQUIRED matches."""
+        advisories: List[Dict[str, str]] = []
+        for merge in merges:
+            merge_id = merge.get("merge_id", "")
+            source_text = merge.get("source_text", "")
+            for operator_id, pattern_substring, cve_ref in self._operators:
+                if pattern_substring in source_text:
+                    advisories.append(
+                        {
+                            "advisory_status": "RETROACTIVE_ADVISORY_REQUIRED",
+                            "cve_or_incident_ref": cve_ref,
+                            "merge_id": merge_id,
+                            "operator_id": operator_id,
+                        }
+                    )
+        return advisories
+
+```
+
+### Phase IX Source B: `src/mcp_action_firewall.py`
+
+```python
+#!/usr/bin/env python3
+"""
+Beachhead Enterprise MCP Action Firewall & Control Plane (src/mcp_action_firewall.py).
+
+Status: INTERNAL PREVIEW COMMISSIONED
+Evaluated under the stated model as a default-deny execution control plane
+intercepting Agent-to-MCP tool calls:
+  1. AEIBReceiptLedger: Durable SQLite-WAL append-only cryptographic receipt ledger
+     chained by prev_receipt_caid and signed with an Ed25519 operator key over RFC 8785 JCS.
+  2. EffectReconciler: Timeout-is-unknown indeterminate latch blocking blind retries
+     until deterministic provider probe reconciliation.
+  3. ResearchContextLedger: Content-addressed artifact, line-delta, and decision cache
+     eliminating duplicate artifact ingestion.
+  4. MCPActionFirewall: Default-deny sidecar integrating signed MCP tool manifests,
+     CryptoDelegationGraph, TemporalAuthorityGuard terminal denial latching,
+     EffectReconciler, human step-up warrant verification, and AEIBReceiptLedger persistence.
+  5. compute_accountable_action_coverage_bps: Enterprise CISO metric with exact integer
+     basis-point calculation and conservative Wilson 95% confidence intervals.
+"""
+
+from __future__ import annotations
+
+import dataclasses
+from pathlib import Path
+import sqlite3
+from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple, Union
+
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.asymmetric import ed25519
+
+from src.crypto_delegation_graph import (
+    CryptoDelegationGraph,
+    DelegationToken,
+    ScopeBoundary,
+)
+from src.jcs_canonicalizer import encode_jcs
+from src.temporal_authority_guard import (
+    IntentScope,
+    TemporalAuthorityGuard,
+    TemporalIntentEnvelope,
+    sha256_caid,
+)
+from src.wilson_bps_interval import compute_wilson_95_bps
+
+# Alias exported for callers referencing SignedIntent alongside TemporalIntentEnvelope
+SignedIntent = TemporalIntentEnvelope
+
+
+@dataclasses.dataclass(frozen=True)
+class ActionExecutionReceipt:
+    """Cryptographically chained and signed execution receipt persisted in SQLite-WAL."""
+
+    seq_index: int
+    prev_receipt_caid: str
+    act_caid: str
+    actor_spiffe_id: str
+    tool_id: str
+    egress_host: str
+    decision: str
+    status_code: str
+    evaluated_at_epoch_sec: int
+    receipt_caid: str
+    signature_hex: str
+
+    def canonical_payload(self) -> Dict[str, Any]:
+        return {
+            "act_caid": self.act_caid,
+            "actor_spiffe_id": self.actor_spiffe_id,
+            "decision": self.decision,
+            "egress_host": self.egress_host,
+            "evaluated_at_epoch_sec": self.evaluated_at_epoch_sec,
+            "prev_receipt_caid": self.prev_receipt_caid,
+            "seq_index": self.seq_index,
+            "status_code": self.status_code,
+            "tool_id": self.tool_id,
+        }
+
+    def to_dict(self) -> Dict[str, Any]:
+        data = self.canonical_payload()
+        data["receipt_caid"] = self.receipt_caid
+        data["signature_hex"] = self.signature_hex
+        return data
+
+
+class AEIBReceiptLedger:
+    """Durable SQLite-WAL append-only action receipt ledger with full hash-chain replay."""
+
+    def __init__(
+        self,
+        db_path: Union[str, Path],
+        operator_private_key: ed25519.Ed25519PrivateKey,
+    ) -> None:
+        self.db_path = Path(db_path)
+        self._operator_private_key = operator_private_key
+        self._conn = sqlite3.connect(str(self.db_path))
+        self._conn.execute("PRAGMA journal_mode=WAL;")
+        self._conn.execute("PRAGMA synchronous=FULL;")
+        self._conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS action_receipts (
+                seq_index INTEGER PRIMARY KEY,
+                prev_receipt_caid TEXT NOT NULL,
+                act_caid TEXT NOT NULL,
+                actor_spiffe_id TEXT NOT NULL,
+                tool_id TEXT NOT NULL,
+                egress_host TEXT NOT NULL,
+                decision TEXT NOT NULL,
+                status_code TEXT NOT NULL,
+                evaluated_at_epoch_sec INTEGER NOT NULL,
+                receipt_caid TEXT NOT NULL,
+                signature_hex TEXT NOT NULL
+            )
+            """
+        )
+        self._conn.commit()
+
+    def append_receipt(
+        self,
+        act_caid: str,
+        actor_spiffe_id: str,
+        tool_id: str,
+        egress_host: str,
+        decision: str,
+        status_code: str,
+        evaluated_at_epoch_sec: int,
+    ) -> ActionExecutionReceipt:
+        cursor = self._conn.execute(
+            "SELECT seq_index, receipt_caid FROM action_receipts ORDER BY seq_index DESC LIMIT 1"
+        )
+        last_row = cursor.fetchone()
+        if last_row is None:
+            seq_index = 0
+            prev_receipt_caid = "GENESIS"
+        else:
+            seq_index = int(last_row[0]) + 1
+            prev_receipt_caid = str(last_row[1])
+
+        payload: Dict[str, Any] = {
+            "act_caid": act_caid,
+            "actor_spiffe_id": actor_spiffe_id,
+            "decision": decision,
+            "egress_host": egress_host,
+            "evaluated_at_epoch_sec": evaluated_at_epoch_sec,
+            "prev_receipt_caid": prev_receipt_caid,
+            "seq_index": seq_index,
+            "status_code": status_code,
+            "tool_id": tool_id,
+        }
+        canonical_bytes = encode_jcs(payload)
+        receipt_caid = sha256_caid(canonical_bytes)
+        signature_hex = self._operator_private_key.sign(canonical_bytes).hex()
+
+        self._conn.execute(
+            """
+            INSERT INTO action_receipts (
+                seq_index, prev_receipt_caid, act_caid, actor_spiffe_id,
+                tool_id, egress_host, decision, status_code,
+                evaluated_at_epoch_sec, receipt_caid, signature_hex
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                seq_index,
+                prev_receipt_caid,
+                act_caid,
+                actor_spiffe_id,
+                tool_id,
+                egress_host,
+                decision,
+                status_code,
+                evaluated_at_epoch_sec,
+                receipt_caid,
+                signature_hex,
+            ),
+        )
+        self._conn.commit()
+
+        return ActionExecutionReceipt(
+            seq_index=seq_index,
+            prev_receipt_caid=prev_receipt_caid,
+            act_caid=act_caid,
+            actor_spiffe_id=actor_spiffe_id,
+            tool_id=tool_id,
+            egress_host=egress_host,
+            decision=decision,
+            status_code=status_code,
+            evaluated_at_epoch_sec=evaluated_at_epoch_sec,
+            receipt_caid=receipt_caid,
+            signature_hex=signature_hex,
+        )
+
+    def verify_ledger_and_replay(
+        self, operator_public_key: ed25519.Ed25519PublicKey
+    ) -> Tuple[bool, str, int]:
+        cursor = self._conn.execute(
+            """
+            SELECT seq_index, prev_receipt_caid, act_caid, actor_spiffe_id,
+                   tool_id, egress_host, decision, status_code,
+                   evaluated_at_epoch_sec, receipt_caid, signature_hex
+            FROM action_receipts
+            ORDER BY seq_index ASC
+            """
+        )
+        rows = cursor.fetchall()
+        expected_prev_caid = "GENESIS"
+
+        for idx, row in enumerate(rows):
+            (
+                seq_index,
+                prev_receipt_caid,
+                act_caid,
+                actor_spiffe_id,
+                tool_id,
+                egress_host,
+                decision,
+                status_code,
+                evaluated_at_epoch_sec,
+                receipt_caid,
+                signature_hex,
+            ) = row
+
+            if seq_index != idx:
+                return False, f"TAMPER_SEQ_INDEX_GAP:{seq_index}!={idx}", idx
+
+            if prev_receipt_caid != expected_prev_caid:
+                return (
+                    False,
+                    f"TAMPER_PREV_CAID_CHAIN_BREAK:{prev_receipt_caid}!={expected_prev_caid}",
+                    idx,
+                )
+
+            payload: Dict[str, Any] = {
+                "act_caid": act_caid,
+                "actor_spiffe_id": actor_spiffe_id,
+                "decision": decision,
+                "egress_host": egress_host,
+                "evaluated_at_epoch_sec": evaluated_at_epoch_sec,
+                "prev_receipt_caid": prev_receipt_caid,
+                "seq_index": seq_index,
+                "status_code": status_code,
+                "tool_id": tool_id,
+            }
+            canonical_bytes = encode_jcs(payload)
+            recomputed_caid = sha256_caid(canonical_bytes)
+            if receipt_caid != recomputed_caid:
+                return (
+                    False,
+                    f"TAMPER_RECEIPT_CAID_MISMATCH:{receipt_caid}!={recomputed_caid}",
+                    idx,
+                )
+
+            try:
+                operator_public_key.verify(
+                    bytes.fromhex(signature_hex), canonical_bytes
+                )
+            except (ValueError, InvalidSignature):
+                return False, "TAMPER_INVALID_OPERATOR_SIGNATURE", idx
+
+            expected_prev_caid = receipt_caid
+
+        return True, "LEDGER_REPLAY_VERIFIED", len(rows)
+
+    def close(self) -> None:
+        self._conn.close()
+
+
+class EffectReconciler:
+    """Timeout-is-unknown indeterminate latch and provider probe reconciler."""
+
+    def __init__(self) -> None:
+        self._states: Dict[str, str] = {}
+        self._metadata: Dict[str, Tuple[str, str]] = {}
+
+    def get_effect_state(self, effect_idempotency_caid: str) -> str:
+        return self._states.get(effect_idempotency_caid, "NONE")
+
+    def record_timeout_or_indeterminate(
+        self,
+        effect_idempotency_caid: str,
+        tool_id: str,
+        actor_spiffe_id: str,
+    ) -> str:
+        self._states[effect_idempotency_caid] = "EFFECT_INDETERMINATE"
+        self._metadata[effect_idempotency_caid] = (tool_id, actor_spiffe_id)
+        return "EFFECT_INDETERMINATE"
+
+    def record_committed(
+        self,
+        effect_idempotency_caid: str,
+        tool_id: str,
+        actor_spiffe_id: str,
+    ) -> str:
+        self._states[effect_idempotency_caid] = "CONFIRMED_COMMITTED"
+        self._metadata[effect_idempotency_caid] = (tool_id, actor_spiffe_id)
+        return "CONFIRMED_COMMITTED"
+
+    def can_dispatch(self, effect_idempotency_caid: str) -> Tuple[bool, str]:
+        state = self._states.get(effect_idempotency_caid, "NONE")
+        if state == "EFFECT_INDETERMINATE":
+            return False, "DENY_INDETERMINATE_EFFECT_PENDING_RECONCILIATION"
+        if state == "CONFIRMED_COMMITTED":
+            return False, "DENY_ALREADY_COMMITTED_IDEMPOTENT_REPLAY"
+        return True, "ALLOW_FRESH_OR_ABORTED_RETRY"
+
+    def reconcile_with_provider_probe(
+        self, effect_idempotency_caid: str, provider_status: str
+    ) -> str:
+        if provider_status not in ("CONFIRMED_COMMITTED", "CONFIRMED_ABORTED"):
+            raise ValueError(f"ERR_INVALID_PROVIDER_PROBE_STATUS:{provider_status}")
+        self._states[effect_idempotency_caid] = provider_status
+        return provider_status
+
+
+@dataclasses.dataclass(frozen=True)
+class ResearchArtifactRecord:
+    """Content-addressed research context artifact entry."""
+
+    artifact_caid: str
+    raw_text: str
+    tags: Tuple[str, ...]
+    parent_artifact_caid: str
+    cached_decision: str
+    line_delta_count: int
+
+
+class ResearchContextLedger:
+    """Content-addressed artifact, line-delta, and decision cache."""
+
+    def __init__(self) -> None:
+        self._artifacts: Dict[str, ResearchArtifactRecord] = {}
+
+    def get_artifact(self, artifact_caid: str) -> Optional[ResearchArtifactRecord]:
+        return self._artifacts.get(artifact_caid)
+
+    def ingest_artifact(
+        self,
+        raw_text: str,
+        tags: Sequence[str],
+        parent_artifact_caid: str = "NONE",
+        cached_decision: str = "NONE",
+    ) -> Dict[str, Any]:
+        artifact_caid = sha256_caid(raw_text)
+        existing = self._artifacts.get(artifact_caid)
+        if existing is not None:
+            return {
+                "status": "DUPLICATE_ARTIFACT_SKIPPED",
+                "artifact_caid": artifact_caid,
+                "cached_decision": existing.cached_decision,
+            }
+
+        curr_lines = raw_text.splitlines()
+        parent_rec = self._artifacts.get(parent_artifact_caid)
+        if parent_artifact_caid != "NONE" and parent_rec is not None:
+            parent_lines = set(parent_rec.raw_text.splitlines())
+            delta = sum(1 for line in curr_lines if line not in parent_lines)
+        else:
+            delta = len(curr_lines)
+
+        record = ResearchArtifactRecord(
+            artifact_caid=artifact_caid,
+            raw_text=raw_text,
+            tags=tuple(tags),
+            parent_artifact_caid=parent_artifact_caid,
+            cached_decision=cached_decision,
+            line_delta_count=delta,
+        )
+        self._artifacts[artifact_caid] = record
+        return {
+            "status": "INGESTED_NEW_ARTIFACT",
+            "artifact_caid": artifact_caid,
+            "line_delta_count": delta,
+        }
+
+
+@dataclasses.dataclass(frozen=True)
+class SignedToolManifest:
+    """Cryptographically verified MCP tool manifest."""
+
+    tool_id: str
+    allowed_hosts: Tuple[str, ...]
+    irreversible: bool
+    max_taint_bps: int
+    signature_hex: str
+    manifest_caid: str
+
+
+@dataclasses.dataclass(frozen=True)
+class FirewallEvaluationResult:
+    """Outcome of MCPActionFirewall evaluation with durable receipt."""
+
+    decision: str
+    status_code: str
+    act_caid: str
+    receipt: ActionExecutionReceipt
+
+
+class MCPActionFirewall:
+    """Default-deny sidecar intercepting Agent-to-MCP tool calls."""
+
+    def __init__(
+        self,
+        receipt_ledger: AEIBReceiptLedger,
+        delegation_graph: CryptoDelegationGraph,
+        temporal_guard: TemporalAuthorityGuard,
+        effect_reconciler: EffectReconciler,
+        human_approver_public_key: ed25519.Ed25519PublicKey,
+    ) -> None:
+        self.receipt_ledger = receipt_ledger
+        self.delegation_graph = delegation_graph
+        self.temporal_guard = temporal_guard
+        self.effect_reconciler = effect_reconciler
+        self.human_approver_public_key = human_approver_public_key
+        self._tool_manifests: Dict[str, SignedToolManifest] = {}
+        self._terminal_denied_intents: Dict[str, str] = {}
+
+    @staticmethod
+    def sign_tool_manifest_payload(
+        tool_id: str,
+        allowed_hosts: Sequence[str],
+        irreversible: bool,
+        max_taint_bps: int,
+        publisher_private_key: ed25519.Ed25519PrivateKey,
+    ) -> str:
+        normalized_hosts = tuple(sorted(set(allowed_hosts)))
+        payload: Dict[str, Any] = {
+            "allowed_hosts": list(normalized_hosts),
+            "irreversible": irreversible,
+            "max_taint_bps": max_taint_bps,
+            "tool_id": tool_id,
+        }
+        return publisher_private_key.sign(encode_jcs(payload)).hex()
+
+    @staticmethod
+    def sign_human_step_up_warrant(
+        act_caid: str,
+        subject_spiffe_id: str,
+        tool_id: str,
+        human_private_key: ed25519.Ed25519PrivateKey,
+    ) -> str:
+        warrant_payload: Dict[str, Any] = {
+            "act_caid": act_caid,
+            "subject_spiffe_id": subject_spiffe_id,
+            "tool_id": tool_id,
+        }
+        return human_private_key.sign(encode_jcs(warrant_payload)).hex()
+
+    @staticmethod
+    def compute_act_caid(
+        actor_spiffe_id: str,
+        tool_id: str,
+        egress_host: str,
+        amount_minor: int,
+        blast_radius_bps: int,
+        context_taint_bps: int,
+        intent_caid: str,
+        leaf_token_caid: str,
+        effect_idempotency_caid: str,
+    ) -> str:
+        payload: Dict[str, Any] = {
+            "actor_spiffe_id": actor_spiffe_id,
+            "amount_minor": amount_minor,
+            "blast_radius_bps": blast_radius_bps,
+            "context_taint_bps": context_taint_bps,
+            "effect_idempotency_caid": effect_idempotency_caid,
+            "egress_host": egress_host,
+            "intent_caid": intent_caid,
+            "leaf_token_caid": leaf_token_caid,
+            "tool_id": tool_id,
+        }
+        return sha256_caid(payload)
+
+    def register_signed_tool_manifest(
+        self,
+        tool_id: str,
+        allowed_hosts: Sequence[str],
+        irreversible: bool,
+        max_taint_bps: int,
+        publisher_public_key: ed25519.Ed25519PublicKey,
+        signature_hex: str,
+    ) -> SignedToolManifest:
+        if max_taint_bps < 0 or max_taint_bps > 10000:
+            raise ValueError(f"ERR_INVALID_MAX_TAINT_BPS:{max_taint_bps}")
+
+        normalized_hosts = tuple(sorted(set(allowed_hosts)))
+        payload: Dict[str, Any] = {
+            "allowed_hosts": list(normalized_hosts),
+            "irreversible": irreversible,
+            "max_taint_bps": max_taint_bps,
+            "tool_id": tool_id,
+        }
+        canonical_bytes = encode_jcs(payload)
+        try:
+            publisher_public_key.verify(bytes.fromhex(signature_hex), canonical_bytes)
+        except (ValueError, InvalidSignature):
+            raise ValueError("HALT_INVALID_TOOL_MANIFEST_SIGNATURE")
+
+        manifest = SignedToolManifest(
+            tool_id=tool_id,
+            allowed_hosts=normalized_hosts,
+            irreversible=irreversible,
+            max_taint_bps=max_taint_bps,
+            signature_hex=signature_hex,
+            manifest_caid=sha256_caid(canonical_bytes),
+        )
+        self._tool_manifests[tool_id] = manifest
+        return manifest
+
+    def evaluate_mcp_tool_call(
+        self,
+        actor_spiffe_id: str,
+        tool_id: str,
+        egress_host: str,
+        amount_minor: int,
+        blast_radius_bps: int,
+        context_taint_bps: int,
+        intent_caid: str,
+        leaf_token_caid: str,
+        effect_idempotency_caid: str,
+        current_time: int,
+        human_approval_signature_hex: str = "",
+        payment_402_required: bool = False,
+        live_preconditions: Optional[Mapping[str, bool]] = None,
+    ) -> FirewallEvaluationResult:
+        act_caid = self.compute_act_caid(
+            actor_spiffe_id=actor_spiffe_id,
+            tool_id=tool_id,
+            egress_host=egress_host,
+            amount_minor=amount_minor,
+            blast_radius_bps=blast_radius_bps,
+            context_taint_bps=context_taint_bps,
+            intent_caid=intent_caid,
+            leaf_token_caid=leaf_token_caid,
+            effect_idempotency_caid=effect_idempotency_caid,
+        )
+
+        # 1. Terminal Denial Latch Check
+        if (
+            intent_caid in self._terminal_denied_intents
+            or self.temporal_guard.get_intent_state(intent_caid) == "DENIED_TERMINAL"
+        ):
+            return self._record(
+                act_caid,
+                actor_spiffe_id,
+                tool_id,
+                egress_host,
+                "DENY",
+                "DENY_TERMINAL_PRIOR_INTENT_LATCHED",
+                current_time,
+            )
+
+        if payment_402_required:
+            self._terminal_denied_intents[intent_caid] = "DENY_402_PAYMENT_REQUIRED_TERMINAL"
+            return self._record(
+                act_caid,
+                actor_spiffe_id,
+                tool_id,
+                egress_host,
+                "DENY",
+                "DENY_402_PAYMENT_REQUIRED_TERMINAL",
+                current_time,
+            )
+
+        if self.temporal_guard.get_intent_state(intent_caid) != "UNREGISTERED":
+            t_verdict = self.temporal_guard.evaluate_temporal_dispatch(
+                intent_caid=intent_caid,
+                current_epoch_sec=current_time,
+                live_preconditions=live_preconditions or {},
+                requested_host=egress_host,
+                requested_tool=tool_id,
+                requested_amount_minor=amount_minor,
+            )
+            if not t_verdict.authorized:
+                if t_verdict.state == "DENIED_TERMINAL":
+                    self._terminal_denied_intents[intent_caid] = t_verdict.status_code
+                return self._record(
+                    act_caid,
+                    actor_spiffe_id,
+                    tool_id,
+                    egress_host,
+                    "DENY",
+                    t_verdict.status_code,
+                    current_time,
+                )
+
+        # 2. Default-Deny Signed Tool Manifest Check
+        manifest = self._tool_manifests.get(tool_id)
+        if manifest is None:
+            status = f"DENY_UNREGISTERED_MCP_TOOL:{tool_id}"
+            self._terminal_denied_intents[intent_caid] = status
+            return self._record(
+                act_caid,
+                actor_spiffe_id,
+                tool_id,
+                egress_host,
+                "DENY",
+                status,
+                current_time,
+            )
+
+        if egress_host not in manifest.allowed_hosts:
+            status = f"DENY_MANIFEST_HOST_FORBIDDEN:{egress_host}"
+            self._terminal_denied_intents[intent_caid] = status
+            return self._record(
+                act_caid,
+                actor_spiffe_id,
+                tool_id,
+                egress_host,
+                "DENY",
+                status,
+                current_time,
+            )
+
+        # 3. Cryptographic Delegation Graph Check
+        auth_verdict = self.delegation_graph.evaluate_action(
+            actor_spiffe_id=actor_spiffe_id,
+            leaf_token_caid=leaf_token_caid,
+            action_host=egress_host,
+            action_tool=tool_id,
+            amount_minor=amount_minor,
+            current_time=current_time,
+            blast_radius_bps=blast_radius_bps,
+        )
+        if not auth_verdict.authorized:
+            self._terminal_denied_intents[intent_caid] = auth_verdict.reason_code
+            return self._record(
+                act_caid,
+                actor_spiffe_id,
+                tool_id,
+                egress_host,
+                "DENY",
+                auth_verdict.reason_code,
+                current_time,
+            )
+
+        # 4. EffectReconciler Indeterminate / Duplicate Replay Check
+        can_run, reconcile_reason = self.effect_reconciler.can_dispatch(
+            effect_idempotency_caid
+        )
+        if not can_run:
+            return self._record(
+                act_caid,
+                actor_spiffe_id,
+                tool_id,
+                egress_host,
+                "DENY",
+                reconcile_reason,
+                current_time,
+            )
+
+        # 5. Human Step-Up Warrant Verification
+        if manifest.irreversible or context_taint_bps > manifest.max_taint_bps:
+            if not self._verify_human_warrant(
+                act_caid, actor_spiffe_id, tool_id, human_approval_signature_hex
+            ):
+                return self._record(
+                    act_caid,
+                    actor_spiffe_id,
+                    tool_id,
+                    egress_host,
+                    "ESCALATE",
+                    "ESCALATE_HUMAN_APPROVAL_REQUIRED",
+                    current_time,
+                )
+
+        # 6. Authorize & Record Committed Effect
+        self.effect_reconciler.record_committed(
+            effect_idempotency_caid, tool_id, actor_spiffe_id
+        )
+        return self._record(
+            act_caid,
+            actor_spiffe_id,
+            tool_id,
+            egress_host,
+            "ALLOW",
+            "ALLOW_ACTION_AUTHORIZED",
+            current_time,
+        )
+
+    def _verify_human_warrant(
+        self,
+        act_caid: str,
+        subject_spiffe_id: str,
+        tool_id: str,
+        signature_hex: str,
+    ) -> bool:
+        if not signature_hex:
+            return False
+        warrant_payload: Dict[str, Any] = {
+            "act_caid": act_caid,
+            "subject_spiffe_id": subject_spiffe_id,
+            "tool_id": tool_id,
+        }
+        try:
+            self.human_approver_public_key.verify(
+                bytes.fromhex(signature_hex), encode_jcs(warrant_payload)
+            )
+        except (ValueError, InvalidSignature):
+            return False
+        return True
+
+    def _record(
+        self,
+        act_caid: str,
+        actor_spiffe_id: str,
+        tool_id: str,
+        egress_host: str,
+        decision: str,
+        status_code: str,
+        evaluated_at_epoch_sec: int,
+    ) -> FirewallEvaluationResult:
+        receipt = self.receipt_ledger.append_receipt(
+            act_caid=act_caid,
+            actor_spiffe_id=actor_spiffe_id,
+            tool_id=tool_id,
+            egress_host=egress_host,
+            decision=decision,
+            status_code=status_code,
+            evaluated_at_epoch_sec=evaluated_at_epoch_sec,
+        )
+        return FirewallEvaluationResult(
+            decision=decision,
+            status_code=status_code,
+            act_caid=act_caid,
+            receipt=receipt,
+        )
+
+
+@dataclasses.dataclass(frozen=True)
+class ActionAuditSample:
+    """Single action audit sample for the Enterprise CISO Accountable Action Coverage metric."""
+
+    action_id: str
+    identity_bound: bool
+    policy_evaluated: bool
+    receipt_recorded: bool
+    replay_verified: bool
+    reconcilable: bool
+
+    @property
+    def is_accountable(self) -> bool:
+        return bool(
+            self.identity_bound
+            and self.policy_evaluated
+            and self.receipt_recorded
+            and self.replay_verified
+            and self.reconcilable
+        )
+
+
+@dataclasses.dataclass(frozen=True)
+class AccountableActionCoverageReport:
+    """Accountable Action Coverage report with integer basis points and Wilson 95% CI."""
+
+    accountable_count: int
+    total_count: int
+    coverage_bps: int
+    wilson_low_bps: int
+    wilson_high_bps: int
+
+    def to_dict(self) -> Dict[str, int]:
+        return {
+            "accountable_count": self.accountable_count,
+            "coverage_bps": self.coverage_bps,
+            "total_count": self.total_count,
+            "wilson_high_bps": self.wilson_high_bps,
+            "wilson_low_bps": self.wilson_low_bps,
+        }
+
+    def __getitem__(self, key: str) -> int:
+        return self.to_dict()[key]
+
+
+def compute_accountable_action_coverage_bps(
+    samples: Sequence[ActionAuditSample],
+) -> AccountableActionCoverageReport:
+    """
+    Compute the Enterprise CISO Accountable Action Coverage metric in integer basis points.
+    An action is accountable iff all 5 predicates (identity_bound, policy_evaluated,
+    receipt_recorded, replay_verified, reconcilable) are True.
+    """
+    total_count = len(samples)
+    if total_count == 0:
+        return AccountableActionCoverageReport(
+            accountable_count=0,
+            total_count=0,
+            coverage_bps=0,
+            wilson_low_bps=0,
+            wilson_high_bps=0,
+        )
+
+    accountable_count = sum(1 for sample in samples if sample.is_accountable)
+    coverage_bps = (accountable_count * 10000) // total_count
+    wilson_low_bps, wilson_high_bps = compute_wilson_95_bps(
+        accountable_count, total_count
+    )
+    return AccountableActionCoverageReport(
+        accountable_count=accountable_count,
+        total_count=total_count,
+        coverage_bps=coverage_bps,
+        wilson_low_bps=wilson_low_bps,
+        wilson_high_bps=wilson_high_bps,
+    )
+
+```

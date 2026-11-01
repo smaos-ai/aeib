@@ -2,6 +2,9 @@
 """
 Autonomous PR Webhook Dispatcher (src/autonomous_pr_webhook_dispatcher.py).
 
+Status: INTERNAL PREVIEW COMMISSIONED
+Epistemic Boundary: Observed, tested, and configured under the stated model.
+
 Evaluated under the stated model to ingest GitHub pull request webhook payloads,
 execute AST reverse-dependency blast-radius analysis via HypergraphBlastRadiusGovernor,
 and generate cryptographically signed auto-merge or human-escalation decisions.

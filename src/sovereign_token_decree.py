@@ -2,6 +2,9 @@
 """
 SovereignNexus Token Decree Governor (src/sovereign_token_decree.py).
 
+Evaluation Status: INTERNAL PREVIEW COMMISSIONED.
+Epistemic Boundary: Observed, tested, and configured under the stated model.
+
 Evaluated under the stated model to synthesize four SOTA token-conservation mechanisms
 (Zero-Float RFC 8785 JCS compliant, integer basis points 0..10000 bps):
   1. Alibaba OpenCodeReview AST-Diff Slicer (arXiv:2608.09290):

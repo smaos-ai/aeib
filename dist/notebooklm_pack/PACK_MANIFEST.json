@@ -3,7 +3,7 @@
   "target_notebook_url": "https://notebook.google.com/notebook/e1b91409-02f9-4300-8bf7-5dfd4426dd16",
   "target_notebook_id": "e1b91409-02f9-4300-8bf7-5dfd4426dd16",
   "sources_count": 17,
-  "total_word_count": 126341,
+  "total_word_count": 136950,
   "max_words_per_source_limit": 500000,
   "notebook_source_slots_used": "17 / 50 (33 slots free)",
   "sources": [
@@ -80,9 +80,9 @@
     {
       "file_name": "10_OCTOBER_30_SOTA_FRONTIER_SWAT_AIRLOCK_AND_REGENERATABLE_UI.md",
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/10_OCTOBER_30_SOTA_FRONTIER_SWAT_AIRLOCK_AND_REGENERATABLE_UI.md",
-      "words": 32440,
-      "bytes": 361136,
-      "sha256": "sha256:a0ab4ea01f87167921ac8fa71b5edb925a0f0ea6abcb482b7afe254d22dc911f"
+      "words": 32589,
+      "bytes": 362328,
+      "sha256": "sha256:7d0cf78bbb90411e147f7cdb91735a6b5edfbde3c056687e6c4f3d395ce5509b"
     },
     {
       "file_name": "11_AGENT_SUBSTRATE_TENCENT_CUBE_KIRO_AND_A2A_INTERLOCK.md",
@@ -115,16 +115,16 @@
     {
       "file_name": "15_TEN_LAYER_SOVEREIGN_FACTORY_AND_COMMISSIONED_PROTOTYPE_SPECS.md",
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/15_TEN_LAYER_SOVEREIGN_FACTORY_AND_COMMISSIONED_PROTOTYPE_SPECS.md",
-      "words": 1464,
-      "bytes": 13788,
-      "sha256": "sha256:dfbc8721414d9e10d900a233bc2a60384cf4c3e09f610f97d4d3ff856c208435"
+      "words": 1529,
+      "bytes": 14441,
+      "sha256": "sha256:86133e5d53ddb0dde0c183dfa762a19ea653c91215f41a00dd0a4d48b962e585"
     },
     {
       "file_name": "16_OCTOBER_31_PHASE_V_5_STATION_KERNEL_TEMPORAL_AUTHORITY_AND_PREMARKET_AUDIT.md",
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/16_OCTOBER_31_PHASE_V_5_STATION_KERNEL_TEMPORAL_AUTHORITY_AND_PREMARKET_AUDIT.md",
-      "words": 14404,
-      "bytes": 135352,
-      "sha256": "sha256:5a3b8249d323abe4d2456b8664132f91fce7fdfb70c6f57df604af7e0d31662e"
+      "words": 24799,
+      "bytes": 259713,
+      "sha256": "sha256:a7975ef0c1fe696a0a7f3f25d236ffc4002918b1649d65a921de8f74a0d6b945"
     }
   ]
 }

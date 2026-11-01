@@ -17,6 +17,7 @@ import pytest
 from src.temporal_authority_guard import (
     IntentScope,
     TemporalAuthorityGuard,
+    TemporalGuardVerdict,
     TemporalIntentEnvelope,
     sha256_caid,
 )
@@ -455,6 +456,52 @@ def test_5_boundary_and_error_branches_for_mutation_adequacy() -> None:
         )
 
     assert sha256_caid(b"raw") == sha256_caid("raw")
+
+    # Immutability check for TemporalGuardVerdict (kills frozen=True perturbation)
+    v_sample = TemporalGuardVerdict(True, "COMMITTED", "OK", "caid1", "caid2")
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        v_sample.authorized = False  # type: ignore
+
+    # DNS_MAX_QUERY_LENGTH exact boundary: 128 allowed, 129 rejected (kills CONST_PERTURB on 128)
+    assert TemporalAuthorityGuard.DNS_MAX_QUERY_LENGTH == 128
+    q_128 = "a" * 50 + "." + "b" * 50 + "." + "c" * 26
+    assert len(q_128) == 128
+    ok_128, _ = guard.evaluate_network_and_dns_egress(
+        actor_spiffe_id=actor,
+        protocol="DNS",
+        destination_host=q_128,
+        allowed_hosts=frozenset({q_128}),
+        dns_query_wire_len=128,
+    )
+    assert ok_128 is True
+
+    q_129 = q_128 + "d"
+    assert len(q_129) == 129
+    ok_129, reason_129 = guard.evaluate_network_and_dns_egress(
+        actor_spiffe_id=actor,
+        protocol="DNS",
+        destination_host=q_129,
+        allowed_hosts=frozenset({q_129}),
+        dns_query_wire_len=129,
+    )
+    assert ok_129 is False
+    assert "HALT_DNS_TUNNEL_OVERSIZED_QUERY" in reason_129
+
+    # Retry budget exhaustion triggers line 380-386 (kills False perturbed to True on line 383)
+    e_retries = _mint_signed_envelope(key, actor, "id_retry_budget", t0, max_retries=1)
+    guard.register_intent(e_retries)
+    guard._attempt_counts[e_retries.intent_caid] = 2
+    v_budget = guard.evaluate_temporal_dispatch(
+        e_retries.intent_caid,
+        current_epoch_sec=t0 + 1,
+        live_preconditions={"balance_sufficient": True, "network_allowed": True},
+        requested_host="api.stripe.com",
+        requested_tool="charge_card",
+        requested_amount_minor=1000,
+    )
+    assert v_budget.authorized is False
+    assert v_budget.state == "DENIED_TERMINAL"
+    assert "HALT_RETRY_BUDGET_EXHAUSTED" in v_budget.status_code
 
 
 def test_6_epistemic_purity_no_banned_words() -> None:

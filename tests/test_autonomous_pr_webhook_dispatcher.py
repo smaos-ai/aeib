@@ -230,8 +230,10 @@ def test_9_comprehensive_edge_cases_and_intent_caid_parsing() -> None:
     with pytest.raises(ValueError, match="ERR_MISSING_PULL_REQUEST_OBJECT"):
         dispatcher.extract_pr_spec({"action": "opened"})
 
-    # 2. Empty signature header returns False
+    # 2. Empty signature header returns False and wrong prefix rejected
     assert dispatcher.verify_webhook_signature(b"{}", "") is False
+    valid_hmac = hmac.new(b"sec", b"{}", hashlib.sha256).hexdigest()
+    assert dispatcher.verify_webhook_signature(b"{}", "sha256X" + valid_hmac) is False
 
     # 3. Intent-CAID header extraction in PR body
     exact_71_caid = "sha256:" + "b" * 64
@@ -283,6 +285,30 @@ def test_9_comprehensive_edge_cases_and_intent_caid_parsing() -> None:
 
     with pytest.raises(dataclasses.FrozenInstanceError):
         receipt.warrant.action = "HALT"  # type: ignore
+
+    # 6. Files containing dict without filename skipped gracefully (kills BOOL_SWAP line 184)
+    payload_no_filename = {
+        "action": "opened",
+        "pull_request": {
+            "number": 204,
+            "title": "no filename",
+            "files": [{"other_key": "val"}],
+        },
+    }
+    _, spec_no_filename = dispatcher.extract_pr_spec(payload_no_filename)
+    assert spec_no_filename.changed_files == ("unknown_module.py",)
+
+    # 7. Omitted additions and deletions default to 0 (kills CONST_PERTURB line 193)
+    payload_no_del = {
+        "action": "opened",
+        "pull_request": {
+            "number": 205,
+            "title": "zero del",
+        },
+    }
+    _, spec_no_del = dispatcher.extract_pr_spec(payload_no_del)
+    assert spec_no_del.lines_added == 0
+    assert spec_no_del.lines_deleted == 0
 
 
 def test_8_epistemic_purity_no_banned_words() -> None:

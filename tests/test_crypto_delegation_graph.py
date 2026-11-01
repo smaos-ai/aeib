@@ -243,6 +243,50 @@ def test_2_temporal_expiration_and_error_branches() -> None:
     assert ScopeBoundary(("api.com",), ("get",), 100, 2000).is_subset_of(scope) is False
 
 
+def test_4_zero_blast_radius_default_and_boundary() -> None:
+    import inspect
+
+    sig = inspect.signature(CryptoDelegationGraph.evaluate_action)
+    assert sig.parameters["blast_radius_bps"].default == 0
+
+    human_priv = ed25519.Ed25519PrivateKey.generate()
+    agent_priv = ed25519.Ed25519PrivateKey.generate()
+    trust_store = {
+        "spiffe://human/root": human_priv.public_key(),
+        "spiffe://agent/worker": agent_priv.public_key(),
+    }
+    graph = CryptoDelegationGraph(trust_store)
+    now = int(time.time())
+    zero_scope = ScopeBoundary(
+        allowed_egress_hosts=("api.internal",),
+        allowed_tools=("read_only",),
+        max_financial_minor=0,
+        max_blast_radius_bps=0,
+    )
+    t_un = DelegationToken(
+        issuer_spiffe_id="spiffe://human/root",
+        subject_spiffe_id="spiffe://agent/worker",
+        scope=zero_scope,
+        issued_at_epoch_sec=now,
+        expires_at_epoch_sec=now + 60,
+        parent_token_caid="GENESIS",
+    )
+    t = t_un.with_signature(_sign(t_un.canonical_bytes(), human_priv))
+    caid = graph.register_token(t)
+
+    # Calling without blast_radius_bps must evaluate with default 0 bps and succeed
+    v_def = graph.evaluate_action(
+        "spiffe://agent/worker",
+        caid,
+        "api.internal",
+        "read_only",
+        0,
+        now,
+    )
+    assert v_def.authorized is True
+    assert v_def.reason_code == "OK_AUTHORITY_VERIFIED"
+
+
 def test_3_epistemic_purity_no_banned_words() -> None:
     banned = [
         r"\bguarant[e]e\b",

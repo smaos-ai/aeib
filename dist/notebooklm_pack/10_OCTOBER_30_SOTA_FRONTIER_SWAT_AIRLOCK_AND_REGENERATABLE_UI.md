@@ -2601,12 +2601,6 @@ from src.visual_regression_gate import (
     sha256_jcs_caid,
 )
 
-try:
-    from PIL import Image, ImageColor, ImageDraw
-    _HAS_PIL = True
-except ImportError:
-    _HAS_PIL = False
-
 
 @dataclass(frozen=True)
 class DOMRasterResult:
@@ -4154,6 +4148,9 @@ Tests Figma variable normalization, forbidden literal derivation, and constraint
 from __future__ import annotations
 
 import dataclasses
+import importlib
+from pathlib import Path
+import sys
 import pytest
 
 from src.figma_mcp_connector import FigmaMCPConnector, FigmaVariableToken
@@ -4308,6 +4305,18 @@ def test_compile_to_constraint_spec() -> None:
         FigmaMCPConnector.compile_to_constraint_spec("", var_payload)
 
 
+def test_sys_path_bootstrap(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verifies sys.path.insert(0) places repo root at index 0."""
+    import src.figma_mcp_connector as mod
+
+    repo_str = str(Path(__file__).resolve().parent.parent)
+    marker = ["/dummy_marker_figma"]
+    monkeypatch.setattr(sys, "path", marker + [p for p in sys.path if p != repo_str])
+    importlib.reload(mod)
+    assert sys.path[0] == repo_str
+
+
+
 
 
 ---
@@ -4337,6 +4346,9 @@ Verification and falsification suite for DOMRasterizer and HeadlessBrowserSideca
 from __future__ import annotations
 
 import dataclasses
+import importlib
+from pathlib import Path
+import sys
 import pytest
 
 from src.headless_browser_sidecar import (
@@ -4379,6 +4391,11 @@ def test_color_to_luma_conversions() -> None:
     assert DOMRasterizer.parse_color_to_luma("blue") == 29
     assert DOMRasterizer.parse_color_to_luma("gray") == 128
     assert DOMRasterizer.parse_color_to_luma("grey") == 128
+    # Fine-grained integer coefficient boundary checks (Lesson L23)
+    assert DOMRasterizer.parse_color_to_luma("rgb(10, 0, 0)") == 2
+    assert DOMRasterizer.parse_color_to_luma("rgb(201, 0, 0)") == 60
+    assert DOMRasterizer.parse_color_to_luma("rgb(0, 201, 0)") == 117
+    assert DOMRasterizer.parse_color_to_luma("rgb(0, 0, 100)") == 11
 
     # 3. Hex 3 and 6 chars
     assert DOMRasterizer.parse_color_to_luma("#000") == 0
@@ -4515,6 +4532,18 @@ def test_headless_browser_sidecar_workflow() -> None:
     assert receipt_fail.passed is False
     assert receipt_fail.divergence_bps > 100
     assert "HALT_VISUAL_REGRESSION_DIVERGENCE" in receipt_fail.status_code
+
+
+def test_sys_path_bootstrap(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verifies sys.path.insert(0) places repo root at index 0."""
+    import src.headless_browser_sidecar as mod
+
+    repo_str = str(Path(__file__).resolve().parent.parent)
+    marker = ["/dummy_marker_sidecar"]
+    monkeypatch.setattr(sys, "path", marker + [p for p in sys.path if p != repo_str])
+    importlib.reload(mod)
+    assert sys.path[0] == repo_str
+
 
 
 

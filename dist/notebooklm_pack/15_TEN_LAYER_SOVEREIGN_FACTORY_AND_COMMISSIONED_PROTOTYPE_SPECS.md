@@ -215,13 +215,28 @@ All commissioned modules have achieved $\ge 80.00\%$ mutation adequacy kill rati
 
 | `src/evidence_sufficiency_and_lean_gate.py` | `tests/test_evidence_sufficiency_and_lean_gate.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
 
+
+| `src/crypto_delegation_graph.py` | `tests/test_crypto_delegation_graph.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
+
+| `src/temporal_graph_router.py` | `tests/test_temporal_graph_router.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
+
+| `src/temporal_authority_guard.py` | `tests/test_temporal_authority_guard.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
+
+| `src/sovereign_phase_v_kernel.py` | `tests/test_sovereign_phase_v_kernel.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
+
+| `src/autonomous_pr_webhook_dispatcher.py` | `tests/test_autonomous_pr_webhook_dispatcher.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
 ---
 
 ## 3. Disclosed Surviving Mutants & Cryptographic Isolation
 
 
 
-All 49 commissioned prototype modules have achieved 100.00% mutation adequacy (30/30 or 22/22 mutants killed each) under the AST shadow runner with zero surviving mutants across their sampled sets:
+All 54 commissioned prototype modules have achieved 100.00% mutation adequacy (30/30 or 22/22 mutants killed each) under the AST shadow runner with zero surviving mutants across their sampled sets:
 
 
 1. All runtime path bootstrap setups (`sys.path.insert(0, str(_REPO_ROOT))`) verified with active sentinel poisoning reload checks.

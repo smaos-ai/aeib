@@ -930,9 +930,14 @@ def build_source_15() -> Tuple[str, str]:
         "| `src/sovereign_token_decree.py` | `tests/test_sovereign_token_decree.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n",
         "| `src/token_decree_dispatch_interlock.py` | `tests/test_token_decree_dispatch_interlock.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n",
         "| `src/adversarial_mutation_verifier.py` | `tests/test_adversarial_mutation_verifier.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n",
-        "| `src/evidence_sufficiency_and_lean_gate.py` | `tests/test_evidence_sufficiency_and_lean_gate.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n\n---",
+        "| `src/evidence_sufficiency_and_lean_gate.py` | `tests/test_evidence_sufficiency_and_lean_gate.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n",
+        "| `src/crypto_delegation_graph.py` | `tests/test_crypto_delegation_graph.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n",
+        "| `src/temporal_graph_router.py` | `tests/test_temporal_graph_router.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n",
+        "| `src/temporal_authority_guard.py` | `tests/test_temporal_authority_guard.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n",
+        "| `src/sovereign_phase_v_kernel.py` | `tests/test_sovereign_phase_v_kernel.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n",
+        "| `src/autonomous_pr_webhook_dispatcher.py` | `tests/test_autonomous_pr_webhook_dispatcher.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |\n\n---",
         "## 3. Disclosed Surviving Mutants & Cryptographic Isolation\n\n",
-        "All 49 commissioned prototype modules have achieved 100.00% mutation adequacy (30/30 or 22/22 mutants killed each) under the AST shadow runner with zero surviving mutants across their sampled sets:\n",
+        "All 54 commissioned prototype modules have achieved 100.00% mutation adequacy (30/30 or 22/22 mutants killed each) under the AST shadow runner with zero surviving mutants across their sampled sets:\n",
         "1. All runtime path bootstrap setups (`sys.path.insert(0, str(_REPO_ROOT))`) verified with active sentinel poisoning reload checks.\n",
         "2. All configuration defaults, timeouts, and port constants verified via explicit parameter inspection and boundary checks.\n",
         "3. All millisecond timestamp defaults verified within bounded delta assertions.\n",
@@ -979,6 +984,20 @@ def build_source_16() -> Tuple[str, str]:
         "\n\n---",
         "## 6. Live Money Challenges, Bug Bounties & Grants Execution Portfolio (2026)\n\n",
         safe_read(BRAIN_DIR / "DECIDE_LIVE_MONEY_CHALLENGES_BENCHMARK_AND_FALSIFICATION_2026.md"),
+        "\n\n---",
+        "## 7. Phase VIII: 5-Step Cognitive Division-of-Labor & Monotonic Speculative Router\n\n",
+        safe_read(BRAIN_DIR / "DECIDE_PHASE_VIII_5_STEP_COGNITIVE_ROUTER_AND_MONOTONIC_SPECULATIVE_DELIVERY.md"),
+        "\n\n### Phase VIII Source: `src/cognitive_step_router.py`\n\n```python\n"
+        + safe_read(REPO_ROOT / "src" / "cognitive_step_router.py")
+        + "\n```",
+        "\n\n---",
+        "## 8. Phase IX: Pre-Execution Specification Invariants, Dual-Root SCITT Custodian & Unified MCP Action Firewall\n\n",
+        safe_read(BRAIN_DIR / "DECIDE_PHASE_IX_SPECIFICATION_INVARIANTS_MCP_FIREWALL_AND_BACKLOG_DOMINATION.md"),
+        "\n\n### Phase IX Source A: `src/specification_invariant_compiler.py`\n\n```python\n"
+        + safe_read(REPO_ROOT / "src" / "specification_invariant_compiler.py")
+        + "\n```\n\n### Phase IX Source B: `src/mcp_action_firewall.py`\n\n```python\n"
+        + safe_read(REPO_ROOT / "src" / "mcp_action_firewall.py")
+        + "\n```",
     ]
     content = "\n\n".join(parts)
     return title, content

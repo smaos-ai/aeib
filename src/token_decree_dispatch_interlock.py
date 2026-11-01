@@ -2,6 +2,9 @@
 """
 Sovereign Token Decree Dispatch Interlock (src/token_decree_dispatch_interlock.py).
 
+Evaluation Status: INTERNAL PREVIEW COMMISSIONED.
+Epistemic Boundary: Observed, tested, and configured under the stated model.
+
 Evaluated under the stated model as an execution-time dispatch interceptor between
 the agent orchestrator and LLM inference / tool dispatch endpoints.
 

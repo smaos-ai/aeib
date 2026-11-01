@@ -65,6 +65,27 @@ def test_1_temporal_fts5_provenance_and_superseded_exclusion() -> None:
     assert len(receipt_empty.matched_chunks) == 0
     assert receipt_empty.freshness_bps == 10000
 
+    # Query where all matches are superseded (valid_matches=0, superseded_count=1) -> freshness_bps MUST be 0 (kills total_candidates > 0 mutant)
+    router_sup = TemporalGraphRouter(":memory:")
+    c_old = router_sup.ingest_document_version("doc.txt", "target_term content", valid_from_epoch_sec=100)
+    # close c_old by ingesting something without target_term or update c_old
+    router_sup.ingest_document_version("doc.txt", "completely different", valid_from_epoch_sec=200)
+    receipt_all_sup = router_sup.query_temporal_truth("target_term", query_epoch_sec=300)
+    assert len(receipt_all_sup.matched_chunks) == 0
+    assert receipt_all_sup.stale_Superseded_excluded_count == 1
+    assert receipt_all_sup.freshness_bps == 0
+
+    # Fractional freshness sensitivity (valid_matches=6, superseded=1 -> (6*10000)//7 = 8571 bps)
+    router_sens = TemporalGraphRouter(":memory:")
+    for i in range(6):
+        router_sens.ingest_document_version(f"valid_{i}.txt", "sensitive_keyword", valid_from_epoch_sec=100)
+    router_sens.ingest_document_version("stale.txt", "sensitive_keyword", valid_from_epoch_sec=100)
+    router_sens.ingest_document_version("stale.txt", "superseded_text", valid_from_epoch_sec=200)
+    receipt_sens = router_sens.query_temporal_truth("sensitive_keyword", query_epoch_sec=300)
+    assert len(receipt_sens.matched_chunks) == 6
+    assert receipt_sens.stale_Superseded_excluded_count == 1
+    assert receipt_sens.freshness_bps == 8571
+
 
 def test_2_stale_context_drift_interlock() -> None:
     router = TemporalGraphRouter(":memory:")
@@ -170,6 +191,17 @@ def test_3b_truth_decay_engine_halts_stale_legitimate_memory() -> None:
     )
     assert ok_exact_ratio is True
     assert conf_exact_ratio == 9999
+
+    # Fractional ratio sensitivity without clamping: age=1, ttl=7 -> ((7-1)*10000)//7 = 8571 bps
+    ok_sens_ratio, conf_sens_ratio, _ = TemporalGraphRouter.evaluate_memory_truth_decay(
+        chunk=chunk,
+        current_epoch_sec=1001,
+        max_api_ttl_sec=7,
+        source_authority_bps=10000,
+        cross_ref_count=1,
+    )
+    assert ok_sens_ratio is True
+    assert conf_sens_ratio == 8571
 
     # Default min_confidence_bps=6000 exact boundary: 6000 passes, 5999 halts
     ok_6000, conf_6000, _ = TemporalGraphRouter.evaluate_memory_truth_decay(

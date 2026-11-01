@@ -182,6 +182,13 @@ def test_2_station_0_halts_on_stale_memory_and_prefix_contamination_and_error_lo
     assert r_loop.permitted is False
     assert r_loop.halted_at_station == 0
     assert r_loop.status_code == "HALT_STATION_0_REPETITIVE_ERROR_LOOP"
+    assert r_loop.memory_confidence_bps == 0
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        r_loop.permitted = True  # type: ignore
+
+    import inspect
+    sig = inspect.signature(kernel.execute_five_station_pipeline)
+    assert sig.parameters["dns_query_wire_len"].default == 32
 
 
 def test_3_stations_1_3_4_halt_time_bomb_persistence_dns_and_402_replay() -> None:

@@ -57,6 +57,19 @@ def build_state_baton(
         "src/substrate_cube_interlock.py",
         "src/a2a_trajectory_interlock.py",
         "tools/pre_push_integrity_gate.py",
+        "src/adversarial_mutation_verifier.py",
+        "src/evidence_sufficiency_and_lean_gate.py",
+        "src/figma_mcp_connector.py",
+        "src/headless_browser_sidecar.py",
+        "src/kiro_1000pr_and_cube_wal_simulator.py",
+        "src/kagent_crd_adapter.py",
+        "src/cognitive_step_router.py",
+        "src/specification_invariant_compiler.py",
+        "src/mcp_action_firewall.py",
+        "src/anti_hardcode_spec_gate.py",
+        "src/cognitive_friction_gate.py",
+        "src/live_killchain_attestor.py",
+        "src/temporal_model_bound_token.py",
     ]
     present_modules = [m for m in core_modules if (repo_root / m).is_file()]
 

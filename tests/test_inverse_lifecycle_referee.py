@@ -305,6 +305,8 @@ def test_2_functional_correctness_oracle() -> None:
 
     # 4. Empty test cases guard
     res_empty = evaluate_candidate_correctness(func_optimal, [])
+    assert res_empty.passed_count == 0
+    assert res_empty.total_count == 0
     assert res_empty.pass_rate_bps == 0
     assert res_empty.failures == ["ERR_NO_TEST_CASES_SPECIFIED"]
 
@@ -328,7 +330,12 @@ def test_3_asymptotic_scaling_probe_and_quadratic_rejection(
     )
     assert eval_stub.disposition == EvaluationDisposition.REJECTED_CORRECTNESS_FAILURE
     assert eval_stub.correctness.pass_rate_bps < 10000
-    assert eval_stub.pareto_rank > 100
+    assert eval_stub.scaling.acceptable is False
+    assert eval_stub.scaling.complexity_class == AsymptoticComplexityClass.O_N_SQUARED_OR_WORSE
+    assert eval_stub.scaling.t_small_nanos == 0
+    assert eval_stub.scaling.t_large_nanos == 0
+    assert eval_stub.scaling.scaling_ratio_bps == 0
+    assert eval_stub.pareto_rank == 999
 
     # Candidate B: Naive O(N^2) Nested Loop -> Rejected by scaling ratio
     eval_quad = referee.evaluate_candidate(
@@ -414,6 +421,12 @@ def test_4_pareto_tournament_and_receipt_issuance(
     assert winner_id == "cand_optimal"
     assert receipt.winner_candidate_id == "cand_optimal"
     assert receipt.candidate_count == 3
+    assert len(receipt.evaluations) == 3
+    eval_by_id = {e["candidate_id"]: e for e in receipt.evaluations}
+    assert set(eval_by_id.keys()) == {"cand_stub", "cand_quadratic", "cand_optimal"}
+    assert eval_by_id["cand_stub"]["pareto_rank"] == 999
+    assert eval_by_id["cand_quadratic"]["pareto_rank"] == 999
+    assert eval_by_id["cand_optimal"]["pareto_rank"] == 1
     assert receipt.problem_id == sample_spec.problem_id
     assert receipt.timestamp_epoch > 0
     assert receipt.signer_public_key_hex == referee.public_key_hex()
@@ -513,6 +526,7 @@ def test_6_canonical_json_and_error_handling(sample_spec: CandidateSpecification
         source_code="def faulty(:",
     )
     assert eval_syntax_fail.disposition == EvaluationDisposition.REJECTED_SYNTAX_ERROR
+    assert eval_syntax_fail.pareto_rank == 999
 
     # 5. Evaluation of AST purity failure in referee
     eval_purity_fail = referee.evaluate_candidate(
@@ -522,6 +536,7 @@ def test_6_canonical_json_and_error_handling(sample_spec: CandidateSpecification
         source_code=CODE_DYNAMIC_EXEC,
     )
     assert eval_purity_fail.disposition == EvaluationDisposition.REJECTED_AST_PURITY
+    assert eval_purity_fail.pareto_rank == 999
 
     # 6. Evaluation of complexity breach in referee
     eval_comp_fail = referee.evaluate_candidate(
@@ -531,6 +546,7 @@ def test_6_canonical_json_and_error_handling(sample_spec: CandidateSpecification
         source_code=CODE_HIGH_COMPLEXITY,
     )
     assert eval_comp_fail.disposition == EvaluationDisposition.REJECTED_COMPLEXITY_BREACH
+    assert eval_comp_fail.pareto_rank == 999
 
     # 7. Evaluation of instantiation failure (valid syntax, top-level execution error)
     code_top_level_raise = "def has_nearby_duplicate(nums, k):\n    return False\nraise RuntimeError('init failure')\n"

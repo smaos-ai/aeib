@@ -94,6 +94,14 @@ def test_registry_allowlist_validation() -> None:
     assert custom_guard.is_registry_allowed("https://internal.registry.corp/simple/pkg/") is True
     assert custom_guard.is_registry_allowed("https://pypi.org/simple/pkg/") is False
 
+    # Custom registry allowlist with public IP (kills CMP_FLIP in private IP check)
+    ip_guard = PackageProvenanceEgressGuard(
+        verified_registry_allowlist=["https://93.184.216.34/packages/"]
+    )
+    assert ip_guard.is_registry_allowed("https://93.184.216.34/packages/pkg-1/") is True
+    assert ip_guard.is_registry_allowed("https://93.184.216.35/packages/pkg-1/") is False
+    assert ip_guard.is_registry_allowed("https://127.0.0.1/packages/pkg-1/") is False
+
 
 def test_package_download_verification_flow() -> None:
     sbom = {

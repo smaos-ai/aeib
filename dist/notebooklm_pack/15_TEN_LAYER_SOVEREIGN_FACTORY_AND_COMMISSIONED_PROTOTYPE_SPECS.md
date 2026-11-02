@@ -24,7 +24,7 @@ The SovereignNexus agent infrastructure stack integrates ten deterministic opera
 | **Layer 0** | Hardware Root of Trust | Secure Enclave NIST P-256 / Ed25519 signing, Multi-Cloud HSM Remote Quorum, Cold Storage Airgap Gateway, Enclave Proximity Attestation, TPM 2.0 PCR-11 Aggregator, Heterogeneous CVM Interlock, Confidential Container Attestation Proxy, Verifiable ORAM Shuffler | `src/cloud_hsm_remote_quorum.py`, `src/cold_storage_airgap_gateway.py`, `src/enclave_proximity_attestation.py`, `src/zk_tpm_pcr_aggregator.py`, `src/confidential_vm_migration_interlock.py`, `src/coco_attestation_proxy.py`, `tools/airgap_qr_terminal.py`, `src/cold_storage_hardware_ledger.py`, `src/iphone_enclave_notary_bridge.py`, `src/iphone_rpc_client.py`, `src/oram_memory_shuffler.py` |
 
 
-| **Layer 1** | OS Kernel & eBPF LSM Interception | In-kernel socket and filesystem mediation, Tetragon eBPF telemetry, strict cgroup sandbox, dynamic eBPF tail-call hot-patching, XDP line-rate ingress rate-limiter, WireGuard overlay interlock, Enclave eBPF Policy Loader, Declarative K8s CRD Adapter, Idempotent Action Firewall, macOS Seatbelt Sandbox, Package Install Gate, Default-Deny Border Policy | `src/bpf_lsm_profile_compiler.py`, `src/ebpf_agent_guard_controller.py`, `src/tetragon_ebpf_stream_parser.py`, `src/ebpf_tail_call_hotpatch.py`, `src/xdp_ingress_ratelimiter.py`, `src/wireguard_overlay_interlock.py`, `src/enclave_bpf_policy_loader.py`, `src/kagent_crd_adapter.py`, `src/mcp_action_firewall.py`, `src/seatbelt_sandbox.py`, `src/package_install_gate.py`, `src/border_policy.py` |
+| **Layer 1** | OS Kernel & eBPF LSM Interception | In-kernel socket and filesystem mediation, Tetragon eBPF telemetry, strict cgroup sandbox, dynamic eBPF tail-call hot-patching, XDP line-rate ingress rate-limiter, WireGuard overlay interlock, Enclave eBPF Policy Loader, Declarative K8s CRD Adapter, Idempotent Action Firewall, macOS Seatbelt Sandbox, Package Install Gate, Default-Deny Border Policy, Package Provenance Egress Guard | `src/bpf_lsm_profile_compiler.py`, `src/ebpf_agent_guard_controller.py`, `src/tetragon_ebpf_stream_parser.py`, `src/ebpf_tail_call_hotpatch.py`, `src/xdp_ingress_ratelimiter.py`, `src/wireguard_overlay_interlock.py`, `src/enclave_bpf_policy_loader.py`, `src/kagent_crd_adapter.py`, `src/mcp_action_firewall.py`, `src/seatbelt_sandbox.py`, `src/package_install_gate.py`, `src/border_policy.py`, `src/package_provenance_egress_guard.py` |
 
 
 | **Layer 2** | Typestate Physics & Static AST Filter | Dimensional conservation ($0 token cost), hardware boundary ceilings, AST purity & anti-mocking, Exhaustive Finite-State Model Checker, Sovereign Token Decree Governor, Adversarial AST Mutation Verifier, Specification Invariant Compiler, 4-Pillar Anti-Hardcode Holdout Gate, Temporal Model-Bound Tokens, Polarity-Preserving Context Cart, Anti-Scaffold Dynamic Falsifier, RFC 8785 Canonical JCS, Scaffold Detector, Slop Filter, Regeneratable UI Constraint Compiler, Semantic Scion AST Compiler | `src/physical_typestate_enforcer.py`, `compliance/ast_purity.py`, `compliance/claim_integrity_gate.py`, `src/eo1_protocol_model_checker.py`, `src/sovereign_token_decree.py`, `src/token_decree_dispatch_interlock.py`, `src/adversarial_mutation_verifier.py`, `src/specification_invariant_compiler.py`, `src/anti_hardcode_spec_gate.py`, `src/temporal_model_bound_token.py`, `src/anti_gravity_context_cart.py`, `src/anti_scaffold_falsifier.py`, `src/jcs_canonicalizer.py`, `src/scaffold_detector.py`, `src/slop_filter.py`, `src/constraint_compiler.py`, `src/semantic_scion_compiler.py` |
@@ -33,13 +33,13 @@ The SovereignNexus agent infrastructure stack integrates ten deterministic opera
 | **Layer 3** | Edge Ingress, Triage & Prescreening | Sub-20ms edge triage, integer basis points risk, BGP Anycast routing interlock, FaceID biometric gate, Cross-Cloud WireGuard Overlay Mesh, Hardened x402 Commerce Gateway, Calibrated Accuracy Cascade Router, Perception Fast-Path Router, Biometric HITL Gate | `src/edge_triage_router.py`, `src/edge_ai_prescreener.py`, `src/bgp_anycast_routing_interlock.py`, `src/multi_region_canary_ingress.py`, `src/eo1_biometric_gate.py`, `src/live_biometric_latch_bridge.py`, `src/wireguard_overlay_interlock.py`, `src/coinbase_x402_agent_gateway.py`, `src/accuracy_cascade_router.py`, `src/perception_fast_path_router.py`, `src/biometric_hitl_gate.py` |
 
 
-| **Layer 4** | Transactional ACID State Coordinator | Row-level semantic locks, 2PC prepare/commit, Autonomic State Reconciler, Quorum Jitter Fuzzer, Byzantine Timewarp Harness, Byzantine Homomorphic Gossip Sync, Pre-Socket Escrow Latch, Substrate Sandbox Egress Interlock, Content-Addressed Effect Key, Commit-Time State Guard, Multi-Tenant Governor | `src/semantic_two_phase_commit.py`, `src/autonomic_state_reconciler.py`, `src/quorum_jitter_fuzzer.py`, `src/byzantine_consensus_timewarp.py`, `src/sqlite_acid_tcc_boundary.py`, `src/multi_region_edge_latch_mesh.py`, `src/homomorphic_gossip_sync.py`, `src/coinbase_x402_agent_gateway.py`, `src/substrate_cube_interlock.py`, `src/eo1_effect_key.py`, `src/commit_time_state_guard.py`, `src/multi_tenant_governor.py` |
+| **Layer 4** | Transactional ACID State Coordinator | Row-level semantic locks, 2PC prepare/commit, Autonomic State Reconciler, Quorum Jitter Fuzzer, Byzantine Timewarp Harness, Byzantine Homomorphic Gossip Sync, Pre-Socket Escrow Latch, Substrate Sandbox Egress Interlock, Content-Addressed Effect Key, Commit-Time State Guard, Multi-Tenant Governor, SQLite Outcome Probe Adapter | `src/semantic_two_phase_commit.py`, `src/autonomic_state_reconciler.py`, `src/quorum_jitter_fuzzer.py`, `src/byzantine_consensus_timewarp.py`, `src/sqlite_acid_tcc_boundary.py`, `src/multi_region_edge_latch_mesh.py`, `src/homomorphic_gossip_sync.py`, `src/coinbase_x402_agent_gateway.py`, `src/substrate_cube_interlock.py`, `src/eo1_effect_key.py`, `src/commit_time_state_guard.py`, `src/multi_tenant_governor.py`, `src/sqlite_probe_adapter.py` |
 
 
-| **Layer 5** | Execution Integrity & Deception Reconciler | 4-arm benchmark matrix, counter-factual audit, Circuit-Breaker Failsafe Mesh, MCP Action-vs-Outcome Normalizer, Diagnostic Normalizer, Evidence Sufficiency & Narrow Lean 4 Gate, 1000-PR Blast Radius Governor, Cognitive Step Router, Cognitive Friction Gate, Live Killchain Attestor, Apoptosis Homeostasis Sentinel, Epistemological Truth Compass | `src/counterfeit_execution_tracker.py`, `src/agent_decept_reconciler.py`, `src/autonomic_circuit_breaker_mesh.py`, `src/mcp_outcome_normalizer.py`, `src/diagnostic_normalizer.py`, `src/evidence_sufficiency_and_lean_gate.py`, `src/kiro_1000pr_and_cube_wal_simulator.py`, `src/cognitive_step_router.py`, `src/cognitive_friction_gate.py`, `src/live_killchain_attestor.py`, `src/apoptosis_sentinel.py`, `src/truth_compass.py`, `execution-integrity-benchmark` |
+| **Layer 5** | Execution Integrity & Deception Reconciler | 4-arm benchmark matrix, counter-factual audit, Circuit-Breaker Failsafe Mesh, MCP Action-vs-Outcome Normalizer, Diagnostic Normalizer, Evidence Sufficiency & Narrow Lean 4 Gate, 1000-PR Blast Radius Governor, Cognitive Step Router, Cognitive Friction Gate, Live Killchain Attestor, Apoptosis Homeostasis Sentinel, Epistemological Truth Compass, Research MCP Adapter | `src/counterfeit_execution_tracker.py`, `src/agent_decept_reconciler.py`, `src/autonomic_circuit_breaker_mesh.py`, `src/mcp_outcome_normalizer.py`, `src/diagnostic_normalizer.py`, `src/evidence_sufficiency_and_lean_gate.py`, `src/kiro_1000pr_and_cube_wal_simulator.py`, `src/cognitive_step_router.py`, `src/cognitive_friction_gate.py`, `src/live_killchain_attestor.py`, `src/apoptosis_sentinel.py`, `src/truth_compass.py`, `execution-integrity-benchmark`, `src/research_mcp_adapter.py` |
 
 
-| **Layer 6** | Autonomous Evolution & Trajectory Airlock | Multi-candidate evolutionary selection, SEMA-Auto trajectory tracking, zero-regression airlock | `src/evolutionary_orchestrator.py`, `src/a2a_trajectory_interlock.py`, `src/oct2026_frontier_signals_and_agent_s4_airlock.py` |
+| **Layer 6** | Autonomous Evolution & Trajectory Airlock | Multi-candidate evolutionary selection, SEMA-Auto trajectory tracking, zero-regression airlock, Autonomous Night Cycle Runner | `src/evolutionary_orchestrator.py`, `src/a2a_trajectory_interlock.py`, `src/oct2026_frontier_signals_and_agent_s4_airlock.py`, `src/autonomous_night_cycle_runner.py` |
 
 
 | **Layer 7** | SCITT Bitemporal Merkle Tree & Multi-Cloud | RFC 9162 / RFC 9943 Merkle trees, ZK proof rollup, PQC Post-Quantum Notary, Cross-Enterprise Federation Bridge, ZK MMR Accumulator | `src/zk_scitt_proof_rollup.py`, `src/pqc_post_quantum_notary.py`, `src/cross_enterprise_federation_bridge.py`, `src/scitt_proof_aggregation_reconciler.py`, `src/multi_cloud_failover_orchestrator.py`, `src/zk_mmr_accumulator.py` |
@@ -341,13 +341,25 @@ All commissioned modules have achieved $\ge 80.00\%$ mutation adequacy kill rati
 
 | `src/multi_tenant_governor.py` | `tests/test_multi_tenant_governor.py` | 27 | 27 | **100.00%** | `[8754..10000 bps]` |
 
+
+| `src/autonomous_night_cycle_runner.py` | `tests/test_autonomous_night_cycle_runner.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
+
+| `src/package_provenance_egress_guard.py` | `tests/test_package_provenance_egress_guard.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
+
+| `src/sqlite_probe_adapter.py` | `tests/test_sqlite_probe_adapter.py` | 28 | 28 | **100.00%** | `[8794..10000 bps]` |
+
+
+| `src/research_mcp_adapter.py` | `tests/test_research_mcp_adapter.py` | 24 | 24 | **100.00%** | `[8620..10000 bps]` |
+
 ---
 
 ## 3. Disclosed Surviving Mutants & Cryptographic Isolation
 
 
 
-All 92 commissioned prototype modules have achieved 100.00% mutation adequacy (30/30, 27/27, 24/24, 22/22, 13/13, or 8/8 mutants killed each) under the AST shadow runner with zero surviving mutants across their sampled sets:
+All 96 commissioned prototype modules have achieved 100.00% mutation adequacy (30/30, 28/28, 27/27, 24/24, 22/22, 13/13, or 8/8 mutants killed each) under the AST shadow runner with zero surviving mutants across their sampled sets:
 
 
 1. All runtime path bootstrap setups (`sys.path.insert(0, str(_REPO_ROOT))`) verified with active sentinel poisoning reload checks.

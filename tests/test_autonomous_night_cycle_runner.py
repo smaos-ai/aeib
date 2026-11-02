@@ -26,6 +26,7 @@ Evaluates:
 
 from __future__ import annotations
 
+import dataclasses
 import os
 import subprocess
 import tempfile
@@ -36,8 +37,9 @@ import pytest
 from src.autonomous_night_cycle_runner import (
     AutonomousNightCycleRunner,
     NightCycleRunReceipt,
+    sha256_jcs_caid,
 )
-from src.evolutionary_orchestrator import CandidateBranch
+from src.evolutionary_orchestrator import CandidateBranch, EvolutionaryConsensusVerdict
 
 
 @pytest.fixture
@@ -190,9 +192,14 @@ def test_4_input_validation_and_git_errors(real_git_repo: Path) -> None:
 
     runner = AutonomousNightCycleRunner(repo_root=str(real_git_repo))
 
-    # 2. Empty task ID
+    # 2. Empty task ID must be rejected by runner even if orchestrator does not check it
+    class PassiveOrchestrator:
+        def evaluate_and_select_winner(self, task_id, candidates):
+            return EvolutionaryConsensusVerdict(None, 0, (), "sha256:dummy")
+
+    runner_passive = AutonomousNightCycleRunner(repo_root=str(real_git_repo), orchestrator=PassiveOrchestrator())
     with pytest.raises(ValueError, match="ERR_EMPTY_TASK_ID"):
-        runner.execute_night_cycle(task_id="", candidates=[])
+        runner_passive.execute_night_cycle(task_id="", candidates=[])
 
     # 3. Empty candidate pool
     with pytest.raises(ValueError, match="ERR_EMPTY_CANDIDATE_POOL"):
@@ -220,7 +227,7 @@ def test_5_dataclass_methods_and_immutability() -> None:
         prompt="do work",
     )
     assert spec.worker_id == "w1"
-    with pytest.raises(Exception):
+    with pytest.raises(dataclasses.FrozenInstanceError):
         spec.worker_id = "w2"  # type: ignore
 
     # 2. NightCycleRunReceipt immutability and to_dict
@@ -247,6 +254,10 @@ def test_5_dataclass_methods_and_immutability() -> None:
     assert d["consensus_caid"] == "sha256:111"
     assert d["receipt_caid"] == "sha256:222"
 
-    with pytest.raises(Exception):
+    with pytest.raises(dataclasses.FrozenInstanceError):
         receipt.status = "MUTATED"  # type: ignore
+
+    # 3. sha256_jcs_caid coverage
+    assert sha256_jcs_caid(b"test_bytes").startswith("sha256:")
+    assert sha256_jcs_caid({"k": "v"}).startswith("sha256:")
 

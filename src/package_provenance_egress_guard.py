@@ -114,7 +114,7 @@ class PackageProvenanceEgressGuard:
         Validates that the URL targets an approved registry and does not pivot
         to private IP ranges or metadata endpoints.
         """
-        if not url or not url.strip():
+        if not url.strip():
             return False
 
         parsed = urlparse(url.strip())

@@ -41,9 +41,17 @@ def test_unitboost_unanimous_three_model_consensus():
     assert res.verdict == "MERGE_CONSENSUS_CONFIRMED"
     assert res.requires_step_up is False
     assert len(res.residual_uncertainty_slots) == 0
+    assert res.consensus_caid.startswith("sha256:")
+    assert len(res.consensus_caid) == 71
     assert res.slot_details["action"].status == SlotResolutionStatus.UNANIMOUS
     assert res.slot_details["amount_minor"].status == SlotResolutionStatus.UNANIMOUS
     assert res.resolved_slots == {"action": "REFUND", "amount_minor": 5000}
+    canonical = res.to_canonical_dict()
+    assert canonical["status"] == "MERGE_CONSENSUS_CONFIRMED"
+    assert canonical["consensus_caid"] == res.consensus_caid
+    assert canonical["resolved_slots"] == {"action": "REFUND", "amount_minor": 5000}
+    assert canonical["residual_uncertainty_slots"] == []
+    assert canonical["participating_models"] == ["claude-3-7-sonnet", "deepseek-v3", "qwen-2.5-coder"]
 
 
 def test_unitboost_strict_order_invariance_across_all_permutations():
@@ -100,3 +108,41 @@ def test_unitboost_cli_self_test():
     )
     assert proc.returncode == 0
     assert "Self-test passed" in proc.stdout
+
+
+def test_unitboost_empty_proposals_raises_value_error():
+    op = UnitBoostMergeOperator()
+    with pytest.raises(ValueError, match="Cannot merge empty proposal list"):
+        op.merge_proposals([])
+
+
+def test_unitboost_model_weight_and_confidence_scoring():
+    op = UnitBoostMergeOperator(margin_threshold=0.20)
+    # p1: weight 2.0 * conf 0.6 = 1.2
+    # p2: weight 1.0 * conf 0.5 = 0.5
+    # candidate_scores["TRANSFER"] = 1.2, margin = 1.2 - 0.5 = 0.7 >= 0.20
+    p1 = UnitBoostProposal("m1", "h1", {"action": "TRANSFER"}, {"action": 0.6}, model_weight=2.0)
+    p2 = UnitBoostProposal("m2", "h2", {"action": "HOLD"}, {"action": 0.5}, model_weight=1.0)
+    res = op.merge_proposals([p1, p2])
+    assert res.slot_details["action"].candidate_scores['"TRANSFER"'] == 1.2
+    assert res.slot_details["action"].candidate_scores['"HOLD"'] == 0.5
+    assert res.slot_details["action"].margin == 0.7
+    assert res.resolved_slots["action"] == "TRANSFER"
+
+
+def test_unitboost_alphabetical_tie_breaker_and_margin_rounding():
+    op = UnitBoostMergeOperator(margin_threshold=0.20)
+    # Equal score: both have score 1.0.
+    # Proposal order has "BETA" first, but alphabetical order kv[0] MUST break tie in favor of "ALPHA".
+    p1 = UnitBoostProposal("m1", "h1", {"noncrit": "BETA"}, model_weight=1.0)
+    p2 = UnitBoostProposal("m2", "h2", {"noncrit": "ALPHA"}, model_weight=1.0)
+    res = op.merge_proposals([p1, p2])
+    assert res.slot_details["noncrit"].status == SlotResolutionStatus.RESIDUAL_UNCERTAINTY
+    assert res.slot_details["noncrit"].canonical_repr == '"ALPHA"'
+    assert res.slot_details["noncrit"].margin == 0.0
+
+    # Test margin rounding to 4 decimals
+    p3 = UnitBoostProposal("m1", "h1", {"val": "X"}, {"val": 0.55555}, model_weight=1.0)
+    p4 = UnitBoostProposal("m2", "h2", {"val": "Y"}, {"val": 0.11111}, model_weight=1.0)
+    res2 = op.merge_proposals([p3, p4])
+    assert res2.slot_details["val"].margin == 0.4444

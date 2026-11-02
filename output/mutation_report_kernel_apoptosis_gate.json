@@ -1,0 +1,152 @@
+{
+  "baseline_suite_passed": true,
+  "elapsed_total_s": 9.736,
+  "invalid": 0,
+  "kill_ratio": 1.0,
+  "killed": 12,
+  "mutants_sampled": 12,
+  "outcomes": [
+    {
+      "elapsed_s": 0.253,
+      "mutant_sha256": "1ba09f47f3f16b78f63f182ddd9cd9ec49f93ebec558e2b9d69a5daa399bf2d4",
+      "site": {
+        "description": "raise replaced with pass",
+        "lineno": 140,
+        "node_index": 78,
+        "operator": "RAISE_DROP"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.239,
+      "mutant_sha256": "6ebe62868dbb258301bf4c4f3f294a6e7a419c273814309b4ba6d38410262564",
+      "site": {
+        "description": "return value replaced with None",
+        "lineno": 143,
+        "node_index": 81,
+        "operator": "RETURN_NONE"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.236,
+      "mutant_sha256": "d7bbfb572393c5bfbf9c123f274309d8d030a5f5b2ac0954c3d69774c26b6f14",
+      "site": {
+        "description": "return value replaced with None",
+        "lineno": 146,
+        "node_index": 84,
+        "operator": "RETURN_NONE"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.238,
+      "mutant_sha256": "bacbef17cc70803886448ad0f9cbab185d1914257cbd8187f2fcf1776751a24e",
+      "site": {
+        "description": "constant True perturbed",
+        "lineno": 96,
+        "node_index": 99,
+        "operator": "CONST_PERTURB"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.243,
+      "mutant_sha256": "0bff3d3573e1e9a538bbc500b640b05e09b781ba4595a6679117a29e1ca943b3",
+      "site": {
+        "description": "NotIn flipped",
+        "lineno": 120,
+        "node_index": 116,
+        "operator": "CMP_FLIP"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.241,
+      "mutant_sha256": "3b407d64909664dc8aceb92d903e2e102a0fe1068e67af8c57b6a9f2c9e8f913",
+      "site": {
+        "description": "raise replaced with pass",
+        "lineno": 121,
+        "node_index": 117,
+        "operator": "RAISE_DROP"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.246,
+      "mutant_sha256": "90a246faac130c9451d075f64817d3c4e9065ee1efd5ec8942b91d2cb5817735",
+      "site": {
+        "description": "NotIn flipped",
+        "lineno": 123,
+        "node_index": 120,
+        "operator": "CMP_FLIP"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.234,
+      "mutant_sha256": "07d35864137cf091c80a9698f2296f908af4e2400417b24e90f2936c918ab04d",
+      "site": {
+        "description": "NotIn flipped",
+        "lineno": 128,
+        "node_index": 127,
+        "operator": "CMP_FLIP"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.285,
+      "mutant_sha256": "13153209585f7e2973e962a8f1997a275203c4a11ff0f20bad13546e457c7e52",
+      "site": {
+        "description": "raise replaced with pass",
+        "lineno": 129,
+        "node_index": 128,
+        "operator": "RAISE_DROP"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.25,
+      "mutant_sha256": "7590402ee8dd00e9f7689ffd441f785819bfdefce093c2437062e7ad3dd8b616",
+      "site": {
+        "description": "And swapped",
+        "lineno": 131,
+        "node_index": 131,
+        "operator": "BOOL_SWAP"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.243,
+      "mutant_sha256": "4a276cf119d03401ddecfd6ce54c574ceebe55105d50179f9d518f6b2432f891",
+      "site": {
+        "description": "Eq flipped",
+        "lineno": 131,
+        "node_index": 191,
+        "operator": "CMP_FLIP"
+      },
+      "status": "KILLED"
+    },
+    {
+      "elapsed_s": 0.247,
+      "mutant_sha256": "2c7920be3b93a63b3d67f0d03e12fecb7f7722f634109649b7f1ef4e6c364e82",
+      "site": {
+        "description": "`not` removed",
+        "lineno": 131,
+        "node_index": 192,
+        "operator": "NOT_DROP"
+      },
+      "status": "KILLED"
+    }
+  ],
+  "seed": 42,
+  "sites_enumerated": 12,
+  "survived": 0,
+  "survivor_lines": [],
+  "target_file": "src/kernel_apoptosis_gate.py",
+  "target_sha256": "06b81f8943d306fbf34ac0230b6c542bf32abc661032a4c02a6a528d1c169585",
+  "test_files": [
+    "tests/test_kernel_apoptosis_gate.py"
+  ],
+  "timed_out": 0
+}

@@ -1,13 +1,13 @@
 {
   "baseline_suite_passed": true,
-  "elapsed_total_s": 19.635,
+  "elapsed_total_s": 18.78,
   "invalid": 0,
   "kill_ratio": 1.0,
   "killed": 30,
   "mutants_sampled": 30,
   "outcomes": [
     {
-      "elapsed_s": 0.292,
+      "elapsed_s": 0.278,
       "mutant_sha256": "de21ed9272008839483eff4e518822150479dc51d84173505944922418983350",
       "site": {
         "description": "return value replaced with None",
@@ -18,7 +18,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.349,
+      "elapsed_s": 0.287,
       "mutant_sha256": "8a6fbb21049c65de440d4ff8790be78f9018404560ffd332a66cc7ab41716293",
       "site": {
         "description": "return value replaced with None",
@@ -29,7 +29,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.295,
+      "elapsed_s": 0.271,
       "mutant_sha256": "3392e7d24b87119c9c5bb3dc15d4c23347a0b7ac02de5451a2238ebbb88c1796",
       "site": {
         "description": "Eq flipped",
@@ -40,7 +40,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.279,
+      "elapsed_s": 0.26,
       "mutant_sha256": "bf7b23bcf68adac9c86003834546868fbacde04d20b32e7dd1f59269a04002ff",
       "site": {
         "description": "return value replaced with None",
@@ -51,7 +51,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.319,
+      "elapsed_s": 0.322,
       "mutant_sha256": "98f01b4ecb5b17e8ab101c9bdb2013884c96fb4b6a5e806891518ab934347630",
       "site": {
         "description": "constant 1 perturbed",
@@ -62,7 +62,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.321,
+      "elapsed_s": 0.372,
       "mutant_sha256": "27e057442e68e7bfa5330e61418a8235129bfd813bc6c428f41d39449832db1a",
       "site": {
         "description": "GtE flipped",
@@ -73,7 +73,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.325,
+      "elapsed_s": 0.379,
       "mutant_sha256": "2292ac1164a4121e89f25a55dcdc376876c2d5f64f34fe028d03df599277889a",
       "site": {
         "description": "constant 1 perturbed",
@@ -84,7 +84,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.366,
+      "elapsed_s": 0.404,
       "mutant_sha256": "3fb4b3556969a1f56af1a5010b302b0cbf4a347514f2d94ed8d26005ba7af70a",
       "site": {
         "description": "constant 63 perturbed",
@@ -95,7 +95,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.368,
+      "elapsed_s": 0.345,
       "mutant_sha256": "4e91018cd24d4d7bd76bf0c2576a5e3a6c1be32c61feb0c0366aa64387b8909f",
       "site": {
         "description": "`not` removed",
@@ -106,7 +106,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.427,
+      "elapsed_s": 0.465,
       "mutant_sha256": "457489aa66730ac5ee44450e9617aefeb8028c0f2c2baf35bed8128f26459ccd",
       "site": {
         "description": "Add swapped",
@@ -117,7 +117,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.434,
+      "elapsed_s": 0.528,
       "mutant_sha256": "2589c9ecbb387372d4d30436f40f31e7dc1d788195699099fd96767da511d75e",
       "site": {
         "description": "return value replaced with None",
@@ -128,7 +128,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.317,
+      "elapsed_s": 0.502,
       "mutant_sha256": "2f0ae81442d94a5e1eb57079918fe3025eae2c160e85635e6cd3d1d39fe2bfad",
       "site": {
         "description": "constant 2 perturbed",
@@ -139,7 +139,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.309,
+      "elapsed_s": 0.545,
       "mutant_sha256": "fc867abcdf3dd93c9da9ac1c663e489a1dd770b413a558f3353d2cdbc05299d5",
       "site": {
         "description": "constant 2 perturbed",
@@ -150,7 +150,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.356,
+      "elapsed_s": 0.559,
       "mutant_sha256": "4e4eb1e6da865afa2c58333915bae577e5960adc96b92a2254ad7e474a699531",
       "site": {
         "description": "Sub swapped",
@@ -161,7 +161,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.364,
+      "elapsed_s": 0.58,
       "mutant_sha256": "de9f1b565930df28253dec0f6fe01b0ad310339478157882a04e3011790c5931",
       "site": {
         "description": "Mult swapped",
@@ -172,7 +172,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.357,
+      "elapsed_s": 0.501,
       "mutant_sha256": "e3230002aef2f05685fa9a9badc8f889ed7c779705004a3fe15df4686c64fe9d",
       "site": {
         "description": "constant 0 perturbed",
@@ -183,7 +183,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.359,
+      "elapsed_s": 0.393,
       "mutant_sha256": "d8fc846d692ac187b006c4d989ddc21053f94a3f6407d714982dbe0f0abb6b86",
       "site": {
         "description": "constant 1 perturbed",
@@ -194,7 +194,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.357,
+      "elapsed_s": 0.515,
       "mutant_sha256": "ad86f8124d42740edb16b1b204c7edd1e8f11673cde941b8262188aa7f70e379",
       "site": {
         "description": "Mult swapped",
@@ -205,7 +205,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.352,
+      "elapsed_s": 0.312,
       "mutant_sha256": "9166f3e13bd204ff595c0981eadf43eb94b380d635644ff25a1bac30add24b7b",
       "site": {
         "description": "`not` removed",
@@ -216,7 +216,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.337,
+      "elapsed_s": 0.368,
       "mutant_sha256": "1692c9ce3b345d52019cf88b552610e83b7bab4bdb2e8a423a01eed4641ff515",
       "site": {
         "description": "`not` removed",
@@ -227,7 +227,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.366,
+      "elapsed_s": 0.381,
       "mutant_sha256": "5196376de2f6f1a058adf1e661c0053191db7a74a8e110a5fcfce9bf1bbecb31",
       "site": {
         "description": "constant 0 perturbed",
@@ -238,7 +238,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.296,
+      "elapsed_s": 0.306,
       "mutant_sha256": "9394108422ac6868fff3a3e01deb5b72dbe465f94a234808d543f1c0fae7280d",
       "site": {
         "description": "`not` removed",
@@ -249,7 +249,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.344,
+      "elapsed_s": 0.415,
       "mutant_sha256": "7577823f8c6d275fd58cd49da9262385f2b2b390ace3ad10c0b523f2011c2f90",
       "site": {
         "description": "raise replaced with pass",
@@ -260,7 +260,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.339,
+      "elapsed_s": 0.39,
       "mutant_sha256": "9b0ae358f7d56a9a1d1e9227d0c5ca3b044521991a99d082885bbf89f61ba309",
       "site": {
         "description": "Or swapped",
@@ -271,7 +271,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.273,
+      "elapsed_s": 0.289,
       "mutant_sha256": "8c628fced283fccfe6399c80580b03495bf741473af806031a1511bd6468ee14",
       "site": {
         "description": "In flipped",
@@ -282,7 +282,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.377,
+      "elapsed_s": 0.411,
       "mutant_sha256": "b86566ad01f62da43e934e8f0d271e532588138205033bb14240d666d7b377f5",
       "site": {
         "description": "Lt flipped",
@@ -293,7 +293,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.336,
+      "elapsed_s": 0.394,
       "mutant_sha256": "47acd86c9fa72ec72fa3cf18cb0848948de548071730aab79bc907f34b2f9d6f",
       "site": {
         "description": "constant 8 perturbed",
@@ -304,7 +304,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.272,
+      "elapsed_s": 0.312,
       "mutant_sha256": "6ffad584507219a19343546395fbb7c32b136d299116cde46b8148201beae983",
       "site": {
         "description": "Eq flipped",
@@ -315,7 +315,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.271,
+      "elapsed_s": 0.337,
       "mutant_sha256": "49eeb3c967aa2085126e0e14e389a5dee4b7c886625c03a8eede06e84f9d49c3",
       "site": {
         "description": "constant 0 perturbed",
@@ -326,7 +326,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.529,
+      "elapsed_s": 0.602,
       "mutant_sha256": "89fcc9a2fabbb0474acfba88c2cad3ca0b63721968c9dcd97142f015fe8eb2c4",
       "site": {
         "description": "constant 1 perturbed",

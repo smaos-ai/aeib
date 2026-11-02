@@ -34,11 +34,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
-from src.jcs_canonicalizer import encode_jcs
+try:
+    from src.jcs_canonicalizer import encode_jcs
+except ImportError:
+    from jcs_canonicalizer import encode_jcs
 
 
 def sha256_prefixed(data: bytes) -> str:
@@ -94,7 +93,7 @@ class UnitBoostMergeResult:
 class UnitBoostMergeOperator:
     """
     Deterministic consensus merge operator for heterogeneous model handoffs.
-    Guarantees mathematical order-invariance across proposal evaluation.
+    Enforces mathematical order-invariance across proposal evaluation.
     """
 
     DEFAULT_CRITICAL_SLOTS = {
@@ -144,10 +143,7 @@ class UnitBoostMergeOperator:
                     continue
                 raw_val = p.slot_values[slot]
                 # Canonicalize candidate value via JCS bytes for consistent string hashing
-                try:
-                    c_key = encode_jcs(raw_val).decode("utf-8")
-                except Exception:
-                    c_key = json.dumps(raw_val, sort_keys=True)
+                c_key = encode_jcs(raw_val).decode("utf-8")
 
                 candidate_raw_values[c_key] = raw_val
                 conf = p.confidence_scores.get(slot, 1.0)
@@ -257,6 +253,7 @@ def run_self_test() -> None:
     assert res_conflict.verdict == "UNCERTAINTY_HALT"
     assert res_conflict.requires_step_up is True
     assert "action_class" in res_conflict.residual_uncertainty_slots
+    assert res_conflict.resolved_slots["amount_minor"] == 100_00
 
     print("[✓] UnitBoostMergeOperator: Self-test passed (Unanimous, Order-Invariance, and Uncertainty Halt verified).")
 

@@ -527,7 +527,7 @@ class FiveClaimFalsificationMatrixEngine:
             ),
             FalsifiedOverclaimRecord(
                 claim_index=3,
-                overclaimed_statement="Multi-agent consensus under /decide is mathematically unbreakable against groupthink.",
+                overclaimed_statement="Multi-agent consensus under /decide is mathematically infallible against groupthink.",
                 falsification_verdict="FALSIFIED_HOMOGENEOUS_CONSENSUS_OVERCLAIM",
                 counterexample_witness=(
                     "Homogeneous LLM ensembles share pre-training correlations and exhibit up to "

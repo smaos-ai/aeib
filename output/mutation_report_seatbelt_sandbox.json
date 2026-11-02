@@ -1,13 +1,13 @@
 {
   "baseline_suite_passed": true,
-  "elapsed_total_s": 21.064,
+  "elapsed_total_s": 25.675,
   "invalid": 0,
   "kill_ratio": 1.0,
   "killed": 30,
   "mutants_sampled": 30,
   "outcomes": [
     {
-      "elapsed_s": 0.231,
+      "elapsed_s": 0.444,
       "mutant_sha256": "a7e279d378d7220e7263418b02aef6f8ebbc6d07c618f4251a32512a08e636c4",
       "site": {
         "description": "return value replaced with None",
@@ -18,7 +18,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.29,
+      "elapsed_s": 0.475,
       "mutant_sha256": "af5339317e9485e2c3304117092d198f6cad43fb3f114477607ebb1f96d7986f",
       "site": {
         "description": "return value replaced with None",
@@ -29,7 +29,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.299,
+      "elapsed_s": 0.494,
       "mutant_sha256": "598dc9849c84b32c06883222dc4d6cc67fabe99c6df6e18c92771fc5a1692954",
       "site": {
         "description": "return value replaced with None",
@@ -40,7 +40,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.273,
+      "elapsed_s": 0.326,
       "mutant_sha256": "95299cfe5b1f671be98ea64c9739f902ac03a5fddf933ce43412b86d9f05f47f",
       "site": {
         "description": "NotEq flipped",
@@ -51,7 +51,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.908,
+      "elapsed_s": 1.441,
       "mutant_sha256": "cb96ef6020ac6de54e8500eca07e7c2f48c82127331790b315893b352fa897a5",
       "site": {
         "description": "return value replaced with None",
@@ -62,7 +62,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.884,
+      "elapsed_s": 1.429,
       "mutant_sha256": "571fd3462439a25babb0222d65f40b738e61ebdaf93b3b25b7a6d3981f3669c6",
       "site": {
         "description": "And swapped",
@@ -73,7 +73,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.284,
+      "elapsed_s": 0.296,
       "mutant_sha256": "b254d0a25bde96019bff438893025cd126d9909f13bb1fea13cabfacfdaacd45",
       "site": {
         "description": "`not` removed",
@@ -84,7 +84,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.266,
+      "elapsed_s": 0.317,
       "mutant_sha256": "c32c6642c533db8c7495cbefe48a0d1d0ac6b33f6fee9546a46d24b321680142",
       "site": {
         "description": "`not` removed",
@@ -95,7 +95,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.749,
+      "elapsed_s": 0.761,
       "mutant_sha256": "002fc2ba1a8f2e09fdcc046ddc25370015c1ddfce7846a4cc50c759dc3857bcf",
       "site": {
         "description": "raise replaced with pass",
@@ -106,7 +106,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 1.084,
+      "elapsed_s": 1.005,
       "mutant_sha256": "1c7c861d92be89050b620ac1857448bf65a32d464d1290eda4db9bcc2c52aa21",
       "site": {
         "description": "Or swapped",
@@ -117,7 +117,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.909,
+      "elapsed_s": 1.046,
       "mutant_sha256": "51cad0e041ab185ccfcb093f69fbbf82980943e2faef40a425cd0947da6c70a8",
       "site": {
         "description": "raise replaced with pass",
@@ -128,7 +128,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.417,
+      "elapsed_s": 0.523,
       "mutant_sha256": "86546e295f3b9514f99c5c9f8e6e5fc2f4aef0b566c54f8a9032440ffa8e511d",
       "site": {
         "description": "constant False perturbed",
@@ -139,7 +139,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.728,
+      "elapsed_s": 0.807,
       "mutant_sha256": "a5e652e3c2d0dfb8ccf918d0263b73fe0e63fc56a601e7365546062a3ba1bcc5",
       "site": {
         "description": "constant True perturbed",
@@ -150,7 +150,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.703,
+      "elapsed_s": 0.789,
       "mutant_sha256": "a9b98a19d8348a8bbe249237e64dc22b0b28433d363f894f1a2bb22918d2750e",
       "site": {
         "description": "raise replaced with pass",
@@ -161,7 +161,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.706,
+      "elapsed_s": 0.713,
       "mutant_sha256": "7929f829cbca1f82a2c45d9b4849d800fb36454ff814b617396d03fc76f30a98",
       "site": {
         "description": "raise replaced with pass",
@@ -172,7 +172,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.325,
+      "elapsed_s": 0.29,
       "mutant_sha256": "66a89da401029ab1106d1da71bcb5aa85b483a5be1ae016456e85c1b20d334f9",
       "site": {
         "description": "IsNot flipped",
@@ -183,7 +183,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.271,
+      "elapsed_s": 0.317,
       "mutant_sha256": "903d5fd36f9140cf8a057cc729b4904998827814614ae78034e95e5b9adc959b",
       "site": {
         "description": "IsNot flipped",
@@ -194,7 +194,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.673,
+      "elapsed_s": 0.741,
       "mutant_sha256": "5f4c0ba0deaf3ffbb90bc29b2a80998bc304bcedbb36b52b7a21eaa80927b370",
       "site": {
         "description": "raise replaced with pass",
@@ -205,7 +205,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.721,
+      "elapsed_s": 0.833,
       "mutant_sha256": "203b14495e903d2e7d6d5e56783c7dce11da4ce00d96969ba9271c422b03d0b0",
       "site": {
         "description": "`not` removed",
@@ -216,7 +216,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 1.05,
+      "elapsed_s": 0.989,
       "mutant_sha256": "eefdfdf9e2aee124d0bf1d33fd445cd22da889a909cdf6bf86eca7dd71985648",
       "site": {
         "description": "Or swapped",
@@ -227,7 +227,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.375,
+      "elapsed_s": 0.331,
       "mutant_sha256": "d171f2d8c113c8fefe78541954236393c090f7282fdc90c695ede63b20f16b93",
       "site": {
         "description": "In flipped",
@@ -238,7 +238,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.379,
+      "elapsed_s": 0.338,
       "mutant_sha256": "66e2a56003bc2b619394048ca53aa320a3e64570ae8ceb040d43ca3f70e5cb07",
       "site": {
         "description": "In flipped",
@@ -249,7 +249,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.317,
+      "elapsed_s": 0.338,
       "mutant_sha256": "46f48587dcb8f1539395f1b1baf736e04657e688522cacd4511d35c5f51c092d",
       "site": {
         "description": "In flipped",
@@ -260,7 +260,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.329,
+      "elapsed_s": 0.3,
       "mutant_sha256": "4e2d63466f12f88a9caf264b572846480c22dcc900902689eb54fcf5b5d4bb62",
       "site": {
         "description": "In flipped",
@@ -271,7 +271,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.358,
+      "elapsed_s": 0.352,
       "mutant_sha256": "b7658df78ed7e76ebdd2ba5f2f87cc43f971cdaa7c7822232f9b05bd9e115704",
       "site": {
         "description": "In flipped",
@@ -282,7 +282,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.319,
+      "elapsed_s": 0.394,
       "mutant_sha256": "e78a7bb9054d9bf6801cb21e6f0e3763fa14f1c1558a54784e2edb29564f979c",
       "site": {
         "description": "`not` removed",
@@ -293,7 +293,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 0.388,
+      "elapsed_s": 0.318,
       "mutant_sha256": "efbbee556d07979fc0d10a8b3c59a920d113a01a7b0c549b19857c0b33fd60e4",
       "site": {
         "description": "`not` removed",
@@ -304,7 +304,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 1.125,
+      "elapsed_s": 1.107,
       "mutant_sha256": "894b81c548769681f22a2ec2613d312d6996d29f40eff2e34ced529924936e32",
       "site": {
         "description": "Eq flipped",
@@ -315,7 +315,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 1.186,
+      "elapsed_s": 1.004,
       "mutant_sha256": "710d0ea0d7c9abc0734532a3afbe3f0ad70261b7d7e8e799b75e700f5acf944e",
       "site": {
         "description": "`not` removed",
@@ -326,7 +326,7 @@
       "status": "KILLED"
     },
     {
-      "elapsed_s": 1.096,
+      "elapsed_s": 1.212,
       "mutant_sha256": "055c2d6cbf562bc1c85d4f7b6f5a589ca7b02ba685365a434c93aeb5e4c96602",
       "site": {
         "description": "Add swapped",

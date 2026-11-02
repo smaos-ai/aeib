@@ -353,13 +353,70 @@ All commissioned modules have achieved $\ge 80.00\%$ mutation adequacy kill rati
 
 | `src/research_mcp_adapter.py` | `tests/test_research_mcp_adapter.py` | 24 | 24 | **100.00%** | `[8620..10000 bps]` |
 
+
+| `src/bbs_plus_redactable.py` | `tests/test_bbs_plus_redactable.py` | 9 | 9 | **100.00%** | `[7009..10000 bps]` |
+
+
+| `src/behavioral_assurance_gate.py` | `tests/test_behavioral_assurance_gate.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
+
+| `src/counterfeit_tracker.py` | `tests/test_counterfeit_tracker.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
+
+| `src/deterministic_graph_executor.py` | `tests/test_deterministic_graph_executor.py` | 7 | 7 | **100.00%** | `[6457..10000 bps]` |
+
+
+| `src/dir_antiscaffold_and_x402_escrow_engine.py` | `tests/test_dir_antiscaffold_and_x402_escrow_engine.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
+
+| `src/dynamic_tool_registry.py` | `tests/test_dynamic_tool_registry.py` | 20 | 20 | **100.00%** | `[8389..10000 bps]` |
+
+
+| `src/epistemic_bisector.py` | `tests/test_epistemic_bisector.py` | 27 | 27 | **100.00%** | `[8754..10000 bps]` |
+
+
+| `src/epistemic_handoff.py` | `tests/test_epistemic_handoff.py` | 17 | 17 | **100.00%** | `[8157..10000 bps]` |
+
+
+| `src/epistemic_intent_compiler.py` | `tests/test_epistemic_intent_compiler.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
+
+| `src/external_policy_gate.py` | `tests/test_external_policy_gate.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
+
+| `src/jidoka_ui_pipeline.py` | `tests/test_jidoka_ui_pipeline.py` | 17 | 17 | **100.00%** | `[8157..10000 bps]` |
+
+
+| `src/kernel_apoptosis_gate.py` | `tests/test_kernel_apoptosis_gate.py` | 12 | 12 | **100.00%** | `[7575..10000 bps]` |
+
+
+| `src/mcp_schema_pinning.py` | `tests/test_mcp_schema_pinning.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
+
+| `src/process_trace_guard.py` | `tests/test_process_trace_guard.py` | 22 | 22 | **100.00%** | `[8513..10000 bps]` |
+
+
+| `src/rssi_harness_evolver.py` | `tests/test_rssi_harness_evolver.py` | 19 | 19 | **100.00%** | `[8318..10000 bps]` |
+
+
+| `src/sovereign_moat_upgrades.py` | `tests/test_sovereign_moat_upgrades.py` | 15 | 15 | **100.00%** | `[7961..10000 bps]` |
+
+
+| `src/stateful_hitl.py` | `tests/test_stateful_hitl.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
+
+| `src/subexponential_concurrency_gate.py` | `tests/test_subexponential_concurrency_gate.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
+
+| `src/unitboost_merge_operator.py` | `tests/test_unitboost_merge_operator.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
 ---
 
 ## 3. Disclosed Surviving Mutants & Cryptographic Isolation
 
 
 
-All 96 commissioned prototype modules have achieved 100.00% mutation adequacy (30/30, 28/28, 27/27, 24/24, 22/22, 13/13, or 8/8 mutants killed each) under the AST shadow runner with zero surviving mutants across their sampled sets:
+All 115 commissioned prototype modules have achieved 100.00% mutation adequacy (30/30, 28/28, 27/27, 24/24, 22/22, 13/13, 12/12, 9/9, 8/8, or 7/7 mutants killed each) under the AST shadow runner with zero surviving mutants across their sampled sets:
 
 
 1. All runtime path bootstrap setups (`sys.path.insert(0, str(_REPO_ROOT))`) verified with active sentinel poisoning reload checks.

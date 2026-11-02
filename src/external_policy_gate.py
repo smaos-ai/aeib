@@ -52,12 +52,8 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
 # (differential-tested in tests/test_jcs_single_source.py).
 try:
     from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
-except ImportError:  # loaded without the repository root on sys.path
-    import sys as _jcs_sys
-    from pathlib import Path as _JcsPath
-
-    _jcs_sys.path.insert(0, str(_JcsPath(__file__).resolve().parents[1]))
-    from src.jcs_canonicalizer import encode_jcs as _reference_encode_jcs
+except ImportError:
+    from jcs_canonicalizer import encode_jcs as _reference_encode_jcs
 
 DEFAULT_MAX_DAILY_SPEND_MINOR: int = 10000000  # claim: config (€100,000.00)
 DEFAULT_MAX_SINGLE_ACTION_MINOR: int = 500000  # claim: config (€5,000.00)

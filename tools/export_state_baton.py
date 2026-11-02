@@ -118,6 +118,7 @@ def build_state_baton(
         "src/protected_path_egress_policy.py",
         "src/proof_carrying_handoff.py",
         "src/evidence_registry_client.py",
+        "src/pre_tool_use_chain.py",
         "src/reality/merkle_sync.py",
         "src/reality/git_oracle.py",
         "src/reality/pointer_bus.py",

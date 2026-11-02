@@ -397,3 +397,81 @@ def test_evaluate_chain_end_to_end() -> None:
     assert v_ok.adjudication_receipt.verify_signature() is True
     assert v_ok.execution_review is not None
     assert "dispatch_transfer" in v_ok.execution_review
+
+
+def test_verify_dispatch_binding_and_post_approval_substitution_detection() -> None:
+    priv = Ed25519PrivateKey.generate()
+    pub_hex = priv.public_key().public_bytes_raw().hex()
+
+    chain = PreToolUseHookChain(signing_key=priv)
+    intent = ToolCallIntent(
+        tool_name="dispatch_transfer",
+        arguments={"amount": 500.0},
+        tenant_id="valid-corp",
+        risk_tier="T3",
+        is_write=True,
+        agent_id="bot-1",
+    )
+    digest = intent.canonical_act_digest()
+    assert digest.startswith("sha256:")
+    assert len(digest) == 71
+
+    # Modified arguments produce different digest
+    intent_modified = ToolCallIntent(
+        tool_name="dispatch_transfer",
+        arguments={"amount": 5000.0},
+        tenant_id="valid-corp",
+        risk_tier="T3",
+        is_write=True,
+        agent_id="bot-1",
+    )
+    assert intent_modified.canonical_act_digest() != digest
+
+    tel = BiometricTelemetry(
+        hrv_ms=58.0,
+        cognitive_load_bps=4000,
+        circadian_phase=CircadianPhase.NORMAL,
+        keystroke_entropy=3.2,
+        timestamp_ns=1700000000000,
+    )
+    verdict = chain.evaluate_chain(intent=intent, telemetry=tel, timestamp_ns=1700000000000)
+    receipt = verdict.adjudication_receipt
+    assert receipt is not None
+
+    # 1. Missing receipt fails closed
+    ok_none, reason_none = chain.verify_dispatch_binding(intent, None, pub_hex)
+    assert ok_none is False
+    assert reason_none == "HALT_MISSING_APPROVAL_RECEIPT"
+
+    # 2. Non-ALLOW receipt verdict fails closed
+    disallowed_receipt = dataclasses.replace(
+        receipt, verdict=AdjudicationVerdict.HALT_MISSING_TELEMETRY
+    )
+    ok_dis, reason_dis = chain.verify_dispatch_binding(intent, disallowed_receipt, pub_hex)
+    assert ok_dis is False
+    assert reason_dis == "HALT_RECEIPT_NOT_ALLOW"
+
+    # 3. Unpinned issuer public key fails closed
+    ok_unpin, reason_unpin = chain.verify_dispatch_binding(intent, receipt, "00" * 32)
+    assert ok_unpin is False
+    assert reason_unpin == "HALT_UNPINNED_RECEIPT_ISSUER"
+
+    # 4. Tampered signature fails closed
+    import base64
+    tampered_sig_receipt = dataclasses.replace(
+        receipt, signature_b64=base64.b64encode(b"\xff" * 64).decode("ascii")
+    )
+    ok_sig, reason_sig = chain.verify_dispatch_binding(intent, tampered_sig_receipt, pub_hex)
+    assert ok_sig is False
+    assert reason_sig == "HALT_RECEIPT_SIGNATURE_INVALID"
+
+    # 5. Post-approval substitution (different intent with approved receipt) fails closed
+    ok_sub, reason_sub = chain.verify_dispatch_binding(intent_modified, receipt, pub_hex)
+    assert ok_sub is False
+    assert reason_sub == "HALT_POST_APPROVAL_SUBSTITUTION"
+
+    # 6. Valid binding succeeds
+    ok_valid, reason_valid = chain.verify_dispatch_binding(intent, receipt, pub_hex)
+    assert ok_valid is True
+    assert reason_valid == "OK_DISPATCH_BOUND_TO_APPROVED_ACT"
+

@@ -176,3 +176,78 @@ class TestEvidenceRegistryClient:
         verified, reason, _ = self.client.evidence_chain_verified(["urn:dora:revoked:001"])
         assert verified is False
         assert "CITATION_STATUS_INACTIVE" in reason
+
+    def test_empty_citations_returns_true_zero_citations(self):
+        verified, reason, details = self.client.evidence_chain_verified([])
+        assert verified is True
+        assert reason == "ZERO_CITATIONS_PROVIDED"
+        assert details == []
+
+    def test_content_hash_mismatch_raises_error(self):
+        entry = RegistryEntry(
+            citation_id="urn:tampered:hash",
+            title="Tampered Entry",
+            payload={"key": "val"},
+            content_hash="bad_hash" * 8,
+            issuer=self.trusted_issuer,
+            epoch=self.policy_epoch,
+            signature=b"\x00" * 64,
+            public_key_bytes=self.regulator_pubkey_bytes,
+        )
+        with pytest.raises(CitationCryptographicVerificationError, match="Content hash mismatch"):
+            self.registry.register_entry(entry)
+
+    def test_has_entry_and_get_entry(self):
+        entry = self._create_signed_entry(
+            citation_id="urn:dora:present:001",
+            payload={"item": 1},
+            key=self.regulator_key,
+            issuer=self.trusted_issuer,
+            epoch=self.policy_epoch,
+        )
+        assert self.registry.has_entry("urn:dora:present:001") is False
+        assert self.registry.get_entry("urn:dora:present:001") is None
+        self.registry.register_entry(entry)
+        assert self.registry.has_entry("urn:dora:present:001") is True
+        assert self.registry.get_entry("urn:dora:present:001") == entry
+        assert self.registry.has_entry("urn:dora:missing") is False
+
+    def test_post_registration_tampered_signature_fails_verification(self):
+        entry = self._create_signed_entry(
+            citation_id="urn:dora:tampered_after_reg",
+            payload={"item": "safe"},
+            key=self.regulator_key,
+            issuer=self.trusted_issuer,
+            epoch=self.policy_epoch,
+        )
+        self.registry.register_entry(entry)
+        # Tamper signature in memory
+        entry.signature = b"\xff" * 64
+        valid, reason, res_entry = self.client.verify_single_citation("urn:dora:tampered_after_reg")
+        assert valid is False
+        assert reason == "CITATION_SIGNATURE_VERIFICATION_FAILED"
+        assert res_entry == entry
+
+    def test_registry_entry_to_dict(self):
+        entry = self._create_signed_entry(
+            citation_id="urn:test:dict",
+            payload={"flag": True},
+            key=self.regulator_key,
+            issuer=self.trusted_issuer,
+            epoch=self.policy_epoch,
+        )
+        d = entry.to_dict()
+        assert d["citation_id"] == "urn:test:dict"
+        assert d["payload"] == {"flag": True}
+        assert d["issuer"] == self.trusted_issuer
+        assert d["epoch"] == self.policy_epoch
+        assert d["status"] == "ACTIVE"
+        assert d["public_key_hex"] == self.regulator_pubkey_bytes.hex()
+        assert "registered_at_utc" in d
+
+    def test_register_trusted_issuer_and_default_epoch(self):
+        client = EvidenceRegistryClient()
+        assert client.current_policy_epoch == "policy:epoch_104"
+        client.register_trusted_issuer("new:issuer")
+        assert "new:issuer" in client.trusted_issuers
+

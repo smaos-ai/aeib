@@ -153,7 +153,10 @@ def test_tcp_rst_and_http_504_network_drop_and_retry_storm():
     assert res_upd2["code"] == "ANSI_86_LOCKOUT_TRIPPED"
     assert reconciler.is_locked_out is True
     effect_key = reconciler.compute_effect_key(req["mutation"])
-    assert effect_key[:16] in res_upd2["reason"]
+    expected_reason = (
+        f"ANSI_86_LOCKOUT_TRIPPED: effect_key {effect_key[:16]} received 3 retry attempts without clearance token (retry storm bypass detected)."
+    )
+    assert res_upd2["reason"] == expected_reason
     assert reconciler.committed_writes == 1
     assert reconciler.duplicate_committed_writes == 0
     assert reconciler.ansi_86_trips == 1

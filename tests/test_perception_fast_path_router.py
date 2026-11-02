@@ -19,6 +19,7 @@ tests/test_perception_fast_path_router.py — Tests for Perception Plane & SLM B
 import pytest
 
 from src.perception_fast_path_router import (
+    CandidateToolProposal,
     PerceptionFastPathRouter,
     SlmAuthorityViolation,
 )
@@ -51,8 +52,10 @@ def test_nominal_consequential_mutation_routed_to_station1():
     )
     assert resp.get("routing") == "ROUTED_TO_STATION_1_CONSEQUENTIAL_LATCH"
     assert resp.get("proposal", {}).get("is_consequential") is True
+    assert len(resp["proposal"]["id"]) == 21  # 'prop_' (5) + 16 hex chars
     assert len(captured) == 1
     assert captured[0]["target_tool"] == "transfer_tokens"
+    assert captured[0]["arguments"]["synthetic_eval"] is True
 
 
 def test_falsification_slm_claims_execution_authority_rejected():
@@ -91,3 +94,53 @@ def test_banned_words_absence_in_perception_files():
         ]
         for word in forbidden:
             assert word not in text, f"Banned word '{word}' found in {fpath}"
+
+
+def test_default_station1_dispatcher():
+    # Router without explicit station1_dispatcher uses default
+    router = PerceptionFastPathRouter()
+    resp = router.evaluate_request(
+        raw_prompt="pay 100 EUR to merchant",
+        slm_model_id="apple/ane-slm-core",
+    )
+    assert resp["routing"] == "ROUTED_TO_STATION_1_CONSEQUENTIAL_LATCH"
+    s1 = resp["station1_response"]
+    assert s1["status"] == "STATION1_ENQUEUED"
+    assert s1["escrow_locked"] is True
+
+
+def test_perception_cache_hit_and_lookup_balance():
+    router = PerceptionFastPathRouter()
+    # 1. First call: non-consequential, resolves fast path with lookup_balance
+    resp1 = router.evaluate_request("Check my available quota", "apple/ane-slm-core")
+    assert resp1["routing"] == "PERCEPTION_FAST_PATH_RESOLVED"
+    assert resp1["tool"] == "lookup_balance"
+
+    # 2. Second call: cache hit
+    resp2 = router.evaluate_request("Check my available quota", "apple/ane-slm-core")
+    assert resp2["routing"] == "PERCEPTION_CACHE_HIT"
+    assert resp2["result"]["tool"] == "lookup_balance"
+
+    # 3. Third call after 61s TTL expiration: cache miss, fast path re-resolved
+    import time
+    cache_key = list(router.perception_cache.keys())[0]
+    val, _ = router.perception_cache[cache_key]
+    router.perception_cache[cache_key] = (val, time.time() - 60.5)
+    resp3 = router.evaluate_request("Check my available quota", "apple/ane-slm-core")
+    assert resp3["routing"] == "PERCEPTION_FAST_PATH_RESOLVED"
+
+
+def test_candidate_tool_proposal_frozenness():
+    import dataclasses
+
+    prop = CandidateToolProposal(
+        proposal_id="p1",
+        slm_model_id="m1",
+        target_tool="t1",
+        proposed_arguments={},
+        is_consequential=False,
+        confidence_score=0.9,
+        generated_at=100,
+    )
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        prop.confidence_score = 1.0  # type: ignore[misc]

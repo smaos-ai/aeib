@@ -86,6 +86,16 @@ def build_state_baton(
         "src/border_policy.py",
         "src/commit_time_state_guard.py",
         "src/constraint_compiler.py",
+        "src/perception_fast_path_router.py",
+        "src/biometric_hitl_gate.py",
+        "src/semantic_scion_compiler.py",
+        "src/multi_tenant_governor.py",
+        "src/reality/merkle_sync.py",
+        "src/reality/git_oracle.py",
+        "src/reality/pointer_bus.py",
+        "src/reality/passport_compiler.py",
+        "src/reality/memory_poisoning_guard.py",
+        "src/reality/hunger_credit_ledger.py",
     ]
     present_modules = [m for m in core_modules if (repo_root / m).is_file()]
 

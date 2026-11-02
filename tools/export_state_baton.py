@@ -96,7 +96,7 @@ def build_state_baton(
         "src/research_mcp_adapter.py",
         "src/bbs_plus_redactable.py",
         "src/behavioral_assurance_gate.py",
-        "src/counterfeit_tracker.py",
+        "src/counterfeit_execution_tracker.py",
         "src/deterministic_graph_executor.py",
         "src/dir_antiscaffold_and_x402_escrow_engine.py",
         "src/dynamic_tool_registry.py",

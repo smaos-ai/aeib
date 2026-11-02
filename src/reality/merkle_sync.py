@@ -57,7 +57,20 @@ DEFAULT_EXCLUDE_PATTERNS: Tuple[str, ...] = (
     "*.swp",
     ".mypy_cache",
     ".mypy_cache/*",
+    "target",
+    "target/*",
+    "node_modules",
+    "node_modules/*",
+    ".venv*",
+    ".venv*/*",
+    "venv*",
+    "venv*/*",
+    "dist",
+    "dist/*",
 )
+
+# Maximum orphans allowed to be pruned without explicit safety override
+DEFAULT_MAX_ORPHAN_PRUNE_LIMIT: int = 500
 
 STATUS_MATCHED = "MATCHED"
 STATUS_WORKSPACE_ONLY = "WORKSPACE_ONLY"
@@ -330,11 +343,14 @@ def synchronize_workspace_and_ssd(
     operator_private_key: Ed25519PrivateKey,
     receipt_id: str = "REC-SSD-SYNC-001",
     allow_orphan_prune: bool = False,
+    max_orphan_prune_limit: int = DEFAULT_MAX_ORPHAN_PRUNE_LIMIT,
+    force_prune_override: bool = False,
     exclude_patterns: Sequence[str] = DEFAULT_EXCLUDE_PATTERNS,
 ) -> Tuple[SSDSyncReceipt, MerkleDiffReport]:
     """
     Executes synchronization according to mode and returns signed SSDSyncReceipt.
     Validates sync_mode against VALID_SYNC_MODES.
+    Enforces safety ceiling on orphan pruning unless force_prune_override is True.
     """
     if sync_mode not in VALID_SYNC_MODES:
         raise ValueError(f"ERR_INVALID_SYNC_MODE: {sync_mode} not in {VALID_SYNC_MODES}")
@@ -344,6 +360,12 @@ def synchronize_workspace_and_ssd(
     files_deleted = 0
 
     if sync_mode == MODE_WORKSPACE_TO_SSD_BACKUP:
+        if allow_orphan_prune and len(initial_diff.orphan_paths) > max_orphan_prune_limit and not force_prune_override:
+            raise RuntimeError(
+                f"ERR_PRUNE_SAFETY_CEILING_EXCEEDED: {len(initial_diff.orphan_paths)} orphans exceeds ceiling of {max_orphan_prune_limit}. "
+                "Pass force_prune_override=True to explicitly authorize bulk pruning."
+            )
+
         ssd_dir.mkdir(parents=True, exist_ok=True)
         # Copy workspace files that are missing or conflicted on SSD
         ws_manifest = build_manifest(workspace_dir, exclude_patterns)

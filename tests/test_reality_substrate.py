@@ -221,6 +221,19 @@ def test_merkle_sync_modes_and_receipt_verification(tmp_path: Path):
     assert diff2.is_perfect_match is True
     assert diff2.similarity_bps == 10000
 
+    # 4b. Test safety ceiling on orphan pruning
+    (ssd / "orphan1.txt").write_text("1")
+    (ssd / "orphan2.txt").write_text("2")
+    with pytest.raises(RuntimeError, match="ERR_PRUNE_SAFETY_CEILING_EXCEEDED"):
+        synchronize_workspace_and_ssd(
+            ws, ssd, MODE_WORKSPACE_TO_SSD_BACKUP, key, allow_orphan_prune=True, max_orphan_prune_limit=1
+        )
+    # With override, prune succeeds
+    receipt_override, _ = synchronize_workspace_and_ssd(
+        ws, ssd, MODE_WORKSPACE_TO_SSD_BACKUP, key, allow_orphan_prune=True, max_orphan_prune_limit=1, force_prune_override=True
+    )
+    assert receipt_override.files_deleted == 2
+
     # 5. SSD_TO_WORKSPACE_RESTORE mode
     (ws / "data.json").unlink()
     assert not (ws / "data.json").exists()

@@ -14,11 +14,41 @@ from __future__ import annotations
 
 import pytest
 
+from src.a2a_trajectory_interlock import A2ATrajectoryInterlock
 from src.sema_auto_swarm_simulator import (
     SemaAutoSwarmSimulator,
     SwarmAgentNode,
     SwarmExecutionSummary,
 )
+
+
+class AdversarialLeakingInterlock(A2ATrajectoryInterlock):
+    """Subclass of interlock to simulate adversarial edge cases with real objects and zero mocks."""
+
+    def __init__(
+        self,
+        target_spiffe_leak: str,
+        leak_mode: str,
+        max_drift_threshold_bps: int = 4000,
+    ) -> None:
+        super().__init__(max_drift_threshold_bps=max_drift_threshold_bps)
+        self.target_spiffe_leak = target_spiffe_leak
+        self.leak_mode = leak_mode
+
+    def validate_delegated_egress(
+        self,
+        child_spiffe_id: str,
+        target_host: str,
+        action_caid: str,
+    ) -> tuple[bool, str]:
+        if child_spiffe_id == self.target_spiffe_leak:
+            if self.leak_mode == "STEP2_LEAK":
+                return False, "HALT_UNKNOWN_FAILURE_TRIGGERING_LEAK"
+            if self.leak_mode == "STEP3_LEAK":
+                if target_host == "api.unauthorized-exfil.org":
+                    return True, "AUTHORIZED_UNCONTAINED_EXFIL"
+                return True, "OK_DELEGATED_EGRESS_PERMITTED"
+        return super().validate_delegated_egress(child_spiffe_id, target_host, action_caid)
 
 
 def test_1_swarm_topology_structure_and_tiers() -> None:
@@ -157,29 +187,32 @@ def test_5_swarm_leak_counter_and_delegation_count() -> None:
     del_count = sim.delegate_swarm(set(), set())
     assert del_count == 99
 
-    # 2. Test uncontained leak detection path (kills line 227 CONST_PERTURB)
-    sim_leak = SemaAutoSwarmSimulator(max_drift_threshold_bps=4000)
-    # Perform regular delegation first
-    sim_leak.delegate_swarm(set(), set())
-    # Now simulate node drift: leaf_10 tries an un-delegated host during step 2
-    orig_leaf = sim_leak.nodes['leaf_10']
-    sim_leak.nodes['leaf_10'] = SwarmAgentNode(
-        agent_id=orig_leaf.agent_id,
-        spiffe_id=orig_leaf.spiffe_id,
-        tier=orig_leaf.tier,
-        parent_id=orig_leaf.parent_id,
-        allowed_hosts=('mcp.un-delegated-host.internal',),
-        initial_taint=0,
+    # 2. Test uncontained leak detection path in step 2 (kills line 227 CONST_PERTURB)
+    sim_step2 = SemaAutoSwarmSimulator(max_drift_threshold_bps=4000)
+    leaf25_spiffe = sim_step2.nodes["leaf_25"].spiffe_id
+    sim_step2.interlock = AdversarialLeakingInterlock(
+        target_spiffe_leak=leaf25_spiffe,
+        leak_mode="STEP2_LEAK",
+        max_drift_threshold_bps=4000,
     )
-    # Run the egress loop directly
-    uncontained_leaks = 0
-    for agent_id, token in sim_leak.tokens.items():
-        node = sim_leak.nodes[agent_id]
-        ok, reason = sim_leak.interlock.validate_delegated_egress(
-            child_spiffe_id=node.spiffe_id,
-            target_host=node.allowed_hosts[0],
-            action_caid=f"sha256:egress_{agent_id}",
-        )
-        if not ok and "HALT_COMPROMISED_TAINT_BLOCKED" not in reason:
-            uncontained_leaks += 1
-    assert uncontained_leaks == 1
+    sim_step2.interlock.register_root_authority(sim_step2.ROOT_SPIFFE, sim_step2.ROOT_HOSTS)
+    summary_step2 = sim_step2.run_full_swarm_stress_benchmark(
+        taint_injection_lead="lead_00",
+        compromised_task="task_05",
+    )
+    assert summary_step2.uncontained_leaks_count == 1
+
+    # 3. Test uncontained leak detection path in step 3 (kills line 242 CONST_PERTURB)
+    sim_step3 = SemaAutoSwarmSimulator(max_drift_threshold_bps=4000)
+    leaf10_spiffe = sim_step3.nodes["leaf_10"].spiffe_id
+    sim_step3.interlock = AdversarialLeakingInterlock(
+        target_spiffe_leak=leaf10_spiffe,
+        leak_mode="STEP3_LEAK",
+        max_drift_threshold_bps=4000,
+    )
+    sim_step3.interlock.register_root_authority(sim_step3.ROOT_SPIFFE, sim_step3.ROOT_HOSTS)
+    summary_step3 = sim_step3.run_full_swarm_stress_benchmark(
+        taint_injection_lead="lead_00",
+        compromised_task="task_05",
+    )
+    assert summary_step3.uncontained_leaks_count == 1

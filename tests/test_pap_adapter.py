@@ -152,6 +152,10 @@ class TestPAPEffectIntegrityAdapter:
         assert doc["effect_integrity_policy"]["uncertainty_latch"] is True
         assert doc["effect_integrity_policy"]["retry_safe"] is False
         assert doc["reconciliation_probe"]["probe_method"] == "status_api_query"
+        assert doc["reconciliation_probe"]["single_flight_coalescing"] is True
+        assert doc["reconciliation_probe"]["timeout_ms"] == 5000
+        assert doc["reconciliation_probe"]["consistency_model"] == "strong_read"
+        assert doc["reconciliation_probe"]["probe_authority"] == "authoritative_status_endpoint"
         assert doc["release_governance"]["release_authorization_required"] is True
         assert doc["release_governance"]["release_status"] == "not_provided"
 
@@ -192,6 +196,9 @@ class TestPAPEffectIntegrityAdapter:
         receipt = res.receipt
         assert receipt["aeib.caid"] == res.caid
         assert receipt["aeib.disposition"] == "ACTION_CONFIRMED"
+        assert receipt["aeib.retry_safe"] is False
+        assert receipt["aeib.release_authorization"] == "not_provided"
+        assert receipt["aeib.protocol"] == "pap-aeib-v0.1"
         assert receipt["aeib.receipt.verified"] is True
 
         pub_bytes = bytes.fromhex(receipt["aeib.receipt.public_key_hex"])
@@ -242,6 +249,9 @@ class TestPAPEffectIntegrityAdapter:
         assert res.probe_status == "RECORD_FOUND"
         assert res.target_state == "COMMITTED"
         assert probe_call_count[0] == 1
+        caid = candidate.compute_caid()
+        assert self.adapter.probe_history[caid] == 1
+        assert res.receipt["aeib.retry_safe"] is False
 
         # Subsequent attempt on latched CAID is rejected fail-closed without re-probing
         res2 = self.adapter.process_wire_outcome(
@@ -328,3 +338,45 @@ class TestPAPEffectIntegrityAdapter:
 
         with pytest.raises(InvalidSignature):
             pub_key.verify(signature, tampered_bytes)
+
+    def test_default_candidate_action_fields_and_adapter_keys(self):
+        c = PAPCandidateAction(noun="A", verb="B", target_uri="https://u", payload={"x": 1})
+        assert c.require_biometric_release is False
+        assert c.max_amount is None
+        assert c.currency is None
+
+        # Test signing_key or ed25519 generate
+        default_adapter = PAPEffectIntegrityAdapter()
+        assert default_adapter.signing_key is not None
+        assert len(default_adapter.public_key_hex) == 64
+        custom_key = ed25519.Ed25519PrivateKey.generate()
+        custom_adapter = PAPEffectIntegrityAdapter(signing_key=custom_key)
+        assert custom_adapter.signing_key is custom_key
+
+    def test_status_500_with_wire_error_none_latches_fail_closed(self):
+        envelope = PAPAgentEnvelope(
+            agent_id="agent:personal:bot",
+            user_principal_id="user_bob",
+            device_fingerprint=self.valid_fingerprint,
+            session_id="session_err_01",
+            intent_hash=self.valid_intent,
+        )
+        candidate = PAPCandidateAction(
+            noun="Order",
+            verb="Submit",
+            target_uri="https://shop.example/api/orders",
+            payload={"item": "book"},
+        )
+        channel = PAPExecutionChannel(channel_type="http_rest")
+        # wire_status_code=500, wire_error=None (kills BOOL_SWAP line 207)
+        res = self.adapter.process_wire_outcome(
+            envelope=envelope,
+            candidate=candidate,
+            channel=channel,
+            wire_status_code=500,
+            wire_error=None,
+        )
+        assert res.disposition == "EFFECT_INDETERMINATE"
+        assert res.latch_engaged is True
+        assert res.retry_safe is False
+        assert res.receipt["aeib.retry_safe"] is False

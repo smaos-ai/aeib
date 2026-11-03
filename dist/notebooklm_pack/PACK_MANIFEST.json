@@ -3,7 +3,7 @@
   "target_notebook_url": "https://notebook.google.com/notebook/e1b91409-02f9-4300-8bf7-5dfd4426dd16",
   "target_notebook_id": "e1b91409-02f9-4300-8bf7-5dfd4426dd16",
   "sources_count": 18,
-  "total_word_count": 147567,
+  "total_word_count": 147742,
   "max_words_per_source_limit": 500000,
   "notebook_source_slots_used": "18 / 50 (32 slots free)",
   "sources": [
@@ -12,7 +12,7 @@
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/00_EXECUTIVE_BRIEFING_FOR_CONSIDERATION.md",
       "words": 894,
       "bytes": 6973,
-      "sha256": "sha256:e476fc2c2e66c318059059b2f87816f2b847653a8c75d477c0c01581345fa735"
+      "sha256": "sha256:8df7a2cbb4bf7559020de4a3b47b024ed1dec14d8715477b8a33f6741cb7197c"
     },
     {
       "file_name": "01_SOVEREIGN_NEXUS_MASTER_ARCHITECTURE_AND_12_MOATS.md",
@@ -80,9 +80,9 @@
     {
       "file_name": "10_OCTOBER_30_SOTA_FRONTIER_SWAT_AIRLOCK_AND_REGENERATABLE_UI.md",
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/10_OCTOBER_30_SOTA_FRONTIER_SWAT_AIRLOCK_AND_REGENERATABLE_UI.md",
-      "words": 32901,
-      "bytes": 366491,
-      "sha256": "sha256:c0f1746b8c9b86f4f1117416c499c2866ca4cf1fdd51e5fad7049bbd7d0ec4d4"
+      "words": 32976,
+      "bytes": 367901,
+      "sha256": "sha256:3c4d95fac8b084e82678d6d46f5c7bda94634f2f35bb1a73d81d0e15c19a4229"
     },
     {
       "file_name": "11_AGENT_SUBSTRATE_TENCENT_CUBE_KIRO_AND_A2A_INTERLOCK.md",
@@ -115,9 +115,9 @@
     {
       "file_name": "15_TEN_LAYER_SOVEREIGN_FACTORY_AND_COMMISSIONED_PROTOTYPE_SPECS.md",
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/15_TEN_LAYER_SOVEREIGN_FACTORY_AND_COMMISSIONED_PROTOTYPE_SPECS.md",
-      "words": 3025,
-      "bytes": 28587,
-      "sha256": "sha256:9d83b3d975a655d78e0c9e26d77f50cfffdeb7ab10d649d16d1478e244180b16"
+      "words": 3125,
+      "bytes": 29453,
+      "sha256": "sha256:94e61f8382d179bce8e51619d78dbc338d231091ad888957187f24ec0a2fa58e"
     },
     {
       "file_name": "16_OCTOBER_31_PHASE_V_5_STATION_KERNEL_TEMPORAL_AUTHORITY_AND_PREMARKET_AUDIT.md",

@@ -148,23 +148,23 @@ class FiveWhysDecompositionDAG:
         visited: Set[str] = set()
         rec_stack: Set[str] = set()
 
-        def _dfs(curr: str) -> bool:
+        def _dfs(curr: str) -> None:
             visited.add(curr)
             rec_stack.add(curr)
             for dep in self.nodes[curr].dependencies:
                 if dep not in visited:
-                    if _dfs(dep) is True:
-                        return True
+                    _dfs(dep)
                 elif dep in rec_stack:
-                    return True
+                    raise StopIteration
             rec_stack.remove(curr)
-            return False
 
-        for node_id in self.nodes:
-            if node_id not in visited:
-                if _dfs(node_id):
-                    return False
-        return True
+        try:
+            for node_id in self.nodes:
+                if node_id not in visited:
+                    _dfs(node_id)
+            return True
+        except StopIteration:
+            return False
 
 
 @dataclass(frozen=True)
@@ -448,7 +448,7 @@ class IndustrialDevFlowGovernor:
             approved=approved,
             disposition=disposition,
             trip_code=trip_code.value if trip_code is not None else None,
-            attempt_count=self._task_attempts.get(task_id, 0),
+            attempt_count=self._task_attempts[task_id],
             lockout_latched=lockout_latched,
             mutation_kill_ratio_bps=mutation_kill_ratio_bps,
             deterministic_outcome_caid=outcome_caid,

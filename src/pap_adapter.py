@@ -34,8 +34,12 @@ from datetime import datetime, timezone
 from cryptography.hazmat.primitives.asymmetric import ed25519
 from cryptography.hazmat.primitives import serialization
 
-from src.jcs_canonicalizer import encode_jcs, generate_jcs_payload_hash
-from src.aeib_v040_engine import derive_caid
+try:
+    from src.jcs_canonicalizer import encode_jcs, generate_jcs_payload_hash
+    from src.aeib_v040_engine import derive_caid
+except ImportError:
+    from jcs_canonicalizer import encode_jcs, generate_jcs_payload_hash
+    from aeib_v040_engine import derive_caid
 
 
 class PAPContractValidationError(ValueError):

@@ -47,12 +47,12 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from cryptography.hazmat.primitives.asymmetric import ed25519
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
-from src.capability_status import SIMULATED_OPT_IN
-from src.jcs_canonicalizer import encode_jcs
+try:
+    from src.capability_status import SIMULATED_OPT_IN
+    from src.jcs_canonicalizer import encode_jcs
+except ImportError:
+    from capability_status import SIMULATED_OPT_IN
+    from jcs_canonicalizer import encode_jcs
 
 
 def sha256_prefixed(data: bytes) -> str:
@@ -256,9 +256,10 @@ class TpmPcrAttestationEngine:
 def run_self_test() -> None:
     """Executes self-test of TpmPcrAttestationEngine."""
     engine = TpmPcrAttestationEngine()
+    reg = engine.PCR_POLICY_REGISTER
 
     # 1. Verify initial PCR 11 is zeroed
-    init_pcr11 = engine.get_pcr_hex(11)
+    init_pcr11 = engine.get_pcr_hex(reg)
     assert init_pcr11 == "0" * 64
 
     # 2. Extend PCR 11 with eBPF policy & SCITT root
@@ -269,35 +270,36 @@ def run_self_test() -> None:
 
     # 3. Generate Quote
     nonce = os.urandom(32)
-    quote = engine.generate_quote(pcr_indices=[11], nonce=nonce)
-    assert quote.pcr_values[11] == extended_pcr11
+    assert len(nonce) == 32
+    quote = engine.generate_quote(pcr_indices=[reg], nonce=nonce)
+    assert quote.pcr_values[reg] == extended_pcr11
 
     # 4. Verify Quote (positive)
     is_valid = TpmPcrAttestationEngine.verify_quote(
         quote,
-        expected_pcrs={11: extended_pcr11},
+        expected_pcrs={reg: extended_pcr11},
         expected_nonce_hex=nonce.hex(),
         ak_pubkey=engine.ak_pubkey,
     )
     assert is_valid is True
 
     # 5. Verify Quote (negative control: tampered nonce)
-    bad_nonce = os.urandom(32).hex()
-    assert not TpmPcrAttestationEngine.verify_quote(
+    bad_nonce = "tampered_" + quote.qualifying_data_nonce
+    assert TpmPcrAttestationEngine.verify_quote(
         quote,
-        expected_pcrs={11: extended_pcr11},
+        expected_pcrs={reg: extended_pcr11},
         expected_nonce_hex=bad_nonce,
         ak_pubkey=engine.ak_pubkey,
-    )
+    ) is False
 
     # 6. Verify Quote (negative control: tampered PCR value)
-    tampered_pcr = ("f" * 64)
-    assert not TpmPcrAttestationEngine.verify_quote(
+    tampered_pcr = "tampered_" + quote.pcr_values[reg]
+    assert TpmPcrAttestationEngine.verify_quote(
         quote,
-        expected_pcrs={11: tampered_pcr},
+        expected_pcrs={reg: tampered_pcr},
         expected_nonce_hex=nonce.hex(),
         ak_pubkey=engine.ak_pubkey,
-    )
+    ) is False
 
     print("[✓] TpmPcrAttestationEngine: Self-test passed (PCR 11 Extend, Quote Signing, and Negative Controls verified).")
 

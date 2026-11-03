@@ -34,6 +34,7 @@ import fnmatch
 import hashlib
 import os
 import shutil
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Set, Tuple
@@ -71,6 +72,10 @@ DEFAULT_EXCLUDE_PATTERNS: Tuple[str, ...] = (
 
 # Maximum orphans allowed to be pruned without explicit safety override
 DEFAULT_MAX_ORPHAN_PRUNE_LIMIT: int = 500
+
+# Scan bounds (a hung unbounded walk over ~1.4M build files was observed on 2026-11-01)
+DEFAULT_MAX_SCAN_FILES: int = 100_000
+DEFAULT_MAX_SCAN_SECONDS: int = 120
 
 STATUS_MATCHED = "MATCHED"
 STATUS_WORKSPACE_ONLY = "WORKSPACE_ONLY"
@@ -137,16 +142,25 @@ def should_exclude_path(rel_path: str, exclude_patterns: Sequence[str]) -> bool:
 def build_manifest(
     base_dir: Path,
     exclude_patterns: Sequence[str] = DEFAULT_EXCLUDE_PATTERNS,
+    max_files: int = DEFAULT_MAX_SCAN_FILES,
+    max_duration_s: int = DEFAULT_MAX_SCAN_SECONDS,
 ) -> Dict[str, Tuple[int, str]]:
     """
     Walks base_dir and returns a mapping: rel_path -> (size_bytes, sha256_hex).
     Skips non-files and excluded path patterns.
+    Fails closed with RuntimeError("ERR_SCAN_FILE_LIMIT_EXCEEDED") or
+    RuntimeError("ERR_SCAN_TIME_LIMIT_EXCEEDED") when the walk exceeds the
+    file-count or wall-clock bound, so an unexcluded build tree cannot run unbounded.
     """
     manifest: Dict[str, Tuple[int, str]] = {}
     if not base_dir.exists() or not base_dir.is_dir():
         return manifest
 
+    started = time.monotonic()
+    visited = 0
     for root, dirs, files in os.walk(base_dir):
+        if time.monotonic() - started > max_duration_s:
+            raise RuntimeError(f"ERR_SCAN_TIME_LIMIT_EXCEEDED: > {max_duration_s}s in {base_dir}")
         # Exclude directories in-place to avoid unnecessary traversal
         dirs[:] = [
             d for d in dirs
@@ -157,6 +171,9 @@ def build_manifest(
             rel_path = str(full_path.relative_to(base_dir))
             if should_exclude_path(rel_path, exclude_patterns):
                 continue
+            visited += 1
+            if visited > max_files:
+                raise RuntimeError(f"ERR_SCAN_FILE_LIMIT_EXCEEDED: > {max_files} files in {base_dir}")
             if full_path.is_file() and not full_path.is_symlink():
                 try:
                     size = full_path.stat().st_size

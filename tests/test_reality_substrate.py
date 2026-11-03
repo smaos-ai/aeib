@@ -524,3 +524,74 @@ def test_task_conditioned_passport_compiler(tmp_path: Path):
     empty_passport = compiler.compile_passport("unrelated_query_xyz_12345")
     assert len(empty_passport.selected_modules) == 0
     assert empty_passport.character_count == 0
+
+
+def test_build_manifest_scan_bounds_fail_closed(tmp_path: Path):
+    from src.reality.merkle_sync import build_manifest
+
+    for i in range(5):
+        (tmp_path / f"f{i}.txt").write_text(str(i))
+    # exactly at the limit is allowed; one over fails closed
+    assert len(build_manifest(tmp_path, max_files=5)) == 5
+    with pytest.raises(RuntimeError, match="ERR_SCAN_FILE_LIMIT_EXCEEDED"):
+        build_manifest(tmp_path, max_files=4)
+    # a negative time budget is exceeded on the first directory visited
+    with pytest.raises(RuntimeError, match="ERR_SCAN_TIME_LIMIT_EXCEEDED"):
+        build_manifest(tmp_path, max_duration_s=-1)
+    # excluded build trees do not count toward the file limit
+    (tmp_path / "target").mkdir()
+    for i in range(20):
+        (tmp_path / "target" / f"a{i}.o").write_text("x")
+    assert len(build_manifest(tmp_path, max_files=5)) == 5
+
+
+def test_merkle_root_odd_leaf_count_matches_manual_computation():
+    from src.reality.merkle_sync import compute_merkle_root_from_entries
+
+    entries = [("a", "11" * 32), ("b", "22" * 32), ("c", "33" * 32)]
+    leaves = [hashlib.sha256(k.encode() + b":" + d.encode()).digest() for k, d in entries]
+    left = hashlib.sha256(leaves[0] + leaves[1]).digest()
+    right = hashlib.sha256(leaves[2] + leaves[2]).digest()
+    assert compute_merkle_root_from_entries(entries) == hashlib.sha256(left + right).hexdigest()
+
+
+def test_manifest_prunes_excluded_dirs_and_skips_symlinks(tmp_path: Path):
+    from src.reality.merkle_sync import build_manifest
+
+    (tmp_path / "keep" / "deep").mkdir(parents=True)
+    (tmp_path / "keep" / "deep" / "x.txt").write_text("x")
+    (tmp_path / "target").mkdir()
+    (tmp_path / "target" / "junk.o").write_text("j")
+    (tmp_path / "real.txt").write_text("r")
+    os.symlink(tmp_path / "real.txt", tmp_path / "link.txt")
+    m = build_manifest(tmp_path)
+    assert sorted(m) == [os.path.join("keep", "deep", "x.txt"), "real.txt"]
+
+
+def test_sync_backup_and_restore_copy_missing_and_conflicting_files(tmp_path: Path):
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+    from src.reality.merkle_sync import (
+        MODE_SSD_TO_WORKSPACE_RESTORE,
+        MODE_WORKSPACE_TO_SSD_BACKUP,
+        synchronize_workspace_and_ssd,
+    )
+
+    key = Ed25519PrivateKey.generate()
+    ws, ssd = tmp_path / "ws", tmp_path / "new_ssd"  # ssd dir does not exist yet
+    (ws / "a" / "b").mkdir(parents=True)
+    (ws / "a" / "b" / "n.txt").write_text("nested")
+    (ws / "same_size.txt").write_text("AAAA")
+    r1, d1 = synchronize_workspace_and_ssd(ws, ssd, MODE_WORKSPACE_TO_SSD_BACKUP, key)
+    assert r1.files_copied == 2 and d1.is_perfect_match
+    assert (ssd / "a" / "b" / "n.txt").read_text() == "nested"
+    # same size, different content on the SSD side -> must be treated as a conflict
+    (ssd / "same_size.txt").write_text("BBBB")
+    r2, d2 = synchronize_workspace_and_ssd(ws, ssd, MODE_WORKSPACE_TO_SSD_BACKUP, key)
+    assert r2.files_copied == 1 and (ssd / "same_size.txt").read_text() == "AAAA"
+    # restore: workspace file differs (same size) and another is missing
+    (ws / "same_size.txt").write_text("CCCC")
+    (ws / "a" / "b" / "n.txt").unlink()
+    r3, d3 = synchronize_workspace_and_ssd(ws, ssd, MODE_SSD_TO_WORKSPACE_RESTORE, key)
+    assert r3.files_copied == 2 and d3.is_perfect_match
+    assert (ws / "same_size.txt").read_text() == "AAAA"
+    assert (ws / "a" / "b" / "n.txt").read_text() == "nested"

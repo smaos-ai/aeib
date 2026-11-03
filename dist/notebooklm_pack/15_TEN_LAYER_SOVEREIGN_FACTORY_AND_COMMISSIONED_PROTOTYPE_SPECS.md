@@ -42,7 +42,7 @@ The SovereignNexus agent infrastructure stack integrates ten deterministic opera
 | **Layer 6** | Autonomous Evolution & Trajectory Airlock | Multi-candidate evolutionary selection, SEMA-Auto trajectory tracking, zero-regression airlock, Autonomous Night Cycle Runner, Autonomous PR Webhook Dispatcher, RSSI Harness Evolver, Sovereign Moat Upgrades, SEMA-Auto 100-Agent Swarm Stress Simulation Engine & Monotonic Taint Interlock | `src/evolutionary_orchestrator.py`, `src/a2a_trajectory_interlock.py`, `src/oct2026_frontier_signals_and_agent_s4_airlock.py`, `src/autonomous_night_cycle_runner.py`, `src/autonomous_pr_webhook_dispatcher.py`, `src/rssi_harness_evolver.py`, `src/sovereign_moat_upgrades.py`, `src/sema_auto_swarm_simulator.py` |
 
 
-| **Layer 7** | SCITT Bitemporal Merkle Tree & Multi-Cloud | RFC 9162 / RFC 9943 Merkle trees, ZK proof rollup, PQC Post-Quantum Notary, Cross-Enterprise Federation Bridge, ZK MMR Accumulator, BBS+ Redactable Signatures | `src/zk_scitt_proof_rollup.py`, `src/pqc_post_quantum_notary.py`, `src/cross_enterprise_federation_bridge.py`, `src/scitt_proof_aggregation_reconciler.py`, `src/multi_cloud_failover_orchestrator.py`, `src/zk_mmr_accumulator.py`, `src/bbs_plus_redactable.py` |
+| **Layer 7** | SCITT Bitemporal Merkle Tree & Multi-Cloud | RFC 9162 / RFC 9943 Merkle trees, ZK proof rollup, PQC Post-Quantum Notary, Cross-Enterprise Federation Bridge, ZK MMR Accumulator, BBS+ Redactable Signatures, Zero-Knowledge Budget Proof Engine | `src/zk_scitt_proof_rollup.py`, `src/pqc_post_quantum_notary.py`, `src/cross_enterprise_federation_bridge.py`, `src/scitt_proof_aggregation_reconciler.py`, `src/multi_cloud_failover_orchestrator.py`, `src/zk_mmr_accumulator.py`, `src/bbs_plus_redactable.py`, `src/zk_budget_proof_engine.py` |
 
 
 | **Layer 8** | Common Criteria EAL4+ Audit & CEM Evaluator | ISO/IEC 15408-3 EAL4+ formal model runner, 8 SFRs mapped, automated ISO/IEC 18045 CEM auditor | `tools/common_criteria_eal4_runner.py`, `tools/itsef_cem_evaluation_runner.py`, `tools/itsef_mock_lab_audit_simulator.py` |
@@ -464,13 +464,16 @@ All commissioned modules have achieved $\ge 80.00\%$ mutation adequacy kill rati
 
 | `src/pap_adapter.py` | `tests/test_pap_adapter.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
 
+
+| `src/zk_budget_proof_engine.py` | `tests/test_zk_budget_proof_engine.py` | 30 | 30 | **100.00%** | `[8865..10000 bps]` |
+
 ---
 
 ## 3. Disclosed Surviving Mutants & Cryptographic Isolation
 
 
 
-All 130 commissioned prototype modules have achieved 100.00% mutation adequacy (30/30, 28/28, 27/27, 25/25, 24/24, 22/22, 20/20, 19/19, 17/17, 15/15, 13/13, 12/12, 9/9, 8/8, or 7/7 mutants killed each) under the AST shadow runner with zero surviving mutants across their sampled sets:
+All 131 commissioned prototype modules have achieved 100.00% mutation adequacy (30/30, 28/28, 27/27, 25/25, 24/24, 22/22, 20/20, 19/19, 17/17, 15/15, 13/13, 12/12, 9/9, 8/8, or 7/7 mutants killed each) under the AST shadow runner with zero surviving mutants across their sampled sets:
 
 
 1. All runtime path bootstrap setups (`sys.path.insert(0, str(_REPO_ROOT))`) verified with active sentinel poisoning reload checks.

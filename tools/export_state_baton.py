@@ -132,6 +132,7 @@ def build_state_baton(
         "src/tpm_pcr_attestation.py",
         "src/sema_auto_swarm_simulator.py",
         "src/pap_adapter.py",
+        "src/zk_budget_proof_engine.py",
         "src/reality/merkle_sync.py",
         "src/reality/git_oracle.py",
         "src/reality/pointer_bus.py",

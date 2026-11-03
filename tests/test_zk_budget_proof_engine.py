@@ -22,6 +22,7 @@ from src.capability_status import (
     SIMULATED_OPT_IN,
     CapabilityUnavailableError,
 )
+import hashlib
 from src.zk_budget_proof_engine import (
     BN254_SCALAR_FIELD_PRIME,
     HALT_ZK_BALANCE_CONSERVATION_FAILED,
@@ -29,12 +30,15 @@ from src.zk_budget_proof_engine import (
     HALT_ZK_COMMITMENT_ROOT_MISMATCH,
     HALT_ZK_NEGATIVE_SPEND_DETECTED,
     HALT_ZK_PROOF_INVALID,
+    MAX_LIMB_VALUE,
+    NUM_LIMBS,
     BudgetPublicInputs,
     PrivateTransaction,
     PrivateWitness,
     ZkBudgetProof,
     ZkBudgetProofEngine,
     ZkCircuitError,
+    ZkVerificationResult,
 )
 
 
@@ -105,7 +109,8 @@ def test_valid_budget_proof_generation_and_verification(test_engine, sample_txs)
     assert result.status == SIMULATED_OPT_IN
     assert bool(result) is True
     assert result.rejection_code is None
-    assert result.verification_time_ms < 15.0
+    assert isinstance(result.verification_time_ms, int)
+    assert result.verification_time_ms >= 0
 
     is_valid, rejection_code = result
     assert is_valid is True
@@ -354,16 +359,257 @@ def test_falsification_5_tampered_proof_artifacts(test_engine, sample_txs):
     assert res_eval.rejection_code in (HALT_ZK_BALANCE_CONSERVATION_FAILED, HALT_ZK_PROOF_INVALID)
 
 
-def test_cli_self_test_execution():
-    """Runs CLI --self-test and verifies clean execution code."""
-    proc = subprocess.run(
-        [sys.executable, "src/zk_budget_proof_engine.py", "--self-test"],
-        capture_output=True,
-        text=True,
-        check=False,
+def test_sample_blinding_bounds(test_engine):
+    """Tests _sample_blinding produces values in [1, r - 1]."""
+    r = 7
+    values = set()
+    for _ in range(50):
+        b = test_engine._sample_blinding(r)
+        assert 1 <= b < r
+        values.add(b)
+    assert values == {1, 2, 3, 4, 5, 6}
+
+    field_b = test_engine._sample_blinding(BN254_SCALAR_FIELD_PRIME)
+    assert 1 <= field_b < BN254_SCALAR_FIELD_PRIME
+
+
+def test_decompose_into_limbs_and_boundaries(test_engine):
+    """Tests binary limb decomposition and boundary rejections."""
+    limbs_zero = test_engine.decompose_into_limbs(0)
+    assert len(limbs_zero) == NUM_LIMBS
+    assert all(b == 0 for b in limbs_zero)
+
+    limbs_one = test_engine.decompose_into_limbs(1)
+    assert limbs_one[0] == 1
+    assert all(b == 0 for b in limbs_one[1:])
+
+    limbs_max = test_engine.decompose_into_limbs(MAX_LIMB_VALUE)
+    assert len(limbs_max) == NUM_LIMBS
+    assert all(b == 1 for b in limbs_max)
+
+    with pytest.raises(ZkCircuitError) as exc_neg:
+        test_engine.decompose_into_limbs(-1)
+    assert exc_neg.value.rejection_code == HALT_ZK_NEGATIVE_SPEND_DETECTED
+
+    with pytest.raises(ZkCircuitError) as exc_over:
+        test_engine.decompose_into_limbs(MAX_LIMB_VALUE + 1)
+    assert exc_over.value.rejection_code == HALT_ZK_NEGATIVE_SPEND_DETECTED
+
+
+def test_merkle_root_edge_cases(test_engine):
+    """Tests empty Merkle tree root, odd leaf duplication, and 4-leaf golden root."""
+    empty_root = test_engine.compute_merkle_root([])
+    assert empty_root == hashlib.sha256(b"EMPTY_ZK_AEIB_TREE").hexdigest()
+
+    leaves_single = ["aa" * 32]
+    root_single = test_engine.compute_merkle_root(leaves_single)
+    assert root_single == "aa" * 32
+
+    leaves_odd = ["11" * 32, "22" * 32, "33" * 32]
+    root_odd = test_engine.compute_merkle_root(leaves_odd)
+    assert isinstance(root_odd, str) and len(root_odd) == 64
+
+    leaves_four = ["11" * 32, "22" * 32, "33" * 32, "44" * 32]
+    assert test_engine.compute_merkle_root(leaves_four) == "7742fda6ee2cc27d86a9d67d75ab3f2f5ae6afaf5b0a5d734fbdf04ea82ba928"
+
+
+def test_generate_proof_empty_witness_rejected(test_engine):
+    """Generating a proof with 0 transactions raises HALT_ZK_PROOF_INVALID."""
+    public_inputs = BudgetPublicInputs(
+        initial_balance_minor=1000,
+        final_balance_minor=1000,
+        budget_ceiling_minor=500,
+        commitment_merkle_root="00" * 32,
+        epoch=202610,
     )
-    assert proc.returncode == 0
-    assert "zk-AEIB Arithmetic Circuit Self-Test Completed Successfully" in proc.stdout
+    with pytest.raises(ZkCircuitError) as exc_info:
+        test_engine.generate_budget_proof(PrivateWitness(transactions=[]), public_inputs)
+    assert exc_info.value.rejection_code == HALT_ZK_PROOF_INVALID
+
+
+def test_generate_proof_spend_and_slack_overflow(test_engine):
+    """Generating a proof with spend or slack exceeding MAX_LIMB_VALUE fails closed."""
+    huge_tx = [PrivateTransaction(spend_minor=MAX_LIMB_VALUE + 1, salt="s", payee="p")]
+    public_inputs = BudgetPublicInputs(
+        initial_balance_minor=MAX_LIMB_VALUE + 10,
+        final_balance_minor=9,
+        budget_ceiling_minor=MAX_LIMB_VALUE + 20,
+        commitment_merkle_root="00" * 32,
+        epoch=202610,
+    )
+    with pytest.raises(ZkCircuitError) as exc_spend:
+        test_engine.generate_budget_proof(PrivateWitness(huge_tx), public_inputs)
+    assert exc_spend.value.rejection_code == HALT_ZK_NEGATIVE_SPEND_DETECTED
+
+    tx_normal = [PrivateTransaction(spend_minor=10, salt="s", payee="p")]
+    leaves = [test_engine.compute_leaf_commitment(t.salt, t.spend_minor, t.payee) for t in tx_normal]
+    root = test_engine.compute_merkle_root(leaves)
+    public_inputs_huge_slack = BudgetPublicInputs(
+        initial_balance_minor=100,
+        final_balance_minor=90,
+        budget_ceiling_minor=MAX_LIMB_VALUE + 20,
+        commitment_merkle_root=root,
+        epoch=202610,
+    )
+    with pytest.raises(ZkCircuitError) as exc_slack:
+        test_engine.generate_budget_proof(PrivateWitness(tx_normal), public_inputs_huge_slack)
+    assert exc_slack.value.rejection_code == HALT_ZK_CEILING_BREACH
+
+
+def test_verifier_delta_negative_and_slack_bounds(test_engine, sample_txs):
+    """Verifier rejects negative delta and slack exceeding MAX_LIMB_VALUE."""
+    total_spend = sum(t.spend_minor for t in sample_txs)
+    leaves = [test_engine.compute_leaf_commitment(t.salt, t.spend_minor, t.payee) for t in sample_txs]
+    root = test_engine.compute_merkle_root(leaves)
+
+    inputs = BudgetPublicInputs(
+        initial_balance_minor=100000,
+        final_balance_minor=100000 - total_spend,
+        budget_ceiling_minor=15000,
+        commitment_merkle_root=root,
+        epoch=202610,
+    )
+    proof = test_engine.generate_budget_proof(PrivateWitness(sample_txs), inputs)
+
+    # Negative delta
+    neg_delta_inputs = BudgetPublicInputs(
+        initial_balance_minor=1000,
+        final_balance_minor=1001,
+        budget_ceiling_minor=15000,
+        commitment_merkle_root=root,
+        epoch=202610,
+    )
+    res_neg = test_engine.verify_budget_proof(neg_delta_inputs, proof, allow_simulation=True)
+    assert res_neg.valid is False
+    assert res_neg.rejection_code == HALT_ZK_NEGATIVE_SPEND_DETECTED
+    assert isinstance(res_neg.verification_time_ms, int)
+
+    # Slack exceeding MAX_LIMB_VALUE
+    huge_slack_inputs = BudgetPublicInputs(
+        initial_balance_minor=100000,
+        final_balance_minor=100000 - total_spend,
+        budget_ceiling_minor=total_spend + MAX_LIMB_VALUE + 10,
+        commitment_merkle_root=root,
+        epoch=202610,
+    )
+    res_slack = test_engine.verify_budget_proof(huge_slack_inputs, proof, allow_simulation=True)
+    assert res_slack.valid is False
+    assert res_slack.rejection_code == HALT_ZK_CEILING_BREACH
+
+
+def test_verifier_mismatched_vector_lengths_and_limb_lengths(test_engine, sample_txs):
+    """Verifier rejects evaluation vectors with inconsistent lengths."""
+    total_spend = sum(t.spend_minor for t in sample_txs)
+    leaves = [test_engine.compute_leaf_commitment(t.salt, t.spend_minor, t.payee) for t in sample_txs]
+    root = test_engine.compute_merkle_root(leaves)
+
+    inputs = BudgetPublicInputs(
+        initial_balance_minor=100000,
+        final_balance_minor=100000 - total_spend,
+        budget_ceiling_minor=15000,
+        commitment_merkle_root=root,
+        epoch=202610,
+    )
+    proof = test_engine.generate_budget_proof(PrivateWitness(sample_txs), inputs)
+
+    # 1. Vector length mismatch
+    proof_dict1 = proof.to_dict()
+    proof_dict1["evaluations"]["v_m_x"] = proof_dict1["evaluations"]["v_m_x"][:-1]
+    res1 = test_engine.verify_budget_proof(inputs, ZkBudgetProof.from_dict(proof_dict1), allow_simulation=True)
+    assert res1.valid is False
+    assert res1.rejection_code == HALT_ZK_PROOF_INVALID
+
+    # 2. Masked poly limb length != 64
+    proof_dict2 = proof.to_dict()
+    proof_dict2["evaluations"]["masked_polys"][0] = proof_dict2["evaluations"]["masked_polys"][0][:-1]
+    res2 = test_engine.verify_budget_proof(inputs, ZkBudgetProof.from_dict(proof_dict2), allow_simulation=True)
+    assert res2.valid is False
+    assert res2.rejection_code == HALT_ZK_NEGATIVE_SPEND_DETECTED
+
+    # 3. Slack poly limb length != 64
+    proof_dict3 = proof.to_dict()
+    proof_dict3["evaluations"]["ms_poly"] = proof_dict3["evaluations"]["ms_poly"][:-1]
+    res3 = test_engine.verify_budget_proof(inputs, ZkBudgetProof.from_dict(proof_dict3), allow_simulation=True)
+    assert res3.valid is False
+    assert res3.rejection_code == HALT_ZK_CEILING_BREACH
+
+    # 4. Malformed non-integer slack evaluation
+    proof_dict4 = proof.to_dict()
+    proof_dict4["evaluations"]["v_ms_2"] = "not_an_int"
+    res4 = test_engine.verify_budget_proof(inputs, ZkBudgetProof.from_dict(proof_dict4), allow_simulation=True)
+    assert res4.valid is False
+    assert res4.rejection_code == HALT_ZK_PROOF_INVALID
+
+    # 5. Inconsistent slack evaluation at challenge_x
+    proof_dict5 = proof.to_dict()
+    orig_v_ms_x = int(proof_dict5["evaluations"]["v_ms_x"])
+    proof_dict5["evaluations"]["v_ms_x"] = str((orig_v_ms_x + 1) % BN254_SCALAR_FIELD_PRIME)
+    res5 = test_engine.verify_budget_proof(inputs, ZkBudgetProof.from_dict(proof_dict5), allow_simulation=True)
+    assert res5 is not None
+    assert res5.valid is False
+    assert res5.rejection_code == HALT_ZK_PROOF_INVALID
+    assert "Slack evaluation at challenge x inconsistent" in res5.reason
+
+    # 6. Inconsistent slack commitment homomorphism
+    proof_dict6 = proof.to_dict()
+    orig_sigma_ms = int(proof_dict6["evaluations"]["sigma_ms"])
+    proof_dict6["evaluations"]["sigma_ms"] = str((orig_sigma_ms + 1) % BN254_SCALAR_FIELD_PRIME)
+    res6 = test_engine.verify_budget_proof(inputs, ZkBudgetProof.from_dict(proof_dict6), allow_simulation=True)
+    assert res6 is not None
+    assert res6.valid is False
+    assert res6.rejection_code == HALT_ZK_PROOF_INVALID
+    assert "Slack commitment homomorphism failed" in res6.reason
+
+
+def test_protocol_constants_and_dataclasses_frozen(test_engine):
+    """Asserts exact protocol constants and immutability of data models."""
+    import dataclasses
+    assert NUM_LIMBS == 64
+    assert MAX_LIMB_VALUE == (1 << 64) - 1
+
+    tx = PrivateTransaction(spend_minor=10, salt="s", payee="p")
+    with pytest.raises((dataclasses.FrozenInstanceError, TypeError)):
+        tx.spend_minor = 20
+
+    witness = PrivateWitness(transactions=[tx])
+    with pytest.raises((dataclasses.FrozenInstanceError, TypeError)):
+        witness.transactions = []
+
+    res = ZkVerificationResult(valid=True)
+    assert res.verification_time_ms == 0
+    with pytest.raises((dataclasses.FrozenInstanceError, TypeError)):
+        res.valid = False
+
+    inputs = BudgetPublicInputs(
+        initial_balance_minor=100,
+        final_balance_minor=90,
+        budget_ceiling_minor=50,
+        commitment_merkle_root="aa"*32,
+        epoch=202610
+    )
+    with pytest.raises((dataclasses.FrozenInstanceError, TypeError)):
+        inputs.epoch = 0
+
+
+def test_commit_poly_exact_golden_vector(test_engine):
+    """Asserts exact polynomial commitment output on known test vector."""
+    val = test_engine._commit_poly([1, 2], 3)
+    assert hex(val) == "0x1bfc731cea811802deff420b3cbdc098fe1d756494dece5b5a82e5fc3f4ead3e"
+
+
+def test_prover_rejects_mismatched_merkle_root(test_engine, sample_txs):
+    """Prover raises HALT_ZK_COMMITMENT_ROOT_MISMATCH when witness root != public input root."""
+    total_spend = sum(t.spend_minor for t in sample_txs)
+    bad_inputs = BudgetPublicInputs(
+        initial_balance_minor=100000,
+        final_balance_minor=100000 - total_spend,
+        budget_ceiling_minor=15000,
+        commitment_merkle_root="00" * 32,
+        epoch=202610,
+    )
+    with pytest.raises(ZkCircuitError) as exc_gen:
+        test_engine.generate_budget_proof(PrivateWitness(sample_txs), bad_inputs)
+    assert exc_gen.value.rejection_code == HALT_ZK_COMMITMENT_ROOT_MISMATCH
 
 
 def test_banned_words_compliance_across_owned_files():

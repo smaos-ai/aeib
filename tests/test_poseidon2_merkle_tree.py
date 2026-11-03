@@ -41,6 +41,11 @@ from src.poseidon2_merkle_tree import (
 
 def test_sbox_and_field_properties():
     """Verify S-box evaluation and modular reduction."""
+    assert BN254_PRIME == 21888242871839275222246405745257275088548364400416034343698204186575808495617
+    assert T_WIDTH == 3
+    assert ROUNDS_FULL == 8
+    assert ROUNDS_PARTIAL == 56
+    assert TOTAL_ROUNDS == 64
     assert sbox(0) == 0
     assert sbox(1) == 1
     assert sbox(2) == 32
@@ -51,22 +56,27 @@ def test_sbox_and_field_properties():
 
 def test_linear_layers():
     """Verify external circulant and internal diagonal linear transformations."""
-    state = [1, 2, 3]
+    state = [2, 3, 4]
     ext_out = linear_external(state)
     assert len(ext_out) == 3
-    # circ(2, 1, 1) on [1, 2, 3]: sum = 6; y_i = sum + x_i => [7, 8, 9]
-    assert ext_out == [7, 8, 9]
+    # circ(2, 1, 1) on [2, 3, 4]: sum = 9; y_i = sum + x_i => [11, 12, 13]
+    assert ext_out == [11, 12, 13]
 
-    # internal on [1, 2, 3] with mu = (2, 3, 4): sum = 6; y_i = sum + mu_i * x_i
-    # y_0 = 6 + 2*1 = 8; y_1 = 6 + 3*2 = 12; y_2 = 6 + 4*3 = 18
+    # internal on [2, 3, 4] with mu = (2, 3, 4): sum = 9; y_i = sum + mu_i * x_i
+    # y_0 = 9 + 2*2 = 13; y_1 = 9 + 3*3 = 18; y_2 = 9 + 4*4 = 25
     int_out = linear_internal(state)
-    assert int_out == [8, 12, 18]
+    assert int_out == [13, 18, 25]
 
 
 def test_poseidon2_permutation_avalanche_and_non_commutativity():
     """Verify non-commutativity and diffusion avalanche of the permutation."""
+    h_1_2 = poseidon2_hash_2(1, 2)
+    assert h_1_2 == 0x2cf716538cb34654849239910da4e8516133c595fcc402b4411ad361b201736c
+
     h1 = poseidon2_hash_2(42, 99)
     h2 = poseidon2_hash_2(99, 42)
+    assert h1 == 0x4439b67fe831c12ca8aa8d5f8283549041b0defa395c078340e2c7215553d17
+    assert h2 == 0x17494a606b2f9aec30ee564e0248fa424b4e269a3763a987cb319119c82895a0
     assert h1 != h2, "Poseidon2 must not be commutative"
 
     # Single-bit difference in inputs should produce distinct pseudorandom outputs
@@ -79,13 +89,18 @@ def test_poseidon2_permutation_avalanche_and_non_commutativity():
 def test_poseidon2_hash_bytes_and_canonical_json():
     """Verify arbitrary byte hashing and RFC 8785 canonical JSON hashing."""
     h_empty = poseidon2_hash_bytes(b"")
+    assert h_empty == 0x11f59b048c2f0d031c86e435f52f848450096d7bb7e13f02de97159c8c01f26c
     assert 0 <= h_empty < BN254_PRIME
+
+    h_65 = poseidon2_hash_bytes(b"x" * 65)
+    assert h_65 == 0x1b3abf87c6debbcfb33c2fa75910a4adcdc62d3adc43dee31842a6b95dd3d8ab
 
     payload_a = {"policy": "AEIB_DORA_COLD_VAULT", "epoch": 104}
     payload_b = {"epoch": 104, "policy": "AEIB_DORA_COLD_VAULT"}
     h_json_a = poseidon2_hash_canonical_json(payload_a)
     h_json_b = poseidon2_hash_canonical_json(payload_b)
     # Order-invariant canonical hashing
+    assert h_json_a == 0x3a333e722f4c294843d988082c8e5ed65903a2913a8fcc36c9257b4734d8f19
     assert h_json_a == h_json_b
 
 
@@ -102,6 +117,20 @@ def test_poseidon2_merkle_tree_construction_and_padding():
     assert tree.leaves[-1] == 0  # Padded element
     assert tree.depth == 3
     assert 0 <= tree.root < BN254_PRIME
+    assert tree.root_hex == hex(tree.root)
+    assert tree.root_hex.startswith("0x")
+
+    # Power of 2 leaves must not pad further
+    tree_p2 = Poseidon2MerkleTree(list(range(8)))
+    assert len(tree_p2.leaves) == 8
+    assert tree_p2.depth == 3
+
+    # Single leaf tree must have depth 0 and 1 leaf
+    tree_1 = Poseidon2MerkleTree([42])
+    assert len(tree_1.leaves) == 1
+    assert tree_1.depth == 0
+    assert tree_1.root == 42
+    assert tree_1.root_hex == hex(42)
 
 
 def test_poseidon2_merkle_tree_all_leaves_proof_verification():

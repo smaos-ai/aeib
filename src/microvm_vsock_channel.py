@@ -41,6 +41,19 @@ from cryptography.hazmat.primitives.asymmetric import ed25519
 from src.jcs_canonicalizer import encode_jcs
 
 
+MAGIC_CONST: int = 0xAE1B50C0
+RESERVED_CONST: int = 0
+FRAME_VERSION: int = 1
+MSG_PROPOSAL: int = 1
+MSG_CONFIRMATION: int = 2
+MSG_FAULT: int = 3
+MSG_HEARTBEAT: int = 4
+BUFFER_SIZE: int = 65536
+DEFAULT_AUTHORIZED_CIDS: Tuple[int, ...] = (3, 4, 5)
+SOCKET_PERMISSIONS: int = 0o600
+BACKLOG: int = 16
+
+
 class MicroVMEgressViolation(Exception):
     """Raised when a guest MicroVM attempts unauthorized egress."""
     pass
@@ -56,11 +69,17 @@ class VsockMessageFrame:
 
     HEADER_FORMAT = ">IBBH"  # magic (4B), version (1B), msg_type (1B), reserved (2B)
     HEADER_SIZE = struct.calcsize(HEADER_FORMAT)
-    MAGIC_CONST = 0xAE1B50C0
+    MAGIC_CONST = MAGIC_CONST
+    RESERVED_CONST = RESERVED_CONST
+    FRAME_VERSION = FRAME_VERSION
+    MSG_PROPOSAL = MSG_PROPOSAL
+    MSG_CONFIRMATION = MSG_CONFIRMATION
+    MSG_FAULT = MSG_FAULT
+    MSG_HEARTBEAT = MSG_HEARTBEAT
 
     def serialize(self) -> bytes:
         payload_len = len(self.payload)
-        header = struct.pack(self.HEADER_FORMAT, self.MAGIC_CONST, self.version, self.msg_type, 0)
+        header = struct.pack(self.HEADER_FORMAT, self.MAGIC_CONST, self.version, self.msg_type, self.RESERVED_CONST)
         return header + struct.pack(">I", payload_len) + self.payload
 
     @classmethod
@@ -68,9 +87,15 @@ class VsockMessageFrame:
         total_header_size = cls.HEADER_SIZE + 4  # header + payload length
         if len(raw) < total_header_size:
             raise ValueError("Frame buffer too short for header")
-        magic, version, msg_type, _ = struct.unpack(cls.HEADER_FORMAT, raw[:cls.HEADER_SIZE])
+        magic, version, msg_type, reserved = struct.unpack(cls.HEADER_FORMAT, raw[:cls.HEADER_SIZE])
         if magic != cls.MAGIC_CONST:
             raise ValueError(f"Invalid frame magic: {hex(magic)}")
+        if version != cls.FRAME_VERSION:
+            raise ValueError(f"Unsupported frame version: {version}")
+        if msg_type not in (cls.MSG_PROPOSAL, cls.MSG_CONFIRMATION, cls.MSG_FAULT, cls.MSG_HEARTBEAT):
+            raise ValueError(f"Unknown message type: {msg_type}")
+        if reserved != cls.RESERVED_CONST:
+            raise ValueError(f"Non-zero reserved field: {reserved}")
         payload_len, = struct.unpack(">I", raw[cls.HEADER_SIZE:total_header_size])
         if len(raw) < total_header_size + payload_len:
             raise ValueError("Frame buffer too short for payload body")
@@ -82,6 +107,10 @@ class MicroVMHostVsockServer:
     """
     Host-side VSOCK listener receiving tool dispatch proposals from Firecracker guest VMs.
     """
+    BUFFER_SIZE = BUFFER_SIZE
+    DEFAULT_AUTHORIZED_CIDS = DEFAULT_AUTHORIZED_CIDS
+    SOCKET_PERMISSIONS = SOCKET_PERMISSIONS
+    BACKLOG = BACKLOG
 
     def __init__(
         self,
@@ -90,7 +119,7 @@ class MicroVMHostVsockServer:
         host_signer: Optional[ed25519.Ed25519PrivateKey] = None,
     ) -> None:
         self.socket_path = socket_path
-        self.authorized_guest_cids = set(authorized_guest_cids or [3, 4, 5])
+        self.authorized_guest_cids = set(authorized_guest_cids if authorized_guest_cids is not None else self.DEFAULT_AUTHORIZED_CIDS)
         self.host_signer = host_signer or ed25519.Ed25519PrivateKey.generate()
         self.host_pubkey_bytes = self.host_signer.public_key().public_bytes_raw()
         self.host_pubkey_b64 = base64.b64encode(self.host_pubkey_bytes).decode("ascii")
@@ -105,8 +134,8 @@ class MicroVMHostVsockServer:
             os.unlink(self.socket_path)
         self._server_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         self._server_sock.bind(self.socket_path)
-        os.chmod(self.socket_path, 0o600)
-        self._server_sock.listen(16)
+        os.chmod(self.socket_path, self.SOCKET_PERMISSIONS)
+        self._server_sock.listen(self.BACKLOG)
         self._running = True
         self._thread = threading.Thread(target=self._listen_loop, daemon=True)
         self._thread.start()
@@ -136,7 +165,7 @@ class MicroVMHostVsockServer:
 
             with conn:
                 try:
-                    data = conn.recv(65536)
+                    data = conn.recv(self.BUFFER_SIZE)
                     if not data:
                         continue
                     frame, _ = VsockMessageFrame.deserialize(data)
@@ -146,8 +175,8 @@ class MicroVMHostVsockServer:
                     err_payload = json.dumps({"status": "ERROR", "detail": str(ex)}).encode("utf-8")
                     err_frame = VsockMessageFrame(
                         magic=VsockMessageFrame.MAGIC_CONST,
-                        version=1,
-                        msg_type=3,
+                        version=VsockMessageFrame.FRAME_VERSION,
+                        msg_type=VsockMessageFrame.MSG_FAULT,
                         payload=err_payload,
                     )
                     conn.sendall(err_frame.serialize())
@@ -193,8 +222,8 @@ class MicroVMHostVsockServer:
 
         return VsockMessageFrame(
             magic=VsockMessageFrame.MAGIC_CONST,
-            version=1,
-            msg_type=2,
+            version=VsockMessageFrame.FRAME_VERSION,
+            msg_type=VsockMessageFrame.MSG_CONFIRMATION,
             payload=out_payload,
         )
 
@@ -203,8 +232,10 @@ class MicroVMGuestClient:
     """
     Client running inside the starved guest VM routing all tool calls over the host channel.
     """
+    BUFFER_SIZE = BUFFER_SIZE
+    DEFAULT_GUEST_CID = 3
 
-    def __init__(self, socket_path: str, guest_cid: int = 3) -> None:
+    def __init__(self, socket_path: str, guest_cid: int = DEFAULT_GUEST_CID) -> None:
         self.socket_path = socket_path
         self.guest_cid = guest_cid
 
@@ -217,7 +248,7 @@ class MicroVMGuestClient:
     ) -> Dict[str, Any]:
         payload_dict = {
             "arguments": arguments,
-            "direct_egress_attempted": direct_egress_attempted,
+            "direct_egress_attempted": bool(direct_egress_attempted),
             "guest_cid": self.guest_cid,
             "operation_id": operation_id,
             "tool_name": tool_name,
@@ -225,8 +256,8 @@ class MicroVMGuestClient:
         raw_payload = json.dumps(payload_dict).encode("utf-8")
         req_frame = VsockMessageFrame(
             magic=VsockMessageFrame.MAGIC_CONST,
-            version=1,
-            msg_type=1,
+            version=VsockMessageFrame.FRAME_VERSION,
+            msg_type=VsockMessageFrame.MSG_PROPOSAL,
             payload=raw_payload,
         )
 
@@ -234,6 +265,6 @@ class MicroVMGuestClient:
         sock.connect(self.socket_path)
         with sock:
             sock.sendall(req_frame.serialize())
-            resp_bytes = sock.recv(65536)
+            resp_bytes = sock.recv(self.BUFFER_SIZE)
             resp_frame, _ = VsockMessageFrame.deserialize(resp_bytes)
             return json.loads(resp_frame.payload.decode("utf-8"))

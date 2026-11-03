@@ -104,6 +104,7 @@ class TransportObserver:
     AEIB Sidecar Interceptor and traffic observer.
     Guards tool execution integrity across stdio and HTTP JSON-RPC boundaries.
     """
+    DEFAULT_RULE_PRIORITY: int = 999
 
     def __init__(
         self,
@@ -130,16 +131,20 @@ class TransportObserver:
     def _load_rules(self, mapping_path: Optional[str]) -> list:
         if mapping_path and Path(mapping_path).exists():
             try:
-                import yaml
-                data = yaml.safe_load(Path(mapping_path).read_text(encoding="utf-8"))
+                content = Path(mapping_path).read_text(encoding="utf-8")
+                try:
+                    import yaml
+                    data = yaml.safe_load(content)
+                except ImportError:
+                    data = json.loads(content)
                 rules = data.get("rules", [])
                 if rules:
                     for r in rules:
                         if "retry_permitted" not in r:
                             r["retry_permitted"] = (r.get("target_disposition") == "RECONCILIATION_NOT_FOUND")
-                    return sorted(rules, key=lambda x: x.get("priority", 999))
-            except (json.JSONDecodeError, OSError, KeyError) as e:
-                logger.debug("Failed to load mapping rules from %s: %s", path, e)
+                    return sorted(rules, key=lambda x: x.get("priority", self.DEFAULT_RULE_PRIORITY))
+            except Exception:
+                pass
         return DEFAULT_MAPPING_RULES
 
     def intercept_request(self, json_rpc_request: Dict[str, Any]) -> Tuple[Dict[str, Any], Dict[str, Any]]:
@@ -227,9 +232,7 @@ class TransportObserver:
                 else:
                     probe_status = "AWAITING_OPERATOR_PROBE"
             else:
-                if transport_code == 504:
-                    probe_status = "AWAITING_OPERATOR_PROBE"
-                elif transport_code in (401, 403):
+                if transport_code in (401, 403):
                     probe_status = "NOT_DISPATCHED"
                 elif transport_code == 200:
                     probe_status = "NOT_REQUIRED"
@@ -320,7 +323,7 @@ class TransportObserver:
         )
 
         rule = self.evaluate_rule(transport_code, receipt["unsigned_payload"]["org.smaos.aeib"]["probe_status"])
-        retry_permitted = rule.get("retry_permitted", False)
+        retry_permitted = rule["retry_permitted"]
         disposition = receipt["unsigned_payload"]["org.smaos.aeib"]["disposition"]
 
         return {

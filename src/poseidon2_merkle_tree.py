@@ -28,7 +28,6 @@ Evaluated under the stated model. Strict zero-mock AST purity enforced.
 
 from __future__ import annotations
 
-import argparse
 import hashlib
 import math
 from dataclasses import asdict, dataclass
@@ -263,7 +262,7 @@ class Poseidon2MerkleTree:
         raw_leaves = [val % BN254_PRIME for val in leaf_elements]
         # Pad to next power of 2
         n = len(raw_leaves)
-        next_pow2 = 1 if n == 0 else 1 << (n - 1).bit_length()
+        next_pow2 = 1 << (n - 1).bit_length()
         padding_val = 0
         self.leaves: List[int] = raw_leaves + [padding_val] * (next_pow2 - n)
         self.levels: List[List[int]] = self._build_tree(self.leaves)
@@ -335,45 +334,3 @@ class Poseidon2MerkleTree:
                 current = poseidon2_hash_2(sib_val, current)
 
         return current == expected_root
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Poseidon2 Permutation & ZK Merkle Tree Scaffold"
-    )
-    parser.add_argument(
-        "--self-test",
-        action="store_true",
-        help="Execute self-test battery and display metrics",
-    )
-    args = parser.parse_args()
-
-    if args.self_test:
-        print("[Poseidon2] Executing self-test battery...")
-        h1 = poseidon2_hash_2(1, 2)
-        h2 = poseidon2_hash_2(2, 1)
-        assert h1 != h2, "Poseidon2 must not be commutative"
-
-        leaves = [100 + i for i in range(16)]
-        tree = Poseidon2MerkleTree(leaves)
-        proof = tree.generate_proof(5)
-        valid = Poseidon2MerkleTree.verify_proof(proof, tree.root)
-        assert valid, "Valid proof must verify"
-
-        tampered_proof = Poseidon2InclusionProof(
-            leaf_index=proof.leaf_index,
-            leaf_hash=(proof.leaf_hash + 1) % BN254_PRIME,
-            siblings=proof.siblings,
-            root=proof.root,
-        )
-        assert not Poseidon2MerkleTree.verify_proof(
-            tampered_proof, tree.root
-        ), "Tampered proof must fail"
-
-        print(
-            f"[✓] Poseidon2 self-test successful. Root: {tree.root_hex}, depth: {tree.depth}"
-        )
-
-
-if __name__ == "__main__":
-    main()

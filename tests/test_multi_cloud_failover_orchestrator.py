@@ -410,3 +410,23 @@ def test_file_backed_sqlite_wal_persistence(tmp_path: Path) -> None:
     assert fo_row[4] == 1
 
     conn.close()
+
+
+def test_even_cluster_quorum_majority_boundary() -> None:
+    """Evaluates strict majority quorum in a 4-node cluster where N // 2 + 1 == 3."""
+    n1 = CloudNodeProfile("node-aws", "AWS", "us-east-1", "https://aws.example.com", 1, True)
+    n2 = CloudNodeProfile("node-gcp", "GCP", "europe-west3", "https://gcp.example.com", 2, False)
+    n3 = CloudNodeProfile("node-azure", "AZURE", "eastus2", "https://azure.example.com", 3, False)
+    n4 = CloudNodeProfile("node-oci", "OCI", "us-ashburn-1", "https://oci.example.com", 4, False)
+
+    orch = MultiCloudFailoverOrchestrator("cluster-4node", [n1, n2, n3, n4])
+
+    # Mark node-azure and node-oci unhealthy (2 healthy nodes left out of 4: aws, gcp)
+    orch.evaluate_heartbeat(HeartbeatTelemetry("node-azure", 100, False, 6000, 1760000050))
+    orch.evaluate_heartbeat(HeartbeatTelemetry("node-oci", 100, False, 6000, 1760000051))
+
+    # With 2 healthy nodes out of 4, required is (4 // 2) + 1 = 3
+    with pytest.raises(RuntimeError, match="ERR_QUORUM_LOST: 2 healthy nodes, 3 required"):
+        orch._trigger_quorum_failover("TEST_FOUR_NODE_QUORUM")
+
+    orch.close()

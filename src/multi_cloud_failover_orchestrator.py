@@ -347,7 +347,6 @@ class MultiCloudFailoverOrchestrator:
 
     def _trigger_quorum_failover(self, reason: str) -> FailoverEvent:
         """Executes failover to highest priority available standby with quorum."""
-        start_ns = time.perf_counter_ns()
         now_ms = self._now_epoch_ms()
         failover_id = f"fo-{self.cluster_id}-{self.total_failovers_executed + 1}-{now_ms}"
 
@@ -389,6 +388,7 @@ class MultiCloudFailoverOrchestrator:
                 """,
                 (new_primary,),
             )
+            elapsed_ms = self._now_epoch_ms() - now_ms
             self._conn.execute(
                 """
                 INSERT INTO failover_events_ledger (
@@ -407,21 +407,9 @@ class MultiCloudFailoverOrchestrator:
                     reason,
                     len(healthy_nodes),
                     1,
-                    0,  # updated below
+                    elapsed_ms,
                     now_ms,
                 ),
-            )
-
-        elapsed_ms = int((time.perf_counter_ns() - start_ns) / 1_000_000)
-
-        with self._conn:
-            self._conn.execute(
-                """
-                UPDATE failover_events_ledger
-                SET commit_duration_ms = ?
-                WHERE failover_id = ?
-                """,
-                (elapsed_ms, failover_id),
             )
 
         event = FailoverEvent(

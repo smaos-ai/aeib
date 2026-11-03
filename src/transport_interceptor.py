@@ -21,8 +21,6 @@ from dataclasses import dataclass, asdict
 from typing import Dict, Any, Optional, Union
 
 # Relative/project imports
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
 from src.cose_signer import jcs_canonicalize, generate_keypair, sign_trust_passport
 from src.bbs_signer import BBSPlusEngine, SovereignAuditLogEntry
 
@@ -92,6 +90,8 @@ class TransportInterceptor:
     """
 
     AMBIGUOUS_WIRE_STATUSES = {504, 502, 503, "504", "TCP_RST", "TIMEOUT", "DROP"}
+    JSON_INDENT: int = 2
+    BBS_ENGINE = BBSPlusEngine
 
     def __init__(
         self,
@@ -116,9 +116,7 @@ class TransportInterceptor:
         Intercepts an action response, detects ambiguous wire failure, executes OOB probe,
         and cryptographically seals the resulting disposition.
         """
-        is_ambiguous = wire_status in self.AMBIGUOUS_WIRE_STATUSES or (
-            isinstance(wire_status, int) and wire_status in (502, 503, 504)
-        )
+        is_ambiguous = wire_status in self.AMBIGUOUS_WIRE_STATUSES
 
         probe_dict: Optional[Dict[str, Any]] = None
 
@@ -181,7 +179,7 @@ class TransportInterceptor:
         signed_envelope = sign_trust_passport(passport_payload, self.signing_key)
         cose_path = self.export_dir / "trust_passport.cose.json"
         with open(cose_path, "w", encoding="utf-8") as f:
-            json.dump(signed_envelope, f, indent=2)
+            json.dump(signed_envelope, f, indent=self.JSON_INDENT)
 
         # Optional BBS+ Selective Redaction
         redacted_proof_dict = None
@@ -223,16 +221,16 @@ class TransportInterceptor:
         }
 
         field_names = SovereignAuditLogEntry.get_field_names()
-        priv_key, pub_key = BBSPlusEngine.generate_keypair(
+        priv_key, pub_key = self.BBS_ENGINE.generate_keypair(
             message_count=len(field_names),
             key_id="smaos-bbs-audit-01"
         )
         entry = SovereignAuditLogEntry(log_data)
         messages = entry.to_message_vector()
-        sig = BBSPlusEngine.sign_messages(priv_key, messages)
+        sig = self.BBS_ENGINE.sign_messages(priv_key, messages)
 
         disclosed_indices = SovereignAuditLogEntry.get_non_pii_indices()
-        proof = BBSPlusEngine.create_selective_proof(
+        proof = self.BBS_ENGINE.create_selective_proof(
             pub_key=pub_key,
             signature=sig,
             messages=messages,
@@ -240,7 +238,7 @@ class TransportInterceptor:
             disclosed_indices=disclosed_indices
         )
 
-        is_valid, msg, _ = BBSPlusEngine.verify_selective_proof(
+        is_valid, msg, _ = self.BBS_ENGINE.verify_selective_proof(
             pub_key=pub_key,
             proof=proof,
             field_names=field_names
@@ -259,6 +257,6 @@ class TransportInterceptor:
 
         redacted_path = self.export_dir / "trust_passport.redacted.json"
         with open(redacted_path, "w", encoding="utf-8") as f:
-            json.dump(redacted_doc, f, indent=2)
+            json.dump(redacted_doc, f, indent=self.JSON_INDENT)
 
         return redacted_doc

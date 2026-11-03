@@ -3,7 +3,7 @@
   "target_notebook_url": "https://notebook.google.com/notebook/e1b91409-02f9-4300-8bf7-5dfd4426dd16",
   "target_notebook_id": "e1b91409-02f9-4300-8bf7-5dfd4426dd16",
   "sources_count": 18,
-  "total_word_count": 147824,
+  "total_word_count": 147913,
   "max_words_per_source_limit": 500000,
   "notebook_source_slots_used": "18 / 50 (32 slots free)",
   "sources": [
@@ -12,7 +12,7 @@
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/00_EXECUTIVE_BRIEFING_FOR_CONSIDERATION.md",
       "words": 894,
       "bytes": 6973,
-      "sha256": "sha256:66f9cb1cbc8e8a70797b9e0d351980b97e89d80b76aa4106d1c6fdf54e3815eb"
+      "sha256": "sha256:cf0e8af6efd98621eb550ca2f5a5d46ccd0c3708feb69526571ae083d2fcd1fa"
     },
     {
       "file_name": "01_SOVEREIGN_NEXUS_MASTER_ARCHITECTURE_AND_12_MOATS.md",
@@ -115,9 +115,9 @@
     {
       "file_name": "15_TEN_LAYER_SOVEREIGN_FACTORY_AND_COMMISSIONED_PROTOTYPE_SPECS.md",
       "path": "/Users/andriileukhin/Documents/SovereignNexus/dist/notebooklm_pack/15_TEN_LAYER_SOVEREIGN_FACTORY_AND_COMMISSIONED_PROTOTYPE_SPECS.md",
-      "words": 3207,
-      "bytes": 30289,
-      "sha256": "sha256:606fc17646798dec537302552b97a7ffc3fab0b2a673160f534debbdc667a6af"
+      "words": 3296,
+      "bytes": 31100,
+      "sha256": "sha256:3c0590300ee51ebc6f28d1c94bb17282084e98d810c86abffd6603abae73ec45"
     },
     {
       "file_name": "16_OCTOBER_31_PHASE_V_5_STATION_KERNEL_TEMPORAL_AUTHORITY_AND_PREMARKET_AUDIT.md",

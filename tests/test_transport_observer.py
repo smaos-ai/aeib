@@ -287,6 +287,143 @@ class TestTransportObserver(unittest.TestCase):
         sig_bytes = bytes.fromhex(receipt["signature_metadata"]["signature"])
         self.observer.public_key.verify(sig_bytes, encode_jcs(signable))
 
+    def test_all_default_mapping_rules_coverage(self):
+        """Verifies each rule in DEFAULT_MAPPING_RULES matches expected codes and dispositions."""
+        expected_rules = [
+            (409, "STATE_CONFLICT", "RECONCILIATION_CONFLICT", False, 10),
+            (403, "NOT_DISPATCHED", "CONTEXT_POLICY_VIOLATION", False, 15),
+            (401, "NOT_DISPATCHED", "AUTHORITY_NOT_BOUND", False, 15),
+            (504, "PAYLOAD_MISMATCH", "RECONCILIATION_FAILED", False, 20),
+            (504, "FOUND_COMMITTED", "OUTCOME_VERIFIED", False, 25),
+            (504, "RECORD_NOT_FOUND", "RECONCILIATION_NOT_FOUND", True, 25),
+            (504, "AWAITING_OPERATOR_PROBE", "DISPATCHED_UNCONFIRMED", False, 30),
+            (200, "NOT_REQUIRED", "OUTCOME_VERIFIED", False, 50),
+        ]
+        self.assertEqual(len(DEFAULT_MAPPING_RULES), len(expected_rules))
+        for code, status, disp, retry_perm, prio in expected_rules:
+            rule = self.observer.evaluate_rule(code, status)
+            self.assertEqual(rule["target_disposition"], disp)
+            self.assertEqual(rule["retry_permitted"], retry_perm)
+            self.assertEqual(rule["priority"], prio)
+
+    def test_unknown_rule_fallback(self):
+        """Evaluating an unmapped code and status falls back to RULE-UNKNOWN."""
+        rule = self.observer.evaluate_rule(500, "UNKNOWN_STATE")
+        self.assertEqual(rule["id"], "RULE-UNKNOWN")
+        self.assertEqual(rule["priority"], 999)
+        self.assertEqual(rule["target_disposition"], "DISPATCHED_UNCONFIRMED")
+        self.assertEqual(rule["retry_policy"], "PROHIBITED_UNKNOWN_FAULT")
+        self.assertFalse(rule["retry_permitted"])
+
+    def test_emit_receipt_without_probe_adapter_status_derivation(self):
+        """Without a probe adapter, status and transport_fault are inferred accurately."""
+        req = {"jsonrpc": "2.0", "id": "infer-1", "method": "tools/call", "params": {"name": "test"}}
+        _, ctx = self.observer.intercept_request(req)
+
+        obs_no_probe = TransportObserver(probe_adapter=None)
+
+        # 200 -> NOT_REQUIRED, NONE
+        r200 = obs_no_probe.emit_receipt(ctx, 200)
+        self.assertEqual(r200["unsigned_payload"]["org.smaos.aeib"]["probe_status"], "NOT_REQUIRED")
+        self.assertEqual(r200["unsigned_payload"]["org.smaos.aeib"]["transport_fault"], "NONE")
+
+        # 401 -> NOT_DISPATCHED, TRANSPORT_HTTP_401
+        r401 = obs_no_probe.emit_receipt(ctx, 401)
+        self.assertEqual(r401["unsigned_payload"]["org.smaos.aeib"]["probe_status"], "NOT_DISPATCHED")
+        self.assertEqual(r401["unsigned_payload"]["org.smaos.aeib"]["transport_fault"], "TRANSPORT_HTTP_401")
+
+        # 403 -> NOT_DISPATCHED, TRANSPORT_HTTP_403
+        r403 = obs_no_probe.emit_receipt(ctx, 403)
+        self.assertEqual(r403["unsigned_payload"]["org.smaos.aeib"]["probe_status"], "NOT_DISPATCHED")
+        self.assertEqual(r403["unsigned_payload"]["org.smaos.aeib"]["transport_fault"], "TRANSPORT_HTTP_403")
+
+        # 504 -> AWAITING_OPERATOR_PROBE, TRANSPORT_HTTP_504
+        r504 = obs_no_probe.emit_receipt(ctx, 504)
+        self.assertEqual(r504["unsigned_payload"]["org.smaos.aeib"]["probe_status"], "AWAITING_OPERATOR_PROBE")
+        self.assertEqual(r504["unsigned_payload"]["org.smaos.aeib"]["transport_fault"], "TRANSPORT_HTTP_504")
+
+        # 500 -> AWAITING_OPERATOR_PROBE, TRANSPORT_HTTP_500
+        r500 = obs_no_probe.emit_receipt(ctx, 500)
+        self.assertEqual(r500["unsigned_payload"]["org.smaos.aeib"]["probe_status"], "AWAITING_OPERATOR_PROBE")
+        self.assertEqual(r500["unsigned_payload"]["org.smaos.aeib"]["transport_fault"], "TRANSPORT_HTTP_500")
+
+    def test_intercept_transport_fault_safe_to_resend(self):
+        """When rule allows retry (RECORD_NOT_FOUND), action_required is SAFE_TO_RESEND."""
+        req = {"jsonrpc": "2.0", "id": "resend-1", "method": "tools/call", "params": {"name": "test"}}
+        _, ctx = self.observer.intercept_request(req)
+
+        err_resp = self.observer.intercept_transport_fault(
+            dispatch_ctx=ctx,
+            transport_code=504,
+            error_message="Gateway Timeout",
+            probe_status="RECORD_NOT_FOUND",
+        )
+        data = err_resp["error"]["data"]
+        self.assertTrue(data["retry_permitted"])
+        self.assertEqual(data["action_required"], "SAFE_TO_RESEND")
+        self.assertEqual(data["disposition"], "RECONCILIATION_NOT_FOUND")
+
+    def test_load_rules_with_yaml_mapping_file(self):
+        """Verifies custom YAML/JSON loading and fallback priority sorting."""
+        import tempfile
+        self.assertEqual(TransportObserver.DEFAULT_RULE_PRIORITY, 999)
+        file_content = json.dumps({
+            "rules": [
+                {
+                    "id": "CUSTOM-01",
+                    "priority": 5,
+                    "match": {"transport_code": 504, "probe_status": "CUSTOM_PROBE"},
+                    "target_disposition": "RECONCILIATION_NOT_FOUND",
+                },
+                {
+                    "id": "CUSTOM-02",
+                    "priority": 1,
+                    "match": {"transport_code": 504, "probe_status": "CUSTOM_CRITICAL"},
+                    "target_disposition": "CRITICAL_FAILURE",
+                },
+                {
+                    "id": "CUSTOM-03",
+                    # No priority specified, falls back to DEFAULT_RULE_PRIORITY (999)
+                    "match": {"transport_code": 504, "probe_status": "CUSTOM_DEFAULT"},
+                    "target_disposition": "RECONCILIATION_NOT_FOUND",
+                },
+            ]
+        })
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
+            f.write(file_content)
+            tmp_path = f.name
+
+        try:
+            obs = TransportObserver(mapping_path=tmp_path)
+            self.assertEqual(len(obs.rules), 3)
+            # Must be sorted by priority ascending (1 first, then 5, then 999)
+            self.assertEqual(obs.rules[0]["id"], "CUSTOM-02")
+            self.assertEqual(obs.rules[0]["priority"], 1)
+            self.assertFalse(obs.rules[0]["retry_permitted"])
+            self.assertEqual(obs.rules[1]["id"], "CUSTOM-01")
+            self.assertEqual(obs.rules[1]["priority"], 5)
+            self.assertTrue(obs.rules[1]["retry_permitted"])
+            self.assertEqual(obs.rules[2]["id"], "CUSTOM-03")
+            self.assertNotIn("priority", obs.rules[2])
+            self.assertTrue(obs.rules[2]["retry_permitted"])
+        finally:
+            os.unlink(tmp_path)
+
+    def test_banned_words_compliance_in_transport_observer_files(self):
+        for fpath in ["src/transport_observer.py", "tests/test_transport_observer.py"]:
+            with open(fpath, "r", encoding="utf-8") as f:
+                text = f.read().lower()
+            forbidden = [
+                "guaran" + "tee",
+                "bullet" + "proof",
+                "enterprise-" + "grade",
+                "production-" + "safe",
+                "100% " + "secure",
+                "unassail" + "able",
+            ]
+            for word in forbidden:
+                self.assertNotIn(word, text, f"Banned word '{word}' found in {fpath}")
+
 
 if __name__ == "__main__":
     unittest.main()

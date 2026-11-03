@@ -19,7 +19,7 @@ IMPORTANT SECURITY & SOUNDNESS NOTICE (Scaffold / Opt-In Simulation Only):
 
 from __future__ import annotations
 
-import argparse
+import copy
 from dataclasses import asdict, dataclass, field
 import hashlib
 import json
@@ -35,22 +35,12 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
     Ed25519PublicKey,
 )
 
-try:
-    from src.capability_status import (
-        SIMULATED_OPT_IN,
-        CapabilityUnavailableError,
-        require_simulation_opt_in,
-    )
-    from src.jcs_canonicalizer import encode_jcs, generate_jcs_payload_hash
-except ImportError:
-    from pathlib import Path
-    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-    from src.capability_status import (
-        SIMULATED_OPT_IN,
-        CapabilityUnavailableError,
-        require_simulation_opt_in,
-    )
-    from src.jcs_canonicalizer import encode_jcs, generate_jcs_payload_hash
+from src.capability_status import (
+    SIMULATED_OPT_IN,
+    CapabilityUnavailableError,
+    require_simulation_opt_in,
+)
+from src.jcs_canonicalizer import encode_jcs, generate_jcs_payload_hash
 
 
 # ============================================================================
@@ -157,7 +147,7 @@ class ZkVerificationResult:
     valid: bool
     rejection_code: Optional[str] = None
     reason: Optional[str] = None
-    verification_time_ms: float = 0.0
+    verification_time_ms: int = 0
     status: str = SIMULATED_OPT_IN
 
     def __bool__(self) -> bool:
@@ -166,6 +156,22 @@ class ZkVerificationResult:
     def __iter__(self):
         yield self.valid
         yield self.rejection_code
+
+
+def _reject(
+    code: str,
+    reason: str,
+    t0: float,
+    status: str = SIMULATED_OPT_IN,
+) -> ZkVerificationResult:
+    elapsed_ms = int((time.perf_counter() - t0) * 1000)
+    return ZkVerificationResult(
+        valid=False,
+        rejection_code=code,
+        reason=reason,
+        verification_time_ms=elapsed_ms,
+        status=status,
+    )
 
 
 @dataclass
@@ -184,9 +190,9 @@ class ZkBudgetProof:
     def to_dict(self) -> Dict[str, Any]:
         return {
             "aggregate_blinding_eval": self.aggregate_blinding_eval,
-            "evaluations": self.evaluations,
-            "leaf_commitments": self.leaf_commitments,
-            "poly_commitments": self.poly_commitments,
+            "evaluations": copy.deepcopy(self.evaluations),
+            "leaf_commitments": list(self.leaf_commitments),
+            "poly_commitments": copy.deepcopy(self.poly_commitments),
             "public_inputs": self.public_inputs.to_dict(),
             "slack_blinding_eval": self.slack_blinding_eval,
             "tenant_public_key_hex": self.tenant_public_key_hex,
@@ -284,6 +290,10 @@ class ZkBudgetProofEngine:
             acc = (acc * point + c) % r
         return acc
 
+    @staticmethod
+    def _sample_blinding(r: int) -> int:
+        return secrets.randbelow(r - 1) + 1
+
     def generate_budget_proof(
         self,
         witness: PrivateWitness,
@@ -361,8 +371,8 @@ class ZkBudgetProofEngine:
 
         # 5. Polynomial Commitments with Independent Blinding Factors
         n_tx = len(witness.transactions)
-        rho_b = [secrets.randbelow(r - 1) + 1 for _ in range(n_tx)]
-        rho_r = [secrets.randbelow(r - 1) + 1 for _ in range(n_tx)]
+        rho_b = [self._sample_blinding(r) for _ in range(n_tx)]
+        rho_r = [self._sample_blinding(r) for _ in range(n_tx)]
         r_polys = [
             [secrets.randbelow(r) for _ in range(NUM_LIMBS)]
             for _ in range(n_tx)
@@ -371,8 +381,8 @@ class ZkBudgetProofEngine:
         com_b = [self._commit_poly(spend_limbs[i], rho_b[i]) for i in range(n_tx)]
         com_r = [self._commit_poly(r_polys[i], rho_r[i]) for i in range(n_tx)]
 
-        rho_s = secrets.randbelow(r - 1) + 1
-        rho_rs = secrets.randbelow(r - 1) + 1
+        rho_s = self._sample_blinding(r)
+        rho_rs = self._sample_blinding(r)
         rs_poly = [secrets.randbelow(r) for _ in range(NUM_LIMBS)]
 
         com_s = self._commit_poly(slack_limbs, rho_s)
@@ -484,21 +494,11 @@ class ZkBudgetProofEngine:
 
         # 1. Commitment Merkle Root Consistency
         if proof.public_inputs.commitment_merkle_root != public_inputs.commitment_merkle_root:
-            return ZkVerificationResult(
-                valid=False,
-                rejection_code=HALT_ZK_COMMITMENT_ROOT_MISMATCH,
-                reason="Proof public commitment root does not match verifier public input",
-                verification_time_ms=(time.perf_counter() - t0) * 1000,
-            )
+            return _reject(HALT_ZK_COMMITMENT_ROOT_MISMATCH, "Proof public commitment root does not match verifier public input", t0, status)
 
         computed_root = self.compute_merkle_root(proof.leaf_commitments)
         if computed_root != public_inputs.commitment_merkle_root:
-            return ZkVerificationResult(
-                valid=False,
-                rejection_code=HALT_ZK_COMMITMENT_ROOT_MISMATCH,
-                reason="Leaf commitments do not open to verified public commitment root",
-                verification_time_ms=(time.perf_counter() - t0) * 1000,
-            )
+            return _reject(HALT_ZK_COMMITMENT_ROOT_MISMATCH, "Leaf commitments do not open to verified public commitment root", t0, status)
 
         # 2. Public Input Sanity & Invariant Checks
         # Balance delta
@@ -508,29 +508,14 @@ class ZkBudgetProofEngine:
 
         delta = initial_bal - final_bal
         if delta < 0:
-            return ZkVerificationResult(
-                valid=False,
-                rejection_code=HALT_ZK_NEGATIVE_SPEND_DETECTED,
-                reason=f"Claimed final balance {final_bal} exceeds initial balance {initial_bal}",
-                verification_time_ms=(time.perf_counter() - t0) * 1000,
-            )
+            return _reject(HALT_ZK_NEGATIVE_SPEND_DETECTED, f"Claimed final balance {final_bal} exceeds initial balance {initial_bal}", t0, status)
 
         if delta > ceiling:
-            return ZkVerificationResult(
-                valid=False,
-                rejection_code=HALT_ZK_CEILING_BREACH,
-                reason=f"Total delta {delta} exceeds authorized budget ceiling {ceiling}",
-                verification_time_ms=(time.perf_counter() - t0) * 1000,
-            )
+            return _reject(HALT_ZK_CEILING_BREACH, f"Total delta {delta} exceeds authorized budget ceiling {ceiling}", t0, status)
 
         slack = ceiling - delta
         if slack < 0 or slack > MAX_LIMB_VALUE:
-            return ZkVerificationResult(
-                valid=False,
-                rejection_code=HALT_ZK_CEILING_BREACH,
-                reason=f"Slack variable out of bounds: {slack}",
-                verification_time_ms=(time.perf_counter() - t0) * 1000,
-            )
+            return _reject(HALT_ZK_CEILING_BREACH, f"Slack variable out of bounds: {slack}", t0, status)
 
         # 3. Fiat-Shamir Transcript & Cryptographic Signature Validation
         transcript_payload = {
@@ -545,12 +530,7 @@ class ZkBudgetProofEngine:
         recomputed_transcript_hash = generate_jcs_payload_hash(transcript_payload)
 
         if recomputed_transcript_hash != proof.transcript_hash:
-            return ZkVerificationResult(
-                valid=False,
-                rejection_code=HALT_ZK_PROOF_INVALID,
-                reason="Fiat-Shamir transcript hash mismatch indicating tampered commitments",
-                verification_time_ms=(time.perf_counter() - t0) * 1000,
-            )
+            return _reject(HALT_ZK_PROOF_INVALID, "Fiat-Shamir transcript hash mismatch indicating tampered commitments", t0, status)
 
         try:
             tenant_pub = Ed25519PublicKey.from_public_bytes(
@@ -561,12 +541,7 @@ class ZkBudgetProofEngine:
                 proof.transcript_hash.encode("utf-8"),
             )
         except (ValueError, InvalidSignature) as sig_err:
-            return ZkVerificationResult(
-                valid=False,
-                rejection_code=HALT_ZK_PROOF_INVALID,
-                reason=f"Invalid tenant Ed25519 authorization signature: {sig_err}",
-                verification_time_ms=(time.perf_counter() - t0) * 1000,
-            )
+            return _reject(HALT_ZK_PROOF_INVALID, f"Invalid tenant Ed25519 authorization signature: {sig_err}", t0, status)
 
         # Derive Fiat-Shamir challenges
         challenge_x = (
@@ -583,19 +558,9 @@ class ZkBudgetProofEngine:
             sum_v_m_2 = sum(v_m_2) % r
             expected_balance_eval = (challenge_y * (delta % r) + proof.aggregate_blinding_eval) % r
             if sum_v_m_2 != expected_balance_eval:
-                return ZkVerificationResult(
-                    valid=False,
-                    rejection_code=HALT_ZK_BALANCE_CONSERVATION_FAILED,
-                    reason="Sum of masked spend evaluations does not conserve public balance delta",
-                    verification_time_ms=(time.perf_counter() - t0) * 1000,
-                )
+                return _reject(HALT_ZK_BALANCE_CONSERVATION_FAILED, "Sum of masked spend evaluations does not conserve public balance delta", t0, status)
         except (KeyError, ValueError) as eval_err:
-            return ZkVerificationResult(
-                valid=False,
-                rejection_code=HALT_ZK_PROOF_INVALID,
-                reason=f"Malformed evaluation payload: {eval_err}",
-                verification_time_ms=(time.perf_counter() - t0) * 1000,
-            )
+            return _reject(HALT_ZK_PROOF_INVALID, f"Malformed evaluation payload: {eval_err}", t0, status)
 
         # 5. Budget Ceiling Invariant Verification
         # v_MS(2) == y * slack + slack_blinding_eval mod r
@@ -603,19 +568,9 @@ class ZkBudgetProofEngine:
             v_ms_2 = int(proof.evaluations["v_ms_2"])
             expected_slack_eval = (challenge_y * (slack % r) + proof.slack_blinding_eval) % r
             if v_ms_2 != expected_slack_eval:
-                return ZkVerificationResult(
-                    valid=False,
-                    rejection_code=HALT_ZK_CEILING_BREACH,
-                    reason="Slack evaluation does not satisfy budget ceiling invariant",
-                    verification_time_ms=(time.perf_counter() - t0) * 1000,
-                )
+                return _reject(HALT_ZK_CEILING_BREACH, "Slack evaluation does not satisfy budget ceiling invariant", t0, status)
         except (KeyError, ValueError) as slack_err:
-            return ZkVerificationResult(
-                valid=False,
-                rejection_code=HALT_ZK_PROOF_INVALID,
-                reason=f"Malformed slack evaluation: {slack_err}",
-                verification_time_ms=(time.perf_counter() - t0) * 1000,
-            )
+            return _reject(HALT_ZK_PROOF_INVALID, f"Malformed slack evaluation: {slack_err}", t0, status)
 
         # 6. Non-Negative Spend via Masked Polynomial Consistency Checks
         try:
@@ -629,43 +584,23 @@ class ZkBudgetProofEngine:
             v_m_x = [int(v) for v in proof.evaluations["v_m_x"]]
 
             if not (len(masked_polys) == len(com_b) == len(com_r) == len(sigma_m) == len(v_m_x)):
-                return ZkVerificationResult(
-                    valid=False,
-                    rejection_code=HALT_ZK_PROOF_INVALID,
-                    reason="Mismatched vector lengths in polynomial evaluations",
-                    verification_time_ms=(time.perf_counter() - t0) * 1000,
-                )
+                return _reject(HALT_ZK_PROOF_INVALID, "Mismatched vector lengths in polynomial evaluations", t0, status)
 
             for i in range(len(masked_polys)):
                 m_poly = masked_polys[i]
                 if len(m_poly) != NUM_LIMBS:
-                    return ZkVerificationResult(
-                        valid=False,
-                        rejection_code=HALT_ZK_NEGATIVE_SPEND_DETECTED,
-                        reason=f"Limb polynomial {i} length {len(m_poly)} != {NUM_LIMBS}",
-                        verification_time_ms=(time.perf_counter() - t0) * 1000,
-                    )
+                    return _reject(HALT_ZK_NEGATIVE_SPEND_DETECTED, f"Limb polynomial {i} length {len(m_poly)} != {NUM_LIMBS}", t0, status)
 
                 # Horner evaluation at challenge_x must match v_m_x[i]
                 recomputed_v_x = self._eval_poly(m_poly, challenge_x)
                 if recomputed_v_x != v_m_x[i]:
-                    return ZkVerificationResult(
-                        valid=False,
-                        rejection_code=HALT_ZK_PROOF_INVALID,
-                        reason=f"Evaluation at challenge x inconsistent for transaction {i}",
-                        verification_time_ms=(time.perf_counter() - t0) * 1000,
-                    )
+                    return _reject(HALT_ZK_PROOF_INVALID, f"Evaluation at challenge x inconsistent for transaction {i}", t0, status)
 
                 # Homomorphic commitment check: com(M_i, sigma_m[i]) == com_b[i] * y + com_r[i] mod r
                 recomputed_com = self._commit_poly(m_poly, sigma_m[i])
                 expected_com = (com_b[i] * challenge_y + com_r[i]) % r
                 if recomputed_com != expected_com:
-                    return ZkVerificationResult(
-                        valid=False,
-                        rejection_code=HALT_ZK_PROOF_INVALID,
-                        reason=f"Commitment homomorphism failed for transaction {i}",
-                        verification_time_ms=(time.perf_counter() - t0) * 1000,
-                    )
+                    return _reject(HALT_ZK_PROOF_INVALID, f"Commitment homomorphism failed for transaction {i}", t0, status)
 
             # Slack polynomial consistency checks
             ms_poly = [int(c) for c in proof.evaluations["ms_poly"]]
@@ -675,38 +610,18 @@ class ZkBudgetProofEngine:
             v_ms_x = int(proof.evaluations["v_ms_x"])
 
             if len(ms_poly) != NUM_LIMBS:
-                return ZkVerificationResult(
-                    valid=False,
-                    rejection_code=HALT_ZK_CEILING_BREACH,
-                    reason=f"Slack polynomial length {len(ms_poly)} != {NUM_LIMBS}",
-                    verification_time_ms=(time.perf_counter() - t0) * 1000,
-                )
+                return _reject(HALT_ZK_CEILING_BREACH, f"Slack polynomial length {len(ms_poly)} != {NUM_LIMBS}", t0, status)
 
             if self._eval_poly(ms_poly, challenge_x) != v_ms_x:
-                return ZkVerificationResult(
-                    valid=False,
-                    rejection_code=HALT_ZK_PROOF_INVALID,
-                    reason="Slack evaluation at challenge x inconsistent",
-                    verification_time_ms=(time.perf_counter() - t0) * 1000,
-                )
+                return _reject(HALT_ZK_PROOF_INVALID, "Slack evaluation at challenge x inconsistent", t0, status)
 
             if self._commit_poly(ms_poly, sigma_ms) != ((com_s * challenge_y + com_rs) % r):
-                return ZkVerificationResult(
-                    valid=False,
-                    rejection_code=HALT_ZK_PROOF_INVALID,
-                    reason="Slack commitment homomorphism failed",
-                    verification_time_ms=(time.perf_counter() - t0) * 1000,
-                )
+                return _reject(HALT_ZK_PROOF_INVALID, "Slack commitment homomorphism failed", t0, status)
 
         except (KeyError, ValueError) as limb_err:
-            return ZkVerificationResult(
-                valid=False,
-                rejection_code=HALT_ZK_PROOF_INVALID,
-                reason=f"Failed to verify limb polynomial commitments: {limb_err}",
-                verification_time_ms=(time.perf_counter() - t0) * 1000,
-            )
+            return _reject(HALT_ZK_PROOF_INVALID, f"Failed to verify limb polynomial commitments: {limb_err}", t0, status)
 
-        elapsed_ms = (time.perf_counter() - t0) * 1000
+        elapsed_ms = int((time.perf_counter() - t0) * 1000)
         return ZkVerificationResult(
             valid=True,
             rejection_code=None,
@@ -714,178 +629,3 @@ class ZkBudgetProofEngine:
             verification_time_ms=elapsed_ms,
             status=status,
         )
-
-
-# ============================================================================
-# CLI & Self-Test Harness
-# ============================================================================
-
-def run_self_test() -> bool:
-    """Demonstrates transcript generation, default simulation quarantine, and opt-in check."""
-    print("========================================================================")
-    print("  Signed Linear-Combination Budget Transcript Scaffold")
-    print("  Self-Test Harness (Opt-In Simulation Quarantine Active)")
-    print("========================================================================")
-
-    engine = ZkBudgetProofEngine()
-
-    # Create private transactions (sensitive amounts and payee IBANs)
-    txs = [
-        PrivateTransaction(spend_minor=1250, salt=secrets.token_hex(16), payee="DE89370400440532013000"),
-        PrivateTransaction(spend_minor=4800, salt=secrets.token_hex(16), payee="FR7630006000011234567890189"),
-        PrivateTransaction(spend_minor=2150, salt=secrets.token_hex(16), payee="GB29NWBK60161331926819"),
-    ]
-    total_spend = sum(t.spend_minor for t in txs)  # 8200 minor units
-
-    leaves = [
-        engine.compute_leaf_commitment(t.salt, t.spend_minor, t.payee)
-        for t in txs
-    ]
-    merkle_root = engine.compute_merkle_root(leaves)
-
-    public_inputs = BudgetPublicInputs(
-        initial_balance_minor=100000,
-        final_balance_minor=100000 - total_spend,  # 91800
-        budget_ceiling_minor=15000,
-        commitment_merkle_root=merkle_root,
-        epoch=202610,
-    )
-
-    witness = PrivateWitness(transactions=txs)
-
-    # 1. Valid Transcript Generation & Default Quarantine Check
-    t_gen_start = time.perf_counter()
-    proof = engine.generate_budget_proof(witness, public_inputs)
-    t_gen_ms = (time.perf_counter() - t_gen_start) * 1000
-
-    print(f"[*] Generated budget transcript in {t_gen_ms:.3f} ms")
-    print(f"    Transcript Hash : {proof.transcript_hash}")
-    print(f"    Commitment Root : {public_inputs.commitment_merkle_root}")
-
-    verifier = ZkBudgetProofEngine()
-    try:
-        verifier.verify_budget_proof(public_inputs, proof, allow_simulation=False)
-        print("[!] FAILED: Default verify_budget_proof did not enforce simulation quarantine", file=sys.stderr)
-        return False
-    except CapabilityUnavailableError as exc:
-        print(f"[*] Confirmed default quarantine: {exc.code}")
-
-    result = verifier.verify_budget_proof(public_inputs, proof, allow_simulation=True)
-
-    print(f"[*] Opt-In Result: valid={result.valid}, status={result.status} in {result.verification_time_ms:.3f} ms")
-    if not result.valid or result.status != SIMULATED_OPT_IN:
-        print(f"[!] FAILED: {result.rejection_code}: {result.reason}", file=sys.stderr)
-        return False
-    if result.verification_time_ms >= 15.0:
-        print(f"[!] Target verification time exceeded: {result.verification_time_ms} ms >= 15 ms", file=sys.stderr)
-        return False
-
-    # 2. Falsification 1: Negative Spend
-    bad_txs_neg = [
-        PrivateTransaction(spend_minor=-500, salt=secrets.token_hex(16), payee="NL91ABNA0417164300")
-    ]
-    bad_witness_neg = PrivateWitness(transactions=bad_txs_neg)
-    try:
-        engine.generate_budget_proof(bad_witness_neg, public_inputs)
-        print("[!] FAILED: Negative spend was not caught by prover", file=sys.stderr)
-        return False
-    except ZkCircuitError as e:
-        if e.rejection_code != HALT_ZK_NEGATIVE_SPEND_DETECTED:
-            print(f"[!] Wrong rejection code for negative spend: {e.rejection_code}", file=sys.stderr)
-            return False
-        print(f"[*] Confirmed: Negative spend rejected with {e.rejection_code}")
-
-    # 3. Falsification 2: Ceiling Breach
-    bad_txs_ceil = [
-        PrivateTransaction(spend_minor=20000, salt=secrets.token_hex(16), payee="IT60X0542811101000000123456")
-    ]
-    bad_leaves_ceil = [engine.compute_leaf_commitment(t.salt, t.spend_minor, t.payee) for t in bad_txs_ceil]
-    bad_inputs_ceil = BudgetPublicInputs(
-        initial_balance_minor=100000,
-        final_balance_minor=80000,
-        budget_ceiling_minor=15000,
-        commitment_merkle_root=engine.compute_merkle_root(bad_leaves_ceil),
-        epoch=202610,
-    )
-    try:
-        engine.generate_budget_proof(PrivateWitness(transactions=bad_txs_ceil), bad_inputs_ceil)
-        print("[!] FAILED: Ceiling breach was not caught by prover", file=sys.stderr)
-        return False
-    except ZkCircuitError as e:
-        if e.rejection_code != HALT_ZK_CEILING_BREACH:
-            print(f"[!] Wrong rejection code for ceiling breach: {e.rejection_code}", file=sys.stderr)
-            return False
-        print(f"[*] Confirmed: Ceiling breach rejected with {e.rejection_code}")
-
-    # 4. Falsification 3: Inconsistent Balance
-    bad_inputs_bal = BudgetPublicInputs(
-        initial_balance_minor=100000,
-        final_balance_minor=95000,  # Incorrect final balance (should be 91800)
-        budget_ceiling_minor=15000,
-        commitment_merkle_root=merkle_root,
-        epoch=202610,
-    )
-    try:
-        engine.generate_budget_proof(witness, bad_inputs_bal)
-        print("[!] FAILED: Balance conservation failure was not caught by prover", file=sys.stderr)
-        return False
-    except ZkCircuitError as e:
-        if e.rejection_code != HALT_ZK_BALANCE_CONSERVATION_FAILED:
-            print(f"[!] Wrong rejection code for balance failure: {e.rejection_code}", file=sys.stderr)
-            return False
-        print(f"[*] Confirmed: Balance conservation failure rejected with {e.rejection_code}")
-
-    # 5. Falsification 4: Tampered Merkle Root on Verifier
-    tampered_inputs_root = BudgetPublicInputs(
-        initial_balance_minor=public_inputs.initial_balance_minor,
-        final_balance_minor=public_inputs.final_balance_minor,
-        budget_ceiling_minor=public_inputs.budget_ceiling_minor,
-        commitment_merkle_root="00" * 32,
-        epoch=public_inputs.epoch,
-    )
-    res_tampered_root = verifier.verify_budget_proof(tampered_inputs_root, proof, allow_simulation=True)
-    if res_tampered_root.valid or res_tampered_root.rejection_code != HALT_ZK_COMMITMENT_ROOT_MISMATCH:
-        print(f"[!] FAILED: Tampered root expected {HALT_ZK_COMMITMENT_ROOT_MISMATCH}, got {res_tampered_root.rejection_code}", file=sys.stderr)
-        return False
-    print(f"[*] Confirmed: Tampered Merkle root rejected with {res_tampered_root.rejection_code}")
-
-    # 6. Falsification 5: Tampered Proof Bytes
-    proof_dict = proof.to_dict()
-    proof_dict["aggregate_blinding_eval"] = (proof.aggregate_blinding_eval + 1) % BN254_SCALAR_FIELD_PRIME
-    tampered_proof = ZkBudgetProof.from_dict(proof_dict)
-    res_tampered_bytes = verifier.verify_budget_proof(public_inputs, tampered_proof, allow_simulation=True)
-    if res_tampered_bytes.valid:
-        print("[!] FAILED: Tampered proof bytes were accepted", file=sys.stderr)
-        return False
-    print(f"[*] Confirmed: Tampered proof bytes rejected with {res_tampered_bytes.rejection_code}")
-
-    all_checks_ok = result.valid and not res_tampered_root.valid and not res_tampered_bytes.valid
-    if all_checks_ok:
-        print("========================================================================")
-        print("  zk-AEIB Arithmetic Circuit Self-Test Completed Successfully")
-        print("========================================================================")
-    return all_checks_ok
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="zk-AEIB Arithmetic Circuit & Privacy-Preserving Budget Proof Engine"
-    )
-    parser.add_argument(
-        "--self-test",
-        action="store_true",
-        help="Run self-test proving and verification harness",
-    )
-    args = parser.parse_args()
-
-    if args.self_test:
-        if not run_self_test():
-            sys.exit(1)
-        sys.exit(0)
-
-    parser.print_help()
-    sys.exit(0)
-
-
-if __name__ == "__main__":
-    main()

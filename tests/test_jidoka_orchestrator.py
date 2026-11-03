@@ -132,6 +132,9 @@ def test_2_interception_of_test_modification_trips_andon_cord(jidoka_workspace: 
     )
     assert res_blocked.status == "HALTED_LINE_FROZEN"
     assert res_blocked.attempt_count == 0
+    assert res_blocked.written_bytes == 0
+    assert res_blocked.andon_tripped is True
+    assert res_blocked.receipt_caid is None
 
     # Unfreeze line
     orchestrator.unfreeze_line()
@@ -188,6 +191,10 @@ def test_4_anti_reward_hacking_blocker_escalation(jidoka_workspace: Path) -> Non
         prompt="Try again",
     )
     assert res.status == "HALTED_LINE_FROZEN"
+    assert res.attempt_count == 0
+    assert res.written_bytes == 0
+    assert res.andon_tripped is True
+    assert res.receipt_caid is None
 
 
 def test_5_flight_recorder_hash_chain_and_jsonl_export(jidoka_workspace: Path) -> None:

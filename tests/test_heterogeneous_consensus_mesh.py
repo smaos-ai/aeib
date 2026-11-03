@@ -20,6 +20,7 @@ Comprehensive verification suite for HeterogeneousConsensusMesh.
 
 from __future__ import annotations
 
+import dataclasses
 import pytest
 from cryptography.hazmat.primitives.asymmetric import ed25519
 
@@ -65,6 +66,9 @@ def sample_rule_graph() -> RuleTrekDependencyGraph:
 
 
 def test_nominal_consensus_approval(sample_rule_graph: RuleTrekDependencyGraph):
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        sample_rule_graph.rules = {}  # type: ignore
+
     mesh = HeterogeneousConsensusMesh(rule_graph=sample_rule_graph)
     proposals = [
         ModelEvaluationProposal(
@@ -429,6 +433,13 @@ def test_receipt_verification_tamper_defenses(sample_rule_graph: RuleTrekDepende
     ok, err = verify_consensus_mesh_receipt(corrupt_float)
     assert ok is False
     assert err == "ERR_FLOAT_FORBIDDEN_IN_RECEIPT"
+
+    # 8. Unserializable object triggers JCS canonicalization exception
+    corrupt_jcs = dict(raw)
+    corrupt_jcs["violated_rule_edges"] = [object()]
+    ok, err = verify_consensus_mesh_receipt(corrupt_jcs)
+    assert ok is False
+    assert err == "ERR_JCS_CANONICALIZATION_FAILED"
 
 
 def test_input_validation_errors(sample_rule_graph: RuleTrekDependencyGraph):

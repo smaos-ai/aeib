@@ -157,7 +157,7 @@ class DigitalTwinSandboxReplayer:
         with tempfile.TemporaryDirectory(prefix="aeib_digital_twin_") as tmp_dir_str:
             tmp_dir = Path(tmp_dir_str)
             sandbox_workspace = tmp_dir / "workspace"
-            sandbox_workspace.mkdir(parents=True, exist_ok=True)
+            sandbox_workspace.mkdir()
 
             # Record clean workspace fingerprint
             initial_files = set(sandbox_workspace.glob("**/*"))

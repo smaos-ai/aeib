@@ -63,6 +63,9 @@ def test_nominal_ansi50_incident_replay(replayer: DigitalTwinSandboxReplayer):
     assert cert.dora_art17_investigation_payload["dora_article_17_compliance"] is True
     assert cert.dora_art17_investigation_payload["materiality_score_bps"] == 8500
     assert cert.eu_ai_act_art14_reversal_payload["eu_ai_act_article_14_compliance"] is True
+    assert cert.eu_ai_act_art14_reversal_payload["human_oversight_reversal_applied"] is True
+    assert cert.eu_ai_act_art14_reversal_payload["andon_cord_stop_activated"] is True
+    assert cert.eu_ai_act_art14_reversal_payload["tripped_breaker_id"] == "ANSI_50_INSTANTANEOUS_BREAKER"
     assert cert.eu_ai_act_art14_reversal_payload["unauthorized_mutations_count"] == 0
 
     valid, err = verify_incident_replay_certificate(cert.to_dict())
@@ -279,3 +282,23 @@ def test_snapshot_defaults():
             candidate_code="pass",
             dora_materiality_score_bps="10000",  # type: ignore
         )
+
+
+def test_frozen_dataclass_immutability(replayer: DigitalTwinSandboxReplayer):
+    """Verifies that IncidentSnapshot and IncidentReplayCertificate are frozen."""
+    from dataclasses import FrozenInstanceError
+    snapshot = IncidentSnapshot(
+        incident_id="inc-frozen",
+        timestamp_utc="2026-10-29T21:00:00Z",
+        fault_classification=IncidentFaultClassification.ANSI_50_OVERCURRENT_TRIP,
+        pre_incident_state_caid="sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        tripped_breaker_id="ANSI_50_INSTANTANEOUS_BREAKER",
+        target_module="src/mod.py",
+        candidate_code="pass",
+    )
+    with pytest.raises(FrozenInstanceError):
+        snapshot.incident_id = "inc-tampered"  # type: ignore
+
+    cert = replayer.replay_incident(snapshot)
+    with pytest.raises(FrozenInstanceError):
+        cert.certificate_id = "cert-tampered"  # type: ignore

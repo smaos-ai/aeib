@@ -309,3 +309,12 @@ def test_takumi_hud_input_validations():
         TakumiInspectionHUD.render_hud("", ["a.py"], "diff", 1, True)
     with pytest.raises(ValueError, match="ERR_EMPTY_MODIFIED_FILES"):
         TakumiInspectionHUD.render_hud("task-1", [], "diff", 1, True)
+
+
+def test_wire_reservation_receipt_frozen_immutability():
+    """Verifies that WireReservationReceipt and results are strictly immutable."""
+    from dataclasses import FrozenInstanceError
+    ab = AntiBacklashWireTransmission()
+    receipt = ab.reserve_pre_socket("op_freeze", "res_freeze", 1)
+    with pytest.raises(FrozenInstanceError):
+        receipt.operation_id = "op_tampered"  # type: ignore
